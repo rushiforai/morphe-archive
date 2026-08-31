@@ -1,5 +1,5 @@
 {
-    "version": "v1.20.0-dev.1",
+    "version": "v1.22.0-dev.2",
     "patches": [
         {
             "compatiblePackages": [
@@ -528,6 +528,54 @@
             "dependencies": [],
             "description": "Rewarded video ads grant their reward instantly without playing the ad: the native engine receives onVideoStartedSuccess + onVideoCompletedSuccess on the GL thread, exactly as if the video had been watched and completed.",
             "name": "Hill Climb Racing Instant Rewarded Video Rewards",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "XAPK",
+                    "appIconColor": "#5BC0EB",
+                    "name": "Alto's Adventure",
+                    "packageName": "com.noodlecake.altosadventure",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "1.8.27"
+                        }
+                    ],
+                    "versions": [
+                        "1.8.27"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Unlocks all in-app purchases by faking Google Play billing query results.",
+            "name": "IAP Unlock",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "XAPK",
+                    "appIconColor": "#E8A33D",
+                    "name": "Alto's Odyssey",
+                    "packageName": "com.noodlecake.altosodyssey",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "1.0.42"
+                        }
+                    ],
+                    "versions": [
+                        "1.0.42"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Unlocks all in-app purchases in Alto's Odyssey by faking Google Play billing query results.",
+            "name": "IAP Unlock",
             "options": []
         },
         {
@@ -1151,10 +1199,15 @@
                         {
                             "isExperimental": false,
                             "version": "1.4.12"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "1.4.13"
                         }
                     ],
                     "versions": [
-                        "1.4.12"
+                        "1.4.12",
+                        "1.4.13"
                     ]
                 }
             ],
@@ -1186,6 +1239,54 @@
             "dependencies": [],
             "description": "Spoofs in-app purchases as instantly successful: tapping Buy grants the SKU directly through the game's own purchase callback — no Google Play dialog, no payment. For ad-free, just tap the Remove-Ads button on the main game screen.",
             "name": "Tentacle Wars Free Purchases",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "XAPK",
+                    "appIconColor": "#FF5722",
+                    "name": "Traffic Rider",
+                    "packageName": "com.skgames.trafficrider",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "2.11"
+                        }
+                    ],
+                    "versions": [
+                        "2.11"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Removes ads and grants rewarded rewards instantly: interstitial/banner/app-open never show, rewarded videos fire onUserEarnedReward(1.0) instantly without ad.",
+            "name": "Traffic Rider Ads Removal + Instant Rewards",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "XAPK",
+                    "appIconColor": "#FF5722",
+                    "name": "Traffic Rider",
+                    "packageName": "com.skgames.trafficrider",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "2.11"
+                        }
+                    ],
+                    "versions": [
+                        "2.11"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Everything in the store is free with one tap — in-game currency, double cash, remove ads, extra continues, all bikes and packs. Just tap Buy and it grants instantly, no Google Play payment needed.",
+            "name": "Traffic Rider IAP Bypass",
             "options": []
         },
         {

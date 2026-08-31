@@ -13,8 +13,9 @@ import kotlin.jvm.functions.Function3;
 final class MorpheSettingsRows {
     private static final int NATIVE_CATEGORY_LIST_DEFAULT_MASK = 510 & ~16;
     private static final int NATIVE_SELECTOR_EXPLICIT_ENABLED_MASK = 0x3fb0;
-    private static final String[] NATIVE_SWITCH_CLASS_NAMES = {"ua.v"};
+    private static final String[] NATIVE_SWITCH_CLASS_NAMES = {"ua.x"};
     private static final String[] NATIVE_SELECTOR_CLASS_NAMES = {"ua.qc"};
+    private static final String[] NATIVE_COLLAPSIBLE_CLASS_NAMES = {"ua.x"};
 
     private static volatile Method nativeCardMethod;
     private static volatile Method nativeSwitchMethod;
@@ -183,6 +184,16 @@ final class MorpheSettingsRows {
         };
     }
 
+    static void setBooleanState(Object state, boolean value) {
+        try {
+            Method setter = state.getClass().getMethod("setValue", Object.class);
+            setter.setAccessible(true);
+            setter.invoke(state, value);
+        } catch (ReflectiveOperationException error) {
+            throw new IllegalStateException("Unable to update Morphe section state", error);
+        }
+    }
+
     static void lazyColumn(Object modifier, Object composer, Function1<Object, Unit> content) {
         try {
             Method method = nativeLazyColumnMethod;
@@ -261,7 +272,7 @@ final class MorpheSettingsRows {
         try {
             Method method = nativeCollapsibleSectionMethod;
             if (method == null) {
-                for (String className : new String[]{"ua.v"}) {
+                for (String className : NATIVE_COLLAPSIBLE_CLASS_NAMES) {
                     Class<?> settingsClass;
                     try {
                         settingsClass = Class.forName(className, false, composer.getClass().getClassLoader());

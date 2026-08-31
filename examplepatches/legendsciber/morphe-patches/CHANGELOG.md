@@ -1,3 +1,70 @@
+## [1.25.4](https://github.com/legendsciber/morphe-patches/compare/v1.25.3...v1.25.4) (2026-08-31)
+
+### 🐛 Bug Fixes
+
+* **extremecardriving:** embed .so as base64 in smali, no rawResourcePatch ([81c4d8b](https://github.com/legendsciber/morphe-patches/commit/81c4d8b05018092363c8f200bd0052621c883cee))
+
+## [1.25.3](https://github.com/legendsciber/morphe-patches/compare/v1.25.2...v1.25.3) (2026-08-31)
+
+### 🐛 Bug Fixes
+
+* **extremecardriving:** embed .so as base64 in smali, no rawResourcePatch ([8b2e968](https://github.com/legendsciber/morphe-patches/commit/8b2e968af50a36e28ee773e86f708b6f1ee05e4d))
+
+## [1.25.2](https://github.com/legendsciber/morphe-patches/compare/v1.25.1...v1.25.2) (2026-08-31)
+
+### 🐛 Bug Fixes
+
+* **extremecardriving:** embed .so as base64 in smali, no rawResourcePatch ([9bd4bc1](https://github.com/legendsciber/morphe-patches/commit/9bd4bc12fa23477efca2561f5482774e1ee25542))
+
+## [1.25.1](https://github.com/legendsciber/morphe-patches/compare/v1.25.0...v1.25.1) (2026-08-31)
+
+### 🐛 Bug Fixes
+
+* **extremecardriving:** embed .so as base64 in smali, no rawResourcePatch ([939d529](https://github.com/legendsciber/morphe-patches/commit/939d529ca3946032a5dac816c5a57aa444144477))
+
+## [1.25.0](https://github.com/legendsciber/morphe-patches/compare/v1.24.3...v1.25.0) (2026-08-30)
+
+### 🐛 Bug Fixes
+
+* **extremecardriving:** fix build - embed .so as base64, use single bytecodePatch ([c858179](https://github.com/legendsciber/morphe-patches/commit/c8581796eb8b515d606155700a647232ea28ca61))
+* **extremecardriving:** fix build - split into rawResourcePatch + bytecodePatch ([f6662fc](https://github.com/legendsciber/morphe-patches/commit/f6662fcb279984613dbaa889086192874b92158a))
+* **extremecardriving:** fix build - split into rawResourcePatch + bytecodePatch ([47a272c](https://github.com/legendsciber/morphe-patches/commit/47a272cb0cadd9c30675345da354b7382f1588cd))
+* **extremecardriving:** fix build - use classLoader to load .so from resources ([f1747e0](https://github.com/legendsciber/morphe-patches/commit/f1747e097e2751b0d766b883484fa4d45daaa0c8))
+
+### ✨ New Features
+
+* **extremecardriving:** add unlimited currencies patch ([41b163a](https://github.com/legendsciber/morphe-patches/commit/41b163a5c5b7717827fd0b7a678d8338c045906a))
+
+## [1.24.3](https://github.com/legendsciber/morphe-patches/compare/v1.24.2...v1.24.3) (2026-08-30)
+
+### 🐛 Bug Fixes
+
+* **pcr:** fix event 66 crash by using separate v6 index register for aput-wide ([a25629b](https://github.com/legendsciber/morphe-patches/commit/a25629b83d8cd51547096afb18d2979b125f17a8))
+
+## [1.24.2](https://github.com/legendsciber/morphe-patches/compare/v1.24.1...v1.24.2) (2026-08-30)
+
+### 🐛 Bug Fixes
+
+* **pcr:** simplify IAP bypass - remove event 66, use only return patches to avoid crash ([3a2325e](https://github.com/legendsciber/morphe-patches/commit/3a2325e2d7723182948413c00c11c08567d31d63))
+
+## [1.24.1](https://github.com/legendsciber/morphe-patches/compare/v1.24.0...v1.24.1) (2026-08-30)
+
+### 🐛 Bug Fixes
+
+* **pcr:** use String.format instead of StringBuilder to avoid crash in PurchaseProduct/PurchaseSubscription ([93c3915](https://github.com/legendsciber/morphe-patches/commit/93c391575dafa9c6615978a074dc8f143304e977))
+
+## [1.24.0](https://github.com/legendsciber/morphe-patches/compare/v1.23.0...v1.24.0) (2026-08-30)
+
+### ✨ New Features
+
+* **pcr:** fire event 66 with SKU in purchases array from PurchaseProduct ([2bfa349](https://github.com/legendsciber/morphe-patches/commit/2bfa3494ef39d0ae15fcccfe6c79f00a27beab36))
+
+## [1.23.0](https://github.com/legendsciber/morphe-patches/compare/v1.22.1...v1.23.0) (2026-08-30)
+
+### ✨ New Features
+
+* **pcr:** trigger async event 66 from PurchaseProduct via queryPurchasesAsync ([009321a](https://github.com/legendsciber/morphe-patches/commit/009321a4be19eb3d41d1a429f50cc80e7a0ba5c4))
+
 ## [1.22.1](https://github.com/legendsciber/morphe-patches/compare/v1.22.0...v1.22.1) (2026-08-30)
 
 ### 🐛 Bug Fixes

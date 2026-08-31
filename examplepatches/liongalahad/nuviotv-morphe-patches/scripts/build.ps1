@@ -16,8 +16,10 @@ if (-not $env:GITHUB_TOKEN -and (Get-Command gh -ErrorAction SilentlyContinue)) 
 
 Push-Location $repo
 try {
-    if (-not $SkipTests) { & .\gradlew.bat :extensions:extension:test }
-    if ($LASTEXITCODE -ne 0) { throw 'Extension tests failed.' }
+    if (-not $SkipTests) {
+        & .\gradlew.bat :extensions:extension:test
+        if ($LASTEXITCODE -ne 0) { throw 'Extension tests failed.' }
+    }
     & .\gradlew.bat :patches:buildAndroid
     if ($LASTEXITCODE -ne 0) { throw 'Morphe bundle build failed.' }
 } finally {

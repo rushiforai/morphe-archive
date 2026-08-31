@@ -29,12 +29,40 @@ internal val LONG_PRESS_QUICK_ACTIONS_POINTER_OWNER_DELEGATE = """
     ${RuntimeCallEmitter.invoke(POINTER_OWNER_RUNTIME_CALL, "p0 .. p1")}
 """.trimIndent()
 
+internal val LONG_PRESS_QUICK_ACTIONS_POINTER_FINISH_DELEGATE = """
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.LONG_PRESS_QUICK_ACTIONS_RUNTIME_ON_GLOBE_POINTER_FINISH,
+        "p0",
+    )}
+""".trimIndent()
+
+internal val LONG_PRESS_QUICK_ACTIONS_POINTER_CANCEL_DELEGATE = """
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.LONG_PRESS_QUICK_ACTIONS_RUNTIME_ON_GLOBE_POINTER_CANCEL,
+        "p0",
+    )}
+""".trimIndent()
+
 internal val gboardLongPressQuickActionsPointerOwnerTransformation =
     GboardPointerOwnerTransformationAdapter { context ->
         context.replacePointerOwnerMethod(
             context.pointerOwnerMethod.applyLongPressQuickActionsPointerOwnerDelegate(),
         )
-}
+        context.pointerFinishMethod.returnInstructionIndices().asReversed().forEach { returnIndex ->
+            context.pointerFinishMethod.addInstructions(
+                returnIndex,
+                LONG_PRESS_QUICK_ACTIONS_POINTER_FINISH_DELEGATE,
+            )
+        }
+        context.pointerCancelMethod.addInstructions(
+            0,
+            LONG_PRESS_QUICK_ACTIONS_POINTER_CANCEL_DELEGATE,
+        )
+        context.pointerResetMethod.addInstructions(
+            0,
+            LONG_PRESS_QUICK_ACTIONS_POINTER_CANCEL_DELEGATE,
+        )
+    }
 
 private val gboardLongPressQuickActionsPointerOwnerSpec = GboardPointerOwnerFeatureSpec(
     feature = GboardPointerOwnerFeature.LONG_PRESS_QUICK_ACTIONS,

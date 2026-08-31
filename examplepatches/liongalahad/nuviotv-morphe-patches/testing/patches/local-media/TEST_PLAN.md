@@ -1,7 +1,32 @@
 # Local Media test plan
 
+## NuvioTV 0.8.11-beta port evidence — 2026-08-29
+
+- [x] The clean rerun completed 239 extension tests and 543 passing patcher tests out of 544, with zero failures or errors and one intentional patcher skip; debug lint completed with zero errors.
+- [x] Local Media applied alone to all four official ABI assets with exact fingerprints. It also passed in the final seven-patch builds for all four ABIs, which passed structural, signature, alignment, package, provider, DEX, and native-library inspection.
+- [x] The exact final x86_64 APK rendered the Local Media switch and selected storage path in Morphe Settings on the API 36 `Television_4K` AVD without a fatal exception.
+- [x] Library > Storage rendered the synthetic movie, series episode, and standalone media file at native 4K. A new 17 MB MKV copied into the selected folder after installation appeared on the next Storage scan; the native grid used the verified `v11` scope and emitted no Local Media renderer error.
+- [ ] Physical-TV browsing, permission persistence, deletion, ordinary playback, and greater-than-4-GB segmented FAT32 playback remain manual release gates.
+
+- [x] Unit tests verify mirrored descriptive movie/show bundles become logical Library files with their original names, combined sizes and matched subtitles, while bundle folders, parts and manifests remain invisible in Nuvio.
+- [x] Unit tests verify ordinary and split episodes coexist in one logical season and deleting that season removes both forms and prunes the empty folder.
+- [x] Unit tests verify legacy flat, UUID-only and centralized hidden-store manifests remain visible and deletable.
+- [ ] On physical FAT32 storage, verify a greater-than-4-GB segmented download appears once, plays and seeks through every boundary without disruption, retains embedded/external subtitles, and deletes as one file.
+
+## 2026-08-26 segmented-media evidence
+
+- [x] The final run completed 230 extension tests and four patcher tests with zero failures. The mirrored-layout combined all-nine candidate under `local/verification/fat32-mirrored-layout-all-nine-20260826` passed on all four APK inputs, and Local Downloads plus Local Media each passed isolated application on all four inputs under `local/verification/fat32-mirrored-layout-isolated-20260826`.
+- [x] Combined outputs passed alignment, signature, package, native-ABI, non-empty-DEX, provider-authority and segmented-class inspection.
+- [x] The combined x86_64 side-by-side APK installed and launched on the API 36 `Television_4K` AVD with Local Media and the private segmented provider loaded and no startup fatal, verifier, missing-class, provider-instantiation or ANR log.
+- [x] The provider opens every physical part before exposing the seekable descriptor, so a boundary read never performs a file/provider open operation during playback.
+- [x] A 6 GiB `vfat` image on the API 36 TV AVD held a 16-part byte-exact H.264/AAC fixture. Library > Storage displayed one logical 65 MB file and one same-basename external subtitle track.
+- [x] Continuous playback crossed five part boundaries over 159.88 seconds with zero stalls, stutters, dropped frames or player errors; the selected external subtitle rendered normally. Structured `MorpheSegmentedTrace` evidence is retained under `local/verification/fat32-playback-20260826-111038`.
+- [x] The final descriptive hierarchy was retested in the corrected APK for 96.6 seconds across four boundaries; the delayed summary included teardown-time decoder events and reported zero stalls, stutters, dropped frames and errors, with a 2.119 ms maximum boundary read.
+- [x] The final mirrored layout exposed an ordinary file and a 16-part bundle as identical one-file Library folders. Ordinary playback reached `PLAYING` without an error; split playback crossed three boundaries over 77.24 seconds with zero stalls, stutters, dropped frames, slow reads or errors and a 0.034 ms maximum boundary read.
+- [ ] Physical FAT32 playback, repeated seeking around the production 3,750,000,000-byte boundary, hardware-specific embedded/external subtitle continuity and whole-bundle cleanup remain manual acceptance requirements.
+
 - [x] Unit tests cover fresh-default On and stored Off persistence, idempotent nested default-folder creation, picker-handler filtering, file classification, exact sidecar matching, and immutable Player-route construction.
-- [ ] Confirm launch and toggling Local Media never opens a permission screen; first entry into Library > Storage requests access once when needed, denial shows a retry action, and a selected path suppresses the request.
+- [ ] Confirm launch and toggling Local Media never opens a permission screen; first path selection or entry into Library > Storage requests access once when needed, denial shows a retry action, and a genuinely readable selected path suppresses the request.
 - [x] Every fingerprint matches exactly once on universal, x86_64, arm64-v8a, and armeabi-v7a NuvioTV 0.8.4-beta APKs.
 - [x] Isolated patch application and manifest/DEX inspection pass on all declared assets.
 - [x] Combined x86_64 and universal builds apply all eight current patches without a fingerprint, resource, or DEX conflict.

@@ -35,13 +35,13 @@ internal object NativeSdhFilterFingerprint : Fingerprint(
     ),
     custom = { method, classDef ->
         method.returnType in listOf("Ljava/util/List;", "Ljava/util/ArrayList;") &&
-            classDef.fields.count { field -> field.type == "Lkotlin/text/Regex;" } == 3 &&
+            classDef.fields.count { field -> field.type == "Lkotlin/text/Regex;" } == 4 &&
             (method.implementation?.instructions ?: emptyList()).count { instruction ->
                 val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
                     ?: return@count false
                 reference.definingClass == "Lkotlin/text/Regex;" &&
                     reference.name == "replace"
-            } >= 3
+            } >= 4
     }
 )
 

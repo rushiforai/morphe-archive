@@ -1710,6 +1710,14 @@
         <translation locale="en">Reopen the keyboard or switch layouts to fully apply changes.</translation>
         <translation locale="zh-Hant">重新叫出鍵盤或切換鍵盤版面後會完整套用變更。</translation>
     </string>
+    <string name="gboard_patches_long_press_quick_actions_globe_drag_title">
+        <translation locale="en">Hold and drag from globe key</translation>
+        <translation locale="zh-Hant">從地球鍵按住拖曳</translation>
+    </string>
+    <string name="gboard_patches_long_press_quick_actions_globe_drag_summary">
+        <translation locale="en">Swipe from the globe key to A/Z/X/C/V/Y for editing actions.</translation>
+        <translation locale="zh-Hant">從地球鍵滑到 A/Z/X/C/V/Y，執行編輯操作。</translation>
+    </string>
     <string name="gboard_patches_long_press_quick_actions_section_feature">
         <translation locale="en">Feature</translation>
         <translation locale="zh-Hant">功能</translation>

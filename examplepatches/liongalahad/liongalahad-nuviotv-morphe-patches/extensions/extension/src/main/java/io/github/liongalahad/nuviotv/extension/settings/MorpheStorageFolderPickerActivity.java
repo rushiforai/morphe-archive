@@ -13,7 +13,7 @@ import android.widget.Toast;
 
 import java.util.List;
 
-/** Shared SAF-first folder picker for every installed local-storage consumer. */
+/** Shared permission-aware folder picker for every installed local-storage consumer. */
 public final class MorpheStorageFolderPickerActivity extends Activity {
     private static final int REQUEST_TREE = 7351;
     public static final String EXTRA_REQUIRE_WRITE =
@@ -23,6 +23,7 @@ public final class MorpheStorageFolderPickerActivity extends Activity {
     private boolean started;
     private boolean requireWrite;
     private boolean systemPickerStarted;
+    private boolean directAccessAttempted;
     private boolean fallbackAttempted;
 
     public static Intent intent(Context context, boolean requireWrite) {
@@ -34,6 +35,7 @@ public final class MorpheStorageFolderPickerActivity extends Activity {
         super.onCreate(state);
         started = state != null && state.getBoolean("started", false);
         systemPickerStarted = state != null && state.getBoolean("systemPickerStarted", false);
+        directAccessAttempted = state != null && state.getBoolean("directAccessAttempted", false);
         fallbackAttempted = state != null && state.getBoolean("fallbackAttempted", false);
         requireWrite = state != null
                 ? state.getBoolean("requireWrite", false)
@@ -45,19 +47,22 @@ public final class MorpheStorageFolderPickerActivity extends Activity {
         state.putBoolean("started", started);
         state.putBoolean("requireWrite", requireWrite);
         state.putBoolean("systemPickerStarted", systemPickerStarted);
+        state.putBoolean("directAccessAttempted", directAccessAttempted);
         state.putBoolean("fallbackAttempted", fallbackAttempted);
         super.onSaveInstanceState(state);
     }
 
     private void launch() {
         started = true;
-        if (MorpheStorageInternalFolderPickerActivity.hasDirectAccess(this, requireWrite)) {
-            fallbackAttempted = true;
-            startActivityForResult(
-                    new Intent(this, MorpheStorageInternalFolderPickerActivity.class)
-                            .putExtra(EXTRA_REQUIRE_WRITE, requireWrite), REQUEST_TREE);
-            return;
-        }
+        // The TV-native browser needs broad raw-path access. Enter it first so Android's
+        // per-app storage-access screen is shown before the user browses or selects a raw folder.
+        directAccessAttempted = true;
+        startActivityForResult(
+                new Intent(this, MorpheStorageInternalFolderPickerActivity.class)
+                        .putExtra(EXTRA_REQUIRE_WRITE, requireWrite), REQUEST_TREE);
+    }
+
+    private void launchSystemPickerOrFallback() {
         if (launchTreePicker(this, null, REQUEST_TREE)) {
             systemPickerStarted = true;
             return;
@@ -181,6 +186,11 @@ public final class MorpheStorageFolderPickerActivity extends Activity {
         if (requestCode == REQUEST_TREE && resultCode != RESULT_OK && requireWrite &&
                 systemPickerStarted && !fallbackAttempted) {
             launchAppFolderFallback();
+            return;
+        }
+        if (requestCode == REQUEST_TREE && resultCode != RESULT_OK &&
+                directAccessAttempted && !systemPickerStarted && !fallbackAttempted) {
+            launchSystemPickerOrFallback();
             return;
         }
         finish();

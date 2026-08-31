@@ -1,6 +1,6 @@
 # 👋🧩 FTL Patches
 
-Personal collection of my Morphe Patches
+Personal collection of my Morphe Patches.
 
 ## ❓ About
 
@@ -9,7 +9,7 @@ Strips ads and analytics/crash-reporting SDKs at the bytecode level, cleans buil
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.43.0-dev.2](https://github.com/BlazeFTL/FTL-Patches/releases/tag/v1.43.0-dev.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;42 patches total
+> **[v1.43.0-dev.10](https://github.com/BlazeFTL/FTL-Patches/releases/tag/v1.43.0-dev.10)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;46 patches total
 <details>
 <summary>📦 All Video Downloader & Ace Player&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
@@ -102,7 +102,7 @@ Strips ads and analytics/crash-reporting SDKs at the bytecode level, cleans buil
 | [Disable downloader from download menu](#disable-downloader-from-download-menu) | Removes the http/https <data> entries from BrowserDownloaderActivity's so the app stops offering itself in the system "Download file with" chooser for ordinary web downloads. |  |
 | [Remove from default browser list](#remove-from-default-browser-list) | Removes http/https <data> entries from MainTabsActivity's so the app stops appearing as a candidate in the system's default browser / "open with" chooser. |  |
 | [Skip splash screen](#skip-splash-screen) | Skips splash screen so the app opens directly to the main screen. |  |
-| [Unlock Pro](#unlock-pro) | Only Use In V2.7.2, Manually Kill Signature First Or Use Doom's(rushiranpise) Patch (Spoof App Signature). |  |
+| [Unlock Pro](#unlock-pro) | Only Use In V2.7.2. Signature verification is spoofed automatically so the purchase check passes without manually applying Spoof app signature. |  |
 
 </details>
 
@@ -160,8 +160,53 @@ Strips ads and analytics/crash-reporting SDKs at the bytecode level, cleans buil
 
 </details>
 
+<details>
+<summary>📦 Bangla Dictionary&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 11.5.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Pro](#unlock-pro) | Forces the purchase check to always return true, unlocking Pro. |  |
+
+</details>
+
+<details>
+<summary>📦 WIFI WPS WPA TESTER&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| rc-5.164 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Pro](#unlock-pro) | Forces the Pro flag true at every read and write site in the dex, unlocking Pro. |  |
+
+</details>
+
+<details>
+<summary>📦 WiFi Analyzer&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 9.4 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Pro & Disable Rate Dialog](#unlock-pro-disable-rate-dialog) | Forces the premium check to always return true, unlocking every Pro feature, and stops the in-app "rate us" dialog from ever triggering. |  |
+
+</details>
+
 <details open>
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
+<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;13 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -177,7 +222,8 @@ Strips ads and analytics/crash-reporting SDKs at the bytecode level, cleans buil
 | [Remove Debug Info](#remove-debug-info) | Removes debug information (line numbers, variable names, source file references) from every class in the .dex files to reduce overall APK size. |  |
 | [Remove Duplicate Graphics](#remove-duplicate-graphics) | Keeps images for only one screen density (like xhdpi) and removes copies for all other densities. Android will automatically scale the kept images, making the app significantly smaller. | • Target density |
 | [Remove Languages](#remove-languages) | Removes translations for languages you don't use. Only keeps the languages you pick.  | • Languages to keep |
-| [Skip Splash Screen - Expert Only](#skip-splash-screen-expert-only) | EXPERT USERS ONLY. Manually Configure It To Point At Real Splash And Main Activity As Many Apps Use Other Names. Check the log to know what the patch is doing Ensure App Doesnt Ask For Permission In Splash Screen. | • Splash activity name<br>• Real main activity name |
+| [Skip Splash Screen - Expert Only](#skip-splash-screen-expert-only) | EXPERT USERS ONLY. Manually Configure It To Point At Real Splash And Main Activity As Many Apps Use Other Names. Check the log to know what the patch is doing. Ensure App Doesnt Ask For Permissions In Splash Screen. | • Splash activity name<br>• Real main activity name |
+| [Spoof App Signature](#spoof-app-signature) | Makes the app think its signing certificate is unchanged after Morphe re-signs it, useful when an app crashes or shows a tamper warning because it checks its own certificate. Does not bypass Play Integrity / SafetyNet hardware attestation. Apply with Original app certificate patch. | • Package name override (optional) |
 
 </details>
 

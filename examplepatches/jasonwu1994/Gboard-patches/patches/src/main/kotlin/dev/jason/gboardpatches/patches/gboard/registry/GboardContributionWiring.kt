@@ -15,6 +15,7 @@ import dev.jason.gboardpatches.patches.gboard.features.englishqwerty.gboardEngli
 import dev.jason.gboardpatches.patches.gboard.features.flowmode.gboardFlowModeFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.flowmode.gboardFlowModeKeyEventPatch
 import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsInputEventPatch
+import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsGesturePatch
 import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsPointerOwnerPatch
 import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsSoftKeyPatch
 import dev.jason.gboardpatches.patches.gboard.features.ocr.gboardOcrFlagValuePatch
@@ -106,6 +107,9 @@ internal object GboardContributionWiring {
             },
             unit("long_press_editing_shortcuts.pointer") {
                 arrayOf(gboardLongPressQuickActionsPointerOwnerPatch)
+            },
+            unit("long_press_editing_shortcuts.gesture") {
+                arrayOf(gboardLongPressQuickActionsGesturePatch)
             },
         ),
         "rounded_keyboard_panel" to listOf(

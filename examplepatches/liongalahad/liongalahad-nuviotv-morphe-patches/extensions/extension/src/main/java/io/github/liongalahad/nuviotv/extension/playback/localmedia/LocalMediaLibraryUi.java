@@ -775,7 +775,7 @@ public final class LocalMediaLibraryUi {
                 method = owner.getDeclaredMethod(
                         requiredNativeOwner(cloudSearchMethodName, "Library search method"),
                         String.class, Function1.class,
-                        Class.forName("e1.m0", false, composer.getClass().getClassLoader()), Integer.TYPE);
+                        Class.forName("e1.p", false, composer.getClass().getClassLoader()), Integer.TYPE);
                 method.setAccessible(true);
                 cloudSearchMethod = method;
             }
@@ -844,7 +844,7 @@ public final class LocalMediaLibraryUi {
             ClassLoader loader = composer.getClass().getClassLoader();
             Class<?> itemClass = Class.forName(
                     requiredNativeOwner(cloudItemOwnerName, "Cloud item model"), false, loader);
-            Class<?> composerClass = Class.forName("e1.m0", false, loader);
+            Class<?> composerClass = Class.forName("e1.p", false, loader);
             if (card == null) {
                 card = Class.forName(
                         requiredNativeOwner(cloudCardOwnerName, "Library card"), false, loader
@@ -975,7 +975,7 @@ public final class LocalMediaLibraryUi {
                         requiredNativeOwner(emptyStateMethodName, "Library status method"),
                         String.class, String.class, iconClass,
                         Class.forName("u1.q", false, loader), Float.TYPE,
-                        Class.forName("e1.m0", false, loader), Integer.TYPE, Integer.TYPE);
+                        Class.forName("e1.p", false, loader), Integer.TYPE, Integer.TYPE);
                 method.setAccessible(true);
                 emptyStateMethod = method;
             }

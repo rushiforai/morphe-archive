@@ -68,7 +68,39 @@ verify:
     - file: com/bytedance/helios/sdk/HeliosEnvImpl.smali
       pattern: '\.method public final e\(Lcom/bytedance/pumbaa/monitor/adapter/MonitorServiceImpl\$init\$1;LX/[\s\S]+?return-void'
       label: HeliosEnvImpl init no-op (telemetry suppressed)
-
+    - file: com/vega/subscribe/SubscribeImpl.smali
+      pattern: '\.method public final i\(\)Z[\s\S]+?const/4 v0, 0x0\s+?return v0'
+      label: SubscribeImpl canFreeTrial returns false
+    - file: com/vega/subscription/widget/ComposeSubscribeActivity.smali
+      pattern: 'ComposeSubscribeActivity;->finish\(\)V'
+      label: ComposeSubscribeActivity suppressed
+    - file: com/vega/edit/utils/SmartCompleteFrameUtil.smali
+      pattern: '\.method public static e\(\)Z[\s\S]+?const/4 v0, 0x0\s+?return v0'
+      label: Export smart frame interpolation entry hidden
+    - file: com/vega/export/banner/BottomBannerHelper.smali
+      pattern: '\.method public final a\(\)Z[\s\S]+?const/4 v0, 0x0\s+?return v0'
+      label: Export bottom banner carousel disabled
+    - file: com/lemon/lv/config/ExportCampaignEnableConfig.smali
+      pattern: '\.method public final a\(\)Z[\s\S]+?const/4 v0, 0x0\s+?return v0'
+      label: Export campaign promos disabled
+    - file: com/lemon/lv/config/PcGuideBannerOptEntranceAb.smali
+      pattern: '\.method public final a\(\)Z[\s\S]+?const/4 v0, 0x0\s+?return v0'
+      label: Export PcGuide banner opt entrance disabled
+    - file: com/vega/export/banner/BottomBannerHelper.smali
+      pattern: '\.method public final d\(Landroid/view/ViewGroup;Landroid/view/View;Z\)V[\s\S]+?return-void'
+      label: Export bottom banner show no-op
+    - file: com/vega/export/edit/resultpage/respos/ResourcePositionArea$loadResource$1.smali
+      pattern: '\.method public final invokeSuspend\(Ljava/lang/Object;\)Ljava/lang/Object;[\s\S]+?return-object v0'
+      label: Export result page carousel load skipped
+    - file: com/vega/export/edit/resultpage/respos/ResourcePositionArea.smali
+      pattern: 'ViewExtKt;->d\(Landroid/view/View;Z\)V'
+      label: Export banner layout hidden on init
+    - file: com/vega/main/home/bg/HomeBackgroundHelper.smali
+      pattern: '\.method public static a\(\)Z[\s\S]+?const/4 v0, 0x0\s+?return v0'
+      label: Home hero promo backgrounds disabled
+    - file: com/vega/subscriptionapi/swidget/BusinessMarkView.smali
+      pattern: '\.method public j\(Z\)V[\s\S]+?ViewExtKt;->b\(Landroid/view/View;\)V[\s\S]+?return-void'
+      label: BusinessMarkView Pro badge hidden
 
 
 

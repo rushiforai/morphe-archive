@@ -110,11 +110,11 @@ internal object LibrarySourceLabelFingerprint : Fingerprint(
 /** Shared Cloud search label lambda whose native placeholder string is substituted for Storage. */
 internal object CloudSearchLabelFingerprint : Fingerprint(
     returnType = "Ljava/lang/Object;",
-    parameters = listOf("Ljava/lang/Object;", "Ljava/lang/Object;"),
+    parameters = listOf("Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;"),
     custom = { method, classDef ->
-        method.name == "invoke" && FUNCTION2 in classDef.interfaces &&
+        method.name == "invoke" && FUNCTION3 in classDef.interfaces &&
             method.implementation?.instructions?.any { instruction ->
-                (instruction as? WideLiteralInstruction)?.wideLiteral == 0x7f1101f5L
+                (instruction as? WideLiteralInstruction)?.wideLiteral == 0x7f110201L
             } == true
     }
 )

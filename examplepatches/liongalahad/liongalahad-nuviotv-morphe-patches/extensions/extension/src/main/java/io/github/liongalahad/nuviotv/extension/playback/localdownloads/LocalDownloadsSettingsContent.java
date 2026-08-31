@@ -10,7 +10,7 @@ import kotlin.jvm.functions.Function3;
 
 /** Native Morphe settings content owned by Local Downloads. */
 public final class LocalDownloadsSettingsContent implements Function3<Object, Object, Object, Unit> {
-    private static final String[] NATIVE_SLIDER_CLASS_NAMES = {"ua.g6"};
+    private static final String[] NATIVE_SLIDER_CLASS_NAMES = {"ua.x5"};
     private static final String[] NATIVE_SLIDER_ICON_CLASS_NAMES = {"x0.a"};
     private final Object modifier;
 
@@ -69,7 +69,7 @@ public final class LocalDownloadsSettingsContent implements Function3<Object, Ob
         try {
             ClassLoader loader = composer.getClass().getClassLoader();
             Class<?> iconClass = Class.forName("h2.f", false, loader);
-            Class<?> composerClass = Class.forName("e1.m0", false, loader);
+            Class<?> composerClass = Class.forName("e1.p", false, loader);
             Method iconFactory = findNativeSliderIcon(loader, iconClass);
             iconFactory.setAccessible(true);
             Object icon = iconFactory.invoke(null);

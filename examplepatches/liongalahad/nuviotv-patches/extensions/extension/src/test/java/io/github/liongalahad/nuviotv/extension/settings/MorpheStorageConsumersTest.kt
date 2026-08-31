@@ -2,6 +2,7 @@ package io.github.liongalahad.nuviotv.extension.settings
 
 import org.junit.After
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -39,5 +40,18 @@ class MorpheStorageConsumersTest {
         writer = false
         reader = false
         assertFalse(MorpheStorageConsumers.isWriteAccessRequired())
+    }
+
+    @Test fun `storage changes invalidate every registered consumer`() {
+        var first = 0
+        var second = 0
+        MorpheStorageConsumers.register("first", { true }, false) { first += 1 }
+        MorpheStorageConsumers.register("second", { false }, true) { second += 1 }
+
+        MorpheStorageConsumers.notifyStorageChanged()
+        MorpheStorageConsumers.notifyStorageChanged()
+
+        assertEquals(2, first)
+        assertEquals(2, second)
     }
 }

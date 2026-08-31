@@ -6,6 +6,7 @@ import android.view.KeyEvent
 import androidx.test.core.app.ApplicationProvider
 import androidx.media3.common.Player
 import io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRuntime
+import io.github.liongalahad.nuviotv.extension.storage.segmented.SegmentedMedia
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -18,6 +19,7 @@ import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.io.FileOutputStream
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
@@ -61,7 +63,7 @@ class LocalMediaRuntimeTest {
     }
 
     @Test
-    fun `selected tree replaces the default folder`() {
+    fun `selected tree replaces the default folder but requires its persisted read grant`() {
         val selected = Uri.parse(
             "content://com.android.externalstorage.documents/tree/primary%3ADownload%2FTV"
         )
@@ -70,7 +72,8 @@ class LocalMediaRuntimeTest {
 
         assertEquals(selected.toString(), LocalMediaRuntime.treeUriString())
         assertEquals("Download/TV", LocalMediaRuntime.folderDisplayLabel())
-        assertTrue(LocalMediaRuntime.hasStorageAccess(application))
+        assertFalse(LocalMediaRuntime.hasStorageAccess(application))
+        assertFalse(LocalMediaRuntime.scan(application).hasFolderAccess)
     }
 
     @Test
@@ -332,6 +335,180 @@ class LocalMediaRuntimeTest {
         assertTrue(folder.exists())
         assertTrue(sibling.exists())
         assertTrue(notes.exists())
+    }
+
+    @Test
+    fun `mirrored segmented bundle is one library file with sidecars and whole bundle deletion`() {
+        val root = temporaryFolder.newFolder("storage-segmented")
+        val folder = root.resolve("Movie").apply { mkdirs() }
+        val bundle = folder.resolve("Movie [12345678]").apply { mkdirs() }
+        val first = bundle.resolve("${SegmentedMedia.BUNDLE_PART_PREFIX}0001")
+            .apply { writeBytes("abcd".toByteArray()) }
+        val second = bundle.resolve("${SegmentedMedia.BUNDLE_PART_PREFIX}0002")
+            .apply { writeBytes("EFG".toByteArray()) }
+        val subtitle = bundle.resolve("Movie.en.srt").apply { writeText("subtitle") }
+        val manifestFile = bundle.resolve(SegmentedMedia.BUNDLE_MANIFEST)
+        val manifest = SegmentedMedia.Manifest(
+            "library-bundle", "Movie.mkv", "video/x-matroska", "Movie",
+            listOf(first, second).map { SegmentedMedia.Segment(Uri.fromFile(it), it.length()) }
+        )
+        FileOutputStream(manifestFile).use { SegmentedMedia.write(it, manifest) }
+
+        val scanMethod = LocalMediaRuntime::class.java.getDeclaredMethod(
+            "scanFileChildren", android.content.Context::class.java, java.io.File::class.java,
+            String::class.java, String::class.java, Uri::class.java,
+            java.util.List::class.java
+        ).apply { isAccessible = true }
+        val buckets = mutableListOf<Any>()
+        scanMethod.invoke(null, application, root, "", null, null, buckets)
+        val buildMethod = LocalMediaRuntime::class.java.getDeclaredMethod(
+            "buildSnapshot", Boolean::class.javaPrimitiveType, String::class.java,
+            java.util.List::class.java, String::class.java
+        ).apply { isAccessible = true }
+        val snapshot = buildMethod.invoke(null, true, "Test", buckets, null)
+                as LocalMediaRuntime.LibrarySnapshot
+
+        assertEquals(1, snapshot.files.size)
+        val logical = snapshot.files.single()
+        assertEquals("Movie.mkv", logical.name)
+        assertEquals(7L, logical.size)
+        assertEquals(1, logical.subtitles.size)
+        assertTrue(logical.uri.authority!!.endsWith(SegmentedMedia.AUTHORITY_SUFFIX))
+
+        application.getSharedPreferences(MorpheSettingsRuntime.PREFERENCES_NAME, 0)
+            .edit().putString(LocalMediaRuntime.TREE_URI_KEY, root.toURI().toString()).commit()
+        assertTrue(LocalMediaRuntime.deleteFile(application, logical).complete)
+        assertFalse(first.exists())
+        assertFalse(second.exists())
+        assertFalse(manifestFile.exists())
+        assertFalse(subtitle.exists())
+        assertFalse(bundle.exists())
+        assertFalse(folder.exists())
+    }
+
+    @Test
+    fun `legacy flat segmented manifests remain visible`() {
+        val root = temporaryFolder.newFolder("storage-segmented-legacy")
+        val part = root.resolve(".morphe-legacy${SegmentedMedia.PART_MARKER}0001")
+            .apply { writeText("legacy") }
+        val manifestFile = root.resolve("Legacy.mp4${SegmentedMedia.MANIFEST_SUFFIX}")
+        FileOutputStream(manifestFile).use {
+            SegmentedMedia.write(it, SegmentedMedia.Manifest(
+                "legacy", "Legacy.mp4", "video/mp4",
+                listOf(SegmentedMedia.Segment(Uri.fromFile(part), part.length()))
+            ))
+        }
+        val scanMethod = LocalMediaRuntime::class.java.getDeclaredMethod(
+            "scanFileChildren", android.content.Context::class.java, java.io.File::class.java,
+            String::class.java, String::class.java, Uri::class.java,
+            java.util.List::class.java
+        ).apply { isAccessible = true }
+        val buckets = mutableListOf<Any>()
+        scanMethod.invoke(null, application, root, "", null, null, buckets)
+        val buildMethod = LocalMediaRuntime::class.java.getDeclaredMethod(
+            "buildSnapshot", Boolean::class.javaPrimitiveType, String::class.java,
+            java.util.List::class.java, String::class.java
+        ).apply { isAccessible = true }
+        val snapshot = buildMethod.invoke(null, true, "Test", buckets, null)
+                as LocalMediaRuntime.LibrarySnapshot
+
+        assertEquals(listOf("Legacy.mp4"), snapshot.files.map { it.name })
+    }
+
+    @Test
+    fun `deleting one hidden bundle preserves its logical sibling`() {
+        val root = temporaryFolder.newFolder("storage-segmented-siblings")
+        val folder = root.resolve("Movies").apply { mkdirs() }
+        val store = folder.resolve(SegmentedMedia.STORE_DIRECTORY).apply { mkdirs() }
+        listOf("First.mp4", "Second.mp4").forEachIndexed { index, name ->
+            val bundle = store.resolve("bundle-$index").apply { mkdirs() }
+            val part = bundle.resolve("part-0001").apply { writeText("video-$index") }
+            FileOutputStream(bundle.resolve(SegmentedMedia.BUNDLE_MANIFEST)).use {
+                SegmentedMedia.write(it, SegmentedMedia.Manifest(
+                    "bundle-$index", name, "video/mp4",
+                    listOf(SegmentedMedia.Segment(Uri.fromFile(part), part.length()))
+                ))
+            }
+        }
+        val scanMethod = LocalMediaRuntime::class.java.getDeclaredMethod(
+            "scanFileChildren", android.content.Context::class.java, java.io.File::class.java,
+            String::class.java, String::class.java, Uri::class.java,
+            java.util.List::class.java
+        ).apply { isAccessible = true }
+        val buildMethod = LocalMediaRuntime::class.java.getDeclaredMethod(
+            "buildSnapshot", Boolean::class.javaPrimitiveType, String::class.java,
+            java.util.List::class.java, String::class.java
+        ).apply { isAccessible = true }
+        fun snapshot(): LocalMediaRuntime.LibrarySnapshot {
+            val buckets = mutableListOf<Any>()
+            scanMethod.invoke(null, application, root, "", null, null, buckets)
+            return buildMethod.invoke(null, true, "Test", buckets, null)
+                    as LocalMediaRuntime.LibrarySnapshot
+        }
+        application.getSharedPreferences(MorpheSettingsRuntime.PREFERENCES_NAME, 0)
+            .edit().putString(LocalMediaRuntime.TREE_URI_KEY, root.toURI().toString()).commit()
+
+        val before = snapshot()
+        assertEquals(listOf("First.mp4", "Second.mp4"), before.files.map { it.name }.sorted())
+        assertTrue(LocalMediaRuntime.deleteFile(
+            application, before.files.first { it.name == "First.mp4" }).complete)
+        assertTrue(folder.exists())
+        assertTrue(store.resolve("bundle-1").exists())
+        assertEquals(listOf("Second.mp4"), snapshot().files.map { it.name })
+    }
+
+    @Test
+    fun `mirrored show season mixes ordinary and split episodes without a visual distinction`() {
+        val root = temporaryFolder.newFolder("storage-mirrored-show")
+        val seasonStore = root.resolve("Silo - Season 1").apply { mkdirs() }
+        listOf(
+            Triple("episode-one", "Silo.S01E01.mkv", "S01E01 - Freedom Day"),
+            Triple("episode-two", "Silo.S01E02.mkv", "S01E02 - Holston's Pick")
+        ).forEach { (bundleId, filename, label) ->
+            val bundle = seasonStore.resolve("$label [12345678]").apply { mkdirs() }
+            val part = bundle.resolve("$label - part 0001.bin").apply { writeText(bundleId) }
+            bundle.resolve(filename.removeSuffix(".mkv") + ".en.srt").writeText("subtitle")
+            FileOutputStream(bundle.resolve("$label - playback manifest.json")).use {
+                SegmentedMedia.write(it, SegmentedMedia.Manifest(
+                    bundleId, filename, "video/x-matroska", "Silo - Season 1",
+                    listOf(SegmentedMedia.Segment(Uri.fromFile(part), part.length()))
+                ))
+            }
+        }
+        seasonStore.resolve("Silo.S01E03.mkv").writeText("ordinary episode")
+        seasonStore.resolve("Silo.S01E03.en.srt").writeText("ordinary subtitle")
+        val scanMethod = LocalMediaRuntime::class.java.getDeclaredMethod(
+            "scanFileChildren", android.content.Context::class.java, java.io.File::class.java,
+            String::class.java, String::class.java, Uri::class.java,
+            java.util.List::class.java
+        ).apply { isAccessible = true }
+        val buildMethod = LocalMediaRuntime::class.java.getDeclaredMethod(
+            "buildSnapshot", Boolean::class.javaPrimitiveType, String::class.java,
+            java.util.List::class.java, String::class.java
+        ).apply { isAccessible = true }
+        fun snapshot(): LocalMediaRuntime.LibrarySnapshot {
+            val buckets = mutableListOf<Any>()
+            scanMethod.invoke(null, application, root, "", null, null, buckets)
+            return buildMethod.invoke(null, true, "Test", buckets, null)
+                    as LocalMediaRuntime.LibrarySnapshot
+        }
+        application.getSharedPreferences(MorpheSettingsRuntime.PREFERENCES_NAME, 0)
+            .edit().putString(LocalMediaRuntime.TREE_URI_KEY, root.toURI().toString()).commit()
+
+        val before = snapshot()
+        assertEquals(listOf("Silo.S01E01.mkv", "Silo.S01E02.mkv", "Silo.S01E03.mkv"),
+            before.files.map { it.name }.sorted())
+        assertTrue(before.files.all { it.relativePath.startsWith("Silo - Season 1/") })
+        assertTrue(before.files.all { it.subtitles.size == 1 })
+        val season = before.entries.single()
+        assertTrue(season.folder)
+        assertEquals("Silo - Season 1", season.name)
+        assertEquals(3, season.files.size)
+
+        assertTrue(LocalMediaRuntime.deleteFolder(application, season).complete)
+        assertFalse(seasonStore.exists())
+        assertTrue(root.exists())
+        assertTrue(snapshot().files.isEmpty())
     }
 
     @Test

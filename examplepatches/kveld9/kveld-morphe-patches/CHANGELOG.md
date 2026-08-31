@@ -1,3 +1,15 @@
+## [1.10.1](https://github.com/kveld9/kveld-morphe-patches/compare/v1.10.0...v1.10.1) (2026-08-30)
+
+### 🐛 Bug Fixes
+
+* **brave:** disable native bloat and locale slimmers by default ([9874434](https://github.com/kveld9/kveld-morphe-patches/commit/98744343ba53641e30dedbc3bc7de34c08a64606))
+
+## [1.10.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.9.0...v1.10.0) (2026-08-30)
+
+### ✨ New Features
+
+* **vivaldi:** prevent persistent tab restoration on startup ([a34673e](https://github.com/kveld9/kveld-morphe-patches/commit/a34673e8b12fb4b99e8b41ad8ab0aef6d19e1b1a))
+
 ## [1.9.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.8.0...v1.9.0) (2026-08-29)
 
 ### ✨ New Features

@@ -44,7 +44,7 @@ object SdhCueTransformer {
         SdhCleanupMode.fromOrdinal(MorpheSettingsRuntime.sdhCleanupModeOrdinal()) ==
             SdhCleanupMode.OFF
 
-    /** Preserves native filter input while satisfying 0.8.7's concrete ArrayList return type. */
+    /** Preserves native filter input while satisfying 0.8.11's concrete ArrayList return type. */
     @JvmStatic
     fun bypassNativeFilter(cues: List<Cue>): ArrayList<Cue> =
         if (cues is ArrayList<Cue>) cues else ArrayList(cues)

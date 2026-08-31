@@ -305,7 +305,7 @@ class GboardPortProductCatalogContractTest {
             mapOf(
                 "english_qwerty_up_flick_uppercase.pointer" to lifecycle,
                 "long_press_editing_shortcuts.pointer" to
-                    setOf("pointer_owner", "soft_key_view_type"),
+                    lifecycle,
                 "swipeable_custom_top_row.pointer" to lifecycle,
                 "zhuyin_slide_input.pointer" to lifecycle,
             ),
@@ -323,6 +323,8 @@ class GboardPortProductCatalogContractTest {
                 ),
                 "long_press_editing_shortcuts.pointer" to listOf(
                     "LONG_PRESS_QUICK_ACTIONS_RUNTIME_MAYBE_ENSURE_LONG_PRESS_SCHEDULED",
+                    "LONG_PRESS_QUICK_ACTIONS_RUNTIME_ON_GLOBE_POINTER_FINISH",
+                    "LONG_PRESS_QUICK_ACTIONS_RUNTIME_ON_GLOBE_POINTER_CANCEL",
                 ),
                 "swipeable_custom_top_row.pointer" to listOf(
                     "TOP_ROW_SWIPE_RUNTIME_MAYBE_ARM_AND_RESOLVE_TOP_ROW_OWNER",

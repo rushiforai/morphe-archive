@@ -75,6 +75,16 @@ public final class MorpheSettingsPageContent implements Function3<Object, Object
                 : rememberedFocusRequester;
     }
 
+    static Function0<Unit> exclusiveToggle(Object target, List<Object> allStates) {
+        return () -> {
+            boolean opening = !MorpheSettingsRows.booleanStateValue(target);
+            for (Object state : allStates) {
+                MorpheSettingsRows.setBooleanState(state, opening && state == target);
+            }
+            return Unit.INSTANCE;
+        };
+    }
+
     private static final class SectionState {
         final MorpheSettingsCategory category;
         final Object expanded;
@@ -107,17 +117,20 @@ public final class MorpheSettingsPageContent implements Function3<Object, Object
 
         @Override
         public Unit invoke(Object lazyListScope) {
+            List<Object> expansionStates = new ArrayList<>();
+            for (SectionState section : sections) expansionStates.add(section.expanded);
+            expansionStates.add(aboutExpanded);
             for (SectionState section : sections) {
                 MorpheSettingsRows.lazyItem(
                         lazyListScope,
                         "morphe_" + section.category.id() + "_section",
-                        new Section(modifier, section)
+                        new Section(modifier, section, expansionStates)
                 );
             }
             MorpheSettingsRows.lazyItem(
                     lazyListScope,
                     ABOUT_SECTION_KEY,
-                    new AboutSection(modifier, aboutExpanded, aboutFocus)
+                    new AboutSection(modifier, aboutExpanded, aboutFocus, expansionStates)
             );
             return Unit.INSTANCE;
         }
@@ -127,11 +140,13 @@ public final class MorpheSettingsPageContent implements Function3<Object, Object
         private final Object modifier;
         private final Object expanded;
         private final Object focus;
+        private final List<Object> expansionStates;
 
-        AboutSection(Object modifier, Object expanded, Object focus) {
+        AboutSection(Object modifier, Object expanded, Object focus, List<Object> expansionStates) {
             this.modifier = modifier;
             this.expanded = expanded;
             this.focus = focus;
+            this.expansionStates = expansionStates;
         }
 
         @Override
@@ -142,7 +157,7 @@ public final class MorpheSettingsPageContent implements Function3<Object, Object
                     "About",
                     "Morphe Patches information and project links",
                     MorpheSettingsRows.booleanStateValue(expanded),
-                    MorpheSettingsRows.booleanStateToggle(expanded),
+                    exclusiveToggle(expanded, expansionStates),
                     focus,
                     NO_OP,
                     MorpheAboutSettingsContent.create(modifier)
@@ -154,10 +169,12 @@ public final class MorpheSettingsPageContent implements Function3<Object, Object
     private static final class Section implements Function3<Object, Object, Object, Unit> {
         private final Object modifier;
         private final SectionState section;
+        private final List<Object> expansionStates;
 
-        Section(Object modifier, SectionState section) {
+        Section(Object modifier, SectionState section, List<Object> expansionStates) {
             this.modifier = modifier;
             this.section = section;
+            this.expansionStates = expansionStates;
         }
 
         @Override
@@ -169,7 +186,7 @@ public final class MorpheSettingsPageContent implements Function3<Object, Object
                     category.title(),
                     category.description(),
                     MorpheSettingsRows.booleanStateValue(section.expanded),
-                    MorpheSettingsRows.booleanStateToggle(section.expanded),
+                    exclusiveToggle(section.expanded, expansionStates),
                     section.focus,
                     NO_OP,
                     category.content(modifier)

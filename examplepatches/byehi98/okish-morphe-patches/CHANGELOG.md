@@ -1,3 +1,46 @@
+## [1.22.0](https://github.com/byehi98/okish-morphe-patches/compare/v1.21.1...v1.22.0) (2026-08-30)
+
+### ✨ New Features
+
+* **altos-adventure:** add IAP unlock patch ([4734874](https://github.com/byehi98/okish-morphe-patches/commit/47348747c6bb7a79292ecf8480c6fd13cfcda651))
+* **altos-odyssey:** IAP-Purchase auto grant ([ece9701](https://github.com/byehi98/okish-morphe-patches/commit/ece9701c69ad3838eedd8fa6877d7619f73896d9))
+
+## [1.22.0-dev.2](https://github.com/byehi98/okish-morphe-patches/compare/v1.22.0-dev.1...v1.22.0-dev.2) (2026-08-30)
+
+### ✨ New Features
+
+* **altos-odyssey:** IAP-Purchase auto grant ([ece9701](https://github.com/byehi98/okish-morphe-patches/commit/ece9701c69ad3838eedd8fa6877d7619f73896d9))
+
+## [1.22.0-dev.1](https://github.com/byehi98/okish-morphe-patches/compare/v1.21.1...v1.22.0-dev.1) (2026-08-30)
+
+### ✨ New Features
+
+* **altos-adventure:** add IAP unlock patch ([4734874](https://github.com/byehi98/okish-morphe-patches/commit/47348747c6bb7a79292ecf8480c6fd13cfcda651))
+
+## [1.21.1](https://github.com/byehi98/okish-morphe-patches/compare/v1.21.0...v1.21.1) (2026-08-30)
+
+### 🚀 Updated App Support
+
+* **swordigo:** add support for version 1.4.13 ([b5ee187](https://github.com/byehi98/okish-morphe-patches/commit/b5ee1873c06fe329c6b3b6175c84beb69a5d70d4))
+
+## [1.21.1-dev.1](https://github.com/byehi98/okish-morphe-patches/compare/v1.21.0...v1.21.1-dev.1) (2026-08-30)
+
+### 🚀 Updated App Support
+
+* **swordigo:** add support for version 1.4.13 ([b5ee187](https://github.com/byehi98/okish-morphe-patches/commit/b5ee1873c06fe329c6b3b6175c84beb69a5d70d4))
+
+## [1.21.0](https://github.com/byehi98/okish-morphe-patches/compare/v1.20.0...v1.21.0) (2026-08-30)
+
+### ✨ New Features
+
+* **trafficrider:** add ad removal, instant rewards, and IAP bypass ([de1ffbb](https://github.com/byehi98/okish-morphe-patches/commit/de1ffbbcea1fd3806b8f08f063cc5c712029d36d))
+
+## [1.21.0-dev.1](https://github.com/byehi98/okish-morphe-patches/compare/v1.20.0...v1.21.0-dev.1) (2026-08-30)
+
+### ✨ New Features
+
+* **trafficrider:** add ad removal, instant rewards, and IAP bypass ([de1ffbb](https://github.com/byehi98/okish-morphe-patches/commit/de1ffbbcea1fd3806b8f08f063cc5c712029d36d))
+
 ## [1.20.0](https://github.com/byehi98/okish-morphe-patches/compare/v1.19.1...v1.20.0) (2026-08-29)
 
 ### ✨ New Features

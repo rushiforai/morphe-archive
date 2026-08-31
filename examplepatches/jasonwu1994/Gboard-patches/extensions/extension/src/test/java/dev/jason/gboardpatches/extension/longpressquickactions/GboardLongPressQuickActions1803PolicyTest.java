@@ -140,6 +140,29 @@ public final class GboardLongPressQuickActions1803PolicyTest {
                 0x7f0b19f6, "q", new int[] {-0x2769}));
     }
 
+    @Test
+    public void globeChordUsesTheSameEnglishAndZhuyinMappings() {
+        Assert.assertSame(GboardEditingShortcutPolicy.Shortcut.SELECT_ALL,
+                GboardLongPressQuickActions1803Policy.shortcutForChord(
+                        0x7f0b1990, "a", 'a', -10043, -10009));
+        Assert.assertSame(GboardEditingShortcutPolicy.Shortcut.CUT,
+                GboardLongPressQuickActions1803Policy.shortcutForChord(
+                        0x7f0b2975, "x", -10009, -10043, -10009));
+        Assert.assertSame(GboardEditingShortcutPolicy.Shortcut.REDO,
+                GboardLongPressQuickActions1803Policy.shortcutForPointerTarget(
+                        0x7f0b2989, "y", -10043, -10043));
+        Assert.assertNull(GboardLongPressQuickActions1803Policy.shortcutForChord(
+                0x7f0b19f6, "q", 'q', -10043, -10009));
+    }
+
+    @Test
+    public void zhuyinRangeAdmissionIsVersionOwnedAndBounded() {
+        Assert.assertFalse(GboardLongPressQuickActions1803Policy.isZhuyinKeyId(0x7f0b295d));
+        Assert.assertTrue(GboardLongPressQuickActions1803Policy.isZhuyinKeyId(0x7f0b295e));
+        Assert.assertTrue(GboardLongPressQuickActions1803Policy.isZhuyinKeyId(0x7f0b298a));
+        Assert.assertFalse(GboardLongPressQuickActions1803Policy.isZhuyinKeyId(0x7f0b298b));
+    }
+
     private static void assertPlan(int keyId, String pressText, int actionCode,
             int iconResId, String debugName, int contextMenuActionId) throws Exception {
         Object plan = invokePlan(keyId, pressText, new int[0]);

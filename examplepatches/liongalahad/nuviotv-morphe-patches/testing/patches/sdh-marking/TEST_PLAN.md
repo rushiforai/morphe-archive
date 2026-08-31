@@ -1,5 +1,12 @@
 # Test plan
 
+## NuvioTV 0.8.11-beta port evidence — 2026-08-29
+
+- [x] The clean rerun completed 239 extension tests and 543 passing patcher tests out of 544, with zero failures or errors and one intentional patcher skip; debug lint completed with zero errors.
+- [x] Mark SDH Subtitles applied alone to all four official ABI assets with exact fingerprints and passed in each final seven-patch build.
+- [x] At both 1920x1080/320 dpi and native 3840x2160/640 dpi, the exact final x86_64 APK opened Playback, traversed all exposed controls, opened Subtitles, focused `Mark SDH subtitles`, and toggled it twice. Playback closed atomically, the process stayed alive, and logs contained no fatal exception or verifier error.
+- [ ] Network-addon timing, persistence, real subtitle playback, and real Android TV acceptance remain manual release gates.
+
 1. Run extension tests covering fresh-default On, stored Off behavior, explicit metadata in any language, English-only content scanning, repeated content evidence, isolated false positives, local `file:` sampling, and suffix idempotence.
 2. Apply only `Mark SDH Subtitles` to the hash-pinned x86_64 and universal APKs.
 3. Confirm all three structural fingerprints match exactly once and inspect the manifest, injected runtime, preference key, and title hooks.

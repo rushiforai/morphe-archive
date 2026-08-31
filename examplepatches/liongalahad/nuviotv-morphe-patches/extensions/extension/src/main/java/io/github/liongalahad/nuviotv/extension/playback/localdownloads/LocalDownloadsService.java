@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -27,11 +28,15 @@ import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 import io.github.liongalahad.nuviotv.extension.settings.MorpheStoragePath;
+import io.github.liongalahad.nuviotv.extension.storage.segmented.SegmentedMedia;
 
 /** Foreground transfer service. Hidden dialogs do not stop the active download. */
 public final class LocalDownloadsService extends Service {
@@ -105,7 +110,11 @@ public final class LocalDownloadsService extends Service {
 
             String folder = downloadFolderName(request);
             String filename = safeVideoFilename(request.filename, request.url);
-            target = OutputTarget.create(this, folder, filename);
+            boolean segmented = LocalDownloadsStorageFormat.shouldSegment(
+                    this, MorpheStoragePath.uri(), expected);
+            Log.i(TAG, "Storage format=" + LocalDownloadsStorageFormat.classify(
+                    this, MorpheStoragePath.uri()) + " segmented=" + segmented);
+            target = OutputTarget.create(this, request, folder, filename, segmented);
             long written = 0L;
             long lastUpdate = 0L;
             try (InputStream input = new BufferedInputStream(connection.getInputStream(), BUFFER_SIZE);
@@ -133,10 +142,13 @@ public final class LocalDownloadsService extends Service {
             String storedFilename = target.finalFilename();
             List<String> subtitleUris = downloadSubtitles(request, target, storedFilename, written);
             String folderUri = target.folderUri();
-            target = null;
+            List<String> assetUris = target.assetUris();
+            String manifestUri = target.manifestUri();
             LocalDownloadsRuntime.DownloadedEntry entry = new LocalDownloadsRuntime.DownloadedEntry(
-                    request.identity, finalUri, folderUri, storedFilename, written, subtitleUris
+                    request.identity, finalUri, folderUri, storedFilename, written, subtitleUris,
+                    assetUris, manifestUri, request.sourceKey
             );
+            target = null;
             LocalDownloadsRuntime.completeDownload(entry);
             updateNotification("Download finished: " + request.progressTitle(), 1, 1);
         } catch (CancelledException cancelled) {
@@ -187,6 +199,59 @@ public final class LocalDownloadsService extends Service {
         Integer season = request == null ? null : request.identity.season;
         if (season == null || !"series".equalsIgnoreCase(request.identity.contentType)) return title;
         return sanitize(title + " - Season " + season, "Downloaded series");
+    }
+
+    static SegmentedLocation segmentedLocation(
+            LocalDownloadsRuntime.DownloadRequest request, String logicalParent
+    ) {
+        return segmentedLocation(request, logicalParent, null);
+    }
+
+    static SegmentedLocation segmentedLocation(
+            LocalDownloadsRuntime.DownloadRequest request, String logicalParent, String filename
+    ) {
+        Integer season = request == null ? null : request.identity.season;
+        Integer episode = request == null ? null : request.identity.episode;
+        if (request != null && "series".equalsIgnoreCase(request.identity.contentType) &&
+                season != null && episode != null) {
+            String episodeCode = String.format(Locale.US, "S%02dE%02d", season, episode);
+            String episodeTitle = storageLabel(request.identity.episodeTitle, "");
+            String bundleLabel = episodeTitle.isEmpty()
+                    ? episodeCode : episodeCode + " - " + episodeTitle;
+            return new SegmentedLocation(logicalParent, bundleLabel);
+        }
+        String title = storageLabel(request == null ? null : request.displayTitle, "Downloaded title");
+        String fileLabel = filename == null ? title : storageLabel(stripExtension(filename), title);
+        return new SegmentedLocation(logicalParent, fileLabel);
+    }
+
+    private static String storageLabel(String value, String fallback) {
+        String label = sanitize(value, fallback);
+        return label.length() > 80 ? label.substring(0, 80).trim() : label;
+    }
+
+    static final class SegmentedLocation {
+        final String logicalParent;
+        final String bundleLabel;
+
+        SegmentedLocation(String logicalParent, String bundleLabel) {
+            this.logicalParent = sanitize(logicalParent, "Downloaded title");
+            this.bundleLabel = storageLabel(bundleLabel, "Downloaded video");
+        }
+
+        String bundleFolderName(String bundleId) {
+            String suffix = bundleId == null ? "download" : bundleId.replace("-", "");
+            if (suffix.length() > 8) suffix = suffix.substring(0, 8);
+            return bundleLabel + " [" + suffix + "]";
+        }
+
+        String manifestName() {
+            return bundleLabel + SegmentedMedia.DESCRIPTIVE_MANIFEST_SUFFIX;
+        }
+
+        String partName(int index) {
+            return bundleLabel + " - part " + String.format(Locale.US, "%04d", index) + ".bin";
+        }
     }
 
     private List<String> downloadSubtitles(
@@ -364,11 +429,42 @@ public final class LocalDownloadsService extends Service {
         return extension.matches("srt|vtt|ass|ssa|ttml|dfxp") ? extension : "srt";
     }
 
+    private static String videoMimeType(String filename) {
+        String extension = "";
+        int dot = filename == null ? -1 : filename.lastIndexOf('.');
+        if (dot >= 0) extension = filename.substring(dot + 1).toLowerCase(Locale.ROOT);
+        if ("mp4".equals(extension) || "m4v".equals(extension) || "mov".equals(extension))
+            return "video/mp4";
+        if ("mkv".equals(extension)) return "video/x-matroska";
+        if ("webm".equals(extension)) return "video/webm";
+        if ("ts".equals(extension) || "m2ts".equals(extension)) return "video/mp2t";
+        return "application/octet-stream";
+    }
+
     private static String sanitize(String value, String fallback) {
         String cleaned = value == null ? "" : value.replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}]", "_").trim();
         while (cleaned.endsWith(".")) cleaned = cleaned.substring(0, cleaned.length() - 1).trim();
         if (cleaned.isEmpty()) cleaned = fallback;
         return cleaned.length() > 120 ? cleaned.substring(0, 120).trim() : cleaned;
+    }
+
+    static String uniqueSegmentedFilename(String filename, Iterable<String> existingNames) {
+        Set<String> existing = new HashSet<>();
+        if (existingNames != null) for (String value : existingNames) {
+            if (value != null) existing.add(value.toLowerCase(Locale.ROOT));
+        }
+        int dot = filename.lastIndexOf('.');
+        String base = dot > 0 ? filename.substring(0, dot) : filename;
+        String extension = dot > 0 ? filename.substring(dot) : "";
+        for (int index = 1; index < 10_000; index++) {
+            String candidate = index == 1 ? filename : base + " (" + index + ")" + extension;
+            String normalized = candidate.toLowerCase(Locale.ROOT);
+            if (!existing.contains(normalized) &&
+                    !existing.contains(normalized + SegmentedMedia.MANIFEST_SUFFIX)) {
+                return candidate;
+            }
+        }
+        return base + "-" + System.currentTimeMillis() + extension;
     }
 
     private static String safeMessage(Throwable error) {
@@ -390,8 +486,12 @@ public final class LocalDownloadsService extends Service {
         abstract OutputStream openSidecar(String name) throws IOException;
         abstract String sidecarUri(String name) throws IOException;
         abstract void deleteSidecar(String name);
+        abstract List<String> assetUris();
+        abstract String manifestUri();
 
-        static OutputTarget create(LocalDownloadsService service, String folderName, String filename)
+        static OutputTarget create(LocalDownloadsService service,
+                                   LocalDownloadsRuntime.DownloadRequest request,
+                                   String folderName, String filename, boolean segmented)
                 throws IOException {
             Uri root = MorpheStoragePath.uri();
             if ("file".equalsIgnoreCase(root.getScheme())) {
@@ -409,6 +509,10 @@ public final class LocalDownloadsService extends Service {
                             "Selected local storage path is not writable. Choose another path in Morphe settings."
                     );
                 }
+                if (segmented) {
+                    return new SegmentedFileOutputTarget(service, selected, filename,
+                            segmentedLocation(request, folderName, filename));
+                }
                 File directory = new File(selected, folderName);
                 if (!directory.isDirectory() && !directory.mkdirs()) {
                     throw new IOException(
@@ -419,7 +523,10 @@ public final class LocalDownloadsService extends Service {
                 return new FileOutputTarget(directory, filename);
             }
             if ("content".equalsIgnoreCase(root.getScheme())) {
-                return new DocumentOutputTarget(service.getContentResolver(), root, folderName, filename);
+                return segmented
+                        ? new SegmentedDocumentOutputTarget(service, root, filename,
+                                segmentedLocation(request, folderName, filename))
+                        : new DocumentOutputTarget(service.getContentResolver(), root, folderName, filename);
             }
             throw new IOException("Unsupported local storage path");
         }
@@ -453,6 +560,10 @@ public final class LocalDownloadsService extends Service {
             File sidecar = new File(complete.getParentFile(), name);
             if (sidecar.exists()) sidecar.delete();
         }
+        @Override List<String> assetUris() {
+            return Collections.singletonList(Uri.fromFile(complete).toString());
+        }
+        @Override String manifestUri() { return ""; }
         private static File uniqueFile(File directory, String filename) {
             File candidate = new File(directory, filename);
             if (!candidate.exists()) return candidate;
@@ -464,6 +575,482 @@ public final class LocalDownloadsService extends Service {
                 if (!candidate.exists()) return candidate;
             }
             return new File(directory, base + "-" + System.currentTimeMillis() + extension);
+        }
+    }
+
+    interface PartOpener {
+        OutputStream open(int index) throws IOException;
+    }
+
+    /** Rolls only between writes, so no empty trailing part is created at an exact boundary. */
+    static final class RollingOutputStream extends OutputStream {
+        private final long limit;
+        private final PartOpener opener;
+        private final List<Long> sizes = new ArrayList<>();
+        private OutputStream current;
+        private long currentSize;
+        private boolean closed;
+
+        RollingOutputStream(long limit, PartOpener opener) {
+            this.limit = limit;
+            this.opener = opener;
+        }
+
+        List<Long> sizes() { return Collections.unmodifiableList(sizes); }
+
+        @Override public void write(int value) throws IOException {
+            byte[] single = {(byte) value};
+            write(single, 0, 1);
+        }
+
+        @Override public void write(byte[] buffer, int offset, int length) throws IOException {
+            if (closed) throw new IOException("Segmented output is closed");
+            if (buffer == null) throw new NullPointerException("buffer");
+            if (offset < 0 || length < 0 || offset + length > buffer.length)
+                throw new IndexOutOfBoundsException();
+            while (length > 0) {
+                ensurePart();
+                int count = (int) Math.min((long) length, limit - currentSize);
+                current.write(buffer, offset, count);
+                currentSize += count;
+                offset += count;
+                length -= count;
+                if (currentSize == limit && length > 0) finishPart();
+            }
+        }
+
+        @Override public void flush() throws IOException {
+            if (current != null) current.flush();
+        }
+
+        @Override public void close() throws IOException {
+            if (closed) return;
+            closed = true;
+            if (current != null) finishPart();
+        }
+
+        private void ensurePart() throws IOException {
+            if (current == null) {
+                current = opener.open(sizes.size());
+                currentSize = 0L;
+            }
+        }
+
+        private void finishPart() throws IOException {
+            OutputStream value = current;
+            current = null;
+            if (value == null) return;
+            IOException failure = null;
+            try { value.flush(); } catch (IOException error) { failure = error; }
+            try { value.close(); } catch (IOException error) { if (failure == null) failure = error; }
+            if (failure != null) throw failure;
+            if (currentSize > 0L) sizes.add(currentSize);
+            currentSize = 0L;
+        }
+    }
+
+    private static final class SegmentedFileOutputTarget extends OutputTarget {
+        final LocalDownloadsService service;
+        final SegmentedLocation location;
+        final File selectedRoot, logicalDirectory, complete, legacyStoreDirectory, bundleDirectory,
+                manifestPartial, manifestComplete;
+        final String bundleId = UUID.randomUUID().toString();
+        final List<File> partialParts = new ArrayList<>();
+        final List<File> completeParts = new ArrayList<>();
+        final List<String> assets = new ArrayList<>();
+        final Map<String, File> sidecars = new HashMap<>();
+        RollingOutputStream rolling;
+        String committedManifest = "";
+        boolean collapsed;
+        final long segmentBytes;
+
+        SegmentedFileOutputTarget(LocalDownloadsService service, File selectedRoot, String filename,
+                                  SegmentedLocation location) throws IOException {
+            this(service, selectedRoot, filename, location,
+                    LocalDownloadsStorageFormat.SEGMENT_BYTES);
+        }
+
+        SegmentedFileOutputTarget(LocalDownloadsService service, File selectedRoot, String filename,
+                                  SegmentedLocation location, long segmentBytes) throws IOException {
+            this.service = service;
+            this.selectedRoot = selectedRoot;
+            this.location = location;
+            this.segmentBytes = segmentBytes;
+            logicalDirectory = new File(selectedRoot, location.logicalParent);
+            if (!logicalDirectory.isDirectory() && !logicalDirectory.mkdirs()) {
+                throw new IOException("Unable to create title folder");
+            }
+            legacyStoreDirectory = new File(selectedRoot, SegmentedMedia.STORE_DIRECTORY);
+            List<String> existingNames = hiddenSegmentedFilenames(
+                    service, logicalDirectory, location.logicalParent);
+            if (legacyStoreDirectory.isDirectory()) existingNames.addAll(hiddenSegmentedFilenames(
+                    service, legacyStoreDirectory, location.logicalParent));
+            String[] logicalValues = logicalDirectory.list();
+            if (logicalValues != null) Collections.addAll(existingNames, logicalValues);
+            complete = new File(logicalDirectory, uniqueSegmentedFilename(filename, existingNames));
+            bundleDirectory = new File(logicalDirectory, location.bundleFolderName(bundleId));
+            if (!bundleDirectory.isDirectory() && !bundleDirectory.mkdirs()) {
+                throw new IOException("Unable to create segmented-media bundle");
+            }
+            manifestComplete = new File(bundleDirectory, location.manifestName());
+            manifestPartial = new File(bundleDirectory, location.manifestName() + ".partial");
+            if (manifestPartial.exists() && !manifestPartial.delete()) {
+                throw new IOException("Unable to clear partial segmented manifest");
+            }
+        }
+
+        @Override OutputStream open() {
+            rolling = new RollingOutputStream(segmentBytes, index -> {
+                String token = location.partName(index + 1);
+                File completePart = new File(bundleDirectory, token);
+                File partialPart = new File(bundleDirectory, token + ".partial");
+                if (partialPart.exists() && !partialPart.delete()) {
+                    throw new IOException("Unable to clear partial media segment");
+                }
+                completeParts.add(completePart);
+                partialParts.add(partialPart);
+                return new FileOutputStream(partialPart);
+            });
+            return rolling;
+        }
+
+        @Override String commit() throws IOException {
+            if (rolling == null || rolling.sizes().isEmpty()) {
+                throw new IOException("Downloaded media is empty");
+            }
+            List<Long> sizes = rolling.sizes();
+            List<SegmentedMedia.Segment> segments = new ArrayList<>();
+            for (int index = 0; index < sizes.size(); index++) {
+                if (!partialParts.get(index).renameTo(completeParts.get(index))) {
+                    throw new IOException("Unable to finish media segment " + (index + 1));
+                }
+            }
+            if (completeParts.size() == 1 && completeParts.get(0).renameTo(complete)) {
+                collapsed = true;
+                completeParts.clear();
+                partialParts.clear();
+                assets.clear();
+                assets.add(Uri.fromFile(complete).toString());
+                deleteEmptyDirectory(bundleDirectory);
+                return Uri.fromFile(complete).toString();
+            }
+            for (int index = 0; index < sizes.size(); index++) {
+                String uri = Uri.fromFile(completeParts.get(index)).toString();
+                assets.add(uri);
+                segments.add(new SegmentedMedia.Segment(Uri.parse(uri), sizes.get(index)));
+            }
+            SegmentedMedia.Manifest manifest = new SegmentedMedia.Manifest(bundleId,
+                    complete.getName(), videoMimeType(complete.getName()),
+                    location.logicalParent, segments);
+            try (OutputStream output = new FileOutputStream(manifestPartial)) {
+                SegmentedMedia.write(output, manifest);
+            }
+            if (!manifestPartial.renameTo(manifestComplete)) {
+                throw new IOException("Unable to finish segmented media manifest");
+            }
+            committedManifest = Uri.fromFile(manifestComplete).toString();
+            Uri virtual = SegmentedMedia.virtualUri(service, Uri.parse(committedManifest), bundleId);
+            if (virtual == null) throw new IOException("Unable to create segmented playback URI");
+            return virtual.toString();
+        }
+
+        @Override void delete() {
+            deleteFile(partialParts); deleteFile(completeParts);
+            deleteFile(new ArrayList<>(sidecars.values()));
+            if (collapsed && complete.exists()) complete.delete();
+            if (manifestPartial.exists()) manifestPartial.delete();
+            if (manifestComplete.exists()) manifestComplete.delete();
+            SegmentedMedia.cleanupContainer(service, Uri.fromFile(manifestComplete));
+            deleteEmptyDirectory(bundleDirectory);
+            deleteEmptyDirectory(logicalDirectory);
+        }
+        private static void deleteFile(List<File> values) {
+            for (File value : values) if (value.exists()) value.delete();
+        }
+        @Override String finalFilename() { return complete.getName(); }
+        @Override String folderUri() { return Uri.fromFile(logicalDirectory).toString(); }
+        @Override OutputStream openSidecar(String name) throws IOException {
+            File sidecar = new File(collapsed ? logicalDirectory : bundleDirectory, name);
+            sidecars.put(name, sidecar);
+            return new FileOutputStream(sidecar);
+        }
+        @Override String sidecarUri(String name) {
+            File sidecar = sidecars.get(name);
+            return Uri.fromFile(sidecar == null
+                    ? new File(collapsed ? logicalDirectory : bundleDirectory, name) : sidecar).toString();
+        }
+        @Override void deleteSidecar(String name) {
+            File sidecar = sidecars.remove(name);
+            if (sidecar == null) sidecar = new File(
+                    collapsed ? logicalDirectory : bundleDirectory, name);
+            if (sidecar.exists()) sidecar.delete();
+        }
+        @Override List<String> assetUris() { return new ArrayList<>(assets); }
+        @Override String manifestUri() { return committedManifest; }
+
+        private static List<String> hiddenSegmentedFilenames(
+                Context context, File storeDirectory, String logicalParent
+        ) {
+            List<String> names = new ArrayList<>();
+            collectHiddenSegmentedFilenames(context, storeDirectory, logicalParent, names, 0);
+            return names;
+        }
+
+        private static void collectHiddenSegmentedFilenames(
+                Context context, File directory, String logicalParent, List<String> names, int depth
+        ) {
+            if (directory == null || depth > 8) return;
+            File[] children = directory.listFiles();
+            if (children == null) return;
+            for (File child : children) {
+                if (child.isDirectory()) {
+                    collectHiddenSegmentedFilenames(context, child, logicalParent, names, depth + 1);
+                } else if (child.isFile() && SegmentedMedia.isBundleManifestName(child.getName())) {
+                    try {
+                        SegmentedMedia.Manifest manifest = SegmentedMedia.read(
+                                context, Uri.fromFile(child));
+                        if (logicalParent.equalsIgnoreCase(manifest.logicalParent)) {
+                            names.add(manifest.filename);
+                        }
+                    } catch (IOException ignored) { }
+                }
+            }
+        }
+
+        private static void deleteEmptyDirectory(File directory) {
+            String[] children = directory == null ? null : directory.list();
+            if (directory != null && directory.isDirectory() && children != null && children.length == 0) {
+                directory.delete();
+            }
+        }
+    }
+
+    private static final class SegmentedDocumentOutputTarget extends OutputTarget {
+        final LocalDownloadsService service;
+        final ContentResolver resolver;
+        final Uri tree, folder, legacyStoreFolder, bundleFolder;
+        final SegmentedLocation location;
+        final String filename;
+        final String bundleId = UUID.randomUUID().toString();
+        final List<Uri> partialParts = new ArrayList<>();
+        final List<Uri> completeParts = new ArrayList<>();
+        final List<String> assets = new ArrayList<>();
+        final Map<String, Uri> sidecars = new HashMap<>();
+        RollingOutputStream rolling;
+        Uri manifestPartial, manifestComplete;
+        Uri collapsedDocument;
+        final long segmentBytes;
+
+        SegmentedDocumentOutputTarget(LocalDownloadsService service, Uri tree, String filename,
+                                      SegmentedLocation location) throws IOException {
+            this(service, tree, filename, location, LocalDownloadsStorageFormat.SEGMENT_BYTES);
+        }
+
+        SegmentedDocumentOutputTarget(LocalDownloadsService service, Uri tree, String filename,
+                                      SegmentedLocation location, long segmentBytes) throws IOException {
+            this.service = service;
+            this.resolver = service.getContentResolver();
+            this.tree = tree;
+            this.location = location;
+            this.segmentBytes = segmentBytes;
+            Uri root = DocumentsContract.buildDocumentUriUsingTree(
+                    tree, DocumentsContract.getTreeDocumentId(tree));
+            legacyStoreFolder = DocumentOutputTarget.findChild(
+                    resolver, tree, root, SegmentedMedia.STORE_DIRECTORY);
+            Uri existingLogicalFolder = DocumentOutputTarget.findChild(
+                    resolver, tree, root, location.logicalParent);
+            if (existingLogicalFolder == null) existingLogicalFolder = DocumentsContract.createDocument(
+                    resolver, root, DocumentsContract.Document.MIME_TYPE_DIR,
+                    location.logicalParent);
+            if (existingLogicalFolder == null) throw new IOException("Unable to create title folder");
+            folder = existingLogicalFolder;
+            List<String> existing = existingLogicalFolder == null
+                    ? new ArrayList<>()
+                    : DocumentOutputTarget.childNames(resolver, tree, existingLogicalFolder);
+            existing.addAll(hiddenSegmentedFilenames(
+                    service, resolver, tree, folder, location.logicalParent));
+            if (legacyStoreFolder != null) existing.addAll(hiddenSegmentedFilenames(
+                    service, resolver, tree, legacyStoreFolder, location.logicalParent));
+            this.filename = uniqueSegmentedFilename(filename, existing);
+            bundleFolder = DocumentsContract.createDocument(resolver, folder,
+                    DocumentsContract.Document.MIME_TYPE_DIR,
+                    location.bundleFolderName(bundleId));
+            if (bundleFolder == null) throw new IOException("Unable to create segmented-media bundle");
+        }
+
+        @Override OutputStream open() {
+            rolling = new RollingOutputStream(segmentBytes, index -> {
+                String name = location.partName(index + 1) + ".partial";
+                Uri uri = DocumentsContract.createDocument(
+                        resolver, bundleFolder, "application/octet-stream", name);
+                if (uri == null) throw new IOException("Unable to create media segment");
+                partialParts.add(uri);
+                OutputStream stream = resolver.openOutputStream(uri, "w");
+                if (stream == null) throw new IOException("Unable to open media segment");
+                return stream;
+            });
+            return rolling;
+        }
+
+        @Override String commit() throws IOException {
+            if (rolling == null || rolling.sizes().isEmpty()) {
+                throw new IOException("Downloaded media is empty");
+            }
+            List<Long> sizes = rolling.sizes();
+            List<SegmentedMedia.Segment> segments = new ArrayList<>();
+            for (int index = 0; index < sizes.size(); index++) {
+                String finalName = location.partName(index + 1);
+                Uri complete = DocumentsContract.renameDocument(
+                        resolver, partialParts.get(index), finalName);
+                if (complete == null) throw new IOException("Unable to finish media segment " + (index + 1));
+                completeParts.add(complete);
+            }
+            if (completeParts.size() == 1) {
+                Uri collapsed = collapseSinglePart();
+                if (collapsed != null) {
+                    collapsedDocument = collapsed;
+                    completeParts.clear();
+                    assets.clear();
+                    assets.add(collapsed.toString());
+                    try { DocumentsContract.deleteDocument(resolver, bundleFolder); }
+                    catch (Exception ignored) { }
+                    return collapsed.toString();
+                }
+            }
+            for (int index = 0; index < sizes.size(); index++) {
+                Uri complete = completeParts.get(index);
+                assets.add(complete.toString());
+                segments.add(new SegmentedMedia.Segment(complete, sizes.get(index)));
+            }
+            manifestPartial = DocumentsContract.createDocument(resolver, bundleFolder,
+                    "application/json", location.manifestName() + ".partial");
+            if (manifestPartial == null) throw new IOException("Unable to create segmented media manifest");
+            try (OutputStream output = resolver.openOutputStream(manifestPartial, "w")) {
+                if (output == null) throw new IOException("Unable to open segmented media manifest");
+                SegmentedMedia.write(output, new SegmentedMedia.Manifest(bundleId, filename,
+                        videoMimeType(filename), location.logicalParent, segments));
+            }
+            manifestComplete = DocumentsContract.renameDocument(resolver, manifestPartial,
+                    location.manifestName());
+            if (manifestComplete == null) throw new IOException("Unable to finish segmented media manifest");
+            Uri virtual = SegmentedMedia.virtualUri(service, manifestComplete, bundleId);
+            if (virtual == null) throw new IOException("Unable to create segmented playback URI");
+            return virtual.toString();
+        }
+
+        @Override void delete() {
+            List<Uri> values = new ArrayList<>();
+            values.addAll(partialParts); values.addAll(completeParts);
+            if (collapsedDocument != null) values.add(collapsedDocument);
+            if (manifestPartial != null) values.add(manifestPartial);
+            if (manifestComplete != null) values.add(manifestComplete);
+            values.addAll(sidecars.values());
+            for (Uri value : values) try { DocumentsContract.deleteDocument(resolver, value); }
+            catch (Exception ignored) { }
+            Uri cleanupManifest = manifestComplete != null ? manifestComplete : manifestPartial;
+            if (cleanupManifest == null) {
+                String bundleDocumentId = DocumentsContract.getDocumentId(bundleFolder);
+                cleanupManifest = DocumentsContract.buildDocumentUriUsingTree(
+                        tree, bundleDocumentId + "/" + location.manifestName());
+            }
+            if (cleanupManifest != null) SegmentedMedia.cleanupContainer(service, cleanupManifest);
+        }
+        @Override String finalFilename() { return filename; }
+        @Override String folderUri() { return folder.toString(); }
+        @Override OutputStream openSidecar(String name) throws IOException {
+            Uri uri = DocumentsContract.createDocument(
+                    resolver, collapsedDocument == null ? bundleFolder : folder,
+                    "application/octet-stream", name);
+            if (uri == null) throw new IOException("Unable to create subtitle file");
+            sidecars.put(name, uri);
+            OutputStream stream = resolver.openOutputStream(uri, "w");
+            if (stream == null) throw new IOException("Unable to open subtitle file");
+            return stream;
+        }
+        @Override String sidecarUri(String name) throws IOException {
+            Uri uri = sidecars.get(name);
+            if (uri == null) throw new IOException("Subtitle file was not created");
+            return uri.toString();
+        }
+        @Override void deleteSidecar(String name) {
+            Uri uri = sidecars.remove(name);
+            if (uri != null) try { DocumentsContract.deleteDocument(resolver, uri); }
+            catch (Exception ignored) { }
+        }
+        @Override List<String> assetUris() { return new ArrayList<>(assets); }
+        @Override String manifestUri() {
+            return manifestComplete == null ? "" : manifestComplete.toString();
+        }
+
+        private Uri collapseSinglePart() {
+            Uri part = completeParts.get(0);
+            Uri renamed = null;
+            try {
+                renamed = DocumentsContract.renameDocument(resolver, part, filename);
+                if (renamed == null) return null;
+                Uri moved = DocumentsContract.moveDocument(
+                        resolver, renamed, bundleFolder, folder);
+                if (moved != null) return moved;
+            } catch (Exception error) {
+                Log.i(TAG, "Document provider retained a one-part segmented bundle", error);
+            }
+            if (renamed != null) {
+                try {
+                    Uri restored = DocumentsContract.renameDocument(
+                            resolver, renamed, location.partName(1));
+                    if (restored != null) completeParts.set(0, restored);
+                    else completeParts.set(0, renamed);
+                } catch (Exception ignored) {
+                    completeParts.set(0, renamed);
+                }
+            }
+            return null;
+        }
+
+        private static List<String> hiddenSegmentedFilenames(
+                Context context, ContentResolver resolver, Uri tree, Uri store,
+                String logicalParent
+        ) {
+            List<String> names = new ArrayList<>();
+            try {
+                collectHiddenSegmentedFilenames(context, resolver, tree,
+                        DocumentsContract.getDocumentId(store), logicalParent, names, 0);
+            } catch (Exception error) {
+                Log.w(TAG, "Unable to inspect hidden segmented-media filenames", error);
+            }
+            return names;
+        }
+
+        private static void collectHiddenSegmentedFilenames(
+                Context context, ContentResolver resolver, Uri tree, String parentId,
+                String logicalParent, List<String> names, int depth
+        ) {
+            if (parentId == null || depth > 8) return;
+            Uri children = DocumentsContract.buildChildDocumentsUriUsingTree(tree, parentId);
+            try (Cursor cursor = resolver.query(children,
+                    new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+                            DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+                            DocumentsContract.Document.COLUMN_MIME_TYPE}, null, null, null)) {
+                if (cursor == null) return;
+                while (cursor.moveToNext()) {
+                    String documentId = cursor.getString(0);
+                    String name = cursor.getString(1);
+                    String mime = cursor.getString(2);
+                    if (documentId == null || name == null) continue;
+                    if (DocumentsContract.Document.MIME_TYPE_DIR.equals(mime)) {
+                        collectHiddenSegmentedFilenames(context, resolver, tree, documentId,
+                                logicalParent, names, depth + 1);
+                    } else if (SegmentedMedia.isBundleManifestName(name)) {
+                        try {
+                            SegmentedMedia.Manifest manifest = SegmentedMedia.read(context,
+                                    DocumentsContract.buildDocumentUriUsingTree(tree, documentId));
+                            if (logicalParent.equalsIgnoreCase(manifest.logicalParent)) {
+                                names.add(manifest.filename);
+                            }
+                        } catch (IOException ignored) { }
+                    }
+                }
+            }
         }
     }
 
@@ -524,6 +1111,11 @@ public final class LocalDownloadsService extends Service {
             if (uri != null) try { DocumentsContract.deleteDocument(resolver, uri); }
             catch (Exception ignored) { }
         }
+        @Override List<String> assetUris() {
+            Uri value = complete == null ? partial : complete;
+            return Collections.singletonList(value.toString());
+        }
+        @Override String manifestUri() { return ""; }
         private static Uri findChild(ContentResolver resolver, Uri tree, Uri parent, String name) {
             String parentId = DocumentsContract.getDocumentId(parent);
             Uri children = DocumentsContract.buildChildDocumentsUriUsingTree(tree, parentId);
@@ -536,6 +1128,18 @@ public final class LocalDownloadsService extends Service {
                 }
             } catch (Exception error) { Log.w(TAG, "Unable to inspect storage folder", error); }
             return null;
+        }
+        private static List<String> childNames(ContentResolver resolver, Uri tree, Uri parent) {
+            List<String> names = new ArrayList<>();
+            String parentId = DocumentsContract.getDocumentId(parent);
+            Uri children = DocumentsContract.buildChildDocumentsUriUsingTree(tree, parentId);
+            try (Cursor cursor = resolver.query(children,
+                    new String[]{DocumentsContract.Document.COLUMN_DISPLAY_NAME}, null, null, null)) {
+                if (cursor != null) while (cursor.moveToNext()) names.add(cursor.getString(0));
+            } catch (Exception error) {
+                Log.w(TAG, "Unable to inspect existing storage filenames", error);
+            }
+            return names;
         }
     }
 }

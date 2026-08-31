@@ -449,3 +449,95 @@ internal object SlowMotionSourceGetListFingerprint : Fingerprint(
     returnType = "Ljava/util/List;",
     parameters = listOf()
 )
+
+internal object SmartCompleteFrameUtilIsEntryVisibleFingerprint : Fingerprint(
+    definingClass = "Lcom/vega/edit/utils/SmartCompleteFrameUtil;",
+    name = "e",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "Z",
+    parameters = listOf()
+)
+
+internal object ComposeSubscribeActivityOnCreateFingerprint : Fingerprint(
+    definingClass = "Lcom/vega/subscription/widget/ComposeSubscribeActivity;",
+    name = "onCreate",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("Landroid/os/Bundle;")
+)
+
+/** Gate for post-export bottom banner carousel on ExportSuccessPanel. */
+internal object BottomBannerHelperIsEnabledFingerprint : Fingerprint(
+    definingClass = "Lcom/vega/export/banner/BottomBannerHelper;",
+    name = "a",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Z",
+    parameters = listOf()
+)
+
+internal object BottomBannerHelperShowFingerprint : Fingerprint(
+    definingClass = "Lcom/vega/export/banner/BottomBannerHelper;",
+    name = "d",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("Landroid/view/ViewGroup;", "Landroid/view/View;", "Z")
+)
+
+/** Remote-settings gate for export campaign checkbox / join-campaign promos. */
+internal object ExportCampaignEnableConfigIsEnabledFingerprint : Fingerprint(
+    definingClass = "Lcom/lemon/lv/config/ExportCampaignEnableConfig;",
+    name = "a",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Z",
+    parameters = listOf()
+)
+
+/** Alternate export-banner path when BottomBannerHelper gate is off (PcGuide opt entrance). */
+internal object PcGuideBannerOptEntranceAbIsEnabledFingerprint : Fingerprint(
+    definingClass = "Lcom/lemon/lv/config/PcGuideBannerOptEntranceAb;",
+    name = "a",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Z",
+    parameters = listOf()
+)
+
+/** Populates export_banner_layout carousel on the new export result page. */
+internal object ResourcePositionAreaLoadResourceFingerprint : Fingerprint(
+    definingClass = "Lcom/vega/export/edit/resultpage/respos/ResourcePositionArea${'$'}loadResource${'$'}1;",
+    name = "invokeSuspend",
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Ljava/lang/Object;")
+)
+
+internal object ImageResourcePositionAreaLoadResourceFingerprint : Fingerprint(
+    definingClass = "Lcom/vega/export/edit/resultpage/respos/ImageResourcePositionArea${'$'}loadResource${'$'}1;",
+    name = "invokeSuspend",
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Ljava/lang/Object;")
+)
+
+/** Hides export_banner_layout as soon as ResourcePositionArea is constructed. */
+internal object ResourcePositionAreaInitFingerprint : Fingerprint(
+    definingClass = "Lcom/vega/export/edit/resultpage/respos/ResourcePositionArea;",
+    name = "<init>",
+    returnType = "V",
+    parameters = listOf("Landroid/view/View;", "Z")
+)
+
+/** Master gate for server-driven home hero promo titles (V4/V5). */
+internal object HomeBackgroundHelperIsEnabledFingerprint : Fingerprint(
+    definingClass = "Lcom/vega/main/home/bg/HomeBackgroundHelper;",
+    name = "a",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "Z",
+    parameters = listOf()
+)
+
+/** Hides Pro/SSVIP diamonds on BusinessMarkView (e.g. Riduci rumore). */
+internal object BusinessMarkViewRefreshFingerprint : Fingerprint(
+    definingClass = "Lcom/vega/subscriptionapi/swidget/BusinessMarkView;",
+    name = "j",
+    accessFlags = listOf(AccessFlags.PUBLIC),
+    returnType = "V",
+    parameters = listOf("Z")
+)

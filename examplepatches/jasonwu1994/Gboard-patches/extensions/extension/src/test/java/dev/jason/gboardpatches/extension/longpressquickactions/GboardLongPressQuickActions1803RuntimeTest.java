@@ -21,6 +21,9 @@ public final class GboardLongPressQuickActions1803RuntimeTest {
         AtomicInteger calls = new AtomicInteger(0);
         AtomicInteger receivedAction = new AtomicInteger(0);
         InputConnection connection = proxyConnection((proxy, method, args) -> {
+            if ("getSelectedText".equals(method.getName())) {
+                return "selected";
+            }
             if ("performContextMenuAction".equals(method.getName())) {
                 calls.incrementAndGet();
                 receivedAction.set(((Integer) args[0]).intValue());
@@ -48,6 +51,46 @@ public final class GboardLongPressQuickActions1803RuntimeTest {
         Assert.assertFalse(attemptContextMenuAction(null, 0x102001f));
         Assert.assertFalse(attemptContextMenuAction(connection, 0));
         Assert.assertEquals(0, calls.get());
+    }
+
+    @Test
+    public void copyAndCutRejectEmptySelectionBeforeDispatch() throws Exception {
+        AtomicInteger calls = new AtomicInteger();
+        InputConnection connection = proxyConnection((proxy, method, args) -> {
+            if ("getSelectedText".equals(method.getName())) {
+                return "";
+            }
+            if ("performContextMenuAction".equals(method.getName())) {
+                calls.incrementAndGet();
+                return Boolean.TRUE;
+            }
+            return defaultValue(method.getReturnType());
+        });
+
+        Assert.assertFalse(attemptContextMenuAction(connection, android.R.id.copy));
+        Assert.assertFalse(attemptContextMenuAction(connection, android.R.id.cut));
+        Assert.assertEquals(0, calls.get());
+    }
+
+    @Test
+    public void recognizedActionConsumesEditorFailure() {
+        InputConnection connection = proxyConnection((proxy, method, args) -> {
+            if ("performContextMenuAction".equals(method.getName())) {
+                throw new IllegalStateException("editor failed");
+            }
+            return defaultValue(method.getReturnType());
+        });
+
+        Assert.assertTrue(GboardLongPressQuickActions1803Runtime
+                .consumeRecognizedContextMenuAction(connection, android.R.id.paste));
+    }
+
+    @Test
+    public void recognizedActionConsumesConnectionLookupFailure() {
+        Assert.assertTrue(GboardLongPressQuickActions1803Runtime
+                .consumeRecognizedContextMenuAction(() -> {
+                    throw new IllegalStateException("connection lookup failed");
+                }, android.R.id.paste));
     }
 
     @Test

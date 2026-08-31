@@ -48,16 +48,20 @@ public final class MorpheStoragePath {
     public static boolean setTreeUri(Context context, Uri treeUri) {
         if (treeUri == null) return false;
         MorpheSettingsRuntime.initialize(context);
-        return preferences().edit().putString(STORAGE_PATH_KEY, treeUri.toString()).commit();
+        boolean saved = preferences().edit().putString(STORAGE_PATH_KEY, treeUri.toString()).commit();
+        if (saved) MorpheStorageConsumers.notifyStorageChanged();
+        return saved;
     }
 
     public static boolean setFolderPath(Context context, String folderPath) {
         if (folderPath == null || folderPath.trim().isEmpty()) return false;
         MorpheSettingsRuntime.initialize(context);
-        return preferences().edit().putString(
+        boolean saved = preferences().edit().putString(
                 STORAGE_PATH_KEY,
                 Uri.fromFile(new File(folderPath)).toString()
         ).commit();
+        if (saved) MorpheStorageConsumers.notifyStorageChanged();
+        return saved;
     }
 
     public static Uri uri() {
@@ -72,6 +76,29 @@ public final class MorpheStoragePath {
 
     public static boolean isWritableSelection(Context context, Uri location) {
         return isWritableSelection(context, location, false);
+    }
+
+    /** Whether the selected location currently has the read capability used by Local Media. */
+    public static boolean isReadableSelection(Context context) {
+        return context != null && isReadableSelection(context, uri());
+    }
+
+    public static boolean isReadableSelection(Context context, Uri location) {
+        if (context == null || location == null) return false;
+        if ("file".equalsIgnoreCase(location.getScheme())) {
+            if (location.getPath() == null) return false;
+            File folder = new File(location.getPath());
+            return (hasRawReadAccess(context) || isOwnedAppSpecificFolder(context, folder)) &&
+                    folder.isDirectory();
+        }
+        if (!"content".equalsIgnoreCase(location.getScheme())) return false;
+        try {
+            for (android.content.UriPermission permission :
+                    context.getContentResolver().getPersistedUriPermissions()) {
+                if (location.equals(permission.getUri()) && permission.isReadPermission()) return true;
+            }
+        } catch (RuntimeException ignored) { }
+        return false;
     }
 
     /** The default download directory may be created on first use; saved selections may not. */
@@ -107,6 +134,18 @@ public final class MorpheStoragePath {
 
     static boolean hasRawWriteAccess(int sdk, boolean allFilesAccess, boolean legacyWriteAccess) {
         return sdk >= Build.VERSION_CODES.R ? allFilesAccess : legacyWriteAccess;
+    }
+
+    static boolean hasRawReadAccess(Context context) {
+        boolean allFilesAccess = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+                Environment.isExternalStorageManager();
+        boolean legacyReadAccess = context.checkSelfPermission(
+                android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        return hasRawReadAccess(Build.VERSION.SDK_INT, allFilesAccess, legacyReadAccess);
+    }
+
+    static boolean hasRawReadAccess(int sdk, boolean allFilesAccess, boolean legacyReadAccess) {
+        return sdk >= Build.VERSION_CODES.R ? allFilesAccess : legacyReadAccess;
     }
 
     /** Uses a real write/read/delete probe because readable and mounted do not imply writable. */

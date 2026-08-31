@@ -1,3 +1,23 @@
+## [1.4.1](https://github.com/riky-dev/morphe-patches/compare/v1.4.0...v1.4.1) (2026-08-30)
+
+### 🐛 Bug Fixes
+
+* **capcut:** prevent TransLynxActivity crash from duplicate onCreate patches ([1b27804](https://github.com/riky-dev/morphe-patches/commit/1b27804fb6f5cc68ebc1e8381970fe3341ca7eee))
+
+## [1.4.0](https://github.com/riky-dev/morphe-patches/compare/v1.3.0...v1.4.0) (2026-08-30)
+
+### ✨ New Features
+
+* **capcut:** hide export promos, home hero titles, and Pro badges ([b74c8cf](https://github.com/riky-dev/morphe-patches/commit/b74c8cfd7a75009cec129d1ce7dc0f4abe181e68))
+* **capcut:** hide export smart frame interpolation option ([a0f15b9](https://github.com/riky-dev/morphe-patches/commit/a0f15b9b28bcde00f884e349c837327a9e54ec87))
+* **capcut:** hide home subscription chip and block paywall ([e1a6741](https://github.com/riky-dev/morphe-patches/commit/e1a674106450380d7add589ae799acd23db24b35))
+
+## [1.3.0-dev.2](https://github.com/riky-dev/morphe-patches/compare/v1.3.0-dev.1...v1.3.0-dev.2) (2026-08-29)
+
+### ✨ New Features
+
+* **capcut:** hide inbox notifications bottom nav tab ([de2d512](https://github.com/riky-dev/morphe-patches/commit/de2d512f29f305222ca0aca05c38540eb1f5bb81))
+
 ## [1.3.0](https://github.com/riky-dev/morphe-patches/compare/v1.2.0...v1.3.0) (2026-08-29)
 
 ### 🐛 Bug Fixes

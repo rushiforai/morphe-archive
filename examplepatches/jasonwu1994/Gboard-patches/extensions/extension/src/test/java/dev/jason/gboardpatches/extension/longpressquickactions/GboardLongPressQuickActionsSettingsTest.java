@@ -13,15 +13,22 @@ import java.util.Set;
 
 public final class GboardLongPressQuickActionsSettingsTest {
     @Test
-    public void missingAndMalformedValuesDefaultToEnabled() {
+    public void parentDefaultsEnabledWhileGlobeDragDefaultsDisabled() {
         TestSharedPreferences preferences = new TestSharedPreferences();
 
         Assert.assertTrue(GboardLongPressQuickActionsSettings.readEnabled(preferences));
+        Assert.assertFalse(GboardLongPressQuickActionsSettings
+                .readGlobeDragEnabled(preferences));
 
         preferences.values.put(
                 GboardLongPressQuickActionsSettings.PREF_KEY_ENABLED,
                 Integer.valueOf(0));
         Assert.assertTrue(GboardLongPressQuickActionsSettings.readEnabled(preferences));
+        preferences.values.put(
+                GboardLongPressQuickActionsSettings.PREF_KEY_GLOBE_DRAG_ENABLED,
+                Integer.valueOf(0));
+        Assert.assertFalse(GboardLongPressQuickActionsSettings
+                .readGlobeDragEnabled(preferences));
     }
 
     @Test
@@ -59,6 +66,21 @@ public final class GboardLongPressQuickActionsSettingsTest {
                 Boolean.FALSE,
                 preferences.values.get(
                         GboardLongPressQuickActionsSettings.PREF_KEY_ENABLED));
+    }
+
+    @Test
+    public void globeDragWriteUsesOnlyChildPreferenceKey() {
+        TestSharedPreferences preferences = new TestSharedPreferences();
+
+        Assert.assertTrue(GboardLongPressQuickActionsSettings.writeGlobeDragEnabled(
+                preferences, false));
+
+        Assert.assertEquals(
+                Collections.singleton(
+                        GboardLongPressQuickActionsSettings.PREF_KEY_GLOBE_DRAG_ENABLED),
+                preferences.values.keySet());
+        Assert.assertFalse(GboardLongPressQuickActionsSettings
+                .readGlobeDragEnabled(preferences));
     }
 }
 

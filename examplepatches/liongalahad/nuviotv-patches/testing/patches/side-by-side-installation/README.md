@@ -1,6 +1,6 @@
 # Side-by-side installation
 
-Patch ID: `side-by-side-installation`. Target: official NuvioTV `0.8.7-beta` universal and ABI-specific builds.
+Patch ID: `side-by-side-installation`. Target: official NuvioTV `0.8.11-beta` universal and ABI-specific builds.
 
 This patch is selected by default in Morphe Manager. It changes the patched app's Android package from `com.nuvio.tv` to `com.nuvio.morphe` and its launcher label to `Nuvio Morphe`, allowing it to install beside the official NuvioTV app. Deselecting the patch retains the existing replacement-install behavior.
 

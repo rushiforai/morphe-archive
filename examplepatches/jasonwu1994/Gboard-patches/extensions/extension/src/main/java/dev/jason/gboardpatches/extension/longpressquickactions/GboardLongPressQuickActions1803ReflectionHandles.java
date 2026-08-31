@@ -9,6 +9,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.concurrent.Future;
 
 public final class GboardLongPressQuickActions1803ReflectionHandles {
     private static final String SOFT_KEY_VIEW_CLASS =
@@ -50,6 +51,7 @@ public final class GboardLongPressQuickActions1803ReflectionHandles {
     private final Method copyActionMethod;
     private final Method buildActionMethod;
     private final Method scheduleLongPressMethod;
+    private volatile Field longPressFutureField;
     private final Constructor<?> metadataBuilderConstructor;
     private final Method copyMetadataMethod;
     private final Method putActionMethod;
@@ -57,6 +59,7 @@ public final class GboardLongPressQuickActions1803ReflectionHandles {
     private final Field eventActionTypeField;
     private final Field eventEntriesField;
     private final Field eventMetadataField;
+    private volatile Field eventSubtypeField;
     private final Class<?> actionEntryClass;
     private final Object pressActionType;
     private final Object longPressActionType;
@@ -169,6 +172,10 @@ public final class GboardLongPressQuickActions1803ReflectionHandles {
         return payload instanceof CharSequence ? payload.toString() : null;
     }
 
+    public int extractPressCarrierCode(Object metadata) throws Throwable {
+        return firstEntryCode(findExactAction(metadata, pressActionType));
+    }
+
     public int[] extractLongPressCodes(Object metadata) throws Throwable {
         Object longPressAction = findExactAction(metadata, longPressActionType);
         Object[] entries = extractEntries(longPressAction);
@@ -177,6 +184,47 @@ public final class GboardLongPressQuickActions1803ReflectionHandles {
             result[index] = entries[index] == null ? 0 : entryKeycodeField.getInt(entries[index]);
         }
         return result;
+    }
+
+    public Object appendShiftChordActions(Object metadata, int downKeycode,
+            Object downPayload, int upKeycode) throws Throwable {
+        Object downActionType = enumValue(pressActionType.getClass(), "DOWN");
+        Object upActionType = enumValue(pressActionType.getClass(), "UP");
+        if (metadata == null
+                || findExactAction(metadata, downActionType) != null
+                || findExactAction(metadata, upActionType) != null) {
+            return null;
+        }
+        Object downAction = buildSingleEntryAction(downActionType, downKeycode, downPayload);
+        Object upAction = buildSingleEntryAction(upActionType, upKeycode, null);
+        if (downAction == null || upAction == null) {
+            return null;
+        }
+        Object metadataBuilder = metadataBuilderConstructor.newInstance();
+        copyMetadataMethod.invoke(metadataBuilder, metadata);
+        putActionMethod.invoke(metadataBuilder, downAction);
+        putActionMethod.invoke(metadataBuilder, upAction);
+        return buildMetadataMethod.invoke(metadataBuilder);
+    }
+
+    private Object buildSingleEntryAction(Object actionType, int keycode, Object payload)
+            throws Throwable {
+        Object actionBuilder = actionBuilderConstructor.newInstance();
+        actionBuilderTypeField.set(actionBuilder, actionType);
+        Object entries = Array.newInstance(actionEntryClass, 1);
+        Array.set(entries, 0, entryConstructor.newInstance(
+                keycode, null, payload, Integer.MAX_VALUE));
+        actionBuilderEntriesField.set(actionBuilder, entries);
+        return buildActionMethod.invoke(actionBuilder);
+    }
+
+    public boolean isStockGlobeMetadata(Object metadata) throws Throwable {
+        Object pressAction = findExactAction(metadata, pressActionType);
+        Object longPressAction = findExactAction(metadata, longPressActionType);
+        return firstEntryCode(pressAction) == -0x271b
+                && "globe".equals(firstEntryPayload(pressAction))
+                && firstEntryCode(longPressAction) == -0x2726
+                && "globe".equals(firstEntryPayload(longPressAction));
     }
 
     public Object appendLongPressAction(Context context, Object metadata,
@@ -245,6 +293,16 @@ public final class GboardLongPressQuickActions1803ReflectionHandles {
         }
     }
 
+    public boolean cancelScheduledLongPress(Object pointerTracker)
+            throws IllegalAccessException {
+        if (pointerTracker == null) {
+            return false;
+        }
+        Field futureField = resolveLongPressFutureField(pointerTracker.getClass());
+        Object future = futureField.get(pointerTracker);
+        return future instanceof Future<?> && ((Future<?>) future).cancel(false);
+    }
+
     public String extractEventActionTypeName(Object event) throws IllegalAccessException {
         Object actionType = event == null ? null : eventActionTypeField.get(event);
         return actionType instanceof Enum<?> ? ((Enum<?>) actionType).name() : null;
@@ -260,6 +318,91 @@ public final class GboardLongPressQuickActions1803ReflectionHandles {
             return 0;
         }
         return entryKeycodeField.getInt(entries[0]);
+    }
+
+    public String extractActionTypeName(Object actionType) {
+        return actionType instanceof Enum<?> ? ((Enum<?>) actionType).name() : null;
+    }
+
+    public int extractEntryCode(Object entry) throws IllegalAccessException {
+        return entry == null ? 0 : entryKeycodeField.getInt(entry);
+    }
+
+    public Object extractEntryPayload(Object entry) throws IllegalAccessException {
+        return entry == null ? null : entryPayloadField.get(entry);
+    }
+
+    public Object extractSelectedEventPayload(Object event) throws IllegalAccessException {
+        Object value = event == null ? null : eventEntriesField.get(event);
+        if (!(value instanceof Object[] entries) || entries.length == 0 || entries[0] == null) {
+            return null;
+        }
+        return entryPayloadField.get(entries[0]);
+    }
+
+    public int extractEventSubtype(Object event) throws IllegalAccessException {
+        if (event == null) {
+            return 0;
+        }
+        return resolveEventSubtypeField(event.getClass()).getInt(event);
+    }
+
+    private Field resolveLongPressFutureField(Class<?> owner) throws IllegalAccessException {
+        Field cached = longPressFutureField;
+        if (cached != null) {
+            return cached;
+        }
+        synchronized (this) {
+            cached = longPressFutureField;
+            if (cached == null) {
+                try {
+                    cached = owner.getDeclaredField("A");
+                    if (!Future.class.isAssignableFrom(cached.getType())) {
+                        throw new NoSuchFieldException("18.0.3 long-press future type drift");
+                    }
+                    cached.setAccessible(true);
+                    longPressFutureField = cached;
+                } catch (ReflectiveOperationException failure) {
+                    throw new IllegalAccessException(failure.toString());
+                }
+            }
+            return cached;
+        }
+    }
+
+    private Field resolveEventSubtypeField(Class<?> owner) throws IllegalAccessException {
+        Field cached = eventSubtypeField;
+        if (cached != null) {
+            return cached;
+        }
+        synchronized (this) {
+            cached = eventSubtypeField;
+            if (cached == null) {
+                try {
+                    cached = owner.getDeclaredField("w");
+                    if (cached.getType() != int.class) {
+                        throw new NoSuchFieldException("18.0.3 event subtype type drift");
+                    }
+                    cached.setAccessible(true);
+                    eventSubtypeField = cached;
+                } catch (ReflectiveOperationException failure) {
+                    throw new IllegalAccessException(failure.toString());
+                }
+            }
+            return cached;
+        }
+    }
+
+    private int firstEntryCode(Object action) throws IllegalAccessException {
+        Object[] entries = extractEntries(action);
+        return entries.length == 0 || entries[0] == null
+                ? 0 : entryKeycodeField.getInt(entries[0]);
+    }
+
+    private Object firstEntryPayload(Object action) throws IllegalAccessException {
+        Object[] entries = extractEntries(action);
+        return entries.length == 0 || entries[0] == null
+                ? null : entryPayloadField.get(entries[0]);
     }
 
     private Object findExactAction(Object metadata, Object actionType) throws Throwable {

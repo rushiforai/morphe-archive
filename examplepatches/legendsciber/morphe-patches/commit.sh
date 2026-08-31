@@ -5,7 +5,7 @@
 set -e
 
 DIR="${DIR:-/tmp/morphe-patches}"
-MSG="fix(pcr): fix smali escape syntax in queryPurchasesAsync bypass"
+MSG="fix(extremecardriving): embed .so as base64 in smali, no rawResourcePatch"
 
 cd "$DIR"
 

@@ -23,6 +23,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import io.github.liongalahad.nuviotv.patches.settings.hub.settingsUiPatch
 import io.github.liongalahad.nuviotv.patches.shared.Constants.NUVIO_COMPATIBILITY
+import io.github.liongalahad.nuviotv.patches.shared.registerSegmentedMediaProvider
 import io.github.liongalahad.nuviotv.patches.shared.registerSharedStorageSettings
 import org.w3c.dom.Element
 
@@ -53,6 +54,7 @@ private val localMediaResources = resourcePatch {
         document("AndroidManifest.xml").use { document ->
             val application = document.getElementsByTagName("application").item(0) as Element
             registerSharedStorageSettings(document, application)
+            registerSegmentedMediaProvider(document, application)
             val manifest = document.documentElement
 
             listOf(
@@ -445,11 +447,16 @@ val localmediaPatch = bytecodePatch(
         // immediately after the call, so they are verifier-safe scratch registers. Captured field
         // registers are not safe here: Kotlin's synthetic invoke method reuses them across branches.
         val secondHeaderCall = gridInstructions[headerItemCalls[1]]
+        val gridScopeRegister: Int
         val scratchRegisters = when (secondHeaderCall) {
-            is FiveRegisterInstruction ->
+            is FiveRegisterInstruction -> {
+                gridScopeRegister = secondHeaderCall.registerC
                 listOf(secondHeaderCall.registerE, secondHeaderCall.registerF)
-            is RegisterRangeInstruction ->
+            }
+            is RegisterRangeInstruction -> {
+                gridScopeRegister = secondHeaderCall.startRegister
                 listOf(secondHeaderCall.startRegister + 2, secondHeaderCall.startRegister + 3)
+            }
             else -> error("Unsupported Library grid header invocation format")
         }
         check(scratchRegisters.distinct().size == 2 && scratchRegisters.all { it < 16 }) {
@@ -461,7 +468,7 @@ val localmediaPatch = bytecodePatch(
             headerItemCalls[1] + 1,
             """
                 move-object/from16 v$firstScratch, p0
-                move-object/from16 v$secondScratch, p1
+                move-object/from16 v$secondScratch, v$gridScopeRegister
                 invoke-static { v$firstScratch, v$secondScratch }, $LIBRARY_UI->populateStorageGridIfActive(Ljava/lang/Object;Ljava/lang/Object;)Z
                 move-result v$firstScratch
                 if-eqz v$firstScratch, :morphe_local_media_grid_continue
@@ -475,7 +482,7 @@ val localmediaPatch = bytecodePatch(
         CloudSearchLabelFingerprint.method.apply {
             val instructions = implementation!!.instructions
             val labelResourceIndex = instructions.indexOfFirst { instruction ->
-                (instruction as? WideLiteralInstruction)?.wideLiteral == 0x7f1101f5L
+                (instruction as? WideLiteralInstruction)?.wideLiteral == 0x7f110201L
             }
             check(labelResourceIndex >= 0) { "Cloud search label resource load was not found" }
             val labelStringCallIndex = instructions.withIndex()
@@ -484,7 +491,7 @@ val localmediaPatch = bytecodePatch(
                     val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
                         ?: return@firstOrNull false
                     reference.returnType == "Ljava/lang/String;" &&
-                        reference.parameterTypes.any { it.toString() == "Le1/m0;" }
+                        reference.parameterTypes.any { it.toString() == "Le1/p;" }
                 }?.index ?: error("Cloud search label string lookup was not found")
             val labelResult = instructions.getOrNull(labelStringCallIndex + 1)
                 as? OneRegisterInstruction

@@ -2,6 +2,7 @@ package io.github.liongalahad.nuviotv.extension.settings
 
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -47,7 +48,21 @@ class MorpheSettingsRuntimeTest {
     }
 
     @Test
-    fun `native switch bridge accepts wrapper and full 0_8_4 row shapes`() {
+    fun `native settings bridges use the verified 0_8_11 owners`() {
+        fun owners(fieldName: String): Array<String> {
+            val field = MorpheSettingsRows::class.java.getDeclaredField(fieldName)
+            field.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
+            return field.get(null) as Array<String>
+        }
+
+        assertArrayEquals(arrayOf("ua.x"), owners("NATIVE_SWITCH_CLASS_NAMES"))
+        assertArrayEquals(arrayOf("ua.qc"), owners("NATIVE_SELECTOR_CLASS_NAMES"))
+        assertArrayEquals(arrayOf("ua.x"), owners("NATIVE_COLLAPSIBLE_CLASS_NAMES"))
+    }
+
+    @Test
+    fun `native switch bridge accepts wrapper and full row shapes`() {
         assertTrue(
             MorpheSettingsRows.matchesNativeSwitchParametersForTesting(
                 arrayOf(
@@ -85,7 +100,7 @@ class MorpheSettingsRuntimeTest {
     }
 
     @Test
-    fun `native selector bridge accepts the 0_8_7 card shape`() {
+    fun `native selector bridge accepts the 0_8_10 card shape`() {
         assertTrue(
             MorpheSettingsRows.matchesNativeSelectorParametersForTesting(
                 arrayOf(

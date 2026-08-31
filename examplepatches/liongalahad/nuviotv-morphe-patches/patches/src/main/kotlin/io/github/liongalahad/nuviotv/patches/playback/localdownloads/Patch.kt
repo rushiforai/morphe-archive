@@ -15,6 +15,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import io.github.liongalahad.nuviotv.patches.settings.hub.settingsUiPatch
 import io.github.liongalahad.nuviotv.patches.shared.Constants.NUVIO_COMPATIBILITY
+import io.github.liongalahad.nuviotv.patches.shared.registerSegmentedMediaProvider
 import io.github.liongalahad.nuviotv.patches.shared.registerSharedStorageSettings
 import org.w3c.dom.Element
 
@@ -33,6 +34,8 @@ private const val DOWNLOADS_MANAGER =
     "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsManagerActivity"
 private const val DOWNLOAD_ACTION =
     "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsEntryActionActivity"
+private const val SOURCE_ACTION =
+    "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsSourceActionActivity"
 private const val PLAYBACK_DIAGNOSTIC =
     "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsPlaybackDiagnosticActivity"
 private const val MOVIE_ACTION =
@@ -51,6 +54,7 @@ private val localDownloadsResources = resourcePatch {
             val manifest = document.documentElement
             val application = document.getElementsByTagName("application").item(0) as Element
             registerSharedStorageSettings(document, application)
+            registerSegmentedMediaProvider(document, application)
             listOf(
                 "android.permission.MANAGE_EXTERNAL_STORAGE" to null,
                 "android.permission.READ_EXTERNAL_STORAGE" to "32",
@@ -80,7 +84,7 @@ private val localDownloadsResources = resourcePatch {
                 })
             })
 
-            listOf(DEFAULT_ACCESS, PROGRESS, DELETE, DOWNLOAD_ACTION, MOVIE_ACTION, DELETE_ALL)
+            listOf(DEFAULT_ACCESS, PROGRESS, DELETE, DOWNLOAD_ACTION, SOURCE_ACTION, MOVIE_ACTION, DELETE_ALL)
                 .forEach { name ->
                 application.appendChild(document.createElement("activity").apply {
                     setAttribute("android:name", name)
@@ -154,14 +158,14 @@ private fun wrapDialogContent(
     )
 }
 
-/** Adds the patch-owned episode actions to Nuvio 0.8.7's native action-list overlay. */
+/** Adds the patch-owned episode actions to Nuvio 0.8.11's native action-list overlay. */
 private fun augmentEpisodeOptions(method: MutableMethod) {
     method.addInstructions(
         0,
         """
             move-object/from16 v0, p0
-            move-object/from16 v1, p12
-            move/from16 v2, p13
+            move-object/from16 v1, p14
+            move/from16 v2, p15
             invoke-static { v0, v1, v2 }, $RUNTIME->prepareOptions(Ljava/lang/Object;Lkotlin/jvm/functions/Function0;Z)V
         """
     )
@@ -175,14 +179,19 @@ private fun augmentEpisodeOptions(method: MutableMethod) {
             reference.returnType == "Ljava/util/List;"
     }
     check(listBuildIndex >= 0) { "Episode options action-list builder was not found" }
-    val listRegister = when (val call = method.implementation!!.instructions[listBuildIndex]) {
-        is FiveRegisterInstruction -> call.registerC
-        is RegisterRangeInstruction -> call.startRegister
-        else -> error("Episode options action-list builder uses an unsupported invoke format")
+    val resultInstruction = method.implementation!!.instructions.getOrNull(listBuildIndex + 1)
+        ?: error("Episode options action-list builder has no result instruction")
+    check(resultInstruction.opcode == Opcode.MOVE_RESULT_OBJECT) {
+        "Episode options action-list builder does not return into an object register"
     }
+    val listRegister = (resultInstruction as? OneRegisterInstruction)?.registerA
+        ?: error("Episode options action-list result uses an unsupported instruction format")
     method.addInstructions(
-        listBuildIndex,
-        "invoke-static/range { v$listRegister .. v$listRegister }, $RUNTIME->appendEpisodeOptions(Ljava/util/List;)V"
+        listBuildIndex + 2,
+        """
+            invoke-static/range { v$listRegister .. v$listRegister }, $RUNTIME->extendEpisodeOptions(Ljava/util/List;)Ljava/util/List;
+            move-result-object v$listRegister
+        """
     )
 }
 
@@ -206,12 +215,15 @@ val localdownloadsPatch = bytecodePatch(
             ContinueOptionsDialogFingerprint,
             StreamRouteFingerprint,
             StreamScreenFingerprint,
+            SourceCardFingerprint,
+            NativeSourceTvButtonFingerprint,
+            NativeDefaultableTvButtonFingerprint,
+            NativeTextFingerprint,
             SubtitleWorkerFingerprint,
             NuvioNavHostFingerprint,
             PlayerMediaSourceFactoryFingerprint,
             FullscreenPlaybackStateListenerFingerprint
         ).forEach { it.matchAll(1..1) }
-
         HeroContentFingerprint.method.addInstructions(
             0,
             """
@@ -250,6 +262,15 @@ val localdownloadsPatch = bytecodePatch(
         wrapDialogContent(HeroOptionsDialogFingerprint.method, null, 4, 3)
         augmentEpisodeOptions(EpisodeOptionsDialogFingerprint.method)
         wrapDialogContent(ContinueOptionsDialogFingerprint.method, 0, 6, 5)
+        ContinueOptionsDialogFingerprint.method.addInstructions(
+            0,
+            """
+                const-class v0, ${NativeDefaultableTvButtonFingerprint.classDef.type}
+                invoke-static/range { v0 .. v0 }, $RUNTIME->observeNativeTvButtonClass(Ljava/lang/Class;)V
+                const-class v0, ${NativeTextFingerprint.classDef.type}
+                invoke-static/range { v0 .. v0 }, $RUNTIME->observeNativeTextClass(Ljava/lang/Class;)V
+            """
+        )
 
         EpisodeCardContentFingerprint.method.apply {
             val instructions = implementation!!.instructions
@@ -269,35 +290,38 @@ val localdownloadsPatch = bytecodePatch(
                 instruction.opcode == Opcode.IGET_BOOLEAN && field?.definingClass == cardOwner &&
                     instructions.getOrNull(index + 1)?.opcode == Opcode.IF_EQZ
             } ?: error("Episode watched-state field read was not found")
-            val composerCast = instructions.withIndex().take(watchedRead.index).lastOrNull {
-                    (_, instruction) ->
-                instruction.opcode == Opcode.CHECK_CAST &&
-                    ((instruction as? ReferenceInstruction)?.reference as? TypeReference)?.type ==
-                    "Le1/m0;"
-            } ?: error("Episode-card composer cast was not found")
-            val composerRegister = composerCast.value.let { instruction ->
-                (instruction as? OneRegisterInstruction)?.registerA
-            } ?: error("Episode-card composer register was not found")
             val expectedComposerParameter = implementation!!.registerCount - 2
-            val composerSource = instructions.withIndex().take(composerCast.index).lastOrNull {
-                    (_, instruction) ->
+            val composerParameterMove = instructions.withIndex().take(watchedRead.index).firstOrNull {
+                    (index, instruction) ->
                 instruction.opcode in setOf(
                     Opcode.MOVE_OBJECT,
                     Opcode.MOVE_OBJECT_FROM16,
                     Opcode.MOVE_OBJECT_16
-                ) && (instruction as? TwoRegisterInstruction)?.registerA == composerRegister
-            }?.value.let { instruction ->
-                (instruction as? TwoRegisterInstruction)?.registerB
+                ) && (instruction as? TwoRegisterInstruction)?.registerB == expectedComposerParameter &&
+                    instructions.getOrNull(index + 1).let { next ->
+                        next?.opcode == Opcode.CHECK_CAST &&
+                            (next as? OneRegisterInstruction)?.registerA ==
+                            (instruction as TwoRegisterInstruction).registerA &&
+                            ((next as? ReferenceInstruction)?.reference as? TypeReference)?.type ==
+                            "Le1/p;"
+                    }
             }
-            check(composerSource == expectedComposerParameter) {
-                "Episode-card composer is not copied from the expected p2 parameter: " +
-                    "v$composerSource != v$expectedComposerParameter"
+            check(composerParameterMove != null) {
+                "Episode-card p2 parameter is not cast to the expected Compose interface"
+            }
+            val composerRegister =
+                (composerParameterMove.value as TwoRegisterInstruction).registerA
+            val cardContentRegister =
+                (watchedRead.value as? TwoRegisterInstruction)?.registerB
+                    ?: error("Episode watched-state read has no card-content register")
+            check(cardContentRegister < 16 && composerRegister < 16) {
+                "Episode badge arguments are not available to a verifier-safe invoke"
             }
             addInstructions(
                 watchedRead.index + 1,
-                "invoke-static/range { p0 .. p2 }, " +
+                "invoke-static { v$cardContentRegister, v$composerRegister }, " +
                     "$RUNTIME->renderDownloadedEpisodeBadge" +
-                    "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V"
+                    "(Ljava/lang/Object;Ljava/lang/Object;)V"
             )
         }
 
@@ -325,14 +349,50 @@ val localdownloadsPatch = bytecodePatch(
                 const-class v1, $subtitleWorkerType
                 invoke-static/range { v1 .. v1 }, $RUNTIME->observeSubtitleWorkerClass(Ljava/lang/Class;)V
                 invoke-static/range { v0 .. v0 }, $RUNTIME->observeStreamViewModel(Ljava/lang/Object;)V
-                move-object/from16 v0, p2
+                move-object/from16 v0, p5
                 invoke-static/range { v0 .. v0 }, $RUNTIME->wrapResolvedCallback(Lkotlin/jvm/functions/Function1;)Lkotlin/jvm/functions/Function1;
-                move-result-object p2
-                move-object/from16 v0, p3
+                move-result-object p5
+                move-object/from16 v0, p6
                 invoke-static/range { v0 .. v0 }, $RUNTIME->wrapResolvedCallback(Lkotlin/jvm/functions/Function1;)Lkotlin/jvm/functions/Function1;
-                move-result-object p3
+                move-result-object p6
             """
         )
+
+        SourceCardFingerprint.method.apply {
+            addInstructions(
+                0,
+                """
+                    move-object/from16 v0, p0
+                    move-object/from16 v1, p5
+                    invoke-static { v0, v1 }, $RUNTIME->wrapSourceClick(Ljava/lang/Object;Lkotlin/jvm/functions/Function0;)Lkotlin/jvm/functions/Function0;
+                    move-result-object p5
+                """
+            )
+            val sourceButtonCalls = implementation!!.instructions.withIndex().filter { (_, instruction) ->
+                val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                    ?: return@filter false
+                reference.definingClass == NativeSourceTvButtonFingerprint.classDef.type &&
+                    reference.name == NativeSourceTvButtonFingerprint.method.name &&
+                    reference.parameterTypes.map(CharSequence::toString).size == 11
+            }
+            check(sourceButtonCalls.size == 1) { "Native source-row TV Button call was not found exactly once" }
+            addInstructions(
+                sourceButtonCalls.single().index,
+                "invoke-static/range { p5 .. p5 }, $RUNTIME->prepareSourceKeyTarget(Lkotlin/jvm/functions/Function0;)V"
+            )
+        }
+
+        NativeSourceTvButtonFingerprint.method.apply {
+            val modifierType = parameterTypes[1].toString()
+            addInstructions(
+                0,
+                """
+                    invoke-static/range { p1 .. p1 }, $RUNTIME->attachPreparedSourceKeyHandler(Ljava/lang/Object;)Ljava/lang/Object;
+                    move-result-object p1
+                    check-cast p1, $modifierType
+                """
+            )
+        }
 
         NuvioNavHostFingerprint.method.addInstructions(
             0,

@@ -5,8 +5,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ListView
+import android.widget.TextView
 import androidx.test.core.app.ApplicationProvider
 import io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRuntime
+import io.github.liongalahad.nuviotv.extension.settings.MorpheStorageConsumers
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -47,7 +49,29 @@ class LocalDownloadsRuntimeTest {
         resetActiveDownloadState()
         setStaticField("pendingAction", null)
         setStaticField("pendingRoute", null)
+        setStaticField("currentPickerRoute", null)
+        setStaticField("pendingSelectedSourceKey", "")
+        setStaticField("pendingSourcePlayOverride", false)
+        setStaticField("pendingSourceDownloadOneShot", false)
+        setStaticField("activeRequestFromOneShotSourceAction", false)
+        LocalDownloadsRuntime.cancelPendingSourceAction()
+        LocalDownloadsRuntime.finishSourceAction()
         (getStaticField("cancelRequested") as java.util.concurrent.atomic.AtomicBoolean).set(false)
+    }
+
+    @Test
+    fun `episode badge is pinned to exact 0_8_11 native metrics owner`() {
+        assertEquals("na.z0", getStaticField("EPISODE_CARD_METRICS_CLASS"))
+
+        val reader = LocalDownloadsRuntime::class.java.getDeclaredMethod(
+            "requiredFloatField",
+            Any::class.java,
+            String::class.java
+        ).apply { isAccessible = true }
+        val metrics = FakeEpisodeCardMetrics()
+        assertEquals(24f, reader.invoke(null, metrics, "t") as Float, 0f)
+        assertEquals(16f, reader.invoke(null, metrics, "u") as Float, 0f)
+        assertEquals(12f, reader.invoke(null, metrics, "v") as Float, 0f)
     }
 
     @Test
@@ -791,6 +815,31 @@ class LocalDownloadsRuntimeTest {
     }
 
     @Test
+    fun `completed download invalidates active storage consumers`() {
+        var storageChanges = 0
+        MorpheStorageConsumers.register(
+            "local-downloads-completion-test",
+            { true },
+            false
+        ) { storageChanges += 1 }
+        val identity = LocalDownloadsRuntime.RouteIdentity.fromRoute(
+            "stream/tt-refresh%3A1%3A1/series/Episode?contentId=tt-refresh" +
+                "&contentName=Refresh%20Show&season=1&episode=1&episodeName=Pilot"
+        )!!
+        val entry = LocalDownloadsRuntime.DownloadedEntry(
+            identity,
+            "file:///storage/emulated/0/Movies/Nuvio/Refresh Show/Pilot.mp4",
+            "Pilot.mp4",
+            1024,
+            emptyList()
+        )
+
+        LocalDownloadsRuntime.completeDownload(entry)
+
+        assertEquals(1, storageChanges)
+    }
+
+    @Test
     fun `native episode overlay receives the download action`() {
         LocalDownloadsSettings.setEnabled(true)
         val action: () -> kotlin.Unit = {}
@@ -806,6 +855,334 @@ class LocalDownloadsRuntimeTest {
         assertEquals(listOf("Play", "Download to storage"), actions.map {
             (it as FakeEpisodeAction).label
         })
+    }
+
+    @Test
+    fun `finalized native episode overlay receives the download action`() {
+        LocalDownloadsSettings.setEnabled(true)
+        val action: () -> kotlin.Unit = {}
+        LocalDownloadsRuntime.prepareOptions(
+            FakeEpisodeTarget("tt1:1:1", "tt1", 1, 1, "Freedom Day"),
+            action,
+            true
+        )
+
+        val extended = LocalDownloadsRuntime.extendEpisodeOptions(
+            listOf<Any>(
+                FakeEpisodeAction("Play", true, action),
+                FakeEpisodeAction("Start from beginning", true, action)
+            )
+        )
+
+        assertEquals(
+            listOf("Play", "Start from beginning", "Download to storage"),
+            extended.map { (it as FakeEpisodeAction).label }
+        )
+    }
+
+    @Test
+    fun `source fingerprint ignores signed query changes but distinguishes another source`() {
+        val first = FakeSource(
+            addonName = "Direct Streams",
+            url = "https://cdn.example.test/show/e01.mp4?token=first&expires=1",
+            title = "1080p"
+        )
+        val refreshed = first.copy(
+            url = "https://cdn.example.test/show/e01.mp4?token=second&expires=2"
+        )
+        val other = first.copy(url = "https://other.example.test/show/e01.mp4?token=first")
+
+        assertEquals(
+            LocalDownloadsRuntime.sourceFingerprintForTesting(first),
+            LocalDownloadsRuntime.sourceFingerprintForTesting(refreshed)
+        )
+        assertFalse(
+            LocalDownloadsRuntime.sourceFingerprintForTesting(first) ==
+                LocalDownloadsRuntime.sourceFingerprintForTesting(other)
+        )
+    }
+
+    @Test
+    fun `source row short click preserves play and records identity only in download mode`() {
+        val source = FakeSource("Addon", "https://example.test/e01.mp4", "1080p")
+        var selected = 0
+        val wrapped = LocalDownloadsRuntime.wrapSourceClick(source) { selected++; kotlin.Unit }
+
+        wrapped.invoke()
+        assertEquals(1, selected)
+        assertEquals("", getStaticField("pendingSelectedSourceKey"))
+
+        setStaticField("pendingAction", enumValue("PendingAction", "DOWNLOAD"))
+        wrapped.invoke()
+        assertEquals(2, selected)
+        assertEquals(
+            LocalDownloadsRuntime.sourceFingerprintForTesting(source),
+            getStaticField("pendingSelectedSourceKey")
+        )
+    }
+
+    @Test
+    fun `source long press remains available in a download picker`() {
+        LocalDownloadsSettings.setEnabled(true)
+        val source = FakeSource("Addon", "https://example.test/e01.mp4", "1080p")
+        val wrapped = LocalDownloadsRuntime.wrapSourceClick(source) { kotlin.Unit }
+        setStaticField("currentPickerRoute", episodeRoute(1))
+        setStaticField("pendingAction", enumValue("PendingAction", "DOWNLOAD"))
+
+        LocalDownloadsRuntime.prepareSourceKeyTarget(wrapped)
+        val prepared = getStaticField("PREPARED_SOURCE_TARGET") as ThreadLocal<*>
+
+        try {
+            assertNotNull(prepared.get())
+        } finally {
+            prepared.remove()
+        }
+    }
+
+    @Test
+    fun `held play in a download picker plays once and preserves download mode`() {
+        val route = episodeRoute(1)
+        val direct = FakePlaybackInfo(
+            url = "https://example.test/e01.mp4",
+            filename = "e01.mp4",
+            videoSize = 1024
+        )
+        var selected = 0
+        setStaticField("pendingAction", enumValue("PendingAction", "DOWNLOAD"))
+        setStaticField("pendingRoute", route)
+        LocalDownloadsRuntime.prepareSourceActionForTesting(
+            FakeSource("Addon", direct.url!!, "1080p"), route,
+            { selected++; kotlin.Unit }
+        )
+
+        assertTrue(LocalDownloadsRuntime.playPendingSource())
+        shadowOf(android.os.Looper.getMainLooper()).idle()
+
+        assertEquals(1, selected)
+        assertFalse(LocalDownloadsRuntime.interceptResolvedSelection(direct))
+        assertEquals("DOWNLOAD", getStaticField("pendingAction").toString())
+        assertEquals(route, getStaticField("pendingRoute"))
+    }
+
+    @Test
+    fun `held download from a play picker is one shot after cancellation`() {
+        val route = episodeRoute(1)
+        val first = FakeSource("Addon A", "https://a.example.test/e01.mp4", "1080p")
+        val second = FakeSource("Addon B", "https://b.example.test/e01.mp4", "1080p")
+        val direct = FakePlaybackInfo(
+            url = first.url,
+            filename = "e01.mp4",
+            videoSize = 1024
+        )
+        var firstSelected = 0
+        var secondSelected = 0
+        LocalDownloadsRuntime.prepareSourceActionForTesting(
+            first, route, { firstSelected++; kotlin.Unit }
+        )
+
+        try {
+            assertTrue(LocalDownloadsRuntime.downloadPendingSourceForTesting(false))
+            assertTrue(LocalDownloadsRuntime.interceptResolvedSelection(direct))
+            assertNull(getStaticField("pendingAction"))
+            assertNull(getStaticField("pendingRoute"))
+            shadowOf(android.os.Looper.getMainLooper()).idle()
+            assertEquals(1, firstSelected)
+
+            LocalDownloadsRuntime.cancelDownload()
+            LocalDownloadsRuntime.updateStateForService(
+                LocalDownloadsRuntime.DownloadState.cancelled("Silo · S01E01")
+            )
+            val wrapped = LocalDownloadsRuntime.wrapSourceClick(second) {
+                secondSelected++; kotlin.Unit
+            }
+            wrapped.invoke()
+
+            assertEquals(1, secondSelected)
+            assertEquals("", getStaticField("pendingSelectedSourceKey"))
+            assertFalse(LocalDownloadsRuntime.interceptResolvedSelection(direct))
+        } finally {
+            resetActiveDownloadState()
+            (getStaticField("cancelRequested") as java.util.concurrent.atomic.AtomicBoolean).set(false)
+        }
+    }
+
+    @Test
+    fun `held download from a download picker preserves short download retries`() {
+        val route = episodeRoute(1)
+        val first = FakeSource("Addon A", "https://a.example.test/e01.mp4", "1080p")
+        val second = FakeSource("Addon B", "https://b.example.test/e01.mp4", "1080p")
+        val direct = FakePlaybackInfo(
+            url = first.url,
+            filename = "e01.mp4",
+            videoSize = 1024
+        )
+        var secondSelected = 0
+        setStaticField("pendingAction", enumValue("PendingAction", "DOWNLOAD"))
+        setStaticField("pendingRoute", route)
+        LocalDownloadsRuntime.prepareSourceActionForTesting(first, route, { kotlin.Unit })
+
+        try {
+            assertTrue(LocalDownloadsRuntime.downloadPendingSourceForTesting(false))
+            assertTrue(LocalDownloadsRuntime.interceptResolvedSelection(direct))
+            assertEquals("DOWNLOAD", getStaticField("pendingAction").toString())
+
+            LocalDownloadsRuntime.cancelDownload()
+            LocalDownloadsRuntime.updateStateForService(
+                LocalDownloadsRuntime.DownloadState.cancelled("Silo · S01E01")
+            )
+            val wrapped = LocalDownloadsRuntime.wrapSourceClick(second) {
+                secondSelected++; kotlin.Unit
+            }
+            wrapped.invoke()
+
+            assertEquals(1, secondSelected)
+            assertEquals(
+                LocalDownloadsRuntime.sourceFingerprintForTesting(second),
+                getStaticField("pendingSelectedSourceKey")
+            )
+            assertTrue(LocalDownloadsRuntime.interceptResolvedSelection(direct))
+        } finally {
+            resetActiveDownloadState()
+            (getStaticField("cancelRequested") as java.util.concurrent.atomic.AtomicBoolean).set(false)
+        }
+    }
+
+    @Test
+    fun `download index persists source identity and reads legacy entries`() {
+        val route = episodeRoute(1)
+        val media = temporaryFolder.newFile("source-index.mp4").apply { writeText("video") }
+        val sourceKey = "source-key"
+        val entry = LocalDownloadsRuntime.DownloadedEntry(
+            route, media.toURI().toString(), media.parentFile.toURI().toString(), media.name,
+            media.length(), emptyList(), listOf(media.toURI().toString()), "", sourceKey
+        )
+
+        assertEquals(sourceKey, LocalDownloadsRuntime.DownloadedEntry.fromJson(entry.toJson())!!.sourceKey)
+        val legacy = entry.toJson().apply { remove("sourceKey") }
+        assertEquals("", LocalDownloadsRuntime.DownloadedEntry.fromJson(legacy)!!.sourceKey)
+    }
+
+    @Test
+    fun `normal source action starts with play and download`() {
+        val route = episodeRoute(1)
+        LocalDownloadsRuntime.prepareSourceActionForTesting(
+            FakeSource("Addon", "https://example.test/e01.mp4", "1080p"),
+            route,
+            { kotlin.Unit }
+        )
+        val controller = Robolectric.buildActivity(LocalDownloadsSourceActionActivity::class.java)
+            .create().resume()
+
+        try {
+            assertEquals(listOf("Play", "Download"),
+                buttonLabels(controller.get().window.decorView))
+        } finally {
+            controller.get().onBackPressed()
+            controller.pause().destroy()
+        }
+    }
+
+    @Test
+    fun `same source duplicate shows exact message and only back`() {
+        val source = FakeSource("Addon", "https://example.test/e01.mp4?token=old", "1080p")
+        val route = episodeRoute(1)
+        indexEntry(route, source)
+        LocalDownloadsRuntime.prepareSourceActionForTesting(
+            source.copy(url = "https://example.test/e01.mp4?token=new"),
+            route,
+            { kotlin.Unit }
+        )
+        val controller = Robolectric.buildActivity(LocalDownloadsSourceActionActivity::class.java)
+            .create().resume()
+
+        try {
+            findButton(controller.get().window.decorView, "Download")!!.performClick()
+            assertTrue(textLabels(controller.get().window.decorView).contains(
+                "This title was already downloaded from the same source."
+            ))
+            assertEquals(listOf("Back"), buttonLabels(controller.get().window.decorView))
+        } finally {
+            controller.get().onBackPressed()
+            controller.pause().destroy()
+        }
+    }
+
+    @Test
+    fun `different source duplicate shows overwrite and back`() {
+        val route = episodeRoute(1)
+        indexEntry(route, FakeSource("Addon A", "https://a.example.test/e01.mp4", "1080p"))
+        LocalDownloadsRuntime.prepareSourceActionForTesting(
+            FakeSource("Addon B", "https://b.example.test/e01.mp4", "1080p"),
+            route,
+            { kotlin.Unit }
+        )
+        val controller = Robolectric.buildActivity(LocalDownloadsSourceActionActivity::class.java)
+            .create().resume()
+
+        try {
+            findButton(controller.get().window.decorView, "Download")!!.performClick()
+            assertTrue(textLabels(controller.get().window.decorView).contains(
+                "This title was already downloaded from a different source."
+            ))
+            assertEquals(
+                listOf("Download and overwrite", "Back"),
+                buttonLabels(controller.get().window.decorView)
+            )
+        } finally {
+            controller.get().onBackPressed()
+            controller.pause().destroy()
+        }
+    }
+
+    @Test
+    @Config(sdk = [28])
+    fun `overwrite deletes only the matching episode and arms selected source`() {
+        shadowOf(application).grantPermissions(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        val storage = application.getExternalFilesDir(null)!!.resolve("overwrite-storage")
+            .apply { mkdirs() }
+        io.github.liongalahad.nuviotv.extension.settings.MorpheStoragePath
+            .setFolderPath(application, storage.absolutePath)
+        val oldMedia = storage.resolve("old-e01.mp4").apply { writeText("old") }
+        val route = episodeRoute(1)
+        val oldSource = FakeSource("Addon A", "https://a.example.test/e01.mp4", "1080p")
+        val newSource = FakeSource("Addon B", "https://b.example.test/e01.mp4", "1080p")
+        indexEntry(route, oldSource, oldMedia)
+        var selected = 0
+        LocalDownloadsRuntime.prepareSourceActionForTesting(
+            newSource, route, { selected++; kotlin.Unit }
+        )
+
+        assertEquals(
+            LocalDownloadsRuntime.SourceDuplicateKind.DIFFERENT,
+            LocalDownloadsRuntime.pendingSourceDuplicateKind()
+        )
+        assertTrue(LocalDownloadsRuntime.downloadPendingSourceForTesting(true))
+
+        assertFalse(oldMedia.exists())
+        assertTrue(LocalDownloadsRuntime.entries().isEmpty())
+        assertEquals("DOWNLOAD", getStaticField("pendingAction").toString())
+        assertEquals(
+            LocalDownloadsRuntime.sourceFingerprintForTesting(newSource),
+            getStaticField("pendingSelectedSourceKey")
+        )
+        shadowOf(android.os.Looper.getMainLooper()).idle()
+        assertEquals(1, selected)
+    }
+
+    @Test
+    fun `duplicate matching is episode exact within a season`() {
+        val source = FakeSource("Addon", "https://example.test/e01.mp4", "1080p")
+        indexEntry(episodeRoute(1), source)
+        LocalDownloadsRuntime.prepareSourceActionForTesting(
+            source.copy(url = "https://example.test/e02.mp4"),
+            episodeRoute(2),
+            { kotlin.Unit }
+        )
+
+        assertEquals(
+            LocalDownloadsRuntime.SourceDuplicateKind.NONE,
+            LocalDownloadsRuntime.pendingSourceDuplicateKind()
+        )
     }
 
     @Test
@@ -923,6 +1300,18 @@ class LocalDownloadsRuntimeTest {
         val onClick: () -> kotlin.Unit
     )
 
+    private data class FakeSource(
+        val addonName: String,
+        val url: String,
+        val title: String,
+        val name: String? = null,
+        val description: String? = null,
+        val quality: String? = "1080p",
+        val infoHash: String? = null,
+        val fileIdx: Int? = null,
+        val externalUrl: String? = null
+    )
+
     private class TrackingConnection : HttpURLConnection(URL("https://example.test/video.mp4")) {
         var disconnected = false
         override fun disconnect() { disconnected = true }
@@ -954,6 +1343,43 @@ class LocalDownloadsRuntimeTest {
         return (0 until view.childCount).firstNotNullOfOrNull {
             findButton(view.getChildAt(it), label)
         }
+    }
+
+    private fun textLabels(view: View): List<String> {
+        val own = if (view is TextView) listOf(view.text.toString()) else emptyList()
+        if (view !is ViewGroup) return own
+        return own + (0 until view.childCount).flatMap { textLabels(view.getChildAt(it)) }
+    }
+
+    private fun episodeRoute(episode: Int): LocalDownloadsRuntime.RouteIdentity =
+        LocalDownloadsRuntime.RouteIdentity.fromRoute(
+            "stream/tt14688458%3A1%3A$episode/series/Episode%20$episode" +
+                "?contentId=tt14688458&contentName=Silo&season=1&episode=$episode" +
+                "&episodeName=Episode%20$episode&manualSelection=true"
+        )!!
+
+    private fun indexEntry(
+        route: LocalDownloadsRuntime.RouteIdentity,
+        source: FakeSource,
+        media: java.io.File = temporaryFolder.newFile("indexed-${route.episode}.mp4")
+            .apply { writeText("video") }
+    ) {
+        val entry = LocalDownloadsRuntime.DownloadedEntry(
+            route,
+            media.toURI().toString(),
+            media.parentFile.toURI().toString(),
+            media.name,
+            media.length(),
+            emptyList(),
+            listOf(media.toURI().toString()),
+            "",
+            LocalDownloadsRuntime.sourceFingerprintForTesting(source)
+        )
+        application.getSharedPreferences(MorpheSettingsRuntime.PREFERENCES_NAME, 0)
+            .edit().putString(
+                "playback.local_downloads.entries.v1",
+                org.json.JSONArray().put(entry.toJson()).toString()
+            ).commit()
     }
 
     private fun resetActiveDownloadState() {
@@ -1044,6 +1470,13 @@ class LocalDownloadsRuntimeTest {
             it.simpleName == simpleName
         }
         return enumClass.enumConstants!!.single { (it as Enum<*>).name == value }
+    }
+
+    @Suppress("unused")
+    private class FakeEpisodeCardMetrics {
+        @JvmField val t = 24f
+        @JvmField val u = 16f
+        @JvmField val v = 12f
     }
 
     @Suppress("unused")

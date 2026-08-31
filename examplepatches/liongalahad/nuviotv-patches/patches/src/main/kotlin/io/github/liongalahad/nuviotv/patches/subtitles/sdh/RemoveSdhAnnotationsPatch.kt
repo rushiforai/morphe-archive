@@ -90,7 +90,7 @@ val removeSdhAnnotationsPatch = bytecodePatch(
             }
             val cueListRegister = if (AccessFlags.STATIC.isSet(accessFlags)) "p0" else "p1"
             check(returnType == "Ljava/util/ArrayList;") {
-                "Native SDH filter no longer has the verified 0.8.7 ArrayList return type: $returnType"
+                "Native SDH filter no longer has the verified 0.8.11 ArrayList return type: $returnType"
             }
             addInstructions(
                 0,
@@ -117,7 +117,7 @@ val removeSdhAnnotationsPatch = bytecodePatch(
             val listRegister = (cueListRead.value as? TwoRegisterInstruction)?.registerA
                 ?: error("CueGroup cue-list read has no destination register")
             check(listRegister == 2 && implementation!!.registerCount == 7) {
-                "CueGroup callback no longer has the verified 0.8.7 register layout: " +
+                "CueGroup callback no longer has the verified 0.8.11 register layout: " +
                     "list=v$listRegister, registerCount=${implementation!!.registerCount}"
             }
             val presentationTimeField = instructions.mapNotNull { instruction ->

@@ -15,9 +15,9 @@ Stable releases come from `main`. To try preview builds from `dev`, enable **pre
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.0](https://github.com/riky-dev/morphe-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;14 patches total
+> **[v1.4.1](https://github.com/riky-dev/morphe-patches/releases/tag/v1.4.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
 <details open>
-<summary>📦 CapCut&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
+<summary>📦 CapCut&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -27,15 +27,11 @@ Stable releases come from `main`. To try preview builds from `dev`, enable **pre
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Hide AI Lab Tab](#hide-ai-lab-tab) | Removes the third bottom navigation tab ('AI Lab' / 'Lab. IA') by forcing its visibility observer to always hide the tab. |  |
-| [Hide AI Sounds Tab](#hide-ai-sounds-tab) | Disables the cloud-gated AI sounds category inside the sound-effects panel. |  |
-| [Hide False Hopes Features](#hide-false-hopes-features) | Hides 'IA ultra HD' (Export Super Resolution) and 'Flusso ottico' (Slow Motion Optical Flow) options since they are cloud-gated. |  |
-| [Hide Home Bottom Banner](#hide-home-bottom-banner) | Suppresses the promotional bottom banner on the home screen (e.g. Twitch / subscription promos). |  |
-| [Hide Home Top Banner](#hide-home-top-banner) | Suppresses the promotional header banner on the home screen. |  |
-| [Hide Inbox Tab](#hide-inbox-tab) | Removes the inbox / notifications bottom navigation tab by forcing its visibility observer to always hide the tab. |  |
-| [Hide Templates Tab](#hide-templates-tab) | Removes the second bottom navigation tab ('Templates' / 'Modelli') by forcing its visibility observer to always hide the tab. |  |
-| [Remove security notice](#remove-security-notice) | Suppresses the modified-build security notice by disabling the risk SDK dialog entry point and the isCracking flag writer. |  |
-| [Suppress Telemetry and Trackers](#suppress-telemetry-and-trackers) | Disables background monitoring and analytics frameworks including ByteDance Helios, AppLog, and AppsFlyer. |  |
+| [Hide Promotional UI](#hide-promotional-ui) | Suppresses home banners, export promos, subscription paywalls, Pro badges, Lynx promo modals, and PC diversion popups. |  |
+| [Hide Unavailable Features](#hide-unavailable-features) | Hides cloud-gated editor options that won't work offline: AI sounds, super resolution, optical flow, and smart frame interpolation. |  |
+| [Remove Security Notice](#remove-security-notice) | Suppresses the modified-build security notice by disabling the risk SDK dialog entry point and the isCracking flag writer. |  |
+| [Simplify Navigation](#simplify-navigation) | Removes the Templates, Inbox, and AI Lab bottom navigation tabs. |  |
+| [Suppress Telemetry](#suppress-telemetry) | Disables background monitoring and analytics frameworks including ByteDance Helios, AppLog, and AppsFlyer. |  |
 | [Unlock Premium](#unlock-premium) | Forces the VIP flag to true so premium features are unlocked client-side. Server-validated assets (cloud effects/templates) are not affected. |  |
 
 </details>

@@ -125,6 +125,13 @@ class MorpheStorageAccessTest {
         assertFalse(MorpheStoragePath.hasRawWriteAccess(30, false, true))
     }
 
+    @Test fun `raw reader uses all-files access on Android 11 and legacy read below it`() {
+        assertTrue(MorpheStoragePath.hasRawReadAccess(28, false, true))
+        assertFalse(MorpheStoragePath.hasRawReadAccess(28, true, false))
+        assertTrue(MorpheStoragePath.hasRawReadAccess(30, true, false))
+        assertFalse(MorpheStoragePath.hasRawReadAccess(30, false, true))
+    }
+
     @Test fun `app-specific fallback uses the patched app package and not Morphe Manager`() {
         val root = temporaryFolder.newFolder("7736-1C22")
 

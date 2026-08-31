@@ -1,5 +1,12 @@
 # Test plan
 
+## NuvioTV 0.8.11-beta port evidence — 2026-08-29
+
+- [x] The clean rerun completed 239 extension tests and 543 passing patcher tests out of 544, with zero failures or errors and one intentional patcher skip; debug lint completed with zero errors.
+- [x] Remove SDH Annotations applied alone to all four official ABI assets with exact fingerprints and passed in each final seven-patch build.
+- [x] The exact final x86_64 APK rendered the `SDH subtitle processing` selector in Morphe Settings on the API 36 `Television_4K` AVD without a fatal exception.
+- [ ] Visual cue transformation during real Media3 playback and real Android TV acceptance remain manual release gates.
+
 1. Run extension unit tests covering the fresh normalize-only default, true-Off identity, normalize-only behavior, multiline delimiters, repeated inferred markers, retained spans, cleanup modes, and build the bundle.
 2. Apply only `Remove SDH Annotations` independently to the hash-pinned x86_64 and universal APKs.
 3. Confirm every structural fingerprint matches exactly once.

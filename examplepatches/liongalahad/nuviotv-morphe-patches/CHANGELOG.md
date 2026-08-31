@@ -1,3 +1,9 @@
+## [1.0.0-dev.30](https://github.com/liongalahad/liongalahad-nuviotv-morphe-patches/compare/v1.0.0-dev.29...v1.0.0-dev.30) (2026-08-30)
+
+### ✨ New Features
+
+* update patches for NuvioTV 0.8.11 ([97c7753](https://github.com/liongalahad/liongalahad-nuviotv-morphe-patches/commit/97c77538711715d859fb960c1f004541ac53c599))
+
 ## [1.0.0-dev.29](https://github.com/liongalahad/nuviotv-morphe-patches/compare/v1.0.0-dev.28...v1.0.0-dev.29) (2026-08-25)
 
 ### 🐛 Bug Fixes

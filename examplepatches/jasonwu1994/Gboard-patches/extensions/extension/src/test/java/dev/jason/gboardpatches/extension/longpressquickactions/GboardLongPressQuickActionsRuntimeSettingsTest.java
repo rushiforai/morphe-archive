@@ -18,6 +18,7 @@ public final class GboardLongPressQuickActionsRuntimeSettingsTest {
 
         Assert.assertEquals(123L, snapshot.loadedAtElapsedMs);
         Assert.assertFalse(snapshot.enabled);
+        Assert.assertFalse(snapshot.globeDragEnabled);
         Assert.assertEquals("local", snapshot.source);
     }
 
@@ -30,6 +31,7 @@ public final class GboardLongPressQuickActionsRuntimeSettingsTest {
 
         Assert.assertEquals(456L, snapshot.loadedAtElapsedMs);
         Assert.assertFalse(snapshot.enabled);
+        Assert.assertFalse(snapshot.globeDragEnabled);
         Assert.assertEquals("unavailable", snapshot.source);
     }
 
@@ -52,6 +54,13 @@ public final class GboardLongPressQuickActionsRuntimeSettingsTest {
 
             GboardLongPressQuickActionsRuntimeSettings.setEnabledOverrideForTest(true);
             Assert.assertTrue(GboardLongPressQuickActionsRuntimeSettings.isEnabled());
+            Assert.assertTrue(GboardLongPressQuickActionsRuntimeSettings
+                    .isGlobeDragEnabled());
+
+            GboardLongPressQuickActionsRuntimeSettings.setOverrideForTest(true, false);
+            Assert.assertTrue(GboardLongPressQuickActionsRuntimeSettings.isEnabled());
+            Assert.assertFalse(GboardLongPressQuickActionsRuntimeSettings
+                    .isGlobeDragEnabled());
         } finally {
             GboardLongPressQuickActionsRuntimeSettings.clearEnabledOverrideForTest();
         }

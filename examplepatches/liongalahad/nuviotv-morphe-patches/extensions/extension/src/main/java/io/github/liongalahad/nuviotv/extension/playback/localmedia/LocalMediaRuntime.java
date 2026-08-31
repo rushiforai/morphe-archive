@@ -25,6 +25,8 @@ import androidx.media3.common.Player;
 import io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRuntime;
 import io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsUi;
 import io.github.liongalahad.nuviotv.extension.settings.MorpheStoragePath;
+import io.github.liongalahad.nuviotv.extension.storage.segmented.SegmentedMedia;
+import io.github.liongalahad.nuviotv.extension.storage.segmented.SegmentedPlaybackDiagnostics;
 
 import java.io.File;
 import java.io.IOException;
@@ -166,7 +168,13 @@ public final class LocalMediaRuntime {
     }
 
     public static boolean hasStorageAccess(Context context) {
-        return treeUriString() != null || hasDefaultFolderAccess(context);
+        String selected = treeUriString();
+        if (selected == null || selected.isEmpty()) return hasDefaultFolderAccess(context);
+        try {
+            return MorpheStoragePath.isReadableSelection(context, Uri.parse(selected));
+        } catch (RuntimeException ignored) {
+            return false;
+        }
     }
 
     /** Requests storage only after the user enters Library > Storage. */
@@ -374,11 +382,18 @@ public final class LocalMediaRuntime {
 
     static DeleteResult deleteFile(Context context, LocalMediaFile file) {
         if (context == null || file == null) return DeleteResult.failure("Nothing was deleted");
-        if (!deleteDocument(context, file.uri, false))
+        Uri segmentedManifest = SegmentedMedia.manifestUri(file.uri);
+        boolean videoDeleted = segmentedManifest == null
+                ? deleteDocument(context, file.uri, false)
+                : SegmentedMedia.delete(context, segmentedManifest);
+        if (!videoDeleted)
             return DeleteResult.failure("The video file could not be deleted");
         int subtitleFailures = 0;
         for (LocalSubtitle subtitle : file.subtitles) {
             if (!deleteDocument(context, subtitle.uri, false)) subtitleFailures++;
+        }
+        if (segmentedManifest != null) {
+            SegmentedMedia.cleanupContainer(context, segmentedManifest);
         }
         boolean folderCleanupFailed = false;
         Uri rootFolder = file.rootFolderUri != null
@@ -386,7 +401,7 @@ public final class LocalMediaRuntime {
         if (rootFolder != null && !containsPlayableFiles(context, rootFolder)) {
             folderCleanupFailed = !deleteDocument(context, rootFolder, true);
         } else {
-            cleanupEmptyParent(context, file.uri);
+            cleanupEmptyParent(context, segmentedManifest == null ? file.uri : segmentedManifest);
         }
         if (subtitleFailures == 0 && !folderCleanupFailed)
             return DeleteResult.success("File and associated subtitles deleted");
@@ -406,6 +421,23 @@ public final class LocalMediaRuntime {
     static DeleteResult deleteFolder(Context context, LocalMediaEntry entry) {
         if (context == null || entry == null || !entry.folder)
             return DeleteResult.failure("Nothing was deleted");
+        boolean hasProjectedBundle = false;
+        for (LocalMediaFile file : entry.files) {
+            if (SegmentedMedia.manifestUri(file.uri) != null) {
+                hasProjectedBundle = true;
+                break;
+            }
+        }
+        if (hasProjectedBundle) {
+            boolean complete = true;
+            for (LocalMediaFile file : new ArrayList<>(entry.files)) {
+                DeleteResult result = deleteFile(context, file);
+                if (!result.targetDeleted) return result;
+                complete &= result.complete;
+            }
+            if (!complete) return new DeleteResult(true, false,
+                    "The videos were deleted, but one or more associated files remain");
+        }
         Uri folder = entry.folderUri != null ? entry.folderUri : rootFolderUri(entry.name);
         if (folder == null) return DeleteResult.failure("The folder is outside the selected storage path");
         return deleteDocument(context, folder, true)
@@ -462,8 +494,11 @@ public final class LocalMediaRuntime {
         File[] children = target.listFiles();
         if (children == null) return true;
         for (File child : children) {
+            if (child.isDirectory() && SegmentedMedia.isStoreDirectory(child.getName()) &&
+                    hiddenStoreContainsManifest(child)) return true;
             if (child.isDirectory() && containsPlayableFile(child)) return true;
-            if (child.isFile() && VIDEO_EXTENSIONS.contains(extensionOf(child.getName()))) return true;
+            if (child.isFile() && (VIDEO_EXTENSIONS.contains(extensionOf(child.getName())) ||
+                    SegmentedMedia.isManifestName(child.getName()))) return true;
         }
         return false;
     }
@@ -485,9 +520,12 @@ public final class LocalMediaRuntime {
                 String name = cursor.getString(1);
                 String mimeType = cursor.getString(2);
                 if (DocumentsContract.Document.MIME_TYPE_DIR.equals(mimeType)) {
+                    if (name != null && SegmentedMedia.isStoreDirectory(name) &&
+                            hiddenSafStoreContainsManifest(context, tree, documentId)) return true;
                     if (documentId != null && containsPlayableSafDocument(
                             context, tree, documentId, visited)) return true;
-                } else if (name != null && VIDEO_EXTENSIONS.contains(extensionOf(name))) {
+                } else if (name != null && (VIDEO_EXTENSIONS.contains(extensionOf(name)) ||
+                        SegmentedMedia.isManifestName(name))) {
                     return true;
                 }
             }
@@ -704,6 +742,7 @@ public final class LocalMediaRuntime {
 
     /** Observes the full-screen Media3 listener and exits only a rendered local item at EOF. */
     public static void onPlaybackStateChanged(Object listener, int state) {
+        SegmentedPlaybackDiagnostics.observePlaybackState(listener, state);
         Player player = playerFromListener(listener);
         if (player == null) return;
         String currentUri = null;
@@ -873,10 +912,13 @@ public final class LocalMediaRuntime {
             if (!hasDefaultFolderAccess(context)) {
                 return new LibrarySnapshot(false, DEFAULT_FOLDER_LABEL, Collections.emptyList(), null);
             }
-            return scanDefaultFolder();
+            return scanDefaultFolder(context);
         }
 
         Uri storedLocation = Uri.parse(persistedTree);
+        if (!MorpheStoragePath.isReadableSelection(context, storedLocation)) {
+            return new LibrarySnapshot(false, folderDisplayLabel(), Collections.emptyList(), null);
+        }
         if ("file".equals(storedLocation.getScheme())) {
             try {
                 File folder = new File(storedLocation.getPath());
@@ -884,8 +926,11 @@ public final class LocalMediaRuntime {
                     return new LibrarySnapshot(true, folderDisplayLabel(), Collections.emptyList(),
                             "The selected folder could not be read");
                 }
+                if (folder.listFiles() == null) {
+                    return new LibrarySnapshot(false, folderDisplayLabel(), Collections.emptyList(), null);
+                }
                 List<ScanBucket> buckets = new ArrayList<>();
-                scanFileChildren(folder, "", null, null, buckets);
+                scanFileChildren(context, folder, "", null, null, buckets);
                 return buildSnapshot(true, folderDisplayLabel(), buckets, null);
             } catch (Throwable error) {
                 Log.e(TAG, "Unable to scan the selected local media folder", error);
@@ -909,7 +954,7 @@ public final class LocalMediaRuntime {
         }
     }
 
-    private static LibrarySnapshot scanDefaultFolder() {
+    private static LibrarySnapshot scanDefaultFolder(Context context) {
         try {
             File folder = defaultFolder();
             if (!ensureDirectory(folder)) {
@@ -917,7 +962,7 @@ public final class LocalMediaRuntime {
                         "The default Movies/Nuvio folder could not be created");
             }
             List<ScanBucket> buckets = new ArrayList<>();
-            scanFileChildren(folder, "", null, null, buckets);
+            scanFileChildren(context, folder, "", null, null, buckets);
             return buildSnapshot(true, DEFAULT_FOLDER_LABEL, buckets, null);
         } catch (Throwable error) {
             Log.e(TAG, "Unable to scan the default local media folder", error);
@@ -954,6 +999,16 @@ public final class LocalMediaRuntime {
                 if (documentId == null || name == null) continue;
                 String relativePath = relativeParent.isEmpty() ? name : relativeParent + "/" + name;
                 if (DocumentsContract.Document.MIME_TYPE_DIR.equals(mimeType)) {
+                    if (SegmentedMedia.isStoreDirectory(name)) {
+                        scanSafBundleStore(context, treeUri, documentId, relativeParent,
+                                rootFolder, rootFolderUri, buckets);
+                        continue;
+                    }
+                    if (safDirectoryContainsBundleManifest(context, treeUri, documentId)) {
+                        scanSafBundleStore(context, treeUri, documentId, relativeParent,
+                                rootFolder, rootFolderUri, buckets);
+                        continue;
+                    }
                     String directRoot = rootFolder == null ? name : rootFolder;
                     Uri directRootUri = rootFolderUri == null
                             ? DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId)
@@ -962,9 +1017,16 @@ public final class LocalMediaRuntime {
                             directRootUri, buckets, visited);
                     continue;
                 }
+                Uri documentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId);
+                if (SegmentedMedia.isManifestName(name)) {
+                    RawDocument logical = segmentedDocument(context, documentUri, relativeParent,
+                            rootFolderUri, cursor.isNull(4) ? 0L : cursor.getLong(4));
+                    if (logical != null) buckets.add(new ScanBucket(logical, rootFolder, true));
+                    continue;
+                }
+                if (SegmentedMedia.isPartName(name)) continue;
                 String extension = extensionOf(name);
                 if (!VIDEO_EXTENSIONS.contains(extension) && !SUBTITLE_EXTENSIONS.contains(extension)) continue;
-                Uri documentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId);
                 buckets.add(new ScanBucket(
                         new RawDocument(documentUri, name,
                                 cursor.isNull(3) ? 0L : cursor.getLong(3),
@@ -978,6 +1040,7 @@ public final class LocalMediaRuntime {
     }
 
     private static void scanFileChildren(
+            Context context,
             File parent,
             String relativeParent,
             String rootFolder,
@@ -990,11 +1053,28 @@ public final class LocalMediaRuntime {
             String name = child.getName();
             String relativePath = relativeParent.isEmpty() ? name : relativeParent + "/" + name;
             if (child.isDirectory()) {
-                scanFileChildren(child, relativePath, rootFolder == null ? name : rootFolder,
+                if (SegmentedMedia.isStoreDirectory(name)) {
+                    scanFileBundleStore(context, child, relativeParent, rootFolder,
+                            rootFolderUri, buckets);
+                    continue;
+                }
+                if (fileDirectoryContainsBundleManifest(child)) {
+                    scanFileBundleStore(context, child, relativeParent, rootFolder,
+                            rootFolderUri, buckets);
+                    continue;
+                }
+                scanFileChildren(context, child, relativePath, rootFolder == null ? name : rootFolder,
                         rootFolderUri == null ? Uri.fromFile(child) : rootFolderUri, buckets);
                 continue;
             }
             if (!child.isFile()) continue;
+            if (SegmentedMedia.isManifestName(name)) {
+                RawDocument logical = segmentedDocument(context, Uri.fromFile(child), relativeParent,
+                        rootFolderUri, child.lastModified());
+                if (logical != null) buckets.add(new ScanBucket(logical, rootFolder, true));
+                continue;
+            }
+            if (SegmentedMedia.isPartName(name)) continue;
             String extension = extensionOf(name);
             if (!VIDEO_EXTENSIONS.contains(extension) && !SUBTITLE_EXTENSIONS.contains(extension)) continue;
             buckets.add(new ScanBucket(
@@ -1004,6 +1084,233 @@ public final class LocalMediaRuntime {
                     VIDEO_EXTENSIONS.contains(extension)
             ));
         }
+    }
+
+    private static boolean hiddenStoreContainsManifest(File store) {
+        return hiddenStoreContainsManifest(store, 0);
+    }
+
+    private static boolean fileDirectoryContainsBundleManifest(File directory) {
+        File[] children = directory == null ? null : directory.listFiles();
+        if (children == null) return false;
+        for (File child : children) {
+            if (child.isFile() && SegmentedMedia.isBundleManifestName(child.getName())) return true;
+        }
+        return false;
+    }
+
+    private static boolean safDirectoryContainsBundleManifest(
+            Context context, Uri tree, String parentDocumentId
+    ) {
+        Uri children = DocumentsContract.buildChildDocumentsUriUsingTree(tree, parentDocumentId);
+        try (Cursor cursor = context.getContentResolver().query(children,
+                new String[]{DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+                        DocumentsContract.Document.COLUMN_MIME_TYPE}, null, null, null)) {
+            if (cursor == null) return false;
+            while (cursor.moveToNext()) {
+                String name = cursor.getString(0);
+                String mime = cursor.getString(1);
+                if (name != null && !DocumentsContract.Document.MIME_TYPE_DIR.equals(mime) &&
+                        SegmentedMedia.isBundleManifestName(name)) return true;
+            }
+        } catch (Throwable ignored) { }
+        return false;
+    }
+
+    private static boolean hiddenStoreContainsManifest(File directory, int depth) {
+        if (directory == null || depth > 8) return false;
+        File[] children = directory.listFiles();
+        if (children == null) return true;
+        for (File child : children) {
+            if (child.isFile() && SegmentedMedia.isBundleManifestName(child.getName())) return true;
+            if (child.isDirectory() && hiddenStoreContainsManifest(child, depth + 1)) return true;
+        }
+        return false;
+    }
+
+    private static boolean hiddenSafStoreContainsManifest(
+            Context context, Uri tree, String storeDocumentId
+    ) {
+        return hiddenSafStoreContainsManifest(context, tree, storeDocumentId, 0);
+    }
+
+    private static boolean hiddenSafStoreContainsManifest(
+            Context context, Uri tree, String parentDocumentId, int depth
+    ) {
+        if (parentDocumentId == null || depth > 8) return false;
+        Uri children = DocumentsContract.buildChildDocumentsUriUsingTree(tree, parentDocumentId);
+        try (Cursor cursor = context.getContentResolver().query(children,
+                new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+                        DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+                        DocumentsContract.Document.COLUMN_MIME_TYPE}, null, null, null)) {
+            if (cursor == null) return true;
+            while (cursor.moveToNext()) {
+                String id = cursor.getString(0);
+                String name = cursor.getString(1);
+                String mime = cursor.getString(2);
+                if (name != null && !DocumentsContract.Document.MIME_TYPE_DIR.equals(mime) &&
+                        SegmentedMedia.isBundleManifestName(name)) return true;
+                if (id != null && DocumentsContract.Document.MIME_TYPE_DIR.equals(mime) &&
+                        hiddenSafStoreContainsManifest(context, tree, id, depth + 1)) return true;
+            }
+            return false;
+        } catch (Throwable error) { return true; }
+    }
+
+    private static void scanFileBundleStore(
+            Context context,
+            File store,
+            String relativeParent,
+            String rootFolder,
+            Uri rootFolderUri,
+            List<ScanBucket> buckets
+    ) {
+        scanFileBundleDirectory(context, store, relativeParent, rootFolder,
+                rootFolderUri, buckets, 0);
+    }
+
+    private static void scanFileBundleDirectory(
+            Context context, File directory, String relativeParent, String rootFolder,
+            Uri rootFolderUri, List<ScanBucket> buckets, int depth
+    ) {
+        if (directory == null || depth > 8) return;
+        File[] children = directory.listFiles();
+        if (children == null) return;
+        File manifestFile = null;
+        for (File child : children) {
+            if (child.isFile() && SegmentedMedia.isBundleManifestName(child.getName())) {
+                manifestFile = child;
+                break;
+            }
+        }
+        if (manifestFile != null) {
+            RawDocument logical = segmentedDocument(context, Uri.fromFile(manifestFile),
+                    relativeParent, rootFolderUri, manifestFile.lastModified());
+            if (logical == null) return;
+            String logicalRoot = segmentedRootFolder(logical, rootFolder);
+            buckets.add(new ScanBucket(logical, logicalRoot, true));
+            for (File asset : children) {
+                if (!asset.isFile() || !SUBTITLE_EXTENSIONS.contains(extensionOf(asset.getName()))) {
+                    continue;
+                }
+                String relativePath = logical.parentPath.isEmpty()
+                        ? asset.getName() : logical.parentPath + "/" + asset.getName();
+                buckets.add(new ScanBucket(new RawDocument(Uri.fromFile(asset), asset.getName(),
+                        asset.length(), asset.lastModified(), logical.parentPath, relativePath,
+                        logical.rootFolderUri), logicalRoot, false));
+            }
+            return;
+        }
+        for (File child : children) if (child.isDirectory()) {
+            scanFileBundleDirectory(context, child, relativeParent, rootFolder,
+                    rootFolderUri, buckets, depth + 1);
+        }
+    }
+
+    private static void scanSafBundleStore(
+            Context context,
+            Uri treeUri,
+            String storeDocumentId,
+            String relativeParent,
+            String rootFolder,
+            Uri rootFolderUri,
+            List<ScanBucket> buckets
+    ) {
+        try {
+            scanSafBundleDirectory(context, treeUri, storeDocumentId, relativeParent,
+                    rootFolder, rootFolderUri, buckets, 0);
+        } catch (Throwable error) {
+            Log.w(TAG, "Unable to scan hidden segmented-media store", error);
+        }
+    }
+
+    private static void scanSafBundleDirectory(
+            Context context, Uri treeUri, String parentDocumentId, String relativeParent,
+            String rootFolder, Uri rootFolderUri, List<ScanBucket> buckets, int depth
+    ) {
+        if (parentDocumentId == null || depth > 8) return;
+        Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, parentDocumentId);
+        List<String> childDirectories = new ArrayList<>();
+        Uri manifestUri = null;
+        long manifestModified = 0L;
+        List<RawDocument> subtitles = new ArrayList<>();
+        try (Cursor cursor = context.getContentResolver().query(childrenUri,
+                new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+                        DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+                        DocumentsContract.Document.COLUMN_MIME_TYPE,
+                        DocumentsContract.Document.COLUMN_SIZE,
+                        DocumentsContract.Document.COLUMN_LAST_MODIFIED}, null, null, null)) {
+            if (cursor == null) return;
+            while (cursor.moveToNext()) {
+                String documentId = cursor.getString(0);
+                String name = cursor.getString(1);
+                String mime = cursor.getString(2);
+                if (documentId == null || name == null) continue;
+                if (DocumentsContract.Document.MIME_TYPE_DIR.equals(mime)) {
+                    childDirectories.add(documentId);
+                    continue;
+                }
+                Uri assetUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId);
+                if (SegmentedMedia.isBundleManifestName(name)) {
+                    manifestUri = assetUri;
+                    manifestModified = cursor.isNull(4) ? 0L : cursor.getLong(4);
+                } else if (SUBTITLE_EXTENSIONS.contains(extensionOf(name))) {
+                    subtitles.add(new RawDocument(assetUri, name,
+                            cursor.isNull(3) ? 0L : cursor.getLong(3),
+                            cursor.isNull(4) ? 0L : cursor.getLong(4),
+                            relativeParent, name, rootFolderUri));
+                }
+            }
+        }
+        if (manifestUri != null) {
+            RawDocument logical = segmentedDocument(context, manifestUri, relativeParent,
+                    rootFolderUri, manifestModified);
+            if (logical == null) return;
+            String logicalRoot = segmentedRootFolder(logical, rootFolder);
+            buckets.add(new ScanBucket(logical, logicalRoot, true));
+            for (RawDocument subtitle : subtitles) {
+                String path = logical.parentPath.isEmpty()
+                        ? subtitle.name : logical.parentPath + "/" + subtitle.name;
+                buckets.add(new ScanBucket(new RawDocument(subtitle.uri, subtitle.name,
+                        subtitle.size, subtitle.lastModified, logical.parentPath, path,
+                        logical.rootFolderUri), logicalRoot, false));
+            }
+            return;
+        }
+        for (String childId : childDirectories) {
+            scanSafBundleDirectory(context, treeUri, childId, relativeParent, rootFolder,
+                    rootFolderUri, buckets, depth + 1);
+        }
+    }
+
+    private static RawDocument segmentedDocument(
+            Context context,
+            Uri manifestUri,
+            String relativeParent,
+            Uri rootFolderUri,
+            long lastModified
+    ) {
+        try {
+            SegmentedMedia.Manifest manifest = SegmentedMedia.read(context, manifestUri);
+            if (!SegmentedMedia.isReadable(context, manifest)) return null;
+            Uri virtualUri = SegmentedMedia.virtualUri(context, manifestUri, manifest.bundleId);
+            if (virtualUri == null) return null;
+            boolean projected = !manifest.logicalParent.isEmpty();
+            String parent = projected ? manifest.logicalParent : relativeParent;
+            String relativePath = parent.isEmpty()
+                    ? manifest.filename : parent + "/" + manifest.filename;
+            return new RawDocument(virtualUri, manifest.filename, manifest.totalLength,
+                    lastModified, parent, relativePath, projected ? null : rootFolderUri);
+        } catch (IOException | RuntimeException error) {
+            Log.w(TAG, "Ignoring incomplete segmented media manifest " + manifestUri, error);
+            return null;
+        }
+    }
+
+    private static String segmentedRootFolder(RawDocument logical, String fallback) {
+        if (logical == null || logical.relativePath == null) return fallback;
+        int separator = logical.relativePath.indexOf('/');
+        return separator <= 0 ? fallback : logical.relativePath.substring(0, separator);
     }
 
     private static LibrarySnapshot buildSnapshot(

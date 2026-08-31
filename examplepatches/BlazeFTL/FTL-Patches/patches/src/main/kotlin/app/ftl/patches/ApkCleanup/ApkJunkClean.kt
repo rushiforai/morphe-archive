@@ -12,7 +12,7 @@ private val PROTECTED_PATTERNS = listOf(
     Regex(""".*META-INF/MANIFEST\.MF$"""),
     Regex(""".*META-INF/services/.*"""),
     Regex(""".*META-INF/.*\.(RSA|SF|DSA|EC)$"""),
-    Regex(""".*classes\d*\.dex$"""),
+    Regex("""^(root/)?classes\d*\.dex$"""),
     Regex(""".*resources\.arsc$"""),
     Regex(""".*AndroidManifest\.xml$"""),
 )
@@ -47,6 +47,11 @@ private val JUNK_PATTERNS = listOf(
     Regex(""".*licenses\.md$"""),
     Regex(""".*debug\.keystore$"""),
     Regex(""".*_trackers\.xml$"""),
+    Regex(""".*version\.properties$"""),
+    Regex(""".*integrity\.properties$"""),
+    Regex(""".*androidannotations-api\.properties$"""),
+    Regex(""".*transport-.*\.properties$"""),
+    Regex(""".*jetty-dir\.css$"""),
 )
 
 private val EXCLUDED_PREFIXES = listOf("assets/", "res/")
@@ -136,6 +141,12 @@ val apkCleanupPatch = rawResourcePatch(
             removeTree("assets/audience_network.dex")
         } catch (e: Exception) {
             logger.severe("APK Cleanup: failed removing assets/audience_network.dex: ${e.message}")
+        }
+
+        try {
+            removeTree("assets/audience_network")
+        } catch (e: Exception) {
+            logger.severe("APK Cleanup: failed removing assets/audience_network/: ${e.message}")
         }
 
         try {

@@ -15,6 +15,8 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.provider.DocumentsContract;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.ViewConfiguration;
 import android.widget.Toast;
 
 import androidx.media3.common.MediaItem;
@@ -34,6 +36,8 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -47,8 +51,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRuntime;
+import io.github.liongalahad.nuviotv.extension.storage.segmented.SegmentedMedia;
+import io.github.liongalahad.nuviotv.extension.storage.segmented.SegmentedPlaybackDiagnostics;
 import io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsUi;
 import io.github.liongalahad.nuviotv.extension.settings.MorpheStorageFolderPickerActivity;
+import io.github.liongalahad.nuviotv.extension.settings.MorpheStorageConsumers;
 import io.github.liongalahad.nuviotv.extension.settings.MorpheStoragePath;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
@@ -62,6 +69,8 @@ import kotlin.coroutines.EmptyCoroutineContext;
 @SuppressWarnings({"unused", "rawtypes", "unchecked", "JavaReflectionMemberAccess"})
 public final class LocalDownloadsRuntime {
     private static final String TAG = "MorpheDownloads";
+    /** Exact NuvioTV 0.8.11-beta EpisodeCardMetrics owner. */
+    private static final String EPISODE_CARD_METRICS_CLASS = "na.z0";
     static final String DOWNLOAD_IN_PROGRESS_LABEL = "Download in progress...";
     private static final String ENTRIES_KEY = "playback.local_downloads.entries.v1";
     private static final long ACTION_TIMEOUT_MS = 10L * 60L * 1000L;
@@ -79,6 +88,8 @@ public final class LocalDownloadsRuntime {
     private static volatile long pendingHeroDownloadBridgeGeneration;
     private static volatile PendingAction pendingAction;
     private static volatile RouteIdentity pendingRoute;
+    private static volatile RouteIdentity currentPickerRoute;
+    private static volatile String pendingSelectedSourceKey = "";
     private static volatile long pendingAtMs;
     private static volatile DownloadRequest activeRequest;
     private static volatile DownloadState downloadState = DownloadState.idle();
@@ -94,7 +105,26 @@ public final class LocalDownloadsRuntime {
     private static volatile Object downloadedBadgeIcon;
     private static final AtomicBoolean cancelRequested = new AtomicBoolean(false);
     private static volatile boolean sourcePickerObserved;
+    private static volatile Class<?> nativeTvButtonClass;
+    private static volatile Class<?> nativeTextClass;
+    private static volatile Method previewKeyModifierMethod;
+    private static final ThreadLocal<SourceTarget> PREPARED_SOURCE_TARGET = new ThreadLocal<>();
+    private static volatile SourceTarget pressedSourceTarget;
+    private static volatile SourceTarget pendingSourceTarget;
+    private static volatile boolean pendingSourcePlayOverride;
+    private static volatile boolean pendingSourceDownloadOneShot;
+    private static volatile boolean activeRequestFromOneShotSourceAction;
+    private static boolean sourceActionOpenOrLaunching;
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
+    private static final Runnable SOURCE_LONG_PRESS = new Runnable() {
+        @Override public void run() {
+            SourceTarget target = pressedSourceTarget;
+            if (target == null || target.longPressHandled) return;
+            target.longPressHandled = true;
+            target.suppressClickUntilMs = SystemClock.elapsedRealtime() + 2_000L;
+            showSourceAction(target);
+        }
+    };
     private static final Runnable SOURCE_PICKER_WATCH = new Runnable() {
         @Override public void run() {
             if (pendingAction != PendingAction.DOWNLOAD) return;
@@ -155,7 +185,7 @@ public final class LocalDownloadsRuntime {
         return context == null || original == null ? original : new WrappedOptions(original, context);
     }
 
-    /** Extends Nuvio 0.8.7's episode overlay without naming its optimized action class. */
+    /** Extends Nuvio 0.8.11's episode overlay without naming its optimized action class. */
     public static void appendEpisodeOptions(List<Object> actions) {
         OptionContext context = OPTION_CONTEXT.get();
         if (actions == null || actions.isEmpty() || context == null ||
@@ -190,8 +220,108 @@ public final class LocalDownloadsRuntime {
         }
     }
 
+    /**
+     * Extends the finalized native action list. The copy is required because Kotlin's
+     * ListBuilder is read-only after CollectionsKt.build(), and placing injected bytecode
+     * before that call can be skipped by the native "start from beginning" branch.
+     */
+    public static List<Object> extendEpisodeOptions(List<Object> actions) {
+        if (actions == null) return null;
+        List<Object> extended = new ArrayList<>(actions);
+        appendEpisodeOptions(extended);
+        return extended;
+    }
+
     public static Function1<Object, Unit> wrapResolvedCallback(Function1<Object, Unit> original) {
         return original instanceof ResolvedCallback ? original : new ResolvedCallback(original);
+    }
+
+    /** Receives the exact optimized TV Button owner discovered in the target APK. */
+    public static void observeNativeTvButtonClass(Class<?> owner) {
+        if (owner != null) nativeTvButtonClass = owner;
+    }
+
+    public static void observeNativeTextClass(Class<?> owner) {
+        if (owner != null) nativeTextClass = owner;
+    }
+
+    /** Wraps a source row click without changing its ordinary short-click behavior. */
+    public static Function0<Unit> wrapSourceClick(Object stream, Function0<?> original) {
+        if (original == null) return null;
+        if (original instanceof SourceClick) return (SourceClick) original;
+        return new SourceClick(new SourceTarget(stream, original));
+    }
+
+    /** Marks the source row about to enter Nuvio's native TV Button. */
+    public static void prepareSourceKeyTarget(Function0<?> callback) {
+        PREPARED_SOURCE_TARGET.remove();
+        if (!(callback instanceof SourceClick) || currentPickerRoute == null ||
+                !LocalDownloadsSettings.isEnabled()) return;
+        PREPARED_SOURCE_TARGET.set(((SourceClick) callback).target);
+    }
+
+    /** Adds a preview-key listener only to the prepared source row. */
+    public static Object attachPreparedSourceKeyHandler(Object modifier) {
+        SourceTarget target = PREPARED_SOURCE_TARGET.get();
+        PREPARED_SOURCE_TARGET.remove();
+        if (target == null || modifier == null) return modifier;
+        try {
+            Method method = previewKeyModifierMethod;
+            if (method == null) {
+                ClassLoader loader = modifier.getClass().getClassLoader();
+                Class<?> modifierClass = Class.forName("u1.q", false, loader);
+                method = Class.forName("m2.d", false, loader).getDeclaredMethod(
+                        "e", modifierClass, Function1.class);
+                method.setAccessible(true);
+                previewKeyModifierMethod = method;
+            }
+            return method.invoke(null, modifier, target.keyHandler);
+        } catch (Throwable error) {
+            Log.e(TAG, "Unable to attach the source-row key handler", error);
+            return modifier;
+        }
+    }
+
+    private static boolean observeSourceRowKey(SourceTarget target, Object wrappedEvent) {
+        KeyEvent event = unwrapKeyEvent(wrappedEvent);
+        if (event == null || !isSelectKey(event.getKeyCode())) return false;
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            if (pressedSourceTarget != target) {
+                MAIN.removeCallbacks(SOURCE_LONG_PRESS);
+                pressedSourceTarget = target;
+                target.longPressHandled = false;
+                MAIN.postDelayed(SOURCE_LONG_PRESS, ViewConfiguration.getLongPressTimeout());
+            }
+            long held = event.getEventTime() - event.getDownTime();
+            if (event.isLongPress() || event.getRepeatCount() > 0 ||
+                    held >= ViewConfiguration.getLongPressTimeout()) SOURCE_LONG_PRESS.run();
+        } else if (event.getAction() == KeyEvent.ACTION_UP && pressedSourceTarget == target) {
+            MAIN.removeCallbacks(SOURCE_LONG_PRESS);
+            pressedSourceTarget = null;
+        }
+        // Nuvio retains short-click handling and focus/pressed visuals. SourceClick suppresses
+        // the release click only after this handler has opened the long-press action menu.
+        return false;
+    }
+
+    private static KeyEvent unwrapKeyEvent(Object wrappedEvent) {
+        if (wrappedEvent instanceof KeyEvent) return (KeyEvent) wrappedEvent;
+        if (wrappedEvent == null) return null;
+        for (Class<?> type = wrappedEvent.getClass(); type != null; type = type.getSuperclass()) {
+            for (Field field : type.getDeclaredFields()) {
+                if (!KeyEvent.class.isAssignableFrom(field.getType())) continue;
+                try {
+                    field.setAccessible(true);
+                    return (KeyEvent) field.get(wrappedEvent);
+                } catch (Throwable ignored) { return null; }
+            }
+        }
+        return null;
+    }
+
+    private static boolean isSelectKey(int key) {
+        return key == KeyEvent.KEYCODE_DPAD_CENTER || key == KeyEvent.KEYCODE_ENTER ||
+                key == KeyEvent.KEYCODE_NUMPAD_ENTER || key == KeyEvent.KEYCODE_BUTTON_A;
     }
 
     public static void observeStreamViewModel(Object viewModel) {
@@ -218,6 +348,7 @@ public final class LocalDownloadsRuntime {
     public static String rewriteStreamRoute(String route) {
         if (route == null || !route.startsWith("stream/")) return route;
         RouteIdentity identity = RouteIdentity.fromRoute(route);
+        if (identity != null) currentPickerRoute = identity;
         PendingAction action = pendingAction;
         if (action != null && SystemClock.elapsedRealtime() - pendingAtMs > ACTION_TIMEOUT_MS) {
             clearPendingAction();
@@ -255,24 +386,35 @@ public final class LocalDownloadsRuntime {
 
     /** Returns true when the selected source was consumed as a download instead of playback. */
     public static boolean interceptResolvedSelection(Object playbackInfo) {
+        if (pendingSourcePlayOverride) {
+            pendingSourcePlayOverride = false;
+            pendingSelectedSourceKey = "";
+            return false;
+        }
         if (pendingAction != PendingAction.DOWNLOAD || pendingRoute == null) return false;
         RouteIdentity route = pendingRoute;
-        DownloadRequest request = DownloadRequest.from(playbackInfo, route);
+        boolean oneShot = pendingSourceDownloadOneShot;
+        DownloadRequest request = DownloadRequest.from(playbackInfo, route, pendingSelectedSourceKey);
         if (request == null) {
+            if (oneShot) clearPendingAction();
             showMessage("Download unavailable",
                     "This source cannot be downloaded. Select a direct HTTP video source.", true);
             return true;
         }
         if (isDownloadRunning()) {
+            if (oneShot) clearPendingAction();
             showMessage("Download already running",
                     "Wait for the current download to finish or cancel it before starting another.", true);
             return true;
         }
-        // Keep the download intent armed for this source-picker session. Selecting a second
-        // source after cancellation or rejection must still download instead of falling through
-        // to playback. A later Download action replaces this session, and the timeout remains a
-        // final guard against stale picker state.
+        // A picker opened through Download to storage keeps its download intent armed so another
+        // short-pressed source remains a download retry. Download selected from a long-press menu
+        // in an ordinary Play picker is deliberately one-shot and must not change later short
+        // presses in that picker into downloads.
+        activeRequestFromOneShotSourceAction = oneShot;
         activeRequest = request;
+        if (oneShot) clearPendingAction();
+        else pendingSourceDownloadOneShot = false;
         cancelRequested.set(false);
         dialogHidden = false;
         updateState(DownloadState.preparing(request.progressTitle()));
@@ -285,6 +427,7 @@ public final class LocalDownloadsRuntime {
     }
 
     public static void onPlaybackStateChanged(Object listener, int state) {
+        SegmentedPlaybackDiagnostics.observePlaybackState(listener, state);
         playbackActive = state == Player.STATE_BUFFERING || state == Player.STATE_READY;
     }
 
@@ -302,8 +445,13 @@ public final class LocalDownloadsRuntime {
         if (match == null || match.subtitleUris.isEmpty()) return existing;
         List<MediaItem.SubtitleConfiguration> result = new ArrayList<>();
         if (existing != null) result.addAll(existing);
+        Set<String> attached = new LinkedHashSet<>();
+        for (MediaItem.SubtitleConfiguration configuration : result) {
+            attached.add(configuration.uri.toString());
+        }
         for (int index = 0; index < match.subtitleUris.size(); index++) {
             String raw = match.subtitleUris.get(index);
+            if (!attached.add(raw)) continue;
             Uri uri = Uri.parse(raw);
             String extension = extensionOf(uri.getLastPathSegment());
             MediaItem.SubtitleConfiguration.Builder builder =
@@ -394,25 +542,30 @@ public final class LocalDownloadsRuntime {
     static void failDownload(String title, String message) {
         DownloadRequest request = activeRequest;
         activeRequest = null;
-        if (request != null) {
+        if (request != null && !activeRequestFromOneShotSourceAction) {
             pendingAction = PendingAction.DOWNLOAD;
             pendingRoute = request.identity;
             pendingAtMs = SystemClock.elapsedRealtime();
         }
+        activeRequestFromOneShotSourceAction = false;
         updateState(DownloadState.failed(title, message));
         if (!playbackActive) showProgress(true);
     }
     static void rejectForSize(DownloadRequest request, String message) {
         activeRequest = null;
-        pendingAction = PendingAction.DOWNLOAD;
-        pendingRoute = request.identity;
-        pendingAtMs = SystemClock.elapsedRealtime();
+        if (!activeRequestFromOneShotSourceAction) {
+            pendingAction = PendingAction.DOWNLOAD;
+            pendingRoute = request.identity;
+            pendingAtMs = SystemClock.elapsedRealtime();
+        }
+        activeRequestFromOneShotSourceAction = false;
         updateState(DownloadState.failed("File too large", message));
         if (!playbackActive) showProgress(true);
     }
     static void completeDownload(DownloadedEntry entry) {
         boolean saved = saveEntry(entry);
         activeRequest = null;
+        activeRequestFromOneShotSourceAction = false;
         Log.i(TAG, "Completed local download index update: saved=" + saved +
                 " contentId=" + entry.contentId + " videoId=" + entry.videoId +
                 " season=" + entry.season + " episode=" + entry.episode);
@@ -423,6 +576,7 @@ public final class LocalDownloadsRuntime {
             return;
         }
         LocalDownloadsRefreshState.invalidate();
+        MorpheStorageConsumers.notifyStorageChanged();
         updateState(DownloadState.complete(entry.displayLabel()));
         if (dialogHidden && !playbackActive) showProgress(true);
     }
@@ -434,6 +588,7 @@ public final class LocalDownloadsRuntime {
     }
     static void updateStateForService(DownloadState state) {
         activeRequest = null;
+        activeRequestFromOneShotSourceAction = false;
         updateState(state);
     }
 
@@ -873,6 +1028,7 @@ public final class LocalDownloadsRuntime {
         if (action == PendingAction.DOWNLOAD && !requestStorageAccessForDownload()) return;
         pendingAction = action;
         pendingRoute = null;
+        pendingSelectedSourceKey = "";
         pendingAtMs = SystemClock.elapsedRealtime();
         sourcePickerObserved = false;
         try { callback.invoke(); }
@@ -887,6 +1043,9 @@ public final class LocalDownloadsRuntime {
         MAIN.removeCallbacks(SOURCE_PICKER_WATCH);
         pendingAction = null;
         pendingRoute = null;
+        pendingSelectedSourceKey = "";
+        pendingSourcePlayOverride = false;
+        pendingSourceDownloadOneShot = false;
         pendingAtMs = 0L;
         sourcePickerObserved = false;
     }
@@ -896,6 +1055,127 @@ public final class LocalDownloadsRuntime {
         if (pendingAction == PendingAction.DOWNLOAD) {
             MAIN.post(SOURCE_PICKER_WATCH);
         }
+    }
+
+    private static synchronized void showSourceAction(SourceTarget target) {
+        if (target == null || sourceActionOpenOrLaunching || currentPickerRoute == null) return;
+        sourceActionOpenOrLaunching = true;
+        pendingSourceTarget = target;
+        try {
+            application().startActivity(new Intent(application(), LocalDownloadsSourceActionActivity.class)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP));
+        } catch (RuntimeException error) {
+            sourceActionOpenOrLaunching = false;
+            pendingSourceTarget = null;
+            Log.e(TAG, "Unable to show source actions", error);
+            toast("Unable to open source options");
+        }
+    }
+
+    static synchronized void finishSourceAction() {
+        sourceActionOpenOrLaunching = false;
+        pendingSourceTarget = null;
+    }
+
+    static synchronized void cancelPendingSourceAction() {
+        pendingSourceTarget = null;
+    }
+
+    static void prepareSourceActionForTesting(
+            Object stream, RouteIdentity route, Function0<?> callback
+    ) {
+        currentPickerRoute = route;
+        pendingSourceTarget = new SourceTarget(stream, callback);
+    }
+
+    static String pendingSourceTitle() {
+        RouteIdentity route = currentPickerRoute;
+        return route == null ? "Source options" :
+                mediaLabel(route.contentName.isEmpty() ? route.title : route.contentName,
+                        route.season, route.episode);
+    }
+
+    static SourceDuplicateKind pendingSourceDuplicateKind() {
+        SourceTarget target = pendingSourceTarget;
+        RouteIdentity route = currentPickerRoute;
+        if (target == null || route == null) return SourceDuplicateKind.NONE;
+        DownloadedEntry existing = findLogicalTitleEntry(route);
+        if (existing == null) return SourceDuplicateKind.NONE;
+        return !existing.sourceKey.isEmpty() && existing.sourceKey.equals(target.sourceKey)
+                ? SourceDuplicateKind.SAME : SourceDuplicateKind.DIFFERENT;
+    }
+
+    static boolean playPendingSource() {
+        SourceTarget target = pendingSourceTarget;
+        if (target == null) return false;
+        pendingSourceTarget = null;
+        // Bypass download interception for exactly this held source. The picker retains the mode
+        // it had before the hold, so returning from playback does not rewrite later short presses.
+        pendingSourcePlayOverride = true;
+        MAIN.post(target::invokeOriginal);
+        return true;
+    }
+
+    static boolean downloadPendingSource(boolean overwrite) {
+        return downloadPendingSource(overwrite, true);
+    }
+
+    static boolean downloadPendingSourceForTesting(boolean overwrite) {
+        return downloadPendingSource(overwrite, false);
+    }
+
+    private static boolean downloadPendingSource(boolean overwrite, boolean requireStorageAccess) {
+        SourceTarget target = pendingSourceTarget;
+        RouteIdentity route = currentPickerRoute;
+        if (target == null || route == null || isDownloadRunning()) {
+            if (isDownloadRunning()) toast("Wait for the current download to finish or cancel it");
+            return false;
+        }
+        DownloadedEntry existing = findLogicalTitleEntry(route);
+        if (existing != null) {
+            boolean same = !existing.sourceKey.isEmpty() && existing.sourceKey.equals(target.sourceKey);
+            if (same || !overwrite) return false;
+        }
+        if (requireStorageAccess && !requestStorageAccessForDownload()) return false;
+        if (existing != null) {
+            DeleteResult deleted = deleteEntryFiles(application(), existing);
+            if (!deleted.mediaDeleted) {
+                toast(deleted.message);
+                return false;
+            }
+            removeEntry(existing);
+            LocalDownloadsRefreshState.invalidate();
+        }
+        pendingSourceTarget = null;
+        // Only a picker that was already in Download mode may remain in Download mode after this
+        // held-source action. In an ordinary Play picker this is a single-source override.
+        pendingSourceDownloadOneShot = pendingAction != PendingAction.DOWNLOAD;
+        pendingSourcePlayOverride = false;
+        pendingAction = PendingAction.DOWNLOAD;
+        pendingRoute = route;
+        pendingSelectedSourceKey = target.sourceKey;
+        pendingAtMs = SystemClock.elapsedRealtime();
+        sourcePickerObserved = true;
+        scheduleSourcePickerWatch();
+        MAIN.post(target::invokeOriginal);
+        return true;
+    }
+
+    private static DownloadedEntry findLogicalTitleEntry(RouteIdentity identity) {
+        if (identity == null) return null;
+        for (DownloadedEntry entry : entries()) {
+            if (!identity.contentId.isEmpty() && !entry.contentId.isEmpty()) {
+                if (!identity.contentId.equals(entry.contentId)) continue;
+                if (identity.season != null || identity.episode != null) {
+                    if (entry.matchesEpisode(identity.season, identity.episode)) return entry;
+                } else if (entry.season == null && entry.episode == null) {
+                    return entry;
+                }
+            } else if (!identity.videoId.isEmpty() && identity.videoId.equals(entry.videoId)) {
+                return entry;
+            }
+        }
+        return null;
     }
 
     static boolean isSourcePickerDestination(String description) {
@@ -1127,7 +1407,7 @@ public final class LocalDownloadsRuntime {
 
     /** Draws a downloaded marker beside Nuvio's watched marker inside an episode card. */
     public static void renderDownloadedEpisodeBadge(
-            Object episodeCardContent, Object ignoredCardScope, Object composer
+            Object episodeCardContent, Object composer
     ) {
         if (episodeCardContent == null || composer == null) return;
         boolean groupStarted = false;
@@ -1141,18 +1421,29 @@ public final class LocalDownloadsRuntime {
                     episodeCardContent, "com.nuvio.tv.domain.model.Video");
             if (!isTargetDownloaded(video)) return;
 
-            Object cardLayout = findTypedField(episodeCardContent, "na.x0");
-            float badgeSize = floatField(cardLayout, "t", 21f);
-            float iconSize = floatField(cardLayout, "u", Math.max(1f, badgeSize - 1f));
-            float margin = floatField(cardLayout, "v", 4f);
+            Object cardLayout = findTypedField(
+                    episodeCardContent, EPISODE_CARD_METRICS_CLASS);
+            if (cardLayout == null) {
+                throw new NoSuchFieldException(
+                        "Nuvio 0.8.11 EpisodeCardMetrics capture " +
+                                EPISODE_CARD_METRICS_CLASS);
+            }
+            float badgeSize = requiredFloatField(cardLayout, "t");
+            float iconSize = requiredFloatField(cardLayout, "u");
+            float margin = requiredFloatField(cardLayout, "v");
+            if (badgeSize <= 0f || iconSize <= 0f || iconSize > badgeSize || margin < 0f) {
+                throw new IllegalStateException(
+                        "Invalid Nuvio episode badge metrics: size=" + badgeSize +
+                                ", icon=" + iconSize + ", inset=" + margin);
+            }
             // Nuvio's watched marker uses the top-left corner. Mirror its edge inset
             // directly on the top-right; the two badges never need to displace each other.
             float rightMargin = margin;
 
             Class<?> modifierClass = Class.forName("u1.q");
-            Class<?> alignmentClass = Class.forName("u1.i");
+            Class<?> alignmentClass = Class.forName("u1.d");
             Class<?> shapeClass = Class.forName("b2.u0");
-            Class<?> composerClass = Class.forName("e1.m0");
+            Class<?> composerClass = Class.forName("e1.p");
             Object modifier = staticField("u1.n", "b");
             // c0.t is the BoxScope interface and therefore has no singleton field.
             // Nuvio's episode-card bytecode uses the c0.u implementation singleton.
@@ -1161,8 +1452,8 @@ public final class LocalDownloadsRuntime {
             modifier = declaredMethod(boxScope.getClass(), "a", modifierClass, alignmentClass)
                     .invoke(boxScope, modifier, topEnd);
             modifier = declaredMethod(Class.forName("c0.b"), "w", modifierClass,
-                    Float.TYPE, Float.TYPE, Float.TYPE, Float.TYPE, Integer.TYPE)
-                    .invoke(null, modifier, 0f, margin, rightMargin, 0f, 9);
+                    Float.TYPE, Float.TYPE, Float.TYPE, Float.TYPE)
+                    .invoke(null, modifier, 0f, margin, rightMargin, 0f);
             modifier = declaredMethod(Class.forName("androidx.compose.foundation.layout.b"),
                     "l", modifierClass, Float.TYPE).invoke(null, modifier, badgeSize);
 
@@ -1174,10 +1465,10 @@ public final class LocalDownloadsRuntime {
 
             Object themeKey = staticField("xa.b1", "a");
             Method readCompositionLocal = composer.getClass().getMethod(
-                    "j", Class.forName("e1.e2"));
+                    "j", Class.forName("e1.f2"));
             Object theme = readCompositionLocal.invoke(composer, themeKey);
             long badgeColor = longField(theme, "h");
-            modifier = declaredMethod(Class.forName("w.n"), "g", modifierClass,
+            modifier = declaredMethod(Class.forName("w.m"), "g", modifierClass,
                     Long.TYPE, shapeClass).invoke(null, modifier, badgeColor, circle);
 
             float innerPadding = Math.max(0f, (badgeSize - iconSize) / 2f);
@@ -1270,6 +1561,13 @@ public final class LocalDownloadsRuntime {
 
     private static Object staticField(String className, String name) throws Exception {
         Field field = Class.forName(className).getDeclaredField(name);
+        field.setAccessible(true);
+        return field.get(null);
+    }
+
+    private static Object staticField(String className, String name, ClassLoader loader)
+            throws Exception {
+        Field field = Class.forName(className, false, loader).getDeclaredField(name);
         field.setAccessible(true);
         return field.get(null);
     }
@@ -1379,11 +1677,20 @@ public final class LocalDownloadsRuntime {
 
     static DeleteResult deleteEntryFiles(Context context, DownloadedEntry entry) {
         if (context == null || entry == null) return DeleteResult.failure("Nothing was deleted");
-        boolean mediaDeleted = deleteUri(context, entry.mediaUri);
+        boolean mediaDeleted;
+        if (!entry.manifestUri.isEmpty()) {
+            mediaDeleted = SegmentedMedia.delete(context, Uri.parse(entry.manifestUri));
+        } else {
+            mediaDeleted = true;
+            for (String asset : entry.assetUris) mediaDeleted &= deleteUri(context, asset);
+        }
         if (!mediaDeleted) return DeleteResult.failure("The local video file could not be deleted");
         int subtitleFailures = 0;
         for (String subtitle : entry.subtitleUris) {
             if (!deleteUri(context, subtitle)) subtitleFailures++;
+        }
+        if (!entry.manifestUri.isEmpty()) {
+            SegmentedMedia.cleanupContainer(context, Uri.parse(entry.manifestUri));
         }
         cleanupEmptyFolder(context, entry.resolvedFolderUri());
         return subtitleFailures == 0
@@ -1448,6 +1755,7 @@ public final class LocalDownloadsRuntime {
         JSONArray array = new JSONArray();
         for (DownloadedEntry entry : values) array.put(entry.toJson());
         preferences().edit().putString(ENTRIES_KEY, array.toString()).commit();
+        MorpheStorageConsumers.notifyStorageChanged();
     }
 
     static DeleteAllResult deleteAllIndexedDownloads(Context context) {
@@ -1468,6 +1776,7 @@ public final class LocalDownloadsRuntime {
         for (DownloadedEntry entry : remaining) array.put(entry.toJson());
         boolean saved = preferences().edit().putString(ENTRIES_KEY, array.toString()).commit();
         LocalDownloadsRefreshState.invalidate();
+        MorpheStorageConsumers.notifyStorageChanged();
         if (!saved) return new DeleteAllResult(deleted, indexed.size() - deleted,
                 "Files were processed, but the download index could not be updated");
         int failed = indexed.size() - deleted;
@@ -1539,7 +1848,8 @@ public final class LocalDownloadsRuntime {
     private static void renderButton(Object composer, String label, Function0<Unit> action,
                                      Object suppliedModifier) {
         try {
-            Class<?> owner = Class.forName("p5.a1");
+            Class<?> owner = nativeTvButtonClass;
+            if (owner == null) throw new NoSuchMethodException("Native TV Button owner");
             for (Method method : owner.getDeclaredMethods()) {
                 Class<?>[] p = method.getParameterTypes();
                 if (!Modifier.isStatic(method.getModifiers()) || method.getReturnType() != Void.TYPE ||
@@ -1547,19 +1857,23 @@ public final class LocalDownloadsRuntime {
                         !Function3.class.isAssignableFrom(p[8])) continue;
                 Object[] args = new Object[13];
                 args[0] = action;
-                Class<?> modifierClass = Class.forName("u1.q");
+                Class<?> modifierClass = Class.forName("u1.q", false, owner.getClassLoader());
                 Object modifier = suppliedModifier;
                 if (modifier == null) {
-                    modifier = declaredMethod(Class.forName("androidx.compose.foundation.layout.b"),
+                    modifier = declaredMethod(Class.forName(
+                            "androidx.compose.foundation.layout.b", false, owner.getClassLoader()),
                             "d", modifierClass, Float.TYPE).invoke(
-                            null, staticField("u1.n", "b"), 1f);
+                            null, staticField("u1.n", "b", owner.getClassLoader()), 1f);
                 }
                 args[1] = modifier;
                 args[2] = false;
                 args[8] = new LabelContent(label);
                 args[9] = composer;
-                args[10] = 0;
-                args[11] = 0;
+                // Match Nuvio 0.8.11's own full-width dialog button call. Zeroed change flags
+                // make the optimized Compose implementation treat this late-injected call as
+                // skippable, which is why resumed episodes silently lost the Download action.
+                args[10] = 48;
+                args[11] = 256;
                 // Supply full-width Modifier and default the remaining optional visuals.
                 args[12] = 4092;
                 method.setAccessible(true);
@@ -1579,7 +1893,7 @@ public final class LocalDownloadsRuntime {
         boolean groupStarted = false;
         boolean nodeStarted = false;
         try {
-            Class<?> composerClass = Class.forName("e1.m0");
+            Class<?> composerClass = Class.forName("e1.p");
             Class<?> modifierClass = Class.forName("u1.q");
             Class<?> arrangementClass = Class.forName("c0.e");
             Class<?> verticalAlignmentClass = Class.forName("u1.h");
@@ -1669,7 +1983,8 @@ public final class LocalDownloadsRuntime {
 
     private static void renderText(Object composer, String label) {
         try {
-            Class<?> owner = Class.forName("p5.a2");
+            Class<?> owner = nativeTextClass;
+            if (owner == null) throw new NoSuchMethodException("Native Text owner");
             for (Method method : owner.getDeclaredMethods()) {
                 Class<?>[] p = method.getParameterTypes();
                 if (!Modifier.isStatic(method.getModifiers()) || method.getReturnType() != Void.TYPE ||
@@ -1859,8 +2174,118 @@ public final class LocalDownloadsRuntime {
                 Toast.makeText(activity, message, Toast.LENGTH_LONG).show());
     }
 
+    private static float requiredFloatField(Object target, String name) throws Exception {
+        if (target == null) throw new NullPointerException("target");
+        Field field = target.getClass().getDeclaredField(name);
+        field.setAccessible(true);
+        return field.getFloat(target);
+    }
+
     private enum PendingAction { DOWNLOAD }
+    enum SourceDuplicateKind { NONE, SAME, DIFFERENT }
     enum Status { IDLE, PREPARING, DOWNLOADING, COMPLETE, FAILED, CANCELLED }
+
+    static String sourceFingerprintForTesting(Object stream) {
+        return sourceFingerprint(stream);
+    }
+
+    private static String sourceFingerprint(Object stream) {
+        String addon = valueOrEmpty(stringProperty(stream, "getAddonName"));
+        String infoHash = valueOrEmpty(stringProperty(stream, "getEffectiveInfoHash"));
+        if (infoHash.isEmpty()) infoHash = valueOrEmpty(stringProperty(stream, "getInfoHash"));
+        Integer fileIndex = integerProperty(stream, "getEffectiveFileIdx");
+        if (fileIndex == null) fileIndex = integerProperty(stream, "getFileIdx");
+        String url = valueOrEmpty(stringProperty(stream, "getUrl"));
+        if (url.isEmpty()) url = valueOrEmpty(stringProperty(stream, "getExternalUrl"));
+        String canonicalLocation = !infoHash.isEmpty()
+                ? "torrent:" + infoHash.toLowerCase(Locale.ROOT)
+                : sourceLocationWithoutSecrets(url);
+        String canonical = addon + '\u0000' + canonicalLocation + '\u0000' +
+                (fileIndex == null ? "" : fileIndex) + '\u0000' +
+                valueOrEmpty(stringProperty(stream, "getName")) + '\u0000' +
+                valueOrEmpty(stringProperty(stream, "getTitle")) + '\u0000' +
+                valueOrEmpty(stringProperty(stream, "getDescription")) + '\u0000' +
+                valueOrEmpty(stringProperty(stream, "getQuality"));
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                    .digest(canonical.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder(digest.length * 2);
+            for (byte item : digest) hex.append(String.format(Locale.US, "%02x", item & 0xff));
+            return hex.toString();
+        } catch (Throwable impossible) {
+            return Integer.toHexString(canonical.hashCode());
+        }
+    }
+
+    private static String sourceLocationWithoutSecrets(String raw) {
+        if (raw == null || raw.isEmpty()) return "";
+        try {
+            Uri uri = Uri.parse(raw);
+            String scheme = valueOrEmpty(uri.getScheme()).toLowerCase(Locale.ROOT);
+            String host = valueOrEmpty(uri.getHost()).toLowerCase(Locale.ROOT);
+            if (("http".equals(scheme) || "https".equals(scheme)) && !host.isEmpty()) {
+                int port = uri.getPort();
+                boolean defaultPort = port < 0 || ("http".equals(scheme) && port == 80) ||
+                        ("https".equals(scheme) && port == 443);
+                return scheme + "://" + host + (defaultPort ? "" : ":" + port) +
+                        valueOrEmpty(uri.getEncodedPath());
+            }
+            int query = raw.indexOf('?');
+            int fragment = raw.indexOf('#');
+            int end = query < 0 ? raw.length() : query;
+            if (fragment >= 0 && fragment < end) end = fragment;
+            return raw.substring(0, end);
+        } catch (Throwable ignored) { return raw; }
+    }
+
+    private static String valueOrEmpty(String value) { return value == null ? "" : value; }
+
+    private static final class SourceTarget {
+        final Object stream;
+        final Function0<?> original;
+        final String sourceKey;
+        final Function1<Object, Boolean> keyHandler;
+        volatile boolean longPressHandled;
+        volatile long suppressClickUntilMs;
+
+        SourceTarget(Object stream, Function0<?> original) {
+            this.stream = stream;
+            this.original = original;
+            this.sourceKey = sourceFingerprint(stream);
+            this.keyHandler = event -> observeSourceRowKey(this, event);
+        }
+
+        void invokeOriginal() {
+            try { original.invoke(); }
+            catch (Throwable error) {
+                boolean heldPlay = pendingSourcePlayOverride;
+                pendingSourcePlayOverride = false;
+                if (!heldPlay) clearPendingAction();
+                Log.e(TAG, "Unable to select the source", error);
+                toast("Unable to select this source");
+            }
+        }
+    }
+
+    private static final class SourceClick implements Function0<Unit> {
+        final SourceTarget target;
+        SourceClick(SourceTarget target) { this.target = target; }
+
+        @Override public Unit invoke() {
+            long suppressUntil = target.suppressClickUntilMs;
+            target.suppressClickUntilMs = 0L;
+            if (suppressUntil >= SystemClock.elapsedRealtime()) return Unit.INSTANCE;
+            // A genuine later short press belongs to the picker's original mode, not to a stale
+            // held-source override whose resolver never called back.
+            pendingSourcePlayOverride = false;
+            if (pendingSourceDownloadOneShot) clearPendingAction();
+            if (pendingAction == PendingAction.DOWNLOAD) {
+                pendingSelectedSourceKey = target.sourceKey;
+            }
+            target.invokeOriginal();
+            return Unit.INSTANCE;
+        }
+    }
 
     static final class OptionContext {
         final Object target; final Function0<?> manualPlay; final boolean showManual;
@@ -1975,17 +2400,25 @@ public final class LocalDownloadsRuntime {
                 "(?i)([0-9]+(?:[.,][0-9]+)?)\\s*(KB|MB|GB|TB)\\b"
         );
         final RouteIdentity identity;
-        final String url, sourceTitle, filename, displayTitle, videoHash;
+        final String url, sourceTitle, filename, displayTitle, videoHash, sourceKey;
         final Map<String, String> headers;
         final Long declaredSize, sourceVideoSize;
 
         DownloadRequest(RouteIdentity identity, String url, String sourceTitle, String filename,
                         Map<String, String> headers, Long declaredSize, Long sourceVideoSize,
                         String videoHash) {
+            this(identity, url, sourceTitle, filename, headers, declaredSize, sourceVideoSize,
+                    videoHash, "");
+        }
+
+        DownloadRequest(RouteIdentity identity, String url, String sourceTitle, String filename,
+                        Map<String, String> headers, Long declaredSize, Long sourceVideoSize,
+                        String videoHash, String sourceKey) {
             this.identity = identity; this.url = url; this.sourceTitle = sourceTitle;
             this.filename = filename; this.headers = headers; this.declaredSize = declaredSize;
             this.sourceVideoSize = sourceVideoSize;
             this.videoHash = videoHash == null ? "" : videoHash;
+            this.sourceKey = sourceKey == null ? "" : sourceKey;
             this.displayTitle = identity.contentName.isEmpty() ? identity.title : identity.contentName;
         }
 
@@ -1994,6 +2427,10 @@ public final class LocalDownloadsRuntime {
         }
 
         static DownloadRequest from(Object info, RouteIdentity identity) {
+            return from(info, identity, "");
+        }
+
+        static DownloadRequest from(Object info, RouteIdentity identity, String sourceKey) {
             if (info == null || identity == null) return null;
             Object[] values = fieldsInDeclarationOrder(info);
             // Kotlin's source declaration order is not preserved by DEX reflection: fields are
@@ -2033,7 +2470,7 @@ public final class LocalDownloadsRuntime {
             }
             String videoHash = stringValue(info, "getVideoHash", "v", values, 21);
             return new DownloadRequest(identity, url, title == null ? identity.title : title,
-                    filename, headers, declaredSize, sourceVideoSize, videoHash);
+                    filename, headers, declaredSize, sourceVideoSize, videoHash, sourceKey);
         }
 
         private static Long sizeFromText(String value) {
@@ -2108,10 +2545,10 @@ public final class LocalDownloadsRuntime {
 
     static final class DownloadedEntry {
         final String contentId, videoId, contentType, displayTitle, mediaUri, folderUri, filename, poster,
-                backdrop, logo, episodeTitle, contentLanguage;
+                backdrop, logo, episodeTitle, contentLanguage, manifestUri, sourceKey;
         final Integer season, episode;
         final long size;
-        final List<String> subtitleUris;
+        final List<String> subtitleUris, assetUris;
 
         DownloadedEntry(RouteIdentity id, String mediaUri, String filename, long size,
                         List<String> subtitleUris) {
@@ -2120,6 +2557,18 @@ public final class LocalDownloadsRuntime {
 
         DownloadedEntry(RouteIdentity id, String mediaUri, String folderUri, String filename, long size,
                         List<String> subtitleUris) {
+            this(id, mediaUri, folderUri, filename, size, subtitleUris,
+                    Collections.singletonList(mediaUri), "");
+        }
+
+        DownloadedEntry(RouteIdentity id, String mediaUri, String folderUri, String filename, long size,
+                        List<String> subtitleUris, List<String> assetUris, String manifestUri) {
+            this(id, mediaUri, folderUri, filename, size, subtitleUris, assetUris, manifestUri, "");
+        }
+
+        DownloadedEntry(RouteIdentity id, String mediaUri, String folderUri, String filename, long size,
+                        List<String> subtitleUris, List<String> assetUris, String manifestUri,
+                        String sourceKey) {
             contentId = id.contentId; videoId = id.videoId; contentType = id.contentType;
             displayTitle = id.contentName.isEmpty() ? id.title : id.contentName;
             this.mediaUri = mediaUri; this.folderUri = folderUri == null ? "" : folderUri;
@@ -2128,6 +2577,11 @@ public final class LocalDownloadsRuntime {
             season = id.season; episode = id.episode; episodeTitle = id.episodeTitle;
             contentLanguage = id.contentLanguage;
             this.subtitleUris = Collections.unmodifiableList(new ArrayList<>(subtitleUris));
+            List<String> storedAssets = assetUris == null || assetUris.isEmpty()
+                    ? Collections.singletonList(mediaUri) : assetUris;
+            this.assetUris = Collections.unmodifiableList(new ArrayList<>(storedAssets));
+            this.manifestUri = manifestUri == null ? "" : manifestUri;
+            this.sourceKey = sourceKey == null ? "" : sourceKey;
         }
         String displayLabel() { return mediaLabel(displayTitle, season, episode); }
         String resolvedFolderUri() {
@@ -2168,11 +2622,22 @@ public final class LocalDownloadsRuntime {
         }
         boolean isReadable(Context context) {
             try {
-                Uri uri = Uri.parse(mediaUri);
-                if ("file".equalsIgnoreCase(uri.getScheme())) return new java.io.File(uri.getPath()).isFile();
-                android.os.ParcelFileDescriptor fd = context.getContentResolver().openFileDescriptor(uri, "r");
-                if (fd == null) return false;
-                fd.close(); return true;
+                if (!manifestUri.isEmpty()) {
+                    SegmentedMedia.Manifest manifest = SegmentedMedia.read(context, Uri.parse(manifestUri));
+                    return SegmentedMedia.isReadable(context, manifest);
+                }
+                for (String asset : assetUris) {
+                    Uri assetUri = Uri.parse(asset);
+                    if ("file".equalsIgnoreCase(assetUri.getScheme())) {
+                        if (!new java.io.File(assetUri.getPath()).isFile()) return false;
+                    } else {
+                        android.os.ParcelFileDescriptor assetFd =
+                                context.getContentResolver().openFileDescriptor(assetUri, "r");
+                        if (assetFd == null) return false;
+                        assetFd.close();
+                    }
+                }
+                return true;
             } catch (Exception ignored) { return false; }
         }
         String playerRoute() {
@@ -2200,7 +2665,9 @@ public final class LocalDownloadsRuntime {
                         .put("poster", poster).put("backdrop", backdrop).put("logo", logo)
                         .put("episodeTitle", episodeTitle).put("contentLanguage", contentLanguage)
                         .put("season", season).put("episode", episode).put("size", size)
-                        .put("subtitles", new JSONArray(subtitleUris));
+                        .put("subtitles", new JSONArray(subtitleUris))
+                        .put("assets", new JSONArray(assetUris)).put("manifestUri", manifestUri)
+                        .put("sourceKey", sourceKey);
             } catch (JSONException ignored) { }
             return value;
         }
@@ -2218,9 +2685,14 @@ public final class LocalDownloadsRuntime {
             JSONArray subtitles = value.optJSONArray("subtitles");
             List<String> uris = new ArrayList<>();
             if (subtitles != null) for (int i = 0; i < subtitles.length(); i++) uris.add(subtitles.optString(i));
+            JSONArray assets = value.optJSONArray("assets");
+            List<String> assetUris = new ArrayList<>();
+            if (assets != null) for (int i = 0; i < assets.length(); i++) assetUris.add(assets.optString(i));
+            if (assetUris.isEmpty()) assetUris.add(value.optString("mediaUri"));
             return new DownloadedEntry(id, value.optString("mediaUri"), value.optString("folderUri"),
                     value.optString("filename"),
-                    value.optLong("size"), uris);
+                    value.optLong("size"), uris, assetUris, value.optString("manifestUri"),
+                    value.optString("sourceKey"));
         }
     }
 

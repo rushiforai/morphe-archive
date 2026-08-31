@@ -2,6 +2,7 @@ package dev.jason.gboardpatches.patches.gboard.registry
 
 import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsInputEventPatch
+import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsGesturePatch
 import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsPointerOwnerPatch
 import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsSoftKeyPatch
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesSettingsPatch
@@ -28,6 +29,7 @@ class GboardLongPressQuickActionsPatchContractTest {
                 gboardLongPressQuickActionsSoftKeyPatch,
                 gboardLongPressQuickActionsInputEventPatch,
                 gboardLongPressQuickActionsPointerOwnerPatch,
+                gboardLongPressQuickActionsGesturePatch,
             ),
             patch.dependencies.toList(),
         )

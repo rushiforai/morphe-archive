@@ -9,7 +9,7 @@ Patches for learning
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.19.0](https://github.com/Entree3k/Morning-Entree-Patches/releases/tag/v1.19.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;125 patches total
+> **[v1.20.0](https://github.com/Entree3k/Morning-Entree-Patches/releases/tag/v1.20.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;127 patches total
 <details open>
 <summary>📦 Gboard&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
@@ -20,7 +20,7 @@ Patches for learning
 | [Block tracking and analytics](#block-tracking-and-analytics) | Redirects Gboard's known tracking, analytics, and ad host to 0.0.0.0. Note: telemetry sent through Google Play Services is not affected; use the always-incognito patch for that. | • Wildcard blocking |
 | [Change package name](#change-package-name) | Installs Gboard as a clone by appending ".clone" to the package name (configurable), so it installs next to the stock Gboard. Changing an app's package name can lead to unexpected issues. | • Package name<br>• Update permissions<br>• Update other permissions<br>• Update content providers |
 | [Disable telemetry & federated learning](#disable-telemetry-federated-learning) | Forces Gboard's "Improve Gboard" / usage-statistics and federated-learning flags off at startup, regardless of the in-app settings, so your typing is not used for training or metrics. Best combined with the "Network privacy" patch. |  |
-| [Network privacy](#network-privacy) | Controls what Gboard is allowed to talk to. Choose a network level: block only telemetry (keep all features), lock it down to GIFs and voice typing only, or block all internet access. | • Network level<br>• Wildcard blocking |
+| [Network privacy](#network-privacy) | Controls what Gboard is allowed to talk to. Choose a network level: block core telemetry, block ads & telemetry more aggressively (all typing features still work), or block all internet access. | • Network level<br>• Wildcard blocking |
 | [Remove promotional banners](#remove-promotional-banners) | Hides Gboard's in-keyboard promotional / "try this feature" banners by forcing their promo flags off. Does not disable the underlying features, only their nag banners. |  |
 | [Toggle feature flags](#toggle-feature-flags) | Turn Gboard features on with individual switches. Each switch maps to a Gboard feature flag; flip it on to enable that feature. Unknown or already-default flags are skipped safely. | • Email suggestions (from device accounts)<br>• Android Autofill in keyboard<br>• Number row<br>• Fast access bar (symbols row)<br>• Grammar checker<br>• Multilingual typing<br>• Settings search<br>• AI writing tools<br>• Emojify (text to emoji)<br>• Semantic emoji search<br>• Proactive Emoji Kitchen<br>• Expression moment stickers<br>• Sticker predictions while typing<br>• Dynamic art stickers<br>• Trending GIFs<br>• Text conversion (CJK)<br>• Split keyboard (large tablet)<br>• Custom flags to enable (advanced)<br>• Custom flags to disable (advanced) |
 
@@ -629,6 +629,21 @@ Patches for learning
 </details>
 
 <details open>
+<summary>📦 Google Phone&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 161.0.726587057 | 161.0.726587057-downloadable |
+| :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Enable call recording](#enable-call-recording) | Enables call recorder, check local laws before using it. |  |
+
+</details>
+
+<details open>
 <summary>📦 Flud&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -655,6 +670,16 @@ Patches for learning
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Remove Ads](#remove-ads) | Removes ads |  |
+
+</details>
+
+<details open>
+<summary>📦 Google Recorder&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Remove device restrictions](#remove-device-restrictions) | Removes restrictions from using the app on any device. Requires mounting patched app over original. |  |
 
 </details>
 

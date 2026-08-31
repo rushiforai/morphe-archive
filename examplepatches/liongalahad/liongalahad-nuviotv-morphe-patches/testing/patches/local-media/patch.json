@@ -6,25 +6,25 @@
   "target": {
     "application": "NuvioTV",
     "package": "com.nuvio.tv",
-    "versions": ["0.8.7-beta"],
+    "versions": ["0.8.11-beta"],
     "launchComponent": "com.nuvio.tv/.MainActivity"
   },
   "assets": {
     "universal": {
-      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-universal-release.apk",
-      "sha256": "dddcaa303ae47254df611f97bded0b9661f91bdb831f6e3eb23d57b25018370a"
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.11-beta/app-full-universal-release.apk",
+      "sha256": "2a103194126dd7c832703d2c749de606218b2174885488b37a8a9622eb2ab9ad"
     },
     "x86_64": {
-      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-x86_64-release.apk",
-      "sha256": "b77ea174ba30dc2a0c194df3cd8ae11ee7adff7529db710a9fd3bf1be8135514"
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.11-beta/app-full-x86_64-release.apk",
+      "sha256": "324c5d5671e5f8fd19e726b0bb31eb13296873bc2e05c91b29c6f7bd4d3366a0"
     },
     "arm64-v8a": {
-      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-arm64-v8a-release.apk",
-      "sha256": "16e6b679009f518ef8d45cae7d3eeb570de1f0cdc688b381489797f8db0c13f3"
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.11-beta/app-full-arm64-v8a-release.apk",
+      "sha256": "8fe9ad14b04e700d50e7abff7e49eb146b18d29f400cf225f8982eaee3a9bb5c"
     },
     "armeabi-v7a": {
-      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-armeabi-v7a-release.apk",
-      "sha256": "7e1c84b104e1976d9861287ba96e9efb1dc9d387ef43d1934f6005eed033a6b3"
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.11-beta/app-full-armeabi-v7a-release.apk",
+      "sha256": "2e453628d694baa8f84abc26a784e3037fadd6a4fe4063bb128b0a5a168d1e70"
     }
   },
   "dependencies": ["settings-hub"],
@@ -49,9 +49,16 @@
   "inspection": {
     "provider": "io.github.liongalahad.nuviotv.extension.settings.MorpheInitProvider",
     "metadata": "io.github.liongalahad.nuviotv.settings.provider.local_media",
+    "manifestNeedles": [
+      "io.github.liongalahad.nuviotv.extension.storage.segmented.SegmentedMediaProvider",
+      "com.nuvio.tv.morphe.segmented"
+    ],
     "classes": [
       "io.github.liongalahad.nuviotv.extension.playback.localmedia.Extension",
       "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaRuntime",
+      "io.github.liongalahad.nuviotv.extension.storage.segmented.SegmentedMedia",
+      "io.github.liongalahad.nuviotv.extension.storage.segmented.SegmentedMediaProvider",
+      "io.github.liongalahad.nuviotv.extension.storage.segmented.SegmentedPlaybackDiagnostics",
       "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaLibraryUi",
       "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaDeleteActivity",
       "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaActionActivity",
@@ -77,24 +84,36 @@
       "Local storage path",
       "Search storage library",
       "Refresh storage library",
+      "morphe-segmented-media",
+      ".morphe.segmented",
       "Delete Folder",
       "Delete File"
     ],
     "forbiddenNeedles": [],
     "smali": [
       {
-        "class": "v3.b0",
+        "class": "ma.r0",
+        "required": [
+          "move-object/from16 v8, v11",
+          "invoke-static {v9, v8}, Lio/github/liongalahad/nuviotv/extension/playback/localmedia/LocalMediaLibraryUi;->populateStorageGridIfActive(Ljava/lang/Object;Ljava/lang/Object;)Z"
+        ],
+        "forbidden": [
+          "move-object/from16 v8, p1"
+        ]
+      },
+      {
+        "class": "v3.c0",
         "required": [
           "invoke-super {p0, p1}, Landroid/app/Dialog;->dispatchKeyEvent(Landroid/view/KeyEvent;)Z"
         ],
         "forbidden": [
-          "invoke-super {p0, p1}, Lc/o;->dispatchKeyEvent(Landroid/view/KeyEvent;)Z"
+          "invoke-super {p0, p1}, Lc/n;->dispatchKeyEvent(Landroid/view/KeyEvent;)Z"
         ]
       }
     ]
   },
   "focusedTests": [
-    "LocalMediaRuntimeTest and LocalMediaFolderPickerActivityTest",
+    "LocalMediaRuntimeTest, SegmentedMediaTest and LocalMediaFolderPickerActivityTest",
     "isolated application on all declared APK assets",
     "combined application with every current optional patch",
     "TV AVD playback of H.264 MKV with matching same-basename SRT"
@@ -108,8 +127,10 @@
     "Storage remains inside Nuvio's native Library screen and uses the same search, card, focus and file-picker visuals as Cloud",
     "Storage shows STORAGE rather than NUVIO in the source badge",
     "The Storage library lists direct files plus first-level folder cards with recursive playable-file counts and never lists subtitle files as videos",
+    "A valid segmented-media manifest appears as one logical video using its original filename, logical Library parent and combined size, while its mirrored physical bundle folder, part files and incomplete manifests remain hidden",
     "Holding a Storage folder opens the one-option Delete Folder action popup during Android's native long-press interval and removes only that selected root folder after confirmation",
     "Holding a Storage file opens the one-option Delete File action popup during the hold, removes its matching subtitle sidecars, and removes the containing root folder when no playable files remain",
+    "Deleting a segmented Storage item removes its complete manifest, every physical part and matching subtitle sidecars as one logical file; deleting a season removes both ordinary episode files and projected bundles and prunes empty folders",
     "A same-basename SRT, VTT, ASS, SSA, TTML or DFXP file is attached as a selectable Media3 subtitle track",
     "Selecting a video opens Nuvio's existing internal player with the content URI and filename intact",
     "Local playback completion and Back restore the existing Storage selection view without attempting catalogue metadata lookup",

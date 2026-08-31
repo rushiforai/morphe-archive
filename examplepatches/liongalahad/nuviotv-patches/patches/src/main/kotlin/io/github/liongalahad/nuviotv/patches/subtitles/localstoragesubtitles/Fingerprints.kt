@@ -185,7 +185,8 @@ internal object SubtitleTextDownloaderFingerprint : Fingerprint(
     ),
     custom = { method, _ ->
         method.parameterNames().let {
-            it.size == 2 && it[1] == "Ljava/lang/String;"
+            it.size == 3 && it[1] == "Ljava/lang/String;" &&
+                it[2] == "Ljava/lang/String;"
         }
     }
 )

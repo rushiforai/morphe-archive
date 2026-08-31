@@ -36,6 +36,16 @@ public final class GboardLongPressQuickActionsRuntimeSettings {
         }
     }
 
+    public static boolean isGlobeDragEnabled() {
+        try {
+            Snapshot current = snapshot();
+            return current.enabled && current.globeDragEnabled;
+        } catch (Throwable failure) {
+            logFailure("failed to resolve globe-drag runtime settings", failure);
+            return false;
+        }
+    }
+
     static Snapshot snapshot() {
         Snapshot override = snapshotOverrideForTest;
         if (override != null) {
@@ -62,16 +72,21 @@ public final class GboardLongPressQuickActionsRuntimeSettings {
     static Snapshot snapshotFromPreferences(SharedPreferences preferences,
             long loadedAtElapsedMs) {
         if (preferences == null) {
-            return new Snapshot(loadedAtElapsedMs, false, "unavailable");
+            return new Snapshot(loadedAtElapsedMs, false, false, "unavailable");
         }
         return new Snapshot(
                 loadedAtElapsedMs,
                 GboardLongPressQuickActionsSettings.readEnabled(preferences),
+                GboardLongPressQuickActionsSettings.readGlobeDragEnabled(preferences),
                 "local");
     }
 
     static void setEnabledOverrideForTest(boolean enabled) {
-        snapshotOverrideForTest = new Snapshot(0L, enabled, "test");
+        setOverrideForTest(enabled, true);
+    }
+
+    static void setOverrideForTest(boolean enabled, boolean globeDragEnabled) {
+        snapshotOverrideForTest = new Snapshot(0L, enabled, globeDragEnabled, "test");
     }
 
     static void clearEnabledOverrideForTest() {
@@ -85,7 +100,8 @@ public final class GboardLongPressQuickActionsRuntimeSettings {
         Context context = resolveContext();
         if (context == null) {
             return previous != null
-                    ? new Snapshot(loadedAtElapsedMs, previous.enabled, "last-known")
+                    ? new Snapshot(loadedAtElapsedMs, previous.enabled,
+                            previous.globeDragEnabled, "last-known")
                     : snapshotFromPreferences(null, loadedAtElapsedMs);
         }
         try {
@@ -95,7 +111,8 @@ public final class GboardLongPressQuickActionsRuntimeSettings {
         } catch (Throwable failure) {
             logFailure("failed to read local settings", failure);
             return previous != null
-                    ? new Snapshot(loadedAtElapsedMs, previous.enabled, "last-known")
+                    ? new Snapshot(loadedAtElapsedMs, previous.enabled,
+                            previous.globeDragEnabled, "last-known")
                     : snapshotFromPreferences(null, loadedAtElapsedMs);
         }
     }
@@ -151,11 +168,14 @@ public final class GboardLongPressQuickActionsRuntimeSettings {
     static final class Snapshot {
         final long loadedAtElapsedMs;
         final boolean enabled;
+        final boolean globeDragEnabled;
         final String source;
 
-        Snapshot(long loadedAtElapsedMs, boolean enabled, String source) {
+        Snapshot(long loadedAtElapsedMs, boolean enabled, boolean globeDragEnabled,
+                String source) {
             this.loadedAtElapsedMs = loadedAtElapsedMs;
             this.enabled = enabled;
+            this.globeDragEnabled = globeDragEnabled;
             this.source = source == null ? "unknown" : source;
         }
     }

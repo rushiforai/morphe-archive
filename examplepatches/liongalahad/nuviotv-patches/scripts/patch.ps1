@@ -74,6 +74,14 @@ if ($aapt) {
     foreach ($required in @($manifest.inspection.provider, $manifest.inspection.metadata)) {
         if ($inspection -notmatch [regex]::Escape($required)) { throw "Post-patch manifest inspection did not find $required" }
     }
+    $manifestNeedlesProperty = $manifest.inspection.PSObject.Properties['manifestNeedles']
+    if ($manifestNeedlesProperty) {
+        foreach ($required in @($manifestNeedlesProperty.Value)) {
+            if ($inspection -notmatch [regex]::Escape([string]$required)) {
+                throw "Post-patch manifest inspection did not find $required"
+            }
+        }
+    }
 }
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem

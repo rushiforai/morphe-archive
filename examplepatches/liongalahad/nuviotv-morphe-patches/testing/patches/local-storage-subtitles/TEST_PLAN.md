@@ -1,5 +1,12 @@
 # Test plan
 
+## NuvioTV 0.8.11-beta port evidence — 2026-08-29
+
+- [x] The clean rerun completed 239 extension tests and 543 passing patcher tests out of 544, with zero failures or errors and one intentional patcher skip; debug lint completed with zero errors.
+- [x] This patch applied alone to all four official ABI assets with exact fingerprints and passed in each final seven-patch build.
+- [x] The exact final x86_64 APK rendered `Allow Importing Subs from Local Storage` inside the expanded Subtitles category on the API 36 `Television_4K` AVD with no Settings crash or fatal exception.
+- [ ] Document-picker import, cue activation, persistence, cleanup, MPV exclusion, and real playback remain manual acceptance items below.
+
 1. Run `LocalSubtitleRuntimeTest` for metadata priority, conservative filename detection, unknown-language fallback, generated row labels, playback language, action-row semantics, and unchanged ordinary addon subtitles.
 2. Run the existing SDH removal and marking suites, including local-file content sampling, to prove imported Media3 files preserve both optional patch behaviors.
 3. Apply only `Allow Importing Subs from Local Storage` to the hash-pinned x86_64 and universal APKs. Confirm every fingerprint matches exactly once and inspect the provider, picker activity, and injected runtime.

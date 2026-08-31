@@ -1,5 +1,12 @@
 # Test plan
 
+## NuvioTV 0.8.11-beta port evidence — 2026-08-29
+
+- [x] The clean rerun completed 239 extension tests and 543 passing patcher tests out of 544, with zero failures or errors and one intentional patcher skip; debug lint completed with zero errors.
+- [x] Side-by-side installation applied alone to all four official ABI assets. Each final combined APK uses package `com.nuvio.morphe`, label `Nuvio Morphe`, only renamed `com.nuvio.morphe` provider authorities, the expected native ABI set, and five non-empty DEX entries; signature and alignment verification passed.
+- [x] The exact final x86_64 side-by-side APK installed on the API 36 `Television_4K` AVD, survived ten cold launches, and opened every Morphe Settings category without a fatal exception. The original package identity is not replaced by this APK.
+- [ ] Upgrade/uninstall isolation and real Android TV acceptance remain manual release gates.
+
 - [x] Run `SideBySideManifestTest` for package, label, permission, multi-authority, class-name preservation, and fail-closed cases.
 - [x] Build the patch list and confirm `Side-by-side installation` is selected by default.
 - [ ] Apply only this patch to each hash-pinned official APK asset and inspect the resulting package, label, permission, and provider authorities.

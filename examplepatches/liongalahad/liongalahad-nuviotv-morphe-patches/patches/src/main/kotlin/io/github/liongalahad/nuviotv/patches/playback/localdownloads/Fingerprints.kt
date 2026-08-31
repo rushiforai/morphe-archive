@@ -8,6 +8,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 internal const val META = "Lcom/nuvio/tv/domain/model/Meta;"
 internal const val VIDEO = "Lcom/nuvio/tv/domain/model/Video;"
+private const val STREAM = "Lcom/nuvio/tv/domain/model/Stream;"
 private const val FUNCTION0 = "Lkotlin/jvm/functions/Function0;"
 private const val FUNCTION1 = "Lkotlin/jvm/functions/Function1;"
 private const val FUNCTION2 = "Lkotlin/jvm/functions/Function2;"
@@ -15,6 +16,9 @@ private const val FUNCTION3 = "Lkotlin/jvm/functions/Function3;"
 private const val KOTLIN_FUNCTION = "Lkotlin/Function;"
 private const val INTEGER = "Ljava/lang/Integer;"
 private const val PLAYER_LISTENER = "Landroidx/media3/common/Player\$Listener;"
+private const val COMPOSER = "Le1/p;"
+private const val EPISODE_OPTIONS_STYLE =
+    "Lcom/nuvio/tv/domain/model/EpisodeOptionsOverlayStyle;"
 
 private fun Method.parameterNames() = parameterTypes.map(CharSequence::toString)
 private fun Method.calls(predicate: (MethodReference) -> Boolean): Boolean =
@@ -62,7 +66,7 @@ internal object HeroOptionsDialogFingerprint : Fingerprint(
     custom = { method, _ ->
         method.parameterNames() == listOf(
             "Ljava/lang/String;", "Ljava/lang/String;", FUNCTION0, "Z", FUNCTION0,
-            "Z", FUNCTION0, "Le1/m0;", "I"
+            "Z", FUNCTION0, COMPOSER, "I", "I"
         ) && method.buildsComposableLambda()
     }
 )
@@ -71,13 +75,14 @@ internal object EpisodeOptionsDialogFingerprint : Fingerprint(
     returnType = "V",
     custom = { method, _ ->
         val p = method.parameterNames()
-        p.size == 21 && p[0] == VIDEO && p[1] == "Ljava/lang/Double;" &&
-            p.slice(2..6) == List(5) { "Z" } &&
-            p.slice(7..10) == List(4) { FUNCTION0 } && p[11] == "Z" &&
-            p[12] == FUNCTION0 && p[13] == "Z" && p.slice(14..17) == List(4) { FUNCTION0 } &&
-            p[18] == "Le1/m0;" && p[19] == "I" && p[20] == "I" &&
+        p.size == 23 && p[0] == VIDEO && p[1] == "Ljava/lang/Double;" &&
+            p.slice(2..3) == List(2) { "Z" } && p[4] == EPISODE_OPTIONS_STYLE &&
+            p.slice(5..8) == List(4) { "Z" } && p.slice(9..12) == List(4) { FUNCTION0 } &&
+            p[13] == "Z" && p[14] == FUNCTION0 && p[15] == "Z" &&
+            p.slice(16..19) == List(4) { FUNCTION0 } && p[20] == COMPOSER &&
+            p[21] == "I" && p[22] == "I" &&
             method.implementation?.instructions?.any {
-                (it as? WideLiteralInstruction)?.wideLiteral == 0x7f11075cL
+                (it as? WideLiteralInstruction)?.wideLiteral == 0x7f110780L
             } == true && method.buildsComposableLambda()
     }
 )
@@ -103,10 +108,10 @@ internal object ContinueOptionsDialogFingerprint : Fingerprint(
         method.parameterNames().let { p ->
             p.size == 9 && p[0].startsWith("L") &&
                 p.drop(1) == listOf(
-                    FUNCTION0, FUNCTION0, FUNCTION0, FUNCTION0, "Z", FUNCTION0, "Le1/m0;", "I"
+                    FUNCTION0, FUNCTION0, FUNCTION0, FUNCTION0, "Z", FUNCTION0, COMPOSER, "I"
                 )
         } && method.implementation?.instructions?.any {
-            (it as? WideLiteralInstruction)?.wideLiteral == 0x7f110377L
+            (it as? WideLiteralInstruction)?.wideLiteral == 0x7f110384L
         } == true && method.buildsComposableLambda()
     }
 )
@@ -127,9 +132,71 @@ internal object StreamScreenFingerprint : Fingerprint(
     returnType = "V",
     custom = { method, _ ->
         method.parameterNames().let { p ->
-            p.size == 6 && p[0].startsWith("L") && p.drop(1) == listOf(
-                FUNCTION0, FUNCTION1, FUNCTION1, "Le1/m0;", "I"
+            p.size == 9 && p[0].startsWith("L") && p.drop(1) == listOf(
+                "Z", "Z", FUNCTION0, FUNCTION0, FUNCTION1, FUNCTION1, COMPOSER, "I"
             )
+        }
+    }
+)
+
+/** A source row in the ordinary and explicit-download stream pickers. */
+internal object SourceCardFingerprint : Fingerprint(
+    returnType = "V",
+    custom = { method, _ ->
+        method.parameterNames().let { p ->
+            p.size == 11 && p[0] == STREAM && p[1] == "Z" && p[2] == "Z" &&
+                p[3].startsWith("L") && p[4] == "Z" && p[5] == FUNCTION0 &&
+                p[6].startsWith("L") && p[7] == FUNCTION1 && p[8] == FUNCTION0 &&
+                p[9].startsWith("L") && p[10] == "I"
+        } && method.calls { reference ->
+            reference.returnType == "V" &&
+                reference.parameterTypes.map(CharSequence::toString).let { p ->
+                    p.size == 11 && p[0] == FUNCTION0 && p[1].startsWith("L") &&
+                        p.slice(2..6).all { it.startsWith("L") } &&
+                        p[7] == FUNCTION3 && p[8].startsWith("L") &&
+                        p[9] == "I" && p[10] == "I"
+                }
+        }
+    }
+)
+
+/** Native TV Button receiving the source row's modifier. */
+internal object NativeSourceTvButtonFingerprint : Fingerprint(
+    returnType = "V",
+    custom = { method, _ ->
+        method.parameterNames().let { p ->
+            p.size == 11 && p[0] == FUNCTION0 && p[1].startsWith("L") &&
+                p.slice(2..6).all { it.startsWith("L") } &&
+                p[7] == FUNCTION3 && p[8].startsWith("L") &&
+                p[9] == "I" && p[10] == "I"
+        }
+    }
+)
+
+/** Defaultable native TV Button used by the resumed-episode options dialog. */
+internal object NativeDefaultableTvButtonFingerprint : Fingerprint(
+    returnType = "V",
+    custom = { method, _ ->
+        method.parameterNames().let { p ->
+            p.size == 13 && p[0] == FUNCTION0 && p[1].startsWith("L") &&
+                p[2] == "Z" && p[3].startsWith("L") && p[4].startsWith("L") &&
+                p[5].startsWith("L") && p[6].startsWith("L") && p[7].startsWith("L") &&
+                p[8] == FUNCTION3 && p[9].startsWith("L") &&
+                p[10] == "I" && p[11] == "I" && p[12] == "I"
+        }
+    }
+)
+
+/** Native text composable used inside the patch-owned TV Button label. */
+internal object NativeTextFingerprint : Fingerprint(
+    returnType = "V",
+    custom = { method, _ ->
+        method.parameterNames().let { p ->
+            p.size == 19 && p[0] == "Ljava/lang/String;" && p[1].startsWith("L") &&
+                p[2] == "J" && p[3] == "J" && p[6] == "J" && p[8] == "J" &&
+                p[9] == "I" && p[10] == "Z" && p[11] == "I" && p[12] == "I" &&
+                p[13] == FUNCTION1 && p[15].startsWith("L") &&
+                p[16] == "I" && p[17] == "I" && p[18] == "I"
         }
     }
 )

@@ -10,7 +10,9 @@ public final class LocalMediaSettingsCategory implements MorpheSettingsCategory 
     public LocalMediaSettingsCategory() {
         MorpheStorageConsumers.register(
                 "playback.local_media",
-                LocalMediaRuntime::isEnabled
+                LocalMediaRuntime::isEnabled,
+                false,
+                LocalMediaLibraryUi::invalidate
         );
     }
     @Override public String id() { return "playback"; }
