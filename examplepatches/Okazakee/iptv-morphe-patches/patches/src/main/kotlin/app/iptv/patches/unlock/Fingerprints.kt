@@ -22,12 +22,7 @@ object SubscriptionNeededAFingerprint : Fingerprint(
 object SubscriptionNeededBFingerprint : Fingerprint(
     definingClass = "LO7/j;",
     name = "B",
-    returnType = "Z",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    // B() just delegates to A(), fingerprint via method call to A
-    filters = listOf(
-        string("subscription_needed") // will match via A() cross-ref, fallback
-    )
+    returnType = "Z"
 )
 
 /**

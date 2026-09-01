@@ -1,3 +1,9 @@
+## [1.0.0-dev.31](https://github.com/liongalahad/liongalahad-nuviotv-morphe-patches/compare/v1.0.0-dev.30...v1.0.0-dev.31) (2026-08-31)
+
+### ✨ New Features
+
+* add persistent random playback and disable in-app updates ([e250441](https://github.com/liongalahad/liongalahad-nuviotv-morphe-patches/commit/e250441fca92e60c90feb348499de9415190540d))
+
 ## [1.0.0-dev.30](https://github.com/liongalahad/liongalahad-nuviotv-morphe-patches/compare/v1.0.0-dev.29...v1.0.0-dev.30) (2026-08-30)
 
 ### ✨ New Features

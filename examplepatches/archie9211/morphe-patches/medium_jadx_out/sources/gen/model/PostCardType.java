@@ -1,0 +1,68 @@
+package gen.model;
+
+import com.squareup.wire.ProtoAdapter;
+import com.squareup.wire.Syntax;
+import com.squareup.wire.WireEnum;
+import defpackage.g04;
+import defpackage.i04;
+import defpackage.je9;
+import defpackage.n1b;
+import kotlin.Metadata;
+
+/* JADX WARN: Failed to restore enum class, 'enum' modifier and super class removed */
+/* JADX WARN: Unknown enum class pattern. Please report as an issue! */
+/* JADX INFO: compiled from: r8-map-id-b2309a5993a3f14549aeb617bc4a78ecbec51e99a3efca387f8965087335ae2d */
+/* JADX INFO: loaded from: classes5.dex */
+@Metadata(d1 = {"\u0000\u0014\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0010\u0010\n\u0002\u0010\b\n\u0002\b\f\b\u0086\u0081\u0002\u0018\u0000 \n2\u00020\u00012\b\u0012\u0004\u0012\u00020\u00000\u0002:\u0001\u000bB\u0011\b\u0002\u0012\u0006\u0010\u0004\u001a\u00020\u0003¢\u0006\u0004\b\u0005\u0010\u0006R\u001a\u0010\u0004\u001a\u00020\u00038\u0016X\u0096\u0004¢\u0006\f\n\u0004\b\u0004\u0010\u0007\u001a\u0004\b\b\u0010\tj\u0002\b\fj\u0002\b\rj\u0002\b\u000e¨\u0006\u000f"}, d2 = {"Lgen/model/PostCardType;", "Lcom/squareup/wire/WireEnum;", "", "", "value", "<init>", "(Ljava/lang/String;II)V", "I", "getValue", "()I", "Companion", "je9", "NO_CARD_TYPE", "SHORT_STORY_CARD", "STANDARD_CARD", "proto_release"}, k = 1, mv = {2, 2, 0}, xi = 48)
+public final class PostCardType implements WireEnum {
+    private static final /* synthetic */ g04 $ENTRIES;
+    private static final /* synthetic */ PostCardType[] $VALUES;
+    public static final ProtoAdapter<PostCardType> ADAPTER;
+    public static final je9 Companion;
+    public static final PostCardType NO_CARD_TYPE;
+    public static final PostCardType SHORT_STORY_CARD;
+    public static final PostCardType STANDARD_CARD;
+    private final int value;
+
+    private static final /* synthetic */ PostCardType[] $values() {
+        return new PostCardType[]{NO_CARD_TYPE, SHORT_STORY_CARD, STANDARD_CARD};
+    }
+
+    static {
+        PostCardType postCardType = new PostCardType("NO_CARD_TYPE", 0, 0);
+        NO_CARD_TYPE = postCardType;
+        SHORT_STORY_CARD = new PostCardType("SHORT_STORY_CARD", 1, 1);
+        STANDARD_CARD = new PostCardType("STANDARD_CARD", 2, 2);
+        PostCardType[] postCardTypeArr$values = $values();
+        $VALUES = postCardTypeArr$values;
+        $ENTRIES = new i04(postCardTypeArr$values);
+        Companion = new je9();
+        ADAPTER = new PostCardType$Companion$ADAPTER$1(n1b.a.b(PostCardType.class), Syntax.PROTO_2, postCardType);
+    }
+
+    private PostCardType(String str, int i, int i2) {
+        this.value = i2;
+    }
+
+    public static final PostCardType fromValue(int i) {
+        Companion.getClass();
+        return je9.a(i);
+    }
+
+    public static g04 getEntries() {
+        return $ENTRIES;
+    }
+
+    public static PostCardType valueOf(String str) {
+        return (PostCardType) Enum.valueOf(PostCardType.class, str);
+    }
+
+    public static PostCardType[] values() {
+        return (PostCardType[]) $VALUES.clone();
+    }
+
+    @Override // com.squareup.wire.WireEnum
+    public int getValue() {
+        return this.value;
+    }
+}

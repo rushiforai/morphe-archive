@@ -15,6 +15,7 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import io.github.liongalahad.nuviotv.patches.settings.hub.settingsUiPatch
 import io.github.liongalahad.nuviotv.patches.shared.Constants.NUVIO_COMPATIBILITY
+import io.github.liongalahad.nuviotv.patches.shared.updates.patchedAppUpdatesPatch
 import org.w3c.dom.Element
 
 private const val CUE_TRANSFORMER =
@@ -53,7 +54,7 @@ val removeSdhAnnotationsPatch = bytecodePatch(
     default = false
 ) {
     compatibleWith(NUVIO_COMPATIBILITY)
-    dependsOn(settingsUiPatch, sdhCategoryResourcePatch)
+    dependsOn(patchedAppUpdatesPatch, settingsUiPatch, sdhCategoryResourcePatch)
     extendWith("extensions/nuviotv.mpe")
 
     execute {

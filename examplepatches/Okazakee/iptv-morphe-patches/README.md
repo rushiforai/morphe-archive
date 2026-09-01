@@ -1,21 +1,19 @@
-# 👋🧩 Morphe Patches template
+# 👋🧩 IPTV Morphe Patches
 
-Template repository for Morphe Patches.
+Custom Morphe patches for **IPTV Pro Stream Player** (`com.iptvprostreamplayer.v1`).
 
-## ❓ About
-
-Patches for apps I like.
-
-<!-- TODO: Update this about section with a brief introduction/summary about this repo and what it offers. -->
+Unlocks the Pro subscription locally by bypassing the Firebase `subscription_needed` flag and forcing the RevenueCat `pro` entitlement to active. Works fully offline — no server validation. Play Store install check bypass is provided via direct APK (`patched-signed.apk`).
 
 ### How to use these patches
 
 Click here to add these patches to Morphe: https://morphe.software/add-source?github=Okazakee/iptv-morphe-patches
 
+In Morphe Manager, add source `Okazakee/iptv-morphe-patches`, select **Unlock Pro (IPTV)** and patch your APK. For Play Store sideload bypass, use the direct `patched-signed.apk` (25M, verified on Pixel_9_Pro Play Store).
+
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0](https://github.com/Okazakee/iptv-morphe-patches/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.0.1](https://github.com/Okazakee/iptv-morphe-patches/releases/tag/v1.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
 <details open>
 <summary>📦 IPTV Pro Stream Player&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -27,7 +25,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlock Pro (IPTV)](#unlock-pro-iptv) | Deactivates subscription_needed gate and forces RevenueCat pro entitlement to active. Works offline, no server check. |  |
+| [Unlock Pro (IPTV)](#unlock-pro-iptv) | Deactivates subscription_needed, forces the pro entitlement active, and spoofs Google Play for app-internal installer-source checks. |  |
 
 </details>
 
@@ -44,5 +42,7 @@ See the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation
 
 ## 📜 License
 
-UserXYZ Patches are licensed under the [GNU General Public License v3.0](LICENSE)
-# IPTV Pro Stream Player - Unlock Pro verified on emulator
+IPTV Morphe Patches are licensed under the [GNU General Public License v3.0](LICENSE)
+
+feat: test
+

@@ -20,7 +20,7 @@ pluginManagement {
 }
 
 plugins {
-    id("app.morphe.patches") version "1.3.3"
+    id("app.morphe.patches") version "1.3.4"
 }
 
 settings {
@@ -34,3 +34,7 @@ settings {
 }
 
 include(":patches:stub")
+
+// Ensure the umbrella :extensions project exists even when no extension subprojects are
+// discovered (e.g. the extensions/ directory is absent/renamed). Harmless in normal builds.
+include(":extensions")

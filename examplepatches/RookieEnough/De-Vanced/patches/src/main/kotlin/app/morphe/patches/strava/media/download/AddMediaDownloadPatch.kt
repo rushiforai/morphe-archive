@@ -11,7 +11,6 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.misc.mapping.ResourceType
 import app.morphe.patches.shared.misc.mapping.getResourceId
@@ -21,11 +20,10 @@ import app.morphe.util.getReference
 import app.morphe.util.writeRegister
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction22c
-import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
-private const val ACTION_CLASS_DESCRIPTOR = "Lcom/strava/bottomsheet/Action;"
+internal const val ACTION_CLASS_DESCRIPTOR = "Lcom/strava/bottomsheet/Action;"
 private const val MEDIA_CLASS_DESCRIPTOR = "Lcom/strava/photos/data/Media;"
 private const val MEDIA_DOWNLOAD_CLASS_DESCRIPTOR = "Lapp/morphe/extension/strava/AddMediaDownloadPatch;"
 
@@ -42,19 +40,9 @@ val addMediaDownloadPatch = bytecodePatch(
     )
 
     execute {
-        val fragmentClassDef = run {
-            var found: ClassDef? = null
-            classDefForEach { classDef ->
-                if (classDef.type.endsWith("/FullscreenMediaFragment;")) {
-                    found = classDef
-                }
-            }
-            found ?: throw PatchException("Could not find FullscreenMediaFragment class")
-        }
-
         // region Extend menu of `FullscreenMediaFragment` with actions.
 
-        CreateAndShowFragmentFingerprint.match(fragmentClassDef).method.apply {
+        CreateAndShowFragmentFingerprint.method.apply {
             val setTrueIndex = instructions.indexOfFirst { instruction ->
                 instruction.opcode == Opcode.IPUT_BOOLEAN
             }
@@ -102,7 +90,7 @@ val addMediaDownloadPatch = bytecodePatch(
         }
 
         // Handle "copy link" & "open link" & "download" actions.
-        HandleMediaActionFingerprint.match(fragmentClassDef).method.apply {
+        HandleMediaActionFingerprint.match(CreateAndShowFragmentFingerprint.originalClassDef).method.apply {
             // Call handler if action ID < 0 (= custom).
             val moveInstruction = instructions.first { instruction ->
                 instruction.opcode == Opcode.MOVE_RESULT

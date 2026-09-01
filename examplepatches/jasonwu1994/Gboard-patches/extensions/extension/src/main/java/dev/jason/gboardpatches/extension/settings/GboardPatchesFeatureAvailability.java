@@ -13,6 +13,8 @@ public final class GboardPatchesFeatureAvailability {
             "dev.jason.gboardpatches.feature.clipboard_content_limit";
     public static final String FEATURE_WEB_CLIPBOARD =
             "dev.jason.gboardpatches.feature.web_clipboard";
+    public static final String FEATURE_LAN_FTP =
+            "dev.jason.gboardpatches.feature.lan_ftp_server";
     public static final String FEATURE_DEVICE_INTELLIGENCE =
             "dev.jason.gboardpatches.feature.device_intelligence";
     public static final String FEATURE_GRAMMAR_CHECKER =

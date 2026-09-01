@@ -1,0 +1,19 @@
+package defpackage;
+
+/* JADX INFO: compiled from: r8-map-id-b2309a5993a3f14549aeb617bc4a78ecbec51e99a3efca387f8965087335ae2d */
+/* JADX INFO: loaded from: classes.dex */
+public final class pz8 implements qz8 {
+    public static final pz8 a = new pz8();
+
+    public final boolean equals(Object obj) {
+        return this == obj || (obj instanceof pz8);
+    }
+
+    public final int hashCode() {
+        return -1690346366;
+    }
+
+    public final String toString() {
+        return "Loading";
+    }
+}

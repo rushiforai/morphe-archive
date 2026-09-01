@@ -1,0 +1,13 @@
+package defpackage;
+
+import java.util.List;
+
+/* JADX INFO: compiled from: r8-map-id-b2309a5993a3f14549aeb617bc4a78ecbec51e99a3efca387f8965087335ae2d */
+/* JADX INFO: loaded from: classes.dex */
+public final class qu extends b2 {
+    @Override // defpackage.xu
+    /* JADX INFO: renamed from: w0, reason: merged with bridge method [inline-methods] */
+    public final zu1 w() {
+        return new zu1((List) this.b, 1);
+    }
+}

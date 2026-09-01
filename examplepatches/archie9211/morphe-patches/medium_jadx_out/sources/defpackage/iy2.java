@@ -1,0 +1,19 @@
+package defpackage;
+
+import java.util.Date;
+
+/* JADX INFO: compiled from: r8-map-id-b2309a5993a3f14549aeb617bc4a78ecbec51e99a3efca387f8965087335ae2d */
+/* JADX INFO: loaded from: classes.dex */
+public class iy2 implements kud {
+    @Override // defpackage.kud
+    public final jud a(ch5 ch5Var, kxd kxdVar) {
+        if (kxdVar.c() == Date.class) {
+            return new ly2(ky2.b, 2, 2);
+        }
+        return null;
+    }
+
+    public final String toString() {
+        return "DefaultDateTypeAdapter#DEFAULT_STYLE_FACTORY";
+    }
+}

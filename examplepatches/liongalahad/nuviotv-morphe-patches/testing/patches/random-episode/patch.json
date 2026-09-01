@@ -37,14 +37,19 @@
     "HeroContentFingerprint",
     "HeroActionIconFingerprint",
     "HeroActionRowFingerprint",
+    "MetaDetailsContentFingerprint",
+    "HomeContentFingerprint",
+    "HomeCatalogSummaryFingerprint",
+    "SplitUpcomingFingerprint",
+    "HomeStateFingerprint",
     "ManualPlayDialogFingerprint",
     "StreamRouteFingerprint",
     "RecomputeNextEpisodeFingerprint",
     "SaveWatchProgressFingerprint",
-    "BuildScrobbleItemFingerprint",
-    "LoadSavedProgressSuspendFingerprint",
-    "ReturnFocusFingerprint",
-    "WarmTraktMappingFingerprint"
+    "ContinueWatchingCardFingerprint",
+    "ContinueWatchingArtworkFingerprint",
+    "ContinueWatchingWideFingerprint",
+    "ContinueWatchingWideRestartFingerprint"
   ],
   "inspection": {
     "provider": "io.github.liongalahad.nuviotv.extension.settings.MorpheInitProvider",
@@ -56,20 +61,111 @@
       "io.github.liongalahad.nuviotv.extension.detail.randomepisode.Extension",
       "io.github.liongalahad.nuviotv.extension.detail.randomepisode.RandomEpisodeRuntime",
       "io.github.liongalahad.nuviotv.extension.detail.randomepisode.RandomEpisodeSettings",
+      "io.github.liongalahad.nuviotv.extension.detail.randomepisode.RandomEpisodeRefreshState",
+      "io.github.liongalahad.nuviotv.extension.detail.randomepisode.RandomEpisodePoolDialog",
       "io.github.liongalahad.nuviotv.extension.detail.randomepisode.RandomEpisodeSettingsCategory",
       "io.github.liongalahad.nuviotv.extension.detail.randomepisode.RandomEpisodeSettingsContent",
       "io.github.liongalahad.nuviotv.extension.detail.randomepisode.RandomEpisodeToggleAction"
     ],
     "needles": [
       "detail.random_episode_button",
-      "Show Random Episode Button",
-      "Play random episode",
+      "detail.random_episode.enabled_shows",
+      "Enable Per-Show Random Playback",
+      "Random playback",
+      "Episodes included",
+      "Unwatched only",
       "Lcom/nuvio/tv/domain/model/Video;"
     ],
-    "forbiddenNeedles": []
+    "forbiddenNeedles": [],
+    "smali": [
+      {
+        "class": "na.u2",
+        "required": [
+          "RandomEpisodeRuntime;->enterHero",
+          "RandomEpisodeRuntime;->rewriteHeroNextToWatch",
+          "RandomEpisodeRuntime;->wrapHeroLongPress"
+        ],
+        "forbidden": []
+      },
+      {
+        "class": "na.w5",
+        "required": ["RandomEpisodeRuntime;->captureDetailState"],
+        "forbidden": []
+      },
+      {
+        "class": "oa.q2",
+        "required": ["RandomEpisodeRuntime;->enterHome"],
+        "forbidden": []
+      },
+      {
+        "class": "oa.o0",
+        "required": ["RandomEpisodeRuntime;->captureHomeCatalog"],
+        "forbidden": []
+      },
+      {
+        "class": "oa.k5",
+        "required": [
+          "RandomEpisodeRuntime;->rewriteHomeContinueItems",
+          "RandomEpisodeRuntime;->captureHomeContinueSplit"
+        ],
+        "forbidden": []
+      },
+      {
+        "class": "oa.r2",
+        "required": ["RandomEpisodeRuntime;->captureHomeState"],
+        "forbidden": []
+      },
+      {
+        "class": "ha.x",
+        "required": ["RandomEpisodeRuntime;->rewriteStreamRoute"],
+        "forbidden": []
+      },
+      {
+        "class": "qa.h8",
+        "required": [
+          "RandomEpisodeRuntime;->captureNextContext",
+          "RandomEpisodeRuntime;->chooseNextEpisode"
+        ],
+        "forbidden": []
+      },
+      {
+        "class": "qa.z8",
+        "required": ["RandomEpisodeRuntime;->recordProgress"],
+        "forbidden": []
+      },
+      {
+        "class": "ea.l2",
+        "required": [
+          "RandomEpisodeRuntime;->rewriteHomeContinueItem",
+          "RandomEpisodeRuntime;->wrapHomeContinuePlay",
+          "RandomEpisodeRuntime;->prepareContinueWatchingItem",
+          "RandomEpisodeRuntime;->bindContinueWatchingContent",
+          "RandomEpisodeRuntime;->renderContinueWatchingBadge"
+        ],
+        "forbidden": []
+      },
+      {
+        "class": "ea.q1",
+        "required": [
+          "RandomEpisodeRuntime;->activateContinueWatchingContent",
+          "RandomEpisodeRuntime;->renderContinueWatchingBadge"
+        ],
+        "forbidden": []
+      },
+      {
+        "class": "ea.u1",
+        "required": [
+          "RandomEpisodeRuntime;->bindContinueWatchingContent",
+          "RandomEpisodeRuntime;->activateContinueWatchingContent"
+        ],
+        "forbidden": []
+      }
+    ]
   },
   "focusedTests": [
     "RandomEpisodeRuntimeTest",
+    "RandomEpisodePlaybackStateTest",
+    "RandomEpisodePoolDialogTest",
     "RandomEpisodeSettingsTest",
     "MorpheSettingsRuntimeTest",
     "isolated application on all declared APK assets",
@@ -77,12 +173,22 @@
   ],
   "acceptance": [
     "Selecting only Random Episode shows Morphe > Detail Page and no unrelated category",
-    "Show Random Episode Button defaults on for a fresh preference, updates immediately, and a stored On or Off choice persists after force-stop and reboot",
-    "The enabled shuffle action appears before Library only on series with an eligible aired episode",
-    "Click chooses an aired non-special episode and opens its normal stream selection or autoplay flow",
-    "Long press preserves Nuvio's manual-play choice for the selected random episode",
-    "Random playback does not load or save watch progress and does not scrobble to tracking providers",
-    "Next Episode chooses another eligible random episode and excludes the current episode",
+    "Enable Per-Show Random Playback defaults on globally, updates immediately, and preserves every stored per-show mode while globally off",
+    "The shuffle action appears before Library only on series with an eligible aired episode; short press toggles that show's persistent selected state",
+    "Long press opens Episodes included with All and Unwatched only; choosing either option enables random playback while Back changes nothing, and both states remain independent for each show",
+    "With no in-progress episode, enabling a show immediately exposes the selected random episode on Play and the Play route matches that label",
+    "Trailer playback and source-picker Back preserve the current visit's displayed random episode; returning Home and re-entering chooses another when alternatives exist",
+    "Disabling a show immediately restores Nuvio's native oldest-unwatched Play target",
+    "An incomplete Continue Watching item is the Resume source of truth for the label, normal Play and Play long press; completed or stale entries at 90 percent are ignored, and an explicit native Resume-to-Play transition prevents a removed session from being restored when random is enabled",
+    "Play long press keeps manual source selection for the random episode displayed on Play",
+    "Explicit episode clicks and Continue Watching resume the requested episode, then use random continuation for subsequent episodes",
+    "For a random-enabled show in Play Next mode, Home displays one random Next Up episode per Home visit; card recomposition retains it, re-entry draws another when possible, and clicking the card plays the exact displayed episode",
+    "If that show's native Next Up is an unreleased Upcoming item, random mode replaces it before section classification so the aired random episode appears once in Continue Watching and the show contributes nothing to Upcoming; disabled shows and unrelated Upcoming items retain native behavior",
+    "Random Home Next Up selection respects that show's All or Unwatched only pool, leaves Resume cards unchanged, excludes specials, future and unavailable episodes, and omits an exhausted Unwatched-only card without requesting new metadata",
+    "Random playback loads and saves native progress, marks completed episodes watched, and preserves native Trakt and Simkl scrobbling",
+    "Unwatched only excludes Nuvio's merged completed set, retains partially watched episodes, and stops when no eligible unwatched episode remains",
+    "All uses a shuffled no-repeat bag until every eligible episode has been drawn",
+    "The detail toggle and Continue Watching marker use the Material shuffle symbol, with a 20 dp white circular marker, dark icon, native-style shadow and 8 dp top-left inset in card, poster, and wide layouts for enabled shows only",
     "Back and fatal-error paths return safely without contaminating the next normal playback session",
     "All Morphe category expanded and collapsed combinations retain equal bounds, intact focus rings and stable D-pad order",
     "No crash, ANR, VerifyError or fatal log occurs during launch, settings, navigation, random playback and normal playback"

@@ -4,6 +4,8 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -37,6 +39,30 @@ class RandomEpisodeRuntimeTest {
     }
 
     @Test
+    fun `unwatched pool excludes only completed episodes and keeps partial candidates`() {
+        val watched = Video("watched", 1, 1, "2020-01-01")
+        val partial = Video("partial", 1, 2, "2020-01-01")
+        val fresh = Video("fresh", 1, 3, "2020-01-01")
+
+        assertEquals(
+            listOf(partial, fresh),
+            RandomEpisodeRuntime.eligibleVideos(
+                listOf(watched, partial, fresh),
+                null,
+                null,
+                setOf("1:1"),
+                true
+            )
+        )
+        assertEquals(
+            listOf(watched, partial, fresh),
+            RandomEpisodeRuntime.eligibleVideos(
+                listOf(watched, partial, fresh), null, null, setOf("1:1"), false
+            )
+        )
+    }
+
+    @Test
     fun `inactive next episode preserves Nuvio result and active mode excludes current`() {
         val normal = Video("normal", 1, 2, "2020-01-01")
         assertSame(
@@ -63,6 +89,26 @@ class RandomEpisodeRuntimeTest {
                 1
             )
         )
+    }
+
+    @Test
+    fun `active random next is stable across recomposition and uses a no-repeat bag`() {
+        val current = Video("current", 1, 1, "2020-01-01")
+        val second = Video("second", 1, 2, "2020-01-01")
+        val third = Video("third", 1, 3, "2020-01-01")
+        val videos = listOf(current, second, third)
+        RandomEpisodeRuntime.setRandomSeedForTests(12)
+        RandomEpisodeRuntime.setRandomSessionForTests(true)
+
+        val firstDraw = RandomEpisodeRuntime.chooseNextEpisode(current, videos, 1, 1) as Video
+        val repeatedRecompute = RandomEpisodeRuntime.chooseNextEpisode(current, videos, 1, 1)
+        assertSame(firstDraw, repeatedRecompute)
+
+        val secondDraw = RandomEpisodeRuntime.chooseNextEpisode(
+            current, videos, firstDraw.season, firstDraw.episode
+        ) as Video
+        assertNotEquals(firstDraw.id, secondDraw.id)
+        assertNotEquals(current.id, secondDraw.id)
     }
 
     @Test
@@ -93,7 +139,7 @@ class RandomEpisodeRuntimeTest {
         assertTrue(rewritten.contains("episodeName=A%20Random%20%26%20Episode"))
         assertTrue(rewritten.contains("runtime=51"))
         assertTrue(rewritten.contains("contentId=show-id"))
-        assertTrue(RandomEpisodeRuntime.shouldSkipTracking())
+        assertFalse(RandomEpisodeRuntime.shouldSkipTracking())
     }
 
     @Test
@@ -108,16 +154,18 @@ class RandomEpisodeRuntimeTest {
     }
 
     @Test
-    fun `random return clears detail focus and finishes the session`() {
+    fun `random playback never suppresses native tracking`() {
         RandomEpisodeRuntime.setRandomSessionForTests(true)
-
-        assertNull(RandomEpisodeRuntime.filterReturnFocusSeason(4))
-        assertTrue(RandomEpisodeRuntime.shouldSkipTracking())
-        assertNull(RandomEpisodeRuntime.filterReturnFocusEpisode(7))
         assertFalse(RandomEpisodeRuntime.shouldSkipTracking())
+    }
 
-        assertEquals(1, RandomEpisodeRuntime.filterReturnFocusSeason(1))
-        assertEquals(2, RandomEpisodeRuntime.filterReturnFocusEpisode(2))
+    @Test
+    fun `Play long press is wrapped instead of returning its native action unchanged`() {
+        val nativeAction: () -> Unit = {}
+
+        val wrapped = RandomEpisodeRuntime.wrapHeroLongPressForTests(Any(), nativeAction)
+
+        assertNotSame(nativeAction, wrapped)
     }
 
     data class Video(

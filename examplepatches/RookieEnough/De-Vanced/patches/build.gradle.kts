@@ -12,20 +12,6 @@ patches {
     }
 }
 
-//dependencies {
-//    compileOnly(libs.morphe.patcher)
-//
-//    // Used by JsonGenerator.
-//    implementation(libs.gson)
-//
-//    // Required due to smali, or build fails. Can be removed once smali is bumped.
-//    implementation(libs.guava)
-//
-//    // Android API stubs defined here.
-//    compileOnly(project(":patches:stub"))
-//}
-
-
 // Separate configuration so gson is available at runtime for the
 // generatePatchesList task but never bundled into the APK.
 val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
@@ -51,11 +37,5 @@ tasks {
     // Used by gradle-semantic-release-plugin.
     publish {
         dependsOn("generatePatchesList")
-    }
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xcontext-parameters")
     }
 }

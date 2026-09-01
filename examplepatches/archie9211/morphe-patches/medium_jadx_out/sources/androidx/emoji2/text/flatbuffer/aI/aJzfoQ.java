@@ -1,0 +1,56 @@
+package androidx.emoji2.text.flatbuffer.aI;
+
+/* JADX INFO: loaded from: classes2.dex */
+public class aJzfoQ {
+    public static String ALFhkS;
+    public static String CQXwuPpWXoSPxKi;
+    public static String FgOrr;
+    public static String GMjWYu;
+    public static String GTvJ;
+    public static String HGHHAvOK;
+    public static String IlewnzCMzWybYG;
+    public static String KfxgAMBpS;
+    public static String LDjE;
+    public static String OmBavLHcxJHx;
+    public static String PPwtrvjSOBMVOl;
+    public static String PpdSSyYWlkSmTm;
+    public static String PrqZUcSHKJwI;
+    public static String QNCuypDtF;
+    public static String ROtrDYpUfdMmLL;
+    public static String SwYbl;
+    public static String TST;
+    public static String USPhu;
+    public static String WZLCYArQuiJih;
+    public static String WzOdgl;
+    public static String ZjZ;
+    public static String aRnVQEso;
+    public static String aYrWRTqhqFldU;
+    public static String biORfy;
+    public static String hwUfsSJnOTQOfKt;
+    public static String jLMCdSlkmYW;
+    public static String klvSrrxUlFXyyPz;
+    public static String mhTiLinJmDFyOWB;
+    public static String mhkxThvKcAZEOGH;
+    public static String nZiHnG;
+    public static String oNcDuQimqUmtpdm;
+    public static String pWxrmVpaOzuJw;
+    public static String pwS;
+    public static String qJLEZlCgIT;
+    public static String qPSGZrmXGQ;
+    public static String qThvCPVW;
+    public static String qba;
+    public static String rWlqetxHJ;
+    public static String uyryLATCWVxrc;
+    public static String wQqF;
+    public static String wimWMzWl;
+    public static String xCvp;
+    public static String xYwipFQDCYc;
+    public static String xtwhDJ;
+    public static String yEMW;
+    public static String yMYnx;
+    public static String yOckhR;
+    public static String yjB;
+    public static String yyl;
+    public static String zPorGjwDspE;
+    public static String zvDQVlngWSZx;
+}

@@ -1,3 +1,15 @@
+## [1.5.1](https://github.com/ch3thanhs/stylus/compare/v1.5.0...v1.5.1) (2026-08-31)
+
+### 🚀 Updated App Support
+
+* **instagram:** support 439.0.0.37.89 ([b6a956d](https://github.com/ch3thanhs/stylus/commit/b6a956d4bb2d91b1d3567a040af55a3f8a135e53))
+
+## [1.5.1-dev.1](https://github.com/ch3thanhs/stylus/compare/v1.5.0...v1.5.1-dev.1) (2026-08-31)
+
+### 🚀 Updated App Support
+
+* **instagram:** support 439.0.0.37.89 ([b6a956d](https://github.com/ch3thanhs/stylus/commit/b6a956d4bb2d91b1d3567a040af55a3f8a135e53))
+
 ## [1.5.0](https://github.com/ch3thanhs/stylus/compare/v1.4.1...v1.5.0) (2026-08-29)
 
 ### ✨ New Features

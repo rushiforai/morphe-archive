@@ -1,3 +1,9 @@
+## [1.1.0](https://github.com/V4n1X/morphe-patches/compare/v1.0.0...v1.1.0) (2026-08-31)
+
+### ✨ New Features
+
+* **soundcloud:** Add Material You theme, enhance Go+ offline and AMOLED patches ([238f132](https://github.com/V4n1X/morphe-patches/commit/238f13244f93a6dad09414f7a776b37902048f58))
+
 ## 1.0.0 (2026-08-24)
 
 ### 🐛 Bug Fixes

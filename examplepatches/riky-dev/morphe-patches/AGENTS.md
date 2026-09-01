@@ -261,6 +261,7 @@ Run `scripts/check_env.sh` when something fails. Requires:
 ## Morphe docs
 
 - [Morphe documentation](https://github.com/MorpheApp/morphe-documentation)
+- [Morphe development guide](https://github.com/MorpheApp/morphe-documentation/blob/main/docs/morphe-development/README.md) — prerequisites, dev environment setup, fingerprints & patches
 - [Morphe Patches template](https://github.com/MorpheApp/morphe-patches-template)
 - [Morphe Desktop](https://github.com/MorpheApp/morphe-desktop) for manual patching
 

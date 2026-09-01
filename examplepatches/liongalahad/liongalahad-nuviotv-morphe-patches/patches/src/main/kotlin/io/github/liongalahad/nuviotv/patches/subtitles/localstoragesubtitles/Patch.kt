@@ -12,6 +12,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import io.github.liongalahad.nuviotv.patches.shared.Constants.NUVIO_COMPATIBILITY
+import io.github.liongalahad.nuviotv.patches.shared.updates.patchedAppUpdatesPatch
 import io.github.liongalahad.nuviotv.patches.settings.hub.settingsUiPatch
 import org.w3c.dom.Element
 
@@ -83,7 +84,7 @@ val localstoragesubtitlesPatch = bytecodePatch(
     default = false
 ) {
     compatibleWith(NUVIO_COMPATIBILITY)
-    dependsOn(settingsUiPatch, localSubtitleResources)
+    dependsOn(patchedAppUpdatesPatch, settingsUiPatch, localSubtitleResources)
     extendWith("extensions/nuviotv.mpe")
 
     execute {

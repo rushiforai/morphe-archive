@@ -29,6 +29,12 @@ public final class GboardPatchesSettingsContract {
             return Collections.emptyList();
         }
 
+        default void onVisible(FeatureHost host) {
+        }
+
+        default void onHidden(FeatureHost host) {
+        }
+
         Screen buildScreen(FeatureHost host);
     }
 
@@ -94,6 +100,31 @@ public final class GboardPatchesSettingsContract {
                 Runnable completionAction);
 
         void openTextDocument(String[] mimeTypes, StringValueConsumer valueConsumer);
+
+        default void openDocumentTree(String initialTreeUri,
+                StringValueConsumer valueConsumer) {
+            throw new UnsupportedOperationException("Folder picker is unavailable");
+        }
+
+        default void requestRuntimePermission(String permission,
+                BooleanValueConsumer resultConsumer) {
+            if (resultConsumer != null) {
+                resultConsumer.accept(false);
+            }
+        }
+
+        default void openAllFilesAccessSettings(String unavailableMessage) {
+            throw new UnsupportedOperationException(
+                    "All files access settings are unavailable");
+        }
+
+        default void openBatteryOptimizationSettings(String unavailableMessage) {
+            throw new UnsupportedOperationException(
+                    "Battery optimization settings are unavailable");
+        }
+
+        default void showMessage(String message) {
+        }
     }
 
     public static void refresh(FeatureHost host) {
@@ -155,6 +186,29 @@ public final class GboardPatchesSettingsContract {
     public static void openTextDocument(FeatureHost host, String[] mimeTypes,
             StringValueConsumer valueConsumer) {
         submit(host, adapter -> adapter.openTextDocument(mimeTypes, valueConsumer));
+    }
+
+    public static void openDocumentTree(FeatureHost host, String initialTreeUri,
+            StringValueConsumer valueConsumer) {
+        submit(host, adapter -> adapter.openDocumentTree(initialTreeUri, valueConsumer));
+    }
+
+    public static void requestRuntimePermission(FeatureHost host, String permission,
+            BooleanValueConsumer resultConsumer) {
+        submit(host, adapter -> adapter.requestRuntimePermission(permission, resultConsumer));
+    }
+
+    public static void openAllFilesAccessSettings(FeatureHost host, String unavailableMessage) {
+        submit(host, adapter -> adapter.openAllFilesAccessSettings(unavailableMessage));
+    }
+
+    public static void openBatteryOptimizationSettings(
+            FeatureHost host, String unavailableMessage) {
+        submit(host, adapter -> adapter.openBatteryOptimizationSettings(unavailableMessage));
+    }
+
+    public static void showMessage(FeatureHost host, String message) {
+        submit(host, adapter -> adapter.showMessage(message));
     }
 
     private static void submit(FeatureHost host, Intent intent) {
@@ -222,6 +276,10 @@ public final class GboardPatchesSettingsContract {
 
     public interface TextValueConsumer {
         void accept(String value);
+    }
+
+    public interface BooleanValueConsumer {
+        void accept(boolean value);
     }
 
     public interface ManagedDialogAction {

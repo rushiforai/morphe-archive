@@ -130,4 +130,10 @@ node_modules/
 
 # Ignore IDEA files
 .idea/
+
+# Local Analysis & Working files
+SOUNDCLOUD_MOD_ANALYSIS.md
+Soundcloud Mod/
+
+# Android local SDK path (machine-specific, contains username)
 local.properties

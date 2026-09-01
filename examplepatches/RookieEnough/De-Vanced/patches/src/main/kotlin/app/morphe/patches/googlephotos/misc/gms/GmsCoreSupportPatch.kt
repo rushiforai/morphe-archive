@@ -13,6 +13,7 @@ import app.morphe.patches.googlephotos.misc.gms.HomeActivityOnCreateFingerprint
 import app.morphe.patches.shared.misc.gms.gmsCoreSupportPatch
 import app.morphe.patches.shared.misc.settings.preference.BasePreferenceScreen
 import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPreference
+import app.morphe.util.returnEarly
 
 @Suppress("unused")
 val gmsCoreSupportPatch = gmsCoreSupportPatch(
@@ -21,6 +22,11 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
     mainActivityOnCreateFingerprint = HomeActivityOnCreateFingerprint,
     extensionPatch = sharedExtensionPatch,
     gmsCoreSupportResourcePatchFactory = ::gmsCoreSupportResourcePatch,
+    executeBlock = {
+        // Photos' bundled Google Play Services availability check rejects GmsCore's signature.
+        // Returning SUCCESS keeps account/profile initialization and Maps-backed views usable.
+        IsGooglePlayServicesAvailableFingerprint.methodOrNull?.returnEarly(0)
+    },
 ) {
     dependsOn(selectedAccountPatch)
     compatibleWith(AppCompatibilities.GOOGLE_PHOTOS)
@@ -42,11 +48,11 @@ private object DummyPreferenceScreen : BasePreferenceScreen() {
     }
 }
 
-private fun gmsCoreSupportResourcePatch() =
+private fun gmsCoreSupportResourcePatch(appPermissionReplacements: MutableMap<String, String>) =
     app.morphe.patches.shared.misc.gms.gmsCoreSupportResourcePatch(
         fromPackageName = PHOTOS_PACKAGE_NAME,
         toPackageName = MORPHE_PHOTOS_PACKAGE_NAME,
         spoofedPackageSignature = "24bb24c05e47e0aefa68a58a766179d9b613a600",
         screen = DummyPreferenceScreen.SCREEN,
+        appPermissionReplacements = appPermissionReplacements,
     )
-

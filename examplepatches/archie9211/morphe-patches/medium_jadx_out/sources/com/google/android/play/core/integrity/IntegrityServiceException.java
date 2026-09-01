@@ -1,0 +1,12 @@
+package com.google.android.play.core.integrity;
+
+import com.google.android.gms.common.api.ApiException;
+
+/* JADX INFO: compiled from: r8-map-id-b2309a5993a3f14549aeb617bc4a78ecbec51e99a3efca387f8965087335ae2d */
+/* JADX INFO: loaded from: classes.dex */
+public class IntegrityServiceException extends ApiException {
+    @Override // java.lang.Throwable
+    public final synchronized Throwable getCause() {
+        return null;
+    }
+}

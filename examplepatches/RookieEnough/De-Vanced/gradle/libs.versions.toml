@@ -1,7 +1,7 @@
 [versions]
-morphe-patcher = "1.7.0"
+morphe-patcher = "1.10.0"
 smali = "d92701d947"
-annotation = "1.9.1"
+annotation = "1.10.0"
 gson = "2.14.0"
 okhttp = "4.12.0"
 

@@ -30,3 +30,5 @@ description: >-
 Script examples and UI navigation fallback chain: [reference.md](reference.md)
 
 Deep retrospective and token analysis: [docs/agent-device-workflow.md](../../../docs/agent-device-workflow.md)
+
+Upstream Morphe patch/fingerprint docs: [Morphe development guide](https://github.com/MorpheApp/morphe-documentation/blob/main/docs/morphe-development/README.md)

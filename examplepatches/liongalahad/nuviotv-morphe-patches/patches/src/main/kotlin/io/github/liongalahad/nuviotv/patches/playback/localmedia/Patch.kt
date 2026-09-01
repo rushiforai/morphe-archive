@@ -23,6 +23,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import io.github.liongalahad.nuviotv.patches.settings.hub.settingsUiPatch
 import io.github.liongalahad.nuviotv.patches.shared.Constants.NUVIO_COMPATIBILITY
+import io.github.liongalahad.nuviotv.patches.shared.updates.patchedAppUpdatesPatch
 import io.github.liongalahad.nuviotv.patches.shared.registerSegmentedMediaProvider
 import io.github.liongalahad.nuviotv.patches.shared.registerSharedStorageSettings
 import org.w3c.dom.Element
@@ -131,7 +132,7 @@ val localmediaPatch = bytecodePatch(
     default = false
 ) {
     compatibleWith(NUVIO_COMPATIBILITY)
-    dependsOn(settingsUiPatch, localMediaResources)
+    dependsOn(patchedAppUpdatesPatch, settingsUiPatch, localMediaResources)
     extendWith("extensions/nuviotv.mpe")
 
     execute {

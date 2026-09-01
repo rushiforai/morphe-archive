@@ -1,0 +1,15 @@
+package com.google.protobuf;
+
+import java.io.IOException;
+
+/* JADX INFO: compiled from: r8-map-id-b2309a5993a3f14549aeb617bc4a78ecbec51e99a3efca387f8965087335ae2d */
+/* JADX INFO: loaded from: classes.dex */
+public class CodedOutputStream$OutOfSpaceException extends IOException {
+    public CodedOutputStream$OutOfSpaceException(String str, IndexOutOfBoundsException indexOutOfBoundsException) {
+        super("CodedOutputStream was writing to a flat byte array and ran out of space.: ".concat(str), indexOutOfBoundsException);
+    }
+
+    public CodedOutputStream$OutOfSpaceException(IndexOutOfBoundsException indexOutOfBoundsException) {
+        super("CodedOutputStream was writing to a flat byte array and ran out of space.", indexOutOfBoundsException);
+    }
+}

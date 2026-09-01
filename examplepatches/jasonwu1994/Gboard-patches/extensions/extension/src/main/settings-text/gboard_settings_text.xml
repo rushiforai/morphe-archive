@@ -2426,4 +2426,208 @@
         <translation locale="en">The Floating Web Search settings screen failed to load. Reopen Gboard settings and try again.</translation>
         <translation locale="zh-Hant">懸浮網頁搜尋設定畫面載入失敗。請重新開啟 Gboard 設定再試一次。</translation>
     </string>
+    <string name="gboard_patches_lan_ftp_title">
+        <translation locale="en">FTP Server</translation>
+        <translation locale="zh-Hant">FTP 伺服器</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_summary">
+        <translation locale="en">Transfer files with an FTP client on the local network</translation>
+        <translation locale="zh-Hant">使用區域網路內的 FTP 用戶端傳輸檔案</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_section_server">
+        <translation locale="en">Server</translation>
+        <translation locale="zh-Hant">伺服器</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_section_account">
+        <translation locale="en">Account</translation>
+        <translation locale="zh-Hant">帳號</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_section_status">
+        <translation locale="en">Status</translation>
+        <translation locale="zh-Hant">狀態</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_enabled_title">
+        <translation locale="en">Enabled</translation>
+        <translation locale="zh-Hant">啟用</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_enabled_summary">
+        <translation locale="en">Select a root folder before starting the server.</translation>
+        <translation locale="zh-Hant">啟動伺服器前必須先選擇根目錄。</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_screen_off_title">
+        <translation locale="en">Keep connection when screen is off</translation>
+        <translation locale="zh-Hant">關螢幕時保持連線</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_screen_off_summary">
+        <translation locale="en">If FTP disconnects after the screen turns off, set this app\&apos;s battery policy to No restrictions.</translation>
+        <translation locale="zh-Hant">若關螢幕後 FTP 會斷線，請將此應用程式的省電策略設為「無限制」。</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_battery_settings_unavailable">
+        <translation locale="en">Battery optimization settings are unavailable.</translation>
+        <translation locale="zh-Hant">無法開啟省電策略設定。</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_port_title">
+        <translation locale="en">Control port</translation>
+        <translation locale="zh-Hant">控制連接埠</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_port_summary">
+        <translation locale="en">FTP clients connect to this port.</translation>
+        <translation locale="zh-Hant">FTP 用戶端使用此連接埠連線。</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_passive_start_title">
+        <translation locale="en">Passive port start</translation>
+        <translation locale="zh-Hant">被動模式起始連接埠</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_passive_end_title">
+        <translation locale="en">Passive port end</translation>
+        <translation locale="zh-Hant">被動模式結束連接埠</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_passive_range_title">
+        <translation locale="en">Passive port range</translation>
+        <translation locale="zh-Hant">被動模式連接埠範圍</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_passive_summary">
+        <translation locale="en">Each directory listing or file transfer uses one available data port. The default 10 ports already exceed this server\&apos;s concurrency limits; a larger range does not increase transfer speed.</translation>
+        <translation locale="zh-Hant">每次瀏覽目錄或傳輸檔案都會使用一個可用的資料連接埠。預設 10 個已高於此伺服器的同時連線上限；擴大範圍不會提升傳輸速度。</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_root_title">
+        <translation locale="en">Root folder</translation>
+        <translation locale="zh-Hant">根目錄</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_root_summary">
+        <translation locale="en">Only this folder and its contents are shared.</translation>
+        <translation locale="zh-Hant">只分享此資料夾及其內容。</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_root_unselected">
+        <translation locale="en">Not selected</translation>
+        <translation locale="zh-Hant">尚未選擇</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_root_shared">
+        <translation locale="en">Shared storage (/sdcard)</translation>
+        <translation locale="zh-Hant">共用儲存空間（/sdcard）</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_root_choose">
+        <translation locale="en">Choose another folder…</translation>
+        <translation locale="zh-Hant">選擇其他資料夾…</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_all_files_title">
+        <translation locale="en">All files access</translation>
+        <translation locale="zh-Hant">所有檔案存取權</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_all_files_granted">
+        <translation locale="en">Granted for /sdcard</translation>
+        <translation locale="zh-Hant">已授權存取 /sdcard</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_all_files_required">
+        <translation locale="en">Required before the /sdcard server can start</translation>
+        <translation locale="zh-Hant">啟動 /sdcard 伺服器前必須授權</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_all_files_required_message">
+        <translation locale="en">All files access is required to share /sdcard.</translation>
+        <translation locale="zh-Hant">分享 /sdcard 必須授予所有檔案存取權。</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_all_files_settings_unavailable">
+        <translation locale="en">All files access settings are unavailable.</translation>
+        <translation locale="zh-Hant">無法開啟所有檔案存取權設定。</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_read_only_title">
+        <translation locale="en">Read-only access</translation>
+        <translation locale="zh-Hant">唯讀存取</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_read_only_summary">
+        <translation locale="en">Prevent FTP clients from changing files.</translation>
+        <translation locale="zh-Hant">禁止 FTP 用戶端變更檔案。</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_username_title">
+        <translation locale="en">Username</translation>
+        <translation locale="zh-Hant">使用者名稱</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_password_title">
+        <translation locale="en">Password</translation>
+        <translation locale="zh-Hant">密碼</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_password_summary">
+        <translation locale="en">Tap to set exactly six lowercase letters.</translation>
+        <translation locale="zh-Hant">點擊設定恰好六位英文小寫字母。</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_password_hint">
+        <translation locale="en">Six lowercase letters</translation>
+        <translation locale="zh-Hant">六位英文小寫字母</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_password_invalid">
+        <translation locale="en">Password must contain exactly six lowercase letters.</translation>
+        <translation locale="zh-Hant">密碼必須是恰好六位英文小寫字母。</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_anonymous_title">
+        <translation locale="en">Allow anonymous login</translation>
+        <translation locale="zh-Hant">允許匿名登入</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_anonymous_summary">
+        <translation locale="en">Clients can sign in as anonymous without a password.</translation>
+        <translation locale="zh-Hant">用戶端可使用 anonymous 帳號登入，不需要密碼。</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_regenerate_title">
+        <translation locale="en">Regenerate password</translation>
+        <translation locale="zh-Hant">重新產生密碼</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_regenerate_summary">
+        <translation locale="en">Disconnects existing sessions when the server reloads.</translation>
+        <translation locale="zh-Hant">伺服器重新載入時會中斷現有連線。</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_runtime_title">
+        <translation locale="en">Runtime status</translation>
+        <translation locale="zh-Hant">執行狀態</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_endpoint_title">
+        <translation locale="en">Endpoint</translation>
+        <translation locale="zh-Hant">連線位址</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_clients_title">
+        <translation locale="en">Connected clients</translation>
+        <translation locale="zh-Hant">已連線用戶端</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_disconnect_client_title">
+        <translation locale="en">Disconnect client</translation>
+        <translation locale="zh-Hant">中斷用戶端</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_client_login_time_label">
+        <translation locale="en">Login time</translation>
+        <translation locale="zh-Hant">登入時間</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_client_last_activity_label">
+        <translation locale="en">Last activity</translation>
+        <translation locale="zh-Hant">最後活動</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_transfer_upload_label">
+        <translation locale="en">Uploading to phone</translation>
+        <translation locale="zh-Hant">上傳至手機</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_transfer_download_label">
+        <translation locale="en">Downloading from phone</translation>
+        <translation locale="zh-Hant">從手機下載</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_transfer_idle_label">
+        <translation locale="en">Idle</translation>
+        <translation locale="zh-Hant">閒置</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_transfer_total_unknown">
+        <translation locale="en">Total size unknown</translation>
+        <translation locale="zh-Hant">總大小未知</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_copy_connection_title">
+        <translation locale="en">Copy connection details</translation>
+        <translation locale="zh-Hant">複製連線資料</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_error_title">
+        <translation locale="en">FTP settings unavailable</translation>
+        <translation locale="zh-Hant">無法使用 FTP 設定</translation>
+    </string>
+    <string name="gboard_patches_lan_ftp_error_summary">
+        <translation locale="en">The server remains stopped because its settings could not be loaded safely.</translation>
+        <translation locale="zh-Hant">無法安全載入設定，因此伺服器維持停止。</translation>
+    </string>
+    <string name="lan_ftp_tile_label">
+        <translation locale="en">FTP Server</translation>
+        <translation locale="zh-Hant">FTP Server</translation>
+    </string>
 </settings-text>

@@ -1,0 +1,167 @@
+package defpackage;
+
+import com.drew.metadata.exif.makernotes.PanasonicMakernoteDirectory;
+import gen.model.UserDismissableFlags;
+
+/* JADX INFO: compiled from: r8-map-id-b2309a5993a3f14549aeb617bc4a78ecbec51e99a3efca387f8965087335ae2d */
+/* JADX INFO: loaded from: classes5.dex */
+public final class jae {
+    public static UserDismissableFlags a(int i) {
+        switch (i) {
+            case 1:
+                return UserDismissableFlags.FOLLOWERS_TOOLTIP;
+            case 2:
+                return UserDismissableFlags.AURORA_NAV_AVAILABLE;
+            case 3:
+                return UserDismissableFlags.BLOGROLL_ENABLE;
+            case 4:
+                return UserDismissableFlags.BLOGROLL_UPDATE;
+            case 5:
+                return UserDismissableFlags.STORIES_BOOKMARK_TOOLTIP;
+            case 6:
+                return UserDismissableFlags.CREATE_CATALOGS_CTA;
+            case 7:
+                return UserDismissableFlags.WRITER_ONBOARDING;
+            case 8:
+                return UserDismissableFlags.WRITER_SUBSCRIPTIONS_TOOLTIP;
+            case 9:
+                return UserDismissableFlags.PP_TERMS_ACKNOWLEDGEMENT;
+            case 10:
+                return UserDismissableFlags.HOMEPAGE_TWITTER_CTA;
+            case 11:
+                return UserDismissableFlags.PP_AWARENESS_BANNER;
+            case 12:
+                return UserDismissableFlags.BETA_FIRST_USE_CTA;
+            case 13:
+                return UserDismissableFlags.BETA_CUSTOM_HEADER_LOGO_TOOLTIP;
+            case 14:
+                return UserDismissableFlags.BETA_PUB_CUSTOM_HEADER_LOGO_TOOLTIP;
+            case 15:
+                return UserDismissableFlags.BETA_LEGACY_PUB_HEADER_TOOLTIP;
+            case 16:
+                return UserDismissableFlags.BETA_PUB_CUSTOM_HEADER_LOGO_PERSONAL_TOOLTIP;
+            case 17:
+                return UserDismissableFlags.BETA_LEGACY_PUB_HEADER_PERSONAL_TOOLTIP;
+            case 18:
+                return UserDismissableFlags.IMPORT_AWARENESS_BANNER;
+            case 19:
+                return UserDismissableFlags.SETTINGS_IMPORT_AWARENESS_TOOLTIP;
+            case 20:
+                return UserDismissableFlags.SETTINGS_IMPORT_GET_STARTED_TOOLTIP;
+            case 21:
+                return UserDismissableFlags.USER_SIGNAL_MENU;
+            case 22:
+                return UserDismissableFlags.CUSTOMIZE_MEMBERSHIP_PROMOTIONS_BANNER;
+            case 23:
+                return UserDismissableFlags.FIRST_BOOK_PURCHASE_TOOLTIP;
+            case 24:
+                return UserDismissableFlags.FIRST_USE_NEW_YOUR_BOOKS_TOOLTIP;
+            case 25:
+                return UserDismissableFlags.FIRST_USE_YOUR_BOOKS_MODALS;
+            case 26:
+                return UserDismissableFlags.FIRST_USE_ABOUT_BOOKS_AUTHOR_TOOLTIP;
+            case 27:
+                return UserDismissableFlags.FIRST_USE_GET_MORE_FROM_BOOKS_MODAL;
+            case 28:
+                return UserDismissableFlags.FIRST_USE_BOOKS_HIGHLIGHTS_PRIVACY_TOOLTIP;
+            case 29:
+                return UserDismissableFlags.TOOLTIP_ABOUT_EDITOR;
+            case 30:
+                return UserDismissableFlags.HOMEPAGE_MEMBERSHIP_BANNER_CTA;
+            case 31:
+                return UserDismissableFlags.EXTERNAL_PLATFORM_TIPPING_AWARENESS;
+            case 32:
+                return UserDismissableFlags.HOMEPAGE_TOPIC_FILTERING_TOOLTIP;
+            case 33:
+                return UserDismissableFlags.FIRST_USE_GLOBAL_NAV_TOOLTIP;
+            case 34:
+                return UserDismissableFlags.VERIFIED_BOOK_AUTHORS_CTA;
+            case 35:
+                return UserDismissableFlags.RECEIPT_EDITABLE_TOOLTIP;
+            case 36:
+                return UserDismissableFlags.DEPRECATED_CUSTOM_THEME_BANNER;
+            case 37:
+                return UserDismissableFlags.DEPRECATED_REFERRED_MEMBERS_BANNER;
+            case 38:
+                return UserDismissableFlags.DEPRECATED_REFERRED_MEMBERS_BANNER_SETTINGS;
+            case 39:
+                return UserDismissableFlags.DEPRECATED_REFERRED_MEMBERS_BANNER_PROMOTION;
+            case 40:
+                return UserDismissableFlags.PP_INACTIVE_INFORMATIVE_BANNER;
+            case 41:
+                return UserDismissableFlags.NEW_YEAR_2024_DISCOUNT_UPSELL;
+            case 42:
+                return UserDismissableFlags.PAYMENT_METHOD_EXPIRED_MEMBERSHIP_LAST_WEEK_BANNER;
+            case 43:
+                return UserDismissableFlags.PAYMENT_METHOD_WILL_EXPIRE_MEMBERSHIP_LAST_WEEK_BANNER;
+            case 44:
+                return UserDismissableFlags.PUB_CRAWL_PROMOTION_BANNER;
+            case 45:
+                return UserDismissableFlags.EXPLICIT_SIGNAL_TOOLTIP;
+            case 46:
+                return UserDismissableFlags.PUB_STATS_UPDATE_TOAST;
+            case 47:
+                return UserDismissableFlags.SAVE_TO_LIST_FROM_MORE_MENU_TOOLTIP;
+            case 48:
+                return UserDismissableFlags.SAVE_TO_LIST_FROM_MOBILE_BOTTOM_BAR_TOOLTIP;
+            case 49:
+                return UserDismissableFlags.MOBILE_OFFLINE_MODE_EDUCATIONAL_DIALOG;
+            case 50:
+                return UserDismissableFlags.MOBILE_PREMIUM_TIER_EDUCATIONAL_DIALOG;
+            case 51:
+                return UserDismissableFlags.AUTHOR_PAYWALL_OPEN_EDITOR_MODAL;
+            case 52:
+                return UserDismissableFlags.HOMEFEED_FEATURED_TAB_NEW_LABEL;
+            case 53:
+                return UserDismissableFlags.HIDE_HIGHLIGHTS_TOOLTIP;
+            case 54:
+                return UserDismissableFlags.MARCH_2025_MEDIUM_SURVEY_BANNER;
+            case 55:
+                return UserDismissableFlags.DIGEST_TAB_NEW_LABEL;
+            case 56:
+                return UserDismissableFlags.WRITER_EMAIL_NOTIFICATION_TOOLTIP;
+            case 57:
+                return UserDismissableFlags.LO_NON_MOC_UPSELL_MEDIUM_SURVEY_BANNER;
+            case 58:
+                return UserDismissableFlags.SIDEBAR_MENU_TOOLTIP;
+            case 59:
+                return UserDismissableFlags.ACCOUNT_MENU_EDUCATIONAL_BANNER;
+            case PanasonicMakernoteDirectory.TAG_PROGRAM_ISO /* 60 */:
+                return UserDismissableFlags.SIDEBAR_MENU_SURVEY;
+            case 61:
+                return UserDismissableFlags.PUBLICATION_UPDATED_TO_V3_DIALOG;
+            case 62:
+                return UserDismissableFlags.HOMEPAGE_TOPIC_REMOVAL_EDUCATION;
+            case 63:
+                return UserDismissableFlags.SIDEBAR_MENU_FOLLOWING_EXPERIENCE_SURVEY;
+            case 64:
+                return UserDismissableFlags.BLACK_FRIDAY_2025_DISCOUNT_HOME_BANNER;
+            case 65:
+                return UserDismissableFlags.BLACK_FRIDAY_2025_DISCOUNT_MEMBERSHIP_PAGE_BANNER;
+            case 66:
+                return UserDismissableFlags.BLACK_FRIDAY_2025_DISCOUNT_POST_PAGE_BANNER;
+            case 67:
+                return UserDismissableFlags.HOMEFEED_FREE_READ_CTA;
+            case 68:
+                return UserDismissableFlags.EXPLICIT_SIGNAL_TOOLTIP_THUMBS_DOWN;
+            case PanasonicMakernoteDirectory.TAG_BRACKET_SETTINGS /* 69 */:
+                return UserDismissableFlags.USER_PROFILE_ACTIVITY_FEED_TOOLTIP;
+            case 70:
+                return UserDismissableFlags.POST_PAGE_REPOST_TOOLTIP;
+            case PanasonicMakernoteDirectory.TAG_WB_ADJUST_GM /* 71 */:
+                return UserDismissableFlags.HOMEFEED_REPOST_TOOLTIP;
+            case 72:
+                return UserDismissableFlags.PRICE_INCREASE_TYPEFORM_SURVEY;
+            case 73:
+                return UserDismissableFlags.POST_PAGE_FIRST_REPOST_TOAST;
+            case 74:
+                return UserDismissableFlags.WRITER_STARTER_KIT_CTA;
+            case 75:
+                return UserDismissableFlags.READING_LIST_EMPTY_CTA;
+            case 76:
+                return UserDismissableFlags.YOUR_STORIES_TK_WRITING_APP_BANNER;
+            default:
+                return null;
+        }
+    }
+}

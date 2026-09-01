@@ -41,6 +41,11 @@ val amoledPatch = resourcePatch(
             blackColors.forEach {
                 colors.findElementByAttributeValue("name", it)?.textContent = trueBlack
             }
+
+            // Set base black and dark dialog colors to pure AMOLED black (#000000)
+            listOf("black", "dialog_dark").forEach {
+                colors.findElementByAttributeValue("name", it)?.textContent = "#000000"
+            }
         }
 
         // Bottom mini player

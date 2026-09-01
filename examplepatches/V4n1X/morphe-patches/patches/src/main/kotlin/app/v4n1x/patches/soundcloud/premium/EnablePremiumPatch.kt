@@ -2,24 +2,23 @@ package app.v4n1x.patches.soundcloud.premium
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
 import app.v4n1x.patches.soundcloud.shared.Constants.COMPATIBILITY_SOUNDCLOUD
 
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
-    name = "Enable SoundCloud Go",
-    description = "Enables SoundCloud Go premium features.",
+    name = "Enable SoundCloud Go+",
+    description = "Enables SoundCloud Go+ premium features, offline listening, HQ audio, and disables audio/visual ads.",
 ) {
     compatibleWith(COMPATIBILITY_SOUNDCLOUD)
 
     execute {
-        // Override plan construction with Go tier.
+        // Override plan construction with Go+ (High tier).
         UserConsumerPlanConstructorFingerprint.method.addInstructions(
             0,
             """
                 const-string p1, "high_tier"
                 const-string p5, "go-plus"
-                const-string p6, "SoundCloud Go"
+                const-string p6, "SoundCloud Go+"
             """,
         )
 
@@ -39,7 +38,7 @@ val enablePremiumPatch = bytecodePatch(
             """,
         )
 
-        // Force current tier to HIGH and plan to Go.
+        // Force current tier to HIGH and plan to Go+.
         GetCurrentTierFingerprint.method.addInstructions(
             0,
             """
@@ -56,20 +55,97 @@ val enablePremiumPatch = bytecodePatch(
             """,
         )
 
-        // Block offboarding — lifecycle observer controls all transition UI.
-        ConfigurationUpdatesLifecycleObserverFingerprint.method.returnEarly()
+        GetCurrentConsumerPlanTitleFingerprint.method.addInstructions(
+            0,
+            """
+                const-string v0, "SoundCloud Go+"
+                return-object v0
+            """,
+        )
 
-        // Disable ads.
-        GetShouldRequestAdsFingerprint.method.returnEarly(false)
+        // Enable offline content
+        IsOfflineContentEnabledFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 0x1
+                return v0
+            """,
+        )
 
-        IsMonetizableAdGeoFingerprint.method.returnEarly(false)
+        // Enable High Quality Audio (HQ Audio 256kbps AAC)
+        IsHighQualityAudioEnabledFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 0x1
+                return v0
+            """,
+        )
 
-        // Disable ads — force `enabled` param to false in the data-class ctor.
-        AdPlacementConfigCtorFingerprint.matchAllOrNull()?.forEach { match ->
-            match.method.addInstructions(
-                0,
-                "const/4 p1, 0x0",
-            )
-        }
+        // Suppress Upsell overlays and paywalls
+        GetUpsellOfflineContentFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 0x0
+                return v0
+            """,
+        )
+
+        GetUpsellHighQualityAudioFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 0x0
+                return v0
+            """,
+        )
+
+        GetUpsellHighTierFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 0x0
+                return v0
+            """,
+        )
+
+        GetUpsellBothTiersFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 0x0
+                return v0
+            """,
+        )
+
+        GetUpsellRemoveAudioAdsFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 0x0
+                return v0
+            """,
+        )
+
+        // Enable individual track download buttons in bottom sheets and track menus
+        OfflineListeningIndividualTracksExperimentFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 0x1
+                return v0
+            """,
+        )
+
+        // Disable ads
+        GetShouldRequestAdsFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 0x0
+                return v0
+            """,
+        )
+
+        IsMonetizableAdGeoFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 0x0
+                return v0
+            """,
+        )
     }
 }

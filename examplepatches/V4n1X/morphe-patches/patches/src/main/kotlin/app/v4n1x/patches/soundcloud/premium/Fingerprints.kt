@@ -26,11 +26,11 @@ object GetDowngradeTierFingerprint : Fingerprint(
     parameters = emptyList(),
 )
 
-/** Matches `UpsellVisibilityController.mapToPlan()` — maps backend upselling data to plan visibility.
- * Renamed from `RemoteUpsellVisibilityController` in SoundCloud 2026.08.19-release. */
+/** Matches `mapToPlan()` — maps backend upselling data to plan visibility.
+ * Class is `RemoteUpsellVisibilityController` in 2026.07.03 and `UpsellVisibilityController` in 2026.08.19. */
 object MapToPlanFingerprint : Fingerprint(
-    definingClass = "Lcom/soundcloud/android/upsell/UpsellVisibilityController;",
     name = "mapToPlan",
+    returnType = "Lcom/soundcloud/android/upsell/UpsellType;",
 )
 
 // Tier/plan state
@@ -49,14 +49,12 @@ object GetCurrentConsumerPlanFingerprint : Fingerprint(
     parameters = emptyList(),
 )
 
-// Offboarding / transitions
-
-/** Matches `DefaultConfigurationUpdatesLifecycleObserver.b(RootActivity)` — observes plan changes and triggers transition UI. */
-object ConfigurationUpdatesLifecycleObserverFingerprint : Fingerprint(
-    definingClass = "Lcom/soundcloud/android/configuration/DefaultConfigurationUpdatesLifecycleObserver;",
-    name = "b",
-    returnType = "V",
-    parameters = listOf("Lcom/soundcloud/android/architecture/view/RootActivity;"),
+/** Matches `DefaultFeatureOperations.getCurrentConsumerPlanTitle()` — returns the active ConsumerPlan title. */
+object GetCurrentConsumerPlanTitleFingerprint : Fingerprint(
+    definingClass = "Lcom/soundcloud/android/configuration/features/DefaultFeatureOperations;",
+    returnType = "Ljava/lang/String;",
+    parameters = emptyList(),
+    name = "getCurrentConsumerPlanTitle",
 )
 
 // Ad blocking
@@ -64,27 +62,81 @@ object ConfigurationUpdatesLifecycleObserverFingerprint : Fingerprint(
 /** Matches `DefaultFeatureOperations.getShouldRequestAds()` — determines whether ads should be requested. */
 object GetShouldRequestAdsFingerprint : Fingerprint(
     definingClass = "Lcom/soundcloud/android/configuration/features/DefaultFeatureOperations;",
-    name = "getShouldRequestAds",
     returnType = "Z",
     parameters = emptyList(),
+    name = "getShouldRequestAds",
 )
 
-/** Matches `DefaultFeatureOperations.isMonetizableAdGeo()` — checks if current geo is eligible for monetizable ads. */
+/** Matches `DefaultFeatureOperations.isMonetizableAdGeo()` — returns whether ads can be monetized. */
 object IsMonetizableAdGeoFingerprint : Fingerprint(
     definingClass = "Lcom/soundcloud/android/configuration/features/DefaultFeatureOperations;",
-    name = "isMonetizableAdGeo",
     returnType = "Z",
     parameters = emptyList(),
+    name = "isMonetizableAdGeo",
 )
 
-/** Matches `AdPlacementConfiguration.<init>(boolean, GamConfiguration, AditudeConfiguration)` — constructs ad placement configuration for the player. */
-object AdPlacementConfigCtorFingerprint : Fingerprint(
-    definingClass = "Lcom/soundcloud/android/ads/display/data/config/AdPlacementConfiguration;",
-    name = "<init>",
-    returnType = "V",
-    parameters = listOf(
-        "Z",
-        "Lcom/soundcloud/android/ads/display/data/config/GamConfiguration;",
-        "Lcom/soundcloud/android/ads/display/data/config/AditudeConfiguration;",
-    ),
+// Offline & High Quality Audio features in DefaultFeatureOperations
+
+/** Matches `DefaultFeatureOperations.isOfflineContentEnabled()` — returns whether offline content is enabled. */
+object IsOfflineContentEnabledFingerprint : Fingerprint(
+    definingClass = "Lcom/soundcloud/android/configuration/features/DefaultFeatureOperations;",
+    returnType = "Z",
+    parameters = emptyList(),
+    name = "isOfflineContentEnabled",
+)
+
+/** Matches `DefaultFeatureOperations.isHighQualityAudioEnabled()` — returns whether high quality audio is enabled. */
+object IsHighQualityAudioEnabledFingerprint : Fingerprint(
+    definingClass = "Lcom/soundcloud/android/configuration/features/DefaultFeatureOperations;",
+    returnType = "Z",
+    parameters = emptyList(),
+    name = "isHighQualityAudioEnabled",
+)
+
+/** Matches `DefaultFeatureOperations.getUpsellOfflineContent()` — returns whether offline upsell should show. */
+object GetUpsellOfflineContentFingerprint : Fingerprint(
+    definingClass = "Lcom/soundcloud/android/configuration/features/DefaultFeatureOperations;",
+    returnType = "Z",
+    parameters = emptyList(),
+    name = "getUpsellOfflineContent",
+)
+
+/** Matches `DefaultFeatureOperations.getUpsellHighQualityAudio()` — returns whether HQ audio upsell should show. */
+object GetUpsellHighQualityAudioFingerprint : Fingerprint(
+    definingClass = "Lcom/soundcloud/android/configuration/features/DefaultFeatureOperations;",
+    returnType = "Z",
+    parameters = emptyList(),
+    name = "getUpsellHighQualityAudio",
+)
+
+/** Matches `DefaultFeatureOperations.getUpsellHighTier()` — returns whether High tier upsell should show. */
+object GetUpsellHighTierFingerprint : Fingerprint(
+    definingClass = "Lcom/soundcloud/android/configuration/features/DefaultFeatureOperations;",
+    returnType = "Z",
+    parameters = emptyList(),
+    name = "getUpsellHighTier",
+)
+
+/** Matches `DefaultFeatureOperations.getUpsellBothTiers()` — returns whether dual-tier upsell should show. */
+object GetUpsellBothTiersFingerprint : Fingerprint(
+    definingClass = "Lcom/soundcloud/android/configuration/features/DefaultFeatureOperations;",
+    returnType = "Z",
+    parameters = emptyList(),
+    name = "getUpsellBothTiers",
+)
+
+/** Matches `DefaultFeatureOperations.getUpsellRemoveAudioAds()` — returns whether remove-ads upsell should show. */
+object GetUpsellRemoveAudioAdsFingerprint : Fingerprint(
+    definingClass = "Lcom/soundcloud/android/configuration/features/DefaultFeatureOperations;",
+    returnType = "Z",
+    parameters = emptyList(),
+    name = "getUpsellRemoveAudioAds",
+)
+
+/** Matches `OfflineListeningIndividualTracksExperiment.a()` — enables individual track download buttons in UI. */
+object OfflineListeningIndividualTracksExperimentFingerprint : Fingerprint(
+    definingClass = "Lcom/soundcloud/android/features/offlinelisteningtracksexp/OfflineListeningIndividualTracksExperiment;",
+    returnType = "Z",
+    parameters = emptyList(),
+    name = "a",
 )

@@ -111,6 +111,19 @@ public final class GboardPatchesSettingsActivitySourceTest {
     }
 
     @Test
+    public void choiceDialogAllowsSelectionsWithoutACustomAction() throws Exception {
+        String source = readSource(
+                "src/main/java/dev/jason/gboardpatches/extension/settings/"
+                        + "GboardPatchesSettingsActivity.java");
+        String method = extractMethod(source, "public void showChoiceDialog(");
+
+        Assert.assertTrue(method.contains("customValue != null"));
+        Assert.assertTrue(method.contains("customAction != null"));
+        Assert.assertTrue(method.contains("customValue.equals(selectedValue)"));
+        Assert.assertFalse(method.contains("if (customValue.equals(selectedValue))"));
+    }
+
+    @Test
     public void positiveIntegerDialogShowsFeatureRangeErrorsInline() throws Exception {
         String source = readSource(
                 "src/main/java/dev/jason/gboardpatches/extension/settings/"
@@ -171,14 +184,14 @@ public final class GboardPatchesSettingsActivitySourceTest {
                 "src/main/java/dev/jason/gboardpatches/extension/settings/"
                         + "GboardPatchesSettingsActivity.java");
         String openFeaturePath = extractMethod(source, "private void openFeaturePath(");
-        String openInitialFeature = extractMethod(
+        String restoreNavigationPath = extractMethod(
                 source,
-                "private boolean openInitialFeatureFromIntentIfNeeded(");
+                "private boolean restoreNavigationPathFromIntent(");
 
         Assert.assertTrue(openFeaturePath.contains(
                 "scrollState.resetForDirectPath(sanitizedPath.size() - 1)"));
-        Assert.assertTrue(openInitialFeature.contains(
-                "scrollState.resetForDirectPath(featurePath.size() - 1)"));
+        Assert.assertTrue(restoreNavigationPath.contains(
+                "scrollState.resetForDirectPath(resolvedPath.size() - 1)"));
     }
 
     private static String readSource(String path) throws Exception {

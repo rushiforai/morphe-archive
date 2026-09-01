@@ -12,6 +12,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import io.github.liongalahad.nuviotv.patches.settings.hub.settingsUiPatch
 import io.github.liongalahad.nuviotv.patches.shared.Constants.NUVIO_COMPATIBILITY
+import io.github.liongalahad.nuviotv.patches.shared.updates.patchedAppUpdatesPatch
 import org.w3c.dom.Element
 
 private const val MARKER =
@@ -49,7 +50,7 @@ val sdhmarkingPatch = bytecodePatch(
     default = false
 ) {
     compatibleWith(NUVIO_COMPATIBILITY)
-    dependsOn(settingsUiPatch, sdhMarkingResourcePatch)
+    dependsOn(patchedAppUpdatesPatch, settingsUiPatch, sdhMarkingResourcePatch)
     extendWith("extensions/nuviotv.mpe")
 
     execute {

@@ -1,0 +1,220 @@
+package com.medium.proto.event;
+
+import android.os.Parcelable;
+import com.squareup.wire.AndroidMessage;
+import com.squareup.wire.FieldEncoding;
+import com.squareup.wire.ProtoAdapter;
+import com.squareup.wire.ProtoReader;
+import com.squareup.wire.ProtoWriter;
+import com.squareup.wire.ReverseProtoWriter;
+import com.squareup.wire.Syntax;
+import com.squareup.wire.WireField;
+import defpackage.bu1;
+import defpackage.g76;
+import defpackage.gy2;
+import defpackage.h21;
+import defpackage.lv8;
+import defpackage.n1b;
+import defpackage.oj4;
+import defpackage.pj4;
+import defpackage.r34;
+import defpackage.wg6;
+import defpackage.y30;
+import java.util.ArrayList;
+import kotlin.Metadata;
+import sprig.b.VPIE.dpBiLjNeNsiASg;
+
+/* JADX INFO: compiled from: r8-map-id-b2309a5993a3f14549aeb617bc4a78ecbec51e99a3efca387f8965087335ae2d */
+/* JADX INFO: loaded from: classes4.dex */
+@Metadata(d1 = {"\u00006\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000e\n\u0000\n\u0002\u0010\u000b\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0010\u0000\n\u0002\b\u0003\n\u0002\u0010\b\n\u0002\b\f\b\u0007\u0018\u0000 \u001d2\u000e\u0012\u0004\u0012\u00020\u0000\u0012\u0004\u0012\u00020\u00020\u0001:\u0002\u0002\u001eB5\u0012\n\b\u0002\u0010\u0004\u001a\u0004\u0018\u00010\u0003\u0012\n\b\u0002\u0010\u0006\u001a\u0004\u0018\u00010\u0005\u0012\n\b\u0002\u0010\b\u001a\u0004\u0018\u00010\u0007\u0012\b\b\u0002\u0010\n\u001a\u00020\t¢\u0006\u0004\b\u000b\u0010\fJ\u000f\u0010\r\u001a\u00020\u0002H\u0016¢\u0006\u0004\b\r\u0010\u000eJ\u001a\u0010\u0011\u001a\u00020\u00072\b\u0010\u0010\u001a\u0004\u0018\u00010\u000fH\u0096\u0002¢\u0006\u0004\b\u0011\u0010\u0012J\u000f\u0010\u0014\u001a\u00020\u0013H\u0016¢\u0006\u0004\b\u0014\u0010\u0015J\u000f\u0010\u0016\u001a\u00020\u0005H\u0016¢\u0006\u0004\b\u0016\u0010\u0017J;\u0010\u0018\u001a\u00020\u00002\n\b\u0002\u0010\u0004\u001a\u0004\u0018\u00010\u00032\n\b\u0002\u0010\u0006\u001a\u0004\u0018\u00010\u00052\n\b\u0002\u0010\b\u001a\u0004\u0018\u00010\u00072\b\b\u0002\u0010\n\u001a\u00020\t¢\u0006\u0004\b\u0018\u0010\u0019R\u0016\u0010\u0004\u001a\u0004\u0018\u00010\u00038\u0006X\u0087\u0004¢\u0006\u0006\n\u0004\b\u0004\u0010\u001aR\u0016\u0010\u0006\u001a\u0004\u0018\u00010\u00058\u0006X\u0087\u0004¢\u0006\u0006\n\u0004\b\u0006\u0010\u001bR\u0016\u0010\b\u001a\u0004\u0018\u00010\u00078\u0006X\u0087\u0004¢\u0006\u0006\n\u0004\b\b\u0010\u001c¨\u0006\u001f"}, d2 = {"Lcom/medium/proto/event/FindYourFriendsPermissionRequested;", "Lcom/squareup/wire/AndroidMessage;", "Loj4;", "Lcom/medium/proto/event/AnalyticsEventCommonFields;", "common_fields", "", "locale", "", "contact_sharing_permission_granted", "Lh21;", "unknownFields", "<init>", "(Lcom/medium/proto/event/AnalyticsEventCommonFields;Ljava/lang/String;Ljava/lang/Boolean;Lh21;)V", "newBuilder", "()Loj4;", "", "other", "equals", "(Ljava/lang/Object;)Z", "", "hashCode", "()I", "toString", "()Ljava/lang/String;", "copy", "(Lcom/medium/proto/event/AnalyticsEventCommonFields;Ljava/lang/String;Ljava/lang/Boolean;Lh21;)Lcom/medium/proto/event/FindYourFriendsPermissionRequested;", "Lcom/medium/proto/event/AnalyticsEventCommonFields;", "Ljava/lang/String;", "Ljava/lang/Boolean;", "Companion", "pj4", "proto_release"}, k = 1, mv = {2, 2, 0}, xi = 48)
+@r34("findYourFriends.permissionRequested")
+public final class FindYourFriendsPermissionRequested extends AndroidMessage<FindYourFriendsPermissionRequested, oj4> {
+    public static final ProtoAdapter<FindYourFriendsPermissionRequested> ADAPTER;
+    public static final Parcelable.Creator<FindYourFriendsPermissionRequested> CREATOR;
+    public static final pj4 Companion = new pj4();
+    private static final long serialVersionUID = 0;
+
+    @WireField(adapter = "com.medium.proto.event.AnalyticsEventCommonFields#ADAPTER", jsonName = "commonFields", label = WireField.Label.OMIT_IDENTITY, schemaIndex = 0, tag = 1)
+    public final AnalyticsEventCommonFields common_fields;
+
+    @WireField(adapter = "com.squareup.wire.ProtoAdapter#BOOL", jsonName = "contactSharingPermissionGranted", schemaIndex = 2, tag = 3)
+    public final Boolean contact_sharing_permission_granted;
+
+    @WireField(adapter = "com.squareup.wire.ProtoAdapter#STRING", schemaIndex = 1, tag = 2)
+    public final String locale;
+
+    static {
+        final FieldEncoding fieldEncoding = FieldEncoding.LENGTH_DELIMITED;
+        final wg6 wg6VarB = n1b.a.b(FindYourFriendsPermissionRequested.class);
+        final Syntax syntax = Syntax.PROTO_3;
+        ProtoAdapter<FindYourFriendsPermissionRequested> protoAdapter = new ProtoAdapter<FindYourFriendsPermissionRequested>(fieldEncoding, wg6VarB, syntax) { // from class: com.medium.proto.event.FindYourFriendsPermissionRequested$Companion$ADAPTER$1
+            /* JADX WARN: Can't rename method to resolve collision */
+            @Override // com.squareup.wire.ProtoAdapter
+            public final FindYourFriendsPermissionRequested decode(ProtoReader reader) {
+                reader.getClass();
+                long jBeginMessage = reader.beginMessage();
+                AnalyticsEventCommonFields analyticsEventCommonFieldsDecode = null;
+                String strDecode = null;
+                Boolean boolDecode = null;
+                while (true) {
+                    int iNextTag = reader.nextTag();
+                    if (iNextTag == -1) {
+                        return new FindYourFriendsPermissionRequested(analyticsEventCommonFieldsDecode, strDecode, boolDecode, reader.endMessageAndGetUnknownFields(jBeginMessage));
+                    }
+                    if (iNextTag == 1) {
+                        analyticsEventCommonFieldsDecode = AnalyticsEventCommonFields.ADAPTER.decode(reader);
+                    } else if (iNextTag == 2) {
+                        strDecode = ProtoAdapter.STRING.decode(reader);
+                    } else if (iNextTag != 3) {
+                        reader.readUnknownField(iNextTag);
+                    } else {
+                        boolDecode = ProtoAdapter.BOOL.decode(reader);
+                    }
+                }
+            }
+
+            @Override // com.squareup.wire.ProtoAdapter
+            public final void encode(ProtoWriter writer, FindYourFriendsPermissionRequested value) {
+                writer.getClass();
+                value.getClass();
+                AnalyticsEventCommonFields analyticsEventCommonFields = value.common_fields;
+                if (analyticsEventCommonFields != null) {
+                    AnalyticsEventCommonFields.ADAPTER.encodeWithTag(writer, 1, analyticsEventCommonFields);
+                }
+                ProtoAdapter.STRING.encodeWithTag(writer, 2, value.locale);
+                ProtoAdapter.BOOL.encodeWithTag(writer, 3, value.contact_sharing_permission_granted);
+                writer.writeBytes(value.unknownFields());
+            }
+
+            @Override // com.squareup.wire.ProtoAdapter
+            public final int encodedSize(FindYourFriendsPermissionRequested value) {
+                value.getClass();
+                int iE = value.unknownFields().e();
+                AnalyticsEventCommonFields analyticsEventCommonFields = value.common_fields;
+                if (analyticsEventCommonFields != null) {
+                    iE += AnalyticsEventCommonFields.ADAPTER.encodedSizeWithTag(1, analyticsEventCommonFields);
+                }
+                return ProtoAdapter.BOOL.encodedSizeWithTag(3, value.contact_sharing_permission_granted) + ProtoAdapter.STRING.encodedSizeWithTag(2, value.locale) + iE;
+            }
+
+            @Override // com.squareup.wire.ProtoAdapter
+            public final FindYourFriendsPermissionRequested redact(FindYourFriendsPermissionRequested value) {
+                value.getClass();
+                AnalyticsEventCommonFields analyticsEventCommonFields = value.common_fields;
+                return FindYourFriendsPermissionRequested.copy$default(value, analyticsEventCommonFields != null ? AnalyticsEventCommonFields.ADAPTER.redact(analyticsEventCommonFields) : null, null, null, h21.d, 6, null);
+            }
+
+            @Override // com.squareup.wire.ProtoAdapter
+            public final void encode(ReverseProtoWriter writer, FindYourFriendsPermissionRequested value) {
+                writer.getClass();
+                value.getClass();
+                writer.writeBytes(value.unknownFields());
+                ProtoAdapter.BOOL.encodeWithTag(writer, 3, value.contact_sharing_permission_granted);
+                ProtoAdapter.STRING.encodeWithTag(writer, 2, value.locale);
+                AnalyticsEventCommonFields analyticsEventCommonFields = value.common_fields;
+                if (analyticsEventCommonFields != null) {
+                    AnalyticsEventCommonFields.ADAPTER.encodeWithTag(writer, 1, analyticsEventCommonFields);
+                }
+            }
+        };
+        ADAPTER = protoAdapter;
+        CREATOR = AndroidMessage.INSTANCE.newCreator(protoAdapter);
+    }
+
+    public /* synthetic */ FindYourFriendsPermissionRequested(AnalyticsEventCommonFields analyticsEventCommonFields, String str, Boolean bool, h21 h21Var, int i, gy2 gy2Var) {
+        this((i & 1) != 0 ? null : analyticsEventCommonFields, (i & 2) != 0 ? null : str, (i & 4) != 0 ? null : bool, (i & 8) != 0 ? h21.d : h21Var);
+    }
+
+    public static /* synthetic */ FindYourFriendsPermissionRequested copy$default(FindYourFriendsPermissionRequested findYourFriendsPermissionRequested, AnalyticsEventCommonFields analyticsEventCommonFields, String str, Boolean bool, h21 h21Var, int i, Object obj) {
+        if ((i & 1) != 0) {
+            analyticsEventCommonFields = findYourFriendsPermissionRequested.common_fields;
+        }
+        if ((i & 2) != 0) {
+            str = findYourFriendsPermissionRequested.locale;
+        }
+        if ((i & 4) != 0) {
+            bool = findYourFriendsPermissionRequested.contact_sharing_permission_granted;
+        }
+        if ((i & 8) != 0) {
+            h21Var = findYourFriendsPermissionRequested.unknownFields();
+        }
+        return findYourFriendsPermissionRequested.copy(analyticsEventCommonFields, str, bool, h21Var);
+    }
+
+    public final FindYourFriendsPermissionRequested copy(AnalyticsEventCommonFields common_fields, String locale, Boolean contact_sharing_permission_granted, h21 unknownFields) {
+        unknownFields.getClass();
+        return new FindYourFriendsPermissionRequested(common_fields, locale, contact_sharing_permission_granted, unknownFields);
+    }
+
+    public final boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+        if (!(other instanceof FindYourFriendsPermissionRequested)) {
+            return false;
+        }
+        FindYourFriendsPermissionRequested findYourFriendsPermissionRequested = (FindYourFriendsPermissionRequested) other;
+        return g76.L(unknownFields(), findYourFriendsPermissionRequested.unknownFields()) && g76.L(this.common_fields, findYourFriendsPermissionRequested.common_fields) && g76.L(this.locale, findYourFriendsPermissionRequested.locale) && g76.L(this.contact_sharing_permission_granted, findYourFriendsPermissionRequested.contact_sharing_permission_granted);
+    }
+
+    public final int hashCode() {
+        int i = this.hashCode;
+        if (i != 0) {
+            return i;
+        }
+        int iHashCode = unknownFields().hashCode() * 37;
+        AnalyticsEventCommonFields analyticsEventCommonFields = this.common_fields;
+        int i2 = 0;
+        int iHashCode2 = (iHashCode + (analyticsEventCommonFields != null ? analyticsEventCommonFields.hashCode() : 0)) * 37;
+        String str = this.locale;
+        int iHashCode3 = (iHashCode2 + (str != null ? str.hashCode() : 0)) * 37;
+        Boolean bool = this.contact_sharing_permission_granted;
+        if (bool != null) {
+            i2 = bool.booleanValue() ? 1231 : 1237;
+        }
+        int i3 = iHashCode3 + i2;
+        this.hashCode = i3;
+        return i3;
+    }
+
+    @Override // com.squareup.wire.Message
+    public final oj4 newBuilder() {
+        oj4 oj4Var = new oj4();
+        oj4Var.a = this.common_fields;
+        oj4Var.b = this.locale;
+        oj4Var.c = this.contact_sharing_permission_granted;
+        oj4Var.addUnknownFields(unknownFields());
+        return oj4Var;
+    }
+
+    @Override // com.squareup.wire.Message
+    public final String toString() {
+        ArrayList arrayList = new ArrayList();
+        AnalyticsEventCommonFields analyticsEventCommonFields = this.common_fields;
+        if (analyticsEventCommonFields != null) {
+            y30.z("common_fields=", analyticsEventCommonFields, arrayList);
+        }
+        String str = this.locale;
+        if (str != null) {
+            lv8.D(str, dpBiLjNeNsiASg.BkaocfzHzn, arrayList);
+        }
+        Boolean bool = this.contact_sharing_permission_granted;
+        if (bool != null) {
+            lv8.A("contact_sharing_permission_granted=", bool, arrayList);
+        }
+        return bu1.F0(arrayList, ", ", "FindYourFriendsPermissionRequested{", "}", null, 56);
+    }
+
+    public FindYourFriendsPermissionRequested() {
+        this(null, null, null, null, 15, null);
+    }
+
+    /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
+    public FindYourFriendsPermissionRequested(AnalyticsEventCommonFields analyticsEventCommonFields, String str, Boolean bool, h21 h21Var) {
+        super(ADAPTER, h21Var);
+        h21Var.getClass();
+        this.common_fields = analyticsEventCommonFields;
+        this.locale = str;
+        this.contact_sharing_permission_granted = bool;
+    }
+}

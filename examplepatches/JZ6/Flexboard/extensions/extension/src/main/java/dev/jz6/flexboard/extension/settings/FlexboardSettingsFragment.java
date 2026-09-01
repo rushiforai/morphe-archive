@@ -289,14 +289,19 @@ public final class FlexboardSettingsFragment extends CommonPreferenceFragment {
         field.setText(Hotkeys.textOf(ui, slot));
         field.setHint("Text to commit");
 
-        // Grid of the bundled pack, dimmed on the current choice. The pick is pending until OK
-        // — taps move the dim only — so Cancel discards both halves of the edit evenly.
+        // Grid of the bundled pack, dimmed on the current choice. A tap moves the dim only —
+        // both halves (text and icon) commit together through the dismiss hook:
+        //   Save → commit both (the button itself just dismisses; the hook does the work).
+        //   Cancel → discard both (sets the flag the hook checks first).
+        //   Back / outside-tap → commit both, i.e. the autosave every other dismissal means.
+        // An "undo" that works everywhere stays "tap the old icon again".
         GridLayout grid = new GridLayout(ui);
         grid.setColumnCount(4);
         int cell = dp(ui, 48);
         int spacing = dp(ui, 8);
         final String seed = Hotkeys.currentIconToken(ui, slot);
         final String[] pending = { seed };
+        final boolean[] discarded = { false };
         final List<ImageView> items = new ArrayList<>();
         final List<String> names = new ArrayList<>();
         for (String name : Hotkeys.choices()) {
@@ -316,26 +321,30 @@ public final class FlexboardSettingsFragment extends CommonPreferenceFragment {
             names.add(name);
         }
         // The framework dialog's custom panel doesn't scroll on its own — on a short window the
-        // bottom cells (and the buttons) would be unreachable without the wrapper.
+        // bottom cells (and the button) would be unreachable without the wrapper.
         ScrollView scroll = new ScrollView(ui);
         scroll.addView(grid);
         column.addView(scroll, new ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        new AlertDialog.Builder(ui)
+        AlertDialog dialog = new AlertDialog.Builder(ui)
             .setTitle("Hotkey " + slot)
             .setView(column)
-            .setNegativeButton("Cancel", null)
-            .setPositiveButton("OK", (dlog, which) -> {
-                String text = field.getText().toString();
-                Hotkeys.setText(ui, slot, text);
-                if (!pending[0].equals(seed)) {
-                    Hotkeys.setIconToken(ui, slot, pending[0]);
-                }
-                redrawSlot(ui, slot);
-            })
+            .setNegativeButton("Cancel", (dlog, which) -> discarded[0] = true)
+            .setPositiveButton("Save", null)
             .show();
-        // Listeners attach after the dialog exists, so they can dim — and never dismiss.
+        // All dismissal roads lead here: the hook commits both halves unless Cancel said
+        // otherwise. (The buttons only manage the flag; the hook is the one writer.)
+        dialog.setOnDismissListener(dlog -> {
+            if (discarded[0]) {
+                return;
+            }
+            Hotkeys.setText(ui, slot, field.getText().toString());
+            if (!pending[0].equals(seed)) {
+                Hotkeys.setIconToken(ui, slot, pending[0]);
+            }
+            redrawSlot(ui, slot);
+        });
         for (int i = 0; i < items.size(); i++) {
             final int index = i;
             items.get(i).setOnClickListener(v -> {

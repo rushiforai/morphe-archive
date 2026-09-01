@@ -15,6 +15,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import io.github.liongalahad.nuviotv.patches.settings.hub.settingsUiPatch
 import io.github.liongalahad.nuviotv.patches.shared.Constants.NUVIO_COMPATIBILITY
+import io.github.liongalahad.nuviotv.patches.shared.updates.patchedAppUpdatesPatch
 import io.github.liongalahad.nuviotv.patches.shared.registerSegmentedMediaProvider
 import io.github.liongalahad.nuviotv.patches.shared.registerSharedStorageSettings
 import org.w3c.dom.Element
@@ -202,7 +203,7 @@ val localdownloadsPatch = bytecodePatch(
     default = false
 ) {
     compatibleWith(NUVIO_COMPATIBILITY)
-    dependsOn(settingsUiPatch, localDownloadsResources)
+    dependsOn(patchedAppUpdatesPatch, settingsUiPatch, localDownloadsResources)
     extendWith("extensions/nuviotv.mpe")
 
     execute {

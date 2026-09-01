@@ -12,8 +12,7 @@ object Constants {
         appIconColor = 0x3DB8FF,
         targets = listOf(
             AppTarget(version = "1.2.7", versionCodes = mapOf()),
-            AppTarget(version = "2.7.17", versionCodes = mapOf()),
-            AppTarget(version = null) // all future
+            AppTarget(version = "2.7.17", versionCodes = mapOf())
         )
     )
 }

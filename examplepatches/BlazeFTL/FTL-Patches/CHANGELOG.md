@@ -1,3 +1,82 @@
+## [1.43.0-dev.23](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.22...v1.43.0-dev.23) (2026-09-01)
+
+### 🐛 Bug Fixes
+
+* apk junk ([7a04e63](https://github.com/BlazeFTL/FTL-Patches/commit/7a04e634a9288beb8bf35ef152d16818d4d46b89))
+
+## [1.43.0-dev.22](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.21...v1.43.0-dev.22) (2026-08-31)
+
+### 🐛 Bug Fixes
+
+* Apk Junk ([25306fb](https://github.com/BlazeFTL/FTL-Patches/commit/25306fb13b30233230e55fe284537c74c416389a))
+
+## [1.43.0-dev.21](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.20...v1.43.0-dev.21) (2026-08-31)
+
+### 🐛 Bug Fixes
+
+* Apk Junk ([48ab9da](https://github.com/BlazeFTL/FTL-Patches/commit/48ab9da31f5391f269c9dd21994c73ee25f67752))
+
+## [1.43.0-dev.20](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.19...v1.43.0-dev.20) (2026-08-31)
+
+### 🐛 Bug Fixes
+
+* Apk Junk Clean Patch ([d24611a](https://github.com/BlazeFTL/FTL-Patches/commit/d24611ab5d7ab630491374d10e4e281c3928b027))
+
+## [1.43.0-dev.19](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.18...v1.43.0-dev.19) (2026-08-31)
+
+### ✨ New Features
+
+* Add WpsApp Pro ByPass License Check ([bdeec85](https://github.com/BlazeFTL/FTL-Patches/commit/bdeec8500ca6b1b46b3c747f4afbee1436b8754e))
+
+## [1.43.0-dev.18](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.17...v1.43.0-dev.18) (2026-08-31)
+
+### 🐛 Bug Fixes
+
+* up ([45e46c1](https://github.com/BlazeFTL/FTL-Patches/commit/45e46c1885dc08da1bb67336334d7c101b4a2780))
+
+## [1.43.0-dev.17](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.16...v1.43.0-dev.17) (2026-08-31)
+
+### 🐛 Bug Fixes
+
+* last try ([2aae500](https://github.com/BlazeFTL/FTL-Patches/commit/2aae5006c585700dea4d820fe0f9bab9d4acbc81))
+
+## [1.43.0-dev.16](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.15...v1.43.0-dev.16) (2026-08-31)
+
+### 🐛 Bug Fixes
+
+* rs clean side ([789984e](https://github.com/BlazeFTL/FTL-Patches/commit/789984e008b840f7d44e6f9d99e1ecb35001be28))
+
+## [1.43.0-dev.15](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.14...v1.43.0-dev.15) (2026-08-31)
+
+### 🐛 Bug Fixes
+
+* rs clean sidebar ([619702d](https://github.com/BlazeFTL/FTL-Patches/commit/619702d21cbbbed20d4cf63a93381db4844c84a3))
+
+## [1.43.0-dev.14](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.13...v1.43.0-dev.14) (2026-08-31)
+
+### ✨ New Features
+
+* Add Xfolder Disable Rate ([bfcca9b](https://github.com/BlazeFTL/FTL-Patches/commit/bfcca9b05ed797aec633d6471597e2c3c23282e4))
+
+## [1.43.0-dev.13](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.12...v1.43.0-dev.13) (2026-08-31)
+
+### 🐛 Bug Fixes
+
+* Rs Clean ([adc7b41](https://github.com/BlazeFTL/FTL-Patches/commit/adc7b41789393ff0c26d329d00034123714dd399))
+
+## [1.43.0-dev.12](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.11...v1.43.0-dev.12) (2026-08-31)
+
+### 🐛 Bug Fixes
+
+* Rs Clean SideBar ([074e61c](https://github.com/BlazeFTL/FTL-Patches/commit/074e61c4b9f93dde844f3b490297787619b474a9))
+
+## [1.43.0-dev.11](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.10...v1.43.0-dev.11) (2026-08-31)
+
+### ✨ New Features
+
+* Add File Manager XFolder Unlock Pro ([297adaa](https://github.com/BlazeFTL/FTL-Patches/commit/297adaadfd749ce1644bfead217df9cbb9d1d12c))
+* Add Rs File Clean SideBar ([d315e45](https://github.com/BlazeFTL/FTL-Patches/commit/d315e4554a0511943f9946513f914c3fde53b06b))
+
 ## [1.43.0-dev.10](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.9...v1.43.0-dev.10) (2026-08-30)
 
 ### ✨ New Features

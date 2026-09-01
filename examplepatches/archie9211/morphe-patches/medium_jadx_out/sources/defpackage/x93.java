@@ -1,0 +1,13 @@
+package defpackage;
+
+/* JADX INFO: compiled from: r8-map-id-b2309a5993a3f14549aeb617bc4a78ecbec51e99a3efca387f8965087335ae2d */
+/* JADX INFO: loaded from: classes5.dex */
+public interface x93 extends yv2, tu7 {
+    wjc D();
+
+    p98 J();
+
+    u93 K();
+
+    q1 s();
+}

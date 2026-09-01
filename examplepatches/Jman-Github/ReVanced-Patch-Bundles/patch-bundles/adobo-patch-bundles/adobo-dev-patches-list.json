@@ -1,5 +1,5 @@
 {
-    "version": "v1.4.0-dev.4",
+    "version": "v1.4.0-dev.6",
     "patches": [
         {
             "compatiblePackages": [
@@ -489,6 +489,59 @@
             "dependencies": [
                 "BytecodePatch"
             ],
+            "description": "Disables the back-to-top scroll and home feed refresh on back navigation to exit.",
+            "name": "Disable home feed refresh on back to exit",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKM",
+                    "name": "Reddit",
+                    "packageName": "com.reddit.frontpage",
+                    "signatures": [
+                        "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f"
+                    ],
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "minSdk": 29,
+                            "version": "2026.35.0"
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 29,
+                            "version": "2026.34.0"
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 29,
+                            "version": "2026.33.2"
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 29,
+                            "version": "2026.24.0"
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 29,
+                            "version": "2026.14.0"
+                        }
+                    ],
+                    "versions": [
+                        "2026.35.0",
+                        "2026.34.0",
+                        "2026.33.2",
+                        "2026.24.0",
+                        "2026.14.0"
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [
+                "BytecodePatch"
+            ],
             "description": "Disables the horizontal page swipe gesture used to switch feeds.",
             "name": "Disable home feed swipe",
             "options": []
@@ -817,6 +870,31 @@
             ],
             "description": "Enables clipboard support in incognito mode.",
             "name": "Enable clipboard in incognito",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "name": "Gboard",
+                    "packageName": "com.google.android.inputmethod.latin",
+                    "signatures": [
+                        "7ce83c1b71f3d572fed04c8d40c5cb10ff75e6d87d9df6fbd53f0468c2905053",
+                        "f0fd6c5b410f25cb25c3b53346c8972fae30f8ee7411df910480ad6b2d60db83"
+                    ],
+                    "targets": [
+                        {
+                            "isExperimental": false
+                        }
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [
+                "BytecodePatch"
+            ],
+            "description": "Enables extending the clipboard history expiration time.",
+            "name": "Enable extended clipboard history",
             "options": []
         },
         {

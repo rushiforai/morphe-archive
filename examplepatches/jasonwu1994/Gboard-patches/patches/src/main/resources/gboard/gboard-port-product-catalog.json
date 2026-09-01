@@ -1,7 +1,7 @@
 {
   "$schema": "gboard-port-product-catalog.schema.json",
   "format": "gboard-port-product-catalog.v1",
-  "catalog_version": "1.10.0",
+  "catalog_version": "1.11.0",
   "composition": {
     "selected_only_call_chain": true,
     "runtime_feature_mask": false
@@ -478,6 +478,23 @@
       ],
       "contributions": [
         { "contribution_id": "key_shape_selection.flag", "anchor_family_id": "flag_bool_getter", "phase": "after_stock_result", "order": 40, "required_bindings": ["flag_bool_getter", "flag_name_field"], "runtime_calls": ["KEY_SHAPE_SELECTION_RUNTIME_APPLY_FLAG_VALUE"] }
+      ]
+    },
+    {
+      "feature_id": "lan_ftp_server",
+      "public_patch_name": "FTP Server",
+      "feature_marker": "dev.jason.gboardpatches.feature.lan_ftp_server",
+      "target_family_ids": [],
+      "migration_scope": "version-neutral-extension",
+      "consumer_files": [
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/lanftp/GboardLanFtpFeatureMarkerPatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/lanftp/GboardLanFtpManifestPatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/packagerename/GboardPackageRenameResourcePatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt",
+        "patches/src/main/resources/lan-ftp-res/drawable/ic_lan_ftp_tile.xml"
+      ],
+      "contributions": [
+        { "contribution_id": "lan_ftp_server.resources", "anchor_family_id": "resource_only", "phase": "resource", "order": 300, "required_bindings": [], "runtime_calls": [] }
       ]
     },
     {

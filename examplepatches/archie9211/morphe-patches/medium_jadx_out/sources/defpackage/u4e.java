@@ -1,0 +1,7 @@
+package defpackage;
+
+/* JADX INFO: compiled from: r8-map-id-b2309a5993a3f14549aeb617bc4a78ecbec51e99a3efca387f8965087335ae2d */
+/* JADX INFO: loaded from: classes.dex */
+public final class u4e implements v4e {
+    public static final u4e a = new u4e();
+}

@@ -1,0 +1,15 @@
+package defpackage;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Logger;
+
+/* JADX INFO: compiled from: r8-map-id-b2309a5993a3f14549aeb617bc4a78ecbec51e99a3efca387f8965087335ae2d */
+/* JADX INFO: loaded from: classes.dex */
+public abstract class yjg {
+    public static final Logger a = Logger.getLogger(yjg.class.getName());
+    public static final AtomicBoolean b = new AtomicBoolean(false);
+
+    public static boolean a() {
+        return b.get();
+    }
+}

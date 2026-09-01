@@ -1,0 +1,31 @@
+package defpackage;
+
+import com.google.gson.JsonSyntaxException;
+import java.io.IOException;
+import java.math.BigInteger;
+
+/* JADX INFO: compiled from: r8-map-id-b2309a5993a3f14549aeb617bc4a78ecbec51e99a3efca387f8965087335ae2d */
+/* JADX INFO: loaded from: classes.dex */
+public class tud extends jud {
+    @Override // defpackage.jud
+    public final Object b(gd6 gd6Var) throws IOException {
+        if (gd6Var.p0() == jd6.NULL) {
+            gd6Var.a0();
+            return null;
+        }
+        String strQ = gd6Var.q();
+        try {
+            qk7.n(strQ);
+            return new BigInteger(strQ);
+        } catch (NumberFormatException e) {
+            StringBuilder sbU = lv8.u("Failed parsing '", strQ, "' as BigInteger; at path ");
+            sbU.append(gd6Var.R());
+            throw new JsonSyntaxException(sbU.toString(), e);
+        }
+    }
+
+    @Override // defpackage.jud
+    public final void c(yd6 yd6Var, Object obj) throws IOException {
+        yd6Var.z0((BigInteger) obj);
+    }
+}

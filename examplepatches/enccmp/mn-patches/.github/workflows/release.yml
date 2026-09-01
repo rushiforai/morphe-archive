@@ -1,0 +1,77 @@
+name: Build and Release
+
+# Releases the patch bundle whenever the version in gradle.properties changes.
+# You bump `version` locally and push to main; CI builds and publishes a release
+# only if one for that version does not already exist. Doc-only pushes (unchanged
+# version) build nothing and release nothing.
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write   # create the release + tag
+  packages: read    # resolve the Morphe plugin/library from GitHub Packages
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read version
+        id: ver
+        run: |
+          version=$(grep -E '^version *=' gradle.properties | sed -E 's/.*= *//')
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "gradle.properties version: ${version}"
+
+      - name: Check if this version is already released
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "v${{ steps.ver.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Release v${{ steps.ver.outputs.version }} already exists — skipping."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "No release for v${{ steps.ver.outputs.version }} — will build and publish."
+          fi
+
+      - name: Set up JDK 21
+        if: steps.check.outputs.exists == 'false'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Build patches (.mpp)
+        if: steps.check.outputs.exists == 'false'
+        env:
+          # settings.gradle.kts falls back to these when gpr.* is absent.
+          # If the Morphe packages ever require auth beyond the default token,
+          # add a repo secret and swap it in here.
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew :patches:buildAndroid --no-daemon --console=plain
+
+      - name: Create GitHub Release
+        if: steps.check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ steps.ver.outputs.version }}" \
+            "patches/build/libs/patches-${{ steps.ver.outputs.version }}.mpp" \
+            --title "v${{ steps.ver.outputs.version }}" \
+            --generate-notes

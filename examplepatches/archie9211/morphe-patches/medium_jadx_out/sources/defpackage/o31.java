@@ -1,0 +1,16 @@
+package defpackage;
+
+/* JADX INFO: compiled from: r8-map-id-b2309a5993a3f14549aeb617bc4a78ecbec51e99a3efca387f8965087335ae2d */
+/* JADX INFO: loaded from: classes.dex */
+public final class o31 {
+    public static final y3b c = new y3b(13);
+    public Object a;
+    public int b;
+
+    public final String toString() {
+        StringBuilder sb = new StringBuilder("CachedItem(key=");
+        sb.append(this.a);
+        sb.append(", mainAxisSize=");
+        return km4.A(sb, this.b, ')');
+    }
+}

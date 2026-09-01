@@ -1,0 +1,40 @@
+package defpackage;
+
+/* JADX INFO: compiled from: r8-map-id-b2309a5993a3f14549aeb617bc4a78ecbec51e99a3efca387f8965087335ae2d */
+/* JADX INFO: loaded from: classes4.dex */
+public final class mp5 implements op5 {
+    public final dr9 a;
+    public final String b;
+    public final String c;
+
+    public mp5(dr9 dr9Var) {
+        this.a = dr9Var;
+        this.b = dr9Var.C;
+        this.c = dr9Var.a;
+    }
+
+    @Override // defpackage.op5
+    public final String b() {
+        return this.c;
+    }
+
+    public final boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        return (obj instanceof mp5) && this.a.equals(((mp5) obj).a);
+    }
+
+    @Override // defpackage.op5
+    public final String getKey() {
+        return this.b;
+    }
+
+    public final int hashCode() {
+        return this.a.hashCode();
+    }
+
+    public final String toString() {
+        return "Post(postUiModel=" + this.a + ")";
+    }
+}

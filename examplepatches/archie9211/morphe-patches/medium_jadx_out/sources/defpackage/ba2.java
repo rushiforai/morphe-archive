@@ -1,0 +1,13 @@
+package defpackage;
+
+import java.util.List;
+
+/* JADX INFO: compiled from: r8-map-id-b2309a5993a3f14549aeb617bc4a78ecbec51e99a3efca387f8965087335ae2d */
+/* JADX INFO: loaded from: classes5.dex */
+public interface ba2 {
+    public static final xsa b0 = new xsa(14);
+
+    List P(qt5 qt5Var);
+
+    void z(qt5 qt5Var, List list);
+}

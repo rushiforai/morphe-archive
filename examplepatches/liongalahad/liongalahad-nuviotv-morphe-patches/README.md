@@ -24,6 +24,8 @@ The SDH cleanup patch provides `Off`, `Normalize music symbols only`, `Remove SD
 5. Select the patches to apply. `Side-by-side installation` is selected by default and produces package `com.nuvio.morphe` with label `Nuvio Morphe`; deselect it only when replacement-install behavior is intended.
 6. Save the patched APK locally, then sideload and install it on your TV. The default side-by-side output installs beside the official app. A replacement output cannot upgrade the official app in place because the patched APK has a different signature.
 
+Applying any public patch also disables NuvioTV's in-app updater. Automatic update checks and the manual About-page update action are bypassed, their About-page controls are removed, and the patched manifest no longer requests package-install permission. To update a patched installation, patch a newly supported official APK and install the resulting signed build instead.
+
 Deep link: `https://morphe.software/add-source?github=liongalahad/liongalahad-nuviotv-morphe-patches`
 
 ## Local workflow
@@ -51,7 +53,7 @@ Automated validation covers 239 extension tests, 544 patcher tests (543 passed a
 ## Available patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0-dev.30](https://github.com/liongalahad/liongalahad-nuviotv-morphe-patches/releases/tag/v1.0.0-dev.30)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v1.0.0-dev.31](https://github.com/liongalahad/liongalahad-nuviotv-morphe-patches/releases/tag/v1.0.0-dev.31)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
 <details open>
 <summary>📦 NuvioTV&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
@@ -64,10 +66,10 @@ Automated validation covers 239 extension tests, 544 patcher tests (543 passed a
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Side-by-side installation](testing/patches/side-by-side-installation/README.md) | Installs the patched app separately as Nuvio Morphe instead of replacing NuvioTV. |  |
-| [Random Episode](testing/patches/random-episode/README.md) | Adds Morphe > Detail Page > Show Random Episode Button and random series playback.<br>Original idea and code by [**DeclanSC**](https://github.com/DeclanSC). |  |
+| [Random Episode](testing/patches/random-episode/README.md) | Adds persistent per-show random playback with All or Unwatched episode pools.<br>Original idea and code by [**DeclanSC**](https://github.com/DeclanSC). |  |
 | [Local Media](testing/patches/local-media/README.md) | Adds Library > Storage playback, folder selection, and same-basename sidecar subtitles for local video files. |  |
 | [Local Downloads](testing/patches/local-downloads/README.md) | Downloads selected direct movie and episode sources to local storage for exact local playback. |  |
-| [SDH Annotations Controls](testing/patches/sdh-annotations/README.md) | Adds Settings → Morphe → Subtitles to normalize music symbols and remove SDH annotations from Media3 subtitles. |  |
+| [Remove SDH Annotations](testing/patches/sdh-annotations/README.md) | Adds Settings → Morphe → Subtitles to normalize music symbols and remove SDH annotations from Media3 subtitles. |  |
 | [Mark SDH Subtitles](testing/patches/sdh-marking/README.md) | Marks explicitly labelled SDH tracks and detected English SDH subtitle files. |  |
 | [Allow Importing Subs from Local Storage](testing/patches/local-storage-subtitles/README.md) | Imports device subtitle files into Nuvio's ExoPlayer subtitle menu without rebuilding active playback. |  |
 

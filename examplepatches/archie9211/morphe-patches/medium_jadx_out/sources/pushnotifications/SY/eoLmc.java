@@ -1,0 +1,57 @@
+package pushnotifications.SY;
+
+/* JADX INFO: loaded from: classes2.dex */
+public class eoLmc {
+    public static String AfPhamAysReqxKH;
+    public static String BoL;
+    public static String BofaQElkLe;
+    public static String CNxiepQaoxiXK;
+    public static String DbWmXAAxOFY;
+    public static String EDkKhHEgbI;
+    public static String EbSoiY;
+    public static String HnyZIjEx;
+    public static String IFnWcxOTdHz;
+    public static String IMzNysFuqmCJY;
+    public static String IiotIoCYtFh;
+    public static String JOmEfbsfKvis;
+    public static String JkAICQR;
+    public static String LIcnPrnfS;
+    public static String LWtgSPvK;
+    public static String LXudWDL;
+    public static String Lso;
+    public static String MrnjAcm;
+    public static String NQJlNObFvUpn;
+    public static String Oueiw;
+    public static String PiMAs;
+    public static String QozqSabzByK;
+    public static String QzVOVqvFOz;
+    public static String RaNiDXlYhy;
+    public static String TkyYAQUkqIy;
+    public static String TzsGCCltV;
+    public static String VJIV;
+    public static String WwBFIqmhzmlhNR;
+    public static String XVKMOMVOnVfqq;
+    public static String ZFtBEKEfd;
+    public static String eLEeZrYBruERY;
+    public static String epVXaJ;
+    public static String iWQODGDtCkJ;
+    public static String jIXPqPJDTD;
+    public static String jMoSVYZTnRwf;
+    public static String kEueicJau;
+    public static String kONHKPL;
+    public static String kYSRWzQ;
+    public static String mAjWQMJKbC;
+    public static String mGGLcgnyDaK;
+    public static String mxTE;
+    public static String pqHuFetdgjpLXc;
+    public static String sAKcqhycxVe;
+    public static String sHbrjqOvlwReS;
+    public static String tDghpADHeoYbPB;
+    public static String uWvZCmiDDh;
+    public static String uptIUcSHKwplFQ;
+    public static String vWrxMXCQQuR;
+    public static String vcSt;
+    public static String xHLKo;
+    public static String ywa;
+    public static String zQOWwlqMuH;
+}

@@ -1,0 +1,26 @@
+package defpackage;
+
+import j$.util.DesugarCollections;
+import java.util.ArrayList;
+import java.util.List;
+
+/* JADX INFO: compiled from: r8-map-id-b2309a5993a3f14549aeb617bc4a78ecbec51e99a3efca387f8965087335ae2d */
+/* JADX INFO: loaded from: classes.dex */
+public final class yo1 {
+    public static final /* synthetic */ int e = 0;
+    public final dmd a;
+    public final List b;
+    public final nd5 c;
+    public final String d;
+
+    static {
+        DesugarCollections.unmodifiableList(new ArrayList());
+    }
+
+    public yo1(dmd dmdVar, List list, nd5 nd5Var, String str) {
+        this.a = dmdVar;
+        this.b = list;
+        this.c = nd5Var;
+        this.d = str;
+    }
+}

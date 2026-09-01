@@ -35,6 +35,7 @@ import android.speech.RecognitionSupport;
 import android.speech.RecognitionSupportCallback;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
@@ -73,17 +74,12 @@ import java.util.concurrent.RejectedExecutionException;
 
 import dev.jason.gboardpatches.extension.R;
 import dev.jason.gboardpatches.extension.BuildConfig;
-import dev.jason.gboardpatches.extension.clipboard.GboardClipboardSettingsFeature;
 import dev.jason.gboardpatches.extension.settings.keyboardpreview.GboardKeyboardPreviewController;
 
 public final class GboardPatchesSettingsActivity extends Activity
         implements GboardPatchesSettingsContract.Host {
     private static final String TAG = "GboardPatches";
-    private static final String ACTION_QS_TILE_PREFERENCES =
-            "android.service.quicksettings.action.QS_TILE_PREFERENCES";
-    private static final String EXTRA_OPEN_WEB_CLIPBOARD =
-            "dev.jason.gboardpatches.extension.extra.OPEN_WEB_CLIPBOARD";
-    private static final String EXTRA_NAVIGATION_PATH =
+    public static final String EXTRA_NAVIGATION_PATH =
             "dev.jason.gboardpatches.extension.extra.PATCHES_NAVIGATION_PATH";
     private static final String ENTER_PREF_HEADER_EXTRA = "ENTER_PREF_HEADER";
     private static final String GBOARD_SETTINGS_ACTIVITY_CLASS =
@@ -114,6 +110,8 @@ public final class GboardPatchesSettingsActivity extends Activity
     private static final long RESTART_CRASH_RECOVERY_RESTORE_DELAY_MS = 2000L;
     private static final int REQUEST_CREATE_TEXT_DOCUMENT = 0x4742;
     private static final int REQUEST_OPEN_TEXT_DOCUMENT = 0x4743;
+    private static final int REQUEST_OPEN_DOCUMENT_TREE = 0x4746;
+    private static final int REQUEST_RUNTIME_PERMISSION = 0x4747;
     private static final int TOOLBAR_HEIGHT_DP = 56;
     private static final int NO_SCROLL_POSITION_REQUESTED = -1;
     private static final String TOOLBAR_TITLE_PATCHES = "Patches";
@@ -166,6 +164,10 @@ public final class GboardPatchesSettingsActivity extends Activity
     private boolean initialFeatureFromIntentHandled;
     private PendingTextDocumentWrite pendingTextDocumentWrite;
     private GboardPatchesSettingsContract.StringValueConsumer pendingTextDocumentReader;
+    private GboardPatchesSettingsContract.StringValueConsumer pendingDocumentTreeConsumer;
+    private GboardPatchesSettingsContract.Feature lifecycleVisibleFeature;
+    private boolean featureLifecycleEnabled;
+    private GboardPatchesSettingsContract.BooleanValueConsumer pendingPermissionConsumer;
     private volatile GboardPatchesSettingsContract.OfflineSpeechLanguages offlineSpeechLanguages =
             GboardPatchesSettingsContract.OfflineSpeechLanguages.loading();
     private SpeechRecognizer offlineSpeechRecognizer;
@@ -205,21 +207,17 @@ public final class GboardPatchesSettingsActivity extends Activity
         scheduleDeferredRender();
     }
 
-    public static Intent createWebClipboardSettingsIntent(Context context) {
-        Intent intent = new Intent(context, GboardPatchesSettingsActivity.class);
-        intent.putExtra(EXTRA_OPEN_WEB_CLIPBOARD, true);
-        return intent;
-    }
-
     @Override
     protected void onResume() {
         super.onResume();
+        featureLifecycleEnabled = true;
         applyOrchestration(settingsOrchestrator.accept(
                 GboardPatchesSettingsOrchestrator.Event.resume()));
     }
 
     @Override
     protected void onPause() {
+        featureLifecycleEnabled = false;
         applyOrchestration(settingsOrchestrator.accept(
                 GboardPatchesSettingsOrchestrator.Event.pause()));
         cancelDeferredRender();
@@ -229,6 +227,7 @@ public final class GboardPatchesSettingsActivity extends Activity
 
     @Override
     protected void onDestroy() {
+        featureLifecycleEnabled = false;
         applyOrchestration(settingsOrchestrator.accept(
                 GboardPatchesSettingsOrchestrator.Event.pause()));
         setRestartButtonPending(false);
@@ -438,7 +437,9 @@ public final class GboardPatchesSettingsActivity extends Activity
                     pendingSelectionAction[0] = () -> runSafely(
                             "handle choice dialog selection",
                             () -> {
-                                if (customValue.equals(selectedValue)) {
+                                if (customValue != null
+                                        && customAction != null
+                                        && customValue.equals(selectedValue)) {
                                     customAction.run();
                                 } else {
                                     valueConsumer.accept(selectedValue);
@@ -764,6 +765,129 @@ public final class GboardPatchesSettingsActivity extends Activity
 
     @Override
     @SuppressWarnings("deprecation")
+    public void openDocumentTree(String initialTreeUri,
+            GboardPatchesSettingsContract.StringValueConsumer valueConsumer) {
+        if (valueConsumer == null) {
+            return;
+        }
+        pendingDocumentTreeConsumer = valueConsumer;
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+                | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                && initialTreeUri != null && initialTreeUri.startsWith("content://")) {
+            try {
+                intent.putExtra("android.provider.extra.INITIAL_URI", Uri.parse(initialTreeUri));
+            } catch (Throwable ignored) {
+                // The picker can still open without an initial location.
+            }
+        }
+        try {
+            startActivityForResult(intent, REQUEST_OPEN_DOCUMENT_TREE);
+        } catch (ActivityNotFoundException ignored) {
+            pendingDocumentTreeConsumer = null;
+            Toast.makeText(this, DOCUMENT_PICKER_FAILED, Toast.LENGTH_SHORT).show();
+        } catch (Throwable throwable) {
+            pendingDocumentTreeConsumer = null;
+            Log.w(TAG, "Failed to launch document tree picker", throwable);
+            Toast.makeText(this, DOCUMENT_PICKER_FAILED, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void requestRuntimePermission(String permission,
+            GboardPatchesSettingsContract.BooleanValueConsumer resultConsumer) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            runOnUiThread(() -> requestRuntimePermission(permission, resultConsumer));
+            return;
+        }
+        if (permission == null || permission.isBlank() || resultConsumer == null) {
+            return;
+        }
+        if (checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) {
+            resultConsumer.accept(true);
+            return;
+        }
+        if (pendingPermissionConsumer != null) {
+            resultConsumer.accept(false);
+            return;
+        }
+        pendingPermissionConsumer = resultConsumer;
+        try {
+            requestPermissions(new String[]{permission}, REQUEST_RUNTIME_PERMISSION);
+        } catch (Throwable throwable) {
+            pendingPermissionConsumer = null;
+            Log.w(TAG, "Failed to request runtime permission " + permission, throwable);
+            resultConsumer.accept(false);
+        }
+    }
+
+    @Override
+    public void openAllFilesAccessSettings(String unavailableMessage) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            runOnUiThread(() -> openAllFilesAccessSettings(unavailableMessage));
+            return;
+        }
+        Intent appIntent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                .setData(Uri.parse("package:" + getPackageName()));
+        try {
+            startActivity(appIntent);
+        } catch (ActivityNotFoundException ignored) {
+            try {
+                startActivity(new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION));
+            } catch (Throwable throwable) {
+                Log.w(TAG, "Failed to launch all files access settings", throwable);
+                Toast.makeText(this, unavailableMessage == null ? "" : unavailableMessage,
+                        Toast.LENGTH_LONG).show();
+            }
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Failed to launch app all files access settings", throwable);
+            Toast.makeText(this, unavailableMessage == null ? "" : unavailableMessage,
+                    Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    public void openBatteryOptimizationSettings(String unavailableMessage) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            runOnUiThread(() -> openBatteryOptimizationSettings(unavailableMessage));
+            return;
+        }
+        Intent appIntent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                .setData(Uri.parse("package:" + getPackageName()));
+        try {
+            startActivity(appIntent);
+        } catch (ActivityNotFoundException ignored) {
+            openBatteryOptimizationSettingsFallback(unavailableMessage);
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Failed to launch app battery optimization settings", throwable);
+            openBatteryOptimizationSettingsFallback(unavailableMessage);
+        }
+    }
+
+    private void openBatteryOptimizationSettingsFallback(String unavailableMessage) {
+        try {
+            startActivity(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS));
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Failed to launch battery optimization settings", throwable);
+            Toast.makeText(this, unavailableMessage == null ? "" : unavailableMessage,
+                    Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    public void showMessage(String message) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            runOnUiThread(() -> showMessage(message));
+            return;
+        }
+        Toast.makeText(this, message == null ? "" : message, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CREATE_TEXT_DOCUMENT) {
@@ -772,6 +896,26 @@ public final class GboardPatchesSettingsActivity extends Activity
         }
         if (requestCode == REQUEST_OPEN_TEXT_DOCUMENT) {
             handleOpenTextDocumentResult(resultCode, data);
+            return;
+        }
+        if (requestCode == REQUEST_OPEN_DOCUMENT_TREE) {
+            handleOpenDocumentTreeResult(resultCode, data);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode != REQUEST_RUNTIME_PERMISSION) {
+            return;
+        }
+        GboardPatchesSettingsContract.BooleanValueConsumer consumer = pendingPermissionConsumer;
+        pendingPermissionConsumer = null;
+        if (consumer != null) {
+            consumer.accept(grantResults != null
+                    && grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED);
         }
     }
 
@@ -1040,6 +1184,29 @@ public final class GboardPatchesSettingsActivity extends Activity
         } catch (Throwable throwable) {
             Log.w(TAG, "Failed to read selected document", throwable);
             Toast.makeText(this, DOCUMENT_READ_FAILED, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void handleOpenDocumentTreeResult(int resultCode, Intent data) {
+        GboardPatchesSettingsContract.StringValueConsumer consumer = pendingDocumentTreeConsumer;
+        pendingDocumentTreeConsumer = null;
+        if (resultCode != RESULT_OK || data == null || data.getData() == null
+                || consumer == null) {
+            return;
+        }
+        Uri treeUri = data.getData();
+        int grantFlags = data.getFlags()
+                & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        if ((grantFlags & Intent.FLAG_GRANT_READ_URI_PERMISSION) == 0) {
+            return;
+        }
+        try {
+            getContentResolver().takePersistableUriPermission(treeUri, grantFlags);
+            consumer.accept(treeUri.toString());
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Failed to persist selected document tree", throwable);
+            Toast.makeText(this, DOCUMENT_PICKER_FAILED, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -1935,7 +2102,33 @@ public final class GboardPatchesSettingsActivity extends Activity
                     break;
             }
         }
+        syncVisibleFeatureLifecycle();
         return exitRequested;
+    }
+
+    private void syncVisibleFeatureLifecycle() {
+        GboardPatchesSettingsContract.Feature target = featureLifecycleEnabled
+                ? settingsOrchestrator.snapshot().getCurrent()
+                : null;
+        if (target == lifecycleVisibleFeature) {
+            return;
+        }
+        GboardPatchesSettingsContract.Feature previous = lifecycleVisibleFeature;
+        lifecycleVisibleFeature = target;
+        if (previous != null) {
+            try {
+                previous.onHidden(this);
+            } catch (Throwable throwable) {
+                Log.w(TAG, "Failed to hide settings feature", throwable);
+            }
+        }
+        if (target != null) {
+            try {
+                target.onVisible(this);
+            } catch (Throwable throwable) {
+                Log.w(TAG, "Failed to show settings feature", throwable);
+            }
+        }
     }
 
     private void enqueueScreenBuild(int buildGeneration) {
@@ -2188,26 +2381,7 @@ public final class GboardPatchesSettingsActivity extends Activity
         if (restoreNavigationPathFromIntent(intent)) {
             return true;
         }
-        boolean tilePreferencesIntent = ACTION_QS_TILE_PREFERENCES.equals(intent.getAction());
-        boolean openWebClipboard = intent.getBooleanExtra(EXTRA_OPEN_WEB_CLIPBOARD, false);
-        if (!tilePreferencesIntent && !openWebClipboard) {
-            return false;
-        }
-        GboardClipboardSettingsFeature clipboardFeature = findClipboardFeature();
-        if (clipboardFeature == null) {
-            return false;
-        }
-        GboardPatchesSettingsContract.Feature webClipboardFeature =
-                clipboardFeature.getWebClipboardFeature();
-        runOnUiThread(() -> {
-            List<GboardPatchesSettingsContract.Feature> featurePath =
-                    Arrays.asList(clipboardFeature, webClipboardFeature);
-            scrollState.resetForDirectPath(featurePath.size() - 1);
-            requestScrollPositionOnNextScreenApply(0);
-            applyOrchestration(settingsOrchestrator.accept(
-                    GboardPatchesSettingsOrchestrator.Event.replacePath(featurePath)));
-        });
-        return true;
+        return false;
     }
 
     private boolean restoreNavigationPathFromIntent(Intent intent) {
@@ -2230,15 +2404,6 @@ public final class GboardPatchesSettingsActivity extends Activity
                     GboardPatchesSettingsOrchestrator.Event.replacePath(resolvedPath)));
         });
         return true;
-    }
-
-    private GboardClipboardSettingsFeature findClipboardFeature() {
-        for (GboardPatchesSettingsContract.Feature feature : features) {
-            if (GboardClipboardSettingsFeature.class.isInstance(feature)) {
-                return (GboardClipboardSettingsFeature) feature;
-            }
-        }
-        return null;
     }
 
     private int currentScrollY() {
