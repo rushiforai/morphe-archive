@@ -1529,6 +1529,46 @@
                 "sortOrder": 193,
                 "createdAt": 1788061723999,
                 "updatedAt": 1788061723999
+            },
+            {
+                "name": "android-patches",
+                "source": "https://raw.githubusercontent.com/AlecBlance/android-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 194,
+                "createdAt": 1788234229407,
+                "updatedAt": 1788234229407
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/archie9211/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 195,
+                "createdAt": 1788234230571,
+                "updatedAt": 1788234230571
+            },
+            {
+                "name": "oraimo-health-morphe-patches",
+                "source": "https://raw.githubusercontent.com/benzophury/oraimo-health-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 196,
+                "createdAt": 1788234230780,
+                "updatedAt": 1788234230780
+            },
+            {
+                "name": "bruddas-morphe-patches",
+                "source": "https://raw.githubusercontent.com/bruddaa/bruddas-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 197,
+                "createdAt": 1788234230824,
+                "updatedAt": 1788234230824
+            },
+            {
+                "name": "multi-app-patches",
+                "source": "https://raw.githubusercontent.com/dumketo/multi-app-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 198,
+                "createdAt": 1788234231062,
+                "updatedAt": 1788234231062
             }
         ]
     }
