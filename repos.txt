@@ -1,3 +1,4 @@
+6ixfalls/revanced-patches
 ARHCOS/arhcos-patches
 Alastor-Kaneki/Morphe-Patches
 AlecBlance/android-patches
@@ -15,6 +16,7 @@ Dan1elTheMan1el/Morphe-Patches
 Dr4w/morphe-patches
 Educal72/educal-patches
 Entree3k/Morning-Entree-Patches
+FoxxoOwO/foxxo-patches
 Freeman022026/rustore-privacy-patches
 GoldRift/morphe-patches
 Graywizard888/Enhancify
@@ -53,6 +55,7 @@ PawiX25/pepper-morphe-patches
 PixelPusher247/morphe-patches
 PrathxmOp/Prathxm-Patches
 PrathxmOp/ytmusic-patches
+PyFlat-JR/Morphe-Patches
 Quantro100/Morphe-patches
 RabehX/rabehx-patches
 RealCyberwash/max-patches
@@ -193,11 +196,13 @@ polka-bear/morphe-patches
 pseudofractal/morphe-patches
 quantavil/edge-morphe-patches
 rafag00/morphe-patches
+rahul9999xda/telegram-morphe-patches
 rhubarbshoelaces/morphe-patches
 riky-dev/morphe-patches
 rushiranpise/RI-Vanced-Universal-Morphe-Patches
 rushiranpise/Ri-Vanced-Universal-Morphe-Patches
 saieshshirodkar/saiesh-morphe-patches
+sashade8-ship-it/dual-vot-patches
 shaun-the-sheep-patches/morphe-patches
 sjshb57/Pairip-Patches
 skulldogged/cobalt-morphe
@@ -206,6 +211,7 @@ subenoeva/roadsync-patches
 sushruth/imgur-patches
 tadikwa/google-clock-morphe-patches
 theabhishekbhujang/morphe-patches
+thejaustin/smartlauncher-morphe-patches
 tiaruebar1024/tiaruebar-patches
 timpra/a17
 totsiaw/proxma-patches

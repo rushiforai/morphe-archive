@@ -1507,14 +1507,6 @@
                 "updatedAt": 1787982404603
             },
             {
-                "name": "a17",
-                "source": "https://raw.githubusercontent.com/timpra/a17/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 191,
-                "createdAt": 1787982406437,
-                "updatedAt": 1787982406437
-            },
-            {
                 "name": "iptv-morphe-patches",
                 "source": "https://raw.githubusercontent.com/Okazakee/iptv-morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -1569,6 +1561,38 @@
                 "sortOrder": 198,
                 "createdAt": 1788234231062,
                 "updatedAt": 1788234231062
+            },
+            {
+                "name": "foxxo-patches",
+                "source": "https://raw.githubusercontent.com/FoxxoOwO/foxxo-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 199,
+                "createdAt": 1788318169555,
+                "updatedAt": 1788318169555
+            },
+            {
+                "name": "Morphe-Patches",
+                "source": "https://raw.githubusercontent.com/PyFlat-JR/Morphe-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 200,
+                "createdAt": 1788318170854,
+                "updatedAt": 1788318170854
+            },
+            {
+                "name": "dual-vot-patches",
+                "source": "https://raw.githubusercontent.com/sashade8-ship-it/dual-vot-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 201,
+                "createdAt": 1788318174025,
+                "updatedAt": 1788318174025
+            },
+            {
+                "name": "smartlauncher-morphe-patches",
+                "source": "https://raw.githubusercontent.com/thejaustin/smartlauncher-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 202,
+                "createdAt": 1788318174256,
+                "updatedAt": 1788318174256
             }
         ]
     }
