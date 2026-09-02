@@ -12,140 +12,68 @@ val enablePremiumPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_SOUNDCLOUD)
 
     execute {
-        // Override plan construction with Go+ (High tier).
+        // Force Features to be enabled directly where they are parsed
+        FeatureConstructorFingerprint.method.addInstructions(
+            1,
+            """
+                const-string v0, "offline_sync"
+                invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                move-result v0
+                if-eqz v0, :cond_offline
+                const/4 p2, 0x1
+                :cond_offline
+                
+                const-string v0, "no_audio_ads"
+                invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                move-result v0
+                if-eqz v0, :cond_ads
+                const/4 p2, 0x1
+                :cond_ads
+                
+                const-string v0, "hq_audio"
+                invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                move-result v0
+                if-eqz v0, :cond_hq
+                const/4 p2, 0x1
+                :cond_hq
+            """.trimIndent()
+        )
+
+        // Override UserConsumerPlan to Go+ High Tier
         UserConsumerPlanConstructorFingerprint.method.addInstructions(
             0,
             """
                 const-string p1, "high_tier"
                 const-string p5, "go-plus"
                 const-string p6, "SoundCloud Go+"
-            """,
+            """.trimIndent()
         )
 
+        // Prevent offboarding / downgrades
         GetDowngradeTierFingerprint.method.addInstructions(
             0,
             """
                 sget-object v0, Lcom/soundcloud/android/configuration/plans/Tier;->HIGH:Lcom/soundcloud/android/configuration/plans/Tier;
                 return-object v0
-            """,
+            """.trimIndent()
         )
 
+        // Disable upsells
         MapToPlanFingerprint.method.addInstructions(
             0,
             """
                 sget-object v0, Lcom/soundcloud/android/upsell/UpsellType${'$'}None;->INSTANCE:Lcom/soundcloud/android/upsell/UpsellType${'$'}None;
                 return-object v0
-            """,
+            """.trimIndent()
         )
 
-        // Force current tier to HIGH and plan to Go+.
-        GetCurrentTierFingerprint.method.addInstructions(
-            0,
-            """
-                sget-object v0, Lcom/soundcloud/android/configuration/plans/Tier;->HIGH:Lcom/soundcloud/android/configuration/plans/Tier;
-                return-object v0
-            """,
-        )
-
-        GetCurrentConsumerPlanFingerprint.method.addInstructions(
-            0,
-            """
-                sget-object v0, Lcom/soundcloud/android/configuration/plans/ConsumerPlan;->GO_PLUS:Lcom/soundcloud/android/configuration/plans/ConsumerPlan;
-                return-object v0
-            """,
-        )
-
-        GetCurrentConsumerPlanTitleFingerprint.method.addInstructions(
-            0,
-            """
-                const-string v0, "SoundCloud Go+"
-                return-object v0
-            """,
-        )
-
-        // Enable offline content
-        IsOfflineContentEnabledFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x1
-                return v0
-            """,
-        )
-
-        // Enable High Quality Audio (HQ Audio 256kbps AAC)
-        IsHighQualityAudioEnabledFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x1
-                return v0
-            """,
-        )
-
-        // Suppress Upsell overlays and paywalls
-        GetUpsellOfflineContentFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                return v0
-            """,
-        )
-
-        GetUpsellHighQualityAudioFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                return v0
-            """,
-        )
-
-        GetUpsellHighTierFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                return v0
-            """,
-        )
-
-        GetUpsellBothTiersFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                return v0
-            """,
-        )
-
-        GetUpsellRemoveAudioAdsFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                return v0
-            """,
-        )
-
-        // Enable individual track download buttons in bottom sheets and track menus
-        OfflineListeningIndividualTracksExperimentFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x1
-                return v0
-            """,
-        )
-
-        // Disable ads
-        GetShouldRequestAdsFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                return v0
-            """,
-        )
-
-        IsMonetizableAdGeoFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                return v0
-            """,
-        )
+        // Disable AdPlacements
+        AdPlacementConfigCtorFingerprint.matchAll().forEach { match ->
+            val parameterOffset = if (match.method.parameterTypes.firstOrNull() == "I") 1 else 0
+            match.method.addInstructions(
+                0,
+                listOf(1, 2, 3).joinToString("\n") { "const/4 p${parameterOffset + it}, 0x0" }
+            )
+        }
     }
 }

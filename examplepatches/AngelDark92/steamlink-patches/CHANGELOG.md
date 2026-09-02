@@ -1,3 +1,173 @@
+## [1.11.0](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.0...v1.11.0) (2026-09-01)
+
+### 🐛 Bug Fixes
+
+* added newer experimental supposedly more efficient patch for single projection mode ([560debb](https://github.com/AngelDark92/steamlink-patches/commit/560debb4ca26a8addff519cdfba42b7246c43338))
+* compatibility with 2.0.20 build 5001740 ([8c219bf](https://github.com/AngelDark92/steamlink-patches/commit/8c219bfe579f4dd08080207ca9c7410795e4b995))
+* documentation for single projection experiment ([d75007e](https://github.com/AngelDark92/steamlink-patches/commit/d75007eb044fba25c201732c86d5f948ccd703f8))
+* Experimental Native Single Projection Renderer Hook ([7326cfd](https://github.com/AngelDark92/steamlink-patches/commit/7326cfd83e5bcf33da8172785b8e68d3144a781f))
+* experiments not successful, new experiment based on VD ([d81643d](https://github.com/AngelDark92/steamlink-patches/commit/d81643de871caf9ad4b8542cf3c6decbae67e7ae))
+* fix for three projection run ([011290c](https://github.com/AngelDark92/steamlink-patches/commit/011290cdd524de49a9c141cf018f0727fc8dc55d))
+* fixed CPU overhead and new experimental native single projection with Quad-View GPU patch ([3097923](https://github.com/AngelDark92/steamlink-patches/commit/309792383e269f691b60f28bb1fa5d03b4d1045b))
+* more experiments with resolution ([c7f5401](https://github.com/AngelDark92/steamlink-patches/commit/c7f5401d297eb7025fdcf5e2937db0afe141fea3))
+* more resolution findings ([8c3626c](https://github.com/AngelDark92/steamlink-patches/commit/8c3626c1593a9f027898ac0d9ccc31de9c3dccf9))
+* new diagnostics patched into apks ([1c476a9](https://github.com/AngelDark92/steamlink-patches/commit/1c476a9fedddfe33dae5a3b3effa3d61c112be1a))
+* new experiment for higher res ([b0dc43e](https://github.com/AngelDark92/steamlink-patches/commit/b0dc43eb35e06e03c39c173257bb773f0b91d355))
+* new try ([f196a1b](https://github.com/AngelDark92/steamlink-patches/commit/f196a1bcf7e12bd4edaa5942a2e9ba0a477ebc43))
+* patch with three projection samples but mods to make it high res ([53fe27d](https://github.com/AngelDark92/steamlink-patches/commit/53fe27dd97dc6d2a110f91eb1e507c8dcba25209))
+* projection exp fix ([d3612f9](https://github.com/AngelDark92/steamlink-patches/commit/d3612f9b23ff4778bd62f867e75cbe1f404cf891))
+* reintroduced single projection experiment and modified 3 layer experiment ([7b1cb37](https://github.com/AngelDark92/steamlink-patches/commit/7b1cb37d706155d21ae036ed6eb059652fd20c12))
+* single projection fix ([8c27b28](https://github.com/AngelDark92/steamlink-patches/commit/8c27b282657840a25ae6cea4a1d5a59395399de7))
+* single projection resolution and double projection recognition ([69f63ef](https://github.com/AngelDark92/steamlink-patches/commit/69f63efad45cd30711ce230147a88f16ba85e054))
+* single projection with 10 bit try ([aa80c5c](https://github.com/AngelDark92/steamlink-patches/commit/aa80c5cc5dab9a87b4abf67388d4aa58d9dfbf36))
+* three projection sampler 3rd try ([fb0df3b](https://github.com/AngelDark92/steamlink-patches/commit/fb0df3b37b719824c5e54c29ecd431138052c39f))
+* try with single projection reconstruction ([df8de0f](https://github.com/AngelDark92/steamlink-patches/commit/df8de0f2e721d2bd76ab883b49e1b60aee936347))
+* try wth 2 projections ([8356c75](https://github.com/AngelDark92/steamlink-patches/commit/8356c75c2223eb2ec1c33477d6a30c1fbeab1396))
+
+### ✨ New Features
+
+* final resolution patch with no appear on top needed ([36a93a5](https://github.com/AngelDark92/steamlink-patches/commit/36a93a55ad3b372b93be76b2deb07b825804d229))
+* final resolution patch with no appear on top needed ([fcad02f](https://github.com/AngelDark92/steamlink-patches/commit/fcad02fb0c79f6069d8eb723706ff91172e4f917))
+* new 3 layers patch with Android-Surface Trigger ([0616d80](https://github.com/AngelDark92/steamlink-patches/commit/0616d8006d0bbeb8800f0b7b7b1ce88d080e9543))
+
+## [1.11.0-dev.4](https://github.com/AngelDark92/steamlink-patches/compare/v1.11.0-dev.3...v1.11.0-dev.4) (2026-09-01)
+
+### ✨ New Features
+
+* final resolution patch with no appear on top needed ([fcad02f](https://github.com/AngelDark92/steamlink-patches/commit/fcad02fb0c79f6069d8eb723706ff91172e4f917))
+
+## [1.11.0-dev.3](https://github.com/AngelDark92/steamlink-patches/compare/v1.11.0-dev.2...v1.11.0-dev.3) (2026-09-01)
+
+### 🐛 Bug Fixes
+
+* new try ([f196a1b](https://github.com/AngelDark92/steamlink-patches/commit/f196a1bcf7e12bd4edaa5942a2e9ba0a477ebc43))
+
+## [1.11.0-dev.2](https://github.com/AngelDark92/steamlink-patches/compare/v1.11.0-dev.1...v1.11.0-dev.2) (2026-09-01)
+
+### 🐛 Bug Fixes
+
+* reintroduced single projection experiment and modified 3 layer experiment ([7b1cb37](https://github.com/AngelDark92/steamlink-patches/commit/7b1cb37d706155d21ae036ed6eb059652fd20c12))
+
+## [1.11.0-dev.1](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.1-dev.19...v1.11.0-dev.1) (2026-09-01)
+
+### ✨ New Features
+
+* new 3 layers patch with Android-Surface Trigger ([0616d80](https://github.com/AngelDark92/steamlink-patches/commit/0616d8006d0bbeb8800f0b7b7b1ce88d080e9543))
+
+## [1.10.1-dev.19](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.1-dev.18...v1.10.1-dev.19) (2026-09-01)
+
+### 🐛 Bug Fixes
+
+* new diagnostics patched into apks ([1c476a9](https://github.com/AngelDark92/steamlink-patches/commit/1c476a9fedddfe33dae5a3b3effa3d61c112be1a))
+
+## [1.10.1-dev.18](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.1-dev.17...v1.10.1-dev.18) (2026-08-31)
+
+### 🐛 Bug Fixes
+
+* new experiment for higher res ([b0dc43e](https://github.com/AngelDark92/steamlink-patches/commit/b0dc43eb35e06e03c39c173257bb773f0b91d355))
+
+## [1.10.1-dev.17](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.1-dev.16...v1.10.1-dev.17) (2026-08-31)
+
+### 🐛 Bug Fixes
+
+* single projection with 10 bit try ([aa80c5c](https://github.com/AngelDark92/steamlink-patches/commit/aa80c5cc5dab9a87b4abf67388d4aa58d9dfbf36))
+
+## [1.10.1-dev.16](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.1-dev.15...v1.10.1-dev.16) (2026-08-31)
+
+### 🐛 Bug Fixes
+
+* fixed CPU overhead and new experimental native single projection with Quad-View GPU patch ([3097923](https://github.com/AngelDark92/steamlink-patches/commit/309792383e269f691b60f28bb1fa5d03b4d1045b))
+
+## [1.10.1-dev.15](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.1-dev.14...v1.10.1-dev.15) (2026-08-30)
+
+### 🐛 Bug Fixes
+
+* Experimental Native Single Projection Renderer Hook ([7326cfd](https://github.com/AngelDark92/steamlink-patches/commit/7326cfd83e5bcf33da8172785b8e68d3144a781f))
+
+## [1.10.1-dev.14](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.1-dev.13...v1.10.1-dev.14) (2026-08-30)
+
+### 🐛 Bug Fixes
+
+* added newer experimental supposedly more efficient patch for single projection mode ([560debb](https://github.com/AngelDark92/steamlink-patches/commit/560debb4ca26a8addff519cdfba42b7246c43338))
+
+## [1.10.1-dev.13](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.1-dev.12...v1.10.1-dev.13) (2026-08-30)
+
+### 🐛 Bug Fixes
+
+* more resolution findings ([8c3626c](https://github.com/AngelDark92/steamlink-patches/commit/8c3626c1593a9f027898ac0d9ccc31de9c3dccf9))
+
+## [1.10.1-dev.12](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.1-dev.11...v1.10.1-dev.12) (2026-08-30)
+
+### 🐛 Bug Fixes
+
+* compatibility with 2.0.20 build 5001740 ([8c219bf](https://github.com/AngelDark92/steamlink-patches/commit/8c219bfe579f4dd08080207ca9c7410795e4b995))
+
+## [1.10.1-dev.11](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.1-dev.10...v1.10.1-dev.11) (2026-08-30)
+
+### 🐛 Bug Fixes
+
+* documentation for single projection experiment ([d75007e](https://github.com/AngelDark92/steamlink-patches/commit/d75007eb044fba25c201732c86d5f948ccd703f8))
+
+## [1.10.1-dev.10](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.1-dev.9...v1.10.1-dev.10) (2026-08-30)
+
+### 🐛 Bug Fixes
+
+* projection exp fix ([d3612f9](https://github.com/AngelDark92/steamlink-patches/commit/d3612f9b23ff4778bd62f867e75cbe1f404cf891))
+
+## [1.10.1-dev.9](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.1-dev.8...v1.10.1-dev.9) (2026-08-29)
+
+### 🐛 Bug Fixes
+
+* single projection fix ([8c27b28](https://github.com/AngelDark92/steamlink-patches/commit/8c27b282657840a25ae6cea4a1d5a59395399de7))
+
+## [1.10.1-dev.8](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.1-dev.7...v1.10.1-dev.8) (2026-08-29)
+
+### 🐛 Bug Fixes
+
+* single projection resolution and double projection recognition ([69f63ef](https://github.com/AngelDark92/steamlink-patches/commit/69f63efad45cd30711ce230147a88f16ba85e054))
+
+## [1.10.1-dev.7](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.1-dev.6...v1.10.1-dev.7) (2026-08-29)
+
+### 🐛 Bug Fixes
+
+* three projection sampler 3rd try ([fb0df3b](https://github.com/AngelDark92/steamlink-patches/commit/fb0df3b37b719824c5e54c29ecd431138052c39f))
+
+## [1.10.1-dev.6](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.1-dev.5...v1.10.1-dev.6) (2026-08-29)
+
+### 🐛 Bug Fixes
+
+* fix for three projection run ([011290c](https://github.com/AngelDark92/steamlink-patches/commit/011290cdd524de49a9c141cf018f0727fc8dc55d))
+
+## [1.10.1-dev.5](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.1-dev.4...v1.10.1-dev.5) (2026-08-29)
+
+### 🐛 Bug Fixes
+
+* patch with three projection samples but mods to make it high res ([53fe27d](https://github.com/AngelDark92/steamlink-patches/commit/53fe27dd97dc6d2a110f91eb1e507c8dcba25209))
+
+## [1.10.1-dev.4](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.1-dev.3...v1.10.1-dev.4) (2026-08-29)
+
+### 🐛 Bug Fixes
+
+* try wth 2 projections ([8356c75](https://github.com/AngelDark92/steamlink-patches/commit/8356c75c2223eb2ec1c33477d6a30c1fbeab1396))
+
+## [1.10.1-dev.3](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.1-dev.2...v1.10.1-dev.3) (2026-08-28)
+
+### 🐛 Bug Fixes
+
+* try with single projection reconstruction ([df8de0f](https://github.com/AngelDark92/steamlink-patches/commit/df8de0f2e721d2bd76ab883b49e1b60aee936347))
+
+## [1.10.1-dev.2](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.1-dev.1...v1.10.1-dev.2) (2026-08-27)
+
+### 🐛 Bug Fixes
+
+* experiments not successful, new experiment based on VD ([d81643d](https://github.com/AngelDark92/steamlink-patches/commit/d81643de871caf9ad4b8542cf3c6decbae67e7ae))
+
+## [1.10.1-dev.1](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.0...v1.10.1-dev.1) (2026-08-26)
+
+### 🐛 Bug Fixes
+
+* more experiments with resolution ([c7f5401](https://github.com/AngelDark92/steamlink-patches/commit/c7f5401d297eb7025fdcf5e2937db0afe141fea3))
+
 ## [1.10.0](https://github.com/AngelDark92/steamlink-patches/compare/v1.9.1...v1.10.0) (2026-08-25)
 
 ### 🐛 Bug Fixes

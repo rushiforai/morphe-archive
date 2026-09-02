@@ -1,0 +1,6 @@
+# ninja log v7
+31	860	8099887237997921	CMakeFiles/gxr_single_projection_native_probe_v1.dir/src/native_probe_media_interpose.cpp.o	aaa8689b8ab3a3aa
+20	2096	8099887237838775	CMakeFiles/gxr_single_projection_native_probe_v1.dir/src/single_projection_reconstruction_efficient_layer.cpp.o	b28e4ed22f63f94a
+2096	2206	8099887258700471	libgxr_nspp.so	947278866f4cfd41
+24	1366	8100034145344001	CMakeFiles/gxr_android_surface_trigger_passthrough_v1.dir/src/android_surface_trigger_passthrough_layer.cpp.o	d8fd65ae137f2046
+1368	1510	8100034158774888	libgxr_ast.so	46c5ba2917556f50

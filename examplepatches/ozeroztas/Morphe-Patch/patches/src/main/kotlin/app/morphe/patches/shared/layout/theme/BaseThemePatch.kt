@@ -12,6 +12,8 @@ package app.morphe.patches.shared.layout.theme
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.BytecodePatchBuilder
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -24,10 +26,16 @@ import app.morphe.util.childElementsSequence
 import app.morphe.util.forEachChildElement
 import app.morphe.util.getNode
 import app.morphe.util.inputStreamFromBundledResource
+import app.morphe.util.matchAllMethodIndicesForEach
 import app.morphe.util.returnEarly
 import app.morphe.util.setExtensionIsPatchIncluded
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import java.util.Locale
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
 
 internal const val THEME_COLOR_EXTENSION_CLASS = "Lapp/morphe/extension/shared/theme/ThemeColorPatch;"
 
@@ -39,21 +47,19 @@ internal const val THEME_COLOR_EXTENSION_CLASS = "Lapp/morphe/extension/shared/t
 private const val UNREACHABLE_MOBILE_CODE = 1000
 
 /**
- * Index of the first color of the 9 bit palette. The indices below it belong to the colors
+ * Index of the first color of the 8 bit palette. The indices below it belong to the colors
  * that can be selected by name.
  */
 private const val PALETTE_INDEX_OFFSET = 100
 
 /**
- * The value a color channel can have in the 9 bit palette, of the dark and of the light theme.
+ * The levels of Lightness, Chroma and Hue in the 8 bit OKLCH palette.
  * The extension picks an index with the same values, and both must stay identical.
- *
- * A color sits at one end of the range, so the eight values of a channel are placed where the
- * color of that theme are instead of being spread evenly. A dark color of #0F0F0F would
- * otherwise be shown as pure black, because the nearest even value is 36 away.
  */
-private val PALETTE_LEVELS_DARK = intArrayOf(0, 3, 15, 38, 74, 126, 187, 255)
-private val PALETTE_LEVELS_LIGHT = intArrayOf(0, 68, 129, 181, 217, 240, 252, 255)
+private val PALETTE_L_LEVELS_DARK = floatArrayOf(0.0f, 0.02f, 0.05f, 0.1f, 0.2f, 0.35f, 0.6f, 1.0f)
+private val PALETTE_L_LEVELS_LIGHT = floatArrayOf(0.0f, 0.4f, 0.65f, 0.8f, 0.9f, 0.95f, 0.98f, 1.0f)
+private val PALETTE_C_LEVELS = floatArrayOf(0.0f, 0.03f, 0.07f, 0.15f)
+private val PALETTE_H_LEVELS = floatArrayOf(0f, 45f, 90f, 135f, 180f, 225f, 270f, 315f)
 
 /**
  * A color must only be used by the theme it belongs to. The app uses the light colors as
@@ -65,7 +71,7 @@ private val PALETTE_LEVELS_LIGHT = intArrayOf(0, 68, 129, 181, 217, 240, 252, 25
  * the theme the app shows, and the indices of the two themes never overlap.
  */
 private const val THEME_INDEX_OFFSET_DARK = 0
-private const val THEME_INDEX_OFFSET_LIGHT = 700
+private const val THEME_INDEX_OFFSET_LIGHT = 400
 
 /**
  * Must be identical to the name the extension uses with `FabricatedOverlay#setTargetOverlayable`.
@@ -312,17 +318,21 @@ private var lightAliasNames = emptyList<String>()
 internal val THEME_DEFAULT_COLOR_NAMES_DARK = setOf(
     "yt_black0", "yt_black1", "yt_black2", "yt_black3", "yt_black4",
     "yt_black1_opacity95", "yt_black1_opacity98",
-    "yt_status_bar_background_dark", "material_grey_850",
-    APP_COLOR_NAME_DARK,
-    "yt_sys_color_baseline_mobile_dark_default_raised_background"
+    "yt_status_bar_background_dark", APP_COLOR_NAME_DARK,
+    "yt_sys_color_baseline_mobile_dark_default_raised_background",
+    "material_grey_850"
 )
 
 internal val THEME_DEFAULT_COLOR_NAMES_LIGHT = setOf(
     "yt_white1", "yt_white2", "yt_white3", "yt_white4",
-    "yt_white1_opacity95", "yt_white1_opacity98",
-    APP_COLOR_NAME_LIGHT,
+    "yt_white1_opacity95", "yt_white1_opacity98", APP_COLOR_NAME_LIGHT,
     "yt_sys_color_baseline_mobile_light_default_raised_background",
 )
+
+internal val STYLE_DEFAULT_COLOR_NAMES_DARK = emptyMap<String, Set<String>>()
+
+// Style name to color override.
+internal val STYLE_DEFAULT_COLOR_NAMES_LIGHT = emptyMap<String, Set<String>>()
 
 /**
  * Hooks every context of the app so the app resources resolve
@@ -342,6 +352,22 @@ private val themeColorContextHookPatch = bytecodePatch {
                 """
                     invoke-static { p1 }, $THEME_COLOR_EXTENSION_CLASS->wrapContext(Landroid/content/Context;)Landroid/content/Context;
                     move-result-object p1
+                """
+            )
+        }
+
+        // Without this the app resolves the colors it ships with after it leaves
+        // picture in picture, because the configuration it hands over is one of the device.
+        methodCall(
+            "Landroid/content/res/Resources;->updateConfiguration(Landroid/content/res/Configuration;Landroid/util/DisplayMetrics;)V"
+        ).matchAllMethodIndicesForEach { index ->
+            val configurationRegister = getInstruction<FiveRegisterInstruction>(index).registerD
+
+            addInstructions(
+                index,
+                """
+                    invoke-static { v$configurationRegister }, $THEME_COLOR_EXTENSION_CLASS->keepThemeVariant(Landroid/content/res/Configuration;)Landroid/content/res/Configuration;
+                    move-result-object v$configurationRegister
                 """
             )
         }
@@ -485,6 +511,25 @@ private fun ResourcePatchContext.declaredColors(colorFiles: List<String>): Map<S
     return declaredColors
 }
 
+/**
+ * The values the app declares for its theme colors, which the app default variant restores.
+ * Only valid until the aliases replace them.
+ */
+private fun ResourcePatchContext.originalColors(colorNames: List<String>): Map<String, String> {
+    val originalColors = LinkedHashMap<String, String>()
+
+    document("res/values/colors.xml").use { document ->
+        document.getNode("resources").forEachChildElement { color ->
+            val name = color.getAttribute("name")
+            if (name in colorNames) {
+                originalColors[name] = color.textContent
+            }
+        }
+    }
+
+    return originalColors
+}
+
 private fun ResourcePatchContext.colorFiles(): List<String> {
     val colorFiles = mutableListOf<String>()
     val resDir = get("res")
@@ -499,6 +544,22 @@ private fun ResourcePatchContext.colorFiles(): List<String> {
         }
     }
     return colorFiles
+}
+
+private fun ResourcePatchContext.styleFiles(): List<String> {
+    val styleFiles = mutableListOf<String>()
+    val resDir = get("res")
+    if (!resDir.exists()) return styleFiles
+
+    resDir.listFiles()?.forEach { dir ->
+        if (dir.isDirectory && dir.name.startsWith("values")) {
+            val stylesFile = dir.resolve("styles.xml")
+            if (stylesFile.exists()) {
+                styleFiles.add("res/${dir.name}/styles.xml")
+            }
+        }
+    }
+    return styleFiles
 }
 
 /**
@@ -521,12 +582,18 @@ private fun resolveColorValue(color: String, colorValues: Map<String, String>): 
 internal fun baseThemeResourcePatch(
     colorNamesDark: (() -> Set<String>) = { THEME_DEFAULT_COLOR_NAMES_DARK },
     colorNamesLight: (() -> Set<String>) = { THEME_DEFAULT_COLOR_NAMES_LIGHT },
+    styleColorNamesDark: (() -> Map<String, Set<String>>) = { STYLE_DEFAULT_COLOR_NAMES_DARK },
+    styleColorNamesLight: (() -> Map<String, Set<String>>) = { STYLE_DEFAULT_COLOR_NAMES_LIGHT },
     includeLightColor: Boolean = false,
     splashScreenThemeParent: String? = null
 ) = resourcePatch {
     execute {
         val colorFiles = colorFiles()
         val declaredColors = declaredColors(colorFiles)
+        val styleColorNamesDarkMap = styleColorNamesDark()
+        val styleColorNamesLightMap = styleColorNamesLight()
+        val styleFiles = styleFiles()
+
         darkColorNames = themeColorNames(APP_COLOR_NAMES_DARK, colorNamesDark(), declaredColors)
         lightColorNames = if (includeLightColor) {
             themeColorNames(APP_COLOR_NAMES_LIGHT, colorNamesLight(), declaredColors)
@@ -540,7 +607,10 @@ internal fun baseThemeResourcePatch(
         // A color that is set while patching is the only color the app can have,
         // so none of the variants and themes below are of any use.
         if (usePatchedThemeColor) {
-            replaceColors(colorFiles, declaredColors, includeLightColor)
+            replaceColors(
+                colorFiles, styleFiles, declaredColors,
+                styleColorNamesDarkMap, styleColorNamesLightMap, includeLightColor
+            )
             return@execute
         }
 
@@ -556,21 +626,32 @@ internal fun baseThemeResourcePatch(
             )
         }
 
-        val aliasAlphas = addColorAliases(colorFiles, declaredColors, includeLightColor)
-        
+        // The aliases replace the colors the app declares, so the app default reads them first.
+        val originalDarkColors = originalColors(darkColorNames)
+        val originalLightColors = if (includeLightColor) {
+            originalColors(lightColorNames)
+        } else {
+            emptyMap()
+        }
+
+        val aliasAlphas = addColorAliases(
+            colorFiles, styleFiles, declaredColors,
+            styleColorNamesDarkMap, styleColorNamesLightMap, includeLightColor
+        )
+
         val darkAliasAlphas = aliasAlphas.filterKeys { isDarkThemeColorAlias(it) }
         darkAliasNames = darkAliasAlphas.keys.toList()
         addColorVariants(
-            THEME_INDEX_OFFSET_DARK, THEME_COLORS_DARK, PALETTE_LEVELS_DARK,
-            darkAliasAlphas, true
+            THEME_INDEX_OFFSET_DARK, THEME_COLORS_DARK, PALETTE_L_LEVELS_DARK,
+            darkAliasAlphas, originalDarkColors, true
         )
 
         if (includeLightColor) {
             val lightAliasAlphas = aliasAlphas.filterKeys { !isDarkThemeColorAlias(it) }
             lightAliasNames = lightAliasAlphas.keys.toList()
             addColorVariants(
-                THEME_INDEX_OFFSET_LIGHT, THEME_COLORS_LIGHT, PALETTE_LEVELS_LIGHT,
-                lightAliasAlphas, false
+                THEME_INDEX_OFFSET_LIGHT, THEME_COLORS_LIGHT, PALETTE_L_LEVELS_LIGHT,
+                lightAliasAlphas, originalLightColors, false
             )
         }
 
@@ -628,8 +709,11 @@ private fun ResourcePatchContext.verifySettingEntries(
  */
 private fun ResourcePatchContext.replaceColors(
     colorFiles: List<String>,
+    styleFiles: List<String>,
     declaredColors: Map<String, String>,
-    includeLightCOlor: Boolean
+    styleColorNamesDark: Map<String, Set<String>>,
+    styleColorNamesLight: Map<String, Set<String>>,
+    includeLightColor: Boolean
 ) {
     val darkColor = patchedThemeColorDark
     if (!validateColorName(darkColor)) {
@@ -637,7 +721,7 @@ private fun ResourcePatchContext.replaceColors(
     }
 
     val lightColor = patchedThemeColorLight
-    if (includeLightCOlor && !validateColorName(lightColor)) {
+    if (includeLightColor && !validateColorName(lightColor)) {
         throw PatchException("Invalid light theme color: $lightColor")
     }
 
@@ -653,6 +737,29 @@ private fun ResourcePatchContext.replaceColors(
 
                 val alpha = parseAlpha(resolveColorValue(node.textContent, declaredColors))
                 node.textContent = applyAlpha(color, alpha)
+            }
+        }
+    }
+
+    styleFiles.forEach { path ->
+        document(path).use { document ->
+            document.getNode("resources").forEachChildElement { style ->
+                if (style.tagName != "style") return@forEachChildElement
+                val styleName = style.getAttribute("name")
+
+                style.forEachChildElement { item ->
+                    if (item.tagName != "item") return@forEachChildElement
+                    val itemName = item.getAttribute("name")
+
+                    val color = when {
+                        itemName in styleColorNamesDark[styleName].orEmpty() -> darkColor
+                        includeLightColor && itemName in styleColorNamesLight[styleName].orEmpty() -> lightColor
+                        else -> return@forEachChildElement
+                    }
+
+                    val alpha = parseAlpha(resolveColorValue(item.textContent, declaredColors))
+                    item.textContent = applyAlpha(color, alpha)
+                }
             }
         }
     }
@@ -699,23 +806,23 @@ private fun ResourcePatchContext.addSplashScreenThemes(
         fun addThemes(
             indexOffset: Int,
             colors: List<ThemeColor>,
-            levels: IntArray,
-            aliasName: String
+            lLevels: FloatArray,
+            appColor: String?
         ) {
             // The system resolves the splash screen with the configuration of the device, where
-            // no variant applies, so the alias of the app default is the unpatched color there.
-            themeColors(indexOffset, colors, levels, "@color/$aliasName")
+            // no variant applies, so the app default needs the color of the app itself.
+            themeColors(indexOffset, colors, lLevels, appColor)
                 .forEach { (index, color) -> addTheme(index, color) }
         }
 
         addThemes(
-            THEME_INDEX_OFFSET_DARK, THEME_COLORS_DARK, PALETTE_LEVELS_DARK,
-            THEME_COLOR_DARK
+            THEME_INDEX_OFFSET_DARK, THEME_COLORS_DARK, PALETTE_L_LEVELS_DARK,
+            appThemeColorDark
         )
         if (includeLightColor) {
             addThemes(
-                THEME_INDEX_OFFSET_LIGHT, THEME_COLORS_LIGHT, PALETTE_LEVELS_LIGHT,
-                THEME_COLOR_LIGHT
+                THEME_INDEX_OFFSET_LIGHT, THEME_COLORS_LIGHT, PALETTE_L_LEVELS_LIGHT,
+                appThemeColorLight
             )
         }
     }
@@ -769,7 +876,7 @@ private fun ResourcePatchContext.declareOverlayableColors(colorNames: List<Strin
 private fun themeColors(
     indexOffset: Int,
     colors: List<ThemeColor>,
-    levels: IntArray,
+    lLevels: FloatArray,
     appDefaultColor: String? = null
 ): Map<Int, String> = buildMap {
     colors.forEachIndexed { index, themeColor ->
@@ -784,8 +891,8 @@ private fun themeColors(
         }
     }
 
-    for (index in 0 until 512) {
-        put(indexOffset + PALETTE_INDEX_OFFSET + index, paletteColor(levels, index))
+    for (index in 0 until 256) {
+        put(indexOffset + PALETTE_INDEX_OFFSET + index, paletteColor(lLevels, index))
     }
 }
 
@@ -795,25 +902,27 @@ private fun themeColors(
 private fun ResourcePatchContext.addColorVariants(
     indexOffset: Int,
     colors: List<ThemeColor>,
-    levels: IntArray,
+    lLevels: FloatArray,
     aliasAlphas: Map<String, Int>,
+    originalColors: Map<String, String>,
     isDark: Boolean
 ) {
     // The app default is the only color that keeps the colors the app declares,
     // so it is the only variant that has to undo the alias.
-    val originalColors = LinkedHashMap<String, String>()
-    document("res/values/colors.xml").use { document ->
-        val colorNames = if (isDark) darkColorNames else lightColorNames
-        document.getNode("resources").forEachChildElement { color ->
-            val name = color.getAttribute("name")
-            if (name in colorNames) {
-                originalColors[name] = color.textContent
-            }
+    val appDefaultColors = LinkedHashMap(originalColors)
+
+    // The alias itself is what Morphe draws its own dialogs and settings with, and no name
+    // of the app resolves to it here, so it needs the color of the app of its own.
+    val appColor = if (isDark) appThemeColorDark else appThemeColorLight
+    if (appColor != null) {
+        aliasAlphas.forEach { (name, alpha) ->
+            appDefaultColors[name] = applyAlpha(appColor, alpha)
         }
     }
-    writeColorVariant(indexOffset + 1, originalColors, isDark)
 
-    themeColors(indexOffset, colors, levels).forEach { (index, color) ->
+    writeColorVariant(indexOffset + 1, appDefaultColors, isDark)
+
+    themeColors(indexOffset, colors, lLevels).forEach { (index, color) ->
         val mappedColors = aliasAlphas.mapValues { (_, alpha) -> applyAlpha(color, alpha) }
         writeColorVariant(index, mappedColors, isDark)
     }
@@ -833,7 +942,10 @@ private fun ResourcePatchContext.addColorVariants(
  */
 private fun ResourcePatchContext.addColorAliases(
     colorFiles: List<String>,
+    styleFiles: List<String>,
     declaredColors: Map<String, String>,
+    styleColorNamesDark: Map<String, Set<String>>,
+    styleColorNamesLight: Map<String, Set<String>>,
     includeLightColor: Boolean
 ): Map<String, Int> {
     val aliasAlphas = LinkedHashMap<String, Int>()
@@ -859,6 +971,36 @@ private fun ResourcePatchContext.addColorAliases(
 
                 aliasAlphas[colorAlias] = alpha
                 color.textContent = "@color/$colorAlias"
+            }
+        }
+    }
+
+    styleFiles.forEach { path ->
+        document(path).use { document ->
+            document.getNode("resources").forEachChildElement { style ->
+                if (style.tagName != "style") return@forEachChildElement
+                val styleName = style.getAttribute("name")
+
+                style.forEachChildElement { item ->
+                    if (item.tagName != "item") return@forEachChildElement
+                    val itemName = item.getAttribute("name")
+
+                    val aliasBaseName = when {
+                        itemName in styleColorNamesDark[styleName].orEmpty() -> THEME_COLOR_DARK
+                        includeLightColor && itemName in styleColorNamesLight[styleName].orEmpty() -> THEME_COLOR_LIGHT
+                        else -> return@forEachChildElement
+                    }
+
+                    val alpha = parseAlpha(resolveColorValue(item.textContent, declaredColors))
+                    val colorAlias = if (alpha == 0xFF) {
+                        aliasBaseName
+                    } else {
+                        "${aliasBaseName}_opacity_${"%02X".format(alpha)}"
+                    }
+
+                    aliasAlphas[colorAlias] = alpha
+                    item.textContent = "@color/$colorAlias"
+                }
             }
         }
     }
@@ -918,13 +1060,50 @@ private fun applyAlpha(color: String, alpha: Int): String {
 }
 
 /**
- * The color of a value of the 9 bit palette, which the extension picks the index of.
+ * The color of a value of the 8 bit palette, which the extension picks the index of.
  */
-private fun paletteColor(levels: IntArray, index: Int) = "#%02X%02X%02X".format(
-    levels[(index shr 6) and 0x7],
-    levels[(index shr 3) and 0x7],
-    levels[index and 0x7]
-)
+private fun paletteColor(lLevels: FloatArray, index: Int): String {
+    val l = lLevels[(index shr 5) and 0x7].toDouble()
+    val c = PALETTE_C_LEVELS[(index shr 3) and 0x3].toDouble()
+    val h = PALETTE_H_LEVELS[index and 0x7].toDouble()
+
+    val hRad = h * (PI / 180.0)
+    val a = c * cos(hRad)
+    val b = c * sin(hRad)
+
+    val lOklab = l + 0.3963377774 * a + 0.2158037573 * b
+    val mOklab = l - 0.1055613458 * a - 0.0638541728 * b
+    val sOklab = l - 0.0894841775 * a - 1.2914855480 * b
+
+    val lCubed = lOklab * lOklab * lOklab
+    val mCubed = mOklab * mOklab * mOklab
+    val sCubed = sOklab * sOklab * sOklab
+
+    var rRgb = +4.0767416621 * lCubed - 3.3077115913 * mCubed + 0.2309699292 * sCubed
+    var gRgb = -1.2684380046 * lCubed + 2.6097574011 * mCubed - 0.3413193965 * sCubed
+    var bRgb = -0.0041960863 * lCubed - 0.7034186147 * mCubed + 1.7076127010 * sCubed
+
+    // Clamping and sRGB gamma correction
+    fun delinearizeSrgb(v: Double): Double {
+        return if (v > 0.0031308) {
+            1.055 * v.pow(1.0 / 2.4) - 0.055
+        } else {
+            12.92 * v
+        }
+    }
+
+    rRgb = delinearizeSrgb(rRgb)
+    gRgb = delinearizeSrgb(gRgb)
+    bRgb = delinearizeSrgb(bRgb)
+
+    fun toColorInt(v: Double) = (v.toFloat().coerceIn(0f, 1f) * 255).toInt()
+
+    val ri = toColorInt(rRgb)
+    val gi = toColorInt(gRgb)
+    val bi = toColorInt(bRgb)
+
+    return "#%02X%02X%02X".format(ri, gi, bi)
+}
 
 private fun ResourcePatchContext.writeColorVariant(
     index: Int,

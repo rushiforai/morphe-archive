@@ -18,10 +18,15 @@ object LoadAdsFingerprint : Fingerprint(
     returnType = "V",
 )
 
+// loadNativeAd — return type changed V→Z across versions, so match by params only.
 object LoadNativeAdFingerprint : Fingerprint(
     definingClass = "Lorg/telegram/plus/ads/AdsInstance;",
     name = "loadNativeAd",
-    returnType = "V",
+    parameters = listOf(
+        "Landroid/content/Context;",
+        "Z",
+        "Lorg/telegram/plus/ads/AdsInstance\$AdsInstanceInterface;",
+    ),
 )
 
 object IsSponsoredDisabledFingerprint : Fingerprint(
@@ -45,9 +50,19 @@ val removeAdsPatch = bytecodePatch(
             return v0
         """)
 
-        // Block ad loading
+        // Block ad loading. loadNativeAd returns void on older builds and boolean
+        // on newer ones, so emit the matching return.
         LoadAdsFingerprint.method.addInstructions(0, "return-void")
-        LoadNativeAdFingerprint.method.addInstructions(0, "return-void")
+        LoadNativeAdFingerprint.method.apply {
+            if (returnType == "Z") {
+                addInstructions(0, """
+                    const/4 v0, 0x0
+                    return v0
+                """)
+            } else {
+                addInstructions(0, "return-void")
+            }
+        }
 
         // Disable Telegram sponsored messages
         IsSponsoredDisabledFingerprint.method.addInstructions(0, """

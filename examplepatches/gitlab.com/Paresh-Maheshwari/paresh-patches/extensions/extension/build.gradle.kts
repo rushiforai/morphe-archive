@@ -18,4 +18,5 @@ android {
 
 dependencies {
     compileOnly(libs.annotation)
+    implementation("org.lsposed.hiddenapibypass:hiddenapibypass:4.3")
 }

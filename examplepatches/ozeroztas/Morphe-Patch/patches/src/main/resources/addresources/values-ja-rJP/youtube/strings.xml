@@ -33,6 +33,8 @@ Second \"item\" text"</string>
   <!-- misc.backgroundplayback.backgroundPlaybackPatch -->
   <string name="morphe_remove_background_playback_restrictions_title">バックグラウンド再生の制限を解除</string>
   <string name="morphe_shorts_disable_background_playback_title">ショートのバックグラウンド再生を無効化</string>
+  <!-- layout.disableScrollSpeedLimitPatch -->
+  <string name="morphe_disable_scrolling_speed_limit_title">スクロールの速度制限を無効化</string>
   <!-- layout.disableLayoutUpdatesPatch -->
   <string name="morphe_disable_layout_updates_title">レイアウトの更新を無効化</string>
   <string name="morphe_disable_layout_updates_summary">サーバーによるアプリのレイアウトの更新を防ぎます</string>
@@ -167,16 +169,13 @@ Second \"item\" text"</string>
   <string name="morphe_hide_explore_podcast_section_title">「ポッドキャストを検索」セクションを非表示</string>
   <string name="morphe_hide_featured_channels_section_title">チャンネル カード セクション内のおすすめチャンネルを非表示</string>
   <string name="morphe_hide_featured_links_section_title">チャンネル カード セクション内のおすすめリンクを非表示</string>
-  <string name="morphe_hide_featured_places_section_title">「注目の場所」セクションを非表示</string>
   <string name="morphe_hide_featured_playlists_section_title">チャンネル カード セクション内のおすすめ再生リストを非表示</string>
   <string name="morphe_hide_featured_videos_section_title">チャンネル カード セクション内のおすすめ動画を非表示</string>
-  <string name="morphe_hide_gaming_section_title">ゲーム セクションを非表示</string>
   <string name="morphe_hide_hashtag_section_title">ハッシュタグ セクションを非表示</string>
-  <string name="morphe_hide_how_this_was_made_section_title">「作成の裏側」セクションを非表示</string>
+  <string name="morphe_hide_how_this_was_made_section_title">「制作の裏側」セクションを非表示</string>
   <string name="morphe_hide_hype_points_title">ハイプポイントを非表示</string>
   <string name="morphe_hide_info_cards_section_title">チャンネル カード セクションを非表示</string>
   <string name="morphe_hide_key_concepts_section_title">「主な概念」セクションを非表示</string>
-  <string name="morphe_hide_music_section_title">音楽セクションを非表示</string>
   <string name="morphe_hide_quizzes_section_title">クイズ セクションを非表示</string>
   <string name="morphe_hide_search_inside_this_video_section_title">「動画内を検索 」セクションを非表示</string>
   <string name="morphe_hide_subscribe_button_title">チャンネル カード セクション内のチャンネル登録ボタンを非表示</string>
@@ -184,6 +183,7 @@ Second \"item\" text"</string>
   <string name="morphe_hide_video_details_section_title">「動画の詳細」セクションを非表示</string>
   <string name="morphe_hide_filter_bar_screen_title">フィルタバー</string>
   <string name="morphe_hide_filter_bar_screen_summary">横スクロールする横一列の、フィルタボタンまたはカテゴリボタンのリストを非表示にする場所を設定します</string>
+  <string name="morphe_hide_filter_bar_in_channel_page_title">チャンネル ページで非表示</string>
   <string name="morphe_hide_filter_bar_in_comments_title">コメント欄で非表示</string>
   <string name="morphe_hide_filter_bar_in_feed_title">フィードで非表示</string>
   <string name="morphe_hide_filter_bar_in_related_videos_title">関連動画で非表示</string>
@@ -200,6 +200,8 @@ Second \"item\" text"</string>
   <string name="morphe_hide_join_button_title">「メンバーになる」ボタンを非表示</string>
   <string name="morphe_hide_links_preview_title">リンクのプレビューを非表示</string>
   <string name="morphe_hide_links_preview_summary">チャンネルの説明文の末尾の「…さらに表示」ボタンの下に表示される、リンクの一覧を呼び出すボタンを非表示にします</string>
+  <string name="morphe_hide_members_only_chip_title">「メンバー限定」チップを非表示</string>
+  <string name="morphe_hide_members_only_chip_summary">チャンネルフィルターバーから「メンバー限定」チップを非表示にします</string>
   <string name="morphe_hide_members_shelf_title">メンバー欄を非表示</string>
   <string name="morphe_hide_members_shelf_summary">横一列のチャンネル メンバーのリストを非表示にします</string>
   <string name="morphe_hide_posts_shelf_title">「投稿」欄を非表示</string>
@@ -260,14 +262,15 @@ Second \"item\" text"</string>
   <string name="morphe_hide_comments_preview_comment_summary">コメント欄を開く前に動画の下に表示される、コメントのプレビューを非表示にします</string>
   <string name="morphe_hide_comments_thanks_button_title">Thanks ボタンを非表示</string>
   <string name="morphe_hide_comments_timestamp_button_title">タイムスタンプ ボタンを非表示</string>
+  <string name="morphe_hide_comments_top_fans_button_title">「トップファン」ボタンを非表示</string>
   <string name="morphe_sanitize_comments_highlighted_search_links_title">テキスト内の検索リンクを除去</string>
   <string name="morphe_sanitize_comments_highlighted_search_links_summary">テキスト内の単語やフレーズに埋め込まれた虫眼鏡アイコン付きの検索リンクを取り除き、通常のテキストに戻します</string>
   <string name="morphe_hide_keyword_content_screen_title">キーワード フィルタ</string>
   <string name="morphe_hide_keyword_content_screen_summary">フィードや検索結果から合致する動画を除外する単語やフレーズを設定します</string>
+  <string name="morphe_hide_keyword_content_comments_title">コメントをキーワードで除外</string>
   <string name="morphe_hide_keyword_content_home_title">ホームの動画をキーワードで除外</string>
   <string name="morphe_hide_keyword_content_search_title">検索結果の動画をキーワードで除外</string>
   <string name="morphe_hide_keyword_content_subscriptions_title">登録チャンネルの動画をキーワードで除外</string>
-  <string name="morphe_hide_keyword_content_comments_title">コメントをキーワードで除外</string>
   <string name="morphe_hide_keyword_content_phrases_title">キーワード</string>
   <!-- For localization, it is preferred, but not required, if 'LeBlanc' is replaced with a localized name or a familiar word that has upper case letters in the middle of the word.
          This is because keywords can be in any language, and showing an example in the localized script helps convey this. -->
@@ -449,16 +452,19 @@ APIキーは決して共有しないでください。アクセス権を持つ�
   <string name="morphe_reload_video_button_title">動画の再読み込みボタンを表示</string>
   <string name="morphe_dismiss_player_not_available_toast">動画 ID が利用できません。手動で動画を再度開いてください</string>
   <!-- interaction.savetowatchlater.saveToWatchLaterPatch -->
-  <string name="morphe_save_to_watch_later_button_title">「後で見るに保存」ボタンを表示</string>
-  <string name="morphe_save_to_watch_later_button_summary">タップすると、動画を「後で見る」に保存します。長押しするとキュー オプションを表示します</string>
+  <string name="morphe_save_to_watch_later_button_title">「[後で見る] に保存」ボタンを表示</string>
+  <string name="morphe_save_to_watch_later_button_summary">タップすると、動画を [後で見る] に保存します。長押しするとキュー オプションを表示します</string>
   <string name="morphe_save_to_watch_later_success_toast">動画を「後で見る」に保存しました</string>
   <string name="morphe_save_to_watch_later_already_exists_toast">この動画は既に「後で見る」に保存されています</string>
   <string name="morphe_save_to_watch_later_error_toast">この動画は「後で見る」に保存できません</string>
+  <string name="morphe_save_to_watch_later_flyout_title">[後で見る] に保存</string>
+  <string name="morphe_save_to_watch_later_kids_flyout_button_title">子ども向け動画の関連動画に「[後で見る] に保存」を表示</string>
+  <string name="morphe_save_to_watch_later_kids_flyout_button_summary">子ども向け動画の関連動画のフライアウト メニューに「[後で見る] に保存」を表示します</string>
   <string name="morphe_queue_flyout_title">Morphe キューに追加</string>
   <string name="morphe_queue_restore_title">セッションをまたいでキューを保持</string>
   <string name="morphe_queue_restore_summary">アプリを終了または再起動したときにキューを保持します</string>
   <string name="morphe_swap_save_and_queue_actions_title">「後で見るに保存」ボタンの動作を入れ替える</string>
-  <string name="morphe_swap_save_and_queue_actions_summary">タップするとキュー オプションを表示します。長押しすると、動画を「後で見る」に保存します。</string>
+  <string name="morphe_swap_save_and_queue_actions_summary">タップするとキュー オプションを表示します。長押しすると、動画を [後で見る] に保存します</string>
   <string name="morphe_queue_override_flyout_menu_title">フィードのフライアウト メニューのキューの項目の動作を上書き</string>
   <string name="morphe_queue_override_flyout_menu_summary">YouTube のキューの代わりに Morphe のキューを開きます</string>
   <string name="morphe_queue_add_flyout_menu_title">フィードのフライアウト メニューにキューの項目を追加</string>
@@ -704,42 +710,44 @@ APIキーは決して共有しないでください。アクセス権を持つ�
   <!-- layout.hide.player.flyoutmenupanel.hidePlayerFlyoutMenuPatch -->
   <string name="morphe_hide_player_flyout_title">フライアウト メニュー</string>
   <string name="morphe_hide_player_flyout_summary">プレーヤー オーバーレイの歯車アイコンボタンから呼び出されるメニューに表示するコンポーネントを設定します</string>
-  <!-- 'Audio Track' should be translated using the same localized wording YouTube displays for the menu item. -->
-  <string name="morphe_hide_player_flyout_audio_track_title">「音声トラック」を非表示</string>
+  <!-- 'Additional settings / More' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_player_flyout_additional_settings_title">「その他の設定」/「その他」を非表示</string>
+  <!-- 'Ambient mode' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_player_flyout_ambient_mode_title">「アンビエント モード」を非表示</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
+         'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
   <string name="morphe_hide_player_flyout_audio_track_not_available">"「音声トラック」は表示されません
 
 「音声トラック」を表示するには、[動画ストリームを偽装] のクライアントを「Android Studio」および「Android VR Downgraded」を除く任意のクライアントに変更してください"</string>
+  <!-- 'Audio Track' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_player_flyout_audio_track_title">「音声トラック」を非表示</string>
   <string name="morphe_hide_player_flyout_audio_track_footer_title">音声トラック メニューの脚注を非表示</string>
   <!-- 'Captions' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_captions_title">「字幕」を非表示</string>
   <string name="morphe_hide_player_flyout_captions_footer_title">字幕メニューの脚注を非表示</string>
   <string name="morphe_hide_player_flyout_captions_header_title">字幕メニューのヘッダーを非表示</string>
-  <!-- 'Additional settings / More' should be translated using the same localized wording YouTube displays for the menu item. -->
-  <string name="morphe_hide_player_flyout_additional_settings_title">「その他の設定」/「その他」を非表示</string>
-  <!-- 'Sleep timer' should be translated using the same localized wording YouTube displays for the menu item. -->
-  <string name="morphe_hide_player_flyout_sleep_timer_title">「スリープ タイマー」を非表示</string>
-  <!-- 'Loop video' should be translated using the same localized wording YouTube displays for the menu item. -->
-  <string name="morphe_hide_player_flyout_loop_video_title">「動画のループ再生」を非表示</string>
-  <!-- 'Ambient mode' should be translated using the same localized wording YouTube displays for the menu item. -->
-  <string name="morphe_hide_player_flyout_ambient_mode_title">「アンビエント モード」を非表示</string>
-  <!-- 'Stable volume' should be translated using the same localized wording YouTube displays for the menu item. -->
-  <string name="morphe_hide_player_flyout_stable_volume_title">「一定音量」を非表示</string>
   <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_help_title">「ヘルプとフィードバック」を非表示</string>
-  <!-- 'Playback speed' should be translated using the same localized wording YouTube displays for the menu item. -->
-  <string name="morphe_hide_player_flyout_speed_title">「再生速度」を非表示</string>
-  <!-- 'Lock screen' should be translated using the same localized wording YouTube displays for the menu item. -->
-  <string name="morphe_hide_player_flyout_lock_screen_title">「画面のロック」を非表示</string>
   <!-- 'Listen with YouTube Music' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_listen_with_youtube_music_title">「YouTube Music で聴く」を非表示</string>
-  <!-- 'Watch in VR' should be translated using the same localized wording YouTube displays for the menu item. -->
-  <string name="morphe_hide_player_flyout_watch_in_vr_title">「VR で見る」を非表示</string>
+  <!-- 'Lock screen' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_player_flyout_lock_screen_title">「画面のロック」を非表示</string>
+  <!-- 'Loop video' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_player_flyout_loop_video_title">「動画のループ再生」を非表示</string>
+  <!-- 'On-the-go' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_player_flyout_on_the_go_title">「オーディオ」を非表示</string>
   <!-- 'Quality' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_quality_title">「画質」を非表示</string>
   <string name="morphe_hide_player_flyout_quality_footer_title">画質メニューの脚注を非表示</string>
   <string name="morphe_hide_player_flyout_quality_header_title">画質メニューのヘッダーを非表示</string>
+  <!-- 'Sleep timer' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_player_flyout_sleep_timer_title">「スリープ タイマー」を非表示</string>
+  <!-- 'Playback speed' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_player_flyout_speed_title">「再生速度」を非表示</string>
+  <!-- 'Stable volume' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_player_flyout_stable_volume_title">「一定音量」を非表示</string>
+  <!-- 'Watch in VR' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_player_flyout_watch_in_vr_title">「VR で見る」を非表示</string>
   <!-- layout.hide.autoplaypreview.hideAutoplayPreviewPatch -->
   <string name="morphe_hide_autoplay_preview_title">自動再生のプレビューを非表示</string>
   <string name="morphe_hide_autoplay_preview_summary">全画面表示モードで終了画面に表示される、「次の動画」のプレビューを非表示にします</string>
@@ -842,6 +850,9 @@ APIキーは決して共有しないでください。アクセス権を持つ�
   <!-- layout.panels.popup.disablePlayerPopupPanelsPatch -->
   <string name="morphe_disable_player_popup_panels_title">プレーヤー ポップアップ パネルを無効化</string>
   <string name="morphe_disable_player_popup_panels_summary">プレイリストやライブ配信のチャット欄の自動表示を無効にします</string>
+  <!-- layout.playlistautoplay.disablePlaylistAutoplayPatch -->
+  <string name="morphe_disable_playlist_autoplay_title">プレイリストの自動再生を無効化</string>
+  <string name="morphe_disable_playlist_autoplay_summary">プレイリストの次の動画を自動的に再生する機能を無効にします</string>
   <!-- layout.player.fullscreen.exitFullscreenPatch -->
   <string name="morphe_exit_fullscreen_title">再生終了時に全画面表示を解除</string>
   <string name="morphe_exit_fullscreen_entry_1">無効</string>
@@ -850,21 +861,34 @@ APIキーは決して共有しないでください。アクセス権を持つ�
   <string name="morphe_exit_fullscreen_entry_4">縦画面 &amp; 横画面</string>
   <!-- layout.player.fullscreen.disableFullscreenGesturesPatch -->
   <string name="morphe_disable_fullscreen_gestures_title">全画面表示ジェスチャー</string>
-  <string name="morphe_disable_fullscreen_gestures_summary">プレーヤーの全画面表示モードを開始 / 終了するスワイプ ジェスチャー</string>
+  <string name="morphe_disable_fullscreen_gestures_summary">全画面表示モードに関連するジェスチャー</string>
   <string name="morphe_disable_fullscreen_pulled_up_gesture_title">縦画面での上へのスワイプ ジェスチャーを無効化</string>
   <string name="morphe_disable_fullscreen_sliding_down_gesture_title">縦画面での下へのスワイプ ジェスチャーを無効化</string>
   <string name="morphe_disable_fullscreen_dragged_down_gesture_title">横画面での下へのスワイプ ジェスチャーを無効化</string>
+  <string name="morphe_disable_fullscreen_zoom_gesture_title">「ピンチしてズーム」ジェスチャーを無効化</string>
   <!-- layout.player.fullscreen.openVideosFullscreenPatch -->
   <string name="morphe_open_videos_fullscreen_title">全画面表示で動画を開く</string>
   <string name="morphe_open_videos_fullscreen_entry_1">無効</string>
   <string name="morphe_open_videos_fullscreen_entry_2">縦画面</string>
   <string name="morphe_open_videos_fullscreen_entry_3">横画面</string>
+  <!-- layout.player.fullscreen.stretchVideoPatch -->
+  <string name="morphe_fullscreen_video_scale_title">全画面ビデオのスケール</string>
+  <string name="morphe_fullscreen_video_scale_entry_default">デフォルト</string>
+  <string name="morphe_fullscreen_video_scale_entry_stretch">ストレッチ（画面いっぱい）</string>
+  <string name="morphe_fullscreen_video_scale_entry_zoom">ズーム（切り抜いて画面いっぱい）</string>
+  <string name="morphe_fullscreen_video_scale_button_title">ビデオスケールボタンを表示</string>
+  <string name="morphe_fullscreen_video_scale_button_summary">タップすると、デフォルト → 引き伸ばす → ズーム → デフォルトの順に切り替わります</string>
+  <!-- layout.player.buttons.muteVideoButtonPatch -->
+  <string name="morphe_mute_video_button_title">消音ボタンを表示</string>
   <!-- layout.player.overlay.customPlayerOverlayOpacityPatch -->
   <string name="morphe_player_overlay_opacity_title">プレーヤー オーバーレイの透明度</string>
   <string name="morphe_player_overlay_opacity_summary">プレーヤー オーバーレイの透明度を設定します (0-100: 0 が透明)</string>
   <string name="morphe_player_overlay_opacity_invalid_toast">プレーヤーの透明度の範囲: 0-100</string>
   <!-- layout.searchbar.wideSearchbarPatch -->
-  <string name="morphe_wide_searchbar_title">ワイド検索バーを有効化</string>
+  <string name="morphe_searchbar_type_title">検索バー</string>
+  <string name="morphe_searchbar_type_entry_disabled">無効</string>
+  <string name="morphe_searchbar_type_entry_wide">ワイド</string>
+  <string name="morphe_searchbar_type_entry_extra_wide">超ワイド</string>
   <!-- layout.sponsorblock.sponsorBlockPatch -->
   <!-- layout.formfactor.changeFormFactorPatch -->
   <string name="morphe_change_form_factor_title">レイアウトの種類</string>
@@ -876,16 +900,18 @@ APIキーは決して共有しないでください。アクセス権を持つ�
 
 タブレット レイアウト
 • コミュニティ投稿が表示されない
-• YouTube の設定に「フィードで再生」が表示されない
+• YouTube の設定項目の [フィードで再生] が表示されない
 • ショート動画のリミックス ボタンとサウンドボタンが利用できない
-• 動画プレーヤーのアクション ボタンにボタン名が表示される
+•「その他の動画」オーバーレイが表示されない場合がある
+• 動画プレーヤーのアクション ボタンにボタン名が表示される (旧仕様)
 
 Automotive レイアウト
 • フィードがトピックやチャンネルごとに分類された形で表示される
-• YouTube の設定に「フィードで再生」が表示されない
+• YouTube の設定項目の [フィードで再生] が表示されない
 • ショート動画のリミックス ボタンとサウンドボタンが利用できない
+• 「その他の動画」オーバーレイが表示されない場合がある
 • ショート動画が通常のプレーヤーで再生される
-• 動画プレーヤーのアクション ボタンにボタン名が表示される"</string>
+• 動画プレーヤーのアクション ボタンにボタン名が表示される (旧仕様)"</string>
   <string name="morphe_tablet_layout_in_player_title">プレーヤーにのみタブレット レイアウトを適用</string>
   <!-- "Restore old video action bar" must be translated the same as morphe_restore_old_video_action_bar_title -->
   <string name="morphe_tablet_layout_in_player_summary">"動画プレーヤーのレイアウトを旧スタイルに戻します
@@ -984,7 +1010,7 @@ Automotive レイアウト
   <!-- layout.theme.themePatch -->
   <string name="morphe_theme_color_light_title">ライトモードのテーマ</string>
   <string name="morphe_theme_color_light_entry_2">ホワイト</string>
-  <string name="morphe_theme_color_light_entry_3">Material You（白）</string>
+  <string name="morphe_theme_color_light_entry_3">Material You（ホワイト）</string>
   <string name="morphe_theme_color_light_entry_9">ライトピンク</string>
   <string name="morphe_theme_color_light_entry_10">ライトブルー</string>
   <string name="morphe_theme_color_light_entry_11">ライトグリーン</string>
@@ -993,8 +1019,8 @@ Automotive レイアウト
   <string name="morphe_theme_color_light_entry_14">ライトレッド</string>
   <string name="morphe_theme_color_light_custom_title">ライトモードのカスタムテーマ</string>
   <string name="morphe_theme_color_light_custom_summary">ライトモードのカスタムテーマの色の値を設定します</string>
-  <string name="morphe_theme_color_change_foreground_title">フォアグラウンド カラーを変更します</string>
-  <string name="morphe_theme_color_change_foreground_summary">テーマカラーをテキストとアイコンに使用する</string>
+  <string name="morphe_theme_color_change_foreground_title">テーマを背景以外にも適用</string>
+  <string name="morphe_theme_color_change_foreground_summary">設定したテーマの色をテキストやアイコンなどにも適用します</string>
   <string name="morphe_gradient_loading_screen_title">グラデーションの読み込み画面を有効化</string>
   <string name="morphe_gradient_loading_screen_summary">読み込み画面の背景を、「単色の背景」から「グラデーションの背景」に変更します</string>
   <string name="morphe_splash_screen_animation_style_title">スプラッシュ画面のスタイル</string>
@@ -1128,7 +1154,15 @@ Automotive レイアウト
   <string name="morphe_playback_audio_time_stretching_summary">再生速度と音声ピッチを個別に設定できますが、音声にノイズなどの副作用が生じる場合があります</string>
   <!-- video.codecs.disableVideoCodecsPatch -->
   <string name="morphe_disable_hdr_video_title">HDR 動画を無効化</string>
-  <string name="morphe_force_avc_codec_title">AVC (H.264) を優先して使用</string>
+  <string name="morphe_force_hdr_video_title">HDR 動画を強制的に使用</string>
+  <string name="morphe_force_hdr_video_summary">アプリにこのデバイスが HDR に対応していると強制的に認識させます</string>
+  <string name="morphe_force_hdr_video_user_dialog_message">"HDR を正常にデコードできるにもかかわらず YouTube から HDR が提供されない場合に、この機能を使用してください。例えば、HDR の一種である HLG 方式に対応していることがアプリ側に認識されない、一部の HyperOS 搭載デバイスが該当します。
+
+制限事項:
+• ディスプレイが実際には HDR に対応していない場合、色合いが正常に表示されない場合がある
+• デコーダーが HDR に対応していない場合、動画の再生に失敗する場合がある
+• HDR は、依然として [動画ストリームを偽装] のクライアントに依存する"</string>
+  <string name="morphe_force_avc_codec_title">AVC (H.264) を強制的に使用</string>
   <string name="morphe_force_avc_codec_user_dialog_message">"利点:
 • バッテリー持ちが良くなる可能性がある
 • 古いデバイスで失われた動画解像度を復元できる場合がある

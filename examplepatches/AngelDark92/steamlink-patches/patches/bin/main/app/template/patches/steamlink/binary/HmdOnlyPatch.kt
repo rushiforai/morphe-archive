@@ -5,6 +5,7 @@ import app.morphe.patcher.patch.intOption
 import app.morphe.patcher.patch.rawResourcePatch
 import app.template.patches.shared.Constants.COMPATIBILITY_STEAM_LINK_HMD_ONLY
 import app.template.patches.shared.Constants.COMPATIBILITY_STEAM_LINK_HMD_ONLY_5002172
+import app.template.patches.shared.Constants.COMPATIBILITY_STEAM_LINK_HMD_ONLY_5002206
 import app.template.patches.shared.Constants.COMPATIBILITY_STEAM_LINK_HMD_ONLY_5002244
 import app.template.patches.steamlink.util.BinaryPatchHelper.vaddrToFileOffset
 import java.nio.ByteBuffer
@@ -170,6 +171,7 @@ val hmdOnlyPatch = rawResourcePatch(
     compatibleWith(
         COMPATIBILITY_STEAM_LINK_HMD_ONLY,
         COMPATIBILITY_STEAM_LINK_HMD_ONLY_5002172,
+        COMPATIBILITY_STEAM_LINK_HMD_ONLY_5002206,
         COMPATIBILITY_STEAM_LINK_HMD_ONLY_5002244,
     )
 

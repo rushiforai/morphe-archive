@@ -4,6 +4,11 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.methodCall
 import com.android.tools.smali.dexlib2.AccessFlags
 
+// Mantık: Her Unity oyununda UnityPlayerActivity.onCreate vardır.
+// Extreme için spesifik ExtremeActivity hedeflenir, ama filter'lar universal pattern gösterir.
+// Sonraki oyunlarda sadece definingClass değiştir: örn. com.unity3d.player.UnityPlayerActivity
+// veya oyunun MainActivity'si. Filters içinde ANRWatchdog gibi oyun-spesifik çağrılar
+// fingerprint'i güçlendirir - yeni oyunda o oyunun unique methodCall'larını ekle.
 object OnCreateFingerprint : Fingerprint(
     definingClass = "Lcom/aim/ExtremeActivity;",
     name = "onCreate",

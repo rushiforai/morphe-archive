@@ -1,0 +1,59 @@
+name: Sync Morphe upstream
+
+on:
+  schedule:
+    # Keep two independent deliveries. GitHub may occasionally skip a scheduled
+    # event; the staggered fallback limits a single missed event to 90 minutes.
+    - cron: '23 */2 * * *'
+    - cron: '53 */2 * * *'
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Channel to check
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - stable
+          - dev
+
+concurrency:
+  group: dual-vot-upstream-sync
+  cancel-in-progress: false
+
+jobs:
+  stable:
+    name: Stable channel
+    if: >-
+      github.event_name == 'schedule' ||
+      inputs.channel == 'all' ||
+      inputs.channel == 'stable'
+    permissions:
+      contents: write
+      packages: read
+      issues: write
+    uses: ./.github/workflows/upstream_sync_channel.yml
+    secrets: inherit
+    with:
+      channel: stable
+
+  dev:
+    name: Pre-release channel
+    needs: stable
+    if: >-
+      always() &&
+      (needs.stable.result == 'success' || needs.stable.result == 'skipped') &&
+      (
+        github.event_name == 'schedule' ||
+        inputs.channel == 'all' ||
+        inputs.channel == 'dev'
+      )
+    permissions:
+      contents: write
+      packages: read
+      issues: write
+    uses: ./.github/workflows/upstream_sync_channel.yml
+    secrets: inherit
+    with:
+      channel: dev

@@ -33,6 +33,18 @@ private data class HmdLayout(
 
 private val HMD_LAYOUTS = listOf(
     HmdLayout(
+        versionCode = 5001740,
+        fileSize = 2_220_528,
+        hookVaddr = 0x00101378L,
+        velocityPatches = listOf(
+            VelocityPatch(0x001013A4L, 28, paired = true),
+            VelocityPatch(0x001013C0L, 36),
+            VelocityPatch(0x001014A0L, 40),
+            VelocityPatch(0x001014A4L, 44),
+            VelocityPatch(0x001014B0L, 48),
+        ),
+    ),
+    HmdLayout(
         versionCode = 5001712,
         fileSize = 2_221_072,
         hookVaddr = 0x001014E8L,

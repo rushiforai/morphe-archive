@@ -5,6 +5,8 @@
 
 .field private static sWindowManager:Landroid/view/WindowManager;
 
+
+
 .method public constructor <init>()V
     .locals 0
 
@@ -12,7 +14,6 @@
 
     return-void
 .end method
-
 .method public static isEnabled(Landroid/content/Context;)Z
     .locals 5
 
@@ -76,6 +77,7 @@
 
     if-eqz v0, :failed
 
+
     invoke-static {p0}, Landroid/provider/Settings;->canDrawOverlays(Landroid/content/Context;)Z
 
     move-result v0
@@ -94,6 +96,7 @@
     new-instance v1, Landroid/view/View;
 
     invoke-direct {v1, p0}, Landroid/view/View;-><init>(Landroid/content/Context;)V
+
 
     const/high16 v0, 0x1000000
 
@@ -164,82 +167,6 @@
     invoke-static {v1, v2, v0}, Landroid/util/Log;->w(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I
 
     :failed
-    const/4 v0, 0x0
-
-    return v0
-.end method
-
-.method public static isOverlayAttached()Z
-    .locals 1
-
-    sget-object v0, Lcom/valvesoftware/steamlink/GxrOverlayBridge;->sOverlay:Landroid/view/View;
-
-    if-eqz v0, :not_attached
-
-    invoke-virtual {v0}, Landroid/view/View;->isAttachedToWindow()Z
-
-    move-result v0
-
-    return v0
-
-    :not_attached
-    const/4 v0, 0x0
-
-    return v0
-.end method
-
-.method public static removeOverlay()Z
-    .locals 4
-
-    sget-object v0, Lcom/valvesoftware/steamlink/GxrOverlayBridge;->sWindowManager:Landroid/view/WindowManager;
-
-    sget-object v1, Lcom/valvesoftware/steamlink/GxrOverlayBridge;->sOverlay:Landroid/view/View;
-
-    if-eqz v0, :missing
-
-    if-eqz v1, :missing
-
-    :try_start
-    invoke-interface {v0, v1}, Landroid/view/WindowManager;->removeViewImmediate(Landroid/view/View;)V
-
-    const/4 v0, 0x0
-
-    sput-object v0, Lcom/valvesoftware/steamlink/GxrOverlayBridge;->sOverlay:Landroid/view/View;
-
-    sput-object v0, Lcom/valvesoftware/steamlink/GxrOverlayBridge;->sWindowManager:Landroid/view/WindowManager;
-
-    const-string v0, "SteamLinkGXR"
-
-    const-string v1, "Removed compositor overlay before VR"
-
-    invoke-static {v0, v1}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
-    :try_end
-    .catch Ljava/lang/RuntimeException; {:try_start .. :try_end} :failed
-
-    const/4 v0, 0x1
-
-    return v0
-
-    :failed
-    move-exception v0
-
-    const-string v1, "SteamLinkGXR"
-
-    const-string v2, "Failed to remove compositor overlay"
-
-    invoke-static {v1, v2, v0}, Landroid/util/Log;->w(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I
-
-    const/4 v0, 0x0
-
-    return v0
-
-    :missing
-    const-string v0, "SteamLinkGXR"
-
-    const-string v1, "No compositor overlay to remove"
-
-    invoke-static {v0, v1}, Landroid/util/Log;->w(Ljava/lang/String;Ljava/lang/String;)I
-
     const/4 v0, 0x0
 
     return v0

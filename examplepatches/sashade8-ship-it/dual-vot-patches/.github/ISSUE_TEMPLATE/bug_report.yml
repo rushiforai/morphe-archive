@@ -1,0 +1,51 @@
+name: Bug report
+description: Report a reproducible Dual VoT problem.
+title: 'bug: '
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Dual VoT Patches bug report
+
+        Before creating a new bug report, please keep the following in mind:
+
+        - Search this repository for existing reports first.
+        - Use Morphe's repository for bugs that also happen with the official
+          Morphe Patches source.
+        - Remove account cookies, tokens, OAuth data, and other private data
+          from logs before attaching them.
+  - type: textarea
+    attributes:
+      label: Bug description
+      description: |
+        - List the app version and Dual VoT bundle version
+        - State whether the problem affects Yandex or Google/other translation
+        - Include the video URL when the problem is video-specific
+        - Add steps to reproduce the bug if possible (Step 1. ... Step 2. ...)
+        - Add images and videos if possible
+    validations:
+        required: true
+  - type: input
+    attributes:
+      label: App version patched
+      description: What app version you are using
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Error logs
+      description: Exceptions can be captured by running `logcat | grep AndroidRuntime` in a shell.
+      render: shell
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      description: Your bug report will be closed if you don't follow the checklist below.
+      options:
+        - label: I have checked all open and closed bug reports and this is not a duplicate.
+          required: true
+        - label: I have removed credentials and other private data from the report and logs.
+          required: true
+        - label: All requested information has been provided properly.
+          required: true

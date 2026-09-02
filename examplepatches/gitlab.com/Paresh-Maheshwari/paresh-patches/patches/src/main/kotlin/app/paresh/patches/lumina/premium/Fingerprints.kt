@@ -43,9 +43,9 @@ object PairipProcessResponseFingerprint : Fingerprint(
     returnType = "V",
 )
 
-// PairIP signature validation
+// PairIP signature validation (moved to LicenseResponseHelper in 1.0.2.4)
 object PairipValidateResponseFingerprint : Fingerprint(
-    definingClass = "Lcom/pairip/licensecheck/ResponseValidator;",
+    definingClass = "Lcom/pairip/licensecheck/LicenseResponseHelper;",
     name = "validateResponse",
     returnType = "V",
 )

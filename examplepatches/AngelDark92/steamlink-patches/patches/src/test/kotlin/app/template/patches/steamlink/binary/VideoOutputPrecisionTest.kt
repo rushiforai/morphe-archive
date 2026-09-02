@@ -84,6 +84,7 @@ class VideoOutputPrecisionTest {
     @Test
     fun `swapchain format patch supports all verified layouts and is reversible`() {
         listOf(
+            VIDEO_LIBRARY_SIZE_5001740 to SWAPCHAIN_FORMAT_OFFSETS_5001740,
             VIDEO_LIBRARY_SIZE_5002244 to SWAPCHAIN_FORMAT_OFFSETS_5002244,
             VIDEO_LIBRARY_SIZE_5002313 to SWAPCHAIN_FORMAT_OFFSETS_5002313,
             VIDEO_LIBRARY_SIZE_5002318 to SWAPCHAIN_FORMAT_OFFSETS_5002318,
@@ -99,7 +100,7 @@ class VideoOutputPrecisionTest {
                 )
             }
             val changedOffsets = srgb.indices.filter { srgb[it] != rgb10[it] }
-            assertEquals(9, changedOffsets.size)
+            assertEquals(offsets.size * 3, changedOffsets.size)
             assertContentEquals(srgb, setProjectionSwapchainFormat(rgb10, VideoOutputPrecision.SRGB8_HIGHP))
         }
     }

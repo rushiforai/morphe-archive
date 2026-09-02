@@ -1,0 +1,82 @@
+name: Build Telegram Morphe MPP
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  build-mpp:
+    name: Build Telegram MPP
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Make Gradle executable
+        run: chmod +x ./gradlew
+
+      - name: Build MPP
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./gradlew :patches:buildTelegramMpp \
+            --no-daemon \
+            --stacktrace
+
+      - name: Verify MPP
+        run: |
+          echo "Generated MPP files:"
+          find patches/build/libs \
+            -maxdepth 1 \
+            -type f \
+            -name "*.mpp" \
+            -print
+
+          test -n "$(find patches/build/libs \
+            -maxdepth 1 \
+            -type f \
+            -name "*.mpp" \
+            -print -quit)"
+
+      - name: Generate SHA-256
+        run: |
+          sha256sum patches/build/libs/*.mpp \
+            | tee patches/build/libs/SHA256SUMS.txt
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: telegram-morphe-mpp
+          path: |
+            patches/build/libs/*.mpp
+            patches/build/libs/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="build-${GITHUB_RUN_NUMBER}"
+
+          gh release create "$TAG" \
+            patches/build/libs/*.mpp \
+            patches/build/libs/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Telegram Morphe Patches $TAG" \
+            --notes "Automatically generated Telegram Morphe patch bundle.
+
+          Commit: ${GITHUB_SHA}
+          Workflow run: ${GITHUB_RUN_ID}"

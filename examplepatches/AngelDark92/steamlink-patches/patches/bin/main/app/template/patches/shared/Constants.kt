@@ -33,8 +33,23 @@ object Constants {
         appIconColor = 0x1B2838,
         targets = listOf(
             AppTarget(
+                version = "2.0.20",
+                versionCodes = SupportedAbi.entries.associateWith { 5001712 },
+                description = "HMD-only pose fix layout verified for versionCode 5001712.",
+            )
+        )
+    )
+
+    val COMPATIBILITY_STEAM_LINK_HMD_ONLY_5002206 = Compatibility(
+        name = "Steam Link",
+        packageName = "com.valvesoftware.steamlinkvr",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x1B2838,
+        targets = listOf(
+            AppTarget(
                 version = "2.0.22",
-                description = "HMD-only pose fix layouts verified for versionCodes 5001712, 5002206, and 5002244.",
+                versionCodes = SupportedAbi.entries.associateWith { 5002206 },
+                description = "HMD-only pose fix layout verified for build 5002206.",
             )
         )
     )

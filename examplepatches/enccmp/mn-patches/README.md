@@ -19,18 +19,27 @@ detailed documentation.
 
 0. **Get the app APK** — download Monument (`com.getmonument.android`) from [APKPure](https://apkpure.com/monument-photo-management/com.getmonument.android/download).
    These patches target version **4.3.5**.
-1. **Build the bundle** (see below) or download a released `patches-<version>.mpp` from the
-   repository's [Releases](../../releases).
-2. **Add it to Morphe** as a **Local** patch source:
-   - *Mobile (Morphe Manager):* Add patch source → **Local** → pick the `.mpp` (it must be `.mpp`,
-     not a zip).
-   - *Desktop:* the **+ source** control → select the `.mpp`.
-3. **Select the app**: choose **Getmonument** / `com.getmonument.android`, version 4.3.5, and
+1. **Add the patches to Morphe.** Two ways — the remote source is recommended because it
+   auto-updates whenever a new release is published:
+   - **Remote (GitHub) — recommended:** Add patch source → **Remote / URL** and paste this
+     repository's URL:
+     ```
+     https://github.com/enccmp/mn-patches
+     ```
+     Morphe pulls the latest `patches-<version>.mpp` from the repository's
+     [Releases](../../releases). Enable the source's **pre-release** toggle if you also want
+     pre-release builds. (If you hit GitHub rate limits, set a GitHub Personal Access Token in
+     Morphe's advanced settings — a token with no scopes is enough for public repos.)
+   - **Local (manual):** [build the bundle](#building) or download a released
+     `patches-<version>.mpp` from [Releases](../../releases), then Add patch source → **Local**
+     and pick the `.mpp` (it must be `.mpp`, not a zip). Use this for your own unreleased local
+     builds. On desktop, the **+ source** control selects the file.
+2. **Select the app**: choose **Monument** / `com.getmonument.android`, version 4.3.5, and
    supply `Monument_4.3.5.apk` as the APK. Both patches show up under the patch list.
-4. **Pick patches**: enable **Login with token** and/or **Limit thumbnail cache by default**.
-5. **Patch & install** the resulting APK (Morphe re-signs it). If replacing an existing install
+3. **Pick patches**: enable **Login with token** and/or **Limit thumbnail cache by default**.
+4. **Patch & install** the resulting APK (Morphe re-signs it). If replacing an existing install
    with a different signature, uninstall the old app first.
-6. **Log in** with the *Login with token* option — see the
+5. **Log in** with the *Login with token* option — see the
    [patch doc](patches/src/main/kotlin/app/morphe/patches/monument/loginwithtoken/README.md)
    for how to get the serial / client id / token from the device database and the exact steps.
 

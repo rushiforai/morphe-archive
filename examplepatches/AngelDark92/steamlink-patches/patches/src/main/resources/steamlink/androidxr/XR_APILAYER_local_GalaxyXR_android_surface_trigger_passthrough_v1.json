@@ -1,0 +1,11 @@
+{
+  "file_format_version": "1.0.0",
+  "api_layer": {
+    "name": "XR_APILAYER_local_GalaxyXR_android_surface_trigger_passthrough_v1",
+    "library_path": "libgxr_ast.so",
+    "api_version": "1.1",
+    "implementation_version": "1",
+    "description": "Galaxy XR Android-surface trigger with unchanged 3-projection passthrough",
+    "disable_environment": "GXR_DISABLE_ANDROID_SURFACE_TRIGGER"
+  }
+}

@@ -15,9 +15,9 @@ class VisualDelayPatchTest {
 
             assertFalse(stock.contentEquals(patched), layout.versionCode.toString())
             assertContentEquals(patched, patchVisualDelay(patched, 60), layout.versionCode.toString())
-            layout.velocityStores.forEach { (offset, byteOffset) ->
+            layout.velocityStores.forEach { (offset, byteOffset, paired) ->
                 assertContentEquals(
-                    strWzrX19(byteOffset),
+                    if (paired) sturXzrX19(byteOffset) else strWzrX19(byteOffset),
                     patched.copyOfRange(offset, offset + 4),
                     layout.versionCode.toString(),
                 )
@@ -55,10 +55,16 @@ class VisualDelayPatchTest {
         writeU64LE(64 + 32, size.toLong())
 
         byteArrayOf(0xe2.toByte(), 0x07, 0x40, 0xf9.toByte()).copyInto(this, layout.hookOffset)
-        layout.velocityStores.forEachIndexed { index, (offset, byteOffset) ->
+        layout.velocityStores.forEachIndexed { index, (offset, byteOffset, paired) ->
             writeU32LE(
                 offset,
-                0xBD000000.toInt() or ((byteOffset / 4) shl 10) or (19 shl 5) or (index + 1),
+                if (paired) {
+                    0xFC000000.toInt() or ((byteOffset and 0x1FF) shl 12) or
+                        (19 shl 5) or (index + 1)
+                } else {
+                    0xBD000000.toInt() or ((byteOffset / 4) shl 10) or
+                        (19 shl 5) or (index + 1)
+                },
             )
         }
         val cave = size - 32
@@ -90,21 +96,33 @@ class VisualDelayPatchTest {
             val versionCode: Int,
             val fileSize: Int,
             val hookOffset: Int,
-            val velocityStores: List<Pair<Int, Int>>,
+            val velocityStores: List<Triple<Int, Int, Boolean>>,
         )
 
         val nativeLayouts = listOf(
+            TestLayout(
+                5001740,
+                2_220_528,
+                0x101378,
+                listOf(
+                    Triple(0x1013A4, 28, true),
+                    Triple(0x1013C0, 36, false),
+                    Triple(0x1014A0, 40, false),
+                    Triple(0x1014A4, 44, false),
+                    Triple(0x1014B0, 48, false),
+                ),
+            ),
             TestLayout(
                 5002318,
                 2_277_488,
                 0x100B0C,
                 listOf(
-                    0x100D80 to 28,
-                    0x100D84 to 32,
-                    0x100D88 to 36,
-                    0x100D94 to 40,
-                    0x100D98 to 44,
-                    0x100DA4 to 48,
+                    Triple(0x100D80, 28, false),
+                    Triple(0x100D84, 32, false),
+                    Triple(0x100D88, 36, false),
+                    Triple(0x100D94, 40, false),
+                    Triple(0x100D98, 44, false),
+                    Triple(0x100DA4, 48, false),
                 ),
             ),
             TestLayout(
@@ -112,14 +130,19 @@ class VisualDelayPatchTest {
                 2_283_400,
                 0x101154,
                 listOf(
-                    0x1013C8 to 28,
-                    0x1013CC to 32,
-                    0x1013D0 to 36,
-                    0x1013DC to 40,
-                    0x1013E0 to 44,
-                    0x1013EC to 48,
+                    Triple(0x1013C8, 28, false),
+                    Triple(0x1013CC, 32, false),
+                    Triple(0x1013D0, 36, false),
+                    Triple(0x1013DC, 40, false),
+                    Triple(0x1013E0, 44, false),
+                    Triple(0x1013EC, 48, false),
                 ),
             ),
         )
+    }
+
+    private fun sturXzrX19(byteOffset: Int): ByteArray {
+        val word = 0xF8000000.toInt() or ((byteOffset and 0x1FF) shl 12) or (19 shl 5) or 31
+        return ByteArray(4).apply { writeU32LE(0, word) }
     }
 }

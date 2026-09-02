@@ -8,12 +8,14 @@
 package app.morphe.extension.youtube.patches.utils;
 
 import static app.morphe.extension.shared.StringRef.str;
+import static app.morphe.extension.youtube.patches.utils.PlaylistPatch.QueueManager.OPEN_QUEUE;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
@@ -52,6 +54,8 @@ import app.morphe.extension.shared.patches.components.BufferAsciiStrings;
 import app.morphe.extension.shared.theme.ThemeUtils;
 import app.morphe.extension.shared.ui.Dim;
 import app.morphe.extension.youtube.patches.AddToQueuePatch;
+import app.morphe.extension.youtube.patches.LegacyPlayerControlsPatch;
+import app.morphe.extension.youtube.patches.SaveToWatchLaterPatch;
 import app.morphe.extension.youtube.patches.VideoInformation;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.EngagementPanel;
@@ -83,6 +87,11 @@ public final class FlyoutUtils {
             getAsciiBytes(".ytimg.com/vi/"),
             getAsciiBytes("youtube.com/watch?v=")
     );
+    private static final List<byte[]> KIDS_VIDEO_ELEMENTS_BYTES = List.of(
+            getAsciiBytes("video_metadata_carousel.e"),
+            getAsciiBytes("com.google.android.apps.youtube.kids"),
+            getAsciiBytes("https://www.youtube.com/myfamily/#mf-compare")
+    );
     private static final List<byte[]> VIDEO_ELEMENTS_BYTES = List.of(
             getAsciiBytes("compact_playlist.e"),
             getAsciiBytes("compact_video.e"),
@@ -109,13 +118,22 @@ public final class FlyoutUtils {
             ResourceUtils.getIdentifier(ResourceType.ID, "list_item_secondary_container");
     private static final int ITEM_TEXT_ID =
             ResourceUtils.getIdentifier(ResourceType.ID, "list_item_text");
+    private static final Drawable queueButtonDrawable = Utils.getContext()
+            .getDrawable(OPEN_QUEUE.drawableId);
+    private static final String queueButtonName = str("morphe_queue_flyout_title");
+    private static final Drawable saveToWatchLaterDrawable =
+            ResourceUtils.getDrawable(
+                    LegacyPlayerControlsPatch.RESTORE_OLD_PLAYER_BUTTONS
+                            ? "yt_outline_clock_black_24"
+                            : "yt_outline_experimental_clock_vd_theme_24"
+            );
+    private static final String saveToWatchLaterButtonName = str("morphe_save_to_watch_later_flyout_title");
 
     private static WeakReference<TextView> customItemTextRef = new WeakReference<>(null);
 
-    private static final List<Pair<String, Integer>> visibleFlyoutButtons = new ArrayList<>();
-
     private static String currentButtonName = "";
     private static int currentButtonIndex;
+    private static final List<Pair<String, Integer>> visibleFlyoutButtons = new ArrayList<>();
 
     private static WeakReference<View> senderViewRef = new WeakReference<>(null);
 
@@ -128,6 +146,8 @@ public final class FlyoutUtils {
             "comment-item-section",
             "shorts-comments-panel"
     );
+
+    private static boolean videoMarkedAsForKids;
 
     public static byte[] getAsciiBytes(String string) {
         return string.getBytes(StandardCharsets.US_ASCII);
@@ -143,6 +163,25 @@ public final class FlyoutUtils {
 
     public static String getFlyoutCommentId() {
         return flyoutCommentId;
+    }
+
+    /**
+     * Injection point.
+     */
+    public static byte[] onNewElementsLoaded(byte[] bytes) {
+        List<Integer> kidsVideoElementsBytesIndexes = byteIndexesOf(bytes, KIDS_VIDEO_ELEMENTS_BYTES);
+        if (!kidsVideoElementsBytesIndexes.isEmpty() &&
+                kidsVideoElementsBytesIndexes.size() == KIDS_VIDEO_ELEMENTS_BYTES.size() - 1) {
+            videoMarkedAsForKids = true;
+        }
+        return bytes;
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void setVideoMarkedAsForKids() {
+        videoMarkedAsForKids = false;
     }
 
     /**
@@ -168,7 +207,6 @@ public final class FlyoutUtils {
             viewTreeObserver.addOnGlobalLayoutListener(
                     new ViewTreeObserver.OnGlobalLayoutListener() {
                         private boolean alreadyInjectedButton;
-                        private boolean alreadyStyledItems;
 
                         @Override
                         public void onGlobalLayout() {
@@ -185,12 +223,9 @@ public final class FlyoutUtils {
                                         addFlyoutElements(dialog);
                                         alreadyInjectedButton = true;
                                     }
-                                    if (!alreadyStyledItems) {
-                                        alreadyStyledItems = onFlyoutListBound(dialog);
-                                    }
+                                    onFlyoutListBound(dialog);
                                 } else {
                                     alreadyInjectedButton = false;
-                                    alreadyStyledItems = false;
                                 }
                             } catch (Exception ex) {
                                 Logger.printException(() -> "setBottomSheetFlyout onGlobalLayout failure", ex);
@@ -200,13 +235,6 @@ public final class FlyoutUtils {
             );
         } catch (Exception ex) {
             Logger.printException(() -> "setBottomSheetFlyout failure", ex);
-        }
-    }
-
-    public static void dismissBottomSheetFlyout() {
-        if (flyoutDialog != null) {
-            flyoutDialog.dismiss();
-            flyoutDialog = null;
         }
     }
 
@@ -228,7 +256,15 @@ public final class FlyoutUtils {
         }
     }
 
-    public static void dismissPopupWindowFlyout() {
+    public static void dismissFlyout() {
+        visibleFlyoutButtons.clear();
+        currentButtonIndex = 0;
+
+        if (flyoutDialog != null) {
+            flyoutDialog.dismiss();
+            flyoutDialog = null;
+        }
+
         if (flyoutPopupWindow != null) {
             flyoutPopupWindow.dismiss();
             flyoutPopupWindow = null;
@@ -236,43 +272,61 @@ public final class FlyoutUtils {
     }
 
     private static void addFlyoutElements(Object flyoutPanel) {
+        int nextButtonIndex = 0;
+
         // TODO: Add playlists compatibility to Morphe's queue.
-        if (!Settings.QUEUE_ADD_FLYOUT_MENU.get() ||
-                !flyoutPlaylistId.isEmpty() ||
-                flyoutVideoId.isEmpty()) {
-            return;
+        if (Settings.QUEUE_ADD_FLYOUT_MENU.get() &&
+                flyoutPlaylistId.isEmpty() &&
+                !flyoutVideoId.isEmpty()) {
+            nextButtonIndex = addFlyoutButton(
+                    flyoutPanel,
+                    queueButtonDrawable,
+                    queueButtonName,
+                    v -> AddToQueuePatch.flyoutButtonClickLogic(
+                            AddToQueuePatch.queueButtonOriginalNames.get(0)
+                    ),
+                    nextButtonIndex
+            );
         }
 
-        final int currentInjectIndex = addFlyoutButton(
-                flyoutPanel,
-                AddToQueuePatch.queueButtonDrawable,
-                str("morphe_queue_flyout_title"),
-                v -> AddToQueuePatch.flyoutButtonClickLogic(AddToQueuePatch.queueButtonNames.get(0)),
-                0
-        );
-        if (currentInjectIndex > 0) {
-            addDivider(flyoutPanel, currentInjectIndex);
+        if (Settings.KIDS_SAVE_TO_WATCH_LATER_BUTTON.get() &&
+                PlayerType.getCurrent().isMaximizedOrFullscreen() &&
+                videoMarkedAsForKids) {
+            nextButtonIndex = addFlyoutButton(
+                    flyoutPanel,
+                    saveToWatchLaterDrawable,
+                    saveToWatchLaterButtonName,
+                    v -> {
+                        SaveToWatchLaterPatch.saveVideo(getFlyoutVideoId());
+
+                        dismissFlyout(); // Must dismiss after showing dialog.
+                    },
+                    nextButtonIndex
+            );
+        }
+
+        if (nextButtonIndex > 0) {
+            addDivider(flyoutPanel, nextButtonIndex);
         }
     }
 
     /**
      * Applies the changes that are only possible once the menu list has bound its items.
-     *
-     * @return If the changes are applied, or there is nothing to apply.
-     *         False if the list has not bound its items yet, so the caller tries again.
+     * Idempotent, so it can run on every layout pass and reapply itself after the app
+     * binds the list again.
      */
-    private static boolean onFlyoutListBound(Object flyoutPanel) {
+    private static void onFlyoutListBound(Object flyoutPanel) {
         try {
             FlyoutMenuInfo menuInfo = getFlyoutMenuInfo(flyoutPanel, 0);
             if (menuInfo == null) {
-                return true;
+                return;
             }
 
             // The items are inside the list, which is the last view of the menu container.
             LinearLayout menuContainer = menuInfo.menuContainer();
             View lastChild = menuContainer.getChildAt(menuContainer.getChildCount() - 1);
             if (!(lastChild instanceof ViewGroup itemList) || itemList.getChildCount() == 0) {
-                return false;
+                return;
             }
 
             copyListItemTypeface(itemList);
@@ -280,8 +334,6 @@ public final class FlyoutUtils {
         } catch (Exception ex) {
             Logger.printException(() -> "onFlyoutListBound failure", ex);
         }
-
-        return true;
     }
 
     /**
@@ -294,7 +346,7 @@ public final class FlyoutUtils {
 
         int itemIndex = -1;
         for (Pair<String, Integer> button : visibleFlyoutButtons) {
-            if (AddToQueuePatch.queueButtonNames.contains(button.first)) {
+            if (AddToQueuePatch.queueButtonOriginalNames.contains(button.first)) {
                 itemIndex = button.second - 1;
                 break;
             }
@@ -304,7 +356,7 @@ public final class FlyoutUtils {
         }
 
         View badge = itemList.getChildAt(itemIndex).findViewById(SECONDARY_CONTAINER_ID);
-        if (badge != null) {
+        if (badge != null && badge.getVisibility() != View.GONE) {
             Logger.printDebug(() -> "Hiding the menu item secondary icon");
             badge.setVisibility(View.GONE);
         }
@@ -321,7 +373,11 @@ public final class FlyoutUtils {
         }
 
         if (itemList.getChildAt(0).findViewById(ITEM_TEXT_ID) instanceof TextView itemText) {
-            customItemText.setTypeface(itemText.getTypeface());
+            // setTypeface always requests a layout, so only call it when the font really differs.
+            Typeface itemTypeface = itemText.getTypeface();
+            if (customItemText.getTypeface() != itemTypeface) {
+                customItemText.setTypeface(itemTypeface);
+            }
         }
     }
 
@@ -417,14 +473,26 @@ public final class FlyoutUtils {
             return;
         }
 
-        if (currentButtonIndex == 0 && !visibleFlyoutButtons.isEmpty()) {
-            visibleFlyoutButtons.clear();
-        }
-
         currentButtonName = buttonEnum.name();
+        Logger.printDebug(() ->
+                "Current renderized flyout button {" +
+                        "Name:" + currentButtonName + "; " +
+                        "Index: " + currentButtonIndex +
+                "}"
+        );
         currentButtonIndex++;
 
         visibleFlyoutButtons.add(new Pair<>(currentButtonName, currentButtonIndex));
+    }
+
+    private static boolean containsFlyoutButton(String buttonName) {
+        for (Pair<String, Integer> button : visibleFlyoutButtons) {
+            if (button.first.equals(buttonName)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static List<Pair<String, Integer>> getVisibleFlyoutButtons() {
@@ -583,7 +651,9 @@ public final class FlyoutUtils {
                 height > 0 ? height : Dim.dp1
         );
 
-        View divider = new View(context);
+        // A plain View measures to the full available width and stretches the whole menu
+        // when the menu is not measured with a fixed width. An empty ViewGroup measures to zero.
+        LinearLayout divider = new LinearLayout(context);
         divider.setLayoutParams(dividerParams);
         // Same 20% of the foreground the app draws its own separators with.
         divider.setBackgroundColor((ThemeUtils.getAppForegroundColor() & 0xFFFFFF) | 0x33000000);

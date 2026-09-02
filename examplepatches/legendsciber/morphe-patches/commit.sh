@@ -5,7 +5,7 @@
 set -e
 
 DIR="${DIR:-/tmp/morphe-patches}"
-MSG="fix(extremecardriving): embed .so as base64 in smali, no rawResourcePatch"
+MSG="fix(shadowfight): fix dump helper ClassNotFound via lib loadLibrary"
 
 cd "$DIR"
 

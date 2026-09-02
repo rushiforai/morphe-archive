@@ -1,3 +1,19 @@
+## [1.3.0](https://github.com/V4n1X/morphe-patches/compare/v1.2.0...v1.3.0) (2026-09-01)
+
+### 🐛 Bug Fixes
+
+* **soundcloud:** make offline tracks experiment patch optional ([6a9157f](https://github.com/V4n1X/morphe-patches/commit/6a9157fdd54aad91a2ad6b214f115d2471c20e95))
+
+### ✨ New Features
+
+* **soundcloud:** rewrite Premium Patch (inspired by hoo-dles) ([8f466d4](https://github.com/V4n1X/morphe-patches/commit/8f466d4b48cb823a4cb322f8f5de8fd3a6b7bdfe))
+
+## [1.2.0](https://github.com/V4n1X/morphe-patches/compare/v1.1.0...v1.2.0) (2026-09-01)
+
+### ✨ New Features
+
+* **soundcloud:** Support 2026.08.26 and fix consent patch field ([f889d52](https://github.com/V4n1X/morphe-patches/commit/f889d5226e3c2a27310c37be1aa21ae310a70478))
+
 ## [1.1.0](https://github.com/V4n1X/morphe-patches/compare/v1.0.0...v1.1.0) (2026-08-31)
 
 ### ✨ New Features

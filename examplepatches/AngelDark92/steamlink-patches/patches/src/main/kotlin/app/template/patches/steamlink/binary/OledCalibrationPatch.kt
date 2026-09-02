@@ -12,10 +12,13 @@ private val SHADER_EXTENSION =
     "#extension GL_OES_EGL_image_external_essl3 : enable".toByteArray(Charsets.US_ASCII)
 private val SHADER_VERSION = "#version 300 es\n".toByteArray(Charsets.US_ASCII)
 internal const val VIDEO_SHADER_SIZE = 1087
+internal const val VIDEO_LIBRARY_SIZE_5001740 = 2_220_528
 internal const val VIDEO_LIBRARY_SIZE_5002244 = 2_251_920
 internal const val VIDEO_LIBRARY_SIZE_5002313 = 2_276_872
 internal const val VIDEO_LIBRARY_SIZE_5002318 = 2_277_488
 internal const val VIDEO_LIBRARY_SIZE_5002322 = 2_283_400
+private const val VIDEO_LIBRARY_SHA256_5001740 =
+    "5fbb76c06c9fc0e3e5c5825752aa17e040462c8551b69d3492265f620244f443"
 private const val VIDEO_LIBRARY_SHA256_5002244 =
     "4b2fa5e1b5d9d5c938873f692b0e5e18159e1199dee1253dd6eccc8fa43dfa12"
 private const val VIDEO_LIBRARY_SHA256_5002313 =
@@ -38,6 +41,7 @@ private val SWAPCHAIN_CONTEXT_AFTER = byteArrayOf(
     0x08, 0x21, 0x40, 0xb9.toByte(),
     0xe8.toByte(), 0x3b, 0x00, 0xb9.toByte(),
 )
+internal val SWAPCHAIN_FORMAT_OFFSETS_5001740 = intArrayOf(0x10a854, 0x10a8c4)
 internal val SWAPCHAIN_FORMAT_OFFSETS_5002244 = intArrayOf(0x10826c, 0x1082dc, 0x10834c)
 internal val SWAPCHAIN_FORMAT_OFFSETS_5002313 = intArrayOf(0x10b2d4, 0x10b344, 0x10b3b4)
 internal val SWAPCHAIN_FORMAT_OFFSETS_5002318 = intArrayOf(0x10b430, 0x10b4a0, 0x10b510)
@@ -51,6 +55,12 @@ private data class VideoLibraryLayout(
 )
 
 private val VIDEO_LIBRARY_LAYOUTS = listOf(
+    VideoLibraryLayout(
+        5001740,
+        VIDEO_LIBRARY_SIZE_5001740,
+        VIDEO_LIBRARY_SHA256_5001740,
+        SWAPCHAIN_FORMAT_OFFSETS_5001740,
+    ),
     VideoLibraryLayout(
         5002244,
         VIDEO_LIBRARY_SIZE_5002244,
@@ -237,7 +247,7 @@ internal fun setProjectionSwapchainFormat(
 @Suppress("unused")
 val oledCalibrationPatch = rawResourcePatch(
     name = "OLED color calibration",
-    description = "Calibrates Galaxy XR OLED color and selects a guarded high-precision video output path for Steam Link builds 5002244, 5002313, 5002318, and 5002322.",
+    description = "Calibrates Galaxy XR OLED color and selects a guarded high-precision video output path for Steam Link builds 5001740, 5002244, 5002313, 5002318, and 5002322.",
     default = true,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_BEFORE_LATEST.toTypedArray())

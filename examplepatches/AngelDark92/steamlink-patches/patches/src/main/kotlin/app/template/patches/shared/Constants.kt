@@ -9,18 +9,35 @@ object Constants {
     const val EXPERIMENTAL_COMPATIBILITY_NAME = "Steam Link Experimental"
 
     private const val STEAM_LINK_PACKAGE = "com.valvesoftware.steamlinkvr"
-    private const val STEAM_LINK_VERSION = "2.0.22"
-    private val LEGACY_STEAM_LINK_BUILDS =
-        intArrayOf(5001712, 5002172, 5002206, 5002244, 5002313)
-    private val NATIVE_XR_STEAM_LINK_BUILDS = intArrayOf(5002318, 5002322)
+    private data class SteamLinkBuild(val version: String, val versionCode: Int)
 
-    fun isNativeXrSteamLinkBuild(versionCode: String): Boolean =
-        NATIVE_XR_STEAM_LINK_BUILDS.any { it.toString() == versionCode }
+    private val LEGACY_STEAM_LINK_BUILDS = listOf(
+        SteamLinkBuild("2.0.20", 5001740),
+        SteamLinkBuild("2.0.20", 5001712),
+        SteamLinkBuild("2.0.22", 5002172),
+        SteamLinkBuild("2.0.22", 5002206),
+        SteamLinkBuild("2.0.22", 5002244),
+        SteamLinkBuild("2.0.22", 5002313),
+    )
+    private val NATIVE_XR_STEAM_LINK_BUILDS = listOf(
+        SteamLinkBuild("2.0.22", 5002318),
+        SteamLinkBuild("2.0.22", 5002322),
+    )
+
+    fun isNativeXrSteamLinkBuild(version: String, versionCode: String): Boolean =
+        NATIVE_XR_STEAM_LINK_BUILDS.any {
+            it.version == version && it.versionCode.toString() == versionCode
+        }
 
     private fun steamLinkBuildCompatibility(
-        versionCode: Int,
+        build: SteamLinkBuild,
         name: String = "Steam Link",
-        description: String = "Verified Steam Link 2.0.22 build $versionCode.",
+        description: String = if (build.versionCode == 5001740) {
+            "Static-analysis adaptation for Steam Link ${build.version} build ${build.versionCode}; " +
+                "pristine-APK patching and runtime validation remain pending."
+        } else {
+            "Verified Steam Link ${build.version} build ${build.versionCode}."
+        },
     ) = Compatibility(
         name = name,
         packageName = STEAM_LINK_PACKAGE,
@@ -28,8 +45,8 @@ object Constants {
         appIconColor = 0x1B2838,
         targets = listOf(
             AppTarget(
-                version = STEAM_LINK_VERSION,
-                versionCodes = SupportedAbi.entries.associateWith { versionCode },
+                version = build.version,
+                versionCodes = SupportedAbi.entries.associateWith { build.versionCode },
                 description = description,
             ),
         ),
@@ -39,18 +56,17 @@ object Constants {
         LEGACY_STEAM_LINK_BUILDS.map(::steamLinkBuildCompatibility)
 
     val COMPATIBILITIES_STEAM_LINK_NATIVE_XR =
-        NATIVE_XR_STEAM_LINK_BUILDS.map { versionCode ->
+        NATIVE_XR_STEAM_LINK_BUILDS.map { build ->
             steamLinkBuildCompatibility(
-                versionCode = versionCode,
-                description = if (versionCode == 5002322) {
-                    "Build 5002322 recommends only Appear on top, GXR face bridge, " +
+                build = build,
+                description = if (build.versionCode == 5002322) {
+                    "Build 5002322 recommends Galaxy XR high-resolution 3-projection fix, GXR face bridge, " +
                         "Microphone input preset, Unrestricted battery usage, Video dither, " +
-                        "and Visual Delay Fix. Experimental XR projection patches remain optional."
+                        "and Visual Delay Fix. The retired single-projection reconstruction is excluded."
                 } else {
-                    "Build $versionCode supports Device identity, Microphone input preset, OLED color " +
-                        "calibration, Appear on top, GXR face bridge, Visual Delay Fix, " +
-                        "Unrestricted battery usage, Video dither, and the experimental XR " +
-                        "projection patches."
+                    "Build ${build.versionCode} supports Device identity, Microphone input preset, OLED color " +
+                        "calibration, the legacy Appear on top option, GXR face bridge, Visual Delay Fix, " +
+                        "Unrestricted battery usage, and Video dither."
                 },
             )
         }
@@ -64,16 +80,30 @@ object Constants {
     val COMPATIBILITIES_STEAM_LINK_BEFORE_LATEST =
         COMPATIBILITIES_STEAM_LINK.filterNot { compatibility ->
             compatibility.targets.any { target ->
-                target.versionCodes?.values?.contains(5002322) == true
+                target.version == "2.0.22" && target.versionCodes?.values?.contains(5002322) == true
+            }
+        }
+
+    val COMPATIBILITIES_STEAM_LINK_5002322 =
+        COMPATIBILITIES_STEAM_LINK_NATIVE_XR.filter { compatibility ->
+            compatibility.targets.any { target ->
+                target.version == "2.0.22" && target.versionCodes?.values?.contains(5002322) == true
             }
         }
 
     val COMPATIBILITIES_STEAM_LINK_EXPERIMENTAL =
-        (LEGACY_STEAM_LINK_BUILDS + NATIVE_XR_STEAM_LINK_BUILDS).map { versionCode ->
+        (LEGACY_STEAM_LINK_BUILDS + NATIVE_XR_STEAM_LINK_BUILDS).map { build ->
             steamLinkBuildCompatibility(
-                versionCode = versionCode,
+                build = build,
                 name = EXPERIMENTAL_COMPATIBILITY_NAME,
-                description = "Experimental XR projection patches for Steam Link 2.0.22 build $versionCode.",
+                description = "Experimental patches for Steam Link ${build.version} build ${build.versionCode}.",
             )
+        }
+
+    val COMPATIBILITIES_STEAM_LINK_5002322_EXPERIMENTAL =
+        COMPATIBILITIES_STEAM_LINK_EXPERIMENTAL.filter { compatibility ->
+            compatibility.targets.any { target ->
+                target.version == "2.0.22" && target.versionCodes?.values?.contains(5002322) == true
+            }
         }
 }

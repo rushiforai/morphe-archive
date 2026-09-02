@@ -1,3 +1,23 @@
+## [3.9.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.8.0...v3.9.0) (2026-09-01)
+
+### ✨ New Features
+
+* **Gboard:** add the `Simple Calculator` patch. Enter an expression directly to display both the expression and its result in Gboard's suggestion strip.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Simple Calculator` Patch；直接輸入算式，即可在 Gboard 推薦列顯示算式與計算結果。
+
+## [3.9.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v3.8.0...v3.9.0-dev.1) (2026-09-01)
+
+### ✨ New Features
+
+* **Gboard:** add the `Simple Calculator` patch. Enter an expression directly to display both the expression and its result in Gboard's suggestion strip.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Simple Calculator` Patch；直接輸入算式，即可在 Gboard 推薦列顯示算式與計算結果。
+
 ## [3.8.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.7.0...v3.8.0) (2026-08-31)
 
 ### ✨ New Features

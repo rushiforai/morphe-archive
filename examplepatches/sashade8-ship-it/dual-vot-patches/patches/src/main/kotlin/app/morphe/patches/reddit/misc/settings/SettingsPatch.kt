@@ -1,0 +1,257 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ */
+
+package app.morphe.patches.reddit.misc.settings
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.string
+import app.morphe.patches.all.misc.fix.openurllinks.removeLinkVerification
+import app.morphe.patches.all.misc.resources.addAppResources
+import app.morphe.patches.all.misc.resources.addResourcesPatch
+import app.morphe.patches.all.misc.resources.localesReddit
+import app.morphe.patches.all.misc.resources.resourceMappingPatch
+import app.morphe.patches.all.misc.resources.setAddResourceLocale
+import app.morphe.patches.all.misc.updates.disablePlayStoreUpdatesPatch
+import app.morphe.patches.reddit.misc.extension.hooks.redditActivityOnCreateHook
+import app.morphe.patches.reddit.misc.extension.sharedExtensionPatch
+import app.morphe.patches.reddit.misc.fix.signature.spoofSignaturePatch
+import app.morphe.patches.reddit.misc.version.is_2024_03_0_or_greater
+import app.morphe.patches.reddit.misc.version.is_2026_14_0_or_greater
+import app.morphe.patches.reddit.misc.version.is_2026_25_0_or_greater
+import app.morphe.patches.reddit.misc.version.is_2026_30_0_or_greater
+import app.morphe.patches.reddit.misc.version.versionCheckPatch
+import app.morphe.patches.reddit.shared.Constants.COMPATIBILITY_REDDIT
+import app.morphe.patches.shared.misc.checks.experimentalAppNoticePatch
+import app.morphe.util.ResourceGroup
+import app.morphe.util.cloneParameters
+import app.morphe.util.copyResources
+import app.morphe.util.findElementByAttributeValue
+import app.morphe.util.findFreeRegister
+import app.morphe.util.p0Register
+import app.morphe.util.registersUsed
+import app.morphe.util.returnEarly
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import java.util.logging.Logger
+
+private const val EXTENSION_CLASS =
+    "Lapp/morphe/extension/reddit/settings/RedditActivityHook;"
+
+val settingsPatch = bytecodePatch(
+    description = "Applies mandatory patches to implement Morphe settings into the application."
+) {
+    compatibleWith(COMPATIBILITY_REDDIT)
+
+    dependsOn(
+        sharedExtensionPatch,
+        disablePlayStoreUpdatesPatch,
+        spoofSignaturePatch,
+        removeLinkVerification,
+        resourceMappingPatch,
+        addResourcesPatch,
+        versionCheckPatch,
+        experimentalAppNoticePatch(
+            mainActivityFingerprint = redditActivityOnCreateHook.fingerprint,
+            recommendedAppVersion = COMPATIBILITY_REDDIT.targets.first { !it.isExperimental }.version!!
+        ),
+        resourcePatch {
+            execute {
+                if (is_2026_25_0_or_greater) {
+                    // Change menu item title to Morphe.
+                    get("res").walk().forEach { file ->
+                        if ("strings.xml" == file.name) {
+                            document(file.absolutePath).use { document ->
+                                document.documentElement.childNodes.findElementByAttributeValue(
+                                    "name",
+                                    "label_privacy_policy"
+                                )?.textContent = "Morphe"
+                            }
+                        }
+                    }
+                }
+
+                copyResources(
+                    "settings",
+                    ResourceGroup("drawable",
+                        "morphe_ic_dialog_alert.xml",
+                        "morphe_settings_custom_checkmark.xml",
+                        "morphe_settings_custom_checkmark_bold.xml"
+                    ),
+                    ResourceGroup("layout",
+                        "morphe_custom_list_item_checked.xml"
+                    )
+                )
+            }
+        }
+    )
+
+    execute {
+        setAddResourceLocale(localesReddit)
+        addAppResources("shared")
+        addAppResources("reddit")
+
+        if (!is_2024_03_0_or_greater) {
+            throw PatchException(
+                """
+                    
+                    !!!
+                    !!! Reddit 2024.02.0 supports only 1 patch.
+                    !!! Select the recommended patches to patch this legacy app version.
+                    !!!
+                """
+            )
+        }
+
+        // Turn off Google Play in app update prompt.
+        GooglePlayUpdateCheckFingerprint.method.returnEarly(null);
+
+        // Force Play Store Verification checks to pass.
+        PlayStoreVerificationFingerprint.method.returnEarly(false)
+
+        // Show toast informing that Google sign-in does not work.
+        if (is_2026_14_0_or_greater) {
+            // After clicking a login type, the second Google sign-in button still shows
+            // the Google login dialog. Unclear where this additional UI layout is handled,
+            // but it may be provided server side.
+            GoogleSignInFunctionFingerprint.matchAll(2 .. 3).forEach {
+                val index = it.instructionMatches[1].index
+                val register = it.method.getInstruction(index).registersUsed[3]
+                it.method.addInstructions(
+                    index,
+                    """
+                        invoke-static { }, $EXTENSION_CLASS->getGoogleSignInFunction()Lkotlin/jvm/functions/Function0;
+                        move-result-object v$register
+                    """
+                )
+            }
+        }
+
+        if (is_2026_25_0_or_greater) {
+            StartUrlActivityFingerprint.let {
+                val index = it.instructionMatches.last().index
+                it.method.apply {
+                    val p0Register = p0Register
+                    val free = findFreeRegister(index, p0Register + 1, p0Register + 2)
+                    addInstructionsWithLabels(
+                        index,
+                        """
+                            invoke-static { p1, p2 }, $EXTENSION_CLASS->openMorpheSettings(Landroid/app/Activity;Landroid/net/Uri;)Z
+                            move-result v$free
+                            if-eqz v$free, :ignore
+                            return-void
+                            :ignore
+                            nop
+                        """
+                    )
+                }
+            }
+        }
+
+        if (is_2026_30_0_or_greater) {
+            return@execute
+        }
+
+        CheckIntegrityPlayStoreFingerprint.method.returnEarly(0)
+
+        /**
+         * Replace settings label and icon
+         */
+        PreferenceManagerLegacyFingerprint.let {
+            it.method.apply {
+                val labelIndex = it.instructionMatches[5].index
+                val labelRegister = getInstruction<OneRegisterInstruction>(labelIndex).registerA
+
+                addInstructions(
+                    labelIndex + 1,
+                    """
+                        invoke-static { }, $EXTENSION_CLASS->getSettingLabel()Ljava/lang/String;
+                        move-result-object v$labelRegister
+                    """
+                )
+
+                val iconIndex = it.instructionMatches[2].index
+                val iconRegister = getInstruction<OneRegisterInstruction>(iconIndex).registerA
+
+                addInstructions(
+                    iconIndex + 1,
+                    """
+                        invoke-static { }, $EXTENSION_CLASS->getSettingIcon()Landroid/graphics/drawable/Drawable;
+                        move-result-object v$iconRegister
+                    """
+                )
+            }
+        }
+
+        PreferenceDestinationLegacyFingerprint.let {
+            val getActivityMethod = Fingerprint(
+                accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+                returnType = RedditActivityFingerprint.originalClassDef.type,
+                parameters = listOf()
+            ).method
+
+            val startActivityMethod = Fingerprint(
+                definingClass = getActivityMethod.definingClass,
+                returnType = "V",
+                parameters = listOf(
+                    "Landroid/content/Intent",
+                    "I",
+                    "Landroid/os/Bundle;"
+                ),
+                filters = listOf(
+                    string(" not attached to Activity"),
+                )
+            ).method
+
+            it.method.cloneParameters().addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static/range { p1 .. p1 }, $EXTENSION_CLASS->isAcknowledgment(Ljava/lang/Enum;)Z
+                    move-result v0
+                    if-eqz v0, :ignore
+                    
+                    invoke-virtual { p0 }, $getActivityMethod
+                    move-result-object v0
+                    invoke-static { v0 }, $EXTENSION_CLASS->initializeByIntent(Landroid/content/Context;)Landroid/content/Intent;
+                    move-result-object v0
+                    
+                    const/4 v1, -1
+                    const/4 v2, 0x0
+                    invoke-virtual { p0, v0, v1, v2 }, ${getActivityMethod.definingClass}->${startActivityMethod.name}(Landroid/content/Intent;ILandroid/os/Bundle;)V
+                    return-void
+                    
+                    :ignore
+                    nop
+                """
+            )
+        }
+
+        WebBrowserActivityOnCreateFingerprint.let {
+            it.method.apply {
+                val insertIndex = it.instructionMatches.first().index
+                val freeRegister = findFreeRegister(insertIndex)
+
+                addInstructionsWithLabels(
+                    insertIndex + 1,
+                    """
+                        invoke-static/range { p0 .. p0 }, $EXTENSION_CLASS->hook(Landroid/app/Activity;)Z
+                        move-result v$freeRegister
+                        if-eqz v$freeRegister, :ignore
+                        return-void
+                        :ignore
+                        nop
+                    """
+                )
+            }
+        }
+    }
+}

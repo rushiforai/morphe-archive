@@ -1,12 +1,22 @@
 # Paresh Morphe Patches
 
 
-> [!NOTE]
-> 🚀 **All patch requests, feature updates, and announcements are now handled through [Issues](https://gitlab.com/Paresh-Maheshwari/paresh-patches/-/issues).** Subscribe to stay updated!
+> [!WARNING]
 >
-> - **New app requests** → [Open Request](https://gitlab.com/Paresh-Maheshwari/paresh-patches/-/issues/new)
-> - **Bug reports & enhancements** → [Open Issue](https://gitlab.com/Paresh-Maheshwari/paresh-patches/-/issues)
-> - **Updates & announcements** → [Releases](https://gitlab.com/Paresh-Maheshwari/paresh-patches/-/releases)
+> 🚧 **This project has been archived and is no longer maintained.**
+>
+> No new patches, app-version updates, bug fixes, feature requests, or patch requests will be accepted.
+>
+> The repository remains available as an archive for existing users and for educational and research reference.
+>
+> **The existing patches are provided as-is and may not work with newer versions of the supported applications.**
+
+## Community Continuation
+
+If another developer wants to continue this project, they are welcome to use the existing patch code and build upon it. They can update the current patches, add new patches, or maintain their own fork independently.
+
+Thank you to everyone who used the project and supported the work.
+
 
 ![Pipeline Status](https://gitlab.com/Paresh-Maheshwari/paresh-patches/badges/main/pipeline.svg)
 ![Latest Release](https://gitlab.com/Paresh-Maheshwari/paresh-patches/-/badges/release.svg)
@@ -17,14 +27,14 @@ Custom [Morphe](https://morphe.software) patches for unlocking premium features 
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.19.0](https://github.com/Paresh-Maheshwari/paresh-patches/releases/tag/v1.19.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;57 patches total
+> **[v1.20.0](https://github.com/Paresh-Maheshwari/paresh-patches/releases/tag/v1.20.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;61 patches total
 <details open>
-<summary>📦 Plus Messenger&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
+<summary>📦 Plus Messenger&nbsp;&nbsp;•&nbsp;&nbsp;11 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 12.7.3.0 |
+| 12.9.2.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -39,6 +49,7 @@ Custom [Morphe](https://morphe.software) patches for unlocking premium features 
 | [Hide typing indicator](#hide-typing-indicator) | Prevents typing status from being sent to other users. |  |
 | [Plus Premium](#plus-premium) | Unlocks premium feature UI and shows premium badge on self only. |  |
 | [Remove ads](#remove-ads) | Removes all ads including Plus banner ads and Telegram sponsored messages. |  |
+| [Restore push notifications](#restore-push-notifications) | Spoofs the original signing certificate so Firebase Cloud Messaging accepts the re-signed app and background notifications keep working. |  |
 
 </details>
 
@@ -48,8 +59,8 @@ Custom [Morphe](https://morphe.software) patches for unlocking premium features 
 
 **🎯 Supported versions:**
 
-| 12.8.3 |
-| :---: |
+| 12.9.2 | 12.8.3 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -124,8 +135,8 @@ Custom [Morphe](https://morphe.software) patches for unlocking premium features 
 
 **🎯 Supported versions:**
 
-| 5.19.16.0 |
-| :---: |
+| 5.19.72.0 | 5.19.43.0 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -204,13 +215,28 @@ Custom [Morphe](https://morphe.software) patches for unlocking premium features 
 </details>
 
 <details open>
+<summary>📦 HabitKit&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.15.2 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [HabitKit Premium](#habitkit-premium) | Unlocks all premium features. |  |
+
+</details>
+
+<details open>
 <summary>📦 Lumina Walls&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 1.0.2.3 |
-| :---: |
+| 1.0.2.4 | 1.0.2.3 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -264,6 +290,23 @@ Custom [Morphe](https://morphe.software) patches for unlocking premium features 
 </details>
 
 <details open>
+<summary>📦 TickTick&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 8.1.3.3 | 8.0.6.1 |
+| :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Restore notifications](#restore-notifications) | Spoofs the original signing certificate so Firebase Cloud Messaging accepts the re-signed app and task/reminder notifications keep working. |  |
+| [Restore reminder alarms](#restore-reminder-alarms) | Restores task/reminder alarm scheduling on re-signed apps. |  |
+| [TickTick Premium](#ticktick-premium) | Unlocks premium features, removes limits, and enables AI tools. |  |
+
+</details>
+
+<details open>
 <summary>📦 StarSense Explorer&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -290,21 +333,6 @@ Custom [Morphe](https://morphe.software) patches for unlocking premium features 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Teleprompter Premium](#teleprompter-premium) | Unlocks premium features in Teleprompter Vlog & Scripts app. |  |
-
-</details>
-
-<details open>
-<summary>📦 TickTick&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 8.0.6.1 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [TickTick Premium](#ticktick-premium) | Unlocks premium features, removes limits, and enables AI tools. |  |
 
 </details>
 
@@ -359,7 +387,7 @@ Custom [Morphe](https://morphe.software) patches for unlocking premium features 
 
 **🎯 Supported versions:**
 
-| 1.5.0 |
+| 1.5.2 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

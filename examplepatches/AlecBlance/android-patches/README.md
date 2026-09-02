@@ -1,6 +1,4 @@
-# 👋🧩 Morphe Patches template
-
-Template repository for Morphe Patches.
+# 👋🧩 Epxec Patches
 
 ## ❓ About
 

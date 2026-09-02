@@ -9,6 +9,7 @@ object Constants {
         packageName = "org.telegram.messenger.web",
         appIconColor = 0x2AABEE,
         targets = listOf(
+            AppTarget(version = "12.9.2"),
             AppTarget(version = "12.8.3")
         )
     )

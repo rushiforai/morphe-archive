@@ -1,0 +1,3 @@
+C:/Users/Angelo/Desktop/SteamLink-GalaxyXR-Windows-Toolkit-FULL/steamlink-patches/extensions/resolution-trace-layer/build-android-cleancheck/CMakeFiles/gxr_android_surface_trigger_passthrough_v1.dir
+C:/Users/Angelo/Desktop/SteamLink-GalaxyXR-Windows-Toolkit-FULL/steamlink-patches/extensions/resolution-trace-layer/build-android-cleancheck/CMakeFiles/edit_cache.dir
+C:/Users/Angelo/Desktop/SteamLink-GalaxyXR-Windows-Toolkit-FULL/steamlink-patches/extensions/resolution-trace-layer/build-android-cleancheck/CMakeFiles/rebuild_cache.dir

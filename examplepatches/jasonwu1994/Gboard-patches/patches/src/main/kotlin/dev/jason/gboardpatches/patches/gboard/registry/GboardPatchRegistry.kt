@@ -15,6 +15,8 @@ import dev.jason.gboardpatches.patches.gboard.features.accesspointsmenu.gboardAc
 import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.bluetoothmicrophone.gboardBluetoothMicrophoneFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.bluetoothmicrophone.gboardBluetoothMicrophoneFlagValuePatch
+import dev.jason.gboardpatches.patches.gboard.features.calculator.gboardCalculatorFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.calculator.gboardCalculatorLifecyclePatch
 import dev.jason.gboardpatches.patches.gboard.features.about.gboardAboutPageResourcePatch
 import dev.jason.gboardpatches.patches.gboard.features.addsymbols.gboardCustomSymbolsFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.clipboard.gboardClipboardFeatureMarkerPatch
@@ -205,6 +207,23 @@ val gboardFloatingWebSearchPatch = gboardPublicResourcePatch(
         gboardFloatingWebSearchFeatureMarkerPatch,
         gboardFloatingWebSearchManifestPatch,
         gboardAccessPointContributions1803Patch,
+    )
+}
+
+@Suppress("unused")
+val gboardSimpleCalculatorPatch = gboardPublicResourcePatch(
+    featureId = "simple_calculator",
+    name = "Simple Calculator",
+    description = "直接輸入算式，在 Gboard 推薦列顯示可捲動算式與答案。\n" +
+        "Type an expression and show a scrollable equation plus its answer in Gboard's suggestion row.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardCalculatorFeatureMarkerPatch,
+        gboardCalculatorLifecyclePatch,
     )
 }
 
@@ -767,6 +786,7 @@ object GboardPublishedPatchCatalog {
         gboardSpacebarLogoPatch,
         gboardManualIncognitoModePatch,
         gboardFloatingWebSearchPatch,
+        gboardSimpleCalculatorPatch,
         gboardAdvancedVoiceTypingPatch,
         gboardBluetoothMicrophonePatch,
         gboardEmojiSizePatch,

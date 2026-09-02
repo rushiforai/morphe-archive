@@ -111,6 +111,23 @@ private fun permissionNameEdits(faceOffset: Int, eyeOffset: Int, locateByPattern
 
 private val NATIVE_LAYOUTS = listOf(
     NativeLayoutEdits(
+        versionCode = 5001740,
+        fileSize = 2_220_528,
+        permissionNames = permissionNameEdits(0x9987A, 0xA19DD, locateByPattern = false),
+        hmdInitialization = listOf(
+            NativeEdit(0xFFCB0, byteArrayOf(0xe0.toByte(), 0x00, 0x00, 0x36), NOP),
+            NativeEdit(0xFFCB8, byteArrayOf(0xa8.toByte(), 0x00, 0x00, 0x34), NOP),
+        ),
+        lobbyPermissionState = listOf(
+            NativeEdit(0x10D9A0, byteArrayOf(0x14, 0x04, 0x00, 0x36), NOP),
+        ),
+        streamInitialization = listOf(
+            NativeEdit(0x1163F4, byteArrayOf(0x68, 0x00, 0x00, 0x35), NOP),
+            NativeEdit(0x1163FC, byteArrayOf(0x68, 0x05, 0x00, 0x34), NOP),
+            NativeEdit(0x1164B0, byteArrayOf(0xa8.toByte(), 0x05, 0x00, 0x34), NOP),
+        ),
+    ),
+    NativeLayoutEdits(
         versionCode = 5002244,
         fileSize = 2_251_920,
         permissionNames = permissionNameEdits(0x93952, 0x9C10E, locateByPattern = false),
@@ -223,7 +240,7 @@ val androidXrNativePermissionNamesPatch = rawResourcePatch(
 @Suppress("unused")
 val forceHmdInitializationGatesPatch = rawResourcePatch(
     name = "Force HMD initialization gates",
-    description = "Bypasses the two verified capability gates in QSVLDeviceHmd::Init for Steam Link builds 5002244 and 5002313.",
+    description = "Bypasses the two verified capability gates in QSVLDeviceHmd::Init for Steam Link builds 5001740, 5002244, and 5002313.",
     default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_LEGACY.toTypedArray())
@@ -239,7 +256,7 @@ val forceHmdInitializationGatesPatch = rawResourcePatch(
 @Suppress("unused")
 val forceLobbyPermissionStateGatePatch = rawResourcePatch(
     name = "Force lobby permission-state gate",
-    description = "Bypasses the verified permission-state gate in XrSceneLobby for Steam Link builds 5002244 and 5002313.",
+    description = "Bypasses the verified permission-state gate in XrSceneLobby for Steam Link builds 5001740, 5002244, and 5002313.",
     default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_LEGACY.toTypedArray())
@@ -255,7 +272,7 @@ val forceLobbyPermissionStateGatePatch = rawResourcePatch(
 @Suppress("unused")
 val forceStreamXrGatesPatch = rawResourcePatch(
     name = "Force stream XR gates",
-    description = "Bypasses the three verified XR gates in build 5002244. Build 5002313 rewrote XrSceneStream::Init and is intentionally left unchanged.",
+    description = "Bypasses the three verified XR gates in builds 5001740 and 5002244. Build 5002313 rewrote XrSceneStream::Init and is intentionally left unchanged.",
     default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_LEGACY.toTypedArray())

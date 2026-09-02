@@ -63,7 +63,7 @@ internal val xrDirectInputFixPatch = bytecodePatch {
     execute {
         // Dependencies execute even when their own compatibility excludes this build. Valve's
         // Native-XR SDL/controller paths already support hands, so leave them byte-for-byte.
-        if (isNativeXrSteamLinkBuild(packageMetadata.versionCode)) return@execute
+        if (isNativeXrSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@execute
 
         val surfaceChanged = mutableClassDefBy("Lorg/libsdl/app/SDLSurface;").methods
             .first { it.name == "surfaceChanged" && it.parameterTypes.size == 4 }

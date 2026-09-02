@@ -42,7 +42,7 @@ class LegacyNativeCompatibilityPatchTest {
 
     @Test
     fun `known layout without permission patterns remains strict`() {
-        listOf(2_251_920, 2_276_872).forEach { size ->
+        listOf(2_220_528, 2_251_920, 2_276_872).forEach { size ->
             assertFailsWith<PatchException> {
                 patchNativePermissionNames(ByteArray(size))
             }
@@ -63,6 +63,7 @@ class LegacyNativeCompatibilityPatchTest {
     @Test
     fun `permission targets support both verified layouts`() {
         val layouts = listOf(
+            Triple(2_220_528, 0x9987A, 0xA19DD),
             Triple(2_251_920, 0x93952, 0x9C10E),
             Triple(2_276_872, 0x94B4F, 0x9D861),
         )
@@ -139,6 +140,14 @@ class LegacyNativeCompatibilityPatchTest {
     fun `fixed HMD and lobby gates support both verified layouts`() {
         val layouts = listOf(
             FixedLayout(
+                2_220_528,
+                listOf(
+                    0xFFCB0 to hex("e0000036"),
+                    0xFFCB8 to hex("a8000034"),
+                ),
+                0x10D9A0 to hex("14040036"),
+            ),
+            FixedLayout(
                 2_251_920,
                 listOf(
                     0xFD040 to hex("e0000036"),
@@ -178,6 +187,16 @@ class LegacyNativeCompatibilityPatchTest {
 
     @Test
     fun `stream gates remain build-specific`() {
+        val layout5001740 = ByteArray(2_220_528).apply {
+            hex("68000035").copyInto(this, 0x1163F4)
+            hex("68050034").copyInto(this, 0x1163FC)
+            hex("a8050034").copyInto(this, 0x1164B0)
+        }
+        val patched5001740 = patchStreamXrGates(layout5001740)
+        listOf(0x1163F4, 0x1163FC, 0x1164B0).forEach { offset ->
+            assertContentEquals(hex("1f2003d5"), patched5001740.copyOfRange(offset, offset + 4))
+        }
+
         val oldLayout = ByteArray(2_251_920).apply {
             hex("68000035").copyInto(this, 0x1140AC)
             hex("68050034").copyInto(this, 0x1140B4)

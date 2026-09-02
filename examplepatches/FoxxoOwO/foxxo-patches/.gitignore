@@ -1,0 +1,25 @@
+# Gradle
+.gradle/
+build/
+out/
+gradlew
+gradlew.bat
+gradle/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Binaries & keys
+*.apk
+*.aab
+*.keystore
+*.jks
+temp_patched.apk
+
+*.mpp

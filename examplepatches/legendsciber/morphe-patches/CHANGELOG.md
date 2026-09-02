@@ -1,3 +1,124 @@
+## [1.28.5](https://github.com/legendsciber/morphe-patches/compare/v1.28.4...v1.28.5) (2026-09-02)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** fix dump helper ClassNotFound via lib loadLibrary ([31fdd38](https://github.com/legendsciber/morphe-patches/commit/31fdd38c89c7744229cbba3a67dcd985d5e57c1b))
+
+## [1.28.4](https://github.com/legendsciber/morphe-patches/compare/v1.28.3...v1.28.4) (2026-09-02)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** fix VerifyError via helper dex for dump ([335d5cd](https://github.com/legendsciber/morphe-patches/commit/335d5cd54ad8d4f6375fbdda62ad4ef89db5fee7))
+
+## [1.28.3](https://github.com/legendsciber/morphe-patches/compare/v1.28.2...v1.28.3) (2026-09-02)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** fix VerifyError this-is-File via super injection ([a1d83c4](https://github.com/legendsciber/morphe-patches/commit/a1d83c4e6d79f89bc09e899a6cbccf89170eb2bd))
+
+## [1.28.2](https://github.com/legendsciber/morphe-patches/compare/v1.28.1...v1.28.2) (2026-09-02)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** fix DumpHelper ClassNotFound via IOUtils readInputStreamFully ([cbaa974](https://github.com/legendsciber/morphe-patches/commit/cbaa974053728e2e93d291db6ab7e4522f547900))
+
+## [1.28.1](https://github.com/legendsciber/morphe-patches/compare/v1.28.0...v1.28.1) (2026-09-02)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** fix dump fingerprint no filters ([14d51ff](https://github.com/legendsciber/morphe-patches/commit/14d51ff01dd17f18347ef5a85e2f4fdbfb03e3f8))
+
+## [1.28.0](https://github.com/legendsciber/morphe-patches/compare/v1.27.0...v1.28.0) (2026-09-02)
+
+### ✨ New Features
+
+* **shadowfight:** add runtime dump for hardcode (pre-release) ([2615983](https://github.com/legendsciber/morphe-patches/commit/261598343f26414e4b96980c1b7c7c2deca12099))
+
+## [1.27.0](https://github.com/legendsciber/morphe-patches/compare/v1.26.2...v1.27.0) (2026-09-01)
+
+### ✨ New Features
+
+* **shadowfight:** add CheatsPanel debug menu restore (8 RET stubs) ([cf64178](https://github.com/legendsciber/morphe-patches/commit/cf6417845b5f7a8d240349c02bc0292ff1baa81b))
+
+## [1.26.2](https://github.com/legendsciber/morphe-patches/compare/v1.26.1...v1.26.2) (2026-09-01)
+
+### 🐛 Bug Fixes
+
+* **extremecardriving:** fix DAO null via manager->info->dao 2-step chain ([3315f76](https://github.com/legendsciber/morphe-patches/commit/3315f767f6617dbdd8c0d8c496970ee972535ec2))
+
+## [1.26.1](https://github.com/legendsciber/morphe-patches/compare/v1.26.0...v1.26.1) (2026-09-01)
+
+### 🐛 Bug Fixes
+
+* **extremecardriving:** fix hardcode to find ManagerPlayerData without image name check ([ec0f9e0](https://github.com/legendsciber/morphe-patches/commit/ec0f9e0f6514e510c6b3bb05703b1aaeffad3d36))
+
+## [1.26.0](https://github.com/legendsciber/morphe-patches/compare/v1.25.14...v1.26.0) (2026-09-01)
+
+### ✨ New Features
+
+* **extremecardriving:** switch to direct hardcode via ManagerPlayerData DAO offsets ([a227d65](https://github.com/legendsciber/morphe-patches/commit/a227d6550997aecbaa9b7b1402f792d69cbee155))
+
+## [1.25.14](https://github.com/legendsciber/morphe-patches/compare/v1.25.13...v1.25.14) (2026-09-01)
+
+### 🐛 Bug Fixes
+
+* **extremecardriving:** expand global singleton search and add PlayerPrefs fallback ([eff0fa8](https://github.com/legendsciber/morphe-patches/commit/eff0fa8d5144132762714fd296a38579149e265d))
+
+## [1.25.13](https://github.com/legendsciber/morphe-patches/compare/v1.25.12...v1.25.13) (2026-09-01)
+
+### 🐛 Bug Fixes
+
+* **extremecardriving:** fix currency hack to handle PlayerInfo_DAO singleton via generic scan ([ec4ce37](https://github.com/legendsciber/morphe-patches/commit/ec4ce37c42ce210b36bd12d5b134ea5d7a74d397))
+
+## [1.25.12](https://github.com/legendsciber/morphe-patches/compare/v1.25.11...v1.25.12) (2026-09-01)
+
+### 🐛 Bug Fixes
+
+* **extremecardriving:** fix currency hack to handle PlayerInfo_DAO singleton via generic scan ([e059ccf](https://github.com/legendsciber/morphe-patches/commit/e059ccfc393aa1896ec223d10bb1a68840c4d896))
+
+## [1.25.11](https://github.com/legendsciber/morphe-patches/compare/v1.25.10...v1.25.11) (2026-09-01)
+
+### 🐛 Bug Fixes
+
+* **extremecardriving:** fix native SIGSEGV via correct assembly array handling ([6d325fc](https://github.com/legendsciber/morphe-patches/commit/6d325fc6ccf333a6227395331218aa9156b30a8c))
+
+## [1.25.10](https://github.com/legendsciber/morphe-patches/compare/v1.25.9...v1.25.10) (2026-09-01)
+
+### 🐛 Bug Fixes
+
+* **extremecardriving:** fix VerifyError via helper dex with minimal registers ([191bddc](https://github.com/legendsciber/morphe-patches/commit/191bddcabd20a2e436c86bc8639baa77f6430ebc))
+
+## [1.25.9](https://github.com/legendsciber/morphe-patches/compare/v1.25.8...v1.25.9) (2026-09-01)
+
+### 🐛 Bug Fixes
+
+* **extremecardriving:** fix IllegalAccessError and VerifyError via manual copy after super ([1ab56b4](https://github.com/legendsciber/morphe-patches/commit/1ab56b436463c0f285643ffd486e449f0befb1be))
+
+## [1.25.8](https://github.com/legendsciber/morphe-patches/compare/v1.25.7...v1.25.8) (2026-09-01)
+
+### 🐛 Bug Fixes
+
+* **extremecardriving:** fix VerifyError this-is-File by injecting after super.onCreate ([7f272af](https://github.com/legendsciber/morphe-patches/commit/7f272aff04a3fb2d06bfd2ace6665848006b5327))
+* **extremecardriving:** fix VerifyError this-is-File by injecting after super.onCreate ([2b83d9c](https://github.com/legendsciber/morphe-patches/commit/2b83d9c8dae88f3f825912116b65e6634538e03b))
+
+## [1.25.7](https://github.com/legendsciber/morphe-patches/compare/v1.25.6...v1.25.7) (2026-09-01)
+
+### 🐛 Bug Fixes
+
+* **extremecardriving:** fix VerifyError via ExifInterfaceUtils copy with minimal registers ([5374f75](https://github.com/legendsciber/morphe-patches/commit/5374f7560ecf458da6d743689012293dc6de8973))
+
+## [1.25.6](https://github.com/legendsciber/morphe-patches/compare/v1.25.5...v1.25.6) (2026-09-01)
+
+### 🐛 Bug Fixes
+
+* **extremecardriving:** fix INSTALL_FAILED_INVALID_APK via assets + Runtime.load ([cabb0cb](https://github.com/legendsciber/morphe-patches/commit/cabb0cba63db7ffb6976baddd939b2781cafc8e9))
+
+## [1.25.5](https://github.com/legendsciber/morphe-patches/compare/v1.25.4...v1.25.5) (2026-09-01)
+
+### 🐛 Bug Fixes
+
+* **extremecardriving:** rewrite patches from scratch with reusable Unity template ([f07b61a](https://github.com/legendsciber/morphe-patches/commit/f07b61a305e645c7a76ec0bf0beeb1e41747c95b))
+
 ## [1.25.4](https://github.com/legendsciber/morphe-patches/compare/v1.25.3...v1.25.4) (2026-08-31)
 
 ### 🐛 Bug Fixes

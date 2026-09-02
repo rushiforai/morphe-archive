@@ -183,7 +183,7 @@ val deviceIdentityPatch = rawResourcePatch(
     execute {
         val file = get("assets/config/hmd_config.json")
         val selectedProfile = profile ?: throw PatchException("HMD identity profile is required")
-        if (!isNativeXrSteamLinkBuild(packageMetadata.versionCode)) {
+        if (!isNativeXrSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) {
             val fileName = when (selectedProfile) {
                 "stock-no-change", "Stock identity (no change)",
                 "samsung-default", "Samsung Galaxy XR (default, no change)",

@@ -19,8 +19,8 @@ private const val CONFIG_SIZE = 56
 internal const val CONTROLLER_VELOCITY_IDS_XML_FALLBACK =
     """<?xml version="1.0" encoding="utf-8"?><resources/>"""
 
-internal fun isControllerVelocityPatchNoOpBuild(versionCode: String): Boolean =
-    isNativeXrSteamLinkBuild(versionCode)
+internal fun isControllerVelocityPatchNoOpBuild(version: String, versionCode: String): Boolean =
+    isNativeXrSteamLinkBuild(version, versionCode)
 
 private fun velocityResource(name: String): ByteArray =
     (object {}.javaClass.getResourceAsStream("/steamlink/androidxr/$name")
@@ -128,7 +128,9 @@ val controllerVelocityPatch = rawResourcePatch(
     )
 
     execute {
-        if (isControllerVelocityPatchNoOpBuild(packageMetadata.versionCode)) return@execute
+        if (isControllerVelocityPatchNoOpBuild(packageMetadata.versionName, packageMetadata.versionCode)) {
+            return@execute
+        }
 
         val sceneFile = get("lib/arm64-v8a/libvrlink_scene.so")
         val sceneBytes = sceneFile.readBytes()

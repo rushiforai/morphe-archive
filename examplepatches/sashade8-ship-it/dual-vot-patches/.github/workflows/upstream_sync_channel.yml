@@ -1,0 +1,163 @@
+name: Sync one Morphe channel
+
+on:
+  workflow_call:
+    inputs:
+      channel:
+        description: Channel to synchronize
+        required: true
+        type: string
+
+jobs:
+  prepare:
+    name: Prepare ${{ inputs.channel }} update
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      packages: read
+    outputs:
+      updated: ${{ steps.prepare.outputs.updated }}
+      version: ${{ steps.prepare.outputs.version }}
+    steps:
+      - name: Checkout automation controller
+        uses: actions/checkout@v7
+        with:
+          # Automation must always run from main. The script checks out the
+          # requested target branch after it has loaded the current code.
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+
+      - name: Cache Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Prepare and validate candidate
+        id: prepare
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          python .github/scripts/sync_upstream.py prepare
+          --channel "${{ inputs.channel }}"
+          --output-dir "$RUNNER_TEMP/upstream-candidate"
+
+      - name: Upload validated candidate
+        if: steps.prepare.outputs.updated == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: upstream-${{ inputs.channel }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/upstream-candidate
+          if-no-files-found: error
+          retention-days: 3
+
+  publish:
+    name: Publish ${{ inputs.channel }} update
+    needs: prepare
+    if: needs.prepare.outputs.updated == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout automation controller
+        uses: actions/checkout@v7
+        with:
+          # In particular, do not execute an outdated publisher from dev.
+          ref: main
+          fetch-depth: 0
+          # An upstream candidate can modify workflow files. GitHub's default
+          # Actions token cannot push a ref containing such changes.
+          token: ${{ secrets.UPSTREAM_SYNC_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+
+      - name: Download validated candidate
+        uses: actions/download-artifact@v8
+        with:
+          name: upstream-${{ inputs.channel }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/upstream-candidate
+
+      - name: Publish branch and release
+        env:
+          GH_TOKEN: ${{ secrets.UPSTREAM_SYNC_TOKEN }}
+        run: >-
+          python .github/scripts/sync_upstream.py publish
+          --input-dir "$RUNNER_TEMP/upstream-candidate"
+
+  report:
+    name: Report ${{ inputs.channel }} result
+    needs:
+      - prepare
+      - publish
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - name: Report failure without duplicates
+        if: needs.prepare.result == 'failure' || needs.publish.result == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CHANNEL: ${{ inputs.channel }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="automation: upstream ${CHANNEL} sync failed"
+          number="$(gh issue list \
+            --repo "$GITHUB_REPOSITORY" \
+            --state open \
+            --search "\"$title\" in:title" \
+            --json number \
+            --jq '.[0].number // empty')"
+          body="The automated **${CHANNEL}** synchronization stopped safely. The previous published bundle is unchanged wherever possible.
+
+          Workflow run: ${RUN_URL}
+
+          Review the failed step and resolve the upstream conflict or build regression before retrying."
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --repo "$GITHUB_REPOSITORY" --body "$body"
+          else
+            gh issue create \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "$title" \
+              --label automation \
+              --label bug \
+              --body "$body"
+          fi
+
+      - name: Close an earlier failure after recovery
+        if: >-
+          needs.prepare.result == 'success' &&
+          (needs.publish.result == 'success' || needs.publish.result == 'skipped')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CHANNEL: ${{ inputs.channel }}
+        run: |
+          title="automation: upstream ${CHANNEL} sync failed"
+          number="$(gh issue list \
+            --repo "$GITHUB_REPOSITORY" \
+            --state open \
+            --search "\"$title\" in:title" \
+            --json number \
+            --jq '.[0].number // empty')"
+          if [ -n "$number" ]; then
+            gh issue comment "$number" \
+              --repo "$GITHUB_REPOSITORY" \
+              --body "The next automated synchronization completed successfully."
+            gh issue close "$number" --repo "$GITHUB_REPOSITORY" \
+              --reason completed
+          fi

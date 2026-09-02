@@ -41,16 +41,27 @@ object BatteryScreenFingerprint : Fingerprint(
     returnType = "V",
 )
 
-// DiskScreen — checks proUnlocked and shows disk monitoring or purchase dialog
-object DiskScreenFingerprint : Fingerprint(
-    definingClass = "Lcom/rk/taskmanager_pro/ProBridgeImpl;",
-    name = "DiskScreen",
-    returnType = "V",
-)
-
 // NetScreen — checks proUnlocked and shows network tools or purchase dialog
 object NetScreenFingerprint : Fingerprint(
     definingClass = "Lcom/rk/taskmanager_pro/ProBridgeImpl;",
     name = "NetScreen",
     returnType = "V",
+)
+
+// LaunchNotificationService — checks proUnlocked before starting notification monitoring service (1.5.2+)
+object LaunchNotificationServiceFingerprint : Fingerprint(
+    definingClass = "Lcom/rk/taskmanager_pro/ProBridgeImpl;",
+    name = "launchNotificationService",
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;"),
+)
+
+// handlePurchases — called by billing client on every purchase-state update. On startup this fires
+// with an empty list and does `proUnlocked.setValue(false)` + `putBoolean("is_pro", false)`,
+// clobbering the constructor/initApp values. Skipping it entirely keeps proUnlocked at TRUE.
+object HandlePurchasesFingerprint : Fingerprint(
+    definingClass = "Lcom/rk/taskmanager_pro/ProBridgeImpl;",
+    name = "handlePurchases",
+    returnType = "V",
+    parameters = listOf("Ljava/util/List;"),
 )

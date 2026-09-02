@@ -33,6 +33,8 @@ Second \"item\" text"</string>
   <!-- misc.backgroundplayback.backgroundPlaybackPatch -->
   <string name="morphe_remove_background_playback_restrictions_title">Alisin ang mga paghihigpit sa pagtugtog sa likuran</string>
   <string name="morphe_shorts_disable_background_playback_title">Patayin ang pag-play ng Shorts sa likuran</string>
+  <!-- layout.disableScrollSpeedLimitPatch -->
+  <string name="morphe_disable_scrolling_speed_limit_title">I-disable ang limitasyon sa bilis ng pag-scroll</string>
   <!-- layout.disableLayoutUpdatesPatch -->
   <string name="morphe_disable_layout_updates_title">Patayin ang mga pag-update sa layout </string>
   <string name="morphe_disable_layout_updates_summary">Pinipigilan ang server na i-update ang layout ng app</string>
@@ -167,16 +169,13 @@ Kasama sa mga pagbabago ang:
   <string name="morphe_hide_explore_podcast_section_title">Itago ang seksyon na \'Galugarin ang podcast\'</string>
   <string name="morphe_hide_featured_channels_section_title">Itago ang seksyon ng mga Featured channel</string>
   <string name="morphe_hide_featured_links_section_title">Itago ang seksyon ng Featured links</string>
-  <string name="morphe_hide_featured_places_section_title">Itago ang seksyon na \'Mga Itinatampok na lugar\'</string>
   <string name="morphe_hide_featured_playlists_section_title">Itago ang seksyon ng mga piniling playlist</string>
   <string name="morphe_hide_featured_videos_section_title">Itago ang seksyon ng Featured videos</string>
-  <string name="morphe_hide_gaming_section_title">Itago ang seksyon ng Gaming</string>
   <string name="morphe_hide_hashtag_section_title">Itago ang seksyon ng Hashtag</string>
-  <string name="morphe_hide_how_this_was_made_section_title">Itago ang seksyon na \'Paano ginawa ang kontentong ito\'</string>
+  <string name="morphe_hide_how_this_was_made_section_title">Itago ang seksyong \'Paano ito ginawa\' section</string>
   <string name="morphe_hide_hype_points_title">Itago ang mga puntos ng Hype</string>
   <string name="morphe_hide_info_cards_section_title">Itago ang seksyon ng Info cards</string>
   <string name="morphe_hide_key_concepts_section_title">Itago ang seksyon na \'Pangunahing konsepto\'</string>
-  <string name="morphe_hide_music_section_title">Itago ang seksyon ng Music</string>
   <string name="morphe_hide_quizzes_section_title">Itago ang seksyon ng Quizzes</string>
   <string name="morphe_hide_search_inside_this_video_section_title">Itago ang seksyon na \'Maghanap sa loob ng videong ito\'</string>
   <string name="morphe_hide_subscribe_button_title">Itago ang button na Mag-subscribe</string>
@@ -184,6 +183,7 @@ Kasama sa mga pagbabago ang:
   <string name="morphe_hide_video_details_section_title">Itago ang seksyon na \'Mga detalye ng video\'</string>
   <string name="morphe_hide_filter_bar_screen_title">Filter bar</string>
   <string name="morphe_hide_filter_bar_screen_summary">Pumili kung saan itatago ang scrolling filter bar</string>
+  <string name="morphe_hide_filter_bar_in_channel_page_title">Itago sa pahina ng channel</string>
   <string name="morphe_hide_filter_bar_in_comments_title">Itago sa mga komento</string>
   <string name="morphe_hide_filter_bar_in_feed_title">Itago sa mga feed</string>
   <string name="morphe_hide_filter_bar_in_related_videos_title">Itago sa mga kaugnay na video</string>
@@ -200,6 +200,8 @@ Kasama sa mga pagbabago ang:
   <string name="morphe_hide_join_button_title">Itago ang button na Sumali</string>
   <string name="morphe_hide_links_preview_title">Itago ang pasilip sa mga link</string>
   <string name="morphe_hide_links_preview_summary">Itinatago ang mga clickable web link sa header ng channel</string>
+  <string name="morphe_hide_members_only_chip_title">Itago ang chip na \'Members only\'</string>
+  <string name="morphe_hide_members_only_chip_summary">Itinatago ang \'Members only\' na chip sa filter bar ng channel</string>
   <string name="morphe_hide_members_shelf_title">Itago ang mga miyembro shelf</string>
   <string name="morphe_hide_members_shelf_summary">Itinatago ang listahan ng mga miyembro ng channel</string>
   <string name="morphe_hide_posts_shelf_title">Itago ang posts shelf</string>
@@ -260,14 +262,15 @@ Kasama sa mga pagbabago ang:
   <string name="morphe_hide_comments_preview_comment_summary">Itinatago ang preview ng komento sa ilalim ng video bago buksan ang buong seksyon ng mga komento</string>
   <string name="morphe_hide_comments_thanks_button_title">Itago ang button na Salamat</string>
   <string name="morphe_hide_comments_timestamp_button_title">Itago ang Timestamp button</string>
+  <string name="morphe_hide_comments_top_fans_button_title">Itago ang button na \'Top fans\'</string>
   <string name="morphe_sanitize_comments_highlighted_search_links_title">Linisin ang mga naka-highlight na link sa paghahanap</string>
   <string name="morphe_sanitize_comments_highlighted_search_links_summary">Nililinis ang mga naka-highlight na link sa paghahanap, at iniiwan lamang ang orihinal na simpleng teksto</string>
   <string name="morphe_hide_keyword_content_screen_title">Filter ng keyword</string>
   <string name="morphe_hide_keyword_content_screen_summary">Pumili ng mga partikular na salita o parirala upang itago ang mga video sa feed at paghahanap</string>
+  <string name="morphe_hide_keyword_content_comments_title">Itago ang mga komento ayon sa mga keyword</string>
   <string name="morphe_hide_keyword_content_home_title">Itago ang mga video ng bahay sa pamamagitan ng mga keyword</string>
   <string name="morphe_hide_keyword_content_search_title">Itago ang mga resulta ng paghahanap sa pamamagitan ng mga keyword</string>
   <string name="morphe_hide_keyword_content_subscriptions_title">Itago ang mga video sa Mga Subscription sa pamamagitan ng mga keyword</string>
-  <string name="morphe_hide_keyword_content_comments_title">Itago ang mga komento ayon sa mga keyword</string>
   <string name="morphe_hide_keyword_content_phrases_title">Mga Keyword na itatago</string>
   <!-- For localization, it is preferred, but not required, if 'LeBlanc' is replaced with a localized name or a familiar word that has upper case letters in the middle of the word.
          This is because keywords can be in any language, and showing an example in the localized script helps convey this. -->
@@ -449,16 +452,19 @@ Impormasyon: Maaaring hindi gumana sa mga live stream"</string>
   <string name="morphe_reload_video_button_title">Ipakita ang button na i-reload ang video</string>
   <string name="morphe_dismiss_player_not_available_toast">Hindi available ang Video ID. Pakisuyong i-reload nang manu-mano ang video</string>
   <!-- interaction.savetowatchlater.saveToWatchLaterPatch -->
-  <string name="morphe_save_to_watch_later_button_title">Ipakita ang button na \'I-save para mapanood mamaya\'</string>
-  <string name="morphe_save_to_watch_later_button_summary">I-tap para i-save para mapanood mamaya, i-tap at pindutin para sa mga opsyon sa pila</string>
+  <string name="morphe_save_to_watch_later_button_title">Ipakita ang button na I-save sa Panoorin Mamaya</string>
+  <string name="morphe_save_to_watch_later_button_summary">I-tap upang i-save sa Panoorin Mamaya, pindutin nang matagal para sa mga opsyon sa queue</string>
   <string name="morphe_save_to_watch_later_success_toast">Matagumpay na naisave ang video sa playlist na I-save para manood mamaya</string>
   <string name="morphe_save_to_watch_later_already_exists_toast">Naisave na ang videong ito sa playlist na I-save para manood mamaya</string>
   <string name="morphe_save_to_watch_later_error_toast">Hindi ma-save ang videong ito sa playlist na I-save para manood mamaya</string>
+  <string name="morphe_save_to_watch_later_flyout_title">I-save sa Panoorin Mamaya</string>
+  <string name="morphe_save_to_watch_later_kids_flyout_button_title">Ipakita ang button na I-save sa Panoorin Mamaya sa mga video ng mga bata</string>
+  <string name="morphe_save_to_watch_later_kids_flyout_button_summary">Nagbibigay-daan sa pag-save ng mga video na may kaugnayan sa bata sa menu ng \'Panoorin Mamaya\' o flyout menu.</string>
   <string name="morphe_queue_flyout_title">Idagdag sa Morphe queue</string>
   <string name="morphe_queue_restore_title">Panatilihin ang pila sa pagitan ng mga sesyon</string>
   <string name="morphe_queue_restore_summary">Ang pila ay nananatili kahit i-restart ang app</string>
   <string name="morphe_swap_save_and_queue_actions_title">Palitan ang Save at Queue na aksyon</string>
-  <string name="morphe_swap_save_and_queue_actions_summary">I-tap para sa mga opsyon sa queue, i-tap at pindutin nang matagal para i-save para mapanood mamaya</string>
+  <string name="morphe_swap_save_and_queue_actions_summary">I-tap para sa mga opsyon ng queue, i-tap at i-hold upang i-save sa Panoorin Mamaya</string>
   <string name="morphe_queue_override_flyout_menu_title">Palitan ang pila ng feed flyout na buton</string>
   <string name="morphe_queue_override_flyout_menu_summary">Binubuksan ang pila ng Morphe sa halip na ang pila ng YouTube</string>
   <string name="morphe_queue_add_flyout_menu_title">Idagdag ang feed flyout queue na menu item</string>
@@ -703,40 +709,42 @@ Upang ma-access ang Settings, i-enable ang Settings button sa pamamagitan ng Gen
   <!-- layout.hide.player.flyoutmenupanel.hidePlayerFlyoutMenuPatch -->
   <string name="morphe_hide_player_flyout_title">Flyout menu</string>
   <string name="morphe_hide_player_flyout_summary">Itago ang \'Audio Track\' menu</string>
+  <!-- 'Additional settings / More' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_player_flyout_additional_settings_title">Itago ang \'Additional settings\' / More menu</string>
+  <!-- 'Ambient mode' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_player_flyout_ambient_mode_title">Itago ang \'Ambient mode\' menu</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+         'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
+  <string name="morphe_hide_player_flyout_audio_track_not_available">"Nakatago ang menu na 'Audio Track'\n\nUpang ipakita ang menu na 'Audio Track', baguhin ang 'I-spoof ang mga video stream' sa anumang client maliban sa 'Android Studio' at 'Android VR Downgraded'"</string>
   <!-- 'Audio Track' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_audio_track_title">Itago ang \'Audio Track\' na menu</string>
-  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
-  <string name="morphe_hide_player_flyout_audio_track_not_available">"Nakatago ang menu na 'Audio Track'\n\nUpang ipakita ang menu na 'Audio Track', baguhin ang 'I-spoof ang mga video stream' sa anumang client maliban sa 'Android Studio' at 'Android VR Downgraded'"</string>
   <string name="morphe_hide_player_flyout_audio_track_footer_title">Ang address na ginagamit ng SponsorBlock para gumawa ng mga tawag sa server</string>
   <!-- 'Captions' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_captions_title">Ang iyong configuration ng SponsorBlock JSON na maaaring i-import / i-export sa Morphe at iba pang mga platform ng SponsorBlock</string>
   <string name="morphe_hide_player_flyout_captions_footer_title">Itago ang footer ng menu ng Captions</string>
   <string name="morphe_hide_player_flyout_captions_header_title">Itago ang Captions menu header</string>
-  <!-- 'Additional settings / More' should be translated using the same localized wording YouTube displays for the menu item. -->
-  <string name="morphe_hide_player_flyout_additional_settings_title">Itago ang \'Additional settings\' / More menu</string>
-  <!-- 'Sleep timer' should be translated using the same localized wording YouTube displays for the menu item. -->
-  <string name="morphe_hide_player_flyout_sleep_timer_title">Itago ang \'Sleep timer\' menu</string>
-  <!-- 'Loop video' should be translated using the same localized wording YouTube displays for the menu item. -->
-  <string name="morphe_hide_player_flyout_loop_video_title">Itago ang \'Loop video\' menu</string>
-  <!-- 'Ambient mode' should be translated using the same localized wording YouTube displays for the menu item. -->
-  <string name="morphe_hide_player_flyout_ambient_mode_title">Itago ang \'Ambient mode\' menu</string>
-  <!-- 'Stable volume' should be translated using the same localized wording YouTube displays for the menu item. -->
-  <string name="morphe_hide_player_flyout_stable_volume_title">Itago ang \'Stable volume\' menu</string>
   <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_help_title">Itago ang \'Help &amp; feedback\' menu</string>
-  <!-- 'Playback speed' should be translated using the same localized wording YouTube displays for the menu item. -->
-  <string name="morphe_hide_player_flyout_speed_title">Itago ang \'Playback speed\' menu</string>
-  <!-- 'Lock screen' should be translated using the same localized wording YouTube displays for the menu item. -->
-  <string name="morphe_hide_player_flyout_lock_screen_title">Itago ang \'Lock screen\' menu</string>
   <!-- 'Listen with YouTube Music' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_listen_with_youtube_music_title">Itago ang \'Listen with YouTube Music\' menu</string>
-  <!-- 'Watch in VR' should be translated using the same localized wording YouTube displays for the menu item. -->
-  <string name="morphe_hide_player_flyout_watch_in_vr_title">Itago ang \'Watch in VR\' menu</string>
+  <!-- 'Lock screen' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_player_flyout_lock_screen_title">Itago ang \'Lock screen\' menu</string>
+  <!-- 'Loop video' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_player_flyout_loop_video_title">Itago ang \'Loop video\' menu</string>
+  <!-- 'On-the-go' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_player_flyout_on_the_go_title">Itago ang menu na \'On-the-go\'</string>
   <!-- 'Quality' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_quality_title">Itago ang Quality menu</string>
   <string name="morphe_hide_player_flyout_quality_footer_title">Itago ang Quality menu footer</string>
   <string name="morphe_hide_player_flyout_quality_header_title">Itago ang Quality menu header</string>
+  <!-- 'Sleep timer' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_player_flyout_sleep_timer_title">Itago ang \'Sleep timer\' menu</string>
+  <!-- 'Playback speed' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_player_flyout_speed_title">Itago ang \'Playback speed\' menu</string>
+  <!-- 'Stable volume' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_player_flyout_stable_volume_title">Itago ang \'Stable volume\' menu</string>
+  <!-- 'Watch in VR' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_player_flyout_watch_in_vr_title">Itago ang \'Watch in VR\' menu</string>
   <!-- layout.hide.autoplaypreview.hideAutoplayPreviewPatch -->
   <string name="morphe_hide_autoplay_preview_title">Itago ang autoplay preview</string>
   <string name="morphe_hide_autoplay_preview_summary">Tinatakpan ang preview ng susunod na video sa fullscreen bago magsimula ang autoplay</string>
@@ -839,6 +847,9 @@ Mga Setting → Playback (o Autoplay) → Autoplay ng susunod na video."</string
   <!-- layout.panels.popup.disablePlayerPopupPanelsPatch -->
   <string name="morphe_disable_player_popup_panels_title">I-disable ang mga panel ng popup ng player</string>
   <string name="morphe_disable_player_popup_panels_summary">Hindi pinapayagan ang mga playlist at live chat panel na awtomatikong magbukas</string>
+  <!-- layout.playlistautoplay.disablePlaylistAutoplayPatch -->
+  <string name="morphe_disable_playlist_autoplay_title">I-disable ang autoplay ng playlist</string>
+  <string name="morphe_disable_playlist_autoplay_summary">Pinipigilan ang mga playlist na awtomatikong sumulong sa susunod na video</string>
   <!-- layout.player.fullscreen.exitFullscreenPatch -->
   <string name="morphe_exit_fullscreen_title">Lumabas sa fullscreen mode sa pagtatapos ng video</string>
   <string name="morphe_exit_fullscreen_entry_1">Nakapatay</string>
@@ -847,21 +858,34 @@ Mga Setting → Playback (o Autoplay) → Autoplay ng susunod na video."</string
   <string name="morphe_exit_fullscreen_entry_4">Portrait at landscape</string>
   <!-- layout.player.fullscreen.disableFullscreenGesturesPatch -->
   <string name="morphe_disable_fullscreen_gestures_title">Mga galaw para sa buong screen</string>
-  <string name="morphe_disable_fullscreen_gestures_summary">Mga galaw ng player para pumasok o lumabas sa fullscreen mode</string>
+  <string name="morphe_disable_fullscreen_gestures_summary">Mga galaw ng player sa fullscreen mode</string>
   <string name="morphe_disable_fullscreen_pulled_up_gesture_title">Huwag paganahin ang portrait swipe-up gesture</string>
   <string name="morphe_disable_fullscreen_sliding_down_gesture_title">Huwag paganahin ang kilos ng pag-swipe pababa sa portrait mode</string>
   <string name="morphe_disable_fullscreen_dragged_down_gesture_title">Huwag paganahin ang kilos ng pag-swipe pababa sa landscape mode</string>
+  <string name="morphe_disable_fullscreen_zoom_gesture_title">I-disable ang galaw na pinch-to-zoom</string>
   <!-- layout.player.fullscreen.openVideosFullscreenPatch -->
   <string name="morphe_open_videos_fullscreen_title">Buksan ang mga video sa fullscreen mode</string>
   <string name="morphe_open_videos_fullscreen_entry_1">Nakapatay</string>
   <string name="morphe_open_videos_fullscreen_entry_2">Patayo</string>
   <string name="morphe_open_videos_fullscreen_entry_3">Pahiga</string>
+  <!-- layout.player.fullscreen.stretchVideoPatch -->
+  <string name="morphe_fullscreen_video_scale_title">Sukat ng video sa fullscreen</string>
+  <string name="morphe_fullscreen_video_scale_entry_default">Panimula</string>
+  <string name="morphe_fullscreen_video_scale_entry_stretch">Iunat (punan ang screen)</string>
+  <string name="morphe_fullscreen_video_scale_entry_zoom">Mag-zoom (i-crop upang punan)</string>
+  <string name="morphe_fullscreen_video_scale_button_title">Ipakita ang buton ng sukat ng video</string>
+  <string name="morphe_fullscreen_video_scale_button_summary">I-tap upang magpalit sa Default, Stretch, at Zoom</string>
+  <!-- layout.player.buttons.muteVideoButtonPatch -->
+  <string name="morphe_mute_video_button_title">Ipakita ang Mute button</string>
   <!-- layout.player.overlay.customPlayerOverlayOpacityPatch -->
   <string name="morphe_player_overlay_opacity_title">Opacity ng overlay ng player</string>
   <string name="morphe_player_overlay_opacity_summary">Ayusin ang antas ng transparency (0 ay transparent, 100 ay opaque)</string>
   <string name="morphe_player_overlay_opacity_invalid_toast">Dapat nasa pagitan ng 0-100 ang opacity ng overlay ng player</string>
   <!-- layout.searchbar.wideSearchbarPatch -->
-  <string name="morphe_wide_searchbar_title">Paganahin ang malawak na search bar</string>
+  <string name="morphe_searchbar_type_title">Bar ng paghahanap</string>
+  <string name="morphe_searchbar_type_entry_disabled">Nakapatay</string>
+  <string name="morphe_searchbar_type_entry_wide">Malawak</string>
+  <string name="morphe_searchbar_type_entry_extra_wide">Napakalawak</string>
   <!-- layout.sponsorblock.sponsorBlockPatch -->
   <!-- layout.formfactor.changeFormFactorPatch -->
   <string name="morphe_change_form_factor_title">Layout ng device</string>
@@ -869,20 +893,22 @@ Mga Setting → Playback (o Autoplay) → Autoplay ng susunod na video."</string
   <string name="morphe_change_form_factor_entry_2">Telepono</string>
   <string name="morphe_change_form_factor_entry_3">Tablet</string>
   <string name="morphe_change_form_factor_entry_4">Automotive</string>
-  <string name="morphe_change_form_factor_user_dialog_message">"Kasama sa mga pagbabago:
+  <string name="morphe_change_form_factor_user_dialog_message">"Kasama sa mga pagbabago ang sumusunod:
 
-Layout ng Tablet
-• Nakatago ang mga post sa Komunidad
-• Hindi available ang setting ng pag-playback sa feed
-• Hindi available ang button na Remix at Sound button sa Shorts
-• Ipinapakita ang lumang video action bar na hindi nakatiklop
+Layout ng tablet
+• Nakatago ang mga post sa komunidad
+• Hindi available ang setting na Playback sa mga feed
+• Hindi available ang Remix button at Sound button sa Shorts
+• Maaaring hindi available ang overlay na 'Higit pang mga video'
+• Ipinapakita ang hindi naka-collapse na lumang video action bar
 
-Layout ng Automotive
-• Ang feed ay nakaayos ayon sa mga paksa at channel
-• Hindi available ang setting ng pag-playback sa feed
-• Hindi available ang button na Remix at Sound button sa Shorts
-• Bukas ang Shorts sa regular na player
-• Ipinapakita ang lumang video action bar na hindi nakatiklop"</string>
+Layout ng automotive
+• Nakaayos ang feed ayon sa mga paksa at mga channel
+• Hindi available ang setting na Playback sa mga feed
+• Hindi available ang Remix button at Sound button sa Shorts
+• Maaaring hindi available ang overlay na 'Higit pang mga video'
+• Nagbubukas ang Shorts sa regular na player
+• Ipinapakita ang hindi naka-collapse na lumang video action bar"</string>
   <string name="morphe_tablet_layout_in_player_title">Paganahin ang layout ng tablet sa player</string>
   <!-- "Restore old video action bar" must be translated the same as morphe_restore_old_video_action_bar_title -->
   <string name="morphe_tablet_layout_in_player_summary">"Ibinabalik ang lumang layout ng player
@@ -1127,6 +1153,14 @@ I-tap dito upang buksan ang DeArrow.ajay.app"</string>
   <string name="morphe_playback_audio_time_stretching_summary">Pinapayagan ang pagtatakda ng bilis at pitch nang hiwalay, maaaring magdulot ng mga artifact sa audio</string>
   <!-- video.codecs.disableVideoCodecsPatch -->
   <string name="morphe_disable_hdr_video_title">Patayin ang HDR video</string>
+  <string name="morphe_force_hdr_video_title">Pilitin ang HDR video</string>
+  <string name="morphe_force_hdr_video_summary">Pinipilit ang app na kilalanin ang device na ito bilang may kakayahang HDR</string>
+  <string name="morphe_force_hdr_video_user_dialog_message">"Gamitin ito kung gumagana ang HDR decoding ngunit hindi nag-aalok ng HDR ang YouTube, tulad ng ilang HyperOS device na nagtatago ng HLG.
+
+Mga Limitasyon:
+• Maaaring mali ang mga kulay kung hindi kayang ipakita ng display ang HDR
+• Maaaring mabigo ang playback kung hindi kayang hawakan ng decoder ang HDR
+• Nakadepende pa rin ang HDR sa client na nagpapanggap ng video streams"</string>
   <string name="morphe_force_avc_codec_title">Puwersahin ang AVC (H.264) codec</string>
   <string name="morphe_force_avc_codec_user_dialog_message">"Mga benepisyo:
 • Maaaring mapabuti ang buhay ng baterya

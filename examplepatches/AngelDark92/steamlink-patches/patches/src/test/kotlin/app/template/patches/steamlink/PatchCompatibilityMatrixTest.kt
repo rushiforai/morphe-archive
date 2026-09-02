@@ -12,9 +12,7 @@ import app.template.patches.steamlink.androidxr.xrDeviceConfigBaselinePatch
 import app.template.patches.steamlink.androidxr.xrInputRoutingConfigPatch
 import app.template.patches.steamlink.androidxr.xrLauncherBootstrapPatch
 import app.template.patches.steamlink.androidxr.xrManifestCapabilityPackPatch
-import app.template.patches.steamlink.androidxr.xrProjectionSettingsQualityPatch
-import app.template.patches.steamlink.androidxr.xrProjectionSettingsStrippedPatch
-import app.template.patches.steamlink.androidxr.xrProjectionTraceControlPatch
+import app.template.patches.steamlink.androidxr.xrGalaxyXrHighResolutionPatch
 import app.template.patches.steamlink.binary.androidXrNativePermissionNamesPatch
 import app.template.patches.steamlink.binary.forceHmdInitializationGatesPatch
 import app.template.patches.steamlink.binary.forceLobbyPermissionStateGatePatch
@@ -34,17 +32,24 @@ class PatchCompatibilityMatrixTest {
     @Test
     fun `native builds expose only the supported stable and experimental patches`() {
         allowedNativeXr.forEach { patch ->
-            assertTrue(patch.supports(5002318), "${patch.name} on 5002318")
+            assertTrue(patch.supports("2.0.22", 5002318), "${patch.name} on 5002318")
         }
         excludedNativeXr.forEach { patch ->
-            assertFalse(patch.supports(5002318), "${patch.name} on 5002318")
+            assertFalse(patch.supports("2.0.22", 5002318), "${patch.name} on 5002318")
         }
         latestCompatible.forEach { patch ->
-            assertTrue(patch.supports(5002322), "${patch.name} on 5002322")
+            assertTrue(patch.supports("2.0.22", 5002322), "${patch.name} on 5002322")
         }
         latestExcluded.forEach { patch ->
-            assertFalse(patch.supports(5002322), "${patch.name} on 5002322")
+            assertFalse(patch.supports("2.0.22", 5002322), "${patch.name} on 5002322")
         }
+        assertTrue(xrGalaxyXrHighResolutionPatch.supports("2.0.22", 5002322))
+        assertFalse(xrGalaxyXrHighResolutionPatch.supports("2.0.22", 5002318))
+        assertFalse(xrGalaxyXrHighResolutionPatch.supports("2.0.22", 5002244))
+        assertTrue(xrGalaxyXrHighResolutionPatch.default)
+        assertFalse(appearOnTopPatch.supports("2.0.22", 5002322))
+        assertEquals("Appear on top (legacy)", appearOnTopPatch.name)
+        assertFalse(appearOnTopPatch.default)
         (allowedNativeXr + excludedNativeXr).forEach { patch ->
             assertEquals(
                 patch in recommendedDefaults,
@@ -57,19 +62,32 @@ class PatchCompatibilityMatrixTest {
     @Test
     fun `previous verified build compatibility is preserved`() {
         (allowedNativeXr + excludedNativeXr).forEach { patch ->
-            assertTrue(patch.supports(5002313), patch.name)
+            assertTrue(patch.supports("2.0.22", 5002313), patch.name)
         }
     }
 
     @Test
-    fun `latest build recommends exactly the requested six patches`() {
+    fun `all legacy patches support exact 2_0_20 builds`() {
+        listOf(5001712, 5001740).forEach { versionCode ->
+            (allowedNativeXr + excludedNativeXr).forEach { patch ->
+                assertTrue(patch.supports("2.0.20", versionCode), "${patch.name} on $versionCode")
+            }
+            assertFalse(xrGalaxyXrHighResolutionPatch.supports("2.0.20", versionCode))
+        }
+        (allowedNativeXr + excludedNativeXr).forEach { patch ->
+            assertFalse(patch.supports("2.0.22", 5001712), "${patch.name} on wrong versionName")
+        }
+    }
+
+    @Test
+    fun `latest build recommends exactly the final six patches`() {
         val recommended = (latestCompatible + latestExcluded)
-            .filter { patch -> patch.default && patch.supports(5002322) }
+            .filter { patch -> patch.default && patch.supports("2.0.22", 5002322) }
             .mapNotNullTo(mutableSetOf()) { it.name }
 
         assertEquals(
             setOf(
-                "Appear on top",
+                "Galaxy XR high-resolution 3-projection fix",
                 "GXR face bridge",
                 "Microphone input preset",
                 "Unrestricted battery usage",
@@ -92,18 +110,16 @@ class PatchCompatibilityMatrixTest {
         listOf(
             appearOnTopPatch,
             unrestrictedBatteryUsagePatch,
-            xrProjectionTraceControlPatch,
-            xrProjectionSettingsQualityPatch,
-            xrProjectionSettingsStrippedPatch,
+            xrGalaxyXrHighResolutionPatch,
         ).forEach { patch ->
             assertTrue(xrLauncherBootstrapPatch in patch.dependencyClosure(), patch.name)
         }
     }
 
-    private fun Patch<*>.supports(versionCode: Int): Boolean =
+    private fun Patch<*>.supports(version: String, versionCode: Int): Boolean =
         compatibility.orEmpty().any { compatibility ->
             compatibility.targets.any { target ->
-                target.version == "2.0.22" && target.versionCodes?.values?.contains(versionCode) == true
+                target.version == version && target.versionCodes?.values?.contains(versionCode) == true
             }
         }
 
@@ -124,9 +140,6 @@ class PatchCompatibilityMatrixTest {
             hmdOnlyPatch,
             unrestrictedBatteryUsagePatch,
             videoDitherPatch,
-            xrProjectionTraceControlPatch,
-            xrProjectionSettingsQualityPatch,
-            xrProjectionSettingsStrippedPatch,
         )
 
         val excludedNativeXr = listOf(
@@ -146,22 +159,26 @@ class PatchCompatibilityMatrixTest {
         val latestCompatible = allowedNativeXr - listOf(
             deviceIdentityPatch,
             oledCalibrationPatch,
+            appearOnTopPatch,
+        ) + listOf(
+            xrGalaxyXrHighResolutionPatch,
         )
 
         val latestExcluded = excludedNativeXr + listOf(
             deviceIdentityPatch,
             oledCalibrationPatch,
+            appearOnTopPatch,
         )
 
         val recommendedDefaults = setOf(
             deviceIdentityPatch,
             microphoneInputPresetPatch,
             oledCalibrationPatch,
-            appearOnTopPatch,
             gxrFacebridgePatch,
             unrestrictedBatteryUsagePatch,
             videoDitherPatch,
             hmdOnlyPatch,
+            xrGalaxyXrHighResolutionPatch,
         )
     }
 }

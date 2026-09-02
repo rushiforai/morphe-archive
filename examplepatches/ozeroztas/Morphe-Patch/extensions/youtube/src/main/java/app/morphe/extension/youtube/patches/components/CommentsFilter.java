@@ -157,6 +157,11 @@ public class CommentsFilter extends Filter {
                 "composer_timestamp_button.e"
         );
 
+        var topFansButton = new StringFilterGroup(
+                Settings.HIDE_COMMENTS_TOP_FANS_BUTTON,
+                "live_viewer_leaderboard_chat_entry_point.e"
+        );
+
         addPathCallbacks(
                 channelGuidelines,
                 chatSummary,
@@ -173,7 +178,8 @@ public class CommentsFilter extends Filter {
                 previewComment,
                 previewCommentDotsSelector,
                 thanksButton,
-                timestampButton
+                timestampButton,
+                topFansButton
         );
     }
 
@@ -374,47 +380,50 @@ public class CommentsFilter extends Filter {
                     var data = videoMetadataCarouselModel.getData().toBuilder();
                     var carouselTitleDatasList = data.getCarouselTitleDatasList();
 
-                    boolean modified = false;
+                    if (!carouselTitleDatasList.isEmpty()) {
+                        boolean modified = false;
 
-                    for (int i = carouselTitleDatasList.size() - 1; i > -1; i--) {
-                        var carouselTitleData = carouselTitleDatasList.get(i);
+                        for (int i = carouselTitleDatasList.size() - 1; i > -1; i--) {
+                            var carouselTitleData = carouselTitleDatasList.get(i);
 
-                        String title = carouselTitleData.getTitle();
-                        Logger.printDebug(() -> "comments title: " + title);
+                            String title = carouselTitleData.getTitle();
+                            Logger.printDebug(() -> "comments title: " + title);
 
-                        if (title != null) {
-                            for (String filter : commentsCarouselFilterStrings) {
-                                if (title.contains(filter)) {
-                                    data.removeCarouselItemDatas(i);
-                                    data.removeCarouselTitleDatas(i);
-                                    modified = true;
+                            if (title != null) {
+                                for (String filter : commentsCarouselFilterStrings) {
+                                    if (title.contains(filter)) {
+                                        data.removeCarouselItemDatas(i);
+                                        data.removeCarouselTitleDatas(i);
+                                        modified = true;
+                                        break;
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    if (modified) {
-                        var newBuild = data.build();
-                        videoMetadataCarouselModel.clearData();
-                        videoMetadataCarouselModel.setData(newBuild);
+                        if (modified) {
+                            var newBuild = data.build();
+                            videoMetadataCarouselModel.clearData();
+                            videoMetadataCarouselModel.setData(newBuild);
 
-                        var newVideoMetadataCarouselModel = videoMetadataCarouselModel.build();
-                        model.clearVideoMetadataCarouselModel();
-                        model.setVideoMetadataCarouselModel(newVideoMetadataCarouselModel);
+                            var newVideoMetadataCarouselModel = videoMetadataCarouselModel.build();
+                            model.clearVideoMetadataCarouselModel();
+                            model.setVideoMetadataCarouselModel(newVideoMetadataCarouselModel);
 
-                        var newModel = model.build();
-                        componentType.clearModel();
-                        componentType.setModel(newModel);
+                            var newModel = model.build();
+                            componentType.clearModel();
+                            componentType.setModel(newModel);
 
-                        var newComponentType = componentType.build();
-                        type.clearComponentType();
-                        type.setComponentType(newComponentType);
+                            var newComponentType = componentType.build();
+                            type.clearComponentType();
+                            type.setComponentType(newComponentType);
 
-                        var newType = type.build();
-                        newElement.clearType();
-                        newElement.setType(newType);
+                            var newType = type.build();
+                            newElement.clearType();
+                            newElement.setType(newType);
 
-                        return newElement.build().toByteArray();
+                            return newElement.build().toByteArray();
+                        }
                     }
                 }
             } catch (Exception ex) {

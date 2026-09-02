@@ -1,5 +1,5 @@
 {
-    "version": "v3.8.0",
+    "version": "v3.10.0-dev.3",
     "patches": [
         {
             "compatiblePackages": {
@@ -46,6 +46,18 @@
             "dependencies": [],
             "description": "啟用 AI 撰寫工具，支援所有語言\nEnable AI writing tools with support for all languages.",
             "name": "AI Writing Tools",
+            "options": [],
+            "use": true
+        },
+        {
+            "compatiblePackages": {
+                "com.google.android.inputmethod.latin": [
+                    "18.0.3.954559732-release-arm64-v8a"
+                ]
+            },
+            "dependencies": [],
+            "description": "匯出或還原全部 Patches 設定，並備份、比較及還原 Gboard PB/XML flag store\nExport or restore all Patches settings, and back up, compare, or restore the Gboard PB/XML flag store.",
+            "name": "Backup & Restore",
             "options": [],
             "use": true
         },
@@ -386,6 +398,18 @@
             "dependencies": [],
             "description": "允許切換新版或舊版 Gboard 設定頁面\nAllow switching between the new and legacy Gboard settings pages.",
             "name": "Settings Homepage Override",
+            "options": [],
+            "use": true
+        },
+        {
+            "compatiblePackages": {
+                "com.google.android.inputmethod.latin": [
+                    "18.0.3.954559732-release-arm64-v8a"
+                ]
+            },
+            "dependencies": [],
+            "description": "直接輸入算式，在 Gboard 推薦列顯示可捲動算式與答案。\nType an expression and show a scrollable equation plus its answer in Gboard's suggestion row.",
+            "name": "Simple Calculator",
             "options": [],
             "use": true
         },

@@ -40,6 +40,15 @@ private data class CadenceLayout(
 
 private val CADENCE_LAYOUTS = listOf(
     CadenceLayout(
+        versionCode = 5001740,
+        fileSize = 2_220_528,
+        blocks = listOf(
+            CadenceBlock(0x000F6378L, 0x000F6368L, 0x000F63C0L, 0x000F63D4L, 0x000F63FCL, 0x000F63E0L, 10, 9),
+            CadenceBlock(0x000F6478L, 0x000F6468L, 0x000F64C0L, 0x000F64D4L, 0x000F64FCL, 0x000F64E0L, 10, 9),
+            CadenceBlock(0x000F6540L, 0x000F6530L, 0x000F6588L, 0x000F6598L, 0x000F65C4L, 0x000F65CCL, 9, 10),
+        ),
+    ),
+    CadenceLayout(
         versionCode = 5001712,
         fileSize = 2_221_072,
         blocks = listOf(

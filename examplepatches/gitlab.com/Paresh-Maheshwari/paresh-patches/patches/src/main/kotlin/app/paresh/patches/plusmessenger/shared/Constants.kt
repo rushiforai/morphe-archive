@@ -9,7 +9,7 @@ object Constants {
         packageName = "org.telegram.plus",
         appIconColor = 0x2AABEE,
         targets = listOf(
-            AppTarget(version = "12.7.3.0")
+            AppTarget(version = "12.9.2.0")
         )
     )
 }

@@ -1,0 +1,42 @@
+name: Feature request
+description: Suggest an improvement to Dual VoT Patches.
+title: 'feat: '
+labels: ['feature']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Dual VoT Patches feature request
+
+        Before creating a new feature request, please keep the following in mind:
+
+        - Search existing open and closed requests first.
+        - This tracker is for Dual VoT integration. Submit general Morphe
+          feature requests to the upstream project.
+  - type: textarea
+    attributes:
+      label: Feature description
+      description: |
+        - Describe your feature in detail
+  - type: textarea
+    attributes:
+      label: Motivation
+      description: | 
+        A strong motivation is necessary for a feature request to be considered.
+        
+        - Why should this feature be implemented? 
+        - What is the explicit use case?
+        - What are the benefits?
+        - What makes this feature important?
+    validations:
+      required: true
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      description: Your feature request will be closed if you don't follow the checklist below.
+      options:
+        - label: I have checked all open and closed feature requests and this is not a duplicate
+          required: true
+        - label: This request is directly related to Dual VoT integration
+          required: true

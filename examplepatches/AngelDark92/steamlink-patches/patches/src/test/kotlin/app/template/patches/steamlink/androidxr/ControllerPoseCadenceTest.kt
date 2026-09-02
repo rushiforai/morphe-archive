@@ -20,9 +20,10 @@ class ControllerPoseCadenceTest {
 
     @Test
     fun `controller velocity patch skips native XR builds only`() {
-        assertTrue(isControllerVelocityPatchNoOpBuild("5002318"))
-        assertTrue(isControllerVelocityPatchNoOpBuild("5002322"))
-        assertFalse(isControllerVelocityPatchNoOpBuild("5002313"))
+        assertTrue(isControllerVelocityPatchNoOpBuild("2.0.22", "5002318"))
+        assertTrue(isControllerVelocityPatchNoOpBuild("2.0.22", "5002322"))
+        assertFalse(isControllerVelocityPatchNoOpBuild("2.0.22", "5002313"))
+        assertFalse(isControllerVelocityPatchNoOpBuild("2.0.20", "5002318"))
     }
 
     @Test
@@ -35,7 +36,7 @@ class ControllerPoseCadenceTest {
     }
 
     @Test
-    fun `verified 5002244 and 5002313 cadence layouts are reversible`() {
+    fun `verified cadence layouts are reversible`() {
         cadenceLayouts.forEach { layout ->
             val stock = syntheticElf(layout)
             val half = patchControllerPoseCadence(stock, "half-2x")
@@ -66,6 +67,15 @@ class ControllerPoseCadenceTest {
     )
 
     private val cadenceLayouts = listOf(
+        TestLayout(
+            5001740,
+            2_220_528,
+            listOf(
+                TestBlock(0xF6378, 0xF6368, 0xF63C0, 0xF63D4, 0xF63FC, 0xF63E0, 9),
+                TestBlock(0xF6478, 0xF6468, 0xF64C0, 0xF64D4, 0xF64FC, 0xF64E0, 9),
+                TestBlock(0xF6540, 0xF6530, 0xF6588, 0xF6598, 0xF65C4, 0xF65CC, 10),
+            ),
+        ),
         TestLayout(
             5002244,
             2_251_920,

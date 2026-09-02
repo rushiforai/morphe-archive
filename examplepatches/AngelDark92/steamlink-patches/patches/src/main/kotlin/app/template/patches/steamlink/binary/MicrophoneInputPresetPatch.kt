@@ -79,7 +79,7 @@ val microphoneInputPresetPatch = rawResourcePatch(
         val bytes = file.readBytes()
         val matches = mutableListOf<Int>()
 
-        if (isNativeXrSteamLinkBuild(packageMetadata.versionCode)) {
+        if (isNativeXrSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) {
             val layout = NATIVE_MICROPHONE_LAYOUTS[packageMetadata.versionCode]
                 ?: throw PatchException("No verified microphone layout for Steam Link ${packageMetadata.versionCode}")
             if (bytes.size != layout.librarySize) {

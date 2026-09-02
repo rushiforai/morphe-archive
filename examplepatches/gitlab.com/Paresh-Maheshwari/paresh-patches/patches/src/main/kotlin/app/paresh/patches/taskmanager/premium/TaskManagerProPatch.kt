@@ -24,6 +24,16 @@ val taskManagerProPatch = bytecodePatch(
             return-void
         """)
 
+        // Skip handlePurchases entirely. On startup the billing client fires an empty
+        // purchase-list update, which normally calls `proUnlocked.setValue(false)` and
+        // persists "is_pro=false" to prefs — clobbering the pro state set by the
+        // constructor patch. Skipping this method keeps proUnlocked at TRUE for the
+        // life of the process. External callers (e.g. the notification icon's onClick
+        // in t9/k) read `isPro().getValue().booleanValue()` and get true → no toast.
+        HandlePurchasesFingerprint.method.addInstructions(0, """
+            return-void
+        """)
+
         // Force proUnlocked = true from constructor
         val constructor = ProBridgeConstructorFingerprint.method
         val ctorInstructions = constructor.implementation!!.instructions.toList()
@@ -51,10 +61,10 @@ val taskManagerProPatch = bytecodePatch(
         // We replace move-result v0 with const/4 v0, 0x1
         listOf(
             BatteryScreenFingerprint,
-            DiskScreenFingerprint,
-            NetScreenFingerprint
+            NetScreenFingerprint,
+            LaunchNotificationServiceFingerprint  // NEW: 1.5.2+ notification service
         ).forEach { fingerprint ->
-            val method = fingerprint.method
+            val method = fingerprint.methodOrNull ?: return@forEach  // Safe for older versions
             val instructions = method.implementation!!.instructions.toList()
             val booleanValueIdx = instructions.indexOfFirst { inst ->
                 inst.opcode == Opcode.INVOKE_VIRTUAL &&

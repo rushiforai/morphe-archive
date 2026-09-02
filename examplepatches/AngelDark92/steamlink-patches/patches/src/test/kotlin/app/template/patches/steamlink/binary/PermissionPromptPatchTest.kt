@@ -18,6 +18,7 @@ class PermissionPromptPatchTest {
     @Test
     fun `verified permission prompt layouts patch and remain idempotent`() {
         listOf(
+            Triple(2_220_528, 0x142a9c, 5001740),
             Triple(2_251_920, 0x1422c4, 5002244),
             Triple(2_276_872, 0x1472a8, 5002313),
         ).forEach { (size, offset, versionCode) ->
@@ -35,7 +36,7 @@ class PermissionPromptPatchTest {
 
     @Test
     fun `verified permission prompt layouts reject changed prologue`() {
-        listOf(2_251_920, 2_276_872).forEach { size ->
+        listOf(2_220_528, 2_251_920, 2_276_872).forEach { size ->
             assertFailsWith<PatchException> { patchPermissionPrompt(ByteArray(size)) }
         }
     }

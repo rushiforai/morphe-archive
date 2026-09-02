@@ -193,10 +193,11 @@ object ProfileCountriesFingerprint : Fingerprint(
     )
 )
 
-// UpgradeOnboardingDialogActivity$Companion.launch(Context) — shows upgrade onboarding after login
+// UpgradeDialogLauncherVM.launchOnboarding(Context) — shows upgrade onboarding after login
+// (was UpgradeOnboardingDialogActivity$Companion.launch(Context) before 5.19.72.0)
 object UpgradeOnboardingLaunchFingerprint : Fingerprint(
-    definingClass = "Lcom/protonvpn/android/ui/planupgrade/UpgradeOnboardingDialogActivity\$Companion;",
-    name = "launch",
+    definingClass = "Lcom/protonvpn/android/ui/planupgrade/UpgradeDialogLauncherVM;",
+    name = "launchOnboarding",
     returnType = "V",
     parameters = listOf("Landroid/content/Context;"),
 )

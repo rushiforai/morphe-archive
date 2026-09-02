@@ -65,7 +65,7 @@ private val androidXrLibPatch = rawResourcePatch {
     execute {
         // Native-XR builds own a complete Android XR path. Preserve their native permission
         // routine, runtime loaders, and hand/controller config instead of installing the legacy bridge.
-        if (isNativeXrSteamLinkBuild(packageMetadata.versionCode)) return@execute
+        if (isNativeXrSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@execute
 
         val libDir = get("lib/arm64-v8a/libvrlink_scene.so").parentFile!!
         // OpenXR runtime bridge native library for Galaxy XR platform integration
@@ -118,7 +118,7 @@ val xrDeviceConfigBaselinePatch = rawResourcePatch(
     execute {
         // Native-XR stock requests XR_EXT_hand_interaction and defines hand grip/aim poses.
         // The legacy controller_config.json has neither, so replacing it disables native hands.
-        if (isNativeXrSteamLinkBuild(packageMetadata.versionCode)) return@execute
+        if (isNativeXrSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@execute
 
         get("assets/config/hmd_config.json").writeBytes(loadResource("hmd_config.json"))
         get("assets/config/controller_config.json").writeBytes(loadResource("controller_config.json"))
@@ -142,7 +142,7 @@ val xrManifestCapabilityPackPatch = resourcePatch(
         document("AndroidManifest.xml").use { doc ->
             // Preserve native builds' target SDK, vendor declarations, required hand feature,
             // loader selection, and permission flow. This pack exists for legacy builds only.
-            if (isNativeXrSteamLinkBuild(packageMetadata.versionCode)) return@use
+            if (isNativeXrSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@use
 
             val manifest = doc.documentElement
             val app = manifest.getElementsByTagName("application").item(0) as Element
@@ -318,6 +318,37 @@ val xrManifestCapabilityPackPatch = resourcePatch(
     }
 }
 
+internal fun upsertVrLinkUnmanagedFullSpace(doc: Document, app: Element): Boolean {
+    val propertyName = "android.window.PROPERTY_XR_ACTIVITY_START_MODE"
+    val activities = app.getElementsByTagName("activity").asSequence()
+        .filterIsInstance<Element>()
+        .toList()
+    val vrLink = activities.firstOrNull {
+        it.getAttribute("android:name") == "com.valvesoftware.steamlink.VRLink"
+    } ?: activities.firstOrNull { activity ->
+        activity.getAttribute("android:name") == "android.app.NativeActivity" &&
+            activity.getElementsByTagName("meta-data").asSequence()
+                .filterIsInstance<Element>()
+                .any {
+                    it.getAttribute("android:name") == "android.app.lib_name" &&
+                        it.getAttribute("android:value") == "vrlink_scene"
+                }
+    }
+        ?: return false
+    removeDirectApplicationProperty(app, propertyName)
+    val matches = vrLink.childNodes.asSequence()
+        .filterIsInstance<Element>()
+        .filter { it.tagName == "property" && it.getAttribute("android:name") == propertyName }
+        .toList()
+    val property = matches.firstOrNull() ?: doc.createElement("property").also {
+        vrLink.insertBefore(it, vrLink.firstChild)
+    }
+    property.setAttribute("android:name", propertyName)
+    property.setAttribute("android:value", "XR_ACTIVITY_START_MODE_FULL_SPACE_UNMANAGED")
+    matches.drop(1).forEach { duplicate -> vrLink.removeChild(duplicate) }
+    return true
+}
+
 /**
  * Minimal permission/settings launcher used by patches that remain valid on native-XR builds.
  *
@@ -391,7 +422,7 @@ internal val xrPermissionSettingsBootstrapPatch = resourcePatch {
 @Suppress("unused")
 val xrLauncherBootstrapPatch = resourcePatch(
     name = "XR Launcher Bootstrap (Home Space)",
-    description = "Installs GalaxyXRPermissionActivity as launcher and configures Steam Link/VRLink activity XR startup wiring.",
+    description = "Installs GalaxyXRPermissionActivity as launcher and configures the Steam Link VR activity XR startup wiring.",
     default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_LEGACY.toTypedArray())
@@ -408,14 +439,14 @@ val xrLauncherBootstrapPatch = resourcePatch(
         document("AndroidManifest.xml").use { doc ->
             // Current Managers exclude this patch for native-XR builds. Manager 1.7 cannot distinguish
             // build codes sharing versionName 2.0.22, so also make accidental execution harmless.
-            if (isNativeXrSteamLinkBuild(packageMetadata.versionCode)) return@use
+            if (isNativeXrSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@use
 
             val app = doc.documentElement.getElementsByTagName("application").item(0) as Element
             val xrStartMode = "android.window.PROPERTY_XR_ACTIVITY_START_MODE"
 
-            // Build 5002313 declares this at application scope. Remove only the direct
-            // application child so the activity-specific managed/unmanaged modes below win.
-            removeDirectApplicationProperty(app, xrStartMode)
+            // Build 5002313 declares this at application scope. Replace it with the direct
+            // activity property required by the OpenXR VRLink activity.
+            upsertVrLinkUnmanagedFullSpace(doc, app)
 
             val gxrActivityName = "com.valvesoftware.steamlink.GalaxyXRPermissionActivity"
             val hasGxrActivity = app.getElementsByTagName("activity").let { al ->
@@ -449,27 +480,19 @@ val xrLauncherBootstrapPatch = resourcePatch(
                 app.insertBefore(activity, firstActivity)
             }
 
-            val vrLinkName = "com.valvesoftware.steamlink.VRLink"
             app.getElementsByTagName("activity").asSequence()
                 .filterIsInstance<Element>()
-                .firstOrNull { it.getAttribute("android:name") == vrLinkName }
+                .firstOrNull { activity ->
+                    activity.getAttribute("android:name") == "com.valvesoftware.steamlink.VRLink" ||
+                        activity.getAttribute("android:name") == "android.app.NativeActivity" &&
+                        activity.getElementsByTagName("meta-data").asSequence()
+                            .filterIsInstance<Element>()
+                            .any {
+                                it.getAttribute("android:name") == "android.app.lib_name" &&
+                                    it.getAttribute("android:value") == "vrlink_scene"
+                            }
+                }
                 ?.let { vrLink ->
-                    val existingMode = vrLink.getElementsByTagName("property").asSequence()
-                        .filterIsInstance<Element>()
-                        .firstOrNull { it.getAttribute("android:name") == xrStartMode }
-                    if (existingMode != null) {
-                        existingMode.setAttribute(
-                            "android:value",
-                            "XR_ACTIVITY_START_MODE_FULL_SPACE_UNMANAGED",
-                        )
-                    } else {
-                        val prop = doc.createElement("property")
-                        prop.setAttribute("android:name", xrStartMode)
-                        // XR_ACTIVITY_START_MODE_FULL_SPACE_UNMANAGED: VRLink owns the full XR frame, no spatial OS chrome
-                        prop.setAttribute("android:value", "XR_ACTIVITY_START_MODE_FULL_SPACE_UNMANAGED")
-                        vrLink.insertBefore(prop, vrLink.firstChild)
-                    }
-
                     val immersiveHmd = "org.khronos.openxr.intent.category.IMMERSIVE_HMD"
                     val hasImmersiveHmd = vrLink.getElementsByTagName("category").let { cl ->
                         (0 until cl.length).any {
@@ -551,7 +574,7 @@ val xrInputRoutingConfigPatch = rawResourcePatch(
     dependsOn(xrLauncherBootstrapPatch)
 
     execute {
-        if (isNativeXrSteamLinkBuild(packageMetadata.versionCode)) return@execute
+        if (isNativeXrSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@execute
         get("assets/config/ui_config.json").writeBytes(loadResource("ui_config.json"))
     }
 }
