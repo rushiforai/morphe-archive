@@ -6,6 +6,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.autocat.morphe.smartlauncher.shared.Constants
 
 object PopupListFingerprint : Fingerprint(
@@ -54,13 +55,18 @@ val morpheContextualActionPatch = bytecodePatch(
         PopupListFingerprint.matchOrNull()?.let { match ->
             val method = match.method
             val showInsnIndex = match.instructionMatches.first().index
-            val insn = method.getInstruction<FiveRegisterInstruction>(showInsnIndex)
-            val regPopup = insn.registerC
-            val regList = insn.registerD
+            val (regPopup, regList) = try {
+                val insn = method.getInstruction<FiveRegisterInstruction>(showInsnIndex)
+                Pair("v${insn.registerC}", "v${insn.registerD}")
+            } catch (t: Throwable) {
+                val insn = method.getInstruction<RegisterRangeInstruction>(showInsnIndex)
+                val start = insn.startRegister
+                Pair("v$start", "v${start + 1}")
+            }
 
             method.replaceInstruction(
                 showInsnIndex,
-                "invoke-static {v$regPopup, v$regList, p0}, Lcom/autocat/morphe/smartlauncher/extension/MorpheMenuInjector;->injectAndShow(Ljava/lang/Object;Ljava/util/List;Ljava/lang/Object;)V",
+                "invoke-static {$regPopup, $regList, p0}, Lcom/autocat/morphe/smartlauncher/extension/MorpheMenuInjector;->injectAndShow(Ljava/lang/Object;Ljava/util/List;Ljava/lang/Object;)V",
             )
         }
 
@@ -69,13 +75,18 @@ val morpheContextualActionPatch = bytecodePatch(
             val method = match.method
             val matchIndex = match.instructionMatches.first().index
 
-            val insn = method.getInstruction<FiveRegisterInstruction>(matchIndex)
-            val regContext = insn.registerC
-            val regIntent = insn.registerD
+            val (regContext, regIntent) = try {
+                val insn = method.getInstruction<FiveRegisterInstruction>(matchIndex)
+                Pair("v${insn.registerC}", "v${insn.registerD}")
+            } catch (t: Throwable) {
+                val insn = method.getInstruction<RegisterRangeInstruction>(matchIndex)
+                val start = insn.startRegister
+                Pair("v$start", "v${start + 1}")
+            }
 
             method.replaceInstruction(
                 matchIndex,
-                "invoke-static {v$regContext, v$regIntent}, Lcom/autocat/morphe/smartlauncher/extension/MorpheMenuInjector;->handleUninstallOrArchive(Landroid/content/Context;Landroid/content/Intent;)V",
+                "invoke-static {$regContext, $regIntent}, Lcom/autocat/morphe/smartlauncher/extension/MorpheMenuInjector;->handleUninstallOrArchive(Landroid/content/Context;Landroid/content/Intent;)V",
             )
         }
     }

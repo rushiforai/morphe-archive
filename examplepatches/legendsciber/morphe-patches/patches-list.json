@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.28.5",
+  "version": "1.28.4",
   "patches": [
     {
       "name": "Ad Removal",
@@ -237,32 +237,6 @@
       "options": []
     },
     {
-      "name": "Shadow Fight 2 Debug Menu Restore",
-      "description": "Restores CheatsPanel 8 methods (ShowCheats/AddCurrency etc.) from RET to real logic. Makes debug menu functional.",
-      "default": true,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.nekki.shadowfight",
-          "name": "Shadow Fight 2",
-          "description": null,
-          "apkFileType": "APKM",
-          "appIconColor": "#1A1A1A",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "2.46.0",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
       "name": "Shadow Fight 2 Dump Trigger",
       "description": "Triggers ShadowDump via UnityPlayerActivity.onCreate",
       "default": true,
@@ -279,7 +253,7 @@
             {
               "version": "2.46.0",
               "versionCodes": null,
-              "isExperimental": false,
+              "isExperimental": true,
               "minSdk": null,
               "description": null
             }
@@ -290,7 +264,7 @@
     },
     {
       "name": "Shadow Fight 2 Runtime Dump",
-      "description": "Dumps all Unity classes/fields with ObscuredInt to logcat for hardcode. Use logcat -s ShadowDump.",
+      "description": "Dumps all Unity classes/fields with ObscuredInt to logcat and files. Use logcat -s ShadowDump or cat shizuku-terminal/shadowdump-log.txt",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [
@@ -305,33 +279,7 @@
             {
               "version": "2.46.0",
               "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Shadow Fight 2 Show Cheats UI",
-      "description": "Forces CheatsPanel to be visible and adds floating Add Gems button. Works without root.",
-      "default": true,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.nekki.shadowfight",
-          "name": "Shadow Fight 2",
-          "description": null,
-          "apkFileType": "APKM",
-          "appIconColor": "#1A1A1A",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "2.46.0",
-              "versionCodes": null,
-              "isExperimental": false,
+              "isExperimental": true,
               "minSdk": null,
               "description": null
             }

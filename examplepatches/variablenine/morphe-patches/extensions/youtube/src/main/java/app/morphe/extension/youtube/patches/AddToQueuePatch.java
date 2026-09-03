@@ -7,10 +7,7 @@
 
 package app.morphe.extension.youtube.patches;
 
-import static app.morphe.extension.youtube.patches.utils.PlaylistPatch.QueueManager.OPEN_QUEUE;
-
 import android.app.Activity;
-import android.graphics.drawable.Drawable;
 
 import androidx.annotation.Nullable;
 
@@ -25,12 +22,10 @@ import app.morphe.extension.youtube.settings.Settings;
 @SuppressWarnings("unused")
 public final class AddToQueuePatch {
 
-    public static final List<String> queueButtonNames = List.of(
+    public static final List<String> queueButtonOriginalNames = List.of(
             "QUEUE_PLAY_NEXT",
             "QUEUE_PLAY_LAST"
     );
-    public static final Drawable queueButtonDrawable = Utils.getContext()
-            .getDrawable(OPEN_QUEUE.drawableId);
 
     /**
      * Injection point.
@@ -105,7 +100,7 @@ public final class AddToQueuePatch {
 
     public static boolean flyoutButtonClickLogic(String buttonName) {
         try {
-            if (queueButtonNames.contains(buttonName)) {
+            if (queueButtonOriginalNames.contains(buttonName)) {
                 String flyoutVideoId = FlyoutUtils.getFlyoutVideoId();
                 Logger.printDebug(() -> "Opening custom queue flyout with videoId: " + flyoutVideoId);
 
@@ -116,8 +111,7 @@ public final class AddToQueuePatch {
                     Logger.printException(() -> "Could not open queue flyout, activity is not available");
                 }
 
-                FlyoutUtils.dismissBottomSheetFlyout(); // Must dismiss after showing dialog.
-                FlyoutUtils.dismissPopupWindowFlyout();
+                FlyoutUtils.dismissFlyout(); // Must dismiss after showing dialog.
                 return true;
             }
         } catch (Exception ex) {

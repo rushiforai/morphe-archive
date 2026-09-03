@@ -78,7 +78,9 @@ COPY_WRITES = [
             "hexagon", "hive", "sports_soccer",
         )]
         + ["flexboard_icon_snowflake", "flexboard_icon_token"]
-        + [f"flexboard_icon_counter_{n}" for n in range(1, 10)]
+        # 0..9, not 1..9. The counters start at zero, and the missing one was never DOM-parsed
+        # and never went through the arsclib encode — the exact lane that killed dev.3/dev.4.
+        + [f"flexboard_icon_counter_{n}" for n in range(0, 10)]
     )
 ]
 
@@ -118,9 +120,8 @@ SETTINGS_ROW_ATTRS = [
     ("icon", "@drawable/flexboard_settings_icon"),
     ("fragment", "dev.jz6.flexboard.extension.settings.FlexboardSettingsFragment"),
 ]
-SETTINGS_SCREEN_FILE = "res/xml/settings.xml"
+SETTINGS_SCREEN_FILES = ["res/xml/settings.xml", "res/xml/settings_legacy.xml"]
 PREFERENCE_CATEGORY_TAG = "androidx.preference.PreferenceCategory"
-FOOTER_PREFERENCE_TAG = "com.android.settingslib.widget.FooterPreference"
 
 
 def fail(stage, message):
@@ -277,6 +278,20 @@ def replay(scratch):
         fail("replay", f"expected exactly one package dir under resources/, got {candidates}")
     pkg_dir = candidates[0]
 
+    # COPY_WRITES is a hand-maintained mirror of SettingsScreenPatch's writes, and a drawable
+    # missing from it is simply never replayed — not DOM-parsed, not put through the arsclib
+    # encode. That is the lane dev.3/dev.4 died in, and the counter_0 omission sat here unnoticed
+    # because nothing compared the list against the tree. BANNED_UNMAPPED_VALUES does this job
+    # for values/; this does it for the rest.
+    on_disk = {
+        f"{p.parent.name}/{p.name}"
+        for p in (REPO / "patches" / "src" / "main" / "resources").rglob("*.xml")
+        if p.parent.name != "values"
+    }
+    unreplayed = on_disk - {src for src, _ in COPY_WRITES}
+    if unreplayed:
+        fail("replay", f"patch resources never replayed through the encode: {sorted(unreplayed)}")
+
     for source_rel, target in COPY_WRITES:
         source = REPO / "patches" / "src" / "main" / "resources" / source_rel
         if not source.exists():
@@ -299,30 +314,26 @@ def replay(scratch):
             # arsclib sees it; without a <public> entry the encoder rejects the reference.
             define_public_id(pkg_dir, target.removeprefix("res/"), source.name.split(".")[0])
 
-    # The settings row insert, mirroring Document.addFlexboardEntry().
-    settings = pkg_dir / SETTINGS_SCREEN_FILE
-    tree = ET.parse(settings)
-    root = tree.getroot()
-    if root.tag != "PreferenceScreen":
-        fail("replay", f"settings.xml root <{root.tag}> is not <PreferenceScreen>")
+    # The settings row insert, mirroring Document.addFlexboardEntry() — onto both the modern and
+    # the legacy top-level screen, because Gboard picks between them per device.
     a = lambda k: f"{{{ANDROID_NS}}}{k}"
-    have = any(e.get(a("key")) == "flexboard_settings" for e in root.iter())
-    if not have:
-        row = ET.Element(SETTINGS_ROW_TAG)
-        for k, v in SETTINGS_ROW_ATTRS:
-            row.set(a(k), v)
-        category = next((c for c in root if c.tag == PREFERENCE_CATEGORY_TAG), None)
-        footer = next((c for c in root if c.tag == FOOTER_PREFERENCE_TAG), None)
-        if category is not None:
-            category.insert(0, row)
-        elif footer is not None:
-            root.insert(list(root).index(footer), row)
-        else:
-            root.append(row)
-        write_fresh(settings, "<?xml version='1.0' encoding='utf-8'?>\n"
-                              + ET.tostring(root, encoding="unicode"))
-        dom_parse(settings)
-        touched.append(settings)
+    for screen_file in SETTINGS_SCREEN_FILES:
+        settings = pkg_dir / screen_file
+        tree = ET.parse(settings)
+        root = tree.getroot()
+        if root.tag != "PreferenceScreen":
+            fail("replay", f"{screen_file} root <{root.tag}> is not <PreferenceScreen>")
+        have = any(e.get(a("key")) == "flexboard_settings" for e in root.iter())
+        if not have:
+            row = ET.Element(SETTINGS_ROW_TAG)
+            for k, v in SETTINGS_ROW_ATTRS:
+                row.set(a(k), v)
+            category = next((c for c in root if c.tag == PREFERENCE_CATEGORY_TAG), None)
+            (category if category is not None else root).insert(0, row)
+            write_fresh(settings, "<?xml version='1.0' encoding='utf-8'?>\n"
+                                  + ET.tostring(root, encoding="unicode"))
+            dom_parse(settings)
+            touched.append(settings)
 
     # Values merges (empty by policy today; see VALUE_MERGES).
     values_dir = REPO / "patches" / "src" / "main" / "resources" / "values"

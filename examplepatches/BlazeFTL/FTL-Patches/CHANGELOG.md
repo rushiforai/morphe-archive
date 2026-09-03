@@ -1,3 +1,51 @@
+## [1.43.0-dev.33](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.32...v1.43.0-dev.33) (2026-09-02)
+
+### ✨ New Features
+
+* Up Junk,Toast ([16868b7](https://github.com/BlazeFTL/FTL-Patches/commit/16868b7be181cdb5bbbe7424125b0a1889ff976b))
+* Update Toast Patch ([845a494](https://github.com/BlazeFTL/FTL-Patches/commit/845a494b9321c41531666a8c3dd35dc38bada30d))
+
+## [1.43.0-dev.32](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.31...v1.43.0-dev.32) (2026-09-02)
+
+### ✨ New Features
+
+* Add Save Data Up ([63e7eb7](https://github.com/BlazeFTL/FTL-Patches/commit/63e7eb7def3c8c1ce5d1f840083c3473172d1869))
+* Apk Clean Up ([1ef5071](https://github.com/BlazeFTL/FTL-Patches/commit/1ef5071ce920bf59c74b07870011fe87e775d26e))
+* Fix For Morphe Dev ([c2c166d](https://github.com/BlazeFTL/FTL-Patches/commit/c2c166de327948dc5aebc814b63c8bc071fdf669))
+* Up Add Save ([e5b2d18](https://github.com/BlazeFTL/FTL-Patches/commit/e5b2d18f5418f8a5bc2fd704565eb4174a545e20))
+
+## [1.43.0-dev.31](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.30...v1.43.0-dev.31) (2026-09-02)
+
+### ✨ New Features
+
+* Apk Junk Up ([025ecf3](https://github.com/BlazeFTL/FTL-Patches/commit/025ecf3d7d092c67e29ac86e74eb705dcf734055))
+
+## [1.43.0-dev.30](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.29...v1.43.0-dev.30) (2026-09-02)
+
+### ✨ New Features
+
+* Prepare For Apk Junk New Api ([e8e6e47](https://github.com/BlazeFTL/FTL-Patches/commit/e8e6e4704aed17df4f24809e9033c5098a204fbc))
+* up ([aa75121](https://github.com/BlazeFTL/FTL-Patches/commit/aa7512103d4b1349ea6f90656501fd5d7507e50c))
+
+## [1.43.0-dev.29](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.28...v1.43.0-dev.29) (2026-09-02)
+
+### ✨ New Features
+
+* up ([b2ef8a7](https://github.com/BlazeFTL/FTL-Patches/commit/b2ef8a7fcab5d8ff50f188fb59c98a65cd82b278))
+
+## [1.43.0-dev.28](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.27...v1.43.0-dev.28) (2026-09-02)
+
+### ✨ New Features
+
+* up ([4a8f2ad](https://github.com/BlazeFTL/FTL-Patches/commit/4a8f2ad694d98f8c7a8a7a78d207721097f52d7a))
+* up ([508778e](https://github.com/BlazeFTL/FTL-Patches/commit/508778e2b9ed9619aa81765547d38389efd014e9))
+
+## [1.43.0-dev.27](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.26...v1.43.0-dev.27) (2026-09-02)
+
+### ✨ New Features
+
+* Add Save Data Extract Patch ([9efba3c](https://github.com/BlazeFTL/FTL-Patches/commit/9efba3ce5363bc6b7b58fda16e8f7bc7c96b834e))
+
 ## [1.43.0-dev.26](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.25...v1.43.0-dev.26) (2026-09-01)
 
 ### 🐛 Bug Fixes

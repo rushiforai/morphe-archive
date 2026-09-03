@@ -13,9 +13,13 @@ import dev.jz6.flexboard.patches.features.swipetodelete.scrubTuningPatch
 import dev.jz6.flexboard.patches.shared.Constants.COMPATIBILITY_GBOARD
 import dev.jz6.flexboard.patches.shared.assertRegisterCount
 import dev.jz6.flexboard.patches.shared.basePatch
+import dev.jz6.flexboard.patches.shared.destinationRegistersOrEmpty
 import dev.jz6.flexboard.patches.shared.indexOfSoleCall
 import dev.jz6.flexboard.patches.shared.invokeRegisterAt
+import dev.jz6.flexboard.patches.shared.invokeRegisterCount
 import dev.jz6.flexboard.patches.shared.opcodeName
+import dev.jz6.flexboard.patches.shared.selectedSettingsSections
+import dev.jz6.flexboard.patches.shared.SettingsSection
 import dev.jz6.flexboard.patches.shared.usesField
 
 /**
@@ -84,18 +88,32 @@ val swipeToDeletePatch = bytecodePatch(
     // conflict shows up in the settings rather than as a setting that will not stay on.
     dependsOn(glideTypingRowPatch)
 
-    // Supplies the hold delay and swipe length, and the settings rows behind them. Its defaults are
-    // what make the widened gesture answer to a flick rather than Gboard's 200 ms press-and-drag.
+    // Supplies the word cap and the settings row behind it, and substitutes the hold delay so the
+    // widened gesture answers to a flick rather than Gboard's 200 ms press-and-drag. It no longer
+    // supplies a swipe length: that emitter is parked, and there is no row for either it or the
+    // delay.
     dependsOn(scrubTuningPatch)
 
     execute {
-        ScrubDeleteConstructorFingerprint.method.writeWildcardStartKey()
+        scrubDeleteConstructorFingerprint().method.writeWildcardStartKey()
 
         // Both edit `g()`, and both add an instruction to it. Neither depends on running first:
         // each locates what it needs by a shape the other does not produce. See the note on
         // [trackAcrossFullKeyboard] for why that mattered enough to design for.
-        ScrubHandleMotionEventFingerprint.method.acceptWildcardStartKey()
-        ScrubHandleMotionEventFingerprint.method.trackAcrossFullKeyboard()
+        //
+        // Resolved once and shared. Two calls would match the same method twice — correct, since
+        // matching runs against the original definition rather than the mutated one, but it is
+        // wasted work and reads as though the second edit wanted a fresh view of the first's
+        // output, which it explicitly does not.
+        val handleMotionEvent = scrubHandleMotionEventFingerprint().method
+        handleMotionEvent.acceptWildcardStartKey()
+        handleMotionEvent.trackAcrossFullKeyboard()
+
+        // Registered last, on purpose. A failing patch does not abort the run: the patcher records
+        // the exception and moves on, and `settingsScreenPatch` — which did not fail — still
+        // finalizes and reads this set. Registering before the edits above would ship the Swipe
+        // rows for a build whose bytecode never got the feature.
+        selectedSettingsSections += SettingsSection.SWIPE_TO_DELETE
     }
 }
 
@@ -201,6 +219,16 @@ private fun MutableMethod.writeWildcardStartKey() {
         "The keycode constant is at $keyIndex, after the $CONFIG_CONSTRUCTOR call at $configIndex"
     }
 
+    // Order alone does not prove the constant feeds the config: a future build could have another
+    // `const/16 …, 67` earlier in the method and nothing here would say so. Assert the call reads
+    // the exact register the constant landed in, so that build fails loudly instead of being
+    // rewritten on position.
+    val configCall = instructions[configIndex]
+    check((0 until configCall.invokeRegisterCount()).any { configCall.invokeRegisterAt(it) == startKeyRegister }) {
+        "The keycode constant is in v$startKeyRegister, which the $CONFIG_CONSTRUCTOR call at " +
+            "$configIndex never reads — the constant being replaced is not the one feeding the config"
+    }
+
     replaceInstruction(keyIndex, "const/16 v$startKeyRegister, $WILDCARD_START_KEYCODE")
 }
 
@@ -298,10 +326,15 @@ private fun MutableMethod.acceptWildcardStartKey() {
  *
  * ## Shape of the edit
  *
- * The stock computation is **kept and then overwritten**, exactly as
- * [chooseStartKeyFromPreference] keeps the stock keycode. Overwriting is a few wasted instructions
- * once per gesture and buys two things worth far more: "off" means byte-for-byte stock, and the
- * insert is a single forward branch rather than an excision with two merge points.
+ * The stock computation is **kept and then overwritten**. That used to be justified by a sibling,
+ * `chooseStartKeyFromPreference`, which kept the stock keycode and conditionally replaced it from a
+ * preference — the link has been dangling since that was replaced by [writeWildcardStartKey], which
+ * overwrites outright, and by the removal of the master switch that made "off means byte-for-byte
+ * stock" reachable at all.
+ *
+ * The reason that survives both is the one that was always the stronger half: the insert is a
+ * single forward branch, where an excision would need two merge points. A few wasted instructions
+ * once per gesture is a cheap price for not rewriting Gboard's control flow.
  *
  * ```
  *   …stock top/bottom outset runs…
@@ -361,6 +394,15 @@ private fun MutableMethod.trackAcrossFullKeyboard() {
         }
     }
 
+    // The override rewrites both edges after the `bottom` write, which is only sound if the stock
+    // `top` write happened earlier. If a build ever swapped them, the override's `top = 0` would be
+    // overwritten back and the corridor would silently reopen on one axis — so it is checked.
+    val (topIndex) = soleWrite(RECT_TOP)
+    check(topIndex < bottomIndex) {
+        "The write to $RECT_TOP is at $topIndex, after the write to $RECT_BOTTOM at " +
+            "$bottomIndex — the full-height override below would leave the stock top edge in place"
+    }
+
     // Gboard's own full-width override, which this mirrors. Asserting it is still there is what
     // makes "we are widening the other axis the same way" a fact rather than a story about an
     // older build: if Google ever stops widening horizontally, the premise needs re-examining.
@@ -387,6 +429,29 @@ private fun MutableMethod.trackAcrossFullKeyboard() {
             "there is no single register this patch can safely read the sentinel from"
     }
     val configRegister = configRegisters.single()
+
+    // Both registers are read at the insertion point but derived from instructions well before it
+    // — the view register some twenty instructions earlier. Ordering was asserted above; that is
+    // not the same as liveness. Nothing here proves the registers still hold what they held at the
+    // derivation, and R8 is free to reuse a register once its last stock read is gone. So assert
+    // it: if anything between the derivation and the insertion writes either register, the values
+    // this emission reads are not the ones it was reasoned about, and the emitted
+    // `getHeight`/`iget` would run against whatever replaced them.
+    val borrowed = mapOf(
+        viewRegister to "the $KEYBOARD_VIEW_GET_WIDTH receiver",
+        configRegister to "the $CONFIG_START_KEY_FIELD holder",
+    )
+    body.subList(widthIndex + 1, bottomIndex + 1).forEach { instruction ->
+        // Wide writes take two registers, so a `-wide` landing on v4 clobbers v5 as well.
+        instruction.destinationRegistersOrEmpty().forEach { written ->
+            val what = borrowed[written] ?: return@forEach
+            error(
+                "v$written — $what — is overwritten by `${instruction.opcodeName()}` between the " +
+                    "derivation at $widthIndex and the insertion at ${bottomIndex + 1} in " +
+                    "$SCRUB_MOTION_EVENT_HANDLER->g; it no longer holds the value this patch reads",
+            )
+        }
+    }
 
     // Captured before the insertion shifts indices; the label resolves by instruction identity.
     val stockResumes = body[bottomIndex + 1]

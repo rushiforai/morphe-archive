@@ -1,13 +1,20 @@
 package com.autocat.morphe.smartlauncher.extension;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.LauncherActivityInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -17,7 +24,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Injects Morphe Actions into Smart Launcher's contextual long-press popup menus and settings.
@@ -25,9 +37,11 @@ import java.util.List;
 public final class MorpheMenuInjector {
 
     private static final String TAG = "MorpheMenuInjector";
-    private static String sLastPackageName = null;
-    private static Context sLastContext = null;
+    private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
+    private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
 
+    private static volatile String sLastPackageName = null;
+    private static volatile Context sLastContext = null;
     private static Method sPopupShowMethod = null;
 
     private MorpheMenuInjector() {}
@@ -39,8 +53,7 @@ public final class MorpheMenuInjector {
      * stays identical and no jump offsets are shifted. This prevents the ART class-verification
      * failure that caused an instant crash at startup when addInstruction was used.
      *
-     * After injecting the archive item, this method calls the original rj.d(List)V via
-     * reflection so the popup still shows normally.
+     * After injecting the archive item, this method calls the original show method via reflection.
      */
     @SuppressWarnings("rawtypes")
     public static void injectAndShow(Object popupLayerObj, List items, Object callerObj) {
@@ -49,16 +62,22 @@ public final class MorpheMenuInjector {
         if (popupLayerObj == null) return;
         try {
             if (sPopupShowMethod == null) {
-                for (Method m : popupLayerObj.getClass().getDeclaredMethods()) {
-                    Class<?>[] params = m.getParameterTypes();
-                    if (params.length == 1
-                            && List.class.isAssignableFrom(params[0])
-                            && m.getReturnType() == void.class
-                            && m.getName().length() <= 2) {
-                        m.setAccessible(true);
-                        sPopupShowMethod = m;
-                        break;
+                Class<?> clazz = popupLayerObj.getClass();
+                while (clazz != null && clazz != Object.class) {
+                    for (Method m : clazz.getDeclaredMethods()) {
+                        Class<?>[] params = m.getParameterTypes();
+                        if (params.length == 1
+                                && List.class.isAssignableFrom(params[0])
+                                && m.getReturnType() == void.class) {
+                            if ("d".equals(m.getName()) || m.getName().length() <= 2) {
+                                m.setAccessible(true);
+                                sPopupShowMethod = m;
+                                break;
+                            }
+                        }
                     }
+                    if (sPopupShowMethod != null) break;
+                    clazz = clazz.getSuperclass();
                 }
             }
             if (sPopupShowMethod != null) {
@@ -73,10 +92,6 @@ public final class MorpheMenuInjector {
 
     /**
      * Injects a dedicated "Archive App" or "Restore App" item into Smart Launcher's contextual popup menu list.
-     *
-     * @param popupLayerObj The Lrj; popup controller (contains view & context)
-     * @param items         The List of popup items (LinkedList of q36)
-     * @param callerObj     The Ldl3; coroutine closure (contains target ComponentName)
      */
     @SuppressWarnings("rawtypes")
     public static void injectArchiveItem(Object popupLayerObj, List items, Object callerObj) {
@@ -85,58 +100,47 @@ public final class MorpheMenuInjector {
         }
 
         try {
+            // 1. Resolve Context
             Context context = null;
-            String packageName = null;
-
-            // 1. Extract context from popupLayerObj (Lrj; -> field n: View)
             if (popupLayerObj != null) {
-                for (Field f : popupLayerObj.getClass().getDeclaredFields()) {
-                    f.setAccessible(true);
-                    Object val = f.get(popupLayerObj);
-                    if (val instanceof View) {
-                        context = ((View) val).getContext();
-                        break;
-                    }
-                }
+                context = resolveContext(popupLayerObj);
             }
-
-            // 2. Extract target packageName from callerObj (Ldl3; -> field y: ComponentName)
-            if (callerObj != null) {
-                for (Field f : callerObj.getClass().getDeclaredFields()) {
-                    f.setAccessible(true);
-                    Object val = f.get(callerObj);
-                    if (val instanceof ComponentName) {
-                        packageName = ((ComponentName) val).getPackageName();
-                        break;
-                    } else if (val instanceof String && ((String) val).contains(".")) {
-                        packageName = (String) val;
-                    }
-                }
+            if (context == null && callerObj != null) {
+                context = resolveContext(callerObj);
             }
-
             if (context == null) {
                 context = sLastContext;
-            } else {
+            }
+            if (context == null) {
+                context = getForegroundActivity();
+            }
+            if (context == null) {
+                try {
+                    Class<?> atClass = Class.forName("android.app.ActivityThread");
+                    Method currentAppMethod = atClass.getMethod("currentApplication");
+                    context = (Context) currentAppMethod.invoke(null);
+                } catch (Throwable ignored) {}
+            }
+            if (context != null) {
                 sLastContext = context;
             }
 
-            if (packageName == null) {
-                packageName = sLastPackageName;
-            } else {
+            final Context finalContext = (context != null) ? context : sLastContext;
+
+            // 2. Extract target packageName from all available structures (items closures, popup, caller)
+            String packageName = extractPackageNameFromAll(popupLayerObj, items, callerObj, finalContext);
+            if (packageName != null) {
                 sLastPackageName = packageName;
+            } else {
+                packageName = sLastPackageName;
             }
 
-            final Context finalContext = context;
             final String finalPackageName = packageName;
 
-            if (finalContext == null || finalPackageName == null) {
-                return;
-            }
-
-            // 3. Find sample q36 item to clone reflection structures
+            // 3. Find sample item to clone reflection structures
             Object sampleItem = null;
             for (Object obj : items) {
-                if (obj != null && obj.getClass().getName().endsWith("q36")) {
+                if (obj != null) {
                     sampleItem = obj;
                     break;
                 }
@@ -146,102 +150,359 @@ public final class MorpheMenuInjector {
                 return;
             }
 
-            Class<?> q36Class = sampleItem.getClass();
+            Class<?> itemClass = sampleItem.getClass();
             Field stringField = null;
             Field actionField = null;
 
-            for (Field f : q36Class.getDeclaredFields()) {
+            for (Field f : itemClass.getDeclaredFields()) {
                 f.setAccessible(true);
-                if (f.getType() == String.class && stringField == null) {
+                if (CharSequence.class.isAssignableFrom(f.getType()) && stringField == null) {
                     stringField = f;
-                } else if (f.getName().equals("f") || f.getType().getName().contains("b34") || f.getType().getName().contains("Function")) {
+                } else if (f.getName().equals("f")
+                        || f.getType().getName().contains("b34")
+                        || f.getType().getName().contains("Function")
+                        || (f.getType().isInterface() && !List.class.isAssignableFrom(f.getType()))) {
                     actionField = f;
                 }
             }
 
-            // Check if app is currently archived
-            PackageManager pm = finalContext.getPackageManager();
-            ApplicationInfo appInfo = pm.getApplicationInfo(finalPackageName, 0);
-            final boolean isArchived = (appInfo.flags & 0x40000000) != 0;
-            final String actionTitle = isArchived ? "♻️ Restore / Unarchive" : "📦 Archive App";
-
-            // 4. Resolve the Kotlin Function1 interface class (obfuscated as e.g. "b34").
-            // Prefer the runtime type of the existing action field so we stay correct
-            // across obfuscation renames. Fall back to Class.forName only if needed.
-            Class<?> function1Class = null;
-            if (actionField != null) {
-                function1Class = actionField.getType();
-                if (!function1Class.isInterface()) {
-                    function1Class = null;
-                }
+            // Determine if target app is currently archived
+            boolean isArchived = false;
+            if (finalContext != null && finalPackageName != null) {
+                ApplicationInfo appInfo = getAppInfoSafe(finalContext.getPackageManager(), finalPackageName);
+                if (appInfo != null) isArchived = ArchivedAppFilter.isAppArchived(appInfo);
             }
-            if (function1Class == null) {
+
+            final boolean targetIsArchived = isArchived;
+            final String actionTitle = (finalPackageName != null)
+                    ? (targetIsArchived ? "Restore App" : "Archive App")
+                    : "Archive / Restore App";
+
+            // 4. Resolve the Kotlin / SAM functional interface
+            List<Class<?>> interfaceList = new ArrayList<>();
+            if (actionField != null) {
+                Class<?> fieldType = actionField.getType();
+                if (fieldType.isInterface()) {
+                    interfaceList.add(fieldType);
+                }
+                try {
+                    Object existingAction = actionField.get(sampleItem);
+                    if (existingAction != null) {
+                        for (Class<?> iface : existingAction.getClass().getInterfaces()) {
+                            if (!interfaceList.contains(iface)) {
+                                interfaceList.add(iface);
+                            }
+                        }
+                    }
+                } catch (Throwable ignored) {}
+            }
+
+            if (interfaceList.isEmpty()) {
                 try {
                     Class<?> candidate = Class.forName("b34");
-                    if (candidate.isInterface()) function1Class = candidate;
+                    if (candidate.isInterface()) interfaceList.add(candidate);
                 } catch (ClassNotFoundException ignored) {}
             }
-            if (function1Class == null) {
-                Log.w(TAG, "injectArchiveItem: could not resolve Function1 interface; skipping inject");
+
+            if (interfaceList.isEmpty()) {
+                Log.w(TAG, "injectArchiveItem: could not resolve functional interface; skipping inject");
                 return;
             }
 
-            final Class<?> resolvedFn1 = function1Class;
+            final Class<?>[] interfacesArray = interfaceList.toArray(new Class<?>[0]);
             Object clickProxy = Proxy.newProxyInstance(
-                    q36Class.getClassLoader(),
-                    new Class<?>[]{resolvedFn1},
+                    itemClass.getClassLoader(),
+                    interfacesArray,
                     new InvocationHandler() {
                         @Override
                         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                            if ("invoke".equals(method.getName())) {
-                                boolean ok;
-                                if (isArchived) {
-                                    ok = ShizukuArchiveHelper.unarchivePackage(finalPackageName);
-                                    if (!ok) {
-                                        ok = NativeArchiveHelper.unarchivePackage(finalContext, finalPackageName);
-                                    }
-                                    Toast.makeText(finalContext, ok ? "Unarchiving " + finalPackageName + "..." : "Failed to unarchive app", Toast.LENGTH_SHORT).show();
-                                } else {
-                                    ok = ShizukuArchiveHelper.archivePackage(finalPackageName);
-                                    if (!ok) {
-                                        ok = NativeArchiveHelper.archivePackage(finalContext, finalPackageName);
-                                    }
-                                    Toast.makeText(finalContext, ok ? "Archiving " + finalPackageName + "..." : "Failed to archive app", Toast.LENGTH_SHORT).show();
-                                }
-                                return null;
+                            String mName = method.getName();
+                            if ("toString".equals(mName)) return "MorpheAction";
+                            if ("hashCode".equals(mName)) return System.identityHashCode(proxy);
+                            if ("equals".equals(mName)) return proxy == (args != null && args.length > 0 ? args[0] : null);
+
+                            Context execCtx = (finalContext != null) ? finalContext : getForegroundActivity();
+                            if (finalPackageName != null) {
+                                performArchiveOrRestoreAsync(execCtx, finalPackageName, targetIsArchived);
+                            } else if (execCtx != null) {
+                                MorpheSettingsDialog.show(execCtx);
                             }
                             return null;
                         }
                     }
             );
 
-            // 5. Instantiate a new q36 entry via reflection
-            Constructor<?>[] constructors = q36Class.getDeclaredConstructors();
-            if (constructors.length > 0) {
-                Constructor<?> ctor = constructors[0];
+            // 5. Instantiate new popup item via constructor reflection
+            Object archiveItem = null;
+            for (Constructor<?> ctor : itemClass.getDeclaredConstructors()) {
                 ctor.setAccessible(true);
-                Class<?>[] paramTypes = ctor.getParameterTypes();
-                Object[] initArgs = new Object[paramTypes.length];
+                try {
+                    Class<?>[] paramTypes = ctor.getParameterTypes();
+                    Object[] initArgs = new Object[paramTypes.length];
+                    for (int i = 0; i < paramTypes.length; i++) {
+                        Class<?> pt = paramTypes[i];
+                        if (pt == int.class) initArgs[i] = 0;
+                        else if (pt == boolean.class) initArgs[i] = false;
+                        else if (pt == long.class) initArgs[i] = 0L;
+                        else if (pt == float.class) initArgs[i] = 0f;
+                        else if (pt == double.class) initArgs[i] = 0d;
+                        else if (pt == byte.class) initArgs[i] = (byte) 0;
+                        else if (pt == short.class) initArgs[i] = (short) 0;
+                        else if (pt == char.class) initArgs[i] = '\0';
+                        else if (CharSequence.class.isAssignableFrom(pt)) initArgs[i] = actionTitle;
+                        else if (isAssignableToAny(pt, interfacesArray)) initArgs[i] = clickProxy;
+                        else initArgs[i] = null;
+                    }
+                    archiveItem = ctor.newInstance(initArgs);
+                    if (archiveItem != null) break;
+                } catch (Throwable ignored) {}
+            }
 
-                for (int i = 0; i < paramTypes.length; i++) {
-                    if (paramTypes[i] == int.class) initArgs[i] = 0;
-                    else if (paramTypes[i] == boolean.class) initArgs[i] = false;
-                    else if (paramTypes[i] == String.class) initArgs[i] = actionTitle;
-                    else if (paramTypes[i].isAssignableFrom(function1Class)) initArgs[i] = clickProxy;
-                    else initArgs[i] = null;
+            if (archiveItem != null) {
+                // Copy default styling attributes from sampleItem
+                for (Field f : itemClass.getDeclaredFields()) {
+                    try {
+                        f.setAccessible(true);
+                        if (CharSequence.class.isAssignableFrom(f.getType())) {
+                            f.set(archiveItem, actionTitle);
+                        } else if (isAssignableToAny(f.getType(), interfacesArray)) {
+                            f.set(archiveItem, clickProxy);
+                        } else {
+                            Object sampleVal = f.get(sampleItem);
+                            if (sampleVal != null) {
+                                f.set(archiveItem, sampleVal);
+                            }
+                        }
+                    } catch (Throwable ignored) {}
                 }
 
-                Object archiveItem = ctor.newInstance(initArgs);
-                if (stringField != null) stringField.set(archiveItem, actionTitle);
-                if (actionField != null) actionField.set(archiveItem, clickProxy);
-
-                // Add to the popup list right next to other app actions
                 items.add(archiveItem);
-                Log.i(TAG, "Successfully injected " + actionTitle + " entry into popup menu for " + finalPackageName);
+                Log.i(TAG, "Successfully injected [" + actionTitle + "] into hold menu (package: " + finalPackageName + ")");
             }
         } catch (Throwable t) {
             Log.w(TAG, "Safe popup item injection catch: " + t.getMessage());
         }
+    }
+
+    /**
+     * Extracts the target application package name by comprehensively searching items, closures, and controllers.
+     */
+    public static String extractPackageNameFromAll(Object popupLayerObj, List<?> items, Object callerObj, Context context) {
+        String pkg = null;
+
+        // 1. Inspect all items in popup list (most direct source of closures)
+        if (items != null) {
+            for (Object item : items) {
+                if (item != null) {
+                    pkg = extractPackageName(item, 0);
+                    if (pkg != null && isInstalledPackage(context, pkg)) {
+                        return pkg;
+                    }
+                }
+            }
+        }
+
+        // 2. Inspect popupLayerObj (controller containing target view)
+        if (popupLayerObj != null) {
+            pkg = extractPackageName(popupLayerObj, 0);
+            if (pkg != null && isInstalledPackage(context, pkg)) {
+                return pkg;
+            }
+        }
+
+        // 3. Inspect callerObj
+        if (callerObj != null) {
+            pkg = extractPackageName(callerObj, 0);
+            if (pkg != null && isInstalledPackage(context, pkg)) {
+                return pkg;
+            }
+        }
+
+        if (pkg != null) return pkg;
+        return sLastPackageName;
+    }
+
+    // On API 35+, archived packages are excluded from getApplicationInfo(pkg, 0).
+    // MATCH_ARCHIVED_PACKAGES (0x8000) must be passed to see them.
+    private static final int PM_FLAGS = Build.VERSION.SDK_INT >= 35 ? 0x00008000 : 0;
+
+    static ApplicationInfo getAppInfoSafe(PackageManager pm, String pkg) {
+        try {
+            return pm.getApplicationInfo(pkg, PM_FLAGS);
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
+    private static boolean isInstalledPackage(Context context, String pkg) {
+        if (pkg == null || pkg.isEmpty() || !pkg.contains(".")) return false;
+        if ("android".equals(pkg) || "ginlemon.flowerfree".equals(pkg)) return false;
+        if (context != null) {
+            return getAppInfoSafe(context.getPackageManager(), pkg) != null;
+        }
+        return true;
+    }
+
+    private static String extractPackageName(Object obj, int depth) {
+        if (obj == null || depth > 4) return null;
+
+        if (obj instanceof ComponentName) {
+            return ((ComponentName) obj).getPackageName();
+        }
+        if (obj instanceof Intent) {
+            Intent it = (Intent) obj;
+            if (it.getComponent() != null) return it.getComponent().getPackageName();
+            if (it.getPackage() != null) return it.getPackage();
+            if (it.getData() != null) {
+                String pkg = extractPackageFromUri(it.getData());
+                if (pkg != null) return pkg;
+            }
+        }
+        if (obj instanceof Uri) {
+            String pkg = extractPackageFromUri((Uri) obj);
+            if (pkg != null) return pkg;
+        }
+        if (obj instanceof LauncherActivityInfo) {
+            return ((LauncherActivityInfo) obj).getApplicationInfo().packageName;
+        }
+        if (obj instanceof ApplicationInfo) {
+            return ((ApplicationInfo) obj).packageName;
+        }
+        if (obj instanceof PackageInfo) {
+            return ((PackageInfo) obj).packageName;
+        }
+        if (obj instanceof String) {
+            String s = (String) obj;
+            if (s.startsWith("package:")) return s.substring(8);
+            if (s.contains(".") && !s.contains(" ") && !s.contains("/") && !s.contains(":") && s.length() >= 3 && s.length() <= 100) {
+                return s;
+            }
+        }
+        if (obj instanceof Collection) {
+            for (Object elem : (Collection<?>) obj) {
+                String pkg = extractPackageName(elem, depth + 1);
+                if (pkg != null) return pkg;
+            }
+        }
+        if (obj instanceof Object[]) {
+            for (Object elem : (Object[]) obj) {
+                String pkg = extractPackageName(elem, depth + 1);
+                if (pkg != null) return pkg;
+            }
+        }
+
+        // Recursively inspect declared fields on the object
+        try {
+            Class<?> clazz = obj.getClass();
+            while (clazz != null && clazz != Object.class && !clazz.getName().startsWith("java.lang.")) {
+                for (Field f : clazz.getDeclaredFields()) {
+                    try {
+                        f.setAccessible(true);
+                        Object val = f.get(obj);
+                        if (val != null && val != obj) {
+                            String pkg = extractPackageName(val, depth + 1);
+                            if (pkg != null) return pkg;
+                        }
+                    } catch (Throwable ignored) {}
+                }
+                clazz = clazz.getSuperclass();
+            }
+        } catch (Throwable ignored) {}
+
+        return null;
+    }
+
+    private static String extractPackageFromUri(Uri uri) {
+        if (uri == null) return null;
+        String scheme = uri.getScheme();
+        if ("package".equalsIgnoreCase(scheme)) {
+            return uri.getSchemeSpecificPart();
+        }
+        if (uri.isHierarchical()) {
+            String id = uri.getQueryParameter("id");
+            if (id != null && id.contains(".")) return id;
+        }
+        String str = uri.toString();
+        if (str.startsWith("package:")) {
+            return str.substring(8);
+        }
+        return null;
+    }
+
+    private static boolean isAssignableToAny(Class<?> target, Class<?>[] candidates) {
+        if (target == null || candidates == null) return false;
+        for (Class<?> c : candidates) {
+            if (target.isAssignableFrom(c) || c.isAssignableFrom(target)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Executes archive or restore asynchronously on a background worker thread.
+     */
+    public static void performArchiveOrRestoreAsync(final Context context, final String packageName, final boolean isCurrentlyArchived) {
+        if (context == null || packageName == null || packageName.isEmpty()) {
+            return;
+        }
+
+        PackageManager pm = context.getPackageManager();
+        String appLabel = packageName;
+        ApplicationInfo ai = getAppInfoSafe(pm, packageName);
+        if (ai != null) {
+            CharSequence label = ai.loadLabel(pm);
+            if (label != null) appLabel = label.toString();
+        }
+
+        final String finalLabel = appLabel;
+        final String startingToast = (isCurrentlyArchived ? "Restoring " : "Archiving ") + finalLabel + "…";
+        postToast(context, startingToast);
+
+        EXECUTOR.execute(new Runnable() {
+            @Override
+            public void run() {
+                boolean success = false;
+                boolean shizukuEnabled = MorphePreferences.isShizukuEnabled(context);
+                boolean nativeEnabled = MorphePreferences.isNativeEnabled(context);
+
+                // 1. Try Shizuku privileged archiving if enabled
+                if (shizukuEnabled) {
+                    if (ShizukuArchiveHelper.isShizukuAlive()) {
+                        if (ShizukuArchiveHelper.hasPermission()) {
+                            success = isCurrentlyArchived
+                                    ? ShizukuArchiveHelper.unarchivePackage(packageName)
+                                    : ShizukuArchiveHelper.archivePackage(packageName);
+                        } else {
+                            MAIN_HANDLER.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    ShizukuArchiveHelper.requestPermissionWithFeedback(context);
+                                }
+                            });
+                            return;
+                        }
+                    }
+                }
+
+                // 2. Try Native Android 15+ archiving if Shizuku didn't succeed
+                if (!success && nativeEnabled && NativeArchiveHelper.isSupported()) {
+                    success = isCurrentlyArchived
+                            ? NativeArchiveHelper.unarchivePackage(context, packageName)
+                            : NativeArchiveHelper.archivePackage(context, packageName);
+                }
+
+                if (success) {
+                    String msg = (isCurrentlyArchived ? "Successfully restored " : "Successfully archived ") + finalLabel;
+                    postToast(context, msg);
+                } else if (!NativeArchiveHelper.isSupported() && !ShizukuArchiveHelper.isShizukuAlive()) {
+                    postToast(context, "App archiving requires Shizuku or Android 15+");
+                } else {
+                    String msg = "Failed to " + (isCurrentlyArchived ? "restore " : "archive ") + finalLabel;
+                    postToast(context, msg);
+                }
+            }
+        });
     }
 
     /**
@@ -262,45 +523,41 @@ public final class MorpheMenuInjector {
             }
 
             PackageManager pm = context.getPackageManager();
-            ApplicationInfo appInfo = pm.getApplicationInfo(packageName, 0);
+            ApplicationInfo appInfo = getAppInfoSafe(pm, packageName);
+            if (appInfo == null) {
+                context.startActivity(uninstallIntent);
+                return;
+            }
             CharSequence label = appInfo.loadLabel(pm);
             final String appName = label != null ? label.toString() : packageName;
-            final boolean isArchived = (appInfo.flags & 0x40000000) != 0;
+            final boolean isArchived = ArchivedAppFilter.isAppArchived(appInfo);
 
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setTitle("📦 " + appName);
 
             if (isArchived) {
-                builder.setMessage("This application is currently archived. Choose an action:");
-                builder.setPositiveButton("♻️ Restore / Unarchive", new DialogInterface.OnClickListener() {
+                builder.setMessage(appName + " is archived. Restore it to use it again, or delete it permanently.");
+                builder.setPositiveButton("Restore App", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        boolean ok = ShizukuArchiveHelper.unarchivePackage(packageName);
-                        if (!ok) {
-                            ok = NativeArchiveHelper.unarchivePackage(context, packageName);
-                        }
-                        Toast.makeText(context, ok ? "Unarchiving " + appName + "..." : "Failed to unarchive", Toast.LENGTH_SHORT).show();
+                        performArchiveOrRestoreAsync(context, packageName, true);
                     }
                 });
-                builder.setNeutralButton("🗑️ Delete Completely", new DialogInterface.OnClickListener() {
+                builder.setNeutralButton("Delete App", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         context.startActivity(uninstallIntent);
                     }
                 });
             } else {
-                builder.setMessage("Choose an action for " + appName + ":");
-                builder.setPositiveButton("📦 Archive App (Save Space)", new DialogInterface.OnClickListener() {
+                builder.setMessage("Archive " + appName + " to free up space while keeping your data, or uninstall it completely.");
+                builder.setPositiveButton("Archive App", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        boolean ok = ShizukuArchiveHelper.archivePackage(packageName);
-                        if (!ok) {
-                            ok = NativeArchiveHelper.archivePackage(context, packageName);
-                        }
-                        Toast.makeText(context, ok ? "Archiving " + appName + "..." : "Failed to archive", Toast.LENGTH_SHORT).show();
+                        performArchiveOrRestoreAsync(context, packageName, false);
                     }
                 });
-                builder.setNeutralButton("🗑️ Uninstall", new DialogInterface.OnClickListener() {
+                builder.setNeutralButton("Uninstall", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         context.startActivity(uninstallIntent);
@@ -317,10 +574,134 @@ public final class MorpheMenuInjector {
         }
     }
 
+    private static void postToast(final Context context, final String message) {
+        if (context == null || message == null) return;
+        MAIN_HANDLER.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Toast.makeText(context.getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+                } catch (Throwable ignored) {}
+            }
+        });
+    }
+
     /**
-     * Called when Smart Launcher preferences / experimental menu is loaded.
+     * Resolves an Activity or Context dynamically from an arbitrary object.
      */
+    public static Context resolveContext(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof Activity) {
+            return (Activity) obj;
+        }
+        if (obj instanceof View) {
+            Context ctx = ((View) obj).getContext();
+            Activity act = findActivity(ctx);
+            return (act != null) ? act : ctx;
+        }
+        if (obj instanceof Context) {
+            Activity act = findActivity((Context) obj);
+            return (act != null) ? act : (Context) obj;
+        }
+        // Inspect fields on object (listener, closure, lambda, etc.)
+        try {
+            Class<?> clazz = obj.getClass();
+            while (clazz != null && clazz != Object.class) {
+                for (Field f : clazz.getDeclaredFields()) {
+                    try {
+                        f.setAccessible(true);
+                        Object val = f.get(obj);
+                        if (val instanceof Activity) {
+                            return (Activity) val;
+                        } else if (val instanceof Context) {
+                            Activity act = findActivity((Context) val);
+                            return (act != null) ? act : (Context) val;
+                        } else if (val instanceof View) {
+                            Context ctx = ((View) val).getContext();
+                            Activity act = findActivity(ctx);
+                            return (act != null) ? act : ctx;
+                        }
+                    } catch (Throwable ignored) {}
+                }
+                clazz = clazz.getSuperclass();
+            }
+        } catch (Throwable ignored) {}
+        return null;
+    }
+
+    public static Activity findActivity(Context ctx) {
+        Context current = ctx;
+        while (current instanceof ContextWrapper) {
+            if (current instanceof Activity) {
+                return (Activity) current;
+            }
+            current = ((ContextWrapper) current).getBaseContext();
+        }
+        return null;
+    }
+
+    public static Activity getForegroundActivity() {
+        try {
+            Class<?> atClass = Class.forName("android.app.ActivityThread");
+            Method currentAtMethod = atClass.getMethod("currentActivityThread");
+            Object at = currentAtMethod.invoke(null);
+            if (at != null) {
+                Field activitiesField = atClass.getDeclaredField("mActivities");
+                activitiesField.setAccessible(true);
+                Object activities = activitiesField.get(at);
+                if (activities instanceof Map) {
+                    for (Object record : ((Map<?, ?>) activities).values()) {
+                        Field activityField = record.getClass().getDeclaredField("activity");
+                        activityField.setAccessible(true);
+                        Activity act = (Activity) activityField.get(record);
+                        if (act != null && !act.isFinishing() && !act.isDestroyed()) {
+                            Field pausedField = record.getClass().getDeclaredField("paused");
+                            pausedField.setAccessible(true);
+                            boolean paused = pausedField.getBoolean(record);
+                            if (!paused) {
+                                return act;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Throwable ignored) {}
+        return null;
+    }
+
+    /**
+     * Entry point for Morphe settings called by patched Dev options / Experimental features.
+     */
+    public static void openMorpheSettings(Object obj1, Object obj2) {
+        Context ctx = resolveContext(obj1);
+        if (ctx == null) {
+            ctx = resolveContext(obj2);
+        }
+        openMorpheSettings(ctx);
+    }
+
+    public static void openMorpheSettings(Object obj) {
+        Context ctx = resolveContext(obj);
+        openMorpheSettings(ctx);
+    }
+
     public static void openMorpheSettings(Context context) {
-        MorpheSettingsDialog.show(context);
+        if (context == null) {
+            context = getForegroundActivity();
+        }
+        if (context == null) {
+            try {
+                Class<?> atClass = Class.forName("android.app.ActivityThread");
+                Method currentAppMethod = atClass.getMethod("currentApplication");
+                context = (Context) currentAppMethod.invoke(null);
+            } catch (Throwable ignored) {}
+        }
+        if (context != null) {
+            MorpheSettingsDialog.show(context);
+        }
+    }
+
+    public static void openMorpheSettings() {
+        openMorpheSettings((Context) null);
     }
 }

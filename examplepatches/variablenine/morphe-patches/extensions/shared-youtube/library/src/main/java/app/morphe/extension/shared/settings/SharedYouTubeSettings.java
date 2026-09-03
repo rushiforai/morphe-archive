@@ -7,9 +7,12 @@ import static app.morphe.extension.shared.settings.Setting.parent;
 import static app.morphe.extension.shared.settings.Setting.parentsAny;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.patches.BaseAppRefreshRatePatch.AppRefreshType;
+import app.morphe.extension.shared.patches.BaseAppRefreshRatePatch.RefreshRateType;
 import app.morphe.extension.shared.patches.CustomBrandingPatch;
 import app.morphe.extension.shared.patches.CustomBrandingPatch.BrandingTheme;
 import app.morphe.extension.shared.patches.CustomBrandingPatch.NotificationIconTheme;
+import app.morphe.extension.shared.patches.PoTokenProviderPatch.PoTokenProviderAvailability;
 import app.morphe.extension.shared.spoof.SpoofVideoStreamsPatch.JavaScriptClientAvailability;
 import app.morphe.extension.shared.spoof.js.JavaScriptVariant;
 import app.morphe.extension.shared.theme.ThemeColorPatch.ThemeColorChangeForegroundAvailability;
@@ -29,6 +32,17 @@ public class SharedYouTubeSettings extends BaseSettings {
 
     public static final BooleanSetting SETTINGS_SEARCH_HISTORY = new BooleanSetting("morphe_settings_search_history", TRUE, true);
     public static final StringSetting SETTINGS_SEARCH_ENTRIES = new StringSetting("morphe_settings_search_entries", "");
+
+    // Network proxy
+    // There are multiple endpoint calls due to the spoof video streams patch. Place the proxy settings first.
+    public static final BooleanSetting PROXY_ENABLED = new BooleanSetting("morphe_proxy_enabled", FALSE, true);
+    public static final StringSetting PROXY_HOST = new StringSetting("morphe_proxy_host", "", true, parent(PROXY_ENABLED));
+    public static final IntegerSetting PROXY_PORT = new IntegerSetting("morphe_proxy_port", 8080, true, parent(PROXY_ENABLED));
+    public static final BooleanSetting PROXY_HTTPS = new BooleanSetting("morphe_proxy_https", FALSE, true, parent(PROXY_ENABLED));
+    public static final BooleanSetting PROXY_AUTH_ENABLED = new BooleanSetting("morphe_proxy_auth_enabled", FALSE, true, parent(PROXY_ENABLED));
+    public static final StringSetting PROXY_AUTH_USERNAME = new StringSetting("morphe_proxy_auth_username", "", true, parent(PROXY_AUTH_ENABLED));
+    public static final StringSetting PROXY_AUTH_PASSWORD = new StringSetting("morphe_proxy_auth_password", "", true, false, null, parent(PROXY_AUTH_ENABLED));
+    public static final BooleanSetting PROXY_ALLOW_DIRECT_FALLBACK = new BooleanSetting("morphe_proxy_allow_direct_fallback", FALSE, true, parent(PROXY_ENABLED));
 
     public static final BooleanSetting DISABLE_DRC_AUDIO = new BooleanSetting("morphe_disable_drc_audio", FALSE, true);
     public static final BooleanSetting FORCE_ORIGINAL_AUDIO = new BooleanSetting("morphe_force_original_audio", TRUE, true);
@@ -57,6 +71,8 @@ public class SharedYouTubeSettings extends BaseSettings {
     public static final BooleanSetting DEBUG_PROTOBUFFER = new BooleanSetting("morphe_debug_protobuffer", FALSE, false, "morphe_debug_protobuffer_user_dialog_message", parent(DEBUG));
     public static final BooleanSetting DEBUG_SPANNABLE = new BooleanSetting("morphe_debug_spannable", FALSE, parent(DEBUG));
     public static final StringSetting DISABLED_FEATURE_FLAGS = new StringSetting("morphe_disabled_feature_flags", "", true, parent(DEBUG));
+    public static final StringSetting FORCED_FEATURE_FLAGS = new StringSetting("morphe_forced_feature_flags", "", true, parent(DEBUG));
+    public static final StringSetting FEATURE_FLAGS_BISECT = new StringSetting("morphe_feature_flags_bisect", "", false, false, null, parent(DEBUG));
     public static final BooleanSetting DISABLE_QUIC_PROTOCOL = new BooleanSetting("morphe_disable_quic_protocol", FALSE, true);
     public static final BooleanSetting SANITIZE_SHARING_LINKS = new BooleanSetting("morphe_sanitize_sharing_links", TRUE);
     public static final BooleanSetting REPLACE_MUSIC_LINKS_WITH_YOUTUBE = new BooleanSetting("morphe_replace_music_with_youtube", FALSE);
@@ -71,15 +87,8 @@ public class SharedYouTubeSettings extends BaseSettings {
     public static final StringSetting OAUTH2_REFRESH_TOKEN = new StringSetting("morphe_oauth2_refresh_token", "", false, false);
     public static final StringSetting SPOOF_VIDEO_STREAMS_CLIENT_IDS = new StringSetting("morphe_spoof_video_streams_clent_id", "", false, false);
 
-    // Network proxy
-    public static final BooleanSetting PROXY_ENABLED = new BooleanSetting("morphe_proxy_enabled", FALSE, true);
-    public static final StringSetting PROXY_HOST = new StringSetting("morphe_proxy_host", "", true, parent(PROXY_ENABLED));
-    public static final IntegerSetting PROXY_PORT = new IntegerSetting("morphe_proxy_port", 8080, true, parent(PROXY_ENABLED));
-    public static final BooleanSetting PROXY_HTTPS = new BooleanSetting("morphe_proxy_https", FALSE, true, parent(PROXY_ENABLED));
-    public static final BooleanSetting PROXY_AUTH_ENABLED = new BooleanSetting("morphe_proxy_auth_enabled", FALSE, true, parent(PROXY_ENABLED));
-    public static final StringSetting PROXY_AUTH_USERNAME = new StringSetting("morphe_proxy_auth_username", "", true, parent(PROXY_AUTH_ENABLED));
-    public static final StringSetting PROXY_AUTH_PASSWORD = new StringSetting("morphe_proxy_auth_password", "", true, false, null, parent(PROXY_AUTH_ENABLED));
-    public static final BooleanSetting PROXY_ALLOW_DIRECT_FALLBACK = new BooleanSetting("morphe_proxy_allow_direct_fallback", FALSE, true, parent(PROXY_ENABLED));
+    // PoToken provider
+    public static final BooleanSetting EXTERNAL_POTOKEN_PROVIDER = new BooleanSetting("morphe_external_potoken_provider", FALSE, true, "morphe_external_potoken_provider_user_dialog_message", new PoTokenProviderAvailability());
 
     // External downloads
     public static final BooleanSetting EXTERNAL_DOWNLOADER = new BooleanSetting("morphe_external_downloader", FALSE);
@@ -90,6 +99,9 @@ public class SharedYouTubeSettings extends BaseSettings {
     // Spoof app version
     public static final BooleanSetting SPOOF_APP_VERSION = new BooleanSetting("morphe_spoof_app_version", FALSE, true, "morphe_spoof_app_version_user_dialog_message");
     public static final StringSetting SPOOF_APP_VERSION_TARGET = new StringSetting("morphe_spoof_app_version_target", getDefaultSpoofAppVersionTarget(), true, parent(SPOOF_APP_VERSION));
+
+    public static final StringSetting APP_REFRESH_RATE = new StringSetting("morphe_app_refresh_rate", "DEFAULT", true);
+    public static final EnumSetting<AppRefreshType> APP_REFRESH_RATE_TYPE = new EnumSetting<>("morphe_app_refresh_rate_type", AppRefreshType.ALWAYS, true, new RefreshRateType());
 
     // Return YouTube Dislike
     public static final BooleanSetting RYD_ENABLED = new BooleanSetting("morphe_ryd_enabled", TRUE);

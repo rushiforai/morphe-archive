@@ -204,7 +204,11 @@ def _declares(body, class_name, member, params, returns, needs_static):
                     declared.append(tokens[-2].split(".")[-1])
         if declared != params:
             continue
-        if needs_static and "static" not in modifiers:
+        # Both directions. Requiring static-when-invoke-static caught a Java member losing its
+        # modifier, but emitting invoke-virtual against a method that is still static went
+        # through — an IncompatibleClassChangeError on the device, from a lane whose docstring
+        # says the opcode matters.
+        if ("static" in modifiers) != needs_static:
             continue
         return True
     return False
@@ -356,6 +360,67 @@ def _xml_entries(text):
     return entries
 
 
+SETTINGS_SECTIONS_KT = ROOT / (
+    "patches/src/main/kotlin/dev/jz6/flexboard/patches/shared/SettingsSections.kt"
+)
+
+
+
+def _java_string_constant(name):
+    """The value of a `private static final String NAME = "...";` anywhere in the extension."""
+    for source in EXTENSION_ROOT.rglob("*.java"):
+        m = re.search(
+            rf'static\s+final\s+String\s+{re.escape(name)}\s*=\s*"([^"]*)"',
+            source.read_text(),
+        )
+        if m:
+            return m.group(1)
+    return None
+
+
+def _check_section_sentinels(problems):
+    """The template's @SECTION_X@ vocabulary is exactly the SettingsSection enum.
+
+    filterSettingsSections drops any block whose sentinel does not name an enum constant, and
+    leaves alone any block whose sentinels do not pair. Both produce well-formed XML, so the
+    patch succeeds and the APK links; the only symptom is a settings category that is silently
+    absent from every build, or silently present in every build with its markers left in as
+    comments. The patch asserts this too, but only once someone runs it -- this is the lane that
+    fails on a push.
+    """
+    enum_body = re.search(
+        r"enum class SettingsSection\s*\{(.*?)\}",
+        SETTINGS_SECTIONS_KT.read_text(),
+        re.S,
+    )
+    if not enum_body:
+        problems.append("  SettingsSection enum could not be parsed — the sentinel check is blind")
+        return
+    declared = set(re.findall(r"^\s*([A-Z][A-Z0-9_]*)\s*,", enum_body.group(1), re.M))
+
+    text = SETTINGS_XML.read_text()
+    opened = re.findall(r"<!--\s*@SECTION_(\w+)@\s*-->", text)
+    closed = re.findall(r"<!--\s*@END_SECTION_(\w+)@\s*-->", text)
+
+    if not declared or not opened:
+        problems.append(
+            f"  section sentinel check parsed nothing: enum {sorted(declared)}, "
+            f"template {sorted(set(opened))}"
+        )
+        return
+    if sorted(opened) != sorted(closed):
+        problems.append(
+            f"  flexboard_settings.xml sentinels are unbalanced: opened {sorted(opened)}, "
+            f"closed {sorted(closed)}"
+        )
+    if set(opened) != declared:
+        problems.append(
+            f"  flexboard_settings.xml marks {sorted(set(opened))} but SettingsSection declares "
+            f"{sorted(declared)} — a section the enum does not know is dropped from every build, "
+            f"and a section the template does not mark is emitted in every build"
+        )
+
+
 def _check_settings_xml(problems, kotlin):
     """The native settings rows agree with the smali readers about keys, defaults and bounds.
 
@@ -402,7 +467,10 @@ DOTTED_EXTENSION_CLASS = re.compile(r"dev\.jz6\.flexboard\.extension(?:\.\w+)*\.
 
 # The emitted smali stages a key as `const-string v$x, "$SOME_KEY"` — the consumers of the
 # screen's keys are the injected readers, not extension Java.
-EMITTED_KEY_READ = re.compile(r'const-string\s+v\$\w+,\s*"\$(\w*KEY\w*)"')
+# Any register spelling, not just an interpolated one. `const-string v$key, "$SOME_KEY"` was
+# matched and `const-string v3, "$SOME_KEY"` was not, so the ordinary form staged a key the screen
+# never wrote and this rule said nothing.
+EMITTED_KEY_READ = re.compile(r'const-string\s+[vp][\w${}]+\s*,\s*"\$\{?(\w+)\}?"')
 
 
 def _check_screen_contract(problems, kotlin):
@@ -445,7 +513,19 @@ def _check_screen_contract(problems, kotlin):
     for path in PATCHES.rglob("*.kt"):
         text = LINE_COMMENT.sub("", BLOCK_COMMENT.sub("", path.read_text()))
         for const_name in EMITTED_KEY_READ.findall(text):
-            staged.add((path.name, const_name))
+            # The register spelling is no longer part of the match, so filter on the name here
+            # instead: this rule is about preference keys, not every interpolated constant.
+            if "KEY" in const_name:
+                staged.add((path.name, const_name))
+
+    # An exemption for a key nothing stages any more is not neutral — it silently widens as the
+    # code moves, exactly like the pins PIN_LESS is checked against in check_dex_pins.py.
+    for name in sorted(stage_only - {const for _, const in staged}):
+        problems.append(
+            f"  {name} is exempted from the staged-key rule but no patch stages it — the "
+            f"exemption now covers nothing and should go"
+        )
+
     for file_name, const_name in sorted(staged):
         if const_name in stage_only:
             continue
@@ -475,12 +555,33 @@ def _check_screen_contract(problems, kotlin):
     # above can't see either: a 13th row is a dead control, an 11th is a slot with no editor,
     # a revived icon row splits the edit surface in two.
     slot_count = int(kotlin.get("HOTKEY_SLOTS", "0"))
-    want = {f"flexboard_hotkey_{n}_text" for n in range(1, slot_count + 1)}
-    got = {k for k in keys if re.fullmatch(r"flexboard_hotkey_\d+_text", k)}
+
+    # The key *format* is built at runtime from three Java constants -- prefix + slot + suffix in
+    # Hotkeys.textKey -- and appears again as literal row keys in the settings XML, and a third
+    # time as the pattern this checker matches with. Nothing compared them. Renaming the prefix
+    # left every row dead (isRow compares against d(textKey(slot)), which then finds nothing),
+    # every hotkey silently un-editable, and Hotkey.run reading a key nothing writes, with all
+    # three lanes green. Hotkeys.java's own comment predicted exactly that.
+    #
+    # So the pattern is derived from the Java rather than spelled here.
+    java_prefix = _java_string_constant("PREF_TEXT_PREFIX")
+    java_suffix = _java_string_constant("PREF_TEXT_SUFFIX")
+    if not java_prefix or not java_suffix:
+        problems.append(
+            "  Hotkeys.PREF_TEXT_PREFIX/PREF_TEXT_SUFFIX could not be parsed, so the hotkey row "
+            "keys are being matched against a pattern nothing pins"
+        )
+        java_prefix, java_suffix = "flexboard_hotkey_", "_text"
+    row_pattern = re.compile(
+        re.escape(java_prefix) + r"\d+" + re.escape(java_suffix)
+    )
+
+    want = {f"{java_prefix}{n}{java_suffix}" for n in range(1, slot_count + 1)}
+    got = {k for k in keys if row_pattern.fullmatch(k)}
     if got != want:
         problems.append(
             f"  flexboard_settings.xml should carry exactly the {slot_count} merged "
-            f"hotkey rows (flexboard_hotkey_1..{slot_count}_text); "
+            f"hotkey rows ({java_prefix}1..{slot_count}{java_suffix}); "
             f"missing {sorted(want - got)}, extra {sorted(got - want)}"
         )
     icon_rows = sorted(k for k in keys if re.fullmatch(r"flexboard_hotkey_\d+_icon", k))
@@ -546,6 +647,16 @@ def main():
             f"extension says {java_names}"
         )
 
+    # The list is read as DEFAULT_ICON_NAMES[slot - 1] for every slot, so it may be longer than the
+    # slot count (the surplus is the picker's front rows) but never shorter — that would be an
+    # index-out-of-bounds the first time an unassigned high slot drew its default.
+    declared_slots = int(kotlin.get("HOTKEY_SLOTS", "0"))
+    if kt_syms and declared_slots and len(kt_syms) < declared_slots:
+        problems.append(
+            f"  HOTKEY_DEFAULT_SYMBOLS has {len(kt_syms)} entries but HOTKEY_SLOTS is "
+            f"{declared_slots} — slot {len(kt_syms) + 1} has no default icon to resolve"
+        )
+
     # Same rule for the picker's back half: the patch writes the extra drawables, the extension
     # lays them out past the defaults in the same order. (Digits appear in counter_*, so
     # this pattern admits them where the defaults' does not.)
@@ -570,6 +681,7 @@ def main():
             )
 
     _check_extension_references(problems)
+    _check_section_sentinels(problems)
     _check_settings_xml(problems, kotlin)
     _check_dotted_extension_classes(problems)
     _check_screen_contract(problems, kotlin)

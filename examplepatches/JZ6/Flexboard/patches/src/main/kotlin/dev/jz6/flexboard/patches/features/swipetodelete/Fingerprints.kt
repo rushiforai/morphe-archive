@@ -60,14 +60,16 @@ internal const val CONFIG_DISABLED_FIELD = "Lpvs;->g:Z"
 internal const val PREFERENCE_STORE = "Lqhy;"
 
 /**
- * These two are **signature-unique** on the store: no other method takes a `Context` and returns
- * the store, and no other takes `(String, Z)` and returns `Z`. So a rename cannot hide behind a
- * sibling, and [checkPreferenceStorePins] asserting they still exist is enough — the letter cannot
- * survive on the wrong member the way `AbstractIme->s` did.
+ * **Signature-unique** on the store: no other method takes a `Context` and returns the store. So a
+ * rename cannot hide behind a sibling, and [checkPreferenceStorePins] asserting it still exists is
+ * enough — the letter cannot survive on the wrong member the way `AbstractIme->s` did.
+ *
+ * The store's `(String, Z)Z` getter used to be pinned alongside this, from when the scrub patches
+ * read a boolean preference. Nothing emits it now, and an assertion guarding no emission can only
+ * fail a build that would otherwise have been fine, so it is gone rather than kept "for symmetry".
  */
 internal const val PREFERENCE_STORE_GET =
     "$PREFERENCE_STORE->I(Landroid/content/Context;)$PREFERENCE_STORE"
-internal const val PREFERENCE_GET_BOOLEAN = "$PREFERENCE_STORE->k(Ljava/lang/String;Z)Z"
 
 /** `Integer.parseInt`, which the string-valued getter calls and the typed int getter does not. */
 private const val INTEGER_PARSE_INT = "Ljava/lang/Integer;->parseInt"
@@ -106,14 +108,32 @@ internal fun BytecodePatchContext.resolvePreferenceGetParsedInt(): String =
 /** Asserts the store descriptors that are safe to pin are still present. */
 internal fun BytecodePatchContext.checkPreferenceStorePins() {
     checkMethodExists(PREFERENCE_STORE_GET, "The preference store's singleton getter")
-    checkMethodExists(PREFERENCE_GET_BOOLEAN, "The store's string-keyed getBoolean")
 }
 
 /**
+ * ### Why these are functions and not `object`s
+ *
+ * `Fingerprint` memoises its `Match` in `_matchOrNull`, and `matchOrNull(context)` returns that
+ * cache without ever checking the cached `Match` came from the context being asked. The patcher's
+ * cleanup does not save you: `clearFingerprints()` calls `clearMatch()` on every registered
+ * fingerprint and *then* empties the registry, while a `Fingerprint` only registers itself from its
+ * constructor. A Kotlin `object` runs that constructor once per classloader, so it is registered
+ * for the first run and never again — run two resolves fresh and is then never cleared, and run
+ * three onwards hands back a `Match` bound to a discarded `BytecodePatchContext`. The edits land in
+ * the previous run's object graph and the output APK is quietly unpatched, with every
+ * `assertRegisterCount` still passing because the numbers are identical.
+ *
+ * That needs the host to reuse the bundle's classloader across patching sessions, which the local
+ * driver never does — one session per JVM — so it cannot reproduce here. A factory sidesteps the
+ * question entirely: a fresh instance has nothing cached and re-registers itself for the run it
+ * belongs to. Resolve once per `execute` and share the result, rather than calling twice.
+ *
+ * ---
+ *
  * The shared engine's entry point. Holds the single comparison that decides whether a scrub may
  * begin, for every subclass — delete, spacebar move, and inline suggestion alike.
  */
-object ScrubHandleMotionEventFingerprint : Fingerprint(
+fun scrubHandleMotionEventFingerprint() = Fingerprint(
     definingClass = SCRUB_MOTION_EVENT_HANDLER,
     name = "g",
     parameters = listOf("Landroid/view/MotionEvent;"),
@@ -125,7 +145,7 @@ object ScrubHandleMotionEventFingerprint : Fingerprint(
  * the `Lpvs;` config it hands to the shared engine, the first argument of which is the keycode the
  * drag must start on.
  */
-object ScrubDeleteConstructorFingerprint : Fingerprint(
+fun scrubDeleteConstructorFingerprint() = Fingerprint(
     definingClass = SCRUB_DELETE_MOTION_EVENT_HANDLER,
     name = "<init>",
     parameters = listOf("Landroid/content/Context;", "Lpvo;"),
@@ -140,7 +160,7 @@ object ScrubDeleteConstructorFingerprint : Fingerprint(
  * `InlineSuggestionScrubSpaceMotionEventHandler` calls the four-argument form directly with 50 ms,
  * so it never passes through here.
  */
-object ScrubEngineConstructorFingerprint : Fingerprint(
+fun scrubEngineConstructorFingerprint() = Fingerprint(
     definingClass = SCRUB_MOTION_EVENT_HANDLER,
     name = "<init>",
     parameters = listOf("Landroid/content/Context;", "Lpvo;", "Lpvs;"),
@@ -152,7 +172,7 @@ object ScrubEngineConstructorFingerprint : Fingerprint(
  * bucket walk and the past-the-table extrapolation — and both multiply a magnitude by the
  * direction, which is what makes them identifiable.
  */
-object ScrubDispatchFingerprint : Fingerprint(
+fun scrubDispatchFingerprint() = Fingerprint(
     definingClass = SCRUB_MOTION_EVENT_HANDLER,
     name = "r",
     parameters = listOf("Landroid/view/MotionEvent;", "Z"),

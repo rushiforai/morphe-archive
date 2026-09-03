@@ -3,7 +3,6 @@ package com.autocat.morphe.smartlauncher.extension;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
@@ -22,44 +21,88 @@ import java.util.concurrent.Executors;
 public class ShizukuArchiveHelper {
 
     private static final String TAG = "ShizukuArchiveHelper";
+    public static final int SHIZUKU_REQ_CODE = 1001;
+
     private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
     private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
 
-    public static boolean isShizukuAvailable() {
+    public enum Status {
+        ACTIVE,
+        PERMISSION_REQUIRED,
+        NOT_RUNNING
+    }
+
+    public static Status getStatus() {
+        if (!isShizukuAlive()) {
+            return Status.NOT_RUNNING;
+        }
+        if (!hasPermission()) {
+            return Status.PERMISSION_REQUIRED;
+        }
+        return Status.ACTIVE;
+    }
+
+    public static boolean isShizukuAlive() {
         try {
             Class<?> shizukuClass = Class.forName("rikka.shizuku.Shizuku");
             Method pingMethod = shizukuClass.getMethod("pingBinder");
             Boolean isAlive = (Boolean) pingMethod.invoke(null);
-            if (isAlive != null && isAlive) {
-                Method checkPermMethod = shizukuClass.getMethod("checkSelfPermission");
-                Integer perm = (Integer) checkPermMethod.invoke(null);
-                return perm != null && perm == PackageManager.PERMISSION_GRANTED;
-            }
+            return isAlive != null && isAlive;
         } catch (Throwable t) {
-            Log.w(TAG, "Shizuku reflection check returned false: " + t.getMessage());
+            return false;
         }
-        return false;
+    }
+
+    public static boolean hasPermission() {
+        try {
+            Class<?> shizukuClass = Class.forName("rikka.shizuku.Shizuku");
+            Method checkPermMethod = shizukuClass.getMethod("checkSelfPermission");
+            Integer perm = (Integer) checkPermMethod.invoke(null);
+            return perm != null && perm == PackageManager.PERMISSION_GRANTED;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    public static boolean isShizukuAvailable() {
+        return isShizukuAlive() && hasPermission();
     }
 
     public static void requestShizukuPermission(int requestCode) {
         try {
             Class<?> shizukuClass = Class.forName("rikka.shizuku.Shizuku");
-            Method pingMethod = shizukuClass.getMethod("pingBinder");
-            Boolean isAlive = (Boolean) pingMethod.invoke(null);
-            if (isAlive != null && isAlive) {
-                Method requestMethod = shizukuClass.getMethod("requestPermission", int.class);
-                requestMethod.invoke(null, requestCode);
-            }
+            Method requestMethod = shizukuClass.getMethod("requestPermission", int.class);
+            requestMethod.invoke(null, requestCode);
+            Log.i(TAG, "Requested Shizuku permission with code " + requestCode);
         } catch (Throwable t) {
-            Log.e(TAG, "Failed to request Shizuku permission via reflection", t);
+            Log.e(TAG, "Failed to request Shizuku permission", t);
         }
     }
 
+    public static void requestPermissionWithFeedback(Context context) {
+        if (!isShizukuAlive()) {
+            postToast(context, "Shizuku service is not running. Please start Shizuku first.");
+            return;
+        }
+        if (hasPermission()) {
+            postToast(context, "Shizuku permission is already granted!");
+            return;
+        }
+        postToast(context, "Requesting Shizuku permission…");
+        requestShizukuPermission(SHIZUKU_REQ_CODE);
+    }
+
     public static boolean archivePackage(final String packageName) {
-        return execShizukuCommand("pm archive " + packageName);
+        if (packageName == null || packageName.isEmpty()) return false;
+        boolean ok = execShizukuCommand("pm archive " + packageName);
+        if (!ok) {
+            ok = execShizukuCommand("cmd package archive " + packageName);
+        }
+        return ok;
     }
 
     public static boolean unarchivePackage(final String packageName) {
+        if (packageName == null || packageName.isEmpty()) return false;
         boolean ok = execShizukuCommand("pm unarchive " + packageName);
         if (!ok) {
             ok = execShizukuCommand("cmd package unarchive " + packageName);
@@ -76,8 +119,23 @@ public class ShizukuArchiveHelper {
             Method newProcessMethod = shizukuClass.getMethod("newProcess", String[].class, String[].class, String.class);
             Process process = (Process) newProcessMethod.invoke(null, new String[]{"sh", "-c", cmd}, null, null);
             if (process != null) {
-                process.waitFor();
-                return process.exitValue() == 0;
+                StringBuilder output = new StringBuilder();
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        output.append(line).append("\n");
+                    }
+                }
+                try (BufferedReader errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+                    String line;
+                    while ((line = errReader.readLine()) != null) {
+                        output.append(line).append("\n");
+                    }
+                }
+                int exitCode = process.waitFor();
+                String outStr = output.toString().trim();
+                Log.i(TAG, "Shizuku cmd [" + cmd + "] exit=" + exitCode + ", out=" + outStr);
+                return exitCode == 0 || outStr.toLowerCase().contains("success");
             }
         } catch (Throwable t) {
             Log.e(TAG, "Shizuku command execution failed for: " + cmd, t);
@@ -85,39 +143,14 @@ public class ShizukuArchiveHelper {
         return false;
     }
 
-    public static void archiveApp(final Context context, final String packageName) {
-        if (context == null || packageName == null || packageName.isEmpty()) {
-            return;
-        }
-
-        if (!isShizukuAvailable()) {
-            postToast(context, "Shizuku is not running or permission is denied");
-            return;
-        }
-
-        postToast(context, "Archiving " + packageName + "...");
-
-        EXECUTOR.execute(new Runnable() {
-            @Override
-            public void run() {
-                boolean success = archivePackage(packageName);
-                if (success) {
-                    postToast(context, "Successfully archived " + packageName);
-                } else {
-                    postToast(context, "Failed to archive " + packageName);
-                }
-            }
-        });
-    }
-
-    private static void postToast(final Context context, final String message) {
+    public static void postToast(final Context context, final String message) {
+        if (context == null || message == null) return;
         MAIN_HANDLER.post(new Runnable() {
             @Override
             public void run() {
                 try {
                     Toast.makeText(context.getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-                } catch (Throwable ignored) {
-                }
+                } catch (Throwable ignored) {}
             }
         });
     }

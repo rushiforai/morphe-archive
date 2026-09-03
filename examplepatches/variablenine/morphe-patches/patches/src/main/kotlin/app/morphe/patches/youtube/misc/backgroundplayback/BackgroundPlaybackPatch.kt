@@ -22,6 +22,7 @@ import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playertype.playerTypeHookPatch
 import app.morphe.patches.youtube.misc.playservice.is_20_29_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_20_49_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_04_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_15_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_21_or_greater
@@ -138,6 +139,18 @@ val backgroundPlaybackPatch = bytecodePatch(
                     method.insertLiteralOverride(
                         instructionMatches.first().index,
                         "$EXTENSION_CLASS->isAutomaticForegroundPlaybackAllowed(Z)Z"
+                    )
+                }
+            }
+        }
+
+        // Prevents playback from pausing when the overlay video settings is invoked.
+        if (is_20_49_or_greater) {
+            AutomaticPlaybackPausedInFlyoutFeatureFlagFingerprint.matchAll().forEach {
+                it.apply {
+                    method.insertLiteralOverride(
+                        instructionMatches.first().index,
+                        "$EXTENSION_CLASS->isAutomaticPlaybackPauseInFlyout(Z)Z"
                     )
                 }
             }

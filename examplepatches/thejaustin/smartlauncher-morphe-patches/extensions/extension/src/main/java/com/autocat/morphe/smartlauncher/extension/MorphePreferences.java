@@ -34,9 +34,9 @@ public final class MorphePreferences {
 
     public static boolean isShizukuEnabled(Context context) {
         try {
-            return getPrefs(context).getBoolean(KEY_USE_SHIZUKU, false);
+            return getPrefs(context).getBoolean(KEY_USE_SHIZUKU, true);
         } catch (Throwable t) {
-            return false;
+            return true;
         }
     }
 

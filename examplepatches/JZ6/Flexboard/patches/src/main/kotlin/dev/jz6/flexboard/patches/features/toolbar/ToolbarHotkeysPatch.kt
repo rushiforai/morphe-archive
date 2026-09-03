@@ -7,6 +7,8 @@ import dev.jz6.flexboard.patches.shared.basePatch
 import dev.jz6.flexboard.patches.shared.emitHotkeyRefresh
 import dev.jz6.flexboard.patches.shared.emitNativeHotkeys
 import dev.jz6.flexboard.patches.shared.resolveAccessPointBuilder
+import dev.jz6.flexboard.patches.shared.selectedSettingsSections
+import dev.jz6.flexboard.patches.shared.SettingsSection
 
 /**
  * Six toolbar buttons whose label, icon and action all come from settings — the patch emits
@@ -33,5 +35,11 @@ val toolbarHotkeysPatch = bytecodePatch(
         val builder = resolveAccessPointBuilder()
         emitNativeHotkeys(builder)
         emitHotkeyRefresh(builder)
+
+        // Registered last, on purpose. A failing patch does not abort the run: the patcher records
+        // the exception and moves on, and `settingsScreenPatch` — which did not fail — still
+        // finalizes and reads this set. Registering before the emission above would ship the
+        // Hotkeys rows and their drawables for a build whose bytecode never got the feature.
+        selectedSettingsSections += SettingsSection.HOTKEYS
     }
 }

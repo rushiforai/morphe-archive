@@ -26,9 +26,23 @@ internal object Constants {
     const val GBOARD_SETTINGS_XML = "res/xml/settings.xml"
 
     /**
+     * Gboard's legacy top-level settings screen. `SettingsActivity.t()` inflates this one instead
+     * of [GBOARD_SETTINGS_XML] whenever the "expressive design" gate is off — which it is on
+     * `SDK_INT < 36` and on Android 16 devices whose OEM does not set `is_expressive_design_enabled`
+     * (ColorOS/OxygenOS among them). The row must be added to both screens or it goes missing on
+     * exactly those devices. Keeps its real name like the modern screen does.
+     */
+    const val GBOARD_SETTINGS_LEGACY_XML = "res/xml/settings_legacy.xml"
+
+    /**
      * Signatures and target carried over verbatim from the build this was developed against.
-     * The hooks are pinned to exactly one Gboard build; anything else must fail to match rather
-     * than patch something it does not understand.
+     *
+     * **This is metadata, not a gate.** `Patcher` never reads `compatiblePackages` — only the host
+     * UI does — so it records which build the hooks were derived against and may warn a user, but
+     * it does not stop the patches running against a different one. Anything that must not be
+     * applied to the wrong build has to establish that itself, by matching on shape rather than on
+     * an R8 letter. Justifications elsewhere in this bundle of the form "what makes this
+     * positional match acceptable is the pin" are relying on a guarantee that does not exist.
      */
     val COMPATIBILITY_GBOARD = Compatibility(
         name = "Gboard",

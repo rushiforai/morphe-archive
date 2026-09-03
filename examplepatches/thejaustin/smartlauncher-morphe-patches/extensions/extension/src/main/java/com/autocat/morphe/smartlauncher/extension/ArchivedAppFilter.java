@@ -29,6 +29,7 @@ public class ArchivedAppFilter {
 
     private static volatile boolean sFilterEnabled = true;
     private static volatile boolean sPrefsLoaded = false;
+    private static volatile boolean sPrefsAttempted = false;
 
     /** Called by MorpheSettingsDialog when the user toggles the setting at runtime. */
     public static void setFilterEnabled(boolean enabled) {
@@ -37,16 +38,26 @@ public class ArchivedAppFilter {
     }
 
     private static void loadPrefsIfNeeded(LauncherApps launcherApps) {
-        if (sPrefsLoaded) return;
+        if (sPrefsLoaded || sPrefsAttempted) return;
+        sPrefsAttempted = true;
         try {
             Context ctx = null;
-            for (Field f : launcherApps.getClass().getDeclaredFields()) {
-                f.setAccessible(true);
-                Object val = f.get(launcherApps);
-                if (val instanceof Context) {
-                    ctx = (Context) val;
-                    break;
+            if (launcherApps != null) {
+                for (Field f : launcherApps.getClass().getDeclaredFields()) {
+                    f.setAccessible(true);
+                    Object val = f.get(launcherApps);
+                    if (val instanceof Context) {
+                        ctx = (Context) val;
+                        break;
+                    }
                 }
+            }
+            if (ctx == null) {
+                try {
+                    Class<?> atClass = Class.forName("android.app.ActivityThread");
+                    Method currentAppMethod = atClass.getMethod("currentApplication");
+                    ctx = (Context) currentAppMethod.invoke(null);
+                } catch (Throwable ignored) {}
             }
             if (ctx != null) {
                 sFilterEnabled = MorphePreferences.isHideArchivedEnabled(ctx);
@@ -135,31 +146,61 @@ public class ArchivedAppFilter {
         }
     }
 
-    private static boolean isArchived(LauncherActivityInfo info) {
+    public static boolean isArchived(LauncherActivityInfo info) {
+        if (info == null) {
+            return false;
+        }
         try {
+            // Check 1: LauncherActivityInfo.isArchived() if available on API 35+
+            try {
+                Method isArchivedMethod = info.getClass().getMethod("isArchived");
+                Boolean isArchived = (Boolean) isArchivedMethod.invoke(info);
+                if (isArchived != null && isArchived) {
+                    return true;
+                }
+            } catch (NoSuchMethodException ignored) {}
+
             ApplicationInfo appInfo = info.getApplicationInfo();
             if (appInfo == null) {
                 return false;
             }
 
-            // Check 1: Direct bitmask check (Bit 30 in ApplicationInfo.flags)
+            // Check 2: Direct bitmask check (Bit 30 in ApplicationInfo.flags)
             if ((appInfo.flags & FLAG_ARCHIVED) != 0) {
                 return true;
             }
 
-            // Check 2: Dynamic reflection on ApplicationInfo.isArchived() if available on API 35+
+            // Check 3: Dynamic reflection on ApplicationInfo.isArchived() if available on API 35+
             try {
                 Method isArchivedMethod = ApplicationInfo.class.getMethod("isArchived");
                 Boolean isArchived = (Boolean) isArchivedMethod.invoke(appInfo);
                 if (isArchived != null && isArchived) {
                     return true;
                 }
-            } catch (NoSuchMethodException ignored) {
-            }
+            } catch (NoSuchMethodException ignored) {}
 
             return false;
         } catch (Throwable t) {
             return false;
         }
+    }
+
+    public static boolean isAppArchived(ApplicationInfo appInfo) {
+        if (appInfo == null) {
+            return false;
+        }
+        try {
+            if ((appInfo.flags & FLAG_ARCHIVED) != 0) {
+                return true;
+            }
+            try {
+                Method isArchivedMethod = ApplicationInfo.class.getMethod("isArchived");
+                Boolean isArchived = (Boolean) isArchivedMethod.invoke(appInfo);
+                if (isArchived != null && isArchived) {
+                    return true;
+                }
+            } catch (NoSuchMethodException ignored) {}
+        } catch (Throwable ignored) {}
+        return false;
     }
 }

@@ -1,6 +1,5 @@
 package com.autocat.morphe.smartlauncher.extension;
 
-import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -9,15 +8,17 @@ import android.content.pm.LauncherApps;
 import android.content.pm.PackageInstaller;
 import android.os.Build;
 import android.os.Process;
+import android.os.UserHandle;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.lang.reflect.Method;
 
 /**
- * Real implementation of native app archiving and unarchiving via the
- * public {@code PackageInstaller.requestArchive} & {@code PackageInstaller.requestUnarchive} APIs
+ * Pure-reflection implementation of native app archiving and unarchiving via
+ * {@code PackageInstaller.requestArchive} & {@code PackageInstaller.requestUnarchive} APIs
  * (Android 15 / API 35+ / Samsung One UI 7).
+ *
+ * Silent by design — callers are responsible for all user-facing feedback.
  */
 @SuppressWarnings("unused")
 public class NativeArchiveHelper {
@@ -39,7 +40,6 @@ public class NativeArchiveHelper {
             return false;
         }
         if (!isSupported()) {
-            safeToast(context, "Native app unarchiving requires Android 15+");
             return false;
         }
 
@@ -48,10 +48,9 @@ public class NativeArchiveHelper {
         try {
             PackageInstaller installer = context.getPackageManager().getPackageInstaller();
             if (installer != null) {
-                Method unarchiveMethod = installer.getClass().getMethod("requestUnarchive", String.class, IntentSender.class);
-                unarchiveMethod.invoke(installer, packageName, statusReceiver);
+                Method m = installer.getClass().getMethod("requestUnarchive", String.class, IntentSender.class);
+                m.invoke(installer, packageName, statusReceiver);
                 Log.i(TAG, "Native unarchive requested for " + packageName);
-                safeToast(context, "Unarchiving " + packageName + "...");
                 return true;
             }
         } catch (Throwable t) {
@@ -61,15 +60,10 @@ public class NativeArchiveHelper {
         try {
             LauncherApps launcherApps = (LauncherApps) context.getSystemService(Context.LAUNCHER_APPS_SERVICE);
             if (launcherApps != null) {
-                Method unarchiveAppMethod = launcherApps.getClass().getMethod(
-                    "unarchiveApp",
-                    String.class,
-                    Process.myUserHandle().getClass(),
-                    IntentSender.class
-                );
-                unarchiveAppMethod.invoke(launcherApps, packageName, Process.myUserHandle(), statusReceiver);
+                Method m = launcherApps.getClass().getMethod(
+                        "unarchiveApp", String.class, UserHandle.class, IntentSender.class);
+                m.invoke(launcherApps, packageName, Process.myUserHandle(), statusReceiver);
                 Log.i(TAG, "LauncherApps.unarchiveApp invoked for " + packageName);
-                safeToast(context, "Unarchiving " + packageName + "...");
                 return true;
             }
         } catch (Throwable t) {
@@ -84,7 +78,6 @@ public class NativeArchiveHelper {
             return false;
         }
         if (!isSupported()) {
-            safeToast(context, "Native app archiving requires Android 15+");
             return false;
         }
 
@@ -93,9 +86,9 @@ public class NativeArchiveHelper {
         try {
             PackageInstaller installer = context.getPackageManager().getPackageInstaller();
             if (installer != null) {
-                installer.requestArchive(packageName, statusReceiver);
+                Method m = installer.getClass().getMethod("requestArchive", String.class, IntentSender.class);
+                m.invoke(installer, packageName, statusReceiver);
                 Log.i(TAG, "Native archive requested for " + packageName);
-                safeToast(context, "Archiving " + packageName + "...");
                 return true;
             }
         } catch (Throwable t) {
@@ -105,48 +98,31 @@ public class NativeArchiveHelper {
         try {
             LauncherApps launcherApps = (LauncherApps) context.getSystemService(Context.LAUNCHER_APPS_SERVICE);
             if (launcherApps != null) {
-                Method archiveAppMethod = launcherApps.getClass().getMethod(
-                    "archiveApp",
-                    String.class,
-                    Process.myUserHandle().getClass(),
-                    IntentSender.class
-                );
-                archiveAppMethod.invoke(launcherApps, packageName, Process.myUserHandle(), statusReceiver);
+                Method m = launcherApps.getClass().getMethod(
+                        "archiveApp", String.class, UserHandle.class, IntentSender.class);
+                m.invoke(launcherApps, packageName, Process.myUserHandle(), statusReceiver);
                 Log.i(TAG, "LauncherApps.archiveApp invoked for " + packageName);
-                safeToast(context, "Archiving " + packageName + "...");
                 return true;
             }
         } catch (Throwable t) {
             Log.e(TAG, "All native archive methods failed for " + packageName, t);
         }
 
-        safeToast(context, "Failed to archive " + packageName);
         return false;
     }
 
     private static IntentSender createCallbackIntentSender(Context context, String packageName) {
         try {
-            Intent dummyIntent = new Intent("com.autocat.morphe.smartlauncher.ACTION_ARCHIVE_CALLBACK");
-            dummyIntent.setPackage(context.getPackageName());
-            dummyIntent.putExtra("archived_package", packageName);
-            int flags = FLAG_UPDATE_CURRENT | FLAG_IMMUTABLE;
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                context,
-                packageName.hashCode(),
-                dummyIntent,
-                flags
-            );
-            return pendingIntent != null ? pendingIntent.getIntentSender() : null;
+            Intent intent = new Intent("com.autocat.morphe.smartlauncher.ACTION_ARCHIVE_CALLBACK");
+            intent.setPackage(context.getPackageName());
+            intent.putExtra("archived_package", packageName);
+            PendingIntent pi = PendingIntent.getBroadcast(
+                    context, packageName.hashCode(), intent,
+                    FLAG_UPDATE_CURRENT | FLAG_IMMUTABLE);
+            return pi != null ? pi.getIntentSender() : null;
         } catch (Throwable t) {
             Log.w(TAG, "Could not create callback IntentSender", t);
             return null;
-        }
-    }
-
-    private static void safeToast(Context context, String message) {
-        try {
-            Toast.makeText(context.getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-        } catch (Throwable ignored) {
         }
     }
 }

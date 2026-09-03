@@ -24,25 +24,16 @@ Patches for a variety of apps. I created this repo for the main purpose to get t
 - Or add by URL `https://github.com/bruddaa/bruddas-morphe-patches`
 <br>
 
-## 🩹 Patches list
+## Available Patches
 
-<!-- PATCHES_START EXPANDED -->
-> **[v1.0.1](https://github.com/bruddaa/bruddas-morphe-patches/releases/tag/v1.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
-<details open>
-<summary>📦 Music player&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
+<!-- PATCHES_START -->
+> **[v1.2.0](https://github.com/bruddaa/bruddas-morphe-patches/releases/tag/v1.2.0)**&nbsp;&nbsp;&middot;&nbsp;&nbsp;`main`&nbsp;&nbsp;&middot;&nbsp;&nbsp;**3 patches** across **3 apps**&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Full details](PATCHES.md)
 
-**🎯 Supported versions:**
-
-| 246.02 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Remove Ads](#remove-ads) | Forces the ads-removed check to always return true. | - |
-
-</details>
-
+| # | App | Patches | Version | Package |
+|---|---|---|---|---|
+| 1 | [**Music player**](PATCHES.md#music-player-commediamusicmp3musicplayer) | 1 | `246.02` | [`com.media.music.mp3.musicplayer`](https://play.google.com/store/apps/details?id=com.media.music.mp3.musicplayer) |
+| 2 | [**PrinterShare**](PATCHES.md#printershare-comdynamixsoftwareprintershare) | 1 | `12.25.0` | [`com.dynamixsoftware.printershare`](https://play.google.com/store/apps/details?id=com.dynamixsoftware.printershare) |
+| 3 | [**Unit Converter**](PATCHES.md#unit-converter-comveewalabsunitconverter) | 1 | `2.0.2` | [`com.veewalabs.unitconverter`](https://play.google.com/store/apps/details?id=com.veewalabs.unitconverter) |
 <!-- PATCHES_END -->
 <br><br>
 
@@ -75,6 +66,7 @@ Thanks to:
 
 - [Morphe](https://github.com/MorpheApp/)
 - [Revanced](https://github.com/revanced)
+- [rushiranpise](https://github.com/rushiranpise/morphe-patches/)
 
 ## 📜 License
 

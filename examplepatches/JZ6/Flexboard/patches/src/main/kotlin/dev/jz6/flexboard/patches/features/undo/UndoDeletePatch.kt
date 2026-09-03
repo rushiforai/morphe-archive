@@ -2,7 +2,6 @@ package dev.jz6.flexboard.patches.features.undo
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
@@ -17,6 +16,7 @@ import dev.jz6.flexboard.patches.shared.basePatch
 import dev.jz6.flexboard.patches.shared.callsMethod
 import dev.jz6.flexboard.patches.shared.fieldDescriptor
 import dev.jz6.flexboard.patches.shared.fieldOwnerType
+import dev.jz6.flexboard.patches.shared.fieldReferenceOrNull
 import dev.jz6.flexboard.patches.shared.invokeRegisterAt
 import dev.jz6.flexboard.patches.shared.invokeRegisterCount
 import dev.jz6.flexboard.patches.shared.opcodeName
@@ -66,7 +66,8 @@ import dev.jz6.flexboard.patches.shared.opcodeName
 @Suppress("unused")
 val swipeRightToUndoPatch = bytecodePatch(
     name = "Swipe Right to Undo",
-    description = "Swipe right after deleting to put the words back. Uses Gboard's own undo, " +
+    description = "Swipe right after deleting to put the words back — the swipe starts on the " +
+        "Delete key, or anywhere when Swipe to Delete is also applied. Uses Gboard's own undo, " +
         "which already records what a delete swipe removed.",
     default = true,
 ) {
@@ -77,7 +78,7 @@ val swipeRightToUndoPatch = bytecodePatch(
     execute {
         // No `checkPreferenceStorePins()` here any more: this patch reads no preference, so the
         // store's descriptors are not among the things it can be broken by.
-        LatinImeHandleEventFingerprint.method.undoOnRightwardScrub(this)
+        latinImeHandleEventFingerprint().method.undoOnRightwardScrub()
     }
 }
 
@@ -194,13 +195,13 @@ private fun MutableMethod.resolveStockUndo(): StockUndo {
     // Called on the same register before the getter: "is there anything to put back".
     val available = (getIndex - 1 downTo from).firstNonNullOf(
         "No `$slotType->…()Z` called on v$slotRegister before the Optional getter",
-    ) { callOnRegister(it, slotRegister, returning = "Z") }
+    ) { callOnRegister(it, slotRegister, returning = "Z", on = slotType) }
 
     // And after the re-commit: "the slot is spent".
     val clearEnd = minOf(instructions.size, recommitIndex + 1 + RECOMMIT_SEARCH_WINDOW)
     val clear = (recommitIndex + 1 until clearEnd).firstNonNullOf(
         "No `$slotType->…()V` called on v$slotRegister after the re-commit",
-    ) { callOnRegister(it, slotRegister, returning = "V") }
+    ) { callOnRegister(it, slotRegister, returning = "V", on = slotType) }
 
     // Whatever loaded the slot register is where the slot is kept.
     val slotField = (getIndex - 1 downTo from).firstNotNullOfOrNull {
@@ -222,12 +223,25 @@ private fun MutableMethod.resolveStockUndo(): StockUndo {
     return StockUndo(slotField, available, get, committableText, recommit, clear)
 }
 
-/** The descriptor of an `invoke-virtual` on [register] with the given return type, or null. */
-private fun MutableMethod.callOnRegister(index: Int, register: Int, returning: String): String? {
+/**
+ * The descriptor of an `invoke-virtual` on [register] with the given return type, or null.
+ *
+ * [on] is the class the call must be declared against. Without it this matched any zero-argument
+ * call on the right register returning the right type — including one reached through a superclass
+ * or interface spelling — while every caller's failure message names a specific class. Callers
+ * that genuinely do not care pass null.
+ */
+private fun MutableMethod.callOnRegister(
+    index: Int,
+    register: Int,
+    returning: String,
+    on: String? = null,
+): String? {
     val instruction = instructions[index]
     val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
         ?: return null
     if (reference.returnType != returning || reference.parameterTypes.isNotEmpty()) return null
+    if (on != null && reference.definingClass != on) return null
     return if (instruction.invokeRegisterCount() == 1 &&
         instruction.invokeRegisterAt(0) == register
     ) {
@@ -243,7 +257,7 @@ private inline fun IntProgression.firstNonNullOf(
     transform: (Int) -> String?,
 ): String = firstNotNullOfOrNull(transform) ?: error("$onMissing in $LATIN_IME->q")
 
-private fun MutableMethod.undoOnRightwardScrub(context: BytecodePatchContext) {
+private fun MutableMethod.undoOnRightwardScrub() {
     assertRegisterCount(HANDLE_EVENT_REGISTER_COUNT, "$LATIN_IME->q")
 
     // Read out of Gboard's own undo handler rather than pinned. Four of these share a signature
@@ -323,6 +337,29 @@ private fun MutableMethod.undoOnRightwardScrub(context: BytecodePatchContext) {
             "`${countMove.opcode.name}` — cannot locate the signed word count"
     }
     val countRegister = (countMove as OneRegisterInstruction).registerA
+
+    // The emission below reads `stock.slotField` — declared on `LatinIme` — off this register,
+    // while the derivation above only proves it is an `AbstractIme`: the flag it was found by is
+    // declared one class up. `LatinIme` *extends* `AbstractIme`, so that is a downcast, and
+    // `checkAssignable` in this direction would correctly refuse it. A `check-cast` would silence
+    // the question rather than answer it, and would be dead weight besides — Gboard's own code
+    // reads `LatinIme` fields off this same register, so the verifier already carries the narrower
+    // type here.
+    //
+    // What is missing is any statement of that in the patch, so state it: require Gboard itself to
+    // access a field of the slot field's owner through this register. If a build stops doing so,
+    // the register is no longer demonstrably a `LatinIme` and the emitted `iget-object` would be a
+    // verify error that takes the whole class down — which is worth failing the patch over.
+    val slotOwner = stock.slotField.substringBefore("->")
+    val ownerReadsHere = instructions.count {
+        it.fieldReferenceOrNull()?.definingClass == slotOwner &&
+            (it as? TwoRegisterInstruction)?.registerB == thisRegister
+    }
+    check(ownerReadsHere > 0) {
+        "No field of $slotOwner is accessed through v$thisRegister in $LATIN_IME->q, so the " +
+            "register is only demonstrably a ${ime.type}; emitting `${stock.slotField}` off it " +
+            "would be a downcast this patch cannot justify"
+    }
 
     val (slot, value) = SCRATCH_REGISTERS
     val claimed = listOf(countRegister, thisRegister, flagRegister, slot, value)

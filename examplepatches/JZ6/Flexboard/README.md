@@ -35,9 +35,9 @@ Both keyboards stay installed, so you can switch back whenever you like.
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v2.0.1](https://github.com/JZ6/Flexboard/releases/tag/v2.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+> **[v2.1.0](https://github.com/JZ6/Flexboard/releases/tag/v2.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
 <details open>
-<summary>📦 Gboard&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
+<summary>📦 Gboard&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -48,14 +48,15 @@ Both keyboards stay installed, so you can switch back whenever you like.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Bypass Gboard Signature](#bypass-gboard-signature) | Bypass Gboard's signature whitelist checks and force them to pass. |  |
-| [Grammar Check Row](#grammar-check-row) | Force the grammar check settings row to appear. The Phenotype flag that governs it never syncs on a patched build, so its compiled-in default (off) sticks. |  |
+| Grammar Check Row | Force the grammar check settings row to appear. The Phenotype flag that governs it never syncs on a patched build, so its compiled-in default (off) sticks. |  |
 | [Install as Gboard Clone](#install-as-gboard-clone) | Rename the package to dev.jz6.com.google.android.inputmethod.latin so the patched build installs alongside the official Gboard instead of replacing it. |  |
-| [Suggested Settings](#suggested-settings) | Turns on flick keys for symbols, touch & hold keys for numbers, suggestion strip, grammar check and smart replies, and turns off block offensive words and word suggestions. Written once as defaults, so each can still be changed in Gboard's own settings. |  |
-| [Swipe Right to Undo](#swipe-right-to-undo) | Swipe right after deleting to put the words back. Uses Gboard's own undo, which already records what a delete swipe removed. |  |
+| Suggested Settings | Turns on flick keys for symbols, touch & hold keys for numbers, suggestion strip, grammar check and smart replies, and turns off block offensive words and word suggestions. Written once as defaults, so each can still be changed in Gboard's own settings. |  |
+| [Swipe Right to Undo](#swipe-right-to-undo) | Swipe right after deleting to put the words back — the swipe starts on the Delete key, or anywhere when Swipe to Delete is also applied. Uses Gboard's own undo, which already records what a delete swipe removed. |  |
 | [Swipe to Delete](#swipe-to-delete) | Swipe left anywhere on the keyboard to delete the previous word, and swipe right to restore it. Uses Gboard's own word-scrub engine, so it behaves exactly like swiping on the backspace key already does — only it can start anywhere. |  |
 | [Toolbar Buttons](#toolbar-buttons) | Add Select all, Copy and Paste buttons to the toolbar above the keyboard, so each is one tap instead of opening Gboard's text editing panel first. Registered natively, so drag-to-reorder through the toolbar customize page persists. |  |
-| [Toolbar Hotkeys](#toolbar-hotkeys) | Adds six configurable hotkey slots to Gboard's toolbar — each commits a text of your choice on tap. A slot appears when its text is set; when cleared it hides at the next toolbar rebuild (rotate, switch IME, or restart — there's no mid-session un-register). Text and icon edits apply on the next keyboard open. |  |
-| [Toolbar Native Test](#toolbar-native-test) | Add a 'Test' button to the toolbar through Gboard's own access-point registry so drag reorder and persistence work natively. Writes 'test' at the cursor on tap. Architectural proof-of-concept; off by default. |  |
+| Toolbar Hotkeys | Adds six configurable hotkey slots to Gboard's toolbar — each commits a text of your choice on tap. A slot appears when its text is set; when cleared it hides at the next toolbar rebuild (rotate, switch IME, or restart — there's no mid-session un-register). Text and icon edits apply on the next keyboard open. |  |
+| Toolbar Native Test | Add a 'Test' button to the toolbar through Gboard's own access-point registry so drag reorder and persistence work natively. Writes 'test' at the cursor on tap. Architectural proof-of-concept; off by default. |  |
+| Vibration slider everywhere | Forces Gboard to show its own vibration strength slider on every device, rather than deferring to the system haptic settings page, so the strength is adjustable instead of being fixed by whichever rollout the device landed in. |  |
 
 </details>
 
@@ -96,18 +97,17 @@ the swipe-anywhere gesture; the backspace key keeps Gboard's own behaviour, see 
 
 | Setting | Default | What it does |
 |---|---|---|
-| **Swipe length** | 60% | How far to swipe per deleted word, as a percent of Gboard's own distance. Lower deletes more words for the same swipe; 100% is Gboard's own distance. |
 | **Max words per swipe** | 1 | The most words one swipe can delete. At 1 a swipe deletes a single word however far it travels; 10 means no limit. Swiping back still restores. |
-| **Hold delay** | 0 ms | How long the swipe must be held before it starts deleting. Gboard's own delete swipe uses 200 ms, which is what makes it feel like a press-and-drag rather than a flick. |
 
-The screen also carries **Icons on the toolbar** and **Icons when unfolded**, which belong to the
-Bigger Toolbar patch and are described [further down](#bigger-toolbar), and six **Hotkeys** fields
-belonging to [Toolbar Buttons](#toolbar-buttons).
+Swipe length and hold delay are fixed rather than adjustable. The swipe travels Gboard's own
+distance per word, and deleting starts immediately instead of after Gboard's 200 ms press-and-hold.
+Both were sliders once; [`docs/design.md`](docs/design.md) has why they are not now.
+
+The screen also carries six **Hotkeys** fields belonging to
+[Toolbar Buttons](#toolbar-buttons).
 
 Every value is read out of Gboard's own preference store, so there is no separate settings app and
-nothing to keep in sync. All three now start somewhere other than Gboard's own behaviour; 100%, 10
-and 200 ms put them back, and why they do not start there is in
-[`docs/design.md`](docs/design.md).
+nothing to keep in sync.
 
 The starting values are written into the store the first time the patched app runs, rather than
 being numbers inside the patch. So they behave as defaults for a fresh install, and a later update
@@ -118,9 +118,9 @@ are half an exception — *editing* a snippet takes effect immediately, because 
 the button is tapped, but its name on the toolbar and whether the button exists at all are decided
 when the bar is built.
 
-The screen shows every section whether or not you ticked the patch it belongs to — it is one merged
-class and cannot tell which patches you chose. A slider for a patch you did not apply moves and
-stores and does nothing.
+Each section appears only if you ticked the patch it belongs to. The patches register the sections
+they own while they run, and the settings screen keeps just those — so there are no rows for
+features that are not in your build.
 
 ### The backspace key still behaves the way Gboard built it
 
@@ -184,8 +184,7 @@ Gboard can already do all three, behind its **Text editing** toolbar button — 
 tap the one you want. These are the same actions without the panel.
 
 They take the first three slots on the toolbar, which pushes whatever used to be last into the
-overflow menu behind the chevron. Long-press the toolbar to reorder them like any other button, or
-raise the icon count with [Bigger Toolbar](#bigger-toolbar) so nothing has to move.
+overflow menu behind the chevron. Long-press the toolbar to reorder them like any other button.
 
 The labels are Gboard's own, so they are already translated wherever Gboard is. The icons are
 Material's — the select-all marquee, and the familiar copy and paste marks. Gboard ships all three
@@ -213,7 +212,7 @@ Long text is fine. The whole of it gets typed; only the first line, cut short, b
 
 **Nine buttons is more than the bar holds.** With the three text actions plus a few hotkeys,
 whatever used to sit at the end of your toolbar moves into the overflow menu behind the chevron.
-Raise the icon count with [Bigger Toolbar](#bigger-toolbar) and they all fit.
+Long-press the toolbar to reorder, and drop what you do not need.
 
 ## Flick keys for symbols
 
@@ -227,43 +226,6 @@ One quirk worth knowing. Gboard's own settings row for it depends on **Touch & h
 numbers**, so while that is off the flick row shows as on but greyed out — the feature works, you
 just cannot toggle it from there. Enabling "Touch & hold keys for numbers" un-greys it. Flexboard
 deliberately does not change that setting for you, since nothing at runtime needs it.
-
-## Bigger toolbar
-
-The row of icons above the keyboard — Gboard calls it the access points bar — holds five, and
-everything past that sits in the overflow menu behind the chevron. This makes that number a slider,
-from 3 to 12, under **Toolbar** in Flexboard's settings.
-
-Five is not a layout constant. Gboard works out how many icons the bar gets each time the list is
-rebuilt, starting from a ceiling it computes from a server-side flag and then lowering it — for its
-own count preference if you have one set, and to three if it has decided your screen is short on
-room. Flexboard replaces the answer rather than the starting point, so the slider is the last word
-on it.
-
-**It starts at 6, and at 12 on the inner screen of a fold.** Those are written into Gboard's
-preference store the first time the patched app runs, rather than being numbers baked into the
-patch — which means an update can ship different starting values for new installs without moving a
-toolbar you have already got used to. Move a slider and it is yours from then on.
-
-A value outside 3–12 is ignored rather than forced into range, and the bar falls back to whatever
-Gboard would have done.
-
-**Icons get narrower, not smaller in number.** The bar divides its width by the number of items, so
-at 10 they are about half the width they are at 5, and at 12 narrower still. Eight is as far as
-Google's own layout has been built against; past that you are the first person testing it. Nothing
-clips or crashes — the icons just get tight, and on a narrow phone 12 will be very tight indeed.
-
-Drag-to-reorder and long-press-to-customise keep working at every setting; this only changes where
-the line between the bar and the overflow menu falls.
-
-**On a foldable, the two screens keep their own counts.** Gboard already works this way — the inner
-screen is wider and fits more — so Flexboard's settings carry a second slider, **Icons when
-unfolded**, that applies only while the phone is open. It starts at 12 against the main slider's 6,
-and each owns its screen: changing one does not move the other. On anything that does not fold the
-second slider does nothing.
-
-This shipped once before, in `1.1.0-dev.1`, and did nothing — it moved the ceiling rather than the
-count. If you tried it then, it is a different patch now.
 
 ## Install as Gboard clone
 

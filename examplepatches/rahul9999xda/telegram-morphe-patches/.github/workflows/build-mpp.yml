@@ -1,11 +1,19 @@
 name: Build Telegram Morphe MPP
 
 on:
+  push:
+    branches:
+      - "**"
+  pull_request:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   packages: read
+
+concurrency:
+  group: mpp-build-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-mpp:
@@ -55,28 +63,12 @@ jobs:
           sha256sum patches/build/libs/*.mpp \
             | tee patches/build/libs/SHA256SUMS.txt
 
-      - name: Upload workflow artifact
+      - name: Upload MPP workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: telegram-morphe-mpp
+          name: telegram-morphe-mpp-${{ github.run_number }}
           path: |
             patches/build/libs/*.mpp
             patches/build/libs/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 30
-
-      - name: Create GitHub Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="build-${GITHUB_RUN_NUMBER}"
-
-          gh release create "$TAG" \
-            patches/build/libs/*.mpp \
-            patches/build/libs/SHA256SUMS.txt \
-            --repo "$GITHUB_REPOSITORY" \
-            --title "Telegram Morphe Patches $TAG" \
-            --notes "Automatically generated Telegram Morphe patch bundle.
-
-          Commit: ${GITHUB_SHA}
-          Workflow run: ${GITHUB_RUN_ID}"

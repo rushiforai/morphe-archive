@@ -5,7 +5,7 @@
 set -e
 
 DIR="${DIR:-/tmp/morphe-patches}"
-MSG="fix(shadowfight): fix dump helper ClassNotFound via lib loadLibrary"
+MSG="fix(shadowfight): fix dump file logging to shizuku-terminal"
 
 cd "$DIR"
 

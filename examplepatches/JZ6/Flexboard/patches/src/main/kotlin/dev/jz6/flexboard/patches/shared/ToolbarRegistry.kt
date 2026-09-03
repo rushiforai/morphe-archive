@@ -468,7 +468,9 @@ private fun hotkeyBlock(
     site: HotkeySite,
     registerCall: String,
 ): String {
-    // const/4 only encodes -8..7; slots 8–12 need const/16.
+    // const/4 only encodes -8..7. At [HOTKEY_SLOTS] = 6 the widening branch is unreachable today;
+    // it stays because the slot count is a constant someone may raise, and a silently truncated
+    // slot ordinal would be far harder to spot than an extra branch here.
     val constOp = if (slot in 1..7) "const/4" else "const/16"
     // Plain unbraced names in the template: `${site.x}` inside an invoke's `{ ... }` would put a
     // `}` mid-register-list, and the constants checker's emitted-call parser would silently stop
@@ -595,6 +597,25 @@ internal fun BytecodePatchContext.emitHotkeyRefresh(builder: AccessPointBuilder)
     }
     start.assertRegisterCount(START_INPUT_REGISTER_COUNT, startDescriptor)
 
+    // The other two emitters validate their scratch set; this one used to only assert the register
+    // count, which does not rule out a collision. At 14 registers with 6 arguments the parameters
+    // occupy v8..v13, leaving v0/v1/v2/v4 as locals that are dead at the return.
+    validateScratchRegisters(
+        scratch = listOf(0, 1, 2, 4),
+        avoid = (START_INPUT_REGISTER_COUNT - START_INPUT_ARGUMENT_COUNT until START_INPUT_REGISTER_COUNT).toList(),
+        what = startDescriptor,
+    )
+
+    val returns = start.implementation!!.instructions
+        .count { it.opcodeName().startsWith("RETURN") }
+    // The refresh block is spliced before the *last* return. That is only equivalent to "before
+    // every exit" while there is exactly one, so a build that gains an early return would make
+    // the refresh silently unreachable on that path rather than fail here.
+    check(returns == 1) {
+        "$startDescriptor has $returns return sites, expected 1 — splicing the hotkey refresh " +
+            "before the last one would leave the other paths without it"
+    }
+
     val returnIndex = start.implementation!!.instructions
         .indexOfLast { it.opcodeName().startsWith("RETURN") }
     check(returnIndex >= 0) { "$startDescriptor has no return — shape moved" }
@@ -603,7 +624,7 @@ internal fun BytecodePatchContext.emitHotkeyRefresh(builder: AccessPointBuilder)
     val emission = ((1..HOTKEY_SLOTS).joinToString("\n\n") { slot ->
         hotkeyBlock(slot, builder, refreshSite, canvas.registerCall)
     } + "\n\nnop\n").trimIndent()
-    // Same trailing-label rule as the constructor emission: the nop houses the twelfth branch.
+    // Same trailing-label rule as the constructor emission: the nop houses the last slot's branch.
     start.addInstructionsWithLabels(returnIndex, emission)
 }
 
@@ -620,3 +641,10 @@ private const val HOTKEY_REFRESH_LABEL = "flexboard_hotkey_refresh_"
 
 /** `fn`'s register count on 18.0.3 — what the insertion assumes; pinned by preflight. */
 private const val START_INPUT_REGISTER_COUNT = 14
+
+/**
+ * Argument words of the start-input method, receiver included: `(Loru;, EditorInfo, Z, Map, Lnve;)`
+ * is five parameters plus `this`. Subtracted from the register count to locate the parameter block,
+ * which is what the scratch set has to stay clear of.
+ */
+private const val START_INPUT_ARGUMENT_COUNT = 6

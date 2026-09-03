@@ -30,6 +30,14 @@ import app.morphe.patcher.patch.rawResourcePatch
  * - Function #19483 at file offset 0x00F94E29.
  * - Change the final `true` returns in `checkShowPopupUpsellModal` to `false`.
  *   (Identical byte pattern to rc92; bundle offset shifted.)
+ *
+ * 4.26-rc96:
+ * - showPopupUpsell: bundle offset 0x12C7C47 (bundle is zlib-compressed inside APK).
+ * - Change `JmpTrue 112, r4` to `JmpTrue 112, r3`.
+ *   (Addr8 returned to 0x70 as in rc92; same 10-byte pattern, unique in bundle.)
+ * - Function #19759 (checkShowPopupUpsellModal, 428 bytes) at offset 0x00FC65D3.
+ * - Change the final `true` returns to `false`.
+ *   (Identical byte pattern to rc92/rc93; bundle offset shifted.)
  */
 @Suppress("unused")
 val disableInfinitePopupPatch = rawResourcePatch(
@@ -119,6 +127,11 @@ val disableInfinitePopupPatch = rawResourcePatch(
         )
 
         val patchTargets = listOf(
+            // rc96: showPopupUpsell Addr8 returned to 0x70 (same as rc92); checkShowPopupModal unchanged.
+            "4.26-rc96" to listOf(
+                BundlePatch("showPopupUpsell early return", rc92ShowPopupTargetPattern, rc92ShowPopupReplacementPattern),
+                BundlePatch("checkShowPopupUpsellModal returns false", rc92CheckPopupTargetPattern, rc92CheckPopupReplacementPattern),
+            ),
             "4.25-rc93" to listOf(
                 BundlePatch("showPopupUpsell early return", rc93ShowPopupTargetPattern, rc93ShowPopupReplacementPattern),
                 BundlePatch("checkShowPopupUpsellModal returns false", rc92CheckPopupTargetPattern, rc92CheckPopupReplacementPattern),

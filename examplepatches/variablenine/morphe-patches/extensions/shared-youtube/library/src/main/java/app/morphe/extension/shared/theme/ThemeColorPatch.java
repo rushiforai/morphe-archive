@@ -225,23 +225,22 @@ public class ThemeColorPatch {
     private static final int UNREACHABLE_MOBILE_CODE = 1000;
 
     /**
-     * Index of the first color of the 9 bit palette, and the index ranges of the two themes.
+     * Index of the first color of the 8 bit palette, and the index ranges of the two themes.
      * The patch uses the same numbering.
      */
     private static final int PALETTE_INDEX_OFFSET = 100;
 
     /**
-     * The value a color channel can have in the 9 bit palette, of the dark and of the light theme.
+     * The levels of Lightness, Chroma and Hue in the 8 bit OKLCH palette.
      * The patch generates the variants with the same values, and both must stay identical.
-     * <p>
-     * A color sits at one end of the range, so the eight values of a channel are placed where
-     * the color of that theme are instead of being spread evenly. A dark color of
-     * #0F0F0F would otherwise be shown as pure black, because the nearest even value is 36 away.
      */
-    private static final int[] PALETTE_LEVELS_DARK = {0, 3, 15, 38, 74, 126, 187, 255};
-    private static final int[] PALETTE_LEVELS_LIGHT = {0, 68, 129, 181, 217, 240, 252, 255};
+    private static final float[] PALETTE_L_LEVELS_DARK = {0.0f, 0.02f, 0.05f, 0.1f, 0.2f, 0.35f, 0.6f, 1.0f};
+    private static final float[] PALETTE_L_LEVELS_LIGHT = {0.0f, 0.4f, 0.65f, 0.8f, 0.9f, 0.95f, 0.98f, 1.0f};
+    private static final float[] PALETTE_C_LEVELS = {0.0f, 0.03f, 0.07f, 0.15f};
+    private static final float[] PALETTE_H_LEVELS = {0f, 45f, 90f, 135f, 180f, 225f, 270f, 315f};
+
     private static final int DARK_INDEX_OFFSET = 0;
-    private static final int LIGHT_INDEX_OFFSET = 700;
+    private static final int LIGHT_INDEX_OFFSET = 400;
 
     private static int darkConfigValue = -1;
     private static int lightConfigValue = -1;
@@ -316,12 +315,8 @@ public class ThemeColorPatch {
             }
 
             final boolean changeForeground = SharedYouTubeSettings.THEME_COLOR_CHANGE_FOREGROUND.get();
-            final int darkIndex = dark || changeForeground
-                    ? darkConfigValue
-                    : DARK_INDEX_OFFSET + APP_DEFAULT_CONFIG_VALUE;
-            final int lightIndex = !dark || changeForeground
-                    ? lightConfigValue
-                    : LIGHT_INDEX_OFFSET + APP_DEFAULT_CONFIG_VALUE;
+            final int darkIndex = darkVariantIndex(dark, changeForeground);
+            final int lightIndex = lightVariantIndex(dark, changeForeground);
 
             Context context;
             if (configuration.mcc == mobileCountryCode(darkIndex)
@@ -329,7 +324,10 @@ public class ThemeColorPatch {
                 // Context is created from a context that is already wrapped.
                 context = base;
             } else {
-                Configuration override = new Configuration(configuration);
+                // Only the codes are overridden. A copy of the configuration pins every other
+                // value to what it is now, so the framework relaunches the activity to correct
+                // a value the app pinned, and the relaunch pins it again.
+                Configuration override = new Configuration();
                 setVariantOf(override, darkIndex, lightIndex);
 
                 context = base.createConfigurationContext(override);
@@ -346,6 +344,62 @@ public class ThemeColorPatch {
             Logger.printException(() -> "wrapContext failure", ex);
             return base;
         }
+    }
+
+    /**
+     * Injection point.
+     * <p>
+     * The app hands a configuration of the device to {@code Resources.updateConfiguration}, which
+     * replaces the configuration of a resources object the whole app shares. The variant of the
+     * selected color goes with it, and every color the app resolves after that is the one the app
+     * ships with. The app does this after it leaves picture in picture.
+     */
+    public static Configuration keepThemeVariant(Configuration configuration) {
+        try {
+            // A config value is only resolved for a context the patch wrapped,
+            // so this also covers an app the patch was not included in.
+            if (configuration == null || darkConfigValue < 0 || isPatchedTheme()) {
+                return configuration;
+            }
+
+            final boolean dark = isDarkTheme();
+            final boolean changeForeground = SharedYouTubeSettings.THEME_COLOR_CHANGE_FOREGROUND.get();
+
+            Configuration variant = new Configuration(configuration);
+            setVariantOf(variant,
+                    darkVariantIndex(dark, changeForeground),
+                    lightVariantIndex(dark, changeForeground));
+
+            if (configuration.mcc != variant.mcc || configuration.mnc != variant.mnc) {
+                Logger.printDebug(() -> "Theme variant the app replaced: "
+                        + configuration.mcc + "/" + configuration.mnc
+                        + " restored to: " + variant.mcc + "/" + variant.mnc);
+            }
+
+            return variant;
+        } catch (Exception ex) {
+            Logger.printException(() -> "keepThemeVariant failure", ex);
+            return configuration;
+        }
+    }
+
+    /**
+     * The theme the app does not show keeps the colors of the app, unless the app draws its
+     * foreground with them.
+     */
+    private static int darkVariantIndex(boolean dark, boolean changeForeground) {
+        return dark || changeForeground
+                ? darkConfigValue
+                : DARK_INDEX_OFFSET + APP_DEFAULT_CONFIG_VALUE;
+    }
+
+    /**
+     * @see #darkVariantIndex(boolean, boolean)
+     */
+    private static int lightVariantIndex(boolean dark, boolean changeForeground) {
+        return !dark || changeForeground
+                ? lightConfigValue
+                : LIGHT_INDEX_OFFSET + APP_DEFAULT_CONFIG_VALUE;
     }
 
     /**
@@ -397,8 +451,13 @@ public class ThemeColorPatch {
 
     /**
      * Injection point.
-     *
-     * @see SplashScreenTheme
+     * <p>
+     * Hands the system the theme it draws the splash screen of the app with.
+     * <p>
+     * The system draws the splash screen before the app runs, and it resolves the resources of
+     * the app with the configuration of the device, so the resource variant of the selected
+     * background can never be used for it. This is the way the system takes a theme instead,
+     * and it uses the one it was given for every launch that follows.
      */
     public static void setSplashScreenTheme(Activity activity) {
         try {
@@ -413,7 +472,7 @@ public class ThemeColorPatch {
 
             Logger.printDebug(() -> "Splash screen theme: " + SPLASH_THEME_NAME + index
                     + " id: " + themeId);
-            SplashScreenTheme.apply(activity, themeId);
+            activity.getSplashScreen().setSplashScreenTheme(themeId);
         } catch (Exception ex) {
             Logger.printException(() -> "setSplashScreenTheme failure", ex);
         }
@@ -439,7 +498,7 @@ public class ThemeColorPatch {
                 : SharedYouTubeSettings.THEME_COLOR_LIGHT_CUSTOM;
 
         return (dark ? DARK_INDEX_OFFSET : LIGHT_INDEX_OFFSET)
-                + PALETTE_INDEX_OFFSET + get9BitColorIndex(setting, dark);
+                + PALETTE_INDEX_OFFSET + get8BitColorIndex(setting, dark);
     }
 
     /**
@@ -543,7 +602,7 @@ public class ThemeColorPatch {
             StringSetting setting = dark
                     ? SharedYouTubeSettings.THEME_COLOR_DARK_CUSTOM
                     : SharedYouTubeSettings.THEME_COLOR_LIGHT_CUSTOM;
-            return offset + PALETTE_INDEX_OFFSET + get9BitColorIndex(setting, dark);
+            return offset + PALETTE_INDEX_OFFSET + get8BitColorIndex(setting, dark);
         }
 
         // A custom color has no resource variant of its own,
@@ -551,33 +610,71 @@ public class ThemeColorPatch {
         return offset + ((Enum<?>) color).ordinal() + 1;
     }
 
-    private static int get9BitColorIndex(StringSetting colorSetting, boolean dark) {
+    private static int get8BitColorIndex(StringSetting colorSetting, boolean dark) {
         final int color = customColor(colorSetting);
-        int[] levels = dark ? PALETTE_LEVELS_DARK : PALETTE_LEVELS_LIGHT;
+        float[] targetLab = rgbToOklab(color);
 
-        final int r3 = nearestPaletteLevel(levels, (color >> 16) & 0xFF);
-        final int g3 = nearestPaletteLevel(levels, (color >> 8) & 0xFF);
-        final int b3 = nearestPaletteLevel(levels, color & 0xFF);
+        float[] lLevels = dark ? PALETTE_L_LEVELS_DARK : PALETTE_L_LEVELS_LIGHT;
 
-        return (r3 << 6) | (g3 << 3) | b3;
-    }
+        int bestIndex = 0;
+        float minDistance = Float.MAX_VALUE;
 
-    /**
-     * @return The index of the palette value that is closest to a color channel.
-     */
-    private static int nearestPaletteLevel(int[] levels, int channel) {
-        int nearest = 0;
-        int smallestDistance = Integer.MAX_VALUE;
-
-        for (int i = 0, length = levels.length; i < length; i++) {
-            final int distance = Math.abs(levels[i] - channel);
-            if (distance < smallestDistance) {
-                smallestDistance = distance;
-                nearest = i;
+        for (int l = 0; l < 8; l++) {
+            for (int c = 0; c < 4; c++) {
+                for (int h = 0; h < 8; h++) {
+                    float[] paletteLab = oklchToOklab(lLevels[l], PALETTE_C_LEVELS[c], PALETTE_H_LEVELS[h]);
+                    final float dist = oklabDistance(targetLab, paletteLab);
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        bestIndex = (l << 5) | (c << 3) | h;
+                    }
+                }
             }
         }
 
-        return nearest;
+        return bestIndex;
+    }
+
+    private static float[] rgbToOklab(int color) {
+        double r = linearizeSrgb(((color >> 16) & 0xFF) / 255.0);
+        double g = linearizeSrgb(((color >> 8) & 0xFF) / 255.0);
+        double b = linearizeSrgb((color & 0xFF) / 255.0);
+
+        final double l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
+        final double m = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
+        final double s = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
+
+        final double lCubeRoot = Math.cbrt(l);
+        final double mCubeRoot = Math.cbrt(m);
+        final double sCubeRoot = Math.cbrt(s);
+
+        return new float[]{
+                (float) (0.2104542553 * lCubeRoot + 0.7936177850 * mCubeRoot - 0.0040720468 * sCubeRoot),
+                (float) (1.9779984951 * lCubeRoot - 2.4285922050 * mCubeRoot + 0.4505937099 * sCubeRoot),
+                (float) (0.0259040371 * lCubeRoot + 0.7827717662 * mCubeRoot - 0.8086757660 * sCubeRoot)
+        };
+    }
+
+    private static double linearizeSrgb(double value) {
+        return (value > 0.04045)
+                ? Math.pow((value + 0.055) / 1.055, 2.4)
+                : value / 12.92;
+    }
+
+    private static float[] oklchToOklab(float l, float c, float h) {
+        final double hRad = Math.toRadians(h);
+        return new float[]{
+                l,
+                (float) (c * Math.cos(hRad)),
+                (float) (c * Math.sin(hRad))
+        };
+    }
+
+    private static float oklabDistance(float[] lab1, float[] lab2) {
+        final float dl = lab1[0] - lab2[0];
+        final float da = lab1[1] - lab2[1];
+        final float db = lab1[2] - lab2[2];
+        return (float) Math.sqrt(dl * dl + da * da + db * db);
     }
 
     private static boolean useOverlay(boolean dark) {
@@ -592,8 +689,8 @@ public class ThemeColorPatch {
             return;
         }
 
-        final String[] darkNames = colorResourceNames(true);
-        final String[] lightNames = colorResourceNames(false);
+        String[] darkNames = colorResourceNames(true);
+        String[] lightNames = colorResourceNames(false);
 
         // A theme the app does not have declares no color resource, and has nothing to overlay.
         useDarkOverlay = dark.isCustom() && darkNames.length > 0;
@@ -640,8 +737,8 @@ public class ThemeColorPatch {
             }
 
             int finalColor = color;
-            int opacityIndex = resourceName.indexOf("_opacity_");
-            if (opacityIndex != -1) {
+            final int opacityIndex = resourceName.indexOf("_opacity_");
+            if (opacityIndex >= 0) {
                 String alphaHex = resourceName.substring(opacityIndex + 9);
                 final int alpha = Integer.parseInt(alphaHex, 16);
                 finalColor = (color & 0x00FFFFFF) | (alpha << 24);
@@ -890,6 +987,7 @@ public class ThemeColorPatch {
     /**
      * @return If this patch was included during patching.
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isPatchIncluded() {
         return false;  // Modified during patching.
     }

@@ -326,6 +326,18 @@
         <item>LANDSCAPE</item>
     </string-array>
 
+    <!-- layout.player.fullscreen.stretchVideoPatch -->
+    <string-array name="morphe_fullscreen_video_scale_entries">
+        <item>@string/morphe_fullscreen_video_scale_entry_default</item>
+        <item>@string/morphe_fullscreen_video_scale_entry_stretch</item>
+        <item>@string/morphe_fullscreen_video_scale_entry_zoom</item>
+    </string-array>
+    <string-array name="morphe_fullscreen_video_scale_entry_values">
+        <item>DEFAULT</item>
+        <item>STRETCH</item>
+        <item>ZOOM</item>
+    </string-array>
+
     <!-- layout.player.fullscreen.exitFullscreenPatch -->
     <string-array name="morphe_exit_fullscreen_entries">
         <item>@string/morphe_exit_fullscreen_entry_1</item>
@@ -472,6 +484,27 @@
         <item>VIRTUAL_REALITY</item>
         <item>WATCH_LATER</item>
         <item>YOUR_CLIPS</item>
+    </string-array>
+
+    <!-- layout.searchbar.wideSearchbarPatch -->
+    <string-array name="morphe_searchbar_type_entries">
+        <item>@string/morphe_searchbar_type_entry_disabled</item>
+        <item>@string/morphe_searchbar_type_entry_wide</item>
+        <item>@string/morphe_searchbar_type_entry_extra_wide</item>
+    </string-array>
+    <string-array name="morphe_searchbar_type_entry_values">
+        <item>DISABLED</item>
+        <item>WIDE</item>
+        <item>EXTRA_WIDE</item>
+    </string-array>
+    <!-- Older targets have no wide search bar of their own and always replace the logo with it. -->
+    <string-array name="morphe_searchbar_type_legacy_entries">
+        <item>@string/morphe_searchbar_type_entry_disabled</item>
+        <item>@string/morphe_searchbar_type_entry_extra_wide</item>
+    </string-array>
+    <string-array name="morphe_searchbar_type_legacy_entry_values">
+        <item>DISABLED</item>
+        <item>EXTRA_WIDE</item>
     </string-array>
 
     <!-- layout.shortsplayer.shortsPlayerTypePatch -->

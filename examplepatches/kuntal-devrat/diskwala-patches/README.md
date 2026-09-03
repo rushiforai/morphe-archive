@@ -14,6 +14,9 @@ Patches are built with [Morphe Patcher](https://github.com/MorpheApp/morphe-patc
 
 ---
 
+> [!NOTE]
+> **Active Development Notice**: This project is currently under active development. While the core patches (anti-tamper bypass, ad blocking, and premium unlock) are fully functional, some experimental features or secondary flows may occasionally have bugs. We are actively refining and testing improvements. Feedback and bug reports are welcome!
+
 ## Quick start — install in Morphe
 
 ### Option A — one click
@@ -43,9 +46,9 @@ No root is required — Morphe builds a signed, patched APK you install over the
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.3](https://github.com/kuntal-devrat/diskwala-patches/releases/tag/v1.0.3)**&nbsp;&nbsp;â€¢&nbsp;&nbsp;`main`&nbsp;&nbsp;â€¢&nbsp;&nbsp;3 patches total
+> **[v1.0.3](https://github.com/kuntal-devrat/diskwala-patches/releases/tag/v1.0.3)**&nbsp;&nbsp;â€¢&nbsp;&nbsp;`main`&nbsp;&nbsp;â€¢&nbsp;&nbsp;4 patches total
 <details open>
-<summary>ðŸ“¦ DiskWala&nbsp;&nbsp;â€¢&nbsp;&nbsp;3 patches</summary>
+<summary>ðŸ“¦ DiskWala&nbsp;&nbsp;â€¢&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **ðŸŽ¯ Supported versions:**
@@ -56,7 +59,8 @@ No root is required — Morphe builds a signed, patched APK you install over the
 | ðŸ’Š&nbsp;Patch | ðŸ“œ&nbsp;Description | âš™ï¸&nbsp;Options |
 |----------|----------------|-----------|
 | [Disable ads](#disable-ads) | Stubs AppLovin, AdMob, InMobi and other ad SDKs at the bytecode level to prevent ads from loading without breaking the app. |  |
-| [Disable forced update](#disable-forced-update) | Bypasses PairIP integrity checks, Play Integrity and signature verification to remove the forced update / modded-app screen. |  |
+| [Disable forced update](#disable-forced-update) | Bypasses PairIP license check ('Download from Play Store'), Play Integrity, and signature verification to allow modified and sideloaded app usage. |  |
+| [Patch native libraries](#patch-native-libraries) | Neutralizes PairIP traps in native .so libraries and patches Hermes bundle. |  |
 | [Unlock premium](#unlock-premium) | Makes RevenueCat entitlements appear active so ads-free and premium features are unlocked. |  |
 
 </details>

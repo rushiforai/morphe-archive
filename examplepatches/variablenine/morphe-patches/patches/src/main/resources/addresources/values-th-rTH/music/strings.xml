@@ -21,6 +21,10 @@ Second \"item\" text"</string>
   <string name="morphe_header_logo_title">โลโก้ส่วนหัว</string>
   <string name="morphe_header_logo_entry_1">ค่าเริ่มต้น</string>
   <string name="morphe_header_logo_entry_3">กำหนดเอง</string>
+  <!-- misc.album.albumMusicVideoPatch -->
+  <string name="morphe_music_play_album_songs_title">เล่นแทร็กเสียงอัลบั้ม</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title' -->
+  <string name="morphe_music_play_album_songs_summary">เล่นเวอร์ชันเสียงเท่านั้นของเพลงในอัลบั้มแทนมิวสิกวิดีโอ ต้องใช้ \'สตรีมวิดีโอปลอม\'</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_screen_summary">ดาวน์โหลดวิดีโอเพลง พอดแคสต์ หรือเพลงด้วยแอปดาวน์โหลดของบุคคลที่สาม</string>
   <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
@@ -145,6 +149,8 @@ YouTube Music 8.x — การเฟดข้ามจะทำงานบน 
   <string name="morphe_music_hide_action_bar_title">ซ่อนแถบเครื่องมือ</string>
   <string name="morphe_music_hide_like_dislike_button_title">ซ่อนปุ่มถูกใจและไม่ชอบ</string>
   <string name="morphe_music_hide_comments_button_title">ซ่อนปุ่มแสดงความคิดเห็น</string>
+  <!-- 'Live chat replay' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="morphe_music_hide_live_chat_replay_button_title">ซ่อนปุ่ม \'เล่นแชทสดซ้ำ\'</string>
   <!-- 'Lyrics' should be translated using the same localized wording YouTube Music displays for the button. -->
   <string name="morphe_music_hide_lyrics_button_title">ซ่อนปุ่มเนื้อเพลง</string>
   <!-- 'Share' should be translated using the same localized wording YouTube Music displays for the button. -->
@@ -154,7 +160,7 @@ YouTube Music 8.x — การเฟดข้ามจะทำงานบน 
   <!-- 'Download' should be translated using the same localized wording YouTube Music displays for the button. -->
   <string name="morphe_music_hide_download_button_title">ซ่อนปุ่มดาวน์โหลด</string>
   <!-- 'Start radio' should be translated using the same localized wording YouTube Music displays for the button. -->
-  <string name="morphe_music_hide_radio_button_title">ซ่อนปุ่มเริ่มวิทยุ</string>
+  <string name="morphe_music_hide_radio_button_title">ซ่อนปุ่ม \'เริ่มวิทยุ\'</string>
   <!-- flyoutmenu.components.hideFlyoutMenuComponentsPatch -->
   <string name="morphe_music_hide_flyout_menu_components_screen_title">เมนูแบบเลื่อนลง</string>
   <string name="morphe_music_hide_flyout_menu_components_screen_summary">เลือกส่วนประกอบที่จะแสดงในเมนูแบบเลื่อนลงของผู้เล่นและคิว</string>

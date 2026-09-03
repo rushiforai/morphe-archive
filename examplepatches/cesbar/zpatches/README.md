@@ -4,10 +4,15 @@ A collection of [Morphe](https://github.com/MorpheApp) patches useful to me
 
 ## Patch list
 <!-- PATCHES_START -->
-> **[v1.12.0](https://github.com/cesbar/zpatches/releases/tag/v1.12.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;18 patches total
+> **[v1.12.1](https://github.com/cesbar/zpatches/releases/tag/v1.12.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;18 patches total
 <details open>
-<summary>📦 com.jcdecaux.vls.lyon&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
+<summary>📦 Vélo'v&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
 <br>
+
+**🎯 Supported versions:**
+
+| 3.1.1 |
+| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -15,7 +20,7 @@ A collection of [Morphe](https://github.com/MorpheApp) patches useful to me
 | [Disable map animations](#disable-map-animations) | Disable the map zoom-in animation |  |
 | [Easy deeplinks configuration](#easy-deeplinks-configuration) | Allows easy configuration of deeplinks (velov.cyclocity.fr, velov.grandlyon.com) required by the app to sign-in |  |
 | [Google Maps API key](#google-maps-api-key) | Use a different Google Maps API key to fix modified apps | • Google Maps API key |
-| [Hide onboarding screen](#hide-onboarding-screen) | Hide the onboarding "Plan you journey" screen |  |
+| [Hide onboarding screen](#hide-onboarding-screen) | Hide the onboarding "Plan your journey" screen |  |
 | [No geolocalisation check](#no-geolocalisation-check) | Allows you to unlock a bike even if you're not near the station. |  |
 | [Spoof package signature](#spoof-package-signature) | Spoofs the package signature required for Firebase, fixes notifications |  |
 | [Use multiple devices](#use-multiple-devices) | Fix the login error "Access denied. This account is already in use on another device." by pretending to be the web client |  |
@@ -23,8 +28,13 @@ A collection of [Morphe](https://github.com/MorpheApp) patches useful to me
 </details>
 
 <details open>
-<summary>📦 ee.dustland.android.dustlandsudoku&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<summary>📦 Sudoku The Clean One&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
+
+**🎯 Supported versions:**
+
+| 2.18.3 |
+| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -35,8 +45,13 @@ A collection of [Morphe](https://github.com/MorpheApp) patches useful to me
 </details>
 
 <details open>
-<summary>📦 ee.dustland.android.minesweeper&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>📦 Minesweeper The Clean One&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
+
+**🎯 Supported versions:**
+
+| 1.21.3 |
+| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -46,8 +61,13 @@ A collection of [Morphe](https://github.com/MorpheApp) patches useful to me
 </details>
 
 <details open>
-<summary>📦 ee.dustland.android.solitaire&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>📦 Solitaire The Clean One&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
+
+**🎯 Supported versions:**
+
+| 1.20.3 |
+| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -57,8 +77,13 @@ A collection of [Morphe](https://github.com/MorpheApp) patches useful to me
 </details>
 
 <details open>
-<summary>📦 com.citymapper.app.release&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>📦 Citymapper&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
+
+**🎯 Supported versions:**
+
+| 11.57.2 |
+| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

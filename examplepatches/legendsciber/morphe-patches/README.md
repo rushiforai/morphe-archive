@@ -9,7 +9,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.28.5](https://github.com/legendsciber/morphe-patches/releases/tag/v1.28.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;14 patches total
+> **[v1.28.4](https://github.com/legendsciber/morphe-patches/releases/tag/v1.28.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
 <details open>
 <summary>📦 Block Blast&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -76,20 +76,18 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 </details>
 
 <details open>
-<summary>📦 Shadow Fight 2&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<summary>📦 Shadow Fight 2&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 2.46.0 |
+| 🧪&nbsp;2.46.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Shadow Fight 2 Debug Menu Restore](#shadow-fight-2-debug-menu-restore) | Restores CheatsPanel 8 methods (ShowCheats/AddCurrency etc.) from RET to real logic. Makes debug menu functional. |  |
 | [Shadow Fight 2 Dump Trigger](#shadow-fight-2-dump-trigger) | Triggers ShadowDump via UnityPlayerActivity.onCreate |  |
-| [Shadow Fight 2 Runtime Dump](#shadow-fight-2-runtime-dump) | Dumps all Unity classes/fields with ObscuredInt to logcat for hardcode. Use logcat -s ShadowDump. |  |
-| [Shadow Fight 2 Show Cheats UI](#shadow-fight-2-show-cheats-ui) | Forces CheatsPanel to be visible and adds floating Add Gems button. Works without root. |  |
+| [Shadow Fight 2 Runtime Dump](#shadow-fight-2-runtime-dump) | Dumps all Unity classes/fields with ObscuredInt to logcat and files. Use logcat -s ShadowDump or cat shizuku-terminal/shadowdump-log.txt |  |
 
 </details>
 

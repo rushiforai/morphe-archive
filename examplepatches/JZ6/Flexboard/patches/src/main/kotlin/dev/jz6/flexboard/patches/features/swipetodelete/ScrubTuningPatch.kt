@@ -23,9 +23,9 @@ import dev.jz6.flexboard.patches.features.swipetodelete.SCRUB_MOTION_EVENT_HANDL
 import dev.jz6.flexboard.patches.features.swipetodelete.StartKeyChain
 import dev.jz6.flexboard.patches.features.swipetodelete.branchOnStartKey
 import dev.jz6.flexboard.patches.features.swipetodelete.resolveStartKeyChain
-import dev.jz6.flexboard.patches.features.swipetodelete.ScrubDeleteConstructorFingerprint
-import dev.jz6.flexboard.patches.features.swipetodelete.ScrubDispatchFingerprint
-import dev.jz6.flexboard.patches.features.swipetodelete.ScrubEngineConstructorFingerprint
+import dev.jz6.flexboard.patches.features.swipetodelete.scrubDeleteConstructorFingerprint
+import dev.jz6.flexboard.patches.features.swipetodelete.scrubDispatchFingerprint
+import dev.jz6.flexboard.patches.features.swipetodelete.scrubEngineConstructorFingerprint
 import dev.jz6.flexboard.patches.shared.ANDROID_CONTEXT
 import dev.jz6.flexboard.patches.shared.Constants.COMPATIBILITY_GBOARD
 import dev.jz6.flexboard.patches.shared.PACKED_INVOKE_REGISTER_LIMIT
@@ -61,9 +61,9 @@ import dev.jz6.flexboard.patches.shared.validateScratchRegisters
  * See `docs/motion-event-handlers.md` for how the engine was derived.
  */
 internal val scrubTuningPatch = bytecodePatch(
-    description = "Reads the swipe length and word cap from Gboard's preference " +
-        "store, so the scrub engine's feel can be adjusted from its settings. " +
-        "Hold delay is fixed at 0 — its settings row was dropped; everyone wants hold-none.",
+    description = "Reads the word cap from Gboard's preference store, so it can be adjusted " +
+        "from settings. Hold delay is fixed at 0 — its settings row was dropped; swipe length " +
+        "scaling is parked pending the investigation in docs/roadmap.md.",
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
 
@@ -78,12 +78,12 @@ internal val scrubTuningPatch = bytecodePatch(
         // gesture, which key the finger went down on — see `swipetodelete/StartKey.kt`.
         val startKey = resolveStartKeyChain()
 
-        ScrubEngineConstructorFingerprint.method.substituteHoldDelay(this)
+        scrubEngineConstructorFingerprint().method.substituteHoldDelay(this)
         // Swipe-length scaling disabled — the slider has no effect on distance for now.
         // See the swipe-length investigation in docs/roadmap.md.
-        //ScrubDeleteConstructorFingerprint.method.scaleStepTable(this)
-        //ScrubDispatchFingerprint.method.useStockDistanceFromBackspace(this, startKey)
-        ScrubDispatchFingerprint.method.capWordCount(this, startKey)
+        //scrubDeleteConstructorFingerprint().method.scaleStepTable(this)
+        //scrubDispatchFingerprint().method.useStockDistanceFromBackspace(this, startKey)
+        scrubDispatchFingerprint().method.capWordCount(this, startKey)
     }
 }
 
@@ -103,6 +103,11 @@ internal val scrubTuningPatch = bytecodePatch(
  * `flexboard_max_words`/`flexboard_scrub_hold_ms` were abandoned without migration when the screen
  * went native, because a String at an int key makes the old typed getter throw. The step-scale
  * seed keeps its original int-typed key: nothing uses a UI value for it.
+ *
+ * **The step-scale key currently has no reader at all.** Both consumers are parked with the
+ * swipe-length investigation (see the commented-out calls in the `execute` block below) — the
+ * seed is left in place deliberately, so that re-enabling scaling picks the value up as the
+ * established default rather than surprising existing installs with a fresh one.
  */
 internal const val STEP_SCALE_KEY = "flexboard_scrub_step_scale"
 internal const val HOLD_DELAY_KEY = "flexboard_swipe_hold_ms"

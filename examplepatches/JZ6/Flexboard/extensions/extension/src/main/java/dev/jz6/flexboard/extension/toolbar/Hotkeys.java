@@ -48,10 +48,13 @@ public final class Hotkeys {
     private static final int LABEL_MAX = 12;
 
     /**
-     * Default icon per slot: the Flexboard vector pack, resolved by NAME at runtime
-     * (getIdentifier), so aapt2's numbering never leaves the device it was baked on. Names match
-     * the symbol each holds — slot order mirrors HOTKEY_DEFAULT_SYMBOLS in
+     * The Flexboard vector pack's front half, resolved by NAME at runtime (getIdentifier) so
+     * aapt2's numbering never leaves the device it was baked on. Mirrors HOTKEY_DEFAULT_SYMBOLS in
      * SettingsScreenPatch.kt, locked in step by the constants checker.
+     *
+     * Read two ways, so it is deliberately longer than SLOTS: entries [0, SLOTS) are the per-slot
+     * defaults reached by DEFAULT_ICON_NAMES[slot - 1], while the array in full is the first part
+     * of ICON_CHOICES, the picker grid. Shortening it below SLOTS would index out of bounds.
      */
     private static final String[] DEFAULT_ICON_NAMES = new String[] {
         "flexboard_icon_alternate_email",
@@ -113,6 +116,18 @@ public final class Hotkeys {
         if (slot < 1 || slot > SLOT_COUNT) {
             return false;
         }
+        return occupied(context, slot);
+    }
+
+    /**
+     * Whether a slot holds anything, by the one definition that matters: the toolbar's.
+     *
+     * <p>There used to be two. This one trimmed, while countOccupied and serialize did not, so a
+     * slot holding only whitespace was reported as copied, round-tripped through an export, and
+     * drew no button -- three answers to one question. The toolbar's answer wins because it is
+     * the one the user can see.
+     */
+    private static boolean occupied(Context context, int slot) {
         return !textOf(context, slot).trim().isEmpty();
     }
 
@@ -127,6 +142,13 @@ public final class Hotkeys {
      * the bundled-id era (dev.7 and earlier) degrade gracefully rather than blanking.
      */
     public static int iconOf(Context context, int slot) {
+        // Bounds-checked like shown() above. Both readers index DEFAULT_ICON_NAMES[slot - 1]
+        // directly, and are safe today only because the emitted smali gates them behind shown()
+        // and the fragment loops 1..slotCount(). The array being longer than SLOT_COUNT is what
+        // has been hiding the omission; SLOT_COUNT is documented as a number someone may raise.
+        if (slot < 1 || slot > SLOT_COUNT) {
+            return 0;
+        }
         String raw = Preferences.of(context).getString(iconKey(slot), "");
         int resolved = resolveIcon(context, raw);
         if (resolved != 0) {
@@ -171,6 +193,13 @@ public final class Hotkeys {
      * row from after a pick or an import.
      */
     public static String currentIconToken(Context context, int slot) {
+        // Bounds-checked like shown() above. Both readers index DEFAULT_ICON_NAMES[slot - 1]
+        // directly, and are safe today only because the emitted smali gates them behind shown()
+        // and the fragment loops 1..slotCount(). The array being longer than SLOT_COUNT is what
+        // has been hiding the omission; SLOT_COUNT is documented as a number someone may raise.
+        if (slot < 1 || slot > SLOT_COUNT) {
+            return "";
+        }
         String raw = Preferences.of(context).getString(iconKey(slot), "");
         return raw.isEmpty() ? DEFAULT_ICON_NAMES[slot - 1] : raw;
     }
@@ -287,7 +316,10 @@ public final class Hotkeys {
         if (outcome == null) {
             return "export is malformed — nothing changed";
         }
-        String result = "imported " + countOccupied(context) + " slots";
+        String result = IMPORTED_PREFIX + countOccupied(context) + " slots";
+        if (outcome[2] > 0) {
+            result += ", cleared " + outcome[2] + " the export did not mention";
+        }
         if (outcome[1] > 0) {
             result += " (" + outcome[1] + " beyond this build's slot count skipped)";
         }
@@ -297,12 +329,28 @@ public final class Hotkeys {
     private static int countOccupied(Context context) {
         int occupied = 0;
         for (int slot = 1; slot <= SLOT_COUNT; slot++) {
-            if (!textOf(context, slot).isEmpty()) {
+            if (occupied(context, slot)) {
                 occupied++;
             }
         }
         return occupied;
     }
+
+    /**
+     * Whether the last message returned by {@link #importFromText} or
+     * {@link #importFromClipboard} describes an import that actually happened.
+     *
+     * <p>Both call sites used to answer this with {@code outcome.startsWith("imported")}, which
+     * makes a user-facing sentence into a protocol: rewording the message -- or prefixing it, as
+     * the cleared-slot count nearly did -- silently stops the settings screen repainting, with
+     * nothing failing. The messages are still assembled in one place; this is the one place that
+     * decides what they mean.
+     */
+    public static boolean applied(String outcome) {
+        return outcome != null && outcome.startsWith(IMPORTED_PREFIX);
+    }
+
+    private static final String IMPORTED_PREFIX = "imported ";
 
     /** The blob as text — what Export copies, and what the export popup shows. */
     public static String exportText(Context context) {
@@ -315,7 +363,7 @@ public final class Hotkeys {
         StringBuilder out = new StringBuilder(BLOB_VERSION).append('\n');
         for (int slot = 1; slot <= SLOT_COUNT; slot++) {
             String text = textOf(context, slot);
-            if (text.isEmpty()) {
+            if (!occupied(context, slot)) {
                 continue;
             }
             out.append(slot).append('\t')
@@ -375,6 +423,17 @@ public final class Hotkeys {
             icons[slot] = icon;
             written++;
         }
+        // An import replaces the whole set rather than merging into it, so a slot the blob did
+        // not mention is cleared. That is the right semantic -- an export should restore exactly
+        // what it captured -- but it is destructive, and silently so. Count what is about to go,
+        // and say it, especially since a blob from a wider build has its high slots *skipped*
+        // while the local slots those lines were "for" are cleared anyway.
+        int cleared = 0;
+        for (int slot = 1; slot <= SLOT_COUNT; slot++) {
+            if (texts[slot] == null && occupied(context, slot)) {
+                cleared++;
+            }
+        }
         SharedPreferences.Editor editor = Preferences.of(context).edit();
         for (int slot = 1; slot <= SLOT_COUNT; slot++) {
             String text = texts[slot];
@@ -384,7 +443,7 @@ public final class Hotkeys {
             }
         }
         editor.apply();
-        return new int[] { written, skipped };
+        return new int[] { written, skipped, cleared };
     }
 
     /** Escape for one scalar field; blobs aren't a binary format, just careful about the delimiters. */

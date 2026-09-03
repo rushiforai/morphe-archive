@@ -90,7 +90,19 @@ public final class FlexboardSettingsFragment extends CommonPreferenceFragment {
         if (context == null) {
             return 0;
         }
-        new Handler(Looper.getMainLooper()).post(this::paintRowsFromStore);
+        new Handler(Looper.getMainLooper()).post(() -> {
+            // The doc above promised this no-ops when the pass lands badly. It did not: this was
+            // the one path in the class with no catcher, and unlike a click handler it sits on no
+            // Gboard stack that could supply one. Gboard is a single process -- nothing in its
+            // manifest declares android:process -- so an escape here does not close a settings
+            // screen, it takes the keyboard down and leaves the device with no text input.
+            try {
+                paintRowsFromStore();
+            } catch (Throwable unpaintable) {
+                // Silent on purpose, and the outcome the doc already described: rows keep what
+                // the XML gave them, and syncRowIconsOnce repaints on the first tap.
+            }
+        });
         return context.getResources()
             .getIdentifier(SCREEN_NAME, "xml", context.getPackageName());
     }
@@ -172,7 +184,11 @@ public final class FlexboardSettingsFragment extends CommonPreferenceFragment {
                 return null;
             }
             return LayoutInflater.from(ui).inflate(layoutId, null);
-        } catch (Exception e) {
+        // Throwable rather than Exception: this guards calls into stub letters and reflected
+        // members, and a moved Gboard symbol arrives as NoSuchMethodError or NoSuchFieldError --
+        // both Errors, neither an Exception. The narrower catch was shaped for the failure that
+        // cannot happen and left open the one that will.
+        } catch (Throwable e) {
             return null;
         }
     }
@@ -262,7 +278,11 @@ public final class FlexboardSettingsFragment extends CommonPreferenceFragment {
         try {
             showHotkeyDialog(ui, row, slot);
             return true;
-        } catch (Exception dialogUnavailable) {
+        // Throwable rather than Exception: this guards calls into stub letters and reflected
+        // members, and a moved Gboard symbol arrives as NoSuchMethodError or NoSuchFieldError --
+        // both Errors, neither an Exception. The narrower catch was shaped for the failure that
+        // cannot happen and left open the one that will.
+        } catch (Throwable dialogUnavailable) {
             return false;
         }
     }
@@ -301,7 +321,6 @@ public final class FlexboardSettingsFragment extends CommonPreferenceFragment {
         int spacing = dp(ui, 8);
         final String seed = Hotkeys.currentIconToken(ui, slot);
         final String[] pending = { seed };
-        final boolean[] discarded = { false };
         final List<ImageView> items = new ArrayList<>();
         final List<String> names = new ArrayList<>();
         for (String name : Hotkeys.choices()) {
@@ -327,24 +346,29 @@ public final class FlexboardSettingsFragment extends CommonPreferenceFragment {
         column.addView(scroll, new ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
+        // Save is the only writer.
+        //
+        // This used to commit from an OnDismissListener, on the reasoning that "all dismissal
+        // roads lead here" so one hook could own the write. They do -- including the ones the
+        // user did not choose. An Activity teardown dismisses the dialog too, and the listener
+        // could not tell that from a deliberate tap-outside, so rotating the screen mid-edit
+        // committed whatever half-typed text was in the field over the stored hotkey. Silent,
+        // and unrecoverable.
+        //
+        // Tap-outside now discards, which is the conventional behaviour for a dialog with
+        // explicit buttons anyway.
         AlertDialog dialog = new AlertDialog.Builder(ui)
             .setTitle("Hotkey " + slot)
             .setView(column)
-            .setNegativeButton("Cancel", (dlog, which) -> discarded[0] = true)
-            .setPositiveButton("Save", null)
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Save", (dlog, which) -> {
+                Hotkeys.setText(ui, slot, field.getText().toString());
+                if (!pending[0].equals(seed)) {
+                    Hotkeys.setIconToken(ui, slot, pending[0]);
+                }
+                redrawSlot(ui, slot);
+            })
             .show();
-        // All dismissal roads lead here: the hook commits both halves unless Cancel said
-        // otherwise. (The buttons only manage the flag; the hook is the one writer.)
-        dialog.setOnDismissListener(dlog -> {
-            if (discarded[0]) {
-                return;
-            }
-            Hotkeys.setText(ui, slot, field.getText().toString());
-            if (!pending[0].equals(seed)) {
-                Hotkeys.setIconToken(ui, slot, pending[0]);
-            }
-            redrawSlot(ui, slot);
-        });
         for (int i = 0; i < items.size(); i++) {
             final int index = i;
             items.get(i).setOnClickListener(v -> {
@@ -374,7 +398,11 @@ public final class FlexboardSettingsFragment extends CommonPreferenceFragment {
         }
         try {
             showExportDialog(ui, context);
-        } catch (Exception dialogUnavailable) {
+        // Throwable rather than Exception: this guards calls into stub letters and reflected
+        // members, and a moved Gboard symbol arrives as NoSuchMethodError or NoSuchFieldError --
+        // both Errors, neither an Exception. The narrower catch was shaped for the failure that
+        // cannot happen and left open the one that will.
+        } catch (Throwable dialogUnavailable) {
             // the copy + summary already happened; the popup is best-effort
         }
     }
@@ -401,7 +429,11 @@ public final class FlexboardSettingsFragment extends CommonPreferenceFragment {
             try {
                 showImportDialog(ui, row);
                 return;
-            } catch (Exception dialogUnavailable) {
+            // Throwable rather than Exception: this guards calls into stub letters and reflected
+            // members, and a moved Gboard symbol arrives as NoSuchMethodError or NoSuchFieldError --
+            // both Errors, neither an Exception. The narrower catch was shaped for the failure that
+            // cannot happen and left open the one that will.
+            } catch (Throwable dialogUnavailable) {
                 // fall through to the clipboard path
             }
         }
@@ -412,7 +444,7 @@ public final class FlexboardSettingsFragment extends CommonPreferenceFragment {
         }
         String outcome = Hotkeys.importFromClipboard(context);
         row.n(outcome);
-        if (outcome.startsWith("imported")) {
+        if (Hotkeys.applied(outcome)) {
             onImportApplied(context);
         }
     }
@@ -442,7 +474,7 @@ public final class FlexboardSettingsFragment extends CommonPreferenceFragment {
                 String blob = field.getText().toString();
                 String outcome = Hotkeys.importFromText(ui, blob);
                 row.n(outcome);
-                if (outcome.startsWith("imported")) {
+                if (Hotkeys.applied(outcome)) {
                     onImportApplied(ui);
                 }
             })

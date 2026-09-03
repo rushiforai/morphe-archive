@@ -1,3 +1,15 @@
+## [1.1.2](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.1.1...v1.1.2) (2026-09-02)
+
+### 🚀 Updated App Support
+
+* **sankaku:** add support for 4.26-rc96 ([dd2b334](https://github.com/HellveticaStandard/HellveticaPatches/commit/dd2b3349f7e0aac6afa11b304962a903840554e9)), closes [#19759](https://github.com/HellveticaStandard/HellveticaPatches/issues/19759)
+
+## [1.1.2-dev.1](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.1.1...v1.1.2-dev.1) (2026-09-02)
+
+### 🚀 Updated App Support
+
+* **sankaku:** add support for 4.26-rc96 ([dd2b334](https://github.com/HellveticaStandard/HellveticaPatches/commit/dd2b3349f7e0aac6afa11b304962a903840554e9)), closes [#19759](https://github.com/HellveticaStandard/HellveticaPatches/issues/19759)
+
 ## [1.1.1](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.1.0...v1.1.1) (2026-07-15)
 
 ### 🚀 Updated App Support
