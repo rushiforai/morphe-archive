@@ -1316,14 +1316,6 @@
             },
             {
                 "name": "morphe-patches",
-                "source": "https://raw.githubusercontent.com/Dr4w/morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 167,
-                "createdAt": 1787534015341,
-                "updatedAt": 1787534015341
-            },
-            {
-                "name": "morphe-patches",
                 "source": "https://raw.githubusercontent.com/ShuhaibNC/morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
                 "sortOrder": 168,
@@ -1521,14 +1513,6 @@
                 "sortOrder": 193,
                 "createdAt": 1788061723999,
                 "updatedAt": 1788061723999
-            },
-            {
-                "name": "android-patches",
-                "source": "https://raw.githubusercontent.com/AlecBlance/android-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 194,
-                "createdAt": 1788234229407,
-                "updatedAt": 1788234229407
             },
             {
                 "name": "morphe-patches",
