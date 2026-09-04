@@ -1577,6 +1577,22 @@
                 "sortOrder": 202,
                 "createdAt": 1788318174256,
                 "updatedAt": 1788318174256
+            },
+            {
+                "name": "YouTube-Studio-Patches",
+                "source": "https://raw.githubusercontent.com/HelioFloxZ/YouTube-Studio-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 203,
+                "createdAt": 1788491069562,
+                "updatedAt": 1788491069562
+            },
+            {
+                "name": "letterboxd-morphe-patches",
+                "source": "https://raw.githubusercontent.com/mvaishak/letterboxd-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 204,
+                "createdAt": 1788491077150,
+                "updatedAt": 1788491077150
             }
         ]
     }

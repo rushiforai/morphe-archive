@@ -21,6 +21,7 @@ Freeman022026/rustore-privacy-patches
 GoldRift/morphe-patches
 Graywizard888/Enhancify
 HSlightsteel/slight-patches
+HelioFloxZ/YouTube-Studio-Patches
 HellveticaStandard/HellveticaPatches
 Hiosdra/morphe-patches
 HvQ/eksi-morphe
@@ -186,6 +187,7 @@ loskutov/youtube-domain-fronting-patch
 lyyako/realme-link-patches
 madhu-gowda6/atharv-patches
 meridianfresco/morphe-meta-patches
+mvaishak/letterboxd-morphe-patches
 mxkrgt/dbtcoach-morphe-patches
 nosini/disable-shorts-repeat
 nvbangg/builder-for-morphe

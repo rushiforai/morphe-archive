@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-09-03 03:18 UTC",
-  "configFile": "morphe_archive_config_v38.json",
-  "configVersion": 38,
-  "repoCount": 191,
-  "appCount": 765,
-  "patchCount": 3543,
-  "universalPatchCount": 502,
+  "generatedAt": "2026-09-04 03:06 UTC",
+  "configFile": "morphe_archive_config_v39.json",
+  "configVersion": 39,
+  "repoCount": 193,
+  "appCount": 767,
+  "patchCount": 3561,
+  "universalPatchCount": 503,
   "hostCounts": {
-    "github.com": 186,
+    "github.com": 188,
     "gitlab.com": 5
   },
   "visitorStats": {
-    "today": 0,
-    "yesterday": 11,
-    "total": 420,
-    "online": 0
+    "today": 3,
+    "yesterday": 6,
+    "total": 429,
+    "online": 3
   },
   "repos": [
     {
@@ -74,12 +74,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.30.3 (2026-08-29)",
-        "date": "2026-08-29",
+        "title": "1.30.4 (2026-09-04)",
+        "date": "2026-09-04",
         "items": [
           {
             "category": "Bug Fixes",
-            "text": "**paramount:** harden ad-patch fingerprints; verify + support v16.19.0 (#142)"
+            "text": "**pluto:** detect VOD ads positively so un-DRM'd-content titles don't break (870e4f1), closes #144"
           }
         ]
       },
@@ -799,47 +799,31 @@
       "webUrl": "https://github.com/AngelDark92/steamlink-patches",
       "addUrl": "https://morphe.software/add-source?github=AngelDark92/steamlink-patches",
       "avatarUrl": "https://github.com/AngelDark92.png?size=96",
-      "patchCount": 20,
+      "patchCount": 23,
       "appCount": 1,
       "createdAt": 1787707029265,
       "updatedAt": 1787707029265,
       "createdDate": "2026-08-26",
       "updatedDate": "2026-08-26",
       "latestChanges": {
-        "title": "1.11.0 (2026-09-01)",
-        "date": "2026-09-01",
+        "title": "1.13.0 (2026-09-03)",
+        "date": "2026-09-03",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "added newer experimental supposedly more efficient patch for single projection mode"
+            "text": "CPU overhead optimizations"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "compatibility with 2.0.20 build 5001740"
+            "text": "Merge pull request #50 from AngelDark92/dev"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "documentation for single projection experiment"
+            "text": "removed experimental patch"
           },
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Experimental Native Single Projection Renderer Hook"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "experiments not successful, new experiment based on VD"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "fix for three projection run"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "fixed CPU overhead and new experimental native single projection with Quad-View GPU patch"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "more experiments with resolution"
+            "category": "\u2728 New Features",
+            "text": "underside projection on XR_KHR_android_surface_swapchain experiment"
           }
         ]
       },
@@ -847,7 +831,7 @@
         {
           "name": "Steam Link",
           "packageName": "com.valvesoftware.steamlinkvr",
-          "patchCount": 20,
+          "patchCount": 23,
           "iconUrl": "",
           "iconColor": "#1B2838"
         }
@@ -2092,23 +2076,19 @@
       "webUrl": "https://github.com/browzomje/browzomje-patches",
       "addUrl": "https://morphe.software/add-source?github=browzomje/browzomje-patches",
       "avatarUrl": "https://github.com/browzomje.png?size=96",
-      "patchCount": 30,
+      "patchCount": 33,
       "appCount": 2,
       "createdAt": 1784836031836,
       "updatedAt": 1784836031836,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.9.0 (2026-08-19)",
-        "date": "2026-08-19",
+        "title": "1.10.0 (2026-09-03)",
+        "date": "2026-09-03",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**pinterest:** make the long-press download button actually appear"
-          },
-          {
             "category": "\u2728 New Features",
-            "text": "**pinterest:** tint the long-press download button like the others"
+            "text": "**pinterest:** bypass in-app browser, system share sheet, hide comments and support 14.34.0 (closes #35, #36, #38)"
           }
         ]
       },
@@ -2123,7 +2103,7 @@
         {
           "name": "Pinterest",
           "packageName": "com.pinterest",
-          "patchCount": 25,
+          "patchCount": 28,
           "iconUrl": "https://play-lh.googleusercontent.com/VExMwhu9Fe5kz72YnPWP6mHrNA5WfgZ-PJMnBnQmXFpLncTAOaaHtK4b8w7b2xxGxtqycDatYslVyNSLucl9QA",
           "iconColor": "#E60023"
         }
@@ -2595,23 +2575,19 @@
       "webUrl": "https://github.com/cesbar/zpatches",
       "addUrl": "https://morphe.software/add-source?github=cesbar/zpatches",
       "avatarUrl": "https://github.com/cesbar.png?size=96",
-      "patchCount": 13,
-      "appCount": 5,
+      "patchCount": 14,
+      "appCount": 6,
       "createdAt": 1784836032428,
       "updatedAt": 1784836032428,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.12.1 (2026-09-02)",
-        "date": "2026-09-02",
+        "title": "1.13.0 (2026-09-03)",
+        "date": "2026-09-03",
         "items": [
           {
-            "category": "\ud83d\ude80 Updated App Support",
-            "text": "**Citymapper:** support for 11.57.1"
-          },
-          {
-            "category": "\ud83d\ude80 Updated App Support",
-            "text": "**Citymapper:** support for 11.57.2"
+            "category": "\u2728 New Features",
+            "text": "**Undercover:** Enable Premium"
           }
         ]
       },
@@ -2643,6 +2619,13 @@
           "patchCount": 3,
           "iconUrl": "",
           "iconColor": "#3C3C3C"
+        },
+        {
+          "name": "Undercover",
+          "packageName": "com.yanstarstudio.joss.undercover",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#B2FF4B"
         },
         {
           "name": "V\u00e9lo'v",
@@ -4997,6 +4980,46 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/mrNuw058MP_GKlWVCLuZrg3QyONOUJAzrw4mCkdTvtGckt5EGUEzbO26z49bMCJTlX5WRs1qP9fSljF30k3xcAk",
           "iconColor": "#FF0045"
+        }
+      ]
+    },
+    {
+      "name": "YouTube-Studio-Patches",
+      "repo": "HelioFloxZ/YouTube-Studio-Patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/HelioFloxZ/YouTube-Studio-Patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/HelioFloxZ/YouTube-Studio-Patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/HelioFloxZ/YouTube-Studio-Patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/HelioFloxZ/YouTube-Studio-Patches",
+      "addUrl": "https://morphe.software/add-source?github=HelioFloxZ/YouTube-Studio-Patches",
+      "avatarUrl": "https://github.com/HelioFloxZ.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1788491069562,
+      "updatedAt": 1788491069562,
+      "createdDate": "2026-09-04",
+      "updatedDate": "2026-09-04",
+      "latestChanges": {
+        "title": "1.2.0 (2026-09-03)",
+        "date": "2026-09-03",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Fixed Issues in Constants.kt"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Added GmsCorePatch"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "YouTube Studio",
+          "packageName": "com.google.android.apps.youtube.creator",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF0000"
         }
       ]
     },
@@ -7722,12 +7745,12 @@
       "createdDate": "2026-08-21",
       "updatedDate": "2026-08-21",
       "latestChanges": {
-        "title": "1.11.0 (2026-09-02)",
-        "date": "2026-09-02",
+        "title": "1.12.0 (2026-09-03)",
+        "date": "2026-09-03",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**brave:** update patches for v1.94.119 and validate on physical arm64 device"
+            "text": "**vivaldi:** update patches for v8.2.4147.28 and align libchrome offsets"
           }
         ]
       },
@@ -7859,19 +7882,19 @@
       "webUrl": "https://github.com/legendsciber/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=legendsciber/morphe-patches",
       "avatarUrl": "https://github.com/legendsciber.png?size=96",
-      "patchCount": 12,
+      "patchCount": 16,
       "appCount": 6,
       "createdAt": 1787620440197,
       "updatedAt": 1787620440197,
       "createdDate": "2026-08-25",
       "updatedDate": "2026-08-25",
       "latestChanges": {
-        "title": "1.28.4 (2026-09-03)",
+        "title": "1.31.6 (2026-09-03)",
         "date": "2026-09-03",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**shadowfight:** fix dump file logging to shizuku-terminal"
+            "text": "**shadowfight:** direct holder chains without scanning"
           }
         ]
       },
@@ -7900,7 +7923,7 @@
         {
           "name": "Shadow Fight 2",
           "packageName": "com.nekki.shadowfight",
-          "patchCount": 2,
+          "patchCount": 6,
           "iconUrl": "",
           "iconColor": "#1A1A1A"
         },
@@ -8550,6 +8573,54 @@
       ]
     },
     {
+      "name": "letterboxd-morphe-patches",
+      "repo": "mvaishak/letterboxd-morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/mvaishak/letterboxd-morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/mvaishak/letterboxd-morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/mvaishak/letterboxd-morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/mvaishak/letterboxd-morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=mvaishak/letterboxd-morphe-patches",
+      "avatarUrl": "https://github.com/mvaishak.png?size=96",
+      "patchCount": 5,
+      "appCount": 1,
+      "createdAt": 1788491077150,
+      "updatedAt": 1788491077150,
+      "createdDate": "2026-09-04",
+      "updatedDate": "2026-09-04",
+      "latestChanges": {
+        "title": "1.4.0 (2026-09-02)",
+        "date": "2026-09-02",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Set Brighter Watched-by stars to default; drop Poster corner shape from README"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Accent option becomes a colour picker (any hex) (177e151), closes #1FE86A"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Add Brighter Watched-by stars patch and bottom-nav selected-style option"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Remove Poster corner shape patch; Brighter Watched-by stars on by default"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Letterboxd",
+          "packageName": "com.letterboxd.letterboxd",
+          "patchCount": 5,
+          "iconUrl": "https://play-lh.googleusercontent.com/2MmhfegR5NlTay7FQjgEfBR83-sBuGdyMVlNvpSKVmW3EjbI762_va69gxmoI0P5BfIGDWtlpXU7qYg_zxE2Kl0",
+          "iconColor": "#FF8000"
+        }
+      ]
+    },
+    {
       "name": "dbtcoach-morphe-patches",
       "repo": "mxkrgt/dbtcoach-morphe-patches",
       "host": "github.com",
@@ -8615,19 +8686,19 @@
       "webUrl": "https://github.com/Nai64/Nai64Patches",
       "addUrl": "https://morphe.software/add-source?github=Nai64/Nai64Patches",
       "avatarUrl": "https://github.com/Nai64.png?size=96",
-      "patchCount": 341,
+      "patchCount": 342,
       "appCount": 1,
       "createdAt": 1784836023539,
       "updatedAt": 1784836023539,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.42.0 (2026-09-01)",
-        "date": "2026-09-01",
+        "title": "1.43.1 (2026-09-03)",
+        "date": "2026-09-03",
         "items": [
           {
-            "category": "New Features",
-            "text": "more console logs for ad free rewards patch"
+            "category": "Bug Fixes",
+            "text": "cover React Native AsyncStorage and billing bridges in unlock premium"
           }
         ]
       },
@@ -13046,12 +13117,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.12.9 (2026-09-02)",
-        "date": "2026-09-02",
+        "title": "1.12.11 (2026-09-03)",
+        "date": "2026-09-03",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**wildberries:** support version 7.7.8001-rustore"
+            "text": "**tbank:** support version 8.2.1"
           }
         ]
       },
@@ -17594,8 +17665,8 @@
       ],
       "patches": [
         "Disable PairIP DRM",
-        "Unlock Premium",
-        "Unlock premium"
+        "Unlock premium",
+        "Unlock Premium"
       ],
       "patchDetails": [
         {
@@ -17603,12 +17674,12 @@
           "description": "Disables PairIP signature verification and Google Play LVL license check. Required for the app to launch after re-signing."
         },
         {
-          "name": "Unlock Premium",
-          "description": "Unlocks AT4K Launcher's premium features without paying, like more apps per row and the premium wallpaper options. It all runs on the device, so nothing stays locked."
-        },
-        {
           "name": "Unlock premium",
           "description": "Unlocks all AT4K premium features by forcing the premium status to true."
+        },
+        {
+          "name": "Unlock Premium",
+          "description": "Unlocks AT4K Launcher's premium features without paying, like more apps per row and the premium wallpaper options. It all runs on the device, so nothing stays locked."
         }
       ],
       "versions": [
@@ -18660,12 +18731,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.12.9 (2026-09-02)",
-            "date": "2026-09-02",
+            "title": "1.12.11 (2026-09-03)",
+            "date": "2026-09-03",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**wildberries:** support version 7.7.8001-rustore"
+                "text": "**tbank:** support version 8.2.1"
               }
             ]
           },
@@ -20681,12 +20752,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.28.4 (2026-09-03)",
+            "title": "1.31.6 (2026-09-03)",
             "date": "2026-09-03",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**shadowfight:** fix dump file logging to shizuku-terminal"
+                "text": "**shadowfight:** direct holder chains without scanning"
               }
             ]
           },
@@ -22070,12 +22141,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kveld9.png?size=96",
           "latestChanges": {
-            "title": "1.11.0 (2026-09-02)",
-            "date": "2026-09-02",
+            "title": "1.12.0 (2026-09-03)",
+            "date": "2026-09-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**brave:** update patches for v1.94.119 and validate on physical arm64 device"
+                "text": "**vivaldi:** update patches for v8.2.4147.28 and align libchrome offsets"
               }
             ]
           },
@@ -25262,16 +25333,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.12.1 (2026-09-02)",
-            "date": "2026-09-02",
+            "title": "1.13.0 (2026-09-03)",
+            "date": "2026-09-03",
             "items": [
               {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "**Citymapper:** support for 11.57.1"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "**Citymapper:** support for 11.57.2"
+                "category": "\u2728 New Features",
+                "text": "**Undercover:** Enable Premium"
               }
             ]
           },
@@ -25844,12 +25911,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.30.3 (2026-08-29)",
-            "date": "2026-08-29",
+            "title": "1.30.4 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**paramount:** harden ad-patch fingerprints; verify + support v16.19.0 (#142)"
+                "text": "**pluto:** detect VOD ads positively so un-DRM'd-content titles don't break (870e4f1), closes #144"
               }
             ]
           },
@@ -26359,12 +26426,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.30.3 (2026-08-29)",
-            "date": "2026-08-29",
+            "title": "1.30.4 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**paramount:** harden ad-patch fingerprints; verify + support v16.19.0 (#142)"
+                "text": "**pluto:** detect VOD ads positively so un-DRM'd-content titles don't break (870e4f1), closes #144"
               }
             ]
           },
@@ -26418,12 +26485,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Nai64.png?size=96",
           "latestChanges": {
-            "title": "1.42.0 (2026-09-01)",
-            "date": "2026-09-01",
+            "title": "1.43.1 (2026-09-03)",
+            "date": "2026-09-03",
             "items": [
               {
-                "category": "New Features",
-                "text": "more console logs for ad free rewards patch"
+                "category": "Bug Fixes",
+                "text": "cover React Native AsyncStorage and billing bridges in unlock premium"
               }
             ]
           },
@@ -26635,12 +26702,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.30.3 (2026-08-29)",
-            "date": "2026-08-29",
+            "title": "1.30.4 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**paramount:** harden ad-patch fingerprints; verify + support v16.19.0 (#142)"
+                "text": "**pluto:** detect VOD ads positively so un-DRM'd-content titles don't break (870e4f1), closes #144"
               }
             ]
           },
@@ -26700,12 +26767,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.30.3 (2026-08-29)",
-            "date": "2026-08-29",
+            "title": "1.30.4 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**paramount:** harden ad-patch fingerprints; verify + support v16.19.0 (#142)"
+                "text": "**pluto:** detect VOD ads positively so un-DRM'd-content titles don't break (870e4f1), closes #144"
               }
             ]
           },
@@ -27208,12 +27275,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.30.3 (2026-08-29)",
-            "date": "2026-08-29",
+            "title": "1.30.4 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**paramount:** harden ad-patch fingerprints; verify + support v16.19.0 (#142)"
+                "text": "**pluto:** detect VOD ads positively so un-DRM'd-content titles don't break (870e4f1), closes #144"
               }
             ]
           },
@@ -27855,8 +27922,8 @@
             }
           ],
           "versions": [
-            "26.32.06.958047303",
-            "26.33.02.961351034"
+            "26.33.02.961351034",
+            "26.35.04.969485213"
           ]
         }
       ],
@@ -27880,8 +27947,8 @@
         }
       ],
       "versions": [
-        "26.32.06.958047303",
-        "26.33.02.961351034"
+        "26.33.02.961351034",
+        "26.35.04.969485213"
       ],
       "iconColor": "#4285F4",
       "iconUrl": "https://play-lh.googleusercontent.com/B8pdO_2K5nBsF0g1h6dKwV_jQFLP-XombGDEQGtJT-mw1EUKCKJpa9lBGCF4rP_MwCsozSXyvI3z19g9R3J4"
@@ -28598,6 +28665,10 @@
           },
           "patches": [
             {
+              "name": "Bigger Toolbar",
+              "description": "Raises the toolbar from five icons to 12, so Flexboard's hotkeys and text action buttons can fit alongside Gboard's own. How many icons actually show stays yours, set by dragging them in Gboard's toolbar settings."
+            },
+            {
               "name": "Bypass Gboard Signature",
               "description": "Bypass Gboard's signature whitelist checks and force them to pass."
             },
@@ -28614,24 +28685,20 @@
               "description": "Turns on flick keys for symbols, touch & hold keys for numbers, suggestion strip, grammar check and smart replies, and turns off block offensive words and word suggestions. Written once as defaults, so each can still be changed in Gboard's own settings."
             },
             {
-              "name": "Swipe Right to Undo",
-              "description": "Swipe right after deleting to put the words back \u2014 the swipe starts on the Delete key, or anywhere when Swipe to Delete is also applied. Uses Gboard's own undo, which already records what a delete swipe removed."
-            },
-            {
-              "name": "Swipe to Delete",
+              "name": "Swipe Left to Delete",
               "description": "Swipe left anywhere on the keyboard to delete the previous word, and swipe right to restore it. Uses Gboard's own word-scrub engine, so it behaves exactly like swiping on the backspace key already does \u2014 only it can start anywhere."
             },
             {
-              "name": "Toolbar Buttons",
+              "name": "Swipe Right to Undo",
+              "description": "Swipe right after deleting to put the words back \u2014 the swipe starts on the Delete key, or anywhere when Swipe Left to Delete is also applied. Uses Gboard's own undo, which already records what a delete swipe removed."
+            },
+            {
+              "name": "Text Action Buttons",
               "description": "Add Select all, Copy and Paste buttons to the toolbar above the keyboard, so each is one tap instead of opening Gboard's text editing panel first. Registered natively, so drag-to-reorder through the toolbar customize page persists."
             },
             {
               "name": "Toolbar Hotkeys",
               "description": "Adds six configurable hotkey slots to Gboard's toolbar \u2014 each commits a text of your choice on tap. A slot appears when its text is set; when cleared it hides at the next toolbar rebuild (rotate, switch IME, or restart \u2014 there's no mid-session un-register). Text and icon edits apply on the next keyboard open."
-            },
-            {
-              "name": "Toolbar Native Test",
-              "description": "Add a 'Test' button to the toolbar through Gboard's own access-point registry so drag reorder and persistence work natively. Writes 'test' at the cursor on tap. Architectural proof-of-concept; off by default."
             },
             {
               "name": "Vibration slider everywhere",
@@ -28651,12 +28718,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kveld9.png?size=96",
           "latestChanges": {
-            "title": "1.11.0 (2026-09-02)",
-            "date": "2026-09-02",
+            "title": "1.12.0 (2026-09-03)",
+            "date": "2026-09-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**brave:** update patches for v1.94.119 and validate on physical arm64 device"
+                "text": "**vivaldi:** update patches for v8.2.4147.28 and align libchrome offsets"
               }
             ]
           },
@@ -28756,6 +28823,7 @@
         "Always incognito mode",
         "Always-incognito mode",
         "Backup & Restore",
+        "Bigger Toolbar",
         "Block Telemetry",
         "Block tracking and analytics",
         "Bypass Gboard Signature",
@@ -28816,13 +28884,12 @@
         "Settings Homepage Override",
         "Simple Calculator",
         "Suggested Settings",
+        "Swipe Left to Delete",
         "Swipe Right to Undo",
-        "Swipe to Delete",
         "Swipeable Custom Top Row",
+        "Text Action Buttons",
         "Toggle feature flags",
-        "Toolbar Buttons",
         "Toolbar Hotkeys",
-        "Toolbar Native Test",
         "Top Toolbar Item Count",
         "Use Bluetooth Microphone",
         "Vibration slider everywhere",
@@ -28867,6 +28934,10 @@
         {
           "name": "Backup & Restore",
           "description": "\u532f\u51fa\u6216\u9084\u539f\u5168\u90e8 Patches \u8a2d\u5b9a\uff0c\u4e26\u5099\u4efd\u3001\u6bd4\u8f03\u53ca\u9084\u539f Gboard PB/XML flag store\nExport or restore all Patches settings, and back up, compare, or restore the Gboard PB/XML flag store."
+        },
+        {
+          "name": "Bigger Toolbar",
+          "description": "Raises the toolbar from five icons to 12, so Flexboard's hotkeys and text action buttons can fit alongside Gboard's own. How many icons actually show stays yours, set by dragging them in Gboard's toolbar settings."
         },
         {
           "name": "Block Telemetry",
@@ -29109,32 +29180,28 @@
           "description": "Turns on flick keys for symbols, touch & hold keys for numbers, suggestion strip, grammar check and smart replies, and turns off block offensive words and word suggestions. Written once as defaults, so each can still be changed in Gboard's own settings."
         },
         {
-          "name": "Swipe Right to Undo",
-          "description": "Swipe right after deleting to put the words back \u2014 the swipe starts on the Delete key, or anywhere when Swipe to Delete is also applied. Uses Gboard's own undo, which already records what a delete swipe removed."
+          "name": "Swipe Left to Delete",
+          "description": "Swipe left anywhere on the keyboard to delete the previous word, and swipe right to restore it. Uses Gboard's own word-scrub engine, so it behaves exactly like swiping on the backspace key already does \u2014 only it can start anywhere."
         },
         {
-          "name": "Swipe to Delete",
-          "description": "Swipe left anywhere on the keyboard to delete the previous word, and swipe right to restore it. Uses Gboard's own word-scrub engine, so it behaves exactly like swiping on the backspace key already does \u2014 only it can start anywhere."
+          "name": "Swipe Right to Undo",
+          "description": "Swipe right after deleting to put the words back \u2014 the swipe starts on the Delete key, or anywhere when Swipe Left to Delete is also applied. Uses Gboard's own undo, which already records what a delete swipe removed."
         },
         {
           "name": "Swipeable Custom Top Row",
           "description": "\u6ed1\u52d5\u9375\u76e4\u7b2c\u4e00\u6392\uff0c\u5728\u539f\u751f\u5217\u8207\u53ef\u81ea\u8a02\u6587\u5b57/JavaScript \u5217\u4e4b\u9593\u5207\u63db\nSwipe the keyboard top row to switch between the stock row and a customizable text/JavaScript row."
         },
         {
+          "name": "Text Action Buttons",
+          "description": "Add Select all, Copy and Paste buttons to the toolbar above the keyboard, so each is one tap instead of opening Gboard's text editing panel first. Registered natively, so drag-to-reorder through the toolbar customize page persists."
+        },
+        {
           "name": "Toggle feature flags",
           "description": "Turn Gboard features on with individual switches. Each switch maps to a Gboard feature flag; flip it on to enable that feature. Unknown or already-default flags are skipped safely."
         },
         {
-          "name": "Toolbar Buttons",
-          "description": "Add Select all, Copy and Paste buttons to the toolbar above the keyboard, so each is one tap instead of opening Gboard's text editing panel first. Registered natively, so drag-to-reorder through the toolbar customize page persists."
-        },
-        {
           "name": "Toolbar Hotkeys",
           "description": "Adds six configurable hotkey slots to Gboard's toolbar \u2014 each commits a text of your choice on tap. A slot appears when its text is set; when cleared it hides at the next toolbar rebuild (rotate, switch IME, or restart \u2014 there's no mid-session un-register). Text and icon edits apply on the next keyboard open."
-        },
-        {
-          "name": "Toolbar Native Test",
-          "description": "Add a 'Test' button to the toolbar through Gboard's own access-point registry so drag reorder and persistence work natively. Writes 'test' at the cursor on tap. Architectural proof-of-concept; off by default."
         },
         {
           "name": "Top Toolbar Item Count",
@@ -29542,12 +29609,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.30.3 (2026-08-29)",
-            "date": "2026-08-29",
+            "title": "1.30.4 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**paramount:** harden ad-patch fingerprints; verify + support v16.19.0 (#142)"
+                "text": "**pluto:** detect VOD ads positively so un-DRM'd-content titles don't break (870e4f1), closes #144"
               }
             ]
           },
@@ -29821,12 +29888,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.30.3 (2026-08-29)",
-            "date": "2026-08-29",
+            "title": "1.30.4 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**paramount:** harden ad-patch fingerprints; verify + support v16.19.0 (#142)"
+                "text": "**pluto:** detect VOD ads positively so un-DRM'd-content titles don't break (870e4f1), closes #144"
               }
             ]
           },
@@ -30478,12 +30545,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.30.3 (2026-08-29)",
-            "date": "2026-08-29",
+            "title": "1.30.4 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**paramount:** harden ad-patch fingerprints; verify + support v16.19.0 (#142)"
+                "text": "**pluto:** detect VOD ads positively so un-DRM'd-content titles don't break (870e4f1), closes #144"
               }
             ]
           },
@@ -31443,12 +31510,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.30.3 (2026-08-29)",
-            "date": "2026-08-29",
+            "title": "1.30.4 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**paramount:** harden ad-patch fingerprints; verify + support v16.19.0 (#142)"
+                "text": "**pluto:** detect VOD ads positively so un-DRM'd-content titles don't break (870e4f1), closes #144"
               }
             ]
           },
@@ -31583,12 +31650,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.30.3 (2026-08-29)",
-            "date": "2026-08-29",
+            "title": "1.30.4 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**paramount:** harden ad-patch fingerprints; verify + support v16.19.0 (#142)"
+                "text": "**pluto:** detect VOD ads positively so un-DRM'd-content titles don't break (870e4f1), closes #144"
               }
             ]
           },
@@ -36387,16 +36454,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/browzomje/browzomje-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/browzomje.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.10.0 (2026-09-03)",
+            "date": "2026-09-03",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**pinterest:** make the long-press download button actually appear"
-              },
-              {
                 "category": "\u2728 New Features",
-                "text": "**pinterest:** tint the long-press download button like the others"
+                "text": "**pinterest:** bypass in-app browser, system share sheet, hide comments and support 14.34.0 (closes #35, #36, #38)"
               }
             ]
           },
@@ -37446,12 +37509,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.28.4 (2026-09-03)",
+            "title": "1.31.6 (2026-09-03)",
             "date": "2026-09-03",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**shadowfight:** fix dump file logging to shizuku-terminal"
+                "text": "**shadowfight:** direct holder chains without scanning"
               }
             ]
           },
@@ -41915,12 +41978,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.28.4 (2026-09-03)",
+            "title": "1.31.6 (2026-09-03)",
             "date": "2026-09-03",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**shadowfight:** fix dump file logging to shizuku-terminal"
+                "text": "**shadowfight:** direct holder chains without scanning"
               }
             ]
           },
@@ -47867,6 +47930,7 @@
       "name": "Letterboxd",
       "repos": [
         "ethanm6/letterboxd-stremio-morphe-patch",
+        "mvaishak/letterboxd-morphe-patches",
         "RookieEnough/De-Vanced"
       ],
       "sources": [
@@ -47905,6 +47969,69 @@
             }
           ],
           "versions": []
+        },
+        {
+          "repo": "mvaishak/letterboxd-morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/mvaishak/letterboxd-morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=mvaishak/letterboxd-morphe-patches",
+          "source": "https://raw.githubusercontent.com/mvaishak/letterboxd-morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/mvaishak/letterboxd-morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/mvaishak.png?size=96",
+          "latestChanges": {
+            "title": "1.4.0 (2026-09-02)",
+            "date": "2026-09-02",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Set Brighter Watched-by stars to default; drop Poster corner shape from README"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Accent option becomes a colour picker (any hex) (177e151), closes #1FE86A"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Add Brighter Watched-by stars patch and bottom-nav selected-style option"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Remove Poster corner shape patch; Brighter Watched-by stars on by default"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-letterboxd-letterboxd-mvaishak-letterboxd-morphe-patches",
+            "releaseTag": "app-com-letterboxd-letterboxd-mvaishak-letterboxd-morphe-patches",
+            "assetName": "letterboxd-mvaishak-letterboxd-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Brighter Watched-by stars",
+              "description": "Other people's star ratings in a film's \"Watched by\" row use a very dark grey (#445566) that is hard to read, especially on a black theme. This switches them to the lighter grey (#99AABB) the rest of the app already uses for other people's ratings. A small legibility fix, on by default."
+            },
+            {
+              "name": "Denser poster grid",
+              "description": "Tightens the spacing around posters in grids so they render larger and closer together. Does not change the number of columns."
+            },
+            {
+              "name": "Hide Video Store on home",
+              "description": "Removes the \"Letterboxd Video Store\" promo row from the Films tab. The Video Store itself, its settings and every other entry point are left untouched."
+            },
+            {
+              "name": "Match bottom nav to top bar color",
+              "description": "Sets Letterboxd's bottom navigation bar background to the same color as the top bar (@color/black100), so it blends into the app's dark chrome instead of showing the default slate bar."
+            },
+            {
+              "name": "Material You theme",
+              "description": "Repaints Letterboxd's dark chrome \u2014 window background, surfaces, cards, the top bar, tab strip and bottom nav. 'Wallpaper tint' follows the device's Material You palette on Android 12+ (no effect below). 'Pure black (OLED)' forces true black on any version. Optional accent colour recolours Letterboxd's green; optional bottom-nav selected style replaces the grey pill. No effect on Jetpack Compose screens. Overlaps \"Match bottom nav to top bar color\" \u2014 enable one, not both."
+            }
+          ],
+          "versions": [
+            "3.5.4"
+          ]
         },
         {
           "repo": "RookieEnough/De-Vanced",
@@ -47946,15 +48073,28 @@
       ],
       "patches": [
         "Add Stremio button",
+        "Brighter Watched-by stars",
+        "Denser poster grid",
         "Hide ads",
         "Hide Video Store",
+        "Hide Video Store on home",
         "Hide Where to Watch",
+        "Match bottom nav to top bar color",
+        "Material You theme",
         "Unlock app icons"
       ],
       "patchDetails": [
         {
           "name": "Add Stremio button",
           "description": "Adds a purple Stremio button directly below the trailer button on film pages, styled identically to it. Takes the trailer button's position when there is no trailer. Opens the film directly in the Stremio app or web player."
+        },
+        {
+          "name": "Brighter Watched-by stars",
+          "description": "Other people's star ratings in a film's \"Watched by\" row use a very dark grey (#445566) that is hard to read, especially on a black theme. This switches them to the lighter grey (#99AABB) the rest of the app already uses for other people's ratings. A small legibility fix, on by default."
+        },
+        {
+          "name": "Denser poster grid",
+          "description": "Tightens the spacing around posters in grids so they render larger and closer together. Does not change the number of columns."
         },
         {
           "name": "Hide ads",
@@ -47965,15 +48105,29 @@
           "description": "Hides the \"Rent from Letterboxd Video Store\" banner on film pages and the video store carousel row on the home feed. Can be toggled independently of the Stremio button patch."
         },
         {
+          "name": "Hide Video Store on home",
+          "description": "Removes the \"Letterboxd Video Store\" promo row from the Films tab. The Video Store itself, its settings and every other entry point are left untouched."
+        },
+        {
           "name": "Hide Where to Watch",
           "description": "Hides the \"Where to watch\" streaming-service icon row on film pages. Can be toggled independently of the other patches."
+        },
+        {
+          "name": "Match bottom nav to top bar color",
+          "description": "Sets Letterboxd's bottom navigation bar background to the same color as the top bar (@color/black100), so it blends into the app's dark chrome instead of showing the default slate bar."
+        },
+        {
+          "name": "Material You theme",
+          "description": "Repaints Letterboxd's dark chrome \u2014 window background, surfaces, cards, the top bar, tab strip and bottom nav. 'Wallpaper tint' follows the device's Material You palette on Android 12+ (no effect below). 'Pure black (OLED)' forces true black on any version. Optional accent colour recolours Letterboxd's green; optional bottom-nav selected style replaces the grey pill. No effect on Jetpack Compose screens. Overlaps \"Match bottom nav to top bar color\" \u2014 enable one, not both."
         },
         {
           "name": "Unlock app icons",
           "description": ""
         }
       ],
-      "versions": [],
+      "versions": [
+        "3.5.4"
+      ],
       "iconColor": "#00B020",
       "iconUrl": "https://play-lh.googleusercontent.com/2MmhfegR5NlTay7FQjgEfBR83-sBuGdyMVlNvpSKVmW3EjbI762_va69gxmoI0P5BfIGDWtlpXU7qYg_zxE2Kl0"
     },
@@ -51929,16 +52083,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.12.1 (2026-09-02)",
-            "date": "2026-09-02",
+            "title": "1.13.0 (2026-09-03)",
+            "date": "2026-09-03",
             "items": [
               {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "**Citymapper:** support for 11.57.1"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "**Citymapper:** support for 11.57.2"
+                "category": "\u2728 New Features",
+                "text": "**Undercover:** Enable Premium"
               }
             ]
           },
@@ -58312,12 +58462,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.12.9 (2026-09-02)",
-            "date": "2026-09-02",
+            "title": "1.12.11 (2026-09-03)",
+            "date": "2026-09-03",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**wildberries:** support version 7.7.8001-rustore"
+                "text": "**tbank:** support version 8.2.1"
               }
             ]
           },
@@ -58340,7 +58490,8 @@
             "19.29.0",
             "19.30.0",
             "19.31.0",
-            "19.32.0"
+            "19.32.0",
+            "19.33.1"
           ]
         }
       ],
@@ -58399,7 +58550,8 @@
         "19.29.0",
         "19.30.0",
         "19.31.0",
-        "19.32.0"
+        "19.32.0",
+        "19.33.1"
       ],
       "iconColor": "#005BFF",
       "iconUrl": "https://play-lh.googleusercontent.com/Rz5gPi2gs8Vs8VZVn7mpJQpIB7XzeeErGGNAMIdr9NmWJigvmFpaWtMlpyC2rdieC6gxnpmQ5guTUUMjnZn97g"
@@ -60611,16 +60763,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/browzomje/browzomje-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/browzomje.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.10.0 (2026-09-03)",
+            "date": "2026-09-03",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**pinterest:** make the long-press download button actually appear"
-              },
-              {
                 "category": "\u2728 New Features",
-                "text": "**pinterest:** tint the long-press download button like the others"
+                "text": "**pinterest:** bypass in-app browser, system share sheet, hide comments and support 14.34.0 (closes #35, #36, #38)"
               }
             ]
           },
@@ -60677,6 +60825,10 @@
               "description": "Collapses Pinterest's ad-only views, so no ad chrome is drawn even if the app builds one. Follows the \"Disable ads\" switch."
             },
             {
+              "name": "Hide comments",
+              "description": "Hides the pin comments section, the comment preview and the comments button, when the matching Morphe setting is enabled."
+            },
+            {
               "name": "Hide Create nav button",
               "description": "Hides the \"+\" (create Pin) navigation button, when enabled in Morphe settings."
             },
@@ -60721,6 +60873,10 @@
               "description": "Returns an empty Google Advertising ID and forces \"limit ad tracking\", without crashing the app."
             },
             {
+              "name": "Open links in the default browser",
+              "description": "Opens links in the phone's default browser instead of Pinterest's in-app browser, when the matching Morphe setting is enabled."
+            },
+            {
               "name": "Sanitize copied links",
               "description": "Turns the pin.it link that \"Copy link\" copies, whose slug identifies who shared it, into the plain pin link. Switchable from Morphe settings."
             },
@@ -60731,12 +60887,17 @@
             {
               "name": "Set pin as wallpaper",
               "description": "Adds a \"Set as wallpaper\" option to the pin menu, which downloads the image and sets it as the device wallpaper."
+            },
+            {
+              "name": "Use the system share sheet",
+              "description": "Opens the Android system share sheet instead of Pinterest's in-app share sheet, when the matching Morphe setting is enabled."
             }
           ],
           "versions": [
             "14.23.0",
             "14.28.0",
-            "14.32.0"
+            "14.32.0",
+            "14.34.0"
           ]
         },
         {
@@ -60876,6 +61037,7 @@
         "Download pin from long press",
         "Download video",
         "Hide ad views",
+        "Hide comments",
         "Hide Create nav button",
         "Hide greeting header buttons",
         "Hide Notifications nav button",
@@ -60888,6 +61050,7 @@
         "Morphe settings screen (label)",
         "Morphe settings screen (manifest)",
         "Neutralize advertising ID",
+        "Open links in the default browser",
         "Opt out of Google Analytics",
         "Remove Advertising ID permission",
         "Remove Promoted Pins",
@@ -60895,7 +61058,8 @@
         "Sanitize copied links",
         "Sanitize shared links",
         "Sanitize sharing links",
-        "Set pin as wallpaper"
+        "Set pin as wallpaper",
+        "Use the system share sheet"
       ],
       "patchDetails": [
         {
@@ -60971,6 +61135,10 @@
           "description": "Collapses Pinterest's ad-only views, so no ad chrome is drawn even if the app builds one. Follows the \"Disable ads\" switch."
         },
         {
+          "name": "Hide comments",
+          "description": "Hides the pin comments section, the comment preview and the comments button, when the matching Morphe setting is enabled."
+        },
+        {
           "name": "Hide Create nav button",
           "description": "Hides the \"+\" (create Pin) navigation button, when enabled in Morphe settings."
         },
@@ -61019,6 +61187,10 @@
           "description": "Returns an empty Google Advertising ID and forces \"limit ad tracking\", without crashing the app."
         },
         {
+          "name": "Open links in the default browser",
+          "description": "Opens links in the phone's default browser instead of Pinterest's in-app browser, when the matching Morphe setting is enabled."
+        },
+        {
           "name": "Opt out of Google Analytics",
           "description": "Sets the default Google Analytics consent flags to false so the Firebase Measurement SDK does not collect analytics, ad data or personalization signals."
         },
@@ -61049,6 +61221,10 @@
         {
           "name": "Set pin as wallpaper",
           "description": "Adds a \"Set as wallpaper\" option to the pin menu, which downloads the image and sets it as the device wallpaper."
+        },
+        {
+          "name": "Use the system share sheet",
+          "description": "Opens the Android system share sheet instead of Pinterest's in-app share sheet, when the matching Morphe setting is enabled."
         }
       ],
       "versions": [
@@ -61064,7 +61240,8 @@
         "14.28.0",
         "14.29.0",
         "14.30.0",
-        "14.32.0"
+        "14.32.0",
+        "14.34.0"
       ],
       "iconColor": "#E60023",
       "iconUrl": "https://play-lh.googleusercontent.com/VExMwhu9Fe5kz72YnPWP6mHrNA5WfgZ-PJMnBnQmXFpLncTAOaaHtK4b8w7b2xxGxtqycDatYslVyNSLucl9QA"
@@ -63030,8 +63207,8 @@
       ],
       "patches": [
         "Disable tracking",
-        "Unlock Premium",
-        "Unlock premium"
+        "Unlock premium",
+        "Unlock Premium"
       ],
       "patchDetails": [
         {
@@ -63039,12 +63216,12 @@
           "description": "Disables analytics and crash reporting."
         },
         {
-          "name": "Unlock Premium",
-          "description": "Unlocks Projectivy Launcher Premium"
-        },
-        {
           "name": "Unlock premium",
           "description": "Unlocks all premium features."
+        },
+        {
+          "name": "Unlock Premium",
+          "description": "Unlocks Projectivy Launcher Premium"
         }
       ],
       "versions": [
@@ -68867,12 +69044,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.28.4 (2026-09-03)",
+            "title": "1.31.6 (2026-09-03)",
             "date": "2026-09-03",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**shadowfight:** fix dump file logging to shizuku-terminal"
+                "text": "**shadowfight:** direct holder chains without scanning"
               }
             ]
           },
@@ -68885,12 +69062,28 @@
           },
           "patches": [
             {
+              "name": "Shadow Fight 2 Crash Log",
+              "description": "Saves crash info to a file if the game crashes."
+            },
+            {
+              "name": "Shadow Fight 2 Crash Trigger",
+              "description": "Enables crash logging."
+            },
+            {
               "name": "Shadow Fight 2 Dump Trigger",
               "description": "Triggers ShadowDump via UnityPlayerActivity.onCreate"
             },
             {
               "name": "Shadow Fight 2 Runtime Dump",
               "description": "Dumps all Unity classes/fields with ObscuredInt to logcat and files. Use logcat -s ShadowDump or cat shizuku-terminal/shadowdump-log.txt"
+            },
+            {
+              "name": "Shadow Fight 2 Unlimited Values",
+              "description": "Sets in-game values to unlimited."
+            },
+            {
+              "name": "Shadow Fight 2 Values Trigger",
+              "description": "Enables unlimited values."
             }
           ],
           "versions": [
@@ -68899,10 +69092,22 @@
         }
       ],
       "patches": [
+        "Shadow Fight 2 Crash Log",
+        "Shadow Fight 2 Crash Trigger",
         "Shadow Fight 2 Dump Trigger",
-        "Shadow Fight 2 Runtime Dump"
+        "Shadow Fight 2 Runtime Dump",
+        "Shadow Fight 2 Unlimited Values",
+        "Shadow Fight 2 Values Trigger"
       ],
       "patchDetails": [
+        {
+          "name": "Shadow Fight 2 Crash Log",
+          "description": "Saves crash info to a file if the game crashes."
+        },
+        {
+          "name": "Shadow Fight 2 Crash Trigger",
+          "description": "Enables crash logging."
+        },
         {
           "name": "Shadow Fight 2 Dump Trigger",
           "description": "Triggers ShadowDump via UnityPlayerActivity.onCreate"
@@ -68910,6 +69115,14 @@
         {
           "name": "Shadow Fight 2 Runtime Dump",
           "description": "Dumps all Unity classes/fields with ObscuredInt to logcat and files. Use logcat -s ShadowDump or cat shizuku-terminal/shadowdump-log.txt"
+        },
+        {
+          "name": "Shadow Fight 2 Unlimited Values",
+          "description": "Sets in-game values to unlimited."
+        },
+        {
+          "name": "Shadow Fight 2 Values Trigger",
+          "description": "Enables unlimited values."
         }
       ],
       "versions": [
@@ -70131,12 +70344,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.28.4 (2026-09-03)",
+            "title": "1.31.6 (2026-09-03)",
             "date": "2026-09-03",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**shadowfight:** fix dump file logging to shizuku-terminal"
+                "text": "**shadowfight:** direct holder chains without scanning"
               }
             ]
           },
@@ -71183,16 +71396,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.12.1 (2026-09-02)",
-            "date": "2026-09-02",
+            "title": "1.13.0 (2026-09-03)",
+            "date": "2026-09-03",
             "items": [
               {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "**Citymapper:** support for 11.57.1"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "**Citymapper:** support for 11.57.2"
+                "category": "\u2728 New Features",
+                "text": "**Undercover:** Enable Premium"
               }
             ]
           },
@@ -72850,40 +73059,24 @@
           "changelogUrl": "https://raw.githubusercontent.com/AngelDark92/steamlink-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/AngelDark92.png?size=96",
           "latestChanges": {
-            "title": "1.11.0 (2026-09-01)",
-            "date": "2026-09-01",
+            "title": "1.13.0 (2026-09-03)",
+            "date": "2026-09-03",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "added newer experimental supposedly more efficient patch for single projection mode"
+                "text": "CPU overhead optimizations"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "compatibility with 2.0.20 build 5001740"
+                "text": "Merge pull request #50 from AngelDark92/dev"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "documentation for single projection experiment"
+                "text": "removed experimental patch"
               },
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Experimental Native Single Projection Renderer Hook"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "experiments not successful, new experiment based on VD"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "fix for three projection run"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "fixed CPU overhead and new experimental native single projection with Quad-View GPU patch"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "more experiments with resolution"
+                "category": "\u2728 New Features",
+                "text": "underside projection on XR_KHR_android_surface_swapchain experiment"
               }
             ]
           },
@@ -72897,7 +73090,7 @@
           "patches": [
             {
               "name": "Android XR native permission names",
-              "description": "Replaces native Oculus face/eye permission checks with the Android XR permission names used by Galaxy XR."
+              "description": "Replaces native Oculus face/eye permission checks with the Android XR permission names used by Galaxy XR, including the verified Steam Link 5001712 layout."
             },
             {
               "name": "Appear on top (legacy)",
@@ -72913,23 +73106,39 @@
             },
             {
               "name": "Device identity",
-              "description": "Overrides the HMD identity reported to SteamVR. The Galaxy profile installs its complete transport identity while preserving stock controller/hand routing and extensions."
+              "description": "Overrides the HMD identity reported to SteamVR. Recommended selects Meta Quest Pro for exact legacy bundle targets through 5002244, including 2.0.20/5001712; otherwise Galaxy XR. The Galaxy profile installs its complete transport identity while preserving stock controller/hand routing and extensions."
             },
             {
               "name": "Force HMD initialization gates",
-              "description": "Bypasses the two verified capability gates in QSVLDeviceHmd::Init for Steam Link builds 5001740, 5002244, and 5002313."
+              "description": "Bypasses the two verified capability gates in QSVLDeviceHmd::Init for Steam Link builds 5001712, 5001740, 5002244, and 5002313."
             },
             {
               "name": "Force lobby permission-state gate",
-              "description": "Bypasses the verified permission-state gate in XrSceneLobby for Steam Link builds 5001740, 5002244, and 5002313."
+              "description": "Bypasses the verified permission-state gate in XrSceneLobby for Steam Link builds 5001712, 5001740, 5002244, and 5002313."
             },
             {
               "name": "Force stream XR gates",
-              "description": "Bypasses the three verified XR gates in builds 5001740 and 5002244. Build 5002313 rewrote XrSceneStream::Init and is intentionally left unchanged."
+              "description": "Bypasses the three verified XR gates in builds 5001712, 5001740, and 5002244. Build 5002313 rewrote XrSceneStream::Init and is intentionally left unchanged."
             },
             {
               "name": "Galaxy XR high-resolution 3-projection fix",
-              "description": "Recommended 5002322-only permission-free resolution fix. Preserves Valve's native 3 projections and source formats, including future RGB10_A2, while appending a static 2x2 Android-surface compositor trigger with no image copy or reconstruction."
+              "description": "Permission-free resolution fix for exact builds 5001712, 5002244, 5002296, 5002313, 5002318, and 5002322. Preserves each build's native projection layout (2 layers on 2.0.20/5001712; 3 layers on supported 2.0.22 builds) and source formats, including future RGB10_A2, while appending a static 2x2 Android-surface compositor trigger with no image copy or reconstruction."
+            },
+            {
+              "name": "Galaxy XR legacy foundation (through 2.0.22/5002244)",
+              "description": "Selects the 16-patch Galaxy XR legacy set, including Meta Quest Pro identity, native gates, face bridge, OLED calibration, microphone, battery, Visual Delay, and XR foundation. High-resolution output is guarded to verified layouts; unavailable on 5001740, 5002172, and 5002206."
+            },
+            {
+              "name": "Galaxy XR recommended set (2.0.20/5001712)",
+              "description": "Applies the 16-patch Galaxy XR legacy set for exact Steam Link 2.0.20 build 5001712, including Meta Quest Pro identity, permission-free high resolution, and the Final balanced tested OLED profile."
+            },
+            {
+              "name": "Galaxy XR recommended set (2.0.22/5002318)",
+              "description": "Applies the existing native-Android-XR-safe Galaxy XR patch set for exact Steam Link 2.0.22 build 5002318."
+            },
+            {
+              "name": "Galaxy XR recommended set (2.0.22/5002322)",
+              "description": "Applies the validated permission-free Galaxy XR patch set for exact Steam Link 2.0.22 build 5002322, including the Final balanced tested OLED profile."
             },
             {
               "name": "GXR face bridge",
@@ -72941,19 +73150,15 @@
             },
             {
               "name": "OLED color calibration",
-              "description": "Calibrates Galaxy XR OLED color and selects a guarded high-precision video output path for Steam Link builds 5001740, 5002244, 5002313, 5002318, and 5002322."
+              "description": "Calibrates Galaxy XR OLED color and selects a guarded high-precision video output path for Steam Link builds 5001712, 5001740, 5002244, 5002313, 5002318, and 5002322."
             },
             {
               "name": "Unrestricted battery usage",
               "description": "Opens Android's per-app Battery usage page at startup so Unrestricted can be selected for XR streaming."
             },
             {
-              "name": "Video dither",
-              "description": "Enables or disables VRLink video dithering, including the highp sRGB8 fallback and experimental RGB10_A2 shader variants."
-            },
-            {
               "name": "Visual Delay Fix",
-              "description": "Adds a configurable offset to the HMD OpenXR pose-query time and zeroes all six exported HMD velocity fields. Does not affect controller paths."
+              "description": "Adds a configurable offset to the HMD OpenXR pose-query time and zeroes all six exported HMD velocity fields. Does not affect controller paths. Its trampoline uses a dedicated executable mapping over non-runtime ELF comment bytes and preserves live PLT entries."
             },
             {
               "name": "XR Core Runtime",
@@ -72992,11 +73197,14 @@
         "Force lobby permission-state gate",
         "Force stream XR gates",
         "Galaxy XR high-resolution 3-projection fix",
+        "Galaxy XR legacy foundation (through 2.0.22/5002244)",
+        "Galaxy XR recommended set (2.0.20/5001712)",
+        "Galaxy XR recommended set (2.0.22/5002318)",
+        "Galaxy XR recommended set (2.0.22/5002322)",
         "GXR face bridge",
         "Microphone input preset",
         "OLED color calibration",
         "Unrestricted battery usage",
-        "Video dither",
         "Visual Delay Fix",
         "XR Core Runtime",
         "XR Device Config Baseline",
@@ -73007,7 +73215,7 @@
       "patchDetails": [
         {
           "name": "Android XR native permission names",
-          "description": "Replaces native Oculus face/eye permission checks with the Android XR permission names used by Galaxy XR."
+          "description": "Replaces native Oculus face/eye permission checks with the Android XR permission names used by Galaxy XR, including the verified Steam Link 5001712 layout."
         },
         {
           "name": "Appear on top (legacy)",
@@ -73023,23 +73231,39 @@
         },
         {
           "name": "Device identity",
-          "description": "Overrides the HMD identity reported to SteamVR. The Galaxy profile installs its complete transport identity while preserving stock controller/hand routing and extensions."
+          "description": "Overrides the HMD identity reported to SteamVR. Recommended selects Meta Quest Pro for exact legacy bundle targets through 5002244, including 2.0.20/5001712; otherwise Galaxy XR. The Galaxy profile installs its complete transport identity while preserving stock controller/hand routing and extensions."
         },
         {
           "name": "Force HMD initialization gates",
-          "description": "Bypasses the two verified capability gates in QSVLDeviceHmd::Init for Steam Link builds 5001740, 5002244, and 5002313."
+          "description": "Bypasses the two verified capability gates in QSVLDeviceHmd::Init for Steam Link builds 5001712, 5001740, 5002244, and 5002313."
         },
         {
           "name": "Force lobby permission-state gate",
-          "description": "Bypasses the verified permission-state gate in XrSceneLobby for Steam Link builds 5001740, 5002244, and 5002313."
+          "description": "Bypasses the verified permission-state gate in XrSceneLobby for Steam Link builds 5001712, 5001740, 5002244, and 5002313."
         },
         {
           "name": "Force stream XR gates",
-          "description": "Bypasses the three verified XR gates in builds 5001740 and 5002244. Build 5002313 rewrote XrSceneStream::Init and is intentionally left unchanged."
+          "description": "Bypasses the three verified XR gates in builds 5001712, 5001740, and 5002244. Build 5002313 rewrote XrSceneStream::Init and is intentionally left unchanged."
         },
         {
           "name": "Galaxy XR high-resolution 3-projection fix",
-          "description": "Recommended 5002322-only permission-free resolution fix. Preserves Valve's native 3 projections and source formats, including future RGB10_A2, while appending a static 2x2 Android-surface compositor trigger with no image copy or reconstruction."
+          "description": "Permission-free resolution fix for exact builds 5001712, 5002244, 5002296, 5002313, 5002318, and 5002322. Preserves each build's native projection layout (2 layers on 2.0.20/5001712; 3 layers on supported 2.0.22 builds) and source formats, including future RGB10_A2, while appending a static 2x2 Android-surface compositor trigger with no image copy or reconstruction."
+        },
+        {
+          "name": "Galaxy XR legacy foundation (through 2.0.22/5002244)",
+          "description": "Selects the 16-patch Galaxy XR legacy set, including Meta Quest Pro identity, native gates, face bridge, OLED calibration, microphone, battery, Visual Delay, and XR foundation. High-resolution output is guarded to verified layouts; unavailable on 5001740, 5002172, and 5002206."
+        },
+        {
+          "name": "Galaxy XR recommended set (2.0.20/5001712)",
+          "description": "Applies the 16-patch Galaxy XR legacy set for exact Steam Link 2.0.20 build 5001712, including Meta Quest Pro identity, permission-free high resolution, and the Final balanced tested OLED profile."
+        },
+        {
+          "name": "Galaxy XR recommended set (2.0.22/5002318)",
+          "description": "Applies the existing native-Android-XR-safe Galaxy XR patch set for exact Steam Link 2.0.22 build 5002318."
+        },
+        {
+          "name": "Galaxy XR recommended set (2.0.22/5002322)",
+          "description": "Applies the validated permission-free Galaxy XR patch set for exact Steam Link 2.0.22 build 5002322, including the Final balanced tested OLED profile."
         },
         {
           "name": "GXR face bridge",
@@ -73051,19 +73275,15 @@
         },
         {
           "name": "OLED color calibration",
-          "description": "Calibrates Galaxy XR OLED color and selects a guarded high-precision video output path for Steam Link builds 5001740, 5002244, 5002313, 5002318, and 5002322."
+          "description": "Calibrates Galaxy XR OLED color and selects a guarded high-precision video output path for Steam Link builds 5001712, 5001740, 5002244, 5002313, 5002318, and 5002322."
         },
         {
           "name": "Unrestricted battery usage",
           "description": "Opens Android's per-app Battery usage page at startup so Unrestricted can be selected for XR streaming."
         },
         {
-          "name": "Video dither",
-          "description": "Enables or disables VRLink video dithering, including the highp sRGB8 fallback and experimental RGB10_A2 shader variants."
-        },
-        {
           "name": "Visual Delay Fix",
-          "description": "Adds a configurable offset to the HMD OpenXR pose-query time and zeroes all six exported HMD velocity fields. Does not affect controller paths."
+          "description": "Adds a configurable offset to the HMD OpenXR pose-query time and zeroes all six exported HMD velocity fields. Does not affect controller paths. Its trampoline uses a dedicated executable mapping over non-runtime ELF comment bytes and preserves live PLT entries."
         },
         {
           "name": "XR Core Runtime",
@@ -73907,16 +74127,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.12.1 (2026-09-02)",
-            "date": "2026-09-02",
+            "title": "1.13.0 (2026-09-03)",
+            "date": "2026-09-03",
             "items": [
               {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "**Citymapper:** support for 11.57.1"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "**Citymapper:** support for 11.57.2"
+                "category": "\u2728 New Features",
+                "text": "**Undercover:** Enable Premium"
               }
             ]
           },
@@ -74612,18 +74828,18 @@
         }
       ],
       "patches": [
-        "Unlock Premium",
         "Unlock premium",
+        "Unlock Premium",
         "Unlock Symfonium"
       ],
       "patchDetails": [
         {
-          "name": "Unlock Premium",
-          "description": "Turns on Symfonium's paid features. The build ships as a public beta with a built-in trial, so this also prevents the expired-beta screen. The license is checked locally and the unlock does not require an account. Connecting Plex, Jellyfin and other media servers is untouched."
-        },
-        {
           "name": "Unlock premium",
           "description": "Unlocks all premium features."
+        },
+        {
+          "name": "Unlock Premium",
+          "description": "Turns on Symfonium's paid features. The build ships as a public beta with a built-in trial, so this also prevents the expired-beta screen. The license is checked locally and the unlock does not require an account. Connecting Plex, Jellyfin and other media servers is untouched."
         },
         {
           "name": "Unlock Symfonium",
@@ -75967,12 +76183,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.12.9 (2026-09-02)",
-            "date": "2026-09-02",
+            "title": "1.12.11 (2026-09-03)",
+            "date": "2026-09-03",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**wildberries:** support version 7.7.8001-rustore"
+                "text": "**tbank:** support version 8.2.1"
               }
             ]
           },
@@ -75997,7 +76213,8 @@
             "7.39.0",
             "7.40.1",
             "8.0.0",
-            "8.1.0"
+            "8.1.0",
+            "8.2.1"
           ]
         }
       ],
@@ -76019,7 +76236,8 @@
         "7.39.0",
         "7.40.1",
         "8.0.0",
-        "8.1.0"
+        "8.1.0",
+        "8.2.1"
       ],
       "iconColor": "#FFDD2D",
       "iconUrl": ""
@@ -78201,12 +78419,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.28.4 (2026-09-03)",
+            "title": "1.31.6 (2026-09-03)",
             "date": "2026-09-03",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**shadowfight:** fix dump file logging to shizuku-terminal"
+                "text": "**shadowfight:** direct holder chains without scanning"
               }
             ]
           },
@@ -80144,12 +80362,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.30.3 (2026-08-29)",
-            "date": "2026-08-29",
+            "title": "1.30.4 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**paramount:** harden ad-patch fingerprints; verify + support v16.19.0 (#142)"
+                "text": "**pluto:** detect VOD ads positively so un-DRM'd-content titles don't break (870e4f1), closes #144"
               }
             ]
           },
@@ -80231,12 +80449,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.30.3 (2026-08-29)",
-            "date": "2026-08-29",
+            "title": "1.30.4 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**paramount:** harden ad-patch fingerprints; verify + support v16.19.0 (#142)"
+                "text": "**pluto:** detect VOD ads positively so un-DRM'd-content titles don't break (870e4f1), closes #144"
               }
             ]
           },
@@ -80766,6 +80984,64 @@
       ],
       "iconColor": "",
       "iconUrl": "https://play-lh.googleusercontent.com/fU4VD3_e2lUW3SaQFK_s17TuDCUJ9u7dvIpcreZ86mSqPzrXDEYBXUlXUoouj0qZEmdmDqalDcz1DtEsnGeRxQ"
+    },
+    {
+      "packageName": "com.yanstarstudio.joss.undercover",
+      "name": "Undercover",
+      "repos": [
+        "cesbar/zpatches"
+      ],
+      "sources": [
+        {
+          "repo": "cesbar/zpatches",
+          "host": "github.com",
+          "webUrl": "https://github.com/cesbar/zpatches",
+          "addUrl": "https://morphe.software/add-source?github=cesbar/zpatches",
+          "source": "https://raw.githubusercontent.com/cesbar/zpatches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/cesbar.png?size=96",
+          "latestChanges": {
+            "title": "1.13.0 (2026-09-03)",
+            "date": "2026-09-03",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "**Undercover:** Enable Premium"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-yanstarstudio-joss-undercover-cesbar-zpatches",
+            "releaseTag": "app-com-yanstarstudio-joss-undercover-cesbar-zpatches",
+            "assetName": "undercover-cesbar-zpatches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Enable Premium",
+              "description": "Unlock Full Access Pack"
+            }
+          ],
+          "versions": [
+            "5.0.1"
+          ]
+        }
+      ],
+      "patches": [
+        "Enable Premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Enable Premium",
+          "description": "Unlock Full Access Pack"
+        }
+      ],
+      "versions": [
+        "5.0.1"
+      ],
+      "iconColor": "#B2FF4B",
+      "iconUrl": ""
     },
     {
       "packageName": "sensustech.universal.tv.remote.control",
@@ -81733,12 +82009,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kveld9.png?size=96",
           "latestChanges": {
-            "title": "1.11.0 (2026-09-02)",
-            "date": "2026-09-02",
+            "title": "1.12.0 (2026-09-03)",
+            "date": "2026-09-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**brave:** update patches for v1.94.119 and validate on physical arm64 device"
+                "text": "**vivaldi:** update patches for v8.2.4147.28 and align libchrome offsets"
               }
             ]
           },
@@ -81804,7 +82080,7 @@
             }
           ],
           "versions": [
-            "8.2.4145.4"
+            "8.2.4147.28"
           ]
         }
       ],
@@ -81878,7 +82154,7 @@
         }
       ],
       "versions": [
-        "8.2.4145.4"
+        "8.2.4147.28"
       ],
       "iconColor": "#EF3939",
       "iconUrl": ""
@@ -82502,16 +82778,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.12.1 (2026-09-02)",
-            "date": "2026-09-02",
+            "title": "1.13.0 (2026-09-03)",
+            "date": "2026-09-03",
             "items": [
               {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "**Citymapper:** support for 11.57.1"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "**Citymapper:** support for 11.57.2"
+                "category": "\u2728 New Features",
+                "text": "**Undercover:** Enable Premium"
               }
             ]
           },
@@ -83259,12 +83531,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.12.9 (2026-09-02)",
-            "date": "2026-09-02",
+            "title": "1.12.11 (2026-09-03)",
+            "date": "2026-09-03",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**wildberries:** support version 7.7.8001-rustore"
+                "text": "**tbank:** support version 8.2.1"
               }
             ]
           },
@@ -87160,8 +87432,8 @@
         "Save to Watch later",
         "Seekbar",
         "Seekbar components",
-        "Set Transcript Cookies",
         "Set transcript cookies",
+        "Set Transcript Cookies",
         "Settings for YouTube",
         "Settings menu filter",
         "Shorts autoplay",
@@ -87647,11 +87919,11 @@
           "description": "Adds options to hide or change components related to the seekbar."
         },
         {
-          "name": "Set Transcript Cookies",
+          "name": "Set transcript cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
-          "name": "Set transcript cookies",
+          "name": "Set Transcript Cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
@@ -89766,6 +90038,64 @@
       "iconUrl": "https://play-lh.googleusercontent.com/MyptZXmcCyF59phIWPsNCfHq6zSO_ojEdw_4rMYYWPOGdikSjqeOXcoszBZ053VYpINe5K7ZR9KV1nkFWgxdOw"
     },
     {
+      "packageName": "com.google.android.apps.youtube.creator",
+      "name": "YouTube Studio",
+      "repos": [
+        "HelioFloxZ/YouTube-Studio-Patches"
+      ],
+      "sources": [
+        {
+          "repo": "HelioFloxZ/YouTube-Studio-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/HelioFloxZ/YouTube-Studio-Patches",
+          "addUrl": "https://morphe.software/add-source?github=HelioFloxZ/YouTube-Studio-Patches",
+          "source": "https://raw.githubusercontent.com/HelioFloxZ/YouTube-Studio-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/HelioFloxZ/YouTube-Studio-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/HelioFloxZ.png?size=96",
+          "latestChanges": {
+            "title": "1.2.0 (2026-09-03)",
+            "date": "2026-09-03",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Fixed Issues in Constants.kt"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Added GmsCorePatch"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-google-android-apps-youtube-creator-heliofloxz-youtube-studio-patches",
+            "releaseTag": "app-com-google-android-apps-youtube-creator-heliofloxz-youtube-studio-patches",
+            "assetName": "youtube-studio-heliofloxz-youtube-studio-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "GmsCore support",
+              "description": "Adds MicroG support metadata for YouTube Studio."
+            }
+          ],
+          "versions": []
+        }
+      ],
+      "patches": [
+        "GmsCore support"
+      ],
+      "patchDetails": [
+        {
+          "name": "GmsCore support",
+          "description": "Adds MicroG support metadata for YouTube Studio."
+        }
+      ],
+      "versions": [],
+      "iconColor": "#FF0000",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.graymatrix.did",
       "name": "ZEE5 (Android TV)",
       "repos": [
@@ -90399,16 +90729,12 @@
       "avatarUrl": "https://github.com/cesbar.png?size=96",
       "patchCount": 1,
       "latestChanges": {
-        "title": "1.12.1 (2026-09-02)",
-        "date": "2026-09-02",
+        "title": "1.13.0 (2026-09-03)",
+        "date": "2026-09-03",
         "items": [
           {
-            "category": "\ud83d\ude80 Updated App Support",
-            "text": "**Citymapper:** support for 11.57.1"
-          },
-          {
-            "category": "\ud83d\ude80 Updated App Support",
-            "text": "**Citymapper:** support for 11.57.2"
+            "category": "\u2728 New Features",
+            "text": "**Undercover:** Enable Premium"
           }
         ]
       },
@@ -91284,14 +91610,14 @@
       "source": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/patches-bundle.json",
       "changelogUrl": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/CHANGELOG.md",
       "avatarUrl": "https://github.com/Nai64.png?size=96",
-      "patchCount": 333,
+      "patchCount": 334,
       "latestChanges": {
-        "title": "1.42.0 (2026-09-01)",
-        "date": "2026-09-01",
+        "title": "1.43.1 (2026-09-03)",
+        "date": "2026-09-03",
         "items": [
           {
-            "category": "New Features",
-            "text": "more console logs for ad free rewards patch"
+            "category": "Bug Fixes",
+            "text": "cover React Native AsyncStorage and billing bridges in unlock premium"
           }
         ]
       },
@@ -91534,6 +91860,11 @@
         {
           "name": "Custom Startup Dialog",
           "description": "Shows a customizable dialog once when the app is opened",
+          "default": false
+        },
+        {
+          "name": "Custom Startup Sound",
+          "description": "Plays a custom sound once when the app starts.",
           "default": false
         },
         {
@@ -92037,11 +92368,6 @@
           "default": false
         },
         {
-          "name": "Fake Play Store Install Source",
-          "description": "Fakes the install source.",
-          "default": false
-        },
-        {
           "name": "Fake Pointer Location",
           "description": "Reports pointer location as disabled via Settings so apps that check it stop doing so.",
           "default": false
@@ -92069,6 +92395,11 @@
         {
           "name": "Fake Storage Available",
           "description": "Reports a chosen amount of free storage through StatFs so apps that refuse to run or nag when storage is low stop doing so.",
+          "default": false
+        },
+        {
+          "name": "Fake Store Install Source",
+          "description": "Fakes the install source.",
           "default": false
         },
         {
@@ -93634,12 +93965,12 @@
       "avatarUrl": "https://github.com/xob0t.png?size=96",
       "patchCount": 13,
       "latestChanges": {
-        "title": "1.12.9 (2026-09-02)",
-        "date": "2026-09-02",
+        "title": "1.12.11 (2026-09-03)",
+        "date": "2026-09-03",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**wildberries:** support version 7.7.8001-rustore"
+            "text": "**tbank:** support version 8.2.1"
           }
         ]
       },
@@ -93740,6 +94071,94 @@
     }
   ],
   "recentSources": [
+    {
+      "name": "letterboxd-morphe-patches",
+      "repo": "mvaishak/letterboxd-morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/mvaishak/letterboxd-morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/mvaishak/letterboxd-morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/mvaishak/letterboxd-morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/mvaishak/letterboxd-morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=mvaishak/letterboxd-morphe-patches",
+      "avatarUrl": "https://github.com/mvaishak.png?size=96",
+      "patchCount": 5,
+      "appCount": 1,
+      "createdAt": 1788491077150,
+      "updatedAt": 1788491077150,
+      "createdDate": "2026-09-04",
+      "updatedDate": "2026-09-04",
+      "latestChanges": {
+        "title": "1.4.0 (2026-09-02)",
+        "date": "2026-09-02",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Set Brighter Watched-by stars to default; drop Poster corner shape from README"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Accent option becomes a colour picker (any hex) (177e151), closes #1FE86A"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Add Brighter Watched-by stars patch and bottom-nav selected-style option"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Remove Poster corner shape patch; Brighter Watched-by stars on by default"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Letterboxd",
+          "packageName": "com.letterboxd.letterboxd",
+          "patchCount": 5,
+          "iconUrl": "https://play-lh.googleusercontent.com/2MmhfegR5NlTay7FQjgEfBR83-sBuGdyMVlNvpSKVmW3EjbI762_va69gxmoI0P5BfIGDWtlpXU7qYg_zxE2Kl0",
+          "iconColor": "#FF8000"
+        }
+      ]
+    },
+    {
+      "name": "YouTube-Studio-Patches",
+      "repo": "HelioFloxZ/YouTube-Studio-Patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/HelioFloxZ/YouTube-Studio-Patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/HelioFloxZ/YouTube-Studio-Patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/HelioFloxZ/YouTube-Studio-Patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/HelioFloxZ/YouTube-Studio-Patches",
+      "addUrl": "https://morphe.software/add-source?github=HelioFloxZ/YouTube-Studio-Patches",
+      "avatarUrl": "https://github.com/HelioFloxZ.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1788491069562,
+      "updatedAt": 1788491069562,
+      "createdDate": "2026-09-04",
+      "updatedDate": "2026-09-04",
+      "latestChanges": {
+        "title": "1.2.0 (2026-09-03)",
+        "date": "2026-09-03",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Fixed Issues in Constants.kt"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Added GmsCorePatch"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "YouTube Studio",
+          "packageName": "com.google.android.apps.youtube.creator",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF0000"
+        }
+      ]
+    },
     {
       "name": "dual-vot-patches",
       "repo": "sashade8-ship-it/dual-vot-patches",
@@ -94161,78 +94580,6 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/FUEOotGzxEZqItvGGov0YBiOhZBCACxCM6kF37OtpWrCG9H6EyxSeY2G8PDXQGueLxlxtL3Xr0fbkvXaQ67NLg",
           "iconColor": "#FF5C00"
-        }
-      ]
-    },
-    {
-      "name": "liongalahad-stremio-morphe-patches",
-      "repo": "liongalahad/liongalahad-stremio-morphe-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/liongalahad/liongalahad-stremio-morphe-patches/master/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/liongalahad/liongalahad-stremio-morphe-patches/master/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/liongalahad/liongalahad-stremio-morphe-patches/master/CHANGELOG.md",
-      "webUrl": "https://github.com/liongalahad/liongalahad-stremio-morphe-patches",
-      "addUrl": "https://morphe.software/add-source?github=liongalahad/liongalahad-stremio-morphe-patches",
-      "avatarUrl": "https://github.com/liongalahad.png?size=96",
-      "patchCount": 3,
-      "appCount": 1,
-      "createdAt": 1787815658866,
-      "updatedAt": 1787815658866,
-      "createdDate": "2026-08-27",
-      "updatedDate": "2026-08-27",
-      "latestChanges": {
-        "title": "1.0.0-dev.2 (2026-08-24)",
-        "date": "2026-08-24",
-        "items": [
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "publish Android-compatible patch bundles"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "Stremio Android TV",
-          "packageName": "com.stremio.one",
-          "patchCount": 3,
-          "iconUrl": "",
-          "iconColor": "#09090E"
-        }
-      ]
-    },
-    {
-      "name": "liongalahad-nuviotv-morphe-patches",
-      "repo": "liongalahad/liongalahad-nuviotv-morphe-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/liongalahad/liongalahad-nuviotv-morphe-patches/master/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/liongalahad/liongalahad-nuviotv-morphe-patches/master/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/liongalahad/liongalahad-nuviotv-morphe-patches/master/CHANGELOG.md",
-      "webUrl": "https://github.com/liongalahad/liongalahad-nuviotv-morphe-patches",
-      "addUrl": "https://morphe.software/add-source?github=liongalahad/liongalahad-nuviotv-morphe-patches",
-      "avatarUrl": "https://github.com/liongalahad.png?size=96",
-      "patchCount": 7,
-      "appCount": 1,
-      "createdAt": 1787815658705,
-      "updatedAt": 1787815658705,
-      "createdDate": "2026-08-27",
-      "updatedDate": "2026-08-27",
-      "latestChanges": {
-        "title": "1.0.0-dev.31 (2026-08-31)",
-        "date": "2026-08-31",
-        "items": [
-          {
-            "category": "\u2728 New Features",
-            "text": "add persistent random playback and disable in-app updates"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "NuvioTV",
-          "packageName": "com.nuvio.tv",
-          "patchCount": 7,
-          "iconUrl": "",
-          "iconColor": "#111827"
         }
       ]
     }
