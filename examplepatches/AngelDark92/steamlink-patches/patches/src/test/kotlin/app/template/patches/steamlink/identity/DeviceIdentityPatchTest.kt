@@ -7,6 +7,43 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class DeviceIdentityPatchTest {
+    @Test
+    fun `recommended identity uses Quest Pro only on exact legacy bundle targets`() {
+        assertEquals("recommended", deviceIdentityPatch.options["profile"].default)
+        listOf(
+            "2.0.20" to "5001712",
+            "2.0.20" to "5001740",
+            "2.0.22" to "5002172",
+            "2.0.22" to "5002206",
+            "2.0.22" to "5002244",
+        ).forEach { (version, code) ->
+            assertEquals("meta-quest-pro", resolveDeviceIdentityProfile("recommended", version, code))
+        }
+        listOf(
+            "2.0.22" to "5002318",
+            "2.0.22" to "5002322",
+            "2.0.22" to "5002313",
+            "2.0.22" to "5002296",
+            "2.0.22" to "5001712",
+            "2.0.20" to "5002244",
+            "2.0.22" to "5002243",
+        ).forEach { (version, code) ->
+            assertEquals("samsung-galaxy-xr", resolveDeviceIdentityProfile("recommended", version, code))
+        }
+        // Resolving a legacy default cannot leak option state into the next native APK.
+        assertEquals("recommended", deviceIdentityPatch.options["profile"].default)
+    }
+
+    @Test
+    fun `explicit identity choices override automatic defaults without mutation`() {
+        listOf("samsung-galaxy-xr", "meta-quest-pro", "pico-4-pro", "stock-no-change").forEach { profile ->
+            listOf("2.0.20" to "5001712", "2.0.22" to "5002244", "2.0.22" to "5002318")
+                .forEach { (version, code) ->
+                    assertEquals(profile, resolveDeviceIdentityProfile(profile, version, code))
+                }
+        }
+    }
+
     private val stockNativeXr =
         """
         {

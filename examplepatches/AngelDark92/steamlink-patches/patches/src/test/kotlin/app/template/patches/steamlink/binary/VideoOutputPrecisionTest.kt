@@ -9,8 +9,24 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class VideoOutputPrecisionTest {
+    private data class Layout(
+        val versionName: String,
+        val versionCode: String,
+        val size: Int,
+        val offsets: IntArray,
+    )
+
+    private val layouts = listOf(
+        Layout("2.0.20", "5001712", VIDEO_LIBRARY_SIZE_5001712, SWAPCHAIN_FORMAT_OFFSETS_5001712),
+        Layout("2.0.20", "5001740", VIDEO_LIBRARY_SIZE_5001740, SWAPCHAIN_FORMAT_OFFSETS_5001740),
+        Layout("2.0.22", "5002244", VIDEO_LIBRARY_SIZE_5002244, SWAPCHAIN_FORMAT_OFFSETS_5002244),
+        Layout("2.0.22", "5002313", VIDEO_LIBRARY_SIZE_5002313, SWAPCHAIN_FORMAT_OFFSETS_5002313),
+        Layout("2.0.22", "5002318", VIDEO_LIBRARY_SIZE_5002318, SWAPCHAIN_FORMAT_OFFSETS_5002318),
+        Layout("2.0.22", "5002322", VIDEO_LIBRARY_SIZE_5002322, SWAPCHAIN_FORMAT_OFFSETS_5002322),
+    )
+
     @Test
-    fun `srgb8 control shader is highp and uses 8-bit-scaled vector dither`() {
+    fun `srgb8 control shader is highp and retains disabled 8-bit-scaled vector dither`() {
         val shader = paddedVideoShader(1.06f, 1.12f, VideoOutputPrecision.SRGB8_HIGHP).ascii()
 
         assertTrue(shader.startsWith("#version 300 es\n"))
@@ -28,7 +44,7 @@ class VideoOutputPrecisionTest {
     }
 
     @Test
-    fun `rgb10 shader applies eotf and uses 10-bit-scaled dither`() {
+    fun `rgb10 shader applies eotf and retains disabled 10-bit-scaled dither`() {
         val shader = paddedVideoShader(
             1.20f,
             1.45f,
@@ -72,36 +88,44 @@ class VideoOutputPrecisionTest {
     @Test
     fun `dither toggle preserves the selected output scale`() {
         VideoOutputPrecision.entries.forEach { precision ->
-            val enabled = paddedVideoShader(1.06f, 1.12f, precision)
-            val disabled = setDitherState(enabled, false)
-            val restored = setDitherState(disabled, true)
+            val disabled = paddedVideoShader(1.06f, 1.12f, precision)
+            val enabled = setDitherState(disabled, true)
+            val restored = setDitherState(enabled, false)
 
             assertTrue(disabled.ascii().contains("const float DITHER_ENABLE=0.;"))
-            assertContentEquals(enabled, restored)
+            assertTrue(enabled.ascii().contains("const float DITHER_ENABLE=1.;"))
+            assertContentEquals(disabled, restored)
         }
     }
 
     @Test
     fun `swapchain format patch supports all verified layouts and is reversible`() {
-        listOf(
-            VIDEO_LIBRARY_SIZE_5001740 to SWAPCHAIN_FORMAT_OFFSETS_5001740,
-            VIDEO_LIBRARY_SIZE_5002244 to SWAPCHAIN_FORMAT_OFFSETS_5002244,
-            VIDEO_LIBRARY_SIZE_5002313 to SWAPCHAIN_FORMAT_OFFSETS_5002313,
-            VIDEO_LIBRARY_SIZE_5002318 to SWAPCHAIN_FORMAT_OFFSETS_5002318,
-            VIDEO_LIBRARY_SIZE_5002322 to SWAPCHAIN_FORMAT_OFFSETS_5002322,
-        ).forEach { (size, offsets) ->
-            val srgb = syntheticLibrary(size, offsets)
-            val rgb10 = setProjectionSwapchainFormat(srgb, VideoOutputPrecision.RGB10_A2_EXPERIMENTAL)
+        layouts.forEach { layout ->
+            val srgb = syntheticLibrary(layout.size, layout.offsets)
+            val rgb10 = setProjectionSwapchainFormat(
+                srgb,
+                VideoOutputPrecision.RGB10_A2_EXPERIMENTAL,
+                layout.versionName,
+                layout.versionCode,
+            )
 
-            offsets.forEach { offset ->
+            layout.offsets.forEach { offset ->
                 assertContentEquals(
                     byteArrayOf(0x29, 0x0b, 0x90.toByte(), 0x52),
                     rgb10.copyOfRange(offset, offset + 4),
                 )
             }
             val changedOffsets = srgb.indices.filter { srgb[it] != rgb10[it] }
-            assertEquals(offsets.size * 3, changedOffsets.size)
-            assertContentEquals(srgb, setProjectionSwapchainFormat(rgb10, VideoOutputPrecision.SRGB8_HIGHP))
+            assertEquals(layout.offsets.size * 3, changedOffsets.size)
+            assertContentEquals(
+                srgb,
+                setProjectionSwapchainFormat(
+                    rgb10,
+                    VideoOutputPrecision.SRGB8_HIGHP,
+                    layout.versionName,
+                    layout.versionCode,
+                ),
+            )
         }
     }
 
@@ -112,14 +136,38 @@ class VideoOutputPrecisionTest {
             .copyInto(mixed, SWAPCHAIN_FORMAT_OFFSETS_5002244.first())
 
         assertFailsWith<PatchException> {
-            setProjectionSwapchainFormat(mixed, VideoOutputPrecision.RGB10_A2_EXPERIMENTAL)
+            setProjectionSwapchainFormat(
+                mixed,
+                VideoOutputPrecision.RGB10_A2_EXPERIMENTAL,
+                "2.0.22",
+                "5002244",
+            )
         }
     }
 
     @Test
-    fun `swapchain format patch rejects unknown layout`() {
+    fun `swapchain format patch leaves a wrong exact pair untouched`() {
+        val input = syntheticLibrary()
+        assertContentEquals(
+            input,
+            setProjectionSwapchainFormat(
+                input,
+                VideoOutputPrecision.RGB10_A2_EXPERIMENTAL,
+                "2.0.20",
+                "5002244",
+            ),
+        )
+    }
+
+    @Test
+    fun `swapchain format patch rejects wrong size for a known exact pair`() {
         assertFailsWith<PatchException> {
-            setProjectionSwapchainFormat(ByteArray(1024), VideoOutputPrecision.SRGB8_HIGHP)
+            setProjectionSwapchainFormat(
+                ByteArray(1024),
+                VideoOutputPrecision.SRGB8_HIGHP,
+                "2.0.22",
+                "5002244",
+            )
         }
     }
 
@@ -129,7 +177,31 @@ class VideoOutputPrecisionTest {
             this[SWAPCHAIN_FORMAT_OFFSETS_5002244.first() - 1] = 0
         }
         assertFailsWith<PatchException> {
-            setProjectionSwapchainFormat(changedContext, VideoOutputPrecision.RGB10_A2_EXPERIMENTAL)
+            setProjectionSwapchainFormat(
+                changedContext,
+                VideoOutputPrecision.RGB10_A2_EXPERIMENTAL,
+                "2.0.22",
+                "5002244",
+            )
+        }
+    }
+
+    @Test
+    fun `swapchain format patch rejects an extra matching context`() {
+        val extraOffset = 0x100
+        val duplicated = syntheticLibrary().apply {
+            copyOfRange(
+                SWAPCHAIN_FORMAT_OFFSETS_5002244.first() - 16,
+                SWAPCHAIN_FORMAT_OFFSETS_5002244.first() + 16,
+            ).copyInto(this, extraOffset - 16)
+        }
+        assertFailsWith<PatchException> {
+            setProjectionSwapchainFormat(
+                duplicated,
+                VideoOutputPrecision.RGB10_A2_EXPERIMENTAL,
+                "2.0.22",
+                "5002244",
+            )
         }
     }
 
@@ -159,6 +231,7 @@ class VideoOutputPrecisionTest {
     private fun ByteArray.ascii() = toString(Charsets.US_ASCII)
 
     private fun assertShaderInterface(shader: String) {
+        assertTrue(shader.contains("const float DITHER_ENABLE=0.;"))
         assertTrue(shader.contains("layout(location=2) uniform highp samplerExternalOES tex0;"))
         assertFalse(shader.contains("layout(location=2) uniform samplerExternalOES tex0;"))
         assertTrue(shader.contains("layout(location=3) uniform float fFadeAmount;"))

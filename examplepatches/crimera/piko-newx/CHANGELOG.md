@@ -1,3 +1,33 @@
+# [12.22.0-prod.01-3a3fa60](https://github.com/crimera/piko-newx/releases/tag/12.22.0-prod.01-3a3fa60) (2026-09-03)
+
+### Commits
+* [`708a820`](https://github.com/crimera/piko/commit/708a820b56b44a06e4ab257b27ad54a3d1314865) feat(newx): reuse app image cache for media thumbnails
+* [`d006d98`](https://github.com/crimera/piko/commit/d006d985fb4f292e76a971920e7291dedb045cea) fix(newx): reserve parameter registers in cache bridge
+* [`ace36be`](https://github.com/crimera/piko/commit/ace36be891b402a285f8044b5c03a2aa1f5021f0) debug(newx): log media thumbnail loading state
+* [`a9bb154`](https://github.com/crimera/piko/commit/a9bb1546d87618e760e6a4c2d6ab4216c78314cc) refactor(newx): isolate Coil thumbnail cache bridge
+* [`c3fddd2`](https://github.com/crimera/piko/commit/c3fddd2ca39943d5312c21e9748fe662358cc63d) feat(newx): add configurable logging
+* [`c4897ba`](https://github.com/crimera/piko/commit/c4897ba51a5ef5ed8814f3074affd989b5d9cdb0) chore(newx): hide cache bridge dependency
+* [`3a3fa60`](https://github.com/crimera/piko/commit/3a3fa609f83d4d1a899748de32aa0a81be3c99d7) fix(newx): simplify inline settings
+
+# [12.22.0-prod.01-f384055](https://github.com/crimera/piko-newx/releases/tag/12.22.0-prod.01-f384055) (2026-09-03)
+
+### Commits
+* [`18b28ae`](https://github.com/crimera/piko/commit/18b28ae3ce9f8c35660af7a70ccc788f6837eef0) feat(newx): show media thumbnails in download picker
+* [`4e952a1`](https://github.com/crimera/piko/commit/4e952a1ca281fcd52c76c5df8f8447af730982c7) feat(newx): add thumbnail loading setting
+* [`f384055`](https://github.com/crimera/piko/commit/f384055ecec0e2e6447986a30ddf43cfaa2f835f) feat(newx): group inline download settings
+
+# [12.22.0-prod.01-b64d10b](https://github.com/crimera/piko-newx/releases/tag/12.22.0-prod.01-b64d10b) (2026-09-03)
+
+### Commits
+* [`9e07558`](https://github.com/crimera/piko/commit/9e0755891fb27d7aacb720d1b242aad023822640) feat(newx): add Grok button to customizable drawer items
+* [`b64d10b`](https://github.com/crimera/piko/commit/b64d10b74d150035129c92361f7ebd0895b3f63a) feat(newx): add theme toggle to customizable drawer items
+
+# [12.22.0-prod.01-1ea926c](https://github.com/crimera/piko-newx/releases/tag/12.22.0-prod.01-1ea926c) (2026-09-03)
+
+### Commits
+* [`09e359e`](https://github.com/crimera/piko/commit/09e359e87de37169916f2a213aca6ba20d554fab) fix(newx): reorder timeline scrolling and refresh settings
+* [`1ea926c`](https://github.com/crimera/piko/commit/1ea926cd17b8dab9888cc22917111d8ebf5ebeec) feat(newx): add compatibility for 12.22.0-prod.01
+
 # [12.22.0-beta.01-dfc8c56](https://github.com/crimera/piko-newx/releases/tag/12.22.0-beta.01-dfc8c56) (2026-09-01)
 
 ### Commits

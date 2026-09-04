@@ -119,6 +119,12 @@ EXPECTED = {
     'slot_available': 'Lqyc;->d()Z',
     'slot_clear': 'Lqyc;->c()V',
     'get_int': 'Lqhy;->b(Ljava/lang/String;I)I',
+    # Toolbar capacity. Both immediates the Bigger Toolbar patch rewrites, pinned at their stock
+    # values: if either has moved, the patch would either raise nothing or discard a capacity
+    # Gboard now ships of its own.
+    'toolbar_capacity_flag': 'config_max_access_points',
+    'toolbar_stock_flag_default': -1,
+    'toolbar_stock_ceiling': 8,
     'scrub_g_registers': 13,
     'scrub_r_registers': 13,
     'engine_ctor_registers': 11,
@@ -167,7 +173,7 @@ EXPECTED = {
     # the patch -- it reads the preference with whatever Gboard computed -- but it is the number the
     # settings slider displays while unset, so it has to stay true.
     'toolbar_stock_count': 5,
-    # ---- the native-registration path in ToolbarNativeTestPatch and ToolbarButtonsPatch
+    # ---- the native-registration path in ToolbarButtonsPatch
     #
     # The bar-controller's constructor is the hook site, so its register count is pinned. A bump
     # moves it and the insertion would write past the locals, which is invisible until the phone
@@ -208,11 +214,6 @@ EXPECTED = {
         ('Select all', 0x7f140576, 0x7f080218, 'M9,9h6v6L9,15L9,9z'),
         ('Copy', 0x7f140560, 0x7f080214, 'M19,21L8,21L8,7h11v14z'),
         ('Paste', 0x7f140570, 0x7f080217, 'M19,20L5,20L5,4h2v3h10L17,4h2v16z'),
-        # Toolbar Native Test ships, and its icon id was emitted with no pin of any kind while
-        # the three above were glyph-checked precisely because a renumbering still lands on
-        # something reading 'drawable/'. Its label is a Kotlin literal rather than a Gboard
-        # string, hence no label id -- the glyph is the whole of what there is to anchor.
-        ('Test', None, 0x7f0806fc, 'M19,9l1.25,-2.75L23,5'),
     ],
     # The generated builder's own words for the properties it refuses to build without. These are
     # string literals in the dex, which is why they are worth anchoring on: R8 renames the class,
@@ -225,14 +226,19 @@ EXPECTED = {
     # have to be in the array (else the read filter drops them) AND dormant in dex (else our
     # definition would clobber a real Gboard AP with the same id). One entry per registered
     # button, so a future bump that adds a real handler for one is caught here before it ships.
+    # The ids ToolbarButtonsPatch registers. These are Flexboard's own now, admitted into the
+    # allowed-set array by toolbarIdAdmissionPatch, so unlike the dormant Gboard ids they replaced they
+    # are deliberately NOT in the stock array this file reads -- only the dormancy check below
+    # applies to them.
     'native_button_ids': [
-        # ToolbarButtonsPatch
-        'editor_info',
-        'undo_cooperative',
-        'muse_toggle_playground_ap',
-        # ToolbarNativeTestPatch (same id the dedicated check above fires off).
-        'flag_editor',
+        'flexboard_select_all',
+        'flexboard_copy',
+        'flexboard_paste',
     ],
+    # The stock id toolbarIdAdmissionPatch locates the allowed-set array by. Nothing registers against
+    # it; it just has to still be in the array, because the array's own name is obfuscated per
+    # build and its contents are the only stable way to find it.
+    'native_allowed_set_sentinel': 'editor_info',
     'buttons_oncreate_registers': 12,
     # The keycode Gboard wraps a Runnable in, and the dispatcher that runs it. Two other classes
     # test this keycode and decline it, so "something tests it" is not the check that matters.
@@ -1529,9 +1535,11 @@ def run(dl, apk=None):
                           tail_pc not in targets,
                           f'targets include the tail: {sorted(targets & {tail_pc})}')
 
-    # Each id the native path registers has to be dormant — nothing in Gboard's own dex should
-    # reference it. A future Gboard version adopting one of them as a real handler would collide
-    # silently at the registry — ours would clobber its entry in the controller's map.
+    # Each id the native path registers has to be unclaimed — nothing in Gboard's own dex should
+    # reference it. These are Flexboard-namespaced now, so this should hold trivially; it is kept
+    # because the consequence of a collision has not changed. A Gboard that ever shipped a real
+    # handler under one of these names would have ours clobber its entry in the controller's map,
+    # silently, and the check costs one dex walk.
     for dorm_id in E['native_button_ids']:
         id_refs = []
         for dex in dl:
@@ -1570,10 +1578,13 @@ def run(dl, apk=None):
             check('native: allowed-set array holds exactly the stock set',
                   len(members) == E['native_allowed_array_size'],
                   f'got {len(members)}, expected {E["native_allowed_array_size"]}')
-            for dorm_id in E['native_button_ids']:
-                check(f'native: {dorm_id!r} is in the toolbar allowed-set array',
-                      dorm_id in members,
-                      f'array has {len(members)} members; {dorm_id!r} not among them')
+            # Not the button ids: those are Flexboard's own and get spliced in by
+            # toolbarIdAdmissionPatch, so their absence from the stock array is the expected state.
+            # What has to be here is the sentinel the splice locates the array by.
+            sentinel = E['native_allowed_set_sentinel']
+            check(f'native: the allowed-set sentinel {sentinel!r} is in the array',
+                  sentinel in members,
+                  f'array has {len(members)} members; {sentinel!r} not among them')
         except Exception as exc:
             check('native: the toolbar allowed-set array is readable', False,
                   f'could not read from {apk}: {exc}')
@@ -1929,6 +1940,61 @@ def run(dl, apk=None):
             n2, a2 = ins[i + 2][1], ins[i + 2][2]
             check('grammar: stored through the flag factory',
                   n2 == 'invoke-static' and target in a2, f'{n2} {a2}')
+
+    # ---- toolbar capacity
+    #
+    # Bigger Toolbar rewrites two literals and inserts nothing: the flag's compiled-in default in
+    # <clinit>, and Gboard's own upper bound on it in the constructor. Both edits keep the
+    # instruction format, so no branch offset moves -- which is exactly why the pins have to cover
+    # the surrounding shape instead. A literal is not self-identifying, and rewriting the wrong 8
+    # would compile, verify and run.
+    bar = 'Lcom/google/android/libraries/inputmethod/accesspoint/widget/AccessPointsBar;'
+    factory = f"{B['flag_store']}->e(Ljava/lang/String;JLjava/lang/String;)Lnxp;"
+    accessor = f"{B['flag_box']}->g()Ljava/lang/Object;"
+
+    c, ins = body(dl, f'{bar}-><clinit>()V')
+    if check('toolbar: the bar clinit exists', ins is not None):
+        keys = [i for i, (_pc, n, a) in enumerate(ins)
+                if n.startswith('const-string') and E['toolbar_capacity_flag'] in (a or '')]
+        if check(f"toolbar: one {E['toolbar_capacity_flag']} in it", len(keys) == 1, str(len(keys))):
+            k = keys[0]
+            wide = [i for i in range(k + 1, len(ins)) if ins[i][1].startswith('const-wide')]
+            if check('toolbar: a wide default follows the flag name', bool(wide)):
+                di = wide[0]
+                lit = re.search(r'#(-?\d+)', ins[di][2] or '')
+                check('toolbar: the flag default is unset',
+                      lit is not None and int(lit.group(1)) == E['toolbar_stock_flag_default'],
+                      (ins[di][2] or '').strip())
+                gap = next((i - di - 1 for i in range(di + 1, len(ins))
+                            if factory in (ins[i][2] or '')), None)
+                check('toolbar: the default feeds the flag factory',
+                      gap is not None and 0 <= gap <= 3, str(gap))
+
+    ctor = f'{bar}-><init>(Landroid/content/Context;Landroid/util/AttributeSet;)V'
+    c, ins = body(dl, ctor)
+    if check('toolbar: the bar constructor exists', ins is not None):
+        reads = [i for i, (_pc, _n, a) in enumerate(ins) if accessor in (a or '')]
+        if check('toolbar: one capacity flag read in it', len(reads) == 1, str(len(reads))):
+            fr = reads[0]
+            writes = [i for i in range(fr, len(ins)) if ins[i][1] == 'iput']
+            if check('toolbar: the clamped value is stored to an int field', bool(writes)):
+                cw = writes[0]
+                ceil = [i for i in range(fr, cw)
+                        if (ins[i][2] or '').strip().endswith(f"#{E['toolbar_stock_ceiling']}")]
+                if check('toolbar: one stock ceiling between the read and the store',
+                         len(ceil) == 1, str(len(ceil))):
+                    ci = ceil[0]
+                    check('toolbar: the ceiling is what the flag is tested against',
+                          ins[ci + 1][1] == 'if-gt', ins[ci + 1][1])
+                    cr = regs(ins[ci][2])
+                    cmp_regs = regs(ins[ci + 1][2])
+                    check('toolbar: the test compares the register the ceiling was loaded into',
+                          len(cr) == 1 and len(cmp_regs) == 2 and cmp_regs[1] == cr[0],
+                          f'{cr} vs {cmp_regs}')
+                    # The patch deliberately leaves the lower bound alone -- its register is reused
+                    # further down as the getDimension index -- so its survival is a precondition.
+                    check('toolbar: the lower bound is still tested',
+                          ins[ci + 2][1] == 'if-lt', ins[ci + 2][1])
 
     # ---- vibration
     #

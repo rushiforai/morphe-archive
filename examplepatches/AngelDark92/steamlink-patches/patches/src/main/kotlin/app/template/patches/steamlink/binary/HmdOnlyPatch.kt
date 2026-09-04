@@ -134,8 +134,22 @@ private val HMD_LAYOUTS = listOf(
     ),
 )
 
-private val NOP = byteArrayOf(0x1f, 0x20, 0x03, 0xd5.toByte())
-private val BR_X17 = byteArrayOf(0x20, 0x02, 0x1f, 0xd6.toByte())
+private const val PT_LOAD = 1
+private const val PT_NOTE = 4
+private const val PF_X = 1
+private const val PF_R = 4
+private const val SHF_ALLOC = 2L
+
+private data class TrampolineCave(
+    val fileOffset: Int,
+    val vaddr: Long,
+    val programHeaderOffset: Int,
+    val alreadyMapped: Boolean,
+    val mapFileOffset: Long,
+    val mapVaddr: Long,
+    val mapSize: Long,
+    val mapAlignment: Long,
+)
 
 private fun buildTrampolineBody(offsetMs: Long): ByteArray {
     // Encode offsetMs as nanoseconds (ms * 1e6), split across MOVZ (bits 0-15) + MOVK lsl#16 (bits 16-31)
@@ -160,25 +174,95 @@ private fun buildBranch(pc: Long, target: Long): ByteArray {
     return ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(insn).array()
 }
 
-// Find the last 32 bytes of the first PT_LOAD segment (two PLT entries = code cave).
-private fun findPltCave(bytes: ByteArray): Pair<Int, Long> {
-    val phoff  = bytes.readU32LE(32)
-    val phesz  = bytes.readU16LE(54)
-    val phnum  = bytes.readU16LE(56)
-    for (i in 0 until phnum) {
-        val base = phoff + i * phesz
-        if (bytes.readU32LE(base) != 1) continue           // PT_LOAD
-        if (bytes.readU64LE(base + 8) != 0L) continue      // first LOAD at fileoff=0
-        val vaddr   = bytes.readU64LE(base + 16)
-        val filesz  = bytes.readU64LE(base + 32).toInt()
-        val caveOff = filesz - 32
-        val caveVa  = vaddr + (filesz - 32).toLong()
-        if (caveOff < 0 || caveOff + 32 > bytes.size) {
-            throw PatchException("Invalid PLT cave range at 0x${caveOff.toString(16)}")
-        }
-        return Pair(caveOff, caveVa)
+// Map the non-runtime .comment payload through the otherwise redundant PT_NOTE header. The note
+// bytes are already covered by the first PT_LOAD; repurposing PT_NOTE preserves every live PLT
+// entry and keeps the file size and all existing segment/section offsets unchanged.
+private fun findTrampolineCave(bytes: ByteArray, trampolineSize: Int): TrampolineCave {
+    val phoff = bytes.readU64LE(32).toInt()
+    val phesz = bytes.readU16LE(54)
+    val phnum = bytes.readU16LE(56)
+    val shoff = bytes.readU64LE(40).toInt()
+    val shesz = bytes.readU16LE(58)
+    val shnum = bytes.readU16LE(60)
+    val shstrndx = bytes.readU16LE(62)
+    if (phoff <= 0 || phesz < 56 || shoff <= 0 || shesz < 64 || shstrndx !in 1 until shnum) {
+        throw PatchException("Unsupported ELF header layout for Visual Delay trampoline")
     }
-    throw PatchException("No executable PT_LOAD segment found in ELF")
+
+    val shstr = shoff + shstrndx * shesz
+    val shstrOffset = bytes.readU64LE(shstr + 24).toInt()
+    val shstrSize = bytes.readU64LE(shstr + 32).toInt()
+    val comment = (1 until shnum).map { shoff + it * shesz }.singleOrNull { section ->
+        val nameOffset = bytes.readU32LE(section)
+        bytes.readCString(shstrOffset + nameOffset, shstrOffset + shstrSize) == ".comment"
+    } ?: throw PatchException("Missing unique .comment section for Visual Delay trampoline")
+    val commentFlags = bytes.readU64LE(comment + 8)
+    val commentOffset = bytes.readU64LE(comment + 24).toInt()
+    val commentSize = bytes.readU64LE(comment + 32).toInt()
+    if ((commentFlags and SHF_ALLOC) != 0L || commentSize < trampolineSize ||
+        commentOffset < 0 || commentOffset + trampolineSize > bytes.size
+    ) {
+        throw PatchException("Unsafe .comment section layout for Visual Delay trampoline")
+    }
+
+    val programHeaders = (0 until phnum).map { phoff + it * phesz }
+    val loadHeaders = programHeaders.filter { bytes.readU32LE(it) == PT_LOAD }
+    val mapAlignment = loadHeaders.maxOfOrNull { bytes.readU64LE(it + 48) }
+        ?: throw PatchException("Missing PT_LOAD headers for Visual Delay trampoline")
+    if (mapAlignment < 0x1000L || (mapAlignment and (mapAlignment - 1)) != 0L) {
+        throw PatchException("Invalid PT_LOAD alignment 0x${mapAlignment.toString(16)}")
+    }
+    val mapFileOffset = commentOffset.toLong() and -mapAlignment
+    val caveDelta = commentOffset.toLong() - mapFileOffset
+    val mapSize = caveDelta + trampolineSize
+    val existingLoad = programHeaders.singleOrNull { header ->
+        bytes.readU32LE(header) == PT_LOAD &&
+            bytes.readU32LE(header + 4) == (PF_R or PF_X) &&
+            bytes.readU64LE(header + 8) == mapFileOffset &&
+            bytes.readU64LE(header + 32) >= mapSize
+    }
+    if (existingLoad != null) {
+        val mapVaddr = bytes.readU64LE(existingLoad + 16)
+        return TrampolineCave(
+            commentOffset,
+            mapVaddr + caveDelta,
+            existingLoad,
+            true,
+            mapFileOffset,
+            mapVaddr,
+            mapSize,
+            mapAlignment,
+        )
+    }
+
+    val noteHeader = programHeaders.singleOrNull { bytes.readU32LE(it) == PT_NOTE }
+        ?: throw PatchException("Missing unique PT_NOTE header for Visual Delay trampoline")
+    val maxLoadEnd = loadHeaders.maxOf { header ->
+        bytes.readU64LE(header + 16) + bytes.readU64LE(header + 40)
+    }
+    val mapVaddr = (maxLoadEnd + mapAlignment - 1) and -mapAlignment
+    return TrampolineCave(
+        commentOffset,
+        mapVaddr + caveDelta,
+        noteHeader,
+        false,
+        mapFileOffset,
+        mapVaddr,
+        mapSize,
+        mapAlignment,
+    )
+}
+
+private fun installTrampolineLoad(bytes: ByteArray, cave: TrampolineCave) {
+    val header = cave.programHeaderOffset
+    bytes.writeU32LE(header, PT_LOAD)
+    bytes.writeU32LE(header + 4, PF_R or PF_X)
+    bytes.writeU64LE(header + 8, cave.mapFileOffset)
+    bytes.writeU64LE(header + 16, cave.mapVaddr)
+    bytes.writeU64LE(header + 24, cave.mapVaddr)
+    bytes.writeU64LE(header + 32, cave.mapSize)
+    bytes.writeU64LE(header + 40, cave.mapSize)
+    bytes.writeU64LE(header + 48, cave.mapAlignment)
 }
 
 private fun strWzrX19(byteOffset: Int): ByteArray {
@@ -216,9 +300,11 @@ internal fun patchVisualDelay(bytes: ByteArray, offsetMs: Long): ByteArray {
     val mutable = bytes.copyOf()
     val layout = HMD_LAYOUTS.singleOrNull { it.fileSize == mutable.size } ?: return mutable
 
-    val (caveOff, caveVa) = findPltCave(mutable)
+    val cave = findTrampolineCave(mutable, 20)
+    val caveOff = cave.fileOffset
+    val caveVa = cave.vaddr
     val trampoline = ORIG_HOOK + buildTrampolineBody(offsetMs) +
-        buildBranch(caveVa + 16, layout.hookVaddr + 4) + NOP + NOP + NOP
+        buildBranch(caveVa + 16, layout.hookVaddr + 4)
     val patchedHook = buildBranch(layout.hookVaddr, caveVa)
     val hookOffset = vaddrToFileOffset(mutable, layout.hookVaddr, ORIG_HOOK.size)
     val hookActual = mutable.sliceArray(hookOffset until hookOffset + ORIG_HOOK.size)
@@ -228,6 +314,7 @@ internal fun patchVisualDelay(bytes: ByteArray, offsetMs: Long): ByteArray {
 
     val alreadyPatched = hookActual.contentEquals(patchedHook) &&
         caveActual.contentEquals(trampoline) &&
+        cave.alreadyMapped &&
         velocityWords.indices.all { isPatchedVelocity(velocityWords[it], layout.velocityPatches[it]) }
     if (alreadyPatched) return mutable
 
@@ -239,13 +326,9 @@ internal fun patchVisualDelay(bytes: ByteArray, offsetMs: Long): ByteArray {
         )
     }
 
-    val originalCave =
-        caveActual.sliceArray(12 until 16).contentEquals(BR_X17) &&
-            caveActual.sliceArray(28 until 32).contentEquals(BR_X17)
-    if (!originalCave) {
+    if (cave.alreadyMapped) {
         throw PatchException(
-            "Visual Delay trampoline cave precondition failed at 0x${caveOff.toString(16)}: " +
-                caveActual.toHex()
+            "Visual Delay injected-load precondition failed at 0x${caveOff.toString(16)}"
         )
     }
 
@@ -266,6 +349,7 @@ internal fun patchVisualDelay(bytes: ByteArray, offsetMs: Long): ByteArray {
     }
 
     trampoline.copyInto(mutable, caveOff)
+    installTrampolineLoad(mutable, cave)
     patchedHook.copyInto(mutable, hookOffset)
     for (i in velocityOffsets.indices) {
         replacementFor(layout.velocityPatches[i]).copyInto(mutable, velocityOffsets[i])
@@ -276,8 +360,10 @@ internal fun patchVisualDelay(bytes: ByteArray, offsetMs: Long): ByteArray {
 @Suppress("unused")
 val hmdOnlyPatch = rawResourcePatch(
     name = "Visual Delay Fix",
-    description = "Adds a configurable offset to the HMD OpenXR pose-query time and zeroes all six exported HMD velocity fields. Does not affect controller paths.",
-    default = true,
+    description = "Adds a configurable offset to the HMD OpenXR pose-query time and zeroes all six " +
+        "exported HMD velocity fields. Does not affect controller paths. Its trampoline uses a " +
+        "dedicated executable mapping over non-runtime ELF comment bytes and preserves live PLT entries.",
+    default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK.toTypedArray())
 
@@ -316,5 +402,20 @@ private fun ByteArray.readU32LE(off: Int): Int =
 private fun ByteArray.readU64LE(off: Int): Long =
     (readU32LE(off).toLong() and 0xFFFFFFFFL) or
     ((readU32LE(off + 4).toLong() and 0xFFFFFFFFL) shl 32)
+
+private fun ByteArray.writeU32LE(off: Int, value: Int) {
+    for (index in 0 until 4) this[off + index] = (value ushr (index * 8)).toByte()
+}
+
+private fun ByteArray.writeU64LE(off: Int, value: Long) {
+    for (index in 0 until 8) this[off + index] = (value ushr (index * 8)).toByte()
+}
+
+private fun ByteArray.readCString(start: Int, limit: Int): String {
+    if (start !in indices || limit !in 1..size || start >= limit) return ""
+    var end = start
+    while (end < limit && this[end] != 0.toByte()) end++
+    return copyOfRange(start, end).decodeToString()
+}
 
 private fun ByteArray.toHex() = joinToString("") { "%02x".format(it) }

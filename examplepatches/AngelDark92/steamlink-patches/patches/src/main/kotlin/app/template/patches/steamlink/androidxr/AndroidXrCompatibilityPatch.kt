@@ -4,6 +4,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_LEGACY
+import app.template.patches.shared.Constants.isLegacyXrFoundationSteamLinkBuild
 import app.template.patches.shared.Constants.isNativeXrSteamLinkBuild
 import app.template.patches.steamlink.binary.disablePermissionPromptNativePatch
 import org.w3c.dom.Document
@@ -19,6 +20,14 @@ private fun loadResource(name: String): ByteArray =
     (object {}.javaClass.getResourceAsStream("/steamlink/androidxr/$name")
         ?: error("Missing bundled resource: steamlink/androidxr/$name"))
         .use { it.readBytes() }
+
+private const val EMPTY_IDS_XML = """<?xml version="1.0" encoding="utf-8"?><resources/>"""
+
+private fun ensureIdsXml(file: File) {
+    if (file.exists()) return
+    file.parentFile!!.mkdirs()
+    file.writeText(EMPTY_IDS_XML)
+}
 
 /** Iterate a [NodeList] as a [Sequence]. */
 private fun NodeList.asSequence(): Sequence<org.w3c.dom.Node> = sequence {
@@ -59,13 +68,16 @@ internal fun removeDirectApplicationProperty(app: Element, name: String) {
 // Sub-patch 1: inject native bridge libraries
 // ---------------------------------------------------------------------------
 
-private val androidXrLibPatch = rawResourcePatch {
+private val androidXrLibPatch = resourcePatch {
     dependsOn(disablePermissionPromptNativePatch)
 
     execute {
-        // Native-XR builds own a complete Android XR path. Preserve their native permission
-        // routine, runtime loaders, and hand/controller config instead of installing the legacy bridge.
-        if (isNativeXrSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@execute
+        // Dependencies run without a compatibility re-check. Install the legacy bridge only on
+        // exact decoded layouts, including high-resolution-only build 5002296.
+        if (!isLegacyXrFoundationSteamLinkBuild(
+                packageMetadata.versionName,
+                packageMetadata.versionCode,
+            )) return@execute
 
         val libDir = get("lib/arm64-v8a/libvrlink_scene.so").parentFile!!
         // OpenXR runtime bridge native library for Galaxy XR platform integration
@@ -88,11 +100,7 @@ private val androidXrLibPatch = rawResourcePatch {
 
         // arslib ResourceIdProcessor requires ids.xml; APKs without <item type="id"> resources omit it.
         // "res/" paths resolve against the decoded package dir, not the raw apk root, so use get() directly.
-        val idsFile = get("res/values/ids.xml")
-        if (!idsFile.exists()) {
-            idsFile.parentFile!!.mkdirs()
-            idsFile.writeText("""<?xml version="1.0" encoding="utf-8"?><resources/>""")
-        }
+        ensureIdsXml(get("res/values/ids.xml"))
     }
 }
 
@@ -120,13 +128,55 @@ val xrDeviceConfigBaselinePatch = rawResourcePatch(
         // The legacy controller_config.json has neither, so replacing it disables native hands.
         if (isNativeXrSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@execute
 
-        get("assets/config/hmd_config.json").writeBytes(loadResource("hmd_config.json"))
+        get("assets/config/hmd_config.json").writeBytes(
+            adaptLegacyHmdConfigForBuild(
+                loadResource("hmd_config.json"),
+                packageMetadata.versionName,
+                packageMetadata.versionCode,
+            ),
+        )
         get("assets/config/controller_config.json").writeBytes(loadResource("controller_config.json"))
         // assets/config/default_config.json — preflight.ignore_microphone_muted=false
         get("assets/config/default_config.json").writeBytes(loadResource("default_config.json"))
         // assets/webui/dash/index.html — Steam Link dashboard HTML bootstrap
         get("assets/webui/dash/index.html").writeBytes(loadResource("index.html"))
     }
+}
+
+private const val REQUESTED_EXTENSIONS_5001712 =
+    "  \"requestedExtensions\": {\n" +
+        "    \"xrvst2\": [\n" +
+        "      \"XR_EXT_eye_gaze_interaction\"\n" +
+        "    ],\n" +
+        "    \"xrvst2ue\": [\n" +
+        "      \"XR_EXT_eye_gaze_interaction\"\n" +
+        "    ],\n" +
+        "    \"unknown\": [\n" +
+        "      \"XR_EXT_eye_gaze_interaction\"\n" +
+        "    ]\n" +
+        "  },"
+
+private val requestedExtensionsArrayRegex = Regex(
+    "(?m)^  \"requestedExtensions\": \\[\\r?\\n" +
+        "    \"XR_EXT_eye_gaze_interaction\"\\r?\\n" +
+        "  ],",
+)
+
+internal fun adaptLegacyHmdConfigForBuild(
+    payload: ByteArray,
+    versionName: String,
+    versionCode: String,
+): ByteArray {
+    if (versionName != "2.0.20" || versionCode != "5001712") return payload
+    val source = payload.decodeToString()
+    val matches = requestedExtensionsArrayRegex.findAll(source).toList()
+    check(matches.size == 1) {
+        "Expected exactly one legacy requestedExtensions array in the 5001712 HMD payload"
+    }
+    val match = matches.single()
+    val newline = if (match.value.contains("\r\n")) "\r\n" else "\n"
+    val replacement = REQUESTED_EXTENSIONS_5001712.replace("\n", newline)
+    return source.replaceRange(match.range, replacement).encodeToByteArray()
 }
 
 @Suppress("unused")
@@ -140,9 +190,12 @@ val xrManifestCapabilityPackPatch = resourcePatch(
 
     finalize {
         document("AndroidManifest.xml").use { doc ->
-            // Preserve native builds' target SDK, vendor declarations, required hand feature,
-            // loader selection, and permission flow. This pack exists for legacy builds only.
-            if (isNativeXrSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@use
+            // Preserve unknown/native builds. Recursive execution is allowed only for the exact
+            // legacy foundation set, including high-resolution-only build 5002296.
+            if (!isLegacyXrFoundationSteamLinkBuild(
+                    packageMetadata.versionName,
+                    packageMetadata.versionCode,
+                )) return@use
 
             val manifest = doc.documentElement
             val app = manifest.getElementsByTagName("application").item(0) as Element
@@ -359,6 +412,12 @@ internal fun upsertVrLinkUnmanagedFullSpace(doc: Document, app: Element): Boolea
 internal val xrPermissionSettingsBootstrapPatch = resourcePatch {
     dependsOn(androidXrMinimalUiExtensionPatch, xrResolutionProbePatch)
 
+    execute {
+        // Arsclib opens ids.xml while compiling modified manifests even when the stock APK has
+        // no ID resources. Native-XR builds skip the legacy bridge, so ensure it on this shared path.
+        ensureIdsXml(get("res/values/ids.xml"))
+    }
+
     finalize {
         document("AndroidManifest.xml").use { doc ->
             val app = doc.documentElement.getElementsByTagName("application").item(0) as Element
@@ -437,9 +496,12 @@ val xrLauncherBootstrapPatch = resourcePatch(
 
     finalize {
         document("AndroidManifest.xml").use { doc ->
-            // Current Managers exclude this patch for native-XR builds. Manager 1.7 cannot distinguish
-            // build codes sharing versionName 2.0.22, so also make accidental execution harmless.
-            if (isNativeXrSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@use
+            // Dependencies execute without checking their own public compatibility. Restrict legacy
+            // launcher mutations to exact decoded layouts, including high-resolution-only 5002296.
+            if (!isLegacyXrFoundationSteamLinkBuild(
+                    packageMetadata.versionName,
+                    packageMetadata.versionCode,
+                )) return@use
 
             val app = doc.documentElement.getElementsByTagName("application").item(0) as Element
             val xrStartMode = "android.window.PROPERTY_XR_ACTIVITY_START_MODE"

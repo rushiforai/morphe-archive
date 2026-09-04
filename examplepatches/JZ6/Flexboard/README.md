@@ -35,7 +35,7 @@ Both keyboards stay installed, so you can switch back whenever you like.
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v2.1.0](https://github.com/JZ6/Flexboard/releases/tag/v2.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+> **[v2.2.0](https://github.com/JZ6/Flexboard/releases/tag/v2.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
 <details open>
 <summary>📦 Gboard&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
 <br>
@@ -47,15 +47,15 @@ Both keyboards stay installed, so you can switch back whenever you like.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| [Bigger Toolbar](#bigger-toolbar) | Raises the toolbar from five icons to 12, so Flexboard's hotkeys and text action buttons can fit alongside Gboard's own. How many icons actually show stays yours, set by dragging them in Gboard's toolbar settings. |  |
 | [Bypass Gboard Signature](#bypass-gboard-signature) | Bypass Gboard's signature whitelist checks and force them to pass. |  |
 | Grammar Check Row | Force the grammar check settings row to appear. The Phenotype flag that governs it never syncs on a patched build, so its compiled-in default (off) sticks. |  |
 | [Install as Gboard Clone](#install-as-gboard-clone) | Rename the package to dev.jz6.com.google.android.inputmethod.latin so the patched build installs alongside the official Gboard instead of replacing it. |  |
 | Suggested Settings | Turns on flick keys for symbols, touch & hold keys for numbers, suggestion strip, grammar check and smart replies, and turns off block offensive words and word suggestions. Written once as defaults, so each can still be changed in Gboard's own settings. |  |
-| [Swipe Right to Undo](#swipe-right-to-undo) | Swipe right after deleting to put the words back — the swipe starts on the Delete key, or anywhere when Swipe to Delete is also applied. Uses Gboard's own undo, which already records what a delete swipe removed. |  |
-| [Swipe to Delete](#swipe-to-delete) | Swipe left anywhere on the keyboard to delete the previous word, and swipe right to restore it. Uses Gboard's own word-scrub engine, so it behaves exactly like swiping on the backspace key already does — only it can start anywhere. |  |
-| [Toolbar Buttons](#toolbar-buttons) | Add Select all, Copy and Paste buttons to the toolbar above the keyboard, so each is one tap instead of opening Gboard's text editing panel first. Registered natively, so drag-to-reorder through the toolbar customize page persists. |  |
-| Toolbar Hotkeys | Adds six configurable hotkey slots to Gboard's toolbar — each commits a text of your choice on tap. A slot appears when its text is set; when cleared it hides at the next toolbar rebuild (rotate, switch IME, or restart — there's no mid-session un-register). Text and icon edits apply on the next keyboard open. |  |
-| Toolbar Native Test | Add a 'Test' button to the toolbar through Gboard's own access-point registry so drag reorder and persistence work natively. Writes 'test' at the cursor on tap. Architectural proof-of-concept; off by default. |  |
+| [Swipe Left to Delete](#swipe-left-to-delete) | Swipe left anywhere on the keyboard to delete the previous word, and swipe right to restore it. Uses Gboard's own word-scrub engine, so it behaves exactly like swiping on the backspace key already does — only it can start anywhere. |  |
+| [Swipe Right to Undo](#swipe-right-to-undo) | Swipe right after deleting to put the words back — the swipe starts on the Delete key, or anywhere when Swipe Left to Delete is also applied. Uses Gboard's own undo, which already records what a delete swipe removed. |  |
+| [Text Action Buttons](#text-action-buttons) | Add Select all, Copy and Paste buttons to the toolbar above the keyboard, so each is one tap instead of opening Gboard's text editing panel first. Registered natively, so drag-to-reorder through the toolbar customize page persists. |  |
+| [Toolbar Hotkeys](#toolbar-hotkeys) | Adds six configurable hotkey slots to Gboard's toolbar — each commits a text of your choice on tap. A slot appears when its text is set; when cleared it hides at the next toolbar rebuild (rotate, switch IME, or restart — there's no mid-session un-register). Text and icon edits apply on the next keyboard open. |  |
 | Vibration slider everywhere | Forces Gboard to show its own vibration strength slider on every device, rather than deferring to the system haptic settings page, so the strength is adjustable instead of being fixed by whichever rollout the device landed in. |  |
 
 </details>
@@ -65,7 +65,7 @@ Both keyboards stay installed, so you can switch back whenever you like.
 Each has its own section below, and each can be unticked in Morphe if you would rather it were never
 installed.
 
-## Swipe to delete
+## Swipe left to delete
 
 Flexboard does not add a gesture. Gboard already has one — swiping on the backspace key deletes the
 previous word — and everything about it, including dragging back to restore, works across the whole
@@ -104,7 +104,7 @@ distance per word, and deleting starts immediately instead of after Gboard's 200
 Both were sliders once; [`docs/design.md`](docs/design.md) has why they are not now.
 
 The screen also carries six **Hotkeys** fields belonging to
-[Toolbar Buttons](#toolbar-buttons).
+[Text Action Buttons](#text-action-buttons).
 
 Every value is read out of Gboard's own preference store, so there is no separate settings app and
 nothing to keep in sync.
@@ -152,11 +152,11 @@ switches accounted for most of the work in the 17.7.7 → 18.0.3 port. The slide
 values genuinely vary by thumb and screen; an on/off switch duplicates something Morphe already
 does properly.
 
-**One consequence is user-visible: glide typing is off for as long as Swipe to Delete is applied.**
+**One consequence is user-visible: glide typing is off for as long as Swipe Left to Delete is applied.**
 A leftward drag across the letters is also a glide input, so the two cannot both be live. Flexboard
 forces glide typing off at every app start and greys out the two affected rows in Gboard's **Glide
 typing** screen, with a note saying what is doing it. Getting glide typing back means re-patching
-without Swipe to Delete.
+without Swipe Left to Delete.
 
 ## Swipe right to undo
 
@@ -173,12 +173,10 @@ It is always on when the patch is applied. Swiping right after a delete did noth
 Gboard, so nothing is being taken away by giving it a meaning — and Gboard fills the same undo slot
 when you swipe on the backspace key, so it works there too.
 
-## Toolbar buttons
+## Text action buttons
 
-Adds **Select all**, **Copy** and **Paste** buttons to the toolbar above the keyboard, and six
-**hotkeys** that type a string you choose. One tap each, on whatever you are typing into.
-
-### Select all, copy and paste
+Adds **Select all**, **Copy** and **Paste** buttons to the toolbar above the keyboard. One tap
+each, on whatever you are typing into.
 
 Gboard can already do all three, behind its **Text editing** toolbar button — open that panel, then
 tap the one you want. These are the same actions without the panel.
@@ -192,10 +190,10 @@ and draws none of them, because its text editing panel spells the actions out in
 using icons; that is why Select all first shipped borrowing an unrelated icon. Flexboard still adds
 no images of its own.
 
-### Hotkeys
+## Toolbar hotkeys
 
-Six more buttons, each typing a string you set under **Hotkeys** in Flexboard's settings — an email
-address, a signature, "brb", whatever you type often enough to resent typing.
+Six more toolbar buttons, each typing a string you set under **Hotkeys** in Flexboard's settings —
+an email address, a signature, "brb", whatever you type often enough to resent typing.
 
 **A slot you have not filled in makes no button.** Fresh out of the box there are no hotkeys at all;
 fill one in and its icon appears on the toolbar, clear the field and the button goes away again.
@@ -210,9 +208,32 @@ is the moment you actually need to know which is which.
 
 Long text is fine. The whole of it gets typed; only the first line, cut short, becomes the name.
 
-**Nine buttons is more than the bar holds.** With the three text actions plus a few hotkeys,
-whatever used to sit at the end of your toolbar moves into the overflow menu behind the chevron.
-Long-press the toolbar to reorder, and drop what you do not need.
+**Nine buttons is more than the bar holds** — unless *Bigger toolbar* is applied, which is what it
+is for. Without it, the three text actions plus a few hotkeys push whatever used to sit at the end
+of your toolbar into the overflow menu behind the chevron. Long-press the toolbar to reorder, and
+drop what you do not need.
+
+## Bigger toolbar
+
+Gboard's toolbar holds five icons. Flexboard adds nine of its own — six hotkeys and three text
+actions — and those nine compete with the emoji, clipboard and settings buttons already there. So
+the bar is the limit on everything above, and this patch raises it to twelve.
+
+**It does not decide how many you see.** Choosing what sits on the bar is Gboard's own job, done by
+long-pressing the toolbar and dragging icons in or out, and this patch does not touch it. All it
+changes is the ceiling that choice runs into. Take a button off and it stays off; the count is
+yours.
+
+That distinction is the whole patch, and it is the part two earlier attempts got wrong. Both tried
+to set the number of icons themselves, and both ended up fighting the toolbar customise screen —
+one of them putting buttons back after they had been removed. Gboard treats *"take this off the
+bar"* as lowering the count, so anything that forces the count up undoes the removal. Raising only
+the ceiling cannot do that.
+
+Two things worth knowing. Twelve icons on a phone are narrow — the bar divides the width it has
+rather than scrolling — so twelve is the room available, not a recommendation. And if you had
+already trimmed your toolbar before applying this, you will still see your old number until you
+drag more icons onto the bar, because that number is your setting and the patch leaves it alone.
 
 ## Flick keys for symbols
 

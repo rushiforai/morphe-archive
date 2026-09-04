@@ -1,5 +1,5 @@
 {
-    "version": "v1.28.0",
+    "version": "v1.31.6",
     "patches": [
         {
             "compatiblePackages": [
@@ -237,8 +237,32 @@
             ],
             "default": true,
             "dependencies": [],
-            "description": "Restores CheatsPanel 8 methods (ShowCheats/AddCurrency etc.) from RET to real logic. Makes debug menu functional.",
-            "name": "Shadow Fight 2 Debug Menu Restore",
+            "description": "Saves crash info to a file if the game crashes.",
+            "name": "Shadow Fight 2 Crash Log",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKM",
+                    "appIconColor": "#1A1A1A",
+                    "name": "Shadow Fight 2",
+                    "packageName": "com.nekki.shadowfight",
+                    "targets": [
+                        {
+                            "isExperimental": true,
+                            "version": "2.46.0"
+                        }
+                    ],
+                    "versions": [
+                        "2.46.0"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Enables crash logging.",
+            "name": "Shadow Fight 2 Crash Trigger",
             "options": []
         },
         {
@@ -285,55 +309,7 @@
             ],
             "default": true,
             "dependencies": [],
-            "description": "Direct memory hardcode for BFBONKPKBNL/ECENNHNBAME ObscuredInt (Gems/Coins) to 999999999. No runtime scan.",
-            "name": "Shadow Fight 2 Hardcode 999999999",
-            "options": []
-        },
-        {
-            "compatiblePackages": [
-                {
-                    "apkFileType": "APKM",
-                    "appIconColor": "#1A1A1A",
-                    "name": "Shadow Fight 2",
-                    "packageName": "com.nekki.shadowfight",
-                    "targets": [
-                        {
-                            "isExperimental": true,
-                            "version": "2.46.0"
-                        }
-                    ],
-                    "versions": [
-                        "2.46.0"
-                    ]
-                }
-            ],
-            "default": true,
-            "dependencies": [],
-            "description": "Triggers hardcode via UnityPlayerActivity.onCreate",
-            "name": "Shadow Fight 2 Hardcode Trigger",
-            "options": []
-        },
-        {
-            "compatiblePackages": [
-                {
-                    "apkFileType": "APKM",
-                    "appIconColor": "#1A1A1A",
-                    "name": "Shadow Fight 2",
-                    "packageName": "com.nekki.shadowfight",
-                    "targets": [
-                        {
-                            "isExperimental": true,
-                            "version": "2.46.0"
-                        }
-                    ],
-                    "versions": [
-                        "2.46.0"
-                    ]
-                }
-            ],
-            "default": true,
-            "dependencies": [],
-            "description": "Dumps all Unity classes/fields with ObscuredInt to logcat for hardcode. Use logcat -s ShadowDump.",
+            "description": "Dumps all Unity classes/fields with ObscuredInt to logcat and files. Use logcat -s ShadowDump or cat shizuku-terminal/shadowdump-log.txt",
             "name": "Shadow Fight 2 Runtime Dump",
             "options": []
         },
@@ -357,8 +333,32 @@
             ],
             "default": true,
             "dependencies": [],
-            "description": "Forces CheatsPanel to be visible and adds floating Add Gems button. Works without root.",
-            "name": "Shadow Fight 2 Show Cheats UI",
+            "description": "Sets in-game values to unlimited.",
+            "name": "Shadow Fight 2 Unlimited Values",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKM",
+                    "appIconColor": "#1A1A1A",
+                    "name": "Shadow Fight 2",
+                    "packageName": "com.nekki.shadowfight",
+                    "targets": [
+                        {
+                            "isExperimental": true,
+                            "version": "2.46.0"
+                        }
+                    ],
+                    "versions": [
+                        "2.46.0"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Enables unlimited values.",
+            "name": "Shadow Fight 2 Values Trigger",
             "options": []
         },
         {

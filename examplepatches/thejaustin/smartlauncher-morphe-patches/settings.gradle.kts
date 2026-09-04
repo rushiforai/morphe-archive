@@ -22,5 +22,5 @@ pluginManagement {
 // catalog aliases "morphe-patcher" / "smali". Do not add manual include()
 // calls for those - the plugin owns that.
 plugins {
-    id("app.morphe.patches") version "1.3.3"
+    id("app.morphe.patches") version "1.3.4"
 }

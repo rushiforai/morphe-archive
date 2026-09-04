@@ -71,11 +71,11 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Movistar-Block-Ads](#-movistar-block-ads-bundle-patch-list) | 1 | 1 | Generated |
 | [Shaun-Sheep](#-shaun-sheep-bundle-patch-list) | 4 | 4 | Generated |
 | [Bufferk](#-bufferk-bundle-patch-list) | 13 | 7 | Generated |
-| [Franticg33k](#-franticg33k-bundle-patch-list) | 20 | 11 | Generated |
+| [Franticg33k](#-franticg33k-bundle-patch-list) | 22 | 12 | Generated |
 | [Gryphous-Morphe](#-gryphous-morphe-bundle-patch-list) | 4 | 2 | Generated |
 | [Okish-Morphe](#-okish-morphe-bundle-patch-list) | 54 | 25 | Generated |
 | [Xhehab](#-xhehab-bundle-patch-list) | 14 | 13 | Generated |
-| [Nai64](#-nai64-bundle-patch-list) | 341 | 2 | Generated |
+| [Nai64](#-nai64-bundle-patch-list) | 342 | 2 | Generated |
 | [Morphe-Google](#-morphe-google-bundle-patch-list) | 2 | 1 | Generated |
 | [Prathxm](#-prathxm-bundle-patch-list) | 7 | 1 | Generated |
 | [Telegram-Morphe](#-telegram-morphe-bundle-patch-list) | 10 | 1 | Generated |
@@ -88,9 +88,9 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Samsung-Morphe](#-samsung-morphe-bundle-patch-list) | 2 | 1 | Generated |
 | [YT-YA-Voiceover](#-yt-ya-voiceover-bundle-patch-list) | 3 | 1 | Generated |
 | [Perplexity-STT](#-perplexity-stt-bundle-patch-list) | 1 | 1 | Generated |
-| [Browzomje](#-browzomje-bundle-patch-list) | 30 | 2 | Generated |
+| [Browzomje](#-browzomje-bundle-patch-list) | 33 | 2 | Generated |
 | [Morphe-Portal](#-morphe-portal-bundle-patch-list) | 3 | 2 | Generated |
-| [Zpatches](#-zpatches-bundle-patch-list) | 13 | 6 | Generated |
+| [Zpatches](#-zpatches-bundle-patch-list) | 14 | 7 | Generated |
 | [iHealth-Morphe](#-ihealth-morphe-bundle-patch-list) | 6 | 2 | Generated |
 | [Hoomans-Morphe](#-hoomans-morphe-bundle-patch-list) | 63 | 44 | Generated |
 | [Realme-Link](#-realme-link-bundle-patch-list) | 1 | 1 | Generated |
@@ -98,7 +98,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Lain](#-lain-bundle-patch-list) | 45 | 33 | Generated |
 | [Edge-Morphe](#-edge-morphe-bundle-patch-list) | 5 | 1 | Generated |
 | [Anddea](#-anddea-bundle-patch-list) | 120 | 3 | Generated |
-| [Piko](#-piko-bundle-patch-list) | 132 | 2 | Generated |
+| [Piko](#-piko-bundle-patch-list) | 130 | 2 | Generated |
 | [HK-Morphe](#-hk-morphe-bundle-patch-list) | 12 | 4 | Generated |
 | [BholeyKaBhakt](#-bholeykabhakt-bundle-patch-list) | 24 | 15 | Generated |
 | [Andronedev](#-andronedev-bundle-patch-list) | 2 | 1 | Generated |
@@ -179,7 +179,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Logm1lo](#-logm1lo-bundle-patch-list) | 4 | 2 | Generated |
 | [SpookyEXE](#-spookyexe-bundle-patch-list) | 1 | 1 | Generated |
 | [PetalMaps-NonHuawei](#-petalmaps-nonhuawei-bundle-patch-list) | 6 | 1 | Generated |
-| [FTL](#-ftl-bundle-patch-list) | 52 | 16 | Generated |
+| [FTL](#-ftl-bundle-patch-list) | 53 | 16 | Generated |
 | [braiNtropy](#-braintropy-bundle-patch-list) | 1 | 1 | Generated |
 | [Ang3lo](#-ang3lo-bundle-patch-list) | 1 | 1 | Generated |
 | [Heval99](#-heval99-bundle-patch-list) | 20 | 11 | Generated |
@@ -217,7 +217,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Stremio-AndroidTV](#-stremio-androidtv-bundle-patch-list) | 3 | 1 | Generated |
 | [Legendsciber](#-legendsciber-bundle-patch-list) | 16 | 6 | Generated |
 | [SteamLink](#-steamlink-bundle-patch-list) | 23 | 1 | Generated |
-| [Froggo](#-froggo-bundle-patch-list) | 5 | 1 | Generated |
+| [Froggo](#-froggo-bundle-patch-list) | 12 | 2 | Generated |
 | [Kecerim24](#-kecerim24-bundle-patch-list) | 4 | 3 | Generated |
 | [Z-drgon](#-z-drgon-bundle-patch-list) | 1 | 1 | Generated |
 | [V4n1X](#-v4n1x-bundle-patch-list) | 5 | 1 | Generated |
@@ -243,6 +243,8 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [SmartLauncher](#-smartlauncher-bundle-patch-list) | 6 | 1 | Generated |
 | [Rahul9999xda-Telegram](#-rahul9999xda-telegram-bundle-patch-list) | 20 | 4 | Generated |
 | [6ixfalls](#-6ixfalls-bundle-patch-list) | 1 | 1 | Generated |
+| [Letterboxd](#-letterboxd-bundle-patch-list) | 6 | 1 | Generated |
+| [YouTube-Studio](#-youtube-studio-bundle-patch-list) | 1 | 1 | Generated |
 
 ### Legacy
 | Bundle | Patches | Apps | Status |
@@ -283,7 +285,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Google Maps for ReVanced GmsCore``` | ```Routes supported Google Maps builds through ReVanced GmsCore using the patched Maps package and known Google Maps certificate spoof metadata.``` | ```Google Maps``` | ```26.32.06.958047303, 26.33.02.961351034``` |
+| ```Google Maps for ReVanced GmsCore``` | ```Routes supported Google Maps builds through ReVanced GmsCore using the patched Maps package and known Google Maps certificate spoof metadata.``` | ```Google Maps``` | ```26.33.02.961351034, 26.35.04.969485213``` |
 
 </details>
 
@@ -612,7 +614,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Franticg33k Bundle Patch List:
 [📦 Franticg33k-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-franticg33k-patches-bundle-morphe)
 <details>
-<summary><b>Franticg33k</b> - 20 patches, 11 apps</summary>
+<summary><b>Franticg33k</b> - 22 patches, 12 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -622,6 +624,8 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Unlock Premium, Skip Login & Make Free Trial Permanent``` | ```Patches the Dart AOT-compiled libapp.so of Bolpatra Nepal to skip the login screen, unlock premium/paid features, and make the 7-day free trial permanent. LoginManager::isNotValidatedUser is forced to always return false, lifting the Free-plan paywall and the trial-expiry gate: the trial expiry is computed client-side from the server plan_end_date into statics (isPaid = (plan_end_date - now).inDays <= 0) that only isNotValidatedUser reads, so with it pinned to false the free trial never expires and premium features stay unlocked forever (PPMO/EGP contact redirect, hidden works tab, document download and gallery gates). The isActive() result is left honest so the app stops attaching the invalid Authorization header, and the four login redirects (notice View, document download, gallery, subscription purchase) are bypassed at the branch level so actions run straight through without sending the user to the login page. Verified on v1.1.33 (Dart 3.9.2, arm64, non-obfuscated).``` | ```Bolpatra Nepal``` | ```All versions``` |
 | ```Enable Online Pro``` | ```Experimental companion patch that keeps byAir's online Pro gates open without forcing the crash-prone global entitlement refresh path.``` | ```byAir``` | ```All versions``` |
 | ```Enable Pro``` | ```Suppresses the main byAir paywall, unlock banners, and local user gating.``` | ```byAir``` | ```All versions``` |
+| ```Remove License Activity``` | ```Removes the PairIP LicenseActivity from AndroidManifest.xml so the app runs without a valid Play Store license (required because the APK is re-signed during patching).``` | ```Fricam``` | ```1.3.7``` |
+| ```Unlock Premium``` | ```Unlocks all Fricam Pro features for free. Fricam's Pro state terminates in a plain SharedPreferences boolean (pro_unlocked in fricam_billing) written only by PurchaseManager.d(Z); every UI feature gate re-reads it via the static MasterProGate.K(). The patch forces the RevenueCat entitlement check and the master gate to always return true (layered P1+P2), hardens the persist path so no refresh can downgrade, and neutralizes the PairIP Play Store license check that gates the app on launch.``` | ```Fricam``` | ```1.3.7``` |
 | ```Remove Ads``` | ```Disables all ad serving in Hamro Patro by no-oping the native ad-placement resolver (HamroAdsPlacements). Every banner, native, interstitial, fullscreen and roadblock placement funnels through these leaf builders, so returning an empty list means no ad request is ever built for AdMob, Pangle, IronSource or Facebook Audience Network. Verified on v10.7.30.``` | ```Hamropatro``` | ```All versions``` |
 | ```Remove License Activity``` | ```Removes the PairIP LicenseActivity from AndroidManifest.xml.``` | ```JellyWatch``` | ```2.0.REV-1712``` |
 | ```Unlock Premium``` | ```Unlocks all premium features and shop items in JellyWatch.``` | ```JellyWatch``` | ```2.0.REV-1712``` |
@@ -687,7 +691,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Hill Climb Racing Instant Rewarded Video Rewards``` | ```Rewarded video ads grant their reward instantly without playing the ad: the native engine receives onVideoStartedSuccess + onVideoCompletedSuccess on the GL thread, exactly as if the video had been watched and completed.``` | ```Hill Climb Racing``` | ```1.70.0, 1.71.1``` |
 | ```Injustice Ads Removal``` | ```Get stamina without watching ad Video.``` | ```Injustice: Gods Among Us``` | ```3.5.1``` |
 | ```Injustice Billing Bypass``` | ```Bypass billing get the items in store for free.``` | ```Injustice: Gods Among Us``` | ```3.5.1``` |
-| ```Into the Dead Ad Removal``` | ```Removes all ads and grants rewarded-video rewards instantly: rewarded videos (legacy IronSource and LevelPlay), interstitials, launch, banner and AdMob App Open ads are all eliminated.``` | ```Into the Dead``` | ```2.9.3``` |
+| ```Into the Dead 2 Ad Removal & Instant Boost Rewards``` | ```Removes all ads (interstitials, banners, app-open) and grants rewarded-video perk boosts instantly on tap (no ad watch) using the correct reward name PERKS_BOOST, verified against a real rewarded event.``` | ```Into the Dead``` | ```2.9.3``` |
 | ```Into the Dead Billing Bypass``` | ```Unlocks all in-app purchases for free and bypasses SHA1withRSA receipt verification: every store item is granted instantly without launching the Google Play payment dialog, and any fabricated receipt is accepted.``` | ```Into the Dead``` | ```2.9.3``` |
 | ```Jetpack Joyride Billing Bypass``` | ```Intercepts all in-app purchases and reports instant success to the game engine.``` | ```Jetpack Joyride``` | ```1.104.1``` |
 | ```Missiles Ads Removal``` | ```Spoofs the Google Mobile Ads Unity bridge (AdMob): interstitial, rewarded, rewarded interstitial, app open and banner ads resolve instantly as loaded/showed/closed/rewarded without ever displaying an ad.``` | ```Missiles``` | ```1.41``` |
@@ -748,7 +752,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Nai64 Bundle Patch List:
 [📦 Nai64-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-nai64-patches-bundle-morphe)
 <details>
-<summary><b>Nai64</b> - 341 patches, 2 apps</summary>
+<summary><b>Nai64</b> - 342 patches, 2 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -808,6 +812,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Custom App Icon``` | ```Change the app icon.``` | ```Universal``` | ```All versions``` |
 | ```Custom App Resolution (Experimental)``` | ```Set a custom resolution for the game``` | ```Universal``` | ```All versions``` |
 | ```Custom Startup Dialog``` | ```Shows a customizable dialog once when the app is opened``` | ```Universal``` | ```All versions``` |
+| ```Custom Startup Sound``` | ```Plays a custom sound once when the app starts.``` | ```Universal``` | ```All versions``` |
 | ```Custom Startup Toast``` | ```Shows a customizable toast message every time the app starts``` | ```Universal``` | ```All versions``` |
 | ```Disable Activity Transitions``` | ```No-ops Activity.overridePendingTransition(...) so the app's custom activity enter/exit animations are skipped.``` | ```Universal``` | ```All versions``` |
 | ```Disable Analytics Events``` | ```Blocks app tracking and analytics.``` | ```Universal``` | ```All versions``` |
@@ -908,13 +913,13 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Fake NFC Enabled``` | ```Makes NfcAdapter.isEnabled always return true so apps that require NFC stop blocking features on devices without it``` | ```Universal``` | ```All versions``` |
 | ```Fake Notification Policy Access``` | ```Fakes Do Not Disturb access.``` | ```Universal``` | ```All versions``` |
 | ```Fake Online State``` | ```Makes connectivity checks report an active connection: WifiManager.isWifiEnabled, NetworkInfo.isConnected/isAvailable/isConnectedOrConnecting all return true``` | ```Universal``` | ```All versions``` |
-| ```Fake Play Store Install Source``` | ```Fakes the install source.``` | ```Universal``` | ```All versions``` |
 | ```Fake Pointer Location``` | ```Reports pointer location as disabled via Settings so apps that check it stop doing so.``` | ```Universal``` | ```All versions``` |
 | ```Fake Screen Timeout``` | ```Reports a chosen screen timeout through Settings.System so apps that restrict features based on screen timeout stop doing so.``` | ```Universal``` | ```All versions``` |
 | ```Fake Show Touches``` | ```Reports show touches as disabled via Settings so apps that check developer touch visualization stop doing so.``` | ```Universal``` | ```All versions``` |
 | ```Fake Sound Effects Enabled``` | ```Reports sound effects as disabled via Settings so apps that check it stop playing touch sounds.``` | ```Universal``` | ```All versions``` |
 | ```Fake Stay On While Plugged``` | ```Fakes the stay-on-while-charging setting.``` | ```Universal``` | ```All versions``` |
 | ```Fake Storage Available``` | ```Reports a chosen amount of free storage through StatFs so apps that refuse to run or nag when storage is low stop doing so.``` | ```Universal``` | ```All versions``` |
+| ```Fake Store Install Source``` | ```Fakes the install source.``` | ```Universal``` | ```All versions``` |
 | ```Fake Vibrate When Ringing``` | ```Reports a chosen vibrate-when-ringing state through Settings.System so apps that check ringer vibration behavior stop doing so.``` | ```Universal``` | ```All versions``` |
 | ```Fake WiFi Scan Results Empty``` | ```Makes WifiManager.getScanResults() return an empty list so apps cannot fingerprint nearby WiFi networks.``` | ```Universal``` | ```All versions``` |
 | ```Force 5GHz Band Supported``` | ```Makes WifiManager.is5GHzBandSupported() report true so apps that require 5GHz Wi-Fi functionality run normally.``` | ```Universal``` | ```All versions``` |
@@ -1283,7 +1288,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Browzomje Bundle Patch List:
 [📦 Browzomje-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-browzomje-patches-bundle-morphe)
 <details>
-<summary><b>Browzomje</b> - 30 patches, 2 apps</summary>
+<summary><b>Browzomje</b> - 33 patches, 2 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -1292,31 +1297,34 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Instant rewards``` | ```Grants the reward of every "watch an ad" button — hints, streak repairs, extra puzzles — immediately, without playing a video. This is what keeps those buttons working once "Remove ads" is enabled: without it the game believes no video is available and hands out nothing.``` | ```Easy Sudoku``` | ```5.70.0``` |
 | ```Reclaim ad banner space``` | ```Collapses the empty strip the banner used to occupy at the bottom of the board, so the puzzle gets the space back instead of staring at a blank rectangle. Only useful together with "Remove ads".``` | ```Easy Sudoku``` | ```5.70.0``` |
 | ```Remove ads``` | ```Turns off every ad Easy Sudoku shows: the home banner, the interstitials between puzzles, the app-open ad and all the background preloading. It works by telling the game its own "ads removed" purchase is already active, which also unlocks the Fun, Ice and Killer Sudoku modes that are otherwise gated behind watching ads. Keep "Instant rewards" enabled too, or the "watch an ad for a hint" buttons stop giving anything.``` | ```Easy Sudoku``` | ```5.70.0``` |
-| ```Copy direct link``` | ```Adds a "Copy direct link" option to the pin menu, copying the direct CDN media link instead of the Pinterest web link.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Disable ads``` | ```Removes sponsored pins from the home, search, related and board feeds. Also carries the "Hide product pins" and "Hide board modules in search" filters, both switchable from the Morphe settings screen.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Disable AppsFlyer tracking``` | ```Neutralises the AppsFlyer attribution SDK, so no install, event or uninstall data leaves the device.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Disable email confirmation dialog``` | ```Closes the "confirm your email" modal, and similar ones, when enabled in Morphe settings.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Disable Google Engage``` | ```Stops Pinterest publishing your content to Google (Discover, Assistant, Play Store).``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Disable Google Engage worker``` | ```Blocks the periodic Google Engage job, the other way content reaches Google.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Disable third-party trackers``` | ```Turns off the embedded advertising and telemetry SDKs (AdMob, Bugsnag, Firebase, Privacy Sandbox) and strips the Advertising ID permission. Push notifications keep working.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Download board``` | ```Adds an option to the board's "…" menu to bulk download the images and videos of the loaded pins.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Download pin from long press``` | ```Adds a download button to the circular menu you get by long-pressing a pin, so the image can be saved without opening it.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Download video``` | ```Adds a "Download video" option to the pin menu, saving the clip to the Downloads folder.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Hide ad views``` | ```Collapses Pinterest's ad-only views, so no ad chrome is drawn even if the app builds one. Follows the "Disable ads" switch.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Hide Create nav button``` | ```Hides the "+" (create Pin) navigation button, when enabled in Morphe settings.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Hide greeting header buttons``` | ```Hides the create and inbox buttons in the home feed header, when the matching Morphe settings are enabled.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Hide Notifications nav button``` | ```Hides the notifications navigation button, when enabled in Morphe settings.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Hide screenshot share menu``` | ```Removes the panel Pinterest opens after a screenshot, and stops it watching for screenshots where possible.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Hide search history``` | ```Hides the "Recent searches" section on the search screen and below the search bar. Pinterest still logs searches server-side.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Hide Search nav button``` | ```Hides the search navigation button, when enabled in Morphe settings.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Morphe runtime names``` | ```Resolves the class Pinterest builds its toasts with, so Morphe's messages look like the app's own.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Morphe settings entry``` | ```Adds the "Morphe" item to the Account Settings list to open the toggle screen.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Morphe settings screen (label)``` | ```Renames the reused string resource for the "Morphe" entry in Settings, across all languages.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Morphe settings screen (manifest)``` | ```Registers the Morphe settings Activity in the manifest, with an intent-filter for the morphe:// scheme.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Neutralize advertising ID``` | ```Returns an empty Google Advertising ID and forces "limit ad tracking", without crashing the app.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Sanitize copied links``` | ```Turns the pin.it link that "Copy link" copies, whose slug identifies who shared it, into the plain pin link. Switchable from Morphe settings.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Sanitize shared links``` | ```Strips tracking parameters from the link on the Android share sheet and resolves pin.it short links to the plain pin link. Switchable from Morphe settings.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
-| ```Set pin as wallpaper``` | ```Adds a "Set as wallpaper" option to the pin menu, which downloads the image and sets it as the device wallpaper.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0``` |
+| ```Copy direct link``` | ```Adds a "Copy direct link" option to the pin menu, copying the direct CDN media link instead of the Pinterest web link.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Disable ads``` | ```Removes sponsored pins from the home, search, related and board feeds. Also carries the "Hide product pins" and "Hide board modules in search" filters, both switchable from the Morphe settings screen.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Disable AppsFlyer tracking``` | ```Neutralises the AppsFlyer attribution SDK, so no install, event or uninstall data leaves the device.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Disable email confirmation dialog``` | ```Closes the "confirm your email" modal, and similar ones, when enabled in Morphe settings.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Disable Google Engage``` | ```Stops Pinterest publishing your content to Google (Discover, Assistant, Play Store).``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Disable Google Engage worker``` | ```Blocks the periodic Google Engage job, the other way content reaches Google.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Disable third-party trackers``` | ```Turns off the embedded advertising and telemetry SDKs (AdMob, Bugsnag, Firebase, Privacy Sandbox) and strips the Advertising ID permission. Push notifications keep working.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Download board``` | ```Adds an option to the board's "…" menu to bulk download the images and videos of the loaded pins.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Download pin from long press``` | ```Adds a download button to the circular menu you get by long-pressing a pin, so the image can be saved without opening it.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Download video``` | ```Adds a "Download video" option to the pin menu, saving the clip to the Downloads folder.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Hide ad views``` | ```Collapses Pinterest's ad-only views, so no ad chrome is drawn even if the app builds one. Follows the "Disable ads" switch.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Hide comments``` | ```Hides the pin comments section, the comment preview and the comments button, when the matching Morphe setting is enabled.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Hide Create nav button``` | ```Hides the "+" (create Pin) navigation button, when enabled in Morphe settings.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Hide greeting header buttons``` | ```Hides the create and inbox buttons in the home feed header, when the matching Morphe settings are enabled.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Hide Notifications nav button``` | ```Hides the notifications navigation button, when enabled in Morphe settings.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Hide screenshot share menu``` | ```Removes the panel Pinterest opens after a screenshot, and stops it watching for screenshots where possible.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Hide search history``` | ```Hides the "Recent searches" section on the search screen and below the search bar. Pinterest still logs searches server-side.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Hide Search nav button``` | ```Hides the search navigation button, when enabled in Morphe settings.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Morphe runtime names``` | ```Resolves the class Pinterest builds its toasts with, so Morphe's messages look like the app's own.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Morphe settings entry``` | ```Adds the "Morphe" item to the Account Settings list to open the toggle screen.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Morphe settings screen (label)``` | ```Renames the reused string resource for the "Morphe" entry in Settings, across all languages.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Morphe settings screen (manifest)``` | ```Registers the Morphe settings Activity in the manifest, with an intent-filter for the morphe:// scheme.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Neutralize advertising ID``` | ```Returns an empty Google Advertising ID and forces "limit ad tracking", without crashing the app.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Open links in the default browser``` | ```Opens links in the phone's default browser instead of Pinterest's in-app browser, when the matching Morphe setting is enabled.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Sanitize copied links``` | ```Turns the pin.it link that "Copy link" copies, whose slug identifies who shared it, into the plain pin link. Switchable from Morphe settings.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Sanitize shared links``` | ```Strips tracking parameters from the link on the Android share sheet and resolves pin.it short links to the plain pin link. Switchable from Morphe settings.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Set pin as wallpaper``` | ```Adds a "Set as wallpaper" option to the pin menu, which downloads the image and sets it as the device wallpaper.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
+| ```Use the system share sheet``` | ```Opens the Android system share sheet instead of Pinterest's in-app share sheet, when the matching Morphe setting is enabled.``` | ```Pinterest``` | ```14.23.0, 14.28.0, 14.32.0, 14.34.0``` |
 
 </details>
 
@@ -1338,7 +1346,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Zpatches Bundle Patch List:
 [📦 Zpatches-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-zpatches-patches-bundle-morphe)
 <details>
-<summary><b>Zpatches</b> - 13 patches, 6 apps</summary>
+<summary><b>Zpatches</b> - 14 patches, 7 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -1347,6 +1355,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Bypass PairIp``` | ```Bypass the PairIp license check preventing app modification``` | ```Sudoku The Clean One``` | ```2.18.3``` |
 | ```Disable Internet and Telemetry``` | ```Disable Internet and Telemetry by removing all non-necessary permissions from the manifest``` | ```Sudoku The Clean One, Minesweeper The Clean One, Solitaire The Clean One``` | ```2.18.3, 1.21.3, 1.20.3``` |
 | ```Enable Premium``` | ```Unlock all purchasables options``` | ```Sudoku The Clean One, Minesweeper The Clean One, Solitaire The Clean One``` | ```2.18.3, 1.21.3, 1.20.3``` |
+| ```Enable Premium``` | ```Unlock Full Access Pack``` | ```Undercover``` | ```5.0.1``` |
 | ```Export all activities``` | ```Makes all activities launchable externally by setting android:exported="true" in the manifest``` | ```Universal``` | ```All versions``` |
 | ```Block data collection``` | ```Block Didomi & Matomo tracking SDKs, hide consent prompts for 3rd party & geolocation data``` | ```Vélo'v``` | ```3.1.1``` |
 | ```Disable map animations``` | ```Disable the map zoom-in animation``` | ```Vélo'v``` | ```3.1.1``` |
@@ -2151,7 +2160,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Piko Bundle Patch List:
 [📦 Piko-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-piko-patches-bundle-morphe)
 <details>
-<summary><b>Piko</b> - 132 patches, 2 apps</summary>
+<summary><b>Piko</b> - 130 patches, 2 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -2170,7 +2179,6 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Disable double tap like``` | ```Disable double tap like on post, reel, comment and message``` | ```Instagram``` | ```439.0.0.37.89``` |
 | ```Disable explore``` | ```N/A``` | ```Instagram``` | ```439.0.0.37.89``` |
 | ```Disable highlights``` | ```N/A``` | ```Instagram``` | ```439.0.0.37.89``` |
-| ```Disable onboarding permission prompts``` | ```Prevents contacts and location permission onboarding prompts from appearing.``` | ```Instagram``` | ```439.0.0.37.89``` |
 | ```Disable Reels scrolling``` | ```Disables the endless scrolling behavior in Instagram Reels, preventing swiping to the next Reel. Note: On a clean install, the 'Tip' animation may appear but will stop on its own after a few seconds.``` | ```Instagram``` | ```439.0.0.37.89``` |
 | ```Disable screenshot detection``` | ```Disables screenshots detection in DM``` | ```Instagram``` | ```439.0.0.37.89``` |
 | ```Disable stories``` | ```N/A``` | ```Instagram``` | ```439.0.0.37.89``` |
@@ -2203,7 +2211,6 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Sanitize share links``` | ```N/A``` | ```Instagram``` | ```439.0.0.37.89``` |
 | ```Save deleted messages``` | ```Captures incoming DMs locally as they arrive from the server and marks them when the sender deletes them.``` | ```Instagram``` | ```439.0.0.37.89``` |
 | ```Save media comment``` | ```Adds a button to save media comments on posts and reels.``` | ```Instagram``` | ```439.0.0.37.89``` |
-| ```Stories audio autoplay``` | ```N/A``` | ```Instagram``` | ```439.0.0.37.89``` |
 | ```Theme``` | ```Adds Material You and AMOLED controls to Piko settings on Android 12 and later. On Android 8–11, it applies a fixed Material You-style theme or an optional AMOLED theme.``` | ```Instagram``` | ```439.0.0.37.89``` |
 | ```Unlock developer options``` | ```Unlocks developer option by long pressing home icon``` | ```Instagram``` | ```439.0.0.37.89``` |
 | ```Unlock employee options``` | ```Unlocks all options using by employee for debugging``` | ```Instagram``` | ```439.0.0.37.89``` |
@@ -4931,9 +4938,9 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Morphe settings``` | ```Adds a "Настройки Morphe" entry to Avito's settings that hosts the configuration for the other Morphe patches.``` | ```Avito``` | ```232.0, 231.5, 231.0, 230.5, 230.0, 229.1``` |
 | ```Remove ads``` | ```Disables Avito ads by removing ad SDK entry points and short-circuiting commercial banner loading.``` | ```Avito``` | ```232.0, 231.5, 231.0, 230.5, 230.0, 229.1``` |
 | ```UI tweaks``` | ```Optional interface tweaks, each toggleable in Настройки Morphe: single-row home categories, hide the "Подписки" tab in Избранное, hide installments (Рассрочка) and the "Спросите у продавца" block on offers, expand descriptions by default (no "Читать далее"), hide reserved offers and offer recommendations, hide profile raffle, referral and Avito Pro promos, and hide the Avi assistant tab in the bottom navigation.``` | ```Avito``` | ```232.0, 231.5, 231.0, 230.5, 230.0, 229.1``` |
-| ```Remove Ozon ads``` | ```Removes Ozon ad widgets, banner carousels, video ads, and PDP promo blocks.``` | ```Ozon``` | ```19.32.0, 19.31.0, 19.30.0, 19.29.0, 19.28.0, 19.27.0``` |
-| ```Bypass anti-tamper``` | ```Stubs TBank's native RASP executor calls and neutralizes tamper flag reporting.``` | ```TBank``` | ```8.1.0, 8.0.0, 7.40.1, 7.39.0``` |
-| ```Remove TBank ads``` | ```Removes TBank stories and promotional surfaces.``` | ```TBank``` | ```8.1.0, 8.0.0, 7.40.1, 7.39.0``` |
+| ```Remove Ozon ads``` | ```Removes Ozon ad widgets, banner carousels, video ads, and PDP promo blocks.``` | ```Ozon``` | ```19.33.1, 19.32.0, 19.31.0, 19.30.0, 19.29.0, 19.28.0, 19.27.0``` |
+| ```Bypass anti-tamper``` | ```Stubs TBank's native RASP executor calls and neutralizes tamper flag reporting.``` | ```TBank``` | ```8.2.1, 8.1.0, 8.0.0, 7.40.1, 7.39.0``` |
+| ```Remove TBank ads``` | ```Removes TBank stories and promotional surfaces.``` | ```TBank``` | ```8.2.1, 8.1.0, 8.0.0, 7.40.1, 7.39.0``` |
 | ```Disable Adjust``` | ```Disables Adjust attribution manifest entry points.``` | ```Universal``` | ```All versions``` |
 | ```Disable AppMetrica``` | ```Disables AppMetrica and legacy Yandex Metrica SDK entry points.``` | ```Universal``` | ```All versions``` |
 | ```Disable AppsFlyer``` | ```Disables AppsFlyer install referrer and attribution manifest entry points.``` | ```Universal``` | ```All versions``` |
@@ -5798,7 +5805,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Block Quetta bundled extension installation``` | ```Blocks bundled extension installation/reinstallation on arm64-v8a APKs (the framework does not enforce ABI restrictions). Does not remove copies already present in existing profiles. Takes effect immediately on clean installs.``` | ```Quetta Browser, Quetta Browser Official``` | ```All versions``` |
 | ```Change app icon``` | ```Changes the Android launcher icon using a custom PNG image. Use a square image with transparent adaptive-icon padding.``` | ```Universal``` | ```All versions``` |
 | ```Change app name``` | ```Changes the app name shown by Android launchers. Set the desired name in the patch options.``` | ```Universal``` | ```All versions``` |
-| ```Disable analytics``` | ```Disables Firebase Analytics, Crashlytics and Performance through manifest opt-outs and exact runtime setters when present. Other SDK components are disabled only when explicitly declared; custom or server-side telemetry is not covered.``` | ```Universal``` | ```All versions``` |
+| ```Disable analytics``` | ```Disables analytics and tracking from multiple SDKs, including AppMetrica, MyTracker, Firebase, Sentry, Google Analytics, Amplitude, Mixpanel, Adjust, AppsFlyer, Facebook, MoEngage, and comScore, through manifest opt-outs and exact runtime entry points when present. Custom or server-side telemetry is not covered.``` | ```Universal``` | ```All versions``` |
 
 </details>
 
@@ -6296,7 +6303,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 FTL Bundle Patch List:
 [📦 FTL-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-ftl-patches-bundle-morphe)
 <details>
-<summary><b>FTL</b> - 52 patches, 16 apps</summary>
+<summary><b>FTL</b> - 53 patches, 16 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -6337,6 +6344,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Remove Ads Lite (Adobo)``` | ```Based On (Adobo's Block Ads+Mobile Ads) Use When Remove Ads Patch Caused Problem. It Is Weaker But Effective, No Need To Select A Host File Or Configure Anything. In Future It May Replace Remove Ads Patch If I Find No Problems.``` | ```Universal``` | ```All versions``` |
 | ```Remove Ads Ultra Lite``` | ```Call finish on ad activities. Use Where Remove Ads And Remove Ads Lite (Adobo) Caused Problem. Its In Very Early Stage So Test And Provide FeedBack If You Still See Ads In Some App.``` | ```Universal``` | ```All versions``` |
 | ```Remove Analytics``` | ```Disables tracking and crash-reporting tools, corrupts analytics web links inside the code, and removes background tracking services.``` | ```Universal``` | ```All versions``` |
+| ```Remove Analytics New``` | ```Corrupts analytics network URLs and split-scheme string obfuscation inside the code, and strips matching manifest components.``` | ```Universal``` | ```All versions``` |
 | ```Remove Debug Info``` | ```Removes debug information (line numbers, variable names, source file references) from every class in the .dex files to reduce overall APK size.``` | ```Universal``` | ```All versions``` |
 | ```Remove Duplicate Graphics``` | ```Keeps images for only one screen density (like xhdpi) and removes copies for all other densities. Android will automatically scale the kept images, making the app significantly smaller.``` | ```Universal``` | ```All versions``` |
 | ```Remove Languages``` | ```Removes translations for languages you don't use. Only keeps the languages you pick.``` | ```Universal``` | ```All versions``` |
@@ -6787,10 +6795,10 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Disable Background Sync & Periodic Sync``` | ```Eliminates background wakeups, radio modem activity, and battery drain by forcing GooglePlayServicesChecker.shouldDisableBackgroundSync() -> true and neutralizing wakeup tasks.``` | ```Brave Private Web Browser, VPN``` | ```1.94.119``` |
 | ```Disable Pull To Refresh``` | ```Completely disables the pull-to-refresh overscroll gesture and animation to prevent accidental page reloads.``` | ```Brave Private Web Browser, VPN``` | ```1.94.119``` |
 | ```Native Bloat Slimmer``` | ```Strips unused native companion binaries (Impress Vision AI, WireGuard VPN, and Android XR) to significantly reduce APK size.``` | ```Brave Private Web Browser, VPN``` | ```1.94.119``` |
-| ```PNG Asset Optimizer``` | ```Losslessly recompresses PNG assets with maximum zlib compression and strips non-rendering metadata chunks (pHYs, tEXt, tIME) while preserving 9-patch structures and pixel accuracy.``` | ```Brave Private Web Browser, VPN, Gboard Lite, Vivaldi Browser Snapshot``` | ```1.94.119, 18.1.3.962075747-lite_beta-arm64-v8a, 8.2.4145.4``` |
-| ```Disable Battery Status API & OS Listener``` | ```Neutralizes the Android BatteryStatusManager broadcast listener to prevent continuous OS battery wakeups.``` | ```Brave Private Web Browser, VPN, Vivaldi Browser Snapshot``` | ```1.94.119, 8.2.4145.4``` |
-| ```Locale PAK Slimmer``` | ```Strips unselected language resource PAKs from assets/locales/.``` | ```Brave Private Web Browser, VPN, Vivaldi Browser Snapshot``` | ```1.94.119, 8.2.4145.4``` |
-| ```Skip First Run``` | ```Skips the welcome screen, search engine selection, and onboarding First Run Experience (FRE) on clean installs.``` | ```Brave Private Web Browser, VPN, Vivaldi Browser Snapshot``` | ```1.94.119, 8.2.4145.4``` |
+| ```PNG Asset Optimizer``` | ```Losslessly recompresses PNG assets with maximum zlib compression and strips non-rendering metadata chunks (pHYs, tEXt, tIME) while preserving 9-patch structures and pixel accuracy.``` | ```Brave Private Web Browser, VPN, Gboard Lite, Vivaldi Browser Snapshot``` | ```1.94.119, 18.1.3.962075747-lite_beta-arm64-v8a, 8.2.4147.28``` |
+| ```Disable Battery Status API & OS Listener``` | ```Neutralizes the Android BatteryStatusManager broadcast listener to prevent continuous OS battery wakeups.``` | ```Brave Private Web Browser, VPN, Vivaldi Browser Snapshot``` | ```1.94.119, 8.2.4147.28``` |
+| ```Locale PAK Slimmer``` | ```Strips unselected language resource PAKs from assets/locales/.``` | ```Brave Private Web Browser, VPN, Vivaldi Browser Snapshot``` | ```1.94.119, 8.2.4147.28``` |
+| ```Skip First Run``` | ```Skips the welcome screen, search engine selection, and onboarding First Run Experience (FRE) on clean installs.``` | ```Brave Private Web Browser, VPN, Vivaldi Browser Snapshot``` | ```1.94.119, 8.2.4147.28``` |
 | ```Add AMOLED Theme``` | ```Adds a selectable Pure Black AMOLED theme using Gboard's native color_black theme package, without replacing Dark, Light, System Auto, or Dynamic Color.``` | ```Gboard Lite``` | ```18.1.3.962075747-lite_beta-arm64-v8a``` |
 | ```Allow Modified APK``` | ```Bypasses internal signature check to allow custom APK execution.``` | ```Gboard Lite``` | ```18.1.3.962075747-lite_beta-arm64-v8a``` |
 | ```Block Telemetry``` | ```Disables background metrics dispatch, event logging, daily pings, and crash reporting.``` | ```Gboard Lite``` | ```18.1.3.962075747-lite_beta-arm64-v8a``` |
@@ -6808,15 +6816,15 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Hardened Intent Security``` | ```Enables Gboard internal external intent protection against unauthorized intent hijacking.``` | ```Gboard Lite``` | ```18.1.3.962075747-lite_beta-arm64-v8a``` |
 | ```Locale Resource Slimmer``` | ```Strips unselected language translation directories from res/ (e.g. values-*, raw-*, xml-*). Base fallback resources with no language qualifiers are always preserved.``` | ```Gboard Lite``` | ```18.1.3.962075747-lite_beta-arm64-v8a``` |
 | ```Resource Slimmer``` | ```Strips embedded third-party license text, onboarding tutorial Lottie animations, promotional GIFs, and APK root metadata/junk files.``` | ```Gboard Lite``` | ```18.1.3.962075747-lite_beta-arm64-v8a``` |
-| ```Block Vivaldi Sync``` | ```Redirects bifrost.vivaldi.com to 0.0.0.0 in libchrome.so to completely disable Vivaldi account synchronization for an air-gapped experience.``` | ```Vivaldi Browser Snapshot``` | ```8.2.4145.4``` |
-| ```Block Vivaldi Telemetry``` | ```Blocks Vivaldi usage statistics, crash reporting, Crashpad endpoints, and DirectMatch suggestions.``` | ```Vivaldi Browser Snapshot``` | ```8.2.4145.4``` |
-| ```Clean Speed Dial Bookmarks``` | ```Removes sponsored commercial affiliate bookmarks, hides the 3-dot customize button, and disables phantom touch actions on the blank Start Page.``` | ```Vivaldi Browser Snapshot``` | ```8.2.4145.4``` |
-| ```Close Tabs on Exit``` | ```Prevents tab restoration on startup, ensuring Vivaldi always opens with a clean Start Page session regardless of how the app was terminated.``` | ```Vivaldi Browser Snapshot``` | ```8.2.4145.4``` |
-| ```Disable Background Sync & Periodic Sync``` | ```Eliminates background wakeups, radio modem activity, and battery drain by neutralizing periodic and one-shot background sync tasks.``` | ```Vivaldi Browser Snapshot``` | ```8.2.4145.4``` |
-| ```Disable Chromium Tips & Notification Scheduler``` | ```Eliminates periodic background wakeups, native library loading, and in-product promotional tips from Chromium tips scheduler.``` | ```Vivaldi Browser Snapshot``` | ```8.2.4145.4``` |
-| ```Disable Vivaldi Prompts & In-App Popups``` | ```Disables in-app donation prompts, search engine switch promos, rate-app popups, background privacy report alarms, and default browser promotional handlers.``` | ```Vivaldi Browser Snapshot``` | ```8.2.4145.4``` |
-| ```Resource Slimmer``` | ```Strips bundled stock wallpapers and sponsored Speed Dial thumbnails to reduce APK size.``` | ```Vivaldi Browser Snapshot``` | ```8.2.4145.4``` |
-| ```Vivaldi Startup Performance Optimization``` | ```Optimizes cold startup time, eliminates background CPU/disk overhead, and guards against early CompositorView LayoutStateObserver crashes.``` | ```Vivaldi Browser Snapshot``` | ```8.2.4145.4``` |
+| ```Block Vivaldi Sync``` | ```Redirects bifrost.vivaldi.com to 0.0.0.0 in libchrome.so to completely disable Vivaldi account synchronization for an air-gapped experience.``` | ```Vivaldi Browser Snapshot``` | ```8.2.4147.28``` |
+| ```Block Vivaldi Telemetry``` | ```Blocks Vivaldi usage statistics, crash reporting, Crashpad endpoints, and DirectMatch suggestions.``` | ```Vivaldi Browser Snapshot``` | ```8.2.4147.28``` |
+| ```Clean Speed Dial Bookmarks``` | ```Removes sponsored commercial affiliate bookmarks, hides the 3-dot customize button, and disables phantom touch actions on the blank Start Page.``` | ```Vivaldi Browser Snapshot``` | ```8.2.4147.28``` |
+| ```Close Tabs on Exit``` | ```Prevents tab restoration on startup, ensuring Vivaldi always opens with a clean Start Page session regardless of how the app was terminated.``` | ```Vivaldi Browser Snapshot``` | ```8.2.4147.28``` |
+| ```Disable Background Sync & Periodic Sync``` | ```Eliminates background wakeups, radio modem activity, and battery drain by neutralizing periodic and one-shot background sync tasks.``` | ```Vivaldi Browser Snapshot``` | ```8.2.4147.28``` |
+| ```Disable Chromium Tips & Notification Scheduler``` | ```Eliminates periodic background wakeups, native library loading, and in-product promotional tips from Chromium tips scheduler.``` | ```Vivaldi Browser Snapshot``` | ```8.2.4147.28``` |
+| ```Disable Vivaldi Prompts & In-App Popups``` | ```Disables in-app donation prompts, search engine switch promos, rate-app popups, background privacy report alarms, and default browser promotional handlers.``` | ```Vivaldi Browser Snapshot``` | ```8.2.4147.28``` |
+| ```Resource Slimmer``` | ```Strips bundled stock wallpapers and sponsored Speed Dial thumbnails to reduce APK size.``` | ```Vivaldi Browser Snapshot``` | ```8.2.4147.28``` |
+| ```Vivaldi Startup Performance Optimization``` | ```Optimizes cold startup time, eliminates background CPU/disk overhead, and guards against early CompositorView LayoutStateObserver crashes.``` | ```Vivaldi Browser Snapshot``` | ```8.2.4147.28``` |
 
 </details>
 
@@ -7138,12 +7146,12 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Hill Climb Racing Ad Removal``` | ```Completely removes ads: banners and interstitials can never be displayed (CFirebaseAds.showBanners/showInterstitial become no-ops) and ad-free is granted once per app start — loadStore() seeds mAdFree = 1, the native engine's poll grants it and the store's own reset (inappPurchasesProcessed) zeroes the field, so no repeated purchase popups.``` | ```Hill Climb Racing``` | ```1.71.1``` |
 | ```Hill Climb Racing Free Store``` | ```Every store item is granted instantly and free: coins, gems, paints, ad-skips, ad-free and bundles, without launching Google Play billing.``` | ```Hill Climb Racing``` | ```1.71.1``` |
 | ```Hill Climb Racing Instant Rewarded Video Rewards``` | ```Rewarded video ads grant their reward instantly without playing the ad: the native engine receives onVideoStartedSuccess + onVideoCompletedSuccess on the GL thread, exactly as if the video had been watched and completed.``` | ```Hill Climb Racing``` | ```1.71.1``` |
-| ```Shadow Fight 2 Debug Menu Restore``` | ```Restores CheatsPanel 8 methods (ShowCheats/AddCurrency etc.) from RET to real logic. Makes debug menu functional.``` | ```Shadow Fight 2``` | ```2.46.0``` |
+| ```Shadow Fight 2 Crash Log``` | ```Saves crash info to a file if the game crashes.``` | ```Shadow Fight 2``` | ```2.46.0``` |
+| ```Shadow Fight 2 Crash Trigger``` | ```Enables crash logging.``` | ```Shadow Fight 2``` | ```2.46.0``` |
 | ```Shadow Fight 2 Dump Trigger``` | ```Triggers ShadowDump via UnityPlayerActivity.onCreate``` | ```Shadow Fight 2``` | ```2.46.0``` |
-| ```Shadow Fight 2 Hardcode 999999999``` | ```Direct memory hardcode for BFBONKPKBNL/ECENNHNBAME ObscuredInt (Gems/Coins) to 999999999. No runtime scan.``` | ```Shadow Fight 2``` | ```2.46.0``` |
-| ```Shadow Fight 2 Hardcode Trigger``` | ```Triggers hardcode via UnityPlayerActivity.onCreate``` | ```Shadow Fight 2``` | ```2.46.0``` |
-| ```Shadow Fight 2 Runtime Dump``` | ```Dumps all Unity classes/fields with ObscuredInt to logcat for hardcode. Use logcat -s ShadowDump.``` | ```Shadow Fight 2``` | ```2.46.0``` |
-| ```Shadow Fight 2 Show Cheats UI``` | ```Forces CheatsPanel to be visible and adds floating Add Gems button. Works without root.``` | ```Shadow Fight 2``` | ```2.46.0``` |
+| ```Shadow Fight 2 Runtime Dump``` | ```Dumps all Unity classes/fields with ObscuredInt to logcat and files. Use logcat -s ShadowDump or cat shizuku-terminal/shadowdump-log.txt``` | ```Shadow Fight 2``` | ```2.46.0``` |
+| ```Shadow Fight 2 Unlimited Values``` | ```Sets in-game values to unlimited.``` | ```Shadow Fight 2``` | ```2.46.0``` |
+| ```Shadow Fight 2 Values Trigger``` | ```Enables unlimited values.``` | ```Shadow Fight 2``` | ```2.46.0``` |
 | ```Smash Hit Premium Unlock``` | ```Unlocks premium and all game modes without purchase.``` | ```Smash Hit``` | ```1.5.14``` |
 | ```Bypass Google Play Install Check``` | ```App always behaves as if installed from Google Play, bypassing the install source check.``` | ```Toolbox for Minecraft PE``` | ```5.4.58``` |
 | ```Premium``` | ```Enables premium features by bypassing in-app purchase verification.``` | ```Toolbox for Minecraft PE``` | ```5.4.58``` |
@@ -7201,15 +7209,22 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Froggo Bundle Patch List:
 [📦 Froggo-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-froggo-patches-bundle-morphe)
 <details>
-<summary><b>Froggo</b> - 5 patches, 1 app</summary>
+<summary><b>Froggo</b> - 12 patches, 2 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Block Facebook automatic refresh (573)``` | ```Suppresses lifecycle feed refresh while preserving explicit refresh paths.``` | ```Facebook``` | ```573.0.0.37.74``` |
+| ```Block Facebook automatic refresh (573)``` | ```Experimental: blocks automatic foreground/hot-start/stale-tab/stale-post feed refresh while preserving cold initialization, manual, activity-result and fullscreen refresh paths.``` | ```Facebook``` | ```573.0.0.37.74``` |
 | ```Block Facebook Feed ads (573)``` | ```Blocks sponsored and promoted units in the Facebook 573 Feed without touching Reels or Stories.``` | ```Facebook``` | ```573.0.0.37.74``` |
 | ```Block Facebook Reels ads (573)``` | ```Blocks sponsored Reels in the swipe feed plus Reels/video banners, video ads, and commercial breaks.``` | ```Facebook``` | ```573.0.0.37.74``` |
 | ```Block Facebook Story ads (573)``` | ```Filters Story ad buckets only at the concrete X68 provider return boundary.``` | ```Facebook``` | ```573.0.0.37.74``` |
+| ```Change Facebook app theme (573)``` | ```Adds AMOLED Black and Material You palettes while preserving Facebook's light/dark mode selection.``` | ```Facebook``` | ```573.0.0.37.74``` |
 | ```Download Facebook Media (573)``` | ```Adds direct downloads for the visible Story, Reel, and video media through MediaStore.``` | ```Facebook``` | ```573.0.0.37.74``` |
+| ```Facebook 573 AI content diagnostics``` | ```Logs Facebook GenAI structural flags for Feed stories without filtering them.``` | ```Facebook``` | ```573.0.0.37.74``` |
+| ```Facebook 573 AI filter + recommendation diagnostics``` | ```Filters detected AI Feed stories and logs structural metadata for DiscoverFeedUnit recommendation candidates in one bytecode injection.``` | ```Facebook``` | ```573.0.0.37.74``` |
+| ```Facebook 573 Feed recommendation diagnostics``` | ```Logs structural metadata for injected Feed stories without filtering them.``` | ```Facebook``` | ```573.0.0.37.74``` |
+| ```Hide Facebook AI content (573)``` | ```Filters Feed posts carrying Facebook's GenAI transparency metadata (Contenido de IA).``` | ```Facebook``` | ```573.0.0.37.74``` |
+| ```Stop Facebook Story auto-advance (573)``` | ```Leaves photo and video Stories on their completed frame until the viewer navigates manually.``` | ```Facebook``` | ```573.0.0.37.74``` |
+| ```Clone app``` | ```Changes the app package name to allow installing the same app multiple times. By default ".morphe" is appended to the package name. Each cloned install must use a unique package name. Cloning does not work with all apps and using this patch may cause app crashes or other unexpected behavior.``` | ```Universal``` | ```All versions``` |
 
 </details>
 
@@ -7724,5 +7739,33 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```IAP browser``` | ```Adds a browser for Google Play or RevenueCat in-app products and subscriptions.``` | ```Universal``` | ```All versions``` |
+
+</details>
+---
+### 🧩 Letterboxd Bundle Patch List:
+[📦 Letterboxd-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-letterboxd-patches-bundle-morphe)
+<details>
+<summary><b>Letterboxd</b> - 6 patches, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Brighter Watched-by stars``` | ```Other people's star ratings in a film's "Watched by" row use a very dark grey (#445566) that is hard to read, especially on a black theme. This switches them to the lighter grey (#99AABB) the rest of the app already uses for other people's ratings. A small legibility fix, on by default.``` | ```Letterboxd``` | ```3.5.4``` |
+| ```Denser poster grid``` | ```Tightens the spacing around posters in grids so they render larger and closer together. Does not change the number of columns.``` | ```Letterboxd``` | ```3.5.4``` |
+| ```Hide ratings until watched``` | ```Hides the community rating (average + histogram) on a film's page until you have marked that film as watched. Only the film page is affected — ratings shown in lists, search and elsewhere are unchanged.``` | ```Letterboxd``` | ```3.5.4``` |
+| ```Hide Video Store on home``` | ```Removes the "Letterboxd Video Store" promo row from the Films tab. The Video Store itself, its settings and every other entry point are left untouched.``` | ```Letterboxd``` | ```3.5.4``` |
+| ```Match bottom nav to top bar color``` | ```Sets Letterboxd's bottom navigation bar background to the same color as the top bar (@color/black100), so it blends into the app's dark chrome instead of showing the default slate bar.``` | ```Letterboxd``` | ```3.5.4``` |
+| ```Material You theme``` | ```Repaints Letterboxd's dark chrome — window background, surfaces, cards, the top bar, tab strip and bottom nav. 'Wallpaper tint' follows the device's Material You palette on Android 12+ (no effect below). 'Pure black (OLED)' forces true black on any version. Optional accent colour recolours Letterboxd's green; optional bottom-nav selected style replaces the grey pill. No effect on Jetpack Compose screens. Overlaps "Match bottom nav to top bar color" — enable one, not both.``` | ```Letterboxd``` | ```3.5.4``` |
+
+</details>
+
+---
+### 🧩 YouTube-Studio Bundle Patch List:
+[📦 YouTube-Studio-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-youtube-studio-patches-bundle-morphe)
+<details>
+<summary><b>YouTube-Studio</b> - 1 patch, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```GmsCore support``` | ```Adds MicroG support metadata for YouTube Studio.``` | ```YouTube Studio``` | ```All versions``` |
 
 </details>

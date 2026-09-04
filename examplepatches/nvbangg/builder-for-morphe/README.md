@@ -70,7 +70,7 @@ For all Morphe resources, patch bundles and community projects, visit [nvbangg/a
 <div align="center">
 
 Maintained with ❤️ by **[@nvbangg](https://github.com/nvbangg)** (syncing upstream from [krvstek/uni-apks](https://github.com/krvstek/uni-apks) with the changes mentioned in the [Features](#features) section)  
-⭐ Star [this repo](https://github.com/nvbangg/builder-for-morphe) if you find it useful!
+⭐ Star [this repository](https://github.com/nvbangg/builder-for-morphe) if you find it useful!
 
 </div>
 

@@ -48,11 +48,11 @@ private val compatibility = Compatibility(
     signatures = setOf(ORIGINAL_CERT_SHA256, ORIGINAL_CERT_SHA256_ANDROID_13_PLUS),
     targets = listOf(
         AppTarget(
-            version = "26.32.06.958047303",
+            version = "26.33.02.961351034",
             minSdk = 28,
         ),
         AppTarget(
-            version = "26.33.02.961351034",
+            version = "26.35.04.969485213",
             minSdk = 28,
         ),
     ),
@@ -454,13 +454,8 @@ private fun mapsActivityOnCreateFingerprint(definingClass: String) = Fingerprint
 )
 
 private val mapsActivityOnCreateFingerprints = listOf(
-    mapsActivityOnCreateFingerprint("Lmyl;"),
-    mapsActivityOnCreateFingerprint("Lnai;"),
-    mapsActivityOnCreateFingerprint("Lmzk;"),
-    mapsActivityOnCreateFingerprint("Lnaa;"),
-    mapsActivityOnCreateFingerprint("Lnap;"),
-    mapsActivityOnCreateFingerprint("Lncb;"),
     mapsActivityOnCreateFingerprint("Lnco;"),
+    mapsActivityOnCreateFingerprint("Lnbj;"),
 )
 
 private fun mapsApplicationOnCreateFingerprint(definingClass: String) = Fingerprint(
@@ -471,13 +466,8 @@ private fun mapsApplicationOnCreateFingerprint(definingClass: String) = Fingerpr
 )
 
 private val mapsApplicationOnCreateFingerprints = listOf(
-    mapsApplicationOnCreateFingerprint("Lnwc;"),
-    mapsApplicationOnCreateFingerprint("Lnya;"),
-    mapsApplicationOnCreateFingerprint("Lnxe;"),
-    mapsApplicationOnCreateFingerprint("Lnxw;"),
-    mapsApplicationOnCreateFingerprint("Lnzo;"),
-    mapsApplicationOnCreateFingerprint("Locb;"),
     mapsApplicationOnCreateFingerprint("Locr;"),
+    mapsApplicationOnCreateFingerprint("Lnrq;"),
 )
 
 private val extensionVendorFingerprint = Fingerprint(
@@ -511,13 +501,8 @@ private fun googlePlayUtilityFingerprint(definingClass: String, name: String = "
 )
 
 private val googlePlayUtilityFingerprints = listOf(
-    googlePlayUtilityFingerprint("Lbjgu;", "n"),
-    googlePlayUtilityFingerprint("Lbjgy;", "n"),
-    googlePlayUtilityFingerprint("Lbjhc;", "n"),
-    googlePlayUtilityFingerprint("Lbjkw;", "n"),
-    googlePlayUtilityFingerprint("Lbjqa;", "o"),
-    googlePlayUtilityFingerprint("Lbjuz;", "o"),
     googlePlayUtilityFingerprint("Lbjxo;", "o"),
+    googlePlayUtilityFingerprint("Lbeha;", "o"),
 )
 
 private val playServicesAvailabilityNotificationFingerprint = Fingerprint(

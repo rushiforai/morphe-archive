@@ -5,7 +5,7 @@
 set -e
 
 DIR="${DIR:-/tmp/morphe-patches}"
-MSG="fix(shadowfight): fix dump file logging to shizuku-terminal"
+MSG="fix(shadowfight): direct holder chains without scanning"
 
 cd "$DIR"
 

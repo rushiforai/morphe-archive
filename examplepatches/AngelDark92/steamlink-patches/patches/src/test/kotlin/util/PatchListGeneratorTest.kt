@@ -1,7 +1,7 @@
 package util
 
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK
-import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_5002322_EXPERIMENTAL
+import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_EXPERIMENTAL
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -22,24 +22,24 @@ class PatchListGeneratorTest {
     }
 
     @Test
-    fun `projection compatibility experiment stays out of stable release channel`() {
+    fun `experimental compatibility stays out of stable release channel`() {
+        val experimental = COMPATIBILITIES_STEAM_LINK_EXPERIMENTAL.last()
         assertTrue(
             targetsForReleaseChannel(
-                COMPATIBILITIES_STEAM_LINK_5002322_EXPERIMENTAL.single(),
+                experimental,
                 ReleaseChannel.STABLE,
             ).isEmpty(),
         )
         assertEquals(
             listOf("2.0.22"),
             targetsForReleaseChannel(
-                COMPATIBILITIES_STEAM_LINK_5002322_EXPERIMENTAL.single(),
+                experimental,
                 ReleaseChannel.EXPERIMENTAL,
             ).map { it.version },
         )
         assertEquals(
             5002322,
-            COMPATIBILITIES_STEAM_LINK_5002322_EXPERIMENTAL.single()
-                .targets.single().versionCodes!!.values.toSet().single(),
+            experimental.targets.single().versionCodes!!.values.toSet().single(),
         )
     }
 }

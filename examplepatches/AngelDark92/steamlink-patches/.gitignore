@@ -156,3 +156,5 @@ Resources/
 !patches/src/main/resources/steamlink/androidxr/XR_APILAYER_local_GalaxyXR_projection_metadata_compat_v2.json
 !patches/src/main/resources/steamlink/androidxr/libgxr_projection_metadata_compat_v2.so
 extensions/resolution-trace-layer/build-android-new/
+extensions/resolution-trace-layer/build-android-cpu/
+extensions/resolution-trace-layer/build-host-tests/

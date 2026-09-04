@@ -1,3 +1,111 @@
+## [1.13.0](https://github.com/AngelDark92/steamlink-patches/compare/v1.12.1...v1.13.0) (2026-09-03)
+
+### 🐛 Bug Fixes
+
+* CPU overhead optimizations ([b3b092e](https://github.com/AngelDark92/steamlink-patches/commit/b3b092e1c9f9760d162404d6ae1482ce53a4c389))
+* Merge pull request [#50](https://github.com/AngelDark92/steamlink-patches/issues/50) from AngelDark92/dev ([631150e](https://github.com/AngelDark92/steamlink-patches/commit/631150e8810dff92c10d7c2b0b51661cddb9d892))
+* removed experimental patch ([d49ab3e](https://github.com/AngelDark92/steamlink-patches/commit/d49ab3e60693d5632cfe63b6ac75a1ae665cffa0))
+
+### ✨ New Features
+
+* underside projection on XR_KHR_android_surface_swapchain experiment ([64d24d3](https://github.com/AngelDark92/steamlink-patches/commit/64d24d376aaa7c181cc2a1120e4e5674a552e0ef))
+
+## [1.13.0-dev.2](https://github.com/AngelDark92/steamlink-patches/compare/v1.13.0-dev.1...v1.13.0-dev.2) (2026-09-03)
+
+### 🐛 Bug Fixes
+
+* removed experimental patch ([d49ab3e](https://github.com/AngelDark92/steamlink-patches/commit/d49ab3e60693d5632cfe63b6ac75a1ae665cffa0))
+
+## [1.13.0-dev.1](https://github.com/AngelDark92/steamlink-patches/compare/v1.12.2-dev.1...v1.13.0-dev.1) (2026-09-03)
+
+### ✨ New Features
+
+* underside projection on XR_KHR_android_surface_swapchain experiment ([64d24d3](https://github.com/AngelDark92/steamlink-patches/commit/64d24d376aaa7c181cc2a1120e4e5674a552e0ef))
+
+## [1.12.2-dev.1](https://github.com/AngelDark92/steamlink-patches/compare/v1.12.1...v1.12.2-dev.1) (2026-09-03)
+
+### 🐛 Bug Fixes
+
+* CPU overhead optimizations ([b3b092e](https://github.com/AngelDark92/steamlink-patches/commit/b3b092e1c9f9760d162404d6ae1482ce53a4c389))
+
+## [1.12.1](https://github.com/AngelDark92/steamlink-patches/compare/v1.12.0...v1.12.1) (2026-09-03)
+
+### 🐛 Bug Fixes
+
+* Merge pull request [#49](https://github.com/AngelDark92/steamlink-patches/issues/49) from AngelDark92/dev ([1c4a62f](https://github.com/AngelDark92/steamlink-patches/commit/1c4a62fc779919c6a0a84abf2badad665cad97d6))
+* remade readme ([f10c81d](https://github.com/AngelDark92/steamlink-patches/commit/f10c81dfaa10699dbadd3db569ae9284eadb5e88))
+
+## [1.12.1-dev.1](https://github.com/AngelDark92/steamlink-patches/compare/v1.12.0...v1.12.1-dev.1) (2026-09-03)
+
+### 🐛 Bug Fixes
+
+* remade readme ([f10c81d](https://github.com/AngelDark92/steamlink-patches/commit/f10c81dfaa10699dbadd3db569ae9284eadb5e88))
+
+## [1.12.0](https://github.com/AngelDark92/steamlink-patches/compare/v1.11.0...v1.12.0) (2026-09-03)
+
+### 🐛 Bug Fixes
+
+* 2.0.20 connection problem ([afda85e](https://github.com/AngelDark92/steamlink-patches/commit/afda85ec21429f539801e3cc65adb8a0843fd2b9))
+* compatibility with 2.0.20 and another surface test for 2.0.22 GPU Optimization ([c7bddec](https://github.com/AngelDark92/steamlink-patches/commit/c7bddecbea9ab962c626a0a73d4df3f0f0bcab29))
+* compatibility with 2.0.20-5001712 ([2bc4b47](https://github.com/AngelDark92/steamlink-patches/commit/2bc4b4718f529784f0e4e641ff6d96643ea8031b))
+* CPU optimization and GPU Experiment on resolution patch ([0de5a70](https://github.com/AngelDark92/steamlink-patches/commit/0de5a70e2bfb3ebc2f191cdd110fe8927b144f6a))
+* CPU optimizations on resolution patch and fixes for 2.0.20 ([d3038c6](https://github.com/AngelDark92/steamlink-patches/commit/d3038c6f29c3771591cd6f7702a0c9d9b5f4c9e3))
+* fixed bundles and removed dithering patch ([3544cab](https://github.com/AngelDark92/steamlink-patches/commit/3544cabfc2ae598427988c41dd199da73777cecd))
+* legacy bundles now include device identity (quest pro) for DFR and Face Tracking ([9dde468](https://github.com/AngelDark92/steamlink-patches/commit/9dde468956d5ace82c2b0cd8da524b764f0d353e))
+* patched 2.0.20 compatibility ([0a8a396](https://github.com/AngelDark92/steamlink-patches/commit/0a8a39638bd29ffb9b977a4aae9f91b39790dde4))
+
+### ✨ New Features
+
+* pull request [#48](https://github.com/AngelDark92/steamlink-patches/issues/48) from AngelDark92/dev ([ad1036e](https://github.com/AngelDark92/steamlink-patches/commit/ad1036e0180418e6bc4670606273b55e6f62bac9))
+
+## [1.11.1-dev.8](https://github.com/AngelDark92/steamlink-patches/compare/v1.11.1-dev.7...v1.11.1-dev.8) (2026-09-02)
+
+### 🐛 Bug Fixes
+
+* legacy bundles now include device identity (quest pro) for DFR and Face Tracking ([9dde468](https://github.com/AngelDark92/steamlink-patches/commit/9dde468956d5ace82c2b0cd8da524b764f0d353e))
+
+## [1.11.1-dev.7](https://github.com/AngelDark92/steamlink-patches/compare/v1.11.1-dev.6...v1.11.1-dev.7) (2026-09-02)
+
+### 🐛 Bug Fixes
+
+* fixed bundles and removed dithering patch ([3544cab](https://github.com/AngelDark92/steamlink-patches/commit/3544cabfc2ae598427988c41dd199da73777cecd))
+
+## [1.11.1-dev.6](https://github.com/AngelDark92/steamlink-patches/compare/v1.11.1-dev.5...v1.11.1-dev.6) (2026-09-02)
+
+### 🐛 Bug Fixes
+
+* 2.0.20 connection problem ([afda85e](https://github.com/AngelDark92/steamlink-patches/commit/afda85ec21429f539801e3cc65adb8a0843fd2b9))
+
+## [1.11.1-dev.5](https://github.com/AngelDark92/steamlink-patches/compare/v1.11.1-dev.4...v1.11.1-dev.5) (2026-09-02)
+
+### 🐛 Bug Fixes
+
+* CPU optimizations on resolution patch and fixes for 2.0.20 ([d3038c6](https://github.com/AngelDark92/steamlink-patches/commit/d3038c6f29c3771591cd6f7702a0c9d9b5f4c9e3))
+
+## [1.11.1-dev.4](https://github.com/AngelDark92/steamlink-patches/compare/v1.11.1-dev.3...v1.11.1-dev.4) (2026-09-02)
+
+### 🐛 Bug Fixes
+
+* patched 2.0.20 compatibility ([0a8a396](https://github.com/AngelDark92/steamlink-patches/commit/0a8a39638bd29ffb9b977a4aae9f91b39790dde4))
+
+## [1.11.1-dev.3](https://github.com/AngelDark92/steamlink-patches/compare/v1.11.1-dev.2...v1.11.1-dev.3) (2026-09-02)
+
+### 🐛 Bug Fixes
+
+* compatibility with 2.0.20 and another surface test for 2.0.22 GPU Optimization ([c7bddec](https://github.com/AngelDark92/steamlink-patches/commit/c7bddecbea9ab962c626a0a73d4df3f0f0bcab29))
+
+## [1.11.1-dev.2](https://github.com/AngelDark92/steamlink-patches/compare/v1.11.1-dev.1...v1.11.1-dev.2) (2026-09-02)
+
+### 🐛 Bug Fixes
+
+* CPU optimization and GPU Experiment on resolution patch ([0de5a70](https://github.com/AngelDark92/steamlink-patches/commit/0de5a70e2bfb3ebc2f191cdd110fe8927b144f6a))
+
+## [1.11.1-dev.1](https://github.com/AngelDark92/steamlink-patches/compare/v1.11.0...v1.11.1-dev.1) (2026-09-02)
+
+### 🐛 Bug Fixes
+
+* compatibility with 2.0.20-5001712 ([2bc4b47](https://github.com/AngelDark92/steamlink-patches/commit/2bc4b4718f529784f0e4e641ff6d96643ea8031b))
+
 ## [1.11.0](https://github.com/AngelDark92/steamlink-patches/compare/v1.10.0...v1.11.0) (2026-09-01)
 
 ### 🐛 Bug Fixes

@@ -15,6 +15,7 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import org.w3c.dom.Element
 import org.w3c.dom.NodeList
+import java.io.File
 import java.util.Locale
 
 private fun NodeList.asSequence(): Sequence<org.w3c.dom.Node> = sequence {
@@ -22,6 +23,14 @@ private fun NodeList.asSequence(): Sequence<org.w3c.dom.Node> = sequence {
 }
 
 private val PACKAGE_NAME_REGEX = Regex("^[a-z]\\w*(\\.[a-z]\\w*)+$")
+internal const val CHANGE_PACKAGE_IDS_XML_FALLBACK =
+    """<?xml version="1.0" encoding="utf-8"?><resources/>"""
+
+internal fun ensureChangePackageIdsXml(file: File) {
+    if (file.exists()) return
+    file.parentFile!!.mkdirs()
+    file.writeText(CHANGE_PACKAGE_IDS_XML_FALLBACK)
+}
 
 private fun toPackageSuffixSegment(input: String): String {
     val normalized = input.lowercase(Locale.ROOT)
@@ -121,6 +130,12 @@ val changePackageNamePatch = resourcePatch(
     dependsOn(changePackageNameBytecodePatch)
 
     val packageName by changePackageNameOption()
+
+    execute {
+        // Morphe's package-renaming resource processor opens ids.xml unconditionally. Steam Link
+        // 2.0.20/5001712 has no ID resources, so supply a valid empty document before compilation.
+        ensureChangePackageIdsXml(get("res/values/ids.xml"))
+    }
 
     finalize {
         val original = packageMetadata.packageName

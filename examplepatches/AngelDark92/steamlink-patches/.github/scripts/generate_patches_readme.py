@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Generates the patches section of README.md from patches-list.json
+Generates the patches section of TECHNICAL_REFERENCE.md from patches-list.json
 and injects it between <!-- PATCHES_START --> / <!-- PATCHES_END --> markers.
 
 Spoilers are expanded (open by default) if:
   1. Total patch count <= AUTO_EXPAND_THRESHOLD.
-  2. The README marker explicitly says: <!-- PATCHES_START EXPANDED -->
+  2. The document marker explicitly says: <!-- PATCHES_START EXPANDED -->
 
-python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [README.md]
+python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [TECHNICAL_REFERENCE.md]
 """
 
 import json
@@ -18,13 +18,13 @@ from pathlib import Path
 
 
 if len(sys.argv) < 3:
-    print("Usage: generate_patches_readme.py <owner/repo> <branch> [json] [readme]")
+    print("Usage: generate_patches_readme.py <owner/repo> <branch> [json] [document]")
     sys.exit(1)
 
 repo_full   = sys.argv[1]
 branch      = sys.argv[2]
 json_path   = Path(sys.argv[3]) if len(sys.argv) > 3 else Path("patches-list.json")
-readme_path = Path(sys.argv[4]) if len(sys.argv) > 4 else Path("README.md")
+readme_path = Path(sys.argv[4]) if len(sys.argv) > 4 else Path("TECHNICAL_REFERENCE.md")
 
 
 if "/" not in repo_full:
@@ -220,7 +220,7 @@ AUTO_EXPAND_THRESHOLD = 20
 # Spoilers are expanded if:
 # 1. Total patch count is small (≤ AUTO_EXPAND_THRESHOLD)
 #    with only a few patches where collapsing adds no benefit.
-# 2. The README marker explicitly requests it: <!-- PATCHES_START EXPANDED -->
+# 2. The document marker explicitly requests it: <!-- PATCHES_START EXPANDED -->
 expanded = (
     total <= AUTO_EXPAND_THRESHOLD or
     "EXPANDED" in actual_start

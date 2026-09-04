@@ -45,7 +45,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "CHANNEL=$([ \"$GITHUB_REF_NAME\" = \"main\" ] && echo stable || echo experimental) && ./gradlew generatePatchesList -PreleaseChannel=$CHANNEL && for f in patches-list.json patches-list-stable.json patches-list-experimental.json patches-list-all.json; do jq '.version=\"${nextRelease.version}\"' \"$f\" > \"$f.tmp\" && mv \"$f.tmp\" \"$f\"; done && python3 .github/scripts/generate_patches_readme.py $GITHUB_REPOSITORY $GITHUB_REF_NAME patches-list-all.json README.md"
+        "prepareCmd": "CHANNEL=$([ \"$GITHUB_REF_NAME\" = \"main\" ] && echo stable || echo experimental) && ./gradlew generatePatchesList -PreleaseChannel=$CHANNEL && for f in patches-list.json patches-list-stable.json patches-list-experimental.json patches-list-all.json; do jq '.version=\"${nextRelease.version}\"' \"$f\" > \"$f.tmp\" && mv \"$f.tmp\" \"$f\"; done && python3 .github/scripts/generate_patches_readme.py $GITHUB_REPOSITORY $GITHUB_REF_NAME patches-list-all.json TECHNICAL_REFERENCE.md"
       }
     ],
     [
@@ -59,7 +59,7 @@
           "patches-list-stable.json",
           "patches-list-experimental.json",
           "patches-list-all.json",
-          "README.md"
+          "TECHNICAL_REFERENCE.md"
         ],
         "message": "chore: Release v${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }

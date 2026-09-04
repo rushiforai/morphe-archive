@@ -39,6 +39,8 @@ import subprocess
 import sys
 import urllib.request
 import xml.dom.minidom
+# Aliased because a local named `xml` shadows the module inside the replay function.
+from xml.dom.minidom import parseString as parse_xml_string
 import xml.etree.ElementTree as ET
 from hashlib import sha256
 from glob import glob
@@ -89,13 +91,13 @@ COPY_WRITES = [
 # (docs/toolbar-access-points.md) is the first consumer back, mapped here explicitly. An
 # unmapped patch values file still fails the lane — the mapping is the review.
 VALUE_MERGES = [
-    # ToolbarSlotsPatch: every admitted id becomes a strings entry, then an array item.
+    # ToolbarIdAdmission: every admitted id becomes a strings entry, then an array item.
     ("values/flexboard_toolbar_slots.xml", "res/values/strings.xml"),
 ]
 
 # Arrays the patch widens, replayed on the real decoded array: (sentinel id value whose
 # *referencing* string locates the holder array, how many ids get appended). Mirrors
-# widenAllowedIdSet() in ToolbarSlotsPatch.kt — the sentinel is a content pin precisely
+# widenAllowedIdSet() in ToolbarIdAdmission.kt — the sentinel is a content pin precisely
 # because the array's name is obfuscated per build. The appended count is read off the same
 # values fragment the patch splices in, so trimming/expanding the slot count never has to be
 # restated here (the patch's own require() holds fragment and HOTKEY_SLOTS in step).
@@ -300,6 +302,18 @@ def replay(scratch):
         # Same substitution :patches:processResources performs for the settings screen.
         if "@FLEXBOARD_VERSION@" in xml:
             xml = xml.replace("@FLEXBOARD_VERSION@", bundle_version())
+        # Same section filtering filterSettingsSections performs at patch time. This lane only
+        # knew about @FLEXBOARD_VERSION@, so the day the settings template grew section sentinels
+        # every run failed on the first one and stopped before replaying anything after it --
+        # including the values splices. A red lane that fails early is a lane that guards nothing,
+        # and this one stayed red long enough to let a malformed values fragment reach a phone.
+        #
+        # Replayed with every section selected: that is the maximal output, the one a default
+        # install produces, and the only variant whose rows must all resolve at link time.
+        xml = re.sub(
+            r"<!--\s*@SECTION_(\w+)@\s*-->(.*?)<!--\s*@END_SECTION_\1@\s*-->",
+            lambda m: m.group(2), xml, flags=re.S,
+        )
         leftover = re.search(r"@[A-Z_]+@", xml)
         if leftover:
             fail("replay", f"unsubstituted placeholder {leftover.group(0)} in {source_rel}")
@@ -348,7 +362,18 @@ def replay(scratch):
     for source_rel, target in VALUE_MERGES:
         source = REPO / "patches" / "src" / "main" / "resources" / source_rel
         our = source.read_text()
-        inner = our.split("<resources>", 1)[1].rsplit("</resources>", 1)[0].strip()
+        # Parse the fragment on its own first, so a malformed one is reported against OUR file.
+        # This used to surface only after the merge, as "strings.xml is not well-formed" -- which
+        # sends you reading Gboard's 5000-line values file instead of the ten lines that broke it.
+        try:
+            parse_xml_string(our)
+        except Exception as e:
+            fail("parse", f"{source_rel} is not well-formed XML: {e}")
+        # Comments are stripped before merging, mirroring spliceValues(). An XML comment may not
+        # contain "--", and these comments carry prose that reaches for a dash.
+        inner = our.split("<resources>", 1)[1].rsplit("</resources>", 1)[0]
+        inner = re.sub(r"<!--.*?-->", "", inner, flags=re.S)
+        inner = "\n".join(l for l in inner.split("\n") if l.strip()).strip()
         new_names = re.findall(r'name="(flexboard_[a-z_0-9]+)"', inner)
         dest = pkg_dir / target
         existing = dest.read_text() if dest.exists() else None

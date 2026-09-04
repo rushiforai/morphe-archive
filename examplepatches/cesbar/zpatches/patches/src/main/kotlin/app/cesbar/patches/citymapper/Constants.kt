@@ -9,6 +9,6 @@ object Constants {
             name = "Citymapper",
             packageName = "com.citymapper.app.release",
             appIconColor = 0x37aa2f,
-            targets = listOf(AppTarget("11.57.2"), AppTarget(null))
+            targets = listOf(AppTarget("11.57.2"))
         )
 }

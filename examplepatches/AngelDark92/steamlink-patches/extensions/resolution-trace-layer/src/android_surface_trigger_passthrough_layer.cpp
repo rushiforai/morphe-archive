@@ -19,25 +19,37 @@
 #include <unistd.h>
 #include <vector>
 
+#include "session_registry.h"
+
 #define GXR_EXPORT extern "C" __attribute__((visibility("default")))
 
 namespace {
 
 // This API layer is intentionally append-only. Steam Link continues to render its
-// native 3 projection layers (6 views) into Valve-owned swapchains. We neither sample
-// nor rewrite those images. The only added composition work is a static 2x2 Android
-// Surface quad that activates the Galaxy XR compositor path observed to retain full
-// sharpness without SYSTEM_ALERT_WINDOW.
+// build-specific native projection layers into Valve-owned swapchains. We neither
+// sample nor rewrite those images. The only added composition work is a static 2x2
+// Android Surface quad that activates the Galaxy XR compositor path observed to retain
+// full sharpness without SYSTEM_ALERT_WINDOW.
+
+#if GXR_AST_SOURCE_PROJECTION_COUNT != 2 && GXR_AST_SOURCE_PROJECTION_COUNT != 3
+#error "GXR_AST_SOURCE_PROJECTION_COUNT must be 2 or 3"
+#endif
 
 constexpr char kLayerName[] =
     "XR_APILAYER_local_GalaxyXR_android_surface_trigger_passthrough_v1";
 constexpr char kModeName[] = "android_surface_trigger_passthrough_v1";
-constexpr char kBuildId[] = "android-surface-trigger-forced-probe-v1.1-20260901";
+#if GXR_AST_SOURCE_PROJECTION_COUNT == 2
+constexpr char kBuildId[] = "android-surface-trigger-5001712-v1.2-20260903";
+#else
+constexpr char kBuildId[] = "android-surface-trigger-passthrough-v1.4-20260903";
+#endif
 constexpr char kLogTag[] = "GXRSurfaceTrigger";
 constexpr uint32_t kTriggerWidth = 2;
 constexpr uint32_t kTriggerHeight = 2;
-constexpr uint32_t kRequiredLayerCount = 4;
-constexpr uint64_t kSummaryInterval = 900;
+constexpr uint32_t kSourceProjectionCount = GXR_AST_SOURCE_PROJECTION_COUNT;
+constexpr uint32_t kSourceViewCount = kSourceProjectionCount * 2;
+constexpr uint32_t kRequiredLayerCount = kSourceProjectionCount + 1;
+constexpr uint64_t kInitialDiagnosticFrames = 3;
 
 struct Dispatch {
     XrInstance instance{XR_NULL_HANDLE};
@@ -52,7 +64,6 @@ struct Dispatch {
     PFN_xrCreateSwapchain createSwapchain{};
     PFN_xrCreateSwapchainAndroidSurfaceKHR createAndroidSurfaceSwapchain{};
     PFN_xrDestroySwapchain destroySwapchain{};
-    PFN_xrWaitFrame waitFrame{};
     PFN_xrEndFrame endFrame{};
     PFN_xrPollEvent pollEvent{};
 };
@@ -69,14 +80,19 @@ struct SwapchainContract {
 struct SessionState {
     std::mutex mutex;
     XrSession session{XR_NULL_HANDLE};
-    XrSessionState state{XR_SESSION_STATE_UNKNOWN};
+    std::atomic<XrSessionState> state{XR_SESSION_STATE_UNKNOWN};
     uint32_t maxLayerCount{};
     XrSpace viewSpace{XR_NULL_HANDLE};
     XrSwapchain surfaceSwapchain{XR_NULL_HANDLE};
     ANativeWindow* window{};
+    XrCompositionLayerQuad triggerQuad{};
     bool bufferQueued{};
-    bool triggerReady{};
-    bool failureLogged{};
+    std::atomic<bool> triggerReady{};
+    std::atomic<bool> failureLogged{};
+    std::atomic<bool> passthroughLogged{};
+    // xrEndFrame and xrDestroySession are externally synchronized for a session.
+    // Keep this diagnostic counter non-atomic so the steady render path performs no
+    // unnecessary atomic read-modify-write on every successfully submitted frame.
     uint64_t appendedFrames{};
 };
 
@@ -84,12 +100,11 @@ Dispatch g;
 JavaVM* applicationVm{};
 bool extensionAdvertised{};
 bool extensionEnabled{};
-std::mutex sessionsMutex;
-std::map<XrSession, std::shared_ptr<SessionState>> sessions;
+using Sessions = gxr::SessionRegistry<XrSession, SessionState>;
+Sessions sessions;
+thread_local Sessions::RenderCache renderSessionCache;
 std::mutex swapchainsMutex;
 std::map<XrSwapchain, SwapchainContract> applicationSwapchains;
-std::atomic<uint64_t> frameCounter{0};
-std::atomic<uint64_t> waitCounter{0};
 
 uint64_t elapsedMs() {
     timespec value{};
@@ -101,10 +116,6 @@ uint64_t elapsedMs() {
 template <typename Handle>
 uint64_t handleValue(Handle handle) {
     return static_cast<uint64_t>(reinterpret_cast<uintptr_t>(handle));
-}
-
-bool sample(uint64_t value) {
-    return value <= 3 || value % kSummaryInterval == 0;
 }
 
 void emit(const char* event, const std::string& fields = {}) {
@@ -166,10 +177,11 @@ bool isVisible(XrSessionState state) {
 }
 
 std::shared_ptr<SessionState> findSession(XrSession session) {
-    std::lock_guard<std::mutex> lock(sessionsMutex);
-    const auto iterator = sessions.find(session);
-    return iterator != sessions.end() ? iterator->second : nullptr;
+    // Event processing may run on another thread. Keep shared ownership here;
+    // only the externally synchronized render path uses a non-owning cache.
+    return sessions.find(session);
 }
+
 
 std::optional<SwapchainContract> findApplicationSwapchain(XrSwapchain swapchain) {
     std::lock_guard<std::mutex> lock(swapchainsMutex);
@@ -184,7 +196,7 @@ void cleanupTrigger(SessionState& state) {
     XrSpace viewSpace{XR_NULL_HANDLE};
     {
         std::lock_guard<std::mutex> lock(state.mutex);
-        state.triggerReady = false;
+        state.triggerReady.store(false, std::memory_order_release);
         state.bufferQueued = false;
         window = state.window;
         state.window = nullptr;
@@ -279,6 +291,21 @@ bool createTrigger(SessionState& state) {
         cleanupTrigger(state);
         return false;
     }
+    // The trigger layer is immutable for the session. Build it once instead of
+    // zeroing and populating the same structure on every xrEndFrame call.
+    state.triggerQuad.type = XR_TYPE_COMPOSITION_LAYER_QUAD;
+    state.triggerQuad.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+    state.triggerQuad.space = state.viewSpace;
+    state.triggerQuad.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
+    state.triggerQuad.subImage.swapchain = state.surfaceSwapchain;
+    state.triggerQuad.subImage.imageRect = {
+        {0, 0},
+        {static_cast<int32_t>(kTriggerWidth), static_cast<int32_t>(kTriggerHeight)},
+    };
+    state.triggerQuad.subImage.imageArrayIndex = 0;
+    state.triggerQuad.pose.orientation.w = 1.0f;
+    state.triggerQuad.pose.position.z = -1.0f;
+    state.triggerQuad.size = {0.001f, 0.001f};
     return true;
 }
 
@@ -286,7 +313,8 @@ bool queueTriggerBuffer(SessionState& state) {
     bool queued = false;
     {
         std::lock_guard<std::mutex> lock(state.mutex);
-        if (!state.window || state.bufferQueued || !isVisible(state.state)) return false;
+        if (!state.window || state.bufferQueued ||
+            !isVisible(state.state.load(std::memory_order_acquire))) return false;
         const int geometryResult = ANativeWindow_setBuffersGeometry(
             state.window, kTriggerWidth, kTriggerHeight, WINDOW_FORMAT_RGBA_8888);
         ANativeWindow_Buffer buffer{};
@@ -309,11 +337,12 @@ bool queueTriggerBuffer(SessionState& state) {
         }
         if (lockResult == 0) postResult = ANativeWindow_unlockAndPost(state.window);
         state.bufferQueued = geometryResult == 0 && writableBuffer && postResult == 0;
-        state.triggerReady = state.bufferQueued;
+        state.triggerReady.store(state.bufferQueued, std::memory_order_release);
         queued = state.bufferQueued;
         emit("surface_buffer_queued",
             "\"session\":" + std::to_string(handleValue(state.session)) +
-            ",\"sessionState\":" + std::to_string(static_cast<int>(state.state)) +
+            ",\"sessionState\":" + std::to_string(static_cast<int>(
+                state.state.load(std::memory_order_acquire))) +
             ",\"geometryResult\":" + std::to_string(geometryResult) +
             ",\"lockResult\":" + std::to_string(lockResult) +
             ",\"postResult\":" + std::to_string(postResult) +
@@ -324,26 +353,45 @@ bool queueTriggerBuffer(SessionState& state) {
     return queued;
 }
 
-bool valveThreeProjectionShape(const XrFrameEndInfo* info) {
-    if (!info || info->type != XR_TYPE_FRAME_END_INFO || info->layerCount != 3 ||
+
+bool valveProjectionShape(
+    const XrFrameEndInfo* info,
+    [[maybe_unused]] uint32_t maxLayerCount,
+    [[maybe_unused]] const XrCompositionLayerBaseHeader** copiedLayers
+) {
+    if (!info || info->type != XR_TYPE_FRAME_END_INFO ||
+        info->layerCount != kSourceProjectionCount ||
         !info->layers) return false;
-    for (uint32_t index = 0; index < 3; ++index) {
+    uint32_t projectionCount = 0;
+    for (uint32_t index = 0; index < info->layerCount; ++index) {
         const auto* base = info->layers[index];
-        if (!base || base->type != XR_TYPE_COMPOSITION_LAYER_PROJECTION) return false;
+        if (!base) return false;
+        if (base->type != XR_TYPE_COMPOSITION_LAYER_PROJECTION) return false;
         const auto* projection =
             reinterpret_cast<const XrCompositionLayerProjection*>(base);
         if (projection->viewCount != 2 || !projection->views) return false;
+        // Production accepts only projection layers, so this validation pass can
+        // also populate the exact pointer array later passed to the runtime.
+        copiedLayers[index] = base;
+        ++projectionCount;
     }
-    return true;
+    return projectionCount == kSourceProjectionCount;
 }
+
 
 std::string sourceFrameContract(const XrFrameEndInfo* info, uint64_t frame) {
     std::ostringstream output;
     output << "\"frame\":" << frame
-           << ",\"sourceLayerCount\":3,\"sourceProjectionCount\":3,"
-           << "\"sourceViewCount\":6,\"projections\":[";
-    for (uint32_t layerIndex = 0; layerIndex < 3; ++layerIndex) {
-        if (layerIndex) output << ',';
+           << ",\"sourceLayerCount\":" << info->layerCount
+           << ",\"sourceProjectionCount\":" << kSourceProjectionCount
+           << ",\"sourceViewCount\":" << kSourceViewCount
+           << ",\"projections\":[";
+    uint32_t projectionIndex = 0;
+    for (uint32_t layerIndex = 0; layerIndex < info->layerCount; ++layerIndex) {
+        if (info->layers[layerIndex]->type != XR_TYPE_COMPOSITION_LAYER_PROJECTION) {
+            continue;
+        }
+        if (projectionIndex++) output << ',';
         const auto* projection = reinterpret_cast<const XrCompositionLayerProjection*>(
             info->layers[layerIndex]);
         output << "{\"layerIndex\":" << layerIndex
@@ -416,10 +464,7 @@ XrResult XRAPI_PTR layerCreateSession(
         state->maxLayerCount = properties.graphicsProperties.maxLayerCount;
     }
     createTrigger(*state);
-    {
-        std::lock_guard<std::mutex> lock(sessionsMutex);
-        sessions[*session] = state;
-    }
+    sessions.insert(*session, state);
     emit("session_created",
         "\"session\":" + std::to_string(handleValue(*session)) +
         ",\"result\":" + std::to_string(result) +
@@ -429,24 +474,17 @@ XrResult XRAPI_PTR layerCreateSession(
 }
 
 XrResult XRAPI_PTR layerDestroySession(XrSession session) {
-    std::shared_ptr<SessionState> state;
-    {
-        std::lock_guard<std::mutex> lock(sessionsMutex);
-        const auto iterator = sessions.find(session);
-        if (iterator != sessions.end()) {
-            state = iterator->second;
-            sessions.erase(iterator);
-        }
-    }
+    // Erase invalidates every thread's render cache before native resource cleanup.
+    const auto state = sessions.erase(session);
     if (state) {
         uint64_t appendedFrames{};
         {
-            std::lock_guard<std::mutex> lock(state->mutex);
             appendedFrames = state->appendedFrames;
         }
         emit("surface_trigger_summary",
             "\"session\":" + std::to_string(handleValue(session)) +
-            ",\"appendedFrames\":" + std::to_string(appendedFrames));
+            ",\"appendedFrames\":" + std::to_string(appendedFrames)
+        );
         cleanupTrigger(*state);
     }
     return g.destroySession(session);
@@ -459,8 +497,10 @@ XrResult XRAPI_PTR layerCreateSwapchain(
 ) {
     const XrResult result = g.createSwapchain(session, info, swapchain);
     if (XR_SUCCEEDED(result) && info && swapchain && *swapchain != XR_NULL_HANDLE) {
-        std::lock_guard<std::mutex> lock(swapchainsMutex);
-        applicationSwapchains[*swapchain] = {info->format, info->width, info->height};
+        {
+            std::lock_guard<std::mutex> lock(swapchainsMutex);
+            applicationSwapchains[*swapchain] = {info->format, info->width, info->height};
+        }
     }
     if (info) {
         emit("create_swapchain",
@@ -479,57 +519,42 @@ XrResult XRAPI_PTR layerCreateSwapchain(
 XrResult XRAPI_PTR layerDestroySwapchain(XrSwapchain swapchain) {
     const XrResult result = g.destroySwapchain(swapchain);
     if (XR_SUCCEEDED(result)) {
-        std::lock_guard<std::mutex> lock(swapchainsMutex);
-        applicationSwapchains.erase(swapchain);
-    }
-    return result;
-}
-
-XrResult XRAPI_PTR layerWaitFrame(
-    XrSession session,
-    const XrFrameWaitInfo* info,
-    XrFrameState* state
-) {
-    const XrResult result = g.waitFrame(session, info, state);
-    const uint64_t wait = ++waitCounter;
-    if (XR_FAILED(result) || sample(wait)) {
-        emit("wait_frame",
-            "\"session\":" + std::to_string(handleValue(session)) +
-            ",\"wait\":" + std::to_string(wait) +
-            ",\"result\":" + std::to_string(result) +
-            (state ? ",\"shouldRender\":" +
-                std::string(state->shouldRender ? "true" : "false") : std::string{}));
+        {
+            std::lock_guard<std::mutex> lock(swapchainsMutex);
+            applicationSwapchains.erase(swapchain);
+        }
     }
     return result;
 }
 
 XrResult XRAPI_PTR layerEndFrame(XrSession session, const XrFrameEndInfo* info) {
-    const uint64_t frame = ++frameCounter;
-    const auto state = findSession(session);
+    // The registry owns this object for the whole call: OpenXR requires session
+    // destruction to be externally synchronized with users of the session. The
+    // cache generation handles later destruction/recreation, even for reused handles.
+    // Unlike weak_ptr::lock(), a hit performs no shared-ownership increment/decrement.
+    auto* const state = sessions.findForFrame(session, renderSessionCache);
     XrSessionState sessionState = XR_SESSION_STATE_UNKNOWN;
-    XrSpace viewSpace = XR_NULL_HANDLE;
-    XrSwapchain surfaceSwapchain = XR_NULL_HANDLE;
     bool triggerReady = false;
+    uint64_t appendedBefore = 0;
     if (state) {
-        std::lock_guard<std::mutex> lock(state->mutex);
-        sessionState = state->state;
-        viewSpace = state->viewSpace;
-        surfaceSwapchain = state->surfaceSwapchain;
-        triggerReady = state->triggerReady;
+        // Handles are immutable until externally synchronized session destruction.
+        sessionState = state->state.load(std::memory_order_acquire);
+        triggerReady = state->triggerReady.load(std::memory_order_acquire);
+        appendedBefore = state->appendedFrames;
     }
-    const bool exactValveShape = valveThreeProjectionShape(info);
-    const bool willAppend = state && triggerReady && isVisible(sessionState) && exactValveShape;
-    if (sample(frame) && exactValveShape) {
-        emit("surface_trigger_frame", sourceFrameContract(info, frame) +
-            ",\"sessionState\":" + std::to_string(static_cast<int>(sessionState)) +
-            ",\"outputLayerCount\":" + std::to_string(willAppend ? 4 : 3) +
-            ",\"triggerTerminal\":" + (willAppend ? std::string("true") : "false"));
-    }
-    if (!willAppend) {
-        if (sample(frame)) {
+    std::array<const XrCompositionLayerBaseHeader*, kRequiredLayerCount> layers{};
+    const XrCompositionLayerBaseHeader** copiedLayers = layers.data();
+    // Avoid even the small layer walk while the trigger cannot be submitted.
+    const bool eligible = state && triggerReady && isVisible(sessionState) &&
+        valveProjectionShape(info, state->maxLayerCount, copiedLayers);
+    if (!eligible) {
+        // After the first cold-path event, use a read instead of an RMW every frame.
+        const bool shouldLog = state &&
+            !state->passthroughLogged.load(std::memory_order_relaxed) &&
+            !state->passthroughLogged.exchange(true, std::memory_order_relaxed);
+        if (shouldLog) {
             emit("surface_trigger_passthrough",
                 "\"session\":" + std::to_string(handleValue(session)) +
-                ",\"frame\":" + std::to_string(frame) +
                 ",\"sourceLayerCount\":" + std::to_string(info ? info->layerCount : 0) +
                 ",\"triggerReady\":" +
                     (triggerReady ? std::string("true") : "false") +
@@ -538,63 +563,53 @@ XrResult XRAPI_PTR layerEndFrame(XrSession session, const XrFrameEndInfo* info) 
         return g.endFrame(session, info);
     }
 
-    XrCompositionLayerQuad quad{};
-    quad.type = XR_TYPE_COMPOSITION_LAYER_QUAD;
-    quad.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
-    quad.space = viewSpace;
-    quad.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
-    quad.subImage.swapchain = surfaceSwapchain;
-    quad.subImage.imageRect = {{0, 0}, {static_cast<int32_t>(kTriggerWidth),
-        static_cast<int32_t>(kTriggerHeight)}};
-    quad.subImage.imageArrayIndex = 0;
-    quad.pose.orientation.w = 1.0f;
-    quad.pose.position.z = -1.0f;
-    quad.size = {0.001f, 0.001f};
 
-    // Preserve Valve's layer objects and order byte-for-byte. Appending the terminal
-    // quad changes compositor topology from 3 to 4 layers, but it performs no image
-    // reconstruction, resampling, blit, shader pass, or private stereo allocation.
-    std::array<const XrCompositionLayerBaseHeader*, kRequiredLayerCount> layers{};
-    for (uint32_t index = 0; index < 3; ++index) layers[index] = info->layers[index];
-    layers[3] = reinterpret_cast<const XrCompositionLayerBaseHeader*>(&quad);
+    // Preserve every source pointer and its order; only append the terminal quad.
+    layers[kSourceProjectionCount] =
+        reinterpret_cast<const XrCompositionLayerBaseHeader*>(&state->triggerQuad);
     XrFrameEndInfo output = *info;
-    output.layerCount = kRequiredLayerCount;
+    output.layerCount = info->layerCount + 1;
     output.layers = layers.data();
-    const bool pointersPreserved = layers[0] == info->layers[0] &&
-        layers[1] == info->layers[1] && layers[2] == info->layers[2];
+    // valveProjectionShape copied each validated source pointer directly.
+    constexpr bool pointersPreserved = true;
     const XrResult result = g.endFrame(session, &output);
+    uint64_t appendedFrames = appendedBefore;
     if (XR_SUCCEEDED(result)) {
-        std::lock_guard<std::mutex> lock(state->mutex);
-        ++state->appendedFrames;
+        appendedFrames = ++state->appendedFrames;
     }
-    if (sample(frame) || XR_FAILED(result)) {
-        emit("surface_trigger_submission",
-            "\"session\":" + std::to_string(handleValue(session)) +
-            ",\"frame\":" + std::to_string(frame) +
-            ",\"sourceLayerCount\":3,\"sourceProjectionCount\":3," +
-            "\"sourceViewCount\":6,\"outputLayerCount\":4," +
-            "\"submittedProjectionCount\":3,\"triggerQuadCount\":1," +
-            "\"originalPointersPreserved\":" +
-                (pointersPreserved ? std::string("true") : "false") +
-            ",\"sourcePointer0\":" + std::to_string(handleValue(info->layers[0])) +
-            ",\"sourcePointer1\":" + std::to_string(handleValue(info->layers[1])) +
-            ",\"sourcePointer2\":" + std::to_string(handleValue(info->layers[2])) +
-            ",\"noCopy\":true,\"noReconstruction\":true," +
-            "\"quadWidthMeters\":0.001,\"quadHeightMeters\":0.001," +
-            "\"quadDistanceMeters\":1.0,\"result\":" + std::to_string(result));
+    const bool initialDiagnostic = XR_SUCCEEDED(result) &&
+        appendedFrames <= kInitialDiagnosticFrames;
+    if (initialDiagnostic) {
+        emit("surface_trigger_frame", sourceFrameContract(info, appendedFrames) +
+            ",\"sessionState\":" + std::to_string(static_cast<int>(sessionState)) +
+            ",\"outputLayerCount\":" + std::to_string(output.layerCount) +
+            ",\"triggerTerminal\":true");
+    }
+    if (initialDiagnostic || XR_FAILED(result)) {
+        std::ostringstream submission;
+        submission << "\"session\":" << handleValue(session)
+                   << ",\"frame\":" << appendedFrames
+                   << ",\"sourceLayerCount\":" << info->layerCount
+                   << ",\"sourceProjectionCount\":" << kSourceProjectionCount
+                   << ",\"sourceViewCount\":" << kSourceViewCount
+                   << ",\"outputLayerCount\":" << output.layerCount
+                   << ",\"submittedProjectionCount\":" << kSourceProjectionCount
+                   << ",\"triggerQuadCount\":1,\"originalPointersPreserved\":"
+                   << (pointersPreserved ? "true" : "false")
+                   << ",\"sourcePointers\":[";
+        for (uint32_t index = 0; index < info->layerCount; ++index) {
+            if (index) submission << ',';
+            submission << handleValue(info->layers[index]);
+        }
+        submission << "],\"noCopy\":true,\"noReconstruction\":true,"
+                   << "\"quadWidthMeters\":0.001,\"quadHeightMeters\":0.001,"
+                   << "\"quadDistanceMeters\":1.0,\"result\":" << result;
+        emit("surface_trigger_submission", submission.str());
     }
     if (XR_FAILED(result)) {
-        // xrEndFrame is not replayable. Return this frame's runtime error, disable the
-        // trigger, and let later frames use Valve's untouched 3-layer submission.
-        bool logFailure = false;
-        {
-            std::lock_guard<std::mutex> lock(state->mutex);
-            state->triggerReady = false;
-            if (!state->failureLogged) {
-                state->failureLogged = true;
-                logFailure = true;
-            }
-        }
+        state->triggerReady.store(false, std::memory_order_release);
+        const bool logFailure = !state->failureLogged.exchange(
+            true, std::memory_order_relaxed);
         if (logFailure) {
             emit("surface_trigger_disabled",
                 "\"session\":" + std::to_string(handleValue(session)) +
@@ -608,24 +623,25 @@ XrResult XRAPI_PTR layerEndFrame(XrSession session, const XrFrameEndInfo* info) 
 
 XrResult XRAPI_PTR layerPollEvent(XrInstance instance, XrEventDataBuffer* data) {
     const XrResult result = g.pollEvent(instance, data);
-    if (XR_FAILED(result) || !data) return result;
+    // XR_EVENT_UNAVAILABLE is non-negative but supplies no event. Never inspect a
+    // stale payload or repeat its state changes/logging when the queue is empty.
+    if (result != XR_SUCCESS || !data) return result;
     if (data->type == XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED) {
         const auto* event = reinterpret_cast<const XrEventDataSessionStateChanged*>(data);
         const auto state = findSession(event->session);
         bool shouldQueue = false;
+        XrSessionState previousState = XR_SESSION_STATE_UNKNOWN;
         if (state) {
             {
                 std::lock_guard<std::mutex> lock(state->mutex);
-                state->state = event->state;
+                previousState = state->state.load(std::memory_order_relaxed);
+                state->state.store(event->state, std::memory_order_release);
                 shouldQueue = isVisible(event->state) && !state->bufferQueued && state->window;
             }
             if (shouldQueue) queueTriggerBuffer(*state);
         }
-        bool triggerReady = false;
-        if (state) {
-            std::lock_guard<std::mutex> lock(state->mutex);
-            triggerReady = state->triggerReady;
-        }
+        const bool triggerReady = state &&
+            state->triggerReady.load(std::memory_order_acquire);
         emit("session_state_changed",
             "\"session\":" + std::to_string(handleValue(event->session)) +
             ",\"state\":" + std::to_string(static_cast<int>(event->state)) +
@@ -636,12 +652,7 @@ XrResult XRAPI_PTR layerPollEvent(XrInstance instance, XrEventDataBuffer* data) 
 }
 
 XrResult XRAPI_PTR layerDestroyInstance(XrInstance instance) {
-    std::vector<std::shared_ptr<SessionState>> states;
-    {
-        std::lock_guard<std::mutex> lock(sessionsMutex);
-        for (auto& [session, state] : sessions) states.push_back(state);
-        sessions.clear();
-    }
+    const auto states = sessions.clear();
     for (const auto& state : states) cleanupTrigger(*state);
     {
         std::lock_guard<std::mutex> lock(swapchainsMutex);
@@ -653,8 +664,6 @@ XrResult XRAPI_PTR layerDestroyInstance(XrInstance instance) {
     applicationVm = nullptr;
     extensionAdvertised = false;
     extensionEnabled = false;
-    frameCounter.store(0);
-    waitCounter.store(0);
     return result;
 }
 
@@ -673,7 +682,6 @@ XrResult XRAPI_PTR layerGetInstanceProcAddr(
     else ROUTE("xrDestroySession", layerDestroySession);
     else ROUTE("xrCreateSwapchain", layerCreateSwapchain);
     else ROUTE("xrDestroySwapchain", layerDestroySwapchain);
-    else ROUTE("xrWaitFrame", layerWaitFrame);
     else ROUTE("xrEndFrame", layerEndFrame);
     else ROUTE("xrPollEvent", layerPollEvent);
     else return g.getInstanceProcAddr ?
@@ -744,7 +752,6 @@ XrResult XRAPI_PTR layerCreateApiLayerInstance(
         load("xrDestroySpace", g.destroySpace) &&
         load("xrCreateSwapchain", g.createSwapchain) &&
         load("xrDestroySwapchain", g.destroySwapchain) &&
-        load("xrWaitFrame", g.waitFrame) &&
         load("xrEndFrame", g.endFrame) &&
         load("xrPollEvent", g.pollEvent);
     const bool surfaceFunctionLookupAttempted = extensionEnabled;

@@ -5,6 +5,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertSame
+import kotlin.test.assertTrue
+import java.nio.file.Files
 
 class ChangePackageNamePatchTest {
     @Test
@@ -41,5 +43,21 @@ class ChangePackageNamePatchTest {
             changePackageNamePatch.options["packageName"],
             dependency.options["packageName"],
         )
+    }
+
+    @Test
+    fun `missing ids xml receives a valid empty resource document`() {
+        val root = Files.createTempDirectory("change-package-ids").toFile()
+        try {
+            val ids = root.resolve("res/values/ids.xml")
+            ensureChangePackageIdsXml(ids)
+
+            assertTrue(ids.isFile)
+            assertEquals(CHANGE_PACKAGE_IDS_XML_FALLBACK, ids.readText())
+            ensureChangePackageIdsXml(ids)
+            assertEquals(CHANGE_PACKAGE_IDS_XML_FALLBACK, ids.readText())
+        } finally {
+            root.deleteRecursively()
+        }
     }
 }

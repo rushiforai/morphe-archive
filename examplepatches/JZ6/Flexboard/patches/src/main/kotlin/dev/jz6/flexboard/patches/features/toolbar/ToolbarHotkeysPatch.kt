@@ -2,11 +2,7 @@ package dev.jz6.flexboard.patches.features.toolbar
 
 import app.morphe.patcher.patch.bytecodePatch
 import dev.jz6.flexboard.patches.shared.Constants.COMPATIBILITY_GBOARD
-import dev.jz6.flexboard.patches.shared.HOTKEY_ID_PREFIX  // const visible to the checker
 import dev.jz6.flexboard.patches.shared.basePatch
-import dev.jz6.flexboard.patches.shared.emitHotkeyRefresh
-import dev.jz6.flexboard.patches.shared.emitNativeHotkeys
-import dev.jz6.flexboard.patches.shared.resolveAccessPointBuilder
 import dev.jz6.flexboard.patches.shared.selectedSettingsSections
 import dev.jz6.flexboard.patches.shared.SettingsSection
 
@@ -14,7 +10,7 @@ import dev.jz6.flexboard.patches.shared.SettingsSection
  * Six toolbar buttons whose label, icon and action all come from settings — the patch emits
  * one conditional registration block per slot and the extension computes everything at
  * toolbar-build time. Registration, reorder and persistence are Gboard's own; the ids are
- * admitted natively by [toolbarSlotsPatch] widening the allowed-set array.
+ * admitted natively by [toolbarIdAdmissionPatch] widening the allowed-set array.
  */
 @Suppress("unused")
 val toolbarHotkeysPatch = bytecodePatch(
@@ -26,10 +22,15 @@ val toolbarHotkeysPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
 
+    // Redundant on paper -- toolbarIdAdmissionPatch below already pulls basePatch -- and kept anyway,
+    // for two reasons. It is declared first, and the patcher recurses in declaration order, which
+    // is what puts settingsScreenPatch's clear of the section registry ahead of the registration
+    // at the end of this patch's execute. And a reader should not have to trace a transitive edge
+    // to see that this patch needs the foundation.
     dependsOn(basePatch)
     // The ids must be in the allowed set or the register call logs "Invalid access point" and
     // the buttons never reach the shown order.
-    dependsOn(toolbarSlotsPatch)
+    dependsOn(toolbarIdAdmissionPatch)
 
     execute {
         val builder = resolveAccessPointBuilder()

@@ -1,3 +1,9 @@
+## [1.13.0](https://github.com/cesbar/zpatches/compare/v1.12.1...v1.13.0) (2026-09-03)
+
+### ✨ New Features
+
+* **Undercover:** Enable Premium ([299b773](https://github.com/cesbar/zpatches/commit/299b77305473ee5f2838449f11727566011c47b0))
+
 ## [1.12.1](https://github.com/cesbar/zpatches/compare/v1.12.0...v1.12.1) (2026-09-02)
 
 ### 🚀 Updated App Support

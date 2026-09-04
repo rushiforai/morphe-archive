@@ -29,8 +29,6 @@ SETTINGS_XML = ROOT / "patches/src/main/resources/xml/flexboard_settings.xml"
 # (Kotlin name, Java name). The names differ where each side reads more naturally on its own terms;
 # what has to match is the value.
 PAIRS = [
-    ("STEP_SCALE_KEY", "KEY_STEP_SCALE"),
-    ("STEP_SCALE_DEFAULT", "STEP_SCALE_DEFAULT"),
     # The ordinals the patch hands the extension's constructor. The extension maps them to
     # android.R.id.* so the framework constants stay symbolic in the one language that can name
     # them -- which means the number crossing the boundary is meaningless on its own, and a drift
@@ -378,6 +376,74 @@ def _java_string_constant(name):
     return None
 
 
+
+def _check_stock_package_name(problems):
+    """The extension's fallback package name matches Constants.GBOARD_PACKAGE_NAME.
+
+    resources.arsc answers to the stock package regardless of what installAsGboardClonePatch
+    renamed the manifest to, so ResourceIds.byName falls back to it when the app's own name
+    misses. A drift here fails nothing loudly -- the fallback simply stops being one, and the
+    settings screen and icon pack go back to depending on the encoder reconciling the two names.
+
+    Not in PAIRS because these live inside `internal object Constants`, whose members are plain
+    `const val`, and the collector's pattern is `internal const val` -- widening that would change
+    what every other pair resolves against.
+    """
+    kt = re.search(
+        r'const val GBOARD_PACKAGE_NAME\s*=\s*"([^"]+)"',
+        (PATCHES / "dev/jz6/flexboard/patches/shared/Constants.kt").read_text(),
+    )
+    java = _java_string_constant("STOCK_PACKAGE_NAME")
+    if not kt or not java:
+        problems.append(
+            f"  stock package name check parsed nothing: patches {kt and kt.group(1)!r}, "
+            f"extension {java!r}"
+        )
+    elif kt.group(1) != java:
+        problems.append(
+            f"  Constants.GBOARD_PACKAGE_NAME is {kt.group(1)!r} but ResourceIds."
+            f"STOCK_PACKAGE_NAME is {java!r} — the resource-name fallback points at a package "
+            f"the table does not answer to, so it silently stops being a fallback"
+        )
+
+
+
+def _check_allowed_set_sentinel(problems):
+    """toolbarIdAdmissionPatch and preflight agree on which stock id locates the allowed-set array.
+
+    The array's own name is obfuscated per build, so both find it by looking for a known member.
+    They each spell that member out separately -- SENTINEL_ID in the patch, and
+    native_allowed_set_sentinel in preflight -- and if they drift, preflight goes on asserting an
+    id the patch no longer looks for, while the patch fails at run time against an array preflight
+    said was fine.
+    """
+    # Located by content, not by filename. Hardcoding the path meant that renaming the file --
+    # which happened the moment the patch stopped being hotkey-specific -- turned this check into
+    # a FileNotFoundError traceback instead of a finding. It still failed, which is the important
+    # part, but a stack trace is a worse diagnostic than a sentence.
+    kt = next(
+        (m for m in (
+            re.search(r'SENTINEL_ID\s*=\s*"([^"]+)"', f.read_text())
+            for f in sorted(PATCHES.rglob("*.kt"))
+        ) if m),
+        None,
+    )
+    pf = re.search(
+        r"'native_allowed_set_sentinel':\s*'([^']+)'",
+        (ROOT / "tools/apk/preflight.py").read_text(),
+    )
+    if not kt or not pf:
+        problems.append(
+            f"  allowed-set sentinel check parsed nothing: patch {kt and kt.group(1)!r}, "
+            f"preflight {pf and pf.group(1)!r}"
+        )
+    elif kt.group(1) != pf.group(1):
+        problems.append(
+            f"  toolbarIdAdmissionPatch locates the allowed-set array by {kt.group(1)!r} but preflight "
+            f"pins {pf.group(1)!r} — one of them is checking an array the other cannot find"
+        )
+
+
 def _check_section_sentinels(problems):
     """The template's @SECTION_X@ vocabulary is exactly the SettingsSection enum.
 
@@ -503,12 +569,12 @@ def _check_screen_contract(problems, kotlin):
             f"either the key is typoed or the constant it feeds was renamed"
         )
 
-    # Staged in smali with no settings row by design: step-scale's KDoc pins "nothing uses a UI
-    # value for it" — the key stays int-typed against the pre-native Activity, and the engine
-    # just reads the seeded default. HOLD_DELAY_KEY joins it — the row was dropped ("default 0,
-    # nobody wants a delay") while the smali read stays so blobless users get exactly 0.
-    # Declared here so the rule still covers keys nobody thought about.
-    stage_only = {"STEP_SCALE_KEY", "HOLD_DELAY_KEY"}
+    # Staged in smali with no settings row by design: HOLD_DELAY_KEY's row was dropped ("default
+    # 0, nobody wants a delay") while the smali read stays, so blobless users get exactly 0.
+    # Declared here so the rule still covers keys nobody thought about. STEP_SCALE_KEY was the
+    # other entry, removed with the parked swipe-length scaling that was its only reader -- the
+    # dead-exemption check below is what caught it still being listed.
+    stage_only = {"HOLD_DELAY_KEY"}
     staged = set()
     for path in PATCHES.rglob("*.kt"):
         text = LINE_COMMENT.sub("", BLOCK_COMMENT.sub("", path.read_text()))
@@ -682,6 +748,8 @@ def main():
 
     _check_extension_references(problems)
     _check_section_sentinels(problems)
+    _check_stock_package_name(problems)
+    _check_allowed_set_sentinel(problems)
     _check_settings_xml(problems, kotlin)
     _check_dotted_extension_classes(problems)
     _check_screen_contract(problems, kotlin)

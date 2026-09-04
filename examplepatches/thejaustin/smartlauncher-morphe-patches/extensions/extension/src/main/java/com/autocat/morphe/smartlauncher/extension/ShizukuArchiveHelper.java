@@ -10,8 +10,6 @@ import android.widget.Toast;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Pure-reflection Shizuku privileged app archiving & unarchiving helper.
@@ -23,7 +21,6 @@ public class ShizukuArchiveHelper {
     private static final String TAG = "ShizukuArchiveHelper";
     public static final int SHIZUKU_REQ_CODE = 1001;
 
-    private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
     private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
 
     public enum Status {
@@ -119,19 +116,28 @@ public class ShizukuArchiveHelper {
             Method newProcessMethod = shizukuClass.getMethod("newProcess", String[].class, String[].class, String.class);
             Process process = (Process) newProcessMethod.invoke(null, new String[]{"sh", "-c", cmd}, null, null);
             if (process != null) {
-                StringBuilder output = new StringBuilder();
+                // Drain stdout and stderr concurrently to prevent pipe-buffer deadlock.
+                final StringBuilder output = new StringBuilder();
+                final Process proc = process;
+                Thread stderrThread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try (BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getErrorStream()))) {
+                            String line;
+                            while ((line = reader.readLine()) != null) {
+                                synchronized (output) { output.append(line).append("\n"); }
+                            }
+                        } catch (Throwable ignored) {}
+                    }
+                });
+                stderrThread.start();
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
-                        output.append(line).append("\n");
+                        synchronized (output) { output.append(line).append("\n"); }
                     }
                 }
-                try (BufferedReader errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-                    String line;
-                    while ((line = errReader.readLine()) != null) {
-                        output.append(line).append("\n");
-                    }
-                }
+                stderrThread.join();
                 int exitCode = process.waitFor();
                 String outStr = output.toString().trim();
                 Log.i(TAG, "Shizuku cmd [" + cmd + "] exit=" + exitCode + ", out=" + outStr);

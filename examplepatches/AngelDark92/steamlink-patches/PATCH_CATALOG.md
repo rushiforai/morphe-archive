@@ -3,26 +3,76 @@
 Reference for conflict detection when importing external patches.
 Each entry lists the exact APK artifact and value(s) a patch writes or modifies.
 
-Steam Link 2.0.20 build 5001740 is an exact static-analysis legacy target with its own guarded native layout. Its available source is a reconstruction from a malformed hybrid APK; pristine-APK Morphe patching, installation, and headset runtime validation remain pending.
-Steam Link 2.0.22 build 5002318 exposes Device identity, Microphone input preset, OLED color calibration,
-the legacy Appear on top fallback, GXR face bridge, Visual Delay Fix, Unrestricted battery usage, and Video dither.
-Build 5002322 recommends the Galaxy XR high-resolution 3-projection fix, GXR face bridge,
-Microphone input preset, Unrestricted battery usage, Video dither, and Visual Delay Fix. Appear on
-top is excluded from this build, and the single-projection reconstruction experiments are retired.
+Steam Link 2.0.20 build 5001712 has an independently decoded base and exact guarded layouts for the permission prompt, legacy native gates, OLED/output precision, controller cadence, and Visual Delay Fix. These adaptations are statically validated; APK installation and headset runtime validation remain pending. Steam Link 2.0.20 build 5001740 is an exact static-analysis legacy target with its own guarded native layout. Its available source is a reconstruction from a malformed hybrid APK; pristine-APK Morphe patching, installation, and headset runtime validation remain pending.
+Steam Link 2.0.20 build 5001712 and the other legacy recommendation bundle use the same 16
+direct patches listed below. Steam Link 2.0.22 build 5002318 keeps its native-XR-safe 7-patch
+recommendation, while build 5002322 recommends only 6 patches: GXR face bridge, Galaxy XR
+high-resolution 3-projection fix, Microphone input preset (`voice-recognition`), OLED color
+calibration (`final-balanced`, safe `srgb8-highp` output), Unrestricted battery usage, and Visual
+Delay Fix (`60` ms). Appear on top is excluded from 5002322. Video dither is removed as a
+selectable patch, and newly generated OLED shaders disable dithering.
 
 Morphe Manager 1.7 cannot distinguish builds that share versionName `2.0.22`; build-code
 filtering requires Manager 1.22 or newer with compatibility checks enabled. Expert mode may
-still display incompatible patches by design. Morphe has only a global patch `default` flag, so exact
-compatibility filtering excludes Appear on top, Device identity, and the standalone OLED patch from
-5002322. Appear on top remains selectable through 5002318 but is no longer recommended on any build.
-Video dither still executes its coupled OLED calibration dependency. Legacy-only patches default off.
+still display incompatible patches by design. Morphe has only a global patch `default` flag, so 4
+exact-build dependency bundles own all defaults while the individual patches remain default-off and
+selectable wherever their verified compatibility permits. The legacy foundation bundle covers exact
+builds 5001740, 5002172, 5002206, and 5002244. Builds 5002296 and 5002313 have no automatic
+bundle. Appear on top and Change package name remain optional and are never recommended.
+
+### Recommendation bundles
+
+| Bundle | Exact targets | Direct patch set |
+|---|---|---|
+| `Galaxy XR recommended set (2.0.20/5001712)` | 2.0.20/5001712 | 16-patch legacy set below, including Device identity with Meta Quest Pro spoof |
+| `Galaxy XR recommended set (2.0.22/5002322)` | 2.0.22/5002322 | Only the 6 final patches above |
+| `Galaxy XR recommended set (2.0.22/5002318)` | 2.0.22/5002318 | Native-XR-safe 7-patch set: the same 6 final patches plus Device identity with Galaxy XR identity |
+| `Galaxy XR legacy foundation (through 2.0.22/5002244)` | 2.0.20/5001740, 2.0.22/5002172, 2.0.22/5002206, 2.0.22/5002244 | Same 16-patch legacy set as 5001712, including Meta Quest Pro spoof; unavailable native adaptations remain guarded no-ops |
+
+Both legacy bundles directly select:
+
+1. Android XR native permission names
+2. Force HMD initialization gates
+3. Force lobby permission-state gate
+4. Force stream XR gates
+5. GXR face bridge
+6. Galaxy XR high-resolution 3-projection fix
+7. Microphone input preset (`voice-recognition`)
+8. OLED color calibration (`final-balanced`, `srgb8-highp`)
+9. Unrestricted battery usage
+10. Visual Delay Fix (`60` ms)
+11. XR Core Runtime
+12. XR Device Config Baseline
+13. XR Input Routing Config
+14. XR Launcher Bootstrap (Home Space)
+15. XR Manifest Capability Pack
+16. Device identity (Recommended: Meta Quest Pro / `Oculus Quest Pro` model)
+
+Leave **HMD identity** on **Recommended**, or explicitly choose **Meta Quest Pro**, for either
+legacy bundle. Recommended resolves by exact version/build: 2.0.20/5001712 and 5001740, plus
+2.0.22/5002172, 5002206, and 5002244 use `meta-quest-pro`. The 5002318 recommendation retains
+Galaxy XR identity; 5002322 still does not select Device identity. Saved explicit Samsung, Stock,
+or PICO choices remain respected and must be changed if the Quest spoof is wanted.
+
+Device identity depends on XR Device Config Baseline, so the baseline runs before the identity
+override. The legacy Quest payload preserves SamsungVST tracking, Galaxy XR controller and eye
+routing; only the 3 runtime-selected HMD model values change to `Oculus Quest Pro`.
+Private/transitive support dependencies are deduplicated by Morphe; the counts above describe
+direct public selections, not all internal tasks.
+
+Selecting a bundle never broadens verified build guards. The high-resolution helper and mode
+metadata are not installed on 5001740, 5002172, or 5002206: their projection topology has no
+verified adaptation. The 3 force-gate patches likewise have no verified native edit on 5002172 or
+5002206 and leave those libraries unchanged. These bundles are not proof that every requested
+feature works on every legacy build. Build 5002318 is native Android XR, not a legacy-conversion
+target, and retains its separate native-safe set.
 
 ---
 
 ## androidxr group
 
 ### XR Core Runtime (`xrCoreRuntimePatch`)
-**Default: disabled** (legacy builds only)
+**Default: disabled individually; selected by both legacy recommendation bundles** (legacy builds only)
 | Artifact | Edit |
 |---|---|
 | `lib/arm64-v8a/libgxr_xr_bridge.so` | New file (Galaxy XR OpenXR runtime bridge) |
@@ -35,12 +85,14 @@ Video dither still executes its coupled OLED calibration dependency. Legacy-only
 Sub-patch only (not exposed): `disablePermissionPromptNativePatch`
 | Artifact | Edit |
 |---|---|
-| `lib/arm64-v8a/libvrlink_scene.so` @ `0x142a9c` (5001740), `0x1422c4` (5002244), or `0x1472a8` (5002313) | 8 bytes: replaces `RequestAndroidPermissions()` prologue with `movz w0,#1; ret`; 5002318, 5002322, and unknown layouts are preserved |
+| `lib/arm64-v8a/libvrlink_scene.so` @ `0x142c0c` (2.0.20/5001712), `0x142a9c` (2.0.20/5001740), `0x1422c4` (2.0.22/5002244), `0x14478c` (2.0.22/5002296), or `0x1472a8` (2.0.22/5002313) | 8 bytes: replaces the exact `RequestAndroidPermissions()` prologue with `movz w0,#1; ret` |
+
+Selection uses exact `(versionName, versionCode)` before checking the pinned library size. A known exact pair with the wrong size or bytes fails closed; a wrong/unknown pair is unchanged. Native-XR builds 5002318 and 5002322 return before reading the library. Build 5002296 reaches this internal patch only as a dependency of the exact high-resolution patch.
 
 ---
 
 ### XR Device Config Baseline (`xrDeviceConfigBaselinePatch`)
-**Default: disabled** (legacy builds only) — depends on `xrCoreRuntimePatch`
+**Default: disabled individually; selected by both legacy recommendation bundles** (legacy builds only) — depends on `xrCoreRuntimePatch`
 | Artifact | Edit |
 |---|---|
 | `assets/config/hmd_config.json` | Full replace — Galaxy XR HMD identity (sSerialNumber=VRLINKHMDGALAXYXR, sManufacturerName=Samsung, sModelNumber=Galaxy XR, sControllerType=galaxy_xr_hmd, requestedExtensions=[XR_EXT_eye_gaze_interaction]) |
@@ -51,7 +103,7 @@ Sub-patch only (not exposed): `disablePermissionPromptNativePatch`
 ---
 
 ### XR Manifest Capability Pack (`xrManifestCapabilityPackPatch`)
-**Default: disabled** (legacy builds only) — depends on `xrCoreRuntimePatch`
+**Default: disabled individually; selected by both legacy recommendation bundles** (legacy builds only) — depends on `xrCoreRuntimePatch`
 | Artifact | Edit |
 |---|---|
 | `AndroidManifest.xml` `uses-sdk@android:minSdkVersion` | Set to `29` |
@@ -72,7 +124,7 @@ Sub-patch only (not exposed): `disablePermissionPromptNativePatch`
 ---
 
 ### XR Launcher Bootstrap (`xrLauncherBootstrapPatch`)
-**Default: disabled** (legacy builds only) — depends on `xrManifestCapabilityPackPatch`
+**Default: disabled individually; selected by both legacy recommendation bundles** (legacy builds only) — depends on `xrManifestCapabilityPackPatch`
 | Artifact | Edit |
 |---|---|
 | `AndroidManifest.xml` `application/activity@android:name` | Adds `com.valvesoftware.steamlink.GalaxyXRPermissionActivity` (exported=true, MAIN/LAUNCHER, 1280×800px layout) |
@@ -85,7 +137,7 @@ Sub-patch only (not exposed): `disablePermissionPromptNativePatch`
 ---
 
 ### XR Input Routing Config (`xrInputRoutingConfigPatch`)
-**Default: disabled** (legacy builds only) — depends on `xrLauncherBootstrapPatch`
+**Default: disabled individually; selected by both legacy recommendation bundles** (legacy builds only) — depends on `xrLauncherBootstrapPatch`
 | Artifact | Edit |
 |---|---|
 | `assets/config/ui_config.json` | Full replace — XR pointer aim/select bindings for touch_controller and hand_interaction_ext; haptic bindings |
@@ -109,7 +161,7 @@ Sub-patch only (not exposed): `disablePermissionPromptNativePatch`
 ---
 
 ### GXR Face Bridge (`gxrFacebridgePatch`)
-**Default: enabled** — depends on the guarded permission bootstrap
+**Default: disabled individually; selected by all 4 recommendation bundles** — depends on the guarded permission bootstrap
 | Artifact | Edit |
 |---|---|
 | `lib/arm64-v8a/libgxr_face_bridge.so` | New file (XR_FB_face_tracking2 → XR_ANDROID_face_tracking API layer) |
@@ -130,7 +182,7 @@ Sub-patch only (not exposed): `disablePermissionPromptNativePatch`
 ---
 
 ### Unrestricted Battery Usage (`unrestrictedBatteryUsagePatch`)
-**Default: enabled** — uses the build-aware launcher foundation plus private minimal permission/settings bootstrap
+**Default: disabled individually; selected by all 4 recommendation bundles** — uses the build-aware launcher foundation plus private minimal permission/settings bootstrap
 | Artifact | Edit |
 |---|---|
 | `AndroidManifest.xml` `uses-permission` | Adds `android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` |
@@ -139,15 +191,26 @@ Sub-patch only (not exposed): `disablePermissionPromptNativePatch`
 ---
 
 ### Galaxy XR high-resolution 3-projection fix (`xrGalaxyXrHighResolutionPatch`)
-**Recommended/default enabled; stable exact 2.0.22/5002322 only** — replaces legacy `Appear on top`
+**Default: disabled individually; selected by all 4 recommendation bundles, but remains a guarded no-op on unsupported builds** — exact 2.0.20/5001712 and 2.0.22 builds 5002244, 5002296, 5002313, 5002318, and 5002322 only
 
 | Artifact | Exact guarded edit |
 |---|---|
 | `AndroidManifest.xml` | Removes `SYSTEM_ALERT_WINDOW`, adds unmanaged Full Space, and sets `GXR_RESOLUTION_MODE=android_surface_trigger_passthrough_v1` |
-| `lib/arm64-v8a/libgxr_ast.so` | Implicit OpenXR API layer. Requests `XR_KHR_android_surface_swapchain` even when enumeration hides it, retries Valve's original instance create-info if rejected, and otherwise queues a nonzero-alpha `2x2` RGBA8888 Android `Surface` as a terminal quad after Valve's unchanged 3 projection pointers. |
+| `lib/arm64-v8a/libgxr_ast.so` | Release-built, stripped implicit OpenXR API layer selected by exact build. Build 2.0.20/5001712 copies Valve's 2 projection pointers, places the quad at index 2, and submits 3 layers. Supported 2.0.22 builds retain the existing 3-pointer, quad-at-index-3, 4-layer contract. |
+| Bundled `libgxr_ast_5001712.so` | Exact 2.0.20/5001712 payload installed under the standard `libgxr_ast.so` name. It is never selected for a 2.0.22 target. |
 | `assets/openxr/1/api_layers/implicit.d/XR_APILAYER_local_GalaxyXR_android_surface_trigger_passthrough_v1.json` | Registers the surface-trigger API layer; disable environment is `GXR_DISABLE_ANDROID_SURFACE_TRIGGER`. |
 
-The output remains Valve's original 3 projections and 6 views, plus 1 nearly invisible quad. The layer performs no texture copy, shader draw, resampling, or 3-to-1 reconstruction. The independent trigger Surface does not alter Valve's source handles or formats, so future RGB10_A2 projection sources remain reserved for unchanged passthrough.
+The output remains Valve's native projection layout plus 1 nearly invisible quad: 2 projections/4 views become 3 total layers only on 2.0.20/5001712; 3 projections/6 views become 4 total layers on the supported 2.0.22 builds. Every validation, pointer-copy, pointer-log, and projection telemetry loop uses the selected source count, preventing the delayed out-of-bounds layer-3 read on 5001712. The layer performs no texture copy, shader draw, resampling, or projection reconstruction. The independent trigger Surface does not alter Valve's source handles or formats, so future RGB10_A2 projection sources remain reserved for unchanged passthrough.
+
+The production helpers are compiled with `-O2`, dead-section elimination, and stripped symbols. They do not intercept `xrWaitFrame`, perform no periodic per-frame log formatting, construct the immutable trigger quad once per session, fill the fixed source-pointer array during mandatory topology validation, and skip that validation while the trigger is inactive. Cold lifecycle evidence plus the 1st 3 accepted submissions remain available to validate topology.
+
+The current CPU-only revisions are `android-surface-trigger-passthrough-v1.4-20260903` (3 projections) and `android-surface-trigger-5001712-v1.2-20260903` (2 projections). A generation-validated, non-owning thread-local render cache replaces per-frame shared-ownership acquisition/release. The registry owns live sessions; lifecycle mutations invalidate cached lookups, including reused handles. Safe frame use relies on OpenXR's externally synchronized session/instance destruction, not on the generation counter alone. Event readers retain owned lookups, and event dispatch now requires exactly `XR_SUCCESS`, so `XR_EVENT_UNAVAILABLE` cannot process stale event data. Bundle definitions need no duplicate fix: they already depend on the main resolution patch and receive its rebuilt helper. The same 6 exact version/build pairs and continuous terminal-quad submission remain unchanged; there is no GPU, resolution, or 10-bit behavior change intended, and no measured speed gain is claimed.
+
+Host CTest checks of the actual registry and both 2-/3-projection helper integration paths passed. Both Android payloads rebuilt with NDK `27.2.12479018` and cached OpenXR `1.1.43` headers. Headset validation of these revisions remains pending. The accepted 2026-09-01 capture below belongs to the same append-only topology in an earlier helper and is prior behavioral evidence, not a runtime result for the new binaries.
+
+For user A/B testing, retain the previous patch artifact and compare newly patched APKs from the same Steam Link base with identical patch options, host settings, and fixed scene. Check cold start, stream stop/restart, palm and DFR-UI transitions, and session/focus loss followed by resume. Report any sharpness change, crash, or failure to recover, alongside comparable CPU/GPU timings if available; lower GPU composition time is not an expected consequence of these CPU-only changes.
+
+The 5001712, 5002244, 5002296, 5002313, and 5002318 decoded bases have exact metadata, recognized VRLink activities, and distinct recorded native sizes/hashes. Their resource, manifest, and dependency routing is statically validated. The user previously reported a corrected 5001712 `2 -> 3` APK surviving startup and the later frame-900 boundary after limiting telemetry to 2 source projections; the newly rebuilt payload in this repository has not been installed during this validation. The existing 2.0.22/5002322 headset evidence below is unchanged.
 
 #### Headset validation
 
@@ -157,6 +220,32 @@ when explicitly requested: the function loaded, a 2x2 Surface was created and qu
 terminal quad. No overlay permission, type-2038 Steam Link window, or recording contamination
 existed. The headset palm A/B/A result was `MATCHES REFERENCE -> MATCHES REFERENCE -> MATCHES
 REFERENCE`, establishing perceived parity with Valve's native 3-projection APK with Appear on top.
+
+---
+
+### Retired: Surface-backed underside projection
+
+On 2026-09-03 the user reported that the exact 2.0.22/5002322 experiment "doesn't
+work" and requested retirement. It substituted static black for the underside,
+preserving 3 projections and omitting the terminal quad. This is a user-reported
+failure; no new logs or GPU measurements were reviewed, and no cause is inferred.
+
+The Android Surface placement option, native experiment, build target and bundled
+`libgxr_ast_underside.so`/manifest are removed. The mode identity
+`android_surface_underside_projection_v1` and library name remain only for stale
+resource cleanup. The tested terminal-quad helpers and all existing compatibility
+remain unchanged, including 2.0.20/5001712. Use a clean source APK with the current
+high-resolution patch to return to the tested path.
+
+---
+
+### Retired: Galaxy XR DFR composition re-arm
+
+The re-arm experiment proved that retaining the Android Surface is insufficient by itself. Removing
+the terminal 2x2 quad immediately returned the stream to low resolution; each periodic reappearance
+produced only 1 high-resolution frame before omission returned it to low resolution. The selectable
+patch, DFR-specific native path, packaged helper, manifest, and diagnostics were removed. The final
+fix submits the quad continuously on every eligible `xrEndFrame`.
 
 ---
 
@@ -218,7 +307,7 @@ The mode preserved all 3 projections and replaced only the 6 source swapchain ha
 ## binary group
 
 ### Microphone Input Preset (`microphoneInputPresetPatch`)
-**Default: enabled**
+**Default: disabled individually; selected by all 4 recommendation bundles**
 
 | Artifact | Edit |
 |---|---|
@@ -233,45 +322,45 @@ existing unique semantic signature matcher.
 ---
 
 ### Visual Delay Fix (`hmdOnlyPatch`)
-**Default: enabled**
+**Default: disabled individually; selected by all 4 recommendation bundles**
 | Artifact | Edit |
 |---|---|
-| `lib/arm64-v8a/libvrlink_scene.so` @ hook vaddr (version-specific) | 4 bytes: `ldr x2,[sp,#8]` → `B <PLT_cave_va>` (AArch64 unconditional branch to trampoline) |
-| `lib/arm64-v8a/libvrlink_scene.so` @ PLT cave (last 32 B of first PT_LOAD) | 32 bytes: trampoline — original hook insn + MOVZ x16,low16(offsetNs) + MOVK x16,hi16(offsetNs),lsl#16 + ADD x2,x2,x16 + B hook+4 + NOP×3 |
+| `lib/arm64-v8a/libvrlink_scene.so` @ hook vaddr (version-specific) | 4 bytes: `ldr x2,[sp,#8]` → AArch64 unconditional branch to the mapped trampoline |
+| Non-allocated `.comment` payload + unique `PT_NOTE` header | Reuses the first 20 `.comment` bytes for the trampoline and converts the redundant note header into a page-aligned read/execute `PT_LOAD`. The live executable tail and PLT entries remain byte-for-byte unchanged. |
 | Velocity fields `[x19+28]` … `[x19+48]` (6× float/double) | Replaced with `STUR XZR` or `STR WZR` (zeroes PackedPose_t linear/angular velocity) |
 
 **Option:** `offsetMs` — encodes as nanoseconds split across MOVZ/MOVK immediates; default 60, range 0–4000
 
 **Version layouts (matched by `libvrlink_scene.so` file size):**
-| versionCode | File size | Hook vaddr | PLT cave vaddr |
-|---|---|---|---|
-| 5001740 | 2,220,528 | `0x101378` | `0x20F0B0` |
-| 5001712 | 2,221,072 | `0x1014E8` | `0x20F2D0` |
-| 5002172 | 2,238,792 | `0xFD860` | `0x213370` |
-| 5002206 | 2,239,920 | `0xFDD68` | `0x213820` |
-| 5002244 | 2,251,920 | `0xFEAD8` | `0x2166B0` |
-| 5002313 | 2,276,872 | `0x100B8C` | `0x21C770` |
-| 5002318 | 2,277,488 | `0x100B0C` | `0x21C9D0` |
-| 5002322 | 2,283,400 | `0x101154` | `0x21E0E0` |
+| versionCode | File size | Hook vaddr |
+|---|---|---|
+| 5001740 | 2,220,528 | `0x101378` |
+| 5001712 | 2,221,072 | `0x1014E8` |
+| 5002172 | 2,238,792 | `0xFD860` |
+| 5002206 | 2,239,920 | `0xFDD68` |
+| 5002244 | 2,251,920 | `0xFEAD8` |
+| 5002313 | 2,276,872 | `0x100B8C` |
+| 5002318 | 2,277,488 | `0x100B0C` |
+| 5002322 | 2,283,400 | `0x101154` |
 
 ---
 
 ### Native XR Compatibility Gates
-**Default: disabled** (legacy builds only)
-| Patch | 5001740 target(s) | 5002244 target(s) | 5002313 target(s) |
-|---|---|---|---|
-| Android XR native permission names | Exact strings at `0x9987A`, `0xA19DD` | Exact strings at `0x93952`, `0x9C10E` | Exact strings at `0x94B4F`, `0x9D861` |
-| Force HMD initialization gates | `0xFFCB0`, `0xFFCB8` | `0xFD040`, `0xFD048` | `0xFF010`, `0xFF018` |
-| Force lobby permission-state gate | `0x10D9A0` | `0x10B658` | `0x10E6C0` |
-| Force stream XR gates | `0x1163F4`, `0x1163FC`, `0x1164B0` | `0x1140AC`, `0x1140B4`, `0x114168` | No fixed edit: 5002313 rewrote `XrSceneStream::Init`, so the old three gates have no safe one-to-one target |
+**Default: disabled individually; selected by both legacy recommendation bundles** (legacy builds only)
+| Patch | 2.0.20/5001712 target(s) | 2.0.20/5001740 target(s) | 2.0.22/5002244 target(s) | 2.0.22/5002313 target(s) |
+|---|---|---|---|---|
+| Android XR native permission names | Exact strings at `0x99924`, `0xA1A7F` | Exact strings at `0x9987A`, `0xA19DD` | Exact strings at `0x93952`, `0x9C10E` | Exact strings at `0x94B4F`, `0x9D861` |
+| Force HMD initialization gates | `0xFFE20`, `0xFFE28` | `0xFFCB0`, `0xFFCB8` | `0xFD040`, `0xFD048` | `0xFF010`, `0xFF018` |
+| Force lobby permission-state gate | `0x10DB10` | `0x10D9A0` | `0x10B658` | `0x10E6C0` |
+| Force stream XR gates | `0x116564`, `0x11656C`, `0x116620` | `0x1163F4`, `0x1163FC`, `0x1164B0` | `0x1140AC`, `0x1140B4`, `0x114168` | No fixed edit: 5002313 rewrote `XrSceneStream::Init`, so the old three gates have no safe one-to-one target |
 
-All fixed edits validate their exact stock or already-patched instruction bytes before writing. Unknown native layouts are left unchanged.
+The independently decoded 5001712 layout is 2,221,072 bytes with stock SHA-256 `80b62797c7e26d6b67b0cca00693b076a336bdb48ebc1383a16cccb1616ed495`. Every fixed layout is selected by exact `(versionName, versionCode)` and expected size, then validates all local stock or already-patched bytes before writing atomically. A wrong exact pair sharing a known size is unchanged. The permission-name patch retains its intentional unique-pattern fallback only for genuinely unknown sizes; fixed gate patches leave unknown layouts unchanged.
 
 ---
 
 ### OLED Color Calibration / Output Precision (`oledCalibrationPatch`)
-**Default: enabled through build 5002318; not independently compatible with 5002322**
-> ⚠️ Shares the GLSL shader block in `libvrlink_scene.so` with `videoDitherPatch`. Dependency ordering runs OLED calibration first so dither selection cannot be overwritten. Swapchain-format editing is guarded to ARM64 versionCodes 5001740, 5002244, 5002313, 5002318, and 5002322.
+**Default: disabled individually; selected by all 4 recommendation bundles and directly compatible with 5002322**
+> Swapchain-format editing is guarded by exact version/build metadata and size for ARM64 versionCodes 5001712, 5001740, 5002244, 5002313, 5002318, and 5002322. There is no selectable Video dither patch; OLED calibration now generates `DITHER_ENABLE=0.`.
 
 | Artifact | Edit |
 |---|---|
@@ -279,9 +368,10 @@ All fixed edits validate their exact stock or already-patched instruction bytes 
 | GLSL `pow(clamp(c,0,1), vec3(GAMMA))` | `gamma` option value (float) |
 | GLSL `mix(vec3(luma), c, SATURATION)` | `saturation` option value (float) |
 | GLSL D2020-approximating 3×3 color matrix | Fixed: `_valve1_d2020d709` (not user-configurable) |
-| GLSL dither | Zero-centred per-channel noise using `UniDitherOffsets.rgb`; sRGB8 scale `0.00392` gives +/-0.5 output-code-step noise, while experimental RGB10_A2 retains `0.00073` |
-| GLSL endpoint protection | Per-channel output-domain ramp preserves exact black/white and reaches full dither strength four codes from either output endpoint (`4/255` sRGB8, approximately `4/1023` linear RGB10_A2) |
-| GLSL `DITHER_ENABLE` | `1.` when enabled; toggled to `0.` by `videoDitherPatch` without losing the selected scale |
+| GLSL dither | Dormant zero-centred per-channel noise using `UniDitherOffsets.rgb`; preserved scales are `0.00392` for sRGB8 and `0.00073` for experimental RGB10_A2 |
+| GLSL endpoint protection | Dormant dither ramp preserves exact black/white and reaches full strength 4 codes from either output endpoint (`4/255` sRGB8, approximately `4/1023` linear RGB10_A2) if explicitly re-enabled in a local source fork |
+| GLSL `DITHER_ENABLE` | `0.` by default; no Morphe option. Developer-only local opt-in instructions below preserve the selected scale and output precision |
+| Two 5001712 instructions at `0x10a9c4`, `0x10aa34` | `GL_SRGB8_ALPHA8` (`69 88 91 52`) or experimental `GL_RGB10_A2` (`29 0B 90 52`) |
 | Two 5001740 instructions at `0x10a854`, `0x10a8c4` | `GL_SRGB8_ALPHA8` (`69 88 91 52`) or experimental `GL_RGB10_A2` (`29 0B 90 52`) |
 | Three 5002244 instructions at `0x10826c`, `0x1082dc`, `0x10834c` | `GL_SRGB8_ALPHA8` (`69 88 91 52`) or experimental `GL_RGB10_A2` (`29 0B 90 52`) |
 | Three 5002313 instructions at `0x10b2d4`, `0x10b344`, `0x10b3b4` | `GL_SRGB8_ALPHA8` (`69 88 91 52`) or experimental `GL_RGB10_A2` (`29 0B 90 52`) |
@@ -292,35 +382,54 @@ All fixed edits validate their exact stock or already-patched instruction bytes 
 **Options:**
 | Key | Default | Range | Target in binary |
 |---|---|---|---|
-| `profile` | `initial` | initial / final-balanced / custom | Selects gamma+saturation pair |
-| `gamma` | `1.06` | 0.50–2.50 | `vec3(GAMMA)` argument in `pow()` |
-| `saturation` | `1.12` | 0.00–3.00 | Second argument in `mix()` |
-| `outputPrecision` | `srgb8-highp` | srgb8-highp / rgb10-a2-experimental | Selects shader transfer/dither scale and all three projection swapchain formats |
+| `profile` | `final-balanced` | initial / final-balanced / custom | Selects gamma+saturation pair |
+| `gamma` | `1.20` | 0.50–2.50 | Custom-profile `vec3(GAMMA)` argument in `pow()` |
+| `saturation` | `1.45` | 0.00–3.00 | Custom-profile second argument in `mix()` |
+| `outputPrecision` | `srgb8-highp` | srgb8-highp / rgb10-a2-experimental | Selects shader transfer/dither scale and every layout-specific projection swapchain format |
 
-`srgb8-highp` is the default fallback whenever end-to-end ten-bit preservation is unproved. Host negotiation alone does not expose the Android decoder buffer or compositor precision. `rgb10-a2-experimental` is fail-closed: the patch requires the guarded 2,220,528-byte 5001740, 2,251,920-byte 5002244, 2,276,872-byte 5002313, 2,277,488-byte 5002318, or 2,283,400-byte 5002322 library layout, the unique shader/NUL boundary, every layout-specific instruction context, and a uniform current swapchain state. Galaxy XR OpenXR swapchain support and end-to-end Steam Link Main10/P010 preservation remain unverified; an unsupported format can prevent stream swapchain setup.
+`srgb8-highp` is the default fallback whenever end-to-end ten-bit preservation is unproved. Host negotiation alone does not expose the Android decoder buffer or compositor precision. `rgb10-a2-experimental` is fail-closed: the patch requires the exact guarded 2,221,072-byte 2.0.20/5001712, 2,220,528-byte 2.0.20/5001740, 2,251,920-byte 2.0.22/5002244, 2,276,872-byte 2.0.22/5002313, 2,277,488-byte 2.0.22/5002318, or 2,283,400-byte 2.0.22/5002322 library layout, the unique shader/NUL boundary, every layout-specific original/already-patched instruction context, and a uniform current swapchain state. The 5001712 stock library SHA-256 is `80b62797c7e26d6b67b0cca00693b076a336bdb48ebc1383a16cccb1616ed495`. Galaxy XR OpenXR swapchain support and end-to-end Steam Link Main10/P010 preservation remain unverified; an unsupported format can prevent stream swapchain setup.
 
 Static tests validate GLSL structure, fixed size, and binary placement but do not compile the shader with the Galaxy XR GLES driver. Successful on-headset shader compilation remains a runtime acceptance gate for both modes.
 
 ---
 
-### Video Dither (`videoDitherPatch`)
-**Default: enabled**
-> ⚠️ Shares the GLSL shader block in `libvrlink_scene.so` with `oledCalibrationPatch`. Handles both stock and calibrated variants automatically.
+### Video dither (retired; developer opt-in)
 
-| Artifact | Edit |
-|---|---|
-| `lib/arm64-v8a/libvrlink_scene.so` GLSL (stock shader) | 2 bytes at `color.rgb += fract(...)*.00292`: `//` (disabled) ↔ `  ` (enabled) |
-| `lib/arm64-v8a/libvrlink_scene.so` GLSL (legacy calibrated) | `*.00292` ↔ `*.00000` in expression `) - .5) * .00292;` |
-| `lib/arm64-v8a/libvrlink_scene.so` GLSL (highp output variants) | `DITHER_ENABLE=1.` ↔ `DITHER_ENABLE=0.` while preserving scale `0.00392` or `0.00073` |
+The standalone `videoDitherPatch`, its `enable` option, and every recommendation dependency are
+removed. Current OLED calibration generates `const float DITHER_ENABLE=0.;`. There is no Morphe
+checkbox to turn it on. The unregistered internal helper `setDitherState` remains in
+`patches/src/main/kotlin/app/template/patches/steamlink/binary/VideoDither.kt` for guarded historical
+state handling and tests; its presence does not apply a patch.
 
-**Option:** `enable` (bool, default true)
+For an unsupported local developer fork only:
+
+1. In `patches/src/main/kotlin/app/template/patches/steamlink/binary/OledCalibrationPatch.kt`,
+   change only the shader-template line `const float DITHER_ENABLE=0.;` to
+   `const float DITHER_ENABLE=1.;`.
+2. Preserve `DITHER_SCALE` (`.00392` for sRGB8 or `.00073` for RGB10_A2), the transfer function,
+   and the chosen output precision. The `0.` to `1.` substitution has identical byte length;
+   do not expand the fixed-size shader block.
+3. From the repository root run `.\gradlew.bat :patches:buildAndroid` (compilation only), then
+   import the newly built `patches/build/libs/patches-<version>.mpp` into Morphe; do not select the
+   `-sources` or `-javadoc` artifact. Apply that local bundle with OLED calibration to a clean
+   original APK. Do not hex-edit an installed APK or layer this over an already patched APK.
+   Stock tests intentionally assert the disabled `0.` default; this compilation command does
+   not run them or validate the opt-in fork, which is outside the tested release contract.
+4. To disable it again, restore `DITHER_ENABLE=0.`, rebuild the local patch bundle, and repatch
+   from the clean original APK.
+
+Historical byte-state reference only, not binary-editing instructions: the stock shader toggled
+its `//` prefix against 2 spaces; the old calibrated shader toggled `*.00000` against `*.00292`.
+The highp shader uses the separate `DITHER_ENABLE` multiplier so the output-specific scale is
+never lost. Existing archived APKs may still contain enabled dithering; removing the selectable
+patch does not rewrite those artifacts.
 
 ---
 
 ## identity group
 
 ### Device Identity (`deviceIdentityPatch`)
-**Default: enabled through build 5002318; not compatible with 5002322** — retains the legacy XR Core/device-config dependency, whose mutations are guarded off on native-XR builds
+**Default: disabled individually; selected by both legacy recommendation bundles and the 5002318 bundle; not compatible with 5002322** — Recommended selects Meta Quest Pro for the exact legacy recommendation targets and Galaxy XR for other supported targets; retains the legacy XR Core/device-config dependency, whose mutations are guarded off on native-XR builds
 
 | Artifact | Edit |
 |---|---|
@@ -333,12 +442,20 @@ This intentionally preserves the native builds' requested extensions and vendor 
 `/interaction_profiles/ext/hand_interaction_ext`, and its hand grip/aim poses.
 
 **Option `profile`:**
+
 | Value | `sModelNumber` |
 |---|---|
-| `samsung-galaxy-xr` | Full Galaxy XR identity (default) |
-| `stock-no-change` | Byte-identical stock identity |
+| `recommended` | Default: `Oculus Quest Pro` for exact 2.0.20/5001712, 2.0.20/5001740, 2.0.22/5002172, 2.0.22/5002206, and 2.0.22/5002244; Galaxy XR for other supported targets |
+| `samsung-galaxy-xr` | Explicit Galaxy XR identity |
+| `stock-no-change` | No additional identity override; the legacy config-baseline dependency still runs |
 | `meta-quest-pro` | `Oculus Quest Pro` |
 | `pico-4-pro` | `PICO 4 Pro` |
+
+Recommended is resolved during execution from the APK's exact version/build; it does not mutate
+the shared option for another build. Explicit profile choices, including saved Samsung, Stock,
+and PICO selections, override Recommended. In native-XR build 5002318, Recommended retains the
+full Galaxy XR transport identity. Build 5002322 remains outside this patch's public compatibility
+and its 6-patch recommendation is unchanged.
 
 ---
 
@@ -362,10 +479,12 @@ This intentionally preserves the native builds' requested extensions and vendor 
 
 | APK artifact | Patches that write to it |
 |---|---|
-| `lib/arm64-v8a/libvrlink_scene.so` | `disablePermissionPromptNativePatch` (layout-specific 8 B), native permission/gate patches, `hmdOnlyPatch` (hook + cave + velocity), `controllerVelocityPatch` (controller cadence instructions in `QSVLClient::OnTopOfFrame`), `oledCalibrationPatch` (1087-byte GLSL block plus three guarded swapchain instructions), `videoDitherPatch` (dither-state marker inside GLSL block) |
+| `lib/arm64-v8a/libvrlink_scene.so` | `disablePermissionPromptNativePatch` (layout-specific 8 B), native permission/gate patches, `hmdOnlyPatch` (hook + cave + velocity), `controllerVelocityPatch` (controller cadence instructions in `QSVLClient::OnTopOfFrame`), `oledCalibrationPatch` (1087-byte GLSL block plus 2 or 3 guarded swapchain instructions) |
 | `assets/config/hmd_config.json` | `xrDeviceConfigBaselinePatch` (baseline), `deviceIdentityPatch` (profile override — intentional) |
 | `AndroidManifest.xml` | `xrManifestCapabilityPackPatch`, `xrLauncherBootstrapPatch`, `gxrFacebridgePatch`, `appearOnTopPatch`, `xrGalaxyXrHighResolutionPatch`, `changePackageNamePatch` |
 | `lib/arm64-v8a/libgxr_ast.so` | `xrGalaxyXrHighResolutionPatch` |
 | `res/values/ids.xml` | `androidXrLibPatch`, `controllerVelocityPatch`, `gxrFacebridgeLibPatch` (all: idempotent create-if-missing only) |
 
-**Known intentional coupling:** `oledCalibrationPatch` rewrites the full GLSL block first; `videoDitherPatch` depends on it and then toggles the generated highp dither state. Its byte helper still recognises stock and legacy-calibrated states for guarded compatibility tests.
+`oledCalibrationPatch` is the only active shader-block writer. The retained unregistered
+`VideoDither.kt` helper recognizes stock, legacy-calibrated, and highp states for tests; there is no
+active dither dependency or separately selected shader mutation.

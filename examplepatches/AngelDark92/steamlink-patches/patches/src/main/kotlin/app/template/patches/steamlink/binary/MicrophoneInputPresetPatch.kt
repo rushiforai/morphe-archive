@@ -54,7 +54,7 @@ private fun ByteArray.matchesAt(offset: Int, pattern: ByteArray): Boolean =
 val microphoneInputPresetPatch = rawResourcePatch(
     name = "Microphone input preset",
     description = "Selects the Android AAudio microphone processing mode used by Steam Link. Galaxy XR testing found Voice Recognition clearer and louder than stock Voice Communication.",
-    default = true,
+    default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK.toTypedArray())
 

@@ -5,8 +5,9 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK
-import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_5002322
+import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_HIGH_RESOLUTION
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_BEFORE_LATEST
+import app.template.patches.shared.Constants.isHighResolutionSteamLinkBuild
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import java.io.File
@@ -34,7 +35,7 @@ private val unrestrictedBatteryManifestPatch = resourcePatch {
 val unrestrictedBatteryUsagePatch = bytecodePatch(
     name = "Unrestricted battery usage",
     description = "Opens Android's per-app Battery usage page at startup so Unrestricted can be selected for XR streaming.",
-    default = true,
+    default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK.toTypedArray())
     // Restore the legacy automatic foundation while its native-build guards make it a no-op.
@@ -86,10 +87,14 @@ val appearOnTopPatch = bytecodePatch(
 private const val FOVEA_QUADS_MODE = "single_projection_fovea_quads_v1"
 internal const val ANDROID_SURFACE_TRIGGER_MODE = "android_surface_trigger_passthrough_v1"
 internal const val ANDROID_SURFACE_TRIGGER_LIBRARY = "libgxr_ast.so"
+internal const val ANDROID_SURFACE_TRIGGER_5001712_RESOURCE_LIBRARY =
+    "libgxr_ast_5001712.so"
 internal const val ANDROID_SURFACE_TRIGGER_MANIFEST =
     "XR_APILAYER_local_GalaxyXR_android_surface_trigger_passthrough_v1.json"
 internal const val ANDROID_SURFACE_TRIGGER_BUILD_ID =
-    "android-surface-trigger-forced-probe-v1.1-20260901"
+    "android-surface-trigger-passthrough-v1.4-20260903"
+internal const val ANDROID_SURFACE_TRIGGER_5001712_BUILD_ID =
+    "android-surface-trigger-5001712-v1.2-20260903"
 private data class ProjectionModeResources(
     val mode: String,
     val library: String,
@@ -109,6 +114,9 @@ internal fun projectionModesConflict(existingMode: String, requestedMode: String
         activeProjectionModes.any { it.mode == existingMode }
 
 private val retiredProjectionModes = setOf(
+    "android_surface_underside_projection_v1",
+    "android_surface_trigger_warmup_omit_v1",
+    "android_surface_trigger_dfr_rearm_v1",
     "single_projection_reconstruction_v1",
     FOVEA_QUADS_MODE,
     "projection_trace_control",
@@ -127,6 +135,9 @@ private val retiredProjectionModes = setOf(
     "single_projection_native_probe_v1",
 )
 private val retiredProjectionLibraries = setOf(
+    "libgxr_ast_underside.so",
+    "libgxr_ast_warmup_omit.so",
+    "libgxr_ast_dfr_rearm.so",
     "libgxr_single_projection_reconstruction_efficient_v1.so",
     "libgxr_nsp.so",
     "libgxr_nspd.so",
@@ -152,10 +163,20 @@ private fun projectionModeResource(name: String): ByteArray =
         ?: throw PatchException("Missing bundled XR projection-mode resource: $name"))
         .use { it.readBytes() }
 
+internal fun androidSurfaceTriggerResourceLibraryForBuild(
+    versionName: String,
+    versionCode: String,
+): String = if (versionName == "2.0.20" && versionCode == "5001712") {
+    ANDROID_SURFACE_TRIGGER_5001712_RESOURCE_LIBRARY
+} else {
+    ANDROID_SURFACE_TRIGGER_LIBRARY
+}
+
 private fun installProjectionModeResources(
     libDir: File,
     layerDir: File,
     requested: ProjectionModeResources,
+    helperBytes: ByteArray,
 ) {
     activeProjectionModes.filterNot { it.mode == requested.mode }.forEach { sibling ->
         val siblingManifestExists = sibling.manifest?.let { File(layerDir, it).exists() } == true
@@ -184,7 +205,7 @@ private fun installProjectionModeResources(
         }
     }
 
-    File(libDir, requested.library).writeBytes(projectionModeResource(requested.library))
+    File(libDir, requested.library).writeBytes(helperBytes)
     requested.manifest?.let { manifest ->
         val layerManifest = File(layerDir, manifest)
         layerManifest.parentFile!!.mkdirs()
@@ -204,7 +225,7 @@ private fun configurePermissionFreeProjectionMode(document: Document, requestedM
     matchingPermissions.forEach { manifest.removeChild(it) }
 
     if (!upsertVrLinkUnmanagedFullSpace(document, app)) {
-        throw PatchException("Steam Link 5002322 VRLink activity was not found")
+        throw PatchException("Supported Steam Link VRLink activity was not found")
     }
 
     val metadataName = "com.valvesoftware.steamlink.GXR_RESOLUTION_MODE"
@@ -225,9 +246,16 @@ private fun configurePermissionFreeProjectionMode(document: Document, requestedM
     metadata.setAttribute("android:value", requestedMode)
 }
 
-private val androidSurfaceTriggerResourcesPatch = rawResourcePatch {
+private fun androidSurfaceTriggerResourcesPatch(
+    requestedMode: String,
+) = rawResourcePatch {
     execute {
-        if (packageMetadata.versionName != "2.0.22" || packageMetadata.versionCode != "5002322") {
+        // Morphe executes dependencies recursively without rechecking compatibility.
+        // Keep this build guard inside the mutation itself so an excluded APK stays untouched.
+        if (!isHighResolutionSteamLinkBuild(
+                packageMetadata.versionName,
+                packageMetadata.versionCode,
+            )) {
             return@execute
         }
         val sceneFile = get("lib/arm64-v8a/libvrlink_scene.so")
@@ -241,12 +269,21 @@ private val androidSurfaceTriggerResourcesPatch = rawResourcePatch {
                     "retired renderer hooks cannot be migrated safely in place.",
             )
         }
-        val helperBytes = projectionModeResource(ANDROID_SURFACE_TRIGGER_LIBRARY)
+        val requested = activeProjectionModes.first { it.mode == requestedMode }
+        val resourceLibrary = if (requested.mode == ANDROID_SURFACE_TRIGGER_MODE) {
+            androidSurfaceTriggerResourceLibraryForBuild(
+                packageMetadata.versionName,
+                packageMetadata.versionCode,
+            )
+        } else {
+            requested.library
+        }
+        val helperBytes = projectionModeResource(resourceLibrary)
         if (helperBytes.size < 4 || !helperBytes.copyOfRange(0, 4)
                 .contentEquals(byteArrayOf(0x7F, 0x45, 0x4C, 0x46))) {
             throw PatchException(
                 "Bundled Android-surface trigger is not an ELF library: " +
-                    ANDROID_SURFACE_TRIGGER_LIBRARY,
+                    resourceLibrary,
             )
         }
         val libDir = sceneFile.parentFile!!
@@ -255,18 +292,23 @@ private val androidSurfaceTriggerResourcesPatch = rawResourcePatch {
         installProjectionModeResources(
             libDir,
             layerDir,
-            activeProjectionModes.first { it.mode == ANDROID_SURFACE_TRIGGER_MODE },
+            requested,
+            helperBytes,
         )
     }
 }
 
+private val androidSurfaceTriggerResourcesPatch = androidSurfaceTriggerResourcesPatch(
+    requestedMode = ANDROID_SURFACE_TRIGGER_MODE,
+)
+
 @Suppress("unused")
 val xrGalaxyXrHighResolutionPatch = resourcePatch(
     name = "Galaxy XR high-resolution 3-projection fix",
-    description = "Recommended 5002322-only permission-free resolution fix. Preserves Valve's native 3 projections and source formats, including future RGB10_A2, while appending a static 2x2 Android-surface compositor trigger with no image copy or reconstruction.",
-    default = true,
+    description = "Permission-free resolution fix for exact builds 5001712, 5002244, 5002296, 5002313, 5002318, and 5002322. Preserves each build's native projection layout (2 layers on 2.0.20/5001712; 3 layers on supported 2.0.22 builds) and source formats, including future RGB10_A2, while appending a static 2x2 Android-surface compositor trigger with no image copy or reconstruction.",
+    default = false,
 ) {
-    compatibleWith(*COMPATIBILITIES_STEAM_LINK_5002322.toTypedArray())
+    compatibleWith(*COMPATIBILITIES_STEAM_LINK_HIGH_RESOLUTION.toTypedArray())
     dependsOn(
         xrLauncherBootstrapPatch,
         xrPermissionSettingsBootstrapPatch,
@@ -274,6 +316,11 @@ val xrGalaxyXrHighResolutionPatch = resourcePatch(
     )
 
     finalize {
+        // Dependencies bypass compatibility checks. Never advertise a resolution mode whose
+        // matching helper was deliberately skipped for an unverified legacy projection layout.
+        if (!isHighResolutionSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) {
+            return@finalize
+        }
         document("AndroidManifest.xml").use { document ->
             configurePermissionFreeProjectionMode(document, ANDROID_SURFACE_TRIGGER_MODE)
         }

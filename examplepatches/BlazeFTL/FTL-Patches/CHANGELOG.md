@@ -1,3 +1,51 @@
+## [1.43.0-dev.41](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.40...v1.43.0-dev.41) (2026-09-03)
+
+### ✨ New Features
+
+* Up Skip Splash Expert ([1164699](https://github.com/BlazeFTL/FTL-Patches/commit/1164699060cc6d2ba350a8e3635572b585469e4d))
+
+## [1.43.0-dev.40](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.39...v1.43.0-dev.40) (2026-09-03)
+
+### ✨ New Features
+
+* Up AddSave Data Test ([6dcbf80](https://github.com/BlazeFTL/FTL-Patches/commit/6dcbf80ff5dfa0bb9fc1a74d3543958cd6dc2f09))
+
+## [1.43.0-dev.39](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.38...v1.43.0-dev.39) (2026-09-03)
+
+### ✨ New Features
+
+* Up ([e0bb253](https://github.com/BlazeFTL/FTL-Patches/commit/e0bb253683da3a5bb714f8b55a12767adee66252))
+
+## [1.43.0-dev.38](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.37...v1.43.0-dev.38) (2026-09-03)
+
+### ✨ New Features
+
+* Up New Analytics Patch ([02c16c5](https://github.com/BlazeFTL/FTL-Patches/commit/02c16c5bff6ed5562257c5adc4fcc4a9f1396550))
+
+## [1.43.0-dev.37](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.36...v1.43.0-dev.37) (2026-09-03)
+
+### ✨ New Features
+
+* Add New Analytics Patch ([85f907f](https://github.com/BlazeFTL/FTL-Patches/commit/85f907f5407080f4666bd3885ca79994685f3d76))
+
+## [1.43.0-dev.36](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.35...v1.43.0-dev.36) (2026-09-03)
+
+### 🐛 Bug Fixes
+
+* Remove Analytics Causing Crash ([555a458](https://github.com/BlazeFTL/FTL-Patches/commit/555a4583823753ce8b63e1b98d8505b7f8bc4456))
+
+## [1.43.0-dev.35](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.34...v1.43.0-dev.35) (2026-09-03)
+
+### 🐛 Bug Fixes
+
+* Remove Analytics R8 ([7532199](https://github.com/BlazeFTL/FTL-Patches/commit/7532199e6ef61832f3bb21c45dd66fdaa6e54153))
+
+## [1.43.0-dev.34](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.33...v1.43.0-dev.34) (2026-09-03)
+
+### ✨ New Features
+
+* Up Remove Ads Error ([6831ef4](https://github.com/BlazeFTL/FTL-Patches/commit/6831ef4ea2e942e0fd2afbbc55dcd5c47491f4bd))
+
 ## [1.43.0-dev.33](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.32...v1.43.0-dev.33) (2026-09-02)
 
 ### ✨ New Features

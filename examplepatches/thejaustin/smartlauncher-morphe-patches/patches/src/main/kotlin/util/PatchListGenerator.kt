@@ -8,10 +8,6 @@ import java.io.File
 import java.net.URLClassLoader
 import java.util.jar.Manifest
 
-/**
- * Regenerates ../patches-list.json and ../patches-bundle.json from the built .mpp.
- * Matches official Morphe Manager source schema requirements.
- */
 internal fun main() {
     val patchFile = File("build/libs/").listFiles { file ->
         val fileName = file.name
@@ -30,25 +26,43 @@ internal fun main() {
     }
 }
 
-@Suppress("DEPRECATION")
 private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
     val patchesMap = patches.sortedBy { it.name }.map { patch ->
-        val compatList = patch.compatiblePackages?.map { (pkgName, versions) ->
-            JsonCompatiblePackage(
-                packageName = pkgName,
-                name = "Smart Launcher 6",
-                versions = versions?.toList(),
-                targets = versions?.map { JsonTarget(version = it) }
-            )
-        }
-
         JsonPatch(
-            name = patch.name,
+            name = patch.name!!,
             description = patch.description,
-            default = patch.use,
-            use = patch.use,
+            default = patch.default,
             dependencies = patch.dependencies.map { it.javaClass.simpleName },
-            compatiblePackages = compatList
+            compatiblePackages = patch.compatibility?.map { compat ->
+                JsonCompatibility(
+                    packageName = compat.packageName!!,
+                    name = compat.name,
+                    description = compat.description,
+                    apkFileType = compat.apkFileType?.name,
+                    appIconColor = compat.appIconColor?.let { "#%06X".format(it) },
+                    signatures = compat.signatures,
+                    targets = compat.targets.map { target ->
+                        JsonCompatibility.Target(
+                            version = target.version,
+                            versionCodes = target.versionCodes?.mapKeys { it.key.name },
+                            isExperimental = target.isExperimental,
+                            minSdk = target.minSdk,
+                            description = target.description,
+                        )
+                    },
+                )
+            },
+            options = patch.options.values.map { option ->
+                JsonPatch.Option(
+                    key = option.key,
+                    title = option.title,
+                    description = option.description,
+                    required = option.required,
+                    type = option.type.toString(),
+                    default = option.default,
+                    values = option.values,
+                )
+            }
         )
     }
 
@@ -59,12 +73,16 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
         .create()
 
     val jsonObject = JsonObject()
+    jsonObject.addProperty(
+        "NOTE",
+        "Do NOT manually edit this file. This file is automatically updated when " +
+                "semantic release (release.yml) runs. Manually editing this file can break " +
+                "your releases and break third party tools that use this file."
+    )
     jsonObject.addProperty("version", version)
-    jsonObject.addProperty("downloadUrl", "https://github.com/thejaustin/smartlauncher-morphe-patches/releases/latest/download/smartlauncher-morphe-patches.mpp")
     jsonObject.add("patches", gson.toJsonTree(patchesMap))
 
     val jsonString = gson.toJson(jsonObject)
-    File("../patches-bundle.json").writeText(jsonString)
     File("../patches-list.json").writeText(jsonString)
     File("../patches.json").writeText(jsonString)
 }
@@ -74,22 +92,36 @@ private class JsonPatch(
     val name: String? = null,
     val description: String? = null,
     val default: Boolean = true,
-    val use: Boolean = true,
-    val dependencies: List<String> = emptyList(),
-    val compatiblePackages: List<JsonCompatiblePackage>? = null,
-)
+    val dependencies: List<String>,
+    val compatiblePackages: List<JsonCompatibility>? = null,
+    val options: List<Option>,
+) {
+    class Option(
+        val key: String,
+        val title: String?,
+        val description: String?,
+        val required: Boolean,
+        val type: String,
+        val default: Any?,
+        val values: Map<String, Any?>?,
+    )
+}
 
 @Suppress("unused")
-private class JsonCompatiblePackage(
+private class JsonCompatibility(
     val packageName: String,
-    val name: String? = null,
-    val versions: List<String>? = null,
-    val targets: List<JsonTarget>? = null,
-)
-
-@Suppress("unused")
-private class JsonTarget(
-    val version: String,
-    val isExperimental: Boolean = true,
-    val minSdk: Int = 24,
-)
+    val name: String?,
+    val description: String?,
+    val apkFileType: String?,
+    val appIconColor: String?,
+    val signatures: Set<String>?,
+    val targets: List<Target>,
+) {
+    class Target(
+        val version: String?,
+        val versionCodes: Map<String, Int>?,
+        val isExperimental: Boolean,
+        val minSdk: Int?,
+        val description: String?,
+    )
+}

@@ -3,7 +3,7 @@ package app.template.patches.steamlink.androidxr
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
-import app.template.patches.shared.Constants.isNativeXrSteamLinkBuild
+import app.template.patches.shared.Constants.isLegacyXrFoundationSteamLinkBuild
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -57,13 +57,44 @@ private fun MutableMethod.fieldAccessIndex(
     require(index >= 0) { "Missing field access $definingClass->$fieldName in $name" }
 }
 
+internal data class XrPointerRouteMethods(
+    val touch: String,
+    val generic: String,
+)
+
+internal fun xrPointerRouteMethodsFor(
+    versionName: String,
+    versionCode: String,
+): XrPointerRouteMethods =
+    if (versionName == "2.0.20" && versionCode == "5001712") {
+        XrPointerRouteMethods(
+            touch = "routeXrPointerAsMouse5001712",
+            generic = "routeXrPointerAsMouseGeneric5001712",
+        )
+    } else {
+        XrPointerRouteMethods(
+            touch = "routeXrPointerAsMouse",
+            generic = "routeXrPointerAsMouseGeneric",
+        )
+    }
+
 internal val xrDirectInputFixPatch = bytecodePatch {
     dependsOn(androidXrUiExtensionPatch)
 
     execute {
-        // Dependencies execute even when their own compatibility excludes this build. Valve's
-        // Native-XR SDL/controller paths already support hands, so leave them byte-for-byte.
-        if (isNativeXrSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@execute
+        // Dependencies execute even when their own compatibility excludes this build. Mutate only
+        // exact decoded legacy layouts; native/unknown SDL and controller paths remain untouched.
+        if (!isLegacyXrFoundationSteamLinkBuild(
+                packageMetadata.versionName,
+                packageMetadata.versionCode,
+            )) return@execute
+
+        // 5001712 uses exact mouse-only wrappers. Its synthetic PAD_A event runs on Android's
+        // UI thread and can activate Connect before the pointed-at PC is selected.
+        val pointerRoutes = xrPointerRouteMethodsFor(
+            packageMetadata.versionName,
+            packageMetadata.versionCode,
+        )
 
         val surfaceChanged = mutableClassDefBy("Lorg/libsdl/app/SDLSurface;").methods
             .first { it.name == "surfaceChanged" && it.parameterTypes.size == 4 }
@@ -98,7 +129,7 @@ internal val xrDirectInputFixPatch = bytecodePatch {
                     0,
                     invokeStaticRange(
                         "Lorg/libsdl/app/GxrSdlBridge;",
-                        "routeXrPointerAsMouse",
+                        pointerRoutes.touch,
                         listOf("Landroid/view/MotionEvent;"),
                         "V",
                         pRegister(2),
@@ -114,7 +145,7 @@ internal val xrDirectInputFixPatch = bytecodePatch {
                     0,
                     invokeStaticRange(
                         "Lorg/libsdl/app/GxrSdlBridge;",
-                        "routeXrPointerAsMouseGeneric",
+                        pointerRoutes.generic,
                         listOf("Landroid/view/MotionEvent;"),
                         "V",
                         pRegister(2),

@@ -37,7 +37,7 @@ CMAKE_ASM_FLAGS_RELEASE:STRING=
 
 //Choose the type of build, options are: None Debug Release RelWithDebInfo
 // MinSizeRel ...
-CMAKE_BUILD_TYPE:STRING=
+CMAKE_BUILD_TYPE:STRING=Release
 
 //LLVM archiver
 CMAKE_CXX_COMPILER_AR:FILEPATH=C:/Users/Angelo/Desktop/SteamLink-GalaxyXR-Windows-Toolkit-FULL/GalaxyXR-APK/tools-galaxyxr-native/android-ndk-r27d/toolchains/llvm/prebuilt/windows-x86_64/bin/llvm-ar.exe
@@ -215,7 +215,7 @@ CMAKE_TAPI:FILEPATH=CMAKE_TAPI-NOTFOUND
 //Path to a CMake toolchain file, read early in the CMake run,
 // that specifies the compilers, toolchain utilities, and target-platform
 // information used when cross-compiling.
-CMAKE_TOOLCHAIN_FILE:UNINITIALIZED=C:/Users/Angelo/Desktop/SteamLink-GalaxyXR-Windows-Toolkit-FULL/GalaxyXR-APK/tools-galaxyxr-native/android-ndk-r27d/build/cmake/android.toolchain.cmake
+CMAKE_TOOLCHAIN_FILE:UNINITIALIZED=C:\Users\Angelo\Desktop\SteamLink-GalaxyXR-Windows-Toolkit-FULL\GalaxyXR-APK\tools-galaxyxr-native\android-ndk-r27d\build\cmake\android.toolchain.cmake
 
 //If this value is on, makefiles will be generated without the
 // .SILENT directive, and all commands will be echoed to the console

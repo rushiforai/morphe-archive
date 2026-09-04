@@ -10,10 +10,36 @@
 # State: whether we already registered the synthetic Galaxy XR pad with SDL.
 .field private static sGxrPadAdded:Z
 
+# Exact 2.0.20/5001712 must use coordinate-based mouse routing only. Sending
+# PAD_A before the mouse event activates the currently focused Connect action
+# before the pointed-at PC is selected, entering that build's dead cloud-pairing
+# path. The build-aware Kotlin hook enters only through the wrappers below.
+.field private static sGxrMouseOnly5001712:Z
+
 # ─────────────────────────────────────────────────────────────────────────────
 .method public constructor <init>()V
     .locals 0
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+    return-void
+.end method
+
+# Exact 2.0.20/5001712 mouse-only entry points. Other builds continue calling
+# the original methods and retain their existing synthetic-pad plus mouse path.
+.method public static routeXrPointerAsMouse5001712(Landroid/view/MotionEvent;)V
+    .locals 1
+
+    const/4 v0, 0x1
+    sput-boolean v0, Lorg/libsdl/app/GxrSdlBridge;->sGxrMouseOnly5001712:Z
+    invoke-static {p0}, Lorg/libsdl/app/GxrSdlBridge;->routeXrPointerAsMouse(Landroid/view/MotionEvent;)V
+    return-void
+.end method
+
+.method public static routeXrPointerAsMouseGeneric5001712(Landroid/view/MotionEvent;)V
+    .locals 1
+
+    const/4 v0, 0x1
+    sput-boolean v0, Lorg/libsdl/app/GxrSdlBridge;->sGxrMouseOnly5001712:Z
+    invoke-static {p0}, Lorg/libsdl/app/GxrSdlBridge;->routeXrPointerAsMouseGeneric(Landroid/view/MotionEvent;)V
     return-void
 .end method
 
@@ -212,6 +238,17 @@
 # ─────────────────────────────────────────────────────────────────────────────
 .method public static sendGxrSyntheticPad(Z)Z
     .locals 13
+
+    # The exact 5001712 wrappers deliberately suppress the duplicate PAD_A
+    # activation. Mouse position and PRIMARY_MOUSE events still follow below
+    # in the shared route methods.
+    sget-boolean v0, Lorg/libsdl/app/GxrSdlBridge;->sGxrMouseOnly5001712:Z
+    if-eqz v0, :gxr_modern_sdl_api
+
+    const/4 v0, 0x0
+    return v0
+
+    :gxr_modern_sdl_api
 
     # Check SDL controller manager is initialised.
     invoke-static {}, Lorg/libsdl/app/SDL;->isControllerManagerReady()Z

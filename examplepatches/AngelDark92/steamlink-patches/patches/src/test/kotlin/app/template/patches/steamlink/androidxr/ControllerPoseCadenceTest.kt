@@ -1,10 +1,12 @@
 package app.template.patches.steamlink.androidxr
 
+import app.morphe.patcher.patch.PatchException
 import java.io.ByteArrayInputStream
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -50,6 +52,19 @@ class ControllerPoseCadenceTest {
         }
     }
 
+    @Test
+    fun `verified cadence layouts reject a changed instruction atomically`() {
+        cadenceLayouts.forEach { layout ->
+            val changed = syntheticElf(layout).apply { this[layout.blocks.first().count] = 0 }
+            val snapshot = changed.copyOf()
+
+            assertFailsWith<PatchException>(layout.versionCode.toString()) {
+                patchControllerPoseCadence(changed, "half-2x")
+            }
+            assertContentEquals(snapshot, changed, layout.versionCode.toString())
+        }
+    }
+
     private data class TestBlock(
         val count: Int,
         val pointer: Int,
@@ -67,6 +82,15 @@ class ControllerPoseCadenceTest {
     )
 
     private val cadenceLayouts = listOf(
+        TestLayout(
+            5001712,
+            2_221_072,
+            listOf(
+                TestBlock(0xF6468, 0xF6458, 0xF64B0, 0xF64C4, 0xF64EC, 0xF64D0, 9),
+                TestBlock(0xF6568, 0xF6558, 0xF65B0, 0xF65C4, 0xF65EC, 0xF65D0, 9),
+                TestBlock(0xF6630, 0xF6620, 0xF6678, 0xF6688, 0xF66B4, 0xF66BC, 10),
+            ),
+        ),
         TestLayout(
             5001740,
             2_220_528,

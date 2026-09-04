@@ -4,7 +4,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.floatSliderOption
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.stringOption
-import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_BEFORE_LATEST
+import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK
 import java.security.MessageDigest
 import java.util.Locale
 
@@ -12,11 +12,14 @@ private val SHADER_EXTENSION =
     "#extension GL_OES_EGL_image_external_essl3 : enable".toByteArray(Charsets.US_ASCII)
 private val SHADER_VERSION = "#version 300 es\n".toByteArray(Charsets.US_ASCII)
 internal const val VIDEO_SHADER_SIZE = 1087
+internal const val VIDEO_LIBRARY_SIZE_5001712 = 2_221_072
 internal const val VIDEO_LIBRARY_SIZE_5001740 = 2_220_528
 internal const val VIDEO_LIBRARY_SIZE_5002244 = 2_251_920
 internal const val VIDEO_LIBRARY_SIZE_5002313 = 2_276_872
 internal const val VIDEO_LIBRARY_SIZE_5002318 = 2_277_488
 internal const val VIDEO_LIBRARY_SIZE_5002322 = 2_283_400
+private const val VIDEO_LIBRARY_SHA256_5001712 =
+    "80b62797c7e26d6b67b0cca00693b076a336bdb48ebc1383a16cccb1616ed495"
 private const val VIDEO_LIBRARY_SHA256_5001740 =
     "5fbb76c06c9fc0e3e5c5825752aa17e040462c8551b69d3492265f620244f443"
 private const val VIDEO_LIBRARY_SHA256_5002244 =
@@ -41,6 +44,7 @@ private val SWAPCHAIN_CONTEXT_AFTER = byteArrayOf(
     0x08, 0x21, 0x40, 0xb9.toByte(),
     0xe8.toByte(), 0x3b, 0x00, 0xb9.toByte(),
 )
+internal val SWAPCHAIN_FORMAT_OFFSETS_5001712 = intArrayOf(0x10a9c4, 0x10aa34)
 internal val SWAPCHAIN_FORMAT_OFFSETS_5001740 = intArrayOf(0x10a854, 0x10a8c4)
 internal val SWAPCHAIN_FORMAT_OFFSETS_5002244 = intArrayOf(0x10826c, 0x1082dc, 0x10834c)
 internal val SWAPCHAIN_FORMAT_OFFSETS_5002313 = intArrayOf(0x10b2d4, 0x10b344, 0x10b3b4)
@@ -48,6 +52,7 @@ internal val SWAPCHAIN_FORMAT_OFFSETS_5002318 = intArrayOf(0x10b430, 0x10b4a0, 0
 internal val SWAPCHAIN_FORMAT_OFFSETS_5002322 = intArrayOf(0x10ba78, 0x10bae8, 0x10bb58)
 
 private data class VideoLibraryLayout(
+    val versionName: String,
     val versionCode: Int,
     val fileSize: Int,
     val stockSha256: String,
@@ -56,30 +61,42 @@ private data class VideoLibraryLayout(
 
 private val VIDEO_LIBRARY_LAYOUTS = listOf(
     VideoLibraryLayout(
+        "2.0.20",
+        5001712,
+        VIDEO_LIBRARY_SIZE_5001712,
+        VIDEO_LIBRARY_SHA256_5001712,
+        SWAPCHAIN_FORMAT_OFFSETS_5001712,
+    ),
+    VideoLibraryLayout(
+        "2.0.20",
         5001740,
         VIDEO_LIBRARY_SIZE_5001740,
         VIDEO_LIBRARY_SHA256_5001740,
         SWAPCHAIN_FORMAT_OFFSETS_5001740,
     ),
     VideoLibraryLayout(
+        "2.0.22",
         5002244,
         VIDEO_LIBRARY_SIZE_5002244,
         VIDEO_LIBRARY_SHA256_5002244,
         SWAPCHAIN_FORMAT_OFFSETS_5002244,
     ),
     VideoLibraryLayout(
+        "2.0.22",
         5002313,
         VIDEO_LIBRARY_SIZE_5002313,
         VIDEO_LIBRARY_SHA256_5002313,
         SWAPCHAIN_FORMAT_OFFSETS_5002313,
     ),
     VideoLibraryLayout(
+        "2.0.22",
         5002318,
         VIDEO_LIBRARY_SIZE_5002318,
         VIDEO_LIBRARY_SHA256_5002318,
         SWAPCHAIN_FORMAT_OFFSETS_5002318,
     ),
     VideoLibraryLayout(
+        "2.0.22",
         5002322,
         VIDEO_LIBRARY_SIZE_5002322,
         VIDEO_LIBRARY_SHA256_5002322,
@@ -101,6 +118,8 @@ internal enum class VideoOutputPrecision(val optionValue: String) {
     }
 }
 
+// Dithering is retired from the patch catalog. Keep the reversible shader marker disabled;
+// PATCH_CATALOG.md documents the explicit local opt-in without changing output precision.
 private val HIGHP_SHADER_TEMPLATE = """#version 300 es
 #extension GL_OES_EGL_image_external_essl3 : enable
 precision highp float;
@@ -113,7 +132,7 @@ layout(location=4) uniform vec3 UniReserved1;
 layout(location=5) uniform vec4 UniReserved2;
 layout(location=6) uniform vec4 UniDitherOffsets;
 const float DITHER_SCALE=DITHER_SCALE_VALUE;
-const float DITHER_ENABLE=1.;
+const float DITHER_ENABLE=0.;
 void main()
 {
 color=texture(tex0,uv);
@@ -203,15 +222,17 @@ private fun ByteArray.sha256(): String =
 internal fun setProjectionSwapchainFormat(
     bytes: ByteArray,
     outputPrecision: VideoOutputPrecision,
+    versionName: String,
+    versionCode: String,
 ): ByteArray {
-    val layout = VIDEO_LIBRARY_LAYOUTS.singleOrNull { it.fileSize == bytes.size }
-    if (layout == null) {
-        val supported = VIDEO_LIBRARY_LAYOUTS.joinToString { candidate ->
-            "${candidate.versionCode} size=${candidate.fileSize} stockSha256=${candidate.stockSha256}"
-        }
+    val layout = VIDEO_LIBRARY_LAYOUTS.singleOrNull {
+        it.versionName == versionName && it.versionCode.toString() == versionCode
+    } ?: return bytes.copyOf()
+    if (bytes.size != layout.fileSize) {
         throw PatchException(
-            "Unsupported libvrlink_scene.so size=${bytes.size}, sha256=${bytes.sha256()}; " +
-                "RGB output precision supports $supported",
+            "Unsupported libvrlink_scene.so size=${bytes.size}, sha256=${bytes.sha256()} for " +
+                "Steam Link $versionName/$versionCode; expected size=${layout.fileSize}, " +
+                "stockSha256=${layout.stockSha256}",
         )
     }
 
@@ -231,6 +252,17 @@ internal fun setProjectionSwapchainFormat(
             )
         }
     }
+    val recognizedOffsets = (
+        bytes.indicesOfSubarray(SWAPCHAIN_CONTEXT_BEFORE + SRGB8_INSTRUCTION + SWAPCHAIN_CONTEXT_AFTER) +
+            bytes.indicesOfSubarray(SWAPCHAIN_CONTEXT_BEFORE + RGB10_A2_INSTRUCTION + SWAPCHAIN_CONTEXT_AFTER)
+        ).map { it + SWAPCHAIN_CONTEXT_BEFORE.size }.sorted()
+    if (recognizedOffsets != layout.swapchainFormatOffsets.sorted()) {
+        throw PatchException(
+            "Swapchain format context offsets for $versionName/$versionCode were " +
+                recognizedOffsets.joinToString { "0x${it.toString(16)}" } +
+                "; expected " + layout.swapchainFormatOffsets.joinToString { "0x${it.toString(16)}" },
+        )
+    }
     if (states.distinct().size != 1) {
         throw PatchException("Mixed projection swapchain format state: ${states.joinToString()}")
     }
@@ -244,13 +276,19 @@ internal fun setProjectionSwapchainFormat(
     }
 }
 
+// Guarded A/B generator is pinned to its decoded 2.0.22/5002244 source.
+internal fun setProjectionSwapchainFormat(
+    bytes: ByteArray,
+    outputPrecision: VideoOutputPrecision,
+): ByteArray = setProjectionSwapchainFormat(bytes, outputPrecision, "2.0.22", "5002244")
+
 @Suppress("unused")
 val oledCalibrationPatch = rawResourcePatch(
     name = "OLED color calibration",
-    description = "Calibrates Galaxy XR OLED color and selects a guarded high-precision video output path for Steam Link builds 5001740, 5002244, 5002313, 5002318, and 5002322.",
-    default = true,
+    description = "Calibrates Galaxy XR OLED color and selects a guarded high-precision video output path for Steam Link builds 5001712, 5001740, 5002244, 5002313, 5002318, and 5002322.",
+    default = false,
 ) {
-    compatibleWith(*COMPATIBILITIES_STEAM_LINK_BEFORE_LATEST.toTypedArray())
+    compatibleWith(*COMPATIBILITIES_STEAM_LINK.toTypedArray())
 
     val profile by stringOption(
         key = "profile",
@@ -304,7 +342,17 @@ val oledCalibrationPatch = rawResourcePatch(
         val bytes = file.readBytes()
         // Shader and swapchain edits are coupled. On an unrecognized native layout, skip both
         // rather than aborting the complete APK experiment or writing fixed offsets blindly.
-        if (!isSupportedVideoLibrarySize(bytes.size)) return@execute
+        val layout = VIDEO_LIBRARY_LAYOUTS.singleOrNull {
+            it.versionName == packageMetadata.versionName &&
+                it.versionCode.toString() == packageMetadata.versionCode
+        } ?: return@execute
+        if (bytes.size != layout.fileSize) {
+            throw PatchException(
+                "Unsupported libvrlink_scene.so size=${bytes.size} for Steam Link " +
+                    "${packageMetadata.versionName}/${packageMetadata.versionCode}; " +
+                    "expected ${layout.fileSize}",
+            )
+        }
         val shaderPos = findVideoShader(bytes)
         val (selectedGamma, selectedSaturation) = when (profile) {
             "initial" -> 1.06f to 1.12f
@@ -316,6 +364,13 @@ val oledCalibrationPatch = rawResourcePatch(
         val shaderPatched = bytes.copyOf().apply {
             paddedVideoShader(selectedGamma, selectedSaturation, precision).copyInto(this, shaderPos)
         }
-        file.writeBytes(setProjectionSwapchainFormat(shaderPatched, precision))
+        file.writeBytes(
+            setProjectionSwapchainFormat(
+                shaderPatched,
+                precision,
+                packageMetadata.versionName,
+                packageMetadata.versionCode,
+            ),
+        )
     }
 }

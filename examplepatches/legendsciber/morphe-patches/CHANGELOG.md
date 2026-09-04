@@ -1,3 +1,93 @@
+## [1.31.6](https://github.com/legendsciber/morphe-patches/compare/v1.31.5...v1.31.6) (2026-09-03)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** direct holder chains without scanning ([c08820b](https://github.com/legendsciber/morphe-patches/commit/c08820b21938e43fa8f6d591c9a745731fb954f0))
+
+## [1.31.5](https://github.com/legendsciber/morphe-patches/compare/v1.31.4...v1.31.5) (2026-09-03)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** find wallet via object graph walk ([e32a648](https://github.com/legendsciber/morphe-patches/commit/e32a6485532ca408eece0576cb323800f31fd9e3))
+
+## [1.31.4](https://github.com/legendsciber/morphe-patches/compare/v1.31.3...v1.31.4) (2026-09-03)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** fast instance lookup and game-only scan ([0ae1981](https://github.com/legendsciber/morphe-patches/commit/0ae19817c7abafcc84f33491ce6452c1e33f4f0b))
+
+## [1.31.3](https://github.com/legendsciber/morphe-patches/compare/v1.31.2...v1.31.3) (2026-09-03)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** speed up instance scan with progress logs ([5b6cbd5](https://github.com/legendsciber/morphe-patches/commit/5b6cbd55df747fbc1410ccd4567b0e9be481dd64))
+
+## [1.31.2](https://github.com/legendsciber/morphe-patches/compare/v1.31.1...v1.31.2) (2026-09-03)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** make instance scan fault-tolerant ([b199065](https://github.com/legendsciber/morphe-patches/commit/b19906544b61ebe6b20ec93fc33acc3467228ffd))
+
+## [1.31.1](https://github.com/legendsciber/morphe-patches/compare/v1.31.0...v1.31.1) (2026-09-03)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** prevent scan faults and crash log flood ([09a71f9](https://github.com/legendsciber/morphe-patches/commit/09a71f943a82c0397c7159681c199c6fc36d12d1))
+
+## [1.31.0](https://github.com/legendsciber/morphe-patches/compare/v1.30.0...v1.31.0) (2026-09-03)
+
+### ✨ New Features
+
+* **shadowfight:** log hardcode output to file ([0111503](https://github.com/legendsciber/morphe-patches/commit/011150373891e93df83a5fb3ab0e4d98b0b6cba8))
+
+## [1.30.0](https://github.com/legendsciber/morphe-patches/compare/v1.29.2...v1.30.0) (2026-09-03)
+
+### ✨ New Features
+
+* **shadowfight:** separate crash log into its own library ([959439d](https://github.com/legendsciber/morphe-patches/commit/959439ddeb0679e0a2ac4dd8a0cbcd2cf37820b9))
+
+## [1.29.2](https://github.com/legendsciber/morphe-patches/compare/v1.29.1...v1.29.2) (2026-09-03)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** separate dump and crash logs ([eb2ff46](https://github.com/legendsciber/morphe-patches/commit/eb2ff46b2b224c9272800484e7f08fd2caf019f2))
+
+## [1.29.1](https://github.com/legendsciber/morphe-patches/compare/v1.29.0...v1.29.1) (2026-09-03)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** simplify patch names and descriptions ([b6bba65](https://github.com/legendsciber/morphe-patches/commit/b6bba654def8ca5c8a5104f549ce3524c7c389d6))
+
+## [1.29.0](https://github.com/legendsciber/morphe-patches/compare/v1.28.8...v1.29.0) (2026-09-03)
+
+### ✨ New Features
+
+* **shadowfight:** hardcode 5 ObscuredInt values 999999999 ([ffa1f46](https://github.com/legendsciber/morphe-patches/commit/ffa1f46100717b0d80fae768bb5bc06e61100306))
+
+## [1.28.8](https://github.com/legendsciber/morphe-patches/compare/v1.28.7...v1.28.8) (2026-09-03)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** dump Gems Coins exact offsets with plain values ([ca15eb6](https://github.com/legendsciber/morphe-patches/commit/ca15eb64fdcbb66a676912720bbbb12d793f7a39))
+
+## [1.28.7](https://github.com/legendsciber/morphe-patches/compare/v1.28.6...v1.28.7) (2026-09-03)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** dump only to Download, overwrite, log other values ([37f2a23](https://github.com/legendsciber/morphe-patches/commit/37f2a23ebd72e53ae994aa63115df64816affa2f))
+
+## [1.28.6](https://github.com/legendsciber/morphe-patches/compare/v1.28.5...v1.28.6) (2026-09-03)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** fix dump via lib loadLibrary ([5f7b8df](https://github.com/legendsciber/morphe-patches/commit/5f7b8df39a56b5696048b4bd51b39e27df16c650))
+
+## [1.28.5](https://github.com/legendsciber/morphe-patches/compare/v1.28.4...v1.28.5) (2026-09-03)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** fix dump file logging to shizuku-terminal ([bbd344c](https://github.com/legendsciber/morphe-patches/commit/bbd344ccc9b4d6dcb3934c9ce2cd8240709c553a))
+
 ## [1.28.4](https://github.com/legendsciber/morphe-patches/compare/v1.28.3...v1.28.4) (2026-09-03)
 
 ### 🐛 Bug Fixes

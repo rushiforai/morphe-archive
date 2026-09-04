@@ -58,8 +58,6 @@ internal object AdjustTrackEventFingerprint : Fingerprint(
 )
 
 internal val ANALYTICS_STRING_BLACKLIST = listOf(
-    "akamaitechnologies.com",
-    "amazonaws.com",
     "amplitude.com",
     "api.branch.io",
     "api.crittercism.com",
@@ -68,9 +66,7 @@ internal val ANALYTICS_STRING_BLACKLIST = listOf(
     "appmetrica.yandex.ru",
     "appsflyer.com",
     "audience_network",
-    "azure.com",
     "chartboost.com",
-    "cloudfront.net",
     "com.google.analytics",
     "com.google.android.gms.analytics",
     "com.google.firebase.analytics",
@@ -336,13 +332,13 @@ val removeAnalyticsPatch = bytecodePatch(
     dependsOn(stripFirebaseManifestComponentsPatch)
 
     execute {
-        FirebaseAnalyticsLogEventFingerprint.methodOrNull?.addInstructions(0, "return-void")
-        CrashlyticsRecordExceptionFingerprint.methodOrNull?.addInstructions(0, "return-void")
-        FlurryAgentLogEventFingerprint.methodOrNull?.addInstructions(0, "return-void")
-        GoogleAnalyticsTrackerSendFingerprint.methodOrNull?.addInstructions(0, "return-void")
-        YandexMetricaReportEventFingerprint.methodOrNull?.addInstructions(0, "return-void")
-        AppsFlyerLogEventFingerprint.methodOrNull?.addInstructions(0, "return-void")
-        AdjustTrackEventFingerprint.methodOrNull?.addInstructions(0, "return-void")
+        FirebaseAnalyticsLogEventFingerprint.methodOrNull?.takeIf { it.instructionsOrNull != null }?.addInstructions(0, "return-void")
+        CrashlyticsRecordExceptionFingerprint.methodOrNull?.takeIf { it.instructionsOrNull != null }?.addInstructions(0, "return-void")
+        FlurryAgentLogEventFingerprint.methodOrNull?.takeIf { it.instructionsOrNull != null }?.addInstructions(0, "return-void")
+        GoogleAnalyticsTrackerSendFingerprint.methodOrNull?.takeIf { it.instructionsOrNull != null }?.addInstructions(0, "return-void")
+        YandexMetricaReportEventFingerprint.methodOrNull?.takeIf { it.instructionsOrNull != null }?.addInstructions(0, "return-void")
+        AppsFlyerLogEventFingerprint.methodOrNull?.takeIf { it.instructionsOrNull != null }?.addInstructions(0, "return-void")
+        AdjustTrackEventFingerprint.methodOrNull?.takeIf { it.instructionsOrNull != null }?.addInstructions(0, "return-void")
 
         classDefForEach { classDef ->
             val hasStringMatch = classDef.methods.any { method ->

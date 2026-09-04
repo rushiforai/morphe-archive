@@ -55,9 +55,13 @@ public final class MorpheMenuInjector {
      *
      * After injecting the archive item, this method calls the original show method via reflection.
      */
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public static void injectAndShow(Object popupLayerObj, List items, Object callerObj) {
-        injectArchiveItem(popupLayerObj, items, callerObj);
+        // Always work with a mutable copy. Smart Launcher passes Kotlin's immutable listOf()
+        // which throws UnsupportedOperationException on add(), silently swallowed otherwise.
+        List mutableItems = items != null ? new ArrayList(items) : new ArrayList();
+
+        injectArchiveItem(popupLayerObj, mutableItems, callerObj);
 
         if (popupLayerObj == null) return;
         try {
@@ -81,7 +85,7 @@ public final class MorpheMenuInjector {
                 }
             }
             if (sPopupShowMethod != null) {
-                sPopupShowMethod.invoke(popupLayerObj, items);
+                sPopupShowMethod.invoke(popupLayerObj, mutableItems);
             } else {
                 Log.w(TAG, "injectAndShow: could not locate popup show method");
             }
@@ -154,16 +158,26 @@ public final class MorpheMenuInjector {
             Field stringField = null;
             Field actionField = null;
 
-            for (Field f : itemClass.getDeclaredFields()) {
-                f.setAccessible(true);
-                if (CharSequence.class.isAssignableFrom(f.getType()) && stringField == null) {
-                    stringField = f;
-                } else if (f.getName().equals("f")
-                        || f.getType().getName().contains("b34")
-                        || f.getType().getName().contains("Function")
-                        || (f.getType().isInterface() && !List.class.isAssignableFrom(f.getType()))) {
-                    actionField = f;
+            // Scan the full class hierarchy, not just itemClass.getDeclaredFields().
+            // Action fields declared on a superclass would be silently missed otherwise.
+            Class<?> scanClass = itemClass;
+            while (scanClass != null && scanClass != Object.class) {
+                for (Field f : scanClass.getDeclaredFields()) {
+                    f.setAccessible(true);
+                    if (stringField == null && CharSequence.class.isAssignableFrom(f.getType())) {
+                        stringField = f;
+                    } else if (actionField == null
+                            && (f.getName().equals("f")
+                                || f.getType().getName().contains("b34")
+                                || f.getType().getName().contains("Function")
+                                || (f.getType().isInterface()
+                                    && !Collection.class.isAssignableFrom(f.getType())
+                                    && !Map.class.isAssignableFrom(f.getType())))) {
+                        actionField = f;
+                    }
                 }
+                if (stringField != null && actionField != null) break;
+                scanClass = scanClass.getSuperclass();
             }
 
             // Determine if target app is currently archived
@@ -202,6 +216,39 @@ public final class MorpheMenuInjector {
                     Class<?> candidate = Class.forName("b34");
                     if (candidate.isInterface()) interfaceList.add(candidate);
                 } catch (ClassNotFoundException ignored) {}
+            }
+
+            // Broader fallback: walk the full class hierarchy and accept any interface-typed
+            // field that isn't a standard collection/map. This survives obfuscated name changes
+            // (e.g., "b34" becomes "c12" in the next build) without requiring a code update.
+            if (interfaceList.isEmpty()) {
+                Class<?> cls = itemClass;
+                outerScan:
+                while (cls != null && cls != Object.class) {
+                    for (Field f : cls.getDeclaredFields()) {
+                        try {
+                            f.setAccessible(true);
+                            Class<?> ft = f.getType();
+                            if (ft.isInterface()
+                                    && !CharSequence.class.isAssignableFrom(ft)
+                                    && !Collection.class.isAssignableFrom(ft)
+                                    && !Map.class.isAssignableFrom(ft)) {
+                                if (!interfaceList.contains(ft)) interfaceList.add(ft);
+                                try {
+                                    Object val = f.get(sampleItem);
+                                    if (val != null) {
+                                        for (Class<?> iface : val.getClass().getInterfaces()) {
+                                            if (!interfaceList.contains(iface)) interfaceList.add(iface);
+                                        }
+                                    }
+                                } catch (Throwable ignored) {}
+                                if (actionField == null) actionField = f;
+                                break outerScan;
+                            }
+                        } catch (Throwable ignored) {}
+                    }
+                    cls = cls.getSuperclass();
+                }
             }
 
             if (interfaceList.isEmpty()) {
@@ -467,21 +514,20 @@ public final class MorpheMenuInjector {
                 boolean nativeEnabled = MorphePreferences.isNativeEnabled(context);
 
                 // 1. Try Shizuku privileged archiving if enabled
-                if (shizukuEnabled) {
-                    if (ShizukuArchiveHelper.isShizukuAlive()) {
-                        if (ShizukuArchiveHelper.hasPermission()) {
-                            success = isCurrentlyArchived
-                                    ? ShizukuArchiveHelper.unarchivePackage(packageName)
-                                    : ShizukuArchiveHelper.archivePackage(packageName);
-                        } else {
-                            MAIN_HANDLER.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    ShizukuArchiveHelper.requestPermissionWithFeedback(context);
-                                }
-                            });
-                            return;
-                        }
+                if (shizukuEnabled && ShizukuArchiveHelper.isShizukuAlive()) {
+                    if (ShizukuArchiveHelper.hasPermission()) {
+                        success = isCurrentlyArchived
+                                ? ShizukuArchiveHelper.unarchivePackage(packageName)
+                                : ShizukuArchiveHelper.archivePackage(packageName);
+                    } else {
+                        postToast(context, "Shizuku permission needed — grant it then try again");
+                        MAIN_HANDLER.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                ShizukuArchiveHelper.requestShizukuPermission(ShizukuArchiveHelper.SHIZUKU_REQ_CODE);
+                            }
+                        });
+                        return;
                     }
                 }
 
@@ -492,14 +538,13 @@ public final class MorpheMenuInjector {
                             : NativeArchiveHelper.archivePackage(context, packageName);
                 }
 
-                if (success) {
-                    String msg = (isCurrentlyArchived ? "Successfully restored " : "Successfully archived ") + finalLabel;
-                    postToast(context, msg);
-                } else if (!NativeArchiveHelper.isSupported() && !ShizukuArchiveHelper.isShizukuAlive()) {
-                    postToast(context, "App archiving requires Shizuku or Android 15+");
-                } else {
-                    String msg = "Failed to " + (isCurrentlyArchived ? "restore " : "archive ") + finalLabel;
-                    postToast(context, msg);
+                // Only toast on failure — the pre-toast and drawer refresh confirm success
+                if (!success) {
+                    if (!NativeArchiveHelper.isSupported() && !ShizukuArchiveHelper.isShizukuAlive()) {
+                        postToast(context, "App archiving requires Shizuku or Android 15+");
+                    } else {
+                        postToast(context, "Failed to " + (isCurrentlyArchived ? "restore " : "archive ") + finalLabel);
+                    }
                 }
             }
         });

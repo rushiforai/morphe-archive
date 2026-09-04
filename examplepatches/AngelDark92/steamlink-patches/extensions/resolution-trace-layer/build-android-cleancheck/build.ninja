@@ -12,7 +12,7 @@
 
 # =============================================================================
 # Project: gxr_android_surface_trigger_passthrough
-# Configurations: 
+# Configurations: Release
 # =============================================================================
 
 #############################################
@@ -20,6 +20,11 @@
 
 ninja_required_version = 1.5
 
+
+#############################################
+# Set configuration variable for custom commands.
+
+CONFIGURATION = Release
 # =============================================================================
 # Include auxiliary files.
 
@@ -44,10 +49,11 @@ cmake_ninja_workdir = C$:/Users/Angelo/Desktop/SteamLink-GalaxyXR-Windows-Toolki
 
 build cmake_object_order_depends_target_gxr_android_surface_trigger_passthrough_v1: phony || .
 
-build CMakeFiles/gxr_android_surface_trigger_passthrough_v1.dir/src/android_surface_trigger_passthrough_layer.cpp.o: CXX_COMPILER__gxr_android_surface_trigger_passthrough_v1_unscanned_ C$:/Users/Angelo/Desktop/SteamLink-GalaxyXR-Windows-Toolkit-FULL/steamlink-patches/extensions/resolution-trace-layer/src/android_surface_trigger_passthrough_layer.cpp || cmake_object_order_depends_target_gxr_android_surface_trigger_passthrough_v1
-  DEFINES = -DXR_USE_PLATFORM_ANDROID -Dgxr_android_surface_trigger_passthrough_v1_EXPORTS
+build CMakeFiles/gxr_android_surface_trigger_passthrough_v1.dir/src/android_surface_trigger_passthrough_layer.cpp.o: CXX_COMPILER__gxr_android_surface_trigger_passthrough_v1_unscanned_Release C$:/Users/Angelo/Desktop/SteamLink-GalaxyXR-Windows-Toolkit-FULL/steamlink-patches/extensions/resolution-trace-layer/src/android_surface_trigger_passthrough_layer.cpp || cmake_object_order_depends_target_gxr_android_surface_trigger_passthrough_v1
+  CONFIG = Release
+  DEFINES = -DGXR_AST_SOURCE_PROJECTION_COUNT=3 -DGXR_AST_WARMUP_OMIT=0 -DNDEBUG -DXR_USE_PLATFORM_ANDROID -Dgxr_android_surface_trigger_passthrough_v1_EXPORTS
   DEP_FILE = CMakeFiles\gxr_android_surface_trigger_passthrough_v1.dir\src\android_surface_trigger_passthrough_layer.cpp.o.d
-  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -std=c++17 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O3 -DNDEBUG  -std=c++17 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -O2 -ffunction-sections -fdata-sections
   INCLUDES = -IC:/Users/Angelo/Desktop/SteamLink-GalaxyXR-Windows-Toolkit-FULL/GalaxyXR-APK/tools-galaxyxr-native/OpenXR-SDK-1.1.61/include
   OBJECT_DIR = CMakeFiles\gxr_android_surface_trigger_passthrough_v1.dir
   OBJECT_FILE_DIR = CMakeFiles\gxr_android_surface_trigger_passthrough_v1.dir\src
@@ -61,19 +67,104 @@ build CMakeFiles/gxr_android_surface_trigger_passthrough_v1.dir/src/android_surf
 #############################################
 # Link the shared library libgxr_ast.so
 
-build libgxr_ast.so: CXX_SHARED_LIBRARY_LINKER__gxr_android_surface_trigger_passthrough_v1_ CMakeFiles/gxr_android_surface_trigger_passthrough_v1.dir/src/android_surface_trigger_passthrough_layer.cpp.o
+build libgxr_ast.so: CXX_SHARED_LIBRARY_LINKER__gxr_android_surface_trigger_passthrough_v1_Release CMakeFiles/gxr_android_surface_trigger_passthrough_v1.dir/src/android_surface_trigger_passthrough_layer.cpp.o
+  CONFIG = Release
   DEP_FILE = CMakeFiles\gxr_android_surface_trigger_passthrough_v1.dir\link.d
-  LANGUAGE_COMPILE_FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security
-  LINK_FLAGS = -shared -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Xlinker --dependency-file=CMakeFiles\gxr_android_surface_trigger_passthrough_v1.dir\link.d
+  LANGUAGE_COMPILE_FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O3 -DNDEBUG
+  LINK_FLAGS = -shared -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Wl,--gc-sections  -Wl,--gc-sections -Xlinker --dependency-file=CMakeFiles\gxr_android_surface_trigger_passthrough_v1.dir\link.d
   LINK_LIBRARIES = -llog  -landroid  -latomic -lm
   OBJECT_DIR = CMakeFiles\gxr_android_surface_trigger_passthrough_v1.dir
-  POST_BUILD = cd .
+  POST_BUILD = C:\WINDOWS\system32\cmd.exe /C "cd /D C:\Users\Angelo\Desktop\SteamLink-GalaxyXR-Windows-Toolkit-FULL\steamlink-patches\extensions\resolution-trace-layer\build-android-cleancheck && C:\Users\Angelo\Desktop\SteamLink-GalaxyXR-Windows-Toolkit-FULL\GalaxyXR-APK\tools-galaxyxr-native\android-ndk-r27d\toolchains\llvm\prebuilt\windows-x86_64\bin\llvm-strip.exe --strip-unneeded C:/Users/Angelo/Desktop/SteamLink-GalaxyXR-Windows-Toolkit-FULL/steamlink-patches/extensions/resolution-trace-layer/build-android-cleancheck/libgxr_ast.so"
   PRE_LINK = cd .
   SONAME = libgxr_ast.so
   SONAME_FLAG = -Wl,-soname,
   TARGET_FILE = libgxr_ast.so
   TARGET_PDB = gxr_ast.so.dbg
   TARGET_SUPPORT_DIR = CMakeFiles\gxr_android_surface_trigger_passthrough_v1.dir
+
+# =============================================================================
+# Object build statements for SHARED_LIBRARY target gxr_android_surface_trigger_passthrough_5001712_v1
+
+
+#############################################
+# Order-only phony target for gxr_android_surface_trigger_passthrough_5001712_v1
+
+build cmake_object_order_depends_target_gxr_android_surface_trigger_passthrough_5001712_v1: phony || .
+
+build CMakeFiles/gxr_android_surface_trigger_passthrough_5001712_v1.dir/src/android_surface_trigger_passthrough_layer.cpp.o: CXX_COMPILER__gxr_android_surface_trigger_passthrough_5001712_v1_unscanned_Release C$:/Users/Angelo/Desktop/SteamLink-GalaxyXR-Windows-Toolkit-FULL/steamlink-patches/extensions/resolution-trace-layer/src/android_surface_trigger_passthrough_layer.cpp || cmake_object_order_depends_target_gxr_android_surface_trigger_passthrough_5001712_v1
+  CONFIG = Release
+  DEFINES = -DGXR_AST_SOURCE_PROJECTION_COUNT=2 -DGXR_AST_WARMUP_OMIT=0 -DNDEBUG -DXR_USE_PLATFORM_ANDROID -Dgxr_android_surface_trigger_passthrough_5001712_v1_EXPORTS
+  DEP_FILE = CMakeFiles\gxr_android_surface_trigger_passthrough_5001712_v1.dir\src\android_surface_trigger_passthrough_layer.cpp.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O3 -DNDEBUG  -std=c++17 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -O2 -ffunction-sections -fdata-sections
+  INCLUDES = -IC:/Users/Angelo/Desktop/SteamLink-GalaxyXR-Windows-Toolkit-FULL/GalaxyXR-APK/tools-galaxyxr-native/OpenXR-SDK-1.1.61/include
+  OBJECT_DIR = CMakeFiles\gxr_android_surface_trigger_passthrough_5001712_v1.dir
+  OBJECT_FILE_DIR = CMakeFiles\gxr_android_surface_trigger_passthrough_5001712_v1.dir\src
+  TARGET_SUPPORT_DIR = CMakeFiles\gxr_android_surface_trigger_passthrough_5001712_v1.dir
+
+
+# =============================================================================
+# Link build statements for SHARED_LIBRARY target gxr_android_surface_trigger_passthrough_5001712_v1
+
+
+#############################################
+# Link the shared library libgxr_ast_5001712.so
+
+build libgxr_ast_5001712.so: CXX_SHARED_LIBRARY_LINKER__gxr_android_surface_trigger_passthrough_5001712_v1_Release CMakeFiles/gxr_android_surface_trigger_passthrough_5001712_v1.dir/src/android_surface_trigger_passthrough_layer.cpp.o
+  CONFIG = Release
+  DEP_FILE = CMakeFiles\gxr_android_surface_trigger_passthrough_5001712_v1.dir\link.d
+  LANGUAGE_COMPILE_FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O3 -DNDEBUG
+  LINK_FLAGS = -shared -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Wl,--gc-sections  -Wl,--gc-sections -Xlinker --dependency-file=CMakeFiles\gxr_android_surface_trigger_passthrough_5001712_v1.dir\link.d
+  LINK_LIBRARIES = -llog  -landroid  -latomic -lm
+  OBJECT_DIR = CMakeFiles\gxr_android_surface_trigger_passthrough_5001712_v1.dir
+  POST_BUILD = C:\WINDOWS\system32\cmd.exe /C "cd /D C:\Users\Angelo\Desktop\SteamLink-GalaxyXR-Windows-Toolkit-FULL\steamlink-patches\extensions\resolution-trace-layer\build-android-cleancheck && C:\Users\Angelo\Desktop\SteamLink-GalaxyXR-Windows-Toolkit-FULL\GalaxyXR-APK\tools-galaxyxr-native\android-ndk-r27d\toolchains\llvm\prebuilt\windows-x86_64\bin\llvm-strip.exe --strip-unneeded C:/Users/Angelo/Desktop/SteamLink-GalaxyXR-Windows-Toolkit-FULL/steamlink-patches/extensions/resolution-trace-layer/build-android-cleancheck/libgxr_ast_5001712.so"
+  PRE_LINK = cd .
+  SONAME = libgxr_ast_5001712.so
+  SONAME_FLAG = -Wl,-soname,
+  TARGET_FILE = libgxr_ast_5001712.so
+  TARGET_PDB = gxr_ast_5001712.so.dbg
+  TARGET_SUPPORT_DIR = CMakeFiles\gxr_android_surface_trigger_passthrough_5001712_v1.dir
+
+# =============================================================================
+# Object build statements for SHARED_LIBRARY target gxr_android_surface_trigger_warmup_omit_v1
+
+
+#############################################
+# Order-only phony target for gxr_android_surface_trigger_warmup_omit_v1
+
+build cmake_object_order_depends_target_gxr_android_surface_trigger_warmup_omit_v1: phony || .
+
+build CMakeFiles/gxr_android_surface_trigger_warmup_omit_v1.dir/src/android_surface_trigger_passthrough_layer.cpp.o: CXX_COMPILER__gxr_android_surface_trigger_warmup_omit_v1_unscanned_Release C$:/Users/Angelo/Desktop/SteamLink-GalaxyXR-Windows-Toolkit-FULL/steamlink-patches/extensions/resolution-trace-layer/src/android_surface_trigger_passthrough_layer.cpp || cmake_object_order_depends_target_gxr_android_surface_trigger_warmup_omit_v1
+  CONFIG = Release
+  DEFINES = -DGXR_AST_SOURCE_PROJECTION_COUNT=3 -DGXR_AST_WARMUP_OMIT=1 -DNDEBUG -DXR_USE_PLATFORM_ANDROID -Dgxr_android_surface_trigger_warmup_omit_v1_EXPORTS
+  DEP_FILE = CMakeFiles\gxr_android_surface_trigger_warmup_omit_v1.dir\src\android_surface_trigger_passthrough_layer.cpp.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O3 -DNDEBUG  -std=c++17 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -O2 -ffunction-sections -fdata-sections
+  INCLUDES = -IC:/Users/Angelo/Desktop/SteamLink-GalaxyXR-Windows-Toolkit-FULL/GalaxyXR-APK/tools-galaxyxr-native/OpenXR-SDK-1.1.61/include
+  OBJECT_DIR = CMakeFiles\gxr_android_surface_trigger_warmup_omit_v1.dir
+  OBJECT_FILE_DIR = CMakeFiles\gxr_android_surface_trigger_warmup_omit_v1.dir\src
+  TARGET_SUPPORT_DIR = CMakeFiles\gxr_android_surface_trigger_warmup_omit_v1.dir
+
+
+# =============================================================================
+# Link build statements for SHARED_LIBRARY target gxr_android_surface_trigger_warmup_omit_v1
+
+
+#############################################
+# Link the shared library libgxr_ast_warmup_omit.so
+
+build libgxr_ast_warmup_omit.so: CXX_SHARED_LIBRARY_LINKER__gxr_android_surface_trigger_warmup_omit_v1_Release CMakeFiles/gxr_android_surface_trigger_warmup_omit_v1.dir/src/android_surface_trigger_passthrough_layer.cpp.o
+  CONFIG = Release
+  DEP_FILE = CMakeFiles\gxr_android_surface_trigger_warmup_omit_v1.dir\link.d
+  LANGUAGE_COMPILE_FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O3 -DNDEBUG
+  LINK_FLAGS = -shared -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Wl,--gc-sections  -Wl,--gc-sections -Xlinker --dependency-file=CMakeFiles\gxr_android_surface_trigger_warmup_omit_v1.dir\link.d
+  LINK_LIBRARIES = -llog  -landroid  -latomic -lm
+  OBJECT_DIR = CMakeFiles\gxr_android_surface_trigger_warmup_omit_v1.dir
+  POST_BUILD = C:\WINDOWS\system32\cmd.exe /C "cd /D C:\Users\Angelo\Desktop\SteamLink-GalaxyXR-Windows-Toolkit-FULL\steamlink-patches\extensions\resolution-trace-layer\build-android-cleancheck && C:\Users\Angelo\Desktop\SteamLink-GalaxyXR-Windows-Toolkit-FULL\GalaxyXR-APK\tools-galaxyxr-native\android-ndk-r27d\toolchains\llvm\prebuilt\windows-x86_64\bin\llvm-strip.exe --strip-unneeded C:/Users/Angelo/Desktop/SteamLink-GalaxyXR-Windows-Toolkit-FULL/steamlink-patches/extensions/resolution-trace-layer/build-android-cleancheck/libgxr_ast_warmup_omit.so"
+  PRE_LINK = cd .
+  SONAME = libgxr_ast_warmup_omit.so
+  SONAME_FLAG = -Wl,-soname,
+  TARGET_FILE = libgxr_ast_warmup_omit.so
+  TARGET_PDB = gxr_ast_warmup_omit.so.dbg
+  TARGET_SUPPORT_DIR = CMakeFiles\gxr_android_surface_trigger_warmup_omit_v1.dir
 
 
 #############################################
@@ -102,7 +193,11 @@ build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 # =============================================================================
 # Target aliases.
 
+build gxr_android_surface_trigger_passthrough_5001712_v1: phony libgxr_ast_5001712.so
+
 build gxr_android_surface_trigger_passthrough_v1: phony libgxr_ast.so
+
+build gxr_android_surface_trigger_warmup_omit_v1: phony libgxr_ast_warmup_omit.so
 
 # =============================================================================
 # Folder targets.
@@ -112,7 +207,7 @@ build gxr_android_surface_trigger_passthrough_v1: phony libgxr_ast.so
 #############################################
 # Folder: C:/Users/Angelo/Desktop/SteamLink-GalaxyXR-Windows-Toolkit-FULL/steamlink-patches/extensions/resolution-trace-layer/build-android-cleancheck
 
-build all: phony libgxr_ast.so
+build all: phony libgxr_ast.so libgxr_ast_5001712.so libgxr_ast_warmup_omit.so
 
 # =============================================================================
 # Built-in targets

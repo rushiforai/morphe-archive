@@ -23,9 +23,43 @@ object Constants {
         SteamLinkBuild("2.0.22", 5002318),
         SteamLinkBuild("2.0.22", 5002322),
     )
+    private val HIGH_RESOLUTION_STEAM_LINK_BUILDS = listOf(
+        SteamLinkBuild("2.0.20", 5001712),
+        SteamLinkBuild("2.0.22", 5002244),
+        SteamLinkBuild("2.0.22", 5002296),
+        SteamLinkBuild("2.0.22", 5002313),
+        SteamLinkBuild("2.0.22", 5002318),
+        SteamLinkBuild("2.0.22", 5002322),
+    )
+    private val LEGACY_RECOMMENDED_STEAM_LINK_BUILDS = listOf(
+        SteamLinkBuild("2.0.20", 5001740),
+        SteamLinkBuild("2.0.22", 5002172),
+        SteamLinkBuild("2.0.22", 5002206),
+        SteamLinkBuild("2.0.22", 5002244),
+    )
+    private val LEGACY_XR_FOUNDATION_STEAM_LINK_BUILDS =
+        LEGACY_STEAM_LINK_BUILDS + SteamLinkBuild("2.0.22", 5002296)
+
+    // The 5001712 bundle is separate from the shared legacy bundle, but both use the
+    // legacy recommendation defaults. Match exact pairs, not a numeric build cutoff.
+    fun isLegacyRecommendedSteamLinkBuild(version: String, versionCode: String): Boolean =
+        (version == "2.0.20" && versionCode == "5001712") ||
+            LEGACY_RECOMMENDED_STEAM_LINK_BUILDS.any {
+                it.version == version && it.versionCode.toString() == versionCode
+            }
 
     fun isNativeXrSteamLinkBuild(version: String, versionCode: String): Boolean =
         NATIVE_XR_STEAM_LINK_BUILDS.any {
+            it.version == version && it.versionCode.toString() == versionCode
+        }
+
+    fun isHighResolutionSteamLinkBuild(version: String, versionCode: String): Boolean =
+        HIGH_RESOLUTION_STEAM_LINK_BUILDS.any {
+            it.version == version && it.versionCode.toString() == versionCode
+        }
+
+    fun isLegacyXrFoundationSteamLinkBuild(version: String, versionCode: String): Boolean =
+        LEGACY_XR_FOUNDATION_STEAM_LINK_BUILDS.any {
             it.version == version && it.versionCode.toString() == versionCode
         }
 
@@ -61,12 +95,14 @@ object Constants {
                 build = build,
                 description = if (build.versionCode == 5002322) {
                     "Build 5002322 recommends Galaxy XR high-resolution 3-projection fix, GXR face bridge, " +
-                        "Microphone input preset, Unrestricted battery usage, Video dither, " +
-                        "and Visual Delay Fix. The retired single-projection reconstruction is excluded."
+                        "Microphone input preset (Voice Recognition), Unrestricted battery usage, " +
+                        "Visual Delay Fix (60 ms), and OLED color calibration with the Final balanced tested profile. " +
+                        "The retired projection experiments are excluded."
                 } else {
-                    "Build ${build.versionCode} supports Device identity, Microphone input preset, OLED color " +
-                        "calibration, the legacy Appear on top option, GXR face bridge, Visual Delay Fix, " +
-                        "Unrestricted battery usage, and Video dither."
+                    "Build ${build.versionCode} recommends its native-Android-XR-safe set: Galaxy XR " +
+                        "high-resolution 3-projection fix, Device identity, Microphone input preset, OLED color " +
+                        "calibration, GXR face bridge, Visual Delay Fix, and Unrestricted battery usage. " +
+                        "Appear on top remains an optional legacy fallback."
                 },
             )
         }
@@ -74,9 +110,7 @@ object Constants {
     val COMPATIBILITIES_STEAM_LINK =
         COMPATIBILITIES_STEAM_LINK_LEGACY + COMPATIBILITIES_STEAM_LINK_NATIVE_XR
 
-    // Morphe's Patch.default is global, not per AppTarget. Excluding the latest exact build from
-    // a globally recommended patch is the only unambiguous way to keep older recommendations
-    // while preventing that patch from being recommended for 5002322.
+    // Retained for individual patches that are verified only before the latest exact build.
     val COMPATIBILITIES_STEAM_LINK_BEFORE_LATEST =
         COMPATIBILITIES_STEAM_LINK.filterNot { compatibility ->
             compatibility.targets.any { target ->
@@ -91,6 +125,39 @@ object Constants {
             }
         }
 
+    val COMPATIBILITIES_STEAM_LINK_5002318 =
+        COMPATIBILITIES_STEAM_LINK_NATIVE_XR.filter { compatibility ->
+            compatibility.targets.any { target ->
+                target.version == "2.0.22" && target.versionCodes?.values?.contains(5002318) == true
+            }
+        }
+
+    val COMPATIBILITIES_STEAM_LINK_5001712 =
+        COMPATIBILITIES_STEAM_LINK_LEGACY.filter { compatibility ->
+            compatibility.targets.any { target ->
+                target.version == "2.0.20" && target.versionCodes?.values?.contains(5001712) == true
+            }
+        }
+
+    val COMPATIBILITIES_STEAM_LINK_LEGACY_RECOMMENDED =
+        LEGACY_RECOMMENDED_STEAM_LINK_BUILDS.map(::steamLinkBuildCompatibility)
+
+    val COMPATIBILITIES_STEAM_LINK_HIGH_RESOLUTION =
+        HIGH_RESOLUTION_STEAM_LINK_BUILDS.map { build ->
+            steamLinkBuildCompatibility(
+                build = build,
+                description = when (build.versionCode) {
+                    5001712 -> "Exact Steam Link 2.0.20/5001712 high-resolution target with its isolated " +
+                        "2-projection to 3-layer payload. The topology correction has prior user-reported " +
+                        "startup and delayed-frame runtime evidence; this rebuilt binary remains uninstalled."
+                    5002322 -> "Headset-validated Galaxy XR high-resolution patch target for exact Steam Link " +
+                        "${build.version} build ${build.versionCode}."
+                    else -> "Static decoded-base adaptation of the Galaxy XR high-resolution patch for exact " +
+                        "Steam Link ${build.version} build ${build.versionCode}; headset validation pending."
+                },
+            )
+        }
+
     val COMPATIBILITIES_STEAM_LINK_EXPERIMENTAL =
         (LEGACY_STEAM_LINK_BUILDS + NATIVE_XR_STEAM_LINK_BUILDS).map { build ->
             steamLinkBuildCompatibility(
@@ -100,10 +167,4 @@ object Constants {
             )
         }
 
-    val COMPATIBILITIES_STEAM_LINK_5002322_EXPERIMENTAL =
-        COMPATIBILITIES_STEAM_LINK_EXPERIMENTAL.filter { compatibility ->
-            compatibility.targets.any { target ->
-                target.version == "2.0.22" && target.versionCodes?.values?.contains(5002322) == true
-            }
-        }
 }

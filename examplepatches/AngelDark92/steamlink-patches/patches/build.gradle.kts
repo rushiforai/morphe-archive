@@ -40,6 +40,8 @@ dependencies {
     // Separate configuration so gson is available at runtime for the
     // generatePatchesList task but never bundled into the APK.
     compileOnly(libs.gson)
+    compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2")
+    runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2")
     testImplementation(kotlin("test-junit"))
 }
 
@@ -134,6 +136,26 @@ tasks.named("sourcesJar") {
 }
 
 tasks {
+    register<JavaExec>("auditDecodedSteamLinkPatches") {
+        group = "verification"
+        description = "Audit compatible 5001712 patches, high resolution on 6 bases, Visual Delay on 5 bases, and 4 recommendation fixtures"
+
+        dependsOn(classes)
+        classpath = sourceSets["main"].runtimeClasspath
+        mainClass.set("util.DecodedSteamLinkPatchAudit")
+        val auditArgs = mutableListOf(
+            rootProject.layout.buildDirectory.dir("decoded-fixture-apks").get().asFile.absolutePath,
+            rootProject.layout.buildDirectory.dir("decoded-patch-audit").get().asFile.absolutePath,
+        )
+        project.findProperty("decodedAuditKind")?.toString()?.let { kind ->
+            auditArgs += kind
+            auditArgs += requireNotNull(project.findProperty("decodedAuditIndex")) {
+                "-PdecodedAuditIndex is required with -PdecodedAuditKind"
+            }.toString()
+        }
+        args(auditArgs)
+    }
+
     register<JavaExec>("generateVideoOutputAb") {
         group = "verification"
         description = "Generate guarded srgb8-highp and rgb10-a2 decoded 5002244 A/B derivatives"

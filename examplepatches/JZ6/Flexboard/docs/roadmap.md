@@ -3,7 +3,7 @@
 
 # Roadmap entries written by the user verbatim.
 
-should we move select all copy paste to same as the hotkey buttons
+rename flexboard description
 
 some settings disabled like grammer check and ai writing tools, rambler mode etc
 
@@ -44,13 +44,12 @@ the only way in.
 
 ## Pending (investigated, needs implementation)
 
-**Bigger Toolbar and Hotkeys return natively.** The user deleted these in the cleanup sweep;
-each needs a fresh rewrite on the native registration helper. Bigger Toolbar overrides
-`definedCountOnBar` — was unchanged structurally by the merge refactor, but the UI section is
-gone. Hotkeys need enough dormant allowed-set ids to make it useful; past scope, see "widening
-0x7f0300dc" below.
+**Bigger Toolbar returns natively.** Hotkeys have since shipped — six slots on `flexboard_*` ids
+admitted by `toolbarIdAdmissionPatch`. Bigger Toolbar has not. Both previous attempts tried to own
+the count and both broke the user's ability to remove buttons; the plan that follows from that is
+`docs/toolbar-capacity.md`, and it raises the capacity only.
 
-**Widen the allowed-set array when hotkeys return.** Done — `ToolbarSlotsPatch` splices the
+**Widen the allowed-set array when hotkeys return.** Done — `toolbarIdAdmissionPatch` splices the
 twelve `flexboard_hotkey_N` ids into the allowed-set array via `res/values` (strings + items),
 zero dex change; research in [`docs/toolbar-access-points.md`](toolbar-access-points.md). Inert
 until a patch registers those ids — which is the hotkeys return, when it comes.
@@ -101,9 +100,10 @@ The bar controller `Lmlh` has `h: ArrayMap<String, mic>` — the actual AP regis
 the order manager. `mjv.n(ctx, mxf, h, c, extras)` then re-folds `extras` on every rebuild, so
 the button survives orientation/fold changes.
 
-The **Toolbar Native Test** patch (default-off) does this: hooks `Lmlh.<init>` tail, builds an
+The **Toolbar Native Test** patch (removed once it had served its purpose) did this: hooked the
+`Lmlh.<init>` tail, built an
 `mic` with id `flag_editor`, icon from stock, a literal "Test" label, and a click-runnable that
-commits "test" at the cursor via the extension's `TestAction`. If it works on device, the same
+committed "test" at the cursor via a small extension action. It worked on device, and the same
 shape becomes the long-term home for Text Actions + Hotkeys (each `g(...)s` its own id(s) into
 `h`), and `ToolbarMerge` shrinks back to "read the order string to seed the shown order"
 rather than the current half-broken injection.
@@ -111,7 +111,7 @@ rather than the current half-broken injection.
 ## The generalisation: NativeToolbarButton + emitNativeToolbarButtons
 
 After the test button proved out on device, the shape was promoted into a shared helper at
-`patches/shared/ToolbarRegistry.kt`:
+`patches/shared/ToolbarHotkeys.kt`:
 
 - **`NativeToolbarButton`** — a spec carrying id / icon / label (res-or-literal) / optional
   contentDescription / an actionCtor (`"Ldev/.../T;-><init>(... )V"`) plus `actionArgs`
@@ -123,7 +123,8 @@ After the test button proved out on device, the shape was promoted into a shared
 
 Any future toolbar feature consumes it as `emitNativeToolbarButtons(builder, listOf(...))` and
 never thinks about hook sites, `Builders`, or the allowed-set — picking from the dormant ids
-below. `ToolbarNativeTestPatch` is now a 30-line call into the helper.
+below. `ToolbarNativeTestPatch` was a 30-line call into the helper, and was deleted once
+Text Action Buttons and Toolbar Hotkeys had both proven the mechanism in production.
 
 A checker convention flows from this: the spec's `actionCtor` has to be a `const val` in the
 patch file, full member-descriptor form; `check_shared_constants.py` then treats each as if
@@ -136,8 +137,8 @@ members were firing the "silently stopped checking" guard.
 The split-method list splice that used to implement toolbar insertion is gone:
 
 - `TextActionsPatch.kt` (three buttons emitted into `Lmlh;->C(List)V`) **deleted** — superseded
-  by `ToolbarButtonsPatch.kt` which registers the same three buttons using dormant-allowed-set
-  ids (`editor_info`, `undo_cooperative`, `muse_toggle_playground_ap`) at `<init>` tail.
+  by `ToolbarButtonsPatch.kt`, which registers the same three buttons at the `<init>` tail using
+  its own admitted ids.
 - `CustomHotkeysPatch.kt` **deleted** — the 12-slot hotkeys feature hung off the same merge
   registry and will come back as native registration with its own ids (three dormant ids remain
   for this — plus `jetson_feedback` and `signboard_education` — and if twelve are needed we
@@ -147,16 +148,20 @@ The split-method list splice that used to implement toolbar insertion is gone:
   order string as-is. The merge class was doing work Customize already knows how to do.
 - `BasePatch` no longer emits the merge call.
 
-The remaining dormant allowed-set ids and their slots:
+The dormant allowed-set ids, none of which Flexboard uses any more:
 
-| id                          | used by                          |
-| --------------------------- | -------------------------------- |
-| `flag_editor`               | `ToolbarNativeTestPatch`         |
-| `editor_info`               | Select all                       |
-| `undo_cooperative`          | Copy                             |
-| `muse_toggle_playground_ap` | Paste                            |
-| `jetson_feedback`           | free                             |
-| `signboard_education`       | free                             |
+| id                          | status                                        |
+| --------------------------- | --------------------------------------------- |
+| `editor_info`               | the sentinel `toolbarIdAdmissionPatch` finds the array by |
+| `undo_cooperative`          | free                                          |
+| `muse_toggle_playground_ap` | free                                          |
+| `jetson_feedback`           | free                                          |
+| `signboard_education`       | free                                          |
+
+The text action buttons squatted on the first three until they moved to their own admitted ids
+(`flexboard_select_all`, `flexboard_copy`, `flexboard_paste`), the same way the hotkey slots
+always did. `editor_info` is still load-bearing, but only as a landmark: the allowed-set array's
+name is obfuscated per build, so the splice locates it by looking for a member it knows.
 
 Old prefs on users' devices (`flexboard_select_all` etc. in `mlh.h`, and hotkey values in the
 user's shared-prefs) are orphaned by the swap; neither breaks anything — the old ids drop out
@@ -182,7 +187,7 @@ inert row today is the swipe slider, and the hotkeys block *works* even with its
 
 **Step 1 — how the screen knows what was patched in (per feature):**
 
-- *Hotkeys: free probe, zero patch code.* `ToolbarSlotsPatch` splices `flexboard_hotkey_N`
+- *Hotkeys: free probe, zero patch code.* `toolbarIdAdmissionPatch` splices `flexboard_hotkey_N`
   strings into resources, so `getIdentifier("flexboard_hotkey_1", "string", pkg) != 0` at
   runtime == hotkeys are in the APK. Nothing to write, nothing to stale.
 - *Swipe (and anything without a resource probe): store marker.* The feature patch seeds
@@ -195,7 +200,7 @@ inert row today is the swipe slider, and the hotkeys block *works* even with its
 
 - *Tier 1 — text-disabled, zero new dex surface:* the existing first-tap sync pass
   (`FlexboardSettingsFragment.syncRowIconsOnce`, post-popup-build version) also reads the
-  probes; rows whose feature is absent get a summary like "needs the Swipe to Delete patch"
+  probes; rows whose feature is absent get a summary like "needs the Swipe Left to Delete patch"
   and `aA` short-circuits them (still returns true — no dialog, no cycle). No new pinned
   letters, fragment already falls through `d()` nulls safely. ~40 extension lines + the marker
   seed; checker contract untouched (rows always exist).
@@ -231,16 +236,17 @@ The list above is kept as written; this notes which of it has landed, rather tha
 - **can we make the backspace swipe work as before without being limited to max 1 word delete** — a
   swipe starting on the backspace key keeps Gboard's distance per word and is not capped.
 - **increased tool bar size fit more buttons** — *Bigger Toolbar*, raise-only slider for the
-  bar's capacity (the max Gboard allows before pushing to overflow). Deferred to a later release;
-  the mechanism and seam were researched in `docs/toolbar-capacity.md`, removed along with the
-  patch in e075526 and recoverable from git history —
-  one stock-capacity tail patch plus staging Gboard's own count prefs. Also covers **max tool
-  icon slider isnt working**.
+    bar's capacity (the max Gboard allows before pushing to overflow). Stock is five, which is
+    fewer than the nine ids Flexboard already admits. The plan is `docs/toolbar-capacity.md`: two
+    immediates, raising the flag default and the `[3, 8]` clamp it is measured against, and
+    **no count override and no preference writes** — the count stays the user's. Also covers
+    **max tool icon slider isnt working**.
 
 - **tool bar amount used to be different between inner and outer screen of a fold** — covered
-  natively by the capacity plan: Gboard already branches the count preference by device class
-  (`foldable_access_points_count_on_bar` vs `access_points_count_on_bar`), and the first cut of
-  (deferred) *Bigger Toolbar* writes both, so inner/outer tracks one slider each.
+    natively, and for free: Gboard already branches the count preference by device class
+    (`foldable_access_points_count_on_bar` vs `access_points_count_on_bar`) inside `Lmku;->b(I)I`,
+    and the capacity plan raises the ceiling both are measured against without writing either. Each
+    screen keeps its own count, set through Gboard's own UI.
 
 - **add select all copy paste hotkeys** — *Text Editing Buttons* puts one-tap **Select all**,
   **Copy** and **Paste** on the toolbar. Cut is not built; it is the same shape again, one entry in
