@@ -49,6 +49,14 @@ jobs:
         run: |
           python scripts/discover_github_wide.py
 
+      - name: Import Star-List Repos (Jman-Github/revanced)
+        env:
+          STAR_LIST_USER: Jman-Github
+          STAR_LIST_NAME: revanced
+          OUTPUT_FILE: ${{ env.OUTPUT_FILE }}
+        run: |
+          python scripts/import_star_list.py
+
       - name: Generate README
         env:
           OUTPUT_FILE: ${{ env.OUTPUT_FILE }}
