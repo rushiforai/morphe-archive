@@ -2,7 +2,7 @@
 
 An auto-generated, continuously updated index of every GitHub or GitLab repository that publishes a [Morphe](https://morphe.software) (`.mpp`) patch bundle.
 
-![Repos tracked](https://img.shields.io/badge/repos%20tracked-192-6366f1) ![Last updated](https://img.shields.io/badge/last%20updated-2026-09-04%2003:03%20UTC-555)
+![Repos tracked](https://img.shields.io/badge/repos%20tracked-193-6366f1) ![Last updated](https://img.shields.io/badge/last%20updated-2026-09-05%2003:12%20UTC-555)
 
 ---
 
@@ -48,7 +48,7 @@ Use this archive at your own risk. I do not verify every repository listed here,
 
 ---
 
-## Tracked Repositories (192)
+## Tracked Repositories (193)
 
 | # | Repository | Source | Morphe |
 |---|------------|--------|--------|
@@ -244,6 +244,7 @@ Use this archive at your own risk. I do not verify every repository listed here,
 | 190 | `XTapped/morphe-patches` | [Open](https://github.com/XTapped/morphe-patches) | [Add Source](https://morphe.software/add-source?github=XTapped/morphe-patches) |
 | 191 | `ynotzort/morphe-patches` | [Open](https://github.com/ynotzort/morphe-patches) | [Add Source](https://morphe.software/add-source?github=ynotzort/morphe-patches) |
 | 192 | `Z-drgon/morphe-patches` | [Open](https://github.com/Z-drgon/morphe-patches) | [Add Source](https://morphe.software/add-source?github=Z-drgon/morphe-patches) |
+| 193 | `Zanuaimi/UniPatches` | [Open](https://github.com/Zanuaimi/UniPatches) | [Add Source](https://morphe.software/add-source?github=Zanuaimi/UniPatches) |
 
 ---
 
@@ -255,4 +256,4 @@ Use `owner/repo` for GitHub, or `gitlab.com/group/project` for GitLab.
 
 34 approved repo entries were hidden because their bundle URL is currently invalid.
 
-*Last generated: 2026-09-04 03:03 UTC*
+*Last generated: 2026-09-05 03:12 UTC*

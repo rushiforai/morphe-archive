@@ -79,6 +79,7 @@ XTapped/morphe-patches
 Xhehab/Xhehab-Patches
 Xisrr1/Revancify-Xisr
 Z-drgon/morphe-patches
+Zanuaimi/UniPatches
 abhis1n/Morphe-Patches
 adderalladmiral/psychonaut-wiki-journal-patches
 ajstrick81/morphe-androidtv-patches

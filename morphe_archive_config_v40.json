@@ -1593,6 +1593,14 @@
                 "sortOrder": 204,
                 "createdAt": 1788491077150,
                 "updatedAt": 1788491077150
+            },
+            {
+                "name": "UniPatches",
+                "source": "https://raw.githubusercontent.com/Zanuaimi/UniPatches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 205,
+                "createdAt": 1788577973428,
+                "updatedAt": 1788577973428
             }
         ]
     }

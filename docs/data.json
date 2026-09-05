@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-09-04 03:06 UTC",
-  "configFile": "morphe_archive_config_v39.json",
-  "configVersion": 39,
-  "repoCount": 193,
-  "appCount": 767,
-  "patchCount": 3561,
-  "universalPatchCount": 503,
+  "generatedAt": "2026-09-05 03:14 UTC",
+  "configFile": "morphe_archive_config_v40.json",
+  "configVersion": 40,
+  "repoCount": 194,
+  "appCount": 769,
+  "patchCount": 3582,
+  "universalPatchCount": 515,
   "hostCounts": {
-    "github.com": 188,
+    "github.com": 189,
     "gitlab.com": 5
   },
   "visitorStats": {
-    "today": 3,
-    "yesterday": 6,
-    "total": 429,
-    "online": 3
+    "today": 1,
+    "yesterday": 9,
+    "total": 436,
+    "online": 0
   },
   "repos": [
     {
@@ -687,31 +687,47 @@
       "webUrl": "https://github.com/andrewliang25/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=andrewliang25/morphe-patches",
       "avatarUrl": "https://github.com/andrewliang25.png?size=96",
-      "patchCount": 23,
+      "patchCount": 24,
       "appCount": 1,
       "createdAt": 1785034852052,
       "updatedAt": 1785034852052,
       "createdDate": "2026-07-26",
       "updatedDate": "2026-07-26",
       "latestChanges": {
-        "title": "1.8.0 (2026-08-23)",
-        "date": "2026-08-23",
+        "title": "2.0.0 (2026-09-04)",
+        "date": "2026-09-04",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "hide the Home tab LYP upsell under \"Disable LINE Premium\" (#71) (d4362b3), closes #70"
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "The patch fingerprints use the obfuscated class and method"
+          },
+          {
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "names of 26.14.0. These names do not exist in 26.11.0. Update LINE to 26.14.0"
+          },
+          {
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "before you patch."
+          },
+          {
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "resolve every hidepremium lookup before the first mutation"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "stop the Home tab refetch loop that \"Hide Home content feed\" starts (5eea7c3), closes #69"
+            "text": "hide the Friends sub-tab Calendar block"
           },
           {
             "category": "\u2728 New Features",
-            "text": "add \"Hide Home content feed\" patch (issue #69) (6bcb05b), closes #15"
+            "text": "hide new item badges"
+          },
+          {
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "drop support for LINE 26.11.0"
+          },
+          {
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "re-anchor all LINE patches for 26.14.0"
           }
         ]
       },
@@ -719,7 +735,7 @@
         {
           "name": "LINE",
           "packageName": "jp.naver.line.android",
-          "patchCount": 23,
+          "patchCount": 24,
           "iconUrl": "",
           "iconColor": "#06C755"
         }
@@ -2298,16 +2314,16 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.22.0 (2026-08-30)",
-        "date": "2026-08-30",
+        "title": "1.22.1 (2026-09-04)",
+        "date": "2026-09-04",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "**altos-adventure:** add IAP unlock patch"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**ads:** correct instant rewarded video boost name"
           },
           {
-            "category": "\u2728 New Features",
-            "text": "**altos-odyssey:** IAP-Purchase auto grant"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**billing:** prevent delayed credit in IAP bypass"
           }
         ]
       },
@@ -2535,23 +2551,19 @@
       "webUrl": "https://github.com/catsmoker/anime-witcher-patches",
       "addUrl": "https://morphe.software/add-source?github=catsmoker/anime-witcher-patches",
       "avatarUrl": "https://github.com/catsmoker.png?size=96",
-      "patchCount": 3,
+      "patchCount": 7,
       "appCount": 1,
       "createdAt": 1787275037078,
       "updatedAt": 1787275037078,
       "createdDate": "2026-08-21",
       "updatedDate": "2026-08-21",
       "latestChanges": {
-        "title": "1.0.0 (2026-08-20)",
-        "date": "2026-08-20",
+        "title": "1.1.0 (2026-09-04)",
+        "date": "2026-09-04",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Add PATCHES_START/END markers to README.md"
-          },
-          {
             "category": "\u2728 New Features",
-            "text": "Add Anime Witcher patches (disable ads, remove AppLovin, replace AWPlayer with VLC)"
+            "text": "add TV support patches and D-pad navigation"
           }
         ]
       },
@@ -2559,7 +2571,7 @@
         {
           "name": "Anime Witcher",
           "packageName": "com.anime.witcher",
-          "patchCount": 3,
+          "patchCount": 7,
           "iconUrl": "",
           "iconColor": "#FF0000"
         }
@@ -3171,20 +3183,12 @@
       "createdDate": "2026-08-27",
       "updatedDate": "2026-08-27",
       "latestChanges": {
-        "title": "1.4.2 (2026-08-29)",
-        "date": "2026-08-29",
+        "title": "1.5.0 (2026-09-04)",
+        "date": "2026-09-04",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**DeFit++:** Refresh update metadata"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**Keyboard Designer:** Refresh update metadata"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**PokeRaid:** Refresh update metadata"
+            "category": "\u2728 New Features",
+            "text": "**DeFit++:** Experimental support for v0.9.3, and rewrote login fix tutorial in html"
           }
         ]
       },
@@ -4649,35 +4653,19 @@
       "webUrl": "https://github.com/franticg33k/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=franticg33k/morphe-patches",
       "avatarUrl": "https://github.com/franticg33k.png?size=96",
-      "patchCount": 19,
-      "appCount": 10,
+      "patchCount": 22,
+      "appCount": 12,
       "createdAt": 1784836034684,
       "updatedAt": 1784836034684,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.3.7 (2026-08-07)",
-        "date": "2026-08-07",
+        "title": "1.3.9 (2026-09-04)",
+        "date": "2026-09-04",
         "items": [
           {
             "category": "\ud83d\ude80 Updated App Support",
-            "text": "add JellyWatch TV premium unlock patch"
-          },
-          {
-            "category": "\ud83d\ude80 Updated App Support",
-            "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
-          },
-          {
-            "category": "\ud83d\ude80 Updated App Support",
-            "text": "fix Native Camera premium unlock for 1.1.7"
-          },
-          {
-            "category": "\ud83d\ude80 Updated App Support",
-            "text": "update app name in Compatibility for Karobar"
-          },
-          {
-            "category": "\ud83d\ude80 Updated App Support",
-            "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
+            "text": "fix Atlas Photo Pro unlock for 2.7.3 (structural fallback + idempotency check)"
           }
         ]
       },
@@ -4690,10 +4678,24 @@
           "iconColor": "#1E88E5"
         },
         {
+          "name": "Bolpatra Nepal",
+          "packageName": "com.bolpatranepal.axios",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#D32F2F"
+        },
+        {
           "name": "byAir",
           "packageName": "com.byairapp.android",
           "patchCount": 2,
           "iconUrl": "https://play-lh.googleusercontent.com/EeNJqDNsz4J7PzatWn3DoTUJJJvOxeWOxqMqb6uyA6mpbEUsWkzE-BtJ0vuTYIU1_qsqdFQoumo_T6R1IuwDpQ",
+          "iconColor": "#1F6FEB"
+        },
+        {
+          "name": "Fricam",
+          "packageName": "com.tgezginis.fricam",
+          "patchCount": 2,
+          "iconUrl": "",
           "iconColor": "#1F6FEB"
         },
         {
@@ -4771,12 +4773,12 @@
       "createdDate": "2026-08-19",
       "updatedDate": "2026-08-19",
       "latestChanges": {
-        "title": "1.1.8 (2026-08-25)",
-        "date": "2026-08-25",
+        "title": "1.1.10 (2026-09-04)",
+        "date": "2026-09-04",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "allow automatic updates to complete in foreground"
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "**RuStore:** support RuStore 1.109.1.0"
           }
         ]
       },
@@ -7745,12 +7747,12 @@
       "createdDate": "2026-08-21",
       "updatedDate": "2026-08-21",
       "latestChanges": {
-        "title": "1.12.0 (2026-09-03)",
-        "date": "2026-09-03",
+        "title": "1.13.0 (2026-09-05)",
+        "date": "2026-09-05",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**vivaldi:** update patches for v8.2.4147.28 and align libchrome offsets"
+            "text": "**brave:** update target to v1.94.121 and align libchrome offsets"
           }
         ]
       },
@@ -7889,12 +7891,12 @@
       "createdDate": "2026-08-25",
       "updatedDate": "2026-08-25",
       "latestChanges": {
-        "title": "1.31.6 (2026-09-03)",
-        "date": "2026-09-03",
+        "title": "1.31.23 (2026-09-04)",
+        "date": "2026-09-04",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**shadowfight:** direct holder chains without scanning"
+            "text": "**shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType"
           }
         ]
       },
@@ -8589,24 +8591,40 @@
       "createdDate": "2026-09-04",
       "updatedDate": "2026-09-04",
       "latestChanges": {
-        "title": "1.4.0 (2026-09-02)",
-        "date": "2026-09-02",
+        "title": "2.0.0 (2026-09-05)",
+        "date": "2026-09-05",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Set Brighter Watched-by stars to default; drop Poster corner shape from README"
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "\"Hide Video Store on home\", \"Hide ratings until"
           },
           {
-            "category": "\u2728 New Features",
-            "text": "Accent option becomes a colour picker (any hex) (177e151), closes #1FE86A"
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "watched\", and \"Match bottom nav to top bar color\" are no longer"
           },
           {
-            "category": "\u2728 New Features",
-            "text": "Add Brighter Watched-by stars patch and bottom-nav selected-style option"
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "separate Manager patches. Their toggles now live entirely inside \"Mod"
           },
           {
-            "category": "\u2728 New Features",
-            "text": "Remove Poster corner shape patch; Brighter Watched-by stars on by default"
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "settings\" instead. Anyone with these three enabled as standalone"
+          },
+          {
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "patches needs to re-patch and turn them on from the Letterboxd Mods"
+          },
+          {
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "screen instead."
+          },
+          {
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "\"Hide Video Store\" also now defaults to off (it used to default to on"
+          },
+          {
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "as a standalone patch)."
           }
         ]
       },
@@ -10008,12 +10026,12 @@
       "createdDate": "2026-08-05",
       "updatedDate": "2026-08-05",
       "latestChanges": {
-        "title": "1.0.3 (2026-08-26)",
-        "date": "2026-08-26",
+        "title": "1.0.4 (2026-09-04)",
+        "date": "2026-09-04",
         "items": [
           {
             "category": "\ud83d\ude80 Updated App Support",
-            "text": "add SeriesGuide v2026.3.1 target"
+            "text": "add SeriesGuide v2026.4.1 target"
           }
         ]
       },
@@ -13283,6 +13301,46 @@
           "iconColor": "#FF0045"
         }
       ]
+    },
+    {
+      "name": "UniPatches",
+      "repo": "Zanuaimi/UniPatches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/Zanuaimi/UniPatches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/Zanuaimi/UniPatches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/Zanuaimi/UniPatches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/Zanuaimi/UniPatches",
+      "addUrl": "https://morphe.software/add-source?github=Zanuaimi/UniPatches",
+      "avatarUrl": "https://github.com/Zanuaimi.png?size=96",
+      "patchCount": 13,
+      "appCount": 1,
+      "createdAt": 1788577973428,
+      "updatedAt": 1788577973428,
+      "createdDate": "2026-09-05",
+      "updatedDate": "2026-09-05",
+      "latestChanges": {
+        "title": "1.2.0 (2026-09-05)",
+        "date": "2026-09-05",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "add configurable overlay appearance settings"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "separate overlay text and icon outline styling"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "XYZ app",
+          "packageName": "com.example.app",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF0045"
+        }
+      ]
     }
   ],
   "apps": [
@@ -13965,16 +14023,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -15724,16 +15782,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -15786,16 +15844,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -16795,16 +16853,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/catsmoker/anime-witcher-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/catsmoker.png?size=96",
           "latestChanges": {
-            "title": "1.0.0 (2026-08-20)",
-            "date": "2026-08-20",
+            "title": "1.1.0 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Add PATCHES_START/END markers to README.md"
-              },
-              {
                 "category": "\u2728 New Features",
-                "text": "Add Anime Witcher patches (disable ads, remove AppLovin, replace AWPlayer with VLC)"
+                "text": "add TV support patches and D-pad navigation"
               }
             ]
           },
@@ -16817,16 +16871,32 @@
           },
           "patches": [
             {
+              "name": "Android TV support",
+              "description": "Adds Android TV / Fire TV support (manifest declarations + TV launcher entry)."
+            },
+            {
               "name": "Disable ads",
               "description": "Disables all ad display logic in the app."
+            },
+            {
+              "name": "Disable VPN detection and alerts",
+              "description": "Removes VPN/DNS detection and the VPN alert dialogs."
+            },
+            {
+              "name": "Play with external player",
+              "description": "Opens episodes in a system intent chooser so the user can pick their favorite video player (VLC, MX Player, etc.)."
             },
             {
               "name": "Remove AppLovin initialization",
               "description": "Removes AppLovin SDK initialization from the Application class."
             },
             {
-              "name": "Replace AWPlayer with VLC",
-              "description": "Replaces the AWPlayer video player with VLC via system intent chooser."
+              "name": "Remove startup popup",
+              "description": "Removes the update/changelog popup that appears when the app starts."
+            },
+            {
+              "name": "TV D-pad navigation",
+              "description": "Makes the app fully navigable with a TV / Fire TV remote (focusable content rows, D-pad focus out of the top bar, dialog focus)."
             }
           ],
           "versions": [
@@ -16835,22 +16905,42 @@
         }
       ],
       "patches": [
+        "Android TV support",
         "Disable ads",
+        "Disable VPN detection and alerts",
+        "Play with external player",
         "Remove AppLovin initialization",
-        "Replace AWPlayer with VLC"
+        "Remove startup popup",
+        "TV D-pad navigation"
       ],
       "patchDetails": [
         {
+          "name": "Android TV support",
+          "description": "Adds Android TV / Fire TV support (manifest declarations + TV launcher entry)."
+        },
+        {
           "name": "Disable ads",
           "description": "Disables all ad display logic in the app."
+        },
+        {
+          "name": "Disable VPN detection and alerts",
+          "description": "Removes VPN/DNS detection and the VPN alert dialogs."
+        },
+        {
+          "name": "Play with external player",
+          "description": "Opens episodes in a system intent chooser so the user can pick their favorite video player (VLC, MX Player, etc.)."
         },
         {
           "name": "Remove AppLovin initialization",
           "description": "Removes AppLovin SDK initialization from the Application class."
         },
         {
-          "name": "Replace AWPlayer with VLC",
-          "description": "Replaces the AWPlayer video player with VLC via system intent chooser."
+          "name": "Remove startup popup",
+          "description": "Removes the update/changelog popup that appears when the app starts."
+        },
+        {
+          "name": "TV D-pad navigation",
+          "description": "Makes the app fully navigable with a TV / Fire TV remote (focusable content rows, D-pad focus out of the top bar, dialog focus)."
         }
       ],
       "versions": [
@@ -17665,8 +17755,8 @@
       ],
       "patches": [
         "Disable PairIP DRM",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -17674,12 +17764,12 @@
           "description": "Disables PairIP signature verification and Google Play LVL license check. Required for the app to launch after re-signing."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks AT4K Launcher's premium features without paying, like more apps per row and the premium wallpaper options. It all runs on the device, so nothing stays locked."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
         }
       ],
       "versions": [
@@ -17812,28 +17902,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.7 (2026-08-07)",
-            "date": "2026-08-07",
+            "title": "1.3.9 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "add JellyWatch TV premium unlock patch"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "fix Native Camera premium unlock for 1.1.7"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "update app name in Compatibility for Karobar"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
+                "text": "fix Atlas Photo Pro unlock for 2.7.3 (structural fallback + idempotency check)"
               }
             ]
           },
@@ -20604,16 +20678,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -20752,12 +20826,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.31.6 (2026-09-03)",
-            "date": "2026-09-03",
+            "title": "1.31.23 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**shadowfight:** direct holder chains without scanning"
+                "text": "**shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType"
               }
             ]
           },
@@ -21552,6 +21626,60 @@
       "iconUrl": ""
     },
     {
+      "packageName": "com.bolpatranepal.axios",
+      "name": "Bolpatra Nepal",
+      "repos": [
+        "franticg33k/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "franticg33k/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/franticg33k/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=franticg33k/morphe-patches",
+          "source": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/franticg33k.png?size=96",
+          "latestChanges": {
+            "title": "1.3.9 (2026-09-04)",
+            "date": "2026-09-04",
+            "items": [
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix Atlas Photo Pro unlock for 2.7.3 (structural fallback + idempotency check)"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-bolpatranepal-axios-franticg33k-morphe-patches",
+            "releaseTag": "app-com-bolpatranepal-axios-franticg33k-morphe-patches",
+            "assetName": "bolpatra-nepal-franticg33k-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Unlock Premium, Skip Login & Make Free Trial Permanent",
+              "description": "Patches the Dart AOT-compiled libapp.so of Bolpatra Nepal to skip the login screen, unlock premium/paid features, and make the 7-day free trial permanent. LoginManager::isNotValidatedUser is forced to always return false, lifting the Free-plan paywall and the trial-expiry gate: the trial expiry is computed client-side from the server plan_end_date into statics (isPaid = (plan_end_date - now).inDays <= 0) that only isNotValidatedUser reads, so with it pinned to false the free trial never expires and premium features stay unlocked forever (PPMO/EGP contact redirect, hidden works tab, document download and gallery gates). The isActive() result is left honest so the app stops attaching the invalid Authorization header, and the four login redirects (notice View, document download, gallery, subscription purchase) are bypassed at the branch level so actions run straight through without sending the user to the login page. Verified on v1.1.33 (Dart 3.9.2, arm64, non-obfuscated)."
+            }
+          ],
+          "versions": []
+        }
+      ],
+      "patches": [
+        "Unlock Premium, Skip Login & Make Free Trial Permanent"
+      ],
+      "patchDetails": [
+        {
+          "name": "Unlock Premium, Skip Login & Make Free Trial Permanent",
+          "description": "Patches the Dart AOT-compiled libapp.so of Bolpatra Nepal to skip the login screen, unlock premium/paid features, and make the 7-day free trial permanent. LoginManager::isNotValidatedUser is forced to always return false, lifting the Free-plan paywall and the trial-expiry gate: the trial expiry is computed client-side from the server plan_end_date into statics (isPaid = (plan_end_date - now).inDays <= 0) that only isNotValidatedUser reads, so with it pinned to false the free trial never expires and premium features stay unlocked forever (PPMO/EGP contact redirect, hidden works tab, document download and gallery gates). The isActive() result is left honest so the app stops attaching the invalid Authorization header, and the four login redirects (notice View, document download, gallery, subscription purchase) are bypassed at the branch level so actions run straight through without sending the user to the login page. Verified on v1.1.33 (Dart 3.9.2, arm64, non-obfuscated)."
+        }
+      ],
+      "versions": [],
+      "iconColor": "#D32F2F",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.degenk.boorusama",
       "name": "Boorusama (Play Store)",
       "repos": [
@@ -22141,12 +22269,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kveld9.png?size=96",
           "latestChanges": {
-            "title": "1.12.0 (2026-09-03)",
-            "date": "2026-09-03",
+            "title": "1.13.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**vivaldi:** update patches for v8.2.4147.28 and align libchrome offsets"
+                "text": "**brave:** update target to v1.94.121 and align libchrome offsets"
               }
             ]
           },
@@ -22204,7 +22332,7 @@
             }
           ],
           "versions": [
-            "1.94.119"
+            "1.94.121"
           ]
         }
       ],
@@ -22269,7 +22397,7 @@
       ],
       "versions": [
         "1.92.140",
-        "1.94.119"
+        "1.94.121"
       ],
       "iconColor": "#FF4500",
       "iconUrl": "https://play-lh.googleusercontent.com/UBrZnuXGb-QACU0uUdF5r_n5nx5oBbdfPyEbtsr0xXv00RN7rpaTVu3GjLeE90aHFmNlbaCmm8vNcmY0eE98U9E"
@@ -22825,28 +22953,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.7 (2026-08-07)",
-            "date": "2026-08-07",
+            "title": "1.3.9 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "add JellyWatch TV premium unlock patch"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "fix Native Camera premium unlock for 1.1.7"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "update app name in Compatibility for Karobar"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
+                "text": "fix Atlas Photo Pro unlock for 2.7.3 (structural fallback + idempotency check)"
               }
             ]
           },
@@ -28666,7 +28778,7 @@
           "patches": [
             {
               "name": "Bigger Toolbar",
-              "description": "Raises the toolbar from five icons to 12, so Flexboard's hotkeys and text action buttons can fit alongside Gboard's own. How many icons actually show stays yours, set by dragging them in Gboard's toolbar settings."
+              "description": "Raises how many icons Gboard's toolbar can hold \u2014 five on a stock build \u2014 to 12, so Flexboard's hotkeys and text action buttons fit alongside Gboard's own. How many actually show stays yours, set by dragging them in Gboard's toolbar settings. Force-stop Gboard afterwards: a cached keyboard view can go on showing the old capacity."
             },
             {
               "name": "Bypass Gboard Signature",
@@ -28694,14 +28806,14 @@
             },
             {
               "name": "Text Action Buttons",
-              "description": "Add Select all, Copy and Paste buttons to the toolbar above the keyboard, so each is one tap instead of opening Gboard's text editing panel first. Registered natively, so drag-to-reorder through the toolbar customize page persists."
+              "description": "Add Select all, Copy and Paste buttons to the toolbar above the keyboard, so each is one tap instead of opening Gboard's text editing panel first. Registered natively, so drag-to-reorder through the toolbar customize page persists. These three compete for the five icons Gboard's toolbar holds; Bigger Toolbar raises that ceiling if you run the hotkeys as well."
             },
             {
               "name": "Toolbar Hotkeys",
-              "description": "Adds six configurable hotkey slots to Gboard's toolbar \u2014 each commits a text of your choice on tap. A slot appears when its text is set; when cleared it hides at the next toolbar rebuild (rotate, switch IME, or restart \u2014 there's no mid-session un-register). Text and icon edits apply on the next keyboard open."
+              "description": "Adds six configurable hotkey slots to Gboard's toolbar \u2014 each commits a text of your choice on tap. A slot appears when its text is set; when cleared it hides at the next toolbar rebuild (rotate, switch IME, or restart \u2014 there's no mid-session un-register). Text and icon edits apply on the next keyboard open. Gboard's toolbar holds five icons in total, shared with its own, so apply Bigger Toolbar too if you want all six on the bar at once."
             },
             {
-              "name": "Vibration slider everywhere",
+              "name": "Vibration Slider Everywhere",
               "description": "Forces Gboard to show its own vibration strength slider on every device, rather than deferring to the system haptic settings page, so the strength is adjustable instead of being fixed by whichever rollout the device landed in."
             }
           ],
@@ -28718,12 +28830,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kveld9.png?size=96",
           "latestChanges": {
-            "title": "1.12.0 (2026-09-03)",
-            "date": "2026-09-03",
+            "title": "1.13.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**vivaldi:** update patches for v8.2.4147.28 and align libchrome offsets"
+                "text": "**brave:** update target to v1.94.121 and align libchrome offsets"
               }
             ]
           },
@@ -28844,8 +28956,8 @@
         "Disable Tenor Share Tracking",
         "Disable WorkManager",
         "Emojis, stickers & GIFs Tab Order",
-        "Enable access points menu redesign",
         "Enable Access Points Menu Redesign",
+        "Enable access points menu redesign",
         "Enable accessibility layout",
         "Enable clipboard in incognito",
         "Enable cursor trackpad mode",
@@ -28892,7 +29004,7 @@
         "Toolbar Hotkeys",
         "Top Toolbar Item Count",
         "Use Bluetooth Microphone",
-        "Vibration slider everywhere",
+        "Vibration Slider Everywhere",
         "Web Clipboard",
         "Zhuyin Bottom Row Key Sizes",
         "Zhuyin Quick Traditional/Simplified Toggle",
@@ -28937,7 +29049,7 @@
         },
         {
           "name": "Bigger Toolbar",
-          "description": "Raises the toolbar from five icons to 12, so Flexboard's hotkeys and text action buttons can fit alongside Gboard's own. How many icons actually show stays yours, set by dragging them in Gboard's toolbar settings."
+          "description": "Raises how many icons Gboard's toolbar can hold \u2014 five on a stock build \u2014 to 12, so Flexboard's hotkeys and text action buttons fit alongside Gboard's own. How many actually show stays yours, set by dragging them in Gboard's toolbar settings. Force-stop Gboard afterwards: a cached keyboard view can go on showing the old capacity."
         },
         {
           "name": "Block Telemetry",
@@ -29020,12 +29132,12 @@
           "description": "\u81ea\u8a02 Gboard\u300cEmojis, stickers & GIFs\u300d\u5e95\u90e8 tabs \u7684\u6392\u5e8f\uff0c\u652f\u63f4\u62d6\u66f3\u8abf\u6574\nCustomize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with drag-and-drop reordering."
         },
         {
-          "name": "Enable access points menu redesign",
-          "description": "Enables the redesign of the additional actions menu."
-        },
-        {
           "name": "Enable Access Points Menu Redesign",
           "description": "Enables the redesigned access points menu bar and customization panel (Panel V2)."
+        },
+        {
+          "name": "Enable access points menu redesign",
+          "description": "Enables the redesign of the additional actions menu."
         },
         {
           "name": "Enable accessibility layout",
@@ -29193,7 +29305,7 @@
         },
         {
           "name": "Text Action Buttons",
-          "description": "Add Select all, Copy and Paste buttons to the toolbar above the keyboard, so each is one tap instead of opening Gboard's text editing panel first. Registered natively, so drag-to-reorder through the toolbar customize page persists."
+          "description": "Add Select all, Copy and Paste buttons to the toolbar above the keyboard, so each is one tap instead of opening Gboard's text editing panel first. Registered natively, so drag-to-reorder through the toolbar customize page persists. These three compete for the five icons Gboard's toolbar holds; Bigger Toolbar raises that ceiling if you run the hotkeys as well."
         },
         {
           "name": "Toggle feature flags",
@@ -29201,7 +29313,7 @@
         },
         {
           "name": "Toolbar Hotkeys",
-          "description": "Adds six configurable hotkey slots to Gboard's toolbar \u2014 each commits a text of your choice on tap. A slot appears when its text is set; when cleared it hides at the next toolbar rebuild (rotate, switch IME, or restart \u2014 there's no mid-session un-register). Text and icon edits apply on the next keyboard open."
+          "description": "Adds six configurable hotkey slots to Gboard's toolbar \u2014 each commits a text of your choice on tap. A slot appears when its text is set; when cleared it hides at the next toolbar rebuild (rotate, switch IME, or restart \u2014 there's no mid-session un-register). Text and icon edits apply on the next keyboard open. Gboard's toolbar holds five icons in total, shared with its own, so apply Bigger Toolbar too if you want all six on the bar at once."
         },
         {
           "name": "Top Toolbar Item Count",
@@ -29212,7 +29324,7 @@
           "description": "\u555f\u7528 \u8a9e\u97f3\u8f38\u5165 -> \u4f7f\u7528\u85cd\u82bd\u9ea5\u514b\u98a8\nEnable Voice typing -> Use Bluetooth microphone."
         },
         {
-          "name": "Vibration slider everywhere",
+          "name": "Vibration Slider Everywhere",
           "description": "Forces Gboard to show its own vibration strength slider on every device, rather than deferring to the system haptic settings page, so the strength is adjustable instead of being fixed by whichever rollout the device landed in."
         },
         {
@@ -34270,20 +34382,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Dan1elTheMan1el/Morphe-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Dan1elTheMan1el.png?size=96",
           "latestChanges": {
-            "title": "1.4.2 (2026-08-29)",
-            "date": "2026-08-29",
+            "title": "1.5.0 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**DeFit++:** Refresh update metadata"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Keyboard Designer:** Refresh update metadata"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**PokeRaid:** Refresh update metadata"
+                "category": "\u2728 New Features",
+                "text": "**DeFit++:** Experimental support for v0.9.3, and rewrote login fix tutorial in html"
               }
             ]
           },
@@ -35044,20 +35148,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Dan1elTheMan1el/Morphe-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Dan1elTheMan1el.png?size=96",
           "latestChanges": {
-            "title": "1.4.2 (2026-08-29)",
-            "date": "2026-08-29",
+            "title": "1.5.0 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**DeFit++:** Refresh update metadata"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Keyboard Designer:** Refresh update metadata"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**PokeRaid:** Refresh update metadata"
+                "category": "\u2728 New Features",
+                "text": "**DeFit++:** Experimental support for v0.9.3, and rewrote login fix tutorial in html"
               }
             ]
           },
@@ -35087,11 +35183,12 @@
             },
             {
               "name": "Unlimited Time Bypass",
-              "description": "Removes the ad requirement and grants maximum active time when the button is pressed."
+              "description": "Removes the ad requirement and grants the target DeFit version's maximum active time when the button is pressed."
             }
           ],
           "versions": [
-            "0.8.2a"
+            "0.8.2a",
+            "0.9.3"
           ]
         }
       ],
@@ -35121,11 +35218,12 @@
         },
         {
           "name": "Unlimited Time Bypass",
-          "description": "Removes the ad requirement and grants maximum active time when the button is pressed."
+          "description": "Removes the ad requirement and grants the target DeFit version's maximum active time when the button is pressed."
         }
       ],
       "versions": [
-        "0.8.2a"
+        "0.8.2a",
+        "0.9.3"
       ],
       "iconColor": "#008577",
       "iconUrl": ""
@@ -35769,16 +35867,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -36104,16 +36202,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -36374,16 +36472,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -37509,12 +37607,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.31.6 (2026-09-03)",
-            "date": "2026-09-03",
+            "title": "1.31.23 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**shadowfight:** direct holder chains without scanning"
+                "text": "**shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType"
               }
             ]
           },
@@ -38139,16 +38237,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -39658,16 +39756,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -39711,6 +39809,73 @@
         "1.0.0"
       ],
       "iconColor": "#1565C0",
+      "iconUrl": ""
+    },
+    {
+      "packageName": "com.tgezginis.fricam",
+      "name": "Fricam",
+      "repos": [
+        "franticg33k/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "franticg33k/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/franticg33k/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=franticg33k/morphe-patches",
+          "source": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/franticg33k.png?size=96",
+          "latestChanges": {
+            "title": "1.3.9 (2026-09-04)",
+            "date": "2026-09-04",
+            "items": [
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix Atlas Photo Pro unlock for 2.7.3 (structural fallback + idempotency check)"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-tgezginis-fricam-franticg33k-morphe-patches",
+            "releaseTag": "app-com-tgezginis-fricam-franticg33k-morphe-patches",
+            "assetName": "fricam-franticg33k-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Remove License Activity",
+              "description": "Removes the PairIP LicenseActivity from AndroidManifest.xml so the app runs without a valid Play Store license (required because the APK is re-signed during patching)."
+            },
+            {
+              "name": "Unlock Premium",
+              "description": "Unlocks all Fricam Pro features for free. Fricam's Pro state terminates in a plain SharedPreferences boolean (pro_unlocked in fricam_billing) written only by PurchaseManager.d(Z); every UI feature gate re-reads it via the static MasterProGate.K(). The patch forces the RevenueCat entitlement check and the master gate to always return true (layered P1+P2), hardens the persist path so no refresh can downgrade, and neutralizes the PairIP Play Store license check that gates the app on launch."
+            }
+          ],
+          "versions": [
+            "1.3.7"
+          ]
+        }
+      ],
+      "patches": [
+        "Remove License Activity",
+        "Unlock Premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Remove License Activity",
+          "description": "Removes the PairIP LicenseActivity from AndroidManifest.xml so the app runs without a valid Play Store license (required because the APK is re-signed during patching)."
+        },
+        {
+          "name": "Unlock Premium",
+          "description": "Unlocks all Fricam Pro features for free. Fricam's Pro state terminates in a plain SharedPreferences boolean (pro_unlocked in fricam_billing) written only by PurchaseManager.d(Z); every UI feature gate re-reads it via the static MasterProGate.K(). The patch forces the RevenueCat entitlement check and the master gate to always return true (layered P1+P2), hardens the persist path so no refresh can downgrade, and neutralizes the PairIP Play Store license check that gates the app on launch."
+        }
+      ],
+      "versions": [
+        "1.3.7"
+      ],
+      "iconColor": "#1F6FEB",
       "iconUrl": ""
     },
     {
@@ -40953,16 +41118,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -41085,28 +41250,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.7 (2026-08-07)",
-            "date": "2026-08-07",
+            "title": "1.3.9 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "add JellyWatch TV premium unlock patch"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "fix Native Camera premium unlock for 1.1.7"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "update app name in Compatibility for Karobar"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
+                "text": "fix Atlas Photo Pro unlock for 2.7.3 (structural fallback + idempotency check)"
               }
             ]
           },
@@ -41930,16 +42079,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -41978,12 +42127,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.31.6 (2026-09-03)",
-            "date": "2026-09-03",
+            "title": "1.31.23 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**shadowfight:** direct holder chains without scanning"
+                "text": "**shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType"
               }
             ]
           },
@@ -43648,16 +43797,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -44852,16 +45001,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -44874,8 +45023,8 @@
           },
           "patches": [
             {
-              "name": "Into the Dead Ad Removal",
-              "description": "Removes all ads and grants rewarded-video rewards instantly: rewarded videos (legacy IronSource and LevelPlay), interstitials, launch, banner and AdMob App Open ads are all eliminated."
+              "name": "Into the Dead 2 Ad Removal & Instant Boost Rewards",
+              "description": "Removes all ads (interstitials, banners, app-open) and grants rewarded-video perk boosts instantly on tap (no ad watch) using the correct reward name PERKS_BOOST, verified against a real rewarded event."
             },
             {
               "name": "Into the Dead Billing Bypass",
@@ -44888,13 +45037,13 @@
         }
       ],
       "patches": [
-        "Into the Dead Ad Removal",
+        "Into the Dead 2 Ad Removal & Instant Boost Rewards",
         "Into the Dead Billing Bypass"
       ],
       "patchDetails": [
         {
-          "name": "Into the Dead Ad Removal",
-          "description": "Removes all ads and grants rewarded-video rewards instantly: rewarded videos (legacy IronSource and LevelPlay), interstitials, launch, banner and AdMob App Open ads are all eliminated."
+          "name": "Into the Dead 2 Ad Removal & Instant Boost Rewards",
+          "description": "Removes all ads (interstitials, banners, app-open) and grants rewarded-video perk boosts instantly on tap (no ad watch) using the correct reward name PERKS_BOOST, verified against a real rewarded event."
         },
         {
           "name": "Into the Dead Billing Bypass",
@@ -45714,28 +45863,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.7 (2026-08-07)",
-            "date": "2026-08-07",
+            "title": "1.3.9 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "add JellyWatch TV premium unlock patch"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "fix Native Camera premium unlock for 1.1.7"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "update app name in Compatibility for Karobar"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
+                "text": "fix Atlas Photo Pro unlock for 2.7.3 (structural fallback + idempotency check)"
               }
             ]
           },
@@ -45797,28 +45930,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.7 (2026-08-07)",
-            "date": "2026-08-07",
+            "title": "1.3.9 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "add JellyWatch TV premium unlock patch"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "fix Native Camera premium unlock for 1.1.7"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "update app name in Compatibility for Karobar"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
+                "text": "fix Atlas Photo Pro unlock for 2.7.3 (structural fallback + idempotency check)"
               }
             ]
           },
@@ -45880,16 +45997,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -47179,28 +47296,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.7 (2026-08-07)",
-            "date": "2026-08-07",
+            "title": "1.3.9 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "add JellyWatch TV premium unlock patch"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "fix Native Camera premium unlock for 1.1.7"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "update app name in Compatibility for Karobar"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
+                "text": "fix Atlas Photo Pro unlock for 2.7.3 (structural fallback + idempotency check)"
               }
             ]
           },
@@ -47979,24 +48080,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/mvaishak/letterboxd-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/mvaishak.png?size=96",
           "latestChanges": {
-            "title": "1.4.0 (2026-09-02)",
-            "date": "2026-09-02",
+            "title": "2.0.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Set Brighter Watched-by stars to default; drop Poster corner shape from README"
+                "category": "\u26a0 BREAKING CHANGES",
+                "text": "\"Hide Video Store on home\", \"Hide ratings until"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "Accent option becomes a colour picker (any hex) (177e151), closes #1FE86A"
+                "category": "\u26a0 BREAKING CHANGES",
+                "text": "watched\", and \"Match bottom nav to top bar color\" are no longer"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "Add Brighter Watched-by stars patch and bottom-nav selected-style option"
+                "category": "\u26a0 BREAKING CHANGES",
+                "text": "separate Manager patches. Their toggles now live entirely inside \"Mod"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "Remove Poster corner shape patch; Brighter Watched-by stars on by default"
+                "category": "\u26a0 BREAKING CHANGES",
+                "text": "settings\" instead. Anyone with these three enabled as standalone"
+              },
+              {
+                "category": "\u26a0 BREAKING CHANGES",
+                "text": "patches needs to re-patch and turn them on from the Letterboxd Mods"
+              },
+              {
+                "category": "\u26a0 BREAKING CHANGES",
+                "text": "screen instead."
+              },
+              {
+                "category": "\u26a0 BREAKING CHANGES",
+                "text": "\"Hide Video Store\" also now defaults to off (it used to default to on"
+              },
+              {
+                "category": "\u26a0 BREAKING CHANGES",
+                "text": "as a standalone patch)."
               }
             ]
           },
@@ -48009,6 +48126,10 @@
           },
           "patches": [
             {
+              "name": "Appearance",
+              "description": "In-app appearance controls, adjustable from the Letterboxd Mods screen without re-patching: a true-black OLED surface, a custom accent colour (presets or any hex), and the bottom-navigation selected style. Applied at runtime via resource overlays on Android 12 and later. Needs the \"Mod settings\" patch. If the separate \"Material You theme\" patch is also applied, its OLED and nav-bar-match switches are disabled here automatically \u2014 the two theming systems can't run at once."
+            },
+            {
               "name": "Brighter Watched-by stars",
               "description": "Other people's star ratings in a film's \"Watched by\" row use a very dark grey (#445566) that is hard to read, especially on a black theme. This switches them to the lighter grey (#99AABB) the rest of the app already uses for other people's ratings. A small legibility fix, on by default."
             },
@@ -48017,21 +48138,15 @@
               "description": "Tightens the spacing around posters in grids so they render larger and closer together. Does not change the number of columns."
             },
             {
-              "name": "Hide Video Store on home",
-              "description": "Removes the \"Letterboxd Video Store\" promo row from the Films tab. The Video Store itself, its settings and every other entry point are left untouched."
-            },
-            {
-              "name": "Match bottom nav to top bar color",
-              "description": "Sets Letterboxd's bottom navigation bar background to the same color as the top bar (@color/black100), so it blends into the app's dark chrome instead of showing the default slate bar."
-            },
-            {
               "name": "Material You theme",
-              "description": "Repaints Letterboxd's dark chrome \u2014 window background, surfaces, cards, the top bar, tab strip and bottom nav. 'Wallpaper tint' follows the device's Material You palette on Android 12+ (no effect below). 'Pure black (OLED)' forces true black on any version. Optional accent colour recolours Letterboxd's green; optional bottom-nav selected style replaces the grey pill. No effect on Jetpack Compose screens. Overlaps \"Match bottom nav to top bar color\" \u2014 enable one, not both."
+              "description": "Repaints Letterboxd's dark chrome \u2014 window background, surfaces, cards, the top bar, tab strip, bottom nav and sheets \u2014 from the device's Material You palette on Android 12+ (no effect below). No accent or OLED options here; those live in the \"Mod settings\" screen \u2014 but that screen's \"Pure black (OLED)\" and \"Match bottom nav\" switches turn themselves off while this patch is applied, since it already repaints those surfaces on its own. No effect on Jetpack Compose screens."
+            },
+            {
+              "name": "Mod settings",
+              "description": "HOW TO OPEN: long-press the settings gear on your profile tab. \u2014 This adds a \"Letterboxd Mods\" screen that collects the other patches' options (theme, accent, hide ratings, hide video store, hide where to watch, open in player, match bottom nav, etc.) so you can change them inside the app instead of re-patching. Some changes apply immediately, others after a restart, and you'll be prompted either way."
             }
           ],
-          "versions": [
-            "3.5.4"
-          ]
+          "versions": []
         },
         {
           "repo": "RookieEnough/De-Vanced",
@@ -48073,20 +48188,24 @@
       ],
       "patches": [
         "Add Stremio button",
+        "Appearance",
         "Brighter Watched-by stars",
         "Denser poster grid",
         "Hide ads",
         "Hide Video Store",
-        "Hide Video Store on home",
         "Hide Where to Watch",
-        "Match bottom nav to top bar color",
         "Material You theme",
+        "Mod settings",
         "Unlock app icons"
       ],
       "patchDetails": [
         {
           "name": "Add Stremio button",
           "description": "Adds a purple Stremio button directly below the trailer button on film pages, styled identically to it. Takes the trailer button's position when there is no trailer. Opens the film directly in the Stremio app or web player."
+        },
+        {
+          "name": "Appearance",
+          "description": "In-app appearance controls, adjustable from the Letterboxd Mods screen without re-patching: a true-black OLED surface, a custom accent colour (presets or any hex), and the bottom-navigation selected style. Applied at runtime via resource overlays on Android 12 and later. Needs the \"Mod settings\" patch. If the separate \"Material You theme\" patch is also applied, its OLED and nav-bar-match switches are disabled here automatically \u2014 the two theming systems can't run at once."
         },
         {
           "name": "Brighter Watched-by stars",
@@ -48105,29 +48224,23 @@
           "description": "Hides the \"Rent from Letterboxd Video Store\" banner on film pages and the video store carousel row on the home feed. Can be toggled independently of the Stremio button patch."
         },
         {
-          "name": "Hide Video Store on home",
-          "description": "Removes the \"Letterboxd Video Store\" promo row from the Films tab. The Video Store itself, its settings and every other entry point are left untouched."
-        },
-        {
           "name": "Hide Where to Watch",
           "description": "Hides the \"Where to watch\" streaming-service icon row on film pages. Can be toggled independently of the other patches."
         },
         {
-          "name": "Match bottom nav to top bar color",
-          "description": "Sets Letterboxd's bottom navigation bar background to the same color as the top bar (@color/black100), so it blends into the app's dark chrome instead of showing the default slate bar."
+          "name": "Material You theme",
+          "description": "Repaints Letterboxd's dark chrome \u2014 window background, surfaces, cards, the top bar, tab strip, bottom nav and sheets \u2014 from the device's Material You palette on Android 12+ (no effect below). No accent or OLED options here; those live in the \"Mod settings\" screen \u2014 but that screen's \"Pure black (OLED)\" and \"Match bottom nav\" switches turn themselves off while this patch is applied, since it already repaints those surfaces on its own. No effect on Jetpack Compose screens."
         },
         {
-          "name": "Material You theme",
-          "description": "Repaints Letterboxd's dark chrome \u2014 window background, surfaces, cards, the top bar, tab strip and bottom nav. 'Wallpaper tint' follows the device's Material You palette on Android 12+ (no effect below). 'Pure black (OLED)' forces true black on any version. Optional accent colour recolours Letterboxd's green; optional bottom-nav selected style replaces the grey pill. No effect on Jetpack Compose screens. Overlaps \"Match bottom nav to top bar color\" \u2014 enable one, not both."
+          "name": "Mod settings",
+          "description": "HOW TO OPEN: long-press the settings gear on your profile tab. \u2014 This adds a \"Letterboxd Mods\" screen that collects the other patches' options (theme, accent, hide ratings, hide video store, hide where to watch, open in player, match bottom nav, etc.) so you can change them inside the app instead of re-patching. Some changes apply immediately, others after a restart, and you'll be prompted either way."
         },
         {
           "name": "Unlock app icons",
           "description": ""
         }
       ],
-      "versions": [
-        "3.5.4"
-      ],
+      "versions": [],
       "iconColor": "#00B020",
       "iconUrl": "https://play-lh.googleusercontent.com/2MmhfegR5NlTay7FQjgEfBR83-sBuGdyMVlNvpSKVmW3EjbI762_va69gxmoI0P5BfIGDWtlpXU7qYg_zxE2Kl0"
     },
@@ -48470,24 +48583,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/andrewliang25/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/andrewliang25.png?size=96",
           "latestChanges": {
-            "title": "1.8.0 (2026-08-23)",
-            "date": "2026-08-23",
+            "title": "2.0.0 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "hide the Home tab LYP upsell under \"Disable LINE Premium\" (#71) (d4362b3), closes #70"
+                "category": "\u26a0 BREAKING CHANGES",
+                "text": "The patch fingerprints use the obfuscated class and method"
+              },
+              {
+                "category": "\u26a0 BREAKING CHANGES",
+                "text": "names of 26.14.0. These names do not exist in 26.11.0. Update LINE to 26.14.0"
+              },
+              {
+                "category": "\u26a0 BREAKING CHANGES",
+                "text": "before you patch."
+              },
+              {
+                "category": "\u26a0 BREAKING CHANGES",
+                "text": "Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "resolve every hidepremium lookup before the first mutation"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "stop the Home tab refetch loop that \"Hide Home content feed\" starts (5eea7c3), closes #69"
+                "text": "hide the Friends sub-tab Calendar block"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "add \"Hide Home content feed\" patch (issue #69) (6bcb05b), closes #15"
+                "text": "hide new item badges"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "drop support for LINE 26.11.0"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "re-anchor all LINE patches for 26.14.0"
               }
             ]
           },
@@ -48525,7 +48654,7 @@
             },
             {
               "name": "Hide calendar buttons",
-              "description": "Removes every LINE Calendar button inside the messenger. One is in the Chats-tab header. The other four are in a chat room: the top toolbar, the + attach menu, the slide-out chat menu, and the message long-press menu."
+              "description": "Removes every LINE Calendar surface inside the messenger. One is in the Chats-tab header. Four are in a chat room: the top toolbar, the + attach menu, the slide-out chat menu, and the message long-press menu. The last is the Calendar block in the Friends sub-tab of the Home tab."
             },
             {
               "name": "Hide community button",
@@ -48550,6 +48679,10 @@
             {
               "name": "Hide LINE TODAY tab",
               "description": "Removes the LINE TODAY (News) tab from the main bottom navigation, in both the news-tab and news-row layouts."
+            },
+            {
+              "name": "Hide new item badges",
+              "description": "Hides the green dots and N badges that mark new items, on header buttons, tabs, menus, lists and settings rows. Unread message counts do not change."
             },
             {
               "name": "Hide premium unsend upsells",
@@ -48593,7 +48726,7 @@
             }
           ],
           "versions": [
-            "26.11.0"
+            "26.14.0"
           ]
         }
       ],
@@ -48611,6 +48744,7 @@
         "Hide Home modules",
         "Hide LINE GIFT button",
         "Hide LINE TODAY tab",
+        "Hide new item badges",
         "Hide premium unsend upsells",
         "Hide Shopping tab",
         "Hide Transfer button",
@@ -48649,7 +48783,7 @@
         },
         {
           "name": "Hide calendar buttons",
-          "description": "Removes every LINE Calendar button inside the messenger. One is in the Chats-tab header. The other four are in a chat room: the top toolbar, the + attach menu, the slide-out chat menu, and the message long-press menu."
+          "description": "Removes every LINE Calendar surface inside the messenger. One is in the Chats-tab header. Four are in a chat room: the top toolbar, the + attach menu, the slide-out chat menu, and the message long-press menu. The last is the Calendar block in the Friends sub-tab of the Home tab."
         },
         {
           "name": "Hide community button",
@@ -48674,6 +48808,10 @@
         {
           "name": "Hide LINE TODAY tab",
           "description": "Removes the LINE TODAY (News) tab from the main bottom navigation, in both the news-tab and news-row layouts."
+        },
+        {
+          "name": "Hide new item badges",
+          "description": "Hides the green dots and N badges that mark new items, on header buttons, tabs, menus, lists and settings rows. Unread message counts do not change."
         },
         {
           "name": "Hide premium unsend upsells",
@@ -48717,7 +48855,7 @@
         }
       ],
       "versions": [
-        "26.11.0"
+        "26.14.0"
       ],
       "iconColor": "#06C755",
       "iconUrl": ""
@@ -52306,16 +52444,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -53544,16 +53682,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -55271,28 +55409,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.7 (2026-08-07)",
-            "date": "2026-08-07",
+            "title": "1.3.9 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "add JellyWatch TV premium unlock patch"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "fix Native Camera premium unlock for 1.1.7"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "update app name in Compatibility for Karobar"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
+                "text": "fix Atlas Photo Pro unlock for 2.7.3 (structural fallback + idempotency check)"
               }
             ]
           },
@@ -55306,11 +55428,11 @@
           "patches": [
             {
               "name": "Unlock Premium",
-              "description": "Forces the premium entitlement in Native Camera. Premium status is a local 'is_premium' SharedPreferences flag read on startup behind PairIP's Play Store licensing, so this unlocks RAW DNG, 10-bit video, HLG/UHDR and the boosted-ISO seekbar."
+              "description": "Forces the premium entitlement in Native Camera. Premium status is a local 'is_premium' SharedPreferences flag (in the 'rawcam_prefs' file) read on cold start into a StateFlow. Unlocks RAW DNG, 10-bit/HLG/UHDR video, custom boosted modes and the sub-40-Mbps bitrate cap. It also neutralizes PairIP's Play Store licensing (fired from both Application.attachBaseContext and LicenseContentProvider.onCreate, so a repacked copy no longer gets bounced to the Play Store paywall at launch)."
             }
           ],
           "versions": [
-            "1.1.7"
+            "1.4"
           ]
         }
       ],
@@ -55320,11 +55442,11 @@
       "patchDetails": [
         {
           "name": "Unlock Premium",
-          "description": "Forces the premium entitlement in Native Camera. Premium status is a local 'is_premium' SharedPreferences flag read on startup behind PairIP's Play Store licensing, so this unlocks RAW DNG, 10-bit video, HLG/UHDR and the boosted-ISO seekbar."
+          "description": "Forces the premium entitlement in Native Camera. Premium status is a local 'is_premium' SharedPreferences flag (in the 'rawcam_prefs' file) read on cold start into a StateFlow. Unlocks RAW DNG, 10-bit/HLG/UHDR video, custom boosted modes and the sub-40-Mbps bitrate cap. It also neutralizes PairIP's Play Store licensing (fired from both Application.attachBaseContext and LicenseContentProvider.onCreate, so a repacked copy no longer gets bounced to the Play Store paywall at launch)."
         }
       ],
       "versions": [
-        "1.1.7"
+        "1.4"
       ],
       "iconColor": "#D0BCFF",
       "iconUrl": ""
@@ -55519,28 +55641,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.7 (2026-08-07)",
-            "date": "2026-08-07",
+            "title": "1.3.9 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "add JellyWatch TV premium unlock patch"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "fix Native Camera premium unlock for 1.1.7"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "update app name in Compatibility for Karobar"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
+                "text": "fix Atlas Photo Pro unlock for 2.7.3 (structural fallback + idempotency check)"
               }
             ]
           },
@@ -57817,16 +57923,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -61637,16 +61743,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -62634,20 +62740,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Dan1elTheMan1el/Morphe-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Dan1elTheMan1el.png?size=96",
           "latestChanges": {
-            "title": "1.4.2 (2026-08-29)",
-            "date": "2026-08-29",
+            "title": "1.5.0 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**DeFit++:** Refresh update metadata"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Keyboard Designer:** Refresh update metadata"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**PokeRaid:** Refresh update metadata"
+                "category": "\u2728 New Features",
+                "text": "**DeFit++:** Experimental support for v0.9.3, and rewrote login fix tutorial in html"
               }
             ]
           },
@@ -63016,28 +63114,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.7 (2026-08-07)",
-            "date": "2026-08-07",
+            "title": "1.3.9 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "add JellyWatch TV premium unlock patch"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "fix Native Camera premium unlock for 1.1.7"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "update app name in Compatibility for Karobar"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
+                "text": "fix Atlas Photo Pro unlock for 2.7.3 (structural fallback + idempotency check)"
               }
             ]
           },
@@ -63207,8 +63289,8 @@
       ],
       "patches": [
         "Disable tracking",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -63216,12 +63298,12 @@
           "description": "Disables analytics and crash reporting."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all premium features."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks Projectivy Launcher Premium"
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all premium features."
         }
       ],
       "versions": [
@@ -63913,28 +63995,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.7 (2026-08-07)",
-            "date": "2026-08-07",
+            "title": "1.3.9 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "add JellyWatch TV premium unlock patch"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "fix Native Camera premium unlock for 1.1.7"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "update app name in Compatibility for Karobar"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
+                "text": "fix Atlas Photo Pro unlock for 2.7.3 (structural fallback + idempotency check)"
               }
             ]
           },
@@ -66807,16 +66873,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -67504,12 +67570,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Freeman022026/rustore-privacy-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Freeman022026.png?size=96",
           "latestChanges": {
-            "title": "1.1.8 (2026-08-25)",
-            "date": "2026-08-25",
+            "title": "1.1.10 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "allow automatic updates to complete in foreground"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**RuStore:** support RuStore 1.109.1.0"
               }
             ]
           },
@@ -67571,7 +67637,7 @@
             }
           ],
           "versions": [
-            "1.108.0.2"
+            "1.109.1.0"
           ]
         },
         {
@@ -67837,7 +67903,8 @@
         }
       ],
       "versions": [
-        "1.108.0.2"
+        "1.108.0.2",
+        "1.109.1.0"
       ],
       "iconColor": "#0077FF",
       "iconUrl": ""
@@ -68781,12 +68848,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RoundSalmon4/morphe-patches-template/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RoundSalmon4.png?size=96",
           "latestChanges": {
-            "title": "1.0.3 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.0.4 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "add SeriesGuide v2026.3.1 target"
+                "text": "add SeriesGuide v2026.4.1 target"
               }
             ]
           },
@@ -68807,7 +68874,8 @@
             "2026.2.2",
             "2026.3.0",
             "2026.3.1",
-            "2026.4.0"
+            "2026.4.0",
+            "2026.4.1"
           ]
         }
       ],
@@ -68824,7 +68892,8 @@
         "2026.2.2",
         "2026.3.0",
         "2026.3.1",
-        "2026.4.0"
+        "2026.4.0",
+        "2026.4.1"
       ],
       "iconColor": "#E53935",
       "iconUrl": ""
@@ -69044,12 +69113,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.31.6 (2026-09-03)",
-            "date": "2026-09-03",
+            "title": "1.31.23 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**shadowfight:** direct holder chains without scanning"
+                "text": "**shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType"
               }
             ]
           },
@@ -70270,16 +70339,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -70344,12 +70413,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.31.6 (2026-09-03)",
-            "date": "2026-09-03",
+            "title": "1.31.23 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**shadowfight:** direct holder chains without scanning"
+                "text": "**shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType"
               }
             ]
           },
@@ -74658,16 +74727,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -74828,18 +74897,18 @@
         }
       ],
       "patches": [
-        "Unlock premium",
         "Unlock Premium",
+        "Unlock premium",
         "Unlock Symfonium"
       ],
       "patchDetails": [
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all premium features."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Turns on Symfonium's paid features. The build ships as a public beta with a built-in trial, so this also prevents the expired-beta screen. The license is checked locally and the unlock does not require an account. Connecting Plex, Jellyfin and other media servers is untouched."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all premium features."
         },
         {
           "name": "Unlock Symfonium",
@@ -77076,16 +77145,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -78419,12 +78488,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.31.6 (2026-09-03)",
-            "date": "2026-09-03",
+            "title": "1.31.23 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**shadowfight:** direct holder chains without scanning"
+                "text": "**shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType"
               }
             ]
           },
@@ -79065,16 +79134,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -80023,16 +80092,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -81331,16 +81400,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-08-30)",
-            "date": "2026-08-30",
+            "title": "1.22.1 (2026-09-04)",
+            "date": "2026-09-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-adventure:** add IAP unlock patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ads:** correct instant rewarded video boost name"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "**altos-odyssey:** IAP-Purchase auto grant"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**billing:** prevent delayed credit in IAP bypass"
               }
             ]
           },
@@ -82009,12 +82078,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kveld9.png?size=96",
           "latestChanges": {
-            "title": "1.12.0 (2026-09-03)",
-            "date": "2026-09-03",
+            "title": "1.13.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**vivaldi:** update patches for v8.2.4147.28 and align libchrome offsets"
+                "text": "**brave:** update target to v1.94.121 and align libchrome offsets"
               }
             ]
           },
@@ -84540,7 +84609,8 @@
         "ARHCOS/arhcos-patches",
         "ImmortalZeus/ImmortalZeus-Morphe-Patches",
         "pseudofractal/morphe-patches",
-        "Z-drgon/morphe-patches"
+        "Z-drgon/morphe-patches",
+        "Zanuaimi/UniPatches"
       ],
       "sources": [
         {
@@ -84676,6 +84746,46 @@
             "buildId": "com-example-app-z-drgon-morphe-patches",
             "releaseTag": "app-com-example-app-z-drgon-morphe-patches",
             "assetName": "xyz-app-z-drgon-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Example Patch",
+              "description": "Example patch to start with."
+            }
+          ],
+          "versions": [
+            "1.0.2",
+            "2.0.0"
+          ]
+        },
+        {
+          "repo": "Zanuaimi/UniPatches",
+          "host": "github.com",
+          "webUrl": "https://github.com/Zanuaimi/UniPatches",
+          "addUrl": "https://morphe.software/add-source?github=Zanuaimi/UniPatches",
+          "source": "https://raw.githubusercontent.com/Zanuaimi/UniPatches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/Zanuaimi/UniPatches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/Zanuaimi.png?size=96",
+          "latestChanges": {
+            "title": "1.2.0 (2026-09-05)",
+            "date": "2026-09-05",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "add configurable overlay appearance settings"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "separate overlay text and icon outline styling"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-example-app-zanuaimi-unipatches",
+            "releaseTag": "app-com-example-app-zanuaimi-unipatches",
+            "assetName": "xyz-app-zanuaimi-unipatches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -94068,9 +94178,135 @@
           "default": false
         }
       ]
+    },
+    {
+      "repo": "Zanuaimi/UniPatches",
+      "host": "github.com",
+      "webUrl": "https://github.com/Zanuaimi/UniPatches",
+      "addUrl": "https://morphe.software/add-source?github=Zanuaimi/UniPatches",
+      "source": "https://raw.githubusercontent.com/Zanuaimi/UniPatches/main/patches-bundle.json",
+      "changelogUrl": "https://raw.githubusercontent.com/Zanuaimi/UniPatches/main/CHANGELOG.md",
+      "avatarUrl": "https://github.com/Zanuaimi.png?size=96",
+      "patchCount": 12,
+      "latestChanges": {
+        "title": "1.2.0 (2026-09-05)",
+        "date": "2026-09-05",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "add configurable overlay appearance settings"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "separate overlay text and icon outline styling"
+          }
+        ]
+      },
+      "patches": [
+        {
+          "name": "Ads Free Rewards (Experimental)",
+          "description": "Get rewards without watching ads. Combine with No Ads for other formats, but keep No Ads' rewarded block off.\n\nCredits: Nai64Patches from Nai64.",
+          "default": false
+        },
+        {
+          "name": "Bypass Emulator Detection",
+          "description": "Hides emulator traces by spoofing Build info and related checks so apps cannot detect an emulator.\n\nCredits: Nai64Patches from Nai64.",
+          "default": false
+        },
+        {
+          "name": "Bypass Forced Updates (Experimental)",
+          "description": "Skip forced update screens and keep using the app.",
+          "default": false
+        },
+        {
+          "name": "Custom App Resolution (Experimental)",
+          "description": "Set a custom resolution for the game\n\nCredits: Nai64Patches from Nai64.",
+          "default": false
+        },
+        {
+          "name": "Disable Forced Online Checks (Experimental)",
+          "description": "Lets the app start without internet.",
+          "default": false
+        },
+        {
+          "name": "Frame Rate Preference (Experimental)",
+          "description": "Requests a preferred refresh rate like 60 or 90 Hz for the app window. The system may ignore it.",
+          "default": false
+        },
+        {
+          "name": "Free In-app Purchases (Experimental)",
+          "description": "Get paid items for free. Best for offline games.\n\nCredits: Nai64Patches from Nai64.",
+          "default": false
+        },
+        {
+          "name": "Graphics API Override (Experimental)",
+          "description": "Forces a Unity game to use Vulkan or OpenGL via launch argument. Only for supported Unity games.",
+          "default": false
+        },
+        {
+          "name": "No Ads (Experimental)",
+          "description": "Blocks ads by type. Pick what to block. For rewarded ads use Ads Free Rewards instead.\n\nCredits: Nai64Patches from Nai64.",
+          "default": false
+        },
+        {
+          "name": "PairIP Bypass Enhanced (Experimental)",
+          "description": "A merged experimental PairIP bypass for common legacy, V2, and V3 protection layouts.\n\nAutomatic mode applies compatible strategies up to the selected risk level. It defaults to\nLow and Med Risk Strategies; Low Risk applies only low-risk strategies, while Low, Med, and\nHigh Risk Strategies also enables the invasive high-risk strategies.\n\nTurn off automatic mode to test the individual manual strategies. Manual selections are\nindependent of the automatic risk-level setting, and every manual strategy is disabled by default.\n\nThis patch is experimental and app-dependent. It does not bypass server-side Play Integrity,\nserver-side licensing, or other server-side enforcement.\n\nThis enhanced patch is a merged product of the PairIP bypass patches from the credited\ndevelopers, with improvements for broader functionality, safer strategy selection, and usability.\n\nCredits: Nai64Patches from Nai64, Entree, kondratjev, and rushiranpise (Doom).",
+          "default": false
+        },
+        {
+          "name": "Skip Splash Screen (Experimental)",
+          "description": "Skip or shorten splash screen delays\n\nCredits: Nai64Patches from Nai64.",
+          "default": false
+        },
+        {
+          "name": "UniPatches Universal Overlay Patch v1.0 (Experimental)",
+          "description": "Universal in-app overlay for Android apps and games. Optional modules include System Time, FPS,\nfullscreen, app brightness, and haptic controls. Modules are excluded and disabled by default;\nselect them in Morphe settings before patching. Statistic modules show information, Activity modules\ncontrol the current Activity, and Hook modules control internal app behavior, such as disabling\nanimations, through best-effort runtime changes. A selected local image automatically replaces\nthe legacy icon; empty or invalid image input falls back to the legacy icon. This is experimental\nand may not work on all apps.\n\nThe idea and initial works of this Universal Overlay Patch are from Zanuaimi / Noobite.",
+          "default": false
+        }
+      ]
     }
   ],
   "recentSources": [
+    {
+      "name": "UniPatches",
+      "repo": "Zanuaimi/UniPatches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/Zanuaimi/UniPatches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/Zanuaimi/UniPatches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/Zanuaimi/UniPatches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/Zanuaimi/UniPatches",
+      "addUrl": "https://morphe.software/add-source?github=Zanuaimi/UniPatches",
+      "avatarUrl": "https://github.com/Zanuaimi.png?size=96",
+      "patchCount": 13,
+      "appCount": 1,
+      "createdAt": 1788577973428,
+      "updatedAt": 1788577973428,
+      "createdDate": "2026-09-05",
+      "updatedDate": "2026-09-05",
+      "latestChanges": {
+        "title": "1.2.0 (2026-09-05)",
+        "date": "2026-09-05",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "add configurable overlay appearance settings"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "separate overlay text and icon outline styling"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "XYZ app",
+          "packageName": "com.example.app",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF0045"
+        }
+      ]
+    },
     {
       "name": "letterboxd-morphe-patches",
       "repo": "mvaishak/letterboxd-morphe-patches",
@@ -94088,24 +94324,40 @@
       "createdDate": "2026-09-04",
       "updatedDate": "2026-09-04",
       "latestChanges": {
-        "title": "1.4.0 (2026-09-02)",
-        "date": "2026-09-02",
+        "title": "2.0.0 (2026-09-05)",
+        "date": "2026-09-05",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Set Brighter Watched-by stars to default; drop Poster corner shape from README"
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "\"Hide Video Store on home\", \"Hide ratings until"
           },
           {
-            "category": "\u2728 New Features",
-            "text": "Accent option becomes a colour picker (any hex) (177e151), closes #1FE86A"
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "watched\", and \"Match bottom nav to top bar color\" are no longer"
           },
           {
-            "category": "\u2728 New Features",
-            "text": "Add Brighter Watched-by stars patch and bottom-nav selected-style option"
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "separate Manager patches. Their toggles now live entirely inside \"Mod"
           },
           {
-            "category": "\u2728 New Features",
-            "text": "Remove Poster corner shape patch; Brighter Watched-by stars on by default"
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "settings\" instead. Anyone with these three enabled as standalone"
+          },
+          {
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "patches needs to re-patch and turn them on from the Letterboxd Mods"
+          },
+          {
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "screen instead."
+          },
+          {
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "\"Hide Video Store\" also now defaults to off (it used to default to on"
+          },
+          {
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "as a standalone patch)."
           }
         ]
       },
@@ -94544,42 +94796,6 @@
           "patchCount": 5,
           "iconUrl": "",
           "iconColor": "#0058A3"
-        }
-      ]
-    },
-    {
-      "name": "morphe-patches",
-      "repo": "NullWaypoint/morphe-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/NullWaypoint/morphe-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/NullWaypoint/morphe-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/NullWaypoint/morphe-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/NullWaypoint/morphe-patches",
-      "addUrl": "https://morphe.software/add-source?github=NullWaypoint/morphe-patches",
-      "avatarUrl": "https://github.com/NullWaypoint.png?size=96",
-      "patchCount": 1,
-      "appCount": 1,
-      "createdAt": 1787910074437,
-      "updatedAt": 1787910074437,
-      "createdDate": "2026-08-28",
-      "updatedDate": "2026-08-28",
-      "latestChanges": {
-        "title": "1.0.0 (2026-08-28)",
-        "date": "2026-08-28",
-        "items": [
-          {
-            "category": "\u2728 New Features",
-            "text": "add Crunchyroll Picture-in-Picture patch"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "Crunchyroll",
-          "packageName": "com.crunchyroll.crunchyroid",
-          "patchCount": 1,
-          "iconUrl": "https://play-lh.googleusercontent.com/FUEOotGzxEZqItvGGov0YBiOhZBCACxCM6kF37OtpWrCG9H6EyxSeY2G8PDXQGueLxlxtL3Xr0fbkvXaQ67NLg",
-          "iconColor": "#FF5C00"
         }
       ]
     }
