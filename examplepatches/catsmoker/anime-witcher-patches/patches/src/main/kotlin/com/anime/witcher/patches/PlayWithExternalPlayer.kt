@@ -4,9 +4,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.patch.bytecodePatch
 
-val replaceAwPlayerWithVLCPatch = bytecodePatch(
-    name = "Replace AWPlayer with VLC",
-    description = "Replaces the AWPlayer video player with VLC via system intent chooser.",
+val playWithExternalPlayerPatch = bytecodePatch(
+    name = "Play with external player",
+    description = "Opens episodes in a system intent chooser so the user can pick their favorite video player (VLC, MX Player, etc.).",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_ANIME_WITCHER)

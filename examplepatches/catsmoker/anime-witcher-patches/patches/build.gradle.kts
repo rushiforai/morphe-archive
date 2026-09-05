@@ -4,7 +4,7 @@ patches {
 
     about {
         name = "Anime Witcher Patches"
-        description = "Patches for Anime Witcher: Remove ads, replace AWPlayer with VLC"
+        description = "Patches for Anime Witcher: Remove ads, disable VPN detection, play with an external player"
         source = "git@github.com:user/anime-witcher-patches.git"
         author = "User"
         contact = "na"

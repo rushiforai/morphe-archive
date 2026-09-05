@@ -5,15 +5,15 @@ Morphe patches for apps I use.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.3](https://github.com/RoundSalmon4/morphe-patches-template/releases/tag/v1.0.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.0.4](https://github.com/RoundSalmon4/morphe-patches-template/releases/tag/v1.0.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
 <details open>
 <summary>📦 SeriesGuide&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 2026.2.2 | 2026.3.0 | 2026.3.1 | 2026.4.0 |
-| :---: | :---: | :---: | :---: |
+| 2026.2.2 | 2026.3.0 | 2026.3.1 | 2026.4.0 | 2026.4.1 |
+| :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

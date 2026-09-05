@@ -44,7 +44,8 @@ import dev.jz6.flexboard.patches.shared.toDescriptor
  * `BiggerToolbarPatch` (reverted in e075526) raised the capacity and then restaged Gboard's count
  * preference on every bar construction, which was reported on device as buttons reappearing after
  * being removed. Raise the ceiling, leave the count alone, and both failures are structurally
- * impossible. See `docs/toolbar-capacity.md`.
+ * impossible -- and confirmed on a device: an icon taken off the bar stays off across a
+ * rebuild. See `docs/toolbar-capacity.md`.
  *
  * ## The derivation
  *
@@ -103,9 +104,11 @@ import dev.jz6.flexboard.patches.shared.toDescriptor
 @Suppress("unused")
 val biggerToolbarPatch = bytecodePatch(
     name = "Bigger Toolbar",
-    description = "Raises the toolbar from five icons to $TOOLBAR_CAPACITY, so Flexboard's " +
-        "hotkeys and text action buttons can fit alongside Gboard's own. How many icons " +
-        "actually show stays yours, set by dragging them in Gboard's toolbar settings.",
+    description = "Raises how many icons Gboard's toolbar can hold — five on a stock build — " +
+        "to $TOOLBAR_CAPACITY, so Flexboard's hotkeys and text action buttons fit alongside " +
+        "Gboard's own. How many actually show stays yours, set by dragging them in Gboard's " +
+        "toolbar settings. Force-stop Gboard afterwards: a cached keyboard view can go on " +
+        "showing the old capacity.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
@@ -118,7 +121,14 @@ val biggerToolbarPatch = bytecodePatch(
     }
 }
 
-/** How many icons the bar may hold once patched. Nine Flexboard ids, plus room for Gboard's own. */
+/**
+ * How many icons the bar may hold once patched. Nine Flexboard ids, plus room for Gboard's own.
+ *
+ * Twelve is chosen for the unfolded screen of a foldable, where there is width for it; confirmed
+ * on a device. Gboard keeps a separate count per device class and measures both against this one
+ * number, so a phone settles at six and an unfolded screen at twelve without either needing a
+ * setting -- the ceiling is raised once and each screen remembers its own count underneath it.
+ */
 internal const val TOOLBAR_CAPACITY = 12
 
 /**

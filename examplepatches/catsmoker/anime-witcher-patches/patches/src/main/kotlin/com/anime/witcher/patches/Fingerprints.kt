@@ -62,3 +62,67 @@ object OnConfirmClickedFingerprint : Fingerprint(
         string("com.awystudio.awplayer"),
     )
 )
+
+/**
+ * Fingerprint for HomeActivity.handleVersionSettings(VersionSettings)V
+ *
+ * Matches on the "تنبيه" (Alert) string used as the title of the
+ * update/changelog popup dialog that appears when the app starts.
+ */
+object HandleVersionSettingsFingerprint : Fingerprint(
+    returnType = "V",
+    filters = listOf(
+        string("\u062a\u0646\u0628\u064a\u0647"),
+    )
+)
+
+/**
+ * Fingerprint for HomeActivity.showVpnAlertDialog()V
+ *
+ * Matches on the "تنبيه!" header string of the VPN alert dialog.
+ */
+object HomeShowVpnAlertDialogFingerprint : Fingerprint(
+    definingClass = "Lcom/anime/witcher/HomeActivity;",
+    returnType = "V",
+    filters = listOf(
+        string("\u062a\u0646\u0628\u064a\u0647!"),
+    )
+)
+
+/**
+ * Fingerprint for AnimeDetailsActivity.showVpnAlertDialog()V
+ *
+ * Matches on the "تنبيه!" header string of the VPN alert dialog.
+ */
+object AnimeDetailsShowVpnAlertDialogFingerprint : Fingerprint(
+    definingClass = "Lcom/anime/witcher/activites/AnimeDetailsActivity;",
+    returnType = "V",
+    filters = listOf(
+        string("\u062a\u0646\u0628\u064a\u0647!"),
+    )
+)
+
+/**
+ * Fingerprint for ServersActivity.checkDNS()V
+ *
+ * Matches on the "block_dns" shared preferences key string.
+ */
+object CheckDnsFingerprint : Fingerprint(
+    definingClass = "Lcom/anime/witcher/activites/ServersActivity;",
+    returnType = "V",
+    filters = listOf(
+        string("block_dns"),
+    )
+)
+
+/**
+ * Fingerprint for AppCompatActivity.dispatchKeyEvent(KeyEvent)Z
+ *
+ * The entry point through which every activity-level D-pad press flows.
+ */
+object AppCompatActivityDispatchKeyEventFingerprint : Fingerprint(
+    definingClass = "Landroidx/appcompat/app/AppCompatActivity;",
+    name = "dispatchKeyEvent",
+    returnType = "Z",
+    parameters = listOf("Landroid/view/KeyEvent;"),
+)

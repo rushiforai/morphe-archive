@@ -2,6 +2,12 @@ package dev.jz6.flexboard.extension.settings;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.view.inputmethod.InputMethodManager;
+import android.view.WindowManager;
+import android.view.Window;
+import android.net.Uri;
+import android.content.Intent;
+import android.content.ActivityNotFoundException;
 import android.graphics.drawable.Drawable;
 import android.inputmethodservice.InputMethodService;
 import android.os.Handler;
@@ -63,6 +69,16 @@ public final class FlexboardSettingsFragment extends CommonPreferenceFragment {
 
     /** Must match the file {@code SettingsScreenPatch} writes to {@code res/xml/}. */
     private static final String SCREEN_NAME = "flexboard_settings";
+
+    /** Held against Constants.kt and build.gradle.kts by check_shared_constants. */
+    /** Paired with ABOUT_SOURCE_KEY in SettingsScreenPatch.kt. */
+    private static final String ABOUT_SOURCE_KEY = "flexboard_about_source";
+
+    /** Paired with TRY_KEYBOARD_KEY in SettingsScreenPatch.kt. */
+    private static final String TRY_KEYBOARD_KEY = "flexboard_try_keyboard";
+
+    private static final String SOURCE_URL = "https://github.com/JZ6/Flexboard";
+    private static final String SOURCE_URL_SHORT = "github.com/JZ6/Flexboard";
 
     public FlexboardSettingsFragment() {}
 
@@ -243,7 +259,94 @@ public final class FlexboardSettingsFragment extends CommonPreferenceFragment {
             importBlob(preference);
             return true;
         }
+        if (isRow(preference, TRY_KEYBOARD_KEY)) {
+            tryKeyboard(preference);
+            return true;
+        }
+        if (isRow(preference, ABOUT_SOURCE_KEY)) {
+            openSource(preference);
+            return true;
+        }
         return super.aA(preference);
+    }
+
+    /**
+     * A scratch text box, so a change can be tried without leaving Settings.
+     *
+     * Everything this bundle patches is a keyboard behaviour, and until now trying one meant
+     * leaving Settings, finding a text field in another app, and coming back — with the hotkey you
+     * just typed still fresh enough to have forgotten what you set it to.
+     *
+     * Raising the keyboard is done explicitly rather than left to focus defaults. The dialog's
+     * window asks for {@code SOFT_INPUT_STATE_ALWAYS_VISIBLE | SOFT_INPUT_ADJUST_RESIZE}, and the
+     * focus-and-show is {@code post}ed so it runs after layout — requesting focus on a view that
+     * has not been laid out is a silent no-op, and the row would then look broken on exactly the
+     * devices where the default did not already do the work.
+     *
+     * Multi-line on purpose: swipe-to-delete needs several words to be worth testing, and a single
+     * line makes the deletions hard to see.
+     */
+    private void tryKeyboard(androidx.preference.Preference row) {
+        Context ui = dialogContext(row);
+        if (ui == null) {
+            row.n("couldn't open the text box — reopen Settings from the keyboard");
+            return;
+        }
+        try {
+            EditText input = new EditText(ui);
+            input.setHint("Type here to try your settings");
+            input.setMinLines(3);
+
+            AlertDialog dialog = new AlertDialog.Builder(ui)
+                .setTitle("Try the keyboard")
+                .setView(input)
+                .setPositiveButton("Close", null)
+                .create();
+            dialog.setOnShowListener(ignored -> {
+                Window window = dialog.getWindow();
+                if (window != null) {
+                    window.setSoftInputMode(
+                        WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE
+                            | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+                }
+                input.post(() -> {
+                    input.requestFocus();
+                    Object service = ui.getSystemService(Context.INPUT_METHOD_SERVICE);
+                    if (service instanceof InputMethodManager) {
+                        ((InputMethodManager) service)
+                            .showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
+                    }
+                });
+            });
+            dialog.show();
+        } catch (Throwable ignored) {
+            row.n("couldn't open the text box");
+        }
+    }
+
+    /**
+     * Opens the project page for the About section's Source row.
+     *
+     * Uses {@link #dialogContext} for the same reason the dialogs do: it is the Activity the row
+     * was constructed with, so the browser opens as a normal task rather than needing
+     * {@code FLAG_ACTIVITY_NEW_TASK}. When that context is unavailable, or no browser resolves the
+     * intent -- a bare AOSP image or a heavily stripped ROM -- the row reports it in its own
+     * summary instead of throwing, which matches what a hotkey slot does when it cannot open its
+     * editor. Falling back to the URL in the summary is not much of a fallback, but the URL is
+     * already printed there, so the user can still read and type it.
+     */
+    private void openSource(androidx.preference.Preference row) {
+        Context context = dialogContext(row);
+        if (context == null) {
+            row.n("couldn't open a browser — reopen Settings from the keyboard");
+            return;
+        }
+        try {
+            context.startActivity(
+                new Intent(Intent.ACTION_VIEW, Uri.parse(SOURCE_URL)));
+        } catch (ActivityNotFoundException | SecurityException ignored) {
+            row.n("no browser to open " + SOURCE_URL_SHORT);
+        }
     }
 
     /**

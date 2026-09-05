@@ -5,7 +5,7 @@
 set -e
 
 DIR="${DIR:-/tmp/morphe-patches}"
-MSG="fix(shadowfight): direct holder chains without scanning"
+MSG="fix(shadowfight): v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType"
 
 cd "$DIR"
 

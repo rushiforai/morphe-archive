@@ -15,7 +15,7 @@ val sfHardcodePatch = rawResourcePatch(
     compatibleWith(COMPATIBILITY_SF2)
     execute {
         val soFile = get("lib/arm64-v8a/libShadowHardcode.so", true)
-        val soBytes = HardcodeSoBytes.part0() + HardcodeSoBytes.part1() + HardcodeSoBytes.part2() + HardcodeSoBytes.part3() + HardcodeSoBytes.part4() + HardcodeSoBytes.part5() + HardcodeSoBytes.part6() + HardcodeSoBytes.part7() + HardcodeSoBytes.part8() + HardcodeSoBytes.part9() + HardcodeSoBytes.part10() + HardcodeSoBytes.part11() + HardcodeSoBytes.part12() + HardcodeSoBytes.part13() + HardcodeSoBytes.part10() + HardcodeSoBytes.part11()
+        val soBytes = HardcodeSoBytes.part1() + HardcodeSoBytes.part2() + HardcodeSoBytes.part3() + HardcodeSoBytes.part4() + HardcodeSoBytes.part5()
         soFile.writeBytes(soBytes)
     }
 }

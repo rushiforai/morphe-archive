@@ -1,4 +1,10 @@
-## 1.0.0 (2026-08-20)
+## [1.1.0](https://github.com/catsmoker/anime-witcher-patches/compare/v1.0.0...v1.1.0) (2026-09-04)
+
+### ✨ New Features
+
+* add TV support patches and D-pad navigation ([1823891](https://github.com/catsmoker/anime-witcher-patches/commit/1823891dd91fdc5b52012e8c33d7c0de868f71a9))
+
+## 1.0.0-dev.1 (2026-08-20)
 
 ### 🐛 Bug Fixes
 

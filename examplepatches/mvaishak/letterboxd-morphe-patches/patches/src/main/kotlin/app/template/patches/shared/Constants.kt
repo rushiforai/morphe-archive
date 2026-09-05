@@ -11,9 +11,9 @@ object Constants {
         apkFileType = ApkFileType.APK, // Change to APKM if you patch a split bundle from ApkMirror.
         appIconColor = 0xFF8000, // Letterboxd brand orange.
         targets = listOf(
-            // Last version confirmed 100% working with these patches.
+            // null version = compatible with any Letterboxd version, not just one pinned build.
             AppTarget(
-                version = "3.5.4"
+                version = null
             )
         )
     )

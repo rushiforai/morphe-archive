@@ -113,6 +113,13 @@ internal val settingsScreenPatch = resourcePatch(
         // can never disagree.
         writePatchResource("flexboard_settings.xml", "res/xml", mapOf(
             "FLEXBOARD_VERSION" to readVersion(),
+            // Which Gboard this bundle was built against. Worth showing: when a Play update moves
+            // Gboard on and a patch quietly stops applying, this row is the only thing on the
+            // device that explains why.
+            "GBOARD_TARGET" to (COMPATIBILITY_GBOARD.targets.firstOrNull()?.version
+                ?: error("COMPATIBILITY_GBOARD declares no target — the About row would claim to " +
+                    "be built for nothing")).substringBefore("-"),
+            "SOURCE_URL_SHORT" to Constants.SOURCE_URL_SHORT,
         ), ::filterSettingsSections)
 
         // Both top-level screens: Gboard picks between them at runtime (SettingsActivity.t()), and
@@ -150,13 +157,35 @@ private const val PREFERENCE_TAG =
     "com.google.android.libraries.inputmethod.settings.widget.HeaderPreference"
 
 private const val ENTRY_KEY = "flexboard_settings"
+
+/**
+ * The About section's Source row. Declared here even though the patch never reads it -- the row
+ * lives in the static template and the tap is handled in the extension -- because every key in
+ * flexboard_settings.xml has to be the value of a patch constant, and paired with the extension's
+ * own copy so the row and its handler cannot drift apart into a tap that does nothing.
+ */
+internal const val ABOUT_SOURCE_KEY = "flexboard_about_source"
+
+/** The scratch-pad row. Paired with the extension's copy, same as [ABOUT_SOURCE_KEY]. */
+internal const val TRY_KEYBOARD_KEY = "flexboard_try_keyboard"
 private const val ENTRY_TITLE = "Flexboard"
 
 /**
- * Deliberately vague about *which* settings. The screen's contents depend on which patches were
- * ticked, and naming the sliders meant rewriting this line each time a feature landed.
+ * Attribution rather than description, which is what finally made this line stable.
+ *
+ * The screen's contents depend on which patches were ticked -- swipe rows, hotkey rows, both, or
+ * neither plus the version -- so every description tried here was wrong for some builds and had
+ * to be rewritten whenever a feature landed. "Gesture settings" was accurate only when Swipe Left
+ * to Delete was the sole patch selected. Who wrote it does not vary.
+ *
+ * It also does the job NOTICE 7c asks of a derivative: naming the author leaves no confusion as to
+ * source or origin, and says nothing that could imply authorship by the Morphe project.
+ *
+ * Gboard sets its own summaries at runtime and uses them for state -- the language row lists your
+ * current languages. This one is deliberately not stateful: the state a stranger needs from a row
+ * that appeared in their keyboard settings unannounced is who put it there.
  */
-private const val ENTRY_SUMMARY = "Gesture settings"
+private const val ENTRY_SUMMARY = "By JZ6"
 
 /**
  * Filters the settings template to only the sections whose features were ticked, removing

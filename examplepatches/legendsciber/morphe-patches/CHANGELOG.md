@@ -1,3 +1,107 @@
+## [1.31.23](https://github.com/legendsciber/morphe-patches/compare/v1.31.22...v1.31.23) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType ([b2e4122](https://github.com/legendsciber/morphe-patches/commit/b2e41222d84b22bdc522bf7bbb2a980ea3e28eea))
+
+## [1.31.22](https://github.com/legendsciber/morphe-patches/compare/v1.31.21...v1.31.22) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType ([02e1d87](https://github.com/legendsciber/morphe-patches/commit/02e1d87312c883cfb93d1f820eaa7557497d1c99))
+
+## [1.31.21](https://github.com/legendsciber/morphe-patches/compare/v1.31.20...v1.31.21) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType ([7d614ad](https://github.com/legendsciber/morphe-patches/commit/7d614ad7d99fde06922032ec49919be484baa4a6))
+
+## [1.31.20](https://github.com/legendsciber/morphe-patches/compare/v1.31.19...v1.31.20) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType ([7b0365a](https://github.com/legendsciber/morphe-patches/commit/7b0365a4a06f8e3136d786e04542b1cc11041664))
+
+## [1.31.19](https://github.com/legendsciber/morphe-patches/compare/v1.31.18...v1.31.19) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType ([03d2013](https://github.com/legendsciber/morphe-patches/commit/03d20134063ec9f65c1fe546d88725da8271f973))
+
+## [1.31.18](https://github.com/legendsciber/morphe-patches/compare/v1.31.17...v1.31.18) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType ([0c8faea](https://github.com/legendsciber/morphe-patches/commit/0c8faea5f425beeec9f4dac04debb85b36408de4))
+
+## [1.31.17](https://github.com/legendsciber/morphe-patches/compare/v1.31.16...v1.31.17) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType ([0e6a606](https://github.com/legendsciber/morphe-patches/commit/0e6a60658877b5971bc2708e291f69d9f6921e74))
+
+## [1.31.16](https://github.com/legendsciber/morphe-patches/compare/v1.31.15...v1.31.16) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType ([9bb0fcb](https://github.com/legendsciber/morphe-patches/commit/9bb0fcb59286e0c0c6b13860461c03902337182c))
+
+## [1.31.15](https://github.com/legendsciber/morphe-patches/compare/v1.31.14...v1.31.15) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType ([8c2ded6](https://github.com/legendsciber/morphe-patches/commit/8c2ded6abe21758e2a557f79cc12b51d1017f62f))
+
+## [1.31.14](https://github.com/legendsciber/morphe-patches/compare/v1.31.13...v1.31.14) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType ([3196123](https://github.com/legendsciber/morphe-patches/commit/31961236a79488a53a847970ab33b6e9f50d8d83))
+
+## [1.31.13](https://github.com/legendsciber/morphe-patches/compare/v1.31.12...v1.31.13) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType ([863c85f](https://github.com/legendsciber/morphe-patches/commit/863c85faa169c7028fb6f0ac44fea05af10549c7))
+
+## [1.31.12](https://github.com/legendsciber/morphe-patches/compare/v1.31.11...v1.31.12) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType ([d4514e4](https://github.com/legendsciber/morphe-patches/commit/d4514e480482e376db7c615b3f19fc9367428e34))
+
+## [1.31.11](https://github.com/legendsciber/morphe-patches/compare/v1.31.10...v1.31.11) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** direct FindObjectsOfType for BFBONKPKBNL, remove broken FIFBDNADAAL chain ([9117db0](https://github.com/legendsciber/morphe-patches/commit/9117db0492fbf3f85dc5b300ebdbcb46d99add83))
+
+## [1.31.10](https://github.com/legendsciber/morphe-patches/compare/v1.31.9...v1.31.10) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** direct FindObjectsOfType for BFBONKPKBNL, remove broken FIFBDNADAAL chain ([fa79a25](https://github.com/legendsciber/morphe-patches/commit/fa79a25606b3d4039b02e4618ccca310788ec478))
+* **shadowfight:** direct FindObjectsOfType for BFBONKPKBNL, remove broken FIFBDNADAAL chain ([568dbe7](https://github.com/legendsciber/morphe-patches/commit/568dbe70c0a35601b1a93a1787c14b942924e0aa))
+
+## [1.31.9](https://github.com/legendsciber/morphe-patches/compare/v1.31.8...v1.31.9) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** instance method calls, list _size field, 20s delay ([c3b70e6](https://github.com/legendsciber/morphe-patches/commit/c3b70e68c661c7c47e5b7fc301b4c5bab8c31e95))
+
+## [1.31.8](https://github.com/legendsciber/morphe-patches/compare/v1.31.7...v1.31.8) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** remove SIGSEGV handler from hardcode, defer scan to bg thread ([f76e61c](https://github.com/legendsciber/morphe-patches/commit/f76e61cab43cfffb1072f842a5d2a941bea86b38))
+
+## [1.31.7](https://github.com/legendsciber/morphe-patches/compare/v1.31.6...v1.31.7) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** SCAN MODE - log all offsets before healing ([cf29b40](https://github.com/legendsciber/morphe-patches/commit/cf29b40cb4ffd56a4c088760f36f48740f132faf))
+* **shadowfight:** SCAN MODE with proper byte signing ([a4acd52](https://github.com/legendsciber/morphe-patches/commit/a4acd52428c002223c6c79aa037238a3fd9a4587))
+
 ## [1.31.6](https://github.com/legendsciber/morphe-patches/compare/v1.31.5...v1.31.6) (2026-09-03)
 
 ### 🐛 Bug Fixes

@@ -22,7 +22,7 @@ val denserPosterGridPatch = resourcePatch(
     name = "Denser poster grid",
     description = "Tightens the spacing around posters in grids so they render larger and closer " +
         "together. Does not change the number of columns.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_LETTERBOXD)
 

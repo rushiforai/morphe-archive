@@ -99,11 +99,11 @@ Morphe can automatically reapply a new patch-bundle release to the original APK 
 ## Supported version and bundle
 
 <!-- PATCHES_START EXPANDED -->
-Current bundle: [v1.1.8](https://github.com/Freeman022026/rustore-privacy-patches/releases/tag/v1.1.8) on `main`.
+Current bundle: [v1.1.10](https://github.com/Freeman022026/rustore-privacy-patches/releases/tag/v1.1.10) on `main`.
 
 ### RuStore
 
-Supported versions: `1.108.0.2`
+Supported versions: `1.109.1.0`
 
 | Patch | Description |
 | --- | --- |

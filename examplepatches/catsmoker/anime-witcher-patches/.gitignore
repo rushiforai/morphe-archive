@@ -98,6 +98,7 @@ fabric.properties
 
 ### Gradle template
 .gradle
+.kotlin/
 **/build/
 !src/**/build/
 
@@ -128,3 +129,11 @@ node_modules/
 # Ignore IDEA files
 .idea/
 local.properties
+
+# Signing keystores (never commit these)
+*.jks
+*.keystore
+
+# Android Studio test captures / native build outputs
+captures/
+.externalNativeBuild/

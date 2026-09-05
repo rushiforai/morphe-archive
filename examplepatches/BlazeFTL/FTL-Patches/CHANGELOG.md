@@ -1,3 +1,70 @@
+## [1.43.0-dev.52](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.51...v1.43.0-dev.52) (2026-09-05)
+
+### 🐛 Bug Fixes
+
+* mx ad ([966a984](https://github.com/BlazeFTL/FTL-Patches/commit/966a984f15e2c65992c86626bd606f575baccb10))
+
+## [1.43.0-dev.51](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.50...v1.43.0-dev.51) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* Mx Ad ([51b5397](https://github.com/BlazeFTL/FTL-Patches/commit/51b53975a0db64cd8b96db13531824db9eab10e9))
+
+## [1.43.0-dev.50](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.49...v1.43.0-dev.50) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* Mx Ad ([c4bd4f7](https://github.com/BlazeFTL/FTL-Patches/commit/c4bd4f7131c9c8f8a58e2e21b83007e4ca9bf7a0))
+
+## [1.43.0-dev.49](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.48...v1.43.0-dev.49) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* Mx Af ([1359397](https://github.com/BlazeFTL/FTL-Patches/commit/13593973ec9c2add4df055910f09a596b4ba470d))
+
+## [1.43.0-dev.48](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.47...v1.43.0-dev.48) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* Mx Ad ([eaf1fd8](https://github.com/BlazeFTL/FTL-Patches/commit/eaf1fd8040431b43b53f9b0432d8a700a6537d80))
+* Mx Ad ([72bc4e5](https://github.com/BlazeFTL/FTL-Patches/commit/72bc4e5017270725abd4506621de1c1a7aa3ac2f))
+
+## [1.43.0-dev.47](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.46...v1.43.0-dev.47) (2026-09-04)
+
+### ✨ New Features
+
+* Make Es File Explorer Patch More Robust Against R8 ([3a86771](https://github.com/BlazeFTL/FTL-Patches/commit/3a867717abb712b0c1898a6fe2f3c91c616c37b9))
+
+## [1.43.0-dev.46](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.45...v1.43.0-dev.46) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* Mx Ad Patch ([c6ee934](https://github.com/BlazeFTL/FTL-Patches/commit/c6ee93485f70cf613a1ab4ef32f9388d29d80c37))
+
+## [1.43.0-dev.45](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.44...v1.43.0-dev.45) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* Mx Ad Add Resources ([26a6da8](https://github.com/BlazeFTL/FTL-Patches/commit/26a6da8e8d97ae183c32c08d9bb455cac51857d4))
+
+## [1.43.0-dev.44](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.43...v1.43.0-dev.44) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* Mx Ad Me Tab Tiles ([79380a4](https://github.com/BlazeFTL/FTL-Patches/commit/79380a4d2c767ce435dc18d42d26ee99f6f08f82))
+
+## [1.43.0-dev.43](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.42...v1.43.0-dev.43) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* MX Ad Disable Bottom ([622959b](https://github.com/BlazeFTL/FTL-Patches/commit/622959b648c5111413533aee01d77e182101ad06))
+
+## [1.43.0-dev.42](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.41...v1.43.0-dev.42) (2026-09-04)
+
+### ✨ New Features
+
+* Add Mx Player AD Patches ([d936d7a](https://github.com/BlazeFTL/FTL-Patches/commit/d936d7aafd706b392503befb696647ef15d158ae))
+
 ## [1.43.0-dev.41](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.40...v1.43.0-dev.41) (2026-09-03)
 
 ### ✨ New Features

@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DeFit++ Login Fix Tutorial</title>
+  <link rel="stylesheet" href="tutorial.css">
+</head>
+
+<body>
+  <main>
+    <h1>Fix Google sign-in</h1>
+    <p class="subtitle">Set up Google sign-in for a re-signed DeFit++ APK. Some steps might require to be done on a
+      computer.</p>
+    <div class="version-badge">DeFit 0.8.2a</div>
+
+    <section class="step">
+      <span class="step-number">1</span>
+      <h2>Create a Firebase project</h2>
+      <p>Sign in to <a href="https://console.firebase.google.com/">Firebase Console</a> and create a project for
+        DeFit++.</p>
+      <figure>
+        <img src="images/01-firebase-project.png" alt="Firebase project screenshot">
+        <figcaption>You can toggle off any Gemini or other services it offers.</figcaption>
+      </figure>
+    </section>
+
+    <section class="step">
+      <span class="step-number">2</span>
+      <h2>Add DeFit as an Android app</h2>
+      <p>Add an Android app using this exact package name:</p>
+      <p><code>com.fitness.debugger</code></p>
+      <p>The other Android-app fields do not matter for this login fix.</p>
+      <figure>
+        <img src="images/02-add-android-app.png" alt="Android app setup screenshot">
+        <figcaption>You do not need to download the configuration file.</figcaption>
+      </figure>
+    </section>
+
+    <section class="step">
+      <span class="step-number">3</span>
+      <h2>Add the patched APK's SHA-1</h2>
+      <p>Open the Android app's settings in Firebase and add the SHA-1 fingerprint for the APK currently installed on
+        this device.</p>
+      <div class="note">Use the native <strong>Step 3 — Copy SHA-1</strong> button directly below the Login Fix Tutorial
+        button in DeFit++.</div>
+      <figure>
+        <img src="images/03-add-sha1.png" alt="SHA-1 setup screenshot">
+      </figure>
+    </section>
+
+    <section class="step">
+      <span class="step-number">4</span>
+      <h2>Enable Google sign-in</h2>
+      <p>In Firebase, navigate to <span class="path">Security → Authentication → Sign-in method</span>, add
+        <strong>Google</strong> as a sign-in provider, and save.
+      </p>
+      <figure>
+        <img src="images/04-enable-google.png" alt="Google sign-in provider screenshot">
+        <figcaption>Keep this tab open after making the changes!</figcaption>
+      </figure>
+    </section>
+
+    <section class="step">
+      <span class="step-number">5</span>
+      <h2>Open the same project in Google Cloud</h2>
+      <p>Sign in to <a href="https://console.cloud.google.com/">Google Cloud Console</a> and select the project that you
+        created in Firebase.</p>
+      <figure>
+        <img src="images/05-cloud-credentials.png" alt="Google Cloud project screenshot">
+      </figure>
+    </section>
+
+    <section class="step">
+      <span class="step-number">6</span>
+      <h2>Open OAuth credentials</h2>
+      <p>From the menu, go to <span class="path">APIs &amp; Services → Credentials</span>.</p>
+      <p>Find the <strong>OAuth 2.0 Client IDs</strong> table and open <strong>Web client (auto created by Google
+          Service)</strong>.</p>
+      <figure>
+        <img src="images/06-web-client.png" alt="OAuth Web client screenshot placeholder">
+      </figure>
+    </section>
+
+    <section class="step">
+      <span class="step-number">7</span>
+      <h2>Copy the Web client ID and create a new secret</h2>
+      <p>Copy the <strong>Client ID</strong> shown under <strong>Additional information</strong>. You will need this
+        later.</p>
+      <p>The existing client secret normally cannot be revealed. Choose <strong>Add secret</strong>, then immediately
+        copy and save the newly created secret.</p>
+      <div class="warning"><strong>Keep the client secret private.</strong> Do not share it with anyone.</div>
+      <div class="warning"><strong>Do NOT disable the old secret.</strong></div>
+      <figure>
+        <img src="images/07-create-secret.png" alt="Create OAuth client secret screenshot placeholder">
+      </figure>
+    </section>
+
+    <section class="step">
+      <span class="step-number">8</span>
+      <h2>Enter both values in DeFit++</h2>
+      <p>Use the "Edit OAuth Credentials" option in DeFit++ to enter the Web client ID and secret.</p>
+    </section>
+
+    <section class="step">
+      <span class="step-number">9</span>
+      <h2>Restart DeFit++</h2>
+      <p>Fully close DeFit++, reopen it, and try Google sign-in again. You will see this warning the first time you try
+        to sign in.</p>
+      <figure>
+        <img src="images/example-works.png" alt="In-app screenshot">
+      </figure>
+    </section>
+  </main>
+</body>
+
+</html>

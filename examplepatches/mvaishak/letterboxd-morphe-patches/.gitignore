@@ -131,3 +131,8 @@ local.properties
 
 # macOS
 .DS_Store
+
+# tooling
+.serena/
+
+TODO.md

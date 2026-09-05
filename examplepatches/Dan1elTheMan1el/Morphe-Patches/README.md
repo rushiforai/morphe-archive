@@ -57,7 +57,7 @@ Right now, this repo supports **PokeRaid**, **DeFit**, and **Custom Keyboard Des
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.4.2](https://github.com/Dan1elTheMan1el/Morphe-Patches/releases/tag/v1.4.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;15 patches total
+> **[v1.5.0](https://github.com/Dan1elTheMan1el/Morphe-Patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;15 patches total
 <details>
 <summary>📦 PokeRaid - for Pokémon GO Raid&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
@@ -102,8 +102,8 @@ Right now, this repo supports **PokeRaid**, **DeFit**, and **Custom Keyboard Des
 
 **🎯 Supported versions:**
 
-| 0.8.2a |
-| :---: |
+| 0.8.2a | 🧪&nbsp;0.9.3 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -111,7 +111,7 @@ Right now, this repo supports **PokeRaid**, **DeFit**, and **Custom Keyboard Des
 | [Login Fix Tutorial](#login-fix-tutorial) | Adds an in-app Google Fit login setup guide and a button to copy the installed APK's signing SHA-1. |  |
 | [Material You Theme](#material-you-theme) | Uses Android 12+ wallpaper-derived colors and enables safe system Force Dark without changing DeFit's AppCompat theme parent. |  |
 | [Remove Bottom Banner Ad](#remove-bottom-banner-ad) | Removes DeFit's bottom banner-ad container from the main layout. |  |
-| [Unlimited Time Bypass](#unlimited-time-bypass) | Removes the ad requirement and grants maximum active time when the button is pressed. |  |
+| [Unlimited Time Bypass](#unlimited-time-bypass) | Removes the ad requirement and grants the target DeFit version's maximum active time when the button is pressed. |  |
 
 </details>
 

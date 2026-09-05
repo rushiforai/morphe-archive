@@ -19,3 +19,19 @@ provided that such references:
 - Are accurate, factual, and non-misleading;
 - Do not suggest authorship by the Morphe project; and
 - Appear only in a secondary or descriptive context, not as part of the product or project name.
+
+Piko
+====
+
+The runtime resource-overlay theming technique used by the "Mod settings" /
+"Appearance" patches (`ModThemeApi31.java`, `OverlayTable.kt` — compiling a
+standalone `.arsc` overlay and applying it via `android.content.res.loader.
+ResourcesLoader`) is adapted from Piko, a Morphe patches collection for
+Twitter/X and Instagram:
+
+https://github.com/crimera/piko
+
+Piko is licensed under GPLv3 with its own additional terms under Section 7;
+see Piko's repository for the authoritative text of those terms. This
+project's use of that technique is credited here, and in source comments on
+the files above, in compliance with those terms.
