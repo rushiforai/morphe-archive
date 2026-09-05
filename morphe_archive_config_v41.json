@@ -1601,6 +1601,14 @@
                 "sortOrder": 205,
                 "createdAt": 1788577973428,
                 "updatedAt": 1788577973428
+            },
+            {
+                "name": "supreme-patches",
+                "source": "https://raw.githubusercontent.com/drnhzn/supreme-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 206,
+                "createdAt": 1788578448342,
+                "updatedAt": 1788578448342
             }
         ]
     }

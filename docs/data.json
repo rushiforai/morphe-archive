@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-09-05 03:14 UTC",
-  "configFile": "morphe_archive_config_v40.json",
-  "configVersion": 40,
-  "repoCount": 194,
-  "appCount": 769,
-  "patchCount": 3582,
+  "generatedAt": "2026-09-05 03:21 UTC",
+  "configFile": "morphe_archive_config_v41.json",
+  "configVersion": 41,
+  "repoCount": 195,
+  "appCount": 770,
+  "patchCount": 3583,
   "universalPatchCount": 515,
   "hostCounts": {
-    "github.com": 189,
+    "github.com": 190,
     "gitlab.com": 5
   },
   "visitorStats": {
@@ -3382,6 +3382,42 @@
           "patchCount": 2,
           "iconUrl": "https://play-lh.googleusercontent.com/m2k0X_fhgmj2MjDn_9rStPF9ngsXMO-DsC1ZhG3bcYl7hvJ9rwAOo7cKs9j5wnl-RNuDh-sfCUtF2sYzjcgzIg",
           "iconColor": ""
+        }
+      ]
+    },
+    {
+      "name": "supreme-patches",
+      "repo": "drnhzn/supreme-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/drnhzn/supreme-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/drnhzn/supreme-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/drnhzn/supreme-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/drnhzn/supreme-patches",
+      "addUrl": "https://morphe.software/add-source?github=drnhzn/supreme-patches",
+      "avatarUrl": "https://github.com/drnhzn.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1788578448342,
+      "updatedAt": 1788578448342,
+      "createdDate": "2026-09-05",
+      "updatedDate": "2026-09-05",
+      "latestChanges": {
+        "title": "1.0.0 (2026-08-20)",
+        "date": "2026-08-20",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "Add Reclub unlock premium patch"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Reclub",
+          "packageName": "co.reclub",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#00B894"
         }
       ]
     },
@@ -63289,8 +63325,8 @@
       ],
       "patches": [
         "Disable tracking",
-        "Unlock Premium",
-        "Unlock premium"
+        "Unlock premium",
+        "Unlock Premium"
       ],
       "patchDetails": [
         {
@@ -63298,12 +63334,12 @@
           "description": "Disables analytics and crash reporting."
         },
         {
-          "name": "Unlock Premium",
-          "description": "Unlocks Projectivy Launcher Premium"
-        },
-        {
           "name": "Unlock premium",
           "description": "Unlocks all premium features."
+        },
+        {
+          "name": "Unlock Premium",
+          "description": "Unlocks Projectivy Launcher Premium"
         }
       ],
       "versions": [
@@ -65424,6 +65460,64 @@
       ],
       "iconColor": "#E65100",
       "iconUrl": "https://play-lh.googleusercontent.com/XFq8lr7WJehXZS6ku2yDJ5n6Nv3RA9-lzP3T0TrUrhnB1va4JwxICWd01M0Rv7sjXexnLQRjq_dCmT-518dbG24"
+    },
+    {
+      "packageName": "co.reclub",
+      "name": "Reclub",
+      "repos": [
+        "drnhzn/supreme-patches"
+      ],
+      "sources": [
+        {
+          "repo": "drnhzn/supreme-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/drnhzn/supreme-patches",
+          "addUrl": "https://morphe.software/add-source?github=drnhzn/supreme-patches",
+          "source": "https://raw.githubusercontent.com/drnhzn/supreme-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/drnhzn/supreme-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/drnhzn.png?size=96",
+          "latestChanges": {
+            "title": "1.0.0 (2026-08-20)",
+            "date": "2026-08-20",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "Add Reclub unlock premium patch"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "co-reclub-drnhzn-supreme-patches",
+            "releaseTag": "app-co-reclub-drnhzn-supreme-patches",
+            "assetName": "reclub-drnhzn-supreme-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Unlock premium",
+              "description": "Unlock Reclub Supporter via backend entitlements API and RevenueCat bridge."
+            }
+          ],
+          "versions": [
+            "2.45.11"
+          ]
+        }
+      ],
+      "patches": [
+        "Unlock premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Unlock premium",
+          "description": "Unlock Reclub Supporter via backend entitlements API and RevenueCat bridge."
+        }
+      ],
+      "versions": [
+        "2.45.11"
+      ],
+      "iconColor": "#00B894",
+      "iconUrl": ""
     },
     {
       "packageName": "com.reddit.frontpage",
@@ -79872,8 +79966,8 @@
       ],
       "patches": [
         "Disable analytics",
-        "Disable Telemetry",
         "Disable telemetry",
+        "Disable Telemetry",
         "Disable update check",
         "Enable premium features",
         "GMS sign-in bypass",
@@ -79917,11 +80011,11 @@
           "description": "Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry."
         },
         {
-          "name": "Disable Telemetry",
+          "name": "Disable telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
-          "name": "Disable telemetry",
+          "name": "Disable Telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
@@ -87561,8 +87655,8 @@
         "Video playback",
         "Video quality",
         "Visual preferences icons for YouTube",
-        "Voice Over Translation",
         "Voice over translation",
+        "Voice Over Translation",
         "Voice Over Translation (Yandex)",
         "Watch history",
         "Watch later button",
@@ -88105,12 +88199,12 @@
           "description": "Adds icons to specific preferences in the settings."
         },
         {
-          "name": "Voice Over Translation",
-          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
-        },
-        {
           "name": "Voice over translation",
           "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
+        },
+        {
+          "name": "Voice Over Translation",
+          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
         },
         {
           "name": "Voice Over Translation (Yandex)",
@@ -94268,6 +94362,42 @@
   ],
   "recentSources": [
     {
+      "name": "supreme-patches",
+      "repo": "drnhzn/supreme-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/drnhzn/supreme-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/drnhzn/supreme-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/drnhzn/supreme-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/drnhzn/supreme-patches",
+      "addUrl": "https://morphe.software/add-source?github=drnhzn/supreme-patches",
+      "avatarUrl": "https://github.com/drnhzn.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1788578448342,
+      "updatedAt": 1788578448342,
+      "createdDate": "2026-09-05",
+      "updatedDate": "2026-09-05",
+      "latestChanges": {
+        "title": "1.0.0 (2026-08-20)",
+        "date": "2026-08-20",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "Add Reclub unlock premium patch"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Reclub",
+          "packageName": "co.reclub",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#00B894"
+        }
+      ]
+    },
+    {
       "name": "UniPatches",
       "repo": "Zanuaimi/UniPatches",
       "host": "github.com",
@@ -94760,42 +94890,6 @@
           "patchCount": 1,
           "iconUrl": "",
           "iconColor": ""
-        }
-      ]
-    },
-    {
-      "name": "morphe-patches",
-      "repo": "csagataj2/morphe-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/csagataj2/morphe-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/csagataj2/morphe-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/csagataj2/morphe-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/csagataj2/morphe-patches",
-      "addUrl": "https://morphe.software/add-source?github=csagataj2/morphe-patches",
-      "avatarUrl": "https://github.com/csagataj2.png?size=96",
-      "patchCount": 5,
-      "appCount": 1,
-      "createdAt": 1787910075027,
-      "updatedAt": 1787910075027,
-      "createdDate": "2026-08-28",
-      "updatedDate": "2026-08-28",
-      "latestChanges": {
-        "title": "1.0.1-dev.4 (2026-08-26)",
-        "date": "2026-08-26",
-        "items": [
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "aggressively kill protector services and hooks to resolve hang"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "MobilKincst\u00e1r",
-          "packageName": "hu.dorsum.clavis.kincstar.mobile",
-          "patchCount": 5,
-          "iconUrl": "",
-          "iconColor": "#0058A3"
         }
       ]
     }
