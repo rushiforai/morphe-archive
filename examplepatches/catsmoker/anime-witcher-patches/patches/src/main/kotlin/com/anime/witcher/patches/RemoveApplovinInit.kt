@@ -5,7 +5,7 @@ import app.morphe.patcher.patch.bytecodePatch
 
 val removeApplovinInitPatch = bytecodePatch(
     name = "Remove AppLovin initialization",
-    description = "Removes AppLovin SDK initialization from the Application class.",
+    description = "Removes AppLovin SDK initialization from the Application class. Original APK: https://www.animewitcher.com/",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_ANIME_WITCHER)

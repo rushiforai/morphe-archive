@@ -1,5 +1,22 @@
 #!/usr/bin/bash
 
+rish() {
+    local _rish_err _rish_rc _rish_del _rish_strip
+    _rish_del='/^[[:space:]]*Entering shell\.\.*[[:space:]]*$/d'
+    _rish_strip='s/^[[:space:]]*Entering shell\.\.*[[:space:]]*//'
+    _rish_err=$(mktemp) 2>/dev/null
+    if [ -n "$_rish_err" ]; then
+        command rish "$@" 2>"$_rish_err" | sed -e "$_rish_del" -e "$_rish_strip"
+        _rish_rc=${PIPESTATUS[0]}
+        sed -e "$_rish_del" -e "$_rish_strip" "$_rish_err" >&2
+        rm -f "$_rish_err"
+    else
+        command rish "$@" | sed -e "$_rish_del" -e "$_rish_strip"
+        _rish_rc=${PIPESTATUS[0]}
+    fi
+    return "$_rish_rc"
+}
+
 PKG_NAME="$1"
 UNINSTALL_FROM_ALL_USERS="$2"
 STORAGE="$3"
@@ -10,19 +27,16 @@ else
     log() { echo "- $1" >> "$STORAGE/rish_log.txt"; }
 fi
 
-# Uninstall command
 if [ "$UNINSTALL_FROM_ALL_USERS" = true ]; then
     CMD_RISH="pm uninstall --user all $PKG_NAME"
 else
     CMD_RISH="pm uninstall --user current $PKG_NAME"
 fi
 
-# Execute the uninstall command using rish
 OUTPUT=$(rish -c "$CMD_RISH" 2>&1)
 log "Uninstall command: $CMD_RISH"
 log "Uninstall output: $OUTPUT"
 
-# Check the output for success or failure
 if echo "$OUTPUT" | grep -q "^Success"; then
     log "Uninstall succeeded."
     exit 0

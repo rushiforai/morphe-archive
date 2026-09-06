@@ -18,7 +18,7 @@ private const val CARD_DEPTH_STYLE = "Lcom/nuvio/tv/domain/model/CardDepthStyle;
 private const val FUNCTION0 = "Lkotlin/jvm/functions/Function0;"
 private const val FUNCTION3 = "Lkotlin/jvm/functions/Function3;"
 private const val FUNCTION2 = "Lkotlin/jvm/functions/Function2;"
-private const val COMPOSER = "Le1/p;"
+private const val COMPOSER = "Lf1/p;"
 internal const val INTEGER = "Ljava/lang/Integer;"
 
 private fun Method.parameterNames() = parameterTypes.map(CharSequence::toString)
@@ -130,7 +130,7 @@ internal object HomeStateFingerprint : Fingerprint(
 /** Public Continue Watching card, anchored by its exact card-style and resource shape. */
 internal object ContinueWatchingCardFingerprint : Fingerprint(
     returnType = "V",
-    filters = listOf(literal(0x7f11038aL), literal(0x7f11038cL)),
+    filters = listOf(literal(0x7f1103a0L), literal(0x7f1103a2L)),
     custom = { method, _ ->
         val p = method.parameterNames()
         p.size == 16 && p[1] == FUNCTION0 && p[2] == FUNCTION0 &&
@@ -225,7 +225,7 @@ internal object StreamRouteFingerprint : Fingerprint(
     strings = listOf("stream/", "?poster=", "&manualSelection=", "&contentLanguage="),
     custom = { method, _ ->
         val p = method.parameterNames()
-        p.size == 19 && p.take(3) == listOf(
+        p.size == 21 && p[19] == INTEGER && p[20] == "I" && p.take(3) == listOf(
             "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;"
         ) && p[6] == INTEGER && p[7] == INTEGER && p[13] == INTEGER &&
             p.slice(14..17) == listOf("Z", "Z", "Z", "Z")

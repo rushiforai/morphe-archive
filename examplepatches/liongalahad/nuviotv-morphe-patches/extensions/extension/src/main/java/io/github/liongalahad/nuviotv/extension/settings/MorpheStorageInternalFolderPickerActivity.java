@@ -248,7 +248,7 @@ public final class MorpheStorageInternalFolderPickerActivity extends Activity {
                     " readable=" + root.canRead() + " writable=" + root.canWrite());
             rows.add(new FolderRow(FOLDER, label, root));
         }
-        location.setText("Storage devices");
+        location.setText(MorpheTranslations.text("Storage devices"));
         refreshRows();
     }
 
@@ -286,7 +286,7 @@ public final class MorpheStorageInternalFolderPickerActivity extends Activity {
                         "You can still select Use this folder to run the storage test.");
         directories.sort(Comparator.comparing(File::getName, String.CASE_INSENSITIVE_ORDER));
         for (File child : directories) rows.add(new FolderRow(FOLDER, child.getName(), canonical(child)));
-        location.setText(MorpheStoragePath.displayLabelForPath(folder.getAbsolutePath()));
+        location.setText(MorpheTranslations.text(MorpheStoragePath.displayLabelForPath(folder.getAbsolutePath())));
         refreshRows();
     }
 
@@ -320,11 +320,10 @@ public final class MorpheStorageInternalFolderPickerActivity extends Activity {
 
     private void confirmAppFolder() {
         new AlertDialog.Builder(this)
-                .setTitle("Use private app folder?")
-                .setMessage("Fire OS allows downloads in this folder, but Android removes them " +
-                        "if this app is uninstalled.")
-                .setPositiveButton("Continue", (dialog, which) -> chooseAppFolder())
-                .setNegativeButton("Cancel", null)
+                .setTitle(MorpheTranslations.text("Use private app folder?"))
+                .setMessage(MorpheTranslations.text("Fire OS allows downloads in this folder, but Android removes them if this app is uninstalled."))
+                .setPositiveButton(MorpheTranslations.text(MorpheTranslations.text("Continue")), (dialog, which) -> chooseAppFolder())
+                .setNegativeButton(MorpheTranslations.text(MorpheTranslations.text("Cancel")), null)
                 .show();
     }
 
@@ -394,7 +393,7 @@ public final class MorpheStorageInternalFolderPickerActivity extends Activity {
 
     private TextView text(String value, float sp, int color) {
         TextView view = new TextView(this);
-        view.setText(value);
+        view.setText(MorpheTranslations.text(value));
         view.setTextSize(sp);
         view.setTextColor(color);
         view.setGravity(Gravity.START);
@@ -429,7 +428,7 @@ public final class MorpheStorageInternalFolderPickerActivity extends Activity {
         @Override public View getView(int position, View recycled, ViewGroup parent) {
             TextView row = recycled instanceof TextView ? (TextView) recycled : new TextView(
                     MorpheStorageInternalFolderPickerActivity.this);
-            row.setText(getItem(position).label);
+            row.setText(MorpheTranslations.text(getItem(position).label));
             row.setTextSize(20);
             row.setGravity(Gravity.CENTER_VERTICAL);
             row.setIncludeFontPadding(false);

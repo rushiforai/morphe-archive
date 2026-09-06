@@ -1,5 +1,13 @@
 # Random Episode porting notes
 
+## 0.9.0-beta port
+
+The stream route bridge now preserves the new trailing profile ID. Native Compose state and episode-card contracts were re-audited across ABIs. This compartment owns translations for its setting and per-show pool dialog. Runtime continuation fixtures must exceed 120999 ms: 0.9 treats shorter playback as a placeholder and deliberately suppresses natural-end progress handling.
+
+The earlier notes below describe historical ports; their old obfuscated owner names are not current compatibility contracts. Current machine-readable contracts are in this compartment’s `patch.json`.
+
+## Earlier port history
+
 The behavior is derived from DeclanSC/NuvioTV branch `feat-random-episode` at commit `96b644f6daf66d2a4787e303d15b7501f7f3216a`. That branch last shared Nuvio history at `0.7.10-beta`, so its source changes cannot be copied into 0.8.11 directly.
 
 The 0.8.11 binary port extends the original one-shot action into persistent per-show random playback while adapting to the current navigation, player startup, progress and post-play implementations. It stores the global availability switch, per-show modes, per-show pools and completed-episode snapshots in Morphe-private device preferences.

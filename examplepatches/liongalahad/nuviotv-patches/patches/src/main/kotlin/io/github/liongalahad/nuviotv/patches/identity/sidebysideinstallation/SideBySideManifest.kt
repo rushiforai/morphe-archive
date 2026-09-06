@@ -22,6 +22,20 @@ internal object SideBySideManifest {
         renameProviderAuthorities(document)
         manifest.setAttribute("package", MORPHE_PACKAGE)
         (applications.item(0) as Element).setAttribute("android:label", MORPHE_LABEL)
+        // 0.9.0 declares labels on each selectable launcher icon activity. Changing only the
+        // application label no longer changes the name displayed by the TV launcher.
+        for (tag in listOf("activity", "activity-alias")) {
+            val components = document.getElementsByTagName(tag)
+            for (index in 0 until components.length) {
+                val component = components.item(index) as Element
+                val categories = component.getElementsByTagName("category")
+                if ((0 until categories.length).any {
+                    (categories.item(it) as Element).getAttribute("android:name") in setOf(
+                        "android.intent.category.LAUNCHER", "android.intent.category.LEANBACK_LAUNCHER"
+                    )
+                }) component.setAttribute("android:label", MORPHE_LABEL)
+            }
+        }
     }
 
     private fun renameDeclaredPermissions(document: Document) {

@@ -91,7 +91,7 @@ internal object LibraryGridContentFingerprint : Fingerprint(
                 } == true
             } == true
             && method.calls { reference ->
-                reference.definingClass == "Lf0/h;" && reference.name == "p" &&
+                reference.definingClass == "Lg0/h;" && reference.name == "p" &&
                     reference.parameterTypes.size == 5
             }
     }
@@ -114,7 +114,7 @@ internal object CloudSearchLabelFingerprint : Fingerprint(
     custom = { method, classDef ->
         method.name == "invoke" && FUNCTION3 in classDef.interfaces &&
             method.implementation?.instructions?.any { instruction ->
-                (instruction as? WideLiteralInstruction)?.wideLiteral == 0x7f110201L
+                (instruction as? WideLiteralInstruction)?.wideLiteral == 0x7f110217L
             } == true
     }
 )
@@ -125,7 +125,7 @@ internal object NativeLibraryEmptyStateFingerprint : Fingerprint(
     custom = { method, _ ->
         method.parameterNames().let { p ->
             p.size == 8 && p[0] == "Ljava/lang/String;" &&
-                p[1] == "Ljava/lang/String;" && p[2] == "Lh2/f;" &&
+                p[1] == "Ljava/lang/String;" && p[2] == "Li2/f;" &&
                 p[3].startsWith("L") && p[4] == "F" &&
                 p[5].startsWith("L") && p[6] == "I" && p[7] == "I"
         }
@@ -155,11 +155,11 @@ internal object NativeLibraryEmptyContentFingerprint : Fingerprint(
                 reference.returnType == "V" &&
                     reference.parameterTypes.map(CharSequence::toString).let { p ->
                         p.size == 8 && p[0] == "Ljava/lang/String;" &&
-                            p[1] == "Ljava/lang/String;" && p[2] == "Lh2/f;" &&
+                            p[1] == "Ljava/lang/String;" && p[2] == "Li2/f;" &&
                             p[4] == "F" && p[6] == "I" && p[7] == "I"
                     }
             } &&
-            method.calls { it.returnType == "Lh2/f;" && it.parameterTypes.isEmpty() }
+            method.calls { it.returnType == "Li2/f;" && it.parameterTypes.isEmpty() }
     }
 )
 

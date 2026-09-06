@@ -7,6 +7,7 @@ import kotlin.jvm.functions.Function3;
 
 /** Settings category contribution owned by Local Downloads. */
 public final class LocalDownloadsSettingsCategory implements MorpheSettingsCategory {
+    { PatchTranslations.register(); }
     public LocalDownloadsSettingsCategory() {
         MorpheStorageConsumers.register(
                 "playback.local_downloads",

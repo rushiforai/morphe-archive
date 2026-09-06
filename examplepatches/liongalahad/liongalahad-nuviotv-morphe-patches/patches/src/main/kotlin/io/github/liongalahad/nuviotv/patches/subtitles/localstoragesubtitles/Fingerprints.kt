@@ -15,36 +15,51 @@ private const val FUNCTION_1 = "Lkotlin/jvm/functions/Function1;"
 
 private fun Method.parameterNames() = parameterTypes.map(CharSequence::toString)
 
+internal object SubtitleMediaSourceFingerprint : Fingerprint(
+    returnType = "Landroidx/media3/exoplayer/source/MediaSource;",
+    strings = listOf("context", "url", "headers", "subtitleConfigurations", "responseHeaders",
+        "application/x-mpegURL", "application/dash+xml"),
+    custom = { method, _ -> method.parameterNames() == listOf(
+        "Landroid/content/Context;", "Ljava/lang/String;", "Ljava/util/Map;", LIST,
+        "Ljava/lang/String;", "Ljava/util/Map;", "Ljava/lang/String;", FUNCTION_0,
+        "Landroidx/media3/common/MediaMetadata;"
+    ) }
+)
+
 /** The complete three-rail subtitle overlay, matched by stable models, callbacks and focus behavior. */
 internal object SubtitleOverlayFingerprint : Fingerprint(
     returnType = "V",
-    strings = listOf("__off__", "__unknown__"),
+    strings = listOf("__off__", "onInternalTrackSelected", "onAddonSubtitleSelected", "installedSubtitleAddonOrder"),
     filters = listOf(
-        methodCall(definingClass = SUBTITLE, name = "getLang", returnType = "Ljava/lang/String;"),
-        methodCall(
-            definingClass = SUBTITLE_COMPANION,
-            name = "languageCodeToName",
-            parameters = listOf("Ljava/lang/String;"),
-            returnType = "Ljava/lang/String;"
-        )
+        methodCall(definingClass = SUBTITLE, name = "copy\$default", returnType = SUBTITLE),
+        methodCall(definingClass = SUBTITLE, name = "getLang", returnType = "Ljava/lang/String;")
     ),
     custom = { method, _ ->
         val parameters = method.parameterNames()
-        parameters.size == 17 &&
+        parameters.size == 19 &&
             parameters.take(5) == listOf("Z", LIST, "I", LIST, SUBTITLE) &&
             parameters[6] == "I" && parameters[7] == LIST && parameters[8] == "Z" &&
-            parameters.slice(9..13) == listOf(
+            parameters.slice(8..10) == listOf("Z", "Z", "Z") &&
+            parameters.slice(11..15) == listOf(
                 FUNCTION_1, FUNCTION_1, FUNCTION_0, FUNCTION_1, FUNCTION_0
             ) && parameters.last() == "I"
     }
 )
 
-/** Builds visible internal/addon option rows for the selected subtitle language. */
-internal object SubtitleOptionBuilderFingerprint : Fingerprint(
+/** The language list extracted from the overlay by R8 in 0.9.0. */
+internal object SubtitleLanguageRailFingerprint : Fingerprint(
     returnType = LIST,
+    parameters = listOf(LIST, LIST, "Ljava/lang/String;", "Ljava/lang/String;", "Z",
+        "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;"),
+    strings = listOf("__off__", "__unknown__", "component1(...)", "component2(...)"),
+    filters = listOf(methodCall(definingClass = SUBTITLE_COMPANION, name = "languageCodeToName",
+        parameters = listOf("Ljava/lang/String;"), returnType = "Ljava/lang/String;"))
+)
+
+/** 0.9.0 builds each addon option in a shared helper, including stream-provided subtitles. */
+internal object SubtitleOptionBuilderFingerprint : Fingerprint(
     parameters = listOf(
-        LIST, LIST, LIST,
-        "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;"
+        "Ljava/lang/String;", "Ljava/lang/String;", SUBTITLE
     ),
     filters = listOf(
         methodCall(definingClass = SUBTITLE, name = "getLang", returnType = "Ljava/lang/String;"),
@@ -56,7 +71,8 @@ internal object SubtitleOptionBuilderFingerprint : Fingerprint(
         ),
         methodCall(definingClass = SUBTITLE, name = "getAddonName", returnType = "Ljava/lang/String;"),
         methodCall(definingClass = SUBTITLE, name = "getId", returnType = "Ljava/lang/String;")
-    )
+    ),
+    custom = { method, _ -> method.returnType.startsWith("L") && method.returnType != "Ljava/lang/String;" }
 )
 
 /** Restores initial D-pad focus when the subtitle overlay is reopened. */
@@ -185,8 +201,8 @@ internal object SubtitleTextDownloaderFingerprint : Fingerprint(
     ),
     custom = { method, _ ->
         method.parameterNames().let {
-            it.size == 3 && it[1] == "Ljava/lang/String;" &&
-                it[2] == "Ljava/lang/String;"
+            it.size == 4 && it[1] == "Ljava/lang/String;" &&
+                it[2] == "Ljava/lang/String;" && it[3] == "Ljava/util/Map;"
         }
     }
 )

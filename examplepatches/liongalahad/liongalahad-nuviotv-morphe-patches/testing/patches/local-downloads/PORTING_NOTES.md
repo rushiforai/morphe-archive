@@ -1,5 +1,13 @@
 # Porting notes
 
+## 0.9.0-beta port
+
+The stream route now has 21 parameters, including the trailing profile ID. Native Compose bridges, badge metrics and fingerprints were updated. The TV Button/Text owners must be registered on hero entry as well as the Continue Watching dialog; a fresh movie page otherwise renders an incomplete injected action. The generic URI data-source wrapper restores local MP4 playback without replacing Nuvio’s network loader. Subtitle-language extraction now stops at the next data-class property, because 0.9 inserts system-language flags between language settings. The native subtitle worker remains discovered structurally for each ABI. This compartment owns translations for download settings and the Downloads manager.
+
+The earlier notes below describe historical ports; their old obfuscated owner names are not current compatibility contracts. Current machine-readable contracts are in this compartment’s `patch.json`.
+
+## Earlier port history
+
 Target: NuvioTV `0.8.11-beta`. The older phase-two prompt described a single `0.8.2` patch dependent on Local Media; the current requirement supersedes that architecture.
 
 The detail-hero and Continue Watching fingerprints wrap the native composable content before NuvioDialog receives it. NuvioTV 0.8.11 keeps episode options in a native action list and adds the overlay-style argument; the fingerprint appends patch actions immediately before the list is finalized while retaining Nuvio's native action renderer. The resumed-episode path uses a separate Compose dialog; its native defaultable TV Button and Text owners are supplied by structural fingerprints rather than obsolete optimized class names.

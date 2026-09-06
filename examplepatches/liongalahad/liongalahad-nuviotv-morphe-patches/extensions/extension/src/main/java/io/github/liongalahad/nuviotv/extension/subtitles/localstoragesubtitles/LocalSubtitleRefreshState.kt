@@ -48,7 +48,7 @@ object LocalSubtitleRefreshState {
     }
 
     private fun createRuntimeState(): Any? = try {
-        Class.forName("e1.j").declaredMethods.firstOrNull {
+        Class.forName("f1.j").declaredMethods.firstOrNull {
             Modifier.isStatic(it.modifiers) && it.returnType != Void.TYPE &&
                 it.parameterTypes.contentEquals(arrayOf(Object::class.java))
         }?.apply { isAccessible = true }?.invoke(null, 0)

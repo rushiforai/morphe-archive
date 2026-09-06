@@ -21,12 +21,10 @@ internal object TrackInfoConstructorFingerprint : Fingerprint(
     strings = listOf("name")
 )
 
-/** Builds the visible internal/addon option rows for one subtitle language. */
+/** Builds one addon option, shared by fetched and stream-provided subtitles in 0.9.0. */
 internal object SubtitleOptionBuilderFingerprint : Fingerprint(
-    returnType = "Ljava/util/List;",
     parameters = listOf(
-        "Ljava/util/List;", "Ljava/util/List;", "Ljava/util/List;",
-        "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;"
+        "Ljava/lang/String;", "Ljava/lang/String;", SUBTITLE
     ),
     filters = listOf(
         methodCall(definingClass = SUBTITLE, name = "getLang", returnType = "Ljava/lang/String;"),
@@ -38,7 +36,8 @@ internal object SubtitleOptionBuilderFingerprint : Fingerprint(
         ),
         methodCall(definingClass = SUBTITLE, name = "getAddonName", returnType = "Ljava/lang/String;"),
         methodCall(definingClass = SUBTITLE, name = "getId", returnType = "Ljava/lang/String;")
-    )
+    ),
+    custom = { method, _ -> method.returnType.startsWith("L") && method.returnType != "Ljava/lang/String;" }
 )
 
 /** 0.8.4 Compose content lambda that reads one remembered subtitle option's visible title. */

@@ -5,6 +5,7 @@ import app.template.patches.steamlink.androidxr.appearOnTopPatch
 import app.template.patches.steamlink.androidxr.androidXrUiExtensionPatch
 import app.template.patches.steamlink.androidxr.controllerVelocityPatch
 import app.template.patches.steamlink.androidxr.gxrFacebridgePatch
+import app.template.patches.steamlink.androidxr.gxrModernTongueBridgePatch
 import app.template.patches.steamlink.androidxr.unrestrictedBatteryUsagePatch
 import app.template.patches.steamlink.androidxr.xrCoreRuntimePatch
 import app.template.patches.steamlink.androidxr.xrDeviceConfigBaselinePatch
@@ -37,6 +38,8 @@ class PatchCompatibilityMatrixTest {
             assertTrue(patch.default, patch.name)
         }
         assertEquals("Appear on top (legacy)", appearOnTopPatch.name)
+        assertEquals("GXR face bridge (version 5002318 and below)", gxrFacebridgePatch.name)
+        assertEquals("GXR tongue bridge (version 5002322 and above)", gxrModernTongueBridgePatch.name)
     }
 
     @Test
@@ -77,7 +80,7 @@ class PatchCompatibilityMatrixTest {
         assertEquals(
             setOf(
                 xrGalaxyXrHighResolutionPatch,
-                gxrFacebridgePatch,
+                gxrModernTongueBridgePatch,
                 microphoneInputPresetPatch,
                 unrestrictedBatteryUsagePatch,
                 hmdOnlyPatch,
@@ -91,6 +94,8 @@ class PatchCompatibilityMatrixTest {
         assertEquals("final-balanced", oledCalibrationPatch.options["profile"].default)
         assertEquals("srgb8-highp", oledCalibrationPatch.options["outputPrecision"].default)
         assertFalse(deviceIdentityPatch in galaxyXrRecommended5002322Patch.dependencyClosure())
+        assertFalse(gxrFacebridgePatch.supports("2.0.22", 5002322))
+        assertTrue(gxrModernTongueBridgePatch.supports("2.0.22", 5002322))
         listOf(forceHmdInitializationGatesPatch, forceLobbyPermissionStateGatePatch, forceStreamXrGatesPatch)
             .forEach { assertFalse(it in galaxyXrRecommended5002322Patch.dependencyClosure()) }
     }
@@ -114,6 +119,8 @@ class PatchCompatibilityMatrixTest {
         }
         assertTrue(appearOnTopPatch.supports("2.0.22", 5002318))
         assertFalse(appearOnTopPatch.supports("2.0.22", 5002322))
+        assertTrue(gxrFacebridgePatch.supports("2.0.22", 5002318))
+        assertFalse(gxrModernTongueBridgePatch.supports("2.0.22", 5002318))
     }
 
     @Test
@@ -245,6 +252,7 @@ class PatchCompatibilityMatrixTest {
             forceLobbyPermissionStateGatePatch,
             forceStreamXrGatesPatch,
             gxrFacebridgePatch,
+            gxrModernTongueBridgePatch,
             xrGalaxyXrHighResolutionPatch,
             microphoneInputPresetPatch,
             oledCalibrationPatch,

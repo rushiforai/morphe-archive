@@ -32,21 +32,40 @@ public class TvWindowCallback implements Window.Callback {
 
     private final Window.Callback wrapped;
 
+    private final boolean belowBarOnly;
+
     public TvWindowCallback(Window.Callback wrapped, View contentTarget, View decorView) {
+        this(wrapped, contentTarget, decorView, true);
+    }
+
+    public TvWindowCallback(Window.Callback wrapped, View contentTarget, View decorView, boolean belowBarOnly) {
         this.wrapped = wrapped;
         this.contentTarget = contentTarget;
         this.decorView = decorView;
+        this.belowBarOnly = belowBarOnly;
+    }
+
+    private boolean isTarget(View view) {
+        try {
+            if (view == null || !view.isFocusable()) {
+                return false;
+            }
+            if (!belowBarOnly) {
+                return true;
+            }
+            int[] location = new int[2];
+            view.getLocationInWindow(location);
+            return location[1] >= CONTENT_Y_THRESHOLD;
+        } catch (Throwable t) {
+            return false;
+        }
     }
 
     private View getFocusTarget(View decor) {
         try {
             View target = contentTarget;
-            if (target != null && target.isAttachedToWindow() && target.isFocusable()) {
-                int[] location = new int[2];
-                target.getLocationInWindow(location);
-                if (location[1] >= CONTENT_Y_THRESHOLD) {
-                    return target;
-                }
+            if (target != null && target.isAttachedToWindow() && target.isShown() && isTarget(target)) {
+                return target;
             }
             View scanned = scanForContent(decor);
             if (scanned != null) {
@@ -60,9 +79,7 @@ public class TvWindowCallback implements Window.Callback {
 
     private View scanForContent(View view) {
         try {
-            int[] location = new int[2];
-            view.getLocationInWindow(location);
-            if (location[1] >= CONTENT_Y_THRESHOLD && view.isClickable() && view.isFocusable()) {
+            if (isTarget(view)) {
                 return view;
             }
             if (view instanceof ViewGroup) {
@@ -97,6 +114,9 @@ public class TvWindowCallback implements Window.Callback {
             }
             View focus = decorView.findFocus();
             if (focus != null) {
+                if (!belowBarOnly) {
+                    return wrapped.dispatchKeyEvent(event);
+                }
                 int[] location = new int[2];
                 focus.getLocationInWindow(location);
                 if (location[1] >= CONTENT_Y_THRESHOLD) {
@@ -104,8 +124,17 @@ public class TvWindowCallback implements Window.Callback {
                 }
             }
             View target = getFocusTarget(decorView);
-            if (target != null && target.requestFocus() && target.hasFocus()) {
+            if (target != null && target.isAttachedToWindow() && target.isShown()
+                    && target.requestFocus() && target.hasFocus()) {
                 return true;
+            }
+            java.util.List<View> targets = new java.util.ArrayList<View>();
+            TvFocusHelper.collectTargets(decorView, targets, belowBarOnly);
+            for (View candidate : targets) {
+                if (candidate.isAttachedToWindow() && candidate.isShown()
+                        && candidate.requestFocus() && candidate.hasFocus()) {
+                    return true;
+                }
             }
             return wrapped.dispatchKeyEvent(event);
         } catch (Throwable t) {

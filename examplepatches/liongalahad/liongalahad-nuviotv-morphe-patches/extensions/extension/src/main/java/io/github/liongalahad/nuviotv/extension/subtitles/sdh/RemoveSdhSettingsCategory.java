@@ -5,6 +5,7 @@ import kotlin.Unit;
 import kotlin.jvm.functions.Function3;
 
 public final class RemoveSdhSettingsCategory implements MorpheSettingsCategory {
+    { PatchTranslations.register(); }
     @Override public String id() { return "subtitles"; }
     @Override public int order() { return 400; }
     @Override public int contentOrder() { return 100; }

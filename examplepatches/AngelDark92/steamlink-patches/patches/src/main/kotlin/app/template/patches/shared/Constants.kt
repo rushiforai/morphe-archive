@@ -23,6 +23,11 @@ object Constants {
         SteamLinkBuild("2.0.22", 5002318),
         SteamLinkBuild("2.0.22", 5002322),
     )
+    private val FULL_FACEBRIDGE_STEAM_LINK_BUILDS =
+        LEGACY_STEAM_LINK_BUILDS + SteamLinkBuild("2.0.22", 5002318)
+    private val MODERN_TONGUE_BRIDGE_STEAM_LINK_BUILDS = listOf(
+        SteamLinkBuild("2.0.22", 5002322),
+    )
     private val HIGH_RESOLUTION_STEAM_LINK_BUILDS = listOf(
         SteamLinkBuild("2.0.20", 5001712),
         SteamLinkBuild("2.0.22", 5002244),
@@ -50,6 +55,16 @@ object Constants {
 
     fun isNativeXrSteamLinkBuild(version: String, versionCode: String): Boolean =
         NATIVE_XR_STEAM_LINK_BUILDS.any {
+            it.version == version && it.versionCode.toString() == versionCode
+        }
+
+    fun isFullFacebridgeSteamLinkBuild(version: String, versionCode: String): Boolean =
+        FULL_FACEBRIDGE_STEAM_LINK_BUILDS.any {
+            it.version == version && it.versionCode.toString() == versionCode
+        }
+
+    fun isModernTongueBridgeSteamLinkBuild(version: String, versionCode: String): Boolean =
+        MODERN_TONGUE_BRIDGE_STEAM_LINK_BUILDS.any {
             it.version == version && it.versionCode.toString() == versionCode
         }
 
@@ -94,7 +109,7 @@ object Constants {
             steamLinkBuildCompatibility(
                 build = build,
                 description = if (build.versionCode == 5002322) {
-                    "Build 5002322 recommends Galaxy XR high-resolution 3-projection fix, GXR face bridge, " +
+                    "Build 5002322 recommends Galaxy XR high-resolution 3-projection fix, GXR tongue bridge, " +
                         "Microphone input preset (Voice Recognition), Unrestricted battery usage, " +
                         "Visual Delay Fix (60 ms), and OLED color calibration with the Final balanced tested profile. " +
                         "The retired projection experiments are excluded."
@@ -118,12 +133,18 @@ object Constants {
             }
         }
 
+    val COMPATIBILITIES_STEAM_LINK_FULL_FACEBRIDGE =
+        COMPATIBILITIES_STEAM_LINK_BEFORE_LATEST
+
     val COMPATIBILITIES_STEAM_LINK_5002322 =
         COMPATIBILITIES_STEAM_LINK_NATIVE_XR.filter { compatibility ->
             compatibility.targets.any { target ->
                 target.version == "2.0.22" && target.versionCodes?.values?.contains(5002322) == true
             }
         }
+
+    val COMPATIBILITIES_STEAM_LINK_MODERN_TONGUE_BRIDGE =
+        COMPATIBILITIES_STEAM_LINK_5002322
 
     val COMPATIBILITIES_STEAM_LINK_5002318 =
         COMPATIBILITIES_STEAM_LINK_NATIVE_XR.filter { compatibility ->

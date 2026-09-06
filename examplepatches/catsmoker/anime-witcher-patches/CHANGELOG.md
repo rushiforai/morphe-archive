@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/catsmoker/anime-witcher-patches/compare/v1.1.0...v1.2.0) (2026-09-05)
+
+### ✨ New Features
+
+* merge Android TV and Rebranding into single optional patch toggles ([5c7df50](https://github.com/catsmoker/anime-witcher-patches/commit/5c7df5073c31a5a998c905a06102f32bf5efa589))
+
 ## [1.1.0](https://github.com/catsmoker/anime-witcher-patches/compare/v1.0.0...v1.1.0) (2026-09-04)
 
 ### ✨ New Features

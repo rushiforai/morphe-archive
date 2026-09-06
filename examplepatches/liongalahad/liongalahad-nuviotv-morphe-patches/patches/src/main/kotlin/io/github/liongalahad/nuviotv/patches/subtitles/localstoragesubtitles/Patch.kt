@@ -90,6 +90,8 @@ val localstoragesubtitlesPatch = bytecodePatch(
     execute {
         listOf(
             SubtitleOverlayFingerprint,
+            SubtitleMediaSourceFingerprint,
+            SubtitleLanguageRailFingerprint,
             SubtitleOptionBuilderFingerprint,
             SubtitleInitialFocusFingerprint,
             PlayerEventDispatcherFingerprint,
@@ -176,6 +178,11 @@ val localstoragesubtitlesPatch = bytecodePatch(
             )
         }
 
+        SubtitleMediaSourceFingerprint.method.addInstructions(
+            0,
+            "invoke-static/range { p2 .. p2 }, $RUNTIME->observeMediaUri(Ljava/lang/String;)V"
+        )
+
         SubtitleOverlayFingerprint.method.apply {
             val instructions = implementation!!.instructions
             val addonSessionCopy = instructions.withIndex().first { (_, instruction) ->
@@ -190,6 +197,26 @@ val localstoragesubtitlesPatch = bytecodePatch(
             check(addonSessionChangedRegister <= 15) {
                 "Addon session refresh register cannot be encoded safely"
             }
+            addInstructions(
+                addonSessionRefreshBranch.index,
+                """
+                    invoke-static { v$addonSessionChangedRegister }, $RUNTIME->refreshSessionAddonList(Z)Z
+                    move-result v$addonSessionChangedRegister
+                """
+            )
+            addInstructions(
+                0,
+                """
+                    invoke-static/range { p3 .. p3 }, $RUNTIME->mergeSubtitles(Ljava/util/List;)Ljava/util/List;
+                    move-result-object p3
+                    invoke-static/range { p12 .. p15 }, $RUNTIME->wrapSelection(Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)Lkotlin/jvm/functions/Function1;
+                    move-result-object p12
+                """
+            )
+        }
+
+        SubtitleLanguageRailFingerprint.method.apply {
+            val instructions = implementation!!.instructions
             val languageCall = instructions.withIndex().last { (_, instruction) ->
                 val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
                     ?: return@last false
@@ -261,22 +288,6 @@ val localstoragesubtitlesPatch = bytecodePatch(
                 """
                     invoke-static { v$languageResult, v$languageKey }, $RUNTIME->rewriteLanguageLabel(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
                     move-result-object v$languageResult
-                """
-            )
-            addInstructions(
-                addonSessionRefreshBranch.index,
-                """
-                    invoke-static { v$addonSessionChangedRegister }, $RUNTIME->refreshSessionAddonList(Z)Z
-                    move-result v$addonSessionChangedRegister
-                """
-            )
-            addInstructions(
-                0,
-                """
-                    invoke-static/range { p3 .. p3 }, $RUNTIME->mergeSubtitles(Ljava/util/List;)Ljava/util/List;
-                    move-result-object p3
-                    invoke-static/range { p10 .. p13 }, $RUNTIME->wrapSelection(Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)Lkotlin/jvm/functions/Function1;
-                    move-result-object p10
                 """
             )
         }

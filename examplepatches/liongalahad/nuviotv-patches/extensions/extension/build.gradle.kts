@@ -26,6 +26,8 @@ android {
 
 dependencies {
     compileOnly("androidx.media3:media3-common:1.8.0")
+    compileOnly("androidx.media3:media3-datasource:1.8.0")
+    testImplementation("androidx.media3:media3-datasource:1.8.0")
     testImplementation("androidx.media3:media3-common:1.8.0")
     testImplementation("androidx.test:core:1.6.1")
     testImplementation("junit:junit:4.13.2")

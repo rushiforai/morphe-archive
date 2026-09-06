@@ -6,6 +6,7 @@ import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_5002318
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_5002322
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_LEGACY_RECOMMENDED
 import app.template.patches.steamlink.androidxr.gxrFacebridgePatch
+import app.template.patches.steamlink.androidxr.gxrModernTongueBridgePatch
 import app.template.patches.steamlink.androidxr.unrestrictedBatteryUsagePatch
 import app.template.patches.steamlink.androidxr.xrCoreRuntimePatch
 import app.template.patches.steamlink.androidxr.xrDeviceConfigBaselinePatch
@@ -67,7 +68,7 @@ val galaxyXrRecommended5002322Patch = rawResourcePatch(
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_5002322.toTypedArray())
     dependsOn(
         xrGalaxyXrHighResolutionPatch,
-        gxrFacebridgePatch,
+        gxrModernTongueBridgePatch,
         microphoneInputPresetPatch,
         unrestrictedBatteryUsagePatch,
         hmdOnlyPatch,

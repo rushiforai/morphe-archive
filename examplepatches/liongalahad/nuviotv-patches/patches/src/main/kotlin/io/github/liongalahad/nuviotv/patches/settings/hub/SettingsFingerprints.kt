@@ -11,10 +11,10 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 internal object SettingsScreenFingerprint : Fingerprint(
     returnType = "V",
     filters = listOf(
-        literal(0x7f110946),
-        literal(0x7f110947),
-        literal(0x7f110944),
-        literal(0x7f110945),
+        literal(0x7f110974),
+        literal(0x7f110975),
+        literal(0x7f110972),
+        literal(0x7f110973),
         methodCall(
             definingClass = "Lkotlin/collections/CollectionsKt;",
             name = "listOf",
@@ -28,8 +28,8 @@ internal object SettingsScreenFingerprint : Fingerprint(
 internal object ExperienceSettingsHeaderFingerprint : Fingerprint(
     returnType = "V",
     filters = listOf(
-        literal(0x7f110921),
-        literal(0x7f110598)
+        literal(0x7f11094f),
+        literal(0x7f1105ae)
     )
 )
 
@@ -39,8 +39,8 @@ internal object ExperienceSettingsCardFingerprint : Fingerprint(
     parameters = listOf("Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;"),
     custom = { method, classDef ->
         val requiredLiterals = setOf(
-            0x7f11058cL, 0x7f110594L, 0x7f110597L,
-            0x7f110599L, 0x7f11059aL, 0x7f11059bL
+            0x7f1105a2L, 0x7f1105aaL, 0x7f1105adL,
+            0x7f1105afL, 0x7f1105b0L, 0x7f1105b1L
         )
         val methodLiterals = method.implementation?.instructions
             ?.mapNotNull { (it as? WideLiteralInstruction)?.wideLiteral }
@@ -56,8 +56,8 @@ internal object NativeSettingsSwitchUsageFingerprint : Fingerprint(
     returnType = "Ljava/lang/Object;",
     parameters = listOf("Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;"),
     filters = listOf(
-        literal(0x7f110a2f),
-        literal(0x7f110a30)
+        literal(0x7f110a5d),
+        literal(0x7f110a5e)
     ),
     custom = { method, classDef ->
         "Lkotlin/jvm/functions/Function3;" in classDef.interfaces &&

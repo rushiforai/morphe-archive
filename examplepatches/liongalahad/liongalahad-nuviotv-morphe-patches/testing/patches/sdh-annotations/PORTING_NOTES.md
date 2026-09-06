@@ -1,5 +1,13 @@
 # Porting notes
 
+## 0.9.0-beta port
+
+The cleanup algorithms and four behavior modes are unchanged. Shared settings integration now uses the 0.9 resource/Compose contracts, while this compartment owns all translated mode names, title and description. Locale catalogs preserve format placeholders and reject empty values.
+
+The earlier notes below describe historical ports; their old obfuscated owner names are not current compatibility contracts. Current machine-readable contracts are in this compartment’s `patch.json`.
+
+## Earlier port history
+
 Source reference: local `NuvioTV-0.8.0-sdh` worktree. Ported behavior includes bracketed and parenthetical annotations, speaker labels, music/sound suppression, whitespace cleanup, Android span preservation, empty-cue suppression, and `CueGroup` timing preservation.
 
 NuvioTV 0.8.11-beta includes its own Boolean `Strip SDH annotations` feature. Its Media3 wrapper forwards the original `CueGroup` while that setting is off and constructs a replacement group after its native regex filter while it is on. The patch arbitrates inside Nuvio's central Media3 cue filter: Nuvio filters only while the Morphe mode is `Off`; every active Morphe mode bypasses the native Media3 pass before the Morphe hook cleans the wrapper or direct sidecar output. This prevents destructive double filtering, preserves the exact semantics of `Normalize music symbols only`, and restores Nuvio's behavior immediately when Morphe is switched Off. Nuvio's native switch remains the only SDH filtering option for MPV/libass playback and is deliberately not intercepted there.

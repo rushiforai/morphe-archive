@@ -1,5 +1,13 @@
 # Porting notes
 
+## 0.9.0-beta port
+
+The overlay now has 19 parameters; subtitle callbacks occupy p12 through p15. Language-option construction moved to an extracted eight-parameter helper, and the addon option helper has three parameters. The native Subtitle constructor now includes isStreamProvided and headers; imported files use false and an empty map. The native subtitle downloader adds a headers Map and takes its URL at p1. Source URI observation supplies a patch-private identity for local files without populating Nuvio’s catalogue ID. Source creation can precede the first controller event, so that event must preserve the latest observed URI. All dependent fingerprints remain exact and fail closed. This compartment owns its settings translations.
+
+The earlier notes below describe historical ports; their old obfuscated owner names are not current compatibility contracts. Current machine-readable contracts are in this compartment’s `patch.json`.
+
+## Earlier port history
+
 The playback overlay fingerprint targets Nuvio's optimized subtitle screen by the fixed `__off__` and `__unknown__` language sentinels plus the surrounding Compose structure. The option-builder fingerprint targets the stable `Subtitle` model accessor and language-display conversion sequence. The initial-focus fingerprint targets Nuvio's two `overlay_open focus=` branches and only redirects reopened local selections through the reliable language-rail focus path. Player-event, selected-addon, remembered-track, track-restore, preference identity, and Media3 `SubtitleConfiguration` fingerprints keep the private source synchronized with Nuvio's controller without adding feature-specific behavior to shared infrastructure. All fingerprints are version-pinned and must match exactly once.
 
 The reserved internal language key sorts before ordinary languages, while Nuvio's fixed `None` row remains first. UI hooks rewrite only this key to `Local Storage`; imported model IDs encode the detected playback language and exact filename so Media3 receives a useful language tag and the existing secondary-label component can show the source filename. The action row is intercepted before Nuvio tries to select an empty subtitle URL.

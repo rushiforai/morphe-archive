@@ -6,25 +6,25 @@
   "target": {
     "application": "NuvioTV",
     "package": "com.nuvio.tv",
-    "versions": ["0.8.11-beta"],
+    "versions": ["0.9.0-beta"],
     "launchComponent": "com.nuvio.tv/.MainActivity"
   },
   "assets": {
     "universal": {
-      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.11-beta/app-full-universal-release.apk",
-      "sha256": "2a103194126dd7c832703d2c749de606218b2174885488b37a8a9622eb2ab9ad"
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.9.0-beta/app-full-universal-release.apk",
+      "sha256": "e94d66ef82e3fd7924ed3888d652ee8607f650e2bc3d0c586e8bfd31c0f5d0b5"
     },
     "x86_64": {
-      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.11-beta/app-full-x86_64-release.apk",
-      "sha256": "324c5d5671e5f8fd19e726b0bb31eb13296873bc2e05c91b29c6f7bd4d3366a0"
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.9.0-beta/app-full-x86_64-release.apk",
+      "sha256": "e3712cfd0cf4f0a25c1268ca6799abe68248f6ee4a4980974121f00b57f06712"
     },
     "arm64-v8a": {
-      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.11-beta/app-full-arm64-v8a-release.apk",
-      "sha256": "8fe9ad14b04e700d50e7abff7e49eb146b18d29f400cf225f8982eaee3a9bb5c"
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.9.0-beta/app-full-arm64-v8a-release.apk",
+      "sha256": "c4f7222e7e066f57429c54f3c2e1f52823ea666f6a9e60cc318374aa2fbe9004"
     },
     "armeabi-v7a": {
-      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.11-beta/app-full-armeabi-v7a-release.apk",
-      "sha256": "2e453628d694baa8f84abc26a784e3037fadd6a4fe4063bb128b0a5a168d1e70"
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.9.0-beta/app-full-armeabi-v7a-release.apk",
+      "sha256": "90e02ddb0793bce7d7c429a4d15cef632a3e6c058755eacce7128515195deec4"
     }
   },
   "dependencies": ["settings-hub"],
@@ -79,7 +79,7 @@
     "forbiddenNeedles": [],
     "smali": [
       {
-        "class": "na.u2",
+        "class": "ra.n2",
         "required": [
           "RandomEpisodeRuntime;->enterHero",
           "RandomEpisodeRuntime;->rewriteHeroNextToWatch",
@@ -88,22 +88,22 @@
         "forbidden": []
       },
       {
-        "class": "na.w5",
+        "class": "ra.o5",
         "required": ["RandomEpisodeRuntime;->captureDetailState"],
         "forbidden": []
       },
       {
-        "class": "oa.q2",
+        "class": "sa.m2",
         "required": ["RandomEpisodeRuntime;->enterHome"],
         "forbidden": []
       },
       {
-        "class": "oa.o0",
+        "class": "sa.j0",
         "required": ["RandomEpisodeRuntime;->captureHomeCatalog"],
         "forbidden": []
       },
       {
-        "class": "oa.k5",
+        "class": "sa.b5",
         "required": [
           "RandomEpisodeRuntime;->rewriteHomeContinueItems",
           "RandomEpisodeRuntime;->captureHomeContinueSplit"
@@ -111,17 +111,17 @@
         "forbidden": []
       },
       {
-        "class": "oa.r2",
+        "class": "sa.n2",
         "required": ["RandomEpisodeRuntime;->captureHomeState"],
         "forbidden": []
       },
       {
-        "class": "ha.x",
+        "class": "la.w",
         "required": ["RandomEpisodeRuntime;->rewriteStreamRoute"],
         "forbidden": []
       },
       {
-        "class": "qa.h8",
+        "class": "ua.l8",
         "required": [
           "RandomEpisodeRuntime;->captureNextContext",
           "RandomEpisodeRuntime;->chooseNextEpisode"
@@ -129,12 +129,12 @@
         "forbidden": []
       },
       {
-        "class": "qa.z8",
+        "class": "ua.b9",
         "required": ["RandomEpisodeRuntime;->recordProgress"],
         "forbidden": []
       },
       {
-        "class": "ea.l2",
+        "class": "ia.i2",
         "required": [
           "RandomEpisodeRuntime;->rewriteHomeContinueItem",
           "RandomEpisodeRuntime;->wrapHomeContinuePlay",
@@ -145,7 +145,7 @@
         "forbidden": []
       },
       {
-        "class": "ea.q1",
+        "class": "ia.n1",
         "required": [
           "RandomEpisodeRuntime;->activateContinueWatchingContent",
           "RandomEpisodeRuntime;->renderContinueWatchingBadge"
@@ -153,7 +153,7 @@
         "forbidden": []
       },
       {
-        "class": "ea.u1",
+        "class": "ia.r1",
         "required": [
           "RandomEpisodeRuntime;->bindContinueWatchingContent",
           "RandomEpisodeRuntime;->activateContinueWatchingContent"

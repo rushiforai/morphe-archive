@@ -5,7 +5,7 @@
 set -e
 
 DIR="${DIR:-/tmp/morphe-patches}"
-MSG="fix(shadowfight): v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType"
+MSG="fix(shadowfight): v22b - raise safe pointer lower bound to 0x1000000, fix crash"
 
 cd "$DIR"
 

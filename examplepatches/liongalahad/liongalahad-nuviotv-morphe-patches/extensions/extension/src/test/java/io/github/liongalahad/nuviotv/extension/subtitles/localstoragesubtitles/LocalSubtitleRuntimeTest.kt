@@ -12,6 +12,21 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 
 class LocalSubtitleRuntimeTest {
+    @Test fun `local file ownership is distinct and never replaces a catalogue identity`() {
+        try {
+            LocalSubtitleRuntime.observeMediaUri("file:///storage/movie-one.mp4")
+            LocalSubtitleRuntime.observeController(Any())
+            val first = LocalSubtitleRuntime.contentKeyForTesting("", null, null)
+            assertTrue(first.startsWith("local-uri:file:///storage/movie-one.mp4"))
+            assertEquals("tt123|S1|E2", LocalSubtitleRuntime.contentKeyForTesting("tt123", 1, 2))
+            LocalSubtitleRuntime.observeMediaUri("content://storage/movie-two")
+            assertFalse(first == LocalSubtitleRuntime.contentKeyForTesting("", null, null))
+            LocalSubtitleRuntime.observeMediaUri("https://example.invalid/video.mp4")
+            assertEquals("", LocalSubtitleRuntime.contentKeyForTesting("", null, null))
+        } finally {
+            LocalSubtitleRuntime.observeMediaUri(null)
+        }
+    }
     @get:Rule
     val temporaryFolder = TemporaryFolder()
 

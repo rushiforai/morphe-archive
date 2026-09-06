@@ -1,5 +1,22 @@
 #!/usr/bin/bash
 
+rish() {
+    local _rish_err _rish_rc _rish_del _rish_strip
+    _rish_del='/^[[:space:]]*Entering shell\.\.*[[:space:]]*$/d'
+    _rish_strip='s/^[[:space:]]*Entering shell\.\.*[[:space:]]*//'
+    _rish_err=$(mktemp) 2>/dev/null
+    if [ -n "$_rish_err" ]; then
+        command rish "$@" 2>"$_rish_err" | sed -e "$_rish_del" -e "$_rish_strip"
+        _rish_rc=${PIPESTATUS[0]}
+        sed -e "$_rish_del" -e "$_rish_strip" "$_rish_err" >&2
+        rm -f "$_rish_err"
+    else
+        command rish "$@" | sed -e "$_rish_del" -e "$_rish_strip"
+        _rish_rc=${PIPESTATUS[0]}
+    fi
+    return "$_rish_rc"
+}
+
 PKG_NAME="$1"
 APP_NAME="$2"
 EXPORTED_APK_NAME="$3"

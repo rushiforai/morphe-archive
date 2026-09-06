@@ -6,7 +6,7 @@ import app.morphe.patcher.patch.bytecodePatch
 
 val playWithExternalPlayerPatch = bytecodePatch(
     name = "Play with external player",
-    description = "Opens episodes in a system intent chooser so the user can pick their favorite video player (VLC, MX Player, etc.).",
+    description = "Opens episodes in a system intent chooser so the user can pick their favorite video player (VLC, MX Player, etc.). Original APK: https://www.animewitcher.com/",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_ANIME_WITCHER)

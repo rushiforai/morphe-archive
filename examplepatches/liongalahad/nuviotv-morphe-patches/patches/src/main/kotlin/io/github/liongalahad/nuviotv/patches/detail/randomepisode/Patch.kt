@@ -22,8 +22,8 @@ private const val CATEGORY_METADATA =
     "io.github.liongalahad.nuviotv.settings.provider.random_episode"
 private const val CATEGORY_PROVIDER =
     "io.github.liongalahad.nuviotv.extension.detail.randomepisode.RandomEpisodeSettingsCategory"
-private const val COMPOSER = "Le1/p;"
-private const val MODIFIER = "Lu1/q;"
+private const val COMPOSER = "Lf1/p;"
+private const val MODIFIER = "Lv1/q;"
 
 private val randomEpisodeCategoryResourcePatch = resourcePatch {
     compatibleWith(NUVIO_COMPATIBILITY)
@@ -358,7 +358,7 @@ val randomepisodePatch = bytecodePatch(
             val lambdaCallIndex = implementation!!.instructions.indexOfFirst { instruction ->
                 val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
                     ?: return@indexOfFirst false
-                reference.returnType.startsWith("Lo1/") &&
+                reference.returnType.startsWith("Lp1/") &&
                     reference.parameterTypes.map(CharSequence::toString).let { p ->
                         p.size == 3 && p[0] == "I" && p[1] == "Lkotlin/Function;" &&
                             p[2] == COMPOSER

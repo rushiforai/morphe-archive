@@ -8,7 +8,7 @@ patches {
         source = "git@github.com:user/anime-witcher-patches.git"
         author = "User"
         contact = "na"
-        website = "na"
+        website = "https://www.animewitcher.com/"
         license = "GPLv3"
     }
 

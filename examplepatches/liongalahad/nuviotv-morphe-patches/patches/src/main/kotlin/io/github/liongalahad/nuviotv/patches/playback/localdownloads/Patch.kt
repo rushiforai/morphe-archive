@@ -16,6 +16,7 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import io.github.liongalahad.nuviotv.patches.settings.hub.settingsUiPatch
 import io.github.liongalahad.nuviotv.patches.shared.Constants.NUVIO_COMPATIBILITY
 import io.github.liongalahad.nuviotv.patches.shared.updates.patchedAppUpdatesPatch
+import io.github.liongalahad.nuviotv.patches.shared.playback.uriDataSourcePatch
 import io.github.liongalahad.nuviotv.patches.shared.registerSegmentedMediaProvider
 import io.github.liongalahad.nuviotv.patches.shared.registerSharedStorageSettings
 import org.w3c.dom.Element
@@ -139,7 +140,7 @@ private fun wrapDialogContent(
     val lambdaCallIndex = method.implementation!!.instructions.indexOfFirst { instruction ->
         val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
             ?: return@indexOfFirst false
-        reference.definingClass == "Lo1/x;" && reference.name == "d" &&
+        reference.definingClass == "Lp1/x;" && reference.name == "d" &&
             reference.parameterTypes.map(CharSequence::toString).let { parameters ->
                 parameters.size == 3 && parameters[0] == "I" && parameters[1] == KOTLIN_FUNCTION
             }
@@ -203,7 +204,7 @@ val localdownloadsPatch = bytecodePatch(
     default = false
 ) {
     compatibleWith(NUVIO_COMPATIBILITY)
-    dependsOn(patchedAppUpdatesPatch, settingsUiPatch, localDownloadsResources)
+    dependsOn(patchedAppUpdatesPatch, settingsUiPatch, localDownloadsResources, uriDataSourcePatch)
     extendWith("extensions/nuviotv.mpe")
 
     execute {
@@ -233,6 +234,10 @@ val localdownloadsPatch = bytecodePatch(
                 move-object/from16 v2, p4
                 move-object/from16 v3, p24
                 invoke-static { v0, v1, v2, v3 }, $RUNTIME->enterHero(Ljava/lang/Object;Ljava/lang/Object;Lkotlin/jvm/functions/Function0;Ljava/lang/Object;)V
+                const-class v0, ${NativeDefaultableTvButtonFingerprint.classDef.type}
+                invoke-static/range { v0 .. v0 }, $RUNTIME->observeNativeTvButtonClass(Ljava/lang/Class;)V
+                const-class v0, ${NativeTextFingerprint.classDef.type}
+                invoke-static/range { v0 .. v0 }, $RUNTIME->observeNativeTextClass(Ljava/lang/Class;)V
             """
         )
 
@@ -282,7 +287,7 @@ val localdownloadsPatch = bytecodePatch(
             val watchedIconIndex = instructions.indexOfFirst { instruction ->
                 val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
                     ?: return@indexOfFirst false
-                reference.returnType == "Lh2/f;" && reference.parameterTypes.isEmpty()
+                reference.returnType == "Li2/f;" && reference.parameterTypes.isEmpty()
             }
             check(watchedIconIndex >= 0) { "Episode watched icon call was not found" }
             val watchedRead = instructions.withIndex().firstOrNull {
@@ -304,7 +309,7 @@ val localdownloadsPatch = bytecodePatch(
                             (next as? OneRegisterInstruction)?.registerA ==
                             (instruction as TwoRegisterInstruction).registerA &&
                             ((next as? ReferenceInstruction)?.reference as? TypeReference)?.type ==
-                            "Le1/p;"
+                            "Lf1/p;"
                     }
             }
             check(composerParameterMove != null) {

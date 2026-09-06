@@ -6,6 +6,7 @@ import kotlin.jvm.functions.Function3;
 
 /** Manifest-registered settings contribution owned by Random Episode. */
 public final class RandomEpisodeSettingsCategory implements MorpheSettingsCategory {
+    { PatchTranslations.register(); }
     @Override public String id() { return "detail_page"; }
     @Override public int order() { return 100; }
     @Override public String title() { return "Detail Page"; }

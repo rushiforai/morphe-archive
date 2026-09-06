@@ -3,12 +3,7 @@ package com.autocat.morphe.smartlauncher.extension;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.DialogInterface;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.content.res.TypedArray;
 import android.graphics.Typeface;
 import android.util.Log;
@@ -21,11 +16,6 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 
 public final class MorpheSettingsDialog {
 
@@ -53,13 +43,11 @@ public final class MorpheSettingsDialog {
             // 2. Resolve theme colors safely
             int colorPrimary = 0xFF212121;
             int colorSecondary = 0xFF757575;
-            int colorAccent = 0xFF4CAF50;
             try {
-                int[] colorAttrs = {android.R.attr.textColorPrimary, android.R.attr.textColorSecondary, android.R.attr.colorAccent};
+                int[] colorAttrs = {android.R.attr.textColorPrimary, android.R.attr.textColorSecondary};
                 TypedArray ta = themedContext.obtainStyledAttributes(colorAttrs);
                 colorPrimary = ta.getColor(0, 0xFF212121);
                 colorSecondary = ta.getColor(1, 0xFF757575);
-                colorAccent = ta.getColor(2, 0xFF4CAF50);
                 ta.recycle();
             } catch (Throwable ignored) {}
 
@@ -156,21 +144,7 @@ public final class MorpheSettingsDialog {
             builder.setTitle("Morphe Settings");
             builder.setView(scrollView);
 
-            builder.setPositiveButton("Archive App…", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    showAppArchivePicker(themedContext, false);
-                }
-            });
-
-            builder.setNeutralButton("Restore App…", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    showAppArchivePicker(themedContext, true);
-                }
-            });
-
-            builder.setNegativeButton("Done", null);
+            builder.setNegativeButton("Close", null);
             builder.create().show();
 
         } catch (Throwable t) {
@@ -251,72 +225,4 @@ public final class MorpheSettingsDialog {
         return v;
     }
 
-    private static class AppEntry {
-        final String packageName;
-        final String label;
-
-        AppEntry(String packageName, String label) {
-            this.packageName = packageName;
-            this.label = label;
-        }
-    }
-
-    private static void showAppArchivePicker(final Context context, final boolean unarchiveMode) {
-        try {
-            PackageManager pm = context.getPackageManager();
-            // MATCH_ARCHIVED_PACKAGES (0x8000) is required on API 35+ for archived packages to appear.
-            int pmFlags = (Build.VERSION.SDK_INT >= 35) ? 0x00008000 : 0;
-            List<PackageInfo> installed = pm.getInstalledPackages(pmFlags);
-            List<AppEntry> entries = new ArrayList<>();
-
-            for (PackageInfo pi : installed) {
-                if (pi.applicationInfo != null
-                        && (pi.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {
-                    boolean isArchived = ArchivedAppFilter.isAppArchived(pi.applicationInfo);
-                    if (unarchiveMode == isArchived) {
-                        CharSequence label = pi.applicationInfo.loadLabel(pm);
-                        String labelStr = label != null ? label.toString() : pi.packageName;
-                        entries.add(new AppEntry(pi.packageName, labelStr));
-                    }
-                }
-            }
-
-            if (entries.isEmpty()) {
-                Toast.makeText(context,
-                        unarchiveMode ? "No archived apps found" : "No user apps available to archive",
-                        Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // Sort alphabetically by app name
-            Collections.sort(entries, new Comparator<AppEntry>() {
-                @Override
-                public int compare(AppEntry o1, AppEntry o2) {
-                    return o1.label.compareToIgnoreCase(o2.label);
-                }
-            });
-
-            final List<String> packageNames = new ArrayList<>(entries.size());
-            final List<String> appLabels = new ArrayList<>(entries.size());
-            for (AppEntry e : entries) {
-                packageNames.add(e.packageName);
-                appLabels.add(e.label);
-            }
-
-            AlertDialog.Builder picker = new AlertDialog.Builder(context);
-            picker.setTitle(unarchiveMode ? "Restore Archived App" : "Archive App");
-            picker.setItems(appLabels.toArray(new CharSequence[0]),
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            String pkg = packageNames.get(which);
-                            MorpheMenuInjector.performArchiveOrRestoreAsync(context, pkg, unarchiveMode);
-                        }
-                    });
-            picker.setNegativeButton("Cancel", null);
-            picker.show();
-        } catch (Throwable t) {
-            Toast.makeText(context, "Error loading apps: " + t.getMessage(), Toast.LENGTH_LONG).show();
-        }
-    }
 }

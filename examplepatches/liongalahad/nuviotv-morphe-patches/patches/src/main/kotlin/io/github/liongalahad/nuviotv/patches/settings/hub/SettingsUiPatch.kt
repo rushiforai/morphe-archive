@@ -63,7 +63,7 @@ internal val settingsUiPatch = bytecodePatch {
 
         remapResourceLiterals(
             ExperienceSettingsHeaderFingerprint.method,
-            mapOf(0x7f110921 to 0x7f110946, 0x7f110598 to 0x7f110947)
+            mapOf(0x7f11094f to 0x7f110974, 0x7f1105ae to 0x7f110975)
         )
 
         fun MethodReference.descriptor() = buildString {
@@ -81,16 +81,16 @@ internal val settingsUiPatch = bytecodePatch {
         }
         val modifierField = references.filterIsInstance<FieldReference>()
             .distinctBy { "${it.definingClass}->${it.name}:${it.type}" }
-            .single { it.type == "Lu1/n;" }
+            .single { it.type == "Lv1/n;" }
         val methodReferences = references.filterIsInstance<MethodReference>()
             .distinctBy { it.descriptor() }
         val groupReference = methodReferences.single {
                 it.returnType == "V" && it.parameterTypes.map(CharSequence::toString).let { parameters ->
                     parameters.size == 7 &&
                         parameters.take(3) == listOf(
-                            "Lu1/q;", "Ljava/lang/String;", "Ljava/lang/String;"
+                            "Lv1/q;", "Ljava/lang/String;", "Ljava/lang/String;"
                         ) &&
-                        parameters[3].startsWith("Lo1/") &&
+                        parameters[3].startsWith("Lp1/") &&
                         parameters.takeLast(2) == listOf("I", "I")
                 }
             }
@@ -111,7 +111,7 @@ internal val settingsUiPatch = bytecodePatch {
             "Native Experience group call no longer uses the expected seven registers"
         }
         check(pageMethod.parameters.size == 4 &&
-            pageMethod.parameters[1].type == "Lz1/y;" &&
+            pageMethod.parameters[1].type == "La2/b0;" &&
             pageMethod.parameters[2].type == composerType) {
             "Native Experience page no longer exposes the Layout-compatible focus/composer parameters"
         }

@@ -26,20 +26,21 @@ internal object CheckForUpdatesFingerprint : Fingerprint(
     parameters = listOf("Z", "Z")
 )
 
-/** About-page content lambda containing both update controls and the following Privacy row. */
+/** 0.9.0 isolates the channel, banner and manual check in one native Composable. */
 internal object AboutUpdateControlsFingerprint : Fingerprint(
-    returnType = "Ljava/lang/Object;",
-    parameters = listOf("Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;"),
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
+    returnType = "V",
     filters = listOf(
+        literal(0x7f110029L), // Update channel
+        literal(0x7f110028L),
         literal(0x7f110027L), // Automatic update banner
         literal(0x7f110026L),
         literal(0x7f11001bL), // Check for updates
-        literal(0x7f11001cL),
-        literal(0x7f110020L), // Privacy policy, the first row after update controls
-        literal(0x7f110021L)
+        literal(0x7f11001cL)
     ),
-    custom = { method, classDef ->
-        method.name == "invoke" &&
-            "Lkotlin/jvm/functions/Function3;" in classDef.interfaces
+    custom = { method, _ ->
+        method.parameterTypes.size == 3 &&
+            method.parameterTypes.take(2).all { it.toString().startsWith("L") } &&
+            method.parameterTypes.last().toString() == "I"
     }
 )

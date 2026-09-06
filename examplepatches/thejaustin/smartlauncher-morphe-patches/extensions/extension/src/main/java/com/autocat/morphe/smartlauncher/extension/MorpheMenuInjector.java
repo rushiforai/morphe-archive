@@ -716,13 +716,27 @@ public final class MorpheMenuInjector {
 
     /**
      * Entry point for Morphe settings called by patched Dev options / Experimental features.
+     * obj1 = PrefMenuActivity instance, obj2 = original Dev Options Intent.
+     * We show Morphe settings AND forward the original intent so Dev Options also opens.
      */
     public static void openMorpheSettings(Object obj1, Object obj2) {
         Context ctx = resolveContext(obj1);
+        if (ctx == null) ctx = resolveContext(obj2);
+        if (ctx == null) ctx = getForegroundActivity();
         if (ctx == null) {
-            ctx = resolveContext(obj2);
+            try {
+                Class<?> atClass = Class.forName("android.app.ActivityThread");
+                Method currentAppMethod = atClass.getMethod("currentApplication");
+                ctx = (Context) currentAppMethod.invoke(null);
+            } catch (Throwable ignored) {}
         }
-        openMorpheSettings(ctx);
+        if (ctx == null) return;
+        MorpheSettingsDialog.show(ctx);
+        if (obj2 instanceof Intent) {
+            try { ctx.startActivity((Intent) obj2); } catch (Throwable t) {
+                Log.w(TAG, "openMorpheSettings: forwarding Dev Options intent failed: " + t.getMessage());
+            }
+        }
     }
 
     public static void openMorpheSettings(Object obj) {

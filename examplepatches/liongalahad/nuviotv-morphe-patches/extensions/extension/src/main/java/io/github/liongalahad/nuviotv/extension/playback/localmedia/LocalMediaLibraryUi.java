@@ -274,8 +274,8 @@ public final class LocalMediaLibraryUi {
             Method method = previewKeyModifierMethod;
             if (method == null) {
                 ClassLoader loader = modifier.getClass().getClassLoader();
-                Class<?> modifierClass = Class.forName("u1.q", false, loader);
-                method = Class.forName("m2.d", false, loader).getDeclaredMethod(
+                Class<?> modifierClass = Class.forName("v1.q", false, loader);
+                method = Class.forName("n2.d", false, loader).getDeclaredMethod(
                         "e", modifierClass, Function1.class);
                 method.setAccessible(true);
                 previewKeyModifierMethod = method;
@@ -587,7 +587,7 @@ public final class LocalMediaLibraryUi {
         if (snapshotState != null && queryState != null && selectedEntryState != null) return;
         synchronized (LocalMediaLibraryUi.class) {
             if (snapshotState != null && queryState != null && selectedEntryState != null) return;
-            Class<?> stateFactory = Class.forName("e1.j", false, loader);
+            Class<?> stateFactory = Class.forName("f1.j", false, loader);
             Method mutableState = null;
             for (Method candidate : stateFactory.getDeclaredMethods()) {
                 Class<?>[] parameters = candidate.getParameterTypes();
@@ -692,7 +692,7 @@ public final class LocalMediaLibraryUi {
         ClassLoader loader = scope.getClass().getClassLoader();
         Method item = lazyItemMethod;
         if (item == null) {
-            Class<?> gridScope = Class.forName("f0.h", false, loader);
+            Class<?> gridScope = Class.forName("g0.h", false, loader);
             for (Method candidate : gridScope.getDeclaredMethods()) {
                 Class<?>[] parameters = candidate.getParameterTypes();
                 if (Modifier.isStatic(candidate.getModifiers()) && candidate.getReturnType() == Void.TYPE &&
@@ -720,7 +720,7 @@ public final class LocalMediaLibraryUi {
 
     private static Object fullSpan(ClassLoader loader) {
         try {
-            Class<?> itemScope = Class.forName("f0.u", false, loader);
+            Class<?> itemScope = Class.forName("g0.u", false, loader);
             Field maxSpanField = null;
             for (Field field : itemScope.getDeclaredFields()) {
                 if (Modifier.isStatic(field.getModifiers()) && field.getType() == Integer.TYPE) {
@@ -732,10 +732,10 @@ public final class LocalMediaLibraryUi {
             if (maxSpanField == null) throw new NoSuchFieldException("Native grid maximum span");
             int maxSpan = maxSpanField.getInt(null);
             Method pack = null;
-            // Compose 1.9 moved the grid-span packer from t6.a to k6.g. Match its
-            // stable static (int) -> long shape so this bridge also remains usable
-            // across Nuvio builds that retain the older optimized owner.
-            for (String ownerName : new String[]{"k6.g", "t6.a"}) {
+            // Nuvio 0.9.0's optimizer separated this helper from the LazyColumn
+            // owner. The isolated APK contract checks a.a.H(int):long and its
+            // positive-span guard; a shared owner mapping is insufficient here.
+            for (String ownerName : new String[]{"a.a"}) {
                 Class<?> owner;
                 try {
                     owner = Class.forName(ownerName, false, loader);
@@ -756,7 +756,7 @@ public final class LocalMediaLibraryUi {
             }
             if (pack == null) throw new NoSuchMethodException("Native grid span packer");
             long packed = ((Number) pack.invoke(null, maxSpan)).longValue();
-            Constructor<?> constructor = Class.forName("f0.c", false, loader)
+            Constructor<?> constructor = Class.forName("g0.c", false, loader)
                     .getDeclaredConstructor(Long.TYPE);
             constructor.setAccessible(true);
             return constructor.newInstance(packed);
@@ -775,7 +775,7 @@ public final class LocalMediaLibraryUi {
                 method = owner.getDeclaredMethod(
                         requiredNativeOwner(cloudSearchMethodName, "Library search method"),
                         String.class, Function1.class,
-                        Class.forName("e1.p", false, composer.getClass().getClassLoader()), Integer.TYPE);
+                        Class.forName("f1.p", false, composer.getClass().getClassLoader()), Integer.TYPE);
                 method.setAccessible(true);
                 cloudSearchMethod = method;
             }
@@ -844,7 +844,7 @@ public final class LocalMediaLibraryUi {
             ClassLoader loader = composer.getClass().getClassLoader();
             Class<?> itemClass = Class.forName(
                     requiredNativeOwner(cloudItemOwnerName, "Cloud item model"), false, loader);
-            Class<?> composerClass = Class.forName("e1.p", false, loader);
+            Class<?> composerClass = Class.forName("f1.p", false, loader);
             if (card == null) {
                 card = Class.forName(
                         requiredNativeOwner(cloudCardOwnerName, "Library card"), false, loader
@@ -968,14 +968,14 @@ public final class LocalMediaLibraryUi {
             ClassLoader loader = composer.getClass().getClassLoader();
             Method method = emptyStateMethod;
             if (method == null) {
-                Class<?> iconClass = Class.forName("h2.f", false, loader);
+                Class<?> iconClass = Class.forName("i2.f", false, loader);
                 method = Class.forName(
                         requiredNativeOwner(emptyStateOwnerName, "Library status"), false, loader
                 ).getDeclaredMethod(
                         requiredNativeOwner(emptyStateMethodName, "Library status method"),
                         String.class, String.class, iconClass,
-                        Class.forName("u1.q", false, loader), Float.TYPE,
-                        Class.forName("e1.p", false, loader), Integer.TYPE, Integer.TYPE);
+                        Class.forName("v1.q", false, loader), Float.TYPE,
+                        Class.forName("f1.p", false, loader), Integer.TYPE, Integer.TYPE);
                 method.setAccessible(true);
                 emptyStateMethod = method;
             }
@@ -1040,7 +1040,7 @@ public final class LocalMediaLibraryUi {
 
     private static Object nativeButtonColors(Object composer) throws ReflectiveOperationException {
         ClassLoader loader = composer.getClass().getClassLoader();
-        Class<?> keyOwner = Class.forName("xa.b1", false, loader);
+        Class<?> keyOwner = Class.forName("bb.z0", false, loader);
         Method readLocal = null;
         for (Method candidate : composer.getClass().getMethods()) {
             if (candidate.getName().equals("j") && candidate.getParameterCount() == 1) {
@@ -1055,7 +1055,7 @@ public final class LocalMediaLibraryUi {
             if (!Modifier.isStatic(candidate.getModifiers())) continue;
             candidate.setAccessible(true);
             Object value = readLocal.invoke(composer, candidate.get(null));
-            if (value != null && "xa.e".equals(value.getClass().getName())) {
+            if (value != null && "bb.e".equals(value.getClass().getName())) {
                 colors = value;
                 break;
             }
@@ -1070,7 +1070,7 @@ public final class LocalMediaLibraryUi {
 
         Method factory = nativeButtonColorsMethod;
         if (factory == null) {
-            for (Method candidate : Class.forName("p5.f", false, loader).getDeclaredMethods()) {
+            for (Method candidate : Class.forName("s5.f", false, loader).getDeclaredMethods()) {
                 Class<?>[] parameters = candidate.getParameterTypes();
                 if (Modifier.isStatic(candidate.getModifiers()) && parameters.length == 8 &&
                         parameters[0] == Long.TYPE && parameters[1] == Long.TYPE &&

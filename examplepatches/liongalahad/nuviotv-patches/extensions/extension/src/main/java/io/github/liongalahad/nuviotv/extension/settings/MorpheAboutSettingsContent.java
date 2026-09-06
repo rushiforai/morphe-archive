@@ -22,7 +22,7 @@ public final class MorpheAboutSettingsContent implements Function3<Object, Objec
                 modifier,
                 composer,
                 "Morphe Patches " + MorpheBuildInfo.version(),
-                "By " + MorpheBuildInfo.author() + " · Open GitHub repository",
+                MorpheTranslations.format("By %s · Open GitHub repository", MorpheBuildInfo.author()),
                 MorpheOpenRepositoryAction.create()
         );
         return Unit.INSTANCE;

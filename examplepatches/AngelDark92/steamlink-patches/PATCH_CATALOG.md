@@ -6,7 +6,8 @@ Each entry lists the exact APK artifact and value(s) a patch writes or modifies.
 Steam Link 2.0.20 build 5001712 has an independently decoded base and exact guarded layouts for the permission prompt, legacy native gates, OLED/output precision, controller cadence, and Visual Delay Fix. These adaptations are statically validated; APK installation and headset runtime validation remain pending. Steam Link 2.0.20 build 5001740 is an exact static-analysis legacy target with its own guarded native layout. Its available source is a reconstruction from a malformed hybrid APK; pristine-APK Morphe patching, installation, and headset runtime validation remain pending.
 Steam Link 2.0.20 build 5001712 and the other legacy recommendation bundle use the same 16
 direct patches listed below. Steam Link 2.0.22 build 5002318 keeps its native-XR-safe 7-patch
-recommendation, while build 5002322 recommends only 6 patches: GXR face bridge, Galaxy XR
+recommendation with GXR face bridge (version 5002318 and below), while build 5002322 recommends only 6 patches:
+GXR tongue bridge (version 5002322 and above), Galaxy XR
 high-resolution 3-projection fix, Microphone input preset (`voice-recognition`), OLED color
 calibration (`final-balanced`, safe `srgb8-highp` output), Unrestricted battery usage, and Visual
 Delay Fix (`60` ms). Appear on top is excluded from 5002322. Video dither is removed as a
@@ -26,7 +27,7 @@ bundle. Appear on top and Change package name remain optional and are never reco
 |---|---|---|
 | `Galaxy XR recommended set (2.0.20/5001712)` | 2.0.20/5001712 | 16-patch legacy set below, including Device identity with Meta Quest Pro spoof |
 | `Galaxy XR recommended set (2.0.22/5002322)` | 2.0.22/5002322 | Only the 6 final patches above |
-| `Galaxy XR recommended set (2.0.22/5002318)` | 2.0.22/5002318 | Native-XR-safe 7-patch set: the same 6 final patches plus Device identity with Galaxy XR identity |
+| `Galaxy XR recommended set (2.0.22/5002318)` | 2.0.22/5002318 | Native-XR-safe 7-patch set using the full face bridge plus Device identity with Galaxy XR identity |
 | `Galaxy XR legacy foundation (through 2.0.22/5002244)` | 2.0.20/5001740, 2.0.22/5002172, 2.0.22/5002206, 2.0.22/5002244 | Same 16-patch legacy set as 5001712, including Meta Quest Pro spoof; unavailable native adaptations remain guarded no-ops |
 
 Both legacy bundles directly select:
@@ -35,7 +36,7 @@ Both legacy bundles directly select:
 2. Force HMD initialization gates
 3. Force lobby permission-state gate
 4. Force stream XR gates
-5. GXR face bridge
+5. GXR face bridge (version 5002318 and below)
 6. Galaxy XR high-resolution 3-projection fix
 7. Microphone input preset (`voice-recognition`)
 8. OLED color calibration (`final-balanced`, `srgb8-highp`)
@@ -160,13 +161,36 @@ Selection uses exact `(versionName, versionCode)` before checking the pinned lib
 
 ---
 
-### GXR Face Bridge (`gxrFacebridgePatch`)
-**Default: disabled individually; selected by all 4 recommendation bundles** — depends on the guarded permission bootstrap
+### GXR Face Bridge (version 5002318 and below) (`gxrFacebridgePatch`)
+**Default: disabled individually; compatible only through build 5002318 and selected by the two legacy bundles plus the 5002318 bundle** — depends on the guarded permission bootstrap
 | Artifact | Edit |
 |---|---|
 | `lib/arm64-v8a/libgxr_face_bridge.so` | New file (XR_FB_face_tracking2 → XR_ANDROID_face_tracking API layer) |
 | `assets/openxr/1/api_layers/implicit.d/XR_APILAYER_local_GalaxyXR_face_bridge.json` | New file (instance extension `XR_FB_face_tracking2`; disable env: `GXR_DISABLE_FACE_BRIDGE`) |
 | `AndroidManifest.xml` `uses-permission` | Adds `android.permission.FACE_TRACKING` |
+
+---
+
+### GXR Tongue Bridge (version 5002322 and above) (`gxrModernTongueBridgePatch`)
+**Default: disabled individually; exact 2.0.22/5002322 only and selected by its recommended bundle**
+
+Headset test on 2026-09-04: the user reported that this exact-build patch works.
+
+Preserves Valve's native `XR_ANDROID_face_tracking` mapping for expressions 0–62. A guarded
+24-byte AArch64 replacement at `libvrlink_scene.so` virtual/file offset `0x140EA4` exposes the
+otherwise discarded Android tongue direction values while retaining standard FB2 TongueOut.
+The exact library size is 2,283,400 bytes and the recorded stock SHA-256 is
+`e61baf34dfc4749d92561bab5fee47891d271607a0ce44824ff61c3e6a450c3f`.
+The patch accepts only the complete original or already-patched 24-byte block and fails atomically
+for any other layout.
+
+| Output slot | Value |
+|---|---|
+| 63 | TongueOut transport copy |
+| 64–67 | TongueLeft, TongueRight, TongueUp, TongueDown |
+| 68 | Standard FB2 TongueOut |
+| 69 | Standard TongueRetreat, preserved as zero |
+| `AndroidManifest.xml` | Adds `android.permission.FACE_TRACKING` through the shared guarded permission patch |
 
 ---
 
@@ -479,9 +503,9 @@ and its 6-patch recommendation is unchanged.
 
 | APK artifact | Patches that write to it |
 |---|---|
-| `lib/arm64-v8a/libvrlink_scene.so` | `disablePermissionPromptNativePatch` (layout-specific 8 B), native permission/gate patches, `hmdOnlyPatch` (hook + cave + velocity), `controllerVelocityPatch` (controller cadence instructions in `QSVLClient::OnTopOfFrame`), `oledCalibrationPatch` (1087-byte GLSL block plus 2 or 3 guarded swapchain instructions) |
+| `lib/arm64-v8a/libvrlink_scene.so` | `disablePermissionPromptNativePatch` (layout-specific 8 B), native permission/gate patches, `hmdOnlyPatch` (hook + cave + velocity), `controllerVelocityPatch` (controller cadence instructions in `QSVLClient::OnTopOfFrame`), `gxrModernTongueBridgePatch` (5002322-only 24 B), `oledCalibrationPatch` (1087-byte GLSL block plus 2 or 3 guarded swapchain instructions) |
 | `assets/config/hmd_config.json` | `xrDeviceConfigBaselinePatch` (baseline), `deviceIdentityPatch` (profile override — intentional) |
-| `AndroidManifest.xml` | `xrManifestCapabilityPackPatch`, `xrLauncherBootstrapPatch`, `gxrFacebridgePatch`, `appearOnTopPatch`, `xrGalaxyXrHighResolutionPatch`, `changePackageNamePatch` |
+| `AndroidManifest.xml` | `xrManifestCapabilityPackPatch`, `xrLauncherBootstrapPatch`, shared face-tracking permission used by `gxrFacebridgePatch` and `gxrModernTongueBridgePatch`, `appearOnTopPatch`, `xrGalaxyXrHighResolutionPatch`, `changePackageNamePatch` |
 | `lib/arm64-v8a/libgxr_ast.so` | `xrGalaxyXrHighResolutionPatch` |
 | `res/values/ids.xml` | `androidXrLibPatch`, `controllerVelocityPatch`, `gxrFacebridgeLibPatch` (all: idempotent create-if-missing only) |
 

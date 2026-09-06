@@ -24,6 +24,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import io.github.liongalahad.nuviotv.patches.settings.hub.settingsUiPatch
 import io.github.liongalahad.nuviotv.patches.shared.Constants.NUVIO_COMPATIBILITY
 import io.github.liongalahad.nuviotv.patches.shared.updates.patchedAppUpdatesPatch
+import io.github.liongalahad.nuviotv.patches.shared.playback.uriDataSourcePatch
 import io.github.liongalahad.nuviotv.patches.shared.registerSegmentedMediaProvider
 import io.github.liongalahad.nuviotv.patches.shared.registerSharedStorageSettings
 import org.w3c.dom.Element
@@ -132,7 +133,7 @@ val localmediaPatch = bytecodePatch(
     default = false
 ) {
     compatibleWith(NUVIO_COMPATIBILITY)
-    dependsOn(patchedAppUpdatesPatch, settingsUiPatch, localMediaResources)
+    dependsOn(patchedAppUpdatesPatch, settingsUiPatch, localMediaResources, uriDataSourcePatch)
     extendWith("extensions/nuviotv.mpe")
 
     execute {
@@ -294,7 +295,7 @@ val localmediaPatch = bytecodePatch(
                 emptyContentInstructions.subList(maxOf(0, index - 24), index).asReversed()
                     .firstNotNullOfOrNull { preceding ->
                         ((preceding as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf {
-                            it.returnType == "Lh2/f;" && it.parameterTypes.isEmpty()
+                            it.returnType == "Li2/f;" && it.parameterTypes.isEmpty()
                         }
                     }
             }.distinctBy { "${it.definingClass}->${it.name}" }.single()
@@ -425,10 +426,21 @@ val localmediaPatch = bytecodePatch(
                     "NUVIO"
             }
             check(nuvioLabelIndex >= 0) { "Library NUVIO source label was not found" }
-            val labelRegister = (instructions[nuvioLabelIndex] as? OneRegisterInstruction)
-                ?.registerA ?: error("Library NUVIO source label has no destination register")
+            // 0.9.0 adds a resource-backed LOCAL branch for guest profiles.
+            // Rewrite the common Text argument after all source branches merge,
+            // so guest and authenticated profiles both receive the Storage badge.
+            val textCallIndex = instructions.indices.drop(nuvioLabelIndex + 1).firstOrNull { index ->
+                val reference = (instructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+                reference?.returnType == "V" && reference.parameterTypes.size == 19 &&
+                    reference.parameterTypes.firstOrNull()?.toString() == "Ljava/lang/String;"
+            } ?: error("Library source badge Text call was not found")
+            val labelRegister = when (val instruction = instructions[textCallIndex]) {
+                is RegisterRangeInstruction -> instruction.startRegister
+                is FiveRegisterInstruction -> instruction.registerC
+                else -> error("Library source badge Text call has no argument registers")
+            }
             addInstructions(
-                nuvioLabelIndex + 1,
+                textCallIndex,
                 """
                     invoke-static/range { v$labelRegister .. v$labelRegister }, $LIBRARY_UI->storageSourceLabel(Ljava/lang/String;)Ljava/lang/String;
                     move-result-object v$labelRegister
@@ -441,7 +453,7 @@ val localmediaPatch = bytecodePatch(
         val headerItemCalls = gridInstructions.mapIndexedNotNull { index, instruction ->
             val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
                 ?: return@mapIndexedNotNull null
-            index.takeIf { reference.definingClass == "Lf0/h;" && reference.name == "p" }
+            index.takeIf { reference.definingClass == "Lg0/h;" && reference.name == "p" }
         }
         check(headerItemCalls.size >= 2) { "Library grid shared header calls were not found" }
         // The span and content-lambda arguments created for the second shared header are dead
@@ -483,7 +495,7 @@ val localmediaPatch = bytecodePatch(
         CloudSearchLabelFingerprint.method.apply {
             val instructions = implementation!!.instructions
             val labelResourceIndex = instructions.indexOfFirst { instruction ->
-                (instruction as? WideLiteralInstruction)?.wideLiteral == 0x7f110201L
+                (instruction as? WideLiteralInstruction)?.wideLiteral == 0x7f110217L
             }
             check(labelResourceIndex >= 0) { "Cloud search label resource load was not found" }
             val labelStringCallIndex = instructions.withIndex()
@@ -492,7 +504,7 @@ val localmediaPatch = bytecodePatch(
                     val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
                         ?: return@firstOrNull false
                     reference.returnType == "Ljava/lang/String;" &&
-                        reference.parameterTypes.any { it.toString() == "Le1/p;" }
+                        reference.parameterTypes.any { it.toString() == "Lf1/p;" }
                 }?.index ?: error("Cloud search label string lookup was not found")
             val labelResult = instructions.getOrNull(labelStringCallIndex + 1)
                 as? OneRegisterInstruction

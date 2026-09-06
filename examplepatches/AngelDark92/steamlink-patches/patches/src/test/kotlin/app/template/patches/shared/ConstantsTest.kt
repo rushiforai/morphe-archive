@@ -51,6 +51,18 @@ class ConstantsTest {
             Constants.COMPATIBILITIES_STEAM_LINK_5002322.versionCodes(),
         )
         assertEquals(
+            listOf(5001740, 5001712, 5002172, 5002206, 5002244, 5002313, 5002318),
+            Constants.COMPATIBILITIES_STEAM_LINK_FULL_FACEBRIDGE.versionCodes(),
+        )
+        assertEquals(
+            listOf(5002322),
+            Constants.COMPATIBILITIES_STEAM_LINK_MODERN_TONGUE_BRIDGE.versionCodes(),
+        )
+        assertTrue(Constants.isFullFacebridgeSteamLinkBuild("2.0.22", "5002318"))
+        assertFalse(Constants.isFullFacebridgeSteamLinkBuild("2.0.22", "5002322"))
+        assertTrue(Constants.isModernTongueBridgeSteamLinkBuild("2.0.22", "5002322"))
+        assertFalse(Constants.isModernTongueBridgeSteamLinkBuild("2.0.22", "5002318"))
+        assertEquals(
             listOf(5002318),
             Constants.COMPATIBILITIES_STEAM_LINK_5002318.versionCodes(),
         )

@@ -1,6 +1,7 @@
 package io.github.liongalahad.nuviotv.extension.playback.localdownloads;
 
 import android.app.Activity;
+import io.github.liongalahad.nuviotv.extension.settings.MorpheTranslations;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.StateListDrawable;
@@ -59,7 +60,7 @@ public final class LocalDownloadsManagerActivity extends Activity {
         LinearLayout heading = new LinearLayout(this);
         heading.setGravity(Gravity.CENTER_VERTICAL);
         TextView title = LocalDownloadsTvUi.text(this, 32, LocalDownloadsTvUi.TEXT_PRIMARY);
-        title.setText("Downloads");
+        title.setText(MorpheTranslations.text("Downloads"));
         heading.addView(title, new LinearLayout.LayoutParams(0, -2, 1f));
         deleteAll = LocalDownloadsTvUi.button(this, "Delete all downloads");
         deleteAll.setOnClickListener(view -> startActivity(
@@ -73,7 +74,7 @@ public final class LocalDownloadsManagerActivity extends Activity {
         screen.addView(summary, summaryParams);
 
         TextView help = LocalDownloadsTvUi.text(this, 15, LocalDownloadsTvUi.TEXT_SECONDARY);
-        help.setText("Press an item to play it. Hold for playback or deletion options.");
+        help.setText(MorpheTranslations.text("Press an item to play it. Hold for playback or deletion options."));
         LinearLayout.LayoutParams helpParams = new LinearLayout.LayoutParams(-1, -2);
         helpParams.topMargin = dp(6);
         screen.addView(help, helpParams);
@@ -127,7 +128,7 @@ public final class LocalDownloadsManagerActivity extends Activity {
         screen.addView(list, new LinearLayout.LayoutParams(-1, 0, 1f));
 
         empty = LocalDownloadsTvUi.text(this, 19, LocalDownloadsTvUi.TEXT_SECONDARY);
-        empty.setText("No local downloads");
+        empty.setText(MorpheTranslations.text("No local downloads"));
         empty.setGravity(Gravity.CENTER);
         screen.addView(empty, new LinearLayout.LayoutParams(-1, 0, 1f));
         setContentView(screen);
@@ -139,7 +140,7 @@ public final class LocalDownloadsManagerActivity extends Activity {
         items.addAll(LocalDownloadsRuntime.availableEntries());
         adapter.notifyDataSetChanged();
         int count = items.size();
-        summary.setText(count + (count == 1 ? " downloaded item • " : " downloaded items • ") +
+        summary.setText(MorpheTranslations.format(count == 1 ? "%d item" : "%d items", count) + " • " +
                 LocalDownloadsStorageStats.caption());
         deleteAll.setEnabled(count > 0);
         empty.setVisibility(count == 0 ? View.VISIBLE : View.GONE);

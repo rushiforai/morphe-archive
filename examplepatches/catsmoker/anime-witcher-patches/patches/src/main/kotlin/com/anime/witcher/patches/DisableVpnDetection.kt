@@ -16,7 +16,7 @@ import app.morphe.patcher.patch.bytecodePatch
  */
 val disableVpnDetectionsPatch = bytecodePatch(
     name = "Disable VPN detection and alerts",
-    description = "Removes VPN/DNS detection and the VPN alert dialogs.",
+    description = "Removes VPN/DNS detection and the VPN alert dialogs. Original APK: https://www.animewitcher.com/",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_ANIME_WITCHER)

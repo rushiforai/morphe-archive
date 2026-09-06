@@ -18,4 +18,4 @@ If Nuvio would normally classify that show's Next Up episode as an unreleased `U
 
 ## Credit
 
-The original Random Episode settings and feature implementation were created by [**DeclanSC**](https://github.com/DeclanSC). This Morphe patch ports that work to NuvioTV 0.8.11-beta's current binary structure.
+The original Random Episode settings and feature implementation were created by [**DeclanSC**](https://github.com/DeclanSC). This Morphe patch ports that work to NuvioTV 0.9.0-beta's current binary structure.

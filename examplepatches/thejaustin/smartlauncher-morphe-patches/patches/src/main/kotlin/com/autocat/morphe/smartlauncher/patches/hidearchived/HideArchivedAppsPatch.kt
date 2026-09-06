@@ -20,6 +20,7 @@ val hideArchivedAppsPatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(Constants.COMPATIBILITY)
+    extendWith("extensions/extension.mpe")
 
     execute {
         val match = GetActivityListFingerprint.matchOrNull()

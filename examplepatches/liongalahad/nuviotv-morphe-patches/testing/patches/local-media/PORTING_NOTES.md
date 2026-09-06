@@ -1,5 +1,13 @@
 # Local Media porting notes
 
+## 0.9.0-beta port
+
+The native Compose bridges and resource IDs were re-audited. The full-width grid span helper moved to `a.a.H(int):long`; using the old aggregated helper owner crashed when entering Storage. The source badge hook now transforms the common native text argument, including the new guest LOCAL resource branch. Storage video playback requires the generic URI data-source wrapper: 0.9 automatically chooses an HTTP MP4 chunk loader, even for `file://` URLs. Wrapping the selected upstream in Media3 DefaultDataSource retains the native network engine while routing file/content URIs correctly. The settings translation catalog is owned by this compartment.
+
+The earlier notes below describe historical ports; their old obfuscated owner names are not current compatibility contracts. Current machine-readable contracts are in this compartment’s `patch.json`.
+
+## Earlier port history
+
 NuvioTV 0.8.11-beta already builds playback data sources with Media3 `DefaultDataSource.Factory`, so persisted `content://` document URIs require no replacement transport. The patch adds same-basename subtitle configurations at the existing `PlayerMediaSourceFactory.createMediaSource` boundary and passes the content URI through the native Player route.
 
 The Library mode is a private Kotlin enum with Saved and Cloud values. The patch adds a third enum constant and rebuilds the generated values and entries arrays. It intercepts the third value before Nuvio's exhaustive two-value label and selection branches, then contributes Storage search, refresh and grid content directly to the existing Library composition. Patch-owned runtime state remains isolated behind generic bytecode hooks; playback continues through the native navigation graph and player.

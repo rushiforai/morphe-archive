@@ -13,7 +13,7 @@ The repository's concrete package root is `io.github.liongalahad.nuviotv`; the l
 
 ## Shared settings hub
 
-The internal settings-hub resource patch injects one initialization provider and per-patch metadata registration. On 0.8.11-beta, Nuvio already compiles a hidden `EXPERIENCE` settings section. The patch changes its label to `Morphe`, maps that slot to a visible branch inside the exact settings filter, and converts its native mode card into inline patch compartments. Navigation remains in the current Settings window and inherits Nuvio's typography, focus treatment, spacing, colors, selector-card styling, and D-pad behavior. Selecting Morphe transfers Nuvio's native detail-pane focus requester to the first visible Morphe category.
+The internal settings-hub resource patch injects one initialization provider and per-patch metadata registration. On 0.9.0-beta, Nuvio already compiles a hidden `EXPERIENCE` settings section. The patch changes its label to `Morphe`, maps that slot to a visible branch inside the exact settings filter, and converts its native mode card into inline patch compartments. Navigation remains in the current Settings window and inherits Nuvio's typography, focus treatment, spacing, colors, selector-card styling, and D-pad behavior. Selecting Morphe transfers Nuvio's native detail-pane focus requester to the first visible Morphe category.
 
 Each choice writes private `morphe_patches` storage synchronously, closes the modal, and redraws the selector subtitle immediately. The SDH selector provides `Off`, symbol normalization without removal, annotation removal with lyric preservation, and full cleanup. The legacy dev.7 Boolean migrates to `Remove SDH, keep lyrics`. Preferences never enter Nuvio profiles, account sync, telemetry, playback reports, or backend DTOs.
 
@@ -33,3 +33,7 @@ The shared settings hub owns the complete Morphe pane skeleton. Individual patch
 The Media3 hook targets Nuvio's `TextOutput` wrapper structurally. It cleans the list extracted at the start of every `CueGroup` callback and, only when that list changes, rebuilds the incoming group with the original `presentationTimeUs` before either of Nuvio's forwarding branches can run. The legacy list callback is filtered at method entry. Each outgoing group rechecks the current cached preference. Text cues are copied only when changed; timing, positioning, surviving spans, non-text cues, and styling are retained. Empty cleaned cues are suppressed.
 
 MPV/libass is explicitly deferred.
+
+## URI transport dispatch
+
+`shared/playback` contributes a single dependency that wraps the progressive upstream factory with Media3 `DefaultDataSource.Factory`. It handles URI schemes generically, contains no optional-feature knowledge, and leaves HTTP/HTTPS routed to the original factory. This is required because the 0.9 MP4 chunk-session path otherwise bypasses Android file/content transport. Unit coverage verifies file bytes and preserved HTTPS delegation.

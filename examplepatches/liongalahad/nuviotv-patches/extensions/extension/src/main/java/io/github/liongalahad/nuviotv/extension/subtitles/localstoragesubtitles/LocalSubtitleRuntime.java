@@ -114,6 +114,20 @@ public final class LocalSubtitleRuntime {
         activeController = new WeakReference<>(controller);
     }
 
+    private static volatile String localPlaybackUri;
+
+    /** Local files have no catalogue ID; keep their subtitle ownership entirely patch-private. */
+    public static synchronized void observeMediaUri(String uri) {
+        localPlaybackUri = uri != null && (uri.startsWith("file://") || uri.startsWith("content://"))
+                ? uri : null;
+        // Source construction can precede the first controller event. Keep the latest source
+        // across that event and replace an existing local key whenever its source changes.
+        if (activeContentKey == null || activeContentKey.isEmpty() ||
+                activeContentKey.startsWith("local-uri:")) {
+            observeContentIdentity("", null, null);
+        }
+    }
+
     public static synchronized void observeContentIdentity(
             String contentId, Integer season, Integer episode
     ) {
@@ -661,12 +675,14 @@ public final class LocalSubtitleRuntime {
                 ClassLoader loader = LocalSubtitleRuntime.class.getClassLoader();
                 Class<?> subtitleClass = Class.forName("com.nuvio.tv.domain.model.Subtitle", false, loader);
                 constructor = subtitleClass.getDeclaredConstructor(
-                        String.class, String.class, String.class, String.class, String.class
+                        String.class, String.class, String.class, String.class, String.class,
+                        Boolean.TYPE, java.util.Map.class
                 );
                 constructor.setAccessible(true);
                 subtitleConstructor = constructor;
             }
-            return constructor.newInstance(id, url, language, addonName, addonLogo);
+            return constructor.newInstance(id, url, language, addonName, addonLogo,
+                    false, java.util.Collections.emptyMap());
         } catch (Throwable ignored) {
             return null;
         }
@@ -791,6 +807,7 @@ public final class LocalSubtitleRuntime {
 
     private static String contentKey(String contentId, Integer season, Integer episode) {
         String id = contentId == null ? "" : contentId.trim();
+        if (id.isEmpty() && localPlaybackUri != null) id = "local-uri:" + localPlaybackUri;
         if (id.isEmpty()) return "";
         return id + "|S" + (season == null ? "-" : season) + "|E" + (episode == null ? "-" : episode);
     }

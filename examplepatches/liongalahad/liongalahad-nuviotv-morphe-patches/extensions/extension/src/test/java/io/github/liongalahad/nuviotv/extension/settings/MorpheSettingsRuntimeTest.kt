@@ -48,7 +48,7 @@ class MorpheSettingsRuntimeTest {
     }
 
     @Test
-    fun `native settings bridges use the verified 0_8_11 owners`() {
+    fun `native settings bridges use the verified 0_9_0 owners`() {
         fun owners(fieldName: String): Array<String> {
             val field = MorpheSettingsRows::class.java.getDeclaredField(fieldName)
             field.isAccessible = true
@@ -56,9 +56,9 @@ class MorpheSettingsRuntimeTest {
             return field.get(null) as Array<String>
         }
 
-        assertArrayEquals(arrayOf("ua.x"), owners("NATIVE_SWITCH_CLASS_NAMES"))
-        assertArrayEquals(arrayOf("ua.qc"), owners("NATIVE_SELECTOR_CLASS_NAMES"))
-        assertArrayEquals(arrayOf("ua.x"), owners("NATIVE_COLLAPSIBLE_CLASS_NAMES"))
+        assertArrayEquals(arrayOf("ya.uc"), owners("NATIVE_SWITCH_CLASS_NAMES"))
+        assertArrayEquals(arrayOf("ya.uc"), owners("NATIVE_SELECTOR_CLASS_NAMES"))
+        assertArrayEquals(arrayOf("ya.q4"), owners("NATIVE_COLLAPSIBLE_CLASS_NAMES"))
     }
 
     @Test

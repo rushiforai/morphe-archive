@@ -13,9 +13,9 @@ import kotlin.jvm.functions.Function3;
 final class MorpheSettingsRows {
     private static final int NATIVE_CATEGORY_LIST_DEFAULT_MASK = 510 & ~16;
     private static final int NATIVE_SELECTOR_EXPLICIT_ENABLED_MASK = 0x3fb0;
-    private static final String[] NATIVE_SWITCH_CLASS_NAMES = {"ua.x"};
-    private static final String[] NATIVE_SELECTOR_CLASS_NAMES = {"ua.qc"};
-    private static final String[] NATIVE_COLLAPSIBLE_CLASS_NAMES = {"ua.x"};
+    private static final String[] NATIVE_SWITCH_CLASS_NAMES = {"ya.uc"};
+    private static final String[] NATIVE_SELECTOR_CLASS_NAMES = {"ya.uc"};
+    private static final String[] NATIVE_COLLAPSIBLE_CLASS_NAMES = {"ya.q4"};
 
     private static volatile Method nativeCardMethod;
     private static volatile Method nativeSwitchMethod;
@@ -62,10 +62,10 @@ final class MorpheSettingsRows {
                 nativeSwitchMethod = method;
             }
             if (method.getParameterCount() == 7) {
-                method.invoke(null, title, description, selected, action, (Function0<Unit>) () -> Unit.INSTANCE,
+                method.invoke(null, MorpheTranslations.text(title), MorpheTranslations.text(description), selected, action, (Function0<Unit>) () -> Unit.INSTANCE,
                         composer, 0);
             } else {
-                method.invoke(null, title, description, selected, action, modifier, null, true, composer, 0, 112);
+                method.invoke(null, MorpheTranslations.text(title), MorpheTranslations.text(description), selected, action, modifier, null, true, composer, 0, 112);
             }
         } catch (ReflectiveOperationException error) {
             throw new IllegalStateException("Unable to render a native Morphe switch row", error);
@@ -97,7 +97,7 @@ final class MorpheSettingsRows {
                 nativeCardMethod = method;
             }
             method.invoke(
-                    null, title, value, null, action, null, null, enabled, null, null,
+                    null, MorpheTranslations.text(title), MorpheTranslations.text(value), null, action, null, null, enabled, null, null,
                     0L, null, null, 0.0f, 0L, composer, 0, 0,
                     NATIVE_SELECTOR_EXPLICIT_ENABLED_MASK
             );
@@ -114,7 +114,7 @@ final class MorpheSettingsRows {
             if (!isMutableState(state)) {
                 Method factory = mutableStateFactoryMethod;
                 if (factory == null) {
-                    Class<?> stateHelpers = Class.forName("e1.j", false, composer.getClass().getClassLoader());
+                    Class<?> stateHelpers = Class.forName("f1.j", false, composer.getClass().getClassLoader());
                     for (Method candidate : stateHelpers.getDeclaredMethods()) {
                         if (Modifier.isStatic(candidate.getModifiers()) &&
                                 candidate.getParameterCount() == 1 &&
@@ -144,9 +144,9 @@ final class MorpheSettingsRows {
             Method readSlot = composer.getClass().getDeclaredMethod("R");
             readSlot.setAccessible(true);
             Object requester = readSlot.invoke(composer);
-            if (requester == null || !"z1.y".equals(requester.getClass().getName())) {
+            if (requester == null || !"a2.b0".equals(requester.getClass().getName())) {
                 Class<?> requesterClass = Class.forName(
-                        "z1.y", false, composer.getClass().getClassLoader()
+                        "a2.b0", false, composer.getClass().getClassLoader()
                 );
                 requester = requesterClass.getDeclaredConstructor().newInstance();
                 Method writeSlot = composer.getClass().getDeclaredMethod("o0", Object.class);
@@ -202,7 +202,7 @@ final class MorpheSettingsRows {
                 // k6.g and changed the obfuscated vertical-arrangement interface.
                 // Match the stable public call shape and derive that interface from
                 // parameter 3 instead of pinning another obfuscated type name.
-                for (String className : new String[]{"k6.g", "t6.a", "a.a"}) {
+                for (String className : new String[]{"n6.g", "t6.a", "a.a"}) {
                     Class<?> lazyColumnClass;
                     try {
                         lazyColumnClass = Class.forName(
@@ -216,6 +216,7 @@ final class MorpheSettingsRows {
                         if (Modifier.isStatic(candidate.getModifiers()) &&
                                 candidate.getReturnType() == Void.TYPE && parameters.length == 12 &&
                                 Function1.class.isAssignableFrom(parameters[8]) &&
+                                "d0.h".equals(parameters[3].getName()) &&
                                 parameters[10] == Integer.TYPE && parameters[11] == Integer.TYPE) {
                             candidate.setAccessible(true);
                             method = candidate;
@@ -286,7 +287,7 @@ final class MorpheSettingsRows {
                                 parameters[0] == String.class && parameters[1] == String.class &&
                                 parameters[2] == Boolean.TYPE &&
                                 Function0.class.isAssignableFrom(parameters[3]) &&
-                                "z1.y".equals(parameters[4].getName()) &&
+                                "a2.b0".equals(parameters[4].getName()) &&
                                 Function0.class.isAssignableFrom(parameters[5]) &&
                                 Function3.class.isAssignableFrom(parameters[6]) &&
                                 parameters[8] == Integer.TYPE) {
@@ -306,7 +307,7 @@ final class MorpheSettingsRows {
                     content
             );
             method.invoke(
-                    null, title, description, expanded, toggle, focusRequester,
+                    null, MorpheTranslations.text(title), MorpheTranslations.text(description), expanded, toggle, focusRequester,
                     onFocused, nativeContent, composer, 0
             );
         } catch (ReflectiveOperationException error) {
@@ -342,7 +343,7 @@ final class MorpheSettingsRows {
     ) throws ReflectiveOperationException {
         Method method = composableLambdaFactoryMethod;
         if (method == null) {
-            for (String className : new String[]{"o1.x", "o1.y"}) {
+            for (String className : new String[]{"p1.x", "p1.y"}) {
                 Class<?> factoryClass;
                 try {
                     factoryClass = Class.forName(
@@ -376,8 +377,8 @@ final class MorpheSettingsRows {
         if (cached != null) return cached;
 
         ClassLoader loader = composer.getClass().getClassLoader();
-        Class<?> spacingHolder = Class.forName("xa.n0", false, loader);
-        Class<?> spacingTokens = Class.forName("xa.o0", false, loader);
+        Class<?> spacingHolder = Class.forName("bb.l0", false, loader);
+        Class<?> spacingTokens = Class.forName("bb.m0", false, loader);
         Field tokenField = null;
         for (Field candidate : spacingHolder.getDeclaredFields()) {
             if (Modifier.isStatic(candidate.getModifiers()) && candidate.getType() == spacingTokens) {
@@ -393,7 +394,7 @@ final class MorpheSettingsRows {
         float spacing = ((Number) mediumSpacing.invoke(tokens)).floatValue();
 
         Method factory = null;
-        for (String className : new String[]{"c0.i", "c0.j"}) {
+        for (String className : new String[]{"d0.i", "d0.j"}) {
             Class<?> arrangementHelpers;
             try {
                 arrangementHelpers = Class.forName(className, false, loader);

@@ -14,6 +14,7 @@ val shizukuArchivePatch = bytecodePatch(
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)
+    extendWith("extensions/extension.mpe")
 
     execute {
         // ShizukuArchiveHelper is bundled into the .mpp extension layer and available

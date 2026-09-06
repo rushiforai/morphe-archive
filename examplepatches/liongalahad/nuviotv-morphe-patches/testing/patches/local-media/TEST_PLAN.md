@@ -1,5 +1,7 @@
 # Local Media test plan
 
+Current port results: [0.9.0-beta validation](VALIDATION_0.9.0-beta.md). The historical results below retain their original version scope.
+
 ## NuvioTV 0.8.11-beta port evidence — 2026-08-29
 
 - [x] The clean rerun completed 239 extension tests and 543 passing patcher tests out of 544, with zero failures or errors and one intentional patcher skip; debug lint completed with zero errors.

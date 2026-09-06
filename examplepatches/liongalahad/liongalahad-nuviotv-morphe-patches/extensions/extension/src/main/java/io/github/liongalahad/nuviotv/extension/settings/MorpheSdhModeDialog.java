@@ -176,7 +176,7 @@ final class MorpheSdhModeDialog {
 
     private static TextView text(Activity activity, String value, float sp, int color) {
         TextView view = new TextView(activity);
-        view.setText(value);
+        view.setText(MorpheTranslations.text(value));
         view.setTextSize(sp);
         view.setTextColor(color);
         view.setGravity(Gravity.START);

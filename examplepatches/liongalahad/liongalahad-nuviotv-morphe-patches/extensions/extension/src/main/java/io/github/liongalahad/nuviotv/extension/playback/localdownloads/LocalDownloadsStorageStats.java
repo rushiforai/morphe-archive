@@ -8,6 +8,7 @@ import java.io.File;
 import java.util.Locale;
 
 import io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRuntime;
+import io.github.liongalahad.nuviotv.extension.settings.MorpheTranslations;
 import io.github.liongalahad.nuviotv.extension.settings.MorpheStoragePath;
 
 /** Capacity text and free space for the currently selected local-storage volume. */
@@ -60,9 +61,9 @@ final class LocalDownloadsStorageStats {
         boolean isAvailable() { return totalBytes > 0L; }
 
         String caption() {
-            if (!isAvailable()) return "Selected storage usage unavailable";
+            if (!isAvailable()) return MorpheTranslations.text("Selected storage usage unavailable");
             double percent = usedBytes * 100.0 / totalBytes;
-            return String.format(Locale.US, "%.1f GB used / %.1f GB total (%.0f%% full)",
+            return MorpheTranslations.format("%.1f GB used / %.1f GB total (%.0f%% full)",
                     usedBytes / GIB, totalBytes / GIB, percent);
         }
     }

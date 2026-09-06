@@ -1,5 +1,7 @@
 # Random Episode test plan
 
+Current port results: [0.9.0-beta validation](VALIDATION_0.9.0-beta.md). The historical results below retain their original version scope.
+
 ## Native Upcoming target after random is disabled — 2026-09-01
 
 - [x] Regression coverage reproduces a retained Home card that was randomized while enabled, records Nuvio's native future `NextToWatch`, rejects a later patch-generated `Play Sx Ey` recomposition as native state, and rebuilds the exact future Upcoming item when random is disabled.

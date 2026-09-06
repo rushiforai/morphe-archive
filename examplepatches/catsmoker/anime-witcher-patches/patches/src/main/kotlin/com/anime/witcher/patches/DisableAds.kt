@@ -13,7 +13,7 @@ import app.morphe.patcher.patch.bytecodePatch
  */
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Disables all ad display logic in the app.",
+    description = "Disables all ad display logic in the app. Original APK: https://www.animewitcher.com/",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_ANIME_WITCHER)

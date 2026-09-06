@@ -2,7 +2,9 @@ package app.template.patches.steamlink.androidxr
 
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.resourcePatch
-import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK
+import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_FULL_FACEBRIDGE
+import app.template.patches.shared.Constants.isFullFacebridgeSteamLinkBuild
+import app.template.patches.shared.Constants.isModernTongueBridgeSteamLinkBuild
 import org.w3c.dom.Element
 import java.io.File
 
@@ -13,6 +15,12 @@ private fun facebridgeResource(name: String): ByteArray =
 
 private val gxrFacebridgeLibPatch = rawResourcePatch {
     execute {
+        if (!isFullFacebridgeSteamLinkBuild(
+                packageMetadata.versionName,
+                packageMetadata.versionCode,
+            )
+        ) return@execute
+
         val libDir = get("lib/arm64-v8a/libvrlink_scene.so").parentFile!!
         // OpenXR implicit API layer: bridges XR_FB_face_tracking2 (Meta) → XR_ANDROID_face_tracking
         File(libDir, "libgxr_face_bridge.so").writeBytes(facebridgeResource("libgxr_face_bridge.so"))
@@ -34,11 +42,15 @@ private val gxrFacebridgeLibPatch = rawResourcePatch {
     }
 }
 
-private val gxrFacebridgeManifestPatch = resourcePatch {
-    dependsOn(gxrFacebridgeLibPatch)
-
+internal val gxrFaceTrackingManifestPatch = resourcePatch {
     finalize {
         document("AndroidManifest.xml").use { doc ->
+            val versionName = packageMetadata.versionName
+            val versionCode = packageMetadata.versionCode
+            if (!isFullFacebridgeSteamLinkBuild(versionName, versionCode) &&
+                !isModernTongueBridgeSteamLinkBuild(versionName, versionCode)
+            ) return@use
+
             val manifest = doc.documentElement
             val app = manifest.getElementsByTagName("application").item(0) as Element
             // Android XR platform permission for XR_ANDROID_face_tracking access
@@ -57,17 +69,18 @@ private val gxrFacebridgeManifestPatch = resourcePatch {
 
 @Suppress("unused")
 val gxrFacebridgePatch = rawResourcePatch(
-    name = "GXR face bridge",
-    description = "Installs libgxr_face_bridge.so (XR_FB_face_tracking2 → XR_ANDROID_face_tracking API layer) and adds android.permission.FACE_TRACKING to the manifest. See the [GXR Face Bridge source](https://github.com/compdoge/gxr-face-bridge) and matching [Galaxy XR VRCFT module](https://github.com/compdoge/LinkFT).",
+    name = "GXR face bridge (version 5002318 and below)",
+    description = "For exact older Steam Link builds only. Installs libgxr_face_bridge.so (XR_FB_face_tracking2 → XR_ANDROID_face_tracking API layer) and adds android.permission.FACE_TRACKING to the manifest. See the [GXR Face Bridge source](https://github.com/compdoge/gxr-face-bridge) and matching [Galaxy XR VRCFT module](https://github.com/compdoge/LinkFT).",
     default = false,
 ) {
-    compatibleWith(*COMPATIBILITIES_STEAM_LINK.toTypedArray())
+    compatibleWith(*COMPATIBILITIES_STEAM_LINK_FULL_FACEBRIDGE.toTypedArray())
     // Keep the complete legacy launcher foundation while using only the minimal
     // permission/settings activity on native-XR builds. The activity requests FACE_TRACKING.
     dependsOn(
         xrLauncherBootstrapPatch,
         xrPermissionSettingsBootstrapPatch,
-        gxrFacebridgeManifestPatch,
+        gxrFacebridgeLibPatch,
+        gxrFaceTrackingManifestPatch,
     )
 
     execute { /* all work done by sub-patches */ }

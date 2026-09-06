@@ -4,7 +4,7 @@
 
 ## What this repository contains
 
-The patches adapt Steam Link for Android XR and provide build-specific fixes for resolution, color, microphone input, tracking, permissions, and startup. Recommended bundles select the patches appropriate for your Steam Link build. Optional face tracking works with VRCFaceTracking and the Galaxy XR LinkFT module.
+The patches adapt Steam Link for Android XR and provide build-specific fixes for resolution, color, microphone input, tracking, permissions, and startup. Recommended bundles select the patches appropriate for your Steam Link build. Optional face tracking works with VRCFaceTracking and the Galaxy XR LinkFT module. Exact older builds use the full GXR face bridge, while build 5002322 uses a native tongue-only bridge that preserves Valve's built-in Android XR face mappings.
 
 This repository contains the patch source and downloadable `.mpp` patch bundles, which Morphe applies to a Steam Link VR APK (`com.valvesoftware.steamlinkvr`).
 
@@ -59,7 +59,7 @@ Builds **2.0.22/5002296** and **2.0.22/5002313** have individually selectable pa
 
 ## Optional: face and tongue tracking
 
-Install **VRCFaceTracking** and the matching [Galaxy XR LinkFT module](https://github.com/compdoge/LinkFT) on your PC. In Steam Link, enable **OSC**, **eye sharing**, and **face sharing**, and set the output port to **9015**. The recommended bundles include **GXR face bridge**.
+Install **VRCFaceTracking** and the matching [Galaxy XR LinkFT module](https://github.com/compdoge/LinkFT) on your PC. In Steam Link, enable **OSC**, **eye sharing**, and **face sharing**, and set the output port to **9015**. Recommended older-build bundles include **GXR face bridge (version 5002318 and below)**; the 2.0.22/5002322 bundle instead includes the headset-tested **GXR tongue bridge (version 5002322 and above)**. Despite the newer-family label, the tongue patch currently enables only exact build 5002322; each later build needs its native layout verified first.
 
 ## More information
 

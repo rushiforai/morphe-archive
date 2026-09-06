@@ -44,7 +44,7 @@ def pkg_emoji(pkg):
 # Group patches by package; patches with no compatiblePackages are universal.
 # JSON structure: compatiblePackages is a list of objects with
 # { packageName, name, targets: [{ version, isExperimental, description }] }
-by_pkg = {}   # packageName -> { name, emoji, patches, targets }
+by_pkg = {}   # packageName -> { name, emoji, patches, targets, version_patches, all_ver_patches }
 universal = {}
 
 for patch in data["patches"]:
@@ -59,14 +59,58 @@ for patch in data["patches"]:
         name = pkg_entry.get("name") or pkg  # fall back to package name if no label
         if pkg not in by_pkg:
             by_pkg[pkg] = {
-                "name":    name,
-                "emoji":   pkg_emoji(pkg),
-                "patches": {},
-                "targets": pkg_entry.get("targets", []),
+                "name":            name,
+                "description":     pkg_entry.get("description"),
+                "emoji":           pkg_emoji(pkg),
+                "patches":         {},
+                "targets":         [],
+                "version_patches": {},  # ver_str -> { "target": target, "patches": {} }
+                "all_ver_patches": {},  # patches that apply to any version
             }
+        elif pkg_entry.get("description") and not by_pkg[pkg].get("description"):
+            by_pkg[pkg]["description"] = pkg_entry.get("description")
+
         # Deduplicate patches that appear across multiple packages
         if patch["name"] not in by_pkg[pkg]["patches"]:
             by_pkg[pkg]["patches"][patch["name"]] = patch
+
+        existing_versions = {t["version"] for t in by_pkg[pkg]["targets"] if t.get("version")}
+        targets = pkg_entry.get("targets") or []
+
+        has_specific_ver = False
+        for target in targets:
+            ver_str = target.get("version")
+            if ver_str:
+                has_specific_ver = True
+                if ver_str not in existing_versions:
+                    by_pkg[pkg]["targets"].append(target)
+                    existing_versions.add(ver_str)
+                elif target.get("description"):
+                    for existing_t in by_pkg[pkg]["targets"]:
+                        if existing_t.get("version") == ver_str and not existing_t.get("description"):
+                            existing_t["description"] = target.get("description")
+                            break
+
+                if ver_str not in by_pkg[pkg]["version_patches"]:
+                    by_pkg[pkg]["version_patches"][ver_str] = {
+                        "target":  target,
+                        "patches": {},
+                    }
+                elif target.get("description") and not by_pkg[pkg]["version_patches"][ver_str]["target"].get("description"):
+                    by_pkg[pkg]["version_patches"][ver_str]["target"] = target
+
+                if patch["name"] not in by_pkg[pkg]["version_patches"][ver_str]["patches"]:
+                    by_pkg[pkg]["version_patches"][ver_str]["patches"][patch["name"]] = patch
+
+        if not has_specific_ver:
+            by_pkg[pkg]["all_ver_patches"][patch["name"]] = patch
+
+# Merge patches that apply to all versions into each version sub-group
+for pkg, entry in by_pkg.items():
+    for p_name, p in entry["all_ver_patches"].items():
+        for ver_dict in entry["version_patches"].values():
+            if p_name not in ver_dict["patches"]:
+                ver_dict["patches"][p_name] = p
 
 
 def anchor(name):
@@ -125,6 +169,32 @@ def versions_table(targets):
     return "\n".join(rows)
 
 
+def version_spoiler(target, patches, expanded=False):
+    """Render a nested <details> spoiler for a specific app version."""
+    ver = target.get("version")
+    label = f"🧪&nbsp;{ver}" if target.get("isExperimental") else ver
+    desc = target.get("description")
+    if desc:
+        desc_lines = desc.splitlines()
+        callout_body = "\n".join(f"> {line}" for line in desc_lines)
+        if desc.startswith("[!"):
+            desc_section = f"> {callout_body}\n\n"
+        else:
+            desc_section = f"> [!NOTE]\n{callout_body}\n\n"
+    else:
+        desc_section = ""
+    noun = "patch" if len(patches) == 1 else "patches"
+    tag = "<details open>" if expanded else "<details>"
+    tbl = patches_table(patches)
+    return f"""{tag}
+<summary>🎯 {label}&nbsp;&nbsp;•&nbsp;&nbsp;{len(patches)} {noun}</summary>
+<br>
+
+{desc_section}{tbl}
+
+</details>"""
+
+
 def spoiler(label, count, targets, tbl, expanded=False):
     """Wrap a patches table in a <details> spoiler with a versions sub-table.
     If expanded=True, the spoiler is open by default (for repos with few patches).
@@ -154,7 +224,28 @@ def build_content(expanded=False):
     for pkg, entry in by_pkg.items():
         patches = list(entry["patches"].values())
         label   = f"{entry['emoji']} {entry['name']}"
-        lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches), expanded))
+        tag     = "<details open>" if expanded else "<details>"
+
+        if len(entry["targets"]) > 1:
+            # Multiple versions: render nested collapsible sections per version
+            noun = "patch" if len(patches) == 1 else "patches"
+            sub_spoilers = []
+            for target in entry["targets"]:
+                ver_str = target.get("version")
+                v_patches = list(entry["version_patches"].get(ver_str, {}).get("patches", {}).values())
+                sub_spoilers.append(version_spoiler(target, v_patches, expanded))
+
+            body = "\n\n".join(sub_spoilers)
+            lines.append(f"""{tag}
+<summary>{label}&nbsp;&nbsp;•&nbsp;&nbsp;{len(patches)} {noun}</summary>
+<br>
+
+{body}
+
+</details>""")
+        else:
+            # Single version (or unversioned): keep the single table format
+            lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches), expanded))
         lines.append("")
 
     # Universal patches (no specific app)
@@ -224,4 +315,7 @@ new_readme = re.sub(
     flags=re.DOTALL,
 )
 readme_path.write_text(new_readme, encoding="utf-8")
-print(f"✅ Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches, expanded={expanded})")
+try:
+    print(f"✅ Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches, expanded={expanded})")
+except UnicodeEncodeError:
+    print(f"[OK] Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches, expanded={expanded})")

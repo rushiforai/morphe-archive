@@ -1,6 +1,6 @@
 # Allow Importing Subs from Local Storage
 
-Patch ID: `local-storage-subtitles`. Target: official NuvioTV `0.8.11-beta`.
+Patch ID: `local-storage-subtitles`. Target: official NuvioTV `0.9.0-beta`.
 
 This ExoPlayer/Media3-only patch appears in `Morphe > Subtitles` as `Allow Importing Subs from Local Storage`. It adds `Local Storage` immediately after `None` in the playback subtitle language rail. Its subtitle list begins with the non-selectable `Choose subtitle file` action, which opens Android's system document picker while leaving the subtitle overlay underneath. Imported rows show the detected language as their main label and the exact source filename as the muted secondary label.
 

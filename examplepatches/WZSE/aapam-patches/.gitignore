@@ -130,3 +130,15 @@ node_modules/
 local.properties
 # Local reference / scratch files (not part of the build or repo)
 scratch/
+
+# Signing keystores — never commit
+*.keystore
+*.jks
+
+# Native host-test and CMake artifacts (Prime Video libignite hook)
+experimental/**/build-*/
+experimental/**/*.obj
+experimental/**/*.exe
+
+# Captured device payloads — private (signed URLs, session and device IDs)
+experimental/**/fixtures-capture/

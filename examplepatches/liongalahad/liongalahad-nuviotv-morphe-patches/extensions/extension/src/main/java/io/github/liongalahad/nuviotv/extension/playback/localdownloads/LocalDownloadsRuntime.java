@@ -70,11 +70,11 @@ import kotlin.coroutines.EmptyCoroutineContext;
 public final class LocalDownloadsRuntime {
     private static final String TAG = "MorpheDownloads";
     /** Exact NuvioTV 0.8.11-beta EpisodeCardMetrics owner. */
-    private static final String EPISODE_CARD_METRICS_CLASS = "na.z0";
+    private static final String EPISODE_CARD_METRICS_CLASS = "ra.v0";
     static final String DOWNLOAD_IN_PROGRESS_LABEL = "Download in progress...";
     private static final String ENTRIES_KEY = "playback.local_downloads.entries.v1";
     private static final long ACTION_TIMEOUT_MS = 10L * 60L * 1000L;
-    private static final String[] SUBTITLE_WORKER_CLASS_NAMES = {"y9.q3"};
+    private static final String[] SUBTITLE_WORKER_CLASS_NAMES = {"ba.z4"};
     private static final ThreadLocal<OptionContext> OPTION_CONTEXT = new ThreadLocal<>();
     private static final Object LOCK = new Object();
 
@@ -269,8 +269,8 @@ public final class LocalDownloadsRuntime {
             Method method = previewKeyModifierMethod;
             if (method == null) {
                 ClassLoader loader = modifier.getClass().getClassLoader();
-                Class<?> modifierClass = Class.forName("u1.q", false, loader);
-                method = Class.forName("m2.d", false, loader).getDeclaredMethod(
+                Class<?> modifierClass = Class.forName("v1.q", false, loader);
+                method = Class.forName("n2.d", false, loader).getDeclaredMethod(
                         "e", modifierClass, Function1.class);
                 method.setAccessible(true);
                 previewKeyModifierMethod = method;
@@ -692,9 +692,9 @@ public final class LocalDownloadsRuntime {
         if (subtitleStyle != null) {
             String description = String.valueOf(subtitleStyle);
             addSettingValue(result, description,
-                    "SubtitleStyleSettings(preferredLanguage=", ", secondaryPreferredLanguage=");
+                    "SubtitleStyleSettings(preferredLanguage=");
             addSettingValue(result, description,
-                    ", secondaryPreferredLanguage=", ", useForcedSubtitles=");
+                    ", secondaryPreferredLanguage=");
         }
         if (result.isEmpty()) result.add("en");
         return Collections.unmodifiableSet(result);
@@ -789,12 +789,15 @@ public final class LocalDownloadsRuntime {
     }
 
     private static void addSettingValue(
-            Set<String> result, String description, String startMarker, String endMarker
+            Set<String> result, String description, String startMarker
     ) {
         int start = description.indexOf(startMarker);
         if (start < 0) return;
         start += startMarker.length();
-        int end = description.indexOf(endMarker, start);
+        // 0.9 adds system-language flags between the language fields. Read one data-class
+        // property, rather than swallowing every newly inserted field into a language code.
+        int end = description.indexOf(", ", start);
+        if (end < 0) end = description.indexOf(')', start);
         if (end < 0) return;
         String value = description.substring(start, end).trim();
         if ("null".equalsIgnoreCase(value)) return;
@@ -1298,8 +1301,8 @@ public final class LocalDownloadsRuntime {
                     null,
                     true,
                     downloaded,
-                    longStaticField("b2.y", "d"),
-                    longStaticField("b2.y", "b"),
+                    longStaticField("c2.y", "d"),
+                    longStaticField("c2.y", "b"),
                     NoOpAction.INSTANCE,
                     composer,
                     0,
@@ -1440,48 +1443,48 @@ public final class LocalDownloadsRuntime {
             // directly on the top-right; the two badges never need to displace each other.
             float rightMargin = margin;
 
-            Class<?> modifierClass = Class.forName("u1.q");
-            Class<?> alignmentClass = Class.forName("u1.d");
-            Class<?> shapeClass = Class.forName("b2.u0");
-            Class<?> composerClass = Class.forName("e1.p");
-            Object modifier = staticField("u1.n", "b");
+            Class<?> modifierClass = Class.forName("v1.q");
+            Class<?> alignmentClass = Class.forName("v1.d");
+            Class<?> shapeClass = Class.forName("c2.v0");
+            Class<?> composerClass = Class.forName("f1.p");
+            Object modifier = staticField("v1.n", "b");
             // c0.t is the BoxScope interface and therefore has no singleton field.
             // Nuvio's episode-card bytecode uses the c0.u implementation singleton.
-            Object boxScope = staticField("c0.u", "a");
-            Object topEnd = staticField("u1.b", "c");
+            Object boxScope = staticField("d0.v", "a");
+            Object topEnd = staticField("v1.b", "c");
             modifier = declaredMethod(boxScope.getClass(), "a", modifierClass, alignmentClass)
                     .invoke(boxScope, modifier, topEnd);
-            modifier = declaredMethod(Class.forName("c0.b"), "w", modifierClass,
+            modifier = declaredMethod(Class.forName("d0.b"), "w", modifierClass,
                     Float.TYPE, Float.TYPE, Float.TYPE, Float.TYPE)
                     .invoke(null, modifier, 0f, margin, rightMargin, 0f);
             modifier = declaredMethod(Class.forName("androidx.compose.foundation.layout.b"),
                     "l", modifierClass, Float.TYPE).invoke(null, modifier, badgeSize);
 
-            Object circle = staticField("j0.g", "a");
-            long shadowColor = longStaticField("b2.y", "k");
-            modifier = declaredMethod(Class.forName("y1.g"), "g", modifierClass,
+            Object circle = staticField("k0.g", "a");
+            long shadowColor = longStaticField("c2.y", "k");
+            modifier = declaredMethod(Class.forName("z1.g"), "g", modifierClass,
                     Float.TYPE, shapeClass, Long.TYPE, Integer.TYPE)
                     .invoke(null, modifier, 10f, circle, shadowColor, 12);
 
-            Object themeKey = staticField("xa.b1", "a");
+            Object themeKey = staticField("bb.z0", "a");
             Method readCompositionLocal = composer.getClass().getMethod(
-                    "j", Class.forName("e1.f2"));
+                    "j", Class.forName("f1.f2"));
             Object theme = readCompositionLocal.invoke(composer, themeKey);
             long badgeColor = longField(theme, "h");
-            modifier = declaredMethod(Class.forName("w.m"), "g", modifierClass,
+            modifier = declaredMethod(Class.forName("x.m"), "g", modifierClass,
                     Long.TYPE, shapeClass).invoke(null, modifier, badgeColor, circle);
 
             float innerPadding = Math.max(0f, (badgeSize - iconSize) / 2f);
             if (innerPadding > 0f) {
-                modifier = declaredMethod(Class.forName("u1.a"), "d", modifierClass,
+                modifier = declaredMethod(Class.forName("v1.a"), "d", modifierClass,
                         Float.TYPE).invoke(null, modifier, innerPadding);
             }
 
-            Object palette = staticField("xa.z0", "g");
+            Object palette = staticField("bb.w0", "g");
             long selectedBackground = longField(palette, "a");
             long iconColor = badgeColor == selectedBackground
-                    ? longStaticField("b2.y", "b") : longStaticField("b2.y", "d");
-            declaredMethod(Class.forName("p5.k0"), "b", Class.forName("h2.f"),
+                    ? longStaticField("c2.y", "b") : longStaticField("c2.y", "d");
+            declaredMethod(Class.forName("s5.m0"), "b", Class.forName("i2.f"),
                     String.class, modifierClass, Long.TYPE, composerClass,
                     Integer.TYPE, Integer.TYPE).invoke(
                     null, downloadedBadgeIcon(), "Downloaded", modifier, iconColor,
@@ -1505,7 +1508,7 @@ public final class LocalDownloadsRuntime {
             cached = downloadedBadgeIcon;
             if (cached != null) return cached;
 
-            Class<?> builderClass = Class.forName("h2.e");
+            Class<?> builderClass = Class.forName("i2.e");
             Constructor<?> constructor = builderClass.getDeclaredConstructor(
                     String.class, Float.TYPE, Float.TYPE, Float.TYPE, Float.TYPE,
                     Long.TYPE, Integer.TYPE, Boolean.TYPE, Integer.TYPE);
@@ -1514,26 +1517,26 @@ public final class LocalDownloadsRuntime {
                     "Filled.Download", 24f, 24f, 24f, 24f, 0L, 0, false, 96);
 
             ArrayList<Object> path = new ArrayList<>(16);
-            addVectorPoint(path, "h2.n", 11f, 4f);
-            addVectorPoint(path, "h2.m", 13f, 4f);
-            addVectorPoint(path, "h2.m", 13f, 12.5f);
-            addVectorPoint(path, "h2.m", 16.5f, 9f);
-            addVectorPoint(path, "h2.m", 18f, 10.5f);
-            addVectorPoint(path, "h2.m", 12f, 16.5f);
-            addVectorPoint(path, "h2.m", 6f, 10.5f);
-            addVectorPoint(path, "h2.m", 7.5f, 9f);
-            addVectorPoint(path, "h2.m", 11f, 12.5f);
-            path.add(staticField("h2.j", "c"));
-            addVectorPoint(path, "h2.n", 6f, 18f);
-            addVectorPoint(path, "h2.m", 18f, 18f);
-            addVectorPoint(path, "h2.m", 18f, 20f);
-            addVectorPoint(path, "h2.m", 6f, 20f);
-            path.add(staticField("h2.j", "c"));
+            addVectorPoint(path, "i2.n", 11f, 4f);
+            addVectorPoint(path, "i2.m", 13f, 4f);
+            addVectorPoint(path, "i2.m", 13f, 12.5f);
+            addVectorPoint(path, "i2.m", 16.5f, 9f);
+            addVectorPoint(path, "i2.m", 18f, 10.5f);
+            addVectorPoint(path, "i2.m", 12f, 16.5f);
+            addVectorPoint(path, "i2.m", 6f, 10.5f);
+            addVectorPoint(path, "i2.m", 7.5f, 9f);
+            addVectorPoint(path, "i2.m", 11f, 12.5f);
+            path.add(staticField("i2.j", "c"));
+            addVectorPoint(path, "i2.n", 6f, 18f);
+            addVectorPoint(path, "i2.m", 18f, 18f);
+            addVectorPoint(path, "i2.m", 18f, 20f);
+            addVectorPoint(path, "i2.m", 6f, 20f);
+            path.add(staticField("i2.j", "c"));
 
-            Class<?> brushClass = Class.forName("b2.x0");
+            Class<?> brushClass = Class.forName("c2.x0");
             Constructor<?> brushConstructor = brushClass.getDeclaredConstructor(Long.TYPE);
             brushConstructor.setAccessible(true);
-            Object brush = brushConstructor.newInstance(longStaticField("b2.y", "b"));
+            Object brush = brushConstructor.newInstance(longStaticField("c2.y", "b"));
             declaredMethod(builderClass, "a", builderClass, ArrayList.class,
                     Integer.TYPE, brushClass).invoke(null, builder, path, 0, brush);
             cached = declaredMethod(builderClass, "b").invoke(builder);
@@ -1857,13 +1860,13 @@ public final class LocalDownloadsRuntime {
                         !Function3.class.isAssignableFrom(p[8])) continue;
                 Object[] args = new Object[13];
                 args[0] = action;
-                Class<?> modifierClass = Class.forName("u1.q", false, owner.getClassLoader());
+                Class<?> modifierClass = Class.forName("v1.q", false, owner.getClassLoader());
                 Object modifier = suppliedModifier;
                 if (modifier == null) {
                     modifier = declaredMethod(Class.forName(
                             "androidx.compose.foundation.layout.b", false, owner.getClassLoader()),
                             "d", modifierClass, Float.TYPE).invoke(
-                            null, staticField("u1.n", "b", owner.getClassLoader()), 1f);
+                            null, staticField("v1.n", "b", owner.getClassLoader()), 1f);
                 }
                 args[1] = modifier;
                 args[2] = false;
@@ -1893,10 +1896,10 @@ public final class LocalDownloadsRuntime {
         boolean groupStarted = false;
         boolean nodeStarted = false;
         try {
-            Class<?> composerClass = Class.forName("e1.p");
-            Class<?> modifierClass = Class.forName("u1.q");
-            Class<?> arrangementClass = Class.forName("c0.e");
-            Class<?> verticalAlignmentClass = Class.forName("u1.h");
+            Class<?> composerClass = Class.forName("f1.p");
+            Class<?> modifierClass = Class.forName("v1.q");
+            Class<?> arrangementClass = Class.forName("d0.e");
+            Class<?> verticalAlignmentClass = Class.forName("v1.h");
 
             declaredMethod(composer.getClass(), "d0", Integer.TYPE)
                     .invoke(composer, 0x4d6f7252);
@@ -1904,18 +1907,18 @@ public final class LocalDownloadsRuntime {
 
             Object modifier = declaredMethod(Class.forName("androidx.compose.foundation.layout.b"),
                     "d", modifierClass, Float.TYPE).invoke(
-                    null, staticField("u1.n", "b"), 1f);
-            Object spacedArrangement = declaredMethod(Class.forName("c0.i"),
+                    null, staticField("v1.n", "b"), 1f);
+            Object spacedArrangement = declaredMethod(Class.forName("d0.i"),
                     "g", Float.TYPE).invoke(null, 8f);
-            Object measurePolicy = declaredMethod(Class.forName("c0.t1"), "a",
+            Object measurePolicy = declaredMethod(Class.forName("d0.u1"), "a",
                     arrangementClass, verticalAlignmentClass, composerClass, Integer.TYPE)
-                    .invoke(null, spacedArrangement, staticField("u1.b", "k"),
+                    .invoke(null, spacedArrangement, staticField("v1.b", "k"),
                             composer, 54);
             Object compositionLocals = declaredMethod(composer.getClass(), "l").invoke(composer);
-            Object materializedModifier = declaredMethod(Class.forName("u1.a"), "c",
+            Object materializedModifier = declaredMethod(Class.forName("v1.a"), "c",
                     composerClass, modifierClass).invoke(null, composer, modifier);
 
-            Object nodeFactory = staticField("u2.i", "b");
+            Object nodeFactory = staticField("v2.i", "b");
             declaredMethod(composer.getClass(), "h0").invoke(composer);
             nodeStarted = true;
             if (booleanField(composer, "S")) {
@@ -1925,7 +1928,7 @@ public final class LocalDownloadsRuntime {
                 declaredMethod(composer.getClass(), "r0").invoke(composer);
             }
 
-            Class<?> updater = Class.forName("e1.j");
+            Class<?> updater = Class.forName("f1.j");
             Method update = null;
             Method applyModifier = null;
             for (Method candidate : updater.getDeclaredMethods()) {
@@ -1947,14 +1950,14 @@ public final class LocalDownloadsRuntime {
             }
             update.setAccessible(true);
             applyModifier.setAccessible(true);
-            update.invoke(null, composer, measurePolicy, staticField("u2.i", "f"));
-            update.invoke(null, composer, compositionLocals, staticField("u2.i", "e"));
+            update.invoke(null, composer, measurePolicy, staticField("v2.i", "f"));
+            update.invoke(null, composer, compositionLocals, staticField("v2.i", "e"));
             update.invoke(null, composer, Integer.valueOf(Long.hashCode(longField(composer, "T"))),
-                    staticField("u2.i", "g"));
-            applyModifier.invoke(null, composer, staticField("u2.i", "h"));
-            update.invoke(null, composer, materializedModifier, staticField("u2.i", "d"));
+                    staticField("v2.i", "g"));
+            applyModifier.invoke(null, composer, staticField("v2.i", "h"));
+            update.invoke(null, composer, materializedModifier, staticField("v2.i", "d"));
 
-            Constructor<?> weightConstructor = Class.forName("c0.z0")
+            Constructor<?> weightConstructor = Class.forName("d0.a1")
                     .getDeclaredConstructor(Float.TYPE, Boolean.TYPE);
             weightConstructor.setAccessible(true);
             Object playModifier = weightConstructor.newInstance(1f, true);

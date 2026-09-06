@@ -128,6 +128,12 @@ The green **+** button is untouched in every mode.
 | :---: | :---: |
 | <img src="docs/screenshots/videostore-before.jpg" width="220"> | <img src="docs/screenshots/videostore-after.jpg" width="220"> |
 
+### Open in player
+
+| Stremio button next to Trailer |
+| :---: |
+| <img src="docs/screenshots/open-in-player.png" width="220"> |
+
 ### Hide ratings until watched: cover
 
 The film's community rating is fully covered until you tap.

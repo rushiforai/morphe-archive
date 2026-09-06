@@ -6,7 +6,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.autocat.morphe.smartlauncher.shared.Constants
 
 object PopupListFingerprint : Fingerprint(
@@ -14,11 +16,8 @@ object PopupListFingerprint : Fingerprint(
         "contextualMenuPopup",
         "Button ID is not valid: ",
     ),
-    filters = listOf(
-        methodCall(
-            smali = "Lrj;->d(Ljava/util/List;)V",
-        ),
-    ),
+    // No filters — MethodCallFilter's regex silently rejects short obfuscated class names
+    // like "Lrj;" due to a character-class boundary mismatch. We scan instructions manually.
 )
 
 object ContextMenuFingerprint : Fingerprint(
@@ -44,6 +43,7 @@ val morpheContextualActionPatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(Constants.COMPATIBILITY)
+    extendWith("extensions/extension.mpe")
 
     execute {
         // 1. Inject dedicated Archive item into popup menu list.
@@ -54,7 +54,22 @@ val morpheContextualActionPatch = bytecodePatch(
         // the archive item and then drives the original popup-show call via reflection.
         PopupListFingerprint.matchOrNull()?.let { match ->
             val method = match.method
-            val showInsnIndex = match.instructionMatches.first().index
+            val instructions = method.implementation?.instructions ?: return@let
+
+            // Manually locate the rj.d(List)V invoke — filters omitted because MethodCallFilter
+            // fails to match obfuscated short class names like "Lrj;" at the patcher level.
+            var showInsnIndex = -1
+            for ((idx, insn) in instructions.withIndex()) {
+                if (insn is ReferenceInstruction) {
+                    val ref = insn.reference
+                    if (ref is MethodReference && ref.definingClass == "Lrj;" && ref.name == "d") {
+                        showInsnIndex = idx
+                        break
+                    }
+                }
+            }
+            if (showInsnIndex < 0) return@let
+
             val (regPopup, regList) = try {
                 val insn = method.getInstruction<FiveRegisterInstruction>(showInsnIndex)
                 Pair("v${insn.registerC}", "v${insn.registerD}")

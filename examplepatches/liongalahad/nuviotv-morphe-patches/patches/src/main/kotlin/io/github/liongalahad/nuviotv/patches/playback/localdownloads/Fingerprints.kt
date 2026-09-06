@@ -16,7 +16,7 @@ private const val FUNCTION3 = "Lkotlin/jvm/functions/Function3;"
 private const val KOTLIN_FUNCTION = "Lkotlin/Function;"
 private const val INTEGER = "Ljava/lang/Integer;"
 private const val PLAYER_LISTENER = "Landroidx/media3/common/Player\$Listener;"
-private const val COMPOSER = "Le1/p;"
+private const val COMPOSER = "Lf1/p;"
 private const val EPISODE_OPTIONS_STYLE =
     "Lcom/nuvio/tv/domain/model/EpisodeOptionsOverlayStyle;"
 
@@ -29,7 +29,7 @@ private fun Method.calls(predicate: (MethodReference) -> Boolean): Boolean =
     } == true
 
 private fun Method.buildsComposableLambda() = calls { reference ->
-    reference.definingClass == "Lo1/x;" && reference.name == "d" &&
+    reference.definingClass == "Lp1/x;" && reference.name == "d" &&
         reference.parameterTypes.map(CharSequence::toString).let { parameters ->
             parameters.size == 3 && parameters[0] == "I" && parameters[1] == KOTLIN_FUNCTION
         }
@@ -82,7 +82,7 @@ internal object EpisodeOptionsDialogFingerprint : Fingerprint(
             p.slice(16..19) == List(4) { FUNCTION0 } && p[20] == COMPOSER &&
             p[21] == "I" && p[22] == "I" &&
             method.implementation?.instructions?.any {
-                (it as? WideLiteralInstruction)?.wideLiteral == 0x7f110780L
+                (it as? WideLiteralInstruction)?.wideLiteral == 0x7f110798L
             } == true && method.buildsComposableLambda()
     }
 )
@@ -97,7 +97,7 @@ internal object EpisodeCardContentFingerprint : Fingerprint(
         method.name == "invoke" && FUNCTION3 in classDef.interfaces &&
             classDef.fields.count { it.type == VIDEO } == 1 &&
             method.calls { reference ->
-                reference.returnType == "Lh2/f;" && reference.parameterTypes.isEmpty()
+                reference.returnType == "Li2/f;" && reference.parameterTypes.isEmpty()
             }
     }
 )
@@ -111,7 +111,7 @@ internal object ContinueOptionsDialogFingerprint : Fingerprint(
                     FUNCTION0, FUNCTION0, FUNCTION0, FUNCTION0, "Z", FUNCTION0, COMPOSER, "I"
                 )
         } && method.implementation?.instructions?.any {
-            (it as? WideLiteralInstruction)?.wideLiteral == 0x7f110384L
+            (it as? WideLiteralInstruction)?.wideLiteral == 0x7f11039aL
         } == true && method.buildsComposableLambda()
     }
 )
@@ -121,7 +121,7 @@ internal object StreamRouteFingerprint : Fingerprint(
     strings = listOf("stream/", "?poster=", "&manualSelection=", "&contentLanguage="),
     custom = { method, _ ->
         val p = method.parameterNames()
-        p.size == 19 && p.take(3) == listOf(
+        p.size == 21 && p[19] == INTEGER && p[20] == "I" && p.take(3) == listOf(
             "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;"
         ) && p[6] == INTEGER && p[7] == INTEGER && p[13] == INTEGER &&
             p.slice(14..17) == listOf("Z", "Z", "Z", "Z")

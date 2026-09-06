@@ -47,6 +47,7 @@ public final class MorpheSettingsRuntime {
     }
 
     public static void initialize(Context context) {
+        SettingsTranslations.register();
         Context appContext = context.getApplicationContext();
         if (appContext instanceof Application) {
             application = (Application) appContext;

@@ -7,6 +7,7 @@ import kotlin.jvm.functions.Function3;
 
 /** Settings category owned exclusively by Local Media. */
 public final class LocalMediaSettingsCategory implements MorpheSettingsCategory {
+    { PatchTranslations.register(); }
     public LocalMediaSettingsCategory() {
         MorpheStorageConsumers.register(
                 "playback.local_media",

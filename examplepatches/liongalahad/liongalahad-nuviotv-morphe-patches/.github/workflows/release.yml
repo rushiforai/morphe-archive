@@ -2,12 +2,12 @@ name: Release
 
 on:
   workflow_dispatch:
-  push:
-    branches: [dev, main]
 
 jobs:
   release:
     name: Release
+    # Main beta releases are explicitly published after review; never auto-promote to stable.
+    if: github.ref == 'refs/heads/dev'
     permissions:
       contents: write
       packages: write
@@ -27,7 +27,7 @@ jobs:
           git fetch --force origin '+refs/notes/*:refs/notes/*'
 
       - name: Setup Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
           java-version: '21'

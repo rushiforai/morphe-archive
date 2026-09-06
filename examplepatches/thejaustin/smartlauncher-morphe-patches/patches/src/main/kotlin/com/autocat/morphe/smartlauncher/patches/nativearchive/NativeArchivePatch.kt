@@ -14,6 +14,7 @@ val nativeArchivePatch = bytecodePatch(
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)
+    extendWith("extensions/extension.mpe")
 
     execute {
         // NativeArchiveHelper is bundled into the .mpp extension layer and available

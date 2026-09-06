@@ -1,3 +1,14 @@
+# 1.0.0-beta.1
+
+First beta targeting NuvioTV 0.9.0-beta only, with all seven Morphe patches.
+
+- Port native settings, Storage, playback, download and subtitle hooks to 0.9.0-beta.
+- Fix local MP4 playback, Storage grid crashes, fresh-entry download actions and imported subtitle identity.
+- Translate Morphe settings into Spanish, Italian, German, French, Portuguese, Japanese, Korean, Simplified Chinese and Traditional Chinese; keep the Morphe title in every locale.
+- Validation: 304 automated tests, 28 isolated patch/ABI combinations, seven TV emulator profiles and 30 final-build cold launches. Exact staged coverage and limits are documented in testing/VALIDATION_0.9.0-beta.md.
+
+This is a prerelease for physical-TV acceptance. ARM hardware, physical USB/FAT32 files over 4 GB and long-duration soak testing remain outstanding. Only patch bundles and metadata are distributed; obtain the official NuvioTV APK separately.
+
 ## [1.0.0-dev.31](https://github.com/liongalahad/liongalahad-nuviotv-morphe-patches/compare/v1.0.0-dev.30...v1.0.0-dev.31) (2026-08-31)
 
 ### ✨ New Features

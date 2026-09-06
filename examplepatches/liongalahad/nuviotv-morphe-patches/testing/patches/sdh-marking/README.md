@@ -1,6 +1,6 @@
 # Mark SDH Subtitles
 
-Patch ID: `sdh-marking`. Target: official NuvioTV `0.8.11-beta`.
+Patch ID: `sdh-marking`. Target: official NuvioTV `0.9.0-beta`.
 
 The patch adds `Settings > Morphe > Subtitles > Mark SDH subtitles`, a native switch stored under `subtitles.mark_sdh` in private `morphe_patches` preferences. It defaults On when the preference is absent; a stored On or Off choice remains authoritative.
 

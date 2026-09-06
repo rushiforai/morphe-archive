@@ -237,8 +237,8 @@ public final class RandomEpisodeRuntime {
             Function0<Unit> click = new ToggleShowAction(showKey);
             Function0<Unit> longPress = new PoolDialogAction(showKey);
             Function0<?> focused = context.onFocused == null ? NoOpAction.INSTANCE : context.onFocused;
-            long selectedBackground = longStaticField("b2.y", "d");
-            long selectedContent = longStaticField("b2.y", "b");
+            long selectedBackground = longStaticField("c2.y", "d");
+            long selectedContent = longStaticField("c2.y", "b");
             actionButton.invoke(
                     null, null, painter, "Random playback", click, longPress,
                     true, selected, selectedBackground, selectedContent,
@@ -653,34 +653,34 @@ public final class RandomEpisodeRuntime {
             if (!RandomEpisodeSettings.isEnabled() ||
                     !RandomEpisodeSettings.isShowEnabled(showKey)) return;
 
-            Class<?> modifierClass = Class.forName("u1.q");
-            Class<?> alignmentClass = Class.forName("u1.d");
-            Class<?> shapeClass = Class.forName("b2.u0");
-            Class<?> composerClass = Class.forName("e1.p");
-            Object modifier = staticField("u1.n", "b");
-            Object boxScope = staticField("c0.u", "a");
-            Object topStart = staticField("u1.b", "a");
+            Class<?> modifierClass = Class.forName("v1.q");
+            Class<?> alignmentClass = Class.forName("v1.d");
+            Class<?> shapeClass = Class.forName("c2.v0");
+            Class<?> composerClass = Class.forName("f1.p");
+            Object modifier = staticField("v1.n", "b");
+            Object boxScope = staticField("d0.v", "a");
+            Object topStart = staticField("v1.b", "a");
             modifier = declaredMethod(boxScope.getClass(), "a", modifierClass, alignmentClass)
                     .invoke(boxScope, modifier, topStart);
-            modifier = declaredMethod(Class.forName("c0.b"), "w", modifierClass,
+            modifier = declaredMethod(Class.forName("d0.b"), "w", modifierClass,
                     Float.TYPE, Float.TYPE, Float.TYPE, Float.TYPE)
                     .invoke(null, modifier, 8f, 8f, 0f, 0f);
             modifier = declaredMethod(Class.forName("androidx.compose.foundation.layout.b"),
                     "l", modifierClass, Float.TYPE).invoke(null, modifier, 20f);
 
-            Object circle = staticField("j0.g", "a");
-            long shadowColor = longStaticField("b2.y", "k");
-            modifier = declaredMethod(Class.forName("y1.g"), "g", modifierClass,
+            Object circle = staticField("k0.g", "a");
+            long shadowColor = longStaticField("c2.y", "k");
+            modifier = declaredMethod(Class.forName("z1.g"), "g", modifierClass,
                     Float.TYPE, shapeClass, Long.TYPE, Integer.TYPE)
                     .invoke(null, modifier, 10f, circle, shadowColor, 12);
-            long badgeColor = longStaticField("b2.y", "d");
-            modifier = declaredMethod(Class.forName("w.m"), "g", modifierClass,
+            long badgeColor = longStaticField("c2.y", "d");
+            modifier = declaredMethod(Class.forName("x.m"), "g", modifierClass,
                     Long.TYPE, shapeClass).invoke(null, modifier, badgeColor, circle);
-            modifier = declaredMethod(Class.forName("u1.a"), "d", modifierClass,
+            modifier = declaredMethod(Class.forName("v1.a"), "d", modifierClass,
                     Float.TYPE).invoke(null, modifier, 2f);
 
-            long iconColor = longStaticField("b2.y", "b");
-            declaredMethod(Class.forName("p5.k0"), "b", Class.forName("h2.f"),
+            long iconColor = longStaticField("c2.y", "b");
+            declaredMethod(Class.forName("s5.m0"), "b", Class.forName("i2.f"),
                     String.class, modifierClass, Long.TYPE, composerClass,
                     Integer.TYPE, Integer.TYPE).invoke(
                     null, shuffleBadgeIcon(), "Random playback", modifier, iconColor,
@@ -1863,7 +1863,7 @@ public final class RandomEpisodeRuntime {
         synchronized (SESSION_LOCK) {
             cached = shuffleBadgeIcon;
             if (cached != null) return cached;
-            Class<?> builderClass = Class.forName("h2.e");
+            Class<?> builderClass = Class.forName("i2.e");
             Constructor<?> constructor = builderClass.getDeclaredConstructor(
                     String.class, Float.TYPE, Float.TYPE, Float.TYPE, Float.TYPE,
                     Long.TYPE, Integer.TYPE, Boolean.TYPE, Integer.TYPE);
@@ -1871,38 +1871,38 @@ public final class RandomEpisodeRuntime {
             Object builder = constructor.newInstance(
                     "Material.Shuffle", 24f, 24f, 960f, 960f, 0L, 0, false, 96);
             ArrayList<Object> path = new ArrayList<>(40);
-            addVectorPoint(path, "h2.n", 560f, 800f);
-            addVectorPoint(path, "h2.m", 560f, 720f);
-            addVectorPoint(path, "h2.m", 664f, 720f);
-            addVectorPoint(path, "h2.m", 537f, 593f);
-            addVectorPoint(path, "h2.m", 594f, 536f);
-            addVectorPoint(path, "h2.m", 720f, 662f);
-            addVectorPoint(path, "h2.m", 720f, 560f);
-            addVectorPoint(path, "h2.m", 800f, 560f);
-            addVectorPoint(path, "h2.m", 800f, 800f);
-            addVectorPoint(path, "h2.m", 560f, 800f);
-            path.add(staticField("h2.j", "c"));
-            addVectorPoint(path, "h2.n", 216f, 800f);
-            addVectorPoint(path, "h2.m", 160f, 744f);
-            addVectorPoint(path, "h2.m", 664f, 240f);
-            addVectorPoint(path, "h2.m", 560f, 240f);
-            addVectorPoint(path, "h2.m", 560f, 160f);
-            addVectorPoint(path, "h2.m", 800f, 160f);
-            addVectorPoint(path, "h2.m", 800f, 400f);
-            addVectorPoint(path, "h2.m", 720f, 400f);
-            addVectorPoint(path, "h2.m", 720f, 296f);
-            addVectorPoint(path, "h2.m", 216f, 800f);
-            path.add(staticField("h2.j", "c"));
-            addVectorPoint(path, "h2.n", 367f, 423f);
-            addVectorPoint(path, "h2.m", 160f, 216f);
-            addVectorPoint(path, "h2.m", 216f, 160f);
-            addVectorPoint(path, "h2.m", 423f, 367f);
-            addVectorPoint(path, "h2.m", 367f, 423f);
-            path.add(staticField("h2.j", "c"));
-            Class<?> brushClass = Class.forName("b2.x0");
+            addVectorPoint(path, "i2.n", 560f, 800f);
+            addVectorPoint(path, "i2.m", 560f, 720f);
+            addVectorPoint(path, "i2.m", 664f, 720f);
+            addVectorPoint(path, "i2.m", 537f, 593f);
+            addVectorPoint(path, "i2.m", 594f, 536f);
+            addVectorPoint(path, "i2.m", 720f, 662f);
+            addVectorPoint(path, "i2.m", 720f, 560f);
+            addVectorPoint(path, "i2.m", 800f, 560f);
+            addVectorPoint(path, "i2.m", 800f, 800f);
+            addVectorPoint(path, "i2.m", 560f, 800f);
+            path.add(staticField("i2.j", "c"));
+            addVectorPoint(path, "i2.n", 216f, 800f);
+            addVectorPoint(path, "i2.m", 160f, 744f);
+            addVectorPoint(path, "i2.m", 664f, 240f);
+            addVectorPoint(path, "i2.m", 560f, 240f);
+            addVectorPoint(path, "i2.m", 560f, 160f);
+            addVectorPoint(path, "i2.m", 800f, 160f);
+            addVectorPoint(path, "i2.m", 800f, 400f);
+            addVectorPoint(path, "i2.m", 720f, 400f);
+            addVectorPoint(path, "i2.m", 720f, 296f);
+            addVectorPoint(path, "i2.m", 216f, 800f);
+            path.add(staticField("i2.j", "c"));
+            addVectorPoint(path, "i2.n", 367f, 423f);
+            addVectorPoint(path, "i2.m", 160f, 216f);
+            addVectorPoint(path, "i2.m", 216f, 160f);
+            addVectorPoint(path, "i2.m", 423f, 367f);
+            addVectorPoint(path, "i2.m", 367f, 423f);
+            path.add(staticField("i2.j", "c"));
+            Class<?> brushClass = Class.forName("c2.x0");
             Constructor<?> brushConstructor = brushClass.getDeclaredConstructor(Long.TYPE);
             brushConstructor.setAccessible(true);
-            Object brush = brushConstructor.newInstance(longStaticField("b2.y", "b"));
+            Object brush = brushConstructor.newInstance(longStaticField("c2.y", "b"));
             declaredMethod(builderClass, "a", builderClass, ArrayList.class,
                     Integer.TYPE, brushClass).invoke(null, builder, path, 0, brush);
             cached = declaredMethod(builderClass, "b").invoke(builder);

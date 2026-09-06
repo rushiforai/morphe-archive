@@ -42,14 +42,12 @@ internal val settingsHubPatch = resourcePatch {
             }
         }
 
-        document("res/values/strings.xml").use { document ->
-            val strings = document.getElementsByTagName("string")
-            for (index in 0 until strings.length) {
-                val element = strings.item(index) as? Element ?: continue
-                when (element.getAttribute("name")) {
-                    "settings_experience" -> element.textContent = "Morphe"
-                    "settings_experience_subtitle" ->
-                        element.textContent = "Patch settings  •  $displayVersion"
+        get("res").listFiles().orEmpty().filter {
+            it.isDirectory && (it.name == "values" || it.name.startsWith("values-"))
+        }.forEach { directory ->
+            directory.listFiles().orEmpty().filter { it.extension == "xml" }.forEach { file ->
+                document("res/${directory.name}/${file.name}").use { document ->
+                    SettingsResourceLabels.transform(document, directory.name, displayVersion)
                 }
             }
         }

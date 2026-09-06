@@ -6,25 +6,25 @@
   "target": {
     "application": "NuvioTV",
     "package": "com.nuvio.tv",
-    "versions": ["0.8.11-beta"],
+    "versions": ["0.9.0-beta"],
     "launchComponent": "com.nuvio.tv/.MainActivity"
   },
   "assets": {
     "universal": {
-      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.11-beta/app-full-universal-release.apk",
-      "sha256": "2a103194126dd7c832703d2c749de606218b2174885488b37a8a9622eb2ab9ad"
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.9.0-beta/app-full-universal-release.apk",
+      "sha256": "e94d66ef82e3fd7924ed3888d652ee8607f650e2bc3d0c586e8bfd31c0f5d0b5"
     },
     "x86_64": {
-      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.11-beta/app-full-x86_64-release.apk",
-      "sha256": "324c5d5671e5f8fd19e726b0bb31eb13296873bc2e05c91b29c6f7bd4d3366a0"
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.9.0-beta/app-full-x86_64-release.apk",
+      "sha256": "e3712cfd0cf4f0a25c1268ca6799abe68248f6ee4a4980974121f00b57f06712"
     },
     "arm64-v8a": {
-      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.11-beta/app-full-arm64-v8a-release.apk",
-      "sha256": "8fe9ad14b04e700d50e7abff7e49eb146b18d29f400cf225f8982eaee3a9bb5c"
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.9.0-beta/app-full-arm64-v8a-release.apk",
+      "sha256": "c4f7222e7e066f57429c54f3c2e1f52823ea666f6a9e60cc318374aa2fbe9004"
     },
     "armeabi-v7a": {
-      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.11-beta/app-full-armeabi-v7a-release.apk",
-      "sha256": "2e453628d694baa8f84abc26a784e3037fadd6a4fe4063bb128b0a5a168d1e70"
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.9.0-beta/app-full-armeabi-v7a-release.apk",
+      "sha256": "90e02ddb0793bce7d7c429a4d15cef632a3e6c058755eacce7128515195deec4"
     }
   },
   "dependencies": ["settings-hub"],
@@ -93,7 +93,7 @@
       "Play local file",
       "Delete local file",
       "Downloaded",
-      "na.z0",
+      "ra.v0",
       "Downloads",
       "Delete all downloads",
       "Maximum usable selected storage",
@@ -105,9 +105,9 @@
     "forbiddenNeedles": [],
     "smali": [
       {
-        "class": "na.p1",
+        "class": "ra.k1",
         "required": [
-          ".field public final synthetic c:Lna/z0;",
+          ".field public final synthetic c:Lra/v0;",
           "invoke-static {v1, v11}, Lio/github/liongalahad/nuviotv/extension/playback/localdownloads/LocalDownloadsRuntime;->renderDownloadedEpisodeBadge(Ljava/lang/Object;Ljava/lang/Object;)V"
         ],
         "forbidden": [
@@ -115,17 +115,17 @@
         ]
       },
       {
-        "class": "c0.u",
+        "class": "d0.v",
         "required": [
-          ".field public static final a:Lc0/u;",
-          ".method public final a(Lu1/q;Lu1/d;)Lu1/q;"
+          ".field public static final a:Ld0/v;",
+          ".method public final a(Lv1/q;Lv1/d;)Lv1/q;"
         ],
         "forbidden": []
       },
       {
-        "class": "w.m",
+        "class": "x.m",
         "required": [
-          ".method public static final g(Lu1/q;JLb2/u0;)Lu1/q;"
+          ".method public static final g(Lv1/q;JLc2/v0;)Lv1/q;"
         ],
         "forbidden": []
       }

@@ -9,6 +9,21 @@ import org.w3c.dom.Element
 
 class SideBySideManifestTest {
     @Test
+    fun `every selectable launcher icon retains Morphe branding`() {
+        val document = manifest("""<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.nuvio.tv"><application>
+          <activity android:name="com.nuvio.tv.launcher.AppIconDefault" android:label="@string/app_name"><intent-filter><category android:name="android.intent.category.LEANBACK_LAUNCHER" /></intent-filter></activity>
+          <activity android:name="com.nuvio.tv.launcher.AppIconCopper" android:enabled="false" android:label="@string/app_name"><intent-filter><category android:name="android.intent.category.LAUNCHER" /></intent-filter></activity>
+          <activity android:name="example.Other" android:label="Unchanged" />
+        </application></manifest>""")
+        SideBySideManifest.transform(document)
+        val activities = document.getElementsByTagName("activity")
+        assertEquals("Nuvio Morphe", (activities.item(0) as Element).getAttribute("android:label"))
+        assertEquals("Nuvio Morphe", (activities.item(1) as Element).getAttribute("android:label"))
+        assertEquals("false", (activities.item(1) as Element).getAttribute("android:enabled"))
+        assertEquals("Unchanged", (activities.item(2) as Element).getAttribute("android:label"))
+    }
+
+    @Test
     fun `renames install identity while preserving component class names`() {
         val document = manifest(
             """

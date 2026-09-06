@@ -1,6 +1,7 @@
 package io.github.liongalahad.nuviotv.extension.playback.localdownloads;
 
 import io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsUi;
+import io.github.liongalahad.nuviotv.extension.settings.MorpheTranslations;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import kotlin.Unit;
@@ -10,8 +11,8 @@ import kotlin.jvm.functions.Function3;
 
 /** Native Morphe settings content owned by Local Downloads. */
 public final class LocalDownloadsSettingsContent implements Function3<Object, Object, Object, Unit> {
-    private static final String[] NATIVE_SLIDER_CLASS_NAMES = {"ua.x5"};
-    private static final String[] NATIVE_SLIDER_ICON_CLASS_NAMES = {"x0.a"};
+    private static final String[] NATIVE_SLIDER_CLASS_NAMES = {"ya.q4"};
+    private static final String[] NATIVE_SLIDER_ICON_CLASS_NAMES = {"v8.k"};
     private final Object modifier;
 
     private LocalDownloadsSettingsContent(Object modifier) { this.modifier = modifier; }
@@ -55,7 +56,7 @@ public final class LocalDownloadsSettingsContent implements Function3<Object, Ob
                                 modifier,
                                 innerComposer,
                                 "Downloads",
-                                count + (count == 1 ? " item" : " items"),
+                                MorpheTranslations.format(count == 1 ? "%d item" : "%d items", count),
                                 LocalDownloadsManagerAction.INSTANCE
                         );
                     }
@@ -68,8 +69,8 @@ public final class LocalDownloadsSettingsContent implements Function3<Object, Ob
     private static void renderStorageSlider(Object composer) {
         try {
             ClassLoader loader = composer.getClass().getClassLoader();
-            Class<?> iconClass = Class.forName("h2.f", false, loader);
-            Class<?> composerClass = Class.forName("e1.p", false, loader);
+            Class<?> iconClass = Class.forName("i2.f", false, loader);
+            Class<?> composerClass = Class.forName("f1.p", false, loader);
             Method iconFactory = findNativeSliderIcon(loader, iconClass);
             iconFactory.setAccessible(true);
             Object icon = iconFactory.invoke(null);
@@ -88,7 +89,7 @@ public final class LocalDownloadsSettingsContent implements Function3<Object, Ob
             };
             slider.invoke(null,
                     icon,
-                    "Maximum usable selected storage",
+                    MorpheTranslations.text("Maximum usable selected storage"),
                     LocalDownloadsSettings.sliderIndex(),
                     percentage + "%",
                     0,

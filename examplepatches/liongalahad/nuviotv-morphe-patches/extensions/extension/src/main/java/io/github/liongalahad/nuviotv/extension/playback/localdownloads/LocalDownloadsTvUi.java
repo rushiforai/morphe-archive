@@ -1,6 +1,7 @@
 package io.github.liongalahad.nuviotv.extension.playback.localdownloads;
 
 import android.app.Activity;
+import io.github.liongalahad.nuviotv.extension.settings.MorpheTranslations;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -33,7 +34,7 @@ final class LocalDownloadsTvUi {
 
     static Button button(Activity activity, String label) {
         Button button = new Button(activity);
-        button.setText(label);
+        button.setText(MorpheTranslations.text(label));
         button.setTextSize(17);
         button.setAllCaps(false);
         button.setGravity(Gravity.CENTER);

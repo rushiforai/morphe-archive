@@ -17,6 +17,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsUi;
+import io.github.liongalahad.nuviotv.extension.settings.MorpheTranslations;
 
 /** TV choice dialog for the per-show random episode pool. */
 final class RandomEpisodePoolDialog {
@@ -179,7 +180,7 @@ final class RandomEpisodePoolDialog {
 
     private static TextView text(Activity activity, String value, float sp, int color) {
         TextView view = new TextView(activity);
-        view.setText(value);
+        view.setText(MorpheTranslations.text(value));
         view.setTextSize(sp);
         view.setTextColor(color);
         view.setGravity(Gravity.START);

@@ -1,3 +1,121 @@
+## [1.34.2](https://github.com/legendsciber/morphe-patches/compare/v1.34.1...v1.34.2) (2026-09-06)
+
+### 🐛 Bug Fixes
+
+* v29 - remove IL2CPP domain_get, use direct RVA addressing ([585ecf0](https://github.com/legendsciber/morphe-patches/commit/585ecf07c7f05d46f8142306931c1c3559dae99b))
+
+## [1.34.1](https://github.com/legendsciber/morphe-patches/compare/v1.34.0...v1.34.1) (2026-09-06)
+
+### 🐛 Bug Fixes
+
+* add commas between byte array lines in SoBytes parts ([ad55b51](https://github.com/legendsciber/morphe-patches/commit/ad55b5161e3a2274734182aaff2fbb203715c79d))
+* split IAPBypassSoBytes into parts to avoid JVM method size limit ([b71d4eb](https://github.com/legendsciber/morphe-patches/commit/b71d4eb48d67a89bed60e3e9f906794ad4b649be))
+* update SF2 IAP bypass description in README ([f1b0c6c](https://github.com/legendsciber/morphe-patches/commit/f1b0c6ca5c6ea689e8c014adf810b988390099b0))
+* v28 IAP bypass - hook GooglePlayStore.Purchase + OnPurchaseSucceeded ([5a7507d](https://github.com/legendsciber/morphe-patches/commit/5a7507dcaaa7b02dabbe93bfae6df42a7182a669))
+
+## [1.34.0](https://github.com/legendsciber/morphe-patches/compare/v1.33.1...v1.34.0) (2026-09-06)
+
+### ✨ New Features
+
+* SF2 IAP Bypass v27 - hook MakePurchase with IL2CPP API to bypass Google Play ([d53e2cd](https://github.com/legendsciber/morphe-patches/commit/d53e2cde6738e385b9025a2254bea6110ad9a345))
+
+## [1.33.1](https://github.com/legendsciber/morphe-patches/compare/v1.33.0...v1.33.1) (2026-09-06)
+
+### 🐛 Bug Fixes
+
+* SF2 IAP Bypass v26 - fix libil2cpp base address parsing ([a11b359](https://github.com/legendsciber/morphe-patches/commit/a11b3590539414f81d3053995e73c05f5120daa9))
+
+## [1.33.0](https://github.com/legendsciber/morphe-patches/compare/v1.32.2...v1.33.0) (2026-09-06)
+
+### ✨ New Features
+
+* SF2 IAP Bypass - hook IAGKBFCKFKB (RealMoney->Gold) + HDDFDBIKKFH (999999) ([eeb7779](https://github.com/legendsciber/morphe-patches/commit/eeb7779ea298d071a5fc3c5dc8cf8523d8705b56))
+
+## [1.32.2](https://github.com/legendsciber/morphe-patches/compare/v1.32.1...v1.32.2) (2026-09-05)
+
+### 🐛 Bug Fixes
+
+* v24 poll for libil2cpp.so in background thread since it is not loaded yet at JNI_OnLoad time ([1d79e6b](https://github.com/legendsciber/morphe-patches/commit/1d79e6b9ecd22a45121e70a4bd950e4a5fef2a27))
+
+## [1.32.1](https://github.com/legendsciber/morphe-patches/compare/v1.32.0...v1.32.1) (2026-09-05)
+
+### 🐛 Bug Fixes
+
+* v24 move hook to JNI_OnLoad so it runs on System.loadLibrary() ([ab2a4a9](https://github.com/legendsciber/morphe-patches/commit/ab2a4a9c4c8e5e69d95c2777aafba29523c67bd4))
+
+## [1.32.0](https://github.com/legendsciber/morphe-patches/compare/v1.31.34...v1.32.0) (2026-09-05)
+
+### ✨ New Features
+
+* v24 hash bypass - hook KLPJOKOFLJD.LFENGGKOJDO to always return true ([3641375](https://github.com/legendsciber/morphe-patches/commit/3641375b0f618741833f12717d0640477b8bc67a)), closes [#1](https://github.com/legendsciber/morphe-patches/issues/1)
+
+## [1.31.34](https://github.com/legendsciber/morphe-patches/compare/v1.31.33...v1.31.34) (2026-09-05)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v22b - raise safe pointer lower bound to 0x1000000, fix crash ([ee01a7f](https://github.com/legendsciber/morphe-patches/commit/ee01a7ffed1532443909a2142b22324ace448f3a))
+
+## [1.31.33](https://github.com/legendsciber/morphe-patches/compare/v1.31.32...v1.31.33) (2026-09-05)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v22 - XML/keyword scan for coins/bonus/gems/ruby in NLP data ([e941fb2](https://github.com/legendsciber/morphe-patches/commit/e941fb2ddc2bce1ab1d69e9c7b5f5286729e22ab))
+
+## [1.31.32](https://github.com/legendsciber/morphe-patches/compare/v1.31.31...v1.31.32) (2026-09-05)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v21 - fix signed byte encoding in HardcodeSoBytes.kt ([f2403f4](https://github.com/legendsciber/morphe-patches/commit/f2403f4062a3509ebe0a1162a5f33286bb81b4cd))
+* **shadowfight:** v21 scan - PJK exact ObscuredInt offsets, fix 8-byte alignment bug ([eca3f33](https://github.com/legendsciber/morphe-patches/commit/eca3f33a3179948b47557dff8c1180f6cf1c6790))
+
+## [1.31.31](https://github.com/legendsciber/morphe-patches/compare/v1.31.30...v1.31.31) (2026-09-05)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType ([2937ecb](https://github.com/legendsciber/morphe-patches/commit/2937ecb168492c25090d14871025df8eac180b9e))
+
+## [1.31.30](https://github.com/legendsciber/morphe-patches/compare/v1.31.29...v1.31.30) (2026-09-05)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType ([87dd97d](https://github.com/legendsciber/morphe-patches/commit/87dd97d04fb3d48fee61680c9c43e77907e61815))
+
+## [1.31.29](https://github.com/legendsciber/morphe-patches/compare/v1.31.28...v1.31.29) (2026-09-05)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType ([98991dc](https://github.com/legendsciber/morphe-patches/commit/98991dc889116b8ac31c8fd33d3cb5236c226bda))
+
+## [1.31.28](https://github.com/legendsciber/morphe-patches/compare/v1.31.27...v1.31.28) (2026-09-05)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType ([219081e](https://github.com/legendsciber/morphe-patches/commit/219081e95e677845d8a6da3a4b66971bf317cab0))
+
+## [1.31.27](https://github.com/legendsciber/morphe-patches/compare/v1.31.26...v1.31.27) (2026-09-05)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType ([1a7cb28](https://github.com/legendsciber/morphe-patches/commit/1a7cb2831c008677934cf35a63abbd60150632ad))
+
+## [1.31.26](https://github.com/legendsciber/morphe-patches/compare/v1.31.25...v1.31.26) (2026-09-05)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType ([666a89a](https://github.com/legendsciber/morphe-patches/commit/666a89aedc99858604970692b85fda7b64e59db3))
+
+## [1.31.25](https://github.com/legendsciber/morphe-patches/compare/v1.31.24...v1.31.25) (2026-09-05)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType ([1488e02](https://github.com/legendsciber/morphe-patches/commit/1488e02caf8dc73465a754a8bd0b61c6a7592b03))
+
+## [1.31.24](https://github.com/legendsciber/morphe-patches/compare/v1.31.23...v1.31.24) (2026-09-05)
+
+### 🐛 Bug Fixes
+
+* **shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType ([5394cf9](https://github.com/legendsciber/morphe-patches/commit/5394cf9f49d9a626c3fb7153ff107037fce8793f))
+
 ## [1.31.23](https://github.com/legendsciber/morphe-patches/compare/v1.31.22...v1.31.23) (2026-09-04)
 
 ### 🐛 Bug Fixes

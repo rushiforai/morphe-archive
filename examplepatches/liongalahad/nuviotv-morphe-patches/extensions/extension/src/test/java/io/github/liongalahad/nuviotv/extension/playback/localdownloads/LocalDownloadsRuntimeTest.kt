@@ -60,8 +60,8 @@ class LocalDownloadsRuntimeTest {
     }
 
     @Test
-    fun `episode badge is pinned to exact 0_8_11 native metrics owner`() {
-        assertEquals("na.z0", getStaticField("EPISODE_CARD_METRICS_CLASS"))
+    fun `episode badge is pinned to exact 0_9_0 native metrics owner`() {
+        assertEquals("ra.v0", getStaticField("EPISODE_CARD_METRICS_CLASS"))
 
         val reader = LocalDownloadsRuntime::class.java.getDeclaredMethod(
             "requiredFloatField",
@@ -878,6 +878,19 @@ class LocalDownloadsRuntimeTest {
             listOf("Play", "Start from beginning", "Download to storage"),
             extended.map { (it as FakeEpisodeAction).label }
         )
+    }
+
+    @Test
+    fun `system language flags between 090 subtitle properties do not become language codes`() {
+        val style = object {
+            override fun toString() = "SubtitleStyleSettings(preferredLanguage=en, " +
+                "isPreferredLanguageSystemDefault=true, secondaryPreferredLanguage=Italian, " +
+                "isSecondaryPreferredLanguageSystemDefault=false, useForcedSubtitles=false)"
+        }
+        assertEquals(linkedSetOf("en", "it"),
+            LocalDownloadsRuntime.preferredSubtitleLanguages(style))
+        assertTrue(LocalDownloadsRuntime.isPreferredSubtitleLanguage("eng",
+            LocalDownloadsRuntime.preferredSubtitleLanguages(style)))
     }
 
     @Test
