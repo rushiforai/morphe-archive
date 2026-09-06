@@ -1609,6 +1609,22 @@
                 "sortOrder": 206,
                 "createdAt": 1788578448342,
                 "updatedAt": 1788578448342
+            },
+            {
+                "name": "xperia-1v-camera-patches",
+                "source": "https://raw.githubusercontent.com/alalloush/xperia-1v-camera-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 207,
+                "createdAt": 1788663874596,
+                "updatedAt": 1788663874596
+            },
+            {
+                "name": "discord-patches",
+                "source": "https://raw.githubusercontent.com/jrddupont/discord-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 208,
+                "createdAt": 1788663875259,
+                "updatedAt": 1788663875259
             }
         ]
     }

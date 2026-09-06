@@ -1,19 +1,19 @@
 {
-  "generatedAt": "2026-09-05 03:21 UTC",
-  "configFile": "morphe_archive_config_v41.json",
-  "configVersion": 41,
-  "repoCount": 195,
-  "appCount": 770,
-  "patchCount": 3583,
-  "universalPatchCount": 515,
+  "generatedAt": "2026-09-06 03:05 UTC",
+  "configFile": "morphe_archive_config_v42.json",
+  "configVersion": 42,
+  "repoCount": 197,
+  "appCount": 779,
+  "patchCount": 3614,
+  "universalPatchCount": 519,
   "hostCounts": {
-    "github.com": 190,
+    "github.com": 192,
     "gitlab.com": 5
   },
   "visitorStats": {
-    "today": 1,
-    "yesterday": 9,
-    "total": 436,
+    "today": 0,
+    "yesterday": 3,
+    "total": 438,
     "online": 0
   },
   "repos": [
@@ -67,8 +67,8 @@
       "webUrl": "https://github.com/ajstrick81/morphe-androidtv-patches",
       "addUrl": "https://morphe.software/add-source?github=ajstrick81/morphe-androidtv-patches",
       "avatarUrl": "https://github.com/ajstrick81.png?size=96",
-      "patchCount": 32,
-      "appCount": 12,
+      "patchCount": 33,
+      "appCount": 13,
       "createdAt": 1784836028108,
       "updatedAt": 1784836028108,
       "createdDate": "2026-07-23",
@@ -110,6 +110,13 @@
           "packageName": "com.disney.disneyplus",
           "patchCount": 2,
           "iconUrl": "https://play-lh.googleusercontent.com/AEX_3Bk5_SEZfR4fUcJsWiyqW_RRVcLED9AM2HMUVHAPVTZhZHfP2q3M35mRe4LtCXlb712DtkKwkZa_nJ-0",
+          "iconColor": ""
+        },
+        {
+          "name": "com.espn.score_center",
+          "packageName": "com.espn.score_center",
+          "patchCount": 1,
+          "iconUrl": "",
           "iconColor": ""
         },
         {
@@ -166,6 +173,49 @@
           "packageName": "tv.twitch.android.app",
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/JHCM4AIyomRp6Lo2-5ugoznlGdsZmNnejVN8DLvtWFHShcz8YRgUE170f1CyOfrleYbtFL2g8tQ3VqlQNAgqoA",
+          "iconColor": ""
+        }
+      ]
+    },
+    {
+      "name": "xperia-1v-camera-patches",
+      "repo": "alalloush/xperia-1v-camera-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/alalloush/xperia-1v-camera-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/alalloush/xperia-1v-camera-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/alalloush/xperia-1v-camera-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/alalloush/xperia-1v-camera-patches",
+      "addUrl": "https://morphe.software/add-source?github=alalloush/xperia-1v-camera-patches",
+      "avatarUrl": "https://github.com/alalloush.png?size=96",
+      "patchCount": 3,
+      "appCount": 2,
+      "createdAt": 1788663874596,
+      "updatedAt": 1788663874596,
+      "createdDate": "2026-09-06",
+      "updatedDate": "2026-09-06",
+      "latestChanges": {
+        "title": "1.0.0 (2026-09-05)",
+        "date": "2026-09-05",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "Xperia 1 V camera patches"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Photography Pro",
+          "packageName": "com.sonymobile.photopro",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": ""
+        },
+        {
+          "name": "Sony Camera",
+          "packageName": "jp.co.sony.mc.cameraapp",
+          "patchCount": 3,
+          "iconUrl": "",
           "iconColor": ""
         }
       ]
@@ -710,10 +760,6 @@
             "text": "before you patch."
           },
           {
-            "category": "\u26a0 BREAKING CHANGES",
-            "text": "Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
-          },
-          {
             "category": "\ud83d\udc1b Bug Fixes",
             "text": "hide the Friends sub-tab Calendar block"
           },
@@ -815,31 +861,23 @@
       "webUrl": "https://github.com/AngelDark92/steamlink-patches",
       "addUrl": "https://morphe.software/add-source?github=AngelDark92/steamlink-patches",
       "avatarUrl": "https://github.com/AngelDark92.png?size=96",
-      "patchCount": 23,
+      "patchCount": 24,
       "appCount": 1,
       "createdAt": 1787707029265,
       "updatedAt": 1787707029265,
       "createdDate": "2026-08-26",
       "updatedDate": "2026-08-26",
       "latestChanges": {
-        "title": "1.13.0 (2026-09-03)",
-        "date": "2026-09-03",
+        "title": "1.14.0 (2026-09-05)",
+        "date": "2026-09-05",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "CPU overhead optimizations"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Merge pull request #50 from AngelDark92/dev"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "removed experimental patch"
+            "category": "\u2728 New Features",
+            "text": "add modern tongue bridge for build 5002322"
           },
           {
             "category": "\u2728 New Features",
-            "text": "underside projection on XR_KHR_android_surface_swapchain experiment"
+            "text": "Merge pull request #53 from AngelDark92/dev"
           }
         ]
       },
@@ -847,7 +885,7 @@
         {
           "name": "Steam Link",
           "packageName": "com.valvesoftware.steamlinkvr",
-          "patchCount": 23,
+          "patchCount": 24,
           "iconUrl": "",
           "iconColor": "#1B2838"
         }
@@ -1802,47 +1840,47 @@
       "webUrl": "https://github.com/BlazeFTL/FTL-Patches",
       "addUrl": "https://morphe.software/add-source?github=BlazeFTL/FTL-Patches",
       "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
-      "patchCount": 42,
-      "appCount": 10,
+      "patchCount": 56,
+      "appCount": 16,
       "createdAt": 1786263569063,
       "updatedAt": 1786263569063,
       "createdDate": "2026-08-09",
       "updatedDate": "2026-08-09",
       "latestChanges": {
-        "title": "1.42.0 (2026-08-28)",
-        "date": "2026-08-28",
+        "title": "1.43.0 (2026-09-05)",
+        "date": "2026-09-05",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "Add Skip Splash Screen Patch (Expert)"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "apk"
           },
           {
-            "category": "\u2728 New Features",
-            "text": "Add Video Downloader Pro Unlock Patch"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "apk junk"
           },
           {
-            "category": "\u2728 New Features",
-            "text": "up"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "apk junk"
           },
           {
-            "category": "\u2728 New Features",
-            "text": "up"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Apk Junk"
           },
           {
-            "category": "\u2728 New Features",
-            "text": "up"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Apk Junk"
           },
           {
-            "category": "\u2728 New Features",
-            "text": "up"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Apk Junk Clean Patch"
           },
           {
-            "category": "\u2728 New Features",
-            "text": "up"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "last try"
           },
           {
-            "category": "\u2728 New Features",
-            "text": "up"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Mx"
           }
         ]
       },
@@ -1862,6 +1900,13 @@
           "iconColor": ""
         },
         {
+          "name": "Bangla Dictionary",
+          "packageName": "com.hdictionary.bn",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": ""
+        },
+        {
           "name": "Calendar",
           "packageName": "calendar.agenda.schedule.event.advance.calendar.planner",
           "patchCount": 2,
@@ -1876,9 +1921,23 @@
           "iconColor": ""
         },
         {
+          "name": "File Manager - XFolder",
+          "packageName": "files.fileexplorer.filemanager",
+          "patchCount": 3,
+          "iconUrl": "",
+          "iconColor": ""
+        },
+        {
           "name": "MiXplorer",
           "packageName": "com.mixplorer",
           "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": ""
+        },
+        {
+          "name": "MX Player",
+          "packageName": "com.mxtech.videoplayer.ad",
+          "patchCount": 3,
           "iconUrl": "",
           "iconColor": ""
         },
@@ -1892,7 +1951,7 @@
         {
           "name": "RS File Manager",
           "packageName": "com.rs.explorer.filemanager",
-          "patchCount": 5,
+          "patchCount": 6,
           "iconUrl": "https://play-lh.googleusercontent.com/qk5ZNXn_E2bAi_9JSHhMB_pn1b1NloWWCeMr16cJIAsv05Gy5Rm8nlmd5KjnLOIisgiMtNrG5LOjmdlF_ksQk8o",
           "iconColor": ""
         },
@@ -1907,6 +1966,27 @@
           "name": "Video Downloader",
           "packageName": "video.downloader.videodownloader",
           "patchCount": 4,
+          "iconUrl": "",
+          "iconColor": ""
+        },
+        {
+          "name": "WiFi Analyzer",
+          "packageName": "abdelrahman.wifianalyzerpro",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": ""
+        },
+        {
+          "name": "WIFI WPS WPA TESTER",
+          "packageName": "com.tester.wpswpatester",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": ""
+        },
+        {
+          "name": "WPSApp Pro",
+          "packageName": "com.themausoft.wpsapppro",
+          "patchCount": 1,
           "iconUrl": "",
           "iconColor": ""
         },
@@ -2551,19 +2631,19 @@
       "webUrl": "https://github.com/catsmoker/anime-witcher-patches",
       "addUrl": "https://morphe.software/add-source?github=catsmoker/anime-witcher-patches",
       "avatarUrl": "https://github.com/catsmoker.png?size=96",
-      "patchCount": 7,
+      "patchCount": 10,
       "appCount": 1,
       "createdAt": 1787275037078,
       "updatedAt": 1787275037078,
       "createdDate": "2026-08-21",
       "updatedDate": "2026-08-21",
       "latestChanges": {
-        "title": "1.1.0 (2026-09-04)",
-        "date": "2026-09-04",
+        "title": "1.2.0 (2026-09-05)",
+        "date": "2026-09-05",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add TV support patches and D-pad navigation"
+            "text": "merge Android TV and Rebranding into single optional patch toggles"
           }
         ]
       },
@@ -2571,7 +2651,7 @@
         {
           "name": "Anime Witcher",
           "packageName": "com.anime.witcher",
-          "patchCount": 7,
+          "patchCount": 10,
           "iconUrl": "",
           "iconColor": "#FF0000"
         }
@@ -3088,9 +3168,42 @@
       "createdDate": "2026-08-29",
       "updatedDate": "2026-08-29",
       "latestChanges": {
-        "title": "",
+        "title": "Features",
         "date": "",
-        "items": []
+        "items": [
+          {
+            "category": "",
+            "text": "add semantic release versions"
+          },
+          {
+            "category": "Commits",
+            "text": "8588480 feat(newx): add opt-in server diagnostics"
+          },
+          {
+            "category": "Commits",
+            "text": "ae5130f feat: Add NewX color customization patch"
+          },
+          {
+            "category": "Commits",
+            "text": "d545cd9 feat: add verified account filtering and theme custom screens"
+          },
+          {
+            "category": "Commits",
+            "text": "1772d37 fix: refine NewX filtering settings"
+          },
+          {
+            "category": "Commits",
+            "text": "b389397 fix: NewX accent color propagation"
+          },
+          {
+            "category": "New Patches",
+            "text": "**Twitter:** NewX: Server error logging"
+          },
+          {
+            "category": "New Patches",
+            "text": "**Twitter:** NewX: Unlock color customization"
+          }
+        ]
       },
       "apps": []
     },
@@ -3256,24 +3369,28 @@
       "createdDate": "2026-07-26",
       "updatedDate": "2026-07-26",
       "latestChanges": {
-        "title": "1.4.0 (2026-08-24)",
-        "date": "2026-08-24",
+        "title": "1.5.0 (2026-09-05)",
+        "date": "2026-09-05",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**helium:** harden keep-alive structural resolver"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**helium:** harden keep-alive without breaking apk patching"
+            "text": "**brave:** tolerate Origin log-literal drift on 1.97.x (86755f2), closes #1 #5"
           },
           {
             "category": "\u2728 New Features",
-            "text": "add Helium foreground keep-alive service"
+            "text": "**universal:** broaden Disable analytics to kondratjev parity"
           },
           {
             "category": "\u2728 New Features",
-            "text": "make Helium keep-alive patch version resilient"
+            "text": "**universal:** cover Adjust v5 initSdk and Crashlytics boxed overload"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**universal:** cover screen reporting, crashlytics/perf providers and Adjust init"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**universal:** harden Disable analytics manifest scope and runtime backstop"
           }
         ]
       },
@@ -3300,13 +3417,6 @@
           "iconColor": "#FF4500"
         },
         {
-          "name": "Helium Browser",
-          "packageName": "io.github.jqssun.helium",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": ""
-        },
-        {
           "name": "Quetta Browser",
           "packageName": "net.quetta.browser",
           "patchCount": 1,
@@ -3316,6 +3426,13 @@
         {
           "name": "Quetta Browser Official",
           "packageName": "net.quetta.browser.official",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": ""
+        },
+        {
+          "name": "Titanium Browser for Android",
+          "packageName": "io.github.jqssun.helium",
           "patchCount": 1,
           "iconUrl": "",
           "iconColor": ""
@@ -7151,6 +7268,58 @@
       ]
     },
     {
+      "name": "discord-patches",
+      "repo": "jrddupont/discord-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/jrddupont/discord-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/jrddupont/discord-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/jrddupont/discord-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/jrddupont/discord-patches",
+      "addUrl": "https://morphe.software/add-source?github=jrddupont/discord-patches",
+      "avatarUrl": "https://github.com/jrddupont.png?size=96",
+      "patchCount": 3,
+      "appCount": 1,
+      "createdAt": 1788663875259,
+      "updatedAt": 1788663875259,
+      "createdDate": "2026-09-06",
+      "updatedDate": "2026-09-06",
+      "latestChanges": {
+        "title": "v1.2.0",
+        "date": "",
+        "items": [
+          {
+            "category": "",
+            "text": "New patch: Pin app to built-in bundle \u2014 forces Discord to always run"
+          },
+          {
+            "category": "",
+            "text": "the APK's Hermes bundle and ignore downloaded (OTA) updates. Without"
+          },
+          {
+            "category": "",
+            "text": "it, an OTA silently undoes all Hermes patches (observed on device:"
+          },
+          {
+            "category": "",
+            "text": "banner returned, composer gift never left). Official JS updates stop"
+          },
+          {
+            "category": "",
+            "text": "arriving until the APK itself is updated."
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Discord",
+          "packageName": "com.discord",
+          "patchCount": 3,
+          "iconUrl": "",
+          "iconColor": "#5865F2"
+        }
+      ]
+    },
+    {
       "name": "Flexboard",
       "repo": "JZ6/Flexboard",
       "host": "github.com",
@@ -7920,19 +8089,19 @@
       "webUrl": "https://github.com/legendsciber/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=legendsciber/morphe-patches",
       "avatarUrl": "https://github.com/legendsciber.png?size=96",
-      "patchCount": 16,
+      "patchCount": 12,
       "appCount": 6,
       "createdAt": 1787620440197,
       "updatedAt": 1787620440197,
       "createdDate": "2026-08-25",
       "updatedDate": "2026-08-25",
       "latestChanges": {
-        "title": "1.31.23 (2026-09-04)",
-        "date": "2026-09-04",
+        "title": "1.34.2 (2026-09-06)",
+        "date": "2026-09-06",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType"
+            "text": "v29 - remove IL2CPP domain_get, use direct RVA addressing"
           }
         ]
       },
@@ -7961,7 +8130,7 @@
         {
           "name": "Shadow Fight 2",
           "packageName": "com.nekki.shadowfight",
-          "patchCount": 6,
+          "patchCount": 2,
           "iconUrl": "",
           "iconColor": "#1A1A1A"
         },
@@ -8740,19 +8909,19 @@
       "webUrl": "https://github.com/Nai64/Nai64Patches",
       "addUrl": "https://morphe.software/add-source?github=Nai64/Nai64Patches",
       "avatarUrl": "https://github.com/Nai64.png?size=96",
-      "patchCount": 342,
+      "patchCount": 343,
       "appCount": 1,
       "createdAt": 1784836023539,
       "updatedAt": 1784836023539,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.43.1 (2026-09-03)",
-        "date": "2026-09-03",
+        "title": "1.44.0 (2026-09-05)",
+        "date": "2026-09-05",
         "items": [
           {
-            "category": "Bug Fixes",
-            "text": "cover React Native AsyncStorage and billing bridges in unlock premium"
+            "category": "New Features",
+            "text": "add Universal Overlay Patch v1.0  ( Experimental ) (#73)"
           }
         ]
       },
@@ -13008,23 +13177,37 @@
       "webUrl": "https://github.com/WZSE/aapam-patches",
       "addUrl": "https://morphe.software/add-source?github=WZSE/aapam-patches",
       "avatarUrl": "https://github.com/WZSE.png?size=96",
-      "patchCount": 4,
-      "appCount": 1,
+      "patchCount": 14,
+      "appCount": 3,
       "createdAt": 1786756261910,
       "updatedAt": 1786756261910,
       "createdDate": "2026-08-15",
       "updatedDate": "2026-08-15",
       "latestChanges": {
-        "title": "1.0.0 (2026-08-13)",
-        "date": "2026-08-13",
+        "title": "1.2.0 (2026-09-05)",
+        "date": "2026-09-05",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add ZEE5 patches (disable ads, analytics, CleverTap, Firebase)"
+            "text": "Telegram anti expiry media, but unlike other Paresh patch this shows expired to sender"
           }
         ]
       },
       "apps": [
+        {
+          "name": "Prime Video Android TV",
+          "packageName": "com.amazon.amazonvideo.livingroom",
+          "patchCount": 7,
+          "iconUrl": "https://play-lh.googleusercontent.com/qyXqjzPggunbifX0ODhCehdy4ei0F90u0N3f4pPk8NhgCZD75dH8bdQYPROGRVlTVOs8B8JAT58X6ImMZv5ugHg",
+          "iconColor": "#177BCE"
+        },
+        {
+          "name": "Telegram",
+          "packageName": "org.telegram.messenger.web",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#2AABEE"
+        },
         {
           "name": "ZEE5 Android TV",
           "packageName": "com.graymatrix.did",
@@ -13348,35 +13531,23 @@
       "webUrl": "https://github.com/Zanuaimi/UniPatches",
       "addUrl": "https://morphe.software/add-source?github=Zanuaimi/UniPatches",
       "avatarUrl": "https://github.com/Zanuaimi.png?size=96",
-      "patchCount": 13,
-      "appCount": 1,
+      "patchCount": 12,
+      "appCount": 0,
       "createdAt": 1788577973428,
       "updatedAt": 1788577973428,
       "createdDate": "2026-09-05",
       "updatedDate": "2026-09-05",
       "latestChanges": {
-        "title": "1.2.0 (2026-09-05)",
+        "title": "1.4.0 (2026-09-05)",
         "date": "2026-09-05",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add configurable overlay appearance settings"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "separate overlay text and icon outline styling"
+            "text": "harden UI preset export paths"
           }
         ]
       },
-      "apps": [
-        {
-          "name": "XYZ app",
-          "packageName": "com.example.app",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#FF0045"
-        }
-      ]
+      "apps": []
     }
   ],
   "apps": [
@@ -15411,40 +15582,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.42.0 (2026-08-28)",
-            "date": "2026-08-28",
+            "title": "1.43.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add Skip Splash Screen Patch (Expert)"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "Add Video Downloader Pro Unlock Patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk Clean Patch"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "last try"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Mx"
               }
             ]
           },
@@ -16275,40 +16446,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.42.0 (2026-08-28)",
-            "date": "2026-08-28",
+            "title": "1.43.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add Skip Splash Screen Patch (Expert)"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "Add Video Downloader Pro Unlock Patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk Clean Patch"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "last try"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Mx"
               }
             ]
           },
@@ -16889,12 +17060,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/catsmoker/anime-witcher-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/catsmoker.png?size=96",
           "latestChanges": {
-            "title": "1.1.0 (2026-09-04)",
-            "date": "2026-09-04",
+            "title": "1.2.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add TV support patches and D-pad navigation"
+                "text": "merge Android TV and Rebranding into single optional patch toggles"
               }
             ]
           },
@@ -16907,32 +17078,44 @@
           },
           "patches": [
             {
-              "name": "Android TV support",
-              "description": "Adds Android TV / Fire TV support (manifest declarations + TV launcher entry)."
+              "name": "AMOLED black theme",
+              "description": "Sets the dark theme backgrounds (window, toolbars, cards, dialogs) to pure black (#000000) so OLED and AMOLED screens turn those pixels off and battery is saved. Light appearance is unchanged. Original APK: https://www.animewitcher.com/"
+            },
+            {
+              "name": "Android TV",
+              "description": "Adds full Android TV / Fire TV support: manifest declarations, TV launcher entry and D-pad remote navigation (focusable content rows, focus out of the top bar, dialog focus). Original APK: https://www.animewitcher.com/"
+            },
+            {
+              "name": "Android TV: D-pad navigation",
+              "description": "Part of Android TV: makes the app fully navigable with a TV / Fire TV remote (focusable content rows, D-pad focus out of the top bar, dialog focus). Original APK: https://www.animewitcher.com/"
             },
             {
               "name": "Disable ads",
-              "description": "Disables all ad display logic in the app."
+              "description": "Disables all ad display logic in the app. Original APK: https://www.animewitcher.com/"
             },
             {
               "name": "Disable VPN detection and alerts",
-              "description": "Removes VPN/DNS detection and the VPN alert dialogs."
+              "description": "Removes VPN/DNS detection and the VPN alert dialogs. Original APK: https://www.animewitcher.com/"
             },
             {
               "name": "Play with external player",
-              "description": "Opens episodes in a system intent chooser so the user can pick their favorite video player (VLC, MX Player, etc.)."
+              "description": "Opens episodes in a system intent chooser so the user can pick their favorite video player (VLC, MX Player, etc.). Original APK: https://www.animewitcher.com/"
+            },
+            {
+              "name": "Rebranding",
+              "description": "Renames the app to 'Anime Witcher +', changes the package id to app.catsmoker.anime.witcher, badges the icon with a red +, points Telegram links to https://t.me/CATSM0KER and credits the About screen. Original APK: https://www.animewitcher.com/"
+            },
+            {
+              "name": "Rebranding: Telegram & About",
+              "description": "Part of Rebranding: points Telegram links to the configured handle (default https://t.me/CATSM0KER) and adds a credit line to the About screen. Original APK: https://www.animewitcher.com/"
             },
             {
               "name": "Remove AppLovin initialization",
-              "description": "Removes AppLovin SDK initialization from the Application class."
+              "description": "Removes AppLovin SDK initialization from the Application class. Original APK: https://www.animewitcher.com/"
             },
             {
               "name": "Remove startup popup",
-              "description": "Removes the update/changelog popup that appears when the app starts."
-            },
-            {
-              "name": "TV D-pad navigation",
-              "description": "Makes the app fully navigable with a TV / Fire TV remote (focusable content rows, D-pad focus out of the top bar, dialog focus)."
+              "description": "Removes the update/changelog and appearance popups that appear when the app starts. Original APK: https://www.animewitcher.com/"
             }
           ],
           "versions": [
@@ -16941,42 +17124,57 @@
         }
       ],
       "patches": [
-        "Android TV support",
+        "AMOLED black theme",
+        "Android TV",
+        "Android TV: D-pad navigation",
         "Disable ads",
         "Disable VPN detection and alerts",
         "Play with external player",
+        "Rebranding",
+        "Rebranding: Telegram & About",
         "Remove AppLovin initialization",
-        "Remove startup popup",
-        "TV D-pad navigation"
+        "Remove startup popup"
       ],
       "patchDetails": [
         {
-          "name": "Android TV support",
-          "description": "Adds Android TV / Fire TV support (manifest declarations + TV launcher entry)."
+          "name": "AMOLED black theme",
+          "description": "Sets the dark theme backgrounds (window, toolbars, cards, dialogs) to pure black (#000000) so OLED and AMOLED screens turn those pixels off and battery is saved. Light appearance is unchanged. Original APK: https://www.animewitcher.com/"
+        },
+        {
+          "name": "Android TV",
+          "description": "Adds full Android TV / Fire TV support: manifest declarations, TV launcher entry and D-pad remote navigation (focusable content rows, focus out of the top bar, dialog focus). Original APK: https://www.animewitcher.com/"
+        },
+        {
+          "name": "Android TV: D-pad navigation",
+          "description": "Part of Android TV: makes the app fully navigable with a TV / Fire TV remote (focusable content rows, D-pad focus out of the top bar, dialog focus). Original APK: https://www.animewitcher.com/"
         },
         {
           "name": "Disable ads",
-          "description": "Disables all ad display logic in the app."
+          "description": "Disables all ad display logic in the app. Original APK: https://www.animewitcher.com/"
         },
         {
           "name": "Disable VPN detection and alerts",
-          "description": "Removes VPN/DNS detection and the VPN alert dialogs."
+          "description": "Removes VPN/DNS detection and the VPN alert dialogs. Original APK: https://www.animewitcher.com/"
         },
         {
           "name": "Play with external player",
-          "description": "Opens episodes in a system intent chooser so the user can pick their favorite video player (VLC, MX Player, etc.)."
+          "description": "Opens episodes in a system intent chooser so the user can pick their favorite video player (VLC, MX Player, etc.). Original APK: https://www.animewitcher.com/"
+        },
+        {
+          "name": "Rebranding",
+          "description": "Renames the app to 'Anime Witcher +', changes the package id to app.catsmoker.anime.witcher, badges the icon with a red +, points Telegram links to https://t.me/CATSM0KER and credits the About screen. Original APK: https://www.animewitcher.com/"
+        },
+        {
+          "name": "Rebranding: Telegram & About",
+          "description": "Part of Rebranding: points Telegram links to the configured handle (default https://t.me/CATSM0KER) and adds a credit line to the About screen. Original APK: https://www.animewitcher.com/"
         },
         {
           "name": "Remove AppLovin initialization",
-          "description": "Removes AppLovin SDK initialization from the Application class."
+          "description": "Removes AppLovin SDK initialization from the Application class. Original APK: https://www.animewitcher.com/"
         },
         {
           "name": "Remove startup popup",
-          "description": "Removes the update/changelog popup that appears when the app starts."
-        },
-        {
-          "name": "TV D-pad navigation",
-          "description": "Makes the app fully navigable with a TV / Fire TV remote (focusable content rows, D-pad focus out of the top bar, dialog focus)."
+          "description": "Removes the update/changelog and appearance popups that appear when the app starts. Original APK: https://www.animewitcher.com/"
         }
       ],
       "versions": [
@@ -17791,8 +17989,8 @@
       ],
       "patches": [
         "Disable PairIP DRM",
-        "Unlock Premium",
-        "Unlock premium"
+        "Unlock premium",
+        "Unlock Premium"
       ],
       "patchDetails": [
         {
@@ -17800,12 +17998,12 @@
           "description": "Disables PairIP signature verification and Google Play LVL license check. Required for the app to launch after re-signing."
         },
         {
-          "name": "Unlock Premium",
-          "description": "Unlocks AT4K Launcher's premium features without paying, like more apps per row and the premium wallpaper options. It all runs on the device, so nothing stays locked."
-        },
-        {
           "name": "Unlock premium",
           "description": "Unlocks all AT4K premium features by forcing the premium status to true."
+        },
+        {
+          "name": "Unlock Premium",
+          "description": "Unlocks AT4K Launcher's premium features without paying, like more apps per row and the premium wallpaper options. It all runs on the device, so nothing stays locked."
         }
       ],
       "versions": [
@@ -20157,6 +20355,92 @@
       "iconUrl": "https://play-lh.googleusercontent.com/x_PQHLeE9ptFfTZ4nmhuKDQ34nghCrRcmoYISeAV_O-Oi5yuhoXzkrRjtBgn7yfLyTo2bOtiu6HzqoEhphmliQ"
     },
     {
+      "packageName": "com.hdictionary.bn",
+      "name": "Bangla Dictionary",
+      "repos": [
+        "BlazeFTL/FTL-Patches"
+      ],
+      "sources": [
+        {
+          "repo": "BlazeFTL/FTL-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/BlazeFTL/FTL-Patches",
+          "addUrl": "https://morphe.software/add-source?github=BlazeFTL/FTL-Patches",
+          "source": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
+          "latestChanges": {
+            "title": "1.43.0 (2026-09-05)",
+            "date": "2026-09-05",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk Clean Patch"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "last try"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Mx"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-hdictionary-bn-blazeftl-ftl-patches",
+            "releaseTag": "app-com-hdictionary-bn-blazeftl-ftl-patches",
+            "assetName": "bangla-dictionary-blazeftl-ftl-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Unlock Pro",
+              "description": "Forces the purchase check to always return true, unlocking Pro."
+            }
+          ],
+          "versions": [
+            "11.5.1"
+          ]
+        }
+      ],
+      "patches": [
+        "Unlock Pro"
+      ],
+      "patchDetails": [
+        {
+          "name": "Unlock Pro",
+          "description": "Forces the purchase check to always return true, unlocking Pro."
+        }
+      ],
+      "versions": [
+        "11.5.1"
+      ],
+      "iconColor": "",
+      "iconUrl": ""
+    },
+    {
       "packageName": "ru.bpc.mobilebank.bpc",
       "name": "BaridiMob",
       "repos": [
@@ -20862,12 +21146,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.31.23 (2026-09-04)",
-            "date": "2026-09-04",
+            "title": "1.34.2 (2026-09-06)",
+            "date": "2026-09-06",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType"
+                "text": "v29 - remove IL2CPP domain_get, use direct RVA addressing"
               }
             ]
           },
@@ -22157,24 +22441,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/dh6k.png?size=96",
           "latestChanges": {
-            "title": "1.4.0 (2026-08-24)",
-            "date": "2026-08-24",
+            "title": "1.5.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**helium:** harden keep-alive structural resolver"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**helium:** harden keep-alive without breaking apk patching"
+                "text": "**brave:** tolerate Origin log-literal drift on 1.97.x (86755f2), closes #1 #5"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "add Helium foreground keep-alive service"
+                "text": "**universal:** broaden Disable analytics to kondratjev parity"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "make Helium keep-alive patch version resilient"
+                "text": "**universal:** cover Adjust v5 initSdk and Crashlytics boxed overload"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**universal:** cover screen reporting, crashlytics/perf providers and Adjust init"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**universal:** harden Disable analytics manifest scope and runtime backstop"
               }
             ]
           },
@@ -22260,24 +22548,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/dh6k.png?size=96",
           "latestChanges": {
-            "title": "1.4.0 (2026-08-24)",
-            "date": "2026-08-24",
+            "title": "1.5.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**helium:** harden keep-alive structural resolver"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**helium:** harden keep-alive without breaking apk patching"
+                "text": "**brave:** tolerate Origin log-literal drift on 1.97.x (86755f2), closes #1 #5"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "add Helium foreground keep-alive service"
+                "text": "**universal:** broaden Disable analytics to kondratjev parity"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "make Helium keep-alive patch version resilient"
+                "text": "**universal:** cover Adjust v5 initSdk and Crashlytics boxed overload"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**universal:** cover screen reporting, crashlytics/perf providers and Adjust init"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**universal:** harden Disable analytics manifest scope and runtime backstop"
               }
             ]
           },
@@ -22454,24 +22746,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/dh6k.png?size=96",
           "latestChanges": {
-            "title": "1.4.0 (2026-08-24)",
-            "date": "2026-08-24",
+            "title": "1.5.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**helium:** harden keep-alive structural resolver"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**helium:** harden keep-alive without breaking apk patching"
+                "text": "**brave:** tolerate Origin log-literal drift on 1.97.x (86755f2), closes #1 #5"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "add Helium foreground keep-alive service"
+                "text": "**universal:** broaden Disable analytics to kondratjev parity"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "make Helium keep-alive patch version resilient"
+                "text": "**universal:** cover Adjust v5 initSdk and Crashlytics boxed overload"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**universal:** cover screen reporting, crashlytics/perf providers and Adjust init"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**universal:** harden Disable analytics manifest scope and runtime backstop"
               }
             ]
           },
@@ -23140,40 +23436,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.42.0 (2026-08-28)",
-            "date": "2026-08-28",
+            "title": "1.43.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add Skip Splash Screen Patch (Expert)"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "Add Video Downloader Pro Unlock Patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk Clean Patch"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "last try"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Mx"
               }
             ]
           },
@@ -26047,7 +26343,8 @@
       "packageName": "com.amazon.amazonvideo.livingroom",
       "name": "com.amazon.amazonvideo.livingroom",
       "repos": [
-        "ajstrick81/morphe-androidtv-patches"
+        "ajstrick81/morphe-androidtv-patches",
+        "WZSE/aapam-patches"
       ],
       "sources": [
         {
@@ -26108,6 +26405,66 @@
           "versions": [
             "6.23.23+v15.5.0.70-armv7a"
           ]
+        },
+        {
+          "repo": "WZSE/aapam-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/WZSE/aapam-patches",
+          "addUrl": "https://morphe.software/add-source?github=WZSE/aapam-patches",
+          "source": "https://raw.githubusercontent.com/WZSE/aapam-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/WZSE/aapam-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/WZSE.png?size=96",
+          "latestChanges": {
+            "title": "1.2.0 (2026-09-05)",
+            "date": "2026-09-05",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "Telegram anti expiry media, but unlike other Paresh patch this shows expired to sender"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-amazon-amazonvideo-livingroom-wzse-aapam-patches",
+            "releaseTag": "app-com-amazon-amazonvideo-livingroom-wzse-aapam-patches",
+            "assetName": "com-amazon-amazonvideo-livingroom-wzse-aapam-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Bundle native ad-strip hook",
+              "description": "Packages the Prime Video libignite interception library for this APK's ABIs."
+            },
+            {
+              "name": "Clone Prime Video",
+              "description": "Renames the package to <original>.mod (and its provider authorities / custom permissions) so the patched app installs side-by-side with a non-removable system Prime Video. Opt-in."
+            },
+            {
+              "name": "Disable auto-updates",
+              "description": "Prevents Google Play Store from automatically replacing the patched APK with the official unpatched version."
+            },
+            {
+              "name": "Load native ad-strip hook",
+              "description": "Loads libpvhook.so at startup before Prime Video constructs its media pipeline."
+            },
+            {
+              "name": "Override certificate pinning",
+              "description": "Adds a network_security_config trusting user CAs (no pin sets) so AdGuard Premium can inspect the app's platform-stack HTTPS. Optional adjunct: Prime Video's ad plane is largely native libcurl, so DNS blocking is the primary tool."
+            },
+            {
+              "name": "Prime Video extension",
+              "description": "Integrates the Prime Video ATV extension for ad group skipping."
+            },
+            {
+              "name": "Skip ads",
+              "description": "Multi-layer ad suppression targeting the SSAI schedule, impression reporting, and the Volley network chokepoint."
+            }
+          ],
+          "versions": [
+            "6.23.23+v15.5.0.70-armv7a",
+            "6.24.5+v16.0.0.231-allAbis"
+          ]
         }
       ],
       "patches": [
@@ -26122,7 +26479,7 @@
       "patchDetails": [
         {
           "name": "Bundle native ad-strip hook",
-          "description": "Packages libpvhook.so into the APK's native lib dir for the in-process PRS Remote-item strip (libignite memcpy/memmove GOT/PLT import hook)."
+          "description": "Packages the Prime Video libignite interception library for this APK's ABIs."
         },
         {
           "name": "Clone Prime Video",
@@ -26134,7 +26491,7 @@
         },
         {
           "name": "Load native ad-strip hook",
-          "description": "Loads libpvhook.so at startup to blank Remote (ad) items from the PRS intraTitlePlaylist in-process (libignite memcpy/memmove GOT/PLT import hook)."
+          "description": "Loads libpvhook.so at startup before Prime Video constructs its media pipeline."
         },
         {
           "name": "Override certificate pinning",
@@ -26150,9 +26507,10 @@
         }
       ],
       "versions": [
-        "6.23.23+v15.5.0.70-armv7a"
+        "6.23.23+v15.5.0.70-armv7a",
+        "6.24.5+v16.0.0.231-allAbis"
       ],
-      "iconColor": "",
+      "iconColor": "#177BCE",
       "iconUrl": "https://play-lh.googleusercontent.com/qyXqjzPggunbifX0ODhCehdy4ei0F90u0N3f4pPk8NhgCZD75dH8bdQYPROGRVlTVOs8B8JAT58X6ImMZv5ugHg"
     },
     {
@@ -26633,12 +26991,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Nai64.png?size=96",
           "latestChanges": {
-            "title": "1.43.1 (2026-09-03)",
-            "date": "2026-09-03",
+            "title": "1.44.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
-                "category": "Bug Fixes",
-                "text": "cover React Native AsyncStorage and billing bridges in unlock premium"
+                "category": "New Features",
+                "text": "add Universal Overlay Patch v1.0  ( Experimental ) (#73)"
               }
             ]
           },
@@ -27268,6 +27626,64 @@
       ],
       "iconColor": "",
       "iconUrl": "https://play-lh.googleusercontent.com/PuqeuAmOMsDoB9gRCVr-EQHthinCbtaKPzMbxabfmCY9RI9r1fmWncCb4k6umBszzPaszT_o2RopSpIhy9BAiQ"
+    },
+    {
+      "packageName": "com.espn.score_center",
+      "name": "com.espn.score_center",
+      "repos": [
+        "ajstrick81/morphe-androidtv-patches"
+      ],
+      "sources": [
+        {
+          "repo": "ajstrick81/morphe-androidtv-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/ajstrick81/morphe-androidtv-patches",
+          "addUrl": "https://morphe.software/add-source?github=ajstrick81/morphe-androidtv-patches",
+          "source": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/ajstrick81.png?size=96",
+          "latestChanges": {
+            "title": "1.30.4 (2026-09-04)",
+            "date": "2026-09-04",
+            "items": [
+              {
+                "category": "Bug Fixes",
+                "text": "**pluto:** detect VOD ads positively so un-DRM'd-content titles don't break (870e4f1), closes #144"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-espn-score-center-ajstrick81-morphe-androidtv-patches",
+            "releaseTag": "app-com-espn-score-center-ajstrick81-morphe-androidtv-patches",
+            "assetName": "com-espn-score-center-ajstrick81-morphe-androidtv-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "ESPN Android TV",
+              "description": "Suppresses ESPN VOD/scheduled ads (DMP SGAI isAdDisabled) and masks LIVE passthrough-SSAI commercial breaks with a full-screen \"Commercial Break\" slate + mute (the live ad can't be removed, only covered). Optional slate media is user-supplied local files; disable the live slate with a `slate_off` marker file. No DNS dependency."
+            }
+          ],
+          "versions": [
+            "6.11.1"
+          ]
+        }
+      ],
+      "patches": [
+        "ESPN Android TV"
+      ],
+      "patchDetails": [
+        {
+          "name": "ESPN Android TV",
+          "description": "Suppresses ESPN VOD/scheduled ads (DMP SGAI isAdDisabled) and masks LIVE passthrough-SSAI commercial breaks with a full-screen \"Commercial Break\" slate + mute (the live ad can't be removed, only covered). Optional slate media is user-supplied local files; disable the live slate with a `slate_off` marker file. No DNS dependency."
+        }
+      ],
+      "versions": [
+        "6.11.1"
+      ],
+      "iconColor": "",
+      "iconUrl": ""
     },
     {
       "packageName": "com.flyersoft.moonreader",
@@ -32317,6 +32733,10 @@
               "description": "Enables playback-speed controls for all videos and remembers the selected speed between videos."
             },
             {
+              "name": "Region spoof",
+              "description": "Adds in-app controls for changing the region TikTok reads."
+            },
+            {
               "name": "Remember clear display",
               "description": "Remembers TikTok's clear-display state between videos."
             },
@@ -32339,10 +32759,6 @@
             {
               "name": "Show seekbar thumbnail",
               "description": "Shows TikTok's video preview thumbnail while dragging the seekbar."
-            },
-            {
-              "name": "SIM spoof",
-              "description": "Spoofs SIM country and operator information retrieved by TikTok, with country presets for easier setup."
             },
             {
               "name": "Stop video looping",
@@ -32567,6 +32983,7 @@
         "Hold-and-slide 2x lock",
         "Open external links directly",
         "Playback speed",
+        "Region spoof",
         "Remember clear display",
         "Resume videos after scrolling",
         "Sanitize sharing links",
@@ -32686,6 +33103,10 @@
         {
           "name": "Playback speed",
           "description": "Enables playback-speed controls for all videos and remembers the selected speed between videos."
+        },
+        {
+          "name": "Region spoof",
+          "description": "Adds in-app controls for changing the region TikTok reads."
         },
         {
           "name": "Remember clear display",
@@ -35548,9 +35969,71 @@
       "packageName": "com.discord",
       "name": "Discord",
       "repos": [
+        "jrddupont/discord-patches",
         "Seobject/Seobject-patches"
       ],
       "sources": [
+        {
+          "repo": "jrddupont/discord-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/jrddupont/discord-patches",
+          "addUrl": "https://morphe.software/add-source?github=jrddupont/discord-patches",
+          "source": "https://raw.githubusercontent.com/jrddupont/discord-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/jrddupont/discord-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/jrddupont.png?size=96",
+          "latestChanges": {
+            "title": "v1.2.0",
+            "date": "",
+            "items": [
+              {
+                "category": "",
+                "text": "New patch: Pin app to built-in bundle \u2014 forces Discord to always run"
+              },
+              {
+                "category": "",
+                "text": "the APK's Hermes bundle and ignore downloaded (OTA) updates. Without"
+              },
+              {
+                "category": "",
+                "text": "it, an OTA silently undoes all Hermes patches (observed on device:"
+              },
+              {
+                "category": "",
+                "text": "banner returned, composer gift never left). Official JS updates stop"
+              },
+              {
+                "category": "",
+                "text": "arriving until the APK itself is updated."
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-discord-jrddupont-discord-patches",
+            "releaseTag": "app-com-discord-jrddupont-discord-patches",
+            "assetName": "discord-jrddupont-discord-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Hide gift button",
+              "description": "Hides the gift button in the chat message composer."
+            },
+            {
+              "name": "Hide quest promo banner",
+              "description": "Hides the quest promo banner at the top of the server channel list."
+            },
+            {
+              "name": "Pin app to built-in bundle",
+              "description": "Forces Discord to always run the bundle inside the APK and ignore downloaded (OTA) updates, which would otherwise silently undo the other patches. Turn this off (or update the APK) to receive official updates."
+            }
+          ],
+          "versions": [
+            "341.13 - Stable",
+            "342.16 - Stable",
+            "343.12 - Stable"
+          ]
+        },
         {
           "repo": "Seobject/Seobject-patches",
           "host": "github.com",
@@ -35588,16 +36071,33 @@
         }
       ],
       "patches": [
-        "Bunny"
+        "Bunny",
+        "Hide gift button",
+        "Hide quest promo banner",
+        "Pin app to built-in bundle"
       ],
       "patchDetails": [
         {
           "name": "Bunny",
           "description": "Revives the Bunny Discord client mod without Xposed or LSPosed."
+        },
+        {
+          "name": "Hide gift button",
+          "description": "Hides the gift button in the chat message composer."
+        },
+        {
+          "name": "Hide quest promo banner",
+          "description": "Hides the quest promo banner at the top of the server channel list."
+        },
+        {
+          "name": "Pin app to built-in bundle",
+          "description": "Forces Discord to always run the bundle inside the APK and ignore downloaded (OTA) updates, which would otherwise silently undo the other patches. Turn this off (or update the APK) to receive official updates."
         }
       ],
       "versions": [
-        "341.13 - Stable"
+        "341.13 - Stable",
+        "342.16 - Stable",
+        "343.12 - Stable"
       ],
       "iconColor": "#5864F0",
       "iconUrl": ""
@@ -37100,40 +37600,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.42.0 (2026-08-28)",
-            "date": "2026-08-28",
+            "title": "1.43.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add Skip Splash Screen Patch (Expert)"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "Add Video Downloader Pro Unlock Patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk Clean Patch"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "last try"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Mx"
               }
             ]
           },
@@ -37643,12 +38143,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.31.23 (2026-09-04)",
-            "date": "2026-09-04",
+            "title": "1.34.2 (2026-09-06)",
+            "date": "2026-09-06",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType"
+                "text": "v29 - remove IL2CPP domain_get, use direct RVA addressing"
               }
             ]
           },
@@ -38533,6 +39033,110 @@
         "3.8.2"
       ],
       "iconColor": "#FF7043",
+      "iconUrl": ""
+    },
+    {
+      "packageName": "files.fileexplorer.filemanager",
+      "name": "File Manager - XFolder",
+      "repos": [
+        "BlazeFTL/FTL-Patches"
+      ],
+      "sources": [
+        {
+          "repo": "BlazeFTL/FTL-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/BlazeFTL/FTL-Patches",
+          "addUrl": "https://morphe.software/add-source?github=BlazeFTL/FTL-Patches",
+          "source": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
+          "latestChanges": {
+            "title": "1.43.0 (2026-09-05)",
+            "date": "2026-09-05",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk Clean Patch"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "last try"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Mx"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "files-fileexplorer-filemanager-blazeftl-ftl-patches",
+            "releaseTag": "app-files-fileexplorer-filemanager-blazeftl-ftl-patches",
+            "assetName": "file-manager-xfolder-blazeftl-ftl-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Change Cleaner & Media Tab Defaults",
+              "description": "Changes first-run defaults: hides the Image, Video, Audio and Cleaner tabs, and shows hidden files by default. Only affects users who have never changed the setting themselves - the preference override still takes priority."
+            },
+            {
+              "name": "Disable Rate Us Dialog",
+              "description": "Prevents the in-app rate-us dialog from ever being shown."
+            },
+            {
+              "name": "Unlock Pro & Skip Splash Screen",
+              "description": "Forces the ad-removed/Pro check to always return true, and renames the launcher activity from SplashActivity to MainActivity so the splash screen is skipped."
+            }
+          ],
+          "versions": [
+            "1.5.5.7"
+          ]
+        }
+      ],
+      "patches": [
+        "Change Cleaner & Media Tab Defaults",
+        "Disable Rate Us Dialog",
+        "Unlock Pro & Skip Splash Screen"
+      ],
+      "patchDetails": [
+        {
+          "name": "Change Cleaner & Media Tab Defaults",
+          "description": "Changes first-run defaults: hides the Image, Video, Audio and Cleaner tabs, and shows hidden files by default. Only affects users who have never changed the setting themselves - the preference override still takes priority."
+        },
+        {
+          "name": "Disable Rate Us Dialog",
+          "description": "Prevents the in-app rate-us dialog from ever being shown."
+        },
+        {
+          "name": "Unlock Pro & Skip Splash Screen",
+          "description": "Forces the ad-removed/Pro check to always return true, and renames the launcher activity from SplashActivity to MainActivity so the splash screen is skipped."
+        }
+      ],
+      "versions": [
+        "1.5.5.7"
+      ],
+      "iconColor": "",
       "iconUrl": ""
     },
     {
@@ -41593,72 +42197,6 @@
       "iconUrl": ""
     },
     {
-      "packageName": "io.github.jqssun.helium",
-      "name": "Helium Browser",
-      "repos": [
-        "dh6k/morphe-patches"
-      ],
-      "sources": [
-        {
-          "repo": "dh6k/morphe-patches",
-          "host": "github.com",
-          "webUrl": "https://github.com/dh6k/morphe-patches",
-          "addUrl": "https://morphe.software/add-source?github=dh6k/morphe-patches",
-          "source": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/patches-bundle.json",
-          "changelogUrl": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/CHANGELOG.md",
-          "avatarUrl": "https://github.com/dh6k.png?size=96",
-          "latestChanges": {
-            "title": "1.4.0 (2026-08-24)",
-            "date": "2026-08-24",
-            "items": [
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**helium:** harden keep-alive structural resolver"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**helium:** harden keep-alive without breaking apk patching"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "add Helium foreground keep-alive service"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "make Helium keep-alive patch version resilient"
-              }
-            ]
-          },
-          "builder": {
-            "buildId": "io-github-jqssun-helium-dh6k-morphe-patches",
-            "releaseTag": "app-io-github-jqssun-helium-dh6k-morphe-patches",
-            "assetName": "helium-browser-dh6k-morphe-patches.apk",
-            "repo": "rushiforai/morphe-builder",
-            "webUrl": "https://github.com/rushiforai/morphe-builder"
-          },
-          "patches": [
-            {
-              "name": "Keep Helium Child Processes Alive",
-              "description": "Experimental version-unpinned structural/data-flow patch: starts one main-process foreground service with persistent low-priority notification and forces child STRONG binding plus IMPORTANT/STRONG priority updates. Tolerates routine signature, register, and helper-name changes; ambiguous targets fail closed. May increase RAM, battery, and process pressure; mitigates LMK kills only."
-            }
-          ],
-          "versions": []
-        }
-      ],
-      "patches": [
-        "Keep Helium Child Processes Alive"
-      ],
-      "patchDetails": [
-        {
-          "name": "Keep Helium Child Processes Alive",
-          "description": "Experimental version-unpinned structural/data-flow patch: starts one main-process foreground service with persistent low-priority notification and forces child STRONG binding plus IMPORTANT/STRONG priority updates. Tolerates routine signature, register, and helper-name changes; ambiguous targets fail closed. May increase RAM, battery, and process pressure; mitigates LMK kills only."
-        }
-      ],
-      "versions": [],
-      "iconColor": "",
-      "iconUrl": ""
-    },
-    {
       "packageName": "com.hellochinese",
       "name": "HelloChinese",
       "repos": [
@@ -42163,12 +42701,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.31.23 (2026-09-04)",
-            "date": "2026-09-04",
+            "title": "1.34.2 (2026-09-06)",
+            "date": "2026-09-06",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType"
+                "text": "v29 - remove IL2CPP domain_get, use direct RVA addressing"
               }
             ]
           },
@@ -48635,10 +49173,6 @@
                 "text": "before you patch."
               },
               {
-                "category": "\u26a0 BREAKING CHANGES",
-                "text": "Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
-              },
-              {
                 "category": "\ud83d\udc1b Bug Fixes",
                 "text": "hide the Friends sub-tab Calendar block"
               },
@@ -52618,40 +53152,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.42.0 (2026-08-28)",
-            "date": "2026-08-28",
+            "title": "1.43.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add Skip Splash Screen Patch (Expert)"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "Add Video Downloader Pro Unlock Patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk Clean Patch"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "last try"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Mx"
               }
             ]
           },
@@ -54362,6 +54896,110 @@
       "iconUrl": ""
     },
     {
+      "packageName": "com.mxtech.videoplayer.ad",
+      "name": "MX Player",
+      "repos": [
+        "BlazeFTL/FTL-Patches"
+      ],
+      "sources": [
+        {
+          "repo": "BlazeFTL/FTL-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/BlazeFTL/FTL-Patches",
+          "addUrl": "https://morphe.software/add-source?github=BlazeFTL/FTL-Patches",
+          "source": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
+          "latestChanges": {
+            "title": "1.43.0 (2026-09-05)",
+            "date": "2026-09-05",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk Clean Patch"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "last try"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Mx"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-mxtech-videoplayer-ad-blazeftl-ftl-patches",
+            "releaseTag": "app-com-mxtech-videoplayer-ad-blazeftl-ftl-patches",
+            "assetName": "mx-player-blazeftl-ftl-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Add Network Stream To Me Tab",
+              "description": "WARNING MX PLAYER HAS INTEGRITY CHECK. Mod By Youarefinished Also Has Their Own Integrity Check. So Download From Play Store Use URV Manager With Signing Turned Off, Patch And Then Kill Signature Verification With MT Manager Enhanced (VIP Only) Or Modded Build."
+            },
+            {
+              "name": "Clean Me Tab",
+              "description": "Removes promo rows and unused tiles from the Me tab: WhatsApp Status Saver, Legal/Help, the local-tiles pager, Local Network, Music Player, Cloud Drive, MX Share, and Private Folder."
+            },
+            {
+              "name": "Disable Bottom Bar And Add Me Tab To Top",
+              "description": "Hides the bottom navigation bar and adds a Me tab button to the toolbar."
+            }
+          ],
+          "versions": [
+            "3.1.4"
+          ]
+        }
+      ],
+      "patches": [
+        "Add Network Stream To Me Tab",
+        "Clean Me Tab",
+        "Disable Bottom Bar And Add Me Tab To Top"
+      ],
+      "patchDetails": [
+        {
+          "name": "Add Network Stream To Me Tab",
+          "description": "WARNING MX PLAYER HAS INTEGRITY CHECK. Mod By Youarefinished Also Has Their Own Integrity Check. So Download From Play Store Use URV Manager With Signing Turned Off, Patch And Then Kill Signature Verification With MT Manager Enhanced (VIP Only) Or Modded Build."
+        },
+        {
+          "name": "Clean Me Tab",
+          "description": "Removes promo rows and unused tiles from the Me tab: WhatsApp Status Saver, Legal/Help, the local-tiles pager, Local Network, Music Player, Cloud Drive, MX Share, and Private Folder."
+        },
+        {
+          "name": "Disable Bottom Bar And Add Me Tab To Top",
+          "description": "Hides the bottom navigation bar and adds a Me tab button to the toolbar."
+        }
+      ],
+      "versions": [
+        "3.1.4"
+      ],
+      "iconColor": "",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.mxtech.videoplayer.pro",
       "name": "MX Player Pro",
       "repos": [
@@ -54379,40 +55017,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.42.0 (2026-08-28)",
-            "date": "2026-08-28",
+            "title": "1.43.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add Skip Splash Screen Patch (Expert)"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "Add Video Downloader Pro Unlock Patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk Clean Patch"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "last try"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Mx"
               }
             ]
           },
@@ -56932,7 +57570,7 @@
             }
           ],
           "versions": [
-            "0.8.11-beta"
+            "0.9.0-beta"
           ]
         },
         {
@@ -56991,7 +57629,7 @@
             }
           ],
           "versions": [
-            "0.8.11-beta"
+            "0.9.0-beta"
           ]
         },
         {
@@ -57050,7 +57688,7 @@
             }
           ],
           "versions": [
-            "0.8.11-beta"
+            "0.9.0-beta"
           ]
         }
       ],
@@ -57094,7 +57732,7 @@
         }
       ],
       "versions": [
-        "0.8.11-beta"
+        "0.9.0-beta"
       ],
       "iconColor": "#111827",
       "iconUrl": ""
@@ -60035,6 +60673,64 @@
         "1.791.265"
       ],
       "iconColor": "#FA2A80",
+      "iconUrl": ""
+    },
+    {
+      "packageName": "com.sonymobile.photopro",
+      "name": "Photography Pro",
+      "repos": [
+        "alalloush/xperia-1v-camera-patches"
+      ],
+      "sources": [
+        {
+          "repo": "alalloush/xperia-1v-camera-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/alalloush/xperia-1v-camera-patches",
+          "addUrl": "https://morphe.software/add-source?github=alalloush/xperia-1v-camera-patches",
+          "source": "https://raw.githubusercontent.com/alalloush/xperia-1v-camera-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/alalloush/xperia-1v-camera-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/alalloush.png?size=96",
+          "latestChanges": {
+            "title": "1.0.0 (2026-09-05)",
+            "date": "2026-09-05",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "Xperia 1 V camera patches"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-sonymobile-photopro-alalloush-xperia-1v-camera-patches",
+            "releaseTag": "app-com-sonymobile-photopro-alalloush-xperia-1v-camera-patches",
+            "assetName": "photography-pro-alalloush-xperia-1v-camera-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Storage fallback",
+              "description": "Fixes \"Memory unavailable\" on ROMs that cannot create Android/data/<pkg>/files (LineageOS on the Xperia 1 V): the storage probe falls back to the app's internal storage. Photos still go to DCIM through MediaStore."
+            }
+          ],
+          "versions": [
+            "1.7.2.A.0.9"
+          ]
+        }
+      ],
+      "patches": [
+        "Storage fallback"
+      ],
+      "patchDetails": [
+        {
+          "name": "Storage fallback",
+          "description": "Fixes \"Memory unavailable\" on ROMs that cannot create Android/data/<pkg>/files (LineageOS on the Xperia 1 V): the storage probe falls back to the app's internal storage. Photos still go to DCIM through MediaStore."
+        }
+      ],
+      "versions": [
+        "1.7.2.A.0.9"
+      ],
+      "iconColor": "",
       "iconUrl": ""
     },
     {
@@ -63633,8 +64329,8 @@
         "Remove 'Sent from' signature",
         "Remove free accounts limit",
         "Spoof signature",
-        "Unlock Custom Time Picker",
         "Unlock custom time picker",
+        "Unlock Custom Time Picker",
         "Unlock Unlimited Plan"
       ],
       "patchDetails": [
@@ -63659,12 +64355,12 @@
           "description": "Restores push notifications by spoofing the original app signature."
         },
         {
-          "name": "Unlock Custom Time Picker",
-          "description": "Unlocks the custom scheduled send date/time picker for all users."
-        },
-        {
           "name": "Unlock custom time picker",
           "description": "Enables picking a custom date and time when snoozing conversations and scheduling messages."
+        },
+        {
+          "name": "Unlock Custom Time Picker",
+          "description": "Unlocks the custom scheduled send date/time picker for all users."
         },
         {
           "name": "Unlock Unlimited Plan",
@@ -64737,24 +65433,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/dh6k.png?size=96",
           "latestChanges": {
-            "title": "1.4.0 (2026-08-24)",
-            "date": "2026-08-24",
+            "title": "1.5.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**helium:** harden keep-alive structural resolver"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**helium:** harden keep-alive without breaking apk patching"
+                "text": "**brave:** tolerate Origin log-literal drift on 1.97.x (86755f2), closes #1 #5"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "add Helium foreground keep-alive service"
+                "text": "**universal:** broaden Disable analytics to kondratjev parity"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "make Helium keep-alive patch version resilient"
+                "text": "**universal:** cover Adjust v5 initSdk and Crashlytics boxed overload"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**universal:** cover screen reporting, crashlytics/perf providers and Adjust init"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**universal:** harden Disable analytics manifest scope and runtime backstop"
               }
             ]
           },
@@ -64803,24 +65503,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/dh6k.png?size=96",
           "latestChanges": {
-            "title": "1.4.0 (2026-08-24)",
-            "date": "2026-08-24",
+            "title": "1.5.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**helium:** harden keep-alive structural resolver"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**helium:** harden keep-alive without breaking apk patching"
+                "text": "**brave:** tolerate Origin log-literal drift on 1.97.x (86755f2), closes #1 #5"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "add Helium foreground keep-alive service"
+                "text": "**universal:** broaden Disable analytics to kondratjev parity"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "make Helium keep-alive patch version resilient"
+                "text": "**universal:** cover Adjust v5 initSdk and Crashlytics boxed overload"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**universal:** cover screen reporting, crashlytics/perf providers and Adjust init"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**universal:** harden Disable analytics manifest scope and runtime backstop"
               }
             ]
           },
@@ -67178,40 +67882,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.42.0 (2026-08-28)",
-            "date": "2026-08-28",
+            "title": "1.43.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add Skip Splash Screen Patch (Expert)"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "Add Video Downloader Pro Unlock Patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk Clean Patch"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "last try"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Mx"
               }
             ]
           },
@@ -67223,6 +67927,10 @@
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
           "patches": [
+            {
+              "name": "Clean sidebar",
+              "description": "Hides the Bookmarks, remote-connection and Category sections from the navigation sidebar, and hides Encrypt and Downloader from the Storage section."
+            },
             {
               "name": "Disable downloader from download menu",
               "description": "Strips RsDownloadActivity's intent filters so it no longer offers itself as a handler in the system download/\"complete action using\" chooser."
@@ -67297,6 +68005,7 @@
         }
       ],
       "patches": [
+        "Clean sidebar",
         "Disable downloader from download menu",
         "Disable rate us dialog",
         "Hide more actions",
@@ -67305,6 +68014,10 @@
         "Unlock Premium"
       ],
       "patchDetails": [
+        {
+          "name": "Clean sidebar",
+          "description": "Hides the Bookmarks, remote-connection and Category sections from the navigation sidebar, and hides Encrypt and Downloader from the Storage section."
+        },
         {
           "name": "Disable downloader from download menu",
           "description": "Strips RsDownloadActivity's intent filters so it no longer offers itself as a handler in the system download/\"complete action using\" chooser."
@@ -69207,12 +69920,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.31.23 (2026-09-04)",
-            "date": "2026-09-04",
+            "title": "1.34.2 (2026-09-06)",
+            "date": "2026-09-06",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType"
+                "text": "v29 - remove IL2CPP domain_get, use direct RVA addressing"
               }
             ]
           },
@@ -69225,28 +69938,12 @@
           },
           "patches": [
             {
-              "name": "Shadow Fight 2 Crash Log",
-              "description": "Saves crash info to a file if the game crashes."
+              "name": "Shadow Fight 2 IAP Bypass",
+              "description": "Bypasses Google Play billing. Intercepts Purchase and triggers OnPurchaseSucceeded directly."
             },
             {
-              "name": "Shadow Fight 2 Crash Trigger",
-              "description": "Enables crash logging."
-            },
-            {
-              "name": "Shadow Fight 2 Dump Trigger",
-              "description": "Triggers ShadowDump via UnityPlayerActivity.onCreate"
-            },
-            {
-              "name": "Shadow Fight 2 Runtime Dump",
-              "description": "Dumps all Unity classes/fields with ObscuredInt to logcat and files. Use logcat -s ShadowDump or cat shizuku-terminal/shadowdump-log.txt"
-            },
-            {
-              "name": "Shadow Fight 2 Unlimited Values",
-              "description": "Sets in-game values to unlimited."
-            },
-            {
-              "name": "Shadow Fight 2 Values Trigger",
-              "description": "Enables unlimited values."
+              "name": "Shadow Fight 2 IAP Bypass Trigger",
+              "description": "Loads IAP bypass native library."
             }
           ],
           "versions": [
@@ -69255,37 +69952,17 @@
         }
       ],
       "patches": [
-        "Shadow Fight 2 Crash Log",
-        "Shadow Fight 2 Crash Trigger",
-        "Shadow Fight 2 Dump Trigger",
-        "Shadow Fight 2 Runtime Dump",
-        "Shadow Fight 2 Unlimited Values",
-        "Shadow Fight 2 Values Trigger"
+        "Shadow Fight 2 IAP Bypass",
+        "Shadow Fight 2 IAP Bypass Trigger"
       ],
       "patchDetails": [
         {
-          "name": "Shadow Fight 2 Crash Log",
-          "description": "Saves crash info to a file if the game crashes."
+          "name": "Shadow Fight 2 IAP Bypass",
+          "description": "Bypasses Google Play billing. Intercepts Purchase and triggers OnPurchaseSucceeded directly."
         },
         {
-          "name": "Shadow Fight 2 Crash Trigger",
-          "description": "Enables crash logging."
-        },
-        {
-          "name": "Shadow Fight 2 Dump Trigger",
-          "description": "Triggers ShadowDump via UnityPlayerActivity.onCreate"
-        },
-        {
-          "name": "Shadow Fight 2 Runtime Dump",
-          "description": "Dumps all Unity classes/fields with ObscuredInt to logcat and files. Use logcat -s ShadowDump or cat shizuku-terminal/shadowdump-log.txt"
-        },
-        {
-          "name": "Shadow Fight 2 Unlimited Values",
-          "description": "Sets in-game values to unlimited."
-        },
-        {
-          "name": "Shadow Fight 2 Values Trigger",
-          "description": "Enables unlimited values."
+          "name": "Shadow Fight 2 IAP Bypass Trigger",
+          "description": "Loads IAP bypass native library."
         }
       ],
       "versions": [
@@ -70507,12 +71184,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.31.23 (2026-09-04)",
-            "date": "2026-09-04",
+            "title": "1.34.2 (2026-09-06)",
+            "date": "2026-09-06",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType"
+                "text": "v29 - remove IL2CPP domain_get, use direct RVA addressing"
               }
             ]
           },
@@ -70570,40 +71247,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.42.0 (2026-08-28)",
-            "date": "2026-08-28",
+            "title": "1.43.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add Skip Splash Screen Patch (Expert)"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "Add Video Downloader Pro Unlock Patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk Clean Patch"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "last try"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Mx"
               }
             ]
           },
@@ -71609,6 +72286,84 @@
       ],
       "iconColor": "#3C3C3C",
       "iconUrl": "https://play-lh.googleusercontent.com/uYuj3GH-LlGxb2KyY5nq2DiHpYAIZgQAQF2o2or0pSTjsWqypT2pH_aCptFmFTwLxGfBGESChBvphMzQt6PIKw"
+    },
+    {
+      "packageName": "jp.co.sony.mc.cameraapp",
+      "name": "Sony Camera",
+      "repos": [
+        "alalloush/xperia-1v-camera-patches"
+      ],
+      "sources": [
+        {
+          "repo": "alalloush/xperia-1v-camera-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/alalloush/xperia-1v-camera-patches",
+          "addUrl": "https://morphe.software/add-source?github=alalloush/xperia-1v-camera-patches",
+          "source": "https://raw.githubusercontent.com/alalloush/xperia-1v-camera-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/alalloush/xperia-1v-camera-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/alalloush.png?size=96",
+          "latestChanges": {
+            "title": "1.0.0 (2026-09-05)",
+            "date": "2026-09-05",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "Xperia 1 V camera patches"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "jp-co-sony-mc-cameraapp-alalloush-xperia-1v-camera-patches",
+            "releaseTag": "app-jp-co-sony-mc-cameraapp-alalloush-xperia-1v-camera-patches",
+            "assetName": "sony-camera-alalloush-xperia-1v-camera-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Camera common visibility",
+              "description": "Lets the camera app see and use com.sonymobile.cameracommon (camera status provider, gyro calibration) when both are sideloaded: adds the <queries> entry and declares the CAMERA_STATUS_PROVIDER and CAMERA_ADDON permissions."
+            },
+            {
+              "name": "Storage fallback",
+              "description": "Fixes \"Memory unavailable\" on ROMs that cannot create Android/data/<pkg>/files (LineageOS on the Xperia 1 V): the storage probe falls back to the app's internal storage. Photos still go to DCIM through MediaStore."
+            },
+            {
+              "name": "Xperia 1 V camera HAL compatibility",
+              "description": "Makes the Xperia 1 VI camera app work on the Xperia 1 V camera HAL: truncates objectSelectTriggerArea to the 4 ints the 1 V HAL defines and sends conditionDetectMode alongside sceneDetectMode, which the 1 V HAL validates together."
+            }
+          ],
+          "versions": [
+            "1.0.2.A.0.6",
+            "1.0.2.A.0.8"
+          ]
+        }
+      ],
+      "patches": [
+        "Camera common visibility",
+        "Storage fallback",
+        "Xperia 1 V camera HAL compatibility"
+      ],
+      "patchDetails": [
+        {
+          "name": "Camera common visibility",
+          "description": "Lets the camera app see and use com.sonymobile.cameracommon (camera status provider, gyro calibration) when both are sideloaded: adds the <queries> entry and declares the CAMERA_STATUS_PROVIDER and CAMERA_ADDON permissions."
+        },
+        {
+          "name": "Storage fallback",
+          "description": "Fixes \"Memory unavailable\" on ROMs that cannot create Android/data/<pkg>/files (LineageOS on the Xperia 1 V): the storage probe falls back to the app's internal storage. Photos still go to DCIM through MediaStore."
+        },
+        {
+          "name": "Xperia 1 V camera HAL compatibility",
+          "description": "Makes the Xperia 1 VI camera app work on the Xperia 1 V camera HAL: truncates objectSelectTriggerArea to the 4 ints the 1 V HAL defines and sends conditionDetectMode alongside sceneDetectMode, which the 1 V HAL validates together."
+        }
+      ],
+      "versions": [
+        "1.0.2.A.0.6",
+        "1.0.2.A.0.8"
+      ],
+      "iconColor": "",
+      "iconUrl": ""
     },
     {
       "packageName": "com.sony.songpal.mdr",
@@ -73222,24 +73977,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/AngelDark92/steamlink-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/AngelDark92.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-09-03)",
-            "date": "2026-09-03",
+            "title": "1.14.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "CPU overhead optimizations"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Merge pull request #50 from AngelDark92/dev"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "removed experimental patch"
+                "category": "\u2728 New Features",
+                "text": "add modern tongue bridge for build 5002322"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "underside projection on XR_KHR_android_surface_swapchain experiment"
+                "text": "Merge pull request #53 from AngelDark92/dev"
               }
             ]
           },
@@ -73304,8 +74051,12 @@
               "description": "Applies the validated permission-free Galaxy XR patch set for exact Steam Link 2.0.22 build 5002322, including the Final balanced tested OLED profile."
             },
             {
-              "name": "GXR face bridge",
-              "description": "Installs libgxr_face_bridge.so (XR_FB_face_tracking2 \u2192 XR_ANDROID_face_tracking API layer) and adds android.permission.FACE_TRACKING to the manifest. See the [GXR Face Bridge source](https://github.com/compdoge/gxr-face-bridge) and matching [Galaxy XR VRCFT module](https://github.com/compdoge/LinkFT)."
+              "name": "GXR face bridge (version 5002318 and below)",
+              "description": "For exact older Steam Link builds only. Installs libgxr_face_bridge.so (XR_FB_face_tracking2 \u2192 XR_ANDROID_face_tracking API layer) and adds android.permission.FACE_TRACKING to the manifest. See the [GXR Face Bridge source](https://github.com/compdoge/gxr-face-bridge) and matching [Galaxy XR VRCFT module](https://github.com/compdoge/LinkFT)."
+            },
+            {
+              "name": "GXR tongue bridge (version 5002322 and above)",
+              "description": "For modern Steam Link builds with Valve's native Android XR face mapping. Currently verified and enabled only for exact build 5002322; newer builds require a separately verified native layout. Preserves Valve's face expressions and standard TongueOut while exposing Galaxy XR tongue out/left/right/up/down to the matching Galaxy XR VRCFT module."
             },
             {
               "name": "Microphone input preset",
@@ -73364,7 +74115,8 @@
         "Galaxy XR recommended set (2.0.20/5001712)",
         "Galaxy XR recommended set (2.0.22/5002318)",
         "Galaxy XR recommended set (2.0.22/5002322)",
-        "GXR face bridge",
+        "GXR face bridge (version 5002318 and below)",
+        "GXR tongue bridge (version 5002322 and above)",
         "Microphone input preset",
         "OLED color calibration",
         "Unrestricted battery usage",
@@ -73429,8 +74181,12 @@
           "description": "Applies the validated permission-free Galaxy XR patch set for exact Steam Link 2.0.22 build 5002322, including the Final balanced tested OLED profile."
         },
         {
-          "name": "GXR face bridge",
-          "description": "Installs libgxr_face_bridge.so (XR_FB_face_tracking2 \u2192 XR_ANDROID_face_tracking API layer) and adds android.permission.FACE_TRACKING to the manifest. See the [GXR Face Bridge source](https://github.com/compdoge/gxr-face-bridge) and matching [Galaxy XR VRCFT module](https://github.com/compdoge/LinkFT)."
+          "name": "GXR face bridge (version 5002318 and below)",
+          "description": "For exact older Steam Link builds only. Installs libgxr_face_bridge.so (XR_FB_face_tracking2 \u2192 XR_ANDROID_face_tracking API layer) and adds android.permission.FACE_TRACKING to the manifest. See the [GXR Face Bridge source](https://github.com/compdoge/gxr-face-bridge) and matching [Galaxy XR VRCFT module](https://github.com/compdoge/LinkFT)."
+        },
+        {
+          "name": "GXR tongue bridge (version 5002322 and above)",
+          "description": "For modern Steam Link builds with Valve's native Android XR face mapping. Currently verified and enabled only for exact build 5002322; newer builds require a separately verified native layout. Preserves Valve's face expressions and standard TongueOut while exposing Galaxy XR tongue out/left/right/up/down to the matching Galaxy XR VRCFT module."
         },
         {
           "name": "Microphone input preset",
@@ -76607,7 +77363,8 @@
         "Joussflls10/Jouss-Patches",
         "MoonShadowKeeper/Telegram-patchesMorphe",
         "Paresh-Maheshwari/paresh-patches",
-        "rushiranpise/morphe-patches"
+        "rushiranpise/morphe-patches",
+        "WZSE/aapam-patches"
       ],
       "sources": [
         {
@@ -76937,6 +77694,42 @@
           "versions": [
             "12.10.0"
           ]
+        },
+        {
+          "repo": "WZSE/aapam-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/WZSE/aapam-patches",
+          "addUrl": "https://morphe.software/add-source?github=WZSE/aapam-patches",
+          "source": "https://raw.githubusercontent.com/WZSE/aapam-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/WZSE/aapam-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/WZSE.png?size=96",
+          "latestChanges": {
+            "title": "1.2.0 (2026-09-05)",
+            "date": "2026-09-05",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "Telegram anti expiry media, but unlike other Paresh patch this shows expired to sender"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "org-telegram-messenger-web-wzse-aapam-patches",
+            "releaseTag": "app-org-telegram-messenger-web-wzse-aapam-patches",
+            "assetName": "telegram-wzse-aapam-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Anti-disappearing media",
+              "description": "Keeps view-once and self-destructing media viewable forever; the sender sees them as expired."
+            }
+          ],
+          "versions": [
+            "12.10.1",
+            "12.8.3"
+          ]
         }
       ],
       "patches": [
@@ -76965,7 +77758,7 @@
         },
         {
           "name": "Anti-disappearing media",
-          "description": "Keeps view-once photos, videos and voice messages viewable indefinitely."
+          "description": "Keeps view-once and self-destructing media viewable forever; the sender sees them as expired."
         },
         {
           "name": "Anti-screenshot notification",
@@ -77030,6 +77823,7 @@
       ],
       "versions": [
         "12.10.0",
+        "12.10.1",
         "12.8.3",
         "12.9.2"
       ],
@@ -78302,6 +79096,76 @@
       "iconUrl": "https://play-lh.googleusercontent.com/d4arYGxzjh2FaE1HbvI8jNFPZpIMeSHVWkXOMLDcsKkOTEZq-_gc0oFD5c8-FNMd-QFSTw-lT8AvGGS3PrsgpA"
     },
     {
+      "packageName": "io.github.jqssun.helium",
+      "name": "Titanium Browser for Android",
+      "repos": [
+        "dh6k/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "dh6k/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/dh6k/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=dh6k/morphe-patches",
+          "source": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/dh6k.png?size=96",
+          "latestChanges": {
+            "title": "1.5.0 (2026-09-05)",
+            "date": "2026-09-05",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**brave:** tolerate Origin log-literal drift on 1.97.x (86755f2), closes #1 #5"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**universal:** broaden Disable analytics to kondratjev parity"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**universal:** cover Adjust v5 initSdk and Crashlytics boxed overload"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**universal:** cover screen reporting, crashlytics/perf providers and Adjust init"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**universal:** harden Disable analytics manifest scope and runtime backstop"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "io-github-jqssun-helium-dh6k-morphe-patches",
+            "releaseTag": "app-io-github-jqssun-helium-dh6k-morphe-patches",
+            "assetName": "titanium-browser-for-android-dh6k-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Keep Titanium Extensions Child Processes Alive",
+              "description": "Experimental version-unpinned structural/data-flow patch: starts one main-process foreground service with persistent low-priority notification and forces child STRONG binding plus IMPORTANT/STRONG priority updates. Tolerates routine signature, register, and helper-name changes; ambiguous targets fail closed. May increase RAM, battery, and process pressure; mitigates LMK kills only."
+            }
+          ],
+          "versions": []
+        }
+      ],
+      "patches": [
+        "Keep Titanium Extensions Child Processes Alive"
+      ],
+      "patchDetails": [
+        {
+          "name": "Keep Titanium Extensions Child Processes Alive",
+          "description": "Experimental version-unpinned structural/data-flow patch: starts one main-process foreground service with persistent low-priority notification and forces child STRONG binding plus IMPORTANT/STRONG priority updates. Tolerates routine signature, register, and helper-name changes; ambiguous targets fail closed. May increase RAM, battery, and process pressure; mitigates LMK kills only."
+        }
+      ],
+      "versions": [],
+      "iconColor": "",
+      "iconUrl": ""
+    },
+    {
       "packageName": "mobi.lockdown.weather",
       "name": "Today Weather",
       "repos": [
@@ -78582,12 +79446,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.31.23 (2026-09-04)",
-            "date": "2026-09-04",
+            "title": "1.34.2 (2026-09-06)",
+            "date": "2026-09-06",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**shadowfight:** v2 scan - NLP chain trace, remove crash-prone FindObjectsOfType"
+                "text": "v29 - remove IL2CPP domain_get, use direct RVA addressing"
               }
             ]
           },
@@ -79966,8 +80830,8 @@
       ],
       "patches": [
         "Disable analytics",
-        "Disable telemetry",
         "Disable Telemetry",
+        "Disable telemetry",
         "Disable update check",
         "Enable premium features",
         "GMS sign-in bypass",
@@ -80011,11 +80875,11 @@
           "description": "Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry."
         },
         {
-          "name": "Disable telemetry",
+          "name": "Disable Telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
-          "name": "Disable Telemetry",
+          "name": "Disable telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
@@ -82005,40 +82869,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.42.0 (2026-08-28)",
-            "date": "2026-08-28",
+            "title": "1.43.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add Skip Splash Screen Patch (Expert)"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "Add Video Downloader Pro Unlock Patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk Clean Patch"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "last try"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Mx"
               }
             ]
           },
@@ -82064,10 +82928,12 @@
             },
             {
               "name": "Unlock Pro",
-              "description": "Manually Kill Signature First Or Use Doom's(rushiranpise) Patch (Spoof App Signature)."
+              "description": "Only Use In V2.7.2. Signature verification is spoofed automatically so the purchase check passes without manually applying Spoof app signature."
             }
           ],
-          "versions": []
+          "versions": [
+            "2.7.2"
+          ]
         }
       ],
       "patches": [
@@ -82091,10 +82957,12 @@
         },
         {
           "name": "Unlock Pro",
-          "description": "Manually Kill Signature First Or Use Doom's(rushiranpise) Patch (Spoof App Signature)."
+          "description": "Only Use In V2.7.2. Signature verification is spoofed automatically so the purchase check passes without manually applying Spoof app signature."
         }
       ],
-      "versions": [],
+      "versions": [
+        "2.7.2"
+      ],
       "iconColor": "",
       "iconUrl": ""
     },
@@ -83679,6 +84547,178 @@
       "iconUrl": ""
     },
     {
+      "packageName": "abdelrahman.wifianalyzerpro",
+      "name": "WiFi Analyzer",
+      "repos": [
+        "BlazeFTL/FTL-Patches"
+      ],
+      "sources": [
+        {
+          "repo": "BlazeFTL/FTL-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/BlazeFTL/FTL-Patches",
+          "addUrl": "https://morphe.software/add-source?github=BlazeFTL/FTL-Patches",
+          "source": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
+          "latestChanges": {
+            "title": "1.43.0 (2026-09-05)",
+            "date": "2026-09-05",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk Clean Patch"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "last try"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Mx"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "abdelrahman-wifianalyzerpro-blazeftl-ftl-patches",
+            "releaseTag": "app-abdelrahman-wifianalyzerpro-blazeftl-ftl-patches",
+            "assetName": "wifi-analyzer-blazeftl-ftl-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Unlock Pro & Disable Rate Dialog",
+              "description": "Forces the premium check to always return true, unlocking every Pro feature, and stops the in-app \"rate us\" dialog from ever triggering."
+            }
+          ],
+          "versions": [
+            "9.4"
+          ]
+        }
+      ],
+      "patches": [
+        "Unlock Pro & Disable Rate Dialog"
+      ],
+      "patchDetails": [
+        {
+          "name": "Unlock Pro & Disable Rate Dialog",
+          "description": "Forces the premium check to always return true, unlocking every Pro feature, and stops the in-app \"rate us\" dialog from ever triggering."
+        }
+      ],
+      "versions": [
+        "9.4"
+      ],
+      "iconColor": "",
+      "iconUrl": ""
+    },
+    {
+      "packageName": "com.tester.wpswpatester",
+      "name": "WIFI WPS WPA TESTER",
+      "repos": [
+        "BlazeFTL/FTL-Patches"
+      ],
+      "sources": [
+        {
+          "repo": "BlazeFTL/FTL-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/BlazeFTL/FTL-Patches",
+          "addUrl": "https://morphe.software/add-source?github=BlazeFTL/FTL-Patches",
+          "source": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
+          "latestChanges": {
+            "title": "1.43.0 (2026-09-05)",
+            "date": "2026-09-05",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk Clean Patch"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "last try"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Mx"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-tester-wpswpatester-blazeftl-ftl-patches",
+            "releaseTag": "app-com-tester-wpswpatester-blazeftl-ftl-patches",
+            "assetName": "wifi-wps-wpa-tester-blazeftl-ftl-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Unlock Pro",
+              "description": "Forces the Pro flag true at every read and write site in the dex, unlocking Pro."
+            }
+          ],
+          "versions": [
+            "rc-5.164"
+          ]
+        }
+      ],
+      "patches": [
+        "Unlock Pro"
+      ],
+      "patchDetails": [
+        {
+          "name": "Unlock Pro",
+          "description": "Forces the Pro flag true at every read and write site in the dex, unlocking Pro."
+        }
+      ],
+      "versions": [
+        "rc-5.164"
+      ],
+      "iconColor": "",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.wildberries.ru",
       "name": "Wildberries",
       "repos": [
@@ -84421,6 +85461,92 @@
       "iconUrl": "https://play-lh.googleusercontent.com/IrviqpGmCduI8CYHUyUVPa2V4a8e1FOxO8tYCUUvaYSHGhih4BdPyjtInBf8SZokbpT6-NImQP6-BM2rQu_UgA"
     },
     {
+      "packageName": "com.themausoft.wpsapppro",
+      "name": "WPSApp Pro",
+      "repos": [
+        "BlazeFTL/FTL-Patches"
+      ],
+      "sources": [
+        {
+          "repo": "BlazeFTL/FTL-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/BlazeFTL/FTL-Patches",
+          "addUrl": "https://morphe.software/add-source?github=BlazeFTL/FTL-Patches",
+          "source": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
+          "latestChanges": {
+            "title": "1.43.0 (2026-09-05)",
+            "date": "2026-09-05",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk Clean Patch"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "last try"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Mx"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-themausoft-wpsapppro-blazeftl-ftl-patches",
+            "releaseTag": "app-com-themausoft-wpsapppro-blazeftl-ftl-patches",
+            "assetName": "wpsapp-pro-blazeftl-ftl-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Remove License Verification",
+              "description": "Spoofs every PackageManager.getInstallerPackageName() check to report \"com.android.vending\", so Pro features unlock regardless of install source."
+            }
+          ],
+          "versions": [
+            "1.7.05"
+          ]
+        }
+      ],
+      "patches": [
+        "Remove License Verification"
+      ],
+      "patchDetails": [
+        {
+          "name": "Remove License Verification",
+          "description": "Spoofs every PackageManager.getInstallerPackageName() check to report \"com.android.vending\", so Pro features unlock regardless of install source."
+        }
+      ],
+      "versions": [
+        "1.7.05"
+      ],
+      "iconColor": "",
+      "iconUrl": ""
+    },
+    {
       "packageName": "cn.xender",
       "name": "Xender",
       "repos": [
@@ -84436,40 +85562,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.42.0 (2026-08-28)",
-            "date": "2026-08-28",
+            "title": "1.43.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add Skip Splash Screen Patch (Expert)"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "Add Video Downloader Pro Unlock Patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "apk junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Apk Junk Clean Patch"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "last try"
               },
               {
-                "category": "\u2728 New Features",
-                "text": "up"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Mx"
               }
             ]
           },
@@ -84703,8 +85829,7 @@
         "ARHCOS/arhcos-patches",
         "ImmortalZeus/ImmortalZeus-Morphe-Patches",
         "pseudofractal/morphe-patches",
-        "Z-drgon/morphe-patches",
-        "Zanuaimi/UniPatches"
+        "Z-drgon/morphe-patches"
       ],
       "sources": [
         {
@@ -84840,46 +85965,6 @@
             "buildId": "com-example-app-z-drgon-morphe-patches",
             "releaseTag": "app-com-example-app-z-drgon-morphe-patches",
             "assetName": "xyz-app-z-drgon-morphe-patches.apk",
-            "repo": "rushiforai/morphe-builder",
-            "webUrl": "https://github.com/rushiforai/morphe-builder"
-          },
-          "patches": [
-            {
-              "name": "Example Patch",
-              "description": "Example patch to start with."
-            }
-          ],
-          "versions": [
-            "1.0.2",
-            "2.0.0"
-          ]
-        },
-        {
-          "repo": "Zanuaimi/UniPatches",
-          "host": "github.com",
-          "webUrl": "https://github.com/Zanuaimi/UniPatches",
-          "addUrl": "https://morphe.software/add-source?github=Zanuaimi/UniPatches",
-          "source": "https://raw.githubusercontent.com/Zanuaimi/UniPatches/main/patches-bundle.json",
-          "changelogUrl": "https://raw.githubusercontent.com/Zanuaimi/UniPatches/main/CHANGELOG.md",
-          "avatarUrl": "https://github.com/Zanuaimi.png?size=96",
-          "latestChanges": {
-            "title": "1.2.0 (2026-09-05)",
-            "date": "2026-09-05",
-            "items": [
-              {
-                "category": "\u2728 New Features",
-                "text": "add configurable overlay appearance settings"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "separate overlay text and icon outline styling"
-              }
-            ]
-          },
-          "builder": {
-            "buildId": "com-example-app-zanuaimi-unipatches",
-            "releaseTag": "app-com-example-app-zanuaimi-unipatches",
-            "assetName": "xyz-app-zanuaimi-unipatches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -87636,8 +88721,8 @@
         "Save to Watch later",
         "Seekbar",
         "Seekbar components",
-        "Set transcript cookies",
         "Set Transcript Cookies",
+        "Set transcript cookies",
         "Settings for YouTube",
         "Settings menu filter",
         "Shorts autoplay",
@@ -88123,11 +89208,11 @@
           "description": "Adds options to hide or change components related to the seekbar."
         },
         {
-          "name": "Set transcript cookies",
+          "name": "Set Transcript Cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
-          "name": "Set Transcript Cookies",
+          "name": "Set transcript cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
@@ -90383,12 +91468,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/WZSE/aapam-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/WZSE.png?size=96",
           "latestChanges": {
-            "title": "1.0.0 (2026-08-13)",
-            "date": "2026-08-13",
+            "title": "1.2.0 (2026-09-05)",
+            "date": "2026-09-05",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add ZEE5 patches (disable ads, analytics, CleverTap, Firebase)"
+                "text": "Telegram anti expiry media, but unlike other Paresh patch this shows expired to sender"
               }
             ]
           },
@@ -90821,46 +91906,51 @@
       "source": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/patches-bundle.json",
       "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
       "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
-      "patchCount": 12,
+      "patchCount": 15,
       "latestChanges": {
-        "title": "1.42.0 (2026-08-28)",
-        "date": "2026-08-28",
+        "title": "1.43.0 (2026-09-05)",
+        "date": "2026-09-05",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "Add Skip Splash Screen Patch (Expert)"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "apk"
           },
           {
-            "category": "\u2728 New Features",
-            "text": "Add Video Downloader Pro Unlock Patch"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "apk junk"
           },
           {
-            "category": "\u2728 New Features",
-            "text": "up"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "apk junk"
           },
           {
-            "category": "\u2728 New Features",
-            "text": "up"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Apk Junk"
           },
           {
-            "category": "\u2728 New Features",
-            "text": "up"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Apk Junk"
           },
           {
-            "category": "\u2728 New Features",
-            "text": "up"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Apk Junk Clean Patch"
           },
           {
-            "category": "\u2728 New Features",
-            "text": "up"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "last try"
           },
           {
-            "category": "\u2728 New Features",
-            "text": "up"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Mx"
           }
         ]
       },
       "patches": [
+        {
+          "name": "Add Save Data",
+          "description": "Unpacks bundled save-data zip(s) into the app's storage on first launch.",
+          "default": false
+        },
         {
           "name": "Add Toast",
           "description": "Shows a custom toast message when the app starts. Works on any app.",
@@ -90868,7 +91958,7 @@
         },
         {
           "name": "APK Junk Cleanup",
-          "description": "Removes junk and useless files with no runtime purpose inside apk.",
+          "description": "Removes junk and useless files with no runtime purpose inside apk. To keep only one CPU architecture, use the patcher's strip-libs option (Morphe Manager) or --striplibs (Morphe Desktop).",
           "default": false
         },
         {
@@ -90902,6 +91992,11 @@
           "default": false
         },
         {
+          "name": "Remove Analytics New",
+          "description": "Corrupts analytics network URLs and split-scheme string obfuscation inside the code, and strips matching manifest components.",
+          "default": false
+        },
+        {
           "name": "Remove Debug Info",
           "description": "Removes debug information (line numbers, variable names, source file references) from every class in the .dex files to reduce overall APK size.",
           "default": false
@@ -90918,7 +92013,12 @@
         },
         {
           "name": "Skip Splash Screen - Expert Only",
-          "description": "EXPERT USERS ONLY. Manually Configure It To Point At Real Splash And Main Activity As Many Apps Use Other Names. Check the log to know what the patch is doing Ensure App Doesnt Ask For Permission In Splash Screen.",
+          "description": "EXPERT USERS ONLY. Manually Configure It To Point At Real Splash And Main Activity As Many Apps Use Other Names. Check the log to know what the patch is doing. Ensure App Doesnt Ask For Permissions In Splash Screen.",
+          "default": false
+        },
+        {
+          "name": "Spoof App Signature",
+          "description": "Makes the app think its signing certificate is unchanged after Morphe re-signs it, useful when an app crashes or shows a tamper warning because it checks its own certificate. Does not bypass Play Integrity / SafetyNet hardware attestation. Apply with Original app certificate patch.",
           "default": false
         }
       ]
@@ -91001,24 +92101,28 @@
       "avatarUrl": "https://github.com/dh6k.png?size=96",
       "patchCount": 3,
       "latestChanges": {
-        "title": "1.4.0 (2026-08-24)",
-        "date": "2026-08-24",
+        "title": "1.5.0 (2026-09-05)",
+        "date": "2026-09-05",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**helium:** harden keep-alive structural resolver"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**helium:** harden keep-alive without breaking apk patching"
+            "text": "**brave:** tolerate Origin log-literal drift on 1.97.x (86755f2), closes #1 #5"
           },
           {
             "category": "\u2728 New Features",
-            "text": "add Helium foreground keep-alive service"
+            "text": "**universal:** broaden Disable analytics to kondratjev parity"
           },
           {
             "category": "\u2728 New Features",
-            "text": "make Helium keep-alive patch version resilient"
+            "text": "**universal:** cover Adjust v5 initSdk and Crashlytics boxed overload"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**universal:** cover screen reporting, crashlytics/perf providers and Adjust init"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**universal:** harden Disable analytics manifest scope and runtime backstop"
           }
         ]
       },
@@ -91035,7 +92139,7 @@
         },
         {
           "name": "Disable analytics",
-          "description": "Disables Firebase Analytics, Crashlytics and Performance through manifest opt-outs and exact runtime setters when present. Other SDK components are disabled only when explicitly declared; custom or server-side telemetry is not covered.",
+          "description": "Disables analytics and tracking from multiple SDKs, including AppMetrica, MyTracker, Firebase, Sentry, Google Analytics, Amplitude, Mixpanel, Adjust, AppsFlyer, Facebook, MoEngage, and comScore, through manifest opt-outs and exact runtime entry points when present. Custom or server-side telemetry is not covered.",
           "default": false
         }
       ]
@@ -91814,14 +92918,14 @@
       "source": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/patches-bundle.json",
       "changelogUrl": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/CHANGELOG.md",
       "avatarUrl": "https://github.com/Nai64.png?size=96",
-      "patchCount": 334,
+      "patchCount": 335,
       "latestChanges": {
-        "title": "1.43.1 (2026-09-03)",
-        "date": "2026-09-03",
+        "title": "1.44.0 (2026-09-05)",
+        "date": "2026-09-05",
         "items": [
           {
-            "category": "Bug Fixes",
-            "text": "cover React Native AsyncStorage and billing bridges in unlock premium"
+            "category": "New Features",
+            "text": "add Universal Overlay Patch v1.0  ( Experimental ) (#73)"
           }
         ]
       },
@@ -93014,6 +94118,11 @@
         {
           "name": "Make App Debuggable",
           "description": "Sets android:debuggable so debuggers and profiling tools can attach",
+          "default": false
+        },
+        {
+          "name": "Nai64Patches Universal Overlay Patch v1.0 (Experimental)",
+          "description": "Universal in-app overlay for Android apps and games. Optional modules include System Time, FPS,\nfullscreen, app brightness, and haptic controls. Modules are excluded and disabled by default;\nselect them in Morphe settings before patching. Statistic modules show information, Activity modules\ncontrol the current Activity, and Hook modules control internal app behavior, such as disabling\nanimations, through best-effort runtime changes. A selected local image automatically replaces\nthe legacy icon; empty or invalid image input falls back to the legacy icon. This is experimental\nand may not work on all apps.\n\nThe idea and initial works of this Universal Overlay Patch are from Zanuaimi / Noobite.",
           "default": false
         },
         {
@@ -94283,16 +95392,12 @@
       "avatarUrl": "https://github.com/Zanuaimi.png?size=96",
       "patchCount": 12,
       "latestChanges": {
-        "title": "1.2.0 (2026-09-05)",
+        "title": "1.4.0 (2026-09-05)",
         "date": "2026-09-05",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add configurable overlay appearance settings"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "separate overlay text and icon outline styling"
+            "text": "harden UI preset export paths"
           }
         ]
       },
@@ -94353,14 +95458,109 @@
           "default": false
         },
         {
-          "name": "UniPatches Universal Overlay Patch v1.0 (Experimental)",
-          "description": "Universal in-app overlay for Android apps and games. Optional modules include System Time, FPS,\nfullscreen, app brightness, and haptic controls. Modules are excluded and disabled by default;\nselect them in Morphe settings before patching. Statistic modules show information, Activity modules\ncontrol the current Activity, and Hook modules control internal app behavior, such as disabling\nanimations, through best-effort runtime changes. A selected local image automatically replaces\nthe legacy icon; empty or invalid image input falls back to the legacy icon. This is experimental\nand may not work on all apps.\n\nThe idea and initial works of this Universal Overlay Patch are from Zanuaimi / Noobite.",
+          "name": "UniPatches Universal Overlay Patch v1.2 (Experimental)",
+          "description": "Universal in-app overlay for Android apps and games. Optional modules include System Time, FPS,\nfullscreen, app brightness, and haptic controls. Modules are excluded and disabled by default;\nselect them in Morphe settings before patching. Statistic modules show information, Activity modules\ncontrol the current Activity, and Hook modules control internal app behavior, such as disabling\nanimations, through best-effort runtime changes. A selected local image automatically replaces\nthe legacy icon; empty or invalid image input falls back to the legacy icon. This is experimental\nand may not work on all apps. UI presets can save and reuse every General, UI, and Advanced\nsetting, but intentionally exclude Modules and Settings to Modules because hook and module\ncombinations can be app-specific.\n\nThe idea and initial works of this Universal Overlay Patch are from Zanuaimi / Noobite.",
           "default": false
         }
       ]
     }
   ],
   "recentSources": [
+    {
+      "name": "discord-patches",
+      "repo": "jrddupont/discord-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/jrddupont/discord-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/jrddupont/discord-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/jrddupont/discord-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/jrddupont/discord-patches",
+      "addUrl": "https://morphe.software/add-source?github=jrddupont/discord-patches",
+      "avatarUrl": "https://github.com/jrddupont.png?size=96",
+      "patchCount": 3,
+      "appCount": 1,
+      "createdAt": 1788663875259,
+      "updatedAt": 1788663875259,
+      "createdDate": "2026-09-06",
+      "updatedDate": "2026-09-06",
+      "latestChanges": {
+        "title": "v1.2.0",
+        "date": "",
+        "items": [
+          {
+            "category": "",
+            "text": "New patch: Pin app to built-in bundle \u2014 forces Discord to always run"
+          },
+          {
+            "category": "",
+            "text": "the APK's Hermes bundle and ignore downloaded (OTA) updates. Without"
+          },
+          {
+            "category": "",
+            "text": "it, an OTA silently undoes all Hermes patches (observed on device:"
+          },
+          {
+            "category": "",
+            "text": "banner returned, composer gift never left). Official JS updates stop"
+          },
+          {
+            "category": "",
+            "text": "arriving until the APK itself is updated."
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Discord",
+          "packageName": "com.discord",
+          "patchCount": 3,
+          "iconUrl": "",
+          "iconColor": "#5865F2"
+        }
+      ]
+    },
+    {
+      "name": "xperia-1v-camera-patches",
+      "repo": "alalloush/xperia-1v-camera-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/alalloush/xperia-1v-camera-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/alalloush/xperia-1v-camera-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/alalloush/xperia-1v-camera-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/alalloush/xperia-1v-camera-patches",
+      "addUrl": "https://morphe.software/add-source?github=alalloush/xperia-1v-camera-patches",
+      "avatarUrl": "https://github.com/alalloush.png?size=96",
+      "patchCount": 3,
+      "appCount": 2,
+      "createdAt": 1788663874596,
+      "updatedAt": 1788663874596,
+      "createdDate": "2026-09-06",
+      "updatedDate": "2026-09-06",
+      "latestChanges": {
+        "title": "1.0.0 (2026-09-05)",
+        "date": "2026-09-05",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "Xperia 1 V camera patches"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Photography Pro",
+          "packageName": "com.sonymobile.photopro",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": ""
+        },
+        {
+          "name": "Sony Camera",
+          "packageName": "jp.co.sony.mc.cameraapp",
+          "patchCount": 3,
+          "iconUrl": "",
+          "iconColor": ""
+        }
+      ]
+    },
     {
       "name": "supreme-patches",
       "repo": "drnhzn/supreme-patches",
@@ -94407,35 +95607,23 @@
       "webUrl": "https://github.com/Zanuaimi/UniPatches",
       "addUrl": "https://morphe.software/add-source?github=Zanuaimi/UniPatches",
       "avatarUrl": "https://github.com/Zanuaimi.png?size=96",
-      "patchCount": 13,
-      "appCount": 1,
+      "patchCount": 12,
+      "appCount": 0,
       "createdAt": 1788577973428,
       "updatedAt": 1788577973428,
       "createdDate": "2026-09-05",
       "updatedDate": "2026-09-05",
       "latestChanges": {
-        "title": "1.2.0 (2026-09-05)",
+        "title": "1.4.0 (2026-09-05)",
         "date": "2026-09-05",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add configurable overlay appearance settings"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "separate overlay text and icon outline styling"
+            "text": "harden UI preset export paths"
           }
         ]
       },
-      "apps": [
-        {
-          "name": "XYZ app",
-          "packageName": "com.example.app",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#FF0045"
-        }
-      ]
+      "apps": []
     },
     {
       "name": "letterboxd-morphe-patches",
@@ -94794,102 +95982,6 @@
           "patchCount": 4,
           "iconUrl": "",
           "iconColor": "#1A73E8"
-        }
-      ]
-    },
-    {
-      "name": "iptv-morphe-patches",
-      "repo": "Okazakee/iptv-morphe-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/Okazakee/iptv-morphe-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/Okazakee/iptv-morphe-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/Okazakee/iptv-morphe-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/Okazakee/iptv-morphe-patches",
-      "addUrl": "https://morphe.software/add-source?github=Okazakee/iptv-morphe-patches",
-      "avatarUrl": "https://github.com/Okazakee.png?size=96",
-      "patchCount": 1,
-      "appCount": 1,
-      "createdAt": 1788061721285,
-      "updatedAt": 1788061721285,
-      "createdDate": "2026-08-30",
-      "updatedDate": "2026-08-30",
-      "latestChanges": {
-        "title": "1.0.1 (2026-08-31)",
-        "date": "2026-08-31",
-        "items": [
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "publish the fixed Morphe bundle with Google Play installer-source spoofing"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "trigger dev after tag cleanup"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "use method instead of mutableMethod for morphe-patcher 1.11.0"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "use shared changePackageInstallerPatch + mutableMethod + Boolean.TRUE for IPTV"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "add Unlock Pro patch for IPTV Pro Stream Player"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "test new dev version for Morphe"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "IPTV Pro Stream Player",
-          "packageName": "com.iptvprostreamplayer.v1",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#3DB8FF"
-        }
-      ]
-    },
-    {
-      "name": "morphe-patches",
-      "repo": "rafag00/morphe-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/rafag00/morphe-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/rafag00/morphe-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/rafag00/morphe-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/rafag00/morphe-patches",
-      "addUrl": "https://morphe.software/add-source?github=rafag00/morphe-patches",
-      "avatarUrl": "https://github.com/rafag00.png?size=96",
-      "patchCount": 1,
-      "appCount": 1,
-      "createdAt": 1787910075557,
-      "updatedAt": 1787910075557,
-      "createdDate": "2026-08-28",
-      "updatedDate": "2026-08-28",
-      "latestChanges": {
-        "title": "1.0.0 (2026-08-27)",
-        "date": "2026-08-27",
-        "items": [
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Patches README.md"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "add Sony Sound Connect patch"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "Sony | Sound Connect",
-          "packageName": "com.sony.songpal.mdr",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": ""
         }
       ]
     }
