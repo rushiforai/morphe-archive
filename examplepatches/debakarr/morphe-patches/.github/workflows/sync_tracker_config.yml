@@ -1,0 +1,97 @@
+name: Sync
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+  # workflow_run:
+  #   workflows:
+  #     - Release
+  #   types:
+  #     - completed
+
+permissions:
+  actions: write
+  contents: write
+
+concurrency:
+  group: sync-tracker-config
+  cancel-in-progress: false
+
+jobs:
+  sort-and-sync:
+    name: Sync
+    runs-on: ubuntu-latest
+
+    # Prevent loop from the auto-generated sorting commit
+    if: "!contains(github.event.head_commit.message, 'chore: sort Constants compatibility entries')"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Run Constants sorter
+        run: |
+          python .github/scripts/sort.py
+          
+      - name: Check if Constants changed
+        id: diff
+        run: |
+          if git diff --quiet -- patches/src/main/kotlin/app/template/patches/shared/Constants.kt; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "Constants.kt is already sorted."
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Constants.kt was modified by sorter."
+          fi
+
+      - name: Commit sorted Constants.kt
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add patches/src/main/kotlin/app/template/patches/shared/Constants.kt
+
+          git commit \
+            -m "chore: sort Constants compatibility entries [skip ci]"
+
+          git push
+
+      - name: Dispatch patches-tracker sync event
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.PATCHES_TRACKER_TOKEN }}
+          TRACKER_REPO: rushiranpise/patches-tracker
+          TRACKER_EVENT: sync-config-from-constants
+
+        run: |
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "::error::PATCHES_TRACKER_TOKEN is required."
+            exit 1
+          fi
+
+          gh api \
+            --method POST \
+            "repos/${TRACKER_REPO}/dispatches" \
+            -f event_type="${TRACKER_EVENT}" \
+            -F client_payload[patches_repo]="${GITHUB_REPOSITORY}" \
+            -F client_payload[patches_ref]="${GITHUB_REF_NAME}" \
+            -F client_payload[patches_sha]="${GITHUB_SHA}"
+
+          echo "Dispatched ${TRACKER_REPO}/${TRACKER_EVENT}."
+
+      - name: Dispatch release workflow
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run release.yml --ref "${GITHUB_REF_NAME}"

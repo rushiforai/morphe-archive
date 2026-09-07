@@ -1,0 +1,259 @@
+{
+  "appName": "Google App (AGSA)",
+  "packageName": "com.google.android.googlequicksearchbox",
+  "versionName": "17.54.18.ve.arm64",
+  "versionCode": "301800642",
+  "inputSha256": {
+    "google-base.apk": "ec2483a9dea3786e23f68012059bc00d5a4593a7f7189c758e57eaa29dfb2325",
+    "google-xxhdpi.apk": "772c1b02579a8f04316b585024128b655af8a32ee25e775c2cfa5a5bae122a9f"
+  },
+  "validation": [
+    "2026-09-06: SM-S948Q, microG 7.0.0, user 0 chat and process restart verified",
+    "2026-09-06: user 150 eligibility logs and user-confirmed Secure Folder success",
+    "MainActivity branches and appk.k single-instruction replacement verified"
+  ],
+  "hooks": {
+    "WORK_PROFILE_BYPASS": {
+      "className": "Laiwk;",
+      "methodName": "f",
+      "methodDescriptor": "(Lfnbp;Lgtij;)Ljava/lang/Object;",
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "Trampolining to web app for work profile. %s",
+        "Skipping trampoline to web app for work profile."
+      ],
+      "methodSignatures": [],
+      "expectedMatches": 2,
+      "integers": {
+        "lookback": 60,
+        "observedRegisters": 53
+      },
+      "values": {},
+      "enabled": true,
+      "description": "Both fingerprints resolve the same method; preserve the existing two insertions. Old Lauby.a record was incorrect."
+    },
+    "WORK_PROFILE_ELIGIBILITY": {
+      "className": "Lappk;",
+      "methodName": "k",
+      "methodDescriptor": "(Lgtij;)Ljava/lang/Object;",
+      "fieldName": "x",
+      "fieldType": "Z",
+      "anchorStrings": [
+        "Robin eligibility : is disallowed on Work profile",
+        "Robin eligibility : Work profile is allowed."
+      ],
+      "methodSignatures": [],
+      "expectedMatches": 1,
+      "integers": {
+        "errorCode": 19
+      },
+      "values": {},
+      "enabled": true,
+      "description": "Replace IGET_BOOLEAN with same-width const/16 true; retain other eligibility checks."
+    },
+    "MICROG_RUNTIME_PERMISSIONS": {
+      "className": "Lcom/google/android/apps/search/assistant/surfaces/voice/robin/main/MainActivity;",
+      "methodName": "onCreate",
+      "methodDescriptor": "(Landroid/os/Bundle;)V",
+      "fieldName": "o",
+      "fieldType": "Z",
+      "anchorStrings": [],
+      "methodSignatures": [],
+      "expectedMatches": 1,
+      "integers": {
+        "minRegisters": 11,
+        "maxRegisters": 17,
+        "observedRegisters": 13,
+        "thisParameterOffset": 2,
+        "scratchArray": 6,
+        "scratchIndex": 7,
+        "scratchString": 8
+      },
+      "values": {},
+      "enabled": true,
+      "description": "Insert after final IPUT_BOOLEAN o:Z while p0 is Activity, before trace cleanup. Never insert at return."
+    },
+    "PROCESS_NAME_REDIRECT": {
+      "className": "Leacx;",
+      "methodName": "b",
+      "methodDescriptor": "()Ljava/lang/String;",
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "com.google.android.googlequicksearchbox:googleapp"
+      ],
+      "methodSignatures": [],
+      "expectedMatches": 2,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": "Two provider return sites; strip .morphe only for the compiled Dagger process-name switch."
+    },
+    "MAIN_PROCESS_CHECK": {
+      "className": "Leact;",
+      "methodName": "b",
+      "methodDescriptor": "()Z",
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "More than 1 custom main process specified"
+      ],
+      "methodSignatures": [],
+      "expectedMatches": 1,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": "Anchor is in eact.a; patch provider call inside eact.b to Application.getProcessName."
+    },
+    "GMS_SIGNATURE_BYPASS": {
+      "className": "Lcwfs;",
+      "methodName": "b",
+      "methodDescriptor": "(Landroid/content/Context;I)I",
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        " requires Google Play services, but their signature is invalid.",
+        "The Google Play services resources were not found. Check your project configuration to ensure that the resources are included.",
+        " requires Google Play services, but they are missing."
+      ],
+      "methodSignatures": [],
+      "expectedMatches": 1,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": ""
+    },
+    "GMS_CERTIFICATE_VERIFIER": {
+      "className": "Lcwft;",
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "Unable to obtain package certificate history."
+      ],
+      "methodSignatures": [
+        "b(Ljava/lang/String;)Z",
+        "c(I)Z",
+        "d(Landroid/content/pm/PackageInfo;Z)Z"
+      ],
+      "expectedMatches": 3,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": ""
+    },
+    "GMS_CORE_REDIRECT": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "com.google.android.gms"
+      ],
+      "methodSignatures": [],
+      "expectedMatches": null,
+      "integers": {},
+      "values": {
+        "originalGoogleSha1": "38918a453d07199354f8b19af05ec6562ced5788"
+      },
+      "enabled": true,
+      "description": "microG 7.0.0 app.revanced.android.gms; retain Binder service actions, redirect UI actions. Shared mappings: GmsConstants.kt."
+    },
+    "PACKAGE_CLONE_REDIRECT": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "com.google.android.googlequicksearchbox"
+      ],
+      "methodSignatures": [],
+      "expectedMatches": null,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": "Observed 156 exact-package substitutions across 144 classes; count can depend on other enabled patches."
+    },
+    "SPLIT_RESTRICTION_REMOVAL": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [],
+      "methodSignatures": [],
+      "expectedMatches": null,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": "Remove manifest split requirements; resource split still needs package rename/signing."
+    },
+    "APP_LABEL_UPDATE": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [],
+      "methodSignatures": [],
+      "expectedMatches": null,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": "Google (Morphe)"
+    },
+    "ACCOUNT_SWITCH_LOCK_BYPASS": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "Acquired account-switch Mutex."
+      ],
+      "methodSignatures": [],
+      "expectedMatches": null,
+      "integers": {},
+      "values": {},
+      "enabled": false,
+      "description": "Historical rejected approach. Do not enable; normal account synchronization is required."
+    },
+    "ACCOUNT_SYNC_LOOP_FIX": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "Binding to service"
+      ],
+      "methodSignatures": [],
+      "expectedMatches": null,
+      "integers": {},
+      "values": {},
+      "enabled": false,
+      "description": "Historical rejected Binder-success spoof; caused hangs."
+    },
+    "ACCOUNT_CONVERT_FALLBACK": {
+      "className": "Lfyca;",
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "Found google email address as the old primary email address",
+        "Failed to convert AGSA account name to account id."
+      ],
+      "methodSignatures": [],
+      "expectedMatches": null,
+      "integers": {},
+      "values": {},
+      "enabled": false,
+      "description": "Historical unverified helper name. Fixed AccountId=1 broke token acquisition; never use for a new version."
+    }
+  }
+}

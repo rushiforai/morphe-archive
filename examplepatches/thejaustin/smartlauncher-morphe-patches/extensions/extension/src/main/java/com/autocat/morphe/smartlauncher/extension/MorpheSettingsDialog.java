@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.TypedArray;
 import android.graphics.Typeface;
 import android.util.Log;
@@ -24,6 +25,10 @@ public final class MorpheSettingsDialog {
     private MorpheSettingsDialog() {}
 
     public static void show(final Context context) {
+        show(context, null);
+    }
+
+    public static void show(final Context context, final Intent devOptionsIntent) {
         if (context == null) return;
         try {
             // 1. Resolve host Activity
@@ -143,6 +148,19 @@ public final class MorpheSettingsDialog {
             AlertDialog.Builder builder = new AlertDialog.Builder(themedContext);
             builder.setTitle("Morphe Settings");
             builder.setView(scrollView);
+
+            if (devOptionsIntent != null) {
+                builder.setPositiveButton("Dev Options", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        try {
+                            baseContext.startActivity(devOptionsIntent);
+                        } catch (Throwable t) {
+                            Log.w(TAG, "Failed to launch Dev Options activity", t);
+                        }
+                    }
+                });
+            }
 
             builder.setNegativeButton("Close", null);
             builder.create().show();

@@ -22,6 +22,13 @@ Second \"item\" text"</string>
     <string name="morphe_hide_post_ads_title">Hide feed ads</string>
     <string name="morphe_hide_comment_ads_title">Hide comment ads</string>
 
+    <string name="morphe_screen_nsfw_title">NSFW mode</string>
+    <string name="morphe_nsfw_feed_mode_title">NSFW mode</string>
+    <string name="morphe_nsfw_feed_mode_row_title">NSFW</string>
+    <string name="morphe_nsfw_feed_mode_summary">"Hides everything except NSFW (18+) posts from the feed.
+
+Reddit only sends 18+ posts to accounts that have 'Show NSFW content' turned on, so the feed will be empty without that account setting"</string>
+
     <string name="morphe_screen_navigation_bar_title">Navigation bar</string>
     <string name="morphe_hide_answers_button_title">Hide Answers button</string>
     <string name="morphe_hide_chat_button_title">Hide Chat button</string>

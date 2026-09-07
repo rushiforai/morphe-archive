@@ -1,5 +1,7 @@
 package app.aimal.patches.streaming
 
+import app.aimal.patches.viki.VIKI
+import app.aimal.patches.viki.VikiApplicationFingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -10,8 +12,8 @@ private const val PLAYER_BRIDGE = "$EXTENSION_STREAMING/PlayerBridge;"
 
 /**
  * Adds a floating panel with playback speed (1x / 1.25x / 1.5x / 2x) and an
- * aspect-ratio toggle (fit, stretch, crop and two fixed zoom steps) to HBO Max
- * and Disney+.
+ * aspect-ratio toggle (fit, stretch, crop and two fixed zoom steps) to HBO Max,
+ * Disney+ and Viki.
  *
  * Only two things are injected, both one instruction long:
  *
@@ -23,8 +25,14 @@ private const val PLAYER_BRIDGE = "$EXTENSION_STREAMING/PlayerBridge;"
  * setPlaybackSpeed, and the picture is reshaped through media3's
  * AspectRatioFrameLayout.setResizeMode - all of which survive the apps'
  * obfuscation. That is why this needs no per-screen, per-layout or
- * per-version fingerprints, and why one patch covers two apps that share
+ * per-version fingerprints, and why one patch covers three apps that share
  * nothing but their media stack.
+ *
+ * Viki is the exception to "setPlaybackSpeed survives": it strips media3's
+ * Player interface down so far that no `(float)` method is left on it at all.
+ * The extension falls back to building a PlaybackParameters and calling the
+ * setter that takes it, both identified by shape rather than by name - see
+ * PlayerBridge. Nothing in this patch has to know about that.
  *
  * Nothing here touches DRM, licensing, entitlement or ad code.
  */
@@ -34,23 +42,25 @@ val playbackControlsPatch = bytecodePatch(
     description = "Adds a floating panel to change playback speed and stretch, crop or zoom the picture.",
     default = true,
 ) {
-    compatibleWith(HBO_MAX, DISNEY_PLUS)
+    compatibleWith(HBO_MAX, DISNEY_PLUS, VIKI)
 
     extendWith("extensions/extension.mpe")
 
     execute {
         // 1. Hand the extension a context.
         //
-        // HBO Max declares its own Application.onCreate, which is the earliest
-        // and safest place. Disney+ does not - its Application inherits
-        // onCreate from an obfuscated base class - so its main Activity is
-        // used instead. Exactly one of these matches, depending on which app
-        // is being patched.
+        // HBO Max and Viki declare their own Application.onCreate, which is the
+        // earliest and safest place. Disney+ does not - its Application
+        // inherits onCreate from an obfuscated base class - so its main
+        // Activity is used instead. Exactly one of these matches, depending on
+        // which app is being patched.
         val contextHook = HboMaxApplicationFingerprint.methodOrNull
             ?: DisneyPlusMainActivityFingerprint.methodOrNull
+            ?: VikiApplicationFingerprint.methodOrNull
             ?: throw PatchException(
                 "Could not find a context hook. This patch targets HBO Max " +
-                    "(com.wbd.stream) and Disney+ (com.disney.disneyplus)."
+                    "(com.wbd.stream), Disney+ (com.disney.disneyplus) and " +
+                    "Viki (com.viki.android)."
             )
 
         // Range form because a large method can push p0 past the 4-bit

@@ -243,6 +243,10 @@
 
     invoke-super {p0, p1}, Landroid/app/Activity;->onCreate(Landroid/os/Bundle;)V
 
+    invoke-static {}, Lcom/valvesoftware/steamlink/GalaxyXRPermissionActivity;->shouldShowSplash()Z
+    move-result v0
+    if-eqz v0, :permissions
+
     new-instance v0, Landroid/widget/TextView;
     invoke-direct {v0, p0}, Landroid/widget/TextView;-><init>(Landroid/content/Context;)V
 
@@ -257,6 +261,14 @@
 
     invoke-virtual {p0, v0}, Landroid/app/Activity;->setContentView(Landroid/view/View;)V
 
+    :permissions
+    invoke-static {}, Lcom/valvesoftware/steamlink/GalaxyXRPermissionActivity;->shouldRequestRuntimePermissions()Z
+    move-result v0
+    if-nez v0, :runtime_permissions
+    invoke-direct {p0}, Lcom/valvesoftware/steamlink/GalaxyXRPermissionActivity;->continueAfterPermissions()V
+    return-void
+
+    :runtime_permissions
     const-string v0, "android.permission.HAND_TRACKING"
 
     invoke-virtual {p0, v0}, Lcom/valvesoftware/steamlink/GalaxyXRPermissionActivity;->checkSelfPermission(Ljava/lang/String;)I
@@ -397,4 +409,16 @@
 
     :done
     return-void
+.end method
+
+.method private static shouldShowSplash()Z
+    .locals 1
+    const/4 v0, 0x0
+    return v0
+.end method
+
+.method private static shouldRequestRuntimePermissions()Z
+    .locals 1
+    const/4 v0, 0x0
+    return v0
 .end method

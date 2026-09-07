@@ -150,6 +150,10 @@ SteamLink-Resolution-AB/
 decoded-apk**/
 images.jpg
 Resources/
+!patches/src/test/resources/
+!patches/src/test/resources/steamlink/
+!patches/src/test/resources/steamlink/identity/
+!patches/src/test/resources/steamlink/identity/installed-5002322-hmd-config.json
 !patches/src/main/resources/
 !patches/src/main/resources/steamlink/
 !patches/src/main/resources/steamlink/androidxr/

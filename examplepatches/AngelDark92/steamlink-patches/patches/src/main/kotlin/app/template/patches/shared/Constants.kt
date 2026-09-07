@@ -14,8 +14,6 @@ object Constants {
     private val LEGACY_STEAM_LINK_BUILDS = listOf(
         SteamLinkBuild("2.0.20", 5001740),
         SteamLinkBuild("2.0.20", 5001712),
-        SteamLinkBuild("2.0.22", 5002172),
-        SteamLinkBuild("2.0.22", 5002206),
         SteamLinkBuild("2.0.22", 5002244),
         SteamLinkBuild("2.0.22", 5002313),
     )
@@ -38,8 +36,6 @@ object Constants {
     )
     private val LEGACY_RECOMMENDED_STEAM_LINK_BUILDS = listOf(
         SteamLinkBuild("2.0.20", 5001740),
-        SteamLinkBuild("2.0.22", 5002172),
-        SteamLinkBuild("2.0.22", 5002206),
         SteamLinkBuild("2.0.22", 5002244),
     )
     private val LEGACY_XR_FOUNDATION_STEAM_LINK_BUILDS =
@@ -52,6 +48,16 @@ object Constants {
             LEGACY_RECOMMENDED_STEAM_LINK_BUILDS.any {
                 it.version == version && it.versionCode.toString() == versionCode
             }
+
+    // Exact known startup adaptations, including the high-resolution-only 5002296 base.
+    fun isEarlierStartupSteamLinkBuild(version: String, versionCode: String): Boolean =
+        (LEGACY_XR_FOUNDATION_STEAM_LINK_BUILDS + SteamLinkBuild("2.0.22", 5002318)).any {
+            it.version == version && it.versionCode.toString() == versionCode
+        }
+
+    val COMPATIBILITIES_STEAM_LINK_EARLIER_STARTUP =
+        (LEGACY_XR_FOUNDATION_STEAM_LINK_BUILDS + SteamLinkBuild("2.0.22", 5002318))
+            .map(::steamLinkBuildCompatibility)
 
     fun isNativeXrSteamLinkBuild(version: String, versionCode: String): Boolean =
         NATIVE_XR_STEAM_LINK_BUILDS.any {

@@ -9,7 +9,7 @@ import app.shadowfight.patches.iap.IAPBypassFingerprint
 @Suppress("unused")
 val sfIAPBypassPatch = rawResourcePatch(
     name = "Shadow Fight 2 IAP Bypass",
-    description = "Bypasses Google Play billing. Intercepts Purchase and triggers OnPurchaseSucceeded directly.",
+    description = "Bypasses in-app purchases.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_SF2)

@@ -111,11 +111,6 @@ public class ArchivedAppFilter {
                 return activities;
             }
 
-            // Android 15+ app archiving is active on API 35+
-            if (Build.VERSION.SDK_INT < 35) {
-                return activities;
-            }
-
             // Quick pass: check if any app is actually archived
             int total = activities.size();
             int archivedCount = 0;
@@ -160,26 +155,29 @@ public class ArchivedAppFilter {
                 }
             } catch (NoSuchMethodException ignored) {}
 
+            // Check 2: LauncherActivityInfo.getActivityInfo() -> ComponentInfo.isArchived (API 35+)
+            try {
+                Method getAiMethod = info.getClass().getMethod("getActivityInfo");
+                Object actInfo = getAiMethod.invoke(info);
+                if (actInfo != null) {
+                    try {
+                        Field f = actInfo.getClass().getField("isArchived");
+                        if (f.getBoolean(actInfo)) return true;
+                    } catch (Throwable ignored) {}
+                    try {
+                        Method m = actInfo.getClass().getMethod("isArchived");
+                        Boolean res = (Boolean) m.invoke(actInfo);
+                        if (res != null && res) return true;
+                    } catch (Throwable ignored) {}
+                }
+            } catch (Throwable ignored) {}
+
             ApplicationInfo appInfo = info.getApplicationInfo();
             if (appInfo == null) {
                 return false;
             }
 
-            // Check 2: Direct bitmask check (Bit 30 in ApplicationInfo.flags)
-            if ((appInfo.flags & FLAG_ARCHIVED) != 0) {
-                return true;
-            }
-
-            // Check 3: Dynamic reflection on ApplicationInfo.isArchived() if available on API 35+
-            try {
-                Method isArchivedMethod = ApplicationInfo.class.getMethod("isArchived");
-                Boolean isArchived = (Boolean) isArchivedMethod.invoke(appInfo);
-                if (isArchived != null && isArchived) {
-                    return true;
-                }
-            } catch (NoSuchMethodException ignored) {}
-
-            return false;
+            return isAppArchived(appInfo);
         } catch (Throwable t) {
             return false;
         }
@@ -190,9 +188,11 @@ public class ArchivedAppFilter {
             return false;
         }
         try {
+            // Check A: Direct bitmask check (Bit 30 in ApplicationInfo.flags)
             if ((appInfo.flags & FLAG_ARCHIVED) != 0) {
                 return true;
             }
+            // Check B: ApplicationInfo.isArchived() getter method
             try {
                 Method isArchivedMethod = ApplicationInfo.class.getMethod("isArchived");
                 Boolean isArchived = (Boolean) isArchivedMethod.invoke(appInfo);
@@ -200,6 +200,13 @@ public class ArchivedAppFilter {
                     return true;
                 }
             } catch (NoSuchMethodException ignored) {}
+            // Check C: ApplicationInfo.isArchived boolean field
+            try {
+                Field isArchivedField = appInfo.getClass().getField("isArchived");
+                if (isArchivedField.getBoolean(appInfo)) {
+                    return true;
+                }
+            } catch (Throwable ignored) {}
         } catch (Throwable ignored) {}
         return false;
     }

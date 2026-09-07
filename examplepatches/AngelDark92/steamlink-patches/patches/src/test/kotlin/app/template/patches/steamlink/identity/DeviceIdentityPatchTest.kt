@@ -13,8 +13,6 @@ class DeviceIdentityPatchTest {
         listOf(
             "2.0.20" to "5001712",
             "2.0.20" to "5001740",
-            "2.0.22" to "5002172",
-            "2.0.22" to "5002206",
             "2.0.22" to "5002244",
         ).forEach { (version, code) ->
             assertEquals("meta-quest-pro", resolveDeviceIdentityProfile("recommended", version, code))
@@ -133,19 +131,122 @@ class DeviceIdentityPatchTest {
     }
 
     @Test
-    fun `native identity changes only fallback model and preserves native profiles`() {
-        val patched = patchHmdModelIdentity(stockNativeXr, "meta-quest-pro")
-        val expected = stockNativeXr.replaceFirst(
-            "\"sModelNumber\": \"oculus_quest_hmd\"",
-            "\"sModelNumber\": \"Oculus Quest Pro\"",
-        )
-
-        assertEquals(expected, patched)
-        assertTrue(patched.contains("\"XR_PICO_eye_tracking\""))
+    fun `native spoof upserts exact product entries and preserves unrelated bytes`() {
+        val patched = patchHmdModelIdentity(stockNativeXr, "meta-quest-pro", exactProductLookup = true)
+        val oldUnknown = identityEntry(stockNativeXr, "unknown")
+        val expectedEntry = oldUnknown.replace("oculus_quest_hmd", "Oculus Quest Pro")
+        listOf("unknown", "xrvst2ue", "xrvst2").forEach { key ->
+            assertEquals(expectedEntry, identityEntry(patched, key))
+        }
         assertEquals(
-            stockNativeXr.substringBefore("\"unknown\""),
-            patched.substringBefore("\"unknown\""),
+            stockNativeXr.replace(oldUnknown, expectedEntry),
+            removeInsertedProducts(patched),
         )
+        assertEquals(patched, patchHmdModelIdentity(patched, "meta-quest-pro", exactProductLookup = true))
+        val pico = patchHmdModelIdentity(patched, "pico-4-pro", exactProductLookup = true)
+        assertEquals(patched.replace("Oculus Quest Pro", "PICO 4 Pro"), pico)
+        assertEquals(pico, patchHmdModelIdentity(pico, "pico-4-pro", exactProductLookup = true))
+        assertEquals(patched, patchHmdModelIdentity(pico, "meta-quest-pro", exactProductLookup = true))
+    }
+
+    private fun identityEntry(json: String, key: String): String {
+        val match = Regex("\"$key\"\\s*:\\s*\\{").find(json) ?: error("missing $key")
+        val start = match.range.last
+        var depth = 0
+        var quoted = false
+        var escaped = false
+        for (index in start until json.length) {
+            val character = json[index]
+            if (quoted) {
+                when {
+                    escaped -> escaped = false
+                    character == '\\' -> escaped = true
+                    character == '"' -> quoted = false
+                }
+            } else {
+                when (character) {
+                    '"' -> quoted = true
+                    '{' -> depth++
+                    '}' -> if (--depth == 0) return json.substring(start, index + 1)
+                }
+            }
+        }
+        error("unterminated $key")
+    }
+
+    private fun removeInsertedProducts(json: String): String =
+        listOf("xrvst2ue", "xrvst2").fold(json) { current, key ->
+            val prefix = Regex("\\r?\\n[ \\t]*\"$key\"\\s*:\\s*").find(current) ?: error("missing $key")
+            val end = prefix.range.last + 1 + identityEntry(current, key).length
+            assertEquals(',', current[end])
+            current.removeRange(prefix.range.first, end + 1)
+        }
+
+    @Test
+    fun `existing exact product keeps its custom fields when other product is absent`() {
+        val existing = "\"xrvst2ue\": {\"sModelNumber\": \"Galaxy XR\", \"keep\": 42},"
+        val input = stockNativeXr.replace("\"staticProps\": {", "\"staticProps\": {\n    $existing")
+        val patched = patchHmdModelIdentity(input, "meta-quest-pro", exactProductLookup = true)
+        assertEquals(
+            "{\"sModelNumber\": \"Oculus Quest Pro\", \"keep\": 42}",
+            identityEntry(patched, "xrvst2ue"),
+        )
+        assertEquals(identityEntry(patched, "unknown"), identityEntry(patched, "xrvst2"))
+        assertEquals(patched, patchHmdModelIdentity(patched, "meta-quest-pro", exactProductLookup = true))
+    }
+
+    @Test
+    fun `captured native fallback-only spoof gains exact product keys without unrelated edits`() {
+        val actual = requireNotNull(javaClass.getResource("/steamlink/identity/installed-5002322-hmd-config.json"))
+            .readText()
+        val patched = patchHmdModelIdentity(actual, "meta-quest-pro", exactProductLookup = true)
+        assertEquals(actual, removeInsertedProducts(patched))
+        listOf("xrvst2ue", "xrvst2").forEach { key ->
+            assertEquals(identityEntry(actual, "unknown"), identityEntry(patched, key))
+        }
+        assertEquals(patched, patchHmdModelIdentity(patched, "meta-quest-pro", exactProductLookup = true))
+    }
+
+    @Test
+    fun `native spoof rejects duplicate and malformed targets before returning output`() {
+        listOf(
+            "\"xrvst2ue\": {}, \"xrvst2ue\": {}",
+            "\"xrvst2ue\": 42",
+            "\"xrvst2ue\": {\"sModelNumber\": 42}",
+            "\"xrvst2ue\": {\"sModelNumber\": \"first\", \"sModelNumber\": \"second\"}",
+            "\"xrvst2ue\": {\"sModelNumber\": \"first\" garbage}",
+            "\"xrvst2ue\": {\"nested\": {\"sModelNumber\": \"first\"}}",
+            "\"xrvst2ue\": {\"sModelNumber\": \"first\", \"broken\": [}",
+            "\"xrvst2ue\": {\"sModelNumber\": \"first\", \"broken\": true,}",
+            "\"xrvst2ue\": {\"sModelNumber\": \"first\", \"broken\": 01}",
+            "\"xrvst2ue\": {\"sModelNumber\": \"first\", \"broken\": \"\\q\"}",
+            "\"\\u0078rvst2ue\": {\"sModelNumber\": \"first\"}",
+            "\"xrvst2ue\": {\"sModelNumber\": \"first\"}, \"\\u0078rvst2ue\": {}",
+        ).forEach { broken ->
+            val input = stockNativeXr.replace("\"staticProps\": {", "\"staticProps\": {$broken,")
+            assertFailsWith<PatchException>(broken) { patchHmdModelIdentity(input, "meta-quest-pro", exactProductLookup = true) }
+        }
+    }
+
+    @Test
+    fun `native spoof preserves valid nested template data and CRLF formatting`() {
+        val input = stockNativeXr.replace(
+            "\"sModelNumber\": \"oculus_quest_hmd\"",
+            "\"sModelNumber\": \"oculus_quest_hmd\", \"extra\": [null, true, false, -1.2e+3, {\"keep\": \"\\u0061\"}]",
+        ).replace("\n", "\r\n")
+        val patched = patchHmdModelIdentity(input, "meta-quest-pro", exactProductLookup = true)
+        assertEquals(input.replace("oculus_quest_hmd", "Oculus Quest Pro"), removeInsertedProducts(patched))
+        assertEquals(identityEntry(patched, "unknown"), identityEntry(patched, "xrvst2ue"))
+        assertEquals(patched, patchHmdModelIdentity(patched, "meta-quest-pro", exactProductLookup = true))
+    }
+
+    @Test
+    fun `older native builds retain fallback-only spoof output byte for byte`() {
+        listOf("meta-quest-pro" to "Oculus Quest Pro", "pico-4-pro" to "PICO 4 Pro").forEach { (profile, model) ->
+            val expected = stockNativeXr.replace("oculus_quest_hmd", model)
+            assertEquals(expected, patchHmdModelIdentity(stockNativeXr, profile))
+            assertEquals(expected, patchHmdModelIdentity(stockNativeXr, profile, exactProductLookup = false))
+        }
     }
 
     @Test

@@ -1,3 +1,49 @@
+# [v3.10.6](https://github.com/crimera/piko-newx/releases/tag/v3.10.6) (2026-09-06)
+
+### Commits
+* [`4f98e4a`](https://github.com/crimera/piko/commit/4f98e4a28c0fde7555faa48eb7dd5d82ab39b448) feat(newx): add timeline tabs bar toggle
+* [`bc03fce`](https://github.com/crimera/piko/commit/bc03fce4352bcb7ee89299722d0e900af3fb8a82) fix(newx): harden timeline tabs bar resolver
+
+### New Patches
+* **Twitter:** NewX: Hide timeline tabs bar
+
+# [v3.10.5](https://github.com/crimera/piko-newx/releases/tag/v3.10.5) (2026-09-06)
+
+### Commits
+* [`eb4054d`](https://github.com/crimera/piko/commit/eb4054d91e21e33ee0f245c8388f0ff95fa8003f) feat(newx): restore twitter bird for notification icons
+* [`73449eb`](https://github.com/crimera/piko/commit/73449eb838c0578296309b4213354719f9d26c07) feat(newx): add timeline tab customization
+
+### New Patches
+* **Twitter:** NewX: Customize timeline tabs
+
+# [v3.10.4](https://github.com/crimera/piko-newx/releases/tag/v3.10.4) (2026-09-06)
+
+### Commits
+* [`6801e73`](https://github.com/crimera/piko/commit/6801e732e976149a74cc3363cf30883614fcbb9a) fix(newx): add toggle to show inline download button on posts without media
+
+# [v3.10.3](https://github.com/crimera/piko-newx/releases/tag/v3.10.3) (2026-09-06)
+
+### Commits
+* [`5f0905a`](https://github.com/crimera/piko/commit/5f0905a302310e62279e1fc20b83345e60ecc696) fix(newx): stage inline downloads privately on Q+ to prevent public temp orphans
+
+# [v3.10.2](https://github.com/crimera/piko-newx/releases/tag/v3.10.2) (2026-09-06)
+
+### Commits
+* [`c3fad63`](https://github.com/crimera/piko/commit/c3fad63a130bc2fbbbeea824a2147e41bcace1c6) feat(newx): add canonical URL toggle
+* [`e1f8991`](https://github.com/crimera/piko/commit/e1f8991fe5b732f77911927574e8bf2e4d06ed57) feat(newx): add custom For You topic selector
+* [`0b01176`](https://github.com/crimera/piko/commit/0b011766d5759e5f20c01eebdb7027d7240e5bbb) fix(newx): keep canonical URL hook reachable
+* [`ed3f648`](https://github.com/crimera/piko/commit/ed3f648dc1edde1af2972acf2a6f51c092d4a2b1) feat(newx): add For You filtering settings
+* [`05dfda1`](https://github.com/crimera/piko/commit/05dfda1c194116a89d676f04cda1056d5bce5f7a) fix(newx): mirror native topic sheet actions
+* [`5b0f0f9`](https://github.com/crimera/piko/commit/5b0f0f9920f21e2251878252b269095163d0085d) fix(newx): refresh and scroll For You after topic action
+* [`6094a31`](https://github.com/crimera/piko/commit/6094a31ead58e4a910df189c567912e4cb81e130) fix(newx): harden For You topic hook resolution
+* [`b1be556`](https://github.com/crimera/piko/commit/b1be5566a94fcea39a7ba477c53092c1c99080ce) fix(newx): scope verified post filtering
+* [`ef1166c`](https://github.com/crimera/piko/commit/ef1166ca2153c600aab130770054b04747f3942c) fix(newx): resolve filtered replies through parent chain
+* [`b813aa5`](https://github.com/crimera/piko/commit/b813aa5fda6fe0c81d7146d8f781d5d1703001a9) fix(newx): return last resolved root on alias-chain overflow
+* [`07e69e4`](https://github.com/crimera/piko/commit/07e69e484cda1fc4b7cbe2f355977d87e21bdd66) fix(newx): scope conversation aliasing to verified thread passes
+* [`0115153`](https://github.com/crimera/piko/commit/01151536e57dfd87edda0ee0107383350cf1ae04) feat(newx): keep thread owner replies in their own conversations
+* [`47e842f`](https://github.com/crimera/piko/commit/47e842ffe1011f1a00d2e5e778c0816afa6cfc3a) chore(newx): untrack filtering investigation docs
+* [`9552264`](https://github.com/crimera/piko/commit/95522646e25ebb59864e576c4641486b1f308146) feat(newx): add toggle for Filtered replies menu item
+
 # [v3.10.1](https://github.com/crimera/piko-newx/releases/tag/v3.10.1) (2026-09-05)
 
 ### Commits

@@ -4,6 +4,8 @@ import android.os.Handler;
 import android.os.Looper;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -42,6 +44,11 @@ public final class PlayerBridge {
 
     private static Method resolvedMethod;
     private static Class<?> resolvedFor;
+
+    /** Cached setPlaybackParameters wiring, keyed on the player class. */
+    private static Class<?> parametersFor;
+    private static Constructor<?> parametersConstructor;
+    private static Method parametersSetter;
 
     private PlayerBridge() {
     }
@@ -135,12 +142,133 @@ public final class PlayerBridge {
             }
         }
 
+        // No setPlaybackSpeed(float) survived this app's obfuscation. Viki is
+        // the case in point: its Player interface has no float-taking method
+        // left at all, so speed has to go through PlaybackParameters.
+        if (applyViaPlaybackParameters(player, speed)) return;
+
         try {
             setSpeedNative(player, speed);
             Logger.i("Speed " + speed + " applied via patched hook");
         } catch (Throwable t) {
             Logger.e("Patched " + METHOD_NAME + " failed", t);
         }
+    }
+
+    /**
+     * media3's {@code Player.setPlaybackParameters(PlaybackParameters)} route.
+     *
+     * Nothing here is looked up by name, because in Viki none of these names
+     * exist any more - the interface is {@code m7.z}, the value type is
+     * {@code m7.y}, and the setter is {@code a}. They are found by shape:
+     *
+     *  * PlaybackParameters is the only type returned by a no-argument getter
+     *    on the player that also has a public {@code (float, float)}
+     *    constructor and two public float fields. media3's other value types -
+     *    Timeline, Tracks, MediaItem, VideoSize, MediaMetadata,
+     *    TrackSelectionParameters, CueGroup - have no such constructor.
+     *  * the setter is then the one void method taking exactly that type.
+     *
+     * Both are bound on a public owner type for the same reason
+     * {@link #resolve} does: a Method taken from a package-private class throws
+     * IllegalAccessException on invoke even when the method itself is public.
+     *
+     * @return true only if the speed was actually applied.
+     */
+    private static boolean applyViaPlaybackParameters(Object player, float speed) {
+        try {
+            if (!resolveParameters(player)) return false;
+
+            // (speed, pitch) - pitch stays at 1 so voices are not chipmunked.
+            Object parameters = parametersConstructor.newInstance(speed, 1f);
+            parametersSetter.invoke(player, parameters);
+
+            Logger.i("Speed " + speed + " applied via setPlaybackParameters on "
+                    + player.getClass().getSimpleName());
+            return true;
+        } catch (Throwable t) {
+            Throwable cause = t.getCause() != null ? t.getCause() : t;
+            Logger.e("setPlaybackParameters failed on " + player.getClass().getName(), cause);
+            return false;
+        }
+    }
+
+    private static boolean resolveParameters(Object player) {
+        Class<?> type = player.getClass();
+        if (parametersFor == type) return parametersSetter != null;
+
+        parametersFor = type;
+        parametersConstructor = null;
+        parametersSetter = null;
+
+        for (Class<?> owner : publicTypes(type)) {
+            for (Method getter : owner.getMethods()) {
+                if (getter.getParameterTypes().length != 0) continue;
+
+                Class<?> candidate = getter.getReturnType();
+                Constructor<?> constructor = floatPairConstructor(candidate);
+                if (constructor == null) continue;
+
+                Method setter = setterTaking(owner, candidate);
+                if (setter == null) continue;
+
+                parametersConstructor = constructor;
+                parametersSetter = setter;
+
+                Logger.i("Speed bound to " + owner.getName() + "." + setter.getName()
+                        + "(" + candidate.getName() + ")");
+                return true;
+            }
+        }
+
+        Logger.i("No setPlaybackParameters found on " + type.getName());
+        return false;
+    }
+
+    /** Public classes and interfaces in the player's hierarchy, nearest first. */
+    private static List<Class<?>> publicTypes(Class<?> type) {
+        List<Class<?>> out = new ArrayList<>();
+        for (Class<?> c = type; c != null; c = c.getSuperclass()) {
+            if (Modifier.isPublic(c.getModifiers()) && !out.contains(c)) out.add(c);
+            for (Class<?> face : c.getInterfaces()) {
+                if (Modifier.isPublic(face.getModifiers()) && !out.contains(face)) out.add(face);
+            }
+        }
+        return out;
+    }
+
+    /**
+     * The {@code (float, float)} constructor of a public value type that also
+     * exposes at least two public float fields - PlaybackParameters' speed and
+     * pitch. Null if [type] is not shaped like that.
+     */
+    private static Constructor<?> floatPairConstructor(Class<?> type) {
+        if (type == null || type.isPrimitive() || type.isInterface()) return null;
+        if (!Modifier.isPublic(type.getModifiers())) return null;
+
+        try {
+            Constructor<?> constructor = type.getConstructor(float.class, float.class);
+
+            int floats = 0;
+            for (Field field : type.getFields()) {
+                if (field.getType() == float.class) floats++;
+            }
+
+            return floats >= 2 ? constructor : null;
+        } catch (NoSuchMethodException absent) {
+            return null;
+        }
+    }
+
+    private static Method setterTaking(Class<?> owner, Class<?> parameter) {
+        for (Method method : owner.getMethods()) {
+            if (method.getReturnType() != void.class) continue;
+            if (!Modifier.isPublic(method.getDeclaringClass().getModifiers())) continue;
+
+            Class<?>[] parameters = method.getParameterTypes();
+            if (parameters.length == 1 && parameters[0] == parameter) return method;
+        }
+        return null;
     }
 
     private static List<Object> livePlayers() {

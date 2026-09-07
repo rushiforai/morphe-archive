@@ -57,30 +57,6 @@ private val HMD_LAYOUTS = listOf(
         ),
     ),
     HmdLayout(
-        versionCode = 5002172,
-        fileSize = 2_238_792,
-        hookVaddr = 0x000FD860L,
-        velocityPatches = listOf(
-            VelocityPatch(0x000FD91CL, 28, paired = true),
-            VelocityPatch(0x000FD8C8L, 36),
-            VelocityPatch(0x000FD950L, 40),
-            VelocityPatch(0x000FD954L, 44),
-            VelocityPatch(0x000FD958L, 48),
-        ),
-    ),
-    HmdLayout(
-        versionCode = 5002206,
-        fileSize = 2_239_920,
-        hookVaddr = 0x000FDD68L,
-        velocityPatches = listOf(
-            VelocityPatch(0x000FDE24L, 28, paired = true),
-            VelocityPatch(0x000FDDD0L, 36),
-            VelocityPatch(0x000FDE58L, 40),
-            VelocityPatch(0x000FDE5CL, 44),
-            VelocityPatch(0x000FDE60L, 48),
-        ),
-    ),
-    HmdLayout(
         versionCode = 5002244,
         fileSize = 2_251_920,
         hookVaddr = 0x000FEAD8L,

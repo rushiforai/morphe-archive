@@ -58,15 +58,6 @@ private val CADENCE_LAYOUTS = listOf(
         ),
     ),
     CadenceLayout(
-        versionCode = 5002206,
-        fileSize = 2_239_920,
-        blocks = listOf(
-            CadenceBlock(0x000F2950L, 0x000F2940L, 0x000F2998L, 0x000F29ACL, 0x000F29D4L, 0x000F29B8L, 10, 9),
-            CadenceBlock(0x000F2A54L, 0x000F2A44L, 0x000F2A9CL, 0x000F2AB0L, 0x000F2AD8L, 0x000F2ABCL, 10, 9),
-            CadenceBlock(0x000F2B1CL, 0x000F2B0CL, 0x000F2B64L, 0x000F2B74L, 0x000F2BA0L, 0x000F2BA8L, 9, 10),
-        ),
-    ),
-    CadenceLayout(
         versionCode = 5002244,
         fileSize = 2_251_920,
         blocks = listOf(

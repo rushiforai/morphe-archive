@@ -30,7 +30,7 @@ object PlaybackSpeedConfigToStringFingerprint : Fingerprint(
  * exists, so this matches on them instead: three consecutive float literals
  * immediately followed by the `Float[]` construction. A scan of the whole app
  * found this to be the only constructor building such an array, and
- * [addFastSpeedsPatch] re-validates the array type before touching anything, so
+ * [playbackSpeedPatch] re-validates the array type before touching anything, so
  * a drifted match degrades to "the fast speeds are missing" rather than a crash.
  */
 object PlayerSettingsViewModelConstructorFingerprint : Fingerprint(
@@ -42,6 +42,23 @@ object PlayerSettingsViewModelConstructorFingerprint : Fingerprint(
         literal(0.5f),
         opcode(Opcode.FILLED_NEW_ARRAY),
     ),
+)
+
+/**
+ * SubtitlesRendererImpl.loadTrack, which receives the whole ASS script as a
+ * String and hands it to libass.
+ *
+ * Crunchyroll renders subtitles natively into bitmaps, so there is no text left
+ * to style by the time anything reaches a View. This is the last point where the
+ * script is still text. Both the class and the method keep their names (the
+ * class is a public Kotlin type implementing SubtitlesRenderer), and the
+ * signature is distinctive on its own: one String in, a long native handle out.
+ */
+object SubtitlesLoadTrackFingerprint : Fingerprint(
+    definingClass = "Lcom/crunchyroll/subtitles/SubtitlesRendererImpl;",
+    name = "loadTrack",
+    returnType = "J",
+    parameters = listOf("Ljava/lang/String;"),
 )
 
 // ── Player view ──

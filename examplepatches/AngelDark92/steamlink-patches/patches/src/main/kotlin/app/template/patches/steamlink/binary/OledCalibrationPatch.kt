@@ -33,6 +33,8 @@ private const val VIDEO_LIBRARY_SHA256_5002322 =
 
 private val SRGB8_INSTRUCTION = byteArrayOf(0x69, 0x88.toByte(), 0x91.toByte(), 0x52)
 private val RGB10_A2_INSTRUCTION = byteArrayOf(0x29, 0x0b, 0x90.toByte(), 0x52)
+// MOV W9, #GL_RGBA16F (34842). Same guarded create-info field as the other formats.
+private val RGBA16F_INSTRUCTION = byteArrayOf(0x49, 0x03, 0x91.toByte(), 0x52)
 private val SWAPCHAIN_CONTEXT_BEFORE = byteArrayOf(
     0xe1.toByte(), 0xa3.toByte(), 0x00, 0x91.toByte(),
     0xe0.toByte(), 0x03, 0x14, 0xaa.toByte(),
@@ -109,7 +111,8 @@ internal fun isSupportedVideoLibrarySize(size: Int): Boolean =
 
 internal enum class VideoOutputPrecision(val optionValue: String) {
     SRGB8_HIGHP("srgb8-highp"),
-    RGB10_A2_EXPERIMENTAL("rgb10-a2-experimental");
+    RGB10_A2_EXPERIMENTAL("rgb10-a2-experimental"),
+    RGBA16F_EXPERIMENTAL("rgba16f-experimental");
 
     companion object {
         fun fromOption(value: String?): VideoOutputPrecision =
@@ -118,8 +121,18 @@ internal enum class VideoOutputPrecision(val optionValue: String) {
     }
 }
 
-// Dithering is retired from the patch catalog. Keep the reversible shader marker disabled;
-// PATCH_CATALOG.md documents the explicit local opt-in without changing output precision.
+internal enum class VideoDitherMode(val optionValue: String) {
+    OFF("off"), LOW("low"), STANDARD("standard");
+
+    companion object {
+        fun fromOption(value: String?): VideoDitherMode =
+            entries.singleOrNull { it.optionValue == value }
+                ?: throw PatchException("Unknown OLED dithering mode: $value")
+    }
+}
+
+// Defaults remain noise-free. Optional comparison dither is applied in calibrated
+// sRGB code space before EOTF, independently of the projection storage precision.
 private val HIGHP_SHADER_TEMPLATE = """#version 300 es
 #extension GL_OES_EGL_image_external_essl3 : enable
 precision highp float;
@@ -155,23 +168,37 @@ internal fun paddedVideoShader(
     gamma: Float,
     saturation: Float,
     outputPrecision: VideoOutputPrecision,
+    dither: VideoDitherMode = VideoDitherMode.OFF,
 ): ByteArray {
     val gammaValue = String.format(Locale.US, "%.2f", gamma)
     val saturationValue = String.format(Locale.US, "%.2f", saturation)
     val (ditherScale, ditherGuard, outputConversion) = when (outputPrecision) {
         VideoOutputPrecision.SRGB8_HIGHP -> Triple(".00392", ".0157", "c")
-        VideoOutputPrecision.RGB10_A2_EXPERIMENTAL ->
+        VideoOutputPrecision.RGB10_A2_EXPERIMENTAL, VideoOutputPrecision.RGBA16F_EXPERIMENTAL ->
             Triple(
                 ".00073",
                 ".00391",
                 "mix(c/12.92,pow((c+.055)/1.055,vec3(2.4)),step(vec3(.04045),c))",
             )
     }
-    val src = HIGHP_SHADER_TEMPLATE
+    val template = if (dither == VideoDitherMode.OFF) HIGHP_SHADER_TEMPLATE else {
+        val convertedQ = if (outputPrecision == VideoOutputPrecision.SRGB8_HIGHP) "q" else
+            "mix(q/12.92,pow((q+.055)/1.055,vec3(2.4)),step(vec3(.04045),q))"
+        HIGHP_SHADER_TEMPLATE
+            .replace("const float DITHER_ENABLE=0.;", "const float DITHER_ENABLE=1.;")
+            .replace("vec3 q=OUTPUT_CONVERSION;", "vec3 q=c;")
+            .replace("color.rgb=clamp(q+n,0.,1.)*fFadeAmount;",
+                "q=clamp(q+n,0.,1.);color.rgb=$convertedQ*fFadeAmount;")
+    }
+    val src = template
         .replace("GAMMA_VALUE", gammaValue)
         .replace("SATURATION_VALUE", saturationValue)
-        .replace("DITHER_SCALE_VALUE", ditherScale)
-        .replace("DITHER_GUARD_VALUE", ditherGuard)
+        .replace("DITHER_SCALE_VALUE", when (dither) {
+            VideoDitherMode.OFF -> ditherScale
+            VideoDitherMode.LOW -> ".00196"
+            VideoDitherMode.STANDARD -> ".00392"
+        })
+        .replace("DITHER_GUARD_VALUE", if (dither == VideoDitherMode.OFF) ditherGuard else ".0157")
         .replace("OUTPUT_CONVERSION", outputConversion)
         .toByteArray(Charsets.US_ASCII)
     if (src.size > VIDEO_SHADER_SIZE) {
@@ -247,6 +274,7 @@ internal fun setProjectionSwapchainFormat(
         when {
             bytes.matchesAt(offset, SRGB8_INSTRUCTION) -> VideoOutputPrecision.SRGB8_HIGHP
             bytes.matchesAt(offset, RGB10_A2_INSTRUCTION) -> VideoOutputPrecision.RGB10_A2_EXPERIMENTAL
+            bytes.matchesAt(offset, RGBA16F_INSTRUCTION) -> VideoOutputPrecision.RGBA16F_EXPERIMENTAL
             else -> throw PatchException(
                 "Unsupported swapchain format instruction at 0x${offset.toString(16)}",
             )
@@ -254,7 +282,8 @@ internal fun setProjectionSwapchainFormat(
     }
     val recognizedOffsets = (
         bytes.indicesOfSubarray(SWAPCHAIN_CONTEXT_BEFORE + SRGB8_INSTRUCTION + SWAPCHAIN_CONTEXT_AFTER) +
-            bytes.indicesOfSubarray(SWAPCHAIN_CONTEXT_BEFORE + RGB10_A2_INSTRUCTION + SWAPCHAIN_CONTEXT_AFTER)
+            bytes.indicesOfSubarray(SWAPCHAIN_CONTEXT_BEFORE + RGB10_A2_INSTRUCTION + SWAPCHAIN_CONTEXT_AFTER) +
+            bytes.indicesOfSubarray(SWAPCHAIN_CONTEXT_BEFORE + RGBA16F_INSTRUCTION + SWAPCHAIN_CONTEXT_AFTER)
         ).map { it + SWAPCHAIN_CONTEXT_BEFORE.size }.sorted()
     if (recognizedOffsets != layout.swapchainFormatOffsets.sorted()) {
         throw PatchException(
@@ -270,6 +299,7 @@ internal fun setProjectionSwapchainFormat(
     val replacement = when (outputPrecision) {
         VideoOutputPrecision.SRGB8_HIGHP -> SRGB8_INSTRUCTION
         VideoOutputPrecision.RGB10_A2_EXPERIMENTAL -> RGB10_A2_INSTRUCTION
+        VideoOutputPrecision.RGBA16F_EXPERIMENTAL -> RGBA16F_INSTRUCTION
     }
     return bytes.copyOf().apply {
         layout.swapchainFormatOffsets.forEach { replacement.copyInto(this, it) }
@@ -296,6 +326,7 @@ val oledCalibrationPatch = rawResourcePatch(
         values = mapOf(
             "Initial tested (gamma 1.06, saturation 1.12)" to "initial",
             "Final balanced tested (gamma 1.20, saturation 1.45)" to "final-balanced",
+            "Neutral comparison (gamma 1.00, saturation 1.00)" to "neutral",
             "Custom gamma and saturation" to "custom",
         ),
         title = "Calibration profile",
@@ -327,25 +358,39 @@ val oledCalibrationPatch = rawResourcePatch(
 
     val outputPrecision by stringOption(
         key = "outputPrecision",
-        default = "srgb8-highp",
+        default = "rgb10-a2-experimental",
         values = mapOf(
-            "8-bit sRGB highp control (safe)" to "srgb8-highp",
-            "RGB10_A2 linear output (experimental)" to "rgb10-a2-experimental",
+            "RGB10_A2 linear output (recommended)" to "rgb10-a2-experimental",
+            "8-bit sRGB highp fallback" to "srgb8-highp",
+            "FP16 linear output (experimental; runtime support required)" to "rgba16f-experimental",
         ),
         title = "Video output precision",
-        description = "Safe control retains GL_SRGB8_ALPHA8. Experimental mode requests linear GL_RGB10_A2 and applies an explicit sRGB EOTF. Galaxy XR runtime support is unverified.",
+        description = "Compare sRGB8, RGB10_A2, and FP16 projection storage. Linear formats include sRGB conversion. FP16 support and performance are unverified; unsupported formats may prevent streaming. These choices do not force compositor or panel depth. Use Neutral calibration for comparisons.",
+        required = true,
+    )
+
+    val dithering by stringOption(
+        key = "dithering",
+        default = "off",
+        values = mapOf(
+            "Off (default)" to "off",
+            "Low (0.5 sRGB8 code peak-to-peak)" to "low",
+            "Standard (1 sRGB8 code peak-to-peak)" to "standard",
+        ),
+        title = "Comparison dithering",
+        description = "Adds fine noise after calibration, before linear conversion. Preserves exact black/white and fades noise near endpoints. Compare gradients, grain and shimmer. This is app-side noise, not final compositor dithering or proof of extra panel bits.",
         required = true,
     )
 
     execute {
-        val file = get("lib/arm64-v8a/libvrlink_scene.so")
-        val bytes = file.readBytes()
         // Shader and swapchain edits are coupled. On an unrecognized native layout, skip both
         // rather than aborting the complete APK experiment or writing fixed offsets blindly.
         val layout = VIDEO_LIBRARY_LAYOUTS.singleOrNull {
             it.versionName == packageMetadata.versionName &&
                 it.versionCode.toString() == packageMetadata.versionCode
         } ?: return@execute
+        val file = get("lib/arm64-v8a/libvrlink_scene.so")
+        val bytes = file.readBytes()
         if (bytes.size != layout.fileSize) {
             throw PatchException(
                 "Unsupported libvrlink_scene.so size=${bytes.size} for Steam Link " +
@@ -357,12 +402,14 @@ val oledCalibrationPatch = rawResourcePatch(
         val (selectedGamma, selectedSaturation) = when (profile) {
             "initial" -> 1.06f to 1.12f
             "final-balanced" -> 1.20f to 1.45f
+            "neutral" -> 1.00f to 1.00f
             "custom" -> gamma.value!! to saturation.value!!
             else -> throw PatchException("Unknown OLED calibration profile: $profile")
         }
         val precision = VideoOutputPrecision.fromOption(outputPrecision)
         val shaderPatched = bytes.copyOf().apply {
-            paddedVideoShader(selectedGamma, selectedSaturation, precision).copyInto(this, shaderPos)
+            paddedVideoShader(selectedGamma, selectedSaturation, precision,
+                VideoDitherMode.fromOption(dithering)).copyInto(this, shaderPos)
         }
         file.writeBytes(
             setProjectionSwapchainFormat(

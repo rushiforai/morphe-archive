@@ -15,27 +15,30 @@ Manifest Capability Pack; and Device identity with the Meta Quest Pro spoof (`Oc
 model).
 
 Leave HMD identity on **Recommended**, or explicitly choose **Meta Quest Pro**. Recommended
-resolves to the Quest spoof for exact 2.0.20/5001712 and 5001740, plus 2.0.22/5002172, 5002206,
-and 5002244. The config baseline runs before Device identity; the legacy Quest payload changes
+resolves to the Quest spoof for exact 2.0.20/5001712 and 5001740, plus 2.0.22/5002244. The config baseline runs before Device identity; the legacy Quest payload changes
 only the 3 HMD model values while preserving SamsungVST tracking and Galaxy XR controller/eye
 routing. Saved explicit Samsung, Stock, or PICO profiles remain respected rather than silently
 overridden.
 
 The exact 2.0.22/5002322 bundle selects only face bridge, high-resolution fix, microphone
-`voice-recognition`, OLED `final-balanced` with safe `srgb8-highp`, battery usage, and Visual Delay
+`voice-recognition`, OLED `final-balanced` with recommended `rgb10-a2-experimental`, battery usage, and Visual Delay
 `60` ms. Native-XR build 5002318 retains that 6-patch set plus Device identity, where Recommended
 continues to resolve to Galaxy XR. Other supported targets outside the exact legacy recommendation
 set likewise retain Galaxy XR as their automatic choice. Neither native bundle enables legacy
 conversion mutations, and 5002322 still excludes Device identity.
 
-The standalone Video dither patch is removed, and new OLED shaders use `DITHER_ENABLE=0.`.
-Developer-only source opt-in and historical byte-state information are retained in
-[the patch catalog](PATCH_CATALOG.md#video-dither-retired-developer-opt-in); this is not
-a Morphe checkbox. Its unregistered helper is now
+The standalone Video dither patch remains removed. OLED calibration now offers `dithering`
+values `off` (default), `low`, and `standard`, plus `neutral` calibration (`1.00` gamma and
+`1.00` saturation) and optional `rgba16f-experimental` output. The defaults remain
+`final-balanced`, `rgb10-a2-experimental`, and `off`. FP16 uses the same 6 exact guarded OLED
+layouts; runtime support remains unverified and it can fail stream setup. Follow the
+[controlled comparison](PATCH_CATALOG.md#controlled-oled-comparison) to compare sRGB8, RGB10,
+and supported FP16 with dithering off, then low/standard, using the same scene and brightness
+and a pristine original APK for every variant. The historical unregistered helper remains
 `patches/src/main/kotlin/app/template/patches/steamlink/binary/VideoDither.kt`.
 
 Bundle membership does not broaden native guards: high-resolution adaptation is unavailable on
-5001740/5002172/5002206, and the 3 force-gate edits are unavailable on 5002172/5002206. Those
+5001740. Those
 mutations remain no-ops rather than assuming a neighboring build's topology or offsets. See the
 [current recommendation catalog](PATCH_CATALOG.md#recommendation-bundles) for exact scope.
 
@@ -122,7 +125,7 @@ Both `libvrlink_scene.so` files contain the replacement 1087-byte video fragment
 - Saturation: `c, 1.45`
 - Zero-centered dither expression
 
-At the time of this comparison, this matched the `OLED color calibration` patch's **Final balanced** profile rather than its then-default `Initial` profile. The current default is `final-balanced`, with highp output and dithering disabled; the archived shaders remain unchanged.
+At the time of this comparison, this matched the `OLED color calibration` patch's **Final balanced** profile rather than its then-default `Initial` profile. The current defaults are `final-balanced`, `rgb10-a2-experimental`, and `dithering=off`; neutral calibration, sRGB8/FP16 output, and low/standard dithering are explicit comparison options. The archived shaders remain unchanged.
 
 Relevant current implementation:
 
@@ -141,7 +144,7 @@ Neither contains the disabled `*.00000` variant. Calibrated dithering is enabled
 Retained historical-state helper (not a registered Morphe patch):
 
 - `patches/src/main/kotlin/app/template/patches/steamlink/binary/VideoDither.kt`
-- [Developer-only local opt-in instructions](PATCH_CATALOG.md#video-dither-retired-developer-opt-in)
+- [Controlled OLED comparison options](PATCH_CATALOG.md#controlled-oled-comparison)
 
 ### Native permission prompt bypass
 
@@ -540,7 +543,8 @@ This history is stronger evidence than source comments: the missing hook was alr
 ### Historical parity checks after patching
 
 These checks reproduce the archived comparison, including its dither and `78` ms settings. They
-do not replace current release tests, which require disabled OLED dithering and default `60` ms.
+do not replace current release tests, which require OLED dithering disabled by default, validate
+the explicit comparison options separately, and preserve default `60` ms.
 
 - `SDLSurface.onTouch` contains a call to `GxrSdlBridge.routeXrPointerAsMouse`.
 - `SDLGenericMotionListener_API14.onGenericMotion` contains a call to `routeXrPointerAsMouseGeneric`.

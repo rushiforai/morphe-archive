@@ -12,7 +12,9 @@ internal object Constants {
         appIconColor = 0x3B82F6,
         signatures = emptySet<String>(),
         targets = listOf(
-            AppTarget(version = "6.6 build 017", isExperimental = true, minSdk = 24),
+            AppTarget(version = "6.6 build 018", isExperimental = false, minSdk = 24),
+            AppTarget(version = "6.6 build 017", isExperimental = false, minSdk = 24),
+            AppTarget(version = "6.6 build 016", isExperimental = false, minSdk = 24),
         )
     )
 }

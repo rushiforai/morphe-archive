@@ -14,3 +14,8 @@ internal val androidXrUiExtensionPatch = bytecodePatch {
 internal val androidXrMinimalUiExtensionPatch = bytecodePatch {
     extendWith("extensions/minimal-extension.mpe")
 }
+
+// Battery-only helper: no permission activity, custom splash or overlay code.
+internal val androidXrBatteryUiExtensionPatch = bytecodePatch {
+    extendWith("extensions/battery-extension.mpe")
+}

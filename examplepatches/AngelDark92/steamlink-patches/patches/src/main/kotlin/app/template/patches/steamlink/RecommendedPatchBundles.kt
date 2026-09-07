@@ -12,6 +12,7 @@ import app.template.patches.steamlink.androidxr.xrCoreRuntimePatch
 import app.template.patches.steamlink.androidxr.xrDeviceConfigBaselinePatch
 import app.template.patches.steamlink.androidxr.xrGalaxyXrHighResolutionPatch
 import app.template.patches.steamlink.androidxr.xrInputRoutingConfigPatch
+import app.template.patches.steamlink.androidxr.xrStartupPermissionsPatch
 import app.template.patches.steamlink.androidxr.xrLauncherBootstrapPatch
 import app.template.patches.steamlink.androidxr.xrManifestCapabilityPackPatch
 import app.template.patches.steamlink.binary.androidXrNativePermissionNamesPatch
@@ -27,7 +28,7 @@ import app.template.patches.steamlink.identity.deviceIdentityPatch
 // bundles keep every individual patch available in Expert mode while giving Simple mode a
 // deterministic recommendation set for the selected Steam Link version and build code.
 
-// Both legacy bundles intentionally select the same 16 public patches. Device identity applies
+// Both legacy bundles intentionally select the same 17 public patches. Device identity applies
 // the recommended Quest Pro spoof after XR Device Config Baseline. Individual native
 // edits still obey their exact-build guards; selecting a bundle does not verify a new layout.
 private val legacyRecommendedPatches = arrayOf(
@@ -45,6 +46,7 @@ private val legacyRecommendedPatches = arrayOf(
     xrDeviceConfigBaselinePatch,
     xrInputRoutingConfigPatch,
     xrLauncherBootstrapPatch,
+    xrStartupPermissionsPatch,
     xrManifestCapabilityPackPatch,
     deviceIdentityPatch,
 )
@@ -52,7 +54,7 @@ private val legacyRecommendedPatches = arrayOf(
 @Suppress("unused")
 val galaxyXrRecommended5001712Patch = rawResourcePatch(
     name = "Galaxy XR recommended set (2.0.20/5001712)",
-    description = "Applies the 16-patch Galaxy XR legacy set for exact Steam Link 2.0.20 build 5001712, including Meta Quest Pro identity, permission-free high resolution, and the Final balanced tested OLED profile.",
+    description = "Applies the 17-patch Galaxy XR legacy set for exact Steam Link 2.0.20 build 5001712, including explicit startup permissions and splash, Meta Quest Pro identity, permission-free high resolution, and the Final balanced tested OLED profile.",
     default = true,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_5001712.toTypedArray())
@@ -62,7 +64,7 @@ val galaxyXrRecommended5001712Patch = rawResourcePatch(
 @Suppress("unused")
 val galaxyXrRecommended5002322Patch = rawResourcePatch(
     name = "Galaxy XR recommended set (2.0.22/5002322)",
-    description = "Applies the validated permission-free Galaxy XR patch set for exact Steam Link 2.0.22 build 5002322, including the Final balanced tested OLED profile.",
+    description = "Applies the 6-patch Galaxy XR set for exact Steam Link 2.0.22 build 5002322. Preserves stock startup and permission requests except battery settings; includes the Final balanced tested OLED profile.",
     default = true,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_5002322.toTypedArray())
@@ -79,7 +81,7 @@ val galaxyXrRecommended5002322Patch = rawResourcePatch(
 @Suppress("unused")
 val galaxyXrRecommended5002318Patch = rawResourcePatch(
     name = "Galaxy XR recommended set (2.0.22/5002318)",
-    description = "Applies the existing native-Android-XR-safe Galaxy XR patch set for exact Steam Link 2.0.22 build 5002318.",
+    description = "Applies the 9-patch Galaxy XR set for exact Steam Link 2.0.22 build 5002318, including separately listed startup permissions and splash/XR launch mode.",
     default = true,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_5002318.toTypedArray())
@@ -91,13 +93,15 @@ val galaxyXrRecommended5002318Patch = rawResourcePatch(
         hmdOnlyPatch,
         oledCalibrationPatch,
         deviceIdentityPatch,
+        xrStartupPermissionsPatch,
+        xrLauncherBootstrapPatch,
     )
 }
 
 @Suppress("unused")
 val galaxyXrLegacyFoundationPatch = rawResourcePatch(
     name = "Galaxy XR legacy foundation (through 2.0.22/5002244)",
-    description = "Selects the 16-patch Galaxy XR legacy set, including Meta Quest Pro identity, native gates, face bridge, OLED calibration, microphone, battery, Visual Delay, and XR foundation. High-resolution output is guarded to verified layouts; unavailable on 5001740, 5002172, and 5002206.",
+    description = "Selects the 17-patch Galaxy XR legacy set, including Meta Quest Pro identity, native gates, face bridge, OLED calibration, microphone, battery, Visual Delay, explicit startup permissions and splash, and XR foundation. High-resolution output is guarded to verified layouts; unavailable on 5001740.",
     default = true,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_LEGACY_RECOMMENDED.toTypedArray())

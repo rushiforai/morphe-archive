@@ -1,3 +1,58 @@
+## [1.4.1](https://github.com/variablenine/morphe-patches/compare/v1.4.0...v1.4.1) (2026-09-06)
+
+### 🐛 Bug Fixes
+
+* Drop the home feed's non-post units in NSFW mode ([5941cf3](https://github.com/variablenine/morphe-patches/commit/5941cf3c25320fea138628caf14c5f1eb33b5a75))
+
+## [1.4.0](https://github.com/variablenine/morphe-patches/compare/v1.3.2...v1.4.0) (2026-09-06)
+
+### ✨ New Features
+
+* Mark NSFW mode on the home app bar ([611b810](https://github.com/variablenine/morphe-patches/commit/611b8108079459579ea3546853d692d07db26488))
+
+## [1.3.2](https://github.com/variablenine/morphe-patches/compare/v1.3.1...v1.3.2) (2026-09-06)
+
+### 🐛 Bug Fixes
+
+* Confine NSFW mode to the home feed, and reload it on the switch ([7cb9798](https://github.com/variablenine/morphe-patches/commit/7cb9798079395d92fabe00ee96f6d3f97975945b))
+
+## [1.3.1](https://github.com/variablenine/morphe-patches/compare/v1.3.0...v1.3.1) (2026-09-06)
+
+### 🐛 Bug Fixes
+
+* Read the home feed's NSFW flag from the indicators cell ([5824767](https://github.com/variablenine/morphe-patches/commit/582476793c11cd72ae829144f0087872f18c39d6))
+
+## [1.3.0](https://github.com/variablenine/morphe-patches/compare/v1.2.3...v1.3.0) (2026-09-06)
+
+### ✨ New Features
+
+* Filter the home feed on its GraphQL cells ([bc2b762](https://github.com/variablenine/morphe-patches/commit/bc2b762b3a0b59c28ac329b93eb579c785a125da))
+
+## [1.2.3](https://github.com/variablenine/morphe-patches/compare/v1.2.2...v1.2.3) (2026-09-06)
+
+### 🐛 Bug Fixes
+
+* Use range invokes so the feed and click hooks can encode ([4c09875](https://github.com/variablenine/morphe-patches/commit/4c098752d0d181c18a5dc3c41e866d2bf305318b))
+
+## [1.2.2](https://github.com/variablenine/morphe-patches/compare/v1.2.1...v1.2.2) (2026-09-06)
+
+### 🐛 Bug Fixes
+
+* Filter the feed where posts actually reach the screen ([bc68072](https://github.com/variablenine/morphe-patches/commit/bc680722f63f853ad41107140d9a7581aab045c3))
+
+## [1.2.1](https://github.com/variablenine/morphe-patches/compare/v1.2.0...v1.2.1) (2026-09-06)
+
+### 🐛 Bug Fixes
+
+* Make the NSFW drawer row clone survive a different row shape ([409c4a8](https://github.com/variablenine/morphe-patches/commit/409c4a8bb3e795b38c33ff6691e72194c032625e))
+
+## [1.2.0](https://github.com/variablenine/morphe-patches/compare/v1.1.9...v1.2.0) (2026-09-06)
+
+### ✨ New Features
+
+* Add an NSFW row to the Reddit navigation drawer ([b245392](https://github.com/variablenine/morphe-patches/commit/b245392a3bd08177b4ab9901eefacd192bc972dd))
+* Add NSFW mode for Reddit ([e2608d4](https://github.com/variablenine/morphe-patches/commit/e2608d4cc8ce1304327e3c3d23a2235807559ffb))
+
 ## [1.1.9](https://github.com/variablenine/morphe-patches/compare/v1.1.8...v1.1.9) (2026-09-02)
 
 ### 🚀 Updated App Support

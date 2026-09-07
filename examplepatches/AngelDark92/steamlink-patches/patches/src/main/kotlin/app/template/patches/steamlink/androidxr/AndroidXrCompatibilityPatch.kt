@@ -1,5 +1,8 @@
 package app.template.patches.steamlink.androidxr
 
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_EARLIER_STARTUP
+import app.template.patches.shared.Constants.isEarlierStartupSteamLinkBuild
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.resourcePatch
@@ -23,7 +26,7 @@ private fun loadResource(name: String): ByteArray =
 
 private const val EMPTY_IDS_XML = """<?xml version="1.0" encoding="utf-8"?><resources/>"""
 
-private fun ensureIdsXml(file: File) {
+internal fun ensureIdsXml(file: File) {
     if (file.exists()) return
     file.parentFile!!.mkdirs()
     file.writeText(EMPTY_IDS_XML)
@@ -403,7 +406,7 @@ internal fun upsertVrLinkUnmanagedFullSpace(doc: Document, app: Element): Boolea
 }
 
 /**
- * Minimal permission/settings launcher used by patches that remain valid on native-XR builds.
+ * Transparent settings launcher for exact earlier builds; requests and splash default off.
  *
  * This deliberately does not depend on XR Core/Manifest/Device Config and does not add a
  * FULL_SPACE_UNMANAGED override. Valve's stock native manifest, permission routine, controller
@@ -413,12 +416,14 @@ internal val xrPermissionSettingsBootstrapPatch = resourcePatch {
     dependsOn(androidXrMinimalUiExtensionPatch, xrResolutionProbePatch)
 
     execute {
+        if (!isEarlierStartupSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@execute
         // Arsclib opens ids.xml while compiling modified manifests even when the stock APK has
         // no ID resources. Native-XR builds skip the legacy bridge, so ensure it on this shared path.
         ensureIdsXml(get("res/values/ids.xml"))
     }
 
     finalize {
+        if (!isEarlierStartupSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@finalize
         document("AndroidManifest.xml").use { doc ->
             val app = doc.documentElement.getElementsByTagName("application").item(0) as Element
             val gxrActivityName = "com.valvesoftware.steamlink.GalaxyXRPermissionActivity"
@@ -431,7 +436,7 @@ internal val xrPermissionSettingsBootstrapPatch = resourcePatch {
                 activity.setAttribute("android:name", gxrActivityName)
                 activity.setAttribute("android:exported", "true")
                 activity.setAttribute("android:screenOrientation", "landscape")
-                activity.setAttribute("android:theme", "@android:style/Theme.Black.NoTitleBar.Fullscreen")
+                activity.setAttribute("android:theme", "@android:style/Theme.Translucent.NoTitleBar")
 
                 val filter = doc.createElement("intent-filter")
                 doc.createElement("action").also {
@@ -443,12 +448,6 @@ internal val xrPermissionSettingsBootstrapPatch = resourcePatch {
                     filter.appendChild(it)
                 }
                 activity.appendChild(filter)
-
-                doc.createElement("layout").also {
-                    it.setAttribute("android:defaultWidth", "1280.0px")
-                    it.setAttribute("android:defaultHeight", "800.0px")
-                    activity.appendChild(it)
-                }
 
                 app.insertBefore(activity, app.getElementsByTagName("activity").item(0))
             }
@@ -478,18 +477,30 @@ internal val xrPermissionSettingsBootstrapPatch = resourcePatch {
     }
 }
 
+// Flags default off in the helper DEX. Only these explicit, exact-build patches enable them.
+internal val xrStartupSplashUiPatch = bytecodePatch {
+    dependsOn(androidXrMinimalUiExtensionPatch)
+    execute {
+        if (!isEarlierStartupSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@execute
+        mutableClassDefBy("Lcom/valvesoftware/steamlink/GalaxyXRPermissionActivity;").methods
+            .first { it.name == "shouldShowSplash" }.replaceInstruction(0, "const/4 v0, 0x1")
+    }
+}
+
 @Suppress("unused")
 val xrLauncherBootstrapPatch = resourcePatch(
-    name = "XR Launcher Bootstrap (Home Space)",
-    description = "Installs GalaxyXRPermissionActivity as launcher and configures the Steam Link VR activity XR startup wiring.",
+    name = "Startup splash and XR launch mode (before 5002322)",
+    description = "Adds the Launching Steam Link splash, older-build panel sizing and explicit unmanaged VRLink startup. Does not request tracking, microphone or Bluetooth permissions; select Startup permission requests separately.",
     default = false,
 ) {
-    compatibleWith(*COMPATIBILITIES_STEAM_LINK_LEGACY.toTypedArray())
+    compatibleWith(*COMPATIBILITIES_STEAM_LINK_EARLIER_STARTUP.toTypedArray())
     // Keep the legacy launcher self-contained: its manifest activity needs the helper-only DEX,
     // and the lifecycle probe supplies the historical overlay activation hook. These same
     // dependencies are deduplicated when a supported patch also uses the minimal bootstrap.
     dependsOn(
         xrManifestCapabilityPackPatch,
+        xrPermissionSettingsBootstrapPatch,
+        xrStartupSplashUiPatch,
         androidXrMinimalUiExtensionPatch,
         xrResolutionProbePatch,
     )
@@ -498,7 +509,7 @@ val xrLauncherBootstrapPatch = resourcePatch(
         document("AndroidManifest.xml").use { doc ->
             // Dependencies execute without checking their own public compatibility. Restrict legacy
             // launcher mutations to exact decoded layouts, including high-resolution-only 5002296.
-            if (!isLegacyXrFoundationSteamLinkBuild(
+            if (!isEarlierStartupSteamLinkBuild(
                     packageMetadata.versionName,
                     packageMetadata.versionCode,
                 )) return@use
@@ -541,6 +552,17 @@ val xrLauncherBootstrapPatch = resourcePatch(
                 val firstActivity = app.getElementsByTagName("activity").item(0)
                 app.insertBefore(activity, firstActivity)
             }
+
+            // The minimal launcher is transparent unless this explicitly selected patch styles it.
+            val splash = app.getElementsByTagName("activity").asSequence()
+                .filterIsInstance<Element>().first { it.getAttribute("android:name") == gxrActivityName }
+            splash.setAttribute("android:theme", "@android:style/Theme.Black.NoTitleBar.Fullscreen")
+            val splashLayout = (splash.getElementsByTagName("layout").item(0) as? Element)
+                ?: doc.createElement("layout").also { splash.appendChild(it) }
+            splashLayout.setAttribute("android:defaultWidth", "1280.0px")
+            splashLayout.setAttribute("android:defaultHeight", "800.0px")
+            // Native 5002318 retains its stock picker and native intent routing.
+            if (!isLegacyXrFoundationSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@use
 
             app.getElementsByTagName("activity").asSequence()
                 .filterIsInstance<Element>()
@@ -633,10 +655,48 @@ val xrInputRoutingConfigPatch = rawResourcePatch(
     default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_LEGACY.toTypedArray())
-    dependsOn(xrLauncherBootstrapPatch)
+    dependsOn(xrManifestCapabilityPackPatch)
 
     execute {
         if (isNativeXrSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@execute
         get("assets/config/ui_config.json").writeBytes(loadResource("ui_config.json"))
+    }
+}
+
+internal val xrStartupPermissionDeclarationsPatch = resourcePatch {
+    execute {
+        if (!isEarlierStartupSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@execute
+        ensureIdsXml(get("res/values/ids.xml"))
+    }
+    finalize {
+        if (!isEarlierStartupSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@finalize
+        document("AndroidManifest.xml").use { doc ->
+            val manifest = doc.documentElement
+            val app = manifest.getElementsByTagName("application").item(0)
+            val existing = manifest.getElementsByTagName("uses-permission").asSequence()
+                .filterIsInstance<Element>().map { it.getAttribute("android:name") }.toSet()
+            listOf("HAND_TRACKING", "EYE_TRACKING_FINE", "FACE_TRACKING", "RECORD_AUDIO", "BLUETOOTH_CONNECT")
+                .map { "android.permission.$it" }.filterNot { it in existing }.forEach { permission ->
+                    doc.createElement("uses-permission").also {
+                        it.setAttribute("android:name", permission)
+                        manifest.insertBefore(it, app)
+                    }
+                }
+        }
+    }
+}
+
+@Suppress("unused")
+val xrStartupPermissionsPatch = bytecodePatch(
+    name = "Startup permission requests (before 5002322)",
+    description = "Requests hand, eye and face tracking, microphone and Bluetooth permissions before opening Steam Link on exact older builds. Battery settings and the visible startup splash are separate patches.",
+    default = false,
+) {
+    compatibleWith(*COMPATIBILITIES_STEAM_LINK_EARLIER_STARTUP.toTypedArray())
+    dependsOn(xrPermissionSettingsBootstrapPatch, xrStartupPermissionDeclarationsPatch)
+    execute {
+        if (!isEarlierStartupSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@execute
+        mutableClassDefBy("Lcom/valvesoftware/steamlink/GalaxyXRPermissionActivity;").methods
+            .first { it.name == "shouldRequestRuntimePermissions" }.replaceInstruction(0, "const/4 v0, 0x1")
     }
 }

@@ -1,0 +1,185 @@
+{
+  "requestedExtensions": [
+    "XR_EXT_eye_gaze_interaction",
+    "XR_PICO_eye_tracking"
+  ],
+  "staticProps": {
+    "hollywood": {
+      "sTrackingSystem": "oculus",
+      "sSerialNumber": "VRLINKHMDQUEST2",
+      "sManufacturerName": "Oculus",
+      "sModelNumber": "Oculus Quest2",
+      "sRenderModelName": "generic_hmd",
+      "sResourceRoot": "vrlink",
+      "sInputProfilePath": "{oculus}/input/rift_profile.json",
+      "flLaserMouseHmdAngleDegrees": 0,
+      "sControllerType": "rift",
+      "sDeviceType": "oculus/VRLINKHMDQUEST2"
+    },
+    "seacliff": {
+      "sTrackingSystem": "oculus",
+      "sSerialNumber": "VRLINKHMDQUESTPRO",
+      "sManufacturerName": "Oculus",
+      "sModelNumber": "Oculus Quest Pro",
+      "sRenderModelName": "generic_hmd",
+      "sResourceRoot": "vrlink",
+      "sInputProfilePath": "{oculus}/input/rift_profile.json",
+      "flLaserMouseHmdAngleDegrees": 0,
+      "sControllerType": "rift",
+      "sDeviceType": "oculus/VRLINKHMDQUESTPRO"
+    },
+    "stinson": {
+      "sTrackingSystem": "oculus",
+      "sSerialNumber": "VRLINKHMDQUEST3",
+      "sManufacturerName": "Oculus",
+      "sModelNumber": "Oculus Quest3",
+      "sRenderModelName": "generic_hmd",
+      "sResourceRoot": "vrlink",
+      "sInputProfilePath": "{oculus}/input/rift_profile.json",
+      "flLaserMouseHmdAngleDegrees": 0,
+      "sControllerType": "rift",
+      "sDeviceType": "oculus/VRLINKHMDQUEST3"
+    },
+    "eureka": {
+      "sTrackingSystem": "oculus",
+      "sSerialNumber": "VRLINKHMDQUEST3",
+      "sManufacturerName": "Oculus",
+      "sModelNumber": "Oculus Quest3",
+      "sRenderModelName": "generic_hmd",
+      "sResourceRoot": "vrlink",
+      "sInputProfilePath": "{oculus}/input/rift_profile.json",
+      "flLaserMouseHmdAngleDegrees": 0,
+      "sControllerType": "rift",
+      "sDeviceType": "oculus/VRLINKHMDQUEST3"
+    },
+    "panther": {
+      "sTrackingSystem": "oculus",
+      "sSerialNumber": "VRLINKHMDQUEST3S",
+      "sManufacturerName": "Oculus",
+      "sModelNumber": "Oculus Quest3S",
+      "sRenderModelName": "generic_hmd",
+      "sResourceRoot": "vrlink",
+      "sInputProfilePath": "{oculus}/input/rift_profile.json",
+      "flLaserMouseHmdAngleDegrees": 0,
+      "sControllerType": "rift",
+      "sDeviceType": "oculus/VRLINKHMDQUEST3S"
+    },
+    "PICO 4": {
+      "sTrackingSystem": "pico",
+      "sSerialNumber": "VRLINKHMDPICO4",
+      "sManufacturerName": "Pico",
+      "sModelNumber": "PICO 4",
+      "sRenderModelName": "generic_hmd",
+      "sResourceRoot": "vrlink",
+      "sInputProfilePath": "{oculus}/input/rift_profile.json",
+      "flLaserMouseHmdAngleDegrees": 0,
+      "sControllerType": "pico",
+      "sDeviceType": "pico/VRLINKHMDPICO4"
+    },
+    "PICO 4 Enterprise": {
+      "sTrackingSystem": "pico",
+      "sSerialNumber": "VRLINKHMDPICO4PROORENTERPRISE",
+      "sManufacturerName": "Pico",
+      "sModelNumber": "PICO 4 Enterprise",
+      "sRenderModelName": "generic_hmd",
+      "sResourceRoot": "vrlink",
+      "sInputProfilePath": "{oculus}/input/rift_profile.json",
+      "flLaserMouseHmdAngleDegrees": 0,
+      "sControllerType": "pico",
+      "sDeviceType": "pico/VRLINKHMDPICO4PROORENTERPRISE"
+    },
+    "PICO 4 Pro": {
+      "sTrackingSystem": "pico",
+      "sSerialNumber": "VRLINKHMDPICO4PROORENTERPRISE",
+      "sManufacturerName": "Pico",
+      "sModelNumber": "PICO 4 Pro",
+      "sRenderModelName": "generic_hmd",
+      "sResourceRoot": "vrlink",
+      "sInputProfilePath": "{oculus}/input/rift_profile.json",
+      "flLaserMouseHmdAngleDegrees": 0,
+      "sControllerType": "pico",
+      "sDeviceType": "pico/VRLINKHMDPICO4PROORENTERPRISE"
+    },
+    "PICO 4 Ultra": {
+      "sTrackingSystem": "pico",
+      "sSerialNumber": "VRLINKHMDPICO4ULTRA",
+      "sManufacturerName": "Pico",
+      "sModelNumber": "PICO 4 Ultra",
+      "sRenderModelName": "generic_hmd",
+      "sResourceRoot": "vrlink",
+      "sInputProfilePath": "{oculus}/input/rift_profile.json",
+      "flLaserMouseHmdAngleDegrees": 0,
+      "sControllerType": "pico",
+      "sDeviceType": "pico/VRLINKHMDPICO4ULTRA"
+    },
+    "kona": {
+      "sTrackingSystem": "htc",
+      "sSerialNumber": "VRLINKHMDVIVEFOCUSVISION",
+      "sManufacturerName": "HTC",
+      "sModelNumber": "Vive Focus Vision",
+      "sRenderModelName": "generic_hmd",
+      "sResourceRoot": "vrlink",
+      "sInputProfilePath": "{htc}/input/vive_controller_profile.json",
+      "flLaserMouseHmdAngleDegrees": 0,
+      "sControllerType": "vive_focus",
+      "sDeviceType": "htc/VRLINKHMDVIVEFOCUSVISION"
+    },
+    "A7P10": {
+      "sTrackingSystem": "pico",
+      "sSerialNumber": "VRLINKHMDPICONEO3",
+      "sManufacturerName": "Pico",
+      "sModelNumber": "PICO Neo 3",
+      "sRenderModelName": "generic_hmd",
+      "sResourceRoot": "vrlink",
+      "sInputProfilePath": "{oculus}/input/rift_profile.json",
+      "flLaserMouseHmdAngleDegrees": 0,
+      "sControllerType": "pico",
+      "sDeviceType": "pico/VRLINKHMDPICONEO3"
+    },
+    "Project Swan": {
+      "sTrackingSystem": "pico",
+      "sSerialNumber": "VRLINKHMDPICO4ULTRA",
+      "sManufacturerName": "Pico",
+      "sModelNumber": "PICO 4 Ultra",
+      "sRenderModelName": "generic_hmd",
+      "sResourceRoot": "vrlink",
+      "sInputProfilePath": "{oculus}/input/rift_profile.json",
+      "flLaserMouseHmdAngleDegrees": 0,
+      "sControllerType": "pico",
+      "sDeviceType": "pico/VRLINKHMDPICO4ULTRA"
+    },
+    "unknown": {
+      "sTrackingSystem": "oculus",
+      "sSerialNumber": "VRLINKHMDUNKNOWN",
+      "sManufacturerName": "Oculus",
+      "sModelNumber": "Oculus Quest Pro",
+      "sRenderModelName": "generic_hmd",
+      "sResourceRoot": "vrlink",
+      "sInputProfilePath": "{oculus}/input/rift_profile.json",
+      "flLaserMouseHmdAngleDegrees": 0,
+      "sControllerType": "rift",
+      "sDeviceType": "oculus/VRLINKHMDUNKNOWN"
+    }
+  },
+  "headOffsets": {
+    "PICO 4 Ultra": [
+      -0.050711045,
+      -0.018201836,
+      0.051669556
+    ],
+    "PICO 4 Pro": [
+      -0.051701546,
+      -0.000206350,
+      0.049539268
+    ]
+  },
+  "input": {
+    "eyeTracking": {
+      "bindings": {
+        "/interaction_profiles/ext/eye_gaze_interaction": [
+          "/user/eyes_ext/input/gaze_ext/pose"
+        ]
+      }
+    }
+  }
+}

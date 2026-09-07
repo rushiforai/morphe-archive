@@ -1,5 +1,5 @@
 {
-    "version": "v1.22.1-dev.2",
+    "version": "v1.24.0-dev.1",
     "patches": [
         {
             "compatiblePackages": [
@@ -369,6 +369,54 @@
             "dependencies": [],
             "description": "Unlocks premium, wardrobe, world 1 and world 2 by forcing OTTBilling.isPurchased to always return true.",
             "name": "Fancy Pants Unlock Premium",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "XAPK",
+                    "appIconColor": "#E65100",
+                    "name": "Burrito Bison: Launcha Libre",
+                    "packageName": "com.kongregate.mobile.burritobison3.google",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "3.75"
+                        }
+                    ],
+                    "versions": [
+                        "3.75"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Required so the modified app opens without crashing — skips signature, root and emulator checks.",
+            "name": "Fix app opening",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "XAPK",
+                    "appIconColor": "#E65100",
+                    "name": "Burrito Bison: Launcha Libre",
+                    "packageName": "com.kongregate.mobile.burritobison3.google",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "3.75"
+                        }
+                    ],
+                    "versions": [
+                        "3.75"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Get paid items for free — tapping buy grants the item instantly without Google Play payment popup.",
+            "name": "Free purchases",
             "options": []
         },
         {
@@ -768,126 +816,6 @@
             "dependencies": [],
             "description": "Bypasses the Pairip Play Store license check so the app launches normally.",
             "name": "Missiles License Bypass",
-            "options": []
-        },
-        {
-            "compatiblePackages": [
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#E53935",
-                    "name": "MovieBox",
-                    "packageName": "com.community.oneroom",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "4.0.01.0813.02"
-                        }
-                    ],
-                    "versions": [
-                        "4.0.01.0813.02"
-                    ]
-                }
-            ],
-            "default": true,
-            "dependencies": [],
-            "description": "Removes splash, banner, native, interstitial and reward video ads.",
-            "name": "MovieBox Ad Removal",
-            "options": []
-        },
-        {
-            "compatiblePackages": [
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#E53935",
-                    "name": "MovieBox",
-                    "packageName": "com.community.oneroom",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "4.0.01.0813.02"
-                        }
-                    ],
-                    "versions": [
-                        "4.0.01.0813.02"
-                    ]
-                }
-            ],
-            "default": true,
-            "dependencies": [],
-            "description": "Bypasses the server-side download access check so any resolution (including 1080p) can be downloaded on a free account.",
-            "name": "MovieBox Download Unlock",
-            "options": []
-        },
-        {
-            "compatiblePackages": [
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#E53935",
-                    "name": "MovieBox",
-                    "packageName": "com.community.oneroom",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "4.0.01.0813.02"
-                        }
-                    ],
-                    "versions": [
-                        "4.0.01.0813.02"
-                    ]
-                }
-            ],
-            "default": true,
-            "dependencies": [],
-            "description": "Disables forced and nag update prompts in MovieBox.",
-            "name": "MovieBox Force Update Bypass",
-            "options": []
-        },
-        {
-            "compatiblePackages": [
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#E53935",
-                    "name": "MovieBox",
-                    "packageName": "com.community.oneroom",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "4.0.01.0813.02"
-                        }
-                    ],
-                    "versions": [
-                        "4.0.01.0813.02"
-                    ]
-                }
-            ],
-            "default": true,
-            "dependencies": [],
-            "description": "Allows up to 5 simultaneous downloads in MovieBox.",
-            "name": "MovieBox Parallel Downloads",
-            "options": []
-        },
-        {
-            "compatiblePackages": [
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#E53935",
-                    "name": "MovieBox",
-                    "packageName": "com.community.oneroom",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "4.0.01.0813.02"
-                        }
-                    ],
-                    "versions": [
-                        "4.0.01.0813.02"
-                    ]
-                }
-            ],
-            "default": true,
-            "dependencies": [],
-            "description": "Unlocks MovieBox Premium (VIP) by forcing the member state active at Pro level.",
-            "name": "MovieBox Premium Unlock",
             "options": []
         },
         {

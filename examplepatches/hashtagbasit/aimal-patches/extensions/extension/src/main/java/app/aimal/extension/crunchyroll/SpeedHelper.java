@@ -42,8 +42,4 @@ public final class SpeedHelper {
             }
         } catch (Exception ignored) {}
     }
-
-    public static boolean isSpeedControlEnabled() {
-        return true;
-    }
 }

@@ -3,12 +3,16 @@ package util
 import app.morphe.patcher.Patcher
 import app.morphe.patcher.PatcherConfig
 import app.morphe.patcher.apk.ApkUtils.applyTo
+import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.Patch
 import app.template.patches.steamlink.androidxr.ANDROID_SURFACE_TRIGGER_5001712_BUILD_ID
 import app.template.patches.steamlink.androidxr.ANDROID_SURFACE_TRIGGER_BUILD_ID
 import app.template.patches.steamlink.androidxr.ANDROID_SURFACE_TRIGGER_MANIFEST
+import app.template.patches.steamlink.androidxr.MODERN_TONGUE_REPLACEMENT_5002322
+import app.template.patches.steamlink.androidxr.MODERN_TONGUE_VADDR_5002322
 import app.template.patches.steamlink.androidxr.androidSurfaceTriggerResourceLibraryForBuild
 import app.template.patches.steamlink.androidxr.adaptLegacyHmdConfigForBuild
+import app.template.patches.steamlink.androidxr.ensureIdsXml
 import app.template.patches.steamlink.androidxr.appearOnTopPatch
 import app.template.patches.steamlink.androidxr.controllerVelocityPatch
 import app.template.patches.steamlink.androidxr.gxrFacebridgePatch
@@ -19,6 +23,15 @@ import app.template.patches.steamlink.androidxr.xrGalaxyXrHighResolutionPatch
 import app.template.patches.steamlink.androidxr.xrInputRoutingConfigPatch
 import app.template.patches.steamlink.androidxr.xrLauncherBootstrapPatch
 import app.template.patches.steamlink.androidxr.xrManifestCapabilityPackPatch
+import app.template.patches.steamlink.androidxr.xrStartupPermissionsPatch
+import com.android.tools.smali.dexlib2.Opcodes
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import app.template.patches.steamlink.binary.androidXrNativePermissionNamesPatch
 import app.template.patches.steamlink.binary.forceHmdInitializationGatesPatch
 import app.template.patches.steamlink.binary.forceLobbyPermissionStateGatePatch
@@ -33,6 +46,7 @@ import app.template.patches.steamlink.galaxyXrRecommended5002322Patch
 import app.template.patches.steamlink.identity.changePackageNamePatch
 import app.template.patches.steamlink.identity.deviceIdentityPatch
 import app.template.patches.steamlink.identity.patchNativeGalaxyIdentity
+import app.template.patches.steamlink.util.BinaryPatchHelper.vaddrToFileOffset
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -102,6 +116,7 @@ private val publicPatchesFor5001712: List<Patch<*>> = listOf(
     xrDeviceConfigBaselinePatch,
     xrInputRoutingConfigPatch,
     xrLauncherBootstrapPatch,
+    xrStartupPermissionsPatch,
     xrManifestCapabilityPackPatch,
 )
 
@@ -175,6 +190,9 @@ private suspend fun runSingleAudit(args: Array<String>) {
             configurePublicAuditOptions(patch)
             executePatch(fixture, patch, File(patchDirectory, "temporary"), output)
             verifyPublicPatchOutput(output, patch)
+            if (patch == xrGalaxyXrHighResolutionPatch) {
+                verifyStandaloneHighResolutionBoundary(fixture, output, highResolutionFixtures.first())
+            }
             println("PASS 2.0.20/5001712 public patch output: $patchName: $output")
         }
 
@@ -187,7 +205,37 @@ private suspend fun runSingleAudit(args: Array<String>) {
             output.parentFile.mkdirs()
             executePatch(input, xrGalaxyXrHighResolutionPatch, File(caseDirectory, "temporary"), output)
             verifyHighResolutionOutput(output, fixture)
+            verifyStandaloneHighResolutionBoundary(input, output, fixture)
             println("PASS ${fixture.versionName}/${fixture.versionCode} high-resolution output: $output")
+        }
+
+        "startup-excluded" -> {
+            val fixture = highResolutionFixtures.single { it.versionCode == "5002322" }
+            val input = fixtureFile(fixtureDirectory, fixture)
+            val caseDirectory = File(outputDirectory, "startup-excluded-5002322")
+            val output = File(caseDirectory, "steamlink-5002322-excluded-startup-unsigned.apk")
+            val forcedDependencies = rawResourcePatch(name = "Excluded startup guard audit", default = false) {
+                dependsOn(xrLauncherBootstrapPatch, xrStartupPermissionsPatch)
+                // Resource compiler fixture workaround; excluded patch bodies stay unchanged.
+                execute { ensureIdsXml(get("res/values/ids.xml")) }
+            }
+            executePatch(input, forcedDependencies, File(caseDirectory, "temporary"), output)
+            ZipFile(input).use { original -> ZipFile(output).use { patched ->
+                // Morphe may renumber untouched original DEX files after inserting helpers.
+                val outputDex = patched.dexEntries().map { patched.requireEntryBytes(it) }
+                original.dexEntries().forEach { path ->
+                    check(outputDex.any { it.contentEquals(original.requireEntryBytes(path)) }) {
+                        "Excluded startup dependencies changed original DEX content: $path"
+                    }
+                }
+                val scene = "lib/arm64-v8a/libvrlink_scene.so"
+                check(original.requireEntryBytes(scene).contentEquals(patched.requireEntryBytes(scene)))
+                val manifest = patched.requireEntryBytes("AndroidManifest.xml")
+                check(!manifest.containsEncodedString("GalaxyXRPermissionActivity"))
+                check(!manifest.containsEncodedString("android.window.PROPERTY_XR_ACTIVITY_START_MODE"))
+                patched.requireStartupFlags(splash = false, permissions = false)
+            } }
+            println("PASS 5002322 excluded startup dependencies remain inert: $output")
         }
 
         "visual-delay" -> {
@@ -326,6 +374,12 @@ private fun verifyPublicPatchOutput(outputApk: File, patch: Patch<*>) {
             xrLauncherBootstrapPatch -> {
                 manifest.requireEncodedString("GalaxyXRPermissionActivity")
                 manifest.requireEncodedString("org.khronos.openxr.intent.category.IMMERSIVE_HMD")
+                apk.requireStartupFlags(splash = true, permissions = false)
+            }
+
+            xrStartupPermissionsPatch -> {
+                manifest.requireEncodedString("GalaxyXRPermissionActivity")
+                apk.requireStartupFlags(splash = false, permissions = true)
             }
 
             xrManifestCapabilityPackPatch -> {
@@ -366,9 +420,13 @@ private suspend fun executePatch(
     }
 }
 
-private fun verifyHighResolutionOutput(outputApk: File, fixture: HighResolutionFixture) {
+private fun verifyHighResolutionOutput(
+    outputApk: File,
+    fixture: HighResolutionFixture,
+    recommended: Boolean = false,
+) {
     ZipFile(outputApk).use { apk ->
-        verifyHighResolutionZip(apk, fixture)
+        verifyHighResolutionZip(apk, fixture, recommended)
     }
 }
 
@@ -422,7 +480,17 @@ private fun verifyRecommendedBundleOutput(inputApk: File, outputApk: File, fixtu
         manifest.requireEncodedString("android.permission.HAND_TRACKING")
         manifest.requireEncodedString("android.permission.FACE_TRACKING")
         manifest.requireEncodedString("android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS")
-        apk.requireElf("lib/arm64-v8a/libgxr_face_bridge.so")
+        if (fixture.versionCode == "5002322") {
+            check(apk.getEntry("lib/arm64-v8a/libgxr_face_bridge.so") == null) {
+                "5002322: modern tongue recommendation installed the legacy full face bridge"
+            }
+            scene.requireBytesAt(
+                vaddrToFileOffset(scene, MODERN_TONGUE_VADDR_5002322, MODERN_TONGUE_REPLACEMENT_5002322.size),
+                MODERN_TONGUE_REPLACEMENT_5002322,
+            )
+        } else {
+            apk.requireElf("lib/arm64-v8a/libgxr_face_bridge.so")
+        }
         check(!manifest.containsEncodedString("android.permission.SYSTEM_ALERT_WINDOW")) {
             "${fixture.versionCode}: recommended bundle requested SYSTEM_ALERT_WINDOW"
         }
@@ -439,6 +507,22 @@ private fun verifyRecommendedBundleOutput(inputApk: File, outputApk: File, fixtu
             "${fixture.versionCode}: 60 ms Visual Delay trampoline not found"
         }
         if (fixture.versionCode == "5002322") scene.requireBytesAt(0xF37E0, "c1008052".hexBytes())
+        if (fixture.versionCode == "5002322") {
+            manifest.requireEncodedString("com.valvesoftware.steamlink.SteamLink")
+            manifest.requireEncodedString("android.intent.category.LAUNCHER")
+            manifest.requireEncodedString("com.oculus.intent.category.2D")
+            check(!manifest.containsEncodedString("GalaxyXRPermissionActivity")) {
+                "5002322: recommended bundle installed a replacement launcher activity"
+            }
+            check(!manifest.containsEncodedString("android.window.PROPERTY_XR_ACTIVITY_START_MODE")) {
+                "5002322: recommended bundle changed the stock XR activity start mode"
+            }
+            ZipFile(inputApk).use { original -> verifyNativeStartupBoundary(original, apk) }
+        } else {
+            manifest.requireEncodedString("GalaxyXRPermissionActivity")
+            manifest.requireEncodedString("XR_ACTIVITY_START_MODE_FULL_SPACE_UNMANAGED")
+            apk.requireStartupFlags(splash = true, permissions = true)
+        }
         if (fixture.versionCode !in setOf("5002318", "5002322")) {
             apk.requireEntryBytes("lib/arm64-v8a/libgxr_xr_bridge.so")
             apk.requireEntryBytes("assets/config/ui_config.json")
@@ -476,10 +560,14 @@ private fun verifyRecommendedBundleOutput(inputApk: File, outputApk: File, fixtu
             }
         }
     }
-    verifyHighResolutionOutput(outputApk, fixture)
+    verifyHighResolutionOutput(outputApk, fixture, recommended = true)
 }
 
-private fun verifyHighResolutionZip(apk: ZipFile, fixture: HighResolutionFixture) {
+private fun verifyHighResolutionZip(
+    apk: ZipFile,
+    fixture: HighResolutionFixture,
+    recommended: Boolean = false,
+) {
     check(apk.getEntry("lib/arm64-v8a/libgxr_ast_underside.so") == null)
     check(apk.getEntry("assets/openxr/1/api_layers/implicit.d/" +
         "XR_APILAYER_local_GalaxyXR_android_surface_underside_projection_v1.json") == null)
@@ -505,17 +593,105 @@ private fun verifyHighResolutionZip(apk: ZipFile, fixture: HighResolutionFixture
     apk.requireEntryBytes(
         "assets/openxr/1/api_layers/implicit.d/" + ANDROID_SURFACE_TRIGGER_MANIFEST,
     ).requireEncodedString("XR_APILAYER_local_GalaxyXR_android_surface_trigger_passthrough_v1")
-    apk.requireDexString("GxrResolutionProbe")
 
     val bytes = apk.requireEntryBytes("lib/arm64-v8a/libvrlink_scene.so")
     val actual = bytes.copyOfRange(
         fixture.permissionOffset,
         fixture.permissionOffset + permissionOriginal.size,
     )
-    val expected = if (fixture.permissionMustBePatched) permissionReplacement else permissionOriginal
+    val expected = if (recommended && fixture.permissionMustBePatched) permissionReplacement else permissionOriginal
     check(actual.contentEquals(expected)) {
         "${fixture.versionCode}: permission routine at 0x" +
             fixture.permissionOffset.toString(16) + " was ${actual.toHex()}, expected ${expected.toHex()}"
+    }
+}
+
+private fun verifyStandaloneHighResolutionBoundary(
+    inputApk: File,
+    outputApk: File,
+    fixture: HighResolutionFixture,
+) {
+    ZipFile(inputApk).use { original ->
+        ZipFile(outputApk).use { patched ->
+            val originalDex = original.dexEntries()
+            check(originalDex == patched.dexEntries()) {
+                "${fixture.versionCode}: standalone high resolution added or removed DEX files"
+            }
+            (originalDex + "lib/arm64-v8a/libvrlink_scene.so").forEach { path ->
+                check(original.requireEntryBytes(path).contentEquals(patched.requireEntryBytes(path))) {
+                    "${fixture.versionCode}: standalone high resolution changed $path"
+                }
+            }
+            val manifest = patched.requireEntryBytes("AndroidManifest.xml")
+            listOf("GalaxyXRPermissionActivity", "XR_ACTIVITY_START_MODE_FULL_SPACE_UNMANAGED",
+                "XR_ACTIVITY_START_MODE_FULL_SPACE_MANAGED").forEach { value ->
+                check(manifest.containsEncodedString(value) ==
+                    original.requireEntryBytes("AndroidManifest.xml").containsEncodedString(value)) {
+                    "${fixture.versionCode}: standalone high resolution changed startup marker $value"
+                }
+            }
+        }
+    }
+}
+
+private fun ZipFile.dexEntries(): List<String> = entries().asSequence()
+    .map { it.name }.filter { it.matches(Regex("classes\\d*\\.dex")) }.sorted().toList()
+
+private fun ZipFile.requireDexClass(descriptor: String): ClassDef = dexEntries().asSequence()
+    .flatMap { path ->
+        DexBackedDexFile.fromInputStream(
+            Opcodes.getDefault(), requireEntryBytes(path).inputStream(),
+        ).classes.asSequence()
+    }.single { it.type == descriptor }
+
+private fun ZipFile.requireStartupFlags(splash: Boolean, permissions: Boolean) {
+    val activity = requireDexClass("Lcom/valvesoftware/steamlink/GalaxyXRPermissionActivity;")
+    mapOf("shouldShowSplash" to splash, "shouldRequestRuntimePermissions" to permissions)
+        .forEach { (name, enabled) ->
+            val instructions = requireNotNull(activity.methods.single { it.name == name }.implementation)
+                .instructions.toList()
+            check(instructions.size == 2 && instructions.last().opcode == Opcode.RETURN &&
+                (instructions.first() as? NarrowLiteralInstruction)?.narrowLiteral == if (enabled) 1 else 0) {
+                "Startup flag $name did not match the explicit patch selection ($enabled)"
+            }
+        }
+}
+
+private fun Method.auditSignature(): String =
+    name + parameterTypes.joinToString(prefix = "(", postfix = ")", separator = "") + returnType
+
+private fun Method.calledMethods(): List<MethodReference> = implementation?.instructions?.toList().orEmpty()
+    .mapNotNull { ((it as? ReferenceInstruction)?.reference as? MethodReference) }
+
+private fun verifyNativeStartupBoundary(original: ZipFile, patched: ZipFile) {
+    val descriptor = "Lcom/valvesoftware/steamlink/SteamLink;"
+    val before = original.requireDexClass(descriptor).methods.associateBy { it.auditSignature() }
+    val after = patched.requireDexClass(descriptor).methods.associateBy { it.auditSignature() }
+    check(before.keys == after.keys) { "5002322: stock SteamLink method set changed" }
+    val batteryDescriptor = "Lcom/valvesoftware/steamlink/GxrBatterySettings;"
+    before.forEach { (signature, source) ->
+        val output = after.getValue(signature)
+        val calls = output.calledMethods()
+        val batteryCalls = calls.filter { it.definingClass == batteryDescriptor }
+        val isCreate = signature == "onCreate(Landroid/os/Bundle;)V"
+        check(batteryCalls.size == if (isCreate) 1 else 0) {
+            "5002322: unexpected battery hook count in SteamLink.$signature"
+        }
+        if (isCreate) check(batteryCalls.single().name == "request")
+        check(calls.filterNot { it.definingClass == batteryDescriptor } == source.calledMethods()) {
+            "5002322: non-battery method calls changed in SteamLink.$signature"
+        }
+        check(output.implementation?.instructions?.toList().orEmpty().count() ==
+            source.implementation?.instructions?.toList().orEmpty().count() + if (isCreate) 1 else 0) {
+            "5002322: unexpected instruction count change in SteamLink.$signature"
+        }
+        val nonBatteryInstructions = output.implementation?.instructions?.toList().orEmpty().filterNot {
+            ((it as? ReferenceInstruction)?.reference as? MethodReference)?.definingClass == batteryDescriptor
+        }
+        check(nonBatteryInstructions.map { it.opcode } ==
+            source.implementation?.instructions?.toList().orEmpty().map { it.opcode }) {
+            "5002322: stock opcode sequence changed in SteamLink.$signature"
+        }
     }
 }
 

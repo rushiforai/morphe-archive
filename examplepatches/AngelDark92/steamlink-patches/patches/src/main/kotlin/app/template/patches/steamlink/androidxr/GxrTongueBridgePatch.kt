@@ -78,7 +78,6 @@ val gxrModernTongueBridgePatch = rawResourcePatch(
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_MODERN_TONGUE_BRIDGE.toTypedArray())
     dependsOn(
-        xrPermissionSettingsBootstrapPatch,
         gxrFaceTrackingManifestPatch,
     )
 

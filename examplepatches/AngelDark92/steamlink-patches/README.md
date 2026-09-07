@@ -44,7 +44,7 @@ Copy the APK to your headset. If you already have another listed build, select t
 |---|---|
 | 2.0.20 / 5001712 | **Galaxy XR recommended set (2.0.20/5001712)** |
 | 2.0.20 / 5001740 | **Galaxy XR legacy foundation (through 2.0.22/5002244)** — analysis-only adaptation; pristine-APK patching and headset validation pending |
-| 2.0.22 / 5002172, 5002206, or 5002244 | **Galaxy XR legacy foundation (through 2.0.22/5002244)** |
+| 2.0.22 / 5002244 | **Galaxy XR legacy foundation (through 2.0.22/5002244)** |
 | 2.0.22 / 5002318 | **Galaxy XR recommended set (2.0.22/5002318)** |
 | 2.0.22 / 5002322 | **Galaxy XR recommended set (2.0.22/5002322)** |
 
@@ -54,7 +54,10 @@ Builds **2.0.22/5002296** and **2.0.22/5002313** have individually selectable pa
 
 - For either legacy bundle, keep **HMD identity** on **Recommended for this build**, or select **Meta Quest Pro**. If you previously saved Samsung, Stock, or Pico, change that setting to use the recommended identity.
 - The 5002322 bundle includes high-resolution output, face tracking support, microphone tuning, OLED color calibration, unrestricted battery usage, and Visual Delay Fix. The 5002318 bundle also includes Device identity.
-- High-resolution output is unavailable on **5001740, 5002172, and 5002206**. The high-resolution patch has headset validation on **5002322**; other supported builds have static validation, with further details in the [technical reference](TECHNICAL_REFERENCE.md#compatibility-and-implementation-notes).
+- On **2.0.22/5002322**, **Device identity** is available only when explicitly selected; it is not in the recommended bundle. Select **Meta Quest Pro** explicitly to test that identity. Native identity profiles populate the exact `xrvst2ue`/`xrvst2` product entries, because this build does not use `unknown` when its product entry is missing. This correction still needs a new headset run and does not fix the separate streaming regression.
+- Older bundles explicitly include **Startup permission requests (before 5002322)** and **Startup splash and XR launch mode (before 5002322)**. These are separately selectable and unavailable on 5002322. Face/tongue and high-resolution patches do not silently select them.
+- On **5002322**, Valve owns the launcher, splash, XR activity launch mode and tracking/microphone/Bluetooth permission requests. **Unrestricted battery usage** only opens battery settings from the stock activity. The high-resolution rendering fix remains active; the revised startup flow requires headset validation.
+- High-resolution output is unavailable on **5001740**. The high-resolution patch has headset validation on **5002322**; other supported builds have static validation, with further details in the [technical reference](TECHNICAL_REFERENCE.md#compatibility-and-implementation-notes).
 - **Appear on top (legacy)** and **Change package name** are optional and never recommended automatically. Do not add Appear on top to the 5002322 bundle. Change package name allows a separate install alongside the original only on its compatible builds.
 
 ## Optional: face and tongue tracking

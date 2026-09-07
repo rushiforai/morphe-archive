@@ -47,10 +47,18 @@ final class ControlPanel extends LinearLayout {
     private final int touchSlop;
     private final Handler idleHandler = new Handler(Looper.getMainLooper());
 
+    private LinearLayout mainRow;
     private TextView collapsedChip;
     private LinearLayout expandedRow;
     private TextView aspectChip;
     private final TextView[] speedChips = new TextView[SPEEDS.length];
+
+    private LinearLayout subtitleRow;
+    private TextView subtitleToggleChip;
+    private TextView subSizeChip;
+    private TextView subFontChip;
+    private TextView subBackgroundChip;
+    private TextView subEdgeChip;
 
     // Drag state.
     private float downRawX;
@@ -72,16 +80,23 @@ final class ControlPanel extends LinearLayout {
 
         touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
 
-        setOrientation(HORIZONTAL);
-        setGravity(Gravity.CENTER_VERTICAL);
+        // Vertical so the subtitle controls get their own row instead of
+        // making one very long strip.
+        setOrientation(VERTICAL);
         setPadding(dp(6), dp(6), dp(6), dp(6));
         setBackground(rounded(COLOR_PANEL, dp(22)));
         // Sit above the player's own controls, which the app draws in-tree.
         setElevation(dp(8));
 
-        addView(buildDragHandle());
-        addView(buildCollapsedChip());
-        addView(buildExpandedRow());
+        mainRow = new LinearLayout(context);
+        mainRow.setOrientation(HORIZONTAL);
+        mainRow.setGravity(Gravity.CENTER_VERTICAL);
+        mainRow.addView(buildDragHandle());
+        mainRow.addView(buildCollapsedChip());
+        mainRow.addView(buildExpandedRow());
+        addView(mainRow);
+
+        addView(buildSubtitleRow());
 
         setExpanded(false);
         syncSelection();
@@ -158,6 +173,16 @@ final class ControlPanel extends LinearLayout {
         });
         expandedRow.addView(aspectChip);
 
+        subtitleToggleChip = chip("CC", true);
+        subtitleToggleChip.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                poke();
+                setSubtitlesShown(subtitleRow.getVisibility() != VISIBLE);
+            }
+        });
+        expandedRow.addView(subtitleToggleChip);
+
         TextView close = chip("\u00D7", true);
         close.setOnClickListener(new OnClickListener() {
             @Override
@@ -169,6 +194,83 @@ final class ControlPanel extends LinearLayout {
         expandedRow.addView(close);
 
         return expandedRow;
+    }
+
+    /**
+     * The subtitle controls. Each chip shows its current value and cycles on
+     * tap, which keeps the row narrow enough to sit over a phone player.
+     */
+    private LinearLayout buildSubtitleRow() {
+        subtitleRow = new LinearLayout(getContext());
+        subtitleRow.setOrientation(HORIZONTAL);
+        subtitleRow.setGravity(Gravity.CENTER_VERTICAL);
+        subtitleRow.setPadding(0, dp(6), 0, 0);
+        subtitleRow.setVisibility(GONE);
+
+        subSizeChip = chip(Subtitles.sizeLabel(Prefs.subtitleSize()), true);
+        subSizeChip.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                poke();
+                int next = (Prefs.subtitleSize() + 1) % Subtitles.sizeCount();
+                Prefs.subtitleSize(next);
+                subSizeChip.setText(Subtitles.sizeLabel(next));
+                applySubtitles();
+            }
+        });
+        subtitleRow.addView(subSizeChip);
+
+        subFontChip = chip(Subtitles.fontLabel(Prefs.subtitleFont()), true);
+        subFontChip.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                poke();
+                int next = (Prefs.subtitleFont() + 1) % Subtitles.fontCount();
+                Prefs.subtitleFont(next);
+                subFontChip.setText(Subtitles.fontLabel(next));
+                applySubtitles();
+            }
+        });
+        subtitleRow.addView(subFontChip);
+
+        subBackgroundChip = chip(Subtitles.backgroundLabel(Prefs.subtitleBackground()), true);
+        subBackgroundChip.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                poke();
+                int next = (Prefs.subtitleBackground() + 1) % Subtitles.backgroundCount();
+                Prefs.subtitleBackground(next);
+                subBackgroundChip.setText(Subtitles.backgroundLabel(next));
+                applySubtitles();
+            }
+        });
+        subtitleRow.addView(subBackgroundChip);
+
+        subEdgeChip = chip(Subtitles.edgeLabel(Prefs.subtitleEdge()), true);
+        subEdgeChip.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                poke();
+                int next = (Prefs.subtitleEdge() + 1) % Subtitles.edgeCount();
+                Prefs.subtitleEdge(next);
+                subEdgeChip.setText(Subtitles.edgeLabel(next));
+                applySubtitles();
+            }
+        });
+        subtitleRow.addView(subEdgeChip);
+
+        return subtitleRow;
+    }
+
+    private void setSubtitlesShown(boolean shown) {
+        subtitleRow.setVisibility(shown ? VISIBLE : GONE);
+        subtitleToggleChip.setBackground(rounded(shown ? COLOR_CHIP_SELECTED : COLOR_CHIP, dp(16)));
+    }
+
+    private void applySubtitles() {
+        // Styling hangs off the player's own view tree, so start from the root
+        // this panel is attached to.
+        Subtitles.apply(getRootView());
     }
 
     private TextView chip(String text, boolean clickable) {
@@ -201,6 +303,9 @@ final class ControlPanel extends LinearLayout {
     private void setExpanded(boolean value) {
         collapsedChip.setVisibility(value ? GONE : VISIBLE);
         expandedRow.setVisibility(value ? VISIBLE : GONE);
+        // The subtitle row belongs to the expanded state; collapsing the panel
+        // folds it away too.
+        if (!value) setSubtitlesShown(false);
     }
 
     private void applySpeed(float speed) {

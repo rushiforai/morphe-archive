@@ -1,0 +1,30 @@
+/*
+ * Forked from:
+ * https://github.com/ReVanced/revanced-patches/blob/377d4e15016296b45d809697f7f69bce74badd3a/extensions/tiktok/stub/src/main/java/com/ss/android/ugc/aweme/feed/model/AwemeStatistics.java
+ */
+
+package com.ss.android.ugc.aweme.feed.model;
+
+@SuppressWarnings("unused")
+public class AwemeStatistics {
+    public long getPlayCount() {
+        throw new UnsupportedOperationException("Stub");
+    }
+
+    public long getDiggCount() {
+        throw new UnsupportedOperationException("Stub");
+    }
+
+    public long getCommentCount() {
+        throw new UnsupportedOperationException("Stub");
+    }
+
+    public long getCollectCount() {
+        throw new UnsupportedOperationException("Stub");
+    }
+
+    public long getShareCount() {
+        throw new UnsupportedOperationException("Stub");
+    }
+}
+

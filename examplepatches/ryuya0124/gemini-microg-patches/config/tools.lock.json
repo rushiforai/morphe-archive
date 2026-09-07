@@ -1,0 +1,26 @@
+{
+  "morphe": {
+    "version": "1.15.0",
+    "url": "https://github.com/MorpheApp/morphe-desktop/releases/download/v1.15.0/morphe-desktop-1.15.0-all.jar",
+    "sha256": "727e3744aa5c0006474590de6f4041bd55edc59f3d6cb9b596e95f7116384506",
+    "file": "morphe-desktop.jar"
+  },
+  "patches": {
+    "version": "1.41.0",
+    "url": "https://github.com/MorpheApp/morphe-patches/releases/download/v1.41.0/patches-1.41.0.mpp",
+    "sha256": "679a86aaaa50572e9c0852fd990e937edfd9b616ecf5d350048458598ec785df",
+    "file": "patches.mpp"
+  },
+  "kotlin": {
+    "version": "2.4.10",
+    "url": "https://github.com/JetBrains/kotlin/releases/download/v2.4.10/kotlin-compiler-2.4.10.zip",
+    "sha256": "473dd66c7a3ef4b182065b3da670466c1bf2773a9dbb0ed8b33a39fe9d4f876d",
+    "file": "kotlin-compiler.zip"
+  },
+  "r8": {
+    "version": "9.4.17",
+    "url": "https://dl.google.com/dl/android/maven2/com/android/tools/r8/9.4.17/r8-9.4.17.jar",
+    "sha256": "2100511344497f041644a4d63fb7be8a516ce9bace30b7d17ab27cc93a0e58d4",
+    "file": "r8.jar"
+  }
+}

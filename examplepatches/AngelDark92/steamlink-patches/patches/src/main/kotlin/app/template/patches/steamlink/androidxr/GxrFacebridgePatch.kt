@@ -43,6 +43,12 @@ private val gxrFacebridgeLibPatch = rawResourcePatch {
 }
 
 internal val gxrFaceTrackingManifestPatch = resourcePatch {
+    execute {
+        if (isFullFacebridgeSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode) ||
+            isModernTongueBridgeSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) {
+            ensureIdsXml(get("res/values/ids.xml"))
+        }
+    }
     finalize {
         document("AndroidManifest.xml").use { doc ->
             val versionName = packageMetadata.versionName
@@ -74,11 +80,8 @@ val gxrFacebridgePatch = rawResourcePatch(
     default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_FULL_FACEBRIDGE.toTypedArray())
-    // Keep the complete legacy launcher foundation while using only the minimal
-    // permission/settings activity on native-XR builds. The activity requests FACE_TRACKING.
+    // Permission requests and startup UI are selected explicitly by older-build bundles.
     dependsOn(
-        xrLauncherBootstrapPatch,
-        xrPermissionSettingsBootstrapPatch,
         gxrFacebridgeLibPatch,
         gxrFaceTrackingManifestPatch,
     )

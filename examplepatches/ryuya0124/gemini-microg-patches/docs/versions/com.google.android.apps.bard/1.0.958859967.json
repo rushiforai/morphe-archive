@@ -1,0 +1,58 @@
+{
+  "appName": "Gemini launcher",
+  "packageName": "com.google.android.apps.bard",
+  "versionName": "1.0.958859967",
+  "versionCode": "332",
+  "inputSha256": {
+    "gemini-base.apk": "d080d9d12b78d313bc9bb72f8ee46d131e0d6e30db15901a1a3994a79b969ef6"
+  },
+  "validation": [
+    "2026-09-06: launcher used with verified Google 17.54.18; regenerated DEX matches working build"
+  ],
+  "hooks": {
+    "GEMINI_TARGET_REDIRECT": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "com.google.android.googlequicksearchbox"
+      ],
+      "methodSignatures": [],
+      "expectedMatches": 7,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": "Replace seven exact-package string references with the cloned Google package."
+    },
+    "SPLIT_RESTRICTION_REMOVAL": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [],
+      "methodSignatures": [],
+      "expectedMatches": null,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": "Remove requiredSplitTypes, splitTypes and vending.splits metadata."
+    },
+    "APP_LABEL_UPDATE": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [],
+      "methodSignatures": [],
+      "expectedMatches": null,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": "Gemini (Morphe)"
+    }
+  }
+}

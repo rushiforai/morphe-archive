@@ -18,6 +18,7 @@ import app.morphe.extension.reddit.settings.preference.categories.AdsPreferenceC
 import app.morphe.extension.reddit.settings.preference.categories.LayoutPreferenceCategory;
 import app.morphe.extension.reddit.settings.preference.categories.MiscellaneousPreferenceCategory;
 import app.morphe.extension.reddit.settings.preference.categories.NavigationBarPreferenceCategory;
+import app.morphe.extension.reddit.settings.preference.categories.NsfwPreferenceCategory;
 import app.morphe.extension.reddit.settings.preference.categories.SidebarPreferenceCategory;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.settings.BaseSettings;
@@ -43,6 +44,7 @@ public class RedditPreferenceFragment extends AbstractPreferenceFragment {
 
         // Custom categories reference app specific Settings class.
         new AdsPreferenceCategory(context, preferenceScreen);
+        new NsfwPreferenceCategory(context, preferenceScreen);
         new NavigationBarPreferenceCategory(context, preferenceScreen);
         new SidebarPreferenceCategory(context, preferenceScreen);
         new LayoutPreferenceCategory(context, preferenceScreen);

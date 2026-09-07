@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Stands in for Reddit's brand mark in the home app bar while NSFW mode is on, so the mode is
+    readable at a glance from the one place that is always on screen.
+
+    #ff585b is Reddit's own NSFW colour - it is the value of `alienblue_nsfw`, `midnight_nsfw`,
+    `mint_nsfw`, `night_nsfw` and every other themed variant in the app, so this reads as the
+    app's own 18+ red rather than an arbitrary one.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#ff585b"
+        android:pathData="M12,2C6.477,2 2,6.477 2,12s4.477,10 10,10 10,-4.477 10,-10S17.523,2 12,2z"/>
+    <path
+        android:fillColor="#ffffffff"
+        android:pathData="M12,5.75c0.76,0 1.375,0.616 1.375,1.375v6.25a1.375,1.375 0,0 1,-2.75 0V7.125C10.625,6.366 11.24,5.75 12,5.75z"/>
+    <path
+        android:fillColor="#ffffffff"
+        android:pathData="M12,16.35m-1.5,0a1.5,1.5 0,1 0,3 0a1.5,1.5 0,1 0,-3 0"/>
+</vector>

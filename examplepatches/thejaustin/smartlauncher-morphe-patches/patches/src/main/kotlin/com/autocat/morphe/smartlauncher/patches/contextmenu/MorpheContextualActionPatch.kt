@@ -11,14 +11,42 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.autocat.morphe.smartlauncher.shared.Constants
 
-object PopupListFingerprint : Fingerprint(
+object AppPopupListFingerprint : Fingerprint(
+    strings = listOf(
+        "ginlemon.iconpackstudio",
+    ),
+    custom = { method, _ ->
+        method.implementation?.instructions?.any { insn ->
+            if (insn is ReferenceInstruction) {
+                val ref = insn.reference
+                ref is MethodReference &&
+                    (ref.name == "d" || ref.name.length <= 2) &&
+                    ref.parameterTypes.let { it.size == 1 && it[0].toString() == "Ljava/util/List;" } &&
+                    ref.returnType == "V"
+            } else false
+        } ?: false
+    },
+)
+
+object WidgetPopupListFingerprint : Fingerprint(
     strings = listOf(
         "contextualMenuPopup",
-        "Button ID is not valid: ",
     ),
-    // No filters — MethodCallFilter's regex silently rejects short obfuscated class names
-    // like "Lrj;" due to a character-class boundary mismatch. We scan instructions manually.
+    custom = { method, _ ->
+        method.implementation?.instructions?.any { insn ->
+            if (insn is ReferenceInstruction) {
+                val ref = insn.reference
+                ref is MethodReference &&
+                    (ref.name == "d" || ref.name.length <= 2) &&
+                    ref.parameterTypes.let { it.size == 1 && it[0].toString() == "Ljava/util/List;" } &&
+                    ref.returnType == "V"
+            } else false
+        } ?: false
+    },
 )
+
+// Retain alias for backwards compatibility
+val PopupListFingerprint = WidgetPopupListFingerprint
 
 object ContextMenuFingerprint : Fingerprint(
     strings = listOf(
@@ -47,42 +75,53 @@ val morpheContextualActionPatch = bytecodePatch(
 
     execute {
         // 1. Inject dedicated Archive item into popup menu list.
+        // Applies to both app-icon long-press popups (AppPopupListFingerprint) and
+        // widget/desktop contextual popups (WidgetPopupListFingerprint).
+        //
         // IMPORTANT: replaceInstruction preserves the method's bytecode size and does not
         // shift any jump offsets or try-catch handler addresses. addInstruction would corrupt
-        // the coroutine state-machine switch table and cause ART class-verification failure
+        // the state-machine switch table and cause ART class-verification failure
         // (instant crash at startup). The replacement calls injectAndShow(), which injects
         // the archive item and then drives the original popup-show call via reflection.
-        PopupListFingerprint.matchOrNull()?.let { match ->
+        listOfNotNull(
+            AppPopupListFingerprint.matchOrNull(),
+            WidgetPopupListFingerprint.matchOrNull(),
+        ).forEach { match ->
             val method = match.method
-            val instructions = method.implementation?.instructions ?: return@let
+            val instructions = method.implementation?.instructions ?: return@forEach
 
-            // Manually locate the rj.d(List)V invoke — filters omitted because MethodCallFilter
-            // fails to match obfuscated short class names like "Lrj;" at the patcher level.
+            // Locate the popup show invoke: method named "d" (or short obfuscated name) with single List param and void return.
+            // Dynamically matching by signature avoids fragile hardcoding of obfuscated class names
+            // (e.g. "Lrj;" in build 017, "Lnk;" in build 018).
             var showInsnIndex = -1
             for ((idx, insn) in instructions.withIndex()) {
                 if (insn is ReferenceInstruction) {
                     val ref = insn.reference
-                    if (ref is MethodReference && ref.definingClass == "Lrj;" && ref.name == "d") {
+                    if (ref is MethodReference &&
+                        (ref.name == "d" || ref.name.length <= 2) &&
+                        ref.parameterTypes.let { it.size == 1 && it[0].toString() == "Ljava/util/List;" } &&
+                        ref.returnType == "V"
+                    ) {
                         showInsnIndex = idx
                         break
                     }
                 }
             }
-            if (showInsnIndex < 0) return@let
+            if (showInsnIndex >= 0) {
+                val (regPopup, regList) = try {
+                    val insn = method.getInstruction<FiveRegisterInstruction>(showInsnIndex)
+                    Pair("v${insn.registerC}", "v${insn.registerD}")
+                } catch (t: Throwable) {
+                    val insn = method.getInstruction<RegisterRangeInstruction>(showInsnIndex)
+                    val start = insn.startRegister
+                    Pair("v$start", "v${start + 1}")
+                }
 
-            val (regPopup, regList) = try {
-                val insn = method.getInstruction<FiveRegisterInstruction>(showInsnIndex)
-                Pair("v${insn.registerC}", "v${insn.registerD}")
-            } catch (t: Throwable) {
-                val insn = method.getInstruction<RegisterRangeInstruction>(showInsnIndex)
-                val start = insn.startRegister
-                Pair("v$start", "v${start + 1}")
+                method.replaceInstruction(
+                    showInsnIndex,
+                    "invoke-static {$regPopup, $regList}, Lcom/autocat/morphe/smartlauncher/extension/MorpheMenuInjector;->injectAndShow(Ljava/lang/Object;Ljava/util/List;)V",
+                )
             }
-
-            method.replaceInstruction(
-                showInsnIndex,
-                "invoke-static {$regPopup, $regList, p0}, Lcom/autocat/morphe/smartlauncher/extension/MorpheMenuInjector;->injectAndShow(Ljava/lang/Object;Ljava/util/List;Ljava/lang/Object;)V",
-            )
         }
 
         // 2. Intercept Uninstall action handler for smart prompt

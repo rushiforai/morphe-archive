@@ -76,7 +76,7 @@ private fun verifyDiff(
     val unexpected = original.indices.filter { index ->
         original[index] != patched[index] &&
             index !in shaderRange &&
-            (precision != VideoOutputPrecision.RGB10_A2_EXPERIMENTAL ||
+            (precision == VideoOutputPrecision.SRGB8_HIGHP ||
                 swapchainRanges.none { index in it })
     }
     require(unexpected.isEmpty()) {
@@ -92,7 +92,7 @@ private fun verifyDiff(
     } else {
         SWAPCHAIN_FORMAT_OFFSETS_5002244.forEach { offset ->
             require(!original.copyOfRange(offset, offset + 4).contentEquals(patched.copyOfRange(offset, offset + 4))) {
-                "RGB10_A2 did not change swapchain instruction at 0x${offset.toString(16)}"
+                "${precision.optionValue} did not change swapchain instruction at 0x${offset.toString(16)}"
             }
         }
     }

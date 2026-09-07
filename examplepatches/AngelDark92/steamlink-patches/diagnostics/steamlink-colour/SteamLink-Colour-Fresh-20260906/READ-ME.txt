@@ -1,0 +1,39 @@
+STEAM LINK COLOUR DEPTH
+Captured: 2026-09-06T13:36:16.0554405+02:00
+
+PC / encoder: UNKNOWN - no fresh host negotiation marker
+Headset decoder: UNKNOWN - stock logs do not establish actual decoded sample precision
+OpenXR image: 8-BIT BOTTLENECK OBSERVED - sampled projection includes RGBA8/sRGB8
+Physical screen: UNVERIFIED - compositor/panel precision is not measured by this tool
+
+Host mode values: 
+Sampled projection formats: 35907
+Sampled frames: 3
+Capture counts: host lines=118; app log lines=143; trace lines=33
+Decoder candidate words (NOT proof): color-format
+Codec components in capture: c2.qti.hevc.decoder
+Codec pixel-format configurations (not buffer proof): 54
+Successfully allocated swapchain formats (not submission proof): 35907
+
+BUFFERED CONTEXT - NOT CURRENT-CONNECTION PROOF:
+Host modes present BEFORE capture: 1
+Projection formats in buffered PID logs (may overlap capture): 35907
+Buffered projection frame samples: 3
+Buffered successful swapchain allocation formats: 35907
+Buffered codec components: c2.qti.hevc.decoder
+Buffered codec pixel-format configurations: 54
+
+Format key (this GLES trace): 35907=GL_SRGB8_ALPHA8, 32856=GL_RGBA8 (8-bit RGB);
+32857=GL_RGB10_A2 (10-bit RGB); 34842=GL_RGBA16F; 34836=GL_RGBA32F.
+Codec2 raw.pixel-format 54 = Android P010 (10-bit storage configuration, not sample validation).
+Trace samples projection formats on successful xrEndFrame; it does not establish panel output.
+
+NEXT STEP:
+8-bit projection: that sampled stage stores only 8 bits/channel, even with a 10-bit stream.
+Unknown decoder: need output-format + actual output-buffer format tied to the active decoder.
+High-precision projection: still need decoded sample/readback evidence and compositor/display evidence.
+A gradient, screenshot, Main10 profile, highp shader or HDR flag alone cannot prove the full path.
+
+CAPTURE NOTES:
+Android logcat is bounded by device start time and current Steam Link PID. Codec-service logs outside that PID are excluded. Ring-buffer loss is possible.
+Buffered context reads retained logs for that PID with selected colour/codec tags; it may overlap capture or predate this connection. PID reuse is possible. Never treated as fresh evidence.

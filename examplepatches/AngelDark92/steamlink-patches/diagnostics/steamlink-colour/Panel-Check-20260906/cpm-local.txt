@@ -1,0 +1,3304 @@
+CPM Nodes:
+  Node Passthrough Root (stateIndex=0, z=-2) id=2: 
+  hidden on both (requested-vis=hide) (stereo-override=no override) buffer=null bufferOrigin=TopLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 0.000) computedPosition=(0.000 0.000 0.000) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(1.000 1.000 1.000) computedScale=(1.000 1.000 1.000) screenBounds=(0 0 -1 -1) requestedAlpha=0.000 computedAlpha=0.000 type=INVALID isSysUi=false isAndroid2d=false isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=false isSecure=false worldLocked=false canReceiveInput=true layerCanReceiveInput=true focusable=false isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=-1 XrClientId=-1 opaque=0 dataspace=UNKNOWN pixelsPerMeter=-1.000000 computedPixelsPerMeter=1440.000000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+    Node Passthrough node (Left) (stateIndex=0, z=0) id=3: 
+    hidden on left (requested-vis=show) (stereo-override=left) buffer=null bufferOrigin=TopLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 0.000) computedPosition=(0.000 0.000 0.000) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(1.000 1.000 1.000) computedScale=(1.000 1.000 1.000) screenBounds=(0 0 -1 -1) requestedAlpha=1.000 computedAlpha=0.000 type=PASSTHROUGH isSysUi=false isAndroid2d=false isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=false isSecure=false worldLocked=false canReceiveInput=true layerCanReceiveInput=true focusable=false isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=-1 XrClientId=-1 opaque=1 dataspace=0x8820000 pixelsPerMeter=-1.000000 computedPixelsPerMeter=1440.000000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+    Node Passthrough node (Right) (stateIndex=0, z=0) id=4: 
+    hidden on right (requested-vis=show) (stereo-override=right) buffer=null bufferOrigin=TopLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 0.000) computedPosition=(0.000 0.000 0.000) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(1.000 1.000 1.000) computedScale=(1.000 1.000 1.000) screenBounds=(0 0 -1 -1) requestedAlpha=1.000 computedAlpha=0.000 type=PASSTHROUGH isSysUi=false isAndroid2d=false isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=false isSecure=false worldLocked=false canReceiveInput=true layerCanReceiveInput=true focusable=false isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=-1 XrClientId=-1 opaque=1 dataspace=0x8820000 pixelsPerMeter=-1.000000 computedPixelsPerMeter=1440.000000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+Node Root (stateIndex=0, z=0) id=1: 
+visible on both (requested-vis=show) (stereo-override=no override) buffer=null bufferOrigin=TopLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 0.000) computedPosition=(0.000 0.000 0.000) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(1.000 1.000 1.000) computedScale=(1.000 1.000 1.000) screenBounds=(0 0 -1 -1) requestedAlpha=1.000 computedAlpha=1.000 type=INVALID isSysUi=false isAndroid2d=false isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=false isSecure=false worldLocked=false canReceiveInput=true layerCanReceiveInput=true focusable=false isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=-1 XrClientId=-1 opaque=0 dataspace=UNKNOWN pixelsPerMeter=-1.000000 computedPixelsPerMeter=0.000000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+  Node  (stateIndex=0, z=0) id=21: 
+  visible on both (requested-vis=show) (stereo-override=no override) buffer=null bufferOrigin=TopLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 0.000) computedPosition=(0.000 0.000 0.000) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(1.000 1.000 1.000) computedScale=(1.000 1.000 1.000) screenBounds=(0 0 -1 -1) requestedAlpha=1.000 computedAlpha=1.000 type=INVALID isSysUi=false isAndroid2d=false isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=false isSecure=false worldLocked=false canReceiveInput=true layerCanReceiveInput=true focusable=false isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=-1 XrClientId=-1 opaque=0 dataspace=UNKNOWN pixelsPerMeter=-1.000000 computedPixelsPerMeter=1440.000000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+  Node  (stateIndex=0, z=0) id=26: 
+  visible on both (requested-vis=show) (stereo-override=no override) buffer=null bufferOrigin=TopLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 0.000) computedPosition=(0.000 0.000 0.000) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(1.000 1.000 1.000) computedScale=(1.000 1.000 1.000) screenBounds=(0 0 -1 -1) requestedAlpha=1.000 computedAlpha=1.000 type=INVALID isSysUi=false isAndroid2d=false isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=false isSecure=false worldLocked=false canReceiveInput=true layerCanReceiveInput=true focusable=false isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=-1 XrClientId=-1 opaque=0 dataspace=UNKNOWN pixelsPerMeter=-1.000000 computedPixelsPerMeter=1440.000000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+  Node Task=25 (stateIndex=0, z=0) id=28: 
+  visible on both (requested-vis=show) (stereo-override=no override) buffer=null bufferOrigin=TopLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 0.000) computedPosition=(0.000 0.000 0.000) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(1.000 1.000 1.000) computedScale=(1.000 1.000 1.000) screenBounds=(0 0 -1 -1) requestedAlpha=1.000 computedAlpha=1.000 type=INVALID isSysUi=false isAndroid2d=false isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=false isSecure=false worldLocked=false canReceiveInput=true layerCanReceiveInput=true focusable=false isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=-1 XrClientId=-1 opaque=0 dataspace=UNKNOWN pixelsPerMeter=-1.000000 computedPixelsPerMeter=1440.000000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+    Node ActivityRecord{da49a4f u0 com.valvesoftware.steamlinkvr/android.app.NativeActivity t25 xrDesktopMode=full-space-unmanaged} (stateIndex=0, z=0) id=27: 
+    visible on both (requested-vis=show) (stereo-override=no override) buffer=null bufferOrigin=TopLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 0.000) computedPosition=(0.000 0.000 0.000) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(1.000 1.000 1.000) computedScale=(1.000 1.000 1.000) screenBounds=(0 0 -1 -1) requestedAlpha=1.000 computedAlpha=1.000 type=INVALID isSysUi=false isAndroid2d=false isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=true isSecure=false worldLocked=false canReceiveInput=true layerCanReceiveInput=true focusable=false isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=-1 XrClientId=-1 opaque=0 dataspace=UNKNOWN pixelsPerMeter=-1.000000 computedPixelsPerMeter=1440.000000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+      Node jni node (stateIndex=0, z=0) id=29: 
+      visible on both (requested-vis=show) (stereo-override=no override) buffer=null bufferOrigin=TopLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 0.000) computedPosition=(0.000 0.000 0.000) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(1.000 1.000 1.000) computedScale=(1.000 1.000 1.000) screenBounds=(0 0 -1 -1) requestedAlpha=1.000 computedAlpha=1.000 type=INVALID isSysUi=false isAndroid2d=false isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=true isSecure=false worldLocked=false canReceiveInput=true layerCanReceiveInput=true focusable=false isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=-1 XrClientId=-1 opaque=0 dataspace=UNKNOWN pixelsPerMeter=-1.000000 computedPixelsPerMeter=1440.000000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+        Node steamlinkvr (stateIndex=0, z=0) id=30: 
+        visible on both (requested-vis=show) (stereo-override=no override) buffer=null bufferOrigin=TopLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 0.000) computedPosition=(0.000 0.000 0.000) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(1.000 1.000 1.000) computedScale=(1.000 1.000 1.000) screenBounds=(0 0 -1 -1) requestedAlpha=1.000 computedAlpha=1.000 type=INVALID isSysUi=false isAndroid2d=false isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=true isSecure=false worldLocked=false canReceiveInput=true layerCanReceiveInput=true focusable=false isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=-1 XrClientId=5 opaque=0 dataspace=UNKNOWN pixelsPerMeter=-1.000000 computedPixelsPerMeter=1440.000000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+          Node main (stateIndex=0, z=0) id=31: 
+          visible on both (requested-vis=show) (stereo-override=no override) buffer=null bufferOrigin=TopLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 0.000) computedPosition=(0.000 0.000 0.000) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(1.000 1.000 1.000) computedScale=(1.000 1.000 1.000) screenBounds=(0 0 -1 -1) requestedAlpha=1.000 computedAlpha=1.000 type=INVALID isSysUi=false isAndroid2d=false isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=true isSecure=false worldLocked=false canReceiveInput=true layerCanReceiveInput=true focusable=false isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=-1 XrClientId=5 opaque=0 dataspace=UNKNOWN pixelsPerMeter=-1.000000 computedPixelsPerMeter=1440.000000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+          Node  (stateIndex=1, z=0) id=31: 
+          visible on left (requested-vis=show) (stereo-override=left) buffer=1536x1536 sourceCrop=(0 0 1536 1536) bufferRotation=0 bufferOrigin=BottomLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 0.000) computedPosition=(0.000 0.000 0.000) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(1.000 1.000 1.000) computedScale=(1.000 1.000 1.000) screenBounds=(0 0 -1 -1) requestedAlpha=1.000 computedAlpha=1.000 type=STEREO_PROJECTION isSysUi=false isAndroid2d=false isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=true isSecure=false worldLocked=false canReceiveInput=false layerCanReceiveInput=false focusable=false isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=-1 XrClientId=5 opaque=1 dataspace=V0_SRGB_LINEAR pixelsPerMeter=-1.000000 computedPixelsPerMeter=1440.000000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+          Node  (stateIndex=2, z=0) id=31: 
+          visible on right (requested-vis=show) (stereo-override=right) buffer=1536x1536 sourceCrop=(0 0 1536 1536) bufferRotation=0 bufferOrigin=BottomLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 0.000) computedPosition=(0.000 0.000 0.000) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(1.000 1.000 1.000) computedScale=(1.000 1.000 1.000) screenBounds=(0 0 -1 -1) requestedAlpha=1.000 computedAlpha=1.000 type=STEREO_PROJECTION isSysUi=false isAndroid2d=false isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=true isSecure=false worldLocked=false canReceiveInput=false layerCanReceiveInput=false focusable=false isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=-1 XrClientId=5 opaque=1 dataspace=V0_SRGB_LINEAR pixelsPerMeter=-1.000000 computedPixelsPerMeter=1440.000000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+          Node  (stateIndex=3, z=0) id=31: 
+          visible on left (requested-vis=show) (stereo-override=left) buffer=1536x1536 sourceCrop=(0 0 1536 1536) bufferRotation=0 bufferOrigin=BottomLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 0.000) computedPosition=(0.000 0.000 0.000) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(1.000 1.000 1.000) computedScale=(1.000 1.000 1.000) screenBounds=(0 0 -1 -1) requestedAlpha=1.000 computedAlpha=1.000 type=STEREO_PROJECTION isSysUi=false isAndroid2d=false isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=true isSecure=false worldLocked=false canReceiveInput=false layerCanReceiveInput=false focusable=false isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=-1 XrClientId=5 opaque=0 dataspace=V0_SRGB_LINEAR pixelsPerMeter=-1.000000 computedPixelsPerMeter=1440.000000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+          Node  (stateIndex=4, z=0) id=31: 
+          visible on right (requested-vis=show) (stereo-override=right) buffer=1536x1536 sourceCrop=(0 0 1536 1536) bufferRotation=0 bufferOrigin=BottomLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 0.000) computedPosition=(0.000 0.000 0.000) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(1.000 1.000 1.000) computedScale=(1.000 1.000 1.000) screenBounds=(0 0 -1 -1) requestedAlpha=1.000 computedAlpha=1.000 type=STEREO_PROJECTION isSysUi=false isAndroid2d=false isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=true isSecure=false worldLocked=false canReceiveInput=false layerCanReceiveInput=false focusable=false isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=-1 XrClientId=5 opaque=0 dataspace=V0_SRGB_LINEAR pixelsPerMeter=-1.000000 computedPixelsPerMeter=1440.000000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+          Node  (stateIndex=5, z=0) id=31: 
+          visible on both (requested-vis=show) (stereo-override=both) buffer=2x2 sourceCrop=(0 0 2 2) bufferRotation=0 bufferOrigin=TopLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 -1.000) computedPosition=(0.000 0.000 -1.000) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(0.001 0.001 0.500) computedScale=(0.001 0.001 0.500) screenBounds=(0 0 -1 -1) requestedAlpha=1.000 computedAlpha=1.000 type=QUAD isSysUi=false isAndroid2d=false isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=true isSecure=false worldLocked=false canReceiveInput=false layerCanReceiveInput=false focusable=false isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=-1 XrClientId=5 opaque=0 dataspace=UNKNOWN pixelsPerMeter=-1.000000 computedPixelsPerMeter=1440.000000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+  Node  (stateIndex=0, z=10000) id=8: 
+  hidden on both (requested-vis=hide) (stereo-override=no override) buffer=null bufferOrigin=TopLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 0.000) computedPosition=(0.000 0.000 0.000) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(1.000 1.000 1.000) computedScale=(1.000 1.000 1.000) screenBounds=(0 0 -1 -1) requestedAlpha=1.000 computedAlpha=1.000 type=INVALID isSysUi=true isAndroid2d=false isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=false isSecure=false worldLocked=false canReceiveInput=true layerCanReceiveInput=true focusable=false isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=-1 XrClientId=-1 opaque=0 dataspace=UNKNOWN pixelsPerMeter=-1.000000 computedPixelsPerMeter=1440.000000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+    Node com.android.systemui (stateIndex=0, z=0) id=10: 
+    hidden on both (requested-vis=show) (stereo-override=no override) buffer=null bufferOrigin=TopLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 0.000) computedPosition=(0.000 0.000 0.000) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(1.000 1.000 1.000) computedScale=(1.000 1.000 1.000) screenBounds=(0 0 -1 -1) requestedAlpha=1.000 computedAlpha=1.000 type=INVALID isSysUi=true isAndroid2d=false isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=false isSecure=false worldLocked=false canReceiveInput=true layerCanReceiveInput=true focusable=false isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=-1 XrClientId=1 opaque=0 dataspace=UNKNOWN pixelsPerMeter=-1.000000 computedPixelsPerMeter=1440.000000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+      Node main (stateIndex=0, z=0) id=11: 
+      hidden on both (requested-vis=show) (stereo-override=no override) buffer=null bufferOrigin=TopLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 0.000) computedPosition=(0.000 0.000 0.000) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(1.000 1.000 1.000) computedScale=(1.000 1.000 1.000) screenBounds=(0 0 -1 -1) requestedAlpha=1.000 computedAlpha=1.000 type=INVALID isSysUi=true isAndroid2d=false isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=false isSecure=false worldLocked=false canReceiveInput=true layerCanReceiveInput=true focusable=false isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=-1 XrClientId=1 opaque=0 dataspace=UNKNOWN pixelsPerMeter=-1.000000 computedPixelsPerMeter=1440.000000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+  Node MagnificationCPM (stateIndex=0, z=1000000) id=24: 
+  hidden on both (requested-vis=hide) (stereo-override=no override) buffer=500x500 sourceCrop=(0 0 -1 -1) bufferRotation=0 bufferOrigin=TopLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 -0.400) computedPosition=(0.000 0.000 -0.400) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(2.000 2.000 2.000) computedScale=(0.278 0.174 0.001) cornerRadius=(0.100 0.100) screenBounds=(0 0 -1 -1) requestedAlpha=1.000 computedAlpha=1.000 type=INVALID isSysUi=false isAndroid2d=false isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=false isSecure=false worldLocked=false canReceiveInput=true layerCanReceiveInput=true focusable=false isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=-1 XrClientId=-1 opaque=0 dataspace=UNKNOWN pixelsPerMeter=-1.000000 computedPixelsPerMeter=1440.000000 magnification=2.000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+  Node Black Fullscreen Overlay (stateIndex=0, z=99999997) id=7: 
+  hidden on both (requested-vis=hide) (stereo-override=no override) buffer=null bufferOrigin=TopLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 -0.200) computedPosition=(0.000 0.000 -0.200) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(450.000 450.000 450.000) computedScale=(450.000 450.000 450.000) screenBounds=(0 0 -1 -1) requestedAlpha=0.000 computedAlpha=0.000 type=INVALID isSysUi=false isAndroid2d=false isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=false isSecure=false worldLocked=false canReceiveInput=true layerCanReceiveInput=true focusable=false isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=-1 XrClientId=-1 opaque=0 dataspace=UNKNOWN pixelsPerMeter=-1.000000 computedPixelsPerMeter=1440.000000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+    Node #44 (stateIndex=0, z=2) id=12: 
+    hidden on both (requested-vis=show) (stereo-override=no override) buffer=2x2 sourceCrop=(0 0 2 2) bufferRotation=0 bufferOrigin=TopLeft depthTest(enabled/write/op)=0/0/NEVER spatialReprojection=disabled colorScaleBias=disabled requestedPosition=(0.000 0.000 0.000) computedPosition=(0.000 0.000 -0.200) requestedQuat=(1.000 0.000 0.000 0.000) composedQuat=(1.000 0.000 0.000 0.000) requestedScale=(1.000 1.000 1.000) computedScale=(0.312 0.312 225.000) cornerRadius=(0.000 0.000) screenBounds=(0 0 2 2) touchableRegion=(0 0 2 2) requestedAlpha=1.000 computedAlpha=0.000 type=INVALID isSysUi=false isAndroid2d=true isAppSpatialEmbeddedWindowLeash=false hasSubspace=false isImmersiveActivity=false isSecure=false worldLocked=false canReceiveInput=true layerCanReceiveInput=true focusable=true isInputSink=false SprEnabled=false quadViewsEnabled=false spaceTransformId=-1 input-id=44 XrClientId=-1 opaque=1 dataspace=V0_SRGB pixelsPerMeter=-1.000000 computedPixelsPerMeter=1440.000000 PropagatedPanelStates=<depthTesting=INHERITED, blendMode=TRANSPARENT (INHERITED), rimWidth=0.000> root2DSurfaceBoundsInMeters=(0.001 0.001) root2DSurfaceOffsetInMeters=(0.000 0.000) root2DSurfaceBoundsInPixels=(2.000 2.000) skipCapture=false hasPassthroughControl=false isDrmUnsupportedSplash=false environmentOcclusionEnabled=false isOverlayUi=false bypassForSceneOcclusion=false 
+
+XR Clients state:
+ com.valvesoftware.steamlinkvr: id=5, refresh_rate=90.000000
+  - session metrics: disabled: cpu_level=HIGH, gpu_level=HIGH
+ shared:android.uid.system: id=4
+ com.samsung.android.app.xr.home: id=3
+ OxrAudioClient: id=2
+ shared:android.uid.systemui: id=1
+  - session metrics: disabled: cpu_level=HIGH, gpu_level=HIGH
+
+Stats since reset:
+  Compositor Frames: 18770, Compositor FPS: 90, Client Frames Latched Past Target: 0
+  Compositor CPU Time (µs): min=72, max=230, avg=107, med=101, std=25
+  Compositor GPU Time (µs): min=1402, max=2228, avg=1730, med=1726, std=153
+Number of living nodes: 18
+Total size of buffers in scene: 0
+Compositor Pacer Duration (Strip 0): 4244219
+Compositor Pacer Buffer (Strip 0): 2000000
+Compositor Pacer Duration (Strip 1): 2247813
+Compositor Pacer Buffer (Strip 1): 3000000
+
+XRInputManager:
+
+XRHandDevice:
+  samplingPeriodInterval: 0
+  isInputTrackingEnabled: 0
+  isKeycodeControlledPinchEnabled: 0
+  minimumHandDistanceFromHead: 0.135000
+
+  XRHandGraspGestureProvider [/hand/left]:
+    fingerFullyCurledThreshold: 180.000000
+    fingerFullyExtendedThreshold: 70.000000
+
+  XRHandPinchGestureProvider [/hand/left]:
+    useHeuristicPinchDetection: 0
+    pinchFullyPressedDistance: 0.010000
+    pinchFullyReleasedDistance: 0.050000
+    heuristicPinchPressThreshold: 0.850000
+    heuristicPinchReleaseThreshold: 0.800000
+    pinchVelocityThreshold: 0.000000
+    primaryFinger: 0
+
+  XRHandAimActivateGestureProvider [/hand/left]:
+    fieldOfViewAngleThreshold: 115.000000
+
+  XRHandAimPoseProvider [/hand/left]:
+    originOffset x: 0.050000
+    originOffset y: -0.060000
+    originOffset z: -0.105000
+    bodyOriginView x: -0.120000
+    bodyOriginView y: -0.250000
+    bodyOriginView z: 0.060000
+    armOrientationGain: 1.000000
+    wristOrientationGain: 0.500000
+    verticalAdjustmentAngleDegrees: -30
+    usePinchLocking: 1
+    aimPoseLockRadius: 0.001000
+    aimPoseDampenRadius: 0.015000
+    aimPoseDampenExponent: 2
+    aimPoseReleaseRadiusMeter: 0.000000
+    aimPoseReleaseDuration: 750000000
+    useRestfulAimPoseCalculation: 1
+    useAimStabilisation: 0
+    isAimPoseSmoothingEnabled: 1
+
+  XRHandPinchPoseProvider [/hand/left]:
+    tipMidpointBias: 0.500000
+    proximalMidpointBias: 0.500000
+    primaryFinger: 0
+
+  XRHandPokePoseProvider [/hand/left]:
+    primaryFinger: 0
+
+  XRHandUserFacingPalmProvider [/hand/left]:
+    zPalmFacingHeadPositiveThreshold: 30.000000
+    zPalmFacingHeadNegativeThreshold: 45.000000
+    xPalmFacingHeadPositiveThreshold: 35.000000
+    xPalmFacingHeadNegativeThreshold: 50.000000
+    headFacingPalmPositiveThreshold: 40.000000
+    headFacingPalmNegativeThreshold: 45.000000
+
+  XRHandGraspGestureProvider [/hand/right]:
+    fingerFullyCurledThreshold: 180.000000
+    fingerFullyExtendedThreshold: 70.000000
+
+  XRHandPinchGestureProvider [/hand/right]:
+    useHeuristicPinchDetection: 0
+    pinchFullyPressedDistance: 0.010000
+    pinchFullyReleasedDistance: 0.050000
+    heuristicPinchPressThreshold: 0.850000
+    heuristicPinchReleaseThreshold: 0.800000
+    pinchVelocityThreshold: 0.000000
+    primaryFinger: 0
+
+  XRHandAimActivateGestureProvider [/hand/right]:
+    fieldOfViewAngleThreshold: 115.000000
+
+  XRHandAimPoseProvider [/hand/right]:
+    originOffset x: -0.050000
+    originOffset y: -0.060000
+    originOffset z: -0.105000
+    bodyOriginView x: 0.120000
+    bodyOriginView y: -0.250000
+    bodyOriginView z: 0.060000
+    armOrientationGain: 1.000000
+    wristOrientationGain: 0.500000
+    verticalAdjustmentAngleDegrees: -30
+    usePinchLocking: 1
+    aimPoseLockRadius: 0.001000
+    aimPoseDampenRadius: 0.015000
+    aimPoseDampenExponent: 2
+    aimPoseReleaseRadiusMeter: 0.000000
+    aimPoseReleaseDuration: 750000000
+    useRestfulAimPoseCalculation: 1
+    useAimStabilisation: 0
+    isAimPoseSmoothingEnabled: 1
+
+  XRHandPinchPoseProvider [/hand/right]:
+    tipMidpointBias: 0.500000
+    proximalMidpointBias: 0.500000
+    primaryFinger: 0
+
+  XRHandPokePoseProvider [/hand/right]:
+    primaryFinger: 0
+
+  XRHandUserFacingPalmProvider [/hand/right]:
+    zPalmFacingHeadPositiveThreshold: 30.000000
+    zPalmFacingHeadNegativeThreshold: 45.000000
+    xPalmFacingHeadPositiveThreshold: 35.000000
+    xPalmFacingHeadNegativeThreshold: 50.000000
+    headFacingPalmPositiveThreshold: 40.000000
+    headFacingPalmNegativeThreshold: 45.000000
+
+Eyes subscribers:
+  clientId=1, refCount=2
+  clientId=5, refCount=2
+  clientId=0, refCount=2
+
+
+Face subscribers:
+  clientId=5, refCount=2
+
+  XRControllerDevice: hand_controller_right, name=Kinetics6DOF, state=bound/connected, battery=100, device_fw=5.000000, host_fw=16.100000, is_gripped=0
+
+  XRControllerDevice: hand_controller_left, name=Kinetics6DOF, state=bound/connected, battery=100, device_fw=5.000000, host_fw=16.100000, is_gripped=0
+
+
+Current XrFocusIds=[5, 1]
+
+Current Visible XR ClientId=5
+
+Current Visible Managed FSM XR ClientId=-1
+
+Input without focus=false
+
+Input Tracing Statistics:
+  Total click downs: 16
+  Total click ups: 16
+  Total click downs sent to OpenXR: 15
+  Total click ups sent to OpenXR: 14
+  Total click downs read by SpF: 12
+  Total click ups read by SpF: 10
+  Total click downs for inputflinger: 6
+  Total click ups for inputflinger: 6
+  Total click downs at interactable views: 0
+  Total click ups at interactable views: 0
+  Input Dispatching Latency:
+    5000 us to 6000 us: 1
+    8000 us to 9000 us: 1
+    9000 us to 10000 us: 2
+    10000 us to 11000 us: 3
+    13000 us to 14000 us: 1
+    15000 us to 16000 us: 1
+    18000 us to 19000 us: 1
+    19000 us to 20000 us: 2
+
+Rendered Nodes Mini-dump: 
+Node main (stateIndex=0, z=0) id=31: 
+visible on both (requested-vis=show) (stereo-override=no override) buffer=null bufferOrigin=TopLeft 
+
+Node  (stateIndex=1, z=0) id=31: 
+visible on left (requested-vis=show) (stereo-override=left) buffer=1536x1536 sourceCrop=(0 0 1536 1536) bufferRotation=0 bufferOrigin=BottomLeft 
+
+Node  (stateIndex=2, z=0) id=31: 
+visible on right (requested-vis=show) (stereo-override=right) buffer=1536x1536 sourceCrop=(0 0 1536 1536) bufferRotation=0 bufferOrigin=BottomLeft 
+
+Node  (stateIndex=3, z=0) id=31: 
+visible on left (requested-vis=show) (stereo-override=left) buffer=1536x1536 sourceCrop=(0 0 1536 1536) bufferRotation=0 bufferOrigin=BottomLeft 
+
+Node  (stateIndex=4, z=0) id=31: 
+visible on right (requested-vis=show) (stereo-override=right) buffer=1536x1536 sourceCrop=(0 0 1536 1536) bufferRotation=0 bufferOrigin=BottomLeft 
+
+Node  (stateIndex=5, z=0) id=31: 
+visible on both (requested-vis=show) (stereo-override=both) buffer=2x2 sourceCrop=(0 0 2 2) bufferRotation=0 bufferOrigin=TopLeft 
+
+
+IPD Data:
+  IPD Used For Rendering - Left Eye: 32.745506 Right Eye: 32.745506
+
+CPM Config:
+Dynamic Config Index: DEFAULT
+Compositor configuration: { high_priority=1, protected_context=1, front_buffer_rendering=1, fragment_density_map=0, fragment_shading_rate=0, denoiser_adreno_optimization=1, spatial_reprojection=1, spatial_reprojection_scale_factor=4, spatial_reprojection_max_tessellation_factor=20, spatial_reprojection_vertex_count_budget=100000, spatial_reprojection_lens_matching_tessellation=0, spatial_reprojection_max_grid_width=80, spatial_reprojection_max_grid_height=80, spatial_reprojection_texels_per_quad_side=24, small_quad_size_threshold=1.05, command_caching=1, cubic_filtering=1, lazy_depth_buffer=1, chromatic_aberration_correction=0, local_tone_mapping=1, depth_blur=1, depth_max_physical_change=100, depth_max_screen_change=8e-06, depth_last_frame_weight=0.99, tiled_rendering=1, output_foveation=1, separate_swapchains=1, subsampled_textures=1, distortion_mesh_resolution_x=75, distortion_mesh_resolution_y=95, capture_distortion_mesh_resolution_x=40, capture_distortion_mesh_resolution_y=40, framerates=[ 90, 72, 60, ], illumination_start_offset_ns=[ 1128580, 1410720, 1692870, ], illumination_end_offset_ns=[ 12070000, 15095000, 18110000, ], compositor_width=5328, compositor_height=2880, default_capture_width=2880, default_capture_height=2880, compositor_foveated_background_width=2183, compositor_foveated_background_height=1180, recommended_application_width=3712, recommended_application_height=2160, application_resolution_scale=0, max_application_width=6304, max_application_height=3682, recommended_to_max_scale=0, dynamic_compositor_resolution=1, recommended_inner_width=1560, recommended_inner_height=1560, recommend_compositor_resolution_include_quad=1, compositor_resolution_with_quad_deadband_half_width=200, compositor_resolution_with_quad_increment=100, compositor_resolution_quad_factor=0.63, dynamic_target_resolution_width=10756, dynamic_target_resolution_height=6282, max_inner_width=1560, max_inner_height=1560, recommended_outer_width=1560, recommended_outer_height=1560, max_outer_width=1560, max_outer_height=1560, recommended_eyetracked_inner_width=1560, recommended_eyetracked_inner_height=1560, max_eyetracked_inner_width=1560, max_eyetracked_inner_height=1560, recommended_eyetracked_outer_width=1560, recommended_eyetracked_outer_height=1560, max_eyetracked_outer_width=1560, max_eyetracked_outer_height=1560, inner_tan_angle_width=0.6984, inner_tan_angle_height=0.6984, inner_eye_tracked_tan_angle_width=0.658, inner_eye_tracked_tan_angle_height=0.658, inner_view_rotations=[ 0.523599, 5.75959, ], outer_view_rotations=[ 0.523599, 5.75959, ], lens_acuity_model=[ 38, -0.0774, 0.124, -0.0202, 0.00148, -5.47e-05, 9.5e-07, -6.17e-09, ], eye_position_fovea_scalar=1, max_fovea_offset_tan_angle=[ -0.7, 0.26, 0.62, -0.62, ], foveated_anisotropic_filter=0, anisotropic_filter=0, background_box_filter=1, passthrough_full_width=3000, passthrough_full_height=3000, passthrough_crop_width=1500, passthrough_crop_height=1500, enable_passthrough_low_latency_foveated_processing=1, passthrough_low_latency_foveated_processing_width_fraction=0.3, passthrough_low_latency_foveated_processing_height_fraction=0.3, capture_fov=37, tracking_fov=[ 0.950999, 0.695963, 0.9175, 0.917506, ], capture_smooth_inset=1, fovea_feathering_mode=2, red_distortion_coefficients=[ 0.654037, -0.272452, 2.00282, -5.46143, 8.13528, -5.88904, 1.83637, ], green_distortion_coefficients=[ 0.652722, -0.2729, 1.96972, -5.21574, 7.49823, -5.15888, 1.52085, ], blue_distortion_coefficients=[ 0.699364, -1.03663, 6.96348, -20.7955, 32.4403, -25.0059, 7.76021, ], left_fov=[ 0.950999, 0.695963, 0.917506, 0.917506, ], right_fov=[ 0.695963, 0.950999, 0.917506, 0.917506, ], red_correction_coefficients=[ ], red_correction_offset_left=[ ], red_correction_offset_right=[ ], fdm_static_low_fovea_radius_deg=32, fdm_static_middle_fovea_radius_deg=26, fdm_static_high_fovea_radius_deg=18, fdm_eyetracked_low_fovea_radius_deg=24, fdm_eyetracked_middle_fovea_radius_deg=19, fdm_eyetracked_high_fovea_radius_deg=13, passthrough_is_optical=0, }
+CPM Device Configuration: { is_binocular=1, is_portrait_display=0, sensor_head_offset_x_um=60143, sensor_head_offset_y_um=-26850, sensor_head_offset_z_um=42982, capture_stabilize_alpha_multiplier=500, capture_stabilize_alpha_min=0.015, capture_stabilize_alpha_max=0.85, cpu_policy_values=[ 1382400, 2361600, 691200, 2361600, 1382400, 1382400, 1382400, 1382400, 1920000, 1920000, 1920000, 1920000, 2361600, 2361600, 2361600, 2361600, ], cpu_policy_files=[ 0x40800100, 0x40804100, 0x40800000, 0x40804000, ], gpu_policy_values=[ 9, 0, 9, 6, 5, 4, 4, 0, ], gpu_policy_files=[ 0x42804000, 0x42808000, ], optics_wrap_radians=0.10472, eye_relief_change_per_mm=0.1051, nominal_eye_relief_mm=14, nominal_ipd_mm=62, het_pose_query_timestamp_offset_ns=1000000, rgb_pose_query_timestamp_offset_ns=3550000, scheduler_config={ app={ start_duration=13000000, expected_duration_smoothing=0.05, buffer={ min_time=3000000, max_time=6000000, reduction_time=100000, growth_factor=1.5, reduction_threshold=75, }, }, compositor={ first_strip={ expected_duration_smoothing=0.25, expected_pre_frame_duration=2000000, expected_render_duration=1000000, expected_gpu_duration=3000000, buffer={ min_time=2000000, max_time=3000000, reduction_time=250000, growth_factor=1.5, reduction_threshold=10, }, }, mid_frame_strips={ expected_duration_smoothing=0.25, expected_pre_frame_duration=0, expected_render_duration=500000, expected_gpu_duration=3000000, buffer={ min_time=3000000, max_time=4000000, reduction_time=250000, growth_factor=1.5, reduction_threshold=10, }, }, num_strips=2, }, scheduling={ early_wakeup_offset=1000000, }, }, is_headless=0, }
+mUseClientRenderTarget: true
+mIsMoohan: true
+mUseFakeHeadtracking: false
+mEnableSimulationMode: false
+mEnableSimulationModeWithOpenPx: false
+mOpenPxGGSpaceManager: true
+mOpenPxGGMapAnnotationProvider: true
+mOpenPxGGPlaneAnnotationProvider: true
+mOpenPxGGScenePlaneProvider: true
+mOpenPxGGShoeboxProvider: true
+mOpenPxGGDepthTracking: true
+mOpenPxGGSceneMeshing: true
+mOpenPxGGFaceTracking: true
+mOpenPxGGPcaFaceTracking: true
+mOpenPxGGEyeTracking: true
+mOpenPxGGObjectTracking: true
+mOpenPxGGMarkerTracking: true
+mOpenPxGGQrCodeTracking: true
+mOpenPxQCQrCodeTrackingOperations: false
+mOpenPxGGLightEstimation: true
+mOpenPxGGHandMeshTracking: true
+mOpenPxGGBodyTracking: true
+mOpenPxGGGeospatial: true
+mOpenPxGGGeospatialFakeData: false
+mOpenPxControllerTracking: false
+mOpenPxIsUnifiedLifecycleEnabled: true
+mSamsungTrackingSimulationEnabled: false
+mEnableMotopho: false
+mDynamicFoveationEnabled: false
+mDistortionEnabled: true
+mDistortionLutEnabled: true
+mDistortionLutFromFile: false
+mDistortionLutFromOpxCalibration: true
+mDistortionPolynomialFromFile: true
+mEnableRollingIlluminationCorrection: true
+mEnablePassthroughRollingIlluminationCorrection: true
+mUseDummyPlaySpaceBounds: false
+mSpaceFlingerEnabled: false
+mSpaceFlingerPrecompositionEnabled: true
+mIsInputWithoutFocusEnabled: false
+mMouseButtonRecenterEnabled: false
+mSendHandMeshWhenSystemOverlayOn: false
+mDynamicCompositorScaling: false
+
+
+CPMWatchdog Statistics: (numFD=1558)
+  mLastRequestedTimePoint: 232175694335
+  mLastUpdatedTimePoint[1304]: 232185191888
+  mLastUpdatedTimePoint[2642]: 232183964023
+  mLastUpdatedTimePoint[2501]: 232180507825
+
+Passthrough:
+	Depth Reprojection: enable
+	Camera Throttle Factor: 1
+	Depth Policy: enable
+	Foveation Mode:  eye-tracked
+	Foveation Policy:  enable
+	Denoiser: enable
+	Denoiser Policy: DENOISER_OFF
+	Image Enhancement Profile:
+		Denoiser Mode: None
+		Sharpen Mode: None
+
+
+XrPassthroughController:
+  enabled: true
+  passthroughRunning: 0
+  hasPassthroughProvider: 1
+  passthroughCameraState: 2
+  cached buffer count: 96
+  cleanup buffer count: 0
+
+Dynamic Policy Context:
+{
+  "Boot finished" : true,
+  "Display" : 
+  {
+    "Default refresh rate: " : 72,
+    "Recommended resolution" : 0.0,
+    "Refresh rate adjustment config: " : "{rate: 90, xr: 1, sysui: 1, 2d: 1}",
+    "Refresh rate votes" : 
+    {
+      "App2d" : 0,
+      "App2dGlobalMaxFrs" : "1",
+      "AppMaxFrsPerUid" : "{}",
+      "MaxRate" : 0,
+      "OpenXR" : 90,
+      "OpenXR adjustment" : "NONE",
+      "SysUi adjustment" : "NONE"
+    },
+    "Refresh rate: " : 90.0
+  },
+  "Fixed HSM display rate" : true,
+  "Heartbeat" : 
+  {
+    "CPM" : 
+    {
+      "Mode" : "OpenXR",
+      "SysUi frame drops/sec" : 0.0,
+      "XR frame drops/sec" : 0.0
+    },
+    "Compositor" : 
+    {
+      "Compositor frames: tears per minute" : 
+      {
+        "large window" : 0.0,
+        "small window" : 0.0
+      },
+      "blockedDuration" : 0
+    },
+    "Spaceflinger" : 
+    {
+      "Apps" : 
+      [
+        {
+          "interactionOrder" : -1,
+          "isForeground" : true,
+          "pid" : 3948,
+          "uid" : 10036
+        },
+        {
+          "gpu utilization" : 0.24,
+          "interactionOrder" : -1,
+          "isForeground" : true,
+          "pid" : 10442,
+          "uid" : 10253
+        }
+      ],
+      "Auto spatialization active" : false,
+      "ExpectedFrameRate" : 90.0,
+      "FrameRate" : 89.11,
+      "Space mode" : "HSM"
+    },
+    "SurfaceFlinger" : 
+    {
+      "frame drops/sec" : 0.0
+    },
+    "System utilization" : 
+    {
+      "CPU" : 0.61,
+      "CPU.Gold" : 0.75,
+      "GPU" : 0.5,
+      "RAM" : 0.67
+    }
+  },
+  "Overrides" : 
+  {
+    "App2dGlobalRate" : 0.0,
+    "DisplayRate" : 0,
+    "MirrorDisplayFrsEnabled" : true,
+    "OpenXrAppRate" : 0.0
+  },
+  "Passthrough occlusion %" : 100.0,
+  "Performance level app votes" : 
+  {
+    "CPU" : "HIGH",
+    "GPU" : "HIGH"
+  },
+  "Performance policies enabled" : true,
+  "Power save mode" : false,
+  "Thermal status" : 2
+}
+Current Capability values:
+{
+  "Capability.App [10036] frame rate" : "0",
+  "Capability.App [10036] max FRS" : "1",
+  "Capability.App [10253] frame rate" : "0",
+  "Capability.App [10253] max FRS" : "1",
+  "Capability.AutoSpatialization" : "1",
+  "Capability.PanelSuperSampling" : "1",
+  "Capability.PassthroughCameraThrottleFactor" : "1",
+  "Capability.PassthroughDenoiser" : "0",
+  "Capability.PassthroughDepth" : "1",
+  "Capability.PassthroughFoveation" : "1",
+  "Capability.PassthroughVisibility" : "0",
+  "Capability.PerformanceLevel_0_0" : "0",
+  "Capability.PerformanceLevel_0_1" : "0",
+  "Capability.PerformanceLevel_0_2" : "1",
+  "Capability.PerformanceLevel_1_0" : "0",
+  "Capability.PerformanceLevel_1_1" : "0",
+  "Capability.PerformanceLevel_1_2" : "1",
+  "Capability.RecommendedResolution" : "1",
+  "Capability.XrPacerBufferSizeOverride" : "0",
+  "Capability.app.openXrRateAdjustment" : "0",
+  "Capability.app2dGlobalMaxFrameRateScaling" : "1",
+  "Capability.cpuGoldStarvationLevel" : "0",
+  "Capability.cpuPerformanceLevel" : "2",
+  "Capability.displayRefreshRate" : "90",
+  "Capability.gpuPerformanceLevel" : "2",
+  "Capability.maxRefreshRate" : "0",
+  "Capability.mirrorDisplay" : "3",
+  "Capability.openxr.currentApp.FRS" : "1",
+  "Capability.openxr.sysUi.FRS" : "1",
+  "Capability.sysUi.openXrRateAdjustment" : "0"
+}
+Policy Manager Log:
+[09-06 16:42:28.569] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ cpuAppPerformance
+ gpuAppPerformance
+ thermalModerate
+Active performance policies: 1
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 3
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 90
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'App CPU level request' triggered by 'cpuAppPerformance'
+  Set 'cpuPerformanceLevel' to 2
+ Action P=1 'App GPU level request' triggered by 'gpuAppPerformance'
+  Set 'gpuPerformanceLevel' to 2
+ Action P=1 'Notify thermal warning' triggered by 'thermalModerate'
+  Set 'PerformanceLevel_0_2' to 1
+  Set 'PerformanceLevel_1_2' to 1
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughDenoiser' = 0
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:40:22.862] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ cpuAppPerformance
+ gpuAppPerformance
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 3
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 90
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'App CPU level request' triggered by 'cpuAppPerformance'
+  Set 'cpuPerformanceLevel' to 2
+ Action P=1 'App GPU level request' triggered by 'gpuAppPerformance'
+  Set 'gpuPerformanceLevel' to 2
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughDenoiser' = 0
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:40:21.862] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ cpuAppPerformance
+ gpuAppPerformance
+ compositorAnyJank (reverting)
+Active performance policies: 1
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 3
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 90
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'App CPU level request' triggered by 'cpuAppPerformance'
+  Set 'cpuPerformanceLevel' to 2
+ Action P=1 'App GPU level request' triggered by 'gpuAppPerformance'
+  Set 'gpuPerformanceLevel' to 2
+ Action P=1 'Revert Mirror FRS half' triggered by 'compositorAnyJank'
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughDenoiser' = 0
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:40:16.862] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ cpuAppPerformance
+ gpuAppPerformance
+ compositorAnyJank (reverting)
+Active performance policies: 1
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 3
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 90
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'App CPU level request' triggered by 'cpuAppPerformance'
+  Set 'cpuPerformanceLevel' to 2
+ Action P=1 'App GPU level request' triggered by 'gpuAppPerformance'
+  Set 'gpuPerformanceLevel' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 3
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughDenoiser' = 0
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:40:15.862] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ cpuAppPerformance
+ gpuAppPerformance
+ compositorAnyJank (reverting)
+Active performance policies: 1
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 3
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 90
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'App CPU level request' triggered by 'cpuAppPerformance'
+  Set 'cpuPerformanceLevel' to 2
+ Action P=1 'App GPU level request' triggered by 'gpuAppPerformance'
+  Set 'gpuPerformanceLevel' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 3
+ Action P=1 'Revert Mirror FRS third' triggered by 'compositorAnyJank'
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughDenoiser' = 0
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:40:10.861] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ cpuAppPerformance
+ gpuAppPerformance
+ compositorAnyJank (reverting)
+Active performance policies: 1
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 3
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 90
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'App CPU level request' triggered by 'cpuAppPerformance'
+  Set 'cpuPerformanceLevel' to 2
+ Action P=1 'App GPU level request' triggered by 'gpuAppPerformance'
+  Set 'gpuPerformanceLevel' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 3
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Keeping capability mirrorDisplay value 3
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughDenoiser' = 0
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:40:05.858] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ cpuAppPerformance
+ gpuAppPerformance
+ compositorAnyJank
+Active performance policies: 1
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 3
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 90
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'App CPU level request' triggered by 'cpuAppPerformance'
+  Set 'cpuPerformanceLevel' to 2
+ Action P=1 'App GPU level request' triggered by 'gpuAppPerformance'
+  Set 'gpuPerformanceLevel' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 3
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Keeping capability mirrorDisplay value 3
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughDenoiser' = 0
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:40:04.771] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ cpuAppPerformance
+ gpuAppPerformance
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 3
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 90
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'App CPU level request' triggered by 'cpuAppPerformance'
+  Set 'cpuPerformanceLevel' to 2
+ Action P=1 'App GPU level request' triggered by 'gpuAppPerformance'
+  Set 'gpuPerformanceLevel' to 2
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughDenoiser' = 0
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:40:03.771] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ cpuAppPerformance
+ gpuAppPerformance
+ passthroughDenoiser (reverting)
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 3
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 90
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'App CPU level request' triggered by 'cpuAppPerformance'
+  Set 'cpuPerformanceLevel' to 2
+ Action P=1 'App GPU level request' triggered by 'gpuAppPerformance'
+  Set 'gpuPerformanceLevel' to 2
+ Action P=1 'Revert PT denoiser' triggered by 'passthroughDenoiser'
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughDenoiser' = 0
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:40:02.072] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ cpuAppPerformance
+ gpuAppPerformance
+ passthroughDenoiser (reverting)
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 3
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 90
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'App CPU level request' triggered by 'cpuAppPerformance'
+  Set 'cpuPerformanceLevel' to 2
+ Action P=1 'App GPU level request' triggered by 'gpuAppPerformance'
+  Set 'gpuPerformanceLevel' to 2
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:40:02.046] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ cpuAppPerformance
+ gpuAppPerformance
+ passthroughDenoiser (reverting)
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 90
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'App CPU level request' triggered by 'cpuAppPerformance'
+  Set 'cpuPerformanceLevel' to 2
+ Action P=1 'App GPU level request' triggered by 'gpuAppPerformance'
+  Set 'gpuPerformanceLevel' to 2
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+Iteration 1 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ cpuAppPerformance
+ gpuAppPerformance
+ passthroughDenoiser (reverting)
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 3
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 90
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'App CPU level request' triggered by 'cpuAppPerformance'
+  Set 'cpuPerformanceLevel' to 2
+ Action P=1 'App GPU level request' triggered by 'gpuAppPerformance'
+  Set 'gpuPerformanceLevel' to 2
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:40:02.029] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ cpuAppPerformance
+ gpuAppPerformance
+ passthroughDenoiser (reverting)
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 90
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'App CPU level request' triggered by 'cpuAppPerformance'
+  Set 'cpuPerformanceLevel' to 2
+ Action P=1 'App GPU level request' triggered by 'gpuAppPerformance'
+  Set 'gpuPerformanceLevel' to 2
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+Iteration 1 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ cpuAppPerformance
+ gpuAppPerformance
+ passthroughDenoiser (reverting)
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 90
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'App CPU level request' triggered by 'cpuAppPerformance'
+  Set 'cpuPerformanceLevel' to 2
+ Action P=1 'App GPU level request' triggered by 'gpuAppPerformance'
+  Set 'gpuPerformanceLevel' to 2
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:40:02.011] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ cpuAppPerformance
+ gpuAppPerformance
+ passthroughDenoiser (reverting)
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 90
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'App CPU level request' triggered by 'cpuAppPerformance'
+  Set 'cpuPerformanceLevel' to 2
+ Action P=1 'App GPU level request' triggered by 'gpuAppPerformance'
+  Set 'gpuPerformanceLevel' to 2
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:40:01.427] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ cpuAppPerformance
+ gpuAppPerformance
+ passthroughDenoiser (reverting)
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'App CPU level request' triggered by 'cpuAppPerformance'
+  Set 'cpuPerformanceLevel' to 2
+ Action P=1 'App GPU level request' triggered by 'gpuAppPerformance'
+  Set 'gpuPerformanceLevel' to 2
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:40:01.425] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ cpuAppPerformance
+ gpuAppPerformance
+ passthroughDenoiser (reverting)
+ openxrAppJank (reverting)
+Active performance policies: 1
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'App CPU level request' triggered by 'cpuAppPerformance'
+  Set 'cpuPerformanceLevel' to 2
+ Action P=1 'App GPU level request' triggered by 'gpuAppPerformance'
+  Set 'gpuPerformanceLevel' to 2
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Action P=1 'Reset Recommended Resolution 0.750000' triggered by 'openxrAppJank'
+  Set 'RecommendedResolution' to 1
+ Action P=1 'Reset Recommended Resolution 0.500000' triggered by 'openxrAppJank'
+  Set 'RecommendedResolution' to 1
+   Keeping capability RecommendedResolution value 1
+ Action P=1 'Reset Recommended Resolution 0.250000' triggered by 'openxrAppJank'
+  Set 'RecommendedResolution' to 1
+   Keeping capability RecommendedResolution value 1
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:40:00.199] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:39:57.915] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:39:57.913] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Default 'App [10238] frame rate' = 0
+ Default 'App [10238] max FRS' = 1
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+Iteration 1 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:39:57.873] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+  Set 'App [10238] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Default 'App [10238] max FRS' = 1
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:39:56.382] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:39:56.036] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:39:53.254] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:39:52.808] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:39:51.808] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ compositorAnyJank (reverting)
+Active performance policies: 1
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Action P=1 'Revert Mirror FRS half' triggered by 'compositorAnyJank'
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:39:50.806] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ compositorAnyJank (reverting)
+Active performance policies: 1
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:39:50.449] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ compositorAnyJank (reverting)
+Active performance policies: 1
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+  Set 'App [10253] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Default 'App [10253] max FRS' = 1
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:39:49.074] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ compositorAnyJank (reverting)
+Active performance policies: 1
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:39:48.381] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ compositorAnyJank (reverting)
+Active performance policies: 1
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:39:46.643] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ compositorAnyJank (reverting)
+Active performance policies: 1
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:39:46.172] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ compositorAnyJank (reverting)
+Active performance policies: 1
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Action P=1 'Revert Mirror FRS third' triggered by 'compositorAnyJank'
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:39:44.171] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ compositorAnyJank (reverting)
+Active performance policies: 1
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Overriding capability mirrorDisplay value 2 with 3
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:39:43.171] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ Critical jank - high CPU (reverting)
+ compositorAnyJank (reverting)
+Active performance policies: 2
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Action P=1 'Revert Notify CPU utilization' triggered by 'Critical jank - high CPU'
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Overriding capability mirrorDisplay value 2 with 3
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:39:42.823] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ Critical jank - high CPU (reverting)
+ compositorAnyJank (reverting)
+Active performance policies: 2
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Action P=1 'Notify CPU utilization' triggered by 'Critical jank - high CPU'
+  Set 'PerformanceLevel_0_1' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Overriding capability mirrorDisplay value 2 with 3
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:39:42.784] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ cpuUtilization (reverting)
+ Critical jank - high CPU (reverting)
+ compositorAnyJank (reverting)
+Active performance policies: 3
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Action P=1 'Revert Notify cpu warning' triggered by 'cpuUtilization'
+ Action P=1 'Revert Auto Spatialization off' triggered by 'cpuUtilization'
+ Action P=1 'Notify CPU utilization' triggered by 'Critical jank - high CPU'
+  Set 'PerformanceLevel_0_1' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Overriding capability mirrorDisplay value 2 with 3
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[09-06 16:39:41.440] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ cpuUtilization (reverting)
+ Critical jank - high CPU (reverting)
+ compositorAnyJank (reverting)
+Active performance policies: 3
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Action P=1 'Notify cpu warning' triggered by 'cpuUtilization'
+  Set 'PerformanceLevel_0_0' to 1
+ Action P=1 'Auto Spatialization off' triggered by 'cpuUtilization'
+  Set 'AutoSpatialization' to 0
+ Action P=1 'Notify CPU utilization' triggered by 'Critical jank - high CPU'
+  Set 'PerformanceLevel_0_1' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Overriding capability mirrorDisplay value 2 with 3
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+[09-06 16:39:41.087] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ cpuUtilization (reverting)
+ Critical jank - high CPU (reverting)
+ Critical jank - high GPU (reverting)
+ compositorAnyJank (reverting)
+Active performance policies: 4
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Action P=1 'Notify cpu warning' triggered by 'cpuUtilization'
+  Set 'PerformanceLevel_0_0' to 1
+ Action P=1 'Auto Spatialization off' triggered by 'cpuUtilization'
+  Set 'AutoSpatialization' to 0
+ Action P=1 'Notify CPU utilization' triggered by 'Critical jank - high CPU'
+  Set 'PerformanceLevel_0_1' to 2
+ Action P=1 'Revert Notify GPU utilization' triggered by 'Critical jank - high GPU'
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Overriding capability mirrorDisplay value 2 with 3
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+[09-06 16:39:40.739] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ cpuUtilization (reverting)
+ Critical jank - high CPU (reverting)
+ Critical jank - high GPU (reverting)
+ compositorAnyJank (reverting)
+Active performance policies: 4
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Action P=1 'Notify cpu warning' triggered by 'cpuUtilization'
+  Set 'PerformanceLevel_0_0' to 1
+ Action P=1 'Auto Spatialization off' triggered by 'cpuUtilization'
+  Set 'AutoSpatialization' to 0
+ Action P=1 'Notify CPU utilization' triggered by 'Critical jank - high CPU'
+  Set 'PerformanceLevel_0_1' to 2
+ Action P=1 'Notify GPU utilization' triggered by 'Critical jank - high GPU'
+  Set 'PerformanceLevel_1_1' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Overriding capability mirrorDisplay value 2 with 3
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+[09-06 16:39:39.696] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ cpuUtilization (reverting)
+ Critical jank - high CPU (reverting)
+ Critical jank - high GPU (reverting)
+ compositorAnyJank
+Active performance policies: 4
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Action P=1 'Notify cpu warning' triggered by 'cpuUtilization'
+  Set 'PerformanceLevel_0_0' to 1
+ Action P=1 'Auto Spatialization off' triggered by 'cpuUtilization'
+  Set 'AutoSpatialization' to 0
+ Action P=1 'Notify CPU utilization' triggered by 'Critical jank - high CPU'
+  Set 'PerformanceLevel_0_1' to 2
+ Action P=1 'Notify GPU utilization' triggered by 'Critical jank - high GPU'
+  Set 'PerformanceLevel_1_1' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Overriding capability mirrorDisplay value 2 with 3
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+[09-06 16:39:38.999] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ cpuUtilization (reverting)
+ Critical jank - high CPU (reverting)
+ Critical jank - high GPU (reverting)
+ compositorAnyJank
+Active performance policies: 4
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Action P=1 'Notify cpu warning' triggered by 'cpuUtilization'
+  Set 'PerformanceLevel_0_0' to 1
+ Action P=1 'Auto Spatialization off' triggered by 'cpuUtilization'
+  Set 'AutoSpatialization' to 0
+ Action P=1 'Notify CPU utilization' triggered by 'Critical jank - high CPU'
+  Set 'PerformanceLevel_0_1' to 2
+ Action P=1 'Notify GPU utilization' triggered by 'Critical jank - high GPU'
+  Set 'PerformanceLevel_1_1' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Overriding capability mirrorDisplay value 2 with 3
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+[09-06 16:39:37.959] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ cpuUtilization (reverting)
+ Critical jank - high CPU (reverting)
+ Critical jank - high GPU (reverting)
+ compositorAnyJank
+Active performance policies: 4
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Action P=1 'Notify cpu warning' triggered by 'cpuUtilization'
+  Set 'PerformanceLevel_0_0' to 1
+ Action P=1 'Auto Spatialization off' triggered by 'cpuUtilization'
+  Set 'AutoSpatialization' to 0
+ Action P=1 'Notify CPU utilization' triggered by 'Critical jank - high CPU'
+  Set 'PerformanceLevel_0_1' to 2
+ Action P=1 'Notify GPU utilization' triggered by 'Critical jank - high GPU'
+  Set 'PerformanceLevel_1_1' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Overriding capability mirrorDisplay value 2 with 3
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+[09-06 16:39:36.914] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ cpuUtilization (reverting)
+ Critical jank - high CPU
+ Critical jank - high GPU (reverting)
+ compositorAnyJank
+Active performance policies: 4
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Action P=1 'Notify cpu warning' triggered by 'cpuUtilization'
+  Set 'PerformanceLevel_0_0' to 1
+ Action P=1 'Auto Spatialization off' triggered by 'cpuUtilization'
+  Set 'AutoSpatialization' to 0
+ Action P=1 'Notify CPU utilization' triggered by 'Critical jank - high CPU'
+  Set 'PerformanceLevel_0_1' to 2
+ Action P=1 'Notify GPU utilization' triggered by 'Critical jank - high GPU'
+  Set 'PerformanceLevel_1_1' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Overriding capability mirrorDisplay value 2 with 3
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+[09-06 16:39:35.859] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ cpuUtilization
+ Critical jank - high CPU
+ Critical jank - high GPU (reverting)
+ compositorAnyJank
+Active performance policies: 4
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Action P=1 'Notify cpu warning' triggered by 'cpuUtilization'
+  Set 'PerformanceLevel_0_0' to 1
+ Action P=1 'Auto Spatialization off' triggered by 'cpuUtilization'
+  Set 'AutoSpatialization' to 0
+ Action P=1 'Notify CPU utilization' triggered by 'Critical jank - high CPU'
+  Set 'PerformanceLevel_0_1' to 2
+ Action P=1 'Notify GPU utilization' triggered by 'Critical jank - high GPU'
+  Set 'PerformanceLevel_1_1' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Overriding capability mirrorDisplay value 2 with 3
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+[09-06 16:39:35.512] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ cpuUtilization (reverting)
+ Critical jank - high CPU
+ Critical jank - high GPU
+ compositorAnyJank
+Active performance policies: 4
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Action P=1 'Notify cpu warning' triggered by 'cpuUtilization'
+  Set 'PerformanceLevel_0_0' to 1
+ Action P=1 'Auto Spatialization off' triggered by 'cpuUtilization'
+  Set 'AutoSpatialization' to 0
+ Action P=1 'Notify CPU utilization' triggered by 'Critical jank - high CPU'
+  Set 'PerformanceLevel_0_1' to 2
+ Action P=1 'Notify GPU utilization' triggered by 'Critical jank - high GPU'
+  Set 'PerformanceLevel_1_1' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Overriding capability mirrorDisplay value 2 with 3
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+[09-06 16:39:34.827] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ cpuUtilization
+ Critical jank - high CPU
+ Critical jank - high GPU
+ compositorAnyJank (reverting)
+Active performance policies: 4
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Action P=1 'Notify cpu warning' triggered by 'cpuUtilization'
+  Set 'PerformanceLevel_0_0' to 1
+ Action P=1 'Auto Spatialization off' triggered by 'cpuUtilization'
+  Set 'AutoSpatialization' to 0
+ Action P=1 'Notify CPU utilization' triggered by 'Critical jank - high CPU'
+  Set 'PerformanceLevel_0_1' to 2
+ Action P=1 'Notify GPU utilization' triggered by 'Critical jank - high GPU'
+  Set 'PerformanceLevel_1_1' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Overriding capability mirrorDisplay value 2 with 3
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+[09-06 16:39:34.480] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ cpuUtilization
+ Critical jank - high CPU
+ Critical jank - high GPU
+ compositorAnyJank
+Active performance policies: 4
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Action P=1 'Notify cpu warning' triggered by 'cpuUtilization'
+  Set 'PerformanceLevel_0_0' to 1
+ Action P=1 'Auto Spatialization off' triggered by 'cpuUtilization'
+  Set 'AutoSpatialization' to 0
+ Action P=1 'Notify CPU utilization' triggered by 'Critical jank - high CPU'
+  Set 'PerformanceLevel_0_1' to 2
+ Action P=1 'Notify GPU utilization' triggered by 'Critical jank - high GPU'
+  Set 'PerformanceLevel_1_1' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Overriding capability mirrorDisplay value 2 with 3
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+[09-06 16:39:34.135] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ cpuUtilization
+ Critical jank - high CPU
+ Critical jank - high GPU
+ compositorAnyJank
+Active performance policies: 4
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Action P=1 'Notify cpu warning' triggered by 'cpuUtilization'
+  Set 'PerformanceLevel_0_0' to 1
+ Action P=1 'Auto Spatialization off' triggered by 'cpuUtilization'
+  Set 'AutoSpatialization' to 0
+ Action P=1 'Notify CPU utilization' triggered by 'Critical jank - high CPU'
+  Set 'PerformanceLevel_0_1' to 2
+ Action P=1 'Notify GPU utilization' triggered by 'Critical jank - high GPU'
+  Set 'PerformanceLevel_1_1' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Overriding capability mirrorDisplay value 2 with 3
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+[09-06 16:39:33.788] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ cpuUtilization
+ Critical jank - high CPU
+ compositorAnyJank
+Active performance policies: 3
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Action P=1 'Notify cpu warning' triggered by 'cpuUtilization'
+  Set 'PerformanceLevel_0_0' to 1
+ Action P=1 'Auto Spatialization off' triggered by 'cpuUtilization'
+  Set 'AutoSpatialization' to 0
+ Action P=1 'Notify CPU utilization' triggered by 'Critical jank - high CPU'
+  Set 'PerformanceLevel_0_1' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Overriding capability mirrorDisplay value 2 with 3
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+[09-06 16:39:31.660] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ Critical jank - high CPU
+ compositorAnyJank
+Active performance policies: 2
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Action P=1 'Notify CPU utilization' triggered by 'Critical jank - high CPU'
+  Set 'PerformanceLevel_0_1' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Overriding capability mirrorDisplay value 2 with 3
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[06-12 07:46:47.631] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ compositorAnyJank
+Active performance policies: 1
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 1
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Overriding capability mirrorDisplay value 2 with 3
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[06-12 07:46:47.085] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ compositorAnyJank
+Active performance policies: 1
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Action P=1 'Mirror FRS third' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 3
+   Overriding capability mirrorDisplay value 2 with 3
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[06-12 07:46:45.972] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ compositorAnyJank
+Active performance policies: 1
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'App Frame Rate' triggered by 'refreshRateAdjustment'
+  Set 'App [10036] frame rate' to 0
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Default 'App [10036] max FRS' = 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[06-12 07:46:44.984] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ compositorAnyJank
+Active performance policies: 1
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Action P=1 'Mirror FRS half' triggered by 'compositorAnyJank'
+  Set 'mirrorDisplay' to 2
+   Keeping capability mirrorDisplay value 2
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[06-12 07:46:43.984] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[06-12 07:46:43.982] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+ openxrAppJank (reverting)
+Active performance policies: 1
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Action P=1 'Reset Recommended Resolution 0.750000' triggered by 'openxrAppJank'
+  Set 'RecommendedResolution' to 1
+ Action P=1 'Reset Recommended Resolution 0.500000' triggered by 'openxrAppJank'
+  Set 'RecommendedResolution' to 1
+   Keeping capability RecommendedResolution value 1
+ Action P=1 'Reset Recommended Resolution 0.250000' triggered by 'openxrAppJank'
+  Set 'RecommendedResolution' to 1
+   Keeping capability RecommendedResolution value 1
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[06-12 07:46:21.180] New policy cycle 
+[06-12 07:46:20.506] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[06-12 07:46:20.500] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 3
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[06-12 07:46:20.494] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+[06-12 07:46:20.490] New policy cycle 
+Iteration 0 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+Iteration 1 active policies:
+ mirrorDisplayMaxFrameRate
+ refreshRateAdjustment
+ passthroughDenoiser
+Current actions:
+ Action P=1 'Mirror Dynamic FRS' triggered by 'mirrorDisplayMaxFrameRate'
+  Set 'mirrorDisplay' to 2
+ Action P=1 'Display rate' triggered by 'refreshRateAdjustment'
+  Set 'displayRefreshRate' to 72
+ Action P=1 'Dynamic FRS' triggered by 'refreshRateAdjustment'
+  Set 'openxr.currentApp.FRS' to 1
+  Set 'openxr.sysUi.FRS' to 1
+ Action P=1 'PT denoiser' triggered by 'passthroughDenoiser'
+  Set 'PassthroughDenoiser' to 2
+ Default 'app2dGlobalMaxFrameRateScaling' = 1
+ Default 'maxRefreshRate' = 0
+ Default 'sysUi.openXrRateAdjustment' = 0
+ Default 'app.openXrRateAdjustment' = 0
+ Default 'AutoSpatialization' = 1
+ Default 'PanelSuperSampling' = 1
+ Default 'gpuPerformanceLevel' = 0
+ Default 'cpuGoldStarvationLevel' = 0
+ Default 'cpuPerformanceLevel' = 0
+ Default 'RecommendedResolution' = 1
+ Default 'XrPacerBufferSizeOverride' = 0
+ Default 'PassthroughCameraThrottleFactor' = 1
+ Default 'PassthroughDepth' = 1
+ Default 'PassthroughFoveation' = 1
+ Default 'PassthroughVisibility' = 0
+ Default 'PerformanceLevel_1_2' = 0
+ Default 'PerformanceLevel_1_1' = 0
+ Default 'PerformanceLevel_1_0' = 0
+ Default 'PerformanceLevel_0_2' = 0
+ Default 'PerformanceLevel_0_1' = 0
+ Default 'PerformanceLevel_0_0' = 0
+
+

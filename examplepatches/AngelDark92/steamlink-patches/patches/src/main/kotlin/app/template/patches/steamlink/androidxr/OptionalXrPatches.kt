@@ -13,6 +13,7 @@ import org.w3c.dom.Element
 import java.io.File
 
 private val unrestrictedBatteryManifestPatch = resourcePatch {
+    execute { ensureIdsXml(get("res/values/ids.xml")) }
     finalize {
         document("AndroidManifest.xml").use { document ->
             val manifest = document.documentElement
@@ -40,9 +41,9 @@ val unrestrictedBatteryUsagePatch = bytecodePatch(
     compatibleWith(*COMPATIBILITIES_STEAM_LINK.toTypedArray())
     // Restore the legacy automatic foundation while its native-build guards make it a no-op.
     dependsOn(
-        xrLauncherBootstrapPatch,
         xrPermissionSettingsBootstrapPatch,
         unrestrictedBatteryManifestPatch,
+        nativeBatterySettingsPatch,
     )
 }
 
@@ -78,7 +79,6 @@ val appearOnTopPatch = bytecodePatch(
     // longer recommended by default.
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_BEFORE_LATEST.toTypedArray())
     dependsOn(
-        xrLauncherBootstrapPatch,
         xrPermissionSettingsBootstrapPatch,
         appearOnTopManifestPatch,
     )
@@ -224,10 +224,6 @@ private fun configurePermissionFreeProjectionMode(document: Document, requestedM
 
     matchingPermissions.forEach { manifest.removeChild(it) }
 
-    if (!upsertVrLinkUnmanagedFullSpace(document, app)) {
-        throw PatchException("Supported Steam Link VRLink activity was not found")
-    }
-
     val metadataName = "com.valvesoftware.steamlink.GXR_RESOLUTION_MODE"
     val existingMetadata = app.getElementsByTagName("meta-data").let { nodes ->
         (0 until nodes.length)
@@ -310,8 +306,6 @@ val xrGalaxyXrHighResolutionPatch = resourcePatch(
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_HIGH_RESOLUTION.toTypedArray())
     dependsOn(
-        xrLauncherBootstrapPatch,
-        xrPermissionSettingsBootstrapPatch,
         androidSurfaceTriggerResourcesPatch,
     )
 
@@ -321,6 +315,7 @@ val xrGalaxyXrHighResolutionPatch = resourcePatch(
         if (!isHighResolutionSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) {
             return@finalize
         }
+        ensureIdsXml(get("res/values/ids.xml"))
         document("AndroidManifest.xml").use { document ->
             configurePermissionFreeProjectionMode(document, ANDROID_SURFACE_TRIGGER_MODE)
         }

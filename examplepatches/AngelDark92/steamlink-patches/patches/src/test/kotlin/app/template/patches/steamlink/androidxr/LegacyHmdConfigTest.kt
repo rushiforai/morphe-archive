@@ -28,7 +28,7 @@ class LegacyHmdConfigTest {
 
     @Test
     fun `all 2022 builds retain the array payload byte for byte`() {
-        listOf(5002172, 5002206, 5002244, 5002296, 5002313, 5002318, 5002322).forEach { versionCode ->
+        listOf(5002244, 5002296, 5002313, 5002318, 5002322).forEach { versionCode ->
             assertContentEquals(
                 galaxyPayload,
                 adaptLegacyHmdConfigForBuild(galaxyPayload, "2.0.22", versionCode.toString()),

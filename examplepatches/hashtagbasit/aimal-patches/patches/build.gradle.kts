@@ -3,7 +3,7 @@ group = "app.aimal"
 patches {
     about {
         name = "Aimal Patches"
-        description = "Playback speed and aspect ratio controls for Crunchyroll, HBO Max and Disney+"
+        description = "Playback and ad-removal patches for Crunchyroll, HBO Max, Disney+ and Viki"
         source = "https://github.com/hashtagbasit/aimal-patches"
         author = "hashtagbasit"
         contact = "https://github.com/hashtagbasit/aimal-patches/issues"

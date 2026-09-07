@@ -16,7 +16,7 @@ it too.
 
 ### 1. The delta patch — `.fork/upstream-delta.patch`
 
-18 files, re-applied onto each new upstream tree. Semantics (for manual re-application when the
+33 files, re-applied onto each new upstream tree. Semantics (for manual re-application when the
 patch no longer applies cleanly):
 
 **Feature: Hide brainrot comments (YouTube)**
@@ -43,6 +43,43 @@ patch no longer applies cleanly):
 | `patches/src/main/resources/catlock/host/layout/youtube_controls_layout.xml` | **New file.** Top-controls button, anchored `toStartOf @id/morphe_external_download_button`. |
 | `patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button{,_bold}.xml` | **New files.** Cat-face vector icon. |
 | `extensions/youtube/.../swipecontrols/SwipeControlsHostActivity.kt` | In `dispatchTouchEvent`, short-circuit swipe controls while `CatLockOverlay.isLocked()` (swipe controls act at the Activity level, ahead of the overlay view, so brightness/volume swipes must be suppressed while locked). Import `CatLockOverlay`. |
+
+**Feature: NSFW mode (Reddit)** — an opt-in mode that reduces feed listings to their 18+ posts. Off until enabled in Morphe settings.
+
+| File | Change |
+|---|---|
+| `extensions/reddit/.../patches/NsfwFeedModePatch.java` | **New file.** `filterHomeFeedResponse(Object)` injection point, and nothing else. Reads `Settings.NSFW_FEED_MODE` live (it is a mode, not a startup flag). Keeps **only** edges recognised as 18+ posts: the home feed ships 20+ non-post element types (four kinds of community recommendation carousel, chat channel units, topic pills, taxonomy rows, explore features), none of which carries a `t3_` id, and keeping them was what put SFW content in an 18+ feed. Fails open when **no** edge on a page carries a post id, so a model change leaves the feed unfiltered instead of empty, and holds one post back when a page would otherwise be left with nothing to draw - the only way an SFW post reaches the feed now. |
+| `patches/.../reddit/layout/nsfw/Fingerprints.kt` | **New file.** `NsfwHomeFeedPageFingerprint` (the home feed's page builder), `NsfwFeedViewModelFingerprint` (`RedditFeedViewModel.<init>`), and the two drawer fingerprints. **Two earlier feed hooks were removed and must not come back**: `Listing.<init>` is the cache path shared by every screen that reads a listing — subreddits, saved posts, search, profiles — and `RedditListingFeedElementMapper.getFeedElements` serves only the History feed. Neither reaches the home feed and both could empty an unrelated screen. |
+| `patches/.../reddit/layout/nsfw/NsfwFeedModePatch.kt` | **New file.** Inserts `filterHomeFeedResponse` at the head of the home page builder, `captureFeedViewModel` at the tail of the feed view model's constructor, and the two drawer hooks. Everything but the first is wrapped in `try`/`catch`. |
+| `extensions/reddit/.../patches/NsfwFeedRefresher.java` | **New file.** Reloads the home feed when the mode is switched, so it takes effect where the user switched it. Holds captured view models **weakly**, picks the home one out by a field holding an enum constant named `HOME` on a `*FeedType`, and drives the pager through the field whose class declares a one-argument method taking a `*FeedRefreshType` — invoked with `PULL_TO_REFRESH` on the main thread. All by shape; failure is silent and costs a pull-down. |
+| `extensions/reddit/.../settings/Settings.java` | Add `NSFW_FEED_MODE = new BooleanSetting("morphe_nsfw_feed_mode", FALSE)` in its own `// NSFW mode` region. Two-arg constructor on purpose: no app restart needed. |
+| `extensions/reddit/.../preference/categories/NsfwPreferenceCategory.java` | **New file.** Mirrors `AdsPreferenceCategory`. |
+| `extensions/reddit/.../preference/RedditPreferenceFragment.java` | Construct `NsfwPreferenceCategory` after `AdsPreferenceCategory`, plus its import. |
+| `extensions/reddit/.../nsfw/NsfwCellScanner.java` | **New file.** Android-free. Reads a post's id and NSFW state out of Reddit's GraphQL cell models by **shape, not name**: the post id is the `String` holding a `t3_` fullname (self-validating), and NSFW is any enum constant named `NSFW` (`CellIndicatorType.NSFW` on the post's indicators cell, `NSFWState.NSFW` elsewhere - R8 leaves enum constant names alone because they go over the wire). Depth- and cycle-bounded walk, deep enough for the nine hops from an edge to its indicators. |
+| `extensions/reddit/src/test/.../nsfw/NsfwCellScannerSelfTest.java` | **New file.** Plain-javac self-test; must print `19 passed, 0 failed`. Builds an edge with the real feed's nine-level shape, so a walk that is too shallow to reach the indicators fails the test rather than the feed. |
+| `extensions/reddit/.../nsfw/DrawerRowCloner.java` | **New file.** Android-free. Clones a drawer row with a different title resource without naming its class: matches a constructor whose parameter count equals the row's field count, fills it by type, and then **verifies** the result field by field — the title's own field must hold the new id and every other int must be unchanged — retrying with the title in each int slot. Checking only that the new id appears *somewhere* is not enough; that passes a clone with the title and icon swapped, which is exactly the bug the self-test caught. |
+| `extensions/reddit/src/test/.../nsfw/DrawerRowClonerSelfTest.java` | **New file.** Plain-javac self-test; must print `19 passed, 0 failed`. Covers reordered fields, reordered constructor parameters, extra and null reference fields, single-int rows, and refusals. |
+| `extensions/reddit/.../patches/NsfwDrawerRow.java` | **New file.** Adds an NSFW row to the navigation drawer under Reddit's Popular row; a tap toggles NSFW mode, shows one short toast and asks `NsfwFeedRefresher` to reload the home feed. Builds the row by **cloning** the Popular row reflectively — the row type is obfuscated and renamed every release, but its shape `(boolean, int titleRes, int iconRes, long uniqueId)` is stable — and identifies Popular by looking up the `popular_feed_label` string id at runtime, which also disambiguates the title int from the icon int. All reflective and wrapped: a shape change costs the row, not the app. |
+| `patches/src/main/resources/addresources/values/reddit/strings.xml` | Add `morphe_screen_nsfw_title`, `morphe_nsfw_feed_mode_{title,summary}` and `morphe_nsfw_feed_mode_row_title`. Only the default `values/` locale — Crowdin fills the rest. |
+| `extensions/reddit/.../patches/NsfwModeIcon.java` | **New file.** `brandIcon(int)` injection point: returns the 18+ mark while the mode is on and Reddit's own otherwise. Resolves `morphe_nsfw_mode_icon` lazily (a static initialiser runs before resources exist) and caches it; an unresolved id leaves Reddit's mark alone, since an app bar with no icon looks broken. |
+| `patches/src/main/resources/nsfwmode/drawable/morphe_nsfw_mode_icon.xml` | **New file.** Copied into `res/drawable` by the patch's own `resourcePatch`. `#ff585b` is Reddit's own NSFW colour — the value of `alienblue_nsfw`, `midnight_nsfw`, `night_nsfw` and every other themed variant. |
+
+The drawer hooks live in the same patch but are wrapped in `try`/`catch`: the drawer is far more
+volatile than the listing model, so a fingerprint miss costs the row and leaves feed filtering and
+the settings toggle working, instead of failing the patch and leaving the user unable to build.
+The home app bar's brand mark is Compose, not a view: it is a single `painterResource` call on
+`icon_brand_full_color` inside
+`com.reddit.feedslegacy.switcher.impl.homepager.compose.composables.revamp.rplcustom`, so
+`NsfwHomeAppBarBrandIconFingerprint` anchors on that package plus the drawable resolved **by
+name** (`resourceLiteral`, which needs `resourceMappingPatch`), and the swap is one integer
+rewritten in place. Because it is Compose, the icon changes on the next composition of the home
+screen rather than the instant the mode is switched.
+
+`NsfwDrawerSectionFingerprint` is (again deliberately) a separate instance of the same fingerprint
+`hideSidebarComponentsPatch` uses; `NsfwDrawerItemClickFingerprint` anchors on the unobfuscated
+lambda class `CommunityDrawerPresenter$handleGenericItemClicked$1`.
+
+Known limitation to preserve on sync: the hook is the `Listing` model, so it covers listing-backed feeds (front page and subreddits) but not the section-backed Popular/Latest feeds, which `Hide ads` reaches through `AdPostSectionConstructorFingerprint` instead. Adding a section-level hook needs a decompiled Reddit APK to fingerprint against.
 
 **Fork infrastructure (not tied to a feature)**
 
@@ -86,7 +123,6 @@ patch no longer applies cleanly):
    the `.rej` hunks manually using the semantics table above (upstream may have refactored the touched
    files). **Regenerate `.fork/upstream-delta.patch`** against the new tree afterwards so the next sync
    starts clean.
-5. Verify locally: run the self-tests with plain `javac`/`java` (BrainrotDetectorSelfTest 27/27, AlternatingTapUnlockSelfTest 11/11).
 6. Update the state markers in this file. Commit everything as
    `bump: Sync upstream Morphe patches vX.Y.Z` (the `bump:` type produces a patch release), push to `dev`.
    If the push to `dev` is rejected with 403 / a branch restriction, see **Automation (routine) setup**

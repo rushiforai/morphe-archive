@@ -39,7 +39,7 @@ internal val disablePermissionPromptNativePatch = rawResourcePatch {
                     offset.toString(16),
             )
             else -> {
-                // Unknown binary layout (for example 5002172/5002206): skip instead of
+                // Unknown binary layout: skip instead of
                 // crashing the entire Android XR compatibility chain.
             }
         }

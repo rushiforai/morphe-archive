@@ -23,6 +23,10 @@ AppTarget(
 
 ## Base adaptation safety
 
+- A request to "make compatible" means implementing and verifying the actual mutation and reachable code path for every requested exact base, not merely adding compatibility labels. Inspect that base's decoded APK before choosing offsets or method/shader targets; never transplant a neighboring build's offsets without evidence.
+- Exercise the production patch helpers against the actual decoded native libraries for every newly supported option. Verify all intended sites change, no unrelated bytes change, shader boundaries/interfaces survive, reapplication is idempotent, and supported option transitions work. Synthetic fixtures supplement this evidence; they do not replace it. Trace native callers/references to establish that the edited shader and format fields belong to the active rendering path.
+- Record per-base metadata, hashes, offsets, code-path evidence, checks performed, and remaining runtime gaps. Distinguish byte/code-path compatibility from runtime acceptance of an experimental format and from physical panel precision. If a requested base is unavailable or reconstructed, state the limitation explicitly.
+
 - Pin native layouts by exact file size, SHA-256 where available, symbol-derived offsets, and original/already-patched byte preconditions. Unknown layouts must fail closed or remain unchanged; never infer offsets from a neighboring build.
 - Validate all edits atomically and idempotently. Do not use global replacement counts when a supported binary can contain a legitimate duplicate.
 - Compare manifests, DEX classes/methods, config assets, renderer topology, and native symbols before declaring a patch compatible. Build-specific experiments stay isolated unless the new base demonstrates the same contract.

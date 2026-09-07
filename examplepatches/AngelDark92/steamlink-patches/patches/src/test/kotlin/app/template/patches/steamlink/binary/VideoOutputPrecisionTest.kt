@@ -70,7 +70,91 @@ class VideoOutputPrecisionTest {
     @Test
     fun `generated shaders preserve fixed block size`() {
         VideoOutputPrecision.entries.forEach { precision ->
-            assertEquals(VIDEO_SHADER_SIZE, paddedVideoShader(1.06f, 1.12f, precision).size)
+            VideoDitherMode.entries.forEach { dither ->
+                listOf(.50f to 0f, 1f to 1f, 1.06f to 1.12f, 2.50f to 3f).forEach { (gamma, saturation) ->
+                    val shader = paddedVideoShader(gamma, saturation, precision, dither)
+                    assertEquals(VIDEO_SHADER_SIZE, shader.size, "$precision / $dither / $gamma / $saturation")
+                    assertFalse(shader.contains(0.toByte()))
+                    assertShaderInterface(shader.ascii(), dither != VideoDitherMode.OFF)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `fp16 output applies sRGB EOTF at neutral calibration`() {
+        val shader = paddedVideoShader(1f, 1f, VideoOutputPrecision.RGBA16F_EXPERIMENTAL).ascii()
+        assertTrue(shader.contains("mix(c/12.92,pow((c+.055)/1.055,vec3(2.4)),step(vec3(.04045),c))"))
+        assertTrue(shader.contains("vec3(1.00)"))
+        assertTrue(shader.contains("c,1.00)"))
+        assertShaderInterface(shader)
+    }
+
+    @Test
+    fun `all precision options round trip and unknown precision fails closed`() {
+        VideoOutputPrecision.entries.forEach { precision ->
+            assertEquals(precision, VideoOutputPrecision.fromOption(precision.optionValue))
+        }
+        assertFailsWith<PatchException> { VideoOutputPrecision.fromOption("rgba32f") }
+        assertFailsWith<PatchException> { VideoOutputPrecision.fromOption(null) }
+    }
+
+    @Test
+    fun `active dithering guards endpoints in sRGB code values before linear conversion`() {
+        VideoOutputPrecision.entries.forEach { precision ->
+            listOf(VideoDitherMode.LOW to ".00196", VideoDitherMode.STANDARD to ".00392").forEach { (mode, scale) ->
+                val shader = paddedVideoShader(1f, 1f, precision, mode).ascii()
+                assertTrue(shader.contains("const float DITHER_SCALE=$scale;"))
+                assertTrue(shader.contains("vec3 q=c;"))
+                assertTrue(shader.contains("n*=smoothstep(0.,.0157,q)*smoothstep(0.,.0157,1.-q);"))
+                val addNoise = shader.indexOf("q=clamp(q+n,0.,1.);")
+                assertTrue(addNoise >= 0)
+                if (precision == VideoOutputPrecision.SRGB8_HIGHP) {
+                    assertTrue(shader.contains("color.rgb=q*fFadeAmount;"))
+                    assertFalse(shader.contains("step(vec3(.04045)"))
+                } else {
+                    val conversion = shader.indexOf("mix(q/12.92,pow((q+.055)/1.055,vec3(2.4)),step(vec3(.04045),q))")
+                    assertTrue(conversion > addNoise, "Dither must precede the EOTF for $precision")
+                }
+                assertShaderInterface(shader, true)
+            }
+        }
+    }
+
+    @Test
+    fun `all projection formats transition atomically and idempotently on every guarded layout`() {
+        layouts.forEach { layout ->
+            val original = syntheticLibrary(layout.size, layout.offsets)
+            VideoOutputPrecision.entries.forEach { source ->
+                val input = setProjectionSwapchainFormat(original, source, layout.versionName, layout.versionCode)
+                VideoOutputPrecision.entries.forEach { target ->
+                    val snapshot = input.copyOf()
+                    val changed = setProjectionSwapchainFormat(input, target, layout.versionName, layout.versionCode)
+                    val expected = original.copyOf().apply {
+                        layout.offsets.forEach { formatInstruction(target).copyInto(this, it) }
+                    }
+                    assertContentEquals(expected, changed, "${layout.versionCode}: $source -> $target")
+                    assertContentEquals(snapshot, input, "Input mutated")
+                    assertContentEquals(changed, setProjectionSwapchainFormat(changed, target, layout.versionName, layout.versionCode))
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `mixed precision sites fail without modifying input including fp16`() {
+        VideoOutputPrecision.entries.forEach { first ->
+            VideoOutputPrecision.entries.filter { it != first }.forEach { second ->
+                val mixed = syntheticLibrary().apply {
+                    SWAPCHAIN_FORMAT_OFFSETS_5002244.forEach { formatInstruction(first).copyInto(this, it) }
+                    formatInstruction(second).copyInto(this, SWAPCHAIN_FORMAT_OFFSETS_5002244.last())
+                }
+                val snapshot = mixed.copyOf()
+                VideoOutputPrecision.entries.forEach { target ->
+                    assertFailsWith<PatchException> { setProjectionSwapchainFormat(mixed, target, "2.0.22", "5002244") }
+                    assertContentEquals(snapshot, mixed)
+                }
+            }
         }
     }
 
@@ -230,8 +314,14 @@ class VideoOutputPrecisionTest {
 
     private fun ByteArray.ascii() = toString(Charsets.US_ASCII)
 
-    private fun assertShaderInterface(shader: String) {
-        assertTrue(shader.contains("const float DITHER_ENABLE=0.;"))
+    private fun formatInstruction(precision: VideoOutputPrecision): ByteArray = when (precision) {
+        VideoOutputPrecision.SRGB8_HIGHP -> byteArrayOf(0x69, 0x88.toByte(), 0x91.toByte(), 0x52)
+        VideoOutputPrecision.RGB10_A2_EXPERIMENTAL -> byteArrayOf(0x29, 0x0b, 0x90.toByte(), 0x52)
+        VideoOutputPrecision.RGBA16F_EXPERIMENTAL -> byteArrayOf(0x49, 0x03, 0x91.toByte(), 0x52)
+    }
+
+    private fun assertShaderInterface(shader: String, ditherEnabled: Boolean = false) {
+        assertTrue(shader.contains("const float DITHER_ENABLE=${if (ditherEnabled) 1 else 0}.;"))
         assertTrue(shader.contains("layout(location=2) uniform highp samplerExternalOES tex0;"))
         assertFalse(shader.contains("layout(location=2) uniform samplerExternalOES tex0;"))
         assertTrue(shader.contains("layout(location=3) uniform float fFadeAmount;"))

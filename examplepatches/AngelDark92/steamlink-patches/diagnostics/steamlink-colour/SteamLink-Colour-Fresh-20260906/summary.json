@@ -1,0 +1,62 @@
+{
+  "Schema": 2,
+  "Mode": "Capture",
+  "Findings": {
+    "Host": "UNKNOWN - no fresh host negotiation marker",
+    "Decoder": "UNKNOWN - stock logs do not establish actual decoded sample precision",
+    "OpenXR": "8-BIT BOTTLENECK OBSERVED - sampled projection includes RGBA8/sRGB8",
+    "Screen": "UNVERIFIED - compositor/panel precision is not measured by this tool",
+    "HostModes": [],
+    "ProjectionFormats": [
+      35907
+    ],
+    "SampledFrames": 3,
+    "DecoderCandidateWords": [
+      "color-format"
+    ],
+    "HostLineCount": 118,
+    "AndroidLineCount": 143,
+    "TraceLineCount": 33,
+    "AllocatedSwapchainFormats": [
+      35907
+    ],
+    "CodecComponents": [
+      "c2.qti.hevc.decoder"
+    ],
+    "CodecPixelFormatConfigurations": [
+      54
+    ]
+  },
+  "BufferedContext": {
+    "Host": "10-BIT MODE OBSERVED - host negotiation only",
+    "Decoder": "UNKNOWN - stock logs do not establish actual decoded sample precision",
+    "OpenXR": "8-BIT BOTTLENECK OBSERVED - sampled projection includes RGBA8/sRGB8",
+    "Screen": "UNVERIFIED - compositor/panel precision is not measured by this tool",
+    "HostModes": [
+      1
+    ],
+    "ProjectionFormats": [
+      35907
+    ],
+    "SampledFrames": 3,
+    "DecoderCandidateWords": [
+      "color-format"
+    ],
+    "HostLineCount": 1364,
+    "AndroidLineCount": 143,
+    "TraceLineCount": 33,
+    "AllocatedSwapchainFormats": [
+      35907
+    ],
+    "CodecComponents": [
+      "c2.qti.hevc.decoder"
+    ],
+    "CodecPixelFormatConfigurations": [
+      54
+    ]
+  },
+  "Notes": [
+    "Android logcat is bounded by device start time and current Steam Link PID. Codec-service logs outside that PID are excluded. Ring-buffer loss is possible.",
+    "Buffered context reads retained logs for that PID with selected colour/codec tags; it may overlap capture or predate this connection. PID reuse is possible. Never treated as fresh evidence."
+  ]
+}

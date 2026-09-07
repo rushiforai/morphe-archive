@@ -1,3 +1,87 @@
+## [1.40.0](https://github.com/legendsciber/morphe-patches/compare/v1.39.0...v1.40.0) (2026-09-06)
+
+### ✨ New Features
+
+* bypass in-app purchases ([ba429ff](https://github.com/legendsciber/morphe-patches/commit/ba429ffd9007e72888e7a66bfec89ac3d412d1e8))
+
+## [1.39.0](https://github.com/legendsciber/morphe-patches/compare/v1.38.0...v1.39.0) (2026-09-06)
+
+### ✨ New Features
+
+* v37 - minimal hook, no managed method calls ([5824e4d](https://github.com/legendsciber/morphe-patches/commit/5824e4d8729cc12af63572bcbdf3795ddb0279c4))
+
+## [1.38.0](https://github.com/legendsciber/morphe-patches/compare/v1.37.0...v1.38.0) (2026-09-06)
+
+### ✨ New Features
+
+* v36 - hook VerifyPurchase + ConfirmPurchase to bypass server check ([7c4edaa](https://github.com/legendsciber/morphe-patches/commit/7c4edaafc9e960768574775dba7f0795118998d6))
+
+## [1.37.0](https://github.com/legendsciber/morphe-patches/compare/v1.36.0...v1.37.0) (2026-09-06)
+
+### ✨ New Features
+
+* v35 - read method pointer from MethodInfo[0] directly ([162ec7d](https://github.com/legendsciber/morphe-patches/commit/162ec7d200e8d0062b74141d0792d4c42c623372))
+
+## [1.36.0](https://github.com/legendsciber/morphe-patches/compare/v1.35.0...v1.36.0) (2026-09-06)
+
+### ✨ New Features
+
+* v34 - direct function call instead of runtime_invoke ([62fcb0a](https://github.com/legendsciber/morphe-patches/commit/62fcb0ac319ebb08c52afbdeb56a0692f8b31297))
+
+## [1.35.0](https://github.com/legendsciber/morphe-patches/compare/v1.34.10...v1.35.0) (2026-09-06)
+
+### ✨ New Features
+
+* v33 - back to runtime_invoke approach with step-by-step logging ([9863bdc](https://github.com/legendsciber/morphe-patches/commit/9863bdc85639dded9620a1471cc9c57193501498))
+
+## [1.34.10](https://github.com/legendsciber/morphe-patches/compare/v1.34.9...v1.34.10) (2026-09-06)
+
+### 🐛 Bug Fixes
+
+* v32 - use new log paths (old files owned by root, app can't write) ([1d05f9b](https://github.com/legendsciber/morphe-patches/commit/1d05f9b6e60de82ed9432c281b888978445e8607))
+
+## [1.34.9](https://github.com/legendsciber/morphe-patches/compare/v1.34.8...v1.34.9) (2026-09-06)
+
+### 🐛 Bug Fixes
+
+* v32 - improved crash handler, truncate logs, filter r-xp only ([0705031](https://github.com/legendsciber/morphe-patches/commit/070503151a8f47d82040473870c200593c5f3194))
+
+## [1.34.8](https://github.com/legendsciber/morphe-patches/compare/v1.34.7...v1.34.8) (2026-09-06)
+
+### 🐛 Bug Fixes
+
+* v31 - crash handler + log overwrite + diagnostic logging ([45b9fdf](https://github.com/legendsciber/morphe-patches/commit/45b9fdfa42488c1717a5e90dfb76ad27769292cf))
+
+## [1.34.7](https://github.com/legendsciber/morphe-patches/compare/v1.34.6...v1.34.7) (2026-09-06)
+
+### 🐛 Bug Fixes
+
+* v30 - fix Il2CppString offset (0x14 not 0x24) ([5fda8c6](https://github.com/legendsciber/morphe-patches/commit/5fda8c6df5e8fbe747172b1ca3ccec781047e44c))
+
+## [1.34.6](https://github.com/legendsciber/morphe-patches/compare/v1.34.5...v1.34.6) (2026-09-06)
+
+### 🐛 Bug Fixes
+
+* v30 - add correct namespace for PurchasingManager ([dc52edf](https://github.com/legendsciber/morphe-patches/commit/dc52edf5deb76fd6e72def94ee88fa0b82ffc0f8))
+
+## [1.34.5](https://github.com/legendsciber/morphe-patches/compare/v1.34.4...v1.34.5) (2026-09-06)
+
+### 🐛 Bug Fixes
+
+* v30 - fix dlsym symbol names (il2cpp_ prefix) ([e8f6609](https://github.com/legendsciber/morphe-patches/commit/e8f6609570216ad251c9a215a746b9c8061f7297))
+
+## [1.34.4](https://github.com/legendsciber/morphe-patches/compare/v1.34.3...v1.34.4) (2026-09-06)
+
+### 🐛 Bug Fixes
+
+* v30 - lazy IL2CPP init + runtime_invoke instead of direct call ([f490e60](https://github.com/legendsciber/morphe-patches/commit/f490e60a18ec096e12dde8bb666ffde6829b3ec4))
+
+## [1.34.3](https://github.com/legendsciber/morphe-patches/compare/v1.34.2...v1.34.3) (2026-09-06)
+
+### 🐛 Bug Fixes
+
+* v29 - use full path from /proc/self/maps for dlopen ([3404be1](https://github.com/legendsciber/morphe-patches/commit/3404be14b2c81e7b189141513d7f503ed2d45265))
+
 ## [1.34.2](https://github.com/legendsciber/morphe-patches/compare/v1.34.1...v1.34.2) (2026-09-06)
 
 ### 🐛 Bug Fixes

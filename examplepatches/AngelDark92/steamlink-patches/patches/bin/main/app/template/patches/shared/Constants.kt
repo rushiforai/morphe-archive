@@ -40,34 +40,6 @@ object Constants {
         )
     )
 
-    val COMPATIBILITY_STEAM_LINK_HMD_ONLY_5002206 = Compatibility(
-        name = "Steam Link",
-        packageName = "com.valvesoftware.steamlinkvr",
-        apkFileType = ApkFileType.APK,
-        appIconColor = 0x1B2838,
-        targets = listOf(
-            AppTarget(
-                version = "2.0.22",
-                versionCodes = SupportedAbi.entries.associateWith { 5002206 },
-                description = "HMD-only pose fix layout verified for build 5002206.",
-            )
-        )
-    )
-
-    val COMPATIBILITY_STEAM_LINK_HMD_ONLY_5002172 = Compatibility(
-        name = "Steam Link",
-        packageName = "com.valvesoftware.steamlinkvr",
-        apkFileType = ApkFileType.APK,
-        appIconColor = 0x1B2838,
-        targets = listOf(
-            AppTarget(
-                version = "2.0.22",
-                versionCodes = mapOf(SupportedAbi.ARM64_V8A to 5002172),
-                description = "HMD-only pose fix layout verified for build 5002172.",
-            )
-        )
-    )
-
     val COMPATIBILITY_STEAM_LINK_HMD_ONLY_5002244 = Compatibility(
         name = "Steam Link",
         packageName = "com.valvesoftware.steamlinkvr",

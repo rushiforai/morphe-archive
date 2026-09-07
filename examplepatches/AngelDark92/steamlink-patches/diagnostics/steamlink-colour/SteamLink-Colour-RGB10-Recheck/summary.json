@@ -1,0 +1,65 @@
+﻿{
+    "Schema":  2,
+    "Mode":  "Snapshot",
+    "Findings":  {
+                     "Host":  "UNKNOWN - no fresh host negotiation marker",
+                     "Decoder":  "UNKNOWN - stock logs do not establish actual decoded sample precision",
+                     "OpenXR":  "UNKNOWN - no projection format telemetry",
+                     "Screen":  "UNVERIFIED - compositor/panel precision is not measured by this tool",
+                     "HostModes":  [
+
+                                   ],
+                     "ProjectionFormats":  [
+
+                                           ],
+                     "SampledFrames":  0,
+                     "DecoderCandidateWords":  [
+
+                                               ],
+                     "HostLineCount":  0,
+                     "AndroidLineCount":  0,
+                     "TraceLineCount":  0,
+                     "AllocatedSwapchainFormats":  [
+
+                                                   ],
+                     "CodecComponents":  [
+
+                                         ],
+                     "CodecPixelFormatConfigurations":  [
+
+                                                        ]
+                 },
+    "BufferedContext":  {
+                            "Host":  "10-BIT MODE OBSERVED - host negotiation only",
+                            "Decoder":  "UNKNOWN - stock logs do not establish actual decoded sample precision",
+                            "OpenXR":  "HIGH-PRECISION STORAGE OBSERVED - does not prove preserved 10-bit values",
+                            "Screen":  "UNVERIFIED - compositor/panel precision is not measured by this tool",
+                            "HostModes":  [
+                                              1
+                                          ],
+                            "ProjectionFormats":  [
+                                                      32857
+                                                  ],
+                            "SampledFrames":  3,
+                            "DecoderCandidateWords":  [
+                                                          "color-format"
+                                                      ],
+                            "HostLineCount":  2112,
+                            "AndroidLineCount":  143,
+                            "TraceLineCount":  33,
+                            "AllocatedSwapchainFormats":  [
+                                                              32857,
+                                                              35907
+                                                          ],
+                            "CodecComponents":  [
+                                                    "c2.qti.hevc.decoder"
+                                                ],
+                            "CodecPixelFormatConfigurations":  [
+                                                                   54
+                                                               ]
+                        },
+    "Notes":  [
+                  "Buffered context reads retained logs for that PID with selected colour/codec tags; it may overlap capture or predate this connection. PID reuse is possible. Never treated as fresh evidence.",
+                  "SNAPSHOT: no fresh connection capture was attempted. Read BUFFERED CONTEXT below."
+              ]
+}

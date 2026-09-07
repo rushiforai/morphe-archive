@@ -3,6 +3,7 @@ package app.template.patches.steamlink.androidxr
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.template.patches.shared.Constants.isEarlierStartupSteamLinkBuild
 import app.template.patches.shared.Constants.isLegacyXrFoundationSteamLinkBuild
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -163,6 +164,7 @@ internal val xrDirectInputFixPatch = bytecodePatch {
  */
 internal val xrResolutionProbePatch = bytecodePatch {
     execute {
+        if (!isEarlierStartupSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@execute
         val steamLinkClass = mutableClassDefBy("Lcom/valvesoftware/steamlink/SteamLink;")
         val runResolutionProbe = { method: MutableMethod, index: Int, probeMethod: String ->
             method.addInstruction(

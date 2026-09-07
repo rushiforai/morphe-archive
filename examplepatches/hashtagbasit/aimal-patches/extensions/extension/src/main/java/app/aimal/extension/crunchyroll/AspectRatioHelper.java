@@ -10,6 +10,8 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.Toast;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.lang.reflect.Method;
@@ -76,52 +78,111 @@ public final class AspectRatioHelper {
             if (parent.findViewById(BUTTON_ID) != null) return;
 
             final Context ctx = playerView.getContext();
-            final TextView button = new TextView(ctx);
-            button.setId(BUTTON_ID);
-            button.setText(LABELS[index]);
-            button.setTextColor(Color.WHITE);
-            button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-            button.setGravity(Gravity.CENTER);
-            button.setPadding(dp(ctx, 12), dp(ctx, 6), dp(ctx, 12), dp(ctx, 6));
+            SubtitleStyler.init(ctx);
 
-            GradientDrawable bg = new GradientDrawable();
-            bg.setColor(0xB3000000);
-            bg.setCornerRadius(dp(ctx, 18));
-            button.setBackground(bg);
+            final LinearLayout row = new LinearLayout(ctx);
+            row.setId(BUTTON_ID);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
             // Draw above the media3 controller, which the app adds in-tree.
-            button.setElevation(dp(ctx, 10));
+            row.setElevation(dp(ctx, 10));
 
             FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.WRAP_CONTENT,
                     FrameLayout.LayoutParams.WRAP_CONTENT);
-            params.gravity = Gravity.TOP | Gravity.END;
+            // Top-left: the top-right corner is where Crunchyroll puts cast,
+            // settings and close, and the chips were landing on top of them.
+            params.gravity = Gravity.TOP | Gravity.START;
             params.topMargin = dp(ctx, 24);
-            params.rightMargin = dp(ctx, 16);
-            button.setLayoutParams(params);
+            params.leftMargin = dp(ctx, 16);
+            row.setLayoutParams(params);
 
             final Handler handler = new Handler(Looper.getMainLooper());
             final Runnable dim = new Runnable() {
                 @Override
                 public void run() {
-                    button.animate().alpha(IDLE_ALPHA).setDuration(300).start();
+                    row.animate().alpha(IDLE_ALPHA).setDuration(300).start();
                 }
             };
-
-            button.setOnClickListener(new View.OnClickListener() {
+            final Runnable wake = new Runnable() {
                 @Override
-                public void onClick(View v) {
-                    index = (index + 1) % MODES.length;
-                    button.setText(LABELS[index]);
-                    applyResizeMode(playerView, MODES[index]);
-
-                    button.animate().cancel();
-                    button.setAlpha(1f);
+                public void run() {
+                    row.animate().cancel();
+                    row.setAlpha(1f);
                     handler.removeCallbacks(dim);
                     handler.postDelayed(dim, IDLE_MS);
                 }
+            };
+
+            final TextView aspect = chip(ctx, LABELS[index]);
+            aspect.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    index = (index + 1) % MODES.length;
+                    aspect.setText(LABELS[index]);
+                    applyResizeMode(playerView, MODES[index]);
+                    wake.run();
+                }
+            });
+            row.addView(aspect);
+
+            // Subtitle controls. These only take effect on the next track load,
+            // because the script is rewritten on its way into libass.
+            final TextView size = chip(ctx, SubtitleStyler.sizeLabel());
+            size.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    SubtitleStyler.cycleSize();
+                    size.setText(SubtitleStyler.sizeLabel());
+                    toast(ctx);
+                    wake.run();
+                }
             });
 
-            parent.addView(button);
+            final TextView font = chip(ctx, SubtitleStyler.fontLabel());
+            font.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    SubtitleStyler.cycleFont();
+                    font.setText(SubtitleStyler.fontLabel());
+                    toast(ctx);
+                    wake.run();
+                }
+            });
+
+            final TextView border = chip(ctx, SubtitleStyler.borderLabel());
+            border.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    SubtitleStyler.cycleBorder();
+                    border.setText(SubtitleStyler.borderLabel());
+                    toast(ctx);
+                    wake.run();
+                }
+            });
+
+            size.setVisibility(View.GONE);
+            font.setVisibility(View.GONE);
+            border.setVisibility(View.GONE);
+
+            final TextView cc = chip(ctx, "CC");
+            cc.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    boolean show = size.getVisibility() != View.VISIBLE;
+                    size.setVisibility(show ? View.VISIBLE : View.GONE);
+                    font.setVisibility(show ? View.VISIBLE : View.GONE);
+                    border.setVisibility(show ? View.VISIBLE : View.GONE);
+                    wake.run();
+                }
+            });
+
+            row.addView(cc);
+            row.addView(size);
+            row.addView(font);
+            row.addView(border);
+
+            parent.addView(row);
 
             // Re-assert the current choice (a fresh player defaults to FIT) and
             // start the idle timer.
@@ -129,6 +190,41 @@ public final class AspectRatioHelper {
             handler.postDelayed(dim, IDLE_MS);
         } catch (Throwable ignored) {
         }
+    }
+
+    /**
+     * The rewritten script is only read when libass loads a track, so a change
+     * shows up on the next episode or after switching the subtitle language.
+     */
+    private static void toast(Context ctx) {
+        try {
+            String message = SubtitleStyler.hookSeen()
+                    ? "Applies on the next episode or subtitle change"
+                    : "Saved - no subtitle track has loaded yet";
+            Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show();
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static TextView chip(Context ctx, String text) {
+        TextView view = new TextView(ctx);
+        view.setText(text);
+        view.setTextColor(Color.WHITE);
+        view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        view.setGravity(Gravity.CENTER);
+        view.setPadding(dp(ctx, 10), dp(ctx, 6), dp(ctx, 10), dp(ctx, 6));
+
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(0xB3000000);
+        bg.setCornerRadius(dp(ctx, 18));
+        view.setBackground(bg);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        params.setMargins(dp(ctx, 3), 0, dp(ctx, 3), 0);
+        view.setLayoutParams(params);
+        return view;
     }
 
     private static void applyResizeMode(View playerView, int mode) {

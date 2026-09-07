@@ -86,24 +86,24 @@ class LegacyNativeCompatibilityPatchTest {
         val input = byteArrayOf(1, 2, 3) + faceOriginal + byteArrayOf(4, 5) + eyeOriginal + byteArrayOf(6)
         val expected = byteArrayOf(1, 2, 3) + facePatched + byteArrayOf(4, 5) + eyePatched + byteArrayOf(6)
 
-        val patched = patchNativePermissionNames(input, "2.0.22", "5002206")
+        val patched = patchNativePermissionNames(input, "2.0.22", "9999999")
 
         assertContentEquals(expected, patched)
-        assertContentEquals(expected, patchNativePermissionNames(patched, "2.0.22", "5002206"))
+        assertContentEquals(expected, patchNativePermissionNames(patched, "2.0.22", "9999999"))
     }
 
     @Test
     fun `unknown layout without permission patterns is left untouched`() {
         val input = ByteArray(128) { it.toByte() }
 
-        assertContentEquals(input, patchNativePermissionNames(input, "2.0.22", "5002206"))
+        assertContentEquals(input, patchNativePermissionNames(input, "2.0.22", "9999999"))
     }
 
     @Test
     fun `unknown layout with only one permission pattern is left untouched atomically`() {
         val input = byteArrayOf(1, 2, 3) + faceOriginal + byteArrayOf(4, 5, 6)
 
-        assertContentEquals(input, patchNativePermissionNames(input, "2.0.22", "5002206"))
+        assertContentEquals(input, patchNativePermissionNames(input, "2.0.22", "9999999"))
     }
 
     @Test
