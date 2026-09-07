@@ -1075,14 +1075,6 @@
                 "updatedAt": 1786412608663
             },
             {
-                "name": "tiaruebar-patches-vip-fix",
-                "source": "https://raw.githubusercontent.com/electiveDev/tiaruebar-patches-vip-fix/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 135,
-                "createdAt": 1786412609640,
-                "updatedAt": 1786412609640
-            },
-            {
                 "name": "morphe-patches",
                 "source": "https://raw.githubusercontent.com/heval99/morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -1625,6 +1617,30 @@
                 "sortOrder": 208,
                 "createdAt": 1788663875259,
                 "updatedAt": 1788663875259
+            },
+            {
+                "name": "hushfeed",
+                "source": "https://raw.githubusercontent.com/SysAdminDoc/hushfeed/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 209,
+                "createdAt": 1788750210347,
+                "updatedAt": 1788750210347
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/debakarr/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 210,
+                "createdAt": 1788750210903,
+                "updatedAt": 1788750210903
+            },
+            {
+                "name": "gemini-microg-patches",
+                "source": "https://raw.githubusercontent.com/ryuya0124/gemini-microg-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 211,
+                "createdAt": 1788750211649,
+                "updatedAt": 1788750211649
             }
         ]
     }

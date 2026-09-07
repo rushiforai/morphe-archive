@@ -67,6 +67,7 @@ SapitoSucio/FroggoMorphePatches
 Seobject/Seobject-patches
 ShuhaibNC/morphe-patches
 SouBryan/pinterest-morphed
+SysAdminDoc/hushfeed
 TheRealCrazyfuy/abeja-morphe-patches
 TheRealSkywarp/morphe-patches
 Tornillo2/movistar-block-ads-morphe
@@ -126,6 +127,7 @@ crimera/piko-newx
 csagataj2/morphe-patches
 d0nj/morphe-patches
 david419kr/niconico-yt-morphe-patches
+debakarr/morphe-patches
 dexnis-dev/morphe-patches
 dh6k/morphe-patches
 docbt/patched-up
@@ -207,6 +209,7 @@ rhubarbshoelaces/morphe-patches
 riky-dev/morphe-patches
 rushiranpise/RI-Vanced-Universal-Morphe-Patches
 rushiranpise/Ri-Vanced-Universal-Morphe-Patches
+ryuya0124/gemini-microg-patches
 saieshshirodkar/saiesh-morphe-patches
 sashade8-ship-it/dual-vot-patches
 shaun-the-sheep-patches/morphe-patches
