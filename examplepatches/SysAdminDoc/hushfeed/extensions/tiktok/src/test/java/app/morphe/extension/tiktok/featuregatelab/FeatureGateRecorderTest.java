@@ -6,6 +6,7 @@ import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.FeatureGateRecorderPreference;
 import org.json.JSONObject;
 import org.junit.Before;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
@@ -21,9 +22,35 @@ import org.robolectric.annotation.GraphicsMode;
 public class FeatureGateRecorderTest {
     @Before public void setup() {
         Utils.setContext(RuntimeEnvironment.getApplication());
+        SettingsManagerObservationRecorder.clear();
         SettingsStatus.featureGateRecorderEnabled = true;
         FeatureGateLearnMode.cancel();
     }
+    @After public void tearDown() {
+        SettingsStatus.featureGateRecorderEnabled = false;
+        FeatureGateLearnMode.cancel();
+        SettingsManagerObservationRecorder.clear();
+    }
+    @Test public void theExportedReportCarriesNoAddressesOrIdentifiers() throws Exception {
+        // This is the one artifact the issue templates ask people to attach, and gate values are
+        // server config: CDN hosts, endpoint addresses and per-install ids turn up in them.
+        String secret = "{\"cdn\":\"https://v16-webapp.tiktokcdn.com/x?token=abc\",\"device_id\":\"1234567890123456789\"}";
+        SettingsManagerObservationRecorder.observeWithDefault("config", String.class, "", "before");
+        FeatureGateLearnMode.begin();
+        SettingsManagerObservationRecorder.observeWithoutDefault("config", String.class, secret);
+
+        String reportText = FeatureGateLearnMode.stopAndBuildReport();
+
+        assertFalse(reportText, reportText.contains("tiktokcdn.com"));
+        assertFalse(reportText, reportText.contains("token=abc"));
+        assertFalse(reportText, reportText.contains("1234567890123456789"));
+        // Redacting values rather than structure, so the file is still a report.
+        JSONObject report = new JSONObject(reportText);
+        String after = report.getJSONArray("gates").getJSONObject(0).getString("after");
+        assertTrue(after, after.contains("omitted"));
+        assertTrue("the gate name is what makes the report useful", reportText.contains("config"));
+    }
+
     @Test public void recordsRepeatedReadsNewKeysAndChangedValuesWithoutOverriding() throws Exception {
         assertTrue(FeatureGateLabRuntime.overrideBoolean("known", true));
         FeatureGateLearnMode.begin();

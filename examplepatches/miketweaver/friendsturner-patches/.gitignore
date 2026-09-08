@@ -1,0 +1,16 @@
+# Build output
+.gradle/
+**/build/
+!src/**/build/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+local.properties
+
+# Misc
+.vscode/
+node_modules/
+*.apk
+*.log

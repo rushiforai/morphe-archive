@@ -87,9 +87,10 @@ BINDINGS = {
     # return when the caller's digest cannot be computed -- an input, never an output. It is
     # tracked only because reading it is part of what identifies the check.
     'test_environment': 'Lrox;',
-    # The Phenotype flag holder whose <clinit> the grammar patch flips, and the flag factory it
-    # stores through. The class names move every build; the strings inside are what R8 cannot.
-    'grammar_flags': 'Ljpf;',
+    # The factory every boolean Phenotype flag is built through. Hidden Features finds each
+    # flag's holder class by carrying the flag's name string rather than naming the class, so the
+    # holders need no bindings -- Ljpf; had one and no longer does. Names move every build; the
+    # strings inside are what R8 cannot move.
     'flag_store': 'Lnxs;',
     # Letters that used to sit inline in the check bodies below, where the module docstring's
     # "edit BINDINGS and the register counts; everything else is structural and should carry
@@ -122,6 +123,24 @@ EXPECTED = {
     # Toolbar capacity. Both immediates the Bigger Toolbar patch rewrites, pinned at their stock
     # values: if either has moved, the patch would either raise nothing or discard a capacity
     # Gboard now ships of its own.
+    # Hidden Features: the flags whose compiled-in default a patch flips. Pinned by name
+    # and by shape, because forceFlagsOn refuses a flag whose default is shared with others in the
+    # same <clinit> -- so a Gboard build that hoists one of these would fail at patch time with no
+    # warning here otherwise.
+    'hidden_feature_flags': [
+        'enable_grammar_checker',
+        'enable_emoji_kitchen_browse',
+        'enable_custom_sticker_tab',
+        'offline_translate',
+        'enable_settings_search',
+    ],
+    # Flags whose default is hoisted: Gboard loads one zero and feeds it to several flags in the
+    # same <clinit>, so no constant belongs to this flag alone. Hidden Features handles these with
+    # the isolating emission -- a constant scoped to the flag's own call -- and these pins assert
+    # the shape that makes that necessary and safe. Each entry is (flag, register sharer).
+    'hidden_feature_flags_shared': [
+        ('enable_close_proactive_suggestions_access_point', 'enable_auto_fill_pk_fallback_ui'),
+    ],
     'toolbar_capacity_flag': 'config_max_access_points',
     'toolbar_stock_flag_default': -1,
     'toolbar_stock_ceiling': 8,
@@ -150,7 +169,6 @@ EXPECTED = {
     ],
     'sigcheck_registers': 8,
     'sigcheck_returns': [6, 4, 3],
-    'grammar_clinit_registers': 4,
     'undo_scratch': [2, 3],
     'clamp_scratch': [5, 7, 9],
     'distance_scratch': [7, 8, 9],
@@ -1919,27 +1937,114 @@ def run(dl, apk=None):
         c2, _ = body(dl, f'{sig_cls}->c({CONTEXT}Ljava/lang/String;)[B')
         check('bypass: digest method exists', c2 is not None)
 
-    # The grammar row flip: Ljpf's <clinit> initialises one Phenotype flag per
-    # const-string/const/4/factory triple, and the patch finds its site by the flag's name
-    # string and flips the zero that follows. The fingerprint asserts the class; these pins
-    # assert the two instructions the flip depends on.
-    grammar_cls = B['grammar_flags']
-    c, ins = body(dl, f'{grammar_cls}-><clinit>()V')
-    if check('grammar: flag-holder clinit exists', ins is not None):
-        check('grammar: clinit register count', c['registers'] == E['grammar_clinit_registers'],
-              f'got {c["registers"]}')
-        sites = [i for i, (_, n, a) in enumerate(ins)
-                 if n == 'const-string' and "'enable_grammar_checker'" in a]
-        if check('grammar: exactly one enable_grammar_checker flag', len(sites) == 1,
-                 str(len(sites))):
-            i = sites[0]
-            n1, a1 = ins[i + 1][1], ins[i + 1][2]
-            check('grammar: default is const/4 zero', n1 == 'const/4' and a1.rstrip().endswith('#0'),
-                  f'{n1} {a1}')
-            target = f"{B['flag_store']}->a(Ljava/lang/String;Z)Lnxp;"
-            n2, a2 = ins[i + 2][1], ins[i + 2][2]
-            check('grammar: stored through the flag factory',
-                  n2 == 'invoke-static' and target in a2, f'{n2} {a2}')
+    # The grammar flag had a bespoke section here, pinning Ljpf; by name and asserting its
+    # triple by hand. It is one entry in hidden_feature_flags now, checked by the same four rules
+    # as the rest -- including "loads its own default", which the hand-written version never
+    # checked and which is the assertion that makes the flip safe at all.
+
+    # ---- hidden features
+    #
+    # Each flag is a const-string + const/4 + factory triple in some class's <clinit>. The patch
+    # flips the zero, and the only thing making that safe is that the constant belongs to this
+    # flag alone: the boolean register is reused down the method (six flags in one <clinit> share
+    # v1), so a default loaded before the flag's own name is read by all of them and flipping it
+    # would turn on features nobody asked for. These pins assert the triple, per flag.
+    flag_factory = f"{B['flag_store']}->a(Ljava/lang/String;Z)Lnxp;"
+    for flag in E['hidden_feature_flags']:
+        sites = []
+        for d_ in dl:
+            for _t, _af, cd_ in d_.classes():
+                for desc_, _af2, co_ in d_.class_methods(cd_):
+                    if not desc_.endswith('-><clinit>()V'):
+                        continue
+                    c_ = d_.code(co_)
+                    if not c_:
+                        continue
+                    try:
+                        ins_ = ddis.disasm(d_, c_)
+                    except Exception:
+                        continue
+                    for i_, (_pc, mn_, a_) in enumerate(ins_):
+                        if not mn_.startswith('const-string'):
+                            continue
+                        m_ = re.match(r"\s*v(\d+),\s*'(.*)'\s*$", a_ or '')
+                        if m_ and m_.group(2) == flag:
+                            sites.append((ins_, i_))
+        if check(f'flags: one declaration of {flag}', len(sites) == 1, str(len(sites))):
+            ins_, i_ = sites[0]
+            inv = next((j for j in range(i_ + 1, min(i_ + 6, len(ins_)))
+                        if flag_factory in (ins_[j][2] or '')), None)
+            if check(f'flags: {flag} feeds the boolean flag factory', inv is not None):
+                breg = [int(x) for x in re.findall(r'v(\d+)', ins_[inv][2].split('},')[0])][1]
+                own = [j for j in range(i_ + 1, inv)
+                       if ins_[j][1].startswith('const')
+                       and re.match(rf"\s*v{breg},", ins_[j][2] or '')]
+                if check(f'flags: {flag} loads its own default', bool(own),
+                         'default is hoisted and shared with other flags'):
+                    lit = re.search(r'#(-?\w+)', ins_[own[-1]][2] or '')
+                    check(f'flags: {flag} still ships off',
+                          lit is not None and int(lit.group(1), 0) == 0,
+                          (ins_[own[-1]][2] or '').strip())
+
+    # The hoisted-default flags. The assertions are deliberately the mirror of the block above:
+    # there must be NO constant of the flag's own between its name and its call, because that
+    # absence is the whole reason the isolating emission exists. If Gboard ever gives one of these
+    # a dedicated constant the patch says so and fails -- a stale claim about the bytecode is worth
+    # a build break, since the simple emission would then be the correct one.
+    for flag, sharer in E['hidden_feature_flags_shared']:
+        sites = []
+        for d_ in dl:
+            for _t, _af, cd_ in d_.classes():
+                for desc_, _af2, co_ in d_.class_methods(cd_):
+                    if not desc_.endswith('-><clinit>()V'):
+                        continue
+                    c_ = d_.code(co_)
+                    if not c_:
+                        continue
+                    try:
+                        ins_ = ddis.disasm(d_, c_)
+                    except Exception:
+                        continue
+                    for i_, (_pc, mn_, a_) in enumerate(ins_):
+                        if not mn_.startswith('const-string'):
+                            continue
+                        m_ = re.match(r"\s*v(\d+),\s*'(.*)'\s*$", a_ or '')
+                        if m_ and m_.group(2) == flag:
+                            sites.append((desc_, ins_, i_))
+        if check(f'flags: one declaration of {flag}', len(sites) == 1, str(len(sites))):
+            desc_, ins_, i_ = sites[0]
+            inv = next((j for j in range(i_ + 1, min(i_ + 6, len(ins_)))
+                        if flag_factory in (ins_[j][2] or '')), None)
+            if check(f'flags: {flag} feeds the boolean flag factory', inv is not None):
+                breg = [int(x) for x in re.findall(r'v(\d+)', ins_[inv][2].split('},')[0])][1]
+                own = [j for j in range(i_ + 1, inv)
+                       if ins_[j][1].startswith('const')
+                       and re.match(rf"\s*v{breg},", ins_[j][2] or '')]
+                check(f'flags: {flag} default is still hoisted', not own,
+                      'it has its own constant now -- drop it from isolating')
+                # The register the flag reads must be written somewhere earlier, and hold zero.
+                pre = [j for j in range(0, i_)
+                       if ins_[j][1].startswith('const')
+                       and re.match(rf"\s*v{breg},", ins_[j][2] or '')]
+                if check(f'flags: {flag} default is written before the flag name', bool(pre)):
+                    lit = re.search(r'#(-?\w+)', ins_[pre[-1]][2] or '')
+                    check(f'flags: {flag} still ships off',
+                          lit is not None and int(lit.group(1), 0) == 0,
+                          (ins_[pre[-1]][2] or '').strip())
+                # Name the sibling explicitly. This is what the patch would have broken had it
+                # rewritten the shared constant, so it is worth pinning by name rather than count.
+                others = [ins_[j][2].split("'")[1] for j in range(0, len(ins_))
+                          if ins_[j][1].startswith('const-string')
+                          and j != i_ and "'" in (ins_[j][2] or '')]
+                check(f'flags: {flag} shares its default with {sharer}', others == [sharer],
+                      f'{desc_} now also declares {others}')
+                # The override is one instruction before the call and the restore one after, so
+                # both rely on the method running straight through. A branch landing on the call
+                # would jump the override and the flag would quietly stay off; a branch landing on
+                # the restore would leak the 1 into whatever reads the register next.
+                jumps = [m for _pc, m, _a in ins_
+                         if m.startswith(('if-', 'goto', 'packed-switch', 'sparse-switch'))]
+                check(f'flags: {flag} sits in straight-line code', not jumps, str(sorted(set(jumps))))
 
     # ---- toolbar capacity
     #

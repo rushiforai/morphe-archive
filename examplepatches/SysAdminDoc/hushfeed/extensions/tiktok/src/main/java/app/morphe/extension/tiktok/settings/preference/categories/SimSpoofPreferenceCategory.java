@@ -24,9 +24,15 @@ public class SimSpoofPreferenceCategory extends ConditionalPreferenceCategory {
         setTitle("Region settings");
     }
 
+    /** Whether this page has anything on it. The row into it asks the same question. */
+    public static boolean isAvailable() {
+        return SettingsStatus.simSpoofEnabled
+                || SettingsStatus.regionSpoofEnabled;
+    }
+
     @Override
     public boolean getSettingsStatus() {
-        return SettingsStatus.simSpoofEnabled;
+        return isAvailable();
     }
 
     @Override
@@ -92,9 +98,21 @@ public class SimSpoofPreferenceCategory extends ConditionalPreferenceCategory {
             return true;
         });
 
-        addPreference(simPresetPreference);
+        // The region patch reads the country override and the country code, so those belong to
+        // either patch. The operator code and name are read only by the SIM spoof patch, and on
+        // a bundle without it they were rows that changed nothing.
         addPreference(countryIsoPreference);
-        addPreference(mccMncPreference);
-        addPreference(operatorNamePreference);
+        if (SettingsStatus.simSpoofEnabled) {
+            addPreference(simPresetPreference);
+            addPreference(mccMncPreference);
+            addPreference(operatorNamePreference);
+        } else {
+            // The preset row is not on the page, so the listeners that keep its summary in step
+            // with three fields have nothing to keep in step. Left in place they read text from
+            // two rows that were never attached.
+            countryIsoPreference.setOnPreferenceChangeListener(null);
+            mccMncPreference.setOnPreferenceChangeListener(null);
+            operatorNamePreference.setOnPreferenceChangeListener(null);
+        }
     }
 }

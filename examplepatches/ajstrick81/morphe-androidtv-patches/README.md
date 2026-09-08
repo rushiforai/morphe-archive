@@ -23,7 +23,7 @@ I'm just like you — I enjoy watching TV and movies without being bored and ann
 | 🟢 Peacock | `com.peacocktv.peacockandroid` | Working — no DNS required | `v7.8.100` | 9/6/26 |
 | 🟢 Tubi | `com.tubitv` | Working | `v10.28.5000` | 7/20/26 |
 | 🟢 ViX | `com.univision.prendetv` | Working | `v4.47.2_tv` | 7/11/26 |
-| 🟢 Pluto TV | `tv.pluto.android` | Working — VOD ad breaks removed (video, markers, beacons); LIVE TV ads are broadcast time and remain | `5.66.0-leanback` | 7/3/26 |
+| 🟢 Pluto TV | `tv.pluto.android` | Working — VOD ad breaks removed (video, markers, beacons); LIVE TV breaks maskable (black screen + mute) via optional patch | `5.66.0-leanback` | 9/7/26 |
 | 🟢 Paramount+ | `com.cbs.ott` | Working — VOD ads removed (movies + TV shows, pre-roll + mid-roll); pause ads removed; live TV preserved | `v16.17.0` | 8/4/26 |
 | 🟢 Twitch | `tv.twitch.android.app` | Working — **Android TV "Starshot" build only; install exactly `13.0.0.2`** (the phone app is not supported — do not use the phone APK). Removes the on-screen ad-pod overlay/countdown ("Ad · 1 of 3") and blanks stitched (SSAI) ad video on live streams. A brief black gap can remain during a break; a VPN set to Albania is fully ad-free — see notes | `13.0.0.2` | 8/22/26 |
 | 🟢 ESPN | `com.espn.score_center` | Working — **Android TV** only. Live commercial breaks masked with a full-screen slate + audio mute (passthrough SSAI can't be removed, only covered); VOD/scheduled ads suppressed. No DNS required | `6.11.1` | 9/5/26 |
@@ -174,14 +174,26 @@ All patches follow the same general workflow using **Morphe Manager**:
 > the content, so there is no ad domain to block and no ad-free tier to unlock.
 > This patch empties the client-side ad-break timeline, which removes **on-demand
 > (VOD)** ad breaks entirely: ad video, timeline markers, overlays, and tracking
-> beacons. **LIVE TV** ads are real broadcast time in the linear feed and are not
-> removable. DNS filters do **not** help here.
+> beacons. **LIVE TV** ads are real broadcast time in the linear feed and cannot be
+> *removed* — but the separate **Mask live ad breaks** patch *hides* them (see below).
+> DNS filters do **not** help here.
 
 1. Open the **[Pluto TV (Android TV) listing on APKMirror](https://www.apkmirror.com/apk/pluto-inc/pluto-tv-android-tv/)** and select version **`5.66.0-leanback`**
 2. ⚠️ Use this **Android TV** listing and pick a **`-leanback`** build — not the phone or Fire TV build
 3. Download the `.apkm` file
 4. Select it in Morphe Manager
 5. Apply the patch
+
+> 📺 **Mask live ad breaks (black screen + mute).** Live/linear Pluto ads occupy real
+> broadcast time and can't be deleted like VOD ads, so this optional patch **masks** the
+> break instead: during a live commercial it covers the player with a **black screen** and
+> **mutes** the audio, then restores both the instant the show returns — so gambling,
+> drinking, or any other live ad is blanked and silenced. It reads Pluto's own ad-state
+> signal, so it needs no polling and works alongside the main **Skip ads** patch. It's
+> **opt-out** (leave it off to watch live ads normally). Runtime tweaks via marker files in
+> the app's external files dir (`Android/data/tv.pluto.android/files/`): create **`slate_off`**
+> to disable it on-device without re-patching, or **`pluto_slate_mode`** containing `black`
+> (cover only) or `mute` (mute only) instead of the default both.
 
 ---
 
@@ -235,17 +247,26 @@ All patches follow the same general workflow using **Morphe Manager**:
 > 🟢 **Working — Android TV only (`6.11.1`).** ESPN **live** commercial breaks are
 > native **passthrough SSAI** — the ad is stitched into the same stream as the game,
 > so it cannot be removed, only **masked**. This patch detects each break from the
-> stream's own ad markers and covers the player with a full-screen **"Commercial
-> Break" slate** while **muting** the player, then lifts cleanly when live content
-> resumes. **VOD / scheduled** ads are separately suppressed. Optional: drop your own
-> slate image/video on the device, or a `slate_off` marker file to disable the live
-> slate. DNS filters do **not** help here.
+> stream's own ad markers and covers the player with a full-screen **slate** while
+> **muting** the player, then lifts cleanly when live content resumes. **VOD /
+> scheduled** ads are separately suppressed. DNS filters do **not** help here.
 
 1. Open the **[ESPN (Android TV) 6.11.1 release on APKMirror](https://www.apkmirror.com/apk/disney/espn-android-tv/espn-android-tv-6-11-1-release/)** directly (version **`6.11.1`**) — use this link rather than searching, to avoid landing on the phone build or a different version
 2. ⚠️ Use this **Android TV** listing and the exact **`6.11.1`** build (package `com.espn.score_center`)
 3. Download the `.apkm` file
 4. Select it in Morphe Manager
-5. Apply the patch
+5. Choose your patch options (below) and apply
+
+**Patch options**
+
+| Patch | Default | What it does |
+| --- | --- | --- |
+| **ESPN Android TV** | ✅ On (core) | Suppresses VOD / scheduled ads by forcing the DMP SGAI `isAdDisabled` flag. Always keep this on. |
+| **ESPN live commercial-break slate** | ✅ On | Masks **live** passthrough-SSAI breaks with a full-screen slate + mute. Deselect if you only want VOD ad suppression and no on-screen slate during live breaks. |
+| **Disable auto-updates** | ✅ On | Stops the Play Store from silently reinstalling the official ESPN and wiping the patch. Update deliberately by re-patching a newer APK. |
+| **Clone ESPN** | ⬜ Off (opt-in) | Installs the patched app **alongside** a stock ESPN that can't be uninstalled (common on **Amazon Fire TV** and some TV boxes). Gives it its own package/icon. Leave off if you could uninstall the original first. |
+
+**Live-slate styles (on-device):** while a break is up, press the D-pad to open an on-screen picker and switch between **Video** (your own clips), **Video + Score** (clips + a live-score strip), **Be Right Back (ESPN Ad-Break Overlay)** (an animated broadcast graphic with a live countdown), and **Blank**. Slate media is user-supplied local files placed in the app's external files dir — nothing is bundled. Drop a `slate_off` marker file to disable the live slate without re-patching. See [`slates/espn_overlay/`](slates/espn_overlay/) for the animated overlay assets and setup.
 
 ---
 
@@ -270,6 +291,15 @@ All Twitch techniques were independently re-derived via dex disassembly and are 
 - [Nikflix](https://github.com/YidirK/Nikflix) (YidirK, GPL-3.0) — identified Netflix's household / "you're traveling" enforcement via the `CLCSInterstitialPlaybackAndPostPlayback` interstitial
 
 Our "Suppress Household Prompt" patch shares no source code with Nikflix — it is an independent implementation for the Android TV app (`com.netflix.ninja`), located by analyzing our own on-device appboot heap dumps. Nikflix is credited for identifying the enforcement seam. See [NOTICE](NOTICE).
+
+**ESPN live-score slate** (optional scoreboard overlay) uses ESPN's public "hidden" stats API, documented by the community:
+- [pseudo-r/Public-ESPN-API](https://github.com/pseudo-r/Public-ESPN-API)
+- [akeaswaran's ESPN hidden-API gist](https://gist.github.com/akeaswaran/b48b02f1c94f873c6655e7129910fc3b)
+- [cwendt94/espn-api](https://github.com/cwendt94/espn-api)
+- [quantum0813/ESPNSportsAPI](https://github.com/quantum0813/ESPNSportsAPI)
+- [ITIRadio/ESPN-API](https://github.com/ITIRadio/ESPN-API)
+
+We use only the publicly documented, unauthenticated scoreboard endpoints for read-only live scores; no source code from these projects is included. Thanks to their maintainers.
 
 ---
 

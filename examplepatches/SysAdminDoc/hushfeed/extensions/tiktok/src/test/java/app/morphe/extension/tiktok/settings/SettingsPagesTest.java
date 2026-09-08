@@ -11,6 +11,7 @@ import android.widget.CheckedTextView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.UiCapture;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
@@ -85,6 +86,244 @@ public class SettingsPagesTest {
         }
     }
 
+    @Test public void everyPageWithSomethingOnItHasARowIntoIt() throws Exception {
+        // The page and the row into it used to keep separate copies of the same condition, and
+        // two of them drifted: the Playback page grew the daily budget behind the block author
+        // patch while its row stayed on the four playback patches, so a bundle with only that
+        // patch could reach the budget through search and nowhere else.
+        Class<?>[] pages = {
+            app.morphe.extension.tiktok.settings.preference.categories.FeedFilterPreferenceCategory.class,
+            app.morphe.extension.tiktok.settings.preference.categories.FeedNavigationPreferenceCategory.class,
+            app.morphe.extension.tiktok.settings.preference.categories.InterfacePreferenceCategory.class,
+            app.morphe.extension.tiktok.settings.preference.categories.CommentsPreferenceCategory.class,
+            app.morphe.extension.tiktok.settings.preference.categories.DownloadsPreferenceCategory.class,
+            app.morphe.extension.tiktok.settings.preference.categories.PlaybackPreferenceCategory.class,
+            app.morphe.extension.tiktok.settings.preference.categories.InboxPreferenceCategory.class,
+            app.morphe.extension.tiktok.settings.preference.categories.SharePreferenceCategory.class,
+            app.morphe.extension.tiktok.settings.preference.categories.SimSpoofPreferenceCategory.class,
+        };
+        String[] titles = {"Feed filter", "Feed navigation", "Interface", "Comments and translation",
+            "Downloads", "Playback", "Inbox", "Share sheet", "Region settings"};
+
+        // What each page builds with nothing in the bundle at all. Those rows are unconditional
+        // and show whenever something else opens the page, so they are the floor to compare
+        // against rather than a finding.
+        int[] baseline = new int[pages.length];
+        for (Field field : SettingsStatus.class.getDeclaredFields()) {
+            if (field.getType() == boolean.class && Modifier.isStatic(field.getModifiers())) {
+                field.setAccessible(true);
+                field.setBoolean(null, false);
+            }
+        }
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            TikTokPreferenceFragment home = new TikTokPreferenceFragment();
+            activity.getFragmentManager().beginTransaction()
+                    .replace(android.R.id.content, home).commit();
+            activity.getFragmentManager().executePendingTransactions();
+            for (int page = 0; page < pages.length; page++) {
+                baseline[page] = rowsBuiltBy(pages[page], activity, home);
+            }
+        }
+
+        // One patch at a time, which is the shape that finds a drifted gate.
+        for (Field flag : SettingsStatus.class.getDeclaredFields()) {
+            if (flag.getType() != boolean.class || !Modifier.isStatic(flag.getModifiers())) continue;
+            for (Field other : SettingsStatus.class.getDeclaredFields()) {
+                if (other.getType() == boolean.class && Modifier.isStatic(other.getModifiers())) {
+                    other.setAccessible(true);
+                    other.setBoolean(null, false);
+                }
+            }
+            flag.setAccessible(true);
+            flag.setBoolean(null, true);
+
+            try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+                Activity activity = owner.get();
+                Utils.setContext(activity);
+                TikTokPreferenceFragment home = new TikTokPreferenceFragment();
+                activity.getFragmentManager().beginTransaction()
+                        .replace(android.R.id.content, home).commit();
+                activity.getFragmentManager().executePendingTransactions();
+
+                java.util.Set<String> rows = new java.util.HashSet<>();
+                android.preference.PreferenceScreen screen = home.getPreferenceScreen();
+                for (int index = 0; index < screen.getPreferenceCount(); index++) {
+                    CharSequence title = screen.getPreference(index).getTitle();
+                    if (title != null) rows.add(title.toString());
+                }
+                for (int page = 0; page < pages.length; page++) {
+                    boolean available = (Boolean) pages[page].getMethod("isAvailable").invoke(null);
+                    if (available) {
+                        assertTrue(titles[page] + " has rows to show with only " + flag.getName()
+                                + " set, but the home screen offers no way in",
+                                rows.contains(titles[page]));
+                        continue;
+                    }
+
+                    // The other direction, which is where the drift actually hides. Asking only
+                    // "available means a row" is a page answering its own question. What matters
+                    // is whether this flag makes the page build anything it would not have built
+                    // without it, because a switch behind a flag the page does not know about
+                    // appears nowhere at all: no row, no page, and not in search either, since
+                    // search builds the same category. Rows the page builds whatever is in the
+                    // bundle are not this: they only ever show when something else opens it.
+                    assertEquals(titles[page] + " builds settings behind " + flag.getName()
+                            + " but does not count it as making the page available, so they are"
+                            + " unreachable", baseline[page], rowsBuiltBy(pages[page], activity, home));
+                }
+            }
+        }
+    }
+
+    @Test public void noPageGatesItsRowsOnAnEarlyReturn() throws Exception {
+        // The other half of the same bug, and one a rendering test cannot see. An early return on
+        // one patch's flag takes every later patch's rows with it: the offline videos limit set
+        // its own flag, gated its own rows on it, and still put nothing on the page because an
+        // "if (!downloadEnabled) return;" sat above them. Blocks, not returns.
+        java.util.List<String> offenders = new java.util.ArrayList<>();
+        int scanned = 0;
+        for (java.io.File file : categorySources()) {
+            String source = new String(java.nio.file.Files.readAllBytes(file.toPath()),
+                    java.nio.charset.StandardCharsets.UTF_8);
+            scanned++;
+            for (String found : earlyReturns(source)) {
+                offenders.add(file.getName() + ": " + found);
+            }
+        }
+        assertTrue("no categories were read at all", scanned > 5);
+        assertEquals("a flag returning early from a settings page hides every flag below it: "
+                + offenders, 0, offenders.size());
+    }
+
+    @Test public void theEarlyReturnScanCanActuallyFail() {
+        // A scan with nothing to find proves nothing, and the first version of this one was
+        // defeated by a brace, a line break and a trailing comment. Every shape it has to catch
+        // is put in front of it here, along with the ones it must leave alone.
+        String source = "class Sample {\n"
+                + "    void addPreferences(Context context) {\n"
+                + "        char quote = '\"';\n"
+                + "        if (!SettingsStatus.bare) return;\n"
+                + "        if (!SettingsStatus.braced) { return; }\n"
+                + "        if (!SettingsStatus.wrapped)\n            return;\n"
+                + "        if (!SettingsStatus.commented) return; // and a note\n"
+                + "        if (!isAvailable()) return;\n"
+                + "        if (!Settings.SOME_TOGGLE.get()) return;\n"
+                + "        if (context == null) return;\n"
+                + "        // if (!SettingsStatus.inAComment) return;\n"
+                + "        String text = \"if (!SettingsStatus.inAString) return;\";\n"
+                + "        if (SettingsStatus.positive) { addPreference(null); }\n"
+                + "    }\n"
+                + "}\n";
+
+        java.util.List<String> found = earlyReturns(source);
+        assertEquals("the scan missed one of the shapes it exists for: " + found, 6, found.size());
+        for (String shape : new String[]{"bare", "braced", "wrapped", "commented",
+                "isAvailable()", "SOME_TOGGLE"}) {
+            assertTrue(shape + " walked past the scan: " + found,
+                    found.toString().contains(shape));
+        }
+        assertFalse("an ordinary null guard was reported: " + found,
+                found.toString().contains("context"));
+        assertFalse("a commented-out line was reported: " + found,
+                found.toString().contains("inAComment"));
+        assertFalse("a string literal was reported: " + found,
+                found.toString().contains("inAString"));
+    }
+
+    /** Every preference category source, wherever a page is built from. */
+    private static java.io.File[] categorySources() {
+        java.io.File directory = new java.io.File(
+                "src/main/java/app/morphe/extension/tiktok/settings/preference/categories");
+        if (!directory.isDirectory()) directory = new java.io.File(
+                "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/settings/preference/categories");
+        assertTrue("could not find " + directory.getAbsolutePath(), directory.isDirectory());
+        java.io.File[] files = directory.listFiles(
+                (dir, name) -> name.endsWith(".java"));
+        return java.util.Objects.requireNonNull(files);
+    }
+
+    /**
+     * Guards that end a page's build early on something a patch decides. Comments and both kinds
+     * of literal go first and then all whitespace, so the shape is caught however it is written:
+     * on one line or two, braced or bare, with a note after it.
+     */
+    private static java.util.List<String> earlyReturns(String source) {
+        java.util.List<String> found = new java.util.ArrayList<>();
+        String packed = withoutCommentsOrLiterals(source).replaceAll("\\s+", "");
+        int at = 0;
+        while ((at = packed.indexOf("if(", at)) >= 0) {
+            int close = matchingBracket(packed, at + 2);
+            if (close < 0) break;
+            String condition = packed.substring(at + 3, close);
+            String rest = packed.substring(close + 1);
+            boolean returnsNow = rest.startsWith("return;") || rest.startsWith("{return;}");
+            boolean aboutAPatch = condition.startsWith("!")
+                    && (condition.contains("SettingsStatus.") || condition.contains("isAvailable()")
+                            || condition.contains("Settings."));
+            if (returnsNow && aboutAPatch) found.add("if (" + condition + ") return;");
+            at = close + 1;
+        }
+        return found;
+    }
+
+    /** Index of the ')' matching the '(' at {@code open}, or -1. */
+    private static int matchingBracket(String text, int open) {
+        int depth = 0;
+        for (int at = open; at < text.length(); at++) {
+            char c = text.charAt(at);
+            if (c == '(') depth++;
+            if (c == ')' && --depth == 0) return at;
+        }
+        return -1;
+    }
+
+    /** Source with comments and both kinds of literal removed, so their text is not read as code. */
+    private static String withoutCommentsOrLiterals(String source) {
+        StringBuilder out = new StringBuilder(source.length());
+        for (int at = 0; at < source.length(); ) {
+            char c = source.charAt(at);
+            if (source.startsWith("//", at)) {
+                while (at < source.length() && source.charAt(at) != '\n') at++;
+            } else if (source.startsWith("/*", at)) {
+                int end = source.indexOf("*/", at + 2);
+                at = end < 0 ? source.length() : end + 2;
+            } else if (c == '"' || c == '\'') {
+                // A char literal holding a quote used to leave the scanner reading the rest of
+                // the file as one string, which swallowed any real finding after it.
+                char quote = c;
+                at++;
+                while (at < source.length() && source.charAt(at) != quote) {
+                    if (source.charAt(at) == '\\') at++;
+                    at++;
+                }
+                at++;
+            } else {
+                out.append(c);
+                at++;
+            }
+        }
+        return out.toString();
+    }
+
+    /** How many rows a page's own addPreferences puts on it under the flags set right now. */
+    private static int rowsBuiltBy(Class<?> page, Activity activity, TikTokPreferenceFragment home)
+            throws Exception {
+        android.preference.PreferenceScreen scratch =
+                home.getPreferenceManager().createPreferenceScreen(activity);
+        var built = (app.morphe.extension.tiktok.settings.preference.categories
+                .ConditionalPreferenceCategory) page.getConstructor(android.content.Context.class,
+                        android.preference.PreferenceScreen.class).newInstance(activity, scratch);
+        if (!built.getSettingsStatus()) {
+            // The gate kept it off the screen, so it has no preference manager yet and nothing
+            // could be added to it. Attaching it is what makes addPreferences work.
+            scratch.addPreference(built);
+            built.addPreferences(activity);
+        }
+        return built.getPreferenceCount();
+    }
+
     @Test public void darkPagesNavigateAndRender() throws Exception { capturePages("dark"); }
     @Test @Config(qualifiers = "w480dp-h960dp-notnight-mdpi")
     public void lightPagesNavigateAndRender() throws Exception { capturePages("light"); }
@@ -98,6 +337,15 @@ public class SettingsPagesTest {
             Settings.AUTO_ADVANCE.save(false);
             Settings.DEFAULT_SPEED_ENABLED.save(true);
             Settings.DEFAULT_SPEED.save("1.5");
+            // The Diagnostics capture is meant to show what a hook report looks like. An empty
+            // registry renders "nothing has been looked up yet", which is the one state that
+            // says nothing about the feature, so the surfaces are seeded the way a few minutes
+            // of use would leave them.
+            HookStatus.clear();
+            HookStatus.bound("overlay", "cover");
+            HookStatus.bound("overlay", "caption");
+            HookStatus.bound("comments", "like_button");
+            HookStatus.missingViewId("comments", "jlk");
             TikTokPreferenceFragment home = new TikTokPreferenceFragment();
             activity.getFragmentManager().beginTransaction().replace(android.R.id.content, home).commit();
             activity.getFragmentManager().executePendingTransactions();
@@ -137,9 +385,15 @@ public class SettingsPagesTest {
             TikTokPreferenceFragment page = attachSection(activity, "PLAYBACK");
             UiCapture.save(page.getView(), "pages/dark/playback-controls.png");
             ListView list = page.getView().findViewById(android.R.id.list);
-            assertTrue(list.performItemClick(list.getChildAt(2), 2, list.getAdapter().getItemId(2)));
+            int autoAdvancePosition = positionOf(list, "auto_advance");
+            assertTrue(autoAdvancePosition >= 0);
+            assertTrue(list.performItemClick(list.getChildAt(autoAdvancePosition), autoAdvancePosition,
+                    list.getAdapter().getItemId(autoAdvancePosition)));
             assertTrue(Settings.AUTO_ADVANCE.get());
-            list.performItemClick(list.getChildAt(4), 4, list.getAdapter().getItemId(4));
+            int defaultSpeedPosition = positionOf(list, "default_speed");
+            assertTrue(defaultSpeedPosition >= 0);
+            list.performItemClick(list.getChildAt(defaultSpeedPosition), defaultSpeedPosition,
+                    list.getAdapter().getItemId(defaultSpeedPosition));
             android.app.AlertDialog dialog = (android.app.AlertDialog) org.robolectric.shadows.ShadowDialog.getLatestDialog();
             assertTrue(dialog.isShowing());
             Shadows.shadowOf(Looper.getMainLooper()).idle();
@@ -284,6 +538,45 @@ public class SettingsPagesTest {
         }
     }
 
+    @Test public void localCreatorEditorFiltersAndRemovesIndividualEntries() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            Settings.LOCAL_HIDDEN_CREATORS.save("alpha, beta");
+            TikTokPreferenceFragment page = attachSection(activity, "FEED_FILTER");
+            Preference preference = page.findPreference("local_hidden_creators");
+            assertNotNull(preference);
+            ListView list = page.getView().findViewById(android.R.id.list);
+            int position = positionOf(list, "local_hidden_creators");
+            assertTrue(position >= 0);
+            assertTrue(list.performItemClick(list.getChildAt(position), position,
+                    list.getAdapter().getItemId(position)));
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            android.app.AlertDialog dialog = (android.app.AlertDialog)
+                    org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            assertTrue(dialog.isShowing());
+            EditText search = dialog.getWindow().getDecorView().findViewWithTag("creator_list_search");
+            assertNotNull(search);
+            search.setText("beta");
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            UiCapture.save(dialog.getWindow().getDecorView(), "pages/dark/creator-list.png");
+            View remove = dialog.getWindow().getDecorView().findViewWithTag("creator_remove_beta");
+            assertNotNull(remove);
+            assertTrue(remove.performClick());
+            EditText add = dialog.getWindow().getDecorView().findViewWithTag("creator_list_add");
+            assertNotNull(add);
+            add.setText("gamma");
+            TextView addButton = findTextViewContaining(dialog.getWindow().getDecorView(), "Add");
+            assertNotNull(addButton);
+            assertTrue(addButton.performClick());
+            dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE).performClick();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("alpha, gamma", Settings.LOCAL_HIDDEN_CREATORS.get());
+            Settings.LOCAL_HIDDEN_CREATORS.save("");
+        }
+    }
+
     @Test @Config(qualifiers = "de-rDE-w360dp-h800dp-night-mdpi")
     public void longGermanLabelsWrapAtLargeTextSize() throws Exception {
         try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
@@ -324,6 +617,8 @@ public class SettingsPagesTest {
             assertTextFits(caption);
             assertRowsReadable(page.getView().findViewById(android.R.id.list), 48);
             assertEditorRowFits(page, "comment_blocked_keywords", activity, 320, 800, 1);
+            // Captured here: the fragment is replaced below, and its view goes with it.
+            UiCapture.save(page.getView(), "pages/light/two-times-text.png", 320, 800);
             TikTokPreferenceFragment filterPage = attachSection(activity, "FEED_FILTER");
             layout(filterPage.getView(), 320, 800);
             Shadows.shadowOf(Looper.getMainLooper()).idle();
@@ -332,6 +627,36 @@ public class SettingsPagesTest {
             layout(filterPage.getView(), 320, 800);
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             assertEditorRowFits(filterPage, "min_max_views", activity, 320, 800, 2);
+        }
+    }
+
+    /**
+     * The same at twice the text size in the dark theme, which is what most readers are on. A
+     * capture of one theme says nothing about the other: the row backgrounds, the dividers and
+     * the disabled colours are all different, and a caption that fits on white can still be
+     * unreadable on black.
+     */
+    @Test @Config(qualifiers = "de-rDE-w320dp-h800dp-night-mdpi")
+    public void controlsAndEditorsStayReadableAtTwoTimesTextSizeInTheDark() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            var configuration = activity.getResources().getConfiguration();
+            configuration.fontScale = 2.0f;
+            activity.getResources().updateConfiguration(configuration, activity.getResources().getDisplayMetrics());
+
+            for (String section : MAIN_PAGES) {
+                TikTokPreferenceFragment page = attachSection(activity, section);
+                layout(page.getView(), 320, 800);
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                TextView heading = page.getView().findViewWithTag("metra_page_title");
+                assertNotNull(section, heading);
+                assertTextFits(heading);
+                assertRowsReadable(page.getView().findViewById(android.R.id.list), 48);
+                if ("COMMENTS".equals(section)) {
+                    UiCapture.save(page.getView(), "pages/dark/two-times-text.png", 320, 800);
+                }
+            }
         }
     }
 
@@ -356,8 +681,60 @@ public class SettingsPagesTest {
             TextView heading = page.getView().findViewWithTag("metra_page_title");
             assertNotNull(heading);
             assertTextFits(heading);
+            UiCapture.save(page.getView(), "pages/dark/rtl-large.png", 320, 800);
+
+            // One page proves the row shape; the rest are where a caption written for one
+            // language quietly runs off the edge in a mirrored layout.
+            for (String section : MAIN_PAGES) {
+                TikTokPreferenceFragment other = attachSection(activity, section);
+                forceRtl(other.getView());
+                layout(other.getView(), 320, 800);
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                forceRtl(other.getView());
+                TextView title = other.getView().findViewWithTag("metra_page_title");
+                assertNotNull(section, title);
+                assertTextFits(title);
+                assertRowsReadable(other.getView().findViewById(android.R.id.list), 48);
+            }
         }
     }
+
+    /**
+     * The mirrored layout in the light theme. Both themes are captured because the two are laid
+     * out from the same code but read very differently, and the only way to know a label has not
+     * run off the edge in one of them is to have both.
+     */
+    @Test @Config(qualifiers = "ar-rXB-w320dp-h800dp-notnight-mdpi")
+    public void rtlLargeTextIsReadableInTheLightThemeToo() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            var configuration = activity.getResources().getConfiguration();
+            configuration.fontScale = 2.0f;
+            configuration.setLayoutDirection(new java.util.Locale("ar", "XB"));
+            activity.getResources().updateConfiguration(configuration, activity.getResources().getDisplayMetrics());
+            TikTokPreferenceFragment page = attachSection(activity, "COMMENTS");
+            forceRtl(page.getView());
+            layout(page.getView(), 320, 800);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            forceRtl(page.getView());
+
+            assertEquals(View.LAYOUT_DIRECTION_RTL, configuration.getLayoutDirection());
+            TextView heading = page.getView().findViewWithTag("metra_page_title");
+            assertNotNull(heading);
+            assertTextFits(heading);
+            assertRowsReadable(page.getView().findViewById(android.R.id.list), 48);
+            UiCapture.save(page.getView(), "pages/light/rtl-large.png", 320, 800);
+        }
+    }
+
+    /**
+     * The pages a reader actually opens. Not every section: the Lab and the gate editors have
+     * their own capture suite, and walking them here would double this test's runtime for
+     * coverage that already exists.
+     */
+    private static final String[] MAIN_PAGES = {"FEED_FILTER", "INTERFACE", "COMMENTS",
+            "DOWNLOADS", "PLAYBACK", "INBOX", "SHARE", "BEHAVIOR", "DIAGNOSTICS"};
 
     private static TikTokPreferenceFragment attachSection(Activity activity, String section) {
         TikTokPreferenceFragment fragment = new TikTokPreferenceFragment();
@@ -510,5 +887,34 @@ public class SettingsPagesTest {
             }
         }
         return null;
+    }
+
+    @Test public void theResetHourReadsAsATimeOfDay() throws Exception {
+        // The row used "o'clock" as its unit for both singular and plural, so it said
+        // "Current: 13 o'clock" and, at midnight, "Current: 0 o'clock".
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            Settings.SESSION_BUDGET_RESET_HOUR.save(4);
+            var row = new app.morphe.extension.tiktok.settings.preference.ClockHourPreference(
+                    activity, "Start the day at", "The hour both budgets reset.",
+                    Settings.SESSION_BUDGET_RESET_HOUR);
+
+            String summary = String.valueOf(row.getSummary());
+            assertTrue("the hour does not read as a time: " + summary, summary.contains("04:00"));
+            assertTrue("the unit is still there: " + summary, summary.indexOf("o'clock") < 0);
+
+            // The two values the old wording actually broke on.
+            Settings.SESSION_BUDGET_RESET_HOUR.save(13);
+            row.setValue("13");
+            assertTrue("an afternoon hour: " + row.getSummary(),
+                    String.valueOf(row.getSummary()).contains("13:00"));
+
+            Settings.SESSION_BUDGET_RESET_HOUR.save(0);
+            row.setValue("0");
+            assertTrue("midnight: " + row.getSummary(),
+                    String.valueOf(row.getSummary()).contains("00:00"));
+            Settings.SESSION_BUDGET_RESET_HOUR.resetToDefault();
+        }
     }
 }

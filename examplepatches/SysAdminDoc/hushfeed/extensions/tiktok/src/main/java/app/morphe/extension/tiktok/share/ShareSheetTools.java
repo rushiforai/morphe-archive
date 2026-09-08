@@ -15,19 +15,19 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 
+import app.morphe.extension.shared.GlobalLayoutHook;
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.ResourceIdCache;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.L10n;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.WeakHashMap;
 
 /**
@@ -66,7 +66,7 @@ public final class ShareSheetTools {
     /** How long a first tap stays armed before a second tap is needed again. */
     private static final long ARM_WINDOW_MS = 4000;
 
-    private static final Map<String, Integer> RESOLVED_IDS = new HashMap<>();
+    private static final ResourceIdCache RESOURCE_IDS = new ResourceIdCache();
 
     /** Original layout width of each cell this class has shrunk, so it can be restored. */
     private static final WeakHashMap<View, Integer> ORIGINAL_WIDTHS = new WeakHashMap<>();
@@ -74,7 +74,7 @@ public final class ShareSheetTools {
     private static final ConfirmTouchListener CONFIRM = new ConfirmTouchListener();
 
     private static WeakReference<Activity> activityReference = new WeakReference<>(null);
-    private static ViewTreeObserver.OnGlobalLayoutListener listener;
+    private static final GlobalLayoutHook LAYOUT_HOOK = new GlobalLayoutHook();
 
     private static String armedName;
     private static long armedAtMs;
@@ -94,21 +94,20 @@ public final class ShareSheetTools {
     private static void installNow(Activity activity) {
         try {
             if (activity.isFinishing()) {
+                LAYOUT_HOOK.detach();
                 return;
             }
             ViewGroup root = activity.findViewById(android.R.id.content);
             if (root == null) {
+                LAYOUT_HOOK.detach();
                 Logger.printInfo(() -> "Share sheet tools found no content view to watch");
                 return;
             }
-            if (listener != null && activityReference.get() == activity) {
-                return;
-            }
-
-            listener = ShareSheetTools::apply;
-            root.getViewTreeObserver().addOnGlobalLayoutListener(listener);
+            boolean installed = LAYOUT_HOOK.install(root, ShareSheetTools::apply);
             activityReference = new WeakReference<>(activity);
-            Logger.printDebug(() -> "Share sheet tools installed");
+            if (installed) {
+                Logger.printDebug(() -> "Share sheet tools installed");
+            }
         } catch (Throwable ex) {
             Logger.printException(() -> "Could not install the share sheet tools", ex);
         }
@@ -117,7 +116,12 @@ public final class ShareSheetTools {
     private static void apply() {
         try {
             Activity activity = activityReference.get();
-            if (activity == null || activity.isFinishing()) {
+            if (activity == null) {
+                LAYOUT_HOOK.detach();
+                return;
+            }
+            if (activity.isFinishing()) {
+                LAYOUT_HOOK.detach();
                 return;
             }
 
@@ -173,7 +177,7 @@ public final class ShareSheetTools {
      * well. Cells are recycled, so the original width is kept and put back when the same
      * view later shows something that is not hidden.
      */
-    private static void setCellHidden(View cell, boolean hidden) {
+    static void setCellHidden(View cell, boolean hidden) {
         if (cell == null) {
             return;
         }
@@ -281,7 +285,7 @@ public final class ShareSheetTools {
         }
     }
 
-    private static void onTap(View touched) {
+    static void onTap(View touched) {
         try {
             View cell = cellOf(touched);
             String name = labelOf(cell);
@@ -344,7 +348,7 @@ public final class ShareSheetTools {
     }
 
     /** The contact cell is the nearest ancestor (or the view itself) that carries a label. */
-    private static View cellOf(View view) {
+    static View cellOf(View view) {
         View current = view;
         for (int depth = 0; current != null && depth < 5; depth++) {
             if (labelOf(current) != null) {
@@ -355,7 +359,7 @@ public final class ShareSheetTools {
         return view;
     }
 
-    private static String labelOf(View view) {
+    static String labelOf(View view) {
         if (view == null) {
             return null;
         }
@@ -375,19 +379,12 @@ public final class ShareSheetTools {
     }
 
     private static int identifier(Activity activity, String name) {
-        Integer cached = RESOLVED_IDS.get(name);
-        if (cached != null) {
-            return cached;
-        }
-        int id;
-        try {
-            id = activity.getResources().getIdentifier(name, "id", APP_PACKAGE);
-        } catch (Throwable ignored) {
-            id = 0;
-        }
-        RESOLVED_IDS.put(name, id);
+        int id = RESOURCE_IDS.resolve(
+                activity == null ? null : activity.getResources(), APP_PACKAGE, name, false);
         if (id == 0) {
-            Logger.printInfo(() -> "Share sheet view id '" + name + "' not found in this TikTok build");
+            HookStatus.missingViewId("share sheet", name);
+        } else {
+            HookStatus.bound("share sheet", name);
         }
         return id;
     }

@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import org.junit.Test;
+import org.junit.After;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
@@ -32,6 +33,10 @@ import org.robolectric.annotation.GraphicsMode;
 @Config(sdk = 28)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class SubtitleDownloadsTest {
+    @After public void tearDown() {
+        SettingsStatus.subtitleToolsEnabled = false;
+        SettingsStatus.advancedDownloadsEnabled = false;
+    }
     public static final class Track {
         public String languageCode, languageName, format, url;
         public boolean isOriginalCaption;
@@ -51,6 +56,40 @@ public class SubtitleDownloadsTest {
         assertThrows(IOException.class, () -> SubtitleFormat.toSrt("1\n00:00:05,000 --> 00:00:02,000\nBackwards", "srt"));
         assertThrows(IOException.class, () -> SubtitleFormat.toSrt("<html>Expired URL</html>", "vtt"));
     }
+    /**
+     * The platform JSON parser recurses, so a caption file nested deeply enough raises
+     * StackOverflowError. That is neither a JSONException nor a RuntimeException, so it went past
+     * every catch on the way out and took the download worker with it.
+     */
+    @Test public void aDeeplyNestedCaptionFileIsRefusedRatherThanKillingTheWorker() {
+        StringBuilder nested = new StringBuilder("{\"utterances\":");
+        int depth = 200;
+        for (int level = 0; level < depth; level++) nested.append("[");
+        for (int level = 0; level < depth; level++) nested.append("]");
+        nested.append("}");
+
+        try {
+            SubtitleFormat.toSrt(nested.toString(), "creator_caption");
+            fail("a caption file nested " + depth + " deep was accepted");
+        } catch (IOException expected) {
+            // The depth limit specifically, not the "invalid caption JSON" the old parser would
+            // land on once it happened to survive the nesting.
+            assertTrue(String.valueOf(expected.getMessage()),
+                    String.valueOf(expected.getMessage()).contains("nested too deeply"));
+        } catch (StackOverflowError error) {
+            fail("the parser still recurses into a deeply nested caption file");
+        }
+    }
+
+    /** An ordinary caption file still converts through the bounded parser. */
+    @Test public void anOrdinaryCaptionFileStillConverts() throws Exception {
+        String srt = SubtitleFormat.toSrt(
+                "{\"utterances\":[{\"start_time\":1250,\"end_time\":2500,\"text\":\"Hallo\"}]}",
+                "creator_caption");
+        assertTrue(srt, srt.contains("Hallo"));
+        assertTrue(srt, srt.contains("00:00:01,250 --> 00:00:02,500"));
+    }
+
     @Test public void aCaptionNamingNoLanguageDoesNotSinkTheSave() {
         // The language arrives as free text and is cleaned to letters, digits and dashes, so
         // "_" comes out as a lone dash: not empty, so it used to skip the "und" fallback, and
@@ -114,6 +153,89 @@ public class SubtitleDownloadsTest {
             assertTrue(new File(directory, first).delete());
             assertTrue(new File(directory, actual).delete());
             assertTrue(source.delete());
+        }
+    }
+
+    /**
+     * The provider decides the saved video's display name and may return one with no extension.
+     * Cutting at the dot then threw, and because the caller treats that as the whole download
+     * failing, the subtitle was lost and the video that had already saved was reported as a
+     * failure too.
+     */
+    @Test public void aSavedVideoNameWithNoExtensionStillGetsItsSubtitle() throws Exception {
+        var context = RuntimeEnvironment.getApplication();
+        Utils.setContext(context);
+        String srt = "1\n00:00:00,500 --> 00:00:02,000\nSaved caption\n\n";
+        try (ServerSocket server = new ServerSocket(0, 1, java.net.InetAddress.getByName("127.0.0.1"))) {
+            var response = new java.util.concurrent.FutureTask<Void>(() -> {
+                try (var socket = server.accept()) {
+                    socket.setSoTimeout(5000);
+                    var input = new java.io.BufferedReader(new java.io.InputStreamReader(socket.getInputStream()));
+                    while (true) {
+                        String line = input.readLine();
+                        if (line == null || line.isEmpty()) break;
+                    }
+                    byte[] data = srt.getBytes(StandardCharsets.UTF_8);
+                    socket.getOutputStream().write(("HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Length: "
+                            + data.length + "\r\n\r\n").getBytes(StandardCharsets.US_ASCII));
+                    socket.getOutputStream().write(data);
+                }
+                return null;
+            });
+            Thread thread = new Thread(response);
+            thread.setDaemon(true);
+            thread.start();
+
+            String path = "DCIM/SubtitleNoExtensionTest";
+            var track = new SubtitleDownloads.Track(
+                    "en", "srt", List.of("http://127.0.0.1:" + server.getLocalPort() + "/captions"), true);
+
+            assertEquals(1, SubtitleDownloads.save(context, List.of(track), "clip", path));
+            response.get(5, java.util.concurrent.TimeUnit.SECONDS);
+
+            File directory = new File(Environment.getExternalStorageDirectory(), path);
+            File captions = new File(directory, "clip.en.srt");
+            assertEquals(srt, new String(Files.readAllBytes(captions.toPath()), StandardCharsets.UTF_8));
+            assertTrue(captions.delete());
+        }
+    }
+
+    /** An empty name would publish ".en.srt", hidden by the gallery and shared by every video. */
+    @Test public void anEmptySavedVideoNameDoesNotProduceAHiddenSubtitle() throws Exception {
+        var context = RuntimeEnvironment.getApplication();
+        Utils.setContext(context);
+        String srt = "1\n00:00:00,500 --> 00:00:02,000\nSaved caption\n\n";
+        try (ServerSocket server = new ServerSocket(0, 1, java.net.InetAddress.getByName("127.0.0.1"))) {
+            var response = new java.util.concurrent.FutureTask<Void>(() -> {
+                try (var socket = server.accept()) {
+                    socket.setSoTimeout(5000);
+                    var input = new java.io.BufferedReader(new java.io.InputStreamReader(socket.getInputStream()));
+                    while (true) {
+                        String line = input.readLine();
+                        if (line == null || line.isEmpty()) break;
+                    }
+                    byte[] data = srt.getBytes(StandardCharsets.UTF_8);
+                    socket.getOutputStream().write(("HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Length: "
+                            + data.length + "\r\n\r\n").getBytes(StandardCharsets.US_ASCII));
+                    socket.getOutputStream().write(data);
+                }
+                return null;
+            });
+            Thread thread = new Thread(response);
+            thread.setDaemon(true);
+            thread.start();
+
+            String path = "DCIM/SubtitleEmptyNameTest";
+            var track = new SubtitleDownloads.Track(
+                    "en", "srt", List.of("http://127.0.0.1:" + server.getLocalPort() + "/captions"), true);
+
+            assertEquals(1, SubtitleDownloads.save(context, List.of(track), "", path));
+            response.get(5, java.util.concurrent.TimeUnit.SECONDS);
+
+            File directory = new File(Environment.getExternalStorageDirectory(), path);
+            assertTrue("the subtitle was published as a hidden file",
+                    new File(directory, "video.en.srt").isFile());
+            assertTrue(new File(directory, "video.en.srt").delete());
         }
     }
 

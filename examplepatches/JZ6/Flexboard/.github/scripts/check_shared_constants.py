@@ -381,6 +381,56 @@ def _java_string_constant(name):
 
 
 
+def _check_hidden_features_count(problems):
+    """The Hidden Features description counts the same number of flags the patch forces on.
+
+    The description spells the count as a word and then enumerates the features in prose, so both
+    drift silently when a flag is added: the patch keeps working, the picker just lies about what
+    it does. This has already happened twice -- once going five to six, once when a reworded
+    string.replace matched nothing and dropped an item while leaving the numeral at seven.
+
+    Only the numeral is checked. Counting the prose items would mean parsing an English list with
+    an Oxford comma, and a check that is wrong about what it reads is worse than no check.
+    """
+    words = {
+        'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6,
+        'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
+    }
+    source = (PATCHES / "dev/jz6/flexboard/patches/features/hiddenfeatures/HiddenFeaturesPatch.kt").read_text()
+    saids = re.findall(r'Turns on (\w+) finished', source)
+    calls = re.findall(r'forceFlagsOn\((.*?)\n\s*\)', source, re.S)
+    if not saids or not calls:
+        problems.append(
+            f"  hidden features count check parsed nothing: {len(saids)} numerals, "
+            f"{len(calls)} forceFlagsOn calls"
+        )
+        return
+    if len(saids) != len(calls):
+        problems.append(
+            f"  Hidden Features has {len(saids)} descriptions but {len(calls)} forceFlagsOn calls — "
+            f"one patch is describing another patch's flags"
+        )
+        return
+    seen = {}
+    for said, call in zip(saids, calls):
+        flags = re.findall(r'^\s*"([a-z0-9_]+)",', call, re.M)
+        claimed = words.get(said)
+        if claimed is None:
+            problems.append(f"  Hidden Features says {said!r} features, which is not a number word")
+        elif claimed != len(flags):
+            problems.append(
+                f"  a Hidden Features patch describes itself as turning on {said} ({claimed}) "
+                f"features but forceFlagsOn names {len(flags)} — the picker text is telling users "
+                f"something the patch does not do"
+            )
+        # Two patches flipping one flag is not a doubled feature, it is a build failure: the second
+        # finds the constant already at 1 and forceFlagsOn refuses it as a flag Gboard ships on.
+        for flag in flags:
+            if flag in seen:
+                problems.append(f"  {flag} is forced on by two Hidden Features patches")
+            seen[flag] = True
+
+
 def _check_stock_package_name(problems):
     """The extension's fallback package name matches Constants.GBOARD_PACKAGE_NAME.
 
@@ -833,6 +883,7 @@ def main():
     _check_extension_references(problems)
     _check_section_sentinels(problems)
     _check_stock_package_name(problems)
+    _check_hidden_features_count(problems)
     _check_allowed_set_sentinel(problems)
     _check_settings_row_mirror(problems)
     _check_source_url(problems)

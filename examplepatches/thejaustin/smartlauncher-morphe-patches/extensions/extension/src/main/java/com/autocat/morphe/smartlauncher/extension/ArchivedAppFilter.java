@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.LauncherActivityInfo;
 import android.content.pm.LauncherApps;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.UserHandle;
 import android.util.Log;
@@ -207,6 +208,28 @@ public class ArchivedAppFilter {
                     return true;
                 }
             } catch (Throwable ignored) {}
+        } catch (Throwable ignored) {}
+        return false;
+    }
+
+    public static boolean isPackageArchived(PackageManager pm, String pkg) {
+        if (pm == null || pkg == null || pkg.isEmpty()) return false;
+        try {
+            if (Build.VERSION.SDK_INT >= 35) {
+                try {
+                    ApplicationInfo normalAi = pm.getApplicationInfo(pkg, 0);
+                    if (isAppArchived(normalAi)) return true;
+                    return false;
+                } catch (PackageManager.NameNotFoundException notNormal) {
+                    try {
+                        ApplicationInfo archivedAi = pm.getApplicationInfo(pkg, 0x00008000);
+                        return archivedAi != null;
+                    } catch (Throwable ignored) {}
+                }
+            } else {
+                ApplicationInfo ai = pm.getApplicationInfo(pkg, 0);
+                return isAppArchived(ai);
+            }
         } catch (Throwable ignored) {}
         return false;
     }

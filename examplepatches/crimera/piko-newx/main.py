@@ -15,11 +15,16 @@ from utils import publish_release, sign_artifact
 
 
 CHANGELOG_FILE = "CHANGELOG.md"
+CHANGELOG_APP_NAME = "Twitter"
 PATCHES_BUNDLE_FILE = "patches-bundle.json"
 PATCHES_LIST_ASSET = "patches-list.json"
 PATCHES_MPP = "bins/patches.mpp"
 RELEASE_TAG_PATTERN = re.compile(r"^v\d+\.\d+\.\d+$")
 LEGACY_RELEASE_PATTERN = re.compile(r"^(?P<app>.+)-(?P<piko>[0-9a-f]{7,40})$")
+CONVENTIONAL_COMMIT_PATTERN = re.compile(
+    r"^(?P<type>[a-z]+)(?:\((?P<scope>[^)]+)\))?!?:\s+(?P<description>.+)$",
+    re.IGNORECASE,
+)
 
 
 def get_latest_version(
@@ -161,11 +166,42 @@ def format_commit_list(commits: list[github.GithubCommit] | None) -> str:
     if not commits:
         return ""
 
-    entries = "\n".join(
-        f"- [`{commit.sha[:7]}`]({commit.html_url}) {commit.subject}"
-        for commit in commits
-    )
+    entries = "\n".join(format_changelog_commit(commit) for commit in commits)
     return f"Piko commits since previous release:\n{entries}"
+
+
+def get_commits_not_in_changelog(
+    commits: list[github.GithubCommit] | None,
+    generated_changelog: str,
+) -> list[github.GithubCommit] | None:
+    if commits is None or not generated_changelog:
+        return commits
+
+    return [
+        commit
+        for commit in commits
+        if f"[{commit.sha[:7]}]" not in generated_changelog
+    ]
+
+
+def format_changelog_commit(commit: github.GithubCommit) -> str:
+    match = CONVENTIONAL_COMMIT_PATTERN.fullmatch(commit.subject)
+    scope = CHANGELOG_APP_NAME
+    description = commit.subject
+
+    if match is not None:
+        source_scope = match.group("scope")
+        if source_scope is not None:
+            normalized_scope = source_scope.casefold()
+            normalized_app_name = CHANGELOG_APP_NAME.casefold()
+            if normalized_scope.startswith(f"{normalized_app_name} - "):
+                scope = source_scope
+            elif normalized_scope != normalized_app_name:
+                scope = f"{CHANGELOG_APP_NAME} - {source_scope}"
+        description = match.group("description")
+
+    commit_link = f"([{commit.sha[:7]}]({commit.html_url}))"
+    return f"* **{scope}:** {description} {commit_link}"
 
 
 def update_changelog(
@@ -175,9 +211,16 @@ def update_changelog(
     commits: list[github.GithubCommit] | None,
     generated_changelog: str = "",
     repo: str = REPO,
+    previous_tag: str | None = None,
 ) -> None:
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    heading = f"# [{version}](https://github.com/{repo}/releases/tag/{tag}) ({today})"
+    display_version = version.removeprefix("v")
+    release_url = (
+        f"https://github.com/{repo}/compare/{previous_tag}...{tag}"
+        if previous_tag is not None
+        else f"https://github.com/{repo}/releases/tag/{tag}"
+    )
+    heading = f"## [{display_version}]({release_url}) ({today})"
 
     sections: list[str] = []
 
@@ -185,14 +228,13 @@ def update_changelog(
         sections.append(generated_changelog)
 
     if commits:
-        commit_bullets = "\n".join(
-            f"* [`{commit.sha[:7]}`]({commit.html_url}) {commit.subject}"
-            for commit in commits
-        )
+        commit_bullets = "\n".join(format_changelog_commit(commit) for commit in commits)
         sections.append(f"### Commits\n{commit_bullets}")
 
     if new_patches:
-        patch_bullets = "\n".join(f"* **Twitter:** {patch}" for patch in new_patches)
+        patch_bullets = "\n".join(
+            f"* **{CHANGELOG_APP_NAME}:** {patch}" for patch in new_patches
+        )
         sections.append(f"### New Patches\n{patch_bullets}")
 
     body = "\n\n".join(sections) if sections else "* No new patches or commits."
@@ -238,17 +280,19 @@ def process(
     commits = get_piko_commits(
         previous_release, previous_piko_commit, piko_build.commit
     )
+    remaining_commits = get_commits_not_in_changelog(commits, generated_changelog)
 
     update_changelog(
         version=release_tag,
         tag=release_tag,
         new_patches=new_patches,
-        commits=commits,
+        commits=remaining_commits,
         generated_changelog=generated_changelog,
+        previous_tag=previous_release.tag_name if previous_release else None,
     )
 
     patch_list = format_new_patch_list(new_patches)
-    commit_list = format_commit_list(commits)
+    commit_list = format_commit_list(remaining_commits)
     release_sections = [
         section for section in (generated_changelog, commit_list, patch_list) if section
     ]

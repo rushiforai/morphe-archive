@@ -48,6 +48,70 @@ public final class MorpheMenuInjector {
     private static volatile String sLastPackageName = null;
     private static volatile Context sLastContext = null;
     private static Method sPopupShowMethod = null;
+    public static final int ID_SECTION_HEADER   = 0x7f13bee0;
+    public static final int ID_HIDE_ARCHIVED    = 0x7f13bee1;
+    public static final int ID_HIDE_SUMMARY     = 0x7f13bee2;
+    public static final int ID_NATIVE_ARCHIVE   = 0x7f13bee3;
+    public static final int ID_NATIVE_SUMMARY   = 0x7f13bee4;
+    public static final int ID_SHIZUKU_ARCHIVE  = 0x7f13bee5;
+    public static final int ID_SHIZUKU_SUMMARY  = 0x7f13bee6;
+    public static final int ID_ACTION_ARCHIVE   = 0x7f13bee7;
+    public static final int ID_ACTION_RESTORE   = 0x7f13bee8;
+    public static final int ID_DIAG_ACTION      = 0x7f13bee9;
+    public static final int ID_DIAG_SUMMARY     = 0x7f13beea;
+    public static final int DRAWABLE_ARCHIVE    = 0x7f0801b3; // ic_cloud_download
+    public static final int DRAWABLE_RESTORE    = 0x7f080292; // ic_restore
+
+    public static Context getLastContext() {
+        return sLastContext;
+    }
+
+    /**
+     * Intercepts Android string resource resolution from Jetpack Compose stringResource calls.
+     */
+    public static String getString(Resources resources, int id) {
+        switch (id) {
+            case ID_SECTION_HEADER:
+                return "App Archiving (Morphe)";
+            case ID_HIDE_ARCHIVED: {
+                boolean hide = MorphePreferences.isHideArchivedEnabled(sLastContext);
+                return "Hide Archived Apps: " + (hide ? "ON" : "OFF");
+            }
+            case ID_HIDE_SUMMARY:
+                return "Filter out archived applications from the app drawer";
+            case ID_NATIVE_ARCHIVE: {
+                boolean nat = MorphePreferences.isNativeEnabled(sLastContext);
+                return "Android 15+ Native Archiving: " + (nat ? "ON" : "OFF");
+            }
+            case ID_NATIVE_SUMMARY:
+                return "Use Android PackageInstaller requestArchive / requestUnarchive";
+            case ID_SHIZUKU_ARCHIVE: {
+                boolean shiz = MorphePreferences.isShizukuEnabled(sLastContext);
+                return "Shizuku Archiving: " + (shiz ? "ON" : "OFF");
+            }
+            case ID_SHIZUKU_SUMMARY:
+                return "Use Shizuku privileged shell for seamless archiving";
+            case ID_DIAG_ACTION:
+                return "Archive Diagnostics & Status";
+            case ID_DIAG_SUMMARY:
+                return "Tap to check Shizuku status and Android 15+ archive capability";
+            case ID_ACTION_ARCHIVE:
+            case ID_ACTION_RESTORE: {
+                String pkg = sLastPackageName;
+                Context ctx = sLastContext;
+                boolean isArch = false;
+                if (ctx != null && pkg != null) {
+                    isArch = ArchivedAppFilter.isPackageArchived(ctx.getPackageManager(), pkg);
+                }
+                return isArch ? "Restore App" : "Archive App";
+            }
+            default:
+                if (resources != null) {
+                    return resources.getString(id);
+                }
+                return "";
+        }
+    }
 
     private MorpheMenuInjector() {}
 
@@ -67,6 +131,27 @@ public final class MorpheMenuInjector {
 
     /**
      * Drop-in replacement with callerObj support.
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static void injectAndSetPopupValue(Object stateObj, List items) {
+        List mutableItems = items != null ? new ArrayList(items) : new ArrayList();
+        injectArchiveItem(null, mutableItems, null);
+        if (stateObj != null) {
+            try {
+                for (Method m : stateObj.getClass().getMethods()) {
+                    if ("setValue".equals(m.getName()) && m.getParameterTypes().length == 1) {
+                        m.invoke(stateObj, mutableItems);
+                        return;
+                    }
+                }
+            } catch (Throwable t) {
+                Log.w(TAG, "injectAndSetPopupValue setValue failed", t);
+            }
+        }
+    }
+
+    /**
+     * Entry-point for bytecode replacement at popup show call-sites.
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static void injectAndShow(Object popupLayerObj, List items, Object callerObj) {
@@ -159,6 +244,7 @@ public final class MorpheMenuInjector {
             }
             if (context != null) {
                 sLastContext = context;
+                ShizukuArchiveHelper.ensureInitialized(context);
             }
 
             final Context finalContext = (context != null) ? context : sLastContext;
@@ -172,6 +258,19 @@ public final class MorpheMenuInjector {
             }
 
             final String finalPackageName = packageName;
+            if (finalPackageName == null) {
+                return;
+            }
+
+            // Prevent duplicate injection if already present
+            for (Object item : items) {
+                if (item != null) {
+                    int id = getIntFieldSafe(item, "b", 0);
+                    if (id == ID_ACTION_ARCHIVE || id == ID_ACTION_RESTORE) {
+                        return;
+                    }
+                }
+            }
 
             // 3. Find sample item to clone reflection structures
             Object sampleItem = null;
@@ -216,8 +315,7 @@ public final class MorpheMenuInjector {
             // Determine if target app is currently archived
             boolean isArchived = false;
             if (finalContext != null && finalPackageName != null) {
-                ApplicationInfo appInfo = getAppInfoSafe(finalContext.getPackageManager(), finalPackageName);
-                if (appInfo != null) isArchived = ArchivedAppFilter.isAppArchived(appInfo);
+                isArchived = ArchivedAppFilter.isPackageArchived(finalContext.getPackageManager(), finalPackageName);
             }
 
             final boolean targetIsArchived = isArchived;
@@ -347,7 +445,30 @@ public final class MorpheMenuInjector {
                     Object[] initArgs = new Object[paramTypes.length];
                     for (int i = 0; i < paramTypes.length; i++) {
                         Class<?> pt = paramTypes[i];
-                        if (pt == int.class) initArgs[i] = 0;
+                        if (pt == int.class) {
+                            if (i == 0) {
+                                int iconRes = targetIsArchived ? DRAWABLE_RESTORE : DRAWABLE_ARCHIVE;
+                                if (finalContext != null) {
+                                    try {
+                                        int dynRes = targetIsArchived
+                                                ? finalContext.getResources().getIdentifier("ic_restore", "drawable", finalContext.getPackageName())
+                                                : finalContext.getResources().getIdentifier("ic_file_compressed", "drawable", finalContext.getPackageName());
+                                        if (dynRes == 0 && !targetIsArchived) {
+                                            dynRes = finalContext.getResources().getIdentifier("ic_pop_backup", "drawable", finalContext.getPackageName());
+                                        }
+                                        if (dynRes != 0) iconRes = dynRes;
+                                    } catch (Throwable ignored) {}
+                                }
+                                if (iconRes == 0) {
+                                    iconRes = getIntFieldSafe(sampleItem, "a", 0);
+                                }
+                                initArgs[i] = iconRes;
+                            } else if (i == 1) {
+                                initArgs[i] = targetIsArchived ? ID_ACTION_RESTORE : ID_ACTION_ARCHIVE;
+                            } else {
+                                initArgs[i] = 0;
+                            }
+                        }
                         else if (pt == boolean.class) initArgs[i] = false;
                         else if (pt == long.class) initArgs[i] = 0L;
                         else if (pt == float.class) initArgs[i] = 0f;
@@ -369,7 +490,16 @@ public final class MorpheMenuInjector {
                 for (Field f : itemClass.getDeclaredFields()) {
                     try {
                         f.setAccessible(true);
-                        if (CharSequence.class.isAssignableFrom(f.getType())) {
+                        if ("a".equals(f.getName())) {
+                            int iconRes = targetIsArchived ? DRAWABLE_RESTORE : DRAWABLE_ARCHIVE;
+                            if (iconRes == 0) {
+                                Object sVal = f.get(sampleItem);
+                                if (sVal instanceof Integer) iconRes = (Integer) sVal;
+                            }
+                            f.set(archiveItem, iconRes);
+                        } else if ("b".equals(f.getName())) {
+                            f.set(archiveItem, targetIsArchived ? ID_ACTION_RESTORE : ID_ACTION_ARCHIVE);
+                        } else if (CharSequence.class.isAssignableFrom(f.getType())) {
                             f.set(archiveItem, actionTitle);
                         } else if (isAssignableToAny(f.getType(), interfacesArray)) {
                             f.set(archiveItem, clickProxy);
@@ -454,8 +584,17 @@ public final class MorpheMenuInjector {
                 || pkg.startsWith("kotlin.") || pkg.startsWith("kotlinx.")) {
             return false;
         }
-        if (context != null) {
-            return getAppInfoSafe(context.getPackageManager(), pkg) != null;
+        Context ctx = context;
+        if (ctx == null) ctx = sLastContext;
+        if (ctx == null) {
+            try {
+                Class<?> atClass = Class.forName("android.app.ActivityThread");
+                Method currentAppMethod = atClass.getMethod("currentApplication");
+                ctx = (Context) currentAppMethod.invoke(null);
+            } catch (Throwable ignored) {}
+        }
+        if (ctx != null) {
+            return getAppInfoSafe(ctx.getPackageManager(), pkg) != null;
         }
         return false;
     }
@@ -463,6 +602,24 @@ public final class MorpheMenuInjector {
     private static String extractPackageName(Context context, Object obj, int depth, Set<Object> visited) {
         if (obj == null || depth > 5) return null;
         if (!visited.add(obj)) return null;
+
+        // Direct extraction for Smart Launcher AppModel or models wrapping AppModel
+        try {
+            Class<?> cls = obj.getClass();
+            String cname = cls.getName();
+            if (cname.contains("AppModel") || cname.endsWith(".s51") || cname.equals("s51")) {
+                for (String fName : new String[]{"e", "packageName"}) {
+                    try {
+                        Field f = cls.getDeclaredField(fName);
+                        f.setAccessible(true);
+                        Object val = f.get(obj);
+                        if (val instanceof String && isInstalledPackage(context, (String) val)) {
+                            return (String) val;
+                        }
+                    } catch (Throwable ignored) {}
+                }
+            }
+        } catch (Throwable ignored) {}
 
         if (obj instanceof ComponentName) {
             String pkg = ((ComponentName) obj).getPackageName();
@@ -511,14 +668,17 @@ public final class MorpheMenuInjector {
             return null;
         }
 
-        // Avoid deep reflection into heavy Android framework objects
+        // Avoid deep reflection into heavy Android framework objects, but allow custom launcher views
         if (obj instanceof View) {
             Object tag = ((View) obj).getTag();
             if (tag != null && tag != obj) {
                 String pkg = extractPackageName(context, tag, depth + 1, visited);
                 if (pkg != null) return pkg;
             }
-            return null;
+            String vName = obj.getClass().getName();
+            if (vName.startsWith("android.") || vName.startsWith("androidx.")) {
+                return null;
+            }
         }
         if (obj instanceof Context || obj instanceof Window || obj instanceof Activity || obj instanceof Resources) {
             return null;
@@ -639,38 +799,39 @@ public final class MorpheMenuInjector {
                 boolean shizukuEnabled = MorphePreferences.isShizukuEnabled(context);
                 boolean nativeEnabled = MorphePreferences.isNativeEnabled(context);
 
-                // 1. Try Shizuku privileged archiving if enabled
-                if (shizukuEnabled && ShizukuArchiveHelper.isShizukuAlive()) {
-                    if (ShizukuArchiveHelper.hasPermission()) {
-                        success = isCurrentlyArchived
-                                ? ShizukuArchiveHelper.unarchivePackage(packageName)
-                                : ShizukuArchiveHelper.archivePackage(packageName);
-                    } else {
-                        postToast(context, "Shizuku permission needed — grant it then try again");
+                // 1. Try ShizukuArchiveHelper (uses rish → Shizuku API → su as fallback chain)
+                if (shizukuEnabled) {
+                    ShizukuArchiveHelper.ensureInitialized(context);
+                    success = isCurrentlyArchived
+                            ? ShizukuArchiveHelper.unarchivePackage(packageName)
+                            : ShizukuArchiveHelper.archivePackage(packageName);
+                    Log.i(TAG, "ShizukuArchiveHelper result for " + packageName + ": " + success);
+
+                    // If not yet alive, request permission for future attempts
+                    if (!success && ShizukuArchiveHelper.isShizukuAlive() && !ShizukuArchiveHelper.hasPermission()) {
                         MAIN_HANDLER.post(new Runnable() {
                             @Override
                             public void run() {
-                                ShizukuArchiveHelper.requestShizukuPermission(ShizukuArchiveHelper.SHIZUKU_REQ_CODE);
+                                ShizukuArchiveHelper.requestPermissionWithFeedback(context, packageName, isCurrentlyArchived);
                             }
                         });
                         return;
                     }
                 }
 
-                // 2. Try Native Android 15+ archiving if Shizuku didn't succeed
+                // 2. Try Native Android 15+ archiving if ShizukuArchiveHelper didn't succeed
                 if (!success && nativeEnabled && NativeArchiveHelper.isSupported()) {
                     success = isCurrentlyArchived
                             ? NativeArchiveHelper.unarchivePackage(context, packageName)
                             : NativeArchiveHelper.archivePackage(context, packageName);
+                    Log.i(TAG, "NativeArchiveHelper result for " + packageName + ": " + success);
                 }
 
-                // Only toast on failure — the pre-toast and drawer refresh confirm success
-                if (!success) {
-                    if (!NativeArchiveHelper.isSupported() && !ShizukuArchiveHelper.isShizukuAlive()) {
-                        postToast(context, "App archiving requires Shizuku or Android 15+");
-                    } else {
-                        postToast(context, "Failed to " + (isCurrentlyArchived ? "restore " : "archive ") + finalLabel);
-                    }
+                // 3. User feedback
+                if (success) {
+                    postToast(context, finalLabel + (isCurrentlyArchived ? " restored!" : " archived!"));
+                } else {
+                    postToast(context, "Failed to " + (isCurrentlyArchived ? "restore " : "archive ") + finalLabel + ". Ensure Shizuku is running.");
                 }
             }
         });
@@ -745,7 +906,7 @@ public final class MorpheMenuInjector {
         }
     }
 
-    private static void postToast(final Context context, final String message) {
+    public static void postToast(final Context context, final String message) {
         if (context == null || message == null) return;
         MAIN_HANDLER.post(new Runnable() {
             @Override
@@ -884,5 +1045,193 @@ public final class MorpheMenuInjector {
 
     public static void openMorpheSettings() {
         openMorpheSettings((Context) null);
+    }
+
+    private static int getIntFieldSafe(Object obj, String fieldName, int defVal) {
+        if (obj == null) return defVal;
+        try {
+            Field f = obj.getClass().getDeclaredField(fieldName);
+            f.setAccessible(true);
+            return f.getInt(obj);
+        } catch (Throwable t) {
+            for (Field f : obj.getClass().getDeclaredFields()) {
+                if (f.getType() == int.class) {
+                    try {
+                        f.setAccessible(true);
+                        return f.getInt(obj);
+                    } catch (Throwable ignored) {}
+                }
+            }
+            return defVal;
+        }
+    }
+
+    /**
+     * Called by bytecode patch in Smart Launcher's Experimental Features provider method (Lu28;->invoke).
+     * Merges native setting items and injects dedicated Morphe Archiving settings rows.
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static ArrayList mergeAndInjectSettings(Collection a, Iterable b) {
+        ArrayList list = new ArrayList();
+        try {
+            if (a != null) list.addAll(a);
+            if (b != null) {
+                for (Object item : b) {
+                    list.add(item);
+                }
+            }
+        } catch (Throwable t) {
+            Log.e(TAG, "Error in mergeAndInjectSettings", t);
+        }
+        return list;
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static void injectExperimentalSettings(List list) {
+        if (list == null || list.isEmpty()) return;
+        try {
+            Context ctx = sLastContext;
+            if (ctx == null) ctx = getForegroundActivity();
+            final Context context = ctx;
+
+            // Locate sample divider (Lyk2) and sample preference action (Lfc1)
+            Class<?> dividerClass = null;
+            Class<?> actionClass = null;
+            Constructor<?> dividerCtor = null;
+            Constructor<?> actionCtor = null;
+
+            for (Object item : list) {
+                if (item == null) continue;
+                Class<?> cls = item.getClass();
+                for (Constructor<?> c : cls.getDeclaredConstructors()) {
+                    Class<?>[] pts = c.getParameterTypes();
+                    if (pts.length == 1 && pts[0] == String.class && dividerClass == null) {
+                        dividerClass = cls;
+                        dividerCtor = c;
+                        dividerCtor.setAccessible(true);
+                    } else if (pts.length >= 5 && pts[0] == String.class && pts[1] == int.class && actionClass == null) {
+                        actionClass = cls;
+                        actionCtor = c;
+                        actionCtor.setAccessible(true);
+                    }
+                }
+                if (dividerClass != null && actionClass != null) break;
+            }
+
+            if (dividerClass != null && dividerCtor != null) {
+                Object divider = dividerCtor.newInstance("morphe_archiving_divider");
+                list.add(divider);
+            }
+
+            if (actionClass != null && actionCtor != null) {
+                Class<?>[] pTypes = actionCtor.getParameterTypes();
+                Class<?> samInterface = null;
+                for (Class<?> pt : pTypes) {
+                    if (pt.isInterface()) {
+                        samInterface = pt;
+                        break;
+                    }
+                }
+
+                String[] keys = new String[] {
+                    "morphe_hide_archived",
+                    "morphe_native_archive",
+                    "morphe_shizuku_archive",
+                    "morphe_diag"
+                };
+                int[] titles = new int[] {
+                    ID_HIDE_ARCHIVED,
+                    ID_NATIVE_ARCHIVE,
+                    ID_SHIZUKU_ARCHIVE,
+                    ID_DIAG_ACTION
+                };
+                int[] summaries = new int[] {
+                    ID_HIDE_SUMMARY,
+                    ID_NATIVE_SUMMARY,
+                    ID_SHIZUKU_SUMMARY,
+                    ID_DIAG_SUMMARY
+                };
+
+                for (int i = 0; i < keys.length; i++) {
+                    final String prefKey = keys[i];
+                    Object proxy = null;
+                    if (samInterface != null) {
+                        proxy = Proxy.newProxyInstance(
+                            actionClass.getClassLoader(),
+                            new Class<?>[] { samInterface },
+                            new InvocationHandler() {
+                                @Override
+                                public Object invoke(Object p, Method m, Object[] args) throws Throwable {
+                                    handlePrefClick(context, prefKey);
+                                    Class<?> rt = m.getReturnType();
+                                    if (rt == boolean.class || rt == Boolean.class) return Boolean.TRUE;
+                                    try {
+                                        Class<?> unitClass = Class.forName("kotlin.Unit");
+                                        Field f = unitClass.getField("INSTANCE");
+                                        return f.get(null);
+                                    } catch (Throwable ignored) {}
+                                    return null;
+                                }
+                            }
+                        );
+                    }
+
+                    int summaryIndex = (pTypes.length >= 6) ? 4 : 3;
+                    Object[] initArgs = new Object[pTypes.length];
+                    for (int j = 0; j < pTypes.length; j++) {
+                        Class<?> pt = pTypes[j];
+                        if (pt == String.class) initArgs[j] = prefKey;
+                        else if (pt == int.class) initArgs[j] = (j == 1 ? titles[i] : 0);
+                        else if (pt == Integer.class) initArgs[j] = (j == summaryIndex ? Integer.valueOf(summaries[i]) : null);
+                        else if (samInterface != null && pt.isAssignableFrom(samInterface)) initArgs[j] = proxy;
+                        else if (pt == boolean.class) initArgs[j] = false;
+                        else initArgs[j] = null;
+                    }
+
+                    Object prefItem = actionCtor.newInstance(initArgs);
+                    if (prefItem != null) {
+                        list.add(prefItem);
+                    }
+                }
+                Log.i(TAG, "Successfully injected Morphe preferences into Experimental settings list");
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "Failed to inject experimental settings: " + t.getMessage(), t);
+        }
+    }
+
+    private static void handlePrefClick(final Context ctx, String key) {
+        final Context safeCtx = (ctx != null) ? ctx : getForegroundActivity();
+        if ("morphe_hide_archived".equals(key)) {
+            boolean cur = MorphePreferences.isHideArchivedEnabled(safeCtx);
+            MorphePreferences.setHideArchivedEnabled(safeCtx, !cur);
+            showToastSafe(safeCtx, "Hide Archived Apps: " + (!cur ? "Enabled" : "Disabled"));
+        } else if ("morphe_native_archive".equals(key)) {
+            boolean cur = MorphePreferences.isNativeEnabled(safeCtx);
+            MorphePreferences.setNativeEnabled(safeCtx, !cur);
+            showToastSafe(safeCtx, "Native Archiving: " + (!cur ? "Enabled" : "Disabled"));
+        } else if ("morphe_shizuku_archive".equals(key)) {
+            boolean cur = MorphePreferences.isShizukuEnabled(safeCtx);
+            MorphePreferences.setShizukuEnabled(safeCtx, !cur);
+            showToastSafe(safeCtx, "Shizuku Archiving: " + (!cur ? "Enabled" : "Disabled"));
+        } else if ("morphe_diag".equals(key)) {
+            boolean isA15 = Build.VERSION.SDK_INT >= 35;
+            boolean hasShizuku = ShizukuArchiveHelper.isShizukuAlive();
+            showToastSafe(safeCtx, "Morphe Status:\nAndroid " + Build.VERSION.RELEASE + " (API " + Build.VERSION.SDK_INT + ")\nNative Archiving: " + (isA15 ? "Supported" : "Requires Android 15+") + "\nShizuku: " + (hasShizuku ? "Available" : "Not running"));
+        }
+    }
+
+    private static void showToastSafe(final Context ctx, final String msg) {
+        MAIN_HANDLER.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Context c = ctx != null ? ctx : getForegroundActivity();
+                    if (c != null) {
+                        Toast.makeText(c.getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+                    }
+                } catch (Throwable ignored) {}
+            }
+        });
     }
 }

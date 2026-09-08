@@ -11,22 +11,23 @@ import android.os.Build;
 import android.os.SystemClock;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 
+import app.morphe.extension.shared.GlobalLayoutHook;
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.ResourceIdCache;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.settings.Settings;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.WeakHashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * Hides controls TikTok lays over the video player.
@@ -66,12 +67,14 @@ public final class VideoOverlayHider {
     /** The row under each rail button holding its count, without the button itself. */
     private static final String[] RAIL_COUNT_IDS = {"fwu", "ecq", "ht9", "v5x"};
     private static final String[] RAIL_BUTTON_IDS = {"hvo", "fws", "ehl", "hu9", "p2l", "v9o"};
+    private static final int TRAVERSAL_TARGET_COUNT = 5 + RAIL_BUTTON_IDS.length + RAIL_COUNT_IDS.length;
 
     private static final int LEGACY_STATUS_BAR_FLAGS = View.SYSTEM_UI_FLAG_FULLSCREEN
             | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
             | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
 
-    private static final Map<String, Integer> RESOLVED_IDS = new HashMap<>();
+    private static final ResourceIdCache RESOURCE_IDS = new ResourceIdCache();
+    private static final TraversalScratch TRAVERSAL = new TraversalScratch(TRAVERSAL_TARGET_COUNT);
 
     /**
      * Views this class hid, with the visibility each had before, so turning a switch back
@@ -92,7 +95,7 @@ public final class VideoOverlayHider {
     /** Whether this class, rather than TikTok, is the one holding the status bar away. */
     private static boolean statusBarHiddenHere;
     private static long statusBarHiddenAt;
-    private static ViewTreeObserver.OnGlobalLayoutListener listener;
+    private static final GlobalLayoutHook LAYOUT_HOOK = new GlobalLayoutHook();
 
     private VideoOverlayHider() {
     }
@@ -108,21 +111,20 @@ public final class VideoOverlayHider {
     private static void installNow(Activity activity) {
         try {
             if (activity.isFinishing()) {
+                LAYOUT_HOOK.detach();
                 return;
             }
             ViewGroup root = activity.findViewById(android.R.id.content);
             if (root == null) {
+                LAYOUT_HOOK.detach();
                 Logger.printInfo(() -> "Video overlay hider found no content view to watch");
                 return;
             }
-            if (listener != null && activityReference.get() == activity) {
-                return;
-            }
-
-            listener = VideoOverlayHider::apply;
-            root.getViewTreeObserver().addOnGlobalLayoutListener(listener);
+            boolean installed = LAYOUT_HOOK.install(root, VideoOverlayHider::apply);
             activityReference = new WeakReference<>(activity);
-            Logger.printDebug(() -> "Video overlay hider installed");
+            if (installed) {
+                Logger.printDebug(() -> "Video overlay hider installed");
+            }
         } catch (Throwable ex) {
             Logger.printException(() -> "Could not install the video overlay hider", ex);
         }
@@ -130,9 +132,15 @@ public final class VideoOverlayHider {
 
     private static void apply() {
         Activity activity = activityReference.get();
-        if (activity != null) {
-            applyTo(activity);
+        if (activity == null) {
+            LAYOUT_HOOK.detach();
+            return;
         }
+        if (activity.isFinishing()) {
+            LAYOUT_HOOK.detach();
+            return;
+        }
+        applyTo(activity);
     }
 
     /** One pass over {@code activity}, the same one the layout listener runs. */
@@ -165,17 +173,18 @@ public final class VideoOverlayHider {
             // the mode. The persisted setting cannot be used here: the automatic path never
             // writes it, so it would answer false for exactly the case this is meant to fix.
             boolean tabStrip = RememberClearDisplayPatch.isClearDisplayNow();
-            boolean[] rail = railButtonsWanted();
-            boolean anyRail = Settings.HIDE_RAIL_COUNTS.get();
+            boolean counts = Settings.HIDE_RAIL_COUNTS.get();
+            boolean[] rail = TRAVERSAL.rail;
+            updateRailButtonsWanted(rail);
+            boolean anyRail = counts;
             for (boolean one : rail) {
                 anyRail |= one;
             }
             if (caption || music || actionBar || surveys || tabStrip || anyRail
                     || !HIDDEN_HERE.isEmpty()) {
                 ViewGroup root = activity.findViewById(android.R.id.content);
-                boolean counts = Settings.HIDE_RAIL_COUNTS.get();
-                int[] ids = new int[5 + RAIL_BUTTON_IDS.length + RAIL_COUNT_IDS.length];
-                boolean[] hidden = new boolean[ids.length];
+                int[] ids = TRAVERSAL.ids;
+                boolean[] hidden = TRAVERSAL.hidden;
                 ids[0] = identifier(activity, APP_PACKAGE, CAPTION_ID);
                 ids[1] = identifier(activity, APP_PACKAGE, MUSIC_ID);
                 ids[2] = identifier(activity, APP_PACKAGE, ACTION_BAR_ID);
@@ -196,10 +205,20 @@ public final class VideoOverlayHider {
                     hidden[countsAt + i] = counts;
                 }
 
-                List<List<View>> found = viewsWithIds(root, ids);
-                for (int i = 0; i < ids.length; i++) {
-                    for (View view : found.get(i)) {
-                        setHidden(view, hidden[i]);
+                List<List<View>> found = TRAVERSAL.found;
+                for (List<View> views : found) {
+                    views.clear();
+                }
+                try {
+                    collect(root, ids, found);
+                    for (int i = 0; i < ids.length; i++) {
+                        for (View view : found.get(i)) {
+                            setHidden(view, hidden[i]);
+                        }
+                    }
+                } finally {
+                    for (List<View> views : found) {
+                        views.clear();
                     }
                 }
             }
@@ -212,14 +231,18 @@ public final class VideoOverlayHider {
 
     /** One flag per button in {@link #RAIL_BUTTON_IDS}, in the same order. */
     static boolean[] railButtonsWanted() {
-        return new boolean[]{
-                Settings.HIDE_RAIL_FOLLOW.get(),
-                Settings.HIDE_RAIL_LIKE.get(),
-                Settings.HIDE_RAIL_COMMENTS.get(),
-                Settings.HIDE_RAIL_FAVOURITE.get(),
-                Settings.HIDE_RAIL_MUSIC.get(),
-                Settings.HIDE_RAIL_SHARE.get(),
-        };
+        boolean[] rail = new boolean[RAIL_BUTTON_IDS.length];
+        updateRailButtonsWanted(rail);
+        return rail;
+    }
+
+    private static void updateRailButtonsWanted(boolean[] rail) {
+        rail[0] = Settings.HIDE_RAIL_FOLLOW.get();
+        rail[1] = Settings.HIDE_RAIL_LIKE.get();
+        rail[2] = Settings.HIDE_RAIL_COMMENTS.get();
+        rail[3] = Settings.HIDE_RAIL_FAVOURITE.get();
+        rail[4] = Settings.HIDE_RAIL_MUSIC.get();
+        rail[5] = Settings.HIDE_RAIL_SHARE.get();
     }
 
     private static void hide(Activity activity, String packageName, String name) {
@@ -270,6 +293,23 @@ public final class VideoOverlayHider {
             ViewGroup group = (ViewGroup) view;
             for (int i = 0, count = group.getChildCount(); i < count; i++) {
                 collect(group.getChildAt(i), ids, found);
+            }
+        }
+    }
+
+    private static final class TraversalScratch {
+        final int[] ids;
+        final boolean[] hidden;
+        final boolean[] rail;
+        final List<List<View>> found;
+
+        TraversalScratch(int targetCount) {
+            ids = new int[targetCount];
+            hidden = new boolean[targetCount];
+            rail = new boolean[RAIL_BUTTON_IDS.length];
+            found = new ArrayList<>(targetCount);
+            for (int i = 0; i < targetCount; i++) {
+                found.add(new ArrayList<>());
             }
         }
     }
@@ -367,7 +407,7 @@ public final class VideoOverlayHider {
 
     /** Lets a test stand in for a TikTok resource id, which only the real APK resolves. */
     static void resolveForTests(String name, int id) {
-        RESOLVED_IDS.put(APP_PACKAGE + ":" + name, id);
+        RESOURCE_IDS.putForTests(APP_PACKAGE, name, id);
     }
 
     /**
@@ -375,24 +415,23 @@ public final class VideoOverlayHider {
      * module's ids only exist once that module has loaded, so a miss for those is retried
      * rather than cached.
      */
-    private static int identifier(Activity activity, String packageName, String name) {
-        String key = packageName + ":" + name;
-        Integer cached = RESOLVED_IDS.get(key);
-        if (cached != null) {
-            return cached;
-        }
+    /** The search module's ids live in their own package, so they are counted on their own. */
+    private static String overlayFamily(boolean searchModule) {
+        return searchModule ? "overlay (search)" : "overlay";
+    }
 
-        int id;
-        try {
-            id = activity.getResources().getIdentifier(name, "id", packageName);
-        } catch (Throwable ignored) {
-            id = 0;
-        }
+    private static int identifier(Activity activity, String packageName, String name) {
+        boolean retryMissing = SEARCH_MODULE_PACKAGE.equals(packageName);
+        int id = RESOURCE_IDS.resolve(
+                activity == null ? null : activity.getResources(), packageName, name, retryMissing);
         if (id != 0) {
-            RESOLVED_IDS.put(key, id);
-        } else if (!SEARCH_MODULE_PACKAGE.equals(packageName)) {
-            RESOLVED_IDS.put(key, 0);
-            Logger.printInfo(() -> "Overlay view id '" + name + "' not found in this TikTok build");
+            // A family per package rather than a composed key: this runs on every layout pass,
+            // and the two id spaces can hand out the same two-character obfuscated name.
+            HookStatus.bound(overlayFamily(retryMissing), name);
+            return id;
+        }
+        if (!retryMissing) {
+            HookStatus.missingViewId(overlayFamily(false), name);
         }
         return id;
     }

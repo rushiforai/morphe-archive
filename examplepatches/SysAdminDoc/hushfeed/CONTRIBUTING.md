@@ -21,9 +21,19 @@ when possible, and remove any private messages or account details from screensho
 
 Before publishing a release, run `scripts/validate-release-facts.ps1` after the runtime tests
 and patch list generation. It checks the generated version, target package, target version,
-patch count and test count against the README and `patches-bundle.json`. The local release
-helpers are `scripts/gen-l10n.py`, `scripts/verify-all-patches.ps1` and
+patch count and test count against the README and `patches-bundle.json`. After uploading the
+bundle and `SHA256SUMS.txt`, run it again with `-VerifyPublishedAsset` to check the indexed URL,
+the local artifact hash and the hosted checksum entry. The local release helpers are
+`scripts/gen-l10n.py`, `scripts/verify-all-patches.ps1` and
 `scripts/measure-patch-heap.ps1`; the latter two need a Morphe desktop jar and a fixture APK.
+The release check also refuses results older than the sources, so rerun the tests after an edit
+rather than reusing the last run's XML.
+
+Run `scripts/install-hooks.ps1` once per checkout. It installs a pre-push hook that runs the
+runtime tests when a push changes anything under `extensions/` or `patches/`, and the release
+check when it changes `README.md`, `gradle.properties`, `patches-list.json` or
+`patches-bundle.json`. Nothing builds on GitHub, so a push is the last place either can run.
+Set `HUSHFEED_SKIP_PRE_PUSH=1` to push without it.
 
 ## Source notices
 

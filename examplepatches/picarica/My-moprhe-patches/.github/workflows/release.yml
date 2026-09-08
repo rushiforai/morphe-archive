@@ -1,0 +1,45 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v6.0.0
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Check tag matches project version
+        shell: bash
+        run: |
+          set -euo pipefail
+          project_version=$(sed -n 's/^version = //p' gradle.properties)
+          test "${GITHUB_REF_NAME#v}" = "$project_version"
+
+      - name: Build and test patch bundle
+        run: ./scripts/build.sh
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "patches/build/libs/patches-${GITHUB_REF_NAME#v}.mpp" \
+            --verify-tag \
+            --title "$GITHUB_REF_NAME" \
+            --notes "Initial AFFiNE 0.27.4 no-GMS patch release. Supports app.affine.pro version code 439 (arm64-v8a XAPK)."

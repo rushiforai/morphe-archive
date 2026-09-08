@@ -8,6 +8,10 @@ package app.morphe.extension.tiktok.blockauthor;
 
 import app.morphe.extension.shared.Logger;
 
+import app.morphe.extension.tiktok.wellbeing.SessionBudget;
+import app.morphe.extension.tiktok.wellbeing.SessionBudgetNotice;
+import app.morphe.extension.tiktok.wellbeing.SessionLockOverlay;
+
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -96,6 +100,11 @@ public final class CurrentVideoAuthor {
             return;
         }
 
+        // Before the early return: this is the only signal that arrives while a video plays,
+        // so it is the only thing that can measure how long the feed has been running.
+        SessionBudget.noteWatching();
+        SessionLockOverlay.ensureRunning();
+
         if (awemeId.equals(playingAwemeId)) {
             return;
         }
@@ -116,6 +125,8 @@ public final class CurrentVideoAuthor {
         String newId = item == null ? null : item.awemeId;
 
         if (!Objects.equals(previousId, newId)) {
+            SessionBudget.noteVideo(newId);
+            if (SessionBudget.claimNotice()) SessionBudgetNotice.show();
             app.morphe.extension.tiktok.interaction.TapConfirmation.onVideoChanged();
             app.morphe.extension.tiktok.captions.CaptionTools.onVideoChanged(newId);
 
@@ -155,6 +166,13 @@ public final class CurrentVideoAuthor {
     public static Object getAweme() {
         Item item = current;
         return item == null ? null : item.aweme;
+    }
+
+    static void resetForTests() {
+        RECENT.clear();
+        current = null;
+        playingAwemeId = null;
+        CurrentVideoSound.clear();
     }
 
     /** Reads the item without touching anything that tracks the current video. */

@@ -8,8 +8,14 @@ import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.ChoicePreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
+import app.morphe.extension.tiktok.settings.preference.ClockHourPreference;
+import app.morphe.extension.tiktok.settings.preference.NumberInputPreference;
 import app.morphe.extension.tiktok.speed.PlaybackSpeedPatch;
+import android.preference.Preference;
+
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.tiktok.wellbeing.SessionBudget;
+import app.morphe.extension.tiktok.wellbeing.SessionLockOverlay;
 
 @SuppressWarnings("deprecation")
 public final class PlaybackPreferenceCategory extends ConditionalPreferenceCategory {
@@ -18,9 +24,16 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
         setTitle("Playback");
     }
 
-    @Override public boolean getSettingsStatus() {
+    /** Whether this page has anything on it. The row into it asks the same question. */
+    public static boolean isAvailable() {
         return SettingsStatus.playbackQualityEnabled || SettingsStatus.playbackSpeedEnabled
-                || SettingsStatus.autoAdvanceEnabled || SettingsStatus.videoFitEnabled;
+                || SettingsStatus.autoAdvanceEnabled || SettingsStatus.videoFitEnabled
+                || SettingsStatus.blockAuthorEnabled;
+    }
+
+    @Override
+    public boolean getSettingsStatus() {
+        return isAvailable();
     }
 
     @Override public void addPreferences(Context context) {
@@ -28,7 +41,49 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
             addPreference(new TogglePreference(context, "Advance when a video ends",
                     "Keep automatic advance enabled. Pauses and open dialogs still stop scrolling. Restart after enabling it; use this switch to turn it off.",
                     Settings.AUTO_ADVANCE));
+            addPreference(new NumberInputPreference(context, "Auto-advance session limit",
+                    "Zero keeps auto-advance unlimited. Count only videos that finish while Hushfeed "
+                            + "started automatic advance; prefetches, manual swipes and native-only "
+                            + "advance do not count. The count resets when the feed component is "
+                            + "recreated and stays stopped across backgrounding until it is recreated "
+                            + "or the limit changes.", Settings.AUTO_ADVANCE_LIMIT, "video", "videos"));
         }
+        // The counting hangs off the hook that tracks which video is on screen, which the
+        // block author patch installs. Without it these would take a number and count nothing.
+        if (SettingsStatus.blockAuthorEnabled) {
+        addPreference(new NumberInputPreference(context, "Daily video budget",
+                "Zero switches this off. Count every video that comes up in the feed, however you "
+                        + "got to it, and say so once the count is reached. This is separate from "
+                        + "the auto-advance limit above, which only counts videos Hushfeed itself "
+                        + "advanced past.", Settings.SESSION_BUDGET_VIDEOS, "video", "videos"));
+        addPreference(new NumberInputPreference(context, "Daily time budget",
+                "Zero switches this off. Count the minutes the player spends running in the feed. "
+                        + "Time on messages, a profile or search does not count.",
+                Settings.SESSION_BUDGET_MINUTES, "minute", "minutes"));
+        addPreference(new NumberInputPreference(context, "Hold the feed after the budget",
+                "Zero shows the notice and leaves the feed alone. Anything else covers the feed "
+                        + "for that many minutes once a budget is reached. Messages, profiles and "
+                        + "search keep working, and nothing in the feed is thrown away.",
+                Settings.SESSION_BUDGET_LOCK_MINUTES, "minute", "minutes"));
+        addPreference(new ClockHourPreference(context, "Start the day at",
+                "The hour both budgets reset, on a 24 hour clock. Four in the morning by default, "
+                        + "because someone still scrolling at one is having last night.",
+                Settings.SESSION_BUDGET_RESET_HOUR));
+
+        Preference clearBudget = new Preference(context);
+        clearBudget.setTitle(L10n.t(context, "Start today over"));
+        clearBudget.setSummary(L10n.t(context,
+                "Forget what has been counted today and end any hold. The budgets themselves "
+                        + "are left alone."));
+        clearBudget.setOnPreferenceClickListener(preference -> {
+            SessionBudget.clear();
+            SessionLockOverlay.sync();
+            Utils.showToastShort(L10n.t(context, "Today starts again"));
+            return true;
+        });
+        addPreference(clearBudget);
+        }
+
         if (SettingsStatus.playbackSpeedEnabled) {
             addPreference(new TogglePreference(context, "Use a default playback speed",
                     "Start each new video at your default. A manual choice lasts until the video changes.",

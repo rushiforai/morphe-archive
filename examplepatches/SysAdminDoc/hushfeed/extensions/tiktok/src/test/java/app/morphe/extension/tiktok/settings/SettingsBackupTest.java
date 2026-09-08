@@ -24,6 +24,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.After;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
@@ -37,6 +38,9 @@ import org.robolectric.shadows.ShadowToast;
 @Config(sdk = 28, qualifiers = "night")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class SettingsBackupTest {
+    @After public void tearDownStatus() {
+        SettingsStatus.diagnosticsEnabled = false;
+    }
     @Before public void setup() throws Exception {
         Utils.setContext(RuntimeEnvironment.getApplication());
         Settings.REGION_SPOOF.get();
@@ -424,6 +428,18 @@ public class SettingsBackupTest {
         assertEquals(75, (int) Settings.MAX_VIDEO_SECONDS.get());
     }
 
+    @Test public void anOlderBackupWithRemovedSettingKeyStillImports() throws Exception {
+        Settings.MAX_VIDEO_SECONDS.save(81);
+        JSONObject root = new JSONObject(SettingsBackup.create(false));
+        root.getJSONObject("settings").put("comment_translation_excluded_languages", "es");
+        root.getJSONArray("setting_keys").put("comment_translation_excluded_languages");
+        Settings.MAX_VIDEO_SECONDS.save(0);
+
+        SettingsBackup.restore(Utils.getContext(), root.toString(), true);
+
+        assertEquals(81, (int) Settings.MAX_VIDEO_SECONDS.get());
+    }
+
     private static android.content.SharedPreferences failingCommits(android.content.SharedPreferences target,
             java.util.function.BooleanSupplier fail, Runnable committed) {
         return (android.content.SharedPreferences) java.lang.reflect.Proxy.newProxyInstance(
@@ -514,17 +530,16 @@ public class SettingsBackupTest {
             assertEquals(0, (int) Settings.MAX_VIDEO_SECONDS.get());
             fragment.onActivityResult(7312, android.app.Activity.RESULT_CANCELED, null);
             assertNull(org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog());
-            app.morphe.extension.tiktok.UiCapture.save(activity.getWindow().getDecorView(), "settings-backup.png");
         }
     }
 
-    private static void waitFor(String message) throws InterruptedException {
-        for (int i = 0; i < 500; i++) {
-            Shadows.shadowOf(Looper.getMainLooper()).idle();
-            if (message.equals(ShadowToast.getTextOfLatestToast())) return;
-            Thread.sleep(10);
+    private static void waitFor(String message) throws Exception {
+        Utils.awaitBackgroundTasksForTests();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        String toast = ShadowToast.getTextOfLatestToast();
+        if (!message.equals(toast)) {
+            fail("Missing completion toast: " + toast);
         }
-        fail("Missing completion toast: " + ShadowToast.getTextOfLatestToast());
     }
 
     @Test public void aBackupCannotPlantANumberTheDialogWouldRefuse() throws Exception {
@@ -549,5 +564,14 @@ public class SettingsBackupTest {
         values.put("edge_seek_seconds", 12);
         SettingsBackup.restore(Utils.getContext(), root.toString(), true);
         assertEquals(12, (int) Settings.EDGE_SEEK_SECONDS.get());
+    }
+
+    @Test public void theSuggestedBackupNameIsOneAPersonCanRead() {
+        // It was epoch milliseconds, so two backups a minute apart were indistinguishable in the
+        // picker and neither said when it was made. The other two exports already used this.
+        String name = app.morphe.extension.tiktok.settings.preference.SettingsBackupPreference
+                .suggestedExportName();
+        assertTrue("the picker would show " + name,
+                name.matches("hushfeed-settings-\\d{8}-\\d{6}\\.json"));
     }
 }

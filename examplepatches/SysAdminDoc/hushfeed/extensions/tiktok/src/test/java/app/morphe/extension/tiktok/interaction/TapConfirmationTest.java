@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.time.Duration;
 import org.junit.Test;
+import org.junit.After;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
@@ -28,6 +29,9 @@ import org.robolectric.annotation.GraphicsMode;
 @Config(sdk = 28)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class TapConfirmationTest {
+    @After public void tearDown() {
+        SettingsStatus.confirmInteractionsEnabled = false;
+    }
     public static final class TestActivity extends PreferenceActivity {}
     public static final class Params {
         public final Clip aweme;
@@ -113,6 +117,27 @@ public class TapConfirmationTest {
             new InterfacePreferenceCategory(activity, screen);
             assertNotNull(screen.findPreference("confirm_follow"));
             assertNotNull(screen.findPreference("confirm_like"));
+        }
+    }
+
+    @Test @org.robolectric.annotation.Config(qualifiers = "de")
+    public void theConfirmationIsWholeInEveryLanguage() throws Exception {
+        // The verb used to be an English literal spliced into a translated sentence, so a German
+        // phone read "Noch einmal tippen zum follow".
+        try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
+            Utils.setContext(controller.get());
+            for (String action : new String[]{"follow", "like"}) {
+                org.robolectric.shadows.ShadowToast.reset();
+                View view = new View(controller.get());
+                assertFalse(TapConfirmation.allow(view, action, "video-" + action, true));
+
+                String shown = String.valueOf(
+                        org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+                assertFalse("the toast still carries the English verb: " + shown,
+                        shown.contains(action));
+                assertTrue("the toast is not the German sentence: " + shown,
+                        shown.startsWith("Noch einmal tippen"));
+            }
         }
     }
 }

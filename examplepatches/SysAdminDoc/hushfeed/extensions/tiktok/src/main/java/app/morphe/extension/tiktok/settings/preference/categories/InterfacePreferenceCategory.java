@@ -20,8 +20,8 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
         setTitle("Interface");
     }
 
-    @Override
-    public boolean getSettingsStatus() {
+    /** Whether this page has anything on it. The row into it asks the same question. */
+    public static boolean isAvailable() {
         return SettingsStatus.subtitleToolsEnabled || SettingsStatus.screenCaptureEnabled || SettingsStatus.automaticClearDisplayEnabled || SettingsStatus.doubleTapEnabled || SettingsStatus.longPressEnabled || SettingsStatus.confirmInteractionsEnabled || SettingsStatus.captchaPopupSuppressionEnabled
                 || SettingsStatus.promotionalBannersEnabled
                 || SettingsStatus.alwaysShowPublishDateEnabled
@@ -33,6 +33,11 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                 || SettingsStatus.hideFeedFollowButtonEnabled
                 || SettingsStatus.hideFeedSaveButtonEnabled
                 || SettingsStatus.hideSearchSuggestionsEnabled;
+    }
+
+    @Override
+    public boolean getSettingsStatus() {
+        return isAvailable();
     }
 
     @Override
@@ -65,8 +70,9 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
         }
         if (SettingsStatus.longPressEnabled) {
             addPreference(new ChoicePreference(context, "Long press", Settings.LONG_PRESS_ACTION,
-                    new String[]{"TikTok default (2x hold, quick share)", "Do nothing", "Open comments"},
-                    new String[]{"default", "nothing", "comments"}));
+                    new String[]{"TikTok default (2x hold, quick share)", "Do nothing",
+                            "Open comments", "Save the original sound"},
+                    new String[]{"default", "nothing", "comments", "original_sound"}));
             addPreference(new TogglePreference(context, "Seek from the edges",
                     "Press and hold the left or right third of the screen to jump back or forward. "
                             + "The middle third keeps the Long press action.", Settings.EDGE_SEEK));

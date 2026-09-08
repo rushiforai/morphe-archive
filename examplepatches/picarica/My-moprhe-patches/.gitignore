@@ -1,0 +1,14 @@
+.build-deps/
+.gradle/
+**/build/
+local.properties
+*.jks
+*.keystore
+*.p12
+*.pem
+*.apk
+*.xapk
+*.apkm
+*.apks
+tools/
+morphe-data/

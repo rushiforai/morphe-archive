@@ -80,6 +80,50 @@ public class StickerGallerySaverTest {
         assertTrue(first.isFile() && second.isFile() && third.isFile());
     }
 
+    /**
+     * The path a save reports has to be the file that was written.
+     *
+     * <p>The display name handed to MediaStore is a request. A duplicate gets a suffix of the
+     * provider's choosing, and reporting the requested name points the reader at a file that is
+     * not theirs. The provider is stood in for here, because there is no MediaStore under a unit
+     * test; what is under test is whether the answer it gives is the one reported.
+     */
+    @Test public void theReportedPathIsTheNameTheGalleryUsed() throws Exception {
+        android.content.Context context = RuntimeEnvironment.getApplication();
+        app.morphe.extension.shared.Utils.setContext(context);
+
+        android.net.Uri uri = android.net.Uri.withAppendedPath(
+                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "42");
+        org.robolectric.fakes.RoboCursor cursor = new org.robolectric.fakes.RoboCursor();
+        cursor.setColumnNames(java.util.List.of(
+                android.provider.MediaStore.MediaColumns.DISPLAY_NAME));
+        cursor.setResults(new Object[][]{{"sticker_2.png"}});
+        org.robolectric.Shadows.shadowOf(context.getContentResolver()).setCursor(uri, cursor);
+
+        String reported = (String) savedPath().invoke(null, context, uri, "sticker.png", false);
+        assertTrue("the reported path is the name that was asked for, not the one used: "
+                + reported, reported.endsWith("/sticker_2.png"));
+    }
+
+    /** A provider that will not say leaves the reader with the best guess rather than nothing. */
+    @Test public void anUnreadableRowStillReportsSomewhere() throws Exception {
+        android.content.Context context = RuntimeEnvironment.getApplication();
+        app.morphe.extension.shared.Utils.setContext(context);
+
+        android.net.Uri missing = android.net.Uri.withAppendedPath(
+                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "404404");
+        String reported = (String) savedPath().invoke(null, context, missing, "sticker.png", false);
+        assertTrue(reported, reported.endsWith("/sticker.png"));
+    }
+
+    private static Method savedPath() throws Exception {
+        Method method = StickerGallerySaver.class.getDeclaredMethod(
+                "savedPath", android.content.Context.class, android.net.Uri.class,
+                String.class, boolean.class);
+        method.setAccessible(true);
+        return method;
+    }
+
     /** A name with no extension is a name, not a reason to build sticker_2 out of nothing. */
     @Test public void aNameWithNoExtensionStillGetsItsOwnFile() throws Exception {
         java.io.File directory = new java.io.File(
@@ -130,5 +174,18 @@ public class StickerGallerySaverTest {
         Field f = asset.getClass().getDeclaredField("url");
         f.setAccessible(true);
         return (String) f.get(asset);
+    }
+
+    @Test public void aCleartextStickerMirrorIsNotFetchedFrom() {
+        // The bytes behind these addresses reach a native WebP decoder, so an unauthenticated
+        // mirror is a body anyone on the network can choose, handed to a parser written in C.
+        assertEquals(java.util.List.of("https://cdn.example/sticker.webp"),
+                StickerGallerySaver.usableUrlList(java.util.Arrays.asList(
+                        "http://cdn.example/sticker.webp",
+                        "https://cdn.example/sticker.webp",
+                        null,
+                        "")));
+        assertEquals(java.util.List.of(), StickerGallerySaver.usableUrlList(
+                java.util.List.of("http://cdn.example/sticker.webp")));
     }
 }

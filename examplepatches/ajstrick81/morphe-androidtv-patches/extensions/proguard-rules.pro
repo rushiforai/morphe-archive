@@ -91,8 +91,18 @@
 # runtime (compileOnly).
 -keep class ajstrick81.morphe.extension.pluto.ads.PlutoDashManifestProbe {
     public static androidx.media3.exoplayer.dash.manifest.DashManifest stripAdPeriods(androidx.media3.exoplayer.dash.manifest.DashManifest);
+    public static long mapResumePosition(androidx.media3.common.Player, long);
 }
 -dontwarn androidx.media3.exoplayer.dash.manifest.**
+
+# Pluto LIVE ad-break mask — liveSlatePatch (see LiveSlatePatch.kt). Its @JvmStatic
+# entry points are called only from injected smali, so R8 would strip/rename them.
+-keep class ajstrick81.morphe.extension.pluto.ads.PlutoLiveSlateHelper {
+    public static void onAdTick(java.lang.Object);
+    public static void registerActivity(android.app.Activity);
+    public static void unregisterActivity(android.app.Activity);
+    public static void setAviaPlayer(java.lang.Object);
+}
 
 # HBO Max — SSAI ad-origin filter. HboAdOriginFilter.guard(Object) is called
 # only from injected smali (invoke-static {} at DefaultHttpDataSource.open),

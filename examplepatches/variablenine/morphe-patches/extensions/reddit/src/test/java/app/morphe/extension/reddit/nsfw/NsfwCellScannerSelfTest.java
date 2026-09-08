@@ -31,8 +31,23 @@ public final class NsfwCellScannerSelfTest {
     /** Stands in for com.reddit.type.CellIndicatorType. */
     public enum CellIndicatorType { NSFW, SPOILER, ORIGINAL, QUARANTINED }
 
-    /** Stands in for com.reddit.type.NSFWState, which spells the same flag a second way. */
-    public enum NSFWState { NONE, NSFW }
+    /** com.reddit.feeds.model.IndicatorType: the mapped-element mirror of the same tag. */
+    public enum IndicatorType { APP, NSFW, ORIGINAL, QUARANTINED, SPOILER }
+
+    /**
+     * com.reddit.type.NSFWState - a subreddit's or profile's own rating. Spells NSFW, does not
+     * tag a post, and is reachable from a post's edge: this is the false positive that put SFW
+     * posts in an 18+ feed.
+     */
+    public enum NSFWState { NONE, NSFW, UNKNOWN__ }
+
+    /** com.reddit.type.DisplayTag - spells NSFW and keeps some of the same company, but not all. */
+    public enum DisplayTag {
+        APP, BOT, CLUB_CONTENT, NSFW, PROFILE_VERIFIED_AUTHOR, QUARANTINED, SPOILER, UNKNOWN__
+    }
+
+    /** com.reddit.domain.media.MediaBlurType - spells NSFW, tags media rather than a post. */
+    public enum MediaBlurType { NONE, NSFW, SPOILER }
 
     /** Stands in for com.reddit.type.PostStatusIndicatorType, which has no NSFW constant. */
     public enum PostStatusIndicatorType { PINNED, LOCKED, MOD }
@@ -128,8 +143,14 @@ public final class NsfwCellScannerSelfTest {
         // --- the flag itself ---
         check(NsfwCellScanner.isNsfwIndicator(CellIndicatorType.NSFW),
                 "CellIndicatorType.NSFW is recognised");
-        check(NsfwCellScanner.isNsfwIndicator(NSFWState.NSFW),
-                "NSFWState.NSFW is recognised, since the schema spells it in more than one enum");
+        check(NsfwCellScanner.isNsfwIndicator(IndicatorType.NSFW),
+                "IndicatorType.NSFW is recognised, since it tags posts too");
+        check(!NsfwCellScanner.isNsfwIndicator(NSFWState.NSFW),
+                "NSFWState.NSFW is ignored: it rates a subreddit, it does not tag a post");
+        check(!NsfwCellScanner.isNsfwIndicator(DisplayTag.NSFW),
+                "DisplayTag.NSFW is ignored: no ORIGINAL, so it is not a post indicator");
+        check(!NsfwCellScanner.isNsfwIndicator(MediaBlurType.NSFW),
+                "MediaBlurType.NSFW is ignored: it tags media, not a post");
         check(!NsfwCellScanner.isNsfwIndicator(CellIndicatorType.SPOILER),
                 "SPOILER is not NSFW");
         check(!NsfwCellScanner.isNsfwIndicator(NSFWState.NONE), "NONE is not NSFW");
@@ -155,6 +176,18 @@ public final class NsfwCellScannerSelfTest {
                 feedEdge("t3_jkl", CellIndicatorType.QUARANTINED, CellIndicatorType.NSFW));
         check(quarantined != null && quarantined.nsfw,
                 "NSFW is found among several indicators");
+
+        // --- the leak: a subreddit rating must not mark the post 18+ ---
+        Edge rated = feedEdge("t3_sfwinnsfwsub");
+        NsfwCellScanner.Scan ratedScan = NsfwCellScanner.scan(
+                new Edge("FeedElementEdge", new EdgeFragment(new Node("PostFeedElement",
+                        "t3_sfwinnsfwsub",
+                        new CellGroup("CellGroup", "group1", new GroupFragment(Arrays.asList(
+                                new Cell("Cell", new MetadataCell("t3_sfwinnsfwsub",
+                                        Arrays.asList(NSFWState.NSFW)), null))))))));
+        check(ratedScan != null && !ratedScan.nsfw,
+                "a post whose subreddit is rated NSFW is not itself tagged 18+");
+        check(rated != null, "edge builder still works");
 
         // --- the shallow case still works ---
         NsfwCellScanner.Scan flat = NsfwCellScanner.scan(

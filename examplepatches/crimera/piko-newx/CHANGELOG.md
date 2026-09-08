@@ -1,3 +1,28 @@
+## [3.11.0](https://github.com/crimera/piko-newx/compare/v3.10.7...v3.11.0) (2026-09-08)
+
+### ✨ New Features
+* **Twitter - newx:** add disable blur setting ([1fa4361](https://github.com/crimera/piko/commit/1fa43617f89053fdb1e9241217c200add48d3880))
+
+### Commits
+* **Twitter:** untrack recent documentation ([aedc22b](https://github.com/crimera/piko/commit/aedc22b1f22b23dc4076e4594beebc470a1f2088))
+
+### New Patches
+* **Twitter:** NewX: Disable blur effects
+
+## [3.10.7](https://github.com/crimera/piko-newx/compare/v3.10.6...v3.10.7) (2026-09-07)
+
+### 🐛 Bug Fixes
+* **Twitter:** format changelogs for Morphe app updates ([f66771a](https://github.com/crimera/piko-newx/commit/f66771a2880d3b08515cdb7cd93d6abbd8788735))
+
+### Commits
+* **Twitter - newx:** detect hidden media conflicts on AOSP ([9809bbd](https://github.com/crimera/piko/commit/9809bbd1e83aaea8bb105ca7d365bc5ee985e24c))
+* **Twitter - newx:** add hide post reply bar toggle ([68a1fb8](https://github.com/crimera/piko/commit/68a1fb866ebbf4936da0eb347d53806a3dc68d3f))
+* **Twitter:** add show poll results patch ([09f8bf7](https://github.com/crimera/piko/commit/09f8bf71f530e36c52b7cf52cc249fbb3c48fdb9))
+
+### New Patches
+* **Twitter:** NewX: Hide post reply bar
+* **Twitter:** NewX: Show poll results
+
 # [v3.10.6](https://github.com/crimera/piko-newx/releases/tag/v3.10.6) (2026-09-06)
 
 ### Commits

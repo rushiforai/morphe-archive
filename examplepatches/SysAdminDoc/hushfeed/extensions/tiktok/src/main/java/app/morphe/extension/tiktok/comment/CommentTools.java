@@ -6,7 +6,6 @@
  */
 package app.morphe.extension.tiktok.comment;
 
-import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
@@ -17,24 +16,25 @@ import android.view.ViewParent;
 import android.widget.ImageView;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.ResourceIdCache;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.blockauthor.BlockAuthorOverlay;
 import app.morphe.extension.tiktok.blockauthor.BlockAuthorService;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.blockauthor.VideoAuthor;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import app.morphe.extension.tiktok.settings.L10n;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
@@ -69,9 +69,16 @@ public final class CommentTools {
 
     private static final String APP_PACKAGE = "com.zhiliaoapp.musically";
     private static final String DISLIKE_BUTTON_ID = "jlk";
+
+    /** One log line for a cell with no thumbs down, not a verdict on the build. */
+    private static boolean warnedNoDislikeControl;
     private static final String DISLIKE_ICON_ID = "m3b";
-    private static final float BLOCKED_ROW_ALPHA = 0.35f;
-    private static final int BLOCKED_TINT = Color.rgb(254, 44, 85);
+    /**
+     * Faded enough to read as blocked, still readable. At 0.35 the comment text dropped to about
+     * 3:1 on the sheet, which is below the floor for text of that size.
+     */
+    private static final float BLOCKED_ROW_ALPHA = 0.55f;
+    private static final int BLOCKED_TINT = SettingsUi.OVERLAY_ACCENT;
 
     /** Comment model bound to each cell view. */
     private static final WeakHashMap<View, Object> CELL_COMMENTS = new WeakHashMap<>();
@@ -79,11 +86,10 @@ public final class CommentTools {
     /** Accounts blocked this session, by uid, so a recycled cell shows the right state. */
     private static final Set<String> BLOCKED_UIDS = Collections.synchronizedSet(new HashSet<>());
 
-    private static final Map<String, Integer> RESOLVED_IDS = new HashMap<>();
+    private static final ResourceIdCache RESOURCE_IDS = new ResourceIdCache();
     private static final DislikeTouchListener DISLIKE_TOUCH = new DislikeTouchListener();
 
     private static volatile boolean blockInFlight;
-    private static boolean warnedNoDislikeControl;
 
     private CommentTools() {
     }
@@ -110,14 +116,18 @@ public final class CommentTools {
                 return;
             }
 
+            Object previous;
             synchronized (CELL_COMMENTS) {
-                CELL_COMMENTS.put(itemView, comment);
+                previous = CELL_COMMENTS.put(itemView, comment);
             }
+            // A different comment in the same row, rather than the same one bound again for a
+            // changed like count: only the first has to drop a press taken before the swap.
+            boolean holdsAnotherComment = previous != null && previous != comment;
 
             // TikTok wires the thumbs down during this same bind, so the takeover runs once
             // the bind has returned. For a cell that is not attached yet, View.post runs the
             // work on attach, which is still after the bind.
-            itemView.post(() -> takeOverDislike(itemView));
+            itemView.post(() -> takeOverDislike(itemView, holdsAnotherComment));
         } catch (Throwable ex) {
             Logger.printException(() -> "Could not register a comment cell", ex);
         }
@@ -158,24 +168,30 @@ public final class CommentTools {
 
     // ---- thumbs down takeover ----------------------------------------------------------
 
-    private static void takeOverDislike(View cell) {
+    private static void takeOverDislike(View cell, boolean holdsAnotherComment) {
         try {
             View button = cell.findViewById(identifier(cell, DISLIKE_BUTTON_ID));
             if (button == null) {
+                // Deliberately not a hook status miss. This runs per comment cell, and a row
+                // variant without the control, or one not fully inflated when the posted
+                // runnable lands, would otherwise mark the whole build broken for good.
                 if (!warnedNoDislikeControl) {
                     warnedNoDislikeControl = true;
                     Logger.printInfo(() -> "Comment thumbs down control '" + DISLIKE_BUTTON_ID
-                            + "' not found in this TikTok build");
+                            + "' not found in this comment cell");
                 }
                 return;
             }
 
             // Replaces TikTok's listener on the control; the icon gets one too so a touch
             // that lands on it never reaches TikTok's handling either.
-            button.setOnTouchListener(DISLIKE_TOUCH);
+            // A press taken while this row held a different comment must not be released onto
+            // the account that just arrived in it.
             View icon = cell.findViewById(identifier(cell, DISLIKE_ICON_ID));
-            if (icon != null) {
-                icon.setOnTouchListener(DISLIKE_TOUCH);
+            wireBlockControl(button, icon);
+            if (holdsAnotherComment) {
+                DISLIKE_TOUCH.forget(button);
+                DISLIKE_TOUCH.forget(icon);
             }
 
             applyBlockedState(cell);
@@ -190,36 +206,102 @@ public final class CommentTools {
      * before the control sees more than the first events).
      */
     private static final class DislikeTouchListener implements View.OnTouchListener {
-        private float downX;
-        private float downY;
-        private boolean moved;
+        /** Where one control's press started, and whether it has since become a drag. */
+        private static final class Gesture {
+            final float downX;
+            final float downY;
+            boolean moved;
 
+            Gesture(float downX, float downY) {
+                this.downX = downX;
+                this.downY = downY;
+            }
+        }
+
+        /**
+         * One press per control. The listener is shared by every comment on screen, so keeping
+         * the press on the listener let a second finger, or a cell rebound between the press and
+         * the release, decide what a release somewhere else did. A release with no press of its
+         * own now does nothing rather than blocking whoever the other press was aimed at.
+         */
+        private final WeakHashMap<View, Gesture> gestures = new WeakHashMap<>();
+
+        void forget(View view) {
+            if (view == null) return;
+            synchronized (gestures) {
+                gestures.remove(view);
+            }
+        }
+
+        // Touches arrive on the main thread, but the cell maps in this class are all guarded, and
+        // a WeakHashMap corrupts rather than fails if that ever stops being true.
         @Override
         public boolean onTouch(View view, MotionEvent event) {
-            switch (event.getActionMasked()) {
-                case MotionEvent.ACTION_DOWN:
-                    downX = event.getX();
-                    downY = event.getY();
-                    moved = false;
-                    return true;
-                case MotionEvent.ACTION_MOVE:
-                    if (!moved) {
-                        int slop = ViewConfiguration.get(view.getContext()).getScaledTouchSlop();
-                        moved = Math.abs(event.getX() - downX) > slop
-                                || Math.abs(event.getY() - downY) > slop;
+            boolean tapped = false;
+            synchronized (gestures) {
+                switch (event.getActionMasked()) {
+                    case MotionEvent.ACTION_DOWN:
+                        gestures.put(view, new Gesture(event.getX(), event.getY()));
+                        break;
+                    case MotionEvent.ACTION_MOVE: {
+                        Gesture gesture = gestures.get(view);
+                        if (gesture != null && !gesture.moved) {
+                            int slop = ViewConfiguration.get(view.getContext()).getScaledTouchSlop();
+                            gesture.moved = Math.abs(event.getX() - gesture.downX) > slop
+                                    || Math.abs(event.getY() - gesture.downY) > slop;
+                        }
+                        break;
                     }
-                    return true;
-                case MotionEvent.ACTION_CANCEL:
-                    moved = true;
-                    return true;
-                case MotionEvent.ACTION_UP:
-                    if (!moved) {
-                        onDislikeTapped(view);
+                    case MotionEvent.ACTION_CANCEL:
+                        gestures.remove(view);
+                        break;
+                    case MotionEvent.ACTION_UP: {
+                        Gesture gesture = gestures.remove(view);
+                        tapped = gesture != null && !gesture.moved;
+                        break;
                     }
-                    return true;
-                default:
-                    return true;
+                    default:
+                        break;
+                }
             }
+
+            // Outside the lock: blocking an account reaches well beyond this listener.
+            if (tapped) {
+                onDislikeTapped(view);
+            }
+            return true;
+        }
+    }
+
+    /**
+     * Takes the control over for both a finger and an accessibility service. TalkBack and Switch
+     * Access activate a control with {@code performClick()}, which produces no MotionEvents at
+     * all, so a touch listener on its own left them reaching TikTok's dislike instead of the
+     * block. The touch listener always consumes, so a finger never reaches the click listener.
+     */
+    static void wireBlockControl(View button, View icon) {
+        if (button == null) return;
+        button.setOnTouchListener(DISLIKE_TOUCH);
+        button.setOnClickListener(CommentTools::onDislikeTapped);
+        if (icon != null) {
+            icon.setOnTouchListener(DISLIKE_TOUCH);
+            // One target for the row rather than two, so the label and the state are in one
+            // place and a screen reader does not read the same control twice.
+            icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        }
+    }
+
+    /**
+     * What the control is for and what it did. The label still said "dislike" for a control that
+     * blocks, and a faded row was the only sign an account was blocked, which a screen reader
+     * cannot see at all.
+     */
+    static void describeBlockControl(View button, boolean blocked) {
+        if (button == null) return;
+        button.setContentDescription(L10n.t(blocked
+                ? "Unblock this commenter" : "Block this commenter"));
+        if (android.os.Build.VERSION.SDK_INT >= 30) {
+            button.setStateDescription(L10n.t(blocked ? "Blocked" : "Not blocked"));
         }
     }
 
@@ -251,6 +333,23 @@ public final class CommentTools {
         return null;
     }
 
+    /**
+     * Every cell still registered, which is every comment on screen plus any pooled rows the
+     * map has not let go of yet. Refreshing a pooled row costs nothing and it is bound again
+     * before it is shown. Not only the one that was tapped: a thread usually holds several
+     * comments by the same account, and refreshing one left the others reading "Block this
+     * commenter, not blocked" for an account that is already blocked. Acting on that label did
+     * the opposite of what it said, because the toggle reads the blocked set rather than the
+     * label, so a screen reader user was told to block and unblocked instead.
+     */
+    private static void applyBlockedEverywhere() {
+        java.util.List<View> cells;
+        synchronized (CELL_COMMENTS) {
+            cells = new java.util.ArrayList<>(CELL_COMMENTS.keySet());
+        }
+        for (View cell : cells) applyBlockedState(cell);
+    }
+
     private static void applyBlockedState(View cell) {
         Object comment;
         synchronized (CELL_COMMENTS) {
@@ -262,6 +361,10 @@ public final class CommentTools {
         if (cell.getAlpha() != alpha) {
             cell.setAlpha(alpha);
         }
+
+        // The label still said "dislike" for a control that blocks, and a faded row was the
+        // only sign an account was blocked, which a screen reader cannot see at all.
+        describeBlockControl(cell.findViewById(identifier(cell, DISLIKE_BUTTON_ID)), blocked);
 
         View icon = cell.findViewById(identifier(cell, DISLIKE_ICON_ID));
         if (icon instanceof ImageView) {
@@ -340,7 +443,7 @@ public final class CommentTools {
                 BLOCKED_UIDS.add(author.uid);
             }
             // The cell reads its current comment, so a recycled row is never mis-styled.
-            applyBlockedState(cell);
+            applyBlockedEverywhere();
 
             View root = cell.getRootView();
             BlockAuthorOverlay.showUndoBanner(root instanceof ViewGroup ? (ViewGroup) root : null,
@@ -350,7 +453,7 @@ public final class CommentTools {
                                 if (author.uid != null) {
                                     BLOCKED_UIDS.remove(author.uid);
                                 }
-                                applyBlockedState(cell);
+                                applyBlockedEverywhere();
                             }
                             Utils.showToastShort(undoResult == BlockAuthorService.Result.CONFIRMED
                                         ? L10n.f("Unblocked %1$s", author.label())
@@ -379,7 +482,7 @@ public final class CommentTools {
             if (author.uid != null) {
                 BLOCKED_UIDS.remove(author.uid);
             }
-            applyBlockedState(cell);
+            applyBlockedEverywhere();
             Utils.showToastShort(L10n.f("Unblocked %1$s", author.label()));
         });
     }
@@ -494,18 +597,11 @@ public final class CommentTools {
         return false;
     }
 
+    /** Resolves a comment view id, saying so once when this build does not have it. */
     private static int identifier(View view, String name) {
-        Integer cached = RESOLVED_IDS.get(name);
-        if (cached != null) {
-            return cached;
-        }
-        int id;
-        try {
-            id = view.getResources().getIdentifier(name, "id", APP_PACKAGE);
-        } catch (Throwable ignored) {
-            id = 0;
-        }
-        RESOLVED_IDS.put(name, id);
+        int id = RESOURCE_IDS.resolve(view == null ? null : view.getResources(), APP_PACKAGE, name, false);
+        if (id == 0) HookStatus.missingViewId("comments", name);
+        else HookStatus.bound("comments", name);
         return id;
     }
 

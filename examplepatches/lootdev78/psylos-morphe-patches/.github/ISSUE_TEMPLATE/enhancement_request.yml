@@ -1,0 +1,46 @@
+name: SoundCloud enhancement request
+description: Propose an improvement to an existing SoundCloud patch or this repository.
+title: 'feat: '
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # SoundCloud enhancement request
+
+        This repository is intentionally restricted to **SoundCloud only**. Requests for patches targeting other apps are out of scope.
+  - type: dropdown
+    attributes:
+      label: Area
+      options:
+        - Download button hook
+        - Hide Cast icon
+        - Enable SoundCloud Go
+        - AMOLED dark theme
+        - Disable telemetry
+        - Build or documentation
+        - Other SoundCloud-only improvement
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Proposed improvement
+      description: Explain the desired behavior, rationale, and any relevant examples.
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: SoundCloud version
+      description: Provide the version on which the proposal is based, when applicable.
+      placeholder: '2026.08.26-release (369070)'
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Checklist
+      options:
+        - label: This request is limited to SoundCloud.
+          required: true
+        - label: I am not requesting support for another app.
+          required: true
+        - label: I searched existing issues and found no duplicate.
+          required: true

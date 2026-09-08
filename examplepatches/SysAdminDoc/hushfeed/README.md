@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="CHANGELOG.md"><img alt="version" src="https://img.shields.io/badge/version-0.19.0-6f42c1.svg" /></a>
+  <a href="CHANGELOG.md"><img alt="version" src="https://img.shields.io/badge/version-0.22.0-6f42c1.svg" /></a>
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-GPLv3-blue.svg" /></a>
   <a href="https://www.android.com/"><img alt="platform" src="https://img.shields.io/badge/platform-Android-3ddc84.svg" /></a>
   <a href="https://github.com/MorpheApp/morphe-manager"><img alt="Morphe" src="https://img.shields.io/badge/works%20with-Morphe-00b894.svg" /></a>
@@ -18,26 +18,26 @@ It started as a private fork of [icysymmetra's Metra patches](https://github.com
 
 ## What it does
 
-- **Block from the feed.** One tap blocks whoever posted the video you're watching, with an undo banner. A second button blocks the current sound. A Not interested button sits beside them.
+- **Block from the feed.** One tap blocks whoever posted the video you're watching, with an undo banner. A second button hides that creator locally without contacting TikTok, and its searchable list can remove one entry at a time. Another button blocks the current sound. A Not interested button sits beside them.
 - **Guard rails against accidental taps.** Follow and like need a second tap within four seconds. Sending a video to a friend from the share sheet does too. Long press and double tap can be remapped or switched off.
-- **A quieter feed.** Hide ads, Shop, livestreams, LIVE replays, stories, image posts, paid partnerships, AI labelled videos, verified accounts, series, playlists, promotional music, videos you've already seen, and anything matching your own caption words, creator handles, sound names, length or engagement rules, the country it was posted from, or a pattern over creator names.
+- **A quieter feed.** Hide ads, Shop, livestreams, LIVE replays, stories, image posts, paid partnerships, AI labelled videos, verified accounts, series, playlists, promotional music, videos you've already seen, and anything matching your own caption words, creator handles, locally hidden creator ids, sound names, length, publication age or engagement rules, the country it was posted from, or a pattern over creator names.
 - **A quieter screen.** Hide the caption, the music line, the action column, survey cards, the status bar, the visual search prompt, the Live entrance, floating promotions and the CAPTCHA puzzles. Clear display can turn itself on after each video starts.
 - **An inbox you choose.** A switch for every Inbox row and header control, stories tray, suggested accounts, message requests and conversations.
-- **Comments on your terms.** Keyword and account filters, thumbs down that blocks the commenter, quick reactions and brand animations hidden, comments beside the video on wide screens, translation with language exclusions.
+- **Comments on your terms.** Keyword and account filters, thumbs down that blocks the commenter, quick reactions and brand animations hidden, comments beside the video on wide screens, and translation through TikTok's own service.
 - **Downloads worth keeping.** Pick the quality, save original photos, combine separate audio tracks when TikTok serves them apart, save subtitles as SRT beside the video, name files with tokens, choose a folder per media type, remove the watermark.
 - **Playback the way you want it.** Default speed and a custom speed menu, quality choice with a separate cap on mobile data, stop looping, resume after scrolling, automatic advance, the native seekbar and its thumbnail, hold and slide for 2x.
 - **Privacy.** Ghost mode stops story view, profile view and typing reports. Telemetry to ByteDance, AppsFlyer and Firebase can be switched off. Screenshots and Circle to Search work again.
 - **Region.** SIM, locale and timezone presets, with an optional store region override.
 - **Under the hood.** Feature Gate Lab exposes TikTok's own A/B flags with recording and typed overrides. Settings back up to a JSON file with restore, reset and undo. Diagnostics export a report.
 
-The block, sound and Not interested controls, rendered in a local UI test:
+The block, local hide, sound and Not interested controls, rendered in a local UI test:
 
 ![Overlay controls](assets/overlay-controls.png)
 
 ## Install
 
 1. Get the TikTok 46.2.3 APK. Google Play only offers the newest build, so take it from [APKMirror](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-46-2-3-release/tiktok-46-2-3-android-apk-download/).
-2. Add Hushfeed as a source in Morphe Manager. The quickest way is this link on the phone: [Add Hushfeed to Morphe](https://morphe.software/add-source?github=SysAdminDoc/hushfeed). You can also download `patches-0.19.0.mpp` from the [latest release](https://github.com/SysAdminDoc/hushfeed/releases/latest) and load it as a local bundle.
+2. Add Hushfeed as a source in Morphe Manager. The quickest way is this link on the phone: [Add Hushfeed to Morphe](https://morphe.software/add-source?github=SysAdminDoc/hushfeed). You can also download `patches-0.22.0.mpp` from the [latest release](https://github.com/SysAdminDoc/hushfeed/releases/latest) and load it as a local bundle.
 3. Pick the patches you want and patch the APK. Keep the manager's existing signing key so TikTok stays logged in across updates. Every patch here fits the manager's 640 MB memory default except AMOLED dark theme, which rewrites TikTok's color resources and needs the limit raised to 768 MB. If patching stops with an out of memory error, that setting is the one to raise.
 4. Open TikTok, go to Settings and privacy, and tap Hushfeed. Every patch you selected has its switches there.
 
@@ -48,22 +48,22 @@ The Settings patch adds the entry point and is selected by default. Deselect it 
 
 | Patch | Description |
 |---|---|
-| `Automatic video advance` | Keeps native automatic advance enabled. TikTok still checks pauses, dialogs, gestures and whether another video is available. Turn it off in Playback to stop advance started by this option. |
+| `Automatic video advance` | Keeps native automatic advance enabled. TikTok still checks pauses, dialogs, gestures and whether another video is available. Turn it off in Playback to stop advance started by this option. An optional session limit stops Hushfeed-owned advance after a chosen number of visible videos while manual and native-only scrolling remain independent. |
 | `Foldable split comment view` | Enables comments beside the video from a configurable window width (600 dp by default). Off by default, with multi-window and picture-in-picture restrictions preserved. Restart after changing its settings or unfolding if TikTok keeps the old layout. |
 | `Subtitle tools` | Saves captions as SRT files beside downloaded videos. Choose original, device or all available languages, adjust caption size and background, and keep the current caption visible in clear display. |
 | `Playback quality` | Chooses the lowest, highest or a target video quality for regular and adaptive playback. A second choice caps quality on mobile data, and only ever lowers it. Download quality has its own setting. |
-| `Advanced downloads` | Selects a video quality or target resolution and combines separate audio tracks when needed. Optional extras save Photo Mode images straight from their source URLs, keep a video's sound as its own .m4a, save a video without its sound, hand the link to a downloader you already use, and save a profile picture at full size or a story from a long press. |
+| `Advanced downloads` | Selects a video quality or target resolution and combines separate audio tracks when needed. Optional extras save Photo Mode images straight from their source URLs, keep a video's sound as its own .m4a, save a video without its sound, hand the link to a downloader you already use, and save a profile picture at full size or a story from a long press. When the target is [YTDLnis](https://github.com/deniscerri/ytdlnis), choose its audio or video mode and whether the handoff runs in the background. Other package names receive only the sanitized link. |
 | `Allow Duet and Stitch` | Ignores the creator's Duet and Stitch setting so the entries appear. Every other check the app makes still applies, and whether the upload is accepted is the server's decision. |
 | `Uncap the refresh rate` | Stops TikTok asking the screen to run slower than it can, which it does by asking for the frame rate of the video. A request that is not slower than the screen is left alone. |
 | `Fit video to the screen` | Shows the whole of a video instead of cropping it to the window. Nothing changes on a tall phone. On a folding phone opened up, a squarer screen or a split view the sides or the ends stop being cut off. |
 | `Notification controls` | Adds a switch for the notification saying somebody new followed you, and one for message streaks. The follower notification is dropped before Android is asked to post it; everything else in the drawer is untouched. |
-| `Long-press controls` | Lets a long press on a video keep TikTok's own action, do nothing, or open the video's comments, and can turn a press on the left or right third of the screen into a jump back or forward by however many seconds you pick. Brings `Double-tap controls` with it, which supplies the comment control. |
+| `Long-press controls` | Lets a long press on a video keep TikTok's own action, do nothing, open the video's comments, or save the sound the video was made with, which is the whole original rather than the finished mix cut to the post. It can also turn a press on the left or right third of the screen into a jump back or forward by however many seconds you pick. Brings `Double-tap controls` with it, which supplies the comment control. |
 | `Double-tap controls` | Changes feed double taps to do nothing or open comments for the current video. TikTok's normal action is the default. |
 | `Confirm feed interactions` | Adds optional second-tap protection to Follow and the like heart. The red ring expires after four seconds and resets when the video changes. |
 | `AMOLED dark theme` | Replaces the dark background palette with black or a chosen opaque color. Select the patch and its color in the patcher. Light theme colors stay unchanged. |
 | `Always show publish date` | Keeps the video's publish date visible in its author information. |
 | `Not interested button` | Sends feedback about the current video through TikTok's own service. The button works independently of the block switch. |
-| `Block author button` | Adds a button to the video player that blocks the account that posted the current video in one tap, with an undo banner. Long press it to move it. A second button blocks the current sound. |
+| `Block author button` | Adds a button to the video player that blocks the account that posted the current video in one tap, with an undo banner. A companion button hides the creator locally without a server call, and the Feed filter page keeps a searchable list for removing individual entries. Long press the block button to move it. A second button blocks the current sound. |
 | `Comment tools` | Hides comments containing chosen words or from chosen accounts, and turns the thumbs down on each comment into a block button. A switch hides comments made of an image or a sticker rather than words, and another puts a box above the comments that narrows them to what you are looking for. |
 | `Copy comments without username` | Copies only the comment text without including the creator's username. |
 | `Custom offline videos limit` | Adds a custom entry to TikTok's offline videos menu with a configurable limit from 1 to 1000 videos. Values outside the range use the nearest valid limit. |
@@ -78,9 +78,9 @@ The Settings patch adds the entry point and is selected by default. Deselect it 
 | `Enable non-personalized search` | Uses TikTok's non-personalized search mode instead of its saved account choice. |
 | `Hide search suggestions` | Hides the searches TikTok offers on the search page before you type, and stops it fetching them. Your own search history stays. |
 | `Feature Gate Lab` | Adds a searchable menu for viewing and overriding supported TikTok feature flags and configuration values. Client-side overrides cannot bypass server enforcement. |
-| `Feature Gate Recorder` | Records gate reads while you use a feature, then shows new and changed values. Save the full report as JSON or copy a smaller report. |
+| `Feature Gate Recorder` | Records gate reads while you use a feature, then shows new and changed values. An interrupted recording is discarded before the next baseline is taken. Save the full report as JSON or copy a smaller report. |
 | `Follow diagnostics` | Reads what the server said about a follow. TikTok answers a refused follow like a successful one, so this reports the refusal and its reason once per session, and writes the whole exchange to the diagnostic report when logging is on. |
-| `Feed filter` | Hides feed ads, TikTok Shop items, livestreams, stories, photo posts, the playlist bar, the floating event badge, inserted cards, the countdown lock on short drama adverts, and videos outside configured view or like ranges, with optional filtering of cached and offline FYP fallback videos. Sponsored cards are also dropped from the profile video viewer, the search grids and the Friends tab. |
+| `Feed filter` | Hides feed ads, TikTok Shop items, livestreams, stories, photo posts, the playlist bar, the floating event badge, inserted cards, the countdown lock on short drama adverts, and videos outside configured view, age or like ranges, with optional filtering of cached and offline FYP fallback videos. After three fully filtered batches, Hushfeed shows bounded rejection reasons and a link to Feed filter settings. Sponsored cards are also dropped from the profile video viewer, the search grids and the Friends tab. |
 | `Feed tab navigation` | Controls which loaded top and bottom navigation tabs remain visible, blocks newly added tabs when requested, and can hide the Tako AI bubble. |
 | `Fix Google login` | Restores Google account sign-in after patching. |
 | `Hide already seen videos` | Keeps a local record of what you have watched and drops those videos from later feed pages. |
@@ -90,7 +90,7 @@ The Settings patch adds the entry point and is selected by default. Deselect it 
 | `Hide CAPTCHA popups` | Hides non-account verification puzzle dialogs, including those shown while browsing LIVE. Account verification stays available, server checks are not bypassed, and a puzzle raised over a follow, like, comment or repost is always shown so those actions cannot fail in silence. |
 | `Hide floating promotions` | Removes floating promotional badges, coin icons, and timer banners from the Home feed. |
 | `Hide video overlays` | Hides the "Search this image" prompt over videos, the Live entrance in the top left corner, the caption, the music line, the action column on the right, the survey cards and the status bar, each with its own switch. Each of the six buttons in the right column has its own switch as well. |
-| `Share sheet tools` | Adds a second tap before sending to a friend. Filters sharing apps and video actions before the panel builds, hides whole rows, and keeps the custom name list. |
+| `Share sheet tools` | Adds a second tap before sending to a friend. Filters sharing apps and video actions before the panel builds, hides whole rows, and keeps the custom name list. Once a share sheet has been observed, the settings page lists its actions with readable labels and stable identifiers so they can be selected without typing native names. |
 | `Hide feed LIVE button` | Stops the LIVE button at the top left of the feed from being built. Shares its switch with the Live entrance option. |
 | `Hide feed follow button` | Hides the plus button under the creator's avatar on the action rail. |
 | `Hide feed save button` | Hides the save button on the action rail. |
@@ -115,7 +115,7 @@ The Settings patch adds the entry point and is selected by default. Deselect it 
 | `Show seekbar` | Shows TikTok's native video seekbar where it would normally be hidden. |
 | `Show seekbar thumbnail` | Shows TikTok's video preview thumbnail while dragging the seekbar. |
 | `Stop video looping` | Stops a completed video instead of automatically replaying it. |
-| `Translate comments` | Adds comment translation controls using TikTok's translation system, with selectable language exclusions and one in-flight request per loaded batch. |
+| `Translate comments` | Adds comment translation controls using TikTok's translation system, with one in-flight request per loaded batch. |
 
 ## Settings tour
 
@@ -129,6 +129,7 @@ The settings pages use grouped controls on an AMOLED background. Light mode foll
 | Page | Screenshot |
 |---|---|
 | Feed filter | [View](assets/settings/feed_filter.png) |
+| Local creator list | [View](assets/settings/creator-list.png) |
 | Feed navigation | [View](assets/settings/feed_navigation.png) |
 | Interface | [View](assets/settings/interface.png) |
 | Comments and translation | [View](assets/settings/comments.png) |
@@ -143,6 +144,10 @@ The settings pages use grouped controls on an AMOLED background. Light mode foll
 | Feature Gate Lab | [View](assets/settings/lab.png) |
 | Gate details | [View](assets/settings/gate_details.png) |
 | Gate recording | [View](assets/settings/gate_recording.png) |
+| Twice the text size | [View](assets/settings/two-times-text.png) |
+| Twice the text size, light | [View](assets/settings/two-times-text-light.png) |
+| Mirrored layout at twice the text size | [View](assets/settings/rtl-large.png) |
+| Mirrored layout, light | [View](assets/settings/rtl-large-light.png) |
 
 </details>
 
@@ -153,6 +158,9 @@ unselected rows in both themes:
 |---|---|---|
 | Single choice | [View](assets/settings/dialog-single-dark.png) | [View](assets/settings/dialog-single-light.png) |
 | Multiple choice | [View](assets/settings/dialog-multi-dark.png) | [View](assets/settings/dialog-multi-light.png) |
+
+
+Hushfeed saves what the app already has. The download reads the addresses TikTok itself fetched for the video you are watching, on the session you are already signed in with, so there is no separate request pretending to be a browser and nothing to keep in step with the site. That is the difference between this and a scraper. Through August 2026 yt-dlp had to rewrite its TikTok extractor twice and re-implement browser impersonation, and it broke again on 1 September. Cobalt has not shipped since April. None of that is a promise that saving always works. TikTok can change what it hands the app, and when it does the saver changes with the patches. It just means the thing most likely to break in a scraper is not part of how this works.
 
 
 Select `Subtitle tools` in the patcher, then enable subtitle downloads in Downloads. Captioned videos and their SRT files share the same filename stem. Language names can use Unicode, and filename collisions keep separate tracks. Android 11 and later save the pair in Movies; Android 10 uses Download. The selected subfolder still applies. A failed subtitle transfer leaves the saved video intact and reports the partial result.
@@ -169,6 +177,10 @@ Playback has an optional default speed for every new video. A manual choice last
 
 Select `Automatic video advance` in the patcher, then enable Advance when a video ends in Playback and restart. The option re-enables native auto-scroll if TikTok turns it off. Use the Playback switch to disable it.
 
+Auto-advance session limit is zero by default. A positive value counts videos that finish while Hushfeed started scrolling, not prefetches or manual swipes. Recreating the feed starts a new count; returning from the background keeps a reached limit stopped until the feed is recreated or the limit changes. Hushfeed shows a brief notice when it stops.
+
+Advanced downloads can send a sanitized TikTok link to another installed app. Enter its package name in `Send links to another app`; an empty value keeps TikTok's own save. The [YTDLnis](https://github.com/deniscerri/ytdlnis) package is recognized explicitly as `com.deniscerri.ytdl`, so its documented audio or video type and optional background mode are available. The profile controls stay disabled for every other package, and an uninstalled target falls back to TikTok's save.
+
 Foldable controls are in App behavior. Settings save immediately. A notification tells you when to restart TikTok.
 
 Numeric feed limits show their actual unit with language-aware singular and plural labels.
@@ -181,13 +193,17 @@ Region spoof requires Override SIM details plus Match locale and timezone to cou
 
 <img src="assets/settings/region.png" alt="Country and region settings" width="300" />
 
+Playback carries a daily budget for the feed, on builds that include the block author patch, which is where the hook that knows which video is on screen comes from. It is off until you put a number in it, and until then nothing is counted at all. Set a video count, a number of minutes, or both, and Hushfeed says once that the day is used up. Set a hold too and the feed goes behind a countdown for that many minutes, with a way through it on the countdown itself for the times you decide otherwise. Messages, profiles and search are untouched, and so is the feed itself: nothing is dropped, so TikTok never refetches a batch it already sent. The day rolls over at four in the morning unless you move it, and the count and the hold both survive the app being killed.
+
 Diagnostics includes Back up settings, Restore settings and Reset settings even without the logging patch. Backups include patch preferences and Feature Gate Lab rules with their enabled state. Choose a JSON file through Android's file picker. Invalid files leave settings unchanged. Restore and reset keep one undo copy inside TikTok; export a backup first if you plan to clear app data or reinstall, since that removes the undo copy too. Restart after restoring or resetting.
 
 Backups record which settings they contain, so missing entries are rejected. A complete backup from an older build uses defaults for controls added later. If saving fails, recovery attempts both preference stores and keeps the undo copy available.
 
-<img src="assets/settings/diagnostics.png" alt="Settings backup, restore, reset and undo controls" width="300" />
+The Hook status row answers a question the patch list cannot. The patcher knows what it wrote into the APK, not whether a hook then found its anchor once TikTok was running, and TikTok renames things every release. When a hook loses its anchor the switch above it still reads on while nothing happens. Tap the row for a line per surface: how many lookups bound, how many did not, and the first thing that went missing. It speaks for the surfaces that report, which are the comments, the inbox, the share sheet, the feed overlay and the feed models, so "everything found what it needed" means everything it watches rather than all 68 patches. The same table goes into the exported diagnostic report, so it travels with a bug report.
 
-Feature Gate Lab saves its master switch immediately. Its menu can reset overrides while the switch is off, reset all Lab data, or undo the last reset or import. Imported values stay disabled. Changes run in the background and report their result with a notification. The undo copy stores Lab configuration privately; full-reset undo also restores captured observations during the same app run. Other patch preferences are unchanged.
+<img src="assets/settings/diagnostics.png" alt="Settings backup, restore, reset and undo controls" width="300" /> <img src="assets/settings/diagnostics-light.png" alt="Diagnostics in light mode" width="300" />
+
+Feature Gate Lab saves its master switch immediately. Its menu can reset overrides while the switch is off, reset all Lab data, or undo the last reset or import. Imported values stay disabled. Changes run in the background and report their result with a notification. The recorder discards an interrupted session before taking the next baseline. The undo copy stores Lab configuration privately; full-reset undo also restores captured observations during the same app run. Other patch preferences are unchanged.
 
 <img src="assets/settings/lab.png" alt="Feature Gate Lab with immediate master control and settings menu" width="300" />
 
@@ -212,7 +228,14 @@ Gradle dependency verification is checked in at `gradle/verification-metadata.xm
 
 To save offscreen screenshots, run `./gradlew :extensions:tiktok:test -PscreenshotDir=<absolute-directory>`. The suite opens every settings section in dark and light themes, saves a value through the native picker, and exercises Lab search and overrides. A German fixture checks larger text at 360 dp width.
 
+Worker-backed settings and Feature Gate Lab tests drain their owned executors before asserting, reset per-sandbox state before each case, and keep the region semantics check separate from the API ICU cross-check. These assertions do not depend on screenshot output or polling sleeps.
+Lab boundary tests reject malformed persisted scalars without replacing native values, keep imported rules disabled, clear runtime state across master and reset cycles, and hold recorder limits under concurrent calls. Translation batches expire before a visible fallback is retried, while SIM preset matching accepts missing values and keeps unsupported region fallbacks native.
+
 Runtime tests cover feed marker and sound filters using both getter and field model shapes. Empty metadata and unrelated ids remain eligible; matching markers and sound phrases are rejected by their enabled filters.
+Shared resource lookup and global-layout ownership cover the feed, inbox and share hooks, with replacement, detach and failed-install fixtures for the host boundaries. A failed install also detaches the prior root before returning. Sticker publication tests keep collision protection on Android 9 and earlier.
+Native boundary tests cover structured numeric coercion and overflow, URL scheme refusal, destination roots, media fallback and frame bounds, plus direct navigation, share, LIVE, sound and translation policy shapes. Codec playback and final container behavior remain native-device checks.
+Deep feed tests cover repeated response caching, late and final follow delivery, cached and offline fallback policy, hard-filter preservation, bounded probe rotation and malformed account verdicts. Account-write challenge fixtures cover every supported follow, like, comment, repost and story route, including each alternate network path. The follow diagnostics session cap is reserved atomically when callbacks arrive together.
+Video overlay traversals reuse their id, visibility and match buffers, so repeated layout passes do not rebuild the container lists. A synthetic 200-pass trace over 80 cells measured 57.68 ms before the change and 56.09 ms after it.
 Legacy settings import tests cover complete JSON and older text fragments, rejecting invalid values before any preference changes.
 Numeric tokens retain their precision until validation, and literal NUL characters cannot hide trailing data in imports or undo files.
 
@@ -223,6 +246,14 @@ patches/build/libs/patches-<version>.mpp
 ```
 
 Morphe reads `patches-bundle.json` from this repository, downloads the `.mpp` release asset listed there, and loads the patch metadata from that bundle.
+
+After uploading the bundle and a `SHA256SUMS.txt` file to the GitHub release, verify the published asset against the local build:
+
+```bash
+pwsh -File scripts/validate-release-facts.ps1 -VerifyPublishedAsset -ArtifactPath patches/build/libs/patches-<version>.mpp
+```
+
+The check follows the indexed URL, compares its SHA-256 with the local artifact, and checks the matching entry in `SHA256SUMS.txt` before the source index is promoted.
 
 ### Adding a language to the settings screen
 
@@ -261,7 +292,7 @@ Only the global package is declared in the compatibility metadata.
 - `patches/`: Kotlin patch definitions, fingerprints and shared patch utilities.
 - `extensions/`: Java extension code the patches inject into TikTok, with the Robolectric tests beside it.
 - `extensions/tiktok/src/main/l10n/`: the settings translation tables.
-- `scripts/`: `gen-l10n.py` generates translations, `verify-all-patches.ps1` checks every patch against a fixture, `measure-patch-heap.ps1` checks selected memory limits, and `validate-release-facts.ps1` checks the public version and patch facts.
+- `scripts/`: `gen-l10n.py` generates translations, `verify-all-patches.ps1` checks every patch against a fixture, `measure-patch-heap.ps1` checks selected memory limits, and `validate-release-facts.ps1` checks the public version, patch facts, that the URL in the bundle index answers, and the published bundle hash.
 - `patches-list.json`: generated patch metadata.
 - `patches-bundle.json`: the Morphe source index for the published bundle.
 

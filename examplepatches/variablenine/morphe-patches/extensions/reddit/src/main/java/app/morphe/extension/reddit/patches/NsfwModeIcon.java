@@ -4,6 +4,7 @@ import app.morphe.extension.reddit.settings.Settings;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
+import app.morphe.extension.shared.Utils;
 
 /**
  * Swaps the Reddit brand mark in the home app bar for an 18+ one while NSFW mode is on, so the
@@ -21,8 +22,23 @@ public final class NsfwModeIcon {
 
     private static final String ICON_NAME = "morphe_nsfw_mode_icon";
 
+    /**
+     * Reddit's own 18+ glyph, used if this patch's drawable did not make it into the build. It
+     * is untinted so it draws in the vector's own black rather than the app's NSFW red, which is
+     * a worse mark but a much better outcome than no mark at all.
+     */
+    private static final String FALLBACK_ICON_NAME = "icon_nsfw2_fill";
+
     /** Resolved lazily rather than in a static initialiser, which runs before resources exist. */
     private static int iconId = -1;
+
+    /**
+     * Whether the one-off report has been shown. Temporary: this hook cannot say anything when
+     * it is never applied, so the only way to tell "the fingerprint missed" from "the drawable
+     * did not ship" is for the hook to speak up the first time it runs. Remove once the mark is
+     * known to work.
+     */
+    private static volatile boolean reported;
 
     private NsfwModeIcon() {
     }
@@ -40,6 +56,7 @@ public final class NsfwModeIcon {
             }
 
             int icon = nsfwIcon();
+            report(icon);
             return icon == 0 ? defaultIcon : icon;
         } catch (Exception ex) {
             Logger.printException(() -> "brandIcon failure", ex);
@@ -55,10 +72,29 @@ public final class NsfwModeIcon {
 
         int resolved = ResourceUtils.getIdentifier(ResourceType.DRAWABLE, ICON_NAME);
         if (resolved == 0) {
-            Logger.printInfo(() -> "NSFW mode: " + ICON_NAME + " is missing, "
-                    + "leaving the app bar mark alone");
+            resolved = ResourceUtils.getIdentifier(ResourceType.DRAWABLE, FALLBACK_ICON_NAME);
+            final int fallback = resolved;
+            Logger.printInfo(() -> ICON_NAME + " is missing; Reddit's own glyph resolved to "
+                    + fallback);
         }
         iconId = resolved;
         return resolved;
+    }
+
+    /**
+     * Says once, on screen, what this hook found. Temporary - see {@link #reported}.
+     */
+    private static void report(int icon) {
+        if (reported) {
+            return;
+        }
+        reported = true;
+
+        String state = icon == 0
+                ? "no icon found at all"
+                : (icon == ResourceUtils.getIdentifier(ResourceType.DRAWABLE, ICON_NAME)
+                        ? "using the Morphe mark"
+                        : "using Reddit's own glyph");
+        Utils.showToastShort("NSFW app bar hook ran: " + state);
     }
 }

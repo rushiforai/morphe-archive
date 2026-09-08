@@ -1,5 +1,173 @@
 ## Unreleased
 
+* A hold no longer argues with a phone call over the sound. It asks once as the panel goes up, and again only when you come back to the feed, instead of asking every second for as long as the hold lasts.
+
+* The diagnostic report names the exit of the app itself rather than whichever of TikTok's background processes the system happened to reap last, and it carries the exit status and importance alongside the reason.
+
+* A feed filter that emptied a single batch says "one batch" rather than "1 batches".
+
+* A settings backup and a diagnostics report made in the same second are now named with the same timestamp. The backup used local time and the report used UTC.
+
+* Three search boxes read back what you typed instead of their own label. A content description on an editable field replaces its contents for a screen reader, so typing "cats" came back as "Search settings".
+
+* The tab picker rows say whether they are on, and say so again after you tap one. The check box in each row is not the thing you press, so a screen reader had no state to read at all.
+
+* A second undo banner within six seconds of the first now gets its own six seconds. The first banner's timer was still queued and took the new one away early, along with its Undo.
+
+* The published patch list names what each patch actually depends on instead of saying "BytecodePatch" for all of them. Every patch that adds a setting now requires the Settings patch too, so the patcher cannot leave you with switches on a screen that was never built.
+
+* The Long-press controls description in the patcher now mentions saving the original sound, which it has done since 0.21.0 while the description still listed three actions.
+
+* The README says why saving works the way it does. It reads the addresses the app already fetched, on the session you are already signed in with, so there is nothing pretending to be a browser and nothing to keep in step with the site.
+
+* Wording fixes across the settings and the messages the app shows you. A budget of one no longer says "That is 1 videos today". The hour the day starts at reads as a clock time rather than "13 o'clock". The confirm-a-tap message is a whole sentence in German and Indonesian instead of a translated phrase with an English verb dropped into it. A settings backup is named with a date and time you can read rather than a run of digits.
+
+* Seven defects in the translation tables, including a placeholder that only worked while there was one value to fill it, five German summaries missing the full stop the rest of their screen has, and a quote that opened in German and closed in English. A new check refuses all three shapes from now on.
+
+* Blocking someone from a comment now updates every comment of theirs on screen, not only the one you pressed. A screen reader was told the others were not blocked, and following that told it to unblock instead.
+
+* A hold really does quiet the feed. It gives the sound back when you leave the feed for messages or search, and if a call takes the sound away it asks for it again rather than giving up for the rest of the hold. A video finishing behind the hold no longer counts against the automatic advance limit or puts a notice over the panel.
+
+* Two settings pages stop offering rows for patches that are not in the bundle. The download destinations and filename templates need the downloader, and the operator code and name need the SIM patch.
+
+* Clear all in the inbox reads as something you can press rather than as another heading.
+
+* Two patches that could be selected on their own put their switches somewhere nobody could reach them. Hide comment popup ads built a switch on a page that never appeared, and the offline videos limit sat below an early return belonging to the Downloads patch, so selecting it alone gave a page without it. Every settings page now keeps each patch's rows behind that patch's own flag.
+
+* Clear all in the inbox is readable in both themes. It was picking its colour from a flag the settings screen sets, which away from that screen answers for the system theme rather than TikTok's own, so it could draw dark red on a dark sheet.
+
+* The feature gate report says more precisely what it replaces, instead of implying every value is redacted.
+
+* A hold now actually holds. The panel covered the feed and swallowed touches, but the video underneath kept playing with sound, the feed kept advancing if automatic advance was on, and every video that went by behind the panel was counted against the day. The hold asks for the audio focus so the player stops, automatic advance stands down until the hold ends, and nothing is counted while the feed is out of sight.
+
+* The daily budget really is free when it is switched off. The hold check ran from the player's progress callback several times a second and took a lock and built a calendar every time, whether or not a budget was set. Now the off case is two field reads, and with a budget set the day is worked out once a day instead of once per callback.
+
+* The release check now fetches the address in the bundle index every time it runs, instead of only when the checkout happens to hold a freshly built bundle. Pointing the index at a release that does not exist yet is caught before the push rather than by someone whose Manager cannot fetch it.
+
+* The four feed buttons work in a right-to-left layout. Their positions are pixels worked out from where you drag them, and a mirrored layout was throwing those away, so the buttons piled up on each other and would not move sideways.
+
+* The countdown on the hold panel is readable again. The panel is always a near-black scrim, so the countdown no longer follows the settings theme onto it.
+
+* Two patches no longer depend on another patch being selected to be usable. Custom offline videos limit sets its own flag, so its two switches appear when it is selected and stay away when it is not, instead of following the Downloads patch. Hide BdTuring CAPTCHA popups now brings Hide CAPTCHA popups with it, because that is the patch that owns the switch it reads.
+
+* The feature gate report says in the file that its values are redacted, so a gate marked changed showing the same text twice reads as the redaction rather than a mistake. The bundle description no longer claims more redaction than ships: the Lab own value export is a file you import back, so it keeps what it read.
+
+* Every settings page with something on it has a row into it. The page and the row used to keep separate copies of the same condition and two of them had drifted, so a bundle with the block author patch but none of the four playback patches could reach the daily budget only through search, and Hide comment popup ads on its own had a switch no page would show. Each row now asks the page itself. The Playback row also counts a set budget as an active setting.
+
+* The feature gate recording is redacted before it leaves the app. It is the one file the issue templates ask people to attach, and gate values are server configuration, so addresses and per-install identifiers were going out in it while every other export here was already cleaned. The values are redacted and the structure is not, so it is still a readable report, and the Lab itself still shows what it actually read.
+
+## 0.22.0 (2026-09-07)
+
+* The block button, the sound and Not interested buttons, the undo banner and the daily budget hold come back after TikTok rebuilds its main screen. The extension kept the first activity it was handed for the life of the process, so anything drawn over the feed went to a window that was no longer on screen, and nothing noticed because a rebuilt screen is destroyed rather than finishing.
+
+* An AAC sound is saved as AAC. It shares its frame sync with MP3, so the reader that tells containers apart called it an MP3, which left a file the gallery would not play. The two layer bits separate them.
+
+* Saving the original sound on Android 6 to 9 says what is wrong. Those versions write a real file, and without storage permission the save failed only after the sound had already been fetched, with nothing to act on. It is asked before anything is downloaded now, the way every other save here asks it.
+
+* The original sound and animated stickers are fetched over TLS only. Both read their addresses straight out of a server response and took whatever scheme was in them, while every other saver here already required https. A cleartext mirror is a body anyone on the network can choose, and the sticker one is handed to a decoder written in C.
+
+* Leaving the Feature Gate Lab while a reset, an undo or an import is still running no longer breaks it. The change finishes on the main thread and put the switch back without checking the screen was still there, so it crashed, and because that happened before the busy flag was released, every later Lab change was refused with a message about one already running until TikTok was restarted.
+
+* A settings backup can no longer take the app down when it is restored. A Lab rule holds its structured value as a string, and the depth check on the file around it said nothing about what that string contained, so a deeply nested one overflowed the stack. That is an Error rather than an exception, so it walked past every catch on the restore path and killed the process. The value now goes through the same bounded reader the rest of the file does and is refused as invalid instead.
+
+* Saving the original sound works at all. The fetch only ever accepted an MP4 container, and TikTok hands back an MP3 for many sound addresses, so every one of those was refused as an unsupported format and the long press said the sound could not be saved. What arrived is now read from its own header, and the file is named and typed to match, so an MP3 lands as .mp3 and plays. Ogg, WAV and FLAC are recognised too.
+
+## 0.21.0 (2026-09-07)
+
+* Long press can save the original sound. That is a different file from the video's own track, which is the finished mix cut to the length of the post: the sound entry is the whole thing, as it appears on its own page. It is named after the sound rather than the post, so the same song saved from two videos is one file, and it goes to Music beside your other sounds. A video with no sound entry says so instead of doing nothing.
+
+* The hold on the feed stops above the row of tabs. It covered the whole screen, which took the tab bar with it, so messages and search were not reachable after all. It measures the bar rather than guessing at it, and covers everything on a build where it cannot find one.
+
+* A short animated sticker with a single frame saves as a GIF again. Whether a WebP moves is settled by the flag in the file rather than by counting its frames, which cannot tell a still from a one-frame animation.
+
+* Playback has a Start today over row, for a budget you set and immediately regret. It clears what has been counted today and ends any hold, and leaves the budgets themselves alone.
+
+* Saving a sticker tells you where it went, not where it asked to go. The gallery renames a duplicate, so saving the same sticker twice used to report a path with nothing at it.
+
+* The daily feed budget no longer costs anything when it is switched off, which is how it ships. It counted and wrote to storage on every player report whether or not a budget was set, several times a second. Nothing is counted now until a number goes in, the record is written on a background thread, and the watched time is committed in steps rather than on every report.
+
+* Moving the hour the day starts at, or crossing a timezone, no longer hands back a budget that has been spent. Raising a budget now also lifts a hold that was running under the old one, and a hold no longer charges you for the videos playing behind it.
+
+* The way out of a hold is on the hold itself. It was on a banner drawn underneath it, which meant it could be neither seen nor tapped.
+
+* The budget settings only appear where the hook that feeds them was applied. They used to show on any build with a Playback patch, take a number and count nothing.
+
+* The settings screens are checked at twice the text size and in a mirrored layout, on every page a reader opens rather than one of them, in both themes.
+
+* The five feed count filters take a number the way the feed writes it. Type 20K, 1.5M or 2B instead of counting zeroes, and the row reads the range back in the same form. Nothing is rounded: 1.234M is exactly 1234000, and anything the field cannot read is refused with a message rather than saved as a number nobody meant.
+
+* A download can no longer come out as name_2 when nothing of that name was in the folder it was saved to. The check that produced the suffix was looking in TikTok's private staging directory, which has nothing to do with where the file ends up, so it could only ever be wrong. The gallery settles a name that is already taken, and it does that without a race.
+
+* Saving a still sticker as a GIF is refused rather than written out as a one-frame animation. The model calls anything whose type merely contains "webp" animated, and the decoder reports a still picture as one frame, so between them a plain picture could reach the animation path. The bytes now decide it, and the converter refuses anything with fewer than two frames.
+
+* The Hook status row names the surfaces that are missing something instead of saying only that something is. It reads correctly when one surface has reported, its report is redacted and cleared along with the rest of the diagnostic data, and it follows the "Included diagnostics" choice like every other section. A surface that has stopped counting says so. None of this costs the feed anything: a lookup whose answer is already known no longer takes a lock while you scroll.
+
+* A comment without a thumbs down no longer makes Diagnostics report the whole build as broken.
+
+* There is a daily budget for the feed, off unless you set one. Give it a number of videos or a number of minutes and it says so once when the day is used up. Give it a hold as well and the feed goes behind a countdown for that long, while messages, profiles and search carry on working and nothing in the feed is thrown away. The day starts at four in the morning by default, and you can move that. Both counts and any running hold survive the app being killed. This is separate from the auto-advance limit, which only ever counted videos Hushfeed itself advanced past.
+
+* The converter behind "save an animated sticker as a GIF" is covered by tests for the first time. It now has checks that the frame count and every frame delay survive the conversion, that a patch which replaces what is under it really clears that area first, that a frame asking to be cleared afterwards is, and that a still picture is refused rather than written out as a one-frame animation.
+
+* Diagnostics has a Hook status row. Patches attach to code TikTok renames on every release, and until now a hook that lost its anchor failed quietly while the switch above it still read on. The row shows one line per surface: how many of the things it looks for are in this build, how many are not, and the first one that went missing. The exported diagnostic report carries the same table.
+
+* Two settings-backup messages are translated again. Their wording gained a full stop at some point and the tables kept the older version, so a failed backup or restore spoke English on a German or Indonesian phone.
+
+* The shared payload is 18,032 bytes smaller. It carried an About screen that nothing ever opened, which came with a browser view that ran scripts and loaded a page over the network, and two keep rules for libraries this project does not use.
+
+* Undo on the seen video history now answers even when a newer clear has taken over, instead of leaving the row waiting on a reply that was never coming, and it says so. Watching videos also stops running a whole-table cleanup after every single one.
+
+* Thirty-three translations for wording the app no longer uses have been removed, and the backup screen's undo row is translated again after its wording changed and left its translation behind.
+
+* A caption file that is nested unreasonably deeply is now refused with a reason instead of killing the download in progress, and saving a video whose frames are unusually large no longer fails on Android 8 and older. Ordinary captions and downloads are unchanged.
+
+* Settings search no longer treats an accent typed on its own as a match for everything, and it folds each setting's words once when the page opens rather than on every letter you type. Diagnostics also stop filling with a line for every page of search results when logging is off, which was pushing out the events around a crash.
+
+* Choosing a download folder now sticks. The folder picker is its own screen, so Android often rebuilds the settings screen behind it, and the rebuilt one had forgotten which setting was waiting. It took the folder you chose and did nothing, without saying so. The waiting setting is now remembered by name across the rebuild, and a folder that arrives with nothing waiting says so instead of vanishing.
+
+* The player's block, hide and Not interested buttons now say what they are in your own language. They are drawn as glyphs, so their spoken labels are all a reader using TalkBack gets, and those three still read English on a German or Indonesian phone. A build check now covers every spoken label the way it already covered messages.
+
+* A saved subtitle no longer takes the whole download down with it. The gallery decides the video's filename and can hand back one with no extension, and cutting that name at its dot threw, which the download path reports as the save having failed even though the video was already on disk. The subtitle now keeps the whole name.
+
+* A diagnostic report no longer carries the videos and comments you were looking at. Reports already hid addresses and credentials, but the id of a video, comment or message went through untouched, and each of those opens a post anybody can read. Both the named ids and the bare lists the feed probe prints are now removed before a report is copied or saved. The counts and timings that make a report worth reading are kept.
+
+* The thumbs down on a comment blocks only the account you pressed. Where a press started was kept on a single object shared by every comment on screen, so a second finger, or the list reusing a row between the press and the release, could let a release act on a comment it never belonged to. Each control now keeps its own press, and a release with no press behind it does nothing.
+
+* Saving a slideshow posted by an account with a very long name no longer stalls. Each photo's name is cut down to fit the filesystem, and the counter that tells one photo from the next was the part being cut, so every photo after the first landed on a name that was already taken and the search for a free one never moved on. A shortened name now carries its counter on the end, and the search gives up and keeps the original name rather than counting upwards forever.
+
+## 0.20.0 (2026-09-07)
+
+* An interrupted Feature Gate recording is discarded before the next baseline is taken, so a session stopped by its setting cannot make later reads look changed. The isolated boundary test now passes on its own as well as in the full suite.
+
+* Automatic advance now has an optional per-session video limit. It counts only visible completions from Hushfeed-owned scrolling, keeps manual and native-only advance independent, stops with a brief notice, and resets when the feed component is recreated. Runtime coverage is 460 tests.
+
+* Advanced downloads can hand a sanitized link to YTDLnis with its documented audio or video type and optional background mode. The profile controls activate only for `com.deniscerri.ytdl`; generic package names still receive a plain link, and an unavailable target leaves TikTok's save in place. Runtime coverage is 458 tests.
+
+* Feature Gate Lab boundary tests now cover malformed persisted scalars, disabled profile imports, master and reset cycles, recorder enablement and concurrent observation limits. Translation retry state expires cleanly, and SIM preset matching keeps null current values and unsupported region fallbacks safe. Runtime coverage is 454 tests.
+
+* Deep feed and account checks now cover repeated response caching, late and final follow delivery, cached and offline fallback policy, hard-filter preservation, bounded probe rotation and malformed verdicts. Every supported account-write route keeps its challenge visible, and the 160-event diagnostics cap is reserved atomically when callbacks arrive together. Non-finite or malformed status codes remain unconfirmed. Runtime coverage is 446 tests.
+
+* Worker-backed settings and Feature Gate Lab tests now drain their owned executors before asserting, reset per-sandbox state before each case, and keep the region semantics check separate from the API ICU cross-check. Runtime coverage is 412 tests.
+
+* Native boundary coverage now exercises structured numeric coercion and overflow, URL scheme refusal, destination roots, media fallback and frame bounds, plus direct navigation, share, LIVE, sound and translation policy shapes. Codec playback and final container behavior remain native-device checks. Runtime coverage is 434 tests.
+
+* Global-layout hooks now detach a previous root when a replacement activity has no content view or resolvable author identifiers. Author decorations are restored when installation cannot continue.
+
+* Video overlay layout passes now reuse their id, visibility and match buffers instead of allocating traversal containers each time. A synthetic 200-pass trace over 80 cells measured 57.68 ms before the change and 56.09 ms after it.
+
+* Feed, inbox, share and sticker helpers now share resource lookup, global-layout ownership, reflection caching and publication cleanup. Replaced roots detach their listeners, dynamic-module misses keep retrying, and legacy sticker saves keep unique filenames. Runtime coverage is 409 tests.
+
+* The extension payload no longer carries unreachable APNG conversion, retired language-editor or Lab preference code. Declaration-only fingerprints and unused compatibility metadata are gone, and the keep rule now covers only extension classes while preserving injected and reflective entry points. The shared payload fell from 229,024 to 221,720 bytes and the TikTok payload from 1,377,012 to 1,361,300 bytes.
+
+* Release checks can now fetch the indexed Morphe bundle and its SHA256SUMS entry, comparing both with the locally built artifact before an index is promoted.
+
+* Repeated fully filtered feed batches now explain the top rejection reasons without exposing post data and offer a direct link back to Feed filter settings. Empty server responses do not trigger the notice.
+
+* Share sheet settings now discover observed video actions and show readable labels with stable identifiers. The checklist keeps unknown manually saved identifiers, updates the same hidden-action list, and leaves native share delivery and target identity unchanged.
+
+* Feed filtering can now hide posts older than a chosen number of days. The switch is off at zero, and posts with missing, zero, future or overflowing timestamps stay visible. Quality fallback never restores an age-rejected post.
+
+* The player now has a local creator-hide action. It records the current stable creator id without calling TikTok, skips that creator on later feed batches, and offers a searchable one-entry-at-a-time list with undo.
+
 * Settings now have a translated search page. It matches titles, descriptions and category names, hides controls from unselected or unavailable patches, and opens the existing section at the matching preference without creating duplicate editors.
 
 * Settings headers, captions and editor labels now keep Android's font padding, so large text has room for its full glyphs instead of clipping at narrow widths. Preference rows and native editors remain content-sized for 1.3x and 2x text.

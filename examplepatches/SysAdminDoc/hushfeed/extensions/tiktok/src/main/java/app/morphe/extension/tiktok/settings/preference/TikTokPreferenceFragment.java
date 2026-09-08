@@ -58,7 +58,13 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     private static final String ARG_SEARCH = "morphe_settings_search";
     private static final String ARG_TARGET_KEY = "morphe_settings_target_key";
     private static TikTokPreferenceFragment activeFragment;
-    private static DownloadPathPreference pendingDownloadPathPreference;
+    /**
+     * Which folder setting the picker was opened for, by key rather than by the preference
+     * itself. The picker is a separate activity, so this one is routinely destroyed behind it
+     * and the object that was waiting no longer belongs to the screen that comes back.
+     */
+    private static String pendingDownloadPathKey;
+    private static final String PENDING_DOWNLOAD_PATH_STATE = "morphe_pending_download_path";
     private SettingsListAdapter styledAdapter;
     private PreferenceScreen searchScreen;
     private List<SearchResult> searchIndex;
@@ -97,6 +103,9 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         final String title;
         final String summary;
         final String category;
+        /** Folded once when the index is built: it never changes, and a query is typed a letter
+         *  at a time over about 170 of these. */
+        final String normalized;
 
         SearchResult(Section section, String key, String title, String summary, String category) {
             this.section = section;
@@ -104,10 +113,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             this.title = title;
             this.summary = summary;
             this.category = category;
-        }
-
-        String searchableText() {
-            return title + " " + summary + " " + category;
+            this.normalized = normalizeSearchText(title + " " + summary + " " + category);
         }
 
         String displaySummary() {
@@ -130,7 +136,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             return;
         }
 
-        pendingDownloadPathPreference = preference;
+        pendingDownloadPathKey = preference.getKey();
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
@@ -138,7 +144,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         try {
             activeFragment.startActivityForResult(intent, REQUEST_DOWNLOAD_PATH_FOLDER);
         } catch (ActivityNotFoundException exception) {
-            pendingDownloadPathPreference = null;
+            pendingDownloadPathKey = null;
             app.morphe.extension.shared.Utils.showToastLong(L10n.t("Folder picker is not available on this device"));
         }
     }
@@ -155,6 +161,13 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                 numberInputPreference.setValue(setting.get().toString());
             } else {
                 Setting.privateSetValueFromString(setting, numberInputPreference.getValue());
+            }
+        } else if (pref instanceof CreatorListPreference) {
+            CreatorListPreference creatorListPreference = (CreatorListPreference) pref;
+            if (applySettingToPreference) {
+                creatorListPreference.setValue(setting.get().toString());
+            } else {
+                Setting.privateSetValueFromString(setting, creatorListPreference.getValue());
             }
         } else if (pref instanceof RangeValuePreference) {
             RangeValuePreference rangeValuePref = (RangeValuePreference) pref;
@@ -177,13 +190,6 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             } else {
                 Setting.privateSetValueFromString(setting, tabSelectionPref.getValue());
             }
-        } else if (pref instanceof LanguageSelectionPreference) {
-            LanguageSelectionPreference languagePreference = (LanguageSelectionPreference) pref;
-            if (applySettingToPreference) {
-                languagePreference.setValue(setting.get().toString());
-            } else {
-                Setting.privateSetValueFromString(setting, languagePreference.getValue());
-            }
         } else {
             super.syncSettingWithPreference(pref, setting, applySettingToPreference);
         }
@@ -195,6 +201,9 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         if (pref instanceof NumberInputPreference) {
             return defaultValue.equals(((NumberInputPreference) pref).getValue());
         }
+        if (pref instanceof CreatorListPreference) {
+            return defaultValue.equals(((CreatorListPreference) pref).getValue());
+        }
         if (pref instanceof RangeValuePreference) {
             return defaultValue.equals(((RangeValuePreference) pref).getValue());
         }
@@ -204,10 +213,6 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         if (pref instanceof TabSelectionPreference) {
             return defaultValue.equals(((TabSelectionPreference) pref).getValue());
         }
-        if (pref instanceof LanguageSelectionPreference) {
-            return defaultValue.equals(((LanguageSelectionPreference) pref).getValue());
-        }
-
         return super.prefIsSetToDefault(pref, setting);
     }
 
@@ -273,8 +278,16 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         decor.setSystemUiVisibility(visibility);
     }
 
+    @Override public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(PENDING_DOWNLOAD_PATH_STATE, pendingDownloadPathKey);
+    }
+
     @Override public void onActivityCreated(Bundle state) {
         super.onActivityCreated(state);
+        if (pendingDownloadPathKey == null && state != null) {
+            pendingDownloadPathKey = state.getString(PENDING_DOWNLOAD_PATH_STATE);
+        }
         ListView list = getView().findViewById(android.R.id.list);
         if (list != null && list.getAdapter() != null) {
             styledAdapter = new SettingsListAdapter(list.getAdapter());
@@ -344,16 +357,17 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         }
         searchRows.clear();
 
-        String trimmedQuery = query == null ? "" : query.trim();
-        if (trimmedQuery.isEmpty()) {
+        // Folding happens before the empty check: a query of nothing but accent marks is not
+        // empty as typed but folds away to nothing, and every setting contains "".
+        String normalizedQuery = normalizeSearchText(query == null ? "" : query.trim());
+        if (normalizedQuery.isEmpty()) {
             addSearchState("Type to search settings", "Search a title, description or category.");
             return;
         }
 
-        String normalizedQuery = normalizeSearchText(trimmedQuery);
         List<SearchResult> matches = new ArrayList<>();
         for (SearchResult result : searchIndex) {
-            if (normalizeSearchText(result.searchableText()).contains(normalizedQuery)) {
+            if (result.normalized.contains(normalizedQuery)) {
                 matches.add(result);
             }
         }
@@ -487,11 +501,13 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                 }
         ));
 
-        if (SettingsStatus.feedFilterEnabled) {
+        if (FeedFilterPreferenceCategory.isAvailable()) {
             addMenu(screen, Section.FEED_FILTER, SettingsMenuPreference.Icon.FILTER, countEnabled(
                     !Settings.BLOCKED_CAPTION_WORDS.get().trim().isEmpty(),
                     !Settings.BLOCKED_CREATORS.get().trim().isEmpty(),
+                    !Settings.LOCAL_HIDDEN_CREATORS.get().trim().isEmpty(),
                     Settings.MAX_VIDEO_SECONDS.get() > 0,
+                    Settings.MAX_PUBLICATION_AGE_DAYS.get() > 0,
                     Settings.MAX_VIEWS_PER_LIKE.get() > 0,
                     Settings.HIDE_PROMOTIONAL_MUSIC.get(),
                     Settings.HIDE_LIVE_REPLAYS.get(),
@@ -506,7 +522,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                     SettingsStatus.seenVideoFilterEnabled && Settings.HIDE_SEEN_VIDEOS.get()
             ));
         }
-        if (SettingsStatus.feedNavigationEnabled) {
+        if (FeedNavigationPreferenceCategory.isAvailable()) {
             addMenu(screen, Section.FEED_NAVIGATION, SettingsMenuPreference.Icon.TABS, countEnabled(
                     Settings.FEED_NAVIGATION.get(),
                     Settings.FEED_NAVIGATION_BLOCK_NEW_TABS.get(),
@@ -515,17 +531,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                     Settings.HIDE_TAKO_AI.get()
             ));
         }
-        if (SettingsStatus.subtitleToolsEnabled || SettingsStatus.screenCaptureEnabled || SettingsStatus.automaticClearDisplayEnabled || SettingsStatus.doubleTapEnabled || SettingsStatus.longPressEnabled || SettingsStatus.confirmInteractionsEnabled || SettingsStatus.captchaPopupSuppressionEnabled
-                || SettingsStatus.promotionalBannersEnabled
-                || SettingsStatus.alwaysShowPublishDateEnabled
-                || SettingsStatus.videoOverlaysEnabled
-                || SettingsStatus.authorRegionEnabled
-                || SettingsStatus.sensitiveWarningsEnabled
-                || SettingsStatus.hideFeedLiveButtonEnabled
-                || SettingsStatus.hideFeedSearchButtonEnabled
-                || SettingsStatus.hideFeedFollowButtonEnabled
-                || SettingsStatus.hideFeedSaveButtonEnabled
-                || SettingsStatus.hideSearchSuggestionsEnabled) {
+        if (InterfacePreferenceCategory.isAvailable()) {
             addMenu(screen, Section.INTERFACE, SettingsMenuPreference.Icon.LAYOUT, countEnabled(
                     SettingsStatus.subtitleToolsEnabled && Settings.CAPTION_TEXT_SIZE.get() > 0,
                     SettingsStatus.subtitleToolsEnabled && !"default".equals(Settings.CAPTION_BACKGROUND.get()),
@@ -564,10 +570,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                     SettingsStatus.alwaysShowPublishDateEnabled && Settings.ALWAYS_SHOW_PUBLISH_DATE.get()
             ));
         }
-        if (SettingsStatus.commentToolsEnabled
-                || SettingsStatus.commentTranslationEnabled
-                || SettingsStatus.hideCommentQuickReactionsEnabled
-                || SettingsStatus.copyCommentsWithoutUsernameEnabled) {
+        if (CommentsPreferenceCategory.isAvailable()) {
             addMenu(screen, Section.COMMENTS, SettingsMenuPreference.Icon.COMMENTS, countEnabled(
                     SettingsStatus.commentToolsEnabled && Settings.COMMENT_KEYWORD_FILTER.get(),
                     SettingsStatus.commentToolsEnabled && Settings.COMMENT_SEARCH.get(),
@@ -579,7 +582,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                     SettingsStatus.copyCommentsWithoutUsernameEnabled && Settings.COPY_COMMENTS_WITHOUT_USERNAME.get()
             ));
         }
-        if (SettingsStatus.downloadEnabled || SettingsStatus.advancedDownloadsEnabled) {
+        if (DownloadsPreferenceCategory.isAvailable()) {
             addMenu(screen, Section.DOWNLOADS, SettingsMenuPreference.Icon.DOWNLOADS, countEnabled(
                     SettingsStatus.subtitleToolsEnabled && Settings.DOWNLOAD_SUBTITLES.get(),
                     SettingsStatus.advancedDownloadsEnabled && !"auto".equals(Settings.DOWNLOAD_VIDEO_QUALITY.get()),
@@ -591,12 +594,11 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                     SettingsStatus.advancedDownloadsEnabled && Settings.SAVE_PROFILE_PICTURE.get(),
                     SettingsStatus.advancedDownloadsEnabled && Settings.SAVE_STORY.get(),
                     SettingsStatus.downloadEnabled && Settings.DOWNLOAD_WATERMARK.get(),
-                    SettingsStatus.downloadEnabled && Settings.CUSTOM_OFFLINE_VIDEOS.get(),
+                    SettingsStatus.customOfflineVideosEnabled && Settings.CUSTOM_OFFLINE_VIDEOS.get(),
                     SettingsStatus.downloadEnabled && !"mp4".equals(Settings.DOWNLOAD_STICKER_FORMAT.get())
             ));
         }
-        if (SettingsStatus.playbackQualityEnabled || SettingsStatus.playbackSpeedEnabled
-                || SettingsStatus.autoAdvanceEnabled || SettingsStatus.videoFitEnabled) {
+        if (PlaybackPreferenceCategory.isAvailable()) {
             addMenu(screen, Section.PLAYBACK, SettingsMenuPreference.Icon.PLAYBACK,
                     countEnabled(SettingsStatus.playbackQualityEnabled && !"auto".equals(Settings.PLAYBACK_QUALITY.get()),
                             SettingsStatus.playbackQualityEnabled
@@ -604,13 +606,13 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                             SettingsStatus.playbackSpeedEnabled && Settings.DEFAULT_SPEED_ENABLED.get(),
                             SettingsStatus.playbackSpeedEnabled && !Settings.CUSTOM_SPEEDS.get().trim().isEmpty(),
                             SettingsStatus.autoAdvanceEnabled && Settings.AUTO_ADVANCE.get(),
-                            SettingsStatus.videoFitEnabled && Settings.FIT_VIDEO_TO_SCREEN.get()));
+                            SettingsStatus.autoAdvanceEnabled && Settings.AUTO_ADVANCE_LIMIT.get() > 0,
+                            SettingsStatus.videoFitEnabled && Settings.FIT_VIDEO_TO_SCREEN.get(),
+                            SettingsStatus.blockAuthorEnabled && Settings.SESSION_BUDGET_VIDEOS.get() > 0,
+                            SettingsStatus.blockAuthorEnabled && Settings.SESSION_BUDGET_MINUTES.get() > 0,
+                            SettingsStatus.blockAuthorEnabled && Settings.SESSION_BUDGET_LOCK_MINUTES.get() > 0));
         }
-        if (SettingsStatus.inboxFilterEnabled
-                || SettingsStatus.hideSuggestedAccountsEnabled
-                || SettingsStatus.hideInboxStoriesEnabled
-                || SettingsStatus.expandActivityListEnabled
-                || SettingsStatus.notificationControlsEnabled) {
+        if (InboxPreferenceCategory.isAvailable()) {
             addMenu(screen, Section.INBOX, SettingsMenuPreference.Icon.INBOX, countEnabled(
                     (SettingsStatus.inboxFilterEnabled || SettingsStatus.hideInboxStoriesEnabled)
                             && Settings.HIDE_INBOX_STORIES.get(),
@@ -631,7 +633,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                     SettingsStatus.expandActivityListEnabled && Settings.EXPAND_ACTIVITY_LIST.get()
             ));
         }
-        if (SettingsStatus.shareSheetEnabled) {
+        if (SharePreferenceCategory.isAvailable()) {
             addMenu(screen, Section.SHARE, SettingsMenuPreference.Icon.SHARE, countEnabled(
                     Settings.SHARE_CONFIRM_SEND.get(),
                     Settings.HIDE_SHARE_CONTACTS.get(),
@@ -640,7 +642,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                     !Settings.SHARE_HIDDEN_ITEMS.get().trim().isEmpty()
             ));
         }
-        if (SettingsStatus.simSpoofEnabled) {
+        if (SimSpoofPreferenceCategory.isAvailable()) {
             addMenu(screen, Section.REGION, SettingsMenuPreference.Icon.REGION, countEnabled(
                     Settings.SIM_SPOOF.get(),
                     SettingsStatus.regionSpoofEnabled && Settings.SIM_SPOOF.get() && Settings.REGION_SPOOF.get(),
@@ -648,6 +650,11 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             ));
         }
 
+        // App behavior and Diagnostics keep their own conditions on purpose. The App
+        // behavior page is the fallback every unmatched section falls to, so it is always
+        // buildable and only the row is conditional; the Diagnostics row always shows,
+        // because settings backup and restore live on that page whether or not the
+        // diagnostics patch is in the bundle.
         if (hasBehaviorSettings()) {
             addMenu(screen, Section.BEHAVIOR, SettingsMenuPreference.Icon.BEHAVIOR,
                     countBehaviorSettings());
@@ -887,7 +894,8 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     public void onDestroy() {
         if (activeFragment == this) {
             activeFragment = null;
-            pendingDownloadPathPreference = null;
+            // The pending key deliberately survives: the picker destroys this fragment while it
+            // is open, and clearing it here dropped the folder the reader had just chosen.
         }
         super.onDestroy();
     }
@@ -900,11 +908,19 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             return;
         }
 
-        DownloadPathPreference preference = pendingDownloadPathPreference;
-        pendingDownloadPathPreference = null;
-        if (resultCode != Activity.RESULT_OK || data == null || data.getData() == null || preference == null) {
+        String pendingKey = pendingDownloadPathKey;
+        pendingDownloadPathKey = null;
+        if (resultCode != Activity.RESULT_OK || data == null || data.getData() == null) {
             return;
         }
+
+        Preference found = pendingKey == null ? null : findPreference(pendingKey);
+        if (!(found instanceof DownloadPathPreference)) {
+            app.morphe.extension.shared.Utils.showToastLong(
+                    L10n.t("Could not tell which folder to update. Choose it again."));
+            return;
+        }
+        DownloadPathPreference preference = (DownloadPathPreference) found;
 
         String relativePath = getRelativePrimaryStoragePath(data.getData());
         if (relativePath == null) {

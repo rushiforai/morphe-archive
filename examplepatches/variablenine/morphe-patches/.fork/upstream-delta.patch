@@ -359,10 +359,10 @@ index 00000000..7cebd857
 +}
 diff --git a/extensions/reddit/src/main/java/app/morphe/extension/reddit/nsfw/NsfwCellScanner.java b/extensions/reddit/src/main/java/app/morphe/extension/reddit/nsfw/NsfwCellScanner.java
 new file mode 100644
-index 00000000..700f2ffe
+index 00000000..80647ea2
 --- /dev/null
 +++ b/extensions/reddit/src/main/java/app/morphe/extension/reddit/nsfw/NsfwCellScanner.java
-@@ -0,0 +1,257 @@
+@@ -0,0 +1,318 @@
 +package app.morphe.extension.reddit.nsfw;
 +
 +import java.lang.reflect.Field;
@@ -388,12 +388,21 @@ index 00000000..700f2ffe
 + * <ul>
 + *   <li>the post id is the {@code String} field holding a {@code t3_} fullname, which is
 + *       self-validating - no other string on the fragment looks like one;</li>
-+ *   <li>NSFW is an enum constant named {@code NSFW}. Reddit's schema spells it that way in more
-+ *       than one enum - {@code CellIndicatorType.NSFW} on a post's indicators cell, and
-+ *       {@code NSFWState.NSFW} elsewhere - so the constant name is matched rather than the type.
-+ *       Enum constants are the one part of a GraphQL model R8 leaves alone, since their names go
-+ *       over the wire.</li>
++ *   <li>NSFW is an enum constant named {@code NSFW} on a <em>post indicator</em> enum, which is
++ *       recognised by the company its constant keeps: the same type must also declare
++ *       {@code ORIGINAL}, {@code QUARANTINED} and {@code SPOILER}. Enum constant names are the
++ *       one part of a GraphQL model R8 leaves alone, since they go over the wire, so this needs
++ *       no class name at all.</li>
 + * </ul>
++ *
++ * <p>Matching the constant name alone is not enough, and that was a real bug: eleven enums in
++ * the app declare an {@code NSFW} constant, among them {@code NSFWState} (a subreddit's or
++ * profile's own rating), {@code DisplayTag}, {@code QueryTag} and {@code MediaBlurType}. Any of
++ * those reachable from a post's edge marked it 18+, which is how SFW posts kept reaching an 18+
++ * feed. Requiring {@code ORIGINAL}, {@code QUARANTINED} and {@code SPOILER} alongside it picks
++ * out exactly the two types that tag a post - {@code com.reddit.type.CellIndicatorType} on the
++ * response and {@code com.reddit.feeds.model.IndicatorType} on the mapped element - and no
++ * others.
 + *
 + * <p>Depth matters here. An edge reaches its indicators through
 + * edge - node - cell group - group fragment - cells - cell - indicators cell - indicators, which
@@ -407,6 +416,16 @@ index 00000000..700f2ffe
 +
 +    /** The enum constant Reddit's schema uses for 18+ content. */
 +    private static final String NSFW_CONSTANT = "NSFW";
++
++    /**
++     * The constants a post indicator enum keeps alongside {@code NSFW}. They separate the two
++     * types that tag a post from every other enum that happens to spell {@code NSFW}: a
++     * subreddit's rating, a search display tag, a blur type, an analytics noun.
++     */
++    private static final String[] INDICATOR_SIBLINGS = { "ORIGINAL", "QUARANTINED", "SPOILER" };
++
++    /** Whether an enum type tags posts, decided once per type. */
++    private static final Map<Class<?>, Boolean> indicatorTypes = new HashMap<>();
 +
 +    /**
 +     * How deep to walk a fragment's object graph. The indicators of a home feed post sit nine
@@ -458,10 +477,52 @@ index 00000000..700f2ffe
 +    }
 +
 +    /**
-+     * @return Whether a value is the NSFW marker itself.
++     * @return Whether a value is the NSFW marker itself - the {@code NSFW} constant of an enum
++     *         that tags posts, rather than of one that merely spells the same word.
 +     */
 +    public static boolean isNsfwIndicator(Object value) {
-+        return value instanceof Enum && NSFW_CONSTANT.equals(((Enum<?>) value).name());
++        return value instanceof Enum
++                && NSFW_CONSTANT.equals(((Enum<?>) value).name())
++                && isPostIndicator(((Enum<?>) value).getDeclaringClass());
++    }
++
++    /**
++     * @return Whether an enum type is one that tags a post, judged by the constants it declares.
++     */
++    private static boolean isPostIndicator(Class<?> type) {
++        synchronized (indicatorTypes) {
++            Boolean cached = indicatorTypes.get(type);
++            if (cached != null) {
++                return cached;
++            }
++        }
++
++        boolean isIndicator = declaresAll(type, INDICATOR_SIBLINGS);
++        synchronized (indicatorTypes) {
++            indicatorTypes.put(type, isIndicator);
++        }
++        return isIndicator;
++    }
++
++    private static boolean declaresAll(Class<?> type, String[] required) {
++        Object[] constants = type.getEnumConstants();
++        if (constants == null) {
++            return false;
++        }
++
++        for (String name : required) {
++            boolean found = false;
++            for (Object constant : constants) {
++                if (constant instanceof Enum && name.equals(((Enum<?>) constant).name())) {
++                    found = true;
++                    break;
++                }
++            }
++            if (!found) {
++                return false;
++            }
++        }
++        return true;
 +    }
 +
 +    /**
@@ -499,7 +560,7 @@ index 00000000..700f2ffe
 +
 +        if (node instanceof Enum) {
 +            String name = ((Enum<?>) node).name();
-+            if (NSFW_CONSTANT.equals(name)) {
++            if (isNsfwIndicator(node)) {
 +                scan.nsfw = true;
 +            }
 +            if (scan.enumNames != null && !isFrameworkClass(node.getClass().getName())) {
@@ -1265,16 +1326,17 @@ index 00000000..488e7a4e
 +}
 diff --git a/extensions/reddit/src/main/java/app/morphe/extension/reddit/patches/NsfwModeIcon.java b/extensions/reddit/src/main/java/app/morphe/extension/reddit/patches/NsfwModeIcon.java
 new file mode 100644
-index 00000000..1056f667
+index 00000000..12943bbe
 --- /dev/null
 +++ b/extensions/reddit/src/main/java/app/morphe/extension/reddit/patches/NsfwModeIcon.java
-@@ -0,0 +1,64 @@
+@@ -0,0 +1,100 @@
 +package app.morphe.extension.reddit.patches;
 +
 +import app.morphe.extension.reddit.settings.Settings;
 +import app.morphe.extension.shared.Logger;
 +import app.morphe.extension.shared.ResourceType;
 +import app.morphe.extension.shared.ResourceUtils;
++import app.morphe.extension.shared.Utils;
 +
 +/**
 + * Swaps the Reddit brand mark in the home app bar for an 18+ one while NSFW mode is on, so the
@@ -1292,8 +1354,23 @@ index 00000000..1056f667
 +
 +    private static final String ICON_NAME = "morphe_nsfw_mode_icon";
 +
++    /**
++     * Reddit's own 18+ glyph, used if this patch's drawable did not make it into the build. It
++     * is untinted so it draws in the vector's own black rather than the app's NSFW red, which is
++     * a worse mark but a much better outcome than no mark at all.
++     */
++    private static final String FALLBACK_ICON_NAME = "icon_nsfw2_fill";
++
 +    /** Resolved lazily rather than in a static initialiser, which runs before resources exist. */
 +    private static int iconId = -1;
++
++    /**
++     * Whether the one-off report has been shown. Temporary: this hook cannot say anything when
++     * it is never applied, so the only way to tell "the fingerprint missed" from "the drawable
++     * did not ship" is for the hook to speak up the first time it runs. Remove once the mark is
++     * known to work.
++     */
++    private static volatile boolean reported;
 +
 +    private NsfwModeIcon() {
 +    }
@@ -1311,6 +1388,7 @@ index 00000000..1056f667
 +            }
 +
 +            int icon = nsfwIcon();
++            report(icon);
 +            return icon == 0 ? defaultIcon : icon;
 +        } catch (Exception ex) {
 +            Logger.printException(() -> "brandIcon failure", ex);
@@ -1326,11 +1404,30 @@ index 00000000..1056f667
 +
 +        int resolved = ResourceUtils.getIdentifier(ResourceType.DRAWABLE, ICON_NAME);
 +        if (resolved == 0) {
-+            Logger.printInfo(() -> "NSFW mode: " + ICON_NAME + " is missing, "
-+                    + "leaving the app bar mark alone");
++            resolved = ResourceUtils.getIdentifier(ResourceType.DRAWABLE, FALLBACK_ICON_NAME);
++            final int fallback = resolved;
++            Logger.printInfo(() -> ICON_NAME + " is missing; Reddit's own glyph resolved to "
++                    + fallback);
 +        }
 +        iconId = resolved;
 +        return resolved;
++    }
++
++    /**
++     * Says once, on screen, what this hook found. Temporary - see {@link #reported}.
++     */
++    private static void report(int icon) {
++        if (reported) {
++            return;
++        }
++        reported = true;
++
++        String state = icon == 0
++                ? "no icon found at all"
++                : (icon == ResourceUtils.getIdentifier(ResourceType.DRAWABLE, ICON_NAME)
++                        ? "using the Morphe mark"
++                        : "using Reddit's own glyph");
++        Utils.showToastShort("NSFW app bar hook ran: " + state);
 +    }
 +}
 diff --git a/extensions/reddit/src/main/java/app/morphe/extension/reddit/settings/Settings.java b/extensions/reddit/src/main/java/app/morphe/extension/reddit/settings/Settings.java
@@ -1616,10 +1713,10 @@ index 00000000..766c3c70
 +}
 diff --git a/extensions/reddit/src/test/java/app/morphe/extension/reddit/nsfw/NsfwCellScannerSelfTest.java b/extensions/reddit/src/test/java/app/morphe/extension/reddit/nsfw/NsfwCellScannerSelfTest.java
 new file mode 100644
-index 00000000..59bdf2f5
+index 00000000..86ef9a36
 --- /dev/null
 +++ b/extensions/reddit/src/test/java/app/morphe/extension/reddit/nsfw/NsfwCellScannerSelfTest.java
-@@ -0,0 +1,207 @@
+@@ -0,0 +1,240 @@
 +package app.morphe.extension.reddit.nsfw;
 +
 +import java.util.Arrays;
@@ -1653,8 +1750,23 @@ index 00000000..59bdf2f5
 +    /** Stands in for com.reddit.type.CellIndicatorType. */
 +    public enum CellIndicatorType { NSFW, SPOILER, ORIGINAL, QUARANTINED }
 +
-+    /** Stands in for com.reddit.type.NSFWState, which spells the same flag a second way. */
-+    public enum NSFWState { NONE, NSFW }
++    /** com.reddit.feeds.model.IndicatorType: the mapped-element mirror of the same tag. */
++    public enum IndicatorType { APP, NSFW, ORIGINAL, QUARANTINED, SPOILER }
++
++    /**
++     * com.reddit.type.NSFWState - a subreddit's or profile's own rating. Spells NSFW, does not
++     * tag a post, and is reachable from a post's edge: this is the false positive that put SFW
++     * posts in an 18+ feed.
++     */
++    public enum NSFWState { NONE, NSFW, UNKNOWN__ }
++
++    /** com.reddit.type.DisplayTag - spells NSFW and keeps some of the same company, but not all. */
++    public enum DisplayTag {
++        APP, BOT, CLUB_CONTENT, NSFW, PROFILE_VERIFIED_AUTHOR, QUARANTINED, SPOILER, UNKNOWN__
++    }
++
++    /** com.reddit.domain.media.MediaBlurType - spells NSFW, tags media rather than a post. */
++    public enum MediaBlurType { NONE, NSFW, SPOILER }
 +
 +    /** Stands in for com.reddit.type.PostStatusIndicatorType, which has no NSFW constant. */
 +    public enum PostStatusIndicatorType { PINNED, LOCKED, MOD }
@@ -1750,8 +1862,14 @@ index 00000000..59bdf2f5
 +        // --- the flag itself ---
 +        check(NsfwCellScanner.isNsfwIndicator(CellIndicatorType.NSFW),
 +                "CellIndicatorType.NSFW is recognised");
-+        check(NsfwCellScanner.isNsfwIndicator(NSFWState.NSFW),
-+                "NSFWState.NSFW is recognised, since the schema spells it in more than one enum");
++        check(NsfwCellScanner.isNsfwIndicator(IndicatorType.NSFW),
++                "IndicatorType.NSFW is recognised, since it tags posts too");
++        check(!NsfwCellScanner.isNsfwIndicator(NSFWState.NSFW),
++                "NSFWState.NSFW is ignored: it rates a subreddit, it does not tag a post");
++        check(!NsfwCellScanner.isNsfwIndicator(DisplayTag.NSFW),
++                "DisplayTag.NSFW is ignored: no ORIGINAL, so it is not a post indicator");
++        check(!NsfwCellScanner.isNsfwIndicator(MediaBlurType.NSFW),
++                "MediaBlurType.NSFW is ignored: it tags media, not a post");
 +        check(!NsfwCellScanner.isNsfwIndicator(CellIndicatorType.SPOILER),
 +                "SPOILER is not NSFW");
 +        check(!NsfwCellScanner.isNsfwIndicator(NSFWState.NONE), "NONE is not NSFW");
@@ -1777,6 +1895,18 @@ index 00000000..59bdf2f5
 +                feedEdge("t3_jkl", CellIndicatorType.QUARANTINED, CellIndicatorType.NSFW));
 +        check(quarantined != null && quarantined.nsfw,
 +                "NSFW is found among several indicators");
++
++        // --- the leak: a subreddit rating must not mark the post 18+ ---
++        Edge rated = feedEdge("t3_sfwinnsfwsub");
++        NsfwCellScanner.Scan ratedScan = NsfwCellScanner.scan(
++                new Edge("FeedElementEdge", new EdgeFragment(new Node("PostFeedElement",
++                        "t3_sfwinnsfwsub",
++                        new CellGroup("CellGroup", "group1", new GroupFragment(Arrays.asList(
++                                new Cell("Cell", new MetadataCell("t3_sfwinnsfwsub",
++                                        Arrays.asList(NSFWState.NSFW)), null))))))));
++        check(ratedScan != null && !ratedScan.nsfw,
++                "a post whose subreddit is rated NSFW is not itself tagged 18+");
++        check(rated != null, "edge builder still works");
 +
 +        // --- the shallow case still works ---
 +        NsfwCellScanner.Scan flat = NsfwCellScanner.scan(

@@ -1,0 +1,48 @@
+name: Build and Release Morphe Patch
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Install Apktool
+        run: |
+          sudo apt-get update && sudo apt-get install -y apktool zip unzip
+
+      - name: Run Build Script
+        run: |
+          chmod +x build.sh
+          ./build.sh
+
+      - name: Upload MPP Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: morphe-patches
+          path: dist/*.mpp
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.mpp
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

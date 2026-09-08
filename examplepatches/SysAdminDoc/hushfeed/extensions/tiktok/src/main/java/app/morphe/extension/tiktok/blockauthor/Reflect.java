@@ -6,8 +6,11 @@
  */
 package app.morphe.extension.tiktok.blockauthor;
 
+import app.morphe.extension.shared.diagnostics.HookStatus;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,9 +30,26 @@ public final class Reflect {
     private Reflect() {
     }
 
+    /** The hook family every {@link #required} lookup belongs to. */
+    static final String FAMILY = "feed models";
+
+    /** Every member looked for and not found, first miss first. */
+    public static List<String> missingMembers() {
+        return HookStatus.missing(FAMILY);
+    }
+
+    private static void noteMissing(String kind, Class<?> type, String name) {
+        HookStatus.missingMember(FAMILY, kind, type.getName(), name);
+    }
+
+    /** The key both caches and the hook report use, built once per lookup. */
+    private static String key(Class<?> type, String name) {
+        return type.getName() + '#' + name;
+    }
+
     /** The no-argument method {@code name} on {@code type} or a superclass, or null. */
     public static Method method(Class<?> type, String name) {
-        String key = type.getName() + '#' + name;
+        String key = key(type, name);
         Object cached = METHODS.get(key);
         if (cached == null) {
             cached = MISSING;
@@ -73,6 +93,28 @@ public final class Reflect {
             FIELDS.put(key, cached);
         }
         return cached == MISSING ? null : (Field) cached;
+    }
+
+    /**
+     * Calls a no-argument method the caller has no fallback for, and reports it once if this
+     * build does not have it. Returns null both when the member is gone and when it returned
+     * null; {@link #missingMembers()} is what tells those apart afterwards.
+     */
+    public static Object required(Object target, String methodName) {
+        if (target == null) {
+            return null;
+        }
+        Method method = method(target.getClass(), methodName);
+        if (method == null) {
+            noteMissing("method", target.getClass(), methodName);
+            return null;
+        }
+        HookStatus.bound(FAMILY, key(target.getClass(), methodName));
+        try {
+            return method.invoke(target);
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     public static Object invoke(Object target, String methodName) {

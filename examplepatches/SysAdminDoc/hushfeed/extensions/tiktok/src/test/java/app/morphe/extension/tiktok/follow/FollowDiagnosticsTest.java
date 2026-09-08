@@ -14,6 +14,7 @@ import static org.junit.Assert.assertTrue;
 import android.os.Looper;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.tiktok.settings.Settings;
 
 import org.junit.Before;
@@ -25,6 +26,12 @@ import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowToast;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 /**
  * A follow TikTok turns down comes back looking like a success, so the only thing that tells
  * the user is this notice. It has to fire on a real refusal and stay quiet otherwise.
@@ -32,9 +39,27 @@ import org.robolectric.shadows.ShadowToast;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28)
 public class FollowDiagnosticsTest {
+    private boolean debug;
+
+    public static final class ParsedResponse {
+        public final Object LIZIZ;
+        ParsedResponse(Object body) { this.LIZIZ = body; }
+        public String LIZJ() { return "true"; }
+        public int LIZ() { return 0; }
+    }
+
     @Before
     public void setUp() {
         Utils.setContext(RuntimeEnvironment.getApplication());
+        debug = BaseSettings.DEBUG.get();
+        BaseSettings.DEBUG.save(false);
+        FollowDiagnostics.resetForTests();
+    }
+
+    @org.junit.After
+    public void tearDown() {
+        BaseSettings.DEBUG.save(debug);
+        FollowDiagnostics.resetForTests();
     }
 
     private static FollowDiagnostics.FollowRequestContext context() {
@@ -136,5 +161,75 @@ public class FollowDiagnosticsTest {
         Shadows.shadowOf(Looper.getMainLooper()).idle();
 
         assertEquals(0, ShadowToast.shownToastCount());
+    }
+
+    @Test
+    public void diagnosticsStopAtTheirSessionLimit() {
+        BaseSettings.DEBUG.save(true);
+        for (int index = 0; index < 240; index++) {
+            FollowDiagnostics.logSimpleFollowRequest(1, "user-" + index, "sec-" + index);
+        }
+        assertEquals(160, FollowDiagnostics.eventCountForTests());
+    }
+
+    @Test
+    public void concurrentDirectRequestsCannotPassTheSessionLimit() throws Exception {
+        BaseSettings.DEBUG.save(true);
+        ExecutorService executor = Executors.newFixedThreadPool(8);
+        List<java.util.concurrent.Future<?>> tasks = new ArrayList<>();
+        try {
+            for (int worker = 0; worker < 8; worker++) {
+                final int offset = worker * 80;
+                tasks.add(executor.submit(() -> {
+                    for (int index = 0; index < 80; index++) {
+                        FollowDiagnostics.logSimpleFollowRequest(
+                                1, "user-" + (offset + index), "sec-" + (offset + index));
+                    }
+                }));
+            }
+            for (var task : tasks) task.get(5, TimeUnit.SECONDS);
+        } finally {
+            executor.shutdownNow();
+        }
+        assertEquals(160, FollowDiagnostics.eventCountForTests());
+    }
+
+    @Test
+    public void aNullContextCannotBecomeARefusalOrToast() {
+        assertFalse(FollowDiagnostics.followWasRefused(null));
+        FollowDiagnostics.warnAboutRefusedFollowOnce(null);
+        assertEquals(0, ShadowToast.shownToastCount());
+    }
+
+    @Test
+    public void aParsedServerRefusalReachesTheNoticeWithoutTrustingNestedStatus() {
+        ShadowToast.reset();
+        String body = "{\"data\":{\"status_code\":0},"
+                + "\"status_code\":2098,\"status_msg\":\"Try again later.\"}";
+
+        FollowDiagnostics.logParsedResponse(
+                new CaptchaGateRequest("/aweme/v1/commit/follow/user/"),
+                new ParsedResponse(body));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+        assertTrue(String.valueOf(ShadowToast.getTextOfLatestToast()),
+                ShadowToast.getTextOfLatestToast().contains("Try again later."));
+    }
+
+    @Test
+    public void malformedServerStatusDoesNotInventARefusalNotice() {
+        ShadowToast.reset();
+        FollowDiagnostics.logParsedResponse(
+                new CaptchaGateRequest("/aweme/v1/commit/follow/user/"),
+                new ParsedResponse("{\"data\":{\"status_code\":2098},\"status_code\":\"NaN\"}"));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+        assertEquals(0, ShadowToast.shownToastCount());
+    }
+
+    public static final class CaptchaGateRequest {
+        private final String path;
+        CaptchaGateRequest(String path) { this.path = path; }
+        public String getPath() { return path; }
     }
 }

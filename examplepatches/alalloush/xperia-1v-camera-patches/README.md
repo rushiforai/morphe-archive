@@ -42,9 +42,9 @@ HAL prints it in logcat as `camera-hal … validateCaptureSettings: Fail …`.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0](https://github.com/alalloush/xperia-1v-camera-patches/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+> **[v1.3.0](https://github.com/alalloush/xperia-1v-camera-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
 <details open>
-<summary>📦 Sony Camera&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<summary>📦 Sony Camera&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -55,7 +55,10 @@ HAL prints it in logcat as `camera-hal … validateCaptureSettings: Fail …`.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Camera common visibility](#camera-common-visibility) | Lets the camera app see and use com.sonymobile.cameracommon (camera status provider, gyro calibration) when both are sideloaded: adds the <queries> entry and declares the CAMERA_STATUS_PROVIDER and CAMERA_ADDON permissions. |  |
+| [Raw H.264 stream](#raw-h-264-stream) | Low-latency transport for Live streaming: the encoded H.264 is sent to the PC as a plain TCP stream instead of RTMP (~0.2 s glass-to-glass with Standard stabilization). Receive with gst-launch-1.0 tcpserversrc port=6970 ! h264parse ! avdec_h264 ! ... Video only. |  |
+| [Raw stream connect modes](#raw-stream-connect-modes) | Adds "PC via USB" and "PC via Wi-Fi" entries to Live streaming's Connect to list for the raw H.264 transport. USB needs no settings (adb reverse tcp:6970 tcp:6970 on the PC); Wi-Fi takes the PC from the RTMP stream URL field (rtmp://pc-ip). |  |
 | [Storage fallback](#storage-fallback) | Fixes "Memory unavailable" on ROMs that cannot create Android/data/<pkg>/files (LineageOS on the Xperia 1 V): the storage probe falls back to the app's internal storage. Photos still go to DCIM through MediaStore. |  |
+| [Streaming presets](#streaming-presets) | Unlocks 1080p60/120 and 4K30/60 in Live streaming (camera-capability filtered) and sets the streaming encoder bitrate and keyframe interval. | • Streaming bitrate (kbit/s)<br>• Streaming keyframe interval (s) |
 | [Xperia 1 V camera HAL compatibility](#xperia-1-v-camera-hal-compatibility) | Makes the Xperia 1 VI camera app work on the Xperia 1 V camera HAL: truncates objectSelectTriggerArea to the 4 ints the 1 V HAL defines and sends conditionDetectMode alongside sceneDetectMode, which the 1 V HAL validates together. |  |
 
 </details>

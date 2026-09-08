@@ -79,7 +79,7 @@ is never released on a red build.
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.4.1](https://github.com/variablenine/morphe-patches/releases/tag/v1.4.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;147 patches total
+> **[v1.4.2](https://github.com/variablenine/morphe-patches/releases/tag/v1.4.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;147 patches total
 <details>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;82 patches</summary>
 <br>

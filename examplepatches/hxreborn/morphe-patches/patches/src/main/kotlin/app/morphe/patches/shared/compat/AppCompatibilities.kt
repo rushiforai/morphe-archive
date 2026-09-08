@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-only
  *
  * Central Morphe `Compatibility` metadata so Morphe Manager shows human-readable
- * app names and icons. Targets are set only where patches break on newer versions.
+ * app names and icons. Targets gate patching. An unlisted app version is refused.
  */
 package app.morphe.patches.shared.compat
 
@@ -92,6 +92,9 @@ internal object AppCompatibilities {
         packageName = "photo.editor.photoeditor.photoeditorpro",
         apkFileType = ApkFileType.APKS_REQUIRED,
         appIconColor = 0xFA2A80,
+        signatures = setOf(
+            "868aa1a8470b4214e88a5c9e65a1dbe475a32e1da7a23079ba6e0be0bd50b621",
+        ),
         targets = listOf(AppTarget(version = "1.791.265", versionCode = 265100, minSdk = 28)),
     )
 
@@ -107,15 +110,24 @@ internal object AppCompatibilities {
         packageName = "ch.protonmail.android",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x6D4AFF,
-        targets = listOf(AppTarget(version = null, minSdk = 29)),
+        signatures = setOf(
+            "dcc9439ec1a6c6a8d0203f3423ee42bcc8b970628e53cb73a0393f398dd5b853",
+        ),
+        targets = listOf(
+            AppTarget(version = "7.11.5", versionCode = 18317, minSdk = 29),
+            AppTarget(version = "7.10.4", versionCode = 17667, minSdk = 29),
+        ),
     )
 
-    val PROTON_MAIL_7_10_4 = Compatibility(
-        name = "Proton Mail",
-        packageName = "ch.protonmail.android",
-        apkFileType = ApkFileType.APK,
-        appIconColor = 0x6D4AFF,
-        targets = listOf(AppTarget(version = "7.10.4", versionCode = 17667, minSdk = 29)),
+    val QURANIFY = Compatibility(
+        name = "Quranify",
+        packageName = "com.mchutov.Quranify",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x141414,
+        signatures = setOf(
+            "6832f51be89158c630aa9a166c10781f2f68fc3bf1ef1e776e4fa2c218f0010d",
+        ),
+        targets = listOf(AppTarget(version = "2.2.8", versionCode = 77, minSdk = 33)),
     )
 
     val RATEGLANCE = Compatibility(

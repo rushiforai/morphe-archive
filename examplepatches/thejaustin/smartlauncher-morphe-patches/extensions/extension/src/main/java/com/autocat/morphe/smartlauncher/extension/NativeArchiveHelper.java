@@ -1,8 +1,10 @@
 package com.autocat.morphe.smartlauncher.extension;
 
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.LauncherApps;
 import android.content.pm.PackageInstaller;
@@ -17,15 +19,19 @@ import java.lang.reflect.Method;
  * Pure-reflection implementation of native app archiving and unarchiving via
  * {@code PackageInstaller.requestArchive} & {@code PackageInstaller.requestUnarchive} APIs
  * (Android 15 / API 35+ / Samsung One UI 7).
- *
- * Silent by design — callers are responsible for all user-facing feedback.
  */
 @SuppressWarnings("unused")
 public class NativeArchiveHelper {
 
     private static final String TAG = "NativeArchiveHelper";
+    public static final String ACTION_ARCHIVE_CALLBACK = "com.autocat.morphe.smartlauncher.ACTION_ARCHIVE_CALLBACK";
+    public static final String EXTRA_PACKAGE_NAME = "archived_package";
+
+    private static final int FLAG_MUTABLE = 0x02000000;
     private static final int FLAG_IMMUTABLE = 0x04000000;
     private static final int FLAG_UPDATE_CURRENT = 0x08000000;
+
+    private static volatile boolean sReceiverRegistered = false;
 
     public static boolean isSupported() {
         return Build.VERSION.SDK_INT >= 35;
@@ -113,16 +119,51 @@ public class NativeArchiveHelper {
 
     private static IntentSender createCallbackIntentSender(Context context, String packageName) {
         try {
-            Intent intent = new Intent("com.autocat.morphe.smartlauncher.ACTION_ARCHIVE_CALLBACK");
+            registerCallbackReceiverIfNeeded(context);
+            Intent intent = new Intent(ACTION_ARCHIVE_CALLBACK);
             intent.setPackage(context.getPackageName());
-            intent.putExtra("archived_package", packageName);
+            intent.putExtra(EXTRA_PACKAGE_NAME, packageName);
+            int flags = FLAG_UPDATE_CURRENT;
+            if (Build.VERSION.SDK_INT >= 31) {
+                flags |= FLAG_MUTABLE;
+            }
             PendingIntent pi = PendingIntent.getBroadcast(
                     context, packageName.hashCode(), intent,
-                    FLAG_UPDATE_CURRENT | FLAG_IMMUTABLE);
+                    flags);
             return pi != null ? pi.getIntentSender() : null;
         } catch (Throwable t) {
             Log.w(TAG, "Could not create callback IntentSender", t);
             return null;
+        }
+    }
+
+    private static void registerCallbackReceiverIfNeeded(final Context context) {
+        if (sReceiverRegistered || context == null) return;
+        try {
+            IntentFilter filter = new IntentFilter(ACTION_ARCHIVE_CALLBACK);
+            BroadcastReceiver receiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context ctx, Intent intent) {
+                    int status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE);
+                    String pkg = intent.getStringExtra(EXTRA_PACKAGE_NAME);
+                    String msg = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE);
+                    Log.i(TAG, "Archive callback received for " + pkg + ": status=" + status + ", message=" + msg);
+                    if (status == PackageInstaller.STATUS_SUCCESS) {
+                        MorpheMenuInjector.postToast(ctx, (pkg != null ? pkg : "App") + " archived successfully!");
+                    } else if (status != PackageInstaller.STATUS_PENDING_USER_ACTION) {
+                        MorpheMenuInjector.postToast(ctx, "Native archive failed (" + status + "): " + (msg != null ? msg : "requires installer privileges"));
+                    }
+                }
+            };
+            if (Build.VERSION.SDK_INT >= 33) {
+                context.getApplicationContext().registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED);
+            } else {
+                context.getApplicationContext().registerReceiver(receiver, filter);
+            }
+            sReceiverRegistered = true;
+            Log.i(TAG, "Archive callback receiver registered");
+        } catch (Throwable t) {
+            Log.w(TAG, "Failed to register archive callback receiver", t);
         }
     }
 }

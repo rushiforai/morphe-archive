@@ -31,6 +31,16 @@ import java.nio.FloatBuffer;
 
 /** Converts TikTok animated WebP sticker frames to a Gallery-compatible MP4. */
 final class AnimatedWebpMp4Converter {
+    /**
+     * A cap on one composed frame, in pixels rather than pixels times frames, because only one
+     * frame is held at a time here. It is not the same situation as the still sticker path,
+     * which decodes one bitmap: at this cap the composed bitmap, the frame bitmap and the
+     * texture upload are each around 64 MB. What actually holds the ceiling down on a device is
+     * the encoder, which refuses a format far below this, and that runs before the allocation.
+     * This is the guard for the case where it does not.
+     */
+    private static final long MAX_FRAME_PIXELS = 16L * 1024 * 1024;
+
     private static final String MIME_TYPE = "video/avc";
     private static final int FRAME_RATE = 30;
     private static final int I_FRAME_INTERVAL_SECONDS = 1;
@@ -65,6 +75,13 @@ final class AnimatedWebpMp4Converter {
             int[] durations = (int[]) invoke(image, "getFrameDurations");
             if (sourceWidth <= 0 || sourceHeight <= 0 || frameCount <= 0) {
                 throw new IllegalStateException("Invalid animated WebP dimensions or frame count");
+            }
+            // The canvas size is header metadata, so a few hundred bytes inside the transfer cap
+            // can declare 16383 by 16383 and ask for about a gigabyte below. The GIF converter
+            // beside this one has always capped its frames; this path had nothing, and MP4 is the
+            // sticker format that ships on by default.
+            if ((long) sourceWidth * sourceHeight > MAX_FRAME_PIXELS) {
+                throw new IllegalStateException("Animated WebP frame is too large to compose");
             }
 
             int outputWidth = sourceWidth + (sourceWidth & 1);
@@ -164,6 +181,8 @@ final class AnimatedWebpMp4Converter {
                 try {
                     encoder.stop();
                 } catch (Throwable ignored) {
+                    // An encoder that never started, or already failed, refuses to stop. The
+                    // release below is what has to happen either way.
                 }
                 encoder.release();
             }
@@ -177,7 +196,7 @@ final class AnimatedWebpMp4Converter {
         }
     }
 
-    private static int chooseBitRate(int width, int height) {
+    static int chooseBitRate(int width, int height) {
         long proposed = (long) width * height * 4L;
         return (int) Math.max(500_000L, Math.min(8_000_000L, proposed));
     }
@@ -252,10 +271,12 @@ final class AnimatedWebpMp4Converter {
         try {
             invoke(target, "dispose");
         } catch (Throwable ignored) {
+            // Best effort on a decoder this build may not have, or may already have closed.
+            // Nothing the caller can do about it, and the conversion is finished either way.
         }
     }
 
-    private static void validateFrame(
+    static void validateFrame(
             int canvasWidth,
             int canvasHeight,
             int frameWidth,
@@ -264,7 +285,8 @@ final class AnimatedWebpMp4Converter {
             int yOffset
     ) {
         if (frameWidth <= 0 || frameHeight <= 0 || xOffset < 0 || yOffset < 0
-                || xOffset + frameWidth > canvasWidth || yOffset + frameHeight > canvasHeight) {
+                || (long) xOffset + frameWidth > canvasWidth
+                || (long) yOffset + frameHeight > canvasHeight) {
             throw new IllegalStateException("Animated WebP frame is outside its canvas");
         }
     }

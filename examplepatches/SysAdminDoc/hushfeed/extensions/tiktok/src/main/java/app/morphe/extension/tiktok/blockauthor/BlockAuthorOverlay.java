@@ -55,8 +55,12 @@ public final class BlockAuthorOverlay {
     private static final float DEFAULT_Y_FRACTION = 0.40f;
 
     private static WeakReference<View> buttonReference = new WeakReference<>(null);
+    private static WeakReference<View> localHideReference = new WeakReference<>(null);
     private static WeakReference<View> soundButtonReference = new WeakReference<>(null);
     private static WeakReference<View> notInterestedReference = new WeakReference<>(null);
+
+    /** Which banner a queued dismiss belongs to. Main thread only. */
+    private static int undoGeneration;
     private static WeakReference<ViewGroup> rootReference = new WeakReference<>(null);
     private static ViewTreeObserver.OnGlobalLayoutListener visibilityListener;
     private static WeakReference<View> undoReference = new WeakReference<>(null);
@@ -113,8 +117,20 @@ public final class BlockAuthorOverlay {
                 soundButton.setVisibility(soundVisibility);
             }
         }
+        View localHide = localHideReference.get();
+        if (localHide != null) {
+            boolean localWanted = visible && Settings.BLOCK_AUTHOR_BUTTON.get()
+                    && SettingsStatus.feedFilterEnabled;
+            int localVisibility = localWanted ? View.VISIBLE : View.GONE;
+            if (localHide.getVisibility() != localVisibility) {
+                localHide.setVisibility(localVisibility);
+            }
+        }
         View feedback = notInterestedReference.get();
         if (feedback != null) feedback.setVisibility(visible && notInterestedEnabled() ? View.VISIBLE : View.GONE);
+        if (button.getParent() instanceof ViewGroup) {
+            placeSoundButton(button, (ViewGroup) button.getParent());
+        }
     }
 
     /**
@@ -132,7 +148,7 @@ public final class BlockAuthorOverlay {
     private static void attach(VideoAuthor author) {
         try {
             Activity activity = Utils.getActivity();
-            if (activity == null || activity.isFinishing()) {
+            if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
                 return;
             }
 
@@ -148,20 +164,30 @@ public final class BlockAuthorOverlay {
             }
 
             final View button = createButton(activity);
-            final int size = dp(activity, BUTTON_SIZE_DP);
+            final int size = SettingsUi.dp(activity, BUTTON_SIZE_DP);
+            // Absolute LEFT, not START. Every position here is a pixel worked out from a raw
+            // touch and written to leftMargin, and a mirrored layout resolves START to RIGHT and
+            // then reads rightMargin, which nothing sets: the saved position was discarded, a
+            // drag moved nothing sideways, and the Not interested button landed on top of the
+            // block button because the two differ only in leftMargin.
             FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                    size, size, Gravity.TOP | Gravity.START);
+                    size, size, Gravity.TOP | Gravity.LEFT);
             button.setLayoutParams(params);
 
             root.addView(button);
             buttonReference = new WeakReference<>(button);
 
+            final View localHide = createLocalHideButton(activity);
+            localHide.setLayoutParams(new FrameLayout.LayoutParams(size, size, Gravity.TOP | Gravity.LEFT));
+            root.addView(localHide);
+            localHideReference = new WeakReference<>(localHide);
+
             final View soundButton = createSoundButton(activity);
-            soundButton.setLayoutParams(new FrameLayout.LayoutParams(size, size, Gravity.TOP | Gravity.START));
+            soundButton.setLayoutParams(new FrameLayout.LayoutParams(size, size, Gravity.TOP | Gravity.LEFT));
             root.addView(soundButton);
             soundButtonReference = new WeakReference<>(soundButton);
             View feedback = createNotInterestedButton(activity);
-            feedback.setLayoutParams(new FrameLayout.LayoutParams(size, size, Gravity.TOP | Gravity.START));
+            feedback.setLayoutParams(new FrameLayout.LayoutParams(size, size, Gravity.TOP | Gravity.LEFT));
             root.addView(feedback);
             notInterestedReference = new WeakReference<>(feedback);
 
@@ -210,6 +236,11 @@ public final class BlockAuthorOverlay {
             ((ViewGroup) soundButton.getParent()).removeView(soundButton);
         }
         soundButtonReference = new WeakReference<>(null);
+        View localHide = localHideReference.get();
+        if (localHide != null && localHide.getParent() instanceof ViewGroup) {
+            ((ViewGroup) localHide.getParent()).removeView(localHide);
+        }
+        localHideReference = new WeakReference<>(null);
         View feedback = notInterestedReference.get();
         if (feedback != null && feedback.getParent() instanceof ViewGroup) {
             ((ViewGroup) feedback.getParent()).removeView(feedback);
@@ -224,15 +255,32 @@ public final class BlockAuthorOverlay {
         button.setTextColor(Color.WHITE);
         button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         button.setGravity(Gravity.CENTER);
-        button.setContentDescription("Block this sound");
+        button.setContentDescription(L10n.t(activity, "Block this sound"));
 
         GradientDrawable background = new GradientDrawable();
         background.setShape(GradientDrawable.OVAL);
         background.setColor(Color.argb(140, 0, 0, 0));
-        background.setStroke(dp(activity, 1), Color.argb(90, 255, 255, 255));
+        background.setStroke(SettingsUi.dp(activity, 1), Color.argb(90, 255, 255, 255));
         button.setBackground(background);
 
         button.setOnClickListener(view -> onBlockSoundTapped());
+        return button;
+    }
+
+    private static View createLocalHideButton(Activity activity) {
+        TextView button = new TextView(activity);
+        button.setText("×");
+        button.setTextColor(Color.WHITE);
+        button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 28);
+        button.setGravity(Gravity.CENTER);
+        button.setContentDescription(L10n.t(activity, "Hide this creator locally"));
+
+        GradientDrawable background = new GradientDrawable();
+        background.setShape(GradientDrawable.OVAL);
+        background.setColor(Color.argb(140, 0, 0, 0));
+        background.setStroke(SettingsUi.dp(activity, 1), Color.argb(90, 255, 255, 255));
+        button.setBackground(background);
+        button.setOnClickListener(view -> onLocalHideTapped());
         return button;
     }
 
@@ -246,11 +294,11 @@ public final class BlockAuthorOverlay {
         button.setTextColor(Color.WHITE);
         button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 28);
         button.setGravity(Gravity.CENTER);
-        button.setContentDescription("Not interested in this video");
+        button.setContentDescription(L10n.t(activity, "Not interested in this video"));
         GradientDrawable background = new GradientDrawable();
         background.setColor(Color.argb(180, 0, 0, 0));
-        background.setCornerRadius(dp(activity, 8));
-        background.setStroke(dp(activity, 1), Color.argb(90, 255, 255, 255));
+        background.setCornerRadius(SettingsUi.dp(activity, 8));
+        background.setStroke(SettingsUi.dp(activity, 1), Color.argb(90, 255, 255, 255));
         button.setBackground(background);
         button.setOnClickListener(view -> NotInterested.submit());
         return button;
@@ -295,7 +343,18 @@ public final class BlockAuthorOverlay {
         ViewGroup.MarginLayoutParams soundParams = (ViewGroup.MarginLayoutParams) soundButton.getLayoutParams();
         int size = blockParams.height > 0 ? blockParams.height : blockButton.getHeight();
         int gap = Math.round(BUTTON_GAP_DP * parent.getResources().getDisplayMetrics().density);
-        int top = blockParams.topMargin + size + gap;
+        int nextTop = blockParams.topMargin + size + gap;
+        View localHide = localHideReference.get();
+        boolean localVisible = localHide != null && localHide.getVisibility() == View.VISIBLE
+                && localHide.getParent() == parent;
+        if (localVisible) {
+            ViewGroup.MarginLayoutParams localParams = (ViewGroup.MarginLayoutParams) localHide.getLayoutParams();
+            localParams.leftMargin = blockParams.leftMargin;
+            localParams.topMargin = Math.min(nextTop, Math.max(0, parent.getHeight() - size));
+            localHide.setLayoutParams(localParams);
+            nextTop += size + gap;
+        }
+        int top = nextTop;
         int maxTop = Math.max(0, parent.getHeight() - size);
         soundParams.leftMargin = blockParams.leftMargin;
         soundParams.topMargin = Math.min(top, maxTop);
@@ -314,16 +373,16 @@ public final class BlockAuthorOverlay {
     private static View createButton(Activity activity) {
         TextView button = new TextView(activity);
         button.setGravity(Gravity.CENTER);
-        button.setContentDescription("Block this account");
+        button.setContentDescription(L10n.t(activity, "Block this account"));
 
         GradientDrawable background = new GradientDrawable();
         background.setShape(GradientDrawable.OVAL);
         background.setColor(Color.argb(140, 0, 0, 0));
-        background.setStroke(dp(activity, 1), Color.argb(90, 255, 255, 255));
+        background.setStroke(SettingsUi.dp(activity, 1), Color.argb(90, 255, 255, 255));
 
         // The symbol is drawn over the disc instead of set as text, because the font
         // TikTok happens to be using may not carry it.
-        Drawable glyph = new BlockGlyphDrawable(Color.WHITE, dp(activity, 2));
+        Drawable glyph = new BlockGlyphDrawable(Color.WHITE, SettingsUi.dp(activity, 2));
         button.setBackground(new LayerDrawable(new Drawable[]{background, glyph}));
 
         button.setOnClickListener(view -> {
@@ -495,6 +554,28 @@ public final class BlockAuthorOverlay {
         });
     }
 
+    private static void onLocalHideTapped() {
+        VideoAuthor author = CurrentVideoAuthor.get();
+        if (author == null || !author.isUsable() || author.stableId() == null
+                || author.stableId().isEmpty()) {
+            Utils.showToastShort(L10n.t("No account to hide on this video"));
+            return;
+        }
+
+        String before = Settings.LOCAL_HIDDEN_CREATORS.get();
+        String after = app.morphe.extension.tiktok.feedfilter.AdvancedFeedRules.addCreatorEntry(
+                before, author.stableId());
+        if (after.equals(before)) {
+            Utils.showToastShort(L10n.t("This creator is already hidden"));
+            return;
+        }
+        Settings.LOCAL_HIDDEN_CREATORS.save(after);
+        showUndoBanner(L10n.f("Hidden %1$s locally", author.label()), () -> {
+            Settings.LOCAL_HIDDEN_CREATORS.save(before);
+            Utils.showToastShort(L10n.f("Showing %1$s again", author.label()));
+        });
+    }
+
     private static void setButtonEnabled(boolean enabled) {
         View button = buttonReference.get();
         if (button != null) {
@@ -524,7 +605,7 @@ public final class BlockAuthorOverlay {
     public static void showUndoBanner(String message, Runnable undoAction) {
         Utils.runOnMainThread(() -> {
             Activity activity = Utils.getActivity();
-            ViewGroup root = activity == null || activity.isFinishing()
+            ViewGroup root = activity == null || activity.isFinishing() || activity.isDestroyed()
                     ? null : activity.findViewById(android.R.id.content);
             showUndoBanner(root, message, undoAction);
         });
@@ -554,10 +635,10 @@ public final class BlockAuthorOverlay {
                 LinearLayout banner = new LinearLayout(activity);
                 banner.setOrientation(LinearLayout.HORIZONTAL);
                 banner.setGravity(Gravity.CENTER_VERTICAL);
-                banner.setPadding(dp(activity, 16), dp(activity, 12), dp(activity, 16), dp(activity, 12));
+                banner.setPadding(SettingsUi.dp(activity, 16), SettingsUi.dp(activity, 12), SettingsUi.dp(activity, 16), SettingsUi.dp(activity, 12));
 
                 GradientDrawable background = new GradientDrawable();
-                background.setCornerRadius(dp(activity, 10));
+                background.setCornerRadius(SettingsUi.dp(activity, 10));
                 background.setColor(Color.argb(235, 28, 28, 30));
                 banner.setBackground(background);
 
@@ -573,9 +654,9 @@ public final class BlockAuthorOverlay {
                 undo.setTextColor(SettingsUi.OVERLAY_ACCENT);
                 undo.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
                 // A banner that dismisses itself is the worst place for a small target.
-                undo.setPadding(dp(activity, 16), dp(activity, 12), dp(activity, 16), dp(activity, 12));
-                undo.setMinimumHeight(dp(activity, 48));
-                undo.setMinimumWidth(dp(activity, 48));
+                undo.setPadding(SettingsUi.dp(activity, 16), SettingsUi.dp(activity, 12), SettingsUi.dp(activity, 16), SettingsUi.dp(activity, 12));
+                undo.setMinimumHeight(SettingsUi.dp(activity, 48));
+                undo.setMinimumWidth(SettingsUi.dp(activity, 48));
                 undo.setGravity(Gravity.CENTER);
                 undo.setOnClickListener(view -> {
                     dismissUndo();
@@ -589,13 +670,20 @@ public final class BlockAuthorOverlay {
                 // Every window decor is a FrameLayout, so gravity params work in any root.
                 FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(-1, -2,
                         Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
-                params.setMargins(dp(activity, 16), 0, dp(activity, 16), dp(activity, 96));
+                params.setMargins(SettingsUi.dp(activity, 16), 0, SettingsUi.dp(activity, 16), SettingsUi.dp(activity, 96));
                 banner.setLayoutParams(params);
 
                 root.addView(banner);
                 undoReference = new WeakReference<>(banner);
 
-                Utils.runOnMainThreadDelayed(BlockAuthorOverlay::dismissUndo, UNDO_VISIBLE_MS);
+                // A second banner inside the six seconds replaced the first, and the first
+                // banner's dismiss was still queued: it took the new banner away early, with
+                // its Undo. Nothing here can cancel a posted runnable, so each dismiss checks
+                // whether it is still the one that was scheduled.
+                final int token = ++undoGeneration;
+                Utils.runOnMainThreadDelayed(() -> {
+                    if (token == undoGeneration) dismissUndo();
+                }, UNDO_VISIBLE_MS);
             } catch (Throwable ex) {
                 Logger.printException(() -> "Could not show the undo banner", ex);
                 Utils.showToastShort(message);
@@ -604,6 +692,7 @@ public final class BlockAuthorOverlay {
     }
 
     private static void dismissUndo() {
+        undoGeneration++;
         View banner = undoReference.get();
         if (banner != null && banner.getParent() instanceof ViewGroup) {
             ((ViewGroup) banner.getParent()).removeView(banner);
@@ -611,8 +700,5 @@ public final class BlockAuthorOverlay {
         undoReference = new WeakReference<>(null);
     }
 
-    private static int dp(Activity activity, int value) {
-        float density = activity.getResources().getDisplayMetrics().density;
-        return Math.round(value * density);
-    }
 }
+

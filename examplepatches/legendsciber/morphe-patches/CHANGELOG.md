@@ -1,3 +1,123 @@
+## [1.43.4](https://github.com/legendsciber/morphe-patches/compare/v1.43.3...v1.43.4) (2026-09-07)
+
+### 🐛 Bug Fixes
+
+* log crash signal and fault address in hook crash handler ([27665ec](https://github.com/legendsciber/morphe-patches/commit/27665eca088d71daf2ba39e789dba1c14016fcb0))
+
+## [1.43.3](https://github.com/legendsciber/morphe-patches/compare/v1.43.2...v1.43.3) (2026-09-07)
+
+### 🐛 Bug Fixes
+
+* call OnPurchaseSucceeded with crash guard to prevent loading hang ([8e93553](https://github.com/legendsciber/morphe-patches/commit/8e93553f35fd9d847c7be0d80709234cccd99073))
+
+## [1.43.2](https://github.com/legendsciber/morphe-patches/compare/v1.43.1...v1.43.2) (2026-09-07)
+
+### 🐛 Bug Fixes
+
+* block-only mode - just block Google Play, no OnPurchaseSucceeded call ([50a1fcb](https://github.com/legendsciber/morphe-patches/commit/50a1fcb79516877533116ce325b0e31d75e95e38))
+
+## [1.43.1](https://github.com/legendsciber/morphe-patches/compare/v1.43.0...v1.43.1) (2026-09-07)
+
+### 🐛 Bug Fixes
+
+* add step-by-step logging to hook function for crash diagnosis ([b08d061](https://github.com/legendsciber/morphe-patches/commit/b08d061de38fddb8e0a2db4603205be0689d9d74))
+
+## [1.43.0](https://github.com/legendsciber/morphe-patches/compare/v1.42.4...v1.43.0) (2026-09-07)
+
+### ✨ New Features
+
+* add vtable scan and rewrite for virtual method interception ([5faadf1](https://github.com/legendsciber/morphe-patches/commit/5faadf18b310c4f1c514d2af2b099b81d54bb7ab))
+
+## [1.42.4](https://github.com/legendsciber/morphe-patches/compare/v1.42.3...v1.42.4) (2026-09-07)
+
+### 🐛 Bug Fixes
+
+* wait 20s before IL2CPP calls to let runtime initialize safely ([de2e7d5](https://github.com/legendsciber/morphe-patches/commit/de2e7d560ae0bf77e3f3880cbba7cd58e326a5c3))
+
+## [1.42.3](https://github.com/legendsciber/morphe-patches/compare/v1.42.2...v1.42.3) (2026-09-07)
+
+### 🐛 Bug Fixes
+
+* revert to proven SAFE_CALL per-call crash guard, keep namespace fix ([eedcd53](https://github.com/legendsciber/morphe-patches/commit/eedcd53e44c9dcb588fd01919576a66bd6fa8341))
+
+## [1.42.2](https://github.com/legendsciber/morphe-patches/compare/v1.42.1...v1.42.2) (2026-09-07)
+
+### 🐛 Bug Fixes
+
+* single sigsetjmp for entire init, no per-call crash guard ([202796c](https://github.com/legendsciber/morphe-patches/commit/202796c689ab654661a798a911a4574c73134f7b))
+
+## [1.42.1](https://github.com/legendsciber/morphe-patches/compare/v1.42.0...v1.42.1) (2026-09-07)
+
+### 🐛 Bug Fixes
+
+* GooglePlayStore namespace is UnityEngine.Purchasing, not empty ([38400d9](https://github.com/legendsciber/morphe-patches/commit/38400d90c2807b41d60e1fd71a006bb8d4349242))
+
+## [1.42.0](https://github.com/legendsciber/morphe-patches/compare/v1.41.1...v1.42.0) (2026-09-07)
+
+### ✨ New Features
+
+* wrap ALL IL2CPP calls in sigsetjmp crash guard with retry loop ([e23eeaf](https://github.com/legendsciber/morphe-patches/commit/e23eeaf39a6f1046d37251db4359c6562215417f))
+
+## [1.41.1](https://github.com/legendsciber/morphe-patches/compare/v1.41.0...v1.41.1) (2026-09-07)
+
+### 🐛 Bug Fixes
+
+* poll assemblies until loaded, add log recursion guard ([29ca303](https://github.com/legendsciber/morphe-patches/commit/29ca3036492ec1f64978b0a990e150e503574a2d))
+
+## [1.41.0](https://github.com/legendsciber/morphe-patches/compare/v1.40.8...v1.41.0) (2026-09-07)
+
+### ✨ New Features
+
+* v42 method pointer rewrite instead of entry hook ([e77ee1c](https://github.com/legendsciber/morphe-patches/commit/e77ee1cb6ff4ace4b1411e985ec3d40a9d016ef8))
+
+## [1.40.8](https://github.com/legendsciber/morphe-patches/compare/v1.40.7...v1.40.8) (2026-09-07)
+
+### 🐛 Bug Fixes
+
+* v41 lazy IL2CPP init - only load API on first purchase trigger ([c142eb6](https://github.com/legendsciber/morphe-patches/commit/c142eb67b95b37279f8155b33113384ad72d1e9b))
+
+## [1.40.7](https://github.com/legendsciber/morphe-patches/compare/v1.40.6...v1.40.7) (2026-09-07)
+
+### 🐛 Bug Fixes
+
+* remove il2cpp_thread_attach crash, keep find_methods logging ([9e8700a](https://github.com/legendsciber/morphe-patches/commit/9e8700ae92335b82fd036a107f5092c0d5dba758))
+
+## [1.40.6](https://github.com/legendsciber/morphe-patches/compare/v1.40.5...v1.40.6) (2026-09-07)
+
+### 🐛 Bug Fixes
+
+* add il2cpp_thread_attach before API calls to prevent crash ([2409fe2](https://github.com/legendsciber/morphe-patches/commit/2409fe2875b779fcbb4e5b56ee4994587e7332bc))
+
+## [1.40.5](https://github.com/legendsciber/morphe-patches/compare/v1.40.4...v1.40.5) (2026-09-07)
+
+### 🐛 Bug Fixes
+
+* poll for libil2cpp load with retry, try multiple dlopen methods ([4dcdfcf](https://github.com/legendsciber/morphe-patches/commit/4dcdfcfcb4dcc9496d725223ae2ed09c5bf29a83))
+
+## [1.40.4](https://github.com/legendsciber/morphe-patches/compare/v1.40.3...v1.40.4) (2026-09-07)
+
+### 🐛 Bug Fixes
+
+* use dl_iterate_phdr to find libil2cpp, fix maps reading ([f68f499](https://github.com/legendsciber/morphe-patches/commit/f68f4994114b355355f8acec42c2f0b46c321dcc))
+
+## [1.40.3](https://github.com/legendsciber/morphe-patches/compare/v1.40.2...v1.40.3) (2026-09-07)
+
+### 🐛 Bug Fixes
+
+* detailed dlsym logging to diagnose API load failure ([320fcc2](https://github.com/legendsciber/morphe-patches/commit/320fcc2fe5997ec2a526b798f39a12d798ac9601))
+
+## [1.40.2](https://github.com/legendsciber/morphe-patches/compare/v1.40.1...v1.40.2) (2026-09-07)
+
+### 🐛 Bug Fixes
+
+* IL2CPP API symbol names for dlsym ([689a92c](https://github.com/legendsciber/morphe-patches/commit/689a92c8e046fedc603c0b6304cc7574d2468004))
+
+## [1.40.1](https://github.com/legendsciber/morphe-patches/compare/v1.40.0...v1.40.1) (2026-09-07)
+
+### 🐛 Bug Fixes
+
+* IAP bypass method pointer and hook improvements ([5377b2e](https://github.com/legendsciber/morphe-patches/commit/5377b2e0a3c24a06578d1131af3cbd1d4fbb1231))
+
 ## [1.40.0](https://github.com/legendsciber/morphe-patches/compare/v1.39.0...v1.40.0) (2026-09-06)
 
 ### ✨ New Features

@@ -9,7 +9,12 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$Root = (Split-Path -Parent $PSScriptRoot)
+    [string]$Root = (Split-Path -Parent $PSScriptRoot),
+    [switch]$VerifyPublishedAsset,
+    [string]$ArtifactPath,
+    # Only for running the rest of the checks with no network. Nothing in the repo
+    # passes it; the pre-push escape hatch is HUSHFEED_SKIP_PRE_PUSH=1.
+    [switch]$SkipUrlCheck
 )
 
 $ErrorActionPreference = 'Stop'
@@ -35,6 +40,23 @@ function Require-Match {
     if ($Text -notmatch $Pattern) {
         throw "${Description} does not match the generated release facts."
     }
+}
+
+function Assert-AssetReachable {
+    param([Uri]$Uri)
+    try {
+        $response = Invoke-WebRequest -Uri $Uri -Method Head -MaximumRedirection 5 `
+            -TimeoutSec 60 -SkipHttpErrorCheck
+    } catch {
+        throw ("Could not reach the indexed bundle URL ${Uri}: $($_.Exception.Message). " +
+            'If the network is down, push with HUSHFEED_SKIP_PRE_PUSH=1 and run this again later.')
+    }
+    $status = [int]$response.StatusCode
+    if ($status -ne 200) {
+        throw ("The indexed bundle URL ${Uri} answered HTTP ${status}. " +
+            'The Manager fetches that address, so the release it names has to exist first.')
+    }
+    Write-Host ("[release] indexed URL answers 200: " + $Uri)
 }
 
 $rootPath = (Resolve-Path -LiteralPath $Root).Path
@@ -85,6 +107,24 @@ if ([string]$bundle.version -ne $releaseVersion) {
     throw "patches-bundle.json version does not match $sourceVersion."
 }
 Require-Match -Text ([string]$bundle.download_url) -Pattern "/v$([regex]::Escape($releaseVersion))/patches-$([regex]::Escape($releaseVersion))\.mpp$" -Description 'patches-bundle.json download URL'
+
+# Matching the pattern only proves the index spells the version right. Reaching the address is
+# what catches an index pointed at a tag nobody published, which is how the bundle went missing
+# once already, and the hash comparison further down runs only when this checkout built a bundle.
+# So the URL is fetched on every run, not only on a release.
+$assetUri = [Uri]$bundle.download_url
+if ($assetUri.Scheme -ne 'https') {
+    throw "The published bundle URL must use HTTPS: $($bundle.download_url)"
+}
+$assetName = [IO.Path]::GetFileName($assetUri.AbsolutePath)
+if ($assetName -ne "patches-$releaseVersion.mpp") {
+    throw "The published bundle URL names $assetName instead of patches-$releaseVersion.mpp."
+}
+if ($SkipUrlCheck) {
+    Write-Host '[release] the indexed URL was not fetched because -SkipUrlCheck was given'
+} else {
+    Assert-AssetReachable -Uri $assetUri
+}
 Require-Match -Text $readme -Pattern "\b$patchCount patches\b" -Description 'README patch count'
 Require-Match -Text $readme -Pattern ([regex]::Escape($targetPackage)) -Description 'README package name'
 Require-Match -Text $readme -Pattern "TikTok\s+$([regex]::Escape($targetVersion))" -Description 'README target version'
@@ -95,6 +135,34 @@ $testRoot = Join-Path $rootPath 'extensions/tiktok/build/test-results/testDebugU
 $testFiles = @(Get-ChildItem -LiteralPath $testRoot -Filter '*.xml' -File -ErrorAction SilentlyContinue)
 if ($testFiles.Count -eq 0) {
     throw "No runtime test results found under $testRoot. Run :extensions:tiktok:test first."
+}
+
+# Gradle leaves the previous run's XML in place, so results from before the last edit satisfy
+# every check below and a release can be validated against code that was never tested.
+#
+# Only the trees the test task actually reads are compared. patches/src is not one of them:
+# :extensions:tiktok:test depends on the shared library and the stub, so editing a patch leaves
+# the task up to date, no XML is rewritten, and comparing against it would refuse every release
+# from then on with no rerun that could clear it.
+#
+# The newest result is the one to compare. Gradle never removes the XML of a test class that was
+# deleted or renamed, and that file keeps its original timestamp through every later run, so
+# taking the oldest would refuse forever after the first class is dropped.
+$sourceRoots = @('extensions/tiktok/src', 'extensions/shared/library/src') |
+    ForEach-Object { Join-Path $rootPath $_ } |
+    Where-Object { Test-Path -LiteralPath $_ }
+$newestSource = $sourceRoots |
+    ForEach-Object { Get-ChildItem -LiteralPath $_ -Recurse -File -ErrorAction SilentlyContinue } |
+    Sort-Object LastWriteTimeUtc -Descending |
+    Select-Object -First 1
+if ($null -ne $newestSource) {
+    $newestResult = $testFiles | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
+    if ($newestResult.LastWriteTimeUtc -lt $newestSource.LastWriteTimeUtc) {
+        throw ("Runtime test results are older than the sources. The newest result " +
+            "$($newestResult.Name) was written $($newestResult.LastWriteTimeUtc.ToString('u')) but " +
+            "$($newestSource.FullName) changed $($newestSource.LastWriteTimeUtc.ToString('u')). " +
+            'Run :extensions:tiktok:test again.')
+    }
 }
 $testCount = 0
 foreach ($file in $testFiles) {
@@ -115,4 +183,60 @@ foreach ($file in $testFiles) {
 }
 Require-Match -Text ([string]$bundle.description) -Pattern "\b$testCount runtime tests passed\b" -Description 'bundle description test count'
 
+if ($VerifyPublishedAsset) {
+    if ([string]::IsNullOrWhiteSpace($ArtifactPath)) {
+        $ArtifactPath = Join-Path $rootPath "patches/build/libs/patches-$releaseVersion.mpp"
+    }
+    if (-not (Test-Path -LiteralPath $ArtifactPath -PathType Leaf)) {
+        throw "The local release artifact is missing: $ArtifactPath"
+    }
+
+    $temporaryArtifact = Join-Path ([IO.Path]::GetTempPath()) ("hushfeed-$([Guid]::NewGuid()).mpp")
+    try {
+        try {
+            $assetResponse = Invoke-WebRequest -Uri $assetUri -OutFile $temporaryArtifact -MaximumRedirection 5 -TimeoutSec 60 -PassThru
+        } catch {
+            throw "Could not download the indexed bundle URL: $($_.Exception.Message)"
+        }
+        if ($assetResponse.StatusCode -ne 200) {
+            throw "The indexed bundle URL returned HTTP $($assetResponse.StatusCode)."
+        }
+
+        $localHash = (Get-FileHash -LiteralPath $ArtifactPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        $publishedHash = (Get-FileHash -LiteralPath $temporaryArtifact -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($localHash -ne $publishedHash) {
+            throw "The hosted bundle hash $publishedHash does not match the local artifact hash $localHash."
+        }
+
+        $checksumUri = [Uri]::new($assetUri, 'SHA256SUMS.txt')
+        try {
+            $checksumResponse = Invoke-WebRequest -Uri $checksumUri -MaximumRedirection 5 -TimeoutSec 60
+        } catch {
+            throw "Could not download the hosted SHA256SUMS.txt: $($_.Exception.Message)"
+        }
+        if ($checksumResponse.StatusCode -ne 200) {
+            throw "The hosted SHA256SUMS.txt returned HTTP $($checksumResponse.StatusCode)."
+        }
+        $checksumText = [Text.Encoding]::UTF8.GetString([byte[]]$checksumResponse.Content)
+        $checksumMatch = [regex]::Match(
+            $checksumText,
+            "(?im)^\s*([0-9a-f]{64})\s+\*?$([regex]::Escape($assetName))\s*$"
+        )
+        if (-not $checksumMatch.Success) {
+            throw "SHA256SUMS.txt has no entry for $assetName."
+        }
+        $listedHash = $checksumMatch.Groups[1].Value.ToLowerInvariant()
+        if ($listedHash -ne $publishedHash) {
+            throw "SHA256SUMS.txt lists $listedHash for $assetName, but the hosted artifact is $publishedHash."
+        }
+        Write-Host ("[release] verified " + $assetName + " from the indexed URL; sha256=" + $publishedHash)
+    } finally {
+        Remove-Item -LiteralPath $temporaryArtifact -Force -ErrorAction SilentlyContinue
+    }
+}
+
 Write-Host ("[facts] " + $sourceVersion + ": " + $patchCount + " patches for " + $targetPackage + " " + $targetVersion + "; " + $testCount + " runtime tests")
+
+# Callers check the exit code, and a script invoked with & leaves the previous native
+# command's code in $LASTEXITCODE, so a clean run has to say so itself.
+exit 0

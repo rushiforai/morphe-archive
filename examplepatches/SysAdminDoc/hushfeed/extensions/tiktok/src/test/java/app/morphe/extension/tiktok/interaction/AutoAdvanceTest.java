@@ -4,12 +4,14 @@ import static org.junit.Assert.*;
 import android.view.View;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.wellbeing.SessionBudget;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.After;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
@@ -21,6 +23,18 @@ import org.robolectric.annotation.GraphicsMode;
 @Config(sdk = 28, qualifiers = "night")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class AutoAdvanceTest {
+    @After public void tearDown() {
+        // clear() is the public way in from another package: it ends any hold and empties both
+        // counts, in memory and in the record.
+        SessionBudget.clear();
+        Settings.SESSION_BUDGET_VIDEOS.resetToDefault();
+        Settings.SESSION_BUDGET_LOCK_MINUTES.resetToDefault();
+        Settings.SESSION_BUDGET_STATE.resetToDefault();
+        SettingsStatus.autoAdvanceEnabled = false;
+        SettingsStatus.playbackSpeedEnabled = false;
+        SettingsStatus.playbackQualityEnabled = false;
+        Settings.AUTO_ADVANCE_LIMIT.save(0);
+    }
     enum State { AUTO_SCROLL_STATE_START, AUTO_SCROLL_STATE_STOP, AUTO_SCROLL_STATE_PAUSE }
     static final class FeedView extends View {
         boolean attached = true, shown = true, focused = true;
@@ -32,6 +46,9 @@ public class AutoAdvanceTest {
     @Before public void setup() {
         Utils.setContext(RuntimeEnvironment.getApplication());
         Settings.AUTO_ADVANCE.save(true);
+        Settings.SESSION_BUDGET_VIDEOS.resetToDefault();
+        Settings.SESSION_BUDGET_LOCK_MINUTES.resetToDefault();
+        SessionBudget.clear();
     }
     @Test public void restartsNativeStopButPreservesPauseAndStopsWhenDisabled() {
         // The control holds the view weakly, so the test has to hold it strongly. Without
@@ -61,6 +78,63 @@ public class AutoAdvanceTest {
         assertEquals(1, stops.get());
         assertFalse(control.owned);
     }
+    @Test public void aRunningHoldStopsAutoAdvanceAndLetsItStartAgainAfterwards() {
+        // Advancing behind the hold walks through videos nobody can see, and each one used to
+        // spend a place in this session's own limit as well.
+        FeedView feed = new FeedView();
+        var control = new AutoAdvance.Control(feed);
+        var state = new AtomicReference<>(State.AUTO_SCROLL_STATE_STOP);
+        var starts = new AtomicInteger();
+        var stops = new AtomicInteger();
+        Runnable start = () -> { starts.incrementAndGet(); state.set(State.AUTO_SCROLL_STATE_START); };
+        Runnable stop = () -> { stops.incrementAndGet(); state.set(State.AUTO_SCROLL_STATE_STOP); };
+
+        control.update(state::get, start, stop);
+        assertTrue(control.owned);
+
+        Settings.SESSION_BUDGET_VIDEOS.save(1);
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(5);
+        SessionBudget.noteVideo("a");
+        assertTrue(SessionBudget.claimNotice());
+        assertTrue("no hold started", SessionBudget.isLocked());
+
+        control.update(state::get, start, stop);
+        assertEquals("the feed kept advancing behind the hold", 1, stops.get());
+        assertFalse("ownership was kept through the hold", control.owned);
+        control.update(state::get, start, stop);
+        assertEquals("it started again while the hold was still running", 1, starts.get());
+
+        SessionBudget.releaseLock();
+        assertFalse(SessionBudget.isLocked());
+        control.update(state::get, start, stop);
+        assertEquals("it never started again once the hold ended", 2, starts.get());
+        assertTrue(control.owned);
+    }
+
+    @Test public void aVideoFinishingBehindTheHoldIsNotCountedAgainstTheSessionLimit() throws Exception {
+        // The hold check used to be reached only through update(), which runs after the
+        // completion is recorded, so the video that finished behind the panel still spent a
+        // place in this session's limit and could put its notice on top of the hold.
+        FeedView feed = new FeedView();
+        var control = new AutoAdvance.Control(feed);
+        control.owned = true;
+        Object component = new Object();
+        java.util.Map<Object, AutoAdvance.Control> controls =
+                org.robolectric.util.ReflectionHelpers.getStaticField(AutoAdvance.class, "CONTROLS");
+        controls.put(component, control);
+
+        Settings.SESSION_BUDGET_VIDEOS.save(1);
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(5);
+        SessionBudget.noteVideo("a");
+        assertTrue(SessionBudget.claimNotice());
+        assertTrue("no hold started", SessionBudget.isLocked());
+
+        AutoAdvance.beforeCompletion(component, "finished-behind-the-panel");
+
+        assertEquals("a video nobody could see was counted", 0, control.completedCount);
+        assertFalse("the feed kept advancing behind the hold", control.owned);
+    }
+
     @Test public void disabledSettingLeavesPreexistingNativeAutoScrollAlone() {
         FeedView feed = new FeedView();
         var control = new AutoAdvance.Control(feed);
@@ -115,5 +189,48 @@ public class AutoAdvanceTest {
             org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
             app.morphe.extension.tiktok.UiCapture.save(activity.getWindow().getDecorView(), "auto-advance-settings.png");
         }
+    }
+
+    @Test public void ownedSessionStopsAtItsVisibleCompletionLimitAndCanBeReset() {
+        Settings.AUTO_ADVANCE_LIMIT.save(2);
+        FeedView feed = new FeedView();
+        var control = new AutoAdvance.Control(feed);
+        var state = new AtomicReference<>(State.AUTO_SCROLL_STATE_STOP);
+        var starts = new AtomicInteger();
+        var stops = new AtomicInteger();
+        Runnable start = () -> { starts.incrementAndGet(); state.set(State.AUTO_SCROLL_STATE_START); };
+        Runnable stop = () -> { stops.incrementAndGet(); state.set(State.AUTO_SCROLL_STATE_STOP); };
+
+        control.update(state::get, start, stop);
+        assertTrue(control.owned);
+        assertTrue(control.recordCompletion("first"));
+        state.set(State.AUTO_SCROLL_STATE_STOP);
+        control.update(state::get, start, stop);
+        assertEquals(2, starts.get());
+        assertTrue(control.recordCompletion("second"));
+        state.set(State.AUTO_SCROLL_STATE_STOP);
+        control.update(state::get, start, stop);
+        assertEquals(1, stops.get());
+        assertFalse(control.owned);
+        assertFalse(control.recordCompletion("second"));
+
+        // Removing the limit lets this feed session continue. A new component starts at zero.
+        Settings.AUTO_ADVANCE_LIMIT.save(0);
+        control.update(state::get, start, stop);
+        assertEquals(3, starts.get());
+        var fresh = new AutoAdvance.Control(new FeedView());
+        assertEquals(0, fresh.completedCount);
+    }
+
+    @Test public void nativeOnlyCompletionsDoNotConsumeTheHushfeedLimit() {
+        Settings.AUTO_ADVANCE_LIMIT.save(1);
+        FeedView feed = new FeedView();
+        var control = new AutoAdvance.Control(feed);
+        var state = new AtomicReference<>(State.AUTO_SCROLL_STATE_START);
+        control.update(state::get, () -> fail("native scrolling is already running"),
+                () -> fail("native scrolling is not owned"));
+        assertFalse(control.owned);
+        assertFalse(control.recordCompletion("native"));
+        assertEquals(0, control.completedCount);
     }
 }

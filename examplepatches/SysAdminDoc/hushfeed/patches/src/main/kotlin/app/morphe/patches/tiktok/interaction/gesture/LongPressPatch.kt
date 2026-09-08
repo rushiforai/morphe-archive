@@ -15,6 +15,7 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.interaction.blockauthor.blockAuthorPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
+import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
@@ -76,14 +77,14 @@ private object PlayerProgressFingerprint : Fingerprint(
 @Suppress("unused")
 val longPressPatch = bytecodePatch(
     name = "Long-press controls",
-    description = "Lets a long press on a video keep TikTok's own action, do nothing, or " +
-        "open the video's comments, and can turn a press on the left or right third of the " +
-        "screen into a jump back or forward. Brings Double-tap controls with it, which " +
-        "supplies the comment control. Supports TikTok 46.2.3.",
+    description = "Lets a long press on a video keep TikTok's own action, do nothing, open " +
+        "the video's comments, or save the original sound, and can turn a press on the left " +
+        "or right third of the screen into a jump back or forward. Brings Double-tap controls " +
+        "with it, which supplies the comment control. Supports TikTok 46.2.3.",
     default = false,
 ) {
     compatibleWith(*AppCompatibilities.tiktok4623())
-    dependsOn(blockAuthorPatch, doubleTapPatch)
+    dependsOn(settingsPatch, blockAuthorPatch, doubleTapPatch)
 
     execute {
         FeedLongPressFingerprint.method.apply {

@@ -145,6 +145,89 @@ object DashManifestParserParseFingerprint : Fingerprint(
 )
 
 // ---------------------------------------------------------------------------
+// Hook 6 — AviaPlayer.startExoplayer(MediaSource) — the RESUME-SEEK seam (issue #147).
+//
+// Pluto plays through Paramount's Avia SDK on top of media3/ExoPlayer (both
+// un-obfuscated in this build). When the media is loaded, startExoplayer reads the
+// resume bookmark off the media asset (getStartPosition(), in the ORIGINAL
+// ad-inclusive timeline) and applies it with a single
+//   Landroidx/media3/common/Player;->seekTo(J)V
+// call — the ONLY seekTo(J) in this method. Because Hook 5 shortened the content
+// timeline, a bookmark past the new (shorter) duration makes ExoPlayer seek past
+// the end -> STATE_ENDED -> Pluto autoplay-advances to the next episode (the
+// one-off skip in #147). The parsed timeline is already live here, so the player's
+// current (stripped) duration is readable. Hook 6 routes the start position through
+// PlutoDashManifestProbe.mapResumePosition(player, pos) just before that seekTo,
+// re-mapping an original-timeline bookmark into stripped-timeline coordinates.
+// Confirmed present in 5.66.0-leanback:
+//   com/paramount/android/avia/player/player/core/AviaPlayer;
+//     ->startExoplayer(Landroidx/media3/exoplayer/source/MediaSource;)V
+object AviaStartExoplayerFingerprint : Fingerprint(
+    definingClass = "Lcom/paramount/android/avia/player/player/core/AviaPlayer;",
+    name = "startExoplayer",
+    parameters = listOf("Landroidx/media3/exoplayer/source/MediaSource;"),
+    returnType = "V",
+)
+
+// ===========================================================================
+// LIVE ad-break MASK (issue #152) — fingerprints for the liveSlatePatch.
+//
+// Live/linear Pluto ads are real broadcast time in the dynamic DASH feed and can't be
+// removed (the VOD strip passes live manifests through untouched). Instead we MASK the
+// break: black cover + mute, lifted when the show returns. Detector + host seams below,
+// all confirmed on 5.66.0-leanback and against a real live break (2026-09-07).
+// ===========================================================================
+
+// Detector — ID3AdsBeaconTracker.consumeID3(ID3Tag): fires ONLY while an ad is playing
+// (silent during the show). Each call = "an ad is on screen now"; the helper re-arms a
+// short hide timer per call and lifts the mask when the ticks stop. Synchronous, void,
+// single param — a clean offset-0 hook. Survives "Skip ads" (that neuters BeaconTracker,
+// a different class).
+object Id3ConsumeFingerprint : Fingerprint(
+    definingClass = "Ltv/pluto/kmm/ads/adsbeacontracker/ID3AdsBeaconTracker;",
+    name = "consumeID3",
+    parameters = listOf("Ltv/pluto/kmm/ads/adsbeacontracker/model/ID3Tag;"),
+    returnType = "V",
+)
+
+// Overlay host — the single-Activity leanback host (LeanbackMainHostActivity). Its content
+// root covers the player for the WHOLE session, unlike the live-controls fragment whose view
+// is destroyed when the on-screen controls auto-hide (which prematurely tore the mask down).
+// onCreate captures the Activity (p0); onDestroy clears it. The cover is added lazily at
+// break time, so registering at onCreate (before the content view exists) is fine.
+object LeanbackHostOnCreateFingerprint : Fingerprint(
+    definingClass = "Ltv/pluto/android/ui/main/LeanbackMainHostActivity;",
+    name = "onCreate",
+    parameters = listOf("Landroid/os/Bundle;"),
+    returnType = "V",
+)
+
+object LeanbackHostOnDestroyFingerprint : Fingerprint(
+    definingClass = "Ltv/pluto/android/ui/main/LeanbackMainHostActivity;",
+    name = "onDestroy",
+    parameters = listOf(),
+    returnType = "V",
+)
+
+// Mute — capture the AviaPlayer (constructor arg p1) so the helper can reflect its
+// media3 ExoPlayer `player` field and get/set its volume (mute = 0f, restored on lift).
+object AviaControllerInitFingerprint : Fingerprint(
+    definingClass = "Ltv/pluto/library/player/impl/avia/AviaPlaybackController;",
+    name = "<init>",
+    parameters = listOf(
+        "Lcom/paramount/android/avia/player/player/core/AviaPlayer;",
+        "Ltv/pluto/library/player/impl/avia/IAviaAccessor;",
+        "Ltv/pluto/library/player/api/IContentController;",
+        "Ltv/pluto/library/player/IAdGroupsDispatcher;",
+        "Ltv/pluto/library/player/api/IPlayerRxEventsAdapter;",
+        "Lio/reactivex/disposables/CompositeDisposable;",
+        "Lio/reactivex/Scheduler;",
+        "Ltv/pluto/library/player/utils/IThreadPoster;",
+    ),
+    returnType = "V",
+)
+
+// ---------------------------------------------------------------------------
 // Tier 2 candidate — VOD auto-skip (NOT wired; requires on-device validation)
 //
 // Because the ad-break timeline is fully client-side, VOD ads *may* be made

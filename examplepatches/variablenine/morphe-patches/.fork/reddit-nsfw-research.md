@@ -412,3 +412,38 @@ posts only. That is what "SFW posts still making it through" was. They are dropp
 
 The page-level fail-open still stands and is what it was always for: if **no** edge on a page
 carries a post id at all, the response shape has changed, and the page is left alone.
+
+
+## Eleven enums spell NSFW; only two tag a post
+
+Matching an enum constant named `NSFW` is not enough. In 2026.14.0 these declare one:
+
+```
+com.reddit.type.CellIndicatorType     APP CLUB_CONTENT COMMERCIAL_COMMUNICATION GAME NSFW
+                                      ORIGINAL QUARANTINED SPOILER UNKNOWN__
+com.reddit.feeds.model.IndicatorType  APP NSFW ORIGINAL QUARANTINED SPOILER
+com.reddit.type.NSFWState             NONE NSFW UNKNOWN__
+com.reddit.type.DisplayTag            APP BOT CLUB_CONTENT NSFW PROFILE_VERIFIED_AUTHOR
+                                      QUARANTINED SPOILER UNKNOWN__
+com.reddit.type.QueryTag              COVID ELECTION MATURE NSFW UNKNOWN__ VIOLATING
+com.reddit.domain.media.MediaBlurType NONE NSFW SPOILER
+com.reddit.search.domain.model.dynamicserp.SearchTypeaheadSuggestion$DisplayTags
+                                      APP NSFW PROFILE_VERIFIED_AUTHOR QUARANTINED SPOILER
+com.reddit.postsubmit.analytics.Noun  CHAT CREATE_COMMUNITY FLAIR IMAGE NSFW POST
+                                      POST_GUIDANCE SPOILER VIDEO
+com.reddit.profile.model.ProfileVisibilityToggle          FOLLOWERS NSFW
+com.reddit.profile.analytics.ProfileSettingsAnalytics$ProfileVisibilitySettingsType
+                                      FOLLOWERS NSFW POST_AND_COMMENTS
+com.reddit.search.analytics.eventkit.Noun                 NSFW
+```
+
+Only the first two tag a post. `NSFWState` is a **subreddit's or profile's own rating** and is
+reachable from a post's edge, which is why SFW posts from 18+ communities kept surviving the
+filter.
+
+The discriminator is the company the constant keeps: an enum tags posts iff it declares
+`ORIGINAL`, `QUARANTINED` **and** `SPOILER` alongside `NSFW`. That admits exactly
+`CellIndicatorType` and `IndicatorType` and excludes every other row above - `DisplayTag` and
+`SearchTypeaheadSuggestion$DisplayTags` are the near misses, and both lack `ORIGINAL`. It needs
+no class name, so it survives obfuscation and package moves; GraphQL enum values are API
+contract and do not get renamed casually.

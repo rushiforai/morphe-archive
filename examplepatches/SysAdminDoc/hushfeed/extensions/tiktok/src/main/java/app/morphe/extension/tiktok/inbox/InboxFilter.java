@@ -12,21 +12,21 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.GlobalLayoutHook;
+import app.morphe.extension.shared.ResourceIdCache;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BooleanSetting;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import app.morphe.extension.tiktok.settings.L10n;
 
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
@@ -86,7 +86,7 @@ public final class InboxFilter {
      * activity, and a resource name lookup is a string search through the resource
      * table, so without this the feed would pay for a dozen lookups per frame.
      */
-    private static final Map<String, Integer> RESOLVED_IDS = new HashMap<>();
+    private static final ResourceIdCache RESOURCE_IDS = new ResourceIdCache();
 
     /**
      * Accounts dismissed in the current Clear all run, keyed by the remove button's
@@ -113,7 +113,7 @@ public final class InboxFilter {
     }
 
     private static WeakReference<Activity> activityReference = new WeakReference<>(null);
-    private static ViewTreeObserver.OnGlobalLayoutListener listener;
+    private static final GlobalLayoutHook LAYOUT_HOOK = new GlobalLayoutHook();
 
     private InboxFilter() {
     }
@@ -135,24 +135,22 @@ public final class InboxFilter {
     private static void installNow(Activity activity) {
         try {
             if (activity.isFinishing()) {
+                LAYOUT_HOOK.detach();
                 return;
             }
 
             ViewGroup root = activity.findViewById(android.R.id.content);
             if (root == null) {
+                LAYOUT_HOOK.detach();
                 Logger.printInfo(() -> "Inbox filter found no content view to watch");
                 return;
             }
 
-            if (listener != null && activityReference.get() == activity) {
-                return;
-            }
-
-            listener = InboxFilter::apply;
-            root.getViewTreeObserver().addOnGlobalLayoutListener(listener);
+            boolean installed = LAYOUT_HOOK.install(root, InboxFilter::apply);
             activityReference = new WeakReference<>(activity);
-
-            Logger.printDebug(() -> "Inbox filter installed");
+            if (installed) {
+                Logger.printDebug(() -> "Inbox filter installed");
+            }
         } catch (Throwable ex) {
             Logger.printException(() -> "Could not install the inbox filter", ex);
         }
@@ -161,7 +159,12 @@ public final class InboxFilter {
     private static void apply() {
         try {
             Activity activity = activityReference.get();
-            if (activity == null || activity.isFinishing()) {
+            if (activity == null) {
+                LAYOUT_HOOK.detach();
+                return;
+            }
+            if (activity.isFinishing()) {
+                LAYOUT_HOOK.detach();
                 return;
             }
 
@@ -259,6 +262,32 @@ public final class InboxFilter {
         return false;
     }
 
+    static void resolveForTests(String packageName, String name, int id) {
+        RESOURCE_IDS.putForTests(packageName, name, id);
+    }
+
+    /**
+     * The colour TikTok's own header text is using, so this row is readable whatever theme the
+     * app is in. The theme flag is not usable here: it is a cached value the Hushfeed settings
+     * screen sets, and away from that screen it answers for the system rather than for TikTok's
+     * own in-app theme, which would put a dark crimson on a dark sheet. Falls back to the brand
+     * accent when the header holds no text of its own to copy.
+     */
+    private static int headerTextColour(ViewGroup header) {
+        // Descends, because the heading is often wrapped in a layout of its own rather than
+        // sitting directly in the header.
+        for (int index = 0; index < header.getChildCount(); index++) {
+            View child = header.getChildAt(index);
+            if (child.getId() == CLEAR_ALL_VIEW_ID) continue;
+            if (child instanceof TextView) return ((TextView) child).getCurrentTextColor();
+            if (child instanceof ViewGroup) {
+                int nested = headerTextColour((ViewGroup) child);
+                if (nested != SettingsUi.OVERLAY_ACCENT) return nested;
+            }
+        }
+        return SettingsUi.OVERLAY_ACCENT;
+    }
+
     /**
      * Puts a Clear all control at the right end of the Suggested accounts heading.
      *
@@ -283,7 +312,12 @@ public final class InboxFilter {
         TextView clearAll = new TextView(activity);
         clearAll.setId(CLEAR_ALL_VIEW_ID);
         clearAll.setText(L10n.t(activity, "Clear all"));
-        clearAll.setTextColor(SettingsUi.overlayAccentOn(SettingsUi.isDarkMode()));
+        clearAll.setTextColor(headerTextColour(headerGroup));
+        // Taking the heading's colour makes it readable in either theme, but it also makes it
+        // look like a heading. This is a bulk action that dismisses every suggestion, so it has
+        // to read as something you can press.
+        clearAll.setTypeface(clearAll.getTypeface(), android.graphics.Typeface.BOLD);
+        clearAll.setPaintFlags(clearAll.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
         clearAll.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         clearAll.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
         clearAll.setContentDescription(L10n.t(activity, "Clear all suggested accounts"));
@@ -457,21 +491,13 @@ public final class InboxFilter {
 
     /** Resolves a resource id by name once and remembers it, including a miss. */
     private static int identifier(Activity activity, String name) {
-        Integer cached = RESOLVED_IDS.get(name);
-        if (cached != null) {
-            return cached;
-        }
-
-        int id;
-        try {
-            id = activity.getResources().getIdentifier(name, "id", activity.getPackageName());
-        } catch (Throwable ignored) {
-            id = 0;
-        }
-        if (id == 0) {
-            Logger.printInfo(() -> "Inbox view id '" + name + "' not found in this TikTok build");
-        }
-        RESOLVED_IDS.put(name, id);
+        int id = RESOURCE_IDS.resolve(
+                activity == null ? null : activity.getResources(),
+                activity == null ? "" : activity.getPackageName(),
+                name,
+                false);
+        if (id == 0) HookStatus.missingViewId("inbox", name);
+        else HookStatus.bound("inbox", name);
         return id;
     }
 }

@@ -102,7 +102,14 @@ final class SubtitleDownloads {
 
     static int save(Context context, List<Track> tracks, String videoName, String path) {
         int saved = 0;
-        String stem = videoName.substring(0, videoName.lastIndexOf('.'));
+        // The name comes back from the media provider, which is free to hand back one with no
+        // extension. Taking the whole name then keeps the subtitle beside its video instead of
+        // throwing away a save whose video is already on disk.
+        // An empty name would publish the subtitle as ".en.srt", which the gallery hides and
+        // which every video would then collide on, so it falls back like a missing one.
+        String base = videoName == null || videoName.isEmpty() ? "video" : videoName;
+        int dot = base.lastIndexOf('.');
+        String stem = dot > 0 ? base.substring(0, dot) : base;
         for (Track track : tracks) {
             File temp = null;
             try {

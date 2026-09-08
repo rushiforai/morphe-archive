@@ -65,6 +65,28 @@ public class CommentBatchTranslatorTest {
         assertEquals(0, NativeManager.requests);
     }
 
+    @Test public void commentsAlreadyInTheCurrentLanguageAreNotDispatched() {
+        android.content.res.Configuration configuration =
+                new android.content.res.Configuration(context.getResources().getConfiguration());
+        java.util.Locale previous = configuration.getLocales().isEmpty()
+                ? java.util.Locale.getDefault() : configuration.getLocales().get(0);
+        try {
+            configuration.setLocale(java.util.Locale.forLanguageTag("zh-CN"));
+            context.getResources().updateConfiguration(configuration, context.getResources().getDisplayMetrics());
+            registerCommentCellAndWait(anchor("aid-same-language", "cid-same-language"));
+            assertEquals(0, NativeManager.requests);
+        } finally {
+            configuration.setLocale(previous);
+            context.getResources().updateConfiguration(configuration, context.getResources().getDisplayMetrics());
+        }
+    }
+
+    private static void registerCommentCellAndWait(Anchor anchor) {
+        CommentBatchTranslator.onCommentListLoaded(new CommentItemList(anchor.comment));
+        CommentBatchTranslator.registerCommentCell(new View(RuntimeEnvironment.getApplication()), anchor);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(351));
+    }
+
     @Test public void concurrentTriggersReserveOnePendingRequest() {
         Anchor anchor = loadedAnchor("aid-pending", "cid-pending");
         CommentBatchTranslator.registerCommentCell(new View(context), anchor);
@@ -127,6 +149,19 @@ public class CommentBatchTranslatorTest {
         CommentBatchTranslator.onNativeBatchComplete(new Runner(new Object(), successful.comment));
         CommentBatchTranslator.registerCommentCell(new View(context), successful);
         assertEquals(3, NativeManager.requests);
+    }
+
+    @Test public void expiredLoadedAndVisibleBatchesCanBeRequestedAgain() throws Exception {
+        Anchor anchor = loadedAnchor("aid-expired", "cid-expired");
+        CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+        assertEquals(1, NativeManager.requests);
+        CommentBatchTranslator.onNativeBatchComplete(new Runner(new Object(), anchor.comment));
+
+        invokePrune(SystemClock.elapsedRealtime() + 61_000L);
+        assertEquals(0, loadedBatchCount());
+        Anchor reloaded = loadedAnchor("aid-expired-reloaded", "cid-expired-reloaded");
+        CommentBatchTranslator.registerCommentCell(new View(context), reloaded);
+        assertEquals(2, NativeManager.requests);
     }
 
     @Test public void lateFailureCannotRemoveANewerRetryReservation() throws Exception {
@@ -204,6 +239,15 @@ public class CommentBatchTranslatorTest {
         pendingField.setAccessible(true);
         synchronized (lock) {
             return ((Map<String, ?>) pendingField.get(null)).size();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static int loadedBatchCount() throws Exception {
+        Field field = CommentBatchTranslator.class.getDeclaredField("loadedBatches");
+        field.setAccessible(true);
+        synchronized (getTranslatorLock()) {
+            return ((Map<String, ?>) field.get(null)).size();
         }
     }
 

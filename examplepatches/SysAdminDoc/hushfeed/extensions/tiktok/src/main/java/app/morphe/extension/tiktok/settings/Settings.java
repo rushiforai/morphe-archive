@@ -19,6 +19,8 @@ import app.morphe.extension.shared.settings.StringSetting;
 import app.morphe.extension.tiktok.navigation.BottomNavigationTabOptions;
 import app.morphe.extension.tiktok.navigation.NavigationTabOptions;
 
+import java.util.Collections;
+
 public class Settings extends BaseSettings {
     public static final BooleanSetting REGION_SPOOF = new BooleanSetting("region_spoof", FALSE, true);
     public static final BooleanSetting REGION_STORE_SPOOF = new BooleanSetting("region_store_spoof", FALSE, true);
@@ -43,6 +45,23 @@ public class Settings extends BaseSettings {
             new BooleanSetting("download_without_sound", FALSE);
     public static final StringSetting EXTERNAL_DOWNLOADER_PACKAGE =
             new StringSetting("external_downloader_package", "");
+    /** The only package whose documented intent extras Hushfeed knows how to request. */
+    public static final String YTDLNIS_PACKAGE_NAME = "com.deniscerri.ytdl";
+    private static final Setting.Availability YTDLNIS_ONLY = new Setting.Availability() {
+        @Override
+        public boolean isAvailable() {
+            return YTDLNIS_PACKAGE_NAME.equals(EXTERNAL_DOWNLOADER_PACKAGE.get().trim());
+        }
+
+        @Override
+        public java.util.List<Setting<?>> getParentSettings() {
+            return Collections.singletonList(EXTERNAL_DOWNLOADER_PACKAGE);
+        }
+    };
+    public static final StringSetting YTDLNIS_DOWNLOAD_TYPE = new StringSetting(
+            "ytdlnis_download_type", "video", false, YTDLNIS_ONLY);
+    public static final BooleanSetting YTDLNIS_BACKGROUND = new BooleanSetting(
+            "ytdlnis_background", FALSE, false, YTDLNIS_ONLY);
     public static final StringSetting DOWNLOAD_STICKER_FORMAT = new StringSetting("download_sticker_format", "mp4");
     public static final BooleanSetting SAVE_PROFILE_PICTURE = new BooleanSetting("save_profile_picture", FALSE);
     public static final BooleanSetting SAVE_STORY = new BooleanSetting("save_story", FALSE);
@@ -66,10 +85,13 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting CONFIRM_LIKE = new BooleanSetting("confirm_like", FALSE);
     public static final StringSetting BLOCKED_CAPTION_WORDS = new StringSetting("blocked_caption_words", "");
     public static final StringSetting BLOCKED_CREATORS = new StringSetting("blocked_creators", "");
+    public static final StringSetting LOCAL_HIDDEN_CREATORS = new StringSetting("local_hidden_creators", "");
     public static final StringSetting REGION_ONLY_FROM = new StringSetting("region_only_from", "", true);
     public static final StringSetting REGION_NEVER_FROM = new StringSetting("region_never_from", "", true);
     public static final IntegerSetting MAX_VIDEO_SECONDS =
             new IntegerSetting("max_video_seconds", 0).withRange(0, 86400);
+    public static final IntegerSetting MAX_PUBLICATION_AGE_DAYS =
+            new IntegerSetting("max_publication_age_days", 0).withRange(0, 3650);
     public static final IntegerSetting MAX_VIEWS_PER_LIKE =
             new IntegerSetting("max_views_per_like", 0).withRange(0, 1000000);
     public static final BooleanSetting HIDE_PROMOTIONAL_MUSIC = new BooleanSetting("hide_promotional_music", FALSE);
@@ -133,7 +155,6 @@ public class Settings extends BaseSettings {
     );
     public static final BooleanSetting HIDE_TAKO_AI = new BooleanSetting("hide_tako_ai", FALSE, true);
     public static final BooleanSetting COMMENT_BATCH_TRANSLATION = new BooleanSetting("comment_batch_translation", FALSE);
-    public static final StringSetting COMMENT_TRANSLATION_EXCLUDED_LANGUAGES = new StringSetting("comment_translation_excluded_languages", "");
     public static final BooleanSetting HIDE_COMMENT_QUICK_REACTIONS =
             new BooleanSetting("hide_comment_quick_reactions", FALSE);
     public static final StringSetting DOWNLOAD_PATH = new StringSetting("down_path", "DCIM/TikTok");
@@ -186,6 +207,28 @@ public class Settings extends BaseSettings {
     public static final StringSetting DEFAULT_SPEED = new StringSetting("default_speed", "1.5");
     public static final StringSetting CUSTOM_SPEEDS = new StringSetting("custom_speeds", "", true);
     public static final BooleanSetting AUTO_ADVANCE = new BooleanSetting("auto_advance", FALSE, true);
+    public static final IntegerSetting AUTO_ADVANCE_LIMIT = new IntegerSetting(
+            "auto_advance_limit", 0, false, Setting.parent(AUTO_ADVANCE)).withRange(0, 1000);
+    /**
+     * A daily budget for the feed, off at zero. The two counts are independent of
+     * {@link #AUTO_ADVANCE_LIMIT}, which only ever counted videos Hushfeed itself advanced past.
+     */
+    public static final IntegerSetting SESSION_BUDGET_VIDEOS = new IntegerSetting(
+            "session_budget_videos", 0).withRange(0, 2000);
+    public static final IntegerSetting SESSION_BUDGET_MINUTES = new IntegerSetting(
+            "session_budget_minutes", 0).withRange(0, 600);
+    public static final IntegerSetting SESSION_BUDGET_LOCK_MINUTES = new IntegerSetting(
+            "session_budget_lock_minutes", 0).withRange(0, 720);
+    public static final IntegerSetting SESSION_BUDGET_RESET_HOUR = new IntegerSetting(
+            "session_budget_reset_hour", 4).withRange(0, 23);
+    /**
+     * Today's counts and any running hold, so both survive the process being killed. Kept out
+     * of backups: it is a record of one day, and restoring last week's would either hand back a
+     * day or take one away, neither of which anyone asked for.
+     */
+    public static final StringSetting SESSION_BUDGET_STATE =
+            new StringSetting("session_budget_state", "", false, false);
+
     public static final BooleanSetting ENABLE_LONG_PRESS_SPEED_LOCK = new BooleanSetting("enable_long_press_speed_lock", FALSE, true);
     public static final BooleanSetting NOT_INTERESTED_BUTTON = new BooleanSetting("not_interested_button", FALSE);
     public static final BooleanSetting HIDE_FEED_CAPTION = new BooleanSetting("hide_feed_caption", FALSE);
@@ -268,6 +311,7 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SHARE_CONFIRM_SEND = new BooleanSetting("share_confirm_send", TRUE);
     public static final BooleanSetting HIDE_SHARE_CONTACTS = new BooleanSetting("hide_share_contacts", FALSE);
     public static final StringSetting SHARE_HIDDEN_ITEMS = new StringSetting("share_hidden_items", "");
+    public static final StringSetting SHARE_ACTION_CATALOG = new StringSetting("share_action_catalog", "");
     public static final BooleanSetting DISABLE_LONG_PRESS_QUICK_SHARE =
             new BooleanSetting("disable_long_press_quick_share", FALSE);
     public static final BooleanSetting DISABLE_LONG_PRESS_REPOST =

@@ -45,8 +45,39 @@ object WidgetPopupListFingerprint : Fingerprint(
     },
 )
 
+object PopupShowFingerprint : Fingerprint(
+    returnType = "V",
+    custom = { method, _ ->
+        method.parameterTypes.size == 1 &&
+            method.parameterTypes[0].toString() == "Ljava/util/List;" &&
+            method.implementation?.let { impl ->
+                val insns = impl.instructions.toList()
+                insns.size <= 10 && insns.any { insn ->
+                    if (insn is ReferenceInstruction) {
+                        val ref = insn.reference
+                        ref is MethodReference && ref.name == "setValue"
+                    } else false
+                }
+            } ?: false
+    },
+)
+
 // Retain alias for backwards compatibility
 val PopupListFingerprint = WidgetPopupListFingerprint
+
+object ComposeStringResourceFingerprint : Fingerprint(
+    returnType = "Ljava/lang/String;",
+    filters = listOf(
+        methodCall(
+            smali = "Landroid/content/res/Resources;->getString(I)Ljava/lang/String;",
+        ),
+    ),
+    custom = { method, _ ->
+        method.parameterTypes.size == 2 &&
+            method.parameterTypes[0].toString() == "I" &&
+            (method.implementation?.instructions?.count() ?: 0) <= 12
+    },
+)
 
 object ContextMenuFingerprint : Fingerprint(
     strings = listOf(
@@ -124,7 +155,60 @@ val morpheContextualActionPatch = bytecodePatch(
             }
         }
 
-        // 2. Intercept Uninstall action handler for smart prompt
+        // Central popup injection: hooks the master popup show method (e.g. Lrj;->d in build 017).
+        // This universally covers ALL contextual popup menus across the launcher (app drawer categories, search, dock, home screen).
+        PopupShowFingerprint.matchOrNull()?.let { match ->
+            val method = match.method
+            val instructions = method.implementation?.instructions ?: return@let
+            var setValueInsnIndex = -1
+            for ((idx, insn) in instructions.withIndex()) {
+                if (insn is ReferenceInstruction) {
+                    val ref = insn.reference
+                    if (ref is MethodReference && ref.name == "setValue") {
+                        setValueInsnIndex = idx
+                        break
+                    }
+                }
+            }
+            if (setValueInsnIndex >= 0) {
+                val (regState, regList) = try {
+                    val insn = method.getInstruction<FiveRegisterInstruction>(setValueInsnIndex)
+                    Pair("v${insn.registerC}", "v${insn.registerD}")
+                } catch (t: Throwable) {
+                    val insn = method.getInstruction<RegisterRangeInstruction>(setValueInsnIndex)
+                    val start = insn.startRegister
+                    Pair("v$start", "v${start + 1}")
+                }
+
+                method.replaceInstruction(
+                    setValueInsnIndex,
+                    "invoke-static {$regState, $regList}, Lcom/autocat/morphe/smartlauncher/extension/MorpheMenuInjector;->injectAndSetPopupValue(Ljava/lang/Object;Ljava/util/List;)V",
+                )
+            }
+        }
+
+        // 2. Intercept Compose stringResource calls to dynamically resolve Morphe strings
+        (ComposeStringResourceFingerprint.matchAllOrNull() ?: emptyList()).forEach { match ->
+            val method = match.method
+            for (insnMatch in match.instructionMatches) {
+                val matchIndex = insnMatch.index
+                val (regRes, regId) = try {
+                    val insn = method.getInstruction<FiveRegisterInstruction>(matchIndex)
+                    Pair("v${insn.registerC}", "v${insn.registerD}")
+                } catch (t: Throwable) {
+                    val insn = method.getInstruction<RegisterRangeInstruction>(matchIndex)
+                    val start = insn.startRegister
+                    Pair("v$start", "v${start + 1}")
+                }
+
+                method.replaceInstruction(
+                    matchIndex,
+                    "invoke-static {$regRes, $regId}, Lcom/autocat/morphe/smartlauncher/extension/MorpheMenuInjector;->getString(Landroid/content/res/Resources;I)Ljava/lang/String;",
+                )
+            }
+        }
+
+        // 3. Intercept Uninstall action handler for smart prompt
         ContextMenuFingerprint.matchOrNull()?.let { match ->
             val method = match.method
             val matchIndex = match.instructionMatches.first().index

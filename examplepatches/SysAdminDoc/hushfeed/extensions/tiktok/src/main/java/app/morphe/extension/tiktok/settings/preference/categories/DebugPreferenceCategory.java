@@ -12,6 +12,7 @@ import app.morphe.extension.shared.settings.preference.ExportDiagnosticReportPre
 import app.morphe.extension.shared.settings.preference.LogExportFilterPreference;
 import app.morphe.extension.tiktok.Utils;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
+import app.morphe.extension.tiktok.settings.preference.HookStatusPreference;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 
@@ -22,9 +23,14 @@ public class DebugPreferenceCategory extends ConditionalPreferenceCategory {
         setTitle("Diagnostics");
     }
 
+    /** Whether this page has anything on it. The row into it asks the same question. */
+    public static boolean isAvailable() {
+        return SettingsStatus.diagnosticsEnabled;
+    }
+
     @Override
     public boolean getSettingsStatus() {
-        return SettingsStatus.diagnosticsEnabled;
+        return isAvailable();
     }
 
     @Override
@@ -42,6 +48,8 @@ public class DebugPreferenceCategory extends ConditionalPreferenceCategory {
                 "Save the latest available TikTok crash report for diagnostic export.",
                 BaseSettings.CAPTURE_JAVA_CRASHES
         ));
+
+        addPreference(new HookStatusPreference(context));
 
         var logFilter = new TintedLogExportFilterPreference(context);
         logFilter.setTitle(L10n.t(context, "Included diagnostics"));

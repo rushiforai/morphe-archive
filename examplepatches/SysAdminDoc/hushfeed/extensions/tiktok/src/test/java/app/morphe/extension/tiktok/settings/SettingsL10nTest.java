@@ -1,5 +1,6 @@
 package app.morphe.extension.tiktok.settings;
 
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -80,6 +81,81 @@ public class SettingsL10nTest {
      * English by choice, which the row that opens it says. The shared extension module is not
      * walked either: it is TikTok-independent code, and this table is TikTok's.
      */
+    @Test public void everyTranslationKeepsTheShapeOfItsKey() {
+        // Defects the key-set checks cannot see. A placeholder that changed, was dropped or was
+        // invented; a sentence that lost or gained its terminator; a quote pair that does not
+        // close. The first pass of this check only looked at numbered placeholders in the key,
+        // so a bare "%s" and an invented placeholder both walked past it.
+        java.util.List<String> problems = new java.util.ArrayList<>();
+        java.util.Map<String, java.util.Map<String, String>> tables = new java.util.LinkedHashMap<>();
+        tables.put("de", GERMAN);
+        tables.put("in", INDONESIAN);
+
+        for (java.util.Map.Entry<String, java.util.Map<String, String>> table : tables.entrySet()) {
+            String language = table.getKey();
+            for (java.util.Map.Entry<String, String> row : table.getValue().entrySet()) {
+                String key = row.getKey();
+                String value = row.getValue();
+
+                // Both directions and both spellings, so a dropped, changed, added or
+                // renumbered placeholder is all the same finding.
+                java.util.List<String> wanted = placeholders(key);
+                java.util.List<String> given = placeholders(value);
+                if (!wanted.equals(given)) {
+                    problems.add(language + " placeholders " + wanted + " became " + given
+                            + " in: " + key);
+                }
+
+                if (terminator(key) != terminator(value)) {
+                    problems.add(language + " ends the sentence with '" + terminator(value)
+                            + "' where the key ends with '" + terminator(key) + "' in: " + key);
+                }
+
+                // German opens low and closes high. Everything else here uses the English pair.
+                char open = "de".equals(language) ? '\u201e' : '\u201c';
+                char close = "de".equals(language) ? '\u201c' : '\u201d';
+                long opened = value.chars().filter(c -> c == open).count();
+                long closed = value.chars().filter(c -> c == close).count();
+                if (opened != closed) {
+                    problems.add(language + " opened " + opened + " quotes and closed " + closed
+                            + " in: " + key);
+                }
+            }
+        }
+        assertEquals("translations that do not keep the shape of their key: " + problems,
+                0, problems.size());
+    }
+
+    @Test public void theTranslationShapeCheckCanActuallyFail() {
+        // A scan with nothing to find is a scan that proves nothing. These are the four shapes
+        // the check exists for, put in front of it on purpose.
+        assertNotEquals("a dropped placeholder", placeholders("across %1$d surfaces"),
+                placeholders("auf %d Oberflachen"));
+        assertNotEquals("a renumbered placeholder", placeholders("%1$s and %2$s"),
+                placeholders("%2$s and %1$s"));
+        assertNotEquals("an invented placeholder", placeholders("no placeholder here"),
+                placeholders("keiner %1$s hier"));
+        assertNotEquals("a dropped full stop", terminator("Hide the caption."),
+                terminator("Beschreibung ausblenden"));
+        assertNotEquals("a changed terminator", terminator("Really?"), terminator("Wirklich."));
+    }
+
+    /** Every placeholder in order, numbered or bare, so a change of either kind shows up. */
+    private static java.util.List<String> placeholders(String text) {
+        java.util.List<String> found = new java.util.ArrayList<>();
+        var match = java.util.regex.Pattern.compile("%(?:\\d+\\$)?[a-zA-Z]").matcher(text);
+        while (match.find()) found.add(match.group());
+        return found;
+    }
+
+    /** The character a string ends a sentence with, or a space when it ends with none. */
+    private static char terminator(String text) {
+        String trimmed = text.trim();
+        if (trimmed.isEmpty()) return ' ';
+        char last = trimmed.charAt(trimmed.length() - 1);
+        return ".!?:\u2026".indexOf(last) >= 0 ? last : ' ';
+    }
+
     @Test public void everyRuntimeToastGoesThroughTheTable() throws Exception {
         java.io.File root = new java.io.File("src/main/java/app/morphe/extension/tiktok");
         if (!root.isDirectory()) root = new java.io.File(
@@ -116,11 +192,16 @@ public class SettingsL10nTest {
      * however it is spelled, plus the platform call those wrap and the undo banner,
      * which is a toast in every way that matters to a reader.
      *
+     * <p>A content description counts too. Nothing shows it on screen, but it is the only
+     * words a reader using TalkBack gets for a button drawn as a glyph, and three of the
+     * player's overlay buttons reached that reader in English on a German phone.
+     *
      * <p>Named this widely on purpose. The first version knew two method names, and a
      * file with a private toast helper of its own walked past it carrying five English
      * messages.
      */
-    private static final String SHOWS_TEXT = "(?:\\b\\w*[Tt]oast\\w*|Toast\\s*\\.\\s*makeText|showUndoBanner)\\s*\\(";
+    private static final String SHOWS_TEXT = "(?:\\b\\w*[Tt]oast\\w*|Toast\\s*\\.\\s*makeText|showUndoBanner"
+            + "|setContentDescription|setStateDescription)\\s*\\(";
 
     /** Marks every character of a source file as code, inside a literal, or inside a comment. */
     private static final byte CODE = 0, LITERAL = 1, COMMENT = 2;
@@ -341,14 +422,207 @@ public class SettingsL10nTest {
         Set<String> shown = collectEverything();
         List<String> missing = new ArrayList<>();
         for (String text : shown) {
-            // Composed text carries numbers or several lines, and a path is data; the parts
-            // of composed text are entries of their own.
-            boolean composed = text.contains("\n") || text.matches(".*\\d.*") || text.contains("/");
-            if (!composed && !english.contains(text)) {
+            // Text built at runtime from a placeholder, and text spanning lines, are assembled
+            // from parts that are entries of their own. Exempting anything merely carrying a
+            // digit or a slash let 63 of 619 strings through, including every message with a
+            // value in it.
+            boolean composed = text.contains("\n") || text.matches("(?s).*%\\d\\$.*");
+            if (!composed && !isValueRatherThanProse(text) && !english.contains(text)) {
                 missing.add(text);
             }
         }
         assertEquals("settings text without a translation entry: " + missing, 0, missing.size());
+    }
+
+    /**
+     * A chosen value shown back to the reader rather than wording of ours. A resolution and a
+     * speed are written the same way in every language, and the download folder is a real path
+     * on the device. An entry mapping each of these to itself would only pad the table.
+     *
+     * <p>The SIM preset summary is the exception that is a real gap. It is built at runtime as
+     * "country, carrier (mccmnc)", and the country reads differently in German and Indonesian.
+     * Translating the preset list is its own task and is on the roadmap; matching it on the
+     * carrier code it ends with keeps this check honest about what it lets past rather than
+     * widening the rule until it disappears.
+     */
+    private static boolean isValueRatherThanProse(String text) {
+        return text.matches("\\d+p")
+                || text.matches("\\d+(\\.\\d+)?x")
+                || text.matches("[A-Za-z]+(/[A-Za-z0-9_-]+)+")
+                || text.matches(".*\\(\\d{5,6}\\)");
+    }
+
+    @Test
+    public void theTableCarriesNothingTheScreensNoLongerSay() throws Exception {
+        // A wording that drifted leaves its old entry behind, translated and unreachable, and
+        // the next reader of the table cannot tell it from one that is still in use.
+        Set<String> shown = new LinkedHashSet<>(collectEverything());
+        shown.addAll(runtimeStringsInSource());
+
+        List<String> orphaned = new ArrayList<>();
+        for (String english : GERMAN.keySet()) {
+            if (!shown.contains(english)) {
+                orphaned.add(english);
+            }
+        }
+
+        assertEquals("translation entries nothing shows any more, so remove them from the tsv "
+                + "files and rerun scripts/gen-l10n.py: " + orphaned, 0, orphaned.size());
+    }
+
+    @Test
+    public void everyStringHandedToL10nHasAnEntry() throws Exception {
+        // Wrapping a string in L10n.t is what the toast and content-description check looks for,
+        // and on its own it proves only the shape of the call. Without this, a new overlay label
+        // wrapped correctly but never added to the tsv files passes every check and still
+        // reaches the reader in English.
+        java.io.File root = new java.io.File("src/main/java/app/morphe/extension/tiktok");
+        if (!root.isDirectory()) root = new java.io.File(
+                "extensions/tiktok/src/main/java/app/morphe/extension/tiktok");
+        assertTrue("could not find the source tree", root.isDirectory());
+
+        java.util.regex.Pattern call = java.util.regex.Pattern.compile("L10n\\s*\\.\\s*[tf]\\s*\\(");
+        List<String> missing = new ArrayList<>();
+        int found = 0;
+        try (java.util.stream.Stream<java.nio.file.Path> files =
+                     java.nio.file.Files.walk(root.toPath())) {
+            for (java.nio.file.Path file : files.filter(p -> p.toString().endsWith(".java"))
+                    .collect(java.util.stream.Collectors.toList())) {
+                String text = new String(java.nio.file.Files.readAllBytes(file),
+                        java.nio.charset.StandardCharsets.UTF_8);
+                byte[] kind = classify(text);
+                java.util.regex.Matcher match = call.matcher(text);
+                while (match.find()) {
+                    if (kind[match.start()] != CODE) continue;
+                    int close = closingBracket(text, kind, match.end() - 1);
+                    if (close < 0) continue;
+                    List<String> parts = literalsIn(text, kind, match.end(), close);
+                    if (parts.isEmpty()) continue;
+                    found++;
+
+                    // One message split across lines is a single key; a choice between two
+                    // messages is two keys. Both are written as several literals in one call,
+                    // so either reading is accepted and only a part in neither is reported.
+                    if (GERMAN.containsKey(String.join("", parts))) continue;
+                    for (String part : parts) {
+                        if (!GERMAN.containsKey(part)) {
+                            missing.add(file.getFileName() + ": " + part);
+                        }
+                    }
+                }
+            }
+        }
+
+        assertTrue("the scan found no L10n calls to read", found > 50);
+        assertEquals("strings handed to L10n with no entry in the tsv files: " + missing,
+                0, missing.size());
+    }
+
+    /**
+     * The string literals inside one call, in order. A message too long for one line is written
+     * as several literals with a plus between them and is one key; a choice between two messages
+     * is written the same way and is two keys. The caller decides which reading fits.
+     */
+    private static List<String> literalsIn(String text, byte[] kind, int from, int to) {
+        List<String> parts = new ArrayList<>();
+        for (int at = from; at < to; at++) {
+            if (kind[at] != LITERAL || text.charAt(at) != '"') continue;
+            int end = at + 1;
+            while (end < to && kind[end] == LITERAL) end++;
+            // The run covers both quotes, so the closing one is not part of the text.
+            int contentEnd = end > at + 1 && text.charAt(end - 1) == '"' ? end - 1 : end;
+            parts.add(unescape(text.substring(at + 1, contentEnd)));
+            at = end - 1;
+        }
+        return parts;
+    }
+
+    private static String unescape(String literal) {
+        StringBuilder plain = new StringBuilder();
+        for (int at = 0; at < literal.length(); at++) {
+            char c = literal.charAt(at);
+            if (c != '\\' || at + 1 >= literal.length()) {
+                plain.append(c);
+                continue;
+            }
+            char next = literal.charAt(++at);
+            switch (next) {
+                case 'n': plain.append('\n'); break;
+                case 't': plain.append('\t'); break;
+                default: plain.append(next); break;
+            }
+        }
+        return plain.toString();
+    }
+
+    /**
+     * Every string the extension's own source says, from both trees that reach the table. A
+     * message written as several literals with a plus between them counts as its parts and as
+     * the whole, the way the compiler joins it.
+     *
+     * <p>L10nTranslations.java is skipped on purpose. It is generated from the tsv files and
+     * repeats every key back as a literal, so including it left the orphan check unable to fail:
+     * a key was "shown" because the generator had written it out again.
+     */
+    private static Set<String> runtimeStringsInSource() throws Exception {
+        Set<String> literals = new LinkedHashSet<>();
+        // Gradle runs the tests with the module directory as the working directory, so the paths
+        // are tried from the repository root and from inside extensions/tiktok. Skipping a root
+        // that resolves from neither would quietly shrink what counts as shown.
+        for (String relative : new String[]{
+                "extensions/tiktok/src/main/java",
+                "extensions/shared/library/src/main/java"}) {
+            java.io.File root = new java.io.File(relative);
+            if (!root.isDirectory()) root = new java.io.File("../../" + relative);
+            if (!root.isDirectory()) root = new java.io.File(relative.replaceFirst("^extensions/tiktok/", ""));
+            assertTrue("could not find " + relative + " from "
+                    + new java.io.File(".").getAbsolutePath(), root.isDirectory());
+            try (java.util.stream.Stream<java.nio.file.Path> files =
+                         java.nio.file.Files.walk(root.toPath())) {
+                for (java.nio.file.Path file : files.filter(p -> p.toString().endsWith(".java"))
+                        .collect(java.util.stream.Collectors.toList())) {
+                    if (file.getFileName().toString().equals("L10nTranslations.java")) continue;
+                    collectStrings(new String(java.nio.file.Files.readAllBytes(file),
+                            java.nio.charset.StandardCharsets.UTF_8), literals);
+                }
+            }
+        }
+        assertTrue("the scan found no source to read", literals.size() > 100);
+        return literals;
+    }
+
+    /** Adds each literal, and for a run joined by plus signs the joined message as well. */
+    private static void collectStrings(String text, Set<String> into) {
+        byte[] kind = classify(text);
+        int at = 0;
+        while (at < text.length()) {
+            if (kind[at] != LITERAL || text.charAt(at) != '"') {
+                at++;
+                continue;
+            }
+            List<String> parts = new ArrayList<>();
+            while (at < text.length() && kind[at] == LITERAL && text.charAt(at) == '"') {
+                int end = at + 1;
+                while (end < text.length() && kind[end] == LITERAL) end++;
+                int contentEnd = end > at + 1 && text.charAt(end - 1) == '"' ? end - 1 : end;
+                parts.add(unescape(text.substring(at + 1, contentEnd)));
+                into.add(parts.get(parts.size() - 1));
+
+                int probe = end;
+                while (probe < text.length() && kind[probe] == CODE
+                        && Character.isWhitespace(text.charAt(probe))) probe++;
+                if (probe < text.length() && kind[probe] == CODE && text.charAt(probe) == '+') {
+                    probe++;
+                    while (probe < text.length() && kind[probe] == CODE
+                            && Character.isWhitespace(text.charAt(probe))) probe++;
+                    at = probe;
+                    continue;
+                }
+                at = end;
+                break;
+            }
+            if (parts.size() > 1) into.add(String.join("", parts));
+        }
     }
 
     @Test
@@ -411,7 +685,9 @@ public class SettingsL10nTest {
             strings.add(L10n.t(activity, "Back up settings"));
             strings.add(L10n.t(activity, "Restore settings"));
             strings.add(L10n.t(activity, "Reset settings"));
-            strings.add(L10n.t(activity, "Undo last restore"));
+            // The wording the backup row actually uses. This list said "Undo last restore" long
+            // after the row started saying "or reset" too, which kept a dead tsv row alive.
+            strings.add(L10n.t(activity, "Undo last restore or reset"));
         }
         return strings;
     }

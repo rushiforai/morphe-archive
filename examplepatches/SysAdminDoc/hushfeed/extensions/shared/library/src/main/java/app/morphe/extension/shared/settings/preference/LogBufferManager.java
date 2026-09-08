@@ -1,5 +1,7 @@
 package app.morphe.extension.shared.settings.preference;
 
+import android.app.ActivityManager;
+import android.app.ApplicationExitInfo;
 import android.content.ContentValues;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -234,7 +236,28 @@ public final class LogBufferManager {
             events.append(DiagnosticRedactor.redact(event.format()));
         }
 
-        if (crash.isEmpty() && npthCrash.isEmpty() && events.length() == 0) return "";
+        // Hook misses are buffered under PATCH_ERRORS, so the table follows the same choice
+        // the reader made in "Included diagnostics" rather than printing regardless. It goes
+        // through the redactor for the same reason every other section does: the next name put
+        // in it may not be a literal.
+        StringBuilder hooks = new StringBuilder();
+        if (includeAll || selected.contains(
+                app.morphe.extension.shared.diagnostics.DiagnosticCategory.PATCH_ERRORS.value)) {
+            for (String line : app.morphe.extension.shared.diagnostics.HookStatus.report()) {
+                if (hooks.length() > 0) hooks.append('\n');
+                hooks.append(DiagnosticRedactor.redact(line));
+            }
+        }
+
+        // A family exists from the first layout pass, so an all-bound table must not make a
+        // report non-empty: "No matching Morphe diagnostics found" would never be said again.
+        // A table with a miss in it is different. Those events are the oldest in the buffer and
+        // are the first evicted, so on a badly broken build the table is exactly what would be
+        // dropped, and it is the thing the report exists to carry.
+        boolean worthReporting = !crash.isEmpty() || !npthCrash.isEmpty() || events.length() > 0
+                || (hooks.length() > 0
+                        && app.morphe.extension.shared.diagnostics.HookStatus.anyMissing());
+        if (!worthReporting) return "";
 
         StringBuilder report = new StringBuilder();
         report.append("MORPHE DIAGNOSTIC REPORT\n")
@@ -250,12 +273,104 @@ public final class LogBufferManager {
         if (!npthCrash.isEmpty()) {
             report.append("\n[LATEST TIKTOK CRASH SIGNAL]\n").append(npthCrash);
         }
+        if (hooks.length() > 0) {
+            report.append("\n[HOOK STATUS]\n").append(hooks).append('\n');
+        }
+        // Deliberately not part of worthReporting above. Every process has a last exit, most of
+        // them ordinary, so counting it would mean no report was ever empty and "No matching
+        // Morphe diagnostics found" would never be said again.
+        String lastExit = lastExitLine(includeAll, selected);
+        if (!lastExit.isEmpty()) {
+            report.append("\n[LAST EXIT]\n").append(lastExit).append('\n');
+        }
         if (events.length() > 0) {
             report.append("\n\n[SELECTED EVENTS]\n")
                     .append("category | timestamp | thread | source | level | message\n")
                     .append(events);
         }
         return report.toString();
+    }
+
+    /**
+     * Why the process went away last time. A Java crash handler sees none of the ways the system
+     * ends an app: Android 17 kills one that goes over a RAM-proportional limit and records it as
+     * a description like "MemoryLimiter:AnonSwap", and an ANR or a low-memory kill leaves nothing
+     * behind either. One line turns an unexplained restart into something a maintainer can act on.
+     *
+     * <p>Read only from API 30, where the history exists at all. It follows the same filter as
+     * the hook table, because it is the same kind of evidence.
+     */
+    private static String lastExitLine(boolean includeAll, Set<String> selected) {
+        if (Build.VERSION.SDK_INT < 30) return "";
+        if (!includeAll && !selected.contains(
+                app.morphe.extension.shared.diagnostics.DiagnosticCategory.PATCH_ERRORS.value)) {
+            return "";
+        }
+        try {
+            Context context = Utils.getContext();
+            if (context == null) return "";
+            ActivityManager manager =
+                    (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+            if (manager == null) return "";
+            // Pid 0 means any process, and TikTok runs several. The most recent record is
+            // routinely a background helper the system reaped, which says nothing about why the
+            // app went away, so the main process is picked out by name.
+            String packageName = context.getPackageName();
+            List<ApplicationExitInfo> history =
+                    manager.getHistoricalProcessExitReasons(packageName, 0, 16);
+            if (history == null || history.isEmpty()) return "";
+            ApplicationExitInfo exit = null;
+            for (ApplicationExitInfo candidate : history) {
+                if (packageName.equals(candidate.getProcessName())) {
+                    exit = candidate;
+                    break;
+                }
+            }
+            if (exit == null) return "";
+            StringBuilder line = new StringBuilder();
+            line.append("reason: ").append(exitReasonName(exit.getReason()))
+                    .append("\nstatus: ").append(exit.getStatus())
+                    .append("\nimportance: ").append(exit.getImportance())
+                    .append("\nat: ").append(utcOf(exit.getTimestamp()));
+            String description = exit.getDescription();
+            if (description != null && !description.isEmpty()) {
+                line.append("\ndescription: ").append(description);
+            }
+            return DiagnosticRedactor.redact(line.toString());
+        } catch (Throwable unavailable) {
+            // A build that cannot answer this is not a build that should fail to export.
+            return "";
+        }
+    }
+
+    private static String exitReasonName(int reason) {
+        switch (reason) {
+            case 1: return "EXIT_SELF";
+            case 2: return "SIGNALED";
+            case 3: return "LOW_MEMORY";
+            case 4: return "CRASH";
+            case 5: return "CRASH_NATIVE";
+            case 6: return "ANR";
+            case 7: return "INITIALIZATION_FAILURE";
+            case 8: return "PERMISSION_CHANGE";
+            case 9: return "EXCESSIVE_RESOURCE_USAGE";
+            case 10: return "USER_REQUESTED";
+            case 11: return "USER_STOPPED";
+            case 12: return "DEPENDENCY_DIED";
+            case 13: return "OTHER";
+            case 14: return "FREEZER";
+            case 15: return "PACKAGE_STATE_CHANGE";
+            case 16: return "PACKAGE_UPDATED";
+            case 0: return "UNKNOWN";
+            default: return "REASON " + reason;
+        }
+    }
+
+    /** The same stamp the report header carries, so one report does not hold two formats. */
+    private static String utcOf(long epochMillis) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return format.format(new Date(epochMillis));
     }
 
     public static String snapshotForCrash(int maxChars) {
@@ -329,6 +444,7 @@ public final class LogBufferManager {
 
     public static void clearLogBuffer() {
         clearLogBufferData();
+        app.morphe.extension.shared.diagnostics.HookStatus.clear();
         clearCrashReports(Utils.getContext());
         Utils.showToastShort("Morphe diagnostic data cleared.");
     }
@@ -358,7 +474,8 @@ public final class LogBufferManager {
         return format.format(new Date());
     }
 
-    private static String fileTimestamp() {
+    /** The stamp every Hushfeed export is named with. UTC, so two exports sort together. */
+    public static String fileTimestamp() {
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US);
         format.setTimeZone(TimeZone.getTimeZone("UTC"));
         return format.format(new Date());

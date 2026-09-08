@@ -15,12 +15,16 @@ public final class MorphePreferences {
     private MorphePreferences() {}
 
     public static SharedPreferences getPrefs(Context context) {
+        if (context == null) context = MorpheMenuInjector.getLastContext();
+        if (context == null) context = MorpheMenuInjector.getForegroundActivity();
+        if (context == null) return null;
         return context.getApplicationContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
     }
 
     public static boolean isHideArchivedEnabled(Context context) {
         try {
-            return getPrefs(context).getBoolean(KEY_HIDE_ARCHIVED, true);
+            SharedPreferences sp = getPrefs(context);
+            return sp != null ? sp.getBoolean(KEY_HIDE_ARCHIVED, true) : true;
         } catch (Throwable t) {
             return true;
         }
@@ -28,13 +32,15 @@ public final class MorphePreferences {
 
     public static void setHideArchivedEnabled(Context context, boolean enabled) {
         try {
-            getPrefs(context).edit().putBoolean(KEY_HIDE_ARCHIVED, enabled).apply();
+            SharedPreferences sp = getPrefs(context);
+            if (sp != null) sp.edit().putBoolean(KEY_HIDE_ARCHIVED, enabled).apply();
         } catch (Throwable ignored) {}
     }
 
     public static boolean isShizukuEnabled(Context context) {
         try {
-            return getPrefs(context).getBoolean(KEY_USE_SHIZUKU, true);
+            SharedPreferences sp = getPrefs(context);
+            return sp != null ? sp.getBoolean(KEY_USE_SHIZUKU, true) : true;
         } catch (Throwable t) {
             return true;
         }
@@ -42,13 +48,15 @@ public final class MorphePreferences {
 
     public static void setShizukuEnabled(Context context, boolean enabled) {
         try {
-            getPrefs(context).edit().putBoolean(KEY_USE_SHIZUKU, enabled).apply();
+            SharedPreferences sp = getPrefs(context);
+            if (sp != null) sp.edit().putBoolean(KEY_USE_SHIZUKU, enabled).apply();
         } catch (Throwable ignored) {}
     }
 
     public static boolean isNativeEnabled(Context context) {
         try {
-            return getPrefs(context).getBoolean(KEY_USE_NATIVE, true);
+            SharedPreferences sp = getPrefs(context);
+            return sp != null ? sp.getBoolean(KEY_USE_NATIVE, true) : true;
         } catch (Throwable t) {
             return true;
         }
@@ -56,7 +64,8 @@ public final class MorphePreferences {
 
     public static void setNativeEnabled(Context context, boolean enabled) {
         try {
-            getPrefs(context).edit().putBoolean(KEY_USE_NATIVE, enabled).apply();
+            SharedPreferences sp = getPrefs(context);
+            if (sp != null) sp.edit().putBoolean(KEY_USE_NATIVE, enabled).apply();
         } catch (Throwable ignored) {}
     }
 }

@@ -43,6 +43,7 @@ public final class FeedItemsFilter {
         new AdvancedFeedRules.PromotionalMusicFilter(),
         new AdvancedFeedRules.LiveReplayFilter(),
         new RegionFilter(),
+        new AdvancedFeedRules.PublicationAgeFilter(),
         new AdvancedFeedRules.QualityFilter()
     );
     private static final List<IFilter> RANGE_FILTERS = List.of(
@@ -87,6 +88,45 @@ public final class FeedItemsFilter {
     private static ProbeSummary filterCallProbeSummary = new ProbeSummary(System.currentTimeMillis());
 
     private FeedItemsFilter() {}
+
+    /** Clears process-wide probe state between deterministic runtime tests. */
+    static void resetDiagnosticsForTests() {
+        feedItemListNullItemsLogCount.set(0);
+        followFeedListNullItemsLogCount.set(0);
+        batchLogCount.set(0);
+        itemLogCount.set(0);
+        filterExceptionLogCount.set(0);
+        listReplacementLogCount.set(0);
+        filterCallProbeCount.set(0);
+        synchronized (filterCallProbeSeenLists) {
+            filterCallProbeSeenLists.clear();
+        }
+        synchronized (processedListCache) {
+            processedListCache.clear();
+        }
+        synchronized (filterCallProbeSummaryLock) {
+            filterCallProbeSummary = new ProbeSummary(System.currentTimeMillis());
+        }
+        FeedFilterFeedback.resetForTests();
+    }
+
+    static int probeSeenListCountForTests() {
+        synchronized (filterCallProbeSeenLists) {
+            return filterCallProbeSeenLists.size();
+        }
+    }
+
+    static int processedListCacheSizeForTests() {
+        synchronized (processedListCache) {
+            return processedListCache.size();
+        }
+    }
+
+    static String rotateProbeSummaryForTests(long nowMs) {
+        synchronized (filterCallProbeSummaryLock) {
+            return rotateProbeSummaryIfReadyLocked(nowMs);
+        }
+    }
 
     public static void filter(FeedItemList feedItemList) {
         boolean verbose = BaseSettings.DEBUG.get();
@@ -174,16 +214,22 @@ public final class FeedItemsFilter {
             return;
         }
 
-        int before = items.size();
-        int after = kept.size();
-        Logger.printInfo(() -> "[Morphe TikTok FeedFilter] filter(SearchMixFeedList): size "
-            + before + " -> " + after + " (removed=" + (before - after) + ")");
+        // printInfo is not gated on the debug switch, unlike printDebug, so every search page
+        // used to append to the bounded diagnostic buffer and push out the events around a crash.
+        if (BaseSettings.DEBUG.get() && shouldLogBatch()) {
+            int before = items.size();
+            int after = kept.size();
+            Logger.printInfo(() -> "[Morphe TikTok FeedFilter] filter(SearchMixFeedList): size "
+                + before + " -> " + after + " (removed=" + (before - after) + ")");
+        }
     }
 
     /** True when the card is an advert, by its own admission or by the video it wraps. */
     static boolean isSearchAd(Object card) {
         if (card == null) return false;
-        if (Boolean.TRUE.equals(Reflect.invoke(card, "isAdOrContainAd"))) return true;
+        // The card's own answer, with no other shape to fall back on, so a build that renamed it
+        // leaves search ads unfiltered and the report has to say so.
+        if (Boolean.TRUE.equals(Reflect.required(card, "isAdOrContainAd"))) return true;
 
         for (String name : SEARCH_AD_FIELDS) {
             if (Reflect.readField(card, name) != null) return true;
@@ -499,7 +545,7 @@ public final class FeedItemsFilter {
 
         int contentRemoved = 0;
         int rangeRejected = 0;
-        Map<String, Integer> reasonCounts = probeEnabled ? new HashMap<>() : null;
+        Map<String, Integer> reasonCounts = new HashMap<>();
 
         List snapshot = new ArrayList(list);
         List contentKept = new ArrayList(snapshot.size());
@@ -584,6 +630,7 @@ public final class FeedItemsFilter {
             recordProbeScan(listId, removed, System.nanoTime() - startNs);
         }
 
+        FeedFilterFeedback.onBatchResult(initialSize, resultList.size(), reasonCounts, System.currentTimeMillis());
         rememberProcessedList(listId, ListFingerprint.from(resultList, extractor), filterMask);
 
         if (verbose && removed > 0 && shouldLogBatch()) {

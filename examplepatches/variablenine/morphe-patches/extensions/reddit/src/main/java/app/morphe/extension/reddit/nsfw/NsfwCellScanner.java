@@ -23,12 +23,21 @@ import java.util.Set;
  * <ul>
  *   <li>the post id is the {@code String} field holding a {@code t3_} fullname, which is
  *       self-validating - no other string on the fragment looks like one;</li>
- *   <li>NSFW is an enum constant named {@code NSFW}. Reddit's schema spells it that way in more
- *       than one enum - {@code CellIndicatorType.NSFW} on a post's indicators cell, and
- *       {@code NSFWState.NSFW} elsewhere - so the constant name is matched rather than the type.
- *       Enum constants are the one part of a GraphQL model R8 leaves alone, since their names go
- *       over the wire.</li>
+ *   <li>NSFW is an enum constant named {@code NSFW} on a <em>post indicator</em> enum, which is
+ *       recognised by the company its constant keeps: the same type must also declare
+ *       {@code ORIGINAL}, {@code QUARANTINED} and {@code SPOILER}. Enum constant names are the
+ *       one part of a GraphQL model R8 leaves alone, since they go over the wire, so this needs
+ *       no class name at all.</li>
  * </ul>
+ *
+ * <p>Matching the constant name alone is not enough, and that was a real bug: eleven enums in
+ * the app declare an {@code NSFW} constant, among them {@code NSFWState} (a subreddit's or
+ * profile's own rating), {@code DisplayTag}, {@code QueryTag} and {@code MediaBlurType}. Any of
+ * those reachable from a post's edge marked it 18+, which is how SFW posts kept reaching an 18+
+ * feed. Requiring {@code ORIGINAL}, {@code QUARANTINED} and {@code SPOILER} alongside it picks
+ * out exactly the two types that tag a post - {@code com.reddit.type.CellIndicatorType} on the
+ * response and {@code com.reddit.feeds.model.IndicatorType} on the mapped element - and no
+ * others.
  *
  * <p>Depth matters here. An edge reaches its indicators through
  * edge - node - cell group - group fragment - cells - cell - indicators cell - indicators, which
@@ -42,6 +51,16 @@ public final class NsfwCellScanner {
 
     /** The enum constant Reddit's schema uses for 18+ content. */
     private static final String NSFW_CONSTANT = "NSFW";
+
+    /**
+     * The constants a post indicator enum keeps alongside {@code NSFW}. They separate the two
+     * types that tag a post from every other enum that happens to spell {@code NSFW}: a
+     * subreddit's rating, a search display tag, a blur type, an analytics noun.
+     */
+    private static final String[] INDICATOR_SIBLINGS = { "ORIGINAL", "QUARANTINED", "SPOILER" };
+
+    /** Whether an enum type tags posts, decided once per type. */
+    private static final Map<Class<?>, Boolean> indicatorTypes = new HashMap<>();
 
     /**
      * How deep to walk a fragment's object graph. The indicators of a home feed post sit nine
@@ -93,10 +112,52 @@ public final class NsfwCellScanner {
     }
 
     /**
-     * @return Whether a value is the NSFW marker itself.
+     * @return Whether a value is the NSFW marker itself - the {@code NSFW} constant of an enum
+     *         that tags posts, rather than of one that merely spells the same word.
      */
     public static boolean isNsfwIndicator(Object value) {
-        return value instanceof Enum && NSFW_CONSTANT.equals(((Enum<?>) value).name());
+        return value instanceof Enum
+                && NSFW_CONSTANT.equals(((Enum<?>) value).name())
+                && isPostIndicator(((Enum<?>) value).getDeclaringClass());
+    }
+
+    /**
+     * @return Whether an enum type is one that tags a post, judged by the constants it declares.
+     */
+    private static boolean isPostIndicator(Class<?> type) {
+        synchronized (indicatorTypes) {
+            Boolean cached = indicatorTypes.get(type);
+            if (cached != null) {
+                return cached;
+            }
+        }
+
+        boolean isIndicator = declaresAll(type, INDICATOR_SIBLINGS);
+        synchronized (indicatorTypes) {
+            indicatorTypes.put(type, isIndicator);
+        }
+        return isIndicator;
+    }
+
+    private static boolean declaresAll(Class<?> type, String[] required) {
+        Object[] constants = type.getEnumConstants();
+        if (constants == null) {
+            return false;
+        }
+
+        for (String name : required) {
+            boolean found = false;
+            for (Object constant : constants) {
+                if (constant instanceof Enum && name.equals(((Enum<?>) constant).name())) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -134,7 +195,7 @@ public final class NsfwCellScanner {
 
         if (node instanceof Enum) {
             String name = ((Enum<?>) node).name();
-            if (NSFW_CONSTANT.equals(name)) {
+            if (isNsfwIndicator(node)) {
                 scan.nsfw = true;
             }
             if (scan.enumNames != null && !isFrameworkClass(node.getClass().getName())) {

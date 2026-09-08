@@ -55,6 +55,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -82,6 +85,11 @@ public final class FeatureGateLabFragment extends Fragment {
     };
     private static final long SEARCH_DELAY_MS = 160;
     private static final java.util.concurrent.atomic.AtomicBoolean CHANGING = new java.util.concurrent.atomic.AtomicBoolean();
+    private static final ExecutorService FILE_IO_EXECUTOR = Executors.newSingleThreadExecutor(runnable -> {
+        Thread thread = new Thread(runnable, "MorpheGateFileIO");
+        thread.setDaemon(true);
+        return thread;
+    });
     private static final int REQUEST_EXPORT_LOADED = 0x6f10;
     private static final int REQUEST_IMPORT_LOADED = 0x6f11;
     private static final int MAX_COMPRESSED_IMPORT_BYTES = 4 * 1024 * 1024;
@@ -138,6 +146,14 @@ public final class FeatureGateLabFragment extends Fragment {
                 .replace(containerId, new FeatureGateLabFragment())
                 .addToBackStack("feature_gate_lab")
                 .commit();
+    }
+
+    static void awaitFileIoForTests() throws Exception {
+        FILE_IO_EXECUTOR.submit(() -> { }).get(5, TimeUnit.SECONDS);
+    }
+
+    static void resetForTests() {
+        CHANGING.set(false);
     }
 
     @Override
@@ -217,7 +233,8 @@ public final class FeatureGateLabFragment extends Fragment {
         search = new EditText(context);
         search.setSingleLine(true);
         search.setTextSize(16);
-        search.setContentDescription("Search words or key");
+        // No content description on a search box. On an editable view it replaces what was
+        // typed in the announcement, so "cats" came back as the label. The hint names it.
         search.setHint("Search words or key");
         search.setBackgroundColor(Color.TRANSPARENT);
         search.setTextColor(SettingsUi.textPrimary());
@@ -659,12 +676,24 @@ public final class FeatureGateLabFragment extends Fragment {
         showStyled(dialog);
     }
 
+    /**
+     * Puts the switch back where the store is, when the screen is still up.
+     *
+     * <p>The null check is the point: a Lab change finishes on the main thread after work that
+     * takes long enough to leave the screen during, and {@link #onDestroyView} has cleared the
+     * switch by then.
+     */
+    private void syncMasterSwitch() {
+        if (master == null) return;
+        master.setChecked(FeatureGateLabStore.masterEnabled());
+        master.setContentDescription("Enable overrides");
+        SettingsUi.styleSwitch(master);
+    }
+
     private void onMasterChanged(boolean checked) {
         if (FeatureGateLabStore.masterEnabled() == checked) return;
         if (CHANGING.get()) {
-            master.setChecked(FeatureGateLabStore.masterEnabled());
-        master.setContentDescription("Enable overrides");
-        SettingsUi.styleSwitch(master);
+            syncMasterSwitch();
             Utils.showToastLong("A Lab change is already running");
             return;
         }
@@ -674,7 +703,7 @@ public final class FeatureGateLabFragment extends Fragment {
             Utils.showToastLong(checked ? "Overrides enabled. Restart TikTok to apply saved values."
                     : "Overrides disabled. Restart TikTok to restore native values.");
         } catch (Exception error) {
-            master.setChecked(FeatureGateLabStore.masterEnabled());
+            syncMasterSwitch();
             Utils.showToastLong("Could not change Lab overrides. " + error.getMessage());
         }
     }
@@ -762,7 +791,7 @@ public final class FeatureGateLabFragment extends Fragment {
     private void writeLoadedValuesFile(Uri uri) {
         Activity activity = getActivity();
         ContentResolver resolver = activity == null ? null : activity.getContentResolver();
-        new Thread(() -> {
+        FILE_IO_EXECUTOR.execute(() -> {
             try {
                 if (resolver == null) throw new IllegalStateException("Activity detached");
                 ExportPayload payload = buildExportPayload();
@@ -777,11 +806,11 @@ public final class FeatureGateLabFragment extends Fragment {
                         ? "Loaded-value file export failed"
                         : "Loaded-value file export failed; cleanup also failed");
             }
-        }, "MorpheGateFileExport").start();
+        });
     }
 
     private void readLoadedValuesFile(Uri uri) {
-        new Thread(() -> {
+        FILE_IO_EXECUTOR.execute(() -> {
             try {
                 Activity activity = getActivity();
                 if (activity == null) return;
@@ -795,7 +824,7 @@ public final class FeatureGateLabFragment extends Fragment {
                 Logger.printException(() -> "Loaded-value file import failed", throwable);
                 postToast("Loaded-value file is invalid or too large");
             }
-        }, "MorpheGateFileImport").start();
+        });
     }
 
     private void reviewLoadedImport(JSONObject imported) throws Exception {
@@ -993,11 +1022,12 @@ public final class FeatureGateLabFragment extends Fragment {
             }
             String notice = result;
             new Handler(Looper.getMainLooper()).post(() -> {
-                if (master != null) master.setChecked(FeatureGateLabStore.masterEnabled());
-        master.setContentDescription("Enable overrides");
-        SettingsUi.styleSwitch(master);
-                rebuild();
+                // Released first. The flag is process-wide and nothing else clears it, so a
+                // failure while putting the screen back used to refuse every later Lab change
+                // until TikTok was restarted.
                 CHANGING.set(false);
+                syncMasterSwitch();
+                rebuild();
                 Utils.showToastLong(notice);
             });
         });

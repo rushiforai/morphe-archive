@@ -25,9 +25,16 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
         setTitle("Downloads");
     }
 
+    /** Whether this page has anything on it. The row into it asks the same question. */
+    public static boolean isAvailable() {
+        return SettingsStatus.downloadEnabled || SettingsStatus.advancedDownloadsEnabled
+                || SettingsStatus.customOfflineVideosEnabled
+                || SettingsStatus.subtitleToolsEnabled;
+    }
+
     @Override
     public boolean getSettingsStatus() {
-        return SettingsStatus.downloadEnabled || SettingsStatus.advancedDownloadsEnabled;
+        return isAvailable();
     }
 
     @Override
@@ -64,19 +71,32 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
                             + "link there instead of saving it here. Leave it empty to save here.",
                     Settings.EXTERNAL_DOWNLOADER_PACKAGE)
                     .withCheck(value -> ExternalDownloader.packageNameProblem(value.trim())));
+            ChoicePreference ytdlnisType = new ChoicePreference(context, "YTDLnis download type",
+                    Settings.YTDLNIS_DOWNLOAD_TYPE, new String[]{"Video", "Audio"},
+                    new String[]{"video", "audio"});
+            ytdlnisType.setSummary("For com.deniscerri.ytdl only. Ask YTDLnis for audio or video "
+                    + "when the save button hands it a link.");
+            addPreference(ytdlnisType);
+            addPreference(new TogglePreference(context, "YTDLnis background mode",
+                    "For com.deniscerri.ytdl only. Hide its download card and start the handoff in "
+                            + "the background.", Settings.YTDLNIS_BACKGROUND));
         }
-        addPreference(new DownloadPathPreference(
-                context,
-                "Video destination",
-                Settings.DOWNLOAD_VIDEO_PATH,
-                DownloadDestination.Kind.VIDEO
-        ));
-        addPreference(new DownloadPathPreference(
-                context,
-                "Photo destination",
-                Settings.DOWNLOAD_PHOTO_PATH,
-                DownloadDestination.Kind.PHOTO
-        ));
+        // The downloader is what reads these. With only the offline videos limit selected they
+        // were four rows on a reachable page that changed nothing.
+        if (SettingsStatus.downloadEnabled || SettingsStatus.advancedDownloadsEnabled) {
+            addPreference(new DownloadPathPreference(
+                    context,
+                    "Video destination",
+                    Settings.DOWNLOAD_VIDEO_PATH,
+                    DownloadDestination.Kind.VIDEO
+            ));
+            addPreference(new DownloadPathPreference(
+                    context,
+                    "Photo destination",
+                    Settings.DOWNLOAD_PHOTO_PATH,
+                    DownloadDestination.Kind.PHOTO
+            ));
+        }
         if (SettingsStatus.downloadEnabled) {
             addPreference(new ChoicePreference(context, "Animated sticker format", Settings.DOWNLOAD_STICKER_FORMAT,
                     new String[]{"Video (MP4)", "GIF", "WebP, exactly as TikTok sent it"},
@@ -88,43 +108,54 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
                     DownloadDestination.Kind.STICKER
             ));
         }
-        addPreference(new InputTextPreference(
-                context,
-                "Video filename",
-                "Tokens: {creator}, {date}, {video_id}. The file extension is kept automatically.",
-                Settings.DOWNLOAD_VIDEO_FILENAME_TEMPLATE
-        ));
-        addPreference(new InputTextPreference(
-                context,
-                "Photo filename",
-                "Tokens: {creator}, {date}, {video_id}, {index}. The file extension is kept automatically.",
-                Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE
-        ));
-        if (!SettingsStatus.downloadEnabled) return;
-        addPreference(new InputTextPreference(
-                context,
-                "Comment media filename",
-                "Tokens: {date}, {media_id}. Works for image and video stickers.",
-                Settings.DOWNLOAD_COMMENT_MEDIA_FILENAME_TEMPLATE
-        ));
-        addPreference(new TogglePreference(
-                context,
-                "Remove watermark",
-                "Applies to both video and photo downloads.",
-                Settings.DOWNLOAD_WATERMARK
-        ));
-        addPreference(new TogglePreference(
-                context,
-                "Custom offline videos",
-                "Let the Offline videos menu use your own limit instead of TikTok's fixed one. Restart TikTok after turning this on.",
-                Settings.CUSTOM_OFFLINE_VIDEOS
-        ));
-        addPreference(new NumberInputPreference(
-                context,
-                "Offline videos limit",
-                "Choose 1-1000 videos. Values outside this range use the nearest valid limit. Restart TikTok after saving.",
-                Settings.CUSTOM_OFFLINE_VIDEO_LIMIT
-        ));
-
+        if (SettingsStatus.downloadEnabled || SettingsStatus.advancedDownloadsEnabled) {
+            addPreference(new InputTextPreference(
+                    context,
+                    "Video filename",
+                    "Tokens: {creator}, {date}, {video_id}. The file extension is kept automatically.",
+                    Settings.DOWNLOAD_VIDEO_FILENAME_TEMPLATE
+            ));
+            addPreference(new InputTextPreference(
+                    context,
+                    "Photo filename",
+                    "Tokens: {creator}, {date}, {video_id}, {index}. {index} numbers the photos of a "
+                            + "slideshow you save with Save original photos; anything saved through "
+                            + "TikTok's own button is numbered by the folder instead. The file "
+                            + "extension is kept automatically.",
+                    Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE
+            ));
+            // Blocks, not early returns. Each flag here belongs to a different patch and any of them
+            // can be selected on its own, so a return for one of them took every later flag's rows
+            // with it: the offline videos limit set its own flag and still put nothing on the page
+            // unless the Downloads patch happened to be in the bundle too.
+        }
+        if (SettingsStatus.downloadEnabled) {
+            addPreference(new InputTextPreference(
+                    context,
+                    "Comment media filename",
+                    "Tokens: {date}, {media_id}. Works for image and video stickers.",
+                    Settings.DOWNLOAD_COMMENT_MEDIA_FILENAME_TEMPLATE
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Remove watermark",
+                    "Applies to both video and photo downloads.",
+                    Settings.DOWNLOAD_WATERMARK
+            ));
+        }
+        if (SettingsStatus.customOfflineVideosEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Custom offline videos",
+                    "Let the Offline videos menu use your own limit instead of TikTok's fixed one. Restart TikTok after turning this on.",
+                    Settings.CUSTOM_OFFLINE_VIDEOS
+            ));
+            addPreference(new NumberInputPreference(
+                    context,
+                    "Offline videos limit",
+                    "Choose 1-1000 videos. Values outside this range use the nearest valid limit. Restart TikTok after saving.",
+                    Settings.CUSTOM_OFFLINE_VIDEO_LIMIT
+            ));
+        }
     }
 }

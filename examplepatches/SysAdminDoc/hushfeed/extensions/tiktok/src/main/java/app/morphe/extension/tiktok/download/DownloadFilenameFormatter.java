@@ -19,10 +19,27 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * Which layer owns a name that is already taken.
+ *
+ * <p>Not this one. What is formatted here is a wish: the name the download would like to be
+ * published under. It is worked out beside TikTok's private staging file, which lives in the
+ * app's own cache and has nothing in common with the folder the file ends up in, so asking
+ * whether a name is free at this point is asking about the wrong directory. It could only ever
+ * answer no when it should have said yes.
+ *
+ * <p>The destination settles it, and does so without a race. On Android 10 and later
+ * {@code MediaFileWriter} hands the name to the provider, which appends its own suffix and
+ * reports the name it actually used. Below that, {@code MediaFileWriter.claim} creates the file
+ * in the destination folder and steps to _2, _3 until {@code createNewFile} succeeds, so two
+ * saves running at once cannot land on one name. A probe here would have been a guess in front
+ * of both.
+ */
 public final class DownloadFilenameFormatter {
     private static final int MAX_BASENAME_LENGTH = 160;
     /** What is left of a 255 byte filename once an extension and a collision suffix fit too. */
     private static final int MAX_BASENAME_BYTES = 200;
+    private static final int MAX_EXTENSION_LENGTH = 12;
     private static final long PENDING_NAME_TTL_MS = 10 * 60 * 1000L;
     private static final Map<String, PendingName> PENDING_NAMES = new LinkedHashMap<String, PendingName>() {
         @Override
@@ -137,7 +154,28 @@ public final class DownloadFilenameFormatter {
 
     /** The sound takes the video's own name, so the pair sorts together. */
     static String formatSelectedAudioName(Object aweme) {
-        return formatSourceName(aweme, 1, "m4a", false);
+        return formatSelectedAudioName(aweme, "m4a");
+    }
+
+    /**
+     * The same name for a sound whose container is only known once its bytes arrive. The muxed
+     * track beside a video is always m4a; a sound fetched from its own address is not.
+     */
+    static String formatSelectedAudioName(Object aweme, String extension) {
+        return formatSourceName(aweme, 1, extension, false);
+    }
+
+    /**
+     * The original sound is named after itself. The video template's tokens are all about the
+     * post, and the same sound saved from two posts should be the same file, not two.
+     *
+     * <p>The extension comes from the fetched bytes rather than from here, because TikTok serves
+     * a sound entry in more than one container.
+     */
+    static String formatSoundName(String title, String extension) {
+        String base = trimToLength(sanitizeBaseName(sanitizeToken(title)), MAX_BASENAME_LENGTH);
+        if (base.isEmpty()) base = "sound";
+        return base + "." + sanitizeExtension(extension);
     }
 
     /**
@@ -160,7 +198,13 @@ public final class DownloadFilenameFormatter {
                 .replace("{date}", formatDate(readCreateTime(aweme)))
                 .replace("{video_id}", sanitizeToken(id)).replace("{index}", String.valueOf(index));
         if (photo && !template.contains("{index}")) base += "_" + index;
-        base = trimToLength(sanitizeBaseName(base), MAX_BASENAME_LENGTH);
+        // Every photo of a slideshow comes through here with its own number, so that number has
+        // to survive the length cap or they all end up named the same.
+        boolean carriesOrdinal = photo || template.contains("{index}");
+        String sanitized = sanitizeBaseName(base);
+        base = carriesOrdinal
+                ? boundTemplatedName(sanitized, MAX_BASENAME_LENGTH, String.valueOf(index))
+                : trimToLength(sanitized, MAX_BASENAME_LENGTH);
         if (base.isEmpty()) base = photo ? "original_photo_" + index : "video";
         return base + "." + sanitizeExtension(extension);
     }
@@ -181,28 +225,44 @@ public final class DownloadFilenameFormatter {
 
         String originalBase = stripExtension(original.getName());
         boolean hasIndexToken = source.contains("{index}");
-        int index = 1;
-        while (true) {
-            String base = source
-                    .replace("{creator}", safeToken(creator))
-                    .replace("{date}", safeToken(date))
-                    .replace("{video_id}", safeToken(videoId))
-                    .replace("{media_id}", safeToken(mediaId))
-                    .replace("{index}", String.valueOf(index))
-                    .replace("{original}", sanitizeToken(originalBase));
-            base = sanitizeBaseName(base);
-            if (base.isEmpty()) {
-                return original;
-            }
-
-            String suffix = !hasIndexToken && index > 1 ? "_" + index : "";
-            String boundedBase = trimToLength(base, Math.max(1, MAX_BASENAME_LENGTH - suffix.length()));
-            File target = new File(original.getParentFile(), boundedBase + suffix + "." + sanitizeExtension(extension));
-            if (target.equals(original) || !target.exists()) {
-                return target;
-            }
-            index++;
+        // A single number, because this is not where a taken name is discovered. The token
+        // numbers the photos of a slideshow, and those arrive already numbered through
+        // formatOriginalPhotoName; a single video has one of itself.
+        String counter = "1";
+        String base = source
+                .replace("{creator}", safeToken(creator))
+                .replace("{date}", safeToken(date))
+                .replace("{video_id}", safeToken(videoId))
+                .replace("{media_id}", safeToken(mediaId))
+                .replace("{index}", counter)
+                .replace("{original}", sanitizeToken(originalBase));
+        base = sanitizeBaseName(base);
+        if (base.isEmpty()) {
+            return original;
         }
+
+        String boundedBase = hasIndexToken
+                ? boundTemplatedName(base, MAX_BASENAME_LENGTH, counter)
+                : trimToLength(base, MAX_BASENAME_LENGTH, MAX_BASENAME_BYTES);
+        return new File(original.getParentFile(), boundedBase + "." + sanitizeExtension(extension));
+    }
+
+    /**
+     * Keeps a filled-in template inside the length limits without losing its counter. A creator
+     * name long enough to reach the cut would otherwise take {@code index} with it, leaving every
+     * photo of a slideshow with one name and the collision search with nothing to advance, so a
+     * name that had to be shortened carries the counter on its end instead.
+     */
+    private static String boundTemplatedName(String base, int limit, String counter) {
+        int room = Math.max(1, limit);
+        String bounded = trimToLength(base, room);
+        if (bounded.equals(base)) {
+            return bounded;
+        }
+
+        int reserved = counter.length() + 1;
+        String stem = trimToLength(base, Math.max(1, room - reserved), Math.max(1, MAX_BASENAME_BYTES - reserved));
+        return sanitizeBaseName(stem + "_" + counter);
     }
 
     private static boolean isPhotoAweme(Object aweme) {
@@ -300,7 +360,10 @@ public final class DownloadFilenameFormatter {
 
     private static String sanitizeExtension(String extension) {
         String cleaned = extension == null ? "bin" : extension.replaceAll("[^A-Za-z0-9]", "").toLowerCase(Locale.ROOT);
-        return cleaned.isEmpty() ? "bin" : cleaned;
+        if (cleaned.isEmpty()) return "bin";
+        // An extension comes from the name the host handed over, so it is as arbitrary as the
+        // rest of it. Nothing real is longer than this, and the byte budget assumes a short one.
+        return cleaned.length() > MAX_EXTENSION_LENGTH ? cleaned.substring(0, MAX_EXTENSION_LENGTH) : cleaned;
     }
 
     private static String extensionOf(String name) {
@@ -320,11 +383,15 @@ public final class DownloadFilenameFormatter {
      * on a code point rather than between the halves of a surrogate pair.
      */
     private static String trimToLength(String value, int maxLength) {
+        return trimToLength(value, maxLength, MAX_BASENAME_BYTES);
+    }
+
+    private static String trimToLength(String value, int maxLength, int maxBytes) {
         String trimmed = value;
         if (trimmed.codePointCount(0, trimmed.length()) > maxLength) {
             trimmed = trimmed.substring(0, trimmed.offsetByCodePoints(0, maxLength));
         }
-        while (trimmed.getBytes(StandardCharsets.UTF_8).length > MAX_BASENAME_BYTES) {
+        while (!trimmed.isEmpty() && trimmed.getBytes(StandardCharsets.UTF_8).length > maxBytes) {
             trimmed = trimmed.substring(0, trimmed.offsetByCodePoints(trimmed.length(), -1));
         }
         return trimmed.trim();

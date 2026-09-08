@@ -1,3 +1,38 @@
+# [1.35.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.34.1...v1.35.0) (2026-09-08)
+
+
+### Features
+
+* **pluto:** mask live commercial breaks with black screen + mute ([#152](https://github.com/ajstrick81/morphe-androidtv-patches/issues/152)) ([d4c122c](https://github.com/ajstrick81/morphe-androidtv-patches/commit/d4c122cd8c2946cdf749415961b97da41262f40c))
+
+## [1.34.1](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.34.0...v1.34.1) (2026-09-07)
+
+
+### Bug Fixes
+
+* **pluto:** re-map resume bookmark into ad-stripped timeline ([#147](https://github.com/ajstrick81/morphe-androidtv-patches/issues/147)) ([65efe05](https://github.com/ajstrick81/morphe-androidtv-patches/commit/65efe05b1b2dc04265e46d1737287b6a3afe4d6c)), closes [#2](https://github.com/ajstrick81/morphe-androidtv-patches/issues/2)
+
+# [1.34.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.33.1...v1.34.0) (2026-09-07)
+
+
+### Features
+
+* **espn:** Clone + Disable auto-updates patches, and make the live slate optional ([#158](https://github.com/ajstrick81/morphe-androidtv-patches/issues/158)) ([2376924](https://github.com/ajstrick81/morphe-androidtv-patches/commit/237692495ea6fec17efb4ec81c26459ba44297f7))
+
+## [1.33.1](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.33.0...v1.33.1) (2026-09-07)
+
+
+### Bug Fixes
+
+* **espn:** simplify slate picker (Video / Video+Score / Overlay / Blank) ([#157](https://github.com/ajstrick81/morphe-androidtv-patches/issues/157)) ([ea19d5c](https://github.com/ajstrick81/morphe-androidtv-patches/commit/ea19d5c0f4ae88e2cbe41b3dbf5175dc03ffcdea))
+
+# [1.33.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.32.0...v1.33.0) (2026-09-07)
+
+
+### Features
+
+* **espn:** animated Be Right Back overlay slate, live-score strip fixes & slate picker ([#156](https://github.com/ajstrick81/morphe-androidtv-patches/issues/156)) ([d085d7b](https://github.com/ajstrick81/morphe-androidtv-patches/commit/d085d7b08c04cf3b2decbee6391bef53795496cf)), closes [hi#performance](https://github.com/hi/issues/performance)
+
 # [1.32.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.31.0...v1.32.0) (2026-09-06)
 
 

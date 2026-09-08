@@ -1,0 +1,53 @@
+name: Check
+
+on:
+  pull_request:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+
+# Least privilege: this workflow only reads the repo and pulls public
+# packages (Morphe Gradle plugin via GitHub Packages). No writes.
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  check:
+    name: Unit tests + lint + build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Java 21
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
+
+      - name: Shellcheck
+        run: shellcheck scripts/*.sh
+
+      - name: Unit tests
+        env:
+          # Morphe Gradle plugin resolves from GitHub Packages, which needs
+          # auth even for public packages (see docs/lessons-learned.md).
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:test :extensions:extension:testDebugUnitTest --no-daemon
+
+      - name: Build extension dex
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:verifyExtensionMpe --no-daemon && test -f extensions/extension.mpe
+
+      - name: Build bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew buildAndroid --no-daemon

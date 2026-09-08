@@ -2,9 +2,12 @@ package app.morphe.patches.tiktok.interaction.offlinevideos
 
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
+import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
@@ -23,11 +26,20 @@ val customOfflineVideosLimitPatch = bytecodePatch(
     description = "Adds a custom entry to TikTok's offline videos menu with a configurable limit from 1 to 1000 videos.",
     default = true,
 ) {
-    dependsOn(sharedExtensionPatch)
+    dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4623())
 
     execute {
+        // Without this the two switches were gated on the Downloads patch's flag, so
+        // selecting this patch alone left the feature with no way to turn it on, and
+        // selecting Downloads alone showed two switches that did nothing.
+        SettingsStatusLoadFingerprint.method.addInstruction(
+            0,
+            "invoke-static {}, " +
+                "Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableCustomOfflineVideos()V",
+        )
+
         OfflineModeSheetOptionsFingerprint.method.apply {
             val freezeListIndex = indexOfFirstInstructionOrThrow {
                 opcode == Opcode.INVOKE_STATIC &&

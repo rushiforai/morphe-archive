@@ -1,3 +1,43 @@
+## [1.8.1](https://github.com/Zanuaimi/UniPatches/compare/v1.8.0...v1.8.1) (2026-09-07)
+
+### 🐛 Bug Fixes
+
+* cleanup patch list and change patch source name to Zanuaimi's UniPatches ([5002181](https://github.com/Zanuaimi/UniPatches/commit/50021813bf76e369125cdd2bed7161e5363cd66c))
+
+## [1.8.0](https://github.com/Zanuaimi/UniPatches/compare/v1.7.0...v1.8.0) (2026-09-07)
+
+### ✨ New Features
+
+* **overlay:** add activity install banlist ([2cc9a8c](https://github.com/Zanuaimi/UniPatches/commit/2cc9a8ce681a094cddd60609529894797a2592ac))
+* **pairip:** add Firebase and installer fallback strategies ([a4d95d7](https://github.com/Zanuaimi/UniPatches/commit/a4d95d76914544e7936086e5d2c5ed884cd878fb))
+
+## [1.7.0](https://github.com/Zanuaimi/UniPatches/compare/v1.6.0...v1.7.0) (2026-09-07)
+
+### ✨ New Features
+
+* **overlay:** add configurable module separator colors ([98442c3](https://github.com/Zanuaimi/UniPatches/commit/98442c376c2b11c9a22c2a196c6336886c99a3c0))
+* **overlay:** expose separator color settings ([fdd3058](https://github.com/Zanuaimi/UniPatches/commit/fdd305803dceff8bc37ca7f95296dce2da07e341))
+* **overlay:** update preset separator themes ([159b3f6](https://github.com/Zanuaimi/UniPatches/commit/159b3f600b838e230acc415fe881f85bcf4ba5b3))
+
+## [1.6.0](https://github.com/Zanuaimi/UniPatches/compare/v1.5.0...v1.6.0) (2026-09-07)
+
+### ✨ New Features
+
+* **overlay:** add directional menu animations ([437d913](https://github.com/Zanuaimi/UniPatches/commit/437d9136a48f4581210e1d70cee012352359aaa8))
+* **overlay:** organize settings and preset schema ([e49f8df](https://github.com/Zanuaimi/UniPatches/commit/e49f8df1c39fd8ef3a97880a2163f28f011b7741))
+* **overlay:** update themed preset animations ([1f5204b](https://github.com/Zanuaimi/UniPatches/commit/1f5204b57f9f77ad00edf793c3c5794c6b13f27d))
+
+## [1.5.0](https://github.com/Zanuaimi/UniPatches/compare/v1.4.0...v1.5.0) (2026-09-07)
+
+### 🐛 Bug Fixes
+
+* **ci:** preserve README patch generation markers ([8b35ae1](https://github.com/Zanuaimi/UniPatches/commit/8b35ae16b93ff2a930272cd07c37df550fae5db9))
+
+### ✨ New Features
+
+* **overlay:** add themed UI presets ([90737ec](https://github.com/Zanuaimi/UniPatches/commit/90737ecd862b6387703d85184d29efbf1400984f))
+* **overlay:** expand configurable UI themes and animations ([b757b59](https://github.com/Zanuaimi/UniPatches/commit/b757b59ac0ca78c148c995a617a88d7d54a2fccf))
+
 ## [1.4.0](https://github.com/Zanuaimi/UniPatches/compare/v1.3.0...v1.4.0) (2026-09-05)
 
 ### ✨ New Features

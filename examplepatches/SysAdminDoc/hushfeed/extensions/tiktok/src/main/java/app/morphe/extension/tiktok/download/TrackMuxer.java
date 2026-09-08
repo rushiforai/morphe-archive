@@ -93,6 +93,9 @@ final class TrackMuxer {
         throw new IOException("Download is missing its " + prefix + " track");
     }
 
+    /** Past this a sample is not a frame any more, and a direct buffer that size is its own problem. */
+    private static final int MAX_SAMPLE_BYTES = 64 * 1024 * 1024;
+
     private static void copy(MediaExtractor extractor, MediaMuxer muxer, int track) throws IOException {
         ByteBuffer buffer = ByteBuffer.allocateDirect(8 * 1024 * 1024);
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
@@ -100,13 +103,31 @@ final class TrackMuxer {
         while (extractor.getSampleTime() >= 0) {
             MediaBudget.check(null);
             if ((extractor.getSampleFlags() & MediaExtractor.SAMPLE_FLAG_ENCRYPTED) != 0) throw new IOException("Encrypted media cannot be saved");
+            // From API 28 the extractor will say how big the sample is, so the buffer is sized
+            // once. Below that it will not, and readSampleData rejects a buffer the sample does
+            // not fit in, which threw IllegalArgumentException out of a method declaring
+            // IOException. The retry covers those releases and grows one step at a time so a
+            // single oversized sample cannot reserve every size on the way up.
             if (android.os.Build.VERSION.SDK_INT >= 28) {
                 long size = extractor.getSampleSize();
-                if (size > 64 * 1024 * 1024) throw new IOException("A media sample is too large to copy");
+                if (size > MAX_SAMPLE_BYTES) throw new IOException("A media sample is too large to copy");
                 if (size > buffer.capacity()) buffer = ByteBuffer.allocateDirect((int) size);
             }
-            buffer.clear();
-            int count = extractor.readSampleData(buffer, 0);
+
+            int count;
+            while (true) {
+                buffer.clear();
+                try {
+                    count = extractor.readSampleData(buffer, 0);
+                    break;
+                } catch (IllegalArgumentException tooSmall) {
+                    int grown = buffer.capacity() * 2;
+                    if (grown > MAX_SAMPLE_BYTES) {
+                        throw new IOException("A media sample is too large to copy", tooSmall);
+                    }
+                    buffer = ByteBuffer.allocateDirect(grown);
+                }
+            }
             if (count < 0) break;
             info.set(0, count, extractor.getSampleTime(),
                     (extractor.getSampleFlags() & MediaExtractor.SAMPLE_FLAG_SYNC) != 0 ? MediaCodec.BUFFER_FLAG_KEY_FRAME : 0);

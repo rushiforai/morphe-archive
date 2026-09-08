@@ -1,3 +1,9 @@
+## [1.4.2](https://github.com/variablenine/morphe-patches/compare/v1.4.1...v1.4.2) (2026-09-07)
+
+### 🐛 Bug Fixes
+
+* Only treat a post's own indicator as NSFW ([bbf5d73](https://github.com/variablenine/morphe-patches/commit/bbf5d73a95e966c7cf647056fc96c9623edef32c))
+
 ## [1.4.1](https://github.com/variablenine/morphe-patches/compare/v1.4.0...v1.4.1) (2026-09-06)
 
 ### 🐛 Bug Fixes

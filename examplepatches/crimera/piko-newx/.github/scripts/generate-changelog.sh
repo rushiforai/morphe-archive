@@ -10,6 +10,12 @@ set -euo pipefail
 #   - skip_release=true|false, semantic_bump=true|false, bump_level, and version to stderr
 
 FORCE_PATCH="${FORCE_PATCH:-false}"
+CHANGELOG_APP_NAME="Twitter"
+CHANGELOG_APP_NAME_LOWER=$(printf '%s' "$CHANGELOG_APP_NAME" | tr '[:upper:]' '[:lower:]')
+PIKO_REPOSITORY="${PIKO_REPOSITORY:-https://github.com/crimera/piko.git}"
+PIKO_BRANCH="${PIKO_BRANCH:-x-lite}"
+PIKO_REPO_URL="${PIKO_REPO_URL:-https://github.com/crimera/piko}"
+PATCHES_BUNDLE_FILE="patches-bundle.json"
 PREVIOUS_TAG="${1:-$(git tag --merged HEAD --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || echo '')}"
 
 if [[ "$FORCE_PATCH" != "true" && "$FORCE_PATCH" != "false" ]]; then
@@ -17,12 +23,32 @@ if [[ "$FORCE_PATCH" != "true" && "$FORCE_PATCH" != "false" ]]; then
     exit 1
 fi
 
-# Determine commit range
-if [ -n "$PREVIOUS_TAG" ]; then
-    COMMIT_RANGE="${PREVIOUS_TAG}..HEAD"
+PIKO_DIRECTORY=$(mktemp -d)
+trap 'rm -rf "$PIKO_DIRECTORY"' EXIT
+
+git clone --quiet --single-branch --branch "$PIKO_BRANCH" \
+    "$PIKO_REPOSITORY" "$PIKO_DIRECTORY"
+
+PREVIOUS_PIKO_COMMIT=""
+if [ -f "$PATCHES_BUNDLE_FILE" ]; then
+    PREVIOUS_PIKO_COMMIT=$(jq -r '.piko_commit // empty' "$PATCHES_BUNDLE_FILE")
+fi
+
+# Generate semantic changes from the same upstream branch that is built for the
+# release.  The local repository only provides the previous release version.
+if [ -n "$PREVIOUS_PIKO_COMMIT" ]; then
+    if ! git -C "$PIKO_DIRECTORY" cat-file -e "${PREVIOUS_PIKO_COMMIT}^{commit}" 2>/dev/null; then
+        echo "Previous Piko commit is not present in the cloned x-lite branch: ${PREVIOUS_PIKO_COMMIT}" >&2
+        exit 1
+    fi
+    COMMIT_RANGE="${PREVIOUS_PIKO_COMMIT}..HEAD"
 else
     COMMIT_RANGE="HEAD"
 fi
+
+piko_git() {
+    git -C "$PIKO_DIRECTORY" "$@"
+}
 
 get_bump_level() {
     local commit_range="$1"
@@ -43,22 +69,22 @@ get_bump_level() {
             continue
         fi
 
-        commit_body=$(git log -1 --pretty=format:"%b" "$commit_hash" 2>/dev/null || echo "")
+        commit_body=$(piko_git log -1 --pretty=format:"%b" "$commit_hash" 2>/dev/null || echo "")
         if [[ "$commit_body" == *"BREAKING CHANGE:"* ]] || [[ "$commit_msg" == *"!:"* ]]; then
             has_breaking=true
         fi
 
-        if echo "$commit_msg" | grep -qE '^(feat|fix|update|ui|refactor|perf)(\([^)]+\))?!?:[[:space:]]+.+$'; then
-            case "$(echo "$commit_msg" | sed -E 's/^(feat|fix|update|ui|refactor|perf).*/\1/')" in
+        if echo "$commit_msg" | grep -qE '^(feat|fix|bump|update|ui|refactor|perf)(\([^)]+\))?!?:[[:space:]]+.+$'; then
+            case "$(echo "$commit_msg" | sed -E 's/^(feat|fix|bump|update|ui|refactor|perf).*/\1/')" in
                 feat)
                     has_feat=true
                     ;;
-                fix|update|ui|refactor|perf)
+                fix|bump|update|ui|refactor|perf)
                     has_patch=true
                     ;;
             esac
         fi
-    done < <(git log --pretty=format:"%h|%H|%s%n" "$commit_range" 2>/dev/null || true)
+    done < <(piko_git log --abbrev=7 --pretty=format:"%h|%H|%s%n" "$commit_range" 2>/dev/null || true)
 
     if [ "$has_breaking" = true ]; then
         echo "breaking"
@@ -82,9 +108,7 @@ get_bump_level() {
 features=()
 fixes=()
 updates=()
-ui_changes=()
-refactoring=()
-performance=()
+improvements=()
 
 # Version bump flags
 HAS_BREAKING=false
@@ -106,32 +130,30 @@ while IFS= read -r line; do
     fi
 
     # Check for breaking change in commit body
-    commit_body=$(git log -1 --pretty=format:"%b" "$commit_hash" 2>/dev/null || echo "")
+    commit_body=$(piko_git log -1 --pretty=format:"%b" "$commit_hash" 2>/dev/null || echo "")
     if [[ "$commit_body" == *"BREAKING CHANGE:"* ]] || [[ "$commit_msg" == *"!:"* ]]; then
         HAS_BREAKING=true
     fi
 
-    if echo "$commit_msg" | grep -qE '^(feat|fix|update|ui|refactor|perf)(\([^)]+\))?!?:[[:space:]]+.+$'; then
-        type=$(echo "$commit_msg" | sed -E 's/^(feat|fix|update|ui|refactor|perf).*/\1/')
-        scope=$(echo "$commit_msg" | sed -E 's/^[^(:]+\(([^)]+)\):.*/\1/' | grep -v "^$commit_msg$" || true)
+    if echo "$commit_msg" | grep -qE '^(feat|fix|bump|update|ui|refactor|perf)(\([^)]+\))?!?:[[:space:]]+.+$'; then
+        type=$(echo "$commit_msg" | sed -E 's/^(feat|fix|bump|update|ui|refactor|perf).*/\1/')
+        scope=$(echo "$commit_msg" | sed -nE 's/^[^(:]+\(([^)]+)\)!?:.*/\1/p')
         desc=$(echo "$commit_msg" | sed -E 's/^[^(:]+(\([^)]+\))?!?:[[:space:]]+//')
 
+        changelog_scope="$CHANGELOG_APP_NAME"
         if [ -n "$scope" ]; then
-            scope="${scope#\(}"
-            scope="${scope%\)}"
+            normalized_scope=$(printf '%s' "$scope" | tr '[:upper:]' '[:lower:]')
+            if [ "$normalized_scope" != "$CHANGELOG_APP_NAME_LOWER" ] &&
+               [[ "$normalized_scope" != "$CHANGELOG_APP_NAME_LOWER - "* ]]; then
+                changelog_scope="$CHANGELOG_APP_NAME - $scope"
+            fi
         fi
 
-        REPO_URL="https://github.com/${GITHUB_REPOSITORY:-}"
-        if [ -n "$REPO_URL" ] && [ "$REPO_URL" != "https://github.com/" ]; then
-            commit_link="([${commit_hash}](${REPO_URL}/commit/${commit_hash_full}))"
-        else
-            commit_link=""
-        fi
+        commit_link="([${commit_hash}](${PIKO_REPO_URL}/commit/${commit_hash_full}))"
 
-        if [ -n "$scope" ]; then
-            entry="- **${scope}**: ${desc} ${commit_link}"
-        else
-            entry="- ${desc} ${commit_link}"
+        entry="* **${changelog_scope}:** ${desc}"
+        if [ -n "$commit_link" ]; then
+            entry+=" ${commit_link}"
         fi
 
         case "$type" in
@@ -143,31 +165,31 @@ while IFS= read -r line; do
                 HAS_PATCH=true
                 fixes+=("$entry")
                 ;;
+            bump)
+                HAS_PATCH=true
+                updates+=("$entry")
+                ;;
             update)
                 HAS_PATCH=true
                 updates+=("$entry")
                 ;;
             ui)
                 HAS_PATCH=true
-                ui_changes+=("$entry")
+                improvements+=("$entry")
                 ;;
-            refactor)
+            refactor|perf)
                 HAS_PATCH=true
-                refactoring+=("$entry")
-                ;;
-            perf)
-                HAS_PATCH=true
-                performance+=("$entry")
+                improvements+=("$entry")
                 ;;
         esac
     fi
-done < <(git log --pretty=format:"%h|%H|%s%n" "$COMMIT_RANGE" 2>/dev/null || true)
+done < <(piko_git log --abbrev=7 --pretty=format:"%h|%H|%s%n" "$COMMIT_RANGE" 2>/dev/null || true)
 
 BASE_BUMP_LEVEL=$(get_bump_level "$COMMIT_RANGE")
-LOCAL_BUMP_LEVEL="$BASE_BUMP_LEVEL"
+PIKO_BUMP_LEVEL="$BASE_BUMP_LEVEL"
 
-# Content can change without a conventional commit in this repository because
-# the release also tracks the upstream Piko branch and the compatible X APK.
+# Content can change without a conventional commit in Piko because the release
+# also tracks the compatible X APK.
 if [ "$FORCE_PATCH" = true ] && [ "$BASE_BUMP_LEVEL" = "none" ]; then
     BASE_BUMP_LEVEL="patch"
 fi
@@ -193,7 +215,7 @@ fi
 
 HAS_VERSION_BUMP=false
 if [ "$HAS_BREAKING" = true ] || [ "$HAS_FEAT" = true ] || [ "$HAS_PATCH" = true ] || \
-   { [ "$FORCE_PATCH" = true ] && [ "$LOCAL_BUMP_LEVEL" = "none" ]; }; then
+   { [ "$FORCE_PATCH" = true ] && [ "$PIKO_BUMP_LEVEL" = "none" ]; }; then
     HAS_VERSION_BUMP=true
 fi
 
@@ -232,7 +254,7 @@ NEW_VERSION="$BASE_VERSION"
 
 # Output whether we should skip release and the new version to stderr for workflow capture
 echo "skip_release=$([ "$HAS_VERSION_BUMP" = true ] && echo 'false' || echo 'true')" >&2
-echo "semantic_bump=$([ "$LOCAL_BUMP_LEVEL" != "none" ] && echo 'true' || echo 'false')" >&2
+echo "semantic_bump=$([ "$PIKO_BUMP_LEVEL" != "none" ] && echo 'true' || echo 'false')" >&2
 echo "bump_level=$BASE_BUMP_LEVEL" >&2
 echo "v${NEW_VERSION}" >&2
 
@@ -246,36 +268,28 @@ output_section() {
         return
     fi
 
-    echo "## ${title}"
+    echo "### ${title}"
     printf "%s\n" "${arr[@]}"
     echo ""
 }
 
-if [ ${#features[@]} -gt 0 ]; then
-    output_section "Features" "${features[@]}"
+if [ ${#fixes[@]} -gt 0 ]; then
+    output_section "🐛 Bug Fixes" "${fixes[@]}"
 fi
 
-if [ ${#fixes[@]} -gt 0 ]; then
-    output_section "Fixes" "${fixes[@]}"
+if [ ${#features[@]} -gt 0 ]; then
+    output_section "✨ New Features" "${features[@]}"
 fi
 
 if [ ${#updates[@]} -gt 0 ]; then
-    output_section "Updates" "${updates[@]}"
+    output_section "🚀 Updated App Support" "${updates[@]}"
 fi
 
-if [ ${#ui_changes[@]} -gt 0 ]; then
-    output_section "UI Changes" "${ui_changes[@]}"
-fi
-
-if [ ${#refactoring[@]} -gt 0 ]; then
-    output_section "Refactoring" "${refactoring[@]}"
-fi
-
-if [ ${#performance[@]} -gt 0 ]; then
-    output_section "Performance" "${performance[@]}"
+if [ ${#improvements[@]} -gt 0 ]; then
+    output_section "🔧 Improvements" "${improvements[@]}"
 fi
 
 if [ ${#features[@]} -eq 0 ] && [ ${#fixes[@]} -eq 0 ] && [ ${#updates[@]} -eq 0 ] && \
-   [ ${#ui_changes[@]} -eq 0 ] && [ ${#refactoring[@]} -eq 0 ] && [ ${#performance[@]} -eq 0 ]; then
+   [ ${#improvements[@]} -eq 0 ]; then
     echo "*No notable changes in this release.*"
 fi

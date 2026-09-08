@@ -32,8 +32,8 @@ import org.robolectric.shadows.ShadowToast;
  * like, comment, repost or story action must survive the hide setting, because hiding it is
  * what makes those actions fail with no message.
  *
- * Robolectric keeps statics between tests in a class, so every case that needs an empty
- * queue reads the gate at a clock past any write an earlier case recorded.
+ * The gate owns a small process-wide queue, so each test clears that state before exercising
+ * one decision. The clock remains injectable through the package-private overloads below.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28)
@@ -70,6 +70,7 @@ public class CaptchaGateTest {
     public void setUp() {
         Context context = RuntimeEnvironment.getApplication();
         Utils.setContext(context);
+        CaptchaGate.resetForTests();
         Settings.HIDE_CAPTCHA_POPUPS.save(true);
         now = CaptchaGate.now();
     }
@@ -224,5 +225,47 @@ public class CaptchaGateTest {
         CaptchaGate.recordRequest(new Request("/aweme/v1/commit/follow/user/"));
         assertNotNull(CaptchaGate.pendingWriteAction());
         assertEquals("follow", CaptchaGate.pendingWriteAction(now + 10_000L));
+    }
+
+    @Test
+    public void everyAccountWriteKeepsItsChallengeVisible() {
+        String[][] writes = {
+                {"/aweme/v1/commit/follow/user/", "follow"},
+                {"/aweme/v3/f2f/follow/", "follow"},
+                {"/aweme/v1/remove/follower/", "follow"},
+                {"/aweme/v1/relation/follow/commit/", "follow"},
+                {"/aweme/v1/commit/item/digg/", "like"},
+                {"/aweme/v1/commit/game/item/digg/", "like"},
+                {"/aweme/v1/comment/digg/", "like"},
+                {"/aweme/v1/unlogged/digg/", "like"},
+                {"/aweme/v1/danmaku/digg/", "like"},
+                {"/aweme/v1/upvote/digg/", "like"},
+                {"/aweme/v1/upvote/comment_digg/", "like"},
+                {"/aweme/v1/comment/publish/", "comment"},
+                {"/aweme/v1/comment/delete/", "comment"},
+                {"/aweme/v1/comment/pin/", "comment"},
+                {"/aweme/v1/upvote/publish_comment/", "comment"},
+                {"/webcast/room/chat/", "comment"},
+                {"/tiktok/v1/upvote/publish/", "repost"},
+                {"/tiktok/v1/upvote/batch_publish/", "repost"},
+                {"/tiktok/v1/repost/create/", "repost"},
+                {"/tiktok/story/maf/mute", "story"},
+                {"/tiktok/story/maf/unmute", "story"},
+        };
+
+        for (String[] write : writes) {
+            CaptchaGate.resetForTests();
+            CaptchaGate.recordRequest(new Request(write[0]));
+            assertEquals(write[1], CaptchaGate.pendingWriteAction(now));
+            assertEquals("it gates a " + write[1],
+                    CaptchaGate.showReason(null, "{\"subtype\":\"slide\"}", now));
+
+            // Every native popup route shares this answer, including account security wrappers.
+            assertFalse(CaptchaGate.shouldHideCaptchaPopup(null, "{\"subtype\":\"slide\"}"));
+            assertFalse(CaptchaGate.shouldHideLegacyCaptchaPopup(null, 2148));
+            assertFalse(CaptchaGate.shouldHideOecCaptchaPopup(new VerifyRequest("follow")));
+            assertFalse(CaptchaGate.shouldHideTuringDialog(null, new VerifyRequest("follow")));
+            assertFalse(CaptchaGate.shouldHideTuringCaptchaPopup(null, "common_verify"));
+        }
     }
 }

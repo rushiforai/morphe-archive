@@ -35,9 +35,9 @@ Both keyboards stay installed, so you can switch back whenever you like.
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v2.2.1](https://github.com/JZ6/Flexboard/releases/tag/v2.2.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+> **[v2.3.0](https://github.com/JZ6/Flexboard/releases/tag/v2.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
 <details open>
-<summary>📦 Gboard&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
+<summary>📦 Gboard&nbsp;&nbsp;•&nbsp;&nbsp;11 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -49,13 +49,14 @@ Both keyboards stay installed, so you can switch back whenever you like.
 |----------|----------------|-----------|
 | [Bigger Toolbar](#bigger-toolbar) | Raises how many icons Gboard's toolbar can hold — five on a stock build — to 12, so Flexboard's hotkeys and text action buttons fit alongside Gboard's own. How many actually show stays yours, set by dragging them in Gboard's toolbar settings. Force-stop Gboard afterwards: a cached keyboard view can go on showing the old capacity. |  |
 | [Bypass Gboard Signature](#bypass-gboard-signature) | Bypass Gboard's signature whitelist checks and force them to pass. |  |
-| Grammar Check Row | Force the grammar check settings row to appear. The Phenotype flag that governs it never syncs on a patched build, so its compiled-in default (off) sticks. |  |
+| [Hidden Features](#hidden-features) | Turns on two finished Gboard features that a resigned build can never receive: grammar check, and a close control on the chips Gboard offers unprompted. Their flags are delivered per app signature, so resigning the APK means they never arrive and stay off. Both are confirmed working on a device; five other flags were tried and dropped. |  |
+| Hidden Features (unconfirmed) | Turns on four finished Gboard features that a resigned build can never receive: Emoji Kitchen browse, the custom sticker tab, offline translation, and search in Gboard's settings. Off by default because none of the four has been seen working on a device — the flags flip, but each also depends on data Google only sends to an unpatched install. Safe to try: none of them crashes. |  |
 | [Install as Gboard Clone](#install-as-gboard-clone) | Rename the package to dev.jz6.com.google.android.inputmethod.latin so the patched build installs alongside the official Gboard instead of replacing it. |  |
-| Suggested Settings | Turns on flick keys for symbols, touch & hold keys for numbers, suggestion strip, grammar check and smart replies, and turns off block offensive words and word suggestions. Written once as defaults, so each can still be changed in Gboard's own settings. |  |
+| Suggested Settings | Turns on flick keys for symbols, touch & hold keys for numbers, suggestion strip, grammar check and smart replies, and turns off block offensive words and word suggestions. Written once as defaults, so each can still be changed in Gboard's own settings. Grammar check is the switch, not the feature: the row only exists on a resigned build if Hidden Features is applied too. |  |
 | [Swipe Left to Delete](#swipe-left-to-delete) | Swipe left anywhere on the keyboard to delete the previous word, and swipe right to restore it. Uses Gboard's own word-scrub engine, so it behaves exactly like swiping on the backspace key already does — only it can start anywhere. |  |
 | [Swipe Right to Undo](#swipe-right-to-undo) | Swipe right after deleting to put the words back — the swipe starts on the Delete key, or anywhere when Swipe Left to Delete is also applied. Uses Gboard's own undo, which already records what a delete swipe removed. |  |
-| [Text Action Buttons](#text-action-buttons) | Add Select all, Copy and Paste buttons to the toolbar above the keyboard, so each is one tap instead of opening Gboard's text editing panel first. Registered natively, so drag-to-reorder through the toolbar customize page persists. These three compete for the five icons Gboard's toolbar holds; Bigger Toolbar raises that ceiling if you run the hotkeys as well. |  |
-| [Toolbar Hotkeys](#toolbar-hotkeys) | Adds six configurable hotkey slots to Gboard's toolbar — each commits a text of your choice on tap. A slot appears when its text is set; when cleared it hides at the next toolbar rebuild (rotate, switch IME, or restart — there's no mid-session un-register). Text and icon edits apply on the next keyboard open. Gboard's toolbar holds five icons in total, shared with its own, so apply Bigger Toolbar too if you want all six on the bar at once. |  |
+| [Text Action Buttons](#text-action-buttons) | Add Select all, Copy and Paste buttons to the toolbar above the keyboard, so each is one tap instead of opening Gboard's text editing panel first. Registered natively, so drag-to-reorder through the toolbar customize page persists. These three share the toolbar with Gboard's own icons and with Toolbar Hotkeys. Bigger Toolbar, which is applied unless you deselect it, raises the ceiling from five to twelve; without it, five is all the bar can hold. |  |
+| [Toolbar Hotkeys](#toolbar-hotkeys) | Adds eight configurable hotkey slots to Gboard's toolbar — each commits a text of your choice on tap. A slot appears when its text is set; when cleared it hides at the next toolbar rebuild (rotate, switch IME, or restart — there's no mid-session un-register). Text and icon edits apply on the next keyboard open. The slots share the toolbar with Gboard's own icons: Bigger Toolbar, which is applied unless you deselect it, makes room for twelve, but on a stock ceiling of five not all eight fit. |  |
 | Vibration Slider Everywhere | Forces Gboard to show its own vibration strength slider on every device, rather than deferring to the system haptic settings page, so the strength is adjustable instead of being fixed by whichever rollout the device landed in. |  |
 
 </details>
@@ -103,8 +104,8 @@ Swipe length and hold delay are fixed rather than adjustable. The swipe travels 
 distance per word, and deleting starts immediately instead of after Gboard's 200 ms press-and-hold.
 Both were sliders once; [`docs/design.md`](docs/design.md) has why they are not now.
 
-The screen also carries six **Hotkeys** fields belonging to
-[Text Action Buttons](#text-action-buttons).
+The screen also carries eight **Hotkeys** fields belonging to
+[Toolbar Hotkeys](#toolbar-hotkeys).
 
 Every value is read out of Gboard's own preference store, so there is no separate settings app and
 nothing to keep in sync.
@@ -192,7 +193,7 @@ no images of its own.
 
 ## Toolbar hotkeys
 
-Six more toolbar buttons, each typing a string you set under **Hotkeys** in Flexboard's settings —
+Eight more toolbar buttons, each typing a string you set under **Hotkeys** in Flexboard's settings —
 an email address, a signature, "brb", whatever you type often enough to resent typing.
 
 **A slot you have not filled in makes no button.** Fresh out of the box there are no hotkeys at all;
@@ -208,15 +209,15 @@ is the moment you actually need to know which is which.
 
 Long text is fine. The whole of it gets typed; only the first line, cut short, becomes the name.
 
-**Nine buttons is more than the bar holds** — unless *Bigger toolbar* is applied, which is what it
+**Eleven buttons is more than the bar holds** — unless *Bigger toolbar* is applied, which is what it
 is for. Without it, the three text actions plus a few hotkeys push whatever used to sit at the end
 of your toolbar into the overflow menu behind the chevron. Long-press the toolbar to reorder, and
 drop what you do not need.
 
 ## Bigger toolbar
 
-Gboard's toolbar holds five icons. Flexboard adds nine of its own — six hotkeys and three text
-actions — and those nine compete with the emoji, clipboard and settings buttons already there. So
+Gboard's toolbar holds five icons. Flexboard adds eleven of its own — eight hotkeys and three text
+actions — and those eleven compete with the emoji, clipboard and settings buttons already there. So
 the bar is the limit on everything above, and this patch raises it to twelve.
 
 **It does not decide how many you see.** Choosing what sits on the bar is Gboard's own job, done by
@@ -234,6 +235,31 @@ Two things worth knowing. Twelve icons on a phone are narrow — the bar divides
 rather than scrolling — so twelve is the room available, not a recommendation. And if you had
 already trimmed your toolbar before applying this, you will still see your old number until you
 drag more icons onto the bar, because that number is your setting and the patch leaves it alone.
+
+## Hidden features
+
+Gboard ships a lot of finished features switched off behind Google's own feature flags, waiting on
+a server-side rollout. Those flags are delivered per app **signature** — and a patched build is
+resigned, so the delivery never arrives and every flag stays at whatever it was compiled with. On
+this build that is 666 of them.
+
+Most deserve to stay off; they are experiments and half-built code. Seven do not:
+
+| | |
+|---|---|
+| **Grammar check** | the settings row, and the checking behind it |
+| **Proofread** | on-device proofreading |
+| **Emoji Kitchen browse** | the browse surface for sticker mashups |
+| **Custom sticker tab** | your own stickers, as a tab |
+| **Offline translate** | translation without a round trip to a server |
+| **Dismissable chips** | a close control on the chips Gboard offers unprompted |
+| **Settings search** | search inside Gboard's own settings |
+
+Each is something Google ships to ordinary Gboard users today, so the code behind the flag is
+finished — this is restoring what resigning took away, not switching on an experiment.
+
+Some are locale- or account-dependent and may do nothing on your device, which is Google's doing
+rather than the patch's. If a feature does not appear, it was not enabled for you upstream either.
 
 ## Flick keys for symbols
 

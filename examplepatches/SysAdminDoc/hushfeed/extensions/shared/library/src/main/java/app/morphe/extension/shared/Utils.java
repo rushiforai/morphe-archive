@@ -54,6 +54,7 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -62,7 +63,6 @@ import java.util.regex.Pattern;
 import app.morphe.extension.shared.settings.AppLanguage;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.BooleanSetting;
-import app.morphe.extension.shared.settings.preference.MorpheAboutPreference;
 import app.morphe.extension.shared.ui.Dim;
 
 @SuppressWarnings("NewApi")
@@ -249,16 +249,52 @@ public class Utils {
             },
             new ThreadPoolExecutor.AbortPolicy());
 
+    private static final java.util.concurrent.atomic.AtomicInteger backgroundTasksInFlight =
+            new java.util.concurrent.atomic.AtomicInteger();
+
     public static void runOnBackgroundThread(Runnable task) {
+        backgroundTasksInFlight.incrementAndGet();
         try {
-            backgroundThreadPool.execute(task);
+            backgroundThreadPool.execute(() -> {
+                try {
+                    task.run();
+                } finally {
+                    backgroundTasksInFlight.decrementAndGet();
+                }
+            });
         } catch (RejectedExecutionException error) {
+            backgroundTasksInFlight.decrementAndGet();
             Logger.printException(() -> "Background task queue is full", error);
         }
     }
 
     public static <T> Future<T> submitOnBackgroundThread(Callable<T> call) {
-        return backgroundThreadPool.submit(call);
+        backgroundTasksInFlight.incrementAndGet();
+        try {
+            return backgroundThreadPool.submit(() -> {
+                try {
+                    return call.call();
+                } finally {
+                    backgroundTasksInFlight.decrementAndGet();
+                }
+            });
+        } catch (RejectedExecutionException error) {
+            backgroundTasksInFlight.decrementAndGet();
+            throw error;
+        }
+    }
+
+    /** Waits until background work submitted before this call has finished. */
+    public static void awaitBackgroundTasksForTests() throws Exception {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (true) {
+            long remaining = deadline - System.nanoTime();
+            if (remaining <= 0) throw new TimeoutException("Background tasks did not finish");
+            backgroundThreadPool.submit(() -> { }).get(remaining, TimeUnit.NANOSECONDS);
+            if (backgroundTasksInFlight.get() == 0 && backgroundThreadPool.getQueue().isEmpty()) {
+                return;
+            }
+        }
     }
 
     /**
@@ -443,8 +479,12 @@ public class Utils {
         // Must initially set context to check the app language.
         context = appContext;
 
-        // Set activity if not already set.
-        if (appContext instanceof Activity activity && getActivity() == null) {
+        // Follow the activity rather than keeping the first one. The host recreates its main
+        // activity on a configuration change it does not swallow, and this hook runs again for
+        // the new one; holding the old instance left every overlay attaching to a window nobody
+        // is looking at, which isFinishing() does not report because a recreated activity is
+        // destroyed rather than finishing.
+        if (appContext instanceof Activity activity && getActivity() != activity) {
             setActivity(activity);
         }
 
@@ -1118,9 +1158,9 @@ public class Utils {
             int order = index++;
             Preference pref = pair.second;
 
-            // Move any screens, intents, and the one off About preference to the top.
-            if (pref instanceof PreferenceScreen || pref instanceof MorpheAboutPreference
-                    || pref.getIntent() != null) {
+            // Move any screens and intents to the top. The About preference this also named was
+            // never built here and its class is gone.
+            if (pref instanceof PreferenceScreen || pref.getIntent() != null) {
                 // Any arbitrary large number.
                 order -= 1000;
             }
