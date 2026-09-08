@@ -1641,6 +1641,62 @@
                 "sortOrder": 211,
                 "createdAt": 1788750211649,
                 "updatedAt": 1788750211649
+            },
+            {
+                "name": "ringconn-patches",
+                "source": "https://raw.githubusercontent.com/DarioDKM/ringconn-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 212,
+                "createdAt": 1788837232795,
+                "updatedAt": 1788837232795
+            },
+            {
+                "name": "psylos-morphe-patches",
+                "source": "https://raw.githubusercontent.com/lootdev78/psylos-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 213,
+                "createdAt": 1788837234708,
+                "updatedAt": 1788837234708
+            },
+            {
+                "name": "friendsturner-patches",
+                "source": "https://raw.githubusercontent.com/miketweaver/friendsturner-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 214,
+                "createdAt": 1788837235099,
+                "updatedAt": 1788837235099
+            },
+            {
+                "name": "My-moprhe-patches",
+                "source": "https://raw.githubusercontent.com/picarica/My-moprhe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 215,
+                "createdAt": 1788837236238,
+                "updatedAt": 1788837236238
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/vomw/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 216,
+                "createdAt": 1788837236815,
+                "updatedAt": 1788837236815
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/yann-soliman/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 217,
+                "createdAt": 1788837237302,
+                "updatedAt": 1788837237302
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/zeldrisho/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 218,
+                "createdAt": 1788837237552,
+                "updatedAt": 1788837237552
             }
         ]
     }
