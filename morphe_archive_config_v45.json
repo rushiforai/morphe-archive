@@ -1563,14 +1563,6 @@
                 "updatedAt": 1788318174025
             },
             {
-                "name": "smartlauncher-morphe-patches",
-                "source": "https://raw.githubusercontent.com/thejaustin/smartlauncher-morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 202,
-                "createdAt": 1788318174256,
-                "updatedAt": 1788318174256
-            },
-            {
                 "name": "YouTube-Studio-Patches",
                 "source": "https://raw.githubusercontent.com/HelioFloxZ/YouTube-Studio-Patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -1659,14 +1651,6 @@
                 "updatedAt": 1788837234708
             },
             {
-                "name": "friendsturner-patches",
-                "source": "https://raw.githubusercontent.com/miketweaver/friendsturner-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 214,
-                "createdAt": 1788837235099,
-                "updatedAt": 1788837235099
-            },
-            {
                 "name": "My-moprhe-patches",
                 "source": "https://raw.githubusercontent.com/picarica/My-moprhe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -1697,6 +1681,14 @@
                 "sortOrder": 218,
                 "createdAt": 1788837237552,
                 "updatedAt": 1788837237552
+            },
+            {
+                "name": "CrimeRadar-Morphe-Patches",
+                "source": "https://raw.githubusercontent.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 219,
+                "createdAt": 1788923769963,
+                "updatedAt": 1788923769963
             }
         ]
     }
