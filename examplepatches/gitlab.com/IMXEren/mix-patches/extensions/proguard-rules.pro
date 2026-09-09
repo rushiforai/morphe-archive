@@ -4,6 +4,9 @@
 -keep class app.mix.** {
   *;
 }
+-keep class app.morphe.** {
+  *;
+}
 -keep class com.google.** {
   *;
 }

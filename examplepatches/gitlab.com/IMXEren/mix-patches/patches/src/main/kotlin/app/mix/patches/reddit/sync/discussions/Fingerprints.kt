@@ -1,26 +1,20 @@
+/*
+ * Copyright 2026 IMXEren.
+ * https://gitlab.com/IMXEren/mix-patches
+ *
+ * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to this code.
+ */
+
 package app.mix.patches.reddit.sync.discussions
 
 import app.morphe.patcher.Fingerprint
-import com.android.tools.smali.dexlib2.AccessFlags
 
-internal const val OLD_PATH = "submit.json?url="
-
-// The "Other discussions" request URL builder uses the broken
-// submit.json?url= endpoint. Rewrite the base URL to oauth.reddit.com
-// and the path to search.json?q=url: with the query syntax.
-internal object OtherDiscussionsFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
-    returnType = "Ljava/lang/String;",
+internal val sortDialogSelectionFingerprint = Fingerprint(
+    returnType = "V",
     parameters = listOf(
-        "Landroid/content/Context;",
-        "Ljava/lang/String;",
-        "Ljava/lang/String;",
-        "L",
-        "Ljava/lang/String;",
-        "Ljava/lang/String;",
+        "Lcom/laurencedawson/reddit_sync/ui/fragment_dialogs/bottom/material_dialogs/base/AbstractSelectionDialogBottomSheet",
     ),
-    strings = listOf(
-        OLD_PATH,
-        "&limit=25",
-    ),
+    custom = { _, classDef ->
+        classDef.sourceFile == "SubredditSortAccessDialogBottomSheet.java"
+    },
 )

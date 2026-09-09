@@ -1,7 +1,7 @@
 #!/bin/bash
 # repatch.sh — re-patch an APK/APKM with this repo's patch set and sign it.
 # Usage: scripts/repatch.sh <app.apk|apkm|xapk|apks> [output.apk]
-# Requires: java, python3, morphe-cli jar, signing keystore (curl for downloads).
+# Requires: java, python3, Morphe Desktop all.jar, signing keystore (curl for downloads).
 # Template adapted from chiggi_morphe_patches/scripts/repatch_sonyliv.sh.
 #
 # Overridable via environment variables:
@@ -13,7 +13,12 @@
 #                       often lowercase it to `morphe` — override in that case)
 #   KEYSTORE_PASSWORD       -> keystore password (default: empty, the Morphe.keystore convention)
 #   KEYSTORE_ENTRY_PASSWORD -> key entry password (default: CLI default; flag omitted)
-#   MORPHE_CLI     -> morphe-cli jar (default: ~/.local/bin/morphe-cli.jar)
+#   MORPHE_CLI     -> Morphe Desktop all.jar (local alias: ~/.local/bin/morphe-cli.jar)
+#                    See docs/toolchain.md; this must be a JAR, not a wrapper.
+#   VERIFY_SDK     -> opt-in DEX/APK verification: 1 uses SDK discovery
+#                    ($ANDROID_HOME -> $ANDROID_SDK_ROOT -> OS default),
+#                    any other value is passed as --verify-with-sdk=<path>.
+#                    Empty/0/false disables verification (default).
 #   GITHUB_REPO    -> owner/repo used when downloading the latest release bundle
 set -euo pipefail
 
@@ -28,7 +33,10 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
 # Print an error message to stderr and exit with code 1.
-die() { echo "❌ $*" >&2; exit 1; }
+die() {
+    echo "❌ $*" >&2
+    exit 1
+}
 
 command -v java >/dev/null 2>&1 || die "java not found"
 command -v python3 >/dev/null 2>&1 || die "python3 not found"
@@ -39,22 +47,22 @@ command -v python3 >/dev/null 2>&1 || die "python3 not found"
 # ---------- Locate the .mpp patch bundle ----------
 # Prefer a locally built bundle; otherwise download the latest GitHub release asset.
 if [[ -z "${MPP:-}" ]]; then
-  MPP=""
-  for f in "$PROJECT_DIR"/patches/build/libs/patches-*.mpp; do
-    [[ -f "$f" ]] || continue
-    case "${f##*/}" in *sources*|*javadoc*) continue;; esac
-    if [[ -z "$MPP" || "$f" -nt "$MPP" ]]; then
-      MPP="$f"
-    fi
-  done
+    MPP=""
+    for f in "$PROJECT_DIR"/patches/build/libs/patches-*.mpp; do
+        [[ -f "$f" ]] || continue
+        case "${f##*/}" in *sources* | *javadoc*) continue ;; esac
+        if [[ -z "$MPP" || "$f" -nt "$MPP" ]]; then
+            MPP="$f"
+        fi
+    done
 fi
 if [[ -z "$MPP" ]]; then
-  [[ -n "$GITHUB_REPO" ]] || die "no local .mpp found; set MPP= or GITHUB_REPO=owner/repo"
-  echo "No local .mpp found. Downloading the latest release bundle..."
-  MPP="$TMP/patches.mpp"
-  url="$(curl -fsSL "https://api.github.com/repos/$GITHUB_REPO/releases/latest" \
-    | python3 -c "import sys,json;print(next(a['browser_download_url'] for a in json.load(sys.stdin)['assets'] if a['name'].endswith('.mpp')))")"
-  curl -fsSL -o "$MPP" "$url"
+    [[ -n "$GITHUB_REPO" ]] || die "no local .mpp found; set MPP= or GITHUB_REPO=owner/repo"
+    echo "No local .mpp found. Downloading the latest release bundle..."
+    MPP="$TMP/patches.mpp"
+    url="$(curl -fsSL "https://api.github.com/repos/$GITHUB_REPO/releases/latest" |
+        python3 -c "import sys,json;print(next(a['browser_download_url'] for a in json.load(sys.stdin)['assets'] if a['name'].endswith('.mpp')))")"
+    curl -fsSL -o "$MPP" "$url"
 fi
 [[ -f "$MPP" ]] || die "patch bundle not found: $MPP"
 echo "Using patch bundle: $MPP"
@@ -82,9 +90,15 @@ PY
 KEYSTORE_ARGS=(--keystore="$KEYSTORE" --keystore-entry-alias="${KEYSTORE_ALIAS:-Morphe}")
 [[ -n "${KEYSTORE_PASSWORD:-}" ]] && KEYSTORE_ARGS+=(--keystore-password="$KEYSTORE_PASSWORD")
 [[ -n "${KEYSTORE_ENTRY_PASSWORD:-}" ]] && KEYSTORE_ARGS+=(--keystore-entry-password="$KEYSTORE_ENTRY_PASSWORD")
+VERIFY_ARGS=()
+case "${VERIFY_SDK:-}" in
+    "" | 0 | false | no) ;;
+    1 | true | yes) VERIFY_ARGS+=(--verify-with-sdk) ;;
+    *) VERIFY_ARGS+=(--verify-with-sdk="$VERIFY_SDK") ;;
+esac
 echo "Patching '$INPUT' -> '$OUT'"
-java -jar "$CLI" patch -p "$MPP" --options-file "$OPTS" "${KEYSTORE_ARGS[@]}" \
-  -o "$OUT" -t "$TMP/patch" "$INPUT"
+java -jar "$CLI" patch -p "$MPP" --options-file "$OPTS" "${KEYSTORE_ARGS[@]}" "${VERIFY_ARGS[@]}" \
+    -o "$OUT" -t "$TMP/patch" "$INPUT"
 
 echo
 echo "✅ Patched APK: $OUT"

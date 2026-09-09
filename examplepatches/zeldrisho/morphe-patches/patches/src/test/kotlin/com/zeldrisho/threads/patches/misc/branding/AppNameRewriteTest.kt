@@ -10,9 +10,8 @@ import kotlin.test.assertFailsWith
 /**
  * Parse an XML string into a DOM Document for testing.
  */
-private fun parse(xml: String): Document =
-    DocumentBuilderFactory.newInstance().newDocumentBuilder()
-        .parse(ByteArrayInputStream(xml.toByteArray()))
+private fun parse(xml: String): Document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+    .parse(ByteArrayInputStream(xml.toByteArray()))
 
 /**
  * Generate a minimal test manifest with application and activity labels.

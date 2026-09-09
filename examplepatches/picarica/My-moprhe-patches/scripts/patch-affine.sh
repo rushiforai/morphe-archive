@@ -3,12 +3,13 @@ set -euo pipefail
 
 ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 AFFINE_ROOT=$(cd -- "$ROOT/.." && pwd)
+VERSION=$(sed -n 's/^version = //p' "$ROOT/gradle.properties")
 
 INPUT=${1:-"$AFFINE_ROOT/AFFiNE_0.27.4_APKPure.xapk"}
 OUTPUT=${2:-"$AFFINE_ROOT/AFFiNE_0.27.4_no-gms.apk"}
 MORPHE_JAR="$AFFINE_ROOT/tools/morphe-desktop-1.15.0-all.jar"
 MORPHE_URL="https://github.com/MorpheApp/morphe-desktop/releases/download/v1.15.0/morphe-desktop-1.15.0-all.jar"
-MPP="$ROOT/patches/build/libs/patches-1.0.0.mpp"
+MPP="$ROOT/patches/build/libs/patches-$VERSION.mpp"
 KEYSTORE="$AFFINE_ROOT/affine-no-gms.keystore"
 REPORT="$AFFINE_ROOT/AFFiNE_0.27.4_no-gms-result.json"
 

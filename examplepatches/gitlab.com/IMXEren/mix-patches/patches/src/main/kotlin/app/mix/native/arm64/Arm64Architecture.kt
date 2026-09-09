@@ -10,5 +10,8 @@ object Arm64Architecture : NativeArchitecture {
 
     override fun encode(opcode: NativeOpcode, address: Long): ByteArray = when (opcode) {
         NativeOpcode.RETURN -> byteArrayOf(0xC0.toByte(), 0x03, 0x5F, 0xD6.toByte())
+
+        // mov w0, #0  (MOVZ W0, #0 = 0x52800000, little-endian).
+        NativeOpcode.MOV_ZERO -> byteArrayOf(0x00, 0x00, 0x80.toByte(), 0x52)
     }
 }

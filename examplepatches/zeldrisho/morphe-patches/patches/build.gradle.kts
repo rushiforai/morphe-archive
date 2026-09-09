@@ -1,3 +1,13 @@
+plugins {
+    // Matches the Kotlin 2.4.10 compiler supplied by Morphe; see docs/development.md.
+    id("dev.detekt") version "2.0.0-alpha.6"
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    config.setFrom(rootProject.file("config/detekt/detekt.yml"))
+}
+
 group = "com.zeldrisho.threads"
 
 patches {
@@ -24,6 +34,16 @@ dependencies {
 }
 
 tasks {
+    test {
+        // Make opt-in local APK validation cache-correct; CI uses synthetic fixtures.
+        val apkPath = providers.environmentVariable("THREADS_TEST_APK").orNull.orEmpty()
+        inputs.property("threadsTestApk", apkPath)
+        if (apkPath.isNotBlank()) {
+            inputs.file(rootProject.file(apkPath)).withPropertyName("threadsTestApkFile")
+            environment("THREADS_TEST_APK", rootProject.file(apkPath).absolutePath)
+        }
+    }
+
     // The extension module build only produces
     // extensions/extension/build/morphe/extensions/extension.mpe, but the
     // Hide-ads patch resolves extendWith("extensions/extension.mpe") relative
@@ -68,11 +88,6 @@ tasks {
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")
-    }
-
-    // Used by gradle-semantic-release-plugin.
-    publish {
-        dependsOn("generatePatchesList")
     }
 }
 

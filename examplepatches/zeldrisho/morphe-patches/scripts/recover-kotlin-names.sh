@@ -11,19 +11,22 @@ set -euo pipefail
 
 # Display usage information and exit.
 usage() {
-  cat <<EOF
+    cat <<EOF
 Usage: recover-kotlin-names.sh <decompiled-sources-dir> [mapping-dir]
 
 Walks *.java under <decompiled-sources-dir>, mines @DebugMetadata and
 @Metadata annotations, writes mapping.tsv / mapping.json / by_package/.
 EOF
-  exit 0
+    exit 0
 }
 
 [[ $# -lt 1 || "$1" == "-h" || "$1" == "--help" ]] && usage
 SRC="$1"
 OUT="${2:-$(dirname "$SRC")/mapping}"
-[[ ! -d "$SRC" ]] && { echo "not a directory: $SRC" >&2; exit 1; }
+[[ ! -d "$SRC" ]] && {
+    echo "not a directory: $SRC" >&2
+    exit 1
+}
 
 mkdir -p "$OUT/by_package"
 

@@ -63,7 +63,7 @@ class RepatchTest(unittest.TestCase):
         self.env = {k: v for k, v in os.environ.items() if k not in {
             "APP_NAME", "PACKAGE_NAME", "MPP", "KEYSTORE", "KEYSTORE_ALIAS",
             "KEYSTORE_PASSWORD", "KEYSTORE_ENTRY_PASSWORD", "MORPHE_CLI", "GITHUB_REPO",
-            "FAIL_OPTIONS", "FAIL_PATCH",
+            "VERIFY_SDK", "FAIL_OPTIONS", "FAIL_PATCH",
         }}
         self.env.update(
             PATH=f"{bin_dir}{os.pathsep}{os.environ['PATH']}",
@@ -87,7 +87,7 @@ class RepatchTest(unittest.TestCase):
         )
 
     def calls(self):
-        """Parse and return the list of morphe-cli commands logged during script execution."""
+        """Parse and return the list of Desktop CLI commands logged during script execution."""
         return [json.loads(line) for line in Path(self.env["CALLS"]).read_text().splitlines()]
 
     def test_default_signing_and_patch_selection(self):
@@ -154,6 +154,22 @@ class RepatchTest(unittest.TestCase):
         args = calls[0][1]
         self.assertFalse(Path(args[args.index("-o") + 1]).parent.exists())
         self.assertFalse(self.output.exists())
+
+    def test_verify_sdk_defaults_to_disabled(self):
+        """Verify that DEX/APK SDK verification is opt-in and off by default."""
+        result = self.run_helper()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        args = self.calls()[1][1]
+        self.assertFalse(any(a.startswith("--verify-with-sdk") for a in args))
+
+    def test_verify_sdk_flag_and_path_forms(self):
+        """Verify VERIFY_SDK=1 uses SDK discovery and a path passes through with '='."""
+        result = self.run_helper(VERIFY_SDK="1")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("--verify-with-sdk", self.calls()[-1][1])
+        result = self.run_helper(VERIFY_SDK="/opt/android-sdk")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("--verify-with-sdk=/opt/android-sdk", self.calls()[-1][1])
 
     def test_signing_failure_does_not_report_success(self):
         """Verify that patch/sign failures do not print a success message and preserve error diagnostics."""

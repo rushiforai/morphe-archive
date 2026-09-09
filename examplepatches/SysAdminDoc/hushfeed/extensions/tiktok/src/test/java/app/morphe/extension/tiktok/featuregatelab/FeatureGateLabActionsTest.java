@@ -140,6 +140,12 @@ public class FeatureGateLabActionsTest {
         save("gate", "true", true);
         FeatureGateLabStore.setMasterEnabled(true);
         SettingsManagerObservationRecorder.observeWithDefault("object", String.class, "", "before");
+        // A gate that actually fired. The detail screen reads this to say whether an override has
+        // been reached, and a commit that did not land must not be able to erase it.
+        FeatureGateLabRuntime.reloadRules();
+        assertTrue(FeatureGateLabRuntime.overrideBoolean("gate", false));
+        assertTrue("the rule never fired, so the test cannot see it being lost",
+                FeatureGateLabRuntime.isTriggered("abmock", "gate", "BOOLEAN"));
         String before = FeatureGateLabStore.exportSettings().toString();
         var delegate = app.getSharedPreferences("morphe_feature_gate_lab", 0);
         var commits = new java.util.concurrent.atomic.AtomicInteger();
@@ -164,6 +170,13 @@ public class FeatureGateLabActionsTest {
             assertEquals(before, FeatureGateLabStore.exportSettings().toString());
             assertEquals(1, SettingsManagerObservationRecorder.size());
             assertTrue(commits.get() >= 2);
+            assertTrue("a failed commit cleared the record of which overrides fired",
+                    FeatureGateLabRuntime.isTriggered("abmock", "gate", "BOOLEAN"));
+            // Both halves of that are load bearing. The failed write must not clear, because
+            // nothing was written; and the rollback must not clear either, because it puts the
+            // very rules back that the record describes.
+            assertEquals("the original the rule replaced went with it",
+                    "false", FeatureGateLabRuntime.originalValue("abmock", "gate", "BOOLEAN"));
         } finally { Utils.setContext(app); }
     }
 
@@ -183,11 +196,15 @@ public class FeatureGateLabActionsTest {
             var fragment = attach(activity);
             Switch master = findSwitch(fragment.getView());
             master.performClick();
+            // The switch writes through the journal, which is storage, so it goes the same way
+            // as every other Lab change: off this thread, then back to it.
+            settle();
             assertTrue(master.isChecked());
             assertTrue(FeatureGateLabStore.masterEnabled());
             assertTrue(FeatureGateLabStore.warningAcknowledged());
             assertNull(ShadowDialog.getLatestDialog());
             master.performClick();
+            settle();
             assertFalse(FeatureGateLabStore.masterEnabled());
             save("gate", "true", true);
             action(fragment, 4);
@@ -346,6 +363,44 @@ public class FeatureGateLabActionsTest {
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             assertNotEquals("A Lab change is already running", ShadowToast.getTextOfLatestToast());
         }
+    }
+
+    @Test public void theMasterSwitchDoesItsStorageOffTheMainThread() throws Exception {
+        // Turning overrides on takes the journal lock and does two write-and-verify cycles. On
+        // the main thread that is a frozen screen for as long as a settings restore holds that
+        // lock, which is exactly what the Lab's other changes were written to avoid.
+        try (var owner = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
+            var activity = owner.get();
+            var fragment = attach(activity);
+            Switch master = findSwitch(fragment.getView());
+            boolean before = FeatureGateLabStore.masterEnabled();
+            // The hook is static and every Lab change writes it, so an earlier test in this
+            // class would otherwise answer for this one.
+            forgetLastChangeThread();
+
+            master.performClick();
+            settle();
+
+            assertEquals("the switch did not take", !before, FeatureGateLabStore.masterEnabled());
+            assertEquals("the switch does not show what was stored", !before, master.isChecked());
+            String thread = FeatureGateLabFragment.lastChangeThreadForTests();
+            assertNotNull("nothing recorded a Lab change at all", thread);
+            assertNotEquals("the master switch wrote to storage on the drawing thread",
+                    Looper.getMainLooper().getThread().getName(), thread);
+        }
+    }
+
+    private static void forgetLastChangeThread() throws Exception {
+        var field = FeatureGateLabFragment.class.getDeclaredField("lastChangeThreadForTests");
+        field.setAccessible(true);
+        field.set(null, null);
+    }
+
+    /** Lets a Lab change finish: the storage half, then the part that puts the screen back. */
+    private static void settle() throws Exception {
+        FeatureGateLabFragment.awaitFileIoForTests();
+        Utils.awaitBackgroundTasksForTests();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
     }
 
     private static FeatureGateLabFragment attach(Activity activity) {

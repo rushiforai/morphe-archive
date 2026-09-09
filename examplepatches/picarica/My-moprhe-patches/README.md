@@ -19,6 +19,11 @@ https://github.com/picarica/My-moprhe-patches
 Then select the original AFFiNE `0.27.4` XAPK and enable
 `Remove Google requirements`. Do not use a patched APK as the input.
 
+Morphe knows that this patch requires an ARM64 XAPK with version code `439`, but
+its download service currently has no direct AFFiNE mirror mapping. The download
+button may therefore open a web search limited to APKMirror, Uptodown, APKPure,
+and APKCombo. Select the original XAPK manually if necessary.
+
 ## Supported input
 
 - Package: `app.affine.pro`
@@ -71,7 +76,7 @@ The bootstrap script checks out these public sources at exact commits:
 Output:
 
 ```text
-patches/build/libs/patches-1.0.0.mpp
+patches/build/libs/patches-1.0.1.mpp
 ```
 
 ## Patch the supplied XAPK

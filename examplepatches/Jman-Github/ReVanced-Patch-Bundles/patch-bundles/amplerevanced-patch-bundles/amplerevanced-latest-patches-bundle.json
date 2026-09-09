@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-07T04:19:42",
-  "description": "# [1.5.0-dev.5](https://github.com/AmpleReVanced/revanced-patches/compare/v1.5.0-dev.4...v1.5.0-dev.5) (2026-09-07)\n\n\n### Features\n\n* **dcinside:** support version `5.3.6` ([6651ae1](https://github.com/AmpleReVanced/revanced-patches/commit/6651ae11033a0594a7e1335718d5f152901c4983))\n\n\n\n",
-  "download_url": "https://github.com/AmpleReVanced/revanced-patches/releases/download/v1.5.0-dev.5/patches-1.5.0-dev.5.mpp",
+  "created_at": "2026-09-08T07:35:11",
+  "description": "# [1.5.0-dev.8](https://github.com/AmpleReVanced/revanced-patches/compare/v1.5.0-dev.7...v1.5.0-dev.8) (2026-09-08)\n\n\n### Bug Fixes\n\n* **navermap:** support navigation live updates on 6.9.1.3 ([40fbd7c](https://github.com/AmpleReVanced/revanced-patches/commit/40fbd7c48e2b84ee449010095a9a1e00d68ff541))\n\n\n\n",
+  "download_url": "https://github.com/AmpleReVanced/revanced-patches/releases/download/v1.5.0-dev.8/patches-1.5.0-dev.8.mpp",
   "signature_download_url": "N/A",
-  "version": "v1.5.0-dev.5"
+  "version": "v1.5.0-dev.8"
 }

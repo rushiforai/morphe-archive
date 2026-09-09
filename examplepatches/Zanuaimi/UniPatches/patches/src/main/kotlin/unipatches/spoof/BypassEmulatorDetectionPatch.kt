@@ -291,6 +291,10 @@ val bypassEmulatorDetectionPatch = bytecodePatch(
     description = """
         Hides emulator traces by spoofing Build info and related checks so apps cannot detect an emulator.
 
+        Compatibility: PairIP Bypass and other server-side integrity systems can still reject a
+        device when entitlement is bound to genuine device signals, package identity, or attestation.
+        Combining spoofing with those patches is app-specific and cannot safely bypass remote checks.
+
         Credits: Nai64Patches from Nai64.
     """.trimIndent(),
     default = false,
@@ -306,19 +310,6 @@ val bypassEmulatorDetectionPatch = bytecodePatch(
         key = "emulatorProfile",
         description = "Which real device identity to imitate.",
     )
-    val hideEmulatorRadio by booleanOption(
-        title = "Hide Emulator Radio",
-        default = false,
-        key = "hideEmulatorRadio",
-        description = "Make TelephonyManager report a normal GSM radio type.",
-    )
-    val spoofBuildExtras by booleanOption(
-        title = "Spoof Build Extras",
-        default = false,
-        key = "spoofBuildExtras",
-        description = "Spoof additional Build and Build.VERSION fields used by emulator checks.",
-    )
-
     execute {
         val logger = Logger.getLogger(this::class.java.name)
 
@@ -343,13 +334,6 @@ val bypassEmulatorDetectionPatch = bytecodePatch(
             "qemu.hw.mainkeys" to "0",
         )
         val patchedProps = foldSystemPropertyMap(emulatorProps)
-
-        if (hideEmulatorRadio == true) {
-            hideEmulatorRadioPatch.execute(this)
-        }
-        if (spoofBuildExtras == true) {
-            spoofBuildExtrasPatch.execute(this)
-        }
 
         val total = patchedBuild + patchedSerial + patchedRadio + patchedPhone + patchedProps
         if (total > 0) {

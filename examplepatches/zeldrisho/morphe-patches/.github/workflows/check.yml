@@ -2,10 +2,17 @@ name: Check
 
 on:
   pull_request:
+    branches: [main]
   push:
-    branches:
-      - dev
+    branches: [main]
   workflow_dispatch:
+
+# PR checks run on PRs targeting main; the push trigger covers only main
+# for the post-merge baseline. Unrestricted push would duplicate every PR
+# run (once via pull_request, once via push).
+concurrency:
+  group: check-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 # Least privilege: this workflow only reads the repo and pulls public
 # packages (Morphe Gradle plugin via GitHub Packages). No writes.
@@ -32,13 +39,25 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
 
-      - name: Shellcheck
-        run: shellcheck scripts/*.sh
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: '0.12.3'
+          enable-cache: false
+
+      - name: Scripts, workflows, and conflict/line-ending checks
+        # Include pinned ShellCheck on PATH for actionlint's embedded shell checks.
+        run: uvx --from pre-commit==4.6.2 --with shellcheck-py==0.11.0.1 pre-commit run --all-files --show-diff-on-failure
+
+      - name: JVM formatting and static analysis
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew qualityCheck --no-daemon
 
       - name: Unit tests
         env:
           # Morphe Gradle plugin resolves from GitHub Packages, which needs
-          # auth even for public packages (see docs/lessons-learned.md).
+          # auth even for public packages (see docs/toolchain.md).
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew :patches:test :extensions:extension:testDebugUnitTest --no-daemon
 
@@ -51,3 +70,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew buildAndroid --no-daemon
+
+      # Only the distributable bundle, never APKs, signing keys, or analysis data.
+      - name: Upload bundle for device QA
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: patches-${{ github.sha }}-${{ github.run_attempt }}
+          path: patches/build/libs/patches-*.mpp
+          if-no-files-found: error
+          retention-days: 7

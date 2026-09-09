@@ -1,8 +1,10 @@
 # Patch development
 
 How patches in this repo are structured, written, built, and tested.
-See `reverse-engineering.md` (finding targets), `fingerprint-guide.md` (fingerprints),
-`bypass-patterns.md` (per-SDK techniques), `architecture.md` (module layout).
+See the [reverse engineering workflow](reverse-engineering.md) (finding targets),
+[fingerprint guide](fingerprint-guide.md) (fingerprints),
+[bypass patterns](bypass-patterns.md) (per-SDK techniques), and
+[architecture](architecture.md) (module layout).
 
 ## Patch types
 
@@ -21,30 +23,36 @@ patches/src/main/kotlin/com/zeldrisho/threads/patches/
 ├── shared/Constants.kt          # Compatibility records (package, file type, versions)
 ├── ads/
 │   ├── FeedMergeRegisters.kt    # Register helpers
-│   └── HideAdsPatch.kt          # Patch and named fingerprint
+│   ├── FeedReflectionContract.kt # Patch-time reflection ABI validation
+│   ├── Fingerprints.kt         # Structural feed-merge fingerprint
+│   └── HideAdsPatch.kt         # Injection
 └── misc/
     ├── analytics/
     ├── branding/
     └── packagename/
 ```
 
-- Shared targets go in `shared/Constants.kt` (see `architecture.md` for the fields).
+- Shared targets go in `shared/Constants.kt` (see [architecture](architecture.md) for the fields).
 - Pin **exact** `AppTarget` versions you fingerprinted and tested — never ship
-  `version = null` as the only target. Rationale: Morphe Manager rejects a null
-  ("any") version (the whole source fails to load), and R8-obfuscated bytecode
+  `version = null` as the only target. Morphe Manager rejects a null ("any")
+  version (the whole source fails to load), and R8-obfuscated bytecode
   patches only verifiably resolve on the fingerprinted version; pinning makes
-  staleness explicit instead of silently matching the wrong code. Prefer versions
-  available on well-known APK mirrors (see `Constants.kt` comments).
+  staleness explicit instead of silently matching the wrong code. Use the
+  APKMirror original the fingerprint was verified against and record its
+  versionCode (see `Constants.TESTED_VERSION_CODE`); same version *names* from
+  other mirrors can carry different codes.
 - Internal-only helpers stay unnamed (`bytecodePatch { ... }` without `name`) and are
-  wired in via `dependsOn(...)` (unnamed `bytecodePatch { ... }` without `name`).
+  wired in via `dependsOn(...)`.
 - Complex runtime logic goes in `extensions/extension/src/main/java/` and is linked with
   `extendWith("extensions/extension.mpe")` (when to use it: below).
-- Prefer exact `AppTarget` versions available on well-known APK mirrors over `version = null` (see above — null breaks Manager loading).
 - Every user-visible patch needs an honest `description`: state what it does AND
   its limits (e.g. "client-side IMA ads only; server-stitched SSAI on live streams
   may remain", "UI only — content stays server + Widevine gated", "rename may
   break Google/OAuth sign-in"). If the target is server-gated with no client gate
-  (see `lessons-learned.md`), don't ship a fake unlock — document it as a limitation.
+  (see [lessons learned](lessons-learned.md#what-is-and-isnt-patchable)), don't ship a fake unlock — document it as a limitation.
+- Risky patches (login/providers/push at risk) ship `default = false` with a WARNING
+  in the description. Precedent: Change package name (renaming breaks package+cert-bound
+  SSO). `PatchesListShapeTest` guards the default, so a regression fails CI.
 
 ## Writing a patch
 
@@ -66,11 +74,19 @@ val myPremiumPatch = bytecodePatch(
 }
 ```
 
-For targeted edits at a matched instruction, see the `instructionMatches` pattern in `fingerprint-guide.md`.
+For targeted edits at a matched instruction, see the `instructionMatches` pattern in the
+[fingerprint guide](fingerprint-guide.md#using-fingerprints-in-patches).
 
-Prefer the `app.morphe.util` helpers when they cover the case
-(`returnEarly(true/false)`, `indexOfFirstStringInstructionOrThrow`, …) —
-see `fingerprint-guide.md`.
+Common `addInstructions` shapes (all verified against the installed patcher API):
+
+```kotlin
+// Force-allow a boolean check:
+method.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
+// Force-deny:
+method.addInstructions(0, "const/4 v0, 0x0\nreturn v0")
+// Skip a void method entirely:
+method.addInstructions(0, "return-void")
+```
 
 ## Resource patches
 
@@ -139,7 +155,7 @@ val myPatch = bytecodePatch(name = "My Feature") {
     extendWith("extensions/extension.mpe")
     execute {
         TargetFingerprint.method.addInstructionsWithLabels(0, """
-            invoke-static { }, Lapp/template/extension/myapp/MyPatch;->isEnabled()Z
+            invoke-static { }, Lcom/zeldrisho/threads/extension/MyPatch;->isEnabled()Z
             move-result v0
             if-eqz v0, :disabled
             return-void
@@ -153,35 +169,35 @@ val myPatch = bytecodePatch(name = "My Feature") {
 ## Build and test
 
 ```bash
-./gradlew buildAndroid                        # → patches/build/libs/patches-*.mpp
-./gradlew generatePatchesList
-./gradlew :patches:buildAndroid clean --no-daemon
+./gradlew :patches:test :extensions:extension:testDebugUnitTest buildAndroid --no-daemon
+# .mpp -> patches/build/libs/patches-*.mpp
 ```
 
-Apply the `.mpp` in Morphe Desktop against the **original `.apks` split container**
+Apply the `.mpp` via the terminal ([CLI patching](cli.md)) against the **downloaded APKMirror split bundle**
 matching the supported Threads version and `ApkFileType.APKS` compatibility
 declaration (never an extracted `base.apk`), then `adb install -r` the output.
 To debug one patch in isolation, apply
-only it (`--exclusive`-style single-patch run in the CLI/Desktop) before the full suite —
+only it (`patch --exclusive -e "Name"`, see [CLI patching](cli.md#canonical-flows-this-repo)) before the full suite —
 a fingerprint failure elsewhere won't mask your result that way.
 
-Work on `dev`, merge (no squash) to `main` for stable releases; `feat:`/`fix:`/`chore:`
-semantics and the generated-files rules live in `release.md` and `development.md`.
+Work on a branch, merge (no squash) to `main` for stable releases, then stage and tag
+the release; the generated-files rules live in the [release process](release.md)
+and [development guide](development.md#verify).
 
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |
 | ------- | ------------ | --- |
 | `Fingerprint declared no instruction filters` | Using `instructionMatches` without `filters` | Add `filters`, or use `strings` + `stringMatches` |
-| `Failed to match the fingerprint` | Code moved / signature changed | Re-verify smali (§ debugging checklist in `fingerprint-guide.md`) |
+| `Failed to match the fingerprint` | Code moved / signature changed | Re-verify smali ([fingerprint debugging](bytecode-reference.md#fingerprint-debugging)) |
 | Patched app crashes on launch | Wrong register / wide-type (`J`/`D`) shift | `adb logcat`, recount registers from smali |
-| "Not compatible" / install fails | Split APK (`requiredSplitTypes`) | Use `XAPK`/`APKM` with matching `ApkFileType` |
+| "Not compatible" / install fails | Split APK (`requiredSplitTypes`) | Pass the downloaded `.apkm` bundle through; keep `ApkFileType.APKS` in sync with what Desktop accepts |
 | Google login / Drive broken | Signature mismatch after re-signing | Expected; not fixable without an account-spoof patch |
 | Server-gated features still locked | Server-side validation (credits, cloud) | Not bypassable client-side — document as limitation |
-| Gradle auth failure | Missing registry credentials | `gpr.user`/`gpr.key` (or `GITHUB_ACTOR`/`GITHUB_TOKEN`), see `development.md` |
+| Gradle auth failure | Missing registry credentials | `gpr.user`/`gpr.key` (or `GITHUB_ACTOR`/`GITHUB_TOKEN`), see [toolchain setup](toolchain.md#4-repository-dependencies) |
 
 ## Known limitations (set expectations in patch descriptions)
 
 - Re-signed APKs break Google sign-in and anything bound to the original certificate.
 - Client-side license/integrity bypasses never beat server-side attestation.
-- Split-only apps must be distributed as `XAPK`/`APKM`, not standalone APKs.
+- Split-only apps must be patched from the downloaded split bundle, not a standalone extracted APK.

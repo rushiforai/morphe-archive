@@ -1,5 +1,136 @@
 ## Unreleased
 
+* Every number row says what it accepts, and says so when it moves what you typed. Twelve of the fourteen stated their range nowhere: type 5000 into "Daily time budget" and it came back "Current: 600" with no explanation. Each row now carries its range under its own wording, and a number outside it is reported rather than quietly pulled in. The seven rows whose text says zero turns them off read "Current: Off" at zero instead of "Current: 0 videos", which was a limit of none rather than no limit.
+
+* Each download destination dialog is headed by the row you tapped. Video, photo and sticker all opened a window titled "Download path", so nothing on the screen said which of the three you were editing, and the sentence under it stayed English on a German or Indonesian phone. Both follow the language now.
+
+* TalkBack says which box is which in the five Min and Max dialogs. It read them as "edit box" and "edit box, Unlimited": the headings above them are separate views and the only hint on either field was a value rather than a name, and that one vanished the moment anything was typed. Both fields are labelled now. The sentence above them still says an empty maximum means no upper bound.
+
+* A gate override whose type the catalogue disagrees with is refused on a fresh launch too. The check that catches a rule which would hand TikTok a word where its own code expects a number could only work while the catalogue happened to be loaded, and nothing loaded it until the Feature Gate Lab screen was opened, which is exactly the launch where the check was needed. Reaching that path now asks for the catalogue in the background, so one read goes through unchecked instead of all of them.
+
+* Restoring an older backup keeps the settings it predates. Anything added since the file was written went back to its default, so a backup taken before the download destinations were split put your video, photo and sticker folders back to DCIM/TikTok without a word, and so did every other setting added since. A backup is a set of values to apply now, not a picture of the whole app: what the file does not mention stays as you have it, the restore and the undo both say how many that was, and a file carrying only the old single download folder fills in all three.
+
+* The cached-feed filter stops working in a register TikTok owns. It read its answer into the register holding the cache payload and then jumped back into TikTok's own code at two points, both of which are also reached with a reference in that register. On this build each of those points overwrites it before anything looks at it, so the app was never wrong; on a build that reads it first the feed would have refused to load. The filter has a register of its own now.
+
+* The comment image watermark keeps the position TikTok gave it. The patch read its own on/off answer into the register holding the watermark's x coordinate, then wrote a zero back before drawing. That is the same picture on this build, because TikTok moves the canvas first and draws at nothing but zero, and it would have pinned the watermark to the left edge on a build that draws anywhere else. The switch has a register of its own now.
+
+* The patched app carries less code. Twenty classes inherited from ReVanced were compiled into the shared payload of every build and nothing in this project called any of them, including a colour picker, a second settings backup, a network helper and an environment nag screen that had been switched off and left in place. They are gone. Nothing reachable changes.
+
+* The two caption settings say so when a TikTok build drops them. Caption text size and the strip behind the captions found their views by a number baked into this project, which the next TikTok build is free to reassign, and both settings would then have done nothing while the Hook status row reported everything fine. They are looked up by name now, the way every other lookup here is, and a build without those names is reported under "captions" in the diagnostics.
+
+* The five Min and Max rows show the range they actually hold. Reset settings, restore a backup or undo one, and rows like "Views" kept the old "20K to 1.5M" under them while the stored value had already gone back to its default. Only closing the dialog rebuilt that line; every path that changes the value rebuilds it now.
+
+* "Hide comments with pictures" leaves your own alone. Your stickers and images disappeared from threads you were in, which reads as the comment having failed to send rather than as a filter doing its job. Other people's are hidden as before, and if nobody is signed in nothing changes.
+
+* Undo is greyed out until there is something to undo. On a clean install it was offered like any other row, and tapping it said the settings could not be restored, which reads as a breakage rather than as an empty drawer. If it does somehow run with nothing saved it now says there is nothing to undo yet.
+
+* Saving a gate configuration writes what is on the screen. Rotating the phone, changing the text size or theme, or coming back from a deeper screen rebuilt the page and kept the fields from every earlier version of it, so a save could collect text from boxes nobody could see. Those pages are also released now instead of being held for the life of the app, and a custom value box left open when the screen goes is closed with it.
+
+## 0.25.0
+
+* A Lab change that fails halfway no longer erases what the Lab had recorded. Saving a set of overrides, resetting them, undoing that, or restoring a backup puts the previous configuration back when the write fails, and the record of which gates had actually fired was thrown away with it, so the detail screen reported "not triggered" for gates that were.
+
+* An override profile written somewhere other than the Lab's own export applies on a Turkish phone. Turkish capitalises i to a dotted letter, so a lowercase `int` in the file folded to a different word than the catalogue's, and the rule was refused as a type mismatch on that phone and no other.
+
+* A gate override that replaces a whole configuration object is worked out once instead of on every read. TikTok reads some of these constantly, and each read used to parse the stored value from scratch, up to 64 KB of it, on the thread asking for the gate. A value nested past a sane limit is also refused now with a message saying so; the check that appeared to do that sat on a method that never recurses and so could never fire.
+
+* Comment translation stops doing work for batches it never asked for. The hook that notices a finished translation sits on TikTok's own completion path, so it ran for every batch in the app, and with the feature switched off it still walked the fields of two objects and took a lock on that thread each time. A request already in flight when the switch goes off is still finished properly.
+
+* Turning clear display on by itself no longer looks to TikTok like you asked for it. The patch stops the events its own code sends when clear display changes, and two of the three it was written to stop had not matched anything in this version of TikTok for some time. Both were looked up in a way that gave no sign when they were missing, so the patch reported success and sent the events anyway. The patched app now silences four of those events where it silenced one.
+
+* A video reached through TikTok's translated-video path now gets the same treatment as any other. The hook that prepares a video for download was installed on the last way out of the method and there are two, so one route returned a video this project had never seen. That is fixed, along with three more hooks that covered a single exit and would have missed the others on a build that returns from more than one place.
+
+* The download path redirect checks the four instructions it replaces before replacing them. It looked at two of them and deleted four, which on a build that lays that run out differently would have removed unrelated code with nothing said. Writing the check found that the five places it runs are not identical after all: four append "/Camera/" and the fifth appends "/Camera".
+
+* A patch that cannot apply to a future TikTok build now says what it was looking for. Fourteen checks threw an error naming nothing, so a failure read as a crash in the patcher rather than as the patch reporting a missing anchor. The telemetry description also promised to stop location uploads that the supported build does not contain.
+
+* Five more injections and eight register checks stop assuming the shape of TikTok's own methods. Every register is now read off the instruction it belongs to, and the settings row this project adds took three working registers on trust: one of them was still in use, which a check now catches. A parameter that holds a long or a double occupies two registers and was being counted as one, so eight checks meant to prove a spare register existed could pass on a method that had none.
+
+* Follow diagnostics keeps working when TikTok's own code moves. Eight registers were written out by hand, and every anchor it looks for was optional, so a build that renamed one would have left the patch reporting that it applied while logging the wrong thing, or crashing the app's own network layer. Each register is now read off the instruction it belongs to, and a missing anchor fails the build with a message naming it.
+
+* A gate override whose type the catalogue disagrees with is no longer handed to TikTok. It only mattered on one path, where TikTok holds no cached value and so there is no type to check the rule against: a text rule on a key the app reads as a number came back as text, and the app crashed in its own code rather than in anything this project added. The Lab's detail screen says why the rule was refused. The catalogue has to have been loaded for this to bite, which today means the Lab screen has been opened.
+
+## 0.24.0
+
+* The Save button on a sticker is in your language. It was the one piece of text this project adds to TikTok that never went through the translations, and it could not simply be translated: the button's own English label was also how the code recognised its own button, so a German one would have been added a second time on every sheet. It carries a marker now, and reads "Medien speichern" or "Simpan media" where it should.
+
+* The daily hold works with a screen reader. It stopped touches and nothing else: it went up without being announced, "Open the feed anyway" was read as ordinary text rather than as a button, and the feed's like, comment and share controls behind it could still be swiped to, which is the one thing the hold is there to stop. The hold announces itself now, its way out is offered as a button, and what it covers is out of the way until it lifts.
+
+* The Feature Gate Lab no longer freezes while it saves. Turning overrides on, and saving or resetting one gate, wrote to storage on the thread that draws the screen, so the tap sat there until the write finished. If a settings restore was running at the same time it sat there until the restore finished. All three now work the way the Lab's other changes already did: the write happens in the background and the screen catches up.
+
+* Comment translation stops rebuilding one of TikTok's own services over and over. Working out which language you read in, and which languages you asked not to be translated, meant building that service and looking for the right method. The answer was only remembered when the method was found, so on a build that does not have one it was built again for every comment in view, while holding the lock that TikTok needs to hand a finished batch back. It is asked once now, and once is enough either way.
+
+* Every row in a settings dialog list keeps Hushfeed's check mark. The list was restyled once, just after it opened, so any row you had to scroll to reach had never been touched and came up with Android's own check mark on the wrong side and TikTok's text colour. The eight row "Included diagnostics" picker scrolls on a small screen and on every screen at large text. Rows are styled as they appear now.
+
+* The patches keep applying when TikTok's own methods grow. A call Hushfeed injects can only name sixteen registers, and a method with enough locals pushes its arguments past that, which fails the patch with an error that says nothing about registers. Thirty five injections were written the short way and would have broken on the first TikTok build that crossed the line. They now use the long form only where they have to, so nothing about the current build changes, and a frame that cannot be patched at all says so in those words.
+
+* A sticker save no longer keeps the screen it started from in memory. The job held the Save button, and a button holds the whole screen behind it, so closing the sheet freed nothing until the save finished, up to two minutes later with eight more saves queued behind it. It holds the button weakly now and simply skips handing it back if the sheet has gone.
+
+* Saving an animated sticker as a video can be given up on. If the phone's encoder stopped producing frames partway, the save sat in a loop that neither the cancel nor the two minute limit could reach, and one of the three background workers that save media was gone until the app was killed. Two more stickers after that and saving stopped working entirely, with nothing said. The loop now gives up the moment the job is cancelled or runs out of time.
+
+* Translators can work in Weblate. The settings strings were one tab separated file per language, a shape Weblate cannot host, so translating meant editing a file in a pull request. A language table can now be either that file or the comma form Weblate exports, and the generator writes the list of source strings a Weblate project translates from. A table that has been through a spreadsheet is read as well, byte order mark and all. Nothing changes for anyone already editing the tab form.
+
+## 0.23.0
+
+* Back keeps working on the settings screen when TikTok moves to the newer back gesture. The screen's Back rode entirely on a method Android stops calling once an app opts into predictive back, which TikTok has not done yet and will. The Feature Gate Lab already handled it; the settings screen does now too, through the same code.
+
+* The patch bundle is byte reproducible. Two builds of the same commit used to differ, because the manifest recorded the moment it was built, so nobody could rebuild it and check the published checksum against their own. That field is pinned to the commit now, and a rebuild produces the same file down to the byte.
+
+* The README says which Morphe Manager you need. Manager refuses a bundle built against a patcher newer than its own, so on 1.28.0 and older this one simply would not load, and nothing said so. It also now says in plain terms that everything Hushfeed adds runs inside TikTok with TikTok's permissions and data, and that this repository and its GitHub releases are the only official source.
+
+* Comment translation notices every batch finishing, not half of them. TikTok signs off a finished batch from two different places, and Hushfeed was only listening to one, so batches that finished the other way were never marked done or failed. Depending on which way TikTok went, those comments were either never translated or asked for again on every scroll.
+
+* A very wide animated sticker no longer saves as a black video. The converter checked how many pixels a frame held but not how big a picture the phone's graphics chip will take, which on a lot of Android phones stops at 4096 a side. A frame past that failed to upload, nothing was reading the failure, and the file came out black. It is refused now, and the sticker is saved in its original form instead.
+
+* The blocked word lists take two operators as well as plain phrases. Put two phrases in quotes and join them: "cat" & "dog" hides only what has both, and "cat" !& "dog" hides what has the first and not the second. It works on blocked caption words and blocked comment words. Plain phrases mean exactly what they always did, a comma inside quotes is part of the phrase rather than a separator, and a line you started and did not finish is refused while the box is still open instead of quietly matching nothing.
+
+* A settings box with a long explanation no longer squeezes the field it explains. At twice the system text size the explanation could take the whole dialog. It scrolls and gives way now, and the box keeps its full height.
+
+* Turning "Thumbs down blocks the commenter" off now takes effect on comment sheets you had already opened. The takeover only went one way, so a comment row TikTok had kept in memory went on blocking, and a screen reader went on offering to block, until that memory was reused. Every row hands the control back the next time it is filled in.
+
+* "Start today over" can be taken back. It ends a running hold and forgets what has been counted, and it used to leave nothing at all behind, so a mis-tap cost you the rest of the day. The row now says "Tap again to put the counts back", the same bargain the seen video history row already made. The offer lasts until the day turns over, because after that the counts belong to a day that is finished.
+
+* The rows that do something no longer look like the rows that open a page. Reset settings, Undo, Start today over, Clear the seen video history and Clear diagnostic data all wore the same ">" as a row that opens a screen. They have dropped it. Back up and Restore keep it, because those really do open a file picker.
+
+* A new switch turns the daily budget from advice into a commitment. Leave "Lock today's budget" off and nothing changes. Turn it on, and when today's budget runs out the hold has no "Open the feed anyway", "Start today over" is refused, and the budgets, the reset hour and the switch itself cannot be edited again until the day starts over at your chosen hour. You can turn it off freely any time before the budget runs out, and turning it on after the budget has already gone locks the rest of that day too. The lock lets go on its own when the day turns, and only then: moving the phone to another timezone does not end it early. It survives the app being killed, and messages, profiles and search keep working the whole time.
+
+* The settings screen no longer draws its first row under the status bar and its last under the navigation bar. TikTok targets a recent enough Android that every window is edge to edge whether the app asks for it or not, and the two calls that used to colour the bars stopped doing anything at the same time. The screen now measures the bars and the display cutout and moves its content clear of both, with its own background reaching behind them.
+
+* Comment translation stops hammering TikTok when a batch fails. A comment list binds its cells many times a second, and every one of those binds asked for the same failed batch again, with an exception logged each time. It now waits two seconds, then eight, then thirty, and after a fourth failure leaves that batch alone until the comment list loads again. A batch the service is working through a few comments at a time is not counted as failing.
+
+* A comment batch that only half translates is asked for again. If the service came back with ten of thirty comments, the batch was marked done and the other twenty were never retried.
+
+* If a TikTok update moves the field the translated comments arrive in, comment translation switches itself off for the session and says so in the log, instead of reading every batch as a failure and retrying each one three times.
+
+* A settings restore from a backup made for another TikTok version could be quietly undone the next time you opened TikTok. The restore worked, and then the startup check that exists to finish interrupted changes read it as unfinished and put the old settings back. It now leaves a finished restore alone.
+
+* A settings backup that only half downloaded says so. It used to come back as the same unexplained refusal as a photograph or a file from a newer Hushfeed. Files that are unreadable or too large reach you with their own wording too, which they never did before, because the check that produced the wording ran after the point where those files were already rejected.
+
+* Undoing a restore tells you when it left the Feature Gate Lab rules out, the same way importing already did.
+
+* Searching the settings finds the rows that do something, not just the switches. Back up, Restore, Reset, Undo, Hook status, Export diagnostic report, Clear diagnostic data, Included diagnostics, Clear the seen video history and Start today over all answered "No matching settings", which are exactly the rows people go looking for when something has gone wrong.
+
+* A settings backup keeps working when Hushfeed moves to a new TikTok version. The file carries a note of which TikTok build it was made for, and that note used to refuse the whole file, so on the day this project retargets every backup anyone held would have stopped restoring. Only the Feature Gate Lab rules in it depend on the TikTok build, so those are left out and the toast says so; your settings come back either way. And a refused file now says which way it was wrong, so a download that was cut short reads differently from a backup written by a newer Hushfeed, instead of both saying only that it was rejected.
+
+* A Feature Gate Lab rule saved at the wrong moment could do nothing at all. If TikTok happened to be reading its configuration on another thread while you saved, the rules it had already read were written back over your change, and the change stayed invisible until the next one. Reads made before TikTok has finished starting no longer queue up behind each other either.
+
+* The Feature Gate Lab was making the whole app slower even with nothing switched on. TikTok asks itself hundreds of configuration questions a second, from every thread, and the Lab sits on the answer to each one. It was taking a single lock on every one of those before checking whether it had anything to record, which it does not unless you selected the Feature Gate Recorder, so every thread in the app queued behind every other. It checks first now and takes the lock only when there is something to write down.
+
+* With either feed button on, the app was laying its whole screen out again on every frame, on the feed and everywhere else, for as long as it was open. Putting the buttons in place asked for a fresh layout even when nothing had moved, and the thing that puts them in place runs on every layout, so each one asked for the next. They are placed only when a position actually changes now, and not at all while the feed is off screen.
+
+* On Android 6 the app could go down where a caption was resized, where the feed filters emptied a batch and said so, and where a creator pattern ran too long to finish, and the Hook status row quietly recorded nothing at all. Several calls and three types in the code that ships inside TikTok only exist from Android 7 onward, and both the compiler and the tests run on a desktop Java where all of them exist, so nothing ever said so. They are replaced with equivalents that work on every version the app installs on, and the build now runs Android's own API level check over both payloads, so the next one of these stops the build here rather than on a phone.
+
+* Two more things a long press can do: copy the link to the video, or copy the link to the sound it was made with. The video link gets the same cleaning a shared link gets, so the parameters that say who sent it do not travel to the clipboard.
+
+* New patch, Enable voice comments. TikTok builds the recording and publishing entry points behind a gate that not every account is on. It ships off, so selecting it in the patcher is the switch, and nobody here has been able to try it on a real account yet. Ported from icysymmetra's Metra patches.
+
+* New patch, Comment sort controls. TikTok has a full comment sort sheet with hot, newest, media and creator options, and decides who gets it with a rollout gate and a per-post check. With the switch on you get the sheet TikTok already builds, on every post. Ported from icysymmetra's Metra patches.
+
+* Automatic video advance now also shows TikTok's own Auto scroll action in the video actions panel. That entry hangs off a second flag, so accounts outside TikTok's rollout never saw it however the feed gate answered.
+
+
+* Every patch in the bundle is now verified against a real TikTok 46.2.3 APK rather than a stripped fixture. All 70 apply, checked again on 8 September 2026, and the README records the exact build and its checksum so anyone can reproduce the same run.
+
 * A hold no longer argues with a phone call over the sound. It asks once as the panel goes up, and again only when you come back to the feed, instead of asking every second for as long as the hold lasts.
 
 * The diagnostic report names the exit of the app itself rather than whichever of TikTok's background processes the system happened to reap last, and it carries the exit status and importance alongside the reason.

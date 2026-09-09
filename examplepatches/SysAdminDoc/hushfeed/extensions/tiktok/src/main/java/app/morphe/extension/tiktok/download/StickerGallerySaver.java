@@ -31,6 +31,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
+
 import app.morphe.extension.shared.Logger;
 
 import app.morphe.extension.tiktok.settings.L10n;
@@ -46,6 +48,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.InterruptedIOException;
@@ -60,6 +63,14 @@ import java.util.WeakHashMap;
 @SuppressWarnings("unused")
 public final class StickerGallerySaver {
     private static final String ACTION_LABEL = "Save media";
+    /**
+     * Marks the button this file added, so finding it again does not depend on its wording.
+     *
+     * <p>The label was the check: a sheet already carrying a child reading "Save media" was
+     * taken as done. Translating the label alone would have given every German sheet a second
+     * button, because the first one no longer said what the check was looking for.
+     */
+    private static final String SAVE_BUTTON_TAG = "morphe_save_media";
     /** A sticker is a few hundred KB. Anything past this is not one. */
     private static final long MAX_STICKER_BYTES = 24L * 1024 * 1024;
     private static final long MAX_STICKER_PIXELS = 16L * 1024 * 1024;
@@ -137,7 +148,8 @@ public final class StickerGallerySaver {
     private static TextView createActionButton(View template, View sheetView) {
         Context context = template.getContext();
         TextView button = new TextView(context);
-        button.setText(ACTION_LABEL);
+        button.setText(L10n.t(button.getContext(), ACTION_LABEL));
+        button.setTag(SAVE_BUTTON_TAG);
         button.setGravity(Gravity.CENTER);
         button.setSingleLine(true);
         button.setEllipsize(TextUtils.TruncateAt.END);
@@ -196,10 +208,22 @@ public final class StickerGallerySaver {
         button.setEnabled(false);
         toast(context, L10n.t("Saving sticker"));
 
-        MediaJobScheduler.JobHandle job = MediaJobScheduler.submit("sticker", () -> {
+        // A submitted job stays in the scheduler's static map until it finishes, which is up to
+        // the two minute deadline with eight more queued behind it. Capturing the button held
+        // the sheet's Activity for that whole window after the sheet itself was gone. Every
+        // other view this file keeps hold of is already weak.
+        WeakReference<View> anchor = new WeakReference<>(button);
+        MediaJobScheduler.JobHandle job = MediaJobScheduler.submit(
+                "sticker", stickerSaveWork(context, asset, anchor), handBackLater(anchor));
+        if (job == null) handBackLater(anchor).run();
+    }
+
+    /** The work one sticker save does, holding the sheet by nothing stronger than {@code anchor}. */
+    static Runnable stickerSaveWork(Context context, StickerAsset asset, WeakReference<View> anchor) {
+        return () -> {
             SaveResult result = saveSticker(context, asset);
             MAIN_HANDLER.post(() -> {
-                button.setEnabled(true);
+                handBack(anchor);
                 toast(context, result.message);
                 if (result.success) {
                     debugLog("[Morphe Stickers] saved sticker path=" + result.path);
@@ -208,8 +232,18 @@ public final class StickerGallerySaver {
                             + " url=" + summarizeUrl(asset.url));
                 }
             });
-        }, () -> MAIN_HANDLER.post(() -> button.setEnabled(true)));
-        if (job == null) MAIN_HANDLER.post(() -> button.setEnabled(true));
+        };
+    }
+
+    /** Hands the button back on the main thread, for a save that never ran. */
+    static Runnable handBackLater(WeakReference<View> anchor) {
+        return () -> MAIN_HANDLER.post(() -> handBack(anchor));
+    }
+
+    /** Re-enables the Save button, unless the sheet that owned it has already gone. */
+    private static void handBack(WeakReference<View> anchor) {
+        View button = anchor.get();
+        if (button != null) button.setEnabled(true);
     }
 
     private static SaveResult saveSticker(Context context, StickerAsset asset) {
@@ -547,6 +581,8 @@ public final class StickerGallerySaver {
         return SaveResult.success(outputFile.getAbsolutePath(), outputFile.getAbsolutePath(), label);
     }
 
+    // Carries the converter's own API 26 floor up to the call site, which is behind a Q check.
+    @RequiresApi(26)
     private static Uri saveAnimatedWebpMp4WithMediaStore(
             Context context,
             byte[] animatedWebp,
@@ -1054,10 +1090,7 @@ public final class StickerGallerySaver {
 
     private static boolean hasSaveImageButton(ViewGroup parent) {
         for (int i = 0; i < parent.getChildCount(); i++) {
-            View child = parent.getChildAt(i);
-            if (child instanceof TextView && ACTION_LABEL.contentEquals(((TextView) child).getText())) {
-                return true;
-            }
+            if (SAVE_BUTTON_TAG.equals(parent.getChildAt(i).getTag())) return true;
         }
         return false;
     }
@@ -1102,7 +1135,8 @@ public final class StickerGallerySaver {
         }
     }
 
-    private static final class StickerAsset {
+    /** Package-private with {@link #stickerSaveWork}, which a test builds directly. */
+    static final class StickerAsset {
         final String url;
         final List<String> urls;
         final boolean animated;

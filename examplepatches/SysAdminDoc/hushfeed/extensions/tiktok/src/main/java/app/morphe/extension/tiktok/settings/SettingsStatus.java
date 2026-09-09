@@ -14,7 +14,9 @@ public class SettingsStatus {
     public static void enableSubtitleTools() { subtitleToolsEnabled = true; }
     public static boolean screenCaptureEnabled;
     public static void enableScreenCapture() { screenCaptureEnabled = true; }
-    public static boolean featureGateRecorderEnabled;
+    // Volatile because FeatureGateLearnMode reads it before taking its monitor, on TikTok's own
+    // gate threads, to decide whether the monitor is needed at all.
+    public static volatile boolean featureGateRecorderEnabled;
     public static void enableFeatureGateRecorder() { featureGateRecorderEnabled = true; }
     public static boolean automaticClearDisplayEnabled;
     public static void enableAutomaticClearDisplay() { automaticClearDisplayEnabled = true; }
@@ -72,6 +74,7 @@ public class SettingsStatus {
     public static boolean expandActivityListEnabled = false;
     public static boolean commentToolsEnabled = false;
     public static boolean hideCommentEggsEnabled = false;
+    public static boolean commentSortControlsEnabled = false;
     public static boolean videoOverlaysEnabled = false;
     public static boolean shareSheetEnabled = false;
     public static boolean seenVideoFilterEnabled = false;
@@ -230,6 +233,10 @@ public class SettingsStatus {
 
     public static void enableHideCommentEggs() {
         hideCommentEggsEnabled = true;
+    }
+
+    public static void enableCommentSortControls() {
+        commentSortControlsEnabled = true;
     }
 
     public static void enableSeenVideoFilter() {

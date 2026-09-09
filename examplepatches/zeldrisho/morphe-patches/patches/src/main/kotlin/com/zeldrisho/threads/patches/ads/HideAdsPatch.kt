@@ -1,10 +1,9 @@
 package com.zeldrisho.threads.patches.ads
 
-import com.zeldrisho.threads.patches.shared.Constants.COMPATIBILITY_THREADS
-import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
-import com.android.tools.smali.dexlib2.AccessFlags
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.zeldrisho.threads.patches.shared.Constants.COMPATIBILITY_THREADS
 
 /**
  * Hides sponsored posts from the Threads feed.
@@ -42,30 +41,28 @@ val hideAdsPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
-        val method = FeedMergeMethod.method
-        val impl = method.implementation
-            ?: error("BarcelonaFeedCache.A0F has no implementation")
-        // A0F(this, LX/9aR, Integer, String, String, List, LX/2uI, Function3, Z):
-        // 9 params including `this`; the feed list is param index 5 (p5).
-        val listReg = feedListRegister(impl.registerCount)
-        val loadMove = feedListLoadMove(listReg)
-        val storeMove = feedListStoreMove(listReg)
-        method.addInstructions(
-            0,
-            """
-                $loadMove
-                invoke-static {v0}, Lcom/zeldrisho/threads/extension/FeedAdFilter;->filterAds(Ljava/util/List;)Ljava/util/List;
-                move-result-object v0
-                $storeMove
-            """,
-        )
+        validateFeedReflectionContract { classDefByOrNull(it) }
+        val method = FeedMergeMethod.matchAll(1..1).single().method
+        injectFeedAdFilter(method)
     }
 }
 
-private object FeedMergeMethod : Fingerprint(
-    name = "A0F",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "Ljava/lang/Object;",
-    parameters = listOf("LX/9aR;", "Ljava/lang/Integer;", "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/util/List;", "LX/2uI;", "Lkotlin/jvm/functions/Function3;", "Z"),
-    definingClass = "Lcom/instagram/barcelona/feed/data/cache/BarcelonaFeedCache;",
-)
+/** Injects the production hook; the caller must first validate the target and reflection ABI. */
+internal fun injectFeedAdFilter(method: MutableMethod) {
+    val impl = method.implementation
+        ?: error("BarcelonaFeedCache.A0F has no implementation")
+    // A0F(this, LX/9aR, Integer, String, String, List, LX/2uI, Function3, Z):
+    // 9 params including `this`; the feed list is param index 5 (p5).
+    val listReg = feedListRegister(impl.registerCount)
+    val loadMove = feedListLoadMove(listReg)
+    val storeMove = feedListStoreMove(listReg)
+    method.addInstructions(
+        0,
+        """
+            $loadMove
+            invoke-static {v0}, Lcom/zeldrisho/threads/extension/FeedAdFilter;->filterAds(Ljava/util/List;)Ljava/util/List;
+            move-result-object v0
+            $storeMove
+        """,
+    )
+}

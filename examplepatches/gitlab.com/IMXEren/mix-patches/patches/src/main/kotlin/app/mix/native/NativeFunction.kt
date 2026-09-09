@@ -50,6 +50,14 @@ class NativeFunction(
     }
 
     /**
+     * Replaces the function entry with a deterministic zero return.
+     * (`mov w0, #0; ret` on arm64) - for stubbing boolean/numeric functions to false/0.
+     */
+    fun returnZero() {
+        replaceInstructions(0, NativeOpcode.MOV_ZERO, NativeOpcode.RETURN)
+    }
+
+    /**
      * All string references made by this function: every adr/adrp whose target
      * lands in a data section, mapped to the (possibly decoded) string bytes.
      */

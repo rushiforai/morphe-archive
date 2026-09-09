@@ -9,7 +9,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.43.4](https://github.com/legendsciber/morphe-patches/releases/tag/v1.43.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
+> **[v1.46.5](https://github.com/legendsciber/morphe-patches/releases/tag/v1.46.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
 <details open>
 <summary>📦 Block Blast&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -76,7 +76,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 </details>
 
 <details open>
-<summary>📦 Shadow Fight 2&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>📦 Shadow Fight 2&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -86,8 +86,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Shadow Fight 2 IAP Bypass](#shadow-fight-2-iap-bypass) | Bypasses in-app purchases. |  |
-| [Shadow Fight 2 IAP Bypass Trigger](#shadow-fight-2-iap-bypass-trigger) | Loads IAP bypass native library. |  |
+| [Shadow Fight 2 IAP Bypass (Smali)](#shadow-fight-2-iap-bypass-smali) | Bypasses in-app purchases via smali patching. Intercepts launchBillingFlow and triggers fake purchase callback. |  |
 
 </details>
 

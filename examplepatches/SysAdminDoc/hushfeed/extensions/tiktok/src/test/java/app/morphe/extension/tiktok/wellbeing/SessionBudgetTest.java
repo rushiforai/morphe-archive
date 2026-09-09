@@ -39,6 +39,7 @@ public class SessionBudgetTest {
         Settings.SESSION_BUDGET_MINUTES.resetToDefault();
         Settings.SESSION_BUDGET_LOCK_MINUTES.resetToDefault();
         Settings.SESSION_BUDGET_RESET_HOUR.resetToDefault();
+        Settings.SESSION_BUDGET_LOCK.resetToDefault();
         Settings.SESSION_BUDGET_STATE.resetToDefault();
         Settings.AUTO_ADVANCE_LIMIT.resetToDefault();
         now.set(at(2026, Calendar.SEPTEMBER, 7, 12, 0));
@@ -47,6 +48,7 @@ public class SessionBudgetTest {
     }
 
     @After public void tearDown() throws Exception {
+        Settings.SESSION_BUDGET_LOCK.resetToDefault();
         SessionBudget.setClockForTests(null);
         SessionBudget.awaitWritesForTests();
         SessionBudget.resetForTests();
@@ -497,6 +499,192 @@ public class SessionBudgetTest {
         SessionBudget.noteVideo("b");
         assertTrue(SessionBudget.claimNotice());
         assertEquals("That is 2 videos today", message.invoke(null));
+    }
+
+    // ----------------------------------------------------------------- locking today's budget
+
+    /** Spends a one video budget, which starts the hold and, with the lock on, commits it. */
+    private void spendTheBudget() {
+        Settings.SESSION_BUDGET_VIDEOS.save(1);
+        SessionBudget.noteVideo("only-one");
+        assertTrue("the budget was not reached", SessionBudget.claimNotice());
+    }
+
+    @Test public void theLockIsOffUntilItIsAskedFor() {
+        assertFalse("the lock is on out of the box", Settings.SESSION_BUDGET_LOCK.get());
+        spendTheBudget();
+        assertFalse("an unlocked day came back locked", SessionBudget.lockedToday());
+        assertTrue("Start today over was refused with no lock set", SessionBudget.clear());
+    }
+
+    @Test public void aLockedDayHasNoWayOutOfTheHold() {
+        Settings.SESSION_BUDGET_LOCK.save(true);
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(10);
+        spendTheBudget();
+
+        assertTrue("the day did not lock", SessionBudget.lockedToday());
+        assertTrue("no hold was placed at all", SessionBudget.isLocked());
+
+        SessionBudget.releaseLock();
+        assertTrue("Open the feed anyway lifted a locked hold", SessionBudget.isLocked());
+        assertFalse("Start today over cleared a locked day", SessionBudget.clear());
+        assertTrue("the counts were cleared anyway", SessionBudget.reachedLimit());
+        assertEquals("the video count was cleared anyway", 1, SessionBudget.videosSeen());
+    }
+
+    @Test public void aLockedHoldRunsToTheResetHourRatherThanForTheHoldMinutes() {
+        Settings.SESSION_BUDGET_LOCK.save(true);
+        // Ten minutes is what an unlocked day would have given. The locked day owes the reader
+        // the rest of the day, which from noon with a four in the morning reset is sixteen hours.
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(10);
+        spendTheBudget();
+
+        now.addAndGet(11 * 60_000L);
+        assertTrue("the hold ran out after the hold minutes", SessionBudget.isLocked());
+
+        long resetAt = at(2026, Calendar.SEPTEMBER, 8, 4, 0);
+        assertEquals("the locked day does not end at the reset hour",
+                resetAt, SessionBudget.lockedUntilMs());
+    }
+
+    @Test public void raisingTheBudgetDoesNotHandBackALockedDay() {
+        Settings.SESSION_BUDGET_LOCK.save(true);
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(10);
+        spendTheBudget();
+
+        // The settings screen refuses this edit while the lock holds. Refused here too, because
+        // a budget that a saved value can undo is not a commitment.
+        Settings.SESSION_BUDGET_VIDEOS.save(500);
+        assertFalse("the notice was armed again by raising the budget", SessionBudget.claimNotice());
+        assertTrue("raising the budget lifted a locked hold", SessionBudget.isLocked());
+        assertTrue("raising the budget unlocked the day", SessionBudget.lockedToday());
+    }
+
+    @Test public void movingTheDeviceTimezoneForwardDoesNotEndALockedDay() {
+        // The day only ever moving forward is not enough on its own. A forward zone change makes
+        // the day counter jump, which used to clear the lock, the hold and the counts together:
+        // two taps in the device settings and the rest of the day was handed back.
+        java.util.TimeZone original = java.util.TimeZone.getDefault();
+        try {
+            java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("America/Los_Angeles"));
+            SessionBudget.resetForTests();
+            now.set(at(2026, Calendar.SEPTEMBER, 7, 12, 0));
+            Settings.SESSION_BUDGET_LOCK.save(true);
+            spendTheBudget();
+            assertTrue("the day did not lock", SessionBudget.lockedToday());
+            long until = SessionBudget.lockedUntilMs();
+
+            java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("Pacific/Kiritimati"));
+            assertTrue("a timezone change ended the locked day", SessionBudget.lockedToday());
+            assertTrue("a timezone change lifted the hold", SessionBudget.isLocked());
+            assertEquals("a timezone change cleared the counts", 1, SessionBudget.videosSeen());
+            assertEquals("the locked day moved when the zone did", until, SessionBudget.lockedUntilMs());
+        } finally {
+            java.util.TimeZone.setDefault(original);
+            SessionBudget.resetForTests();
+        }
+    }
+
+    @Test public void theSwitchTurnedOnAfterTheBudgetRanOutLocksTheRestOfTheDay() {
+        // It read as on and did nothing at all until tomorrow, and the day it was turned on for
+        // stayed open, which is not what a switch called "lock today's budget" says.
+        Settings.SESSION_BUDGET_VIDEOS.save(1);
+        SessionBudget.noteVideo("only-one");
+        assertTrue(SessionBudget.claimNotice());
+        assertFalse("the day was locked before the switch was touched", SessionBudget.lockedToday());
+
+        Settings.SESSION_BUDGET_LOCK.save(true);
+        assertTrue("turning the switch on did nothing for the day it was turned on for",
+                SessionBudget.lockIfSpent());
+        assertTrue(SessionBudget.lockedToday());
+        assertFalse("Start today over still cleared the day", SessionBudget.clear());
+        assertEquals(1, SessionBudget.videosSeen());
+    }
+
+    @Test public void loweringTheBudgetUnderTodaysCountDoesNotLockTheDay() {
+        // Worked out from the switch and the counts together, this locked the day on the spot
+        // for someone who never reached their budget, and everything stayed refused until
+        // tomorrow. A locked day is written once, by the budget running out or by the switch.
+        Settings.SESSION_BUDGET_LOCK.save(true);
+        Settings.SESSION_BUDGET_VIDEOS.save(10);
+        for (int video = 0; video < 5; video++) SessionBudget.noteVideo("video-" + video);
+        assertFalse("the budget was reached", SessionBudget.claimNotice());
+        assertFalse(SessionBudget.lockedToday());
+
+        Settings.SESSION_BUDGET_VIDEOS.save(3);
+
+        assertFalse("lowering the budget locked a day nobody spent", SessionBudget.lockedToday());
+        assertTrue("Start today over was refused", SessionBudget.clear());
+        assertEquals("the day was not cleared", 0, SessionBudget.videosSeen());
+    }
+
+    @Test public void aDayLockedByTheSwitchAlsoSurvivesATimezoneChange() {
+        // The guard reads the field, so the day the switch locked has to set the field too.
+        java.util.TimeZone original = java.util.TimeZone.getDefault();
+        try {
+            java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("America/Los_Angeles"));
+            SessionBudget.resetForTests();
+            now.set(at(2026, Calendar.SEPTEMBER, 7, 12, 0));
+            Settings.SESSION_BUDGET_VIDEOS.save(1);
+            SessionBudget.noteVideo("only-one");
+            assertTrue(SessionBudget.claimNotice());
+
+            Settings.SESSION_BUDGET_LOCK.save(true);
+            assertTrue(SessionBudget.lockIfSpent());
+            long until = SessionBudget.lockedUntilMs();
+            assertTrue("the switch locked no day at all", until > now.get());
+
+            java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("Pacific/Kiritimati"));
+            assertTrue("a timezone change ended the day the switch locked",
+                    SessionBudget.lockedToday());
+            assertEquals("the locked day moved when the zone did", until,
+                    SessionBudget.lockedUntilMs());
+        } finally {
+            java.util.TimeZone.setDefault(original);
+            SessionBudget.resetForTests();
+        }
+    }
+
+    @Test public void theLockLetsGoWhenTheDayTurnsOver() {
+        Settings.SESSION_BUDGET_LOCK.save(true);
+        spendTheBudget();
+        assertTrue(SessionBudget.lockedToday());
+
+        // One minute before the reset hour, and then one minute after it.
+        now.set(at(2026, Calendar.SEPTEMBER, 8, 3, 59));
+        assertTrue("the lock let go before the day was over", SessionBudget.lockedToday());
+        now.set(at(2026, Calendar.SEPTEMBER, 8, 4, 1));
+
+        assertFalse("the lock outlived the day it was for", SessionBudget.lockedToday());
+        assertFalse("the hold outlived the day it was for", SessionBudget.isLocked());
+        assertTrue("Start today over is still refused on a new day", SessionBudget.clear());
+        assertEquals("the new day did not start empty", 0, SessionBudget.videosSeen());
+    }
+
+    @Test public void aLockedDaySurvivesTheProcessBeingKilled() throws Exception {
+        Settings.SESSION_BUDGET_LOCK.save(true);
+        spendTheBudget();
+        SessionBudget.awaitWritesForTests();
+
+        SessionBudget.resetForTests();
+        SessionBudget.setClockForTests(now::get);
+
+        assertTrue("the lock was forgotten when the process went away", SessionBudget.lockedToday());
+        SessionBudget.releaseLock();
+        assertTrue("the hold was lifted after a restart", SessionBudget.isLocked());
+    }
+
+    @Test public void aRecordWrittenBeforeTheLockExistedStillLoads() throws Exception {
+        // Five fields, which is what every record written before this feature has. A day it
+        // describes was never locked, so its absence has to read as not locked rather than
+        // as an unreadable record that throws the whole day away.
+        long today = SessionBudget.dayOf(now.get());
+        Settings.SESSION_BUDGET_STATE.save(today + "|7|60000|0|1");
+        SessionBudget.resetForTests();
+        SessionBudget.setClockForTests(now::get);
+
+        assertEquals("an older record was thrown away", 7, SessionBudget.videosSeen());
+        assertFalse("an older record came back locked", SessionBudget.lockedToday());
     }
 
     private static String read(String relative) throws Exception {

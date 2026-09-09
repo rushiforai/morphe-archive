@@ -18,15 +18,25 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @SuppressWarnings("deprecation")
-public final class SettingsBackupPreference extends Preference {
+public final class SettingsBackupPreference extends Preference
+        implements app.morphe.extension.shared.settings.preference.ImmediateAction {
     private static final int EXPORT = 7311, IMPORT = 7312, RESET = 7313, UNDO = 7314;
     private static final AtomicBoolean BUSY = new AtomicBoolean();
 
+    /** Reset and Undo act on the tap. Back up and Restore open a file picker first. */
+    @Override public boolean actsOnTap() {
+        return rowAction == RESET || rowAction == UNDO;
+    }
+
+    private final int rowAction;
+
     private SettingsBackupPreference(TikTokPreferenceFragment fragment, int action, String title, String summary) {
         super(fragment.getActivity());
+        this.rowAction = action;
         setKey("settings_backup_" + action);
         setTitle(title);
         setSummary(summary);
+        refreshUndoAvailability();
         setOnPreferenceClickListener(preference -> {
             if (BUSY.get()) { Utils.showToastShort(L10n.t("A settings operation is already running")); return true; }
             if (action == RESET || action == UNDO) run(fragment, action, null);
@@ -97,6 +107,8 @@ public final class SettingsBackupPreference extends Preference {
         Utils.showToastShort(L10n.t(action == EXPORT
                 ? "Saving settings backup" : "Updating settings"));
         Utils.runOnBackgroundThread(() -> {
+            boolean labRulesSkipped = false;
+            int keptAsTheyWere = 0;
             try {
                 if (action == EXPORT) {
                     byte[] bytes = SettingsBackup.create(false).getBytes(StandardCharsets.UTF_8);
@@ -105,11 +117,40 @@ public final class SettingsBackupPreference extends Preference {
                         output.write(bytes);
                     }
                 } else if (action == IMPORT) {
-                    SettingsBackup.restore(context, SettingsBackup.read(context.getContentResolver().openInputStream(uri)), true);
+                    // Reading inside restoreFrom rather than here, so an unreadable or oversized
+                    // file is refused with a reason. Read separately, those two came out as a
+                    // bare IOException and reached the user as the generic rejection.
+                    String text = SettingsBackup.restoreFrom(
+                            context, context.getContentResolver().openInputStream(uri), true);
+                    labRulesSkipped = SettingsBackup.labRulesWereSkipped(text);
+                    keptAsTheyWere = SettingsBackup.settingsNotInFile(text);
                 } else if (action == RESET) SettingsBackup.reset(context);
-                else SettingsBackup.undo(context);
+                else {
+                    // An undo copy written before a retarget holds Lab rules for the older build,
+                    // and dropping them silently is the same surprise as on an import. An undo
+                    // copy older than a setting is the same case as a backup older than one, so
+                    // it is counted the same way.
+                    String undone = SettingsBackup.undo(context);
+                    labRulesSkipped = SettingsBackup.labRulesWereSkipped(undone);
+                    keptAsTheyWere = SettingsBackup.settingsNotInFile(undone);
+                }
+                // Said before the success line, so the success line is the one left on screen.
+                // Anything the file did not carry stayed as the device had it, which is worth
+                // saying: an older backup used to put every setting added since back to its
+                // default, download folders included, without a word.
+                if (keptAsTheyWere == 1) {
+                    Utils.showToastLong(L10n.f(
+                            "%1$d setting was not in that file and was left as it is.", keptAsTheyWere));
+                } else if (keptAsTheyWere > 1) {
+                    Utils.showToastLong(L10n.f(
+                            "%1$d settings were not in that file and were left as they are.", keptAsTheyWere));
+                }
+                // Each of these is one literal, because the translation gate reads the literal
+                // handed to L10n and a string built from two of them is two entries it cannot find.
                 Utils.showToastLong(L10n.t(action == EXPORT ? "Settings backup saved"
-                        : "Settings saved. Restart TikTok to apply all changes."));
+                        : labRulesSkipped
+                                ? "Settings saved. The Feature Gate Lab rules were for another TikTok version and were left out. Restart TikTok to apply all changes."
+                                : "Settings saved. Restart TikTok to apply all changes."));
             } catch (Exception error) {
                 Logger.printException(() -> "Settings backup operation failed", error);
                 Utils.showToastLong(L10n.t(failureMessage(action, error)));
@@ -130,7 +171,32 @@ public final class SettingsBackupPreference extends Preference {
             SettingsBackup.RestoreException restore = (SettingsBackup.RestoreException) error;
             switch (restore.getFailure()) {
                 case REJECTED_INPUT:
-                    return "The settings backup was rejected. Nothing was altered.";
+                    // One sentence per reason. All of these read as the same rejection before,
+                    // so a truncated download and a backup from a newer Hushfeed were
+                    // indistinguishable to the person holding the file.
+                    switch (restore.getReason()) {
+                        case SIZE:
+                            return "That file is too large to be a settings backup. Nothing was altered.";
+                        case DAMAGED:
+                            return "That settings backup is damaged or only partly downloaded. "
+                                    + "Nothing was altered.";
+                        case ENCODING:
+                            return "That file is not readable text, so it may have been damaged in "
+                                    + "transit. Nothing was altered.";
+                        case FORMAT:
+                            return "That is not a Hushfeed settings backup. Nothing was altered.";
+                        case SCHEMA:
+                            return "That backup was written by a newer Hushfeed than this one. "
+                                    + "Nothing was altered.";
+                        case INCOMPLETE:
+                            return "That settings backup is incomplete, so it may have been cut "
+                                    + "short. Nothing was altered.";
+                        case VALUE:
+                            return "That settings backup holds a value Hushfeed cannot read. "
+                                    + "Nothing was altered.";
+                        default:
+                            return "The settings backup was rejected. Nothing was altered.";
+                    }
                 case ROLLED_BACK:
                     return "That settings change did not go through. Nothing was altered.";
                 case RECOVERY_REQUIRED:
@@ -141,10 +207,37 @@ public final class SettingsBackupPreference extends Preference {
                     break;
             }
         }
+        if (action == UNDO && hasCause(error, java.io.FileNotFoundException.class)) {
+            return "There is nothing to undo yet.";
+        }
         return "Could not restore settings.";
     }
 
+    /** Whether the throwable, or anything it wraps, is of the given kind. */
+    private static boolean hasCause(Throwable error, Class<? extends Throwable> kind) {
+        for (Throwable current = error; current != null; current = current.getCause()) {
+            if (kind.isInstance(current)) return true;
+            if (current.getCause() == current) break;
+        }
+        return false;
+    }
+
+    /**
+     * Greys out Undo when there is nothing to undo.
+     *
+     * <p>The row used to be offered on a clean install, and tapping it reported that the settings
+     * could not be restored, which reads as something having gone wrong rather than as there
+     * being nothing there. Checked again on every bind, so a reset or a restore enables it
+     * without the page being rebuilt.
+     */
+    private void refreshUndoAvailability() {
+        if (rowAction != UNDO) return;
+        boolean available = SettingsBackup.hasUndo(getContext());
+        if (isEnabled() != available) setEnabled(available);
+    }
+
     @Override protected void onBindView(View view) {
+        refreshUndoAvailability();
         super.onBindView(view);
         app.morphe.extension.tiktok.Utils.setTitleAndSummaryColor(view);
     }

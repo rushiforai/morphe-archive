@@ -35,12 +35,25 @@ class FeedMergeRegistersTest {
      * Verify that registers above v15 use the move-object/from16 instruction.
      */
     @Test fun highRegistersUseFrom16() {
-        // Injected snippets only accept v0-v15; from16 covers the rest.
+        // move-object has 4-bit operands; from16 extends the range.
         // e.g. registerCount 25 -> listReg 21
         val reg = feedListRegister(25)
         assertEquals(21, reg)
         assertTrue(feedListLoadMove(reg).startsWith("move-object/from16"))
         assertTrue(feedListStoreMove(reg).startsWith("move-object/from16"))
+    }
+
+    /**
+     * Verify that store destinations above v255 use move-object/16.
+     * from16 has an 8-bit destination, so it cannot address v256+.
+     */
+    @Test fun storeAboveV255UsesMove16() {
+        // registerCount 260 -> listReg 256
+        val reg = feedListRegister(260)
+        assertEquals(256, reg)
+        assertEquals("move-object/from16 v0, v256", feedListLoadMove(reg))
+        assertEquals("move-object/16 v256, v0", feedListStoreMove(reg))
+        assertEquals("move-object/from16 v255, v0", feedListStoreMove(255))
     }
 
     /**

@@ -1,45 +1,104 @@
 # Development guide
 
-Use this guide for environment setup and first-time template init.
-For writing patches see `patch-development.md`; for finding targets
-see `reverse-engineering.md`; for module layout see `architecture.md`.
+Developer entry point. Start here, then follow the reading order below.
+For environment setup see [toolchain setup](toolchain.md).
+
+## Reading order
+
+1. [Toolchain setup](toolchain.md) — install once per host.
+2. [CLI patching](cli.md) — terminal flows (Desktop JAR flags, `repatch.sh`, signing).
+3. [Architecture](architecture.md) — module and data-flow overview.
+4. [Reverse engineering workflow](reverse-engineering.md) — finding targets.
+5. [Fingerprint guide](fingerprint-guide.md) — writing fingerprints.
+6. [Patch development](patch-development.md) — writing, building, and testing patches.
+7. [QA checklist](qa-checklist.md) — per-release and per-update device procedure.
+8. [Release process](release.md) — branching, versioning, and publishing.
+9. [Maintenance](maintenance.md) — durable decisions index.
+10. [Lessons learned](lessons-learned.md) — incident context.
 
 ## Prerequisites
 
-- Java 21 (Temurin, per `.github/workflows/release.yml`).
-- Node.js tooling via `vp install` (semantic-release deps in `package.json`).
-- GitHub PAT with `read:packages` for the Morphe registry in
-  `settings.gradle.kts` (`gpr.user` / `gpr.key` or `GITHUB_ACTOR` / `GITHUB_TOKEN`).
-- Morphe Desktop for local `.mpp` testing.
+All tools, SDK packages, Vite+, GitHub Packages credentials, and Morphe Desktop
+come from [toolchain setup](toolchain.md). Original APKs/APKMs come only from
+[APKMirror](https://www.apkmirror.com/).
 
-## First-time init
+## Repo state
 
-Template init is done (group `com.zeldrisho.threads`, `about` = Zeldris Patches,
-`app.template.*` scaffolding removed, extension namespace
-`com.zeldrisho.threads.extension`). If re-scaffolding from upstream template, finish:
-
-- `patches/build.gradle.kts`: `group` and `patches { about { ... } }`.
-- `patches/src/main/kotlin/app/template/`: rename `app.template.*` packages.
-- `patches/src/main/kotlin/app/template/patches/shared/Constants.kt`: real app targets.
-- `extensions/extension/build.gradle.kts`: `android { namespace }`.
-- `README.md`: title, About, add-source link, License holder.
-- `.github/ISSUE_TEMPLATE/`: repo links.
-- Optional `patches-bundle.png` for a custom Manager icon.
+Template init is complete; this repo is already renamed to `com.zeldrisho.threads`.
+Only re-scaffold from the upstream template when starting a new bundle repo.
 
 ## Adding a patch
 
-Covered in `patch-development.md` (file layout, patch types, build/test loop,
-troubleshooting) — nothing patch-specific lives here by design.
+Covered in [patch development](patch-development.md) (file layout, patch types,
+build/test loop, troubleshooting) — nothing patch-specific lives here by design.
 
 ## Verify
 
+Canonical local verification (bash):
+
 ```bash
-./gradlew buildAndroid
-./gradlew generatePatchesList
-./gradlew clean :patches:buildAndroid --no-daemon
+uvx --from pre-commit==4.6.2 --with shellcheck-py==0.11.0.1 pre-commit run --all-files --show-diff-on-failure
+./gradlew qualityCheck :patches:test :extensions:extension:testDebugUnitTest buildAndroid --no-daemon
 ```
 
 The `.mpp` lands in `patches/build/libs/patches-*.mpp`. This only proves the
 toolchain works — for the real loop (apply in Morphe Desktop, single-patch
-isolation, troubleshooting) see `patch-development.md` § Build and test.
-Never hand-edit `patches-list.json`, `patches-bundle.json`, `CHANGELOG.md`, or the `gradle.properties` version — the release pipeline owns them (see `release.md`).
+isolation, troubleshooting) see [patch development](patch-development.md#build-and-test).
+Never hand-edit `patches-list.json`, `patches-bundle.json`, or the
+`gradle.properties` version — release staging and the pipeline own them
+(`scripts/prepare-release.sh` + `release.yml`, see [release process](release.md)).
+In `CHANGELOG.md`, add bullets under `## Unreleased` only; versioned entries
+are promoted by `prepare-release.sh`, never edited by hand.
+
+## Code quality
+
+CI runs the same check-only commands above. Hooks are optional; CI does not rely
+on contributors installing them. Generated metadata, build output, and local APK
+analysis directories are not formatting targets.
+
+| Check | Configuration / scope |
+| --- | --- |
+| Spotless: ktlint + google-java-format | Root `build.gradle.kts`; Kotlin sources/tests, Gradle scripts, extension Java sources/tests |
+| detekt | `patches/build.gradle.kts`, `config/detekt/detekt.yml`; Kotlin source analysis, without type resolution |
+| Android Lint | `:extensions:extension:lintDebug`; extension production and test sources |
+| ShellCheck + shfmt | `.pre-commit-config.yaml`; `scripts/**/*.sh` |
+| actionlint | `.pre-commit-config.yaml`; GitHub Actions workflows; also uses ShellCheck when on PATH (installed explicitly in CI) |
+| Merge conflicts + mixed line endings | `.pre-commit-config.yaml`; tracked text files |
+
+`qualityCheck` aggregates Spotless, detekt, and Android Lint. It does not run unit
+tests or build the bundle; `buildAndroid` alone does not run this quality gate.
+Reports are under `patches/build/reports/detekt/` and
+`extensions/extension/build/reports/`.
+
+Tool versions are pinned in the Gradle files, hook revisions, and CI install step.
+Detekt **2.0.0-alpha.6** is intentional: its embedded compiler matches Morphe's
+Kotlin **2.4.10**, unlike stable detekt 1.23.8. Recheck the
+[compatibility table](https://detekt.dev/docs/introduction/compatibility/) when
+upgrading Morphe/Kotlin. Formatting belongs to Spotless; detekt keeps its default
+rules with small documented exceptions, not a baseline of ignored findings.
+These checks cannot establish real-APK fingerprint compatibility or device behavior.
+
+### Optional commit hooks
+
+```bash
+uvx --from pre-commit==4.6.2 pre-commit install
+# Remove only the pre-commit-managed hook:
+uvx --from pre-commit==4.6.2 pre-commit uninstall
+```
+
+The first run downloads isolated hook environments (including Go for actionlint
+if needed), so allow network access. No Gradle/SDK build runs during a commit.
+For system tools and ShellCheck on PATH, see [toolchain setup](toolchain.md).
+
+### Apply formatting explicitly
+
+Checks do not rewrite files. To fix formatting locally:
+
+```bash
+./gradlew spotlessApply --no-daemon
+# Same shfmt revision as the check-only hook:
+uvx --from 'git+https://github.com/scop/pre-commit-shfmt@05c1426671b9237fb5e1444dd63aa5731bec0dfb' shfmt -w -i 4 -ci scripts/*.sh
+```
+
+Review the diff and rerun verification before committing. Kotlin naming/KDoc
+errors that cannot be autoformatted must be corrected manually.

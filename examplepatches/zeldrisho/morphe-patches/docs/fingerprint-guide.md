@@ -1,14 +1,22 @@
 # Fingerprint + patch guide
 
 Practical reference for writing fingerprints and bytecode patches in this repo.
-See `reverse-engineering.md` for how to find targets, `architecture.md` for module
-layout, and `patches/src/main/kotlin/com/zeldrisho/threads/patches/ads/HideAdsPatch.kt`
-for an existing Threads patch and fingerprint example.
+See the [reverse engineering workflow](reverse-engineering.md) for how to find targets,
+[architecture](architecture.md) for module layout, and
+`patches/src/main/kotlin/com/zeldrisho/threads/patches/ads/HideAdsPatch.kt`
+for the Threads patch; `ads/Fingerprints.kt` contains its fingerprint.
 
-## Rules (strict)
+## Rules
 
-- **Never match on obfuscated names** (`a`, `b`, `H`, …) — they change every release.
-  SDK names (`getEntitlements`, `queryPurchases`) are stable and safe.
+Policy first, exception second:
+
+- **Prefer stable anchors** (SDK calls, strings, opcodes, signatures) over
+  obfuscated app names (`a`, `b`, `H`, …), which change nearly every release.
+- **Version-pinned exception:** when no stable anchor uniquely identifies a
+  heavily obfuscated target (as with the Threads reflection ABI), matching on
+  the obfuscated class/method shape is acceptable **only** with an exact pinned
+  `AppTarget` version plus the tested `versionCode`, a loud drift test, and a
+  documented re-hunt path. See [patch development](patch-development.md#file-layout).
 - **Filter order must equal smali instruction order.** Ordered `filters` are preferred
   over unordered `strings`.
 - **Only touch `instructionMatches` when the fingerprint defines `filters`.**
@@ -18,14 +26,30 @@ for an existing Threads patch and fingerprint example.
 - When editing several instructions in one method, work **last index first** (or
   re-match after each edit) so earlier edits don't shift later indices.
 
+## Threads feed targeting
+
+`FeedMergeMethod` matches the named cache class, parameter shape (List at p5),
+and construction of `BarcelonaFeedCache$addAndSaveItemsFromFeedFetchSuccess$2$1`.
+The pinned APK resolves this to `A0F`; the fingerprint does not require that R8
+name or its obfuscated parameter descriptors. Patching requires exactly one match.
+
+`FeedReflectionContract.kt` separately checks the public no-argument instance
+members used by `FeedAdFilter`, including return types. Missing members abort
+patching with a re-hunt message; unexpected runtime objects still fail open.
+This validates the ABI, not the meaning of `DED()` or actual ad removal. Keep
+the exact version restriction and device QA. Local DEX verification is described
+in the [QA checklist](qa-checklist.md#build).
+
 ## Fingerprint declaration
 
 All fields optional — use the minimum that uniquely identifies the method:
 
 ```kotlin
 object MyFingerprint : Fingerprint(
-    // definingClass = "Lcom/example/Class;",  // only for stable (SDK) classes
-    // name = "methodName",                    // only for non-obfuscated methods
+    // definingClass = "Lcom/example/Class;",  // only for stable (SDK) classes,
+    //   or a version-pinned obfuscated target (see Rules above)
+    // name = "methodName",                    // only for non-obfuscated methods,
+    //   or a version-pinned obfuscated target (see Rules above)
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Z",
     parameters = listOf("Ljava/lang/String;", "I", "L"),
@@ -87,32 +111,17 @@ execute {
 }
 ```
 
-## Common patch snippets
-
-```kotlin
-// Force-allow a boolean check:
-method.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
-// Force-deny:
-method.addInstructions(0, "const/4 v0, 0x0\nreturn v0")
-// Skip a void method entirely:
-method.addInstructions(0, "return-void")
-
-// Higher-level helpers (app.morphe.util) — prefer these when available:
-method.returnEarly(true)
-method.returnEarly(false)
-method.returnEarly()
-method.indexOfFirstStringInstructionOrThrow("premium")
-method.indexOfFirstInstructionOrThrow(Opcode.RETURN)
-```
-
-For per-billing-system and per-ad-SDK starting points, see `bypass-patterns.md`.
+For per-billing-system and per-ad-SDK starting points, see [bypass patterns](bypass-patterns.md).
 For confirming a target runs before freezing the fingerprint, see
-`reverse-engineering.md` §3.6 (Frida log → smali quote → fingerprint).
+[dynamic confirmation](reverse-engineering.md#dynamic-confirmation-for-runtime-gates)
+(Frida log → smali quote → fingerprint).
 
 ## Key imports
 
+Actual imports used by this repo's patches (morphe-patcher 1.12.0):
+
 ```kotlin
-// DSL + targets (see example/ExamplePatch.kt, shared/Constants.kt):
+// DSL + targets (see shared/Constants.kt and HideAdsPatch.kt):
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.AppTarget
@@ -136,11 +145,12 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 
 // Reading matched registers:
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-
-// Helpers:
-import app.morphe.util.returnEarly
 ```
+
+Only import what the patch uses. Do not reference `app.morphe.util.*` helpers:
+the installed patcher exposes `app.morphe.patcher.*` and
+`com.android.tools.smali.dexlib2.*`; unverified helper names do not compile.
 
 ## Debugging match failures
 
-See `bytecode-reference.md` (§ Fingerprint debugging) for the full workflow and checklist.
+See [bytecode reference](bytecode-reference.md#fingerprint-debugging) for the full workflow and checklist.

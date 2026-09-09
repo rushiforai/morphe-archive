@@ -1,0 +1,99 @@
+name: Build MPP
+
+# Builds the Vantage-only .mpp and publishes it as a GitHub release asset that
+# pmaxhogan/vantage consumes. The bundle carries every Vantage-only patch, for
+# any app, and is STACKED on top of whichever upstream bundle a variant already
+# uses (morphe-cli accepts repeated --patches) rather than replacing it - so it
+# must stay small and must never redefine anything upstream already patches.
+#
+# Because one bundle serves several apps, each consuming variant's options file
+# has to explicitly disable the patches meant for the other apps. See the README.
+#
+# Modelled on pmaxhogan/piko's build-mpp.yml. Differences: there is no upstream
+# to stay byte-identical with, so the version in gradle.properties is the real
+# version and is used directly for the tag and the asset name.
+#
+# PRERELEASE GATE: the repository variable MPP_PRERELEASE ("true"/"false")
+# decides whether the release is marked prerelease. vantage's build script reads
+# /releases/latest, which skips prereleases, so while the variable is "true" a
+# new .mpp never reaches the Vantage nightly builds. Use it to stage a change the
+# vantage build scripts are not ready for yet.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'extensions/**'
+      - 'patches/**'
+      - 'gradle/**'
+      - 'gradle.properties'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - '.github/workflows/build-mpp.yml'
+  workflow_dispatch:
+    inputs:
+      prerelease:
+        description: "Mark the release as prerelease (overrides the MPP_PRERELEASE variable)"
+        type: choice
+        options: ["auto", "true", "false"]
+        default: "auto"
+
+concurrency:
+  group: build-mpp
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Read the version
+        run: |
+          set -euo pipefail
+          VVER="$(grep -E '^version *= *' gradle.properties | sed -E 's/^version *= *//' | tr -d '[:space:]')"
+          [ -n "$VVER" ] || { echo "::error::no version in gradle.properties"; exit 1; }
+          echo "VVER=$VVER" >> "$GITHUB_ENV"
+          echo "Building $VVER"
+
+      - name: Build the .mpp
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x gradlew
+          ./gradlew :patches:buildAndroid --no-daemon --console=plain -Pversion="$VVER"
+
+      - name: Publish .mpp release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PRERELEASE_INPUT: ${{ github.event.inputs.prerelease || 'auto' }}
+          PRERELEASE_VAR: ${{ vars.MPP_PRERELEASE || 'false' }}
+        run: |
+          set -euo pipefail
+          MPP="$(ls patches/build/libs/patches-*.mpp | grep -viE 'sources|javadoc' | head -1)"
+          [ -n "$MPP" ] || { echo "::error::no .mpp produced"; exit 1; }
+          TAG="v${VVER}"
+          ASSET="vantage-patches-${VVER}.mpp"
+          cp "$MPP" "$ASSET"
+          PRE="$PRERELEASE_VAR"; [ "$PRERELEASE_INPUT" != "auto" ] && PRE="$PRERELEASE_INPUT"
+          PREFLAG="--prerelease=false"; [ "$PRE" = "true" ] && PREFLAG="--prerelease"
+          echo "built $ASSET (from $MPP), tag $TAG, prerelease=$PRE"
+          NOTES="Vantage-only morphe patches $VVER built from $(git rev-parse --short HEAD). Stacked on top of the anddea bundle by pmaxhogan/vantage scripts/build.sh. Built $(date -u +%Y-%m-%dT%H:%M:%SZ)."
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "release $TAG exists - updating asset in place"
+            gh release upload "$TAG" "$ASSET" --clobber
+            gh release edit "$TAG" --notes "$NOTES" $PREFLAG
+          else
+            gh release create "$TAG" "$ASSET" --title "$TAG" --notes "$NOTES" $PREFLAG
+          fi

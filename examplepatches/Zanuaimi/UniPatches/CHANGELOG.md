@@ -1,3 +1,35 @@
+## [1.10.2](https://github.com/Zanuaimi/UniPatches/compare/v1.10.1...v1.10.2) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* correct credits ([29d8759](https://github.com/Zanuaimi/UniPatches/commit/29d87595b9209e7d6ac63fa91330a5e8f0529d42))
+
+## [1.10.1](https://github.com/Zanuaimi/UniPatches/compare/v1.10.0...v1.10.1) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* **network:** avoid forcing ad traffic online ([1f169e0](https://github.com/Zanuaimi/UniPatches/commit/1f169e0630a8e5d539ca1780aebd4c1d4633a528))
+* **pairip:** synchronize overlay and compatibility diagnostics ([37997e9](https://github.com/Zanuaimi/UniPatches/commit/37997e900ac7fbc7ae0e3b297c60f33606e4a2d5))
+
+## [1.10.0](https://github.com/Zanuaimi/UniPatches/compare/v1.9.0...v1.10.0) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* **bypass:** harden experimental bypass strategies ([703eaeb](https://github.com/Zanuaimi/UniPatches/commit/703eaeb242190a8f1c47b64928331dcd3e618568))
+
+### ✨ New Features
+
+* **ads:** consolidate configurable ad controls ([3b3030d](https://github.com/Zanuaimi/UniPatches/commit/3b3030d599d9c9e71e77e17ed7c502f0c1fdbc65))
+* **display:** add configurable app display controls ([0dbea11](https://github.com/Zanuaimi/UniPatches/commit/0dbea11d24ed3bcad8afd0eb88d2dee722110e11))
+* **output:** add safe custom app output controls ([0dae4a4](https://github.com/Zanuaimi/UniPatches/commit/0dae4a4069dda5e0b414b9cab4c52fb068a949f8))
+* **overlay:** enhance universal overlay customization ([3ee6262](https://github.com/Zanuaimi/UniPatches/commit/3ee62629b7966656bf998ec500d8e0a6db00772f))
+
+## [1.9.0](https://github.com/Zanuaimi/UniPatches/compare/v1.8.1...v1.9.0) (2026-09-08)
+
+### ✨ New Features
+
+* **overlay:** add configurable icons and vertical outline animation ([c4a7c6e](https://github.com/Zanuaimi/UniPatches/commit/c4a7c6ec491b3a0360cc925be50bb496ebe385f7))
+
 ## [1.8.1](https://github.com/Zanuaimi/UniPatches/compare/v1.8.0...v1.8.1) (2026-09-07)
 
 ### 🐛 Bug Fixes

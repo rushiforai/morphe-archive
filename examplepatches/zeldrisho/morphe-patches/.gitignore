@@ -134,3 +134,10 @@ analysis/
 
 # Local build copy of the extension dex used by morphe-cli extendWith
 /extensions/extension.mpe
+
+# Local signing keys (never commit private keys)
+*.keystore
+*.bks
+*.jks
+*.p12
+*.pfx

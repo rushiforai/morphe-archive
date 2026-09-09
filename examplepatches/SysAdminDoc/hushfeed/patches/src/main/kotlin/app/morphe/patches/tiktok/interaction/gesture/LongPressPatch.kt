@@ -17,6 +17,7 @@ import app.morphe.patches.tiktok.interaction.blockauthor.blockAuthorPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.util.getReference
+import app.morphe.util.numberOfParameterRegisters
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val EXTENSION = "Lapp/morphe/extension/tiktok/interaction/GestureActions;"
@@ -78,9 +79,10 @@ private object PlayerProgressFingerprint : Fingerprint(
 val longPressPatch = bytecodePatch(
     name = "Long-press controls",
     description = "Lets a long press on a video keep TikTok's own action, do nothing, open " +
-        "the video's comments, or save the original sound, and can turn a press on the left " +
-        "or right third of the screen into a jump back or forward. Brings Double-tap controls " +
-        "with it, which supplies the comment control. Supports TikTok 46.2.3.",
+        "the video's comments, save the original sound, or copy the link to the video or its " +
+        "sound, and can turn a press on the left or right third of the screen into a jump back " +
+        "or forward. Brings Double-tap controls with it, which supplies the comment control. " +
+        "Supports TikTok 46.2.3.",
     default = false,
 ) {
     compatibleWith(*AppCompatibilities.tiktok4623())
@@ -89,7 +91,7 @@ val longPressPatch = bytecodePatch(
     execute {
         FeedLongPressFingerprint.method.apply {
             // v0 is scratch; the check keeps it a local rather than a parameter register.
-            check(implementation!!.registerCount > parameterTypes.size + 1) {
+            check(implementation!!.registerCount - numberOfParameterRegisters >= 1) {
                 "Long-press controls: onLongPress has no free local register."
             }
             addInstructionsWithLabels(

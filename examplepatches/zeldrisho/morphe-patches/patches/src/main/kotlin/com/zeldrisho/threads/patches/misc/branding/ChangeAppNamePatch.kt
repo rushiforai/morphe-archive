@@ -1,8 +1,8 @@
 package com.zeldrisho.threads.patches.misc.branding
 
-import com.zeldrisho.threads.patches.shared.Constants.COMPATIBILITY_THREADS
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
+import com.zeldrisho.threads.patches.shared.Constants.COMPATIBILITY_THREADS
 
 @Suppress("unused")
 val changeAppNamePatch = resourcePatch(

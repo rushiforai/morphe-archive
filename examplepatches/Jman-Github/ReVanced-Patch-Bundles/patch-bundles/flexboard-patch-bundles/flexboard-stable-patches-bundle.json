@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-04T23:30:38",
-  "description": "## 2.2.1\n\n- feat: a scratch text box in Settings, so a change can be tried where it was made\n- docs: the removal case is observed now, not argued\n- docs: Bigger Toolbar confirmed on a device, and why twelve\n- feat: an About section that says where this came from\n- feat: patch descriptions that mention the ceiling they run into\n- feat: the settings row says who wrote it\n- feat: teaching an old keyboard new tricks\n- feat: say what Flexboard is in Gboard's settings, not what it was\n- docs: verify the channel model against morphe-manager, and name the gap\n- build: make the gate one command, and stop the scanner lying\n- docs: record the green gate that was not a gate",
-  "download_url": "https://github.com/JZ6/Flexboard/releases/download/v2.2.1/patches-2.2.1.mpp",
+  "created_at": "2026-09-08T01:51:43",
+  "description": "## 2.3.0\r\n\r\nDismissable suggestions!\r\n\r\n* **Gboard:** docs: write down what forcing a Phenotype flag actually does\r\n* **Gboard:** feat: default-on the two flags that were watched working\r\n* **Gboard:** fix: drop on-device proofread, the flag that would not let Gboard start\r\n* **Gboard:** fix: split Hidden Features into one patch per flag, all opt-in\r\n* **Gboard:** 2.3.0-dev.1\r\n* **Gboard:** docs: finish counting the ids the slot raise changed\r\n* **Gboard:** feat: raise the hotkey slots from six to eight\r\n* **Gboard:** refactor: separate the two biggest patches from their emitters\r\n* **Gboard:** refactor: give every feature's fingerprints one place to live\r\n* **Gboard:** refactor: name ToolbarIdAdmissionPatch.kt for what it declares\r\n* **Gboard:** docs: stop three patch descriptions describing a build nobody gets\r\n* **Gboard:** fix: restore the seventh feature to the Hidden Features description\r\n* **Gboard:** feat: let a hoisted flag default be overridden per call site\r\n* **Gboard:** refactor: fold Grammar Check Row into Hidden Features\r\n* **Gboard:** feat: Hidden Features \u2014 five flags a resigned build can never receive\r\n",
+  "download_url": "https://github.com/JZ6/Flexboard/releases/download/v2.3.0/patches-2.3.0.mpp",
   "signature_download_url": "N/A",
-  "version": "v2.2.1"
+  "version": "v2.3.0"
 }

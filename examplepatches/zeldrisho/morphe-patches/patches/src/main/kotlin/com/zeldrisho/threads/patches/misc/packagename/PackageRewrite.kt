@@ -11,8 +11,7 @@ private val PACKAGE_NAME_REGEX = Regex("^[a-z]\\w*(\\.[a-z]\\w*)+$")
  * @param name The package name to validate.
  * @return True if the name is a valid Android package identifier, false otherwise.
  */
-fun isValidPackageName(name: String?): Boolean =
-    name != null && PACKAGE_NAME_REGEX.matches(name)
+fun isValidPackageName(name: String?): Boolean = name != null && PACKAGE_NAME_REGEX.matches(name)
 
 /**
  * Pure, unit-testable core of [changePackageNamePatch]'s `finalize {}` block.
@@ -27,11 +26,19 @@ fun rewritePackage(document: org.w3c.dom.Document, newPackage: String) {
     for (i in 0 until providers.length) {
         val provider = providers.item(i) as Element
         val authorities = provider.getAttribute("android:authorities")
-        if (authorities.startsWith("$ORIGINAL_PACKAGE.")) {
-            provider.setAttribute(
-                "android:authorities",
-                authorities.replace(ORIGINAL_PACKAGE, newPackage),
-            )
+        // Each authority is independent. Preserve third-party names and resource
+        // references; only rewrite our package prefix, never occurrences in a suffix.
+        val rewritten = authorities.split(';').joinToString(";") { authority ->
+            if (authority == ORIGINAL_PACKAGE) {
+                newPackage
+            } else if (authority.startsWith("$ORIGINAL_PACKAGE.")) {
+                authority.replaceFirst("$ORIGINAL_PACKAGE.", "$newPackage.")
+            } else {
+                authority
+            }
+        }
+        if (rewritten != authorities) {
+            provider.setAttribute("android:authorities", rewritten)
         }
     }
 

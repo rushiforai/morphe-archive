@@ -1,0 +1,28 @@
+minimum_pre_commit_version: '4.3.0'
+# Fast, check-only hooks. JVM checks stay in Gradle, not the commit path.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # v6.0.0
+    hooks:
+      - id: check-merge-conflict
+        args: [--assume-in-merge]
+      - id: mixed-line-ending
+        args: [--fix=no]
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: 745eface02aef23e168a8afb6b5737818efbea95 # v0.11.0.1
+    hooks:
+      - id: shellcheck
+        files: ^scripts/.*\.sh$
+
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: 05c1426671b9237fb5e1444dd63aa5731bec0dfb # v3.13.1-1
+    hooks:
+      - id: shfmt
+        files: ^scripts/.*\.sh$
+        args: [-d, -i, '4', -ci]
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: 914e7df21a07ef503a81201c76d2b11c789d3fca # v1.7.12
+    hooks:
+      - id: actionlint

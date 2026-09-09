@@ -9,6 +9,7 @@ import android.content.Context;
 import android.media.AudioManager;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.TypedValue;
@@ -46,7 +47,12 @@ public final class SessionLockOverlay {
 
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static WeakReference<View> overlayReference = new WeakReference<>(null);
+    /** What each view behind the panel said about itself before the hold covered it. */
+    private static final java.util.WeakHashMap<View, Integer> previousAccessibilityImportance =
+            new java.util.WeakHashMap<>();
     private static WeakReference<TextView> remainingReference = new WeakReference<>(null);
+    private static WeakReference<TextView> releaseReference = new WeakReference<>(null);
+    private static WeakReference<TextView> hintReference = new WeakReference<>(null);
     private static volatile boolean ticking;
 
     /**
@@ -116,7 +122,12 @@ public final class SessionLockOverlay {
                 // words, so the hold has no business silencing anything played there.
                 releaseQuiet();
                 View existing = overlayReference.get();
-                if (existing != null) existing.setVisibility(View.GONE);
+                if (existing != null) {
+                    existing.setVisibility(View.GONE);
+                    // Hidden is not attached: the panel is left in place while the reader is on
+                    // messages or a profile, and the feed has to be readable again meanwhile.
+                    hideBehind(parentOf(existing), existing, false);
+                }
                 return;
             }
             View before = overlayReference.get();
@@ -132,12 +143,46 @@ public final class SessionLockOverlay {
             // phone call to give the sound back once a second, for as long as the hold runs.
             boolean goingUp = before != overlay || overlay.getVisibility() != View.VISIBLE;
             overlay.setVisibility(View.VISIBLE);
+            if (goingUp) hideBehind(parentOf(overlay), overlay, true);
             if (goingUp) requestQuiet();
             TextView remaining = remainingReference.get();
             if (remaining != null) remaining.setText(remainingLabel());
+            applyLockedState();
         } catch (Throwable error) {
             Logger.printException(() -> "Could not update the session lock overlay", error);
         }
+    }
+
+    /**
+     * Takes the way out away on a day the reader locked, and says when it comes back.
+     *
+     * <p>Run on every sync rather than only when the panel is built, because the panel can
+     * outlive the day: it is left attached while the reader is on messages or a profile.
+     */
+    private static void applyLockedState() {
+        boolean locked = SessionBudget.lockedToday();
+        TextView release = releaseReference.get();
+        if (release != null) release.setVisibility(locked ? View.GONE : View.VISIBLE);
+        TextView hint = hintReference.get();
+        if (hint == null) return;
+        // One literal, because the translation gate reads the literal handed to L10n and a
+        // string built from two of them is two entries it cannot find.
+        hint.setText(locked
+                ? L10n.f("Today's budget is locked. The feed opens again at %1$s. Messages, profiles and search still work.", resetTimeLabel())
+                : L10n.t("Messages, profiles and search still work."));
+    }
+
+    /** The hour the locked day ends, on the reader's own clock. */
+    public static String resetTimeLabel() {
+        long until = SessionBudget.lockedUntilMs();
+        if (until <= 0) return "";
+        Context context = Utils.getContext();
+        if (context == null) {
+            return java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT)
+                    .format(new java.util.Date(until));
+        }
+        return android.text.format.DateFormat.getTimeFormat(context)
+                .format(new java.util.Date(until));
     }
 
     static String remainingLabel() {
@@ -169,9 +214,17 @@ public final class SessionLockOverlay {
         // Swallows every touch, so the feed underneath stops scrolling without being emptied.
         panel.setClickable(true);
         panel.setFocusable(true);
+        // Touch was the only thing it swallowed. A screen reader was told nothing when the hold
+        // went up, and could still swipe through to the like, comment and share controls behind
+        // it, which is the one thing the hold exists to stop.
+        panel.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
 
         TextView title = new TextView(activity);
-        title.setText(SessionBudgetNotice.spentMessage());
+        String titleText = SessionBudgetNotice.spentMessage();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            panel.setAccessibilityPaneTitle(titleText);
+        }
+        title.setText(titleText);
         title.setTextColor(Color.WHITE);
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         title.setGravity(Gravity.CENTER);
@@ -197,12 +250,22 @@ public final class SessionLockOverlay {
         hint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         hint.setGravity(Gravity.CENTER);
         panel.addView(hint);
+        hintReference = new WeakReference<>(hint);
 
         // The way out. A budget nobody can overrule is a budget people switch off instead, and
         // this has to be here rather than on a banner, which the panel would cover.
         TextView release = new TextView(activity);
         release.setText(L10n.t(activity, "Open the feed anyway"));
         release.setContentDescription(L10n.t(activity, "Open the feed anyway"));
+        // A TextView with a click listener is read as text. It is the only way out of the hold,
+        // so it has to be offered as something to press.
+        release.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override public void onInitializeAccessibilityNodeInfo(
+                    View host, android.view.accessibility.AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                info.setClassName(android.widget.Button.class.getName());
+            }
+        });
         release.setTextColor(Color.WHITE);
         release.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
         release.setGravity(Gravity.CENTER);
@@ -217,11 +280,16 @@ public final class SessionLockOverlay {
         releaseParams.topMargin = SettingsUi.dp(activity, 28);
         release.setLayoutParams(releaseParams);
         release.setOnClickListener(view -> {
+            // The model refuses this on a locked day. Checked here too, so the tap is answered
+            // rather than doing nothing at all.
+            if (SessionBudget.lockedToday()) return;
             SessionBudget.releaseLock();
             sync();
             Utils.showToastShort(L10n.t("The feed is open again"));
         });
         panel.addView(release);
+        releaseReference = new WeakReference<>(release);
+        applyLockedState();
 
         // Stops above the navigation. Covering the whole content root would take the tab bar
         // with it, and then messages, profiles and search are not reachable at all, which is the
@@ -231,6 +299,7 @@ public final class SessionLockOverlay {
         params.bottomMargin = navigationHeight(activity, root);
         panel.setLayoutParams(params);
         root.addView(panel);
+        hideBehind(root, panel, true);
         overlayReference = new WeakReference<>(panel);
         Logger.printDebug(() -> "Session lock overlay attached");
         return panel;
@@ -307,9 +376,43 @@ public final class SessionLockOverlay {
         View overlay = overlayReference.get();
         overlayReference = new WeakReference<>(null);
         remainingReference = new WeakReference<>(null);
+        releaseReference = new WeakReference<>(null);
+        hintReference = new WeakReference<>(null);
         if (overlay == null) return;
-        ViewGroup parent = overlay.getParent() instanceof ViewGroup
-                ? (ViewGroup) overlay.getParent() : null;
-        if (parent != null) parent.removeView(overlay);
+        ViewGroup parent = parentOf(overlay);
+        if (parent != null) {
+            hideBehind(parent, overlay, false);
+            parent.removeView(overlay);
+        }
+    }
+
+    private static ViewGroup parentOf(View view) {
+        if (view == null) return null;
+        return view.getParent() instanceof ViewGroup ? (ViewGroup) view.getParent() : null;
+    }
+
+    /**
+     * Takes everything behind the panel out of the reading order, or puts it back.
+     *
+     * <p>The panel covers the feed for anyone looking at it, and covers nothing at all for
+     * anyone swiping through it with a screen reader. Each view's own setting is kept so that
+     * putting it back does not hand TikTok a value this project invented.
+     */
+    private static void hideBehind(ViewGroup root, View panel, boolean hidden) {
+        if (root == null) return;
+        for (int index = 0; index < root.getChildCount(); index++) {
+            View child = root.getChildAt(index);
+            if (child == panel) continue;
+            if (hidden) {
+                if (!previousAccessibilityImportance.containsKey(child)) {
+                    previousAccessibilityImportance.put(child, child.getImportantForAccessibility());
+                }
+                child.setImportantForAccessibility(
+                        View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
+            } else {
+                Integer previous = previousAccessibilityImportance.remove(child);
+                if (previous != null) child.setImportantForAccessibility(previous);
+            }
+        }
     }
 }

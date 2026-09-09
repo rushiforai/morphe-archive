@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-07T16:31:33",
-  "description": "## [1.14.0-dev.11](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.14.0-dev.10...v1.14.0-dev.11) (2026-09-07)\n\n### \u2728 New Features\n\n* **Duck Life 6: Space:** add unlock full game patch (billing entitlements) ([51c22ef](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/51c22ef7ce33fa4f3292da8dbaa8d41f1bd8b4f2))\n",
-  "download_url": "https://github.com/MiguelNinja19/miguel-morphe-patches/releases/download/v1.14.0-dev.11/patches-1.14.0-dev.11.mpp",
+  "created_at": "2026-09-08T21:41:44",
+  "description": "## [1.14.0-dev.13](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.14.0-dev.12...v1.14.0-dev.13) (2026-09-08)\n\n### \ud83d\udc1b Bug Fixes\n\n* **Lara Croft: Guardian of Light:** repair force FDR patch compilation (mutable class lookup) ([2580d45](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/2580d456aa23d194d822c6914a8d5f597984de38))\n\n### \u2728 New Features\n\n* **Lara Croft: Guardian of Light:** add force FDR download patch (fix Play asset delivery block) ([44ee6f9](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/44ee6f9da40a836428a2acd1ffd5a05541d18dfd)), closes [#4](https://github.com/MiguelNinja19/miguel-morphe-patches/issues/4)\n",
+  "download_url": "https://github.com/MiguelNinja19/miguel-morphe-patches/releases/download/v1.14.0-dev.13/patches-1.14.0-dev.13.mpp",
   "signature_download_url": "N/A",
-  "version": "v1.14.0-dev.11"
+  "version": "v1.14.0-dev.13"
 }

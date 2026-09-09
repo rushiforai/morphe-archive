@@ -1,3 +1,69 @@
+## [1.7.0](https://gitlab.com/IMXEren/mix-patches/compare/v1.6.0...v1.7.0) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency androidx.annotation:annotation to v1.10.0 ([b4dd46c](https://gitlab.com/IMXEren/mix-patches/commit/b4dd46c2600af00709e7583a5454223b965ebc8a))
+* **reddit-sync:** apply sorting to other discussions ([201f1f1](https://gitlab.com/IMXEren/mix-patches/commit/201f1f18b47f774dbb54a106066fa61b5203a1eb))
+* **reddit-sync:** avoid URL hook label collisions ([3c0fe7b](https://gitlab.com/IMXEren/mix-patches/commit/3c0fe7bc869e97cbe7a078c4536572c2c51afd21))
+
+### ✨ New Features
+
+* **clone:** add Clone app patch ([2807d71](https://gitlab.com/IMXEren/mix-patches/commit/2807d719f77670d5c01a453557c961feb03d55c1))
+* **ipay-srilanka:** add device integrity bypass patch ([79491e7](https://gitlab.com/IMXEren/mix-patches/commit/79491e7d7c6272f04c87fc41490ff59a62d255cd))
+* **native:** add MOV_ZERO opcode and returnZero helper for deterministic zero-return stubs ([ffecbbb](https://gitlab.com/IMXEren/mix-patches/commit/ffecbbbded097e241c4e47f86f9fb52a621091b6)), closes [#0](https://gitlab.com/IMXEren/mix-patches/issues/0)
+* **pairip:** add Disable PairIP license check patch ([742aa25](https://gitlab.com/IMXEren/mix-patches/commit/742aa2520c13c1f32b3b51c9f622fc46b233d1b7))
+* **reddit-sync:** mark Arctic Shift profile items ([fdb6e8c](https://gitlab.com/IMXEren/mix-patches/commit/fdb6e8cf27c55edcd5ecdd74b30afcb9e3b20124))
+* **reddit-sync:** merge archived profile comments ([285d1bf](https://gitlab.com/IMXEren/mix-patches/commit/285d1bfac03e1b35607f21aa18403925d7dc1b52))
+* **reddit-sync:** merge native and archive profile feeds ([1c197d4](https://gitlab.com/IMXEren/mix-patches/commit/1c197d411b19fd2ee5096c7d7374fd0f763111a9))
+
+### 🚀 Updated App Support
+
+* **trakt:** add support for `3.19.0` ([4a725ef](https://gitlab.com/IMXEren/mix-patches/commit/4a725efa881f3bf3a93b5a126c44b15afadab449))
+
+## [1.7.0-dev.5](https://gitlab.com/IMXEren/mix-patches/compare/v1.7.0-dev.4...v1.7.0-dev.5) (2026-09-08)
+
+### ✨ New Features
+
+* **reddit-sync:** mark Arctic Shift profile items ([fdb6e8c](https://gitlab.com/IMXEren/mix-patches/commit/fdb6e8cf27c55edcd5ecdd74b30afcb9e3b20124))
+* **reddit-sync:** merge archived profile comments ([285d1bf](https://gitlab.com/IMXEren/mix-patches/commit/285d1bfac03e1b35607f21aa18403925d7dc1b52))
+
+## [1.7.0-dev.4](https://gitlab.com/IMXEren/mix-patches/compare/v1.7.0-dev.3...v1.7.0-dev.4) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* **reddit-sync:** avoid URL hook label collisions ([3c0fe7b](https://gitlab.com/IMXEren/mix-patches/commit/3c0fe7bc869e97cbe7a078c4536572c2c51afd21))
+
+## [1.7.0-dev.3](https://gitlab.com/IMXEren/mix-patches/compare/v1.7.0-dev.2...v1.7.0-dev.3) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* **reddit-sync:** apply sorting to other discussions ([201f1f1](https://gitlab.com/IMXEren/mix-patches/commit/201f1f18b47f774dbb54a106066fa61b5203a1eb))
+
+### ✨ New Features
+
+* **reddit-sync:** merge native and archive profile feeds ([1c197d4](https://gitlab.com/IMXEren/mix-patches/commit/1c197d411b19fd2ee5096c7d7374fd0f763111a9))
+
+## [1.7.0-dev.2](https://gitlab.com/IMXEren/mix-patches/compare/v1.7.0-dev.1...v1.7.0-dev.2) (2026-09-02)
+
+### 🚀 Updated App Support
+
+* **trakt:** add support for `3.19.0` ([4a725ef](https://gitlab.com/IMXEren/mix-patches/commit/4a725efa881f3bf3a93b5a126c44b15afadab449))
+
+## [1.7.0-dev.1](https://gitlab.com/IMXEren/mix-patches/compare/v1.6.1-dev.1...v1.7.0-dev.1) (2026-09-01)
+
+### ✨ New Features
+
+* **clone:** add Clone app patch ([2807d71](https://gitlab.com/IMXEren/mix-patches/commit/2807d719f77670d5c01a453557c961feb03d55c1))
+* **ipay-srilanka:** add device integrity bypass patch ([79491e7](https://gitlab.com/IMXEren/mix-patches/commit/79491e7d7c6272f04c87fc41490ff59a62d255cd))
+* **native:** add MOV_ZERO opcode and returnZero helper for deterministic zero-return stubs ([ffecbbb](https://gitlab.com/IMXEren/mix-patches/commit/ffecbbbded097e241c4e47f86f9fb52a621091b6)), closes [#0](https://gitlab.com/IMXEren/mix-patches/issues/0)
+* **pairip:** add Disable PairIP license check patch ([742aa25](https://gitlab.com/IMXEren/mix-patches/commit/742aa2520c13c1f32b3b51c9f622fc46b233d1b7))
+
+## [1.6.1-dev.1](https://gitlab.com/IMXEren/mix-patches/compare/v1.6.0...v1.6.1-dev.1) (2026-08-27)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency androidx.annotation:annotation to v1.10.0 ([b4dd46c](https://gitlab.com/IMXEren/mix-patches/commit/b4dd46c2600af00709e7583a5454223b965ebc8a))
+
 ## [1.6.0](https://gitlab.com/IMXEren/mix-patches/compare/v1.5.0...v1.6.0) (2026-08-25)
 
 ### 🐛 Bug Fixes

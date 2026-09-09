@@ -15,12 +15,11 @@ import android.widget.LinearLayout;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 
 import com.bytedance.ies.ugc.aweme.commercialize.compliance.personalization.AdPersonalizationActivity;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * Hooks AdPersonalizationActivity to inject a custom {@link TikTokPreferenceFragment}.
@@ -30,21 +29,6 @@ public class TikTokActivityHook {
     private static final String SETTINGS_ACTION = "morphe_settings";
     private static final String SETTINGS_EXTRA = "morphe";
     private static final String SETTINGS_SECTION_EXTRA = "morphe_settings_section";
-
-    public static Object createSettingsEntry(String entryClazzName, String entryInfoClazzName) {
-        try {
-            Class entryClazz = Class.forName(entryClazzName);
-            Class entryInfoClazz = Class.forName(entryInfoClazzName);
-            Constructor entryConstructor = entryClazz.getConstructor(entryInfoClazz);
-            Constructor entryInfoConstructor = entryInfoClazz.getDeclaredConstructors()[0];
-            Object buttonInfo = entryInfoConstructor.newInstance(
-                    "Hushfeed", null, (View.OnClickListener) view -> startSettingsActivity(), "morphe");
-            return entryConstructor.newInstance(buttonInfo);
-        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException |
-                 InstantiationException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     /***
      * Initialize the settings menu.
@@ -65,7 +49,11 @@ public class TikTokActivityHook {
         LinearLayout linearLayout = new LinearLayout(base);
         linearLayout.setLayoutParams(new LinearLayout.LayoutParams(-1, -1));
         linearLayout.setOrientation(LinearLayout.VERTICAL);
-        linearLayout.setFitsSystemWindows(true);
+        // The background sits here rather than only on the fragment, so it reaches behind the
+        // bars. fitsSystemWindows would pad this view too, but it consumes the insets on the way
+        // past, and it has no answer for a display cutout on a side edge.
+        linearLayout.setBackgroundColor(SettingsUi.background());
+        SystemBarInsets.applyTo(linearLayout);
         linearLayout.setTransitionGroup(true);
 
         FrameLayout fragment = new FrameLayout(base);
@@ -84,6 +72,14 @@ public class TikTokActivityHook {
             preferenceFragment.setArguments(arguments);
         }
         base.getFragmentManager().beginTransaction().replace(fragmentId, preferenceFragment).commit();
+
+        // Back here rode entirely on the host's onBackPressed, which stops being called once
+        // TikTok drops enableOnBackInvokedCallback="false" from its manifest at target 36. The
+        // Lab has registered a dispatcher callback since API 33; this screen had not, so it
+        // would have lost Back the day that attribute goes. The hook below stays as the path
+        // for everything older.
+        new SystemBackHandler("HushfeedSettingsBackCallback")
+                .registerUntilDetached(base, linearLayout, () -> handleBackPressed(base));
 
         return true;
     }

@@ -7,7 +7,7 @@ showMicroGChangelog() {
     local changelog_tmp="$HOME/Enhancify/microg_changelog.tmp"
     local changelog_display="$HOME/Enhancify/microg_changelog_display.tmp"
 
-    jq -r '.body // empty' <<< "$api_response" > "$changelog_tmp" 2>/dev/null
+    jq -r 'if type == "array" then .[0] else . end | .body // empty' <<< "$api_response" > "$changelog_tmp" 2>/dev/null
 
     [ ! -f "$changelog_tmp" ] && return 0
     [ ! -s "$changelog_tmp" ] && rm -f "$changelog_tmp" && return 0
@@ -160,7 +160,7 @@ showMicroGChangelog() {
 
 Fetch_MicroG() {
     STORAGE_PATH="$STORAGE"
-    local microg_dir="$STORAGE/GmsCore"
+    local microg_dir="$STORAGE/Dependencies"
     local GITHUB_TOKEN
     GITHUB_TOKEN=$(read_github_token)
     local AUTH_HEADER=""
@@ -223,7 +223,7 @@ Fetch_MicroG() {
         return 1
     fi
 
-    local api_url="https://api.github.com/repos/$repo/releases/latest"
+    local api_url="https://api.github.com/repos/$repo/releases"
 
     "${curl_opts[@]}" "$api_url" > response.tmp
     response_headers=$(<headers.tmp)
@@ -238,11 +238,17 @@ Fetch_MicroG() {
     rm -f headers.tmp response.tmp
 
     local tag_name
-    tag_name=$(jq -r '.tag_name' <<< "$api_response")
+    tag_name=$(jq -r 'if type == "array" then .[0] else . end | .tag_name // empty' <<< "$api_response")
+
+    [ -z "$tag_name" ] && {
+        notify msg "Failed to parse release info for $provider GmsCore\nRetry later."
+        return 1
+    }
 
     local asset_info
     asset_info=$(jq -r '
-        .assets[]
+        if type == "array" then .[0] else . end
+        | .assets[]?
         | select(.name | endswith(".apk"))
         | [.browser_download_url, .size, .name]
         | @tsv
@@ -309,7 +315,7 @@ Fetch_MicroG() {
         return 1
     fi
 
-    notify msg "$provider GmsCore downloaded successfully!\nVersion: $clean_tag\nSize: $(numfmt --to=iec --format='%0.1f' "$actual_size")\nSaved at: Internal Storage/Enhancify/GmsCore/$filename"
+    notify msg "$provider GmsCore downloaded successfully!\nVersion: $clean_tag\nSize: $(numfmt --to=iec --format='%0.1f' "$actual_size")\nSaved at: Internal Storage/Enhancify/Dependencies/$filename"
     termux-open --view "$output_file"
     tput civis
     return 0

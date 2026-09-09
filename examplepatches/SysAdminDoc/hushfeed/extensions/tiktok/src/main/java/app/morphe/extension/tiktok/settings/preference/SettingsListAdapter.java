@@ -63,7 +63,12 @@ final class SettingsListAdapter extends BaseAdapter implements WrapperListAdapte
         TextView summary = row.findViewById(android.R.id.summary);
         if (summary != null && preference instanceof ListPreference) summary.setTextColor(preference.isEnabled() ? SettingsUi.accent() : SettingsUi.textDisabled());
         ViewGroup widget = row.findViewById(android.R.id.widget_frame);
-        if (widget != null && !(preference instanceof SwitchPreference) && preference.isSelectable()) {
+        // A row that acts on the tap gets no chevron. Reset, Undo, Start today over and the two
+        // clear rows all wore the one that means "opens a page", which is the wrong promise to
+        // make about a row that replaces every setting.
+        boolean acts = preference instanceof app.morphe.extension.shared.settings.preference.ImmediateAction
+                && ((app.morphe.extension.shared.settings.preference.ImmediateAction) preference).actsOnTap();
+        if (widget != null && !acts && !(preference instanceof SwitchPreference) && preference.isSelectable()) {
             widget.setVisibility(View.VISIBLE);
             if (widget.findViewWithTag("metra_chevron") == null) {
                 ImageView arrow = new ImageView(row.getContext());
@@ -75,6 +80,18 @@ final class SettingsListAdapter extends BaseAdapter implements WrapperListAdapte
                 params.gravity = Gravity.CENTER_VERTICAL;
                 params.setMarginStart(SettingsUi.dp(row.getContext(), 12));
                 widget.addView(arrow, params);
+            }
+        } else if (widget != null) {
+            // Rows are recycled, and one class can make both kinds: Back up and Restore open a
+            // file picker and keep the chevron, Reset and Undo act and do not. Adding one and
+            // never taking it away meant "Reset settings" wore a chevron as soon as "Back up
+            // settings" had scrolled past it, which is the promise this exists to stop making.
+            View stale = widget.findViewWithTag("metra_chevron");
+            if (stale != null) {
+                widget.removeView(stale);
+                // The frame is here for the chevron on these rows, and an empty one still takes
+                // width. Preference hides it when the view is built, which reuse skips.
+                if (widget.getChildCount() == 0) widget.setVisibility(View.GONE);
             }
         }
         return row;

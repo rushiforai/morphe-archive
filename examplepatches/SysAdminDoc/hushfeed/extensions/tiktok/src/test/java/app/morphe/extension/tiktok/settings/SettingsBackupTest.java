@@ -11,6 +11,7 @@ import app.morphe.extension.shared.settings.AppLanguage;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.Setting;
+import app.morphe.extension.tiktok.featuregatelab.FeatureGateLabRuntime;
 import app.morphe.extension.tiktok.featuregatelab.FeatureGateLabStore;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 import java.io.ByteArrayInputStream;
@@ -40,6 +41,14 @@ import org.robolectric.shadows.ShadowToast;
 public class SettingsBackupTest {
     @After public void tearDownStatus() {
         SettingsStatus.diagnosticsEnabled = false;
+        // Settings live in a static registry that outlives this class, and one test here saves a
+        // German app language. Utils.setContext reads that setting and, when it is not the
+        // default, hands back a createConfigurationContext copy instead of the context it was
+        // given. Any later test in the same JVM that installs a ContextWrapper to fail a file
+        // write then had its override quietly dropped, so the operation succeeded and the test
+        // failed asking where its exception went. Which class that hit depended on run order.
+        for (Setting<?> setting : Setting.allLoadedSettings()) setting.resetToDefault();
+        Utils.setContext(RuntimeEnvironment.getApplication());
     }
     @Before public void setup() throws Exception {
         Utils.setContext(RuntimeEnvironment.getApplication());
@@ -85,6 +94,47 @@ public class SettingsBackupTest {
         assertEquals("true", rule.value);
     }
 
+    @Test public void aBackupFromBeforeTheDownloadPathSplitFillsInTheThreeDestinations()
+            throws Exception {
+        // The one shot down_path migration cannot help here: its flag is already true on the
+        // device and was never in a backup, so the three destinations took their default and a
+        // custom folder went with them.
+        Settings.DOWNLOAD_PATH.save("Pictures/Saved");
+        String legacy = withoutKeys(
+                new JSONObject(SettingsBackup.create(false)).put("format", "metra-settings").toString(),
+                Settings.DOWNLOAD_VIDEO_PATH.key,
+                Settings.DOWNLOAD_PHOTO_PATH.key,
+                Settings.DOWNLOAD_STICKER_PATH.key);
+        Settings.DOWNLOAD_PATH.resetToDefault();
+        Settings.DOWNLOAD_VIDEO_PATH.save("DCIM/Somewhere");
+
+        // The three are accounted for by the migration, so they are not reported as left alone.
+        assertEquals(0, SettingsBackup.settingsNotInFile(legacy));
+        SettingsBackup.restore(Utils.getContext(), legacy, true);
+
+        assertEquals("Pictures/Saved", Settings.DOWNLOAD_VIDEO_PATH.get());
+        assertEquals("Pictures/Saved", Settings.DOWNLOAD_PHOTO_PATH.get());
+        assertEquals("Pictures/Saved", Settings.DOWNLOAD_STICKER_PATH.get());
+    }
+
+    /** The same file with those keys taken out of both the values and the declared inventory. */
+    private static String withoutKeys(String backup, String... keys) throws Exception {
+        JSONObject root = new JSONObject(backup);
+        JSONObject values = root.getJSONObject("settings");
+        java.util.List<String> dropped = java.util.Arrays.asList(keys);
+        for (String key : keys) {
+            assertTrue(key + " is not in the backup to begin with", values.has(key));
+            values.remove(key);
+        }
+        org.json.JSONArray kept = new org.json.JSONArray();
+        org.json.JSONArray declared = root.getJSONArray("setting_keys");
+        for (int i = 0; i < declared.length(); i++) {
+            String key = declared.getString(i);
+            if (!dropped.contains(key)) kept.put(key);
+        }
+        return root.put("setting_keys", kept).toString();
+    }
+
     @Test public void malformedLateValuesNeverPartiallyApplyOrReplaceUndo() throws Exception {
         Settings.MAX_VIDEO_SECONDS.save(42);
         SettingsBackup.reset(Utils.getContext());
@@ -99,19 +149,169 @@ public class SettingsBackupTest {
         assertEquals(42, (int) Settings.MAX_VIDEO_SECONDS.get());
     }
 
-    @Test public void invalidLabVersionRuleAndTrailingInputLeaveSettingsUntouched() throws Exception {
+    @Test public void invalidLabRuleAndTrailingInputLeaveSettingsUntouched() throws Exception {
+        // A backup stamped with another TikTok version used to belong in this list. It does not
+        // any more: the settings half of a backup does not depend on the TikTok build, so it is
+        // restored and only the Lab rules are dropped. That case is its own test below.
         Settings.REGION_SPOOF.save(true);
         String baseline = SettingsBackup.create(false);
-        JSONObject wrongVersion = new JSONObject(baseline).put("target", "other");
         JSONObject wrongLab = new JSONObject(baseline);
         wrongLab.getJSONObject("lab").put("master", "true");
         JSONObject badRule = new JSONObject(baseline);
         badRule.getJSONObject("lab").getJSONArray("rules").put(new JSONObject()
                 .put("manager", "abmock").put("key", "bad").put("type", "FLOAT").put("value", "NaN").put("force", true));
-        for (String invalid : new String[]{wrongVersion.toString(), wrongLab.toString(), badRule.toString(), baseline + "garbage", "[]"}) {
+        for (String invalid : new String[]{wrongLab.toString(), badRule.toString(), baseline + "garbage", "[]"}) {
             assertThrows(Exception.class, () -> SettingsBackup.restore(Utils.getContext(), invalid, true));
             assertEquals(baseline, SettingsBackup.create(false));
         }
+    }
+
+    @Test public void aBackupFromAnotherTikTokVersionRestoresSettingsAndLeavesTheLabAlone() throws Exception {
+        // The target stamp is there for the Lab rules, which name gates in one TikTok build. It
+        // used to refuse the whole file, so the day this project retargets, every backup anyone
+        // holds stops restoring, settings included.
+        Settings.BLOCKED_CREATORS.save("from the backup");
+        Settings.AUTO_ADVANCE.save(true);
+        String backup = SettingsBackup.create(false);
+        String otherVersion = new JSONObject(backup).put("target", "40.0.0").toString();
+
+        // State that must survive: a Lab rule this backup knows nothing about.
+        Settings.BLOCKED_CREATORS.save("changed since");
+        Settings.AUTO_ADVANCE.save(false);
+        FeatureGateLabStore.saveRule("abmock", "rule_for_this_build", "INT", "7", true);
+        FeatureGateLabStore.setMasterEnabled(true);
+
+        SettingsBackup.restore(Utils.getContext(), otherVersion, true);
+
+        assertEquals("the settings half did not restore", "from the backup", Settings.BLOCKED_CREATORS.get());
+        assertTrue("the settings half did not restore", Settings.AUTO_ADVANCE.get());
+        assertTrue("the caller was not told the Lab rules were left out",
+                SettingsBackup.labRulesWereSkipped(otherVersion));
+        assertNotNull("the Lab was emptied by a backup that said nothing about this build",
+                FeatureGateLabStore.rule("abmock", "rule_for_this_build", "INT"));
+        assertTrue("the Lab master switch was changed by a backup for another build",
+                FeatureGateLabStore.masterEnabled());
+    }
+
+    @Test public void everyRefusalSaysWhichOneItWas() throws Exception {
+        String baseline = SettingsBackup.create(false);
+        JSONObject wrongFormat = new JSONObject(baseline).put("format", "something-else");
+        JSONObject wrongSchema = new JSONObject(baseline).put("schema", 99);
+        JSONObject shortKeys = new JSONObject(baseline).put("setting_keys", new org.json.JSONArray());
+        JSONObject badValue = new JSONObject(baseline);
+        badValue.getJSONObject("settings").put(Settings.AUTO_ADVANCE.key, "not a boolean");
+
+        assertEquals(SettingsBackup.Reason.FORMAT, reasonFor(wrongFormat.toString()));
+        assertEquals(SettingsBackup.Reason.SCHEMA, reasonFor(wrongSchema.toString()));
+        assertEquals(SettingsBackup.Reason.INCOMPLETE, reasonFor(shortKeys.toString()));
+        assertEquals(SettingsBackup.Reason.VALUE, reasonFor(badValue.toString()));
+
+        // And each of them reaches the user as its own sentence rather than one shared rejection,
+        // which is what made a truncated download and a good backup read the same.
+        java.util.Set<String> sentences = new java.util.HashSet<>();
+        for (String input : new String[]{wrongFormat.toString(), wrongSchema.toString(),
+                shortKeys.toString(), badValue.toString()}) {
+            sentences.add(sentenceFor(input));
+        }
+        assertEquals("two refusals share a sentence, so the user cannot tell them apart",
+                4, sentences.size());
+    }
+
+    @Test public void aFinishedRestoreFromAnotherTikTokVersionIsNotUndoneAtNextLaunch() throws Exception {
+        // A journal that outlives its own commit is ordinary: the delete after a commit is
+        // allowed to fail, on the reasoning that the after snapshot still describes the result.
+        // Reconciliation compares the live settings against that snapshot, and a snapshot that
+        // leaves the Lab alone carries no rules to compare, so the comparison threw, was caught
+        // as "does not match", and the startup path rolled a successful restore back.
+        var app = Utils.getContext();
+        Settings.BLOCKED_CREATORS.save("from the backup");
+        String backup = new JSONObject(SettingsBackup.create(false)).put("target", "40.0.0").toString();
+
+        Settings.BLOCKED_CREATORS.save("changed since");
+        String before = SettingsBackup.create(false);
+        SettingsBackup.restore(app, backup, true);
+        assertEquals("the restore itself did not take", "from the backup", Settings.BLOCKED_CREATORS.get());
+
+        writeJournal("settings", before, backup);
+        assertEquals("a finished restore was read as interrupted",
+                SettingsOperationJournal.Recovery.ALREADY_COMMITTED,
+                SettingsOperationJournal.initialize(app));
+        assertEquals("the settings the user restored were reverted at startup",
+                "from the backup", Settings.BLOCKED_CREATORS.get());
+    }
+
+    @Test public void aBackupThatStopsHalfwayThroughSaysSoRatherThanRefusingWithoutAReason()
+            throws Exception {
+        // Valid UTF-8, valid nothing else: exactly what a download that was cut off looks like.
+        String half = SettingsBackup.create(false);
+        half = half.substring(0, half.length() / 2);
+
+        assertEquals(SettingsBackup.Reason.DAMAGED, reasonFor(half));
+
+        // Its own sentence, not the one a photograph or a newer Hushfeed's backup gets.
+        String damaged = sentenceFor(half);
+        String wrongFormat = sentenceFor(
+                new JSONObject(SettingsBackup.create(false)).put("format", "something-else").toString());
+        String unknown = sentenceFor("{\"format\":\"hushfeed-settings\"}");
+        assertNotEquals("a cut-off download reads the same as a file that is not a backup",
+                wrongFormat, damaged);
+        assertNotEquals("a cut-off download still reads as the unexplained rejection",
+                unknown, damaged);
+    }
+
+    @Test public void aFileThatCannotEvenBeReadIsRefusedWithItsOwnReason() throws Exception {
+        var app = Utils.getContext();
+        // Bytes that are not UTF-8 at all, the shape of a file damaged in transit.
+        byte[] notText = {(byte) 0xC3, (byte) 0x28, (byte) 0xA0, (byte) 0xA1};
+        assertEquals("an unreadable file is still refused without a reason",
+                SettingsBackup.Reason.ENCODING,
+                reasonForStream(app, new java.io.ByteArrayInputStream(notText)));
+
+        byte[] tooBig = new byte[SettingsBackup.MAX_BYTES + 1024];
+        java.util.Arrays.fill(tooBig, (byte) 'x');
+        assertEquals("an oversized file is still refused without a reason",
+                SettingsBackup.Reason.SIZE,
+                reasonForStream(app, new java.io.ByteArrayInputStream(tooBig)));
+    }
+
+    private static SettingsBackup.Reason reasonForStream(android.content.Context app,
+            java.io.InputStream input) {
+        try {
+            SettingsBackup.restoreFrom(app, input, true);
+        } catch (SettingsBackup.RestoreException rejected) {
+            return rejected.getReason();
+        } catch (Exception other) {
+            throw new AssertionError("expected a RestoreException, got " + other, other);
+        }
+        throw new AssertionError("that input was accepted");
+    }
+
+    private static SettingsBackup.Reason reasonFor(String text) {
+        try {
+            SettingsBackup.restore(Utils.getContext(), text, true);
+        } catch (SettingsBackup.RestoreException rejected) {
+            return rejected.getReason();
+        } catch (Exception other) {
+            throw new AssertionError("expected a RestoreException, got " + other, other);
+        }
+        throw new AssertionError("that input was accepted");
+    }
+
+    /** The sentence the user actually sees. failureMessage is package private one package over. */
+    private static String sentenceFor(String text) throws Exception {
+        Exception refusal;
+        try {
+            SettingsBackup.restore(Utils.getContext(), text, true);
+            throw new AssertionError("that input was accepted");
+        } catch (SettingsBackup.RestoreException rejected) {
+            refusal = rejected;
+        }
+        Class<?> preference = Class.forName(
+                "app.morphe.extension.tiktok.settings.preference.SettingsBackupPreference");
+        java.lang.reflect.Method message =
+                preference.getDeclaredMethod("failureMessage", int.class, Exception.class);
+        message.setAccessible(true);
+        return (String) message.invoke(null, 7312 /* IMPORT */, refusal);
     }
 
     @Test public void resetAndUndoRestoreBothStoresAndSurviveAnUnrelatedSettingChange() throws Exception {
@@ -167,9 +367,51 @@ public class SettingsBackupTest {
         }
     }
 
+    @Test public void aFailureBeforeTheLabIsReachedLeavesTheLabAlone() throws Exception {
+        // The apply writes the ordinary settings first, so a failure in those never reaches the
+        // Lab. Putting it back anyway is not free: replaceSettings clears every triggered marker
+        // and raises a restart notice, for a store the failed restore did not touch.
+        var app = Utils.getContext();
+        FeatureGateLabStore.saveRule("abmock", "untouched", "BOOLEAN", "true", true);
+        JSONObject next = new JSONObject(SettingsBackup.create(false));
+        next.getJSONObject("settings").put(Settings.REGION_SPOOF.key, true);
+
+        var original = Setting.preferences.preferences;
+        var labWrites = new java.util.concurrent.atomic.AtomicInteger();
+        var normal = failingCommits(original, () -> true, () -> {});
+        var lab = failingCommits(app.getSharedPreferences("morphe_feature_gate_lab", 0),
+                () -> false, labWrites::incrementAndGet);
+        var field = app.morphe.extension.shared.settings.preference.SharedPrefCategory.class
+                .getDeclaredField("preferences");
+        field.setAccessible(true);
+        field.set(Setting.preferences, normal);
+        Utils.setContext(new android.content.ContextWrapper(app) {
+            @Override public android.content.SharedPreferences getSharedPreferences(String name, int mode) {
+                return name.equals("morphe_feature_gate_lab") ? lab : super.getSharedPreferences(name, mode);
+            }
+        });
+        try {
+            assertThrows(Exception.class,
+                    () -> SettingsBackup.restore(Utils.getContext(), next.toString(), true));
+            assertEquals("the Lab was written on a failure that never reached it",
+                    0, labWrites.get());
+        } finally {
+            field.set(Setting.preferences, original);
+            Utils.setContext(app);
+        }
+        assertNotNull("the rule the restore never touched is gone",
+                FeatureGateLabStore.rule("abmock", "untouched", "BOOLEAN"));
+    }
+
     @Test public void rollbackStillAttemptsLabWhenOrdinaryPreferenceRecoveryFails() throws Exception {
         var app = Utils.getContext();
+        FeatureGateLabStore.saveRule("abmock", "rollback_gate", "BOOLEAN", "true", true);
         FeatureGateLabStore.setMasterEnabled(true);
+        // A gate that actually fired before the restore was attempted. The rollback puts these
+        // very rules back, so what the Lab recorded about them is still true afterwards.
+        FeatureGateLabRuntime.reloadRules();
+        assertTrue(FeatureGateLabRuntime.overrideBoolean("rollback_gate", false));
+        assertTrue(FeatureGateLabRuntime.isTriggered("abmock", "rollback_gate", "BOOLEAN"));
         JSONObject next = new JSONObject(SettingsBackup.create(false));
         next.getJSONObject("settings").put(Settings.REGION_SPOOF.key, true);
         next.getJSONObject("lab").put("master", false);
@@ -193,6 +435,8 @@ public class SettingsBackupTest {
             assertThrows(Exception.class, () -> SettingsBackup.restore(Utils.getContext(), next.toString(), true));
             assertTrue("Lab recovery must run even after the other store fails", FeatureGateLabStore.masterEnabled());
             assertTrue(labCommits.get() >= 2);
+            assertTrue("the rollback cleared the record of which overrides fired",
+                    FeatureGateLabRuntime.isTriggered("abmock", "rollback_gate", "BOOLEAN"));
         } finally {
             field.set(Setting.preferences, original);
             Utils.setContext(app);
@@ -291,6 +535,59 @@ public class SettingsBackupTest {
         assertFalse(Settings.REGION_SPOOF.get());
         assertFalse(FeatureGateLabStore.masterEnabled());
         assertFalse(new File(app.getFilesDir(), SettingsOperationJournal.FILE_NAME).isFile());
+    }
+
+    @Test public void recoveringOrdinarySettingsKeepsALabRecordItDidNotChange() throws Exception {
+        // The journal recovers ordinary settings and the Lab together, so it writes the Lab back
+        // even when only an ordinary setting moved. Writing the same rules again used to throw
+        // away the record of which overrides had fired, for a store the recovery did not change.
+        var app = Utils.getContext();
+        FeatureGateLabStore.saveRule("abmock", "recovery_gate", "BOOLEAN", "true", true);
+        FeatureGateLabStore.setMasterEnabled(true);
+        FeatureGateLabRuntime.reloadRules();
+        assertTrue(FeatureGateLabRuntime.overrideBoolean("recovery_gate", false));
+        assertTrue(FeatureGateLabRuntime.isTriggered("abmock", "recovery_gate", "BOOLEAN"));
+
+        String before = SettingsBackup.create(false);
+        JSONObject after = new JSONObject(before);
+        after.getJSONObject("settings").put(Settings.REGION_SPOOF.key, true);
+        // Neither state may match, or the journal reads the change as already committed and
+        // applies nothing. The lab master is the half that did not land.
+        after.getJSONObject("lab").put("master", false);
+        Settings.REGION_SPOOF.save(true);
+        writeJournal("settings", before, after.toString());
+
+        assertEquals(SettingsOperationJournal.Recovery.RECOVERED_PRIOR,
+                SettingsOperationJournal.initialize(app));
+        assertFalse(Settings.REGION_SPOOF.get());
+        assertTrue("recovering an ordinary setting cleared the Lab's record",
+                FeatureGateLabRuntime.isTriggered("abmock", "recovery_gate", "BOOLEAN"));
+    }
+
+    @Test public void aLabRecoveryKeepsTheRecordEvenWhereTheRulesMoved() throws Exception {
+        // A recovery puts the prior rules back, so it keeps the record, and that holds even when
+        // the half written state it is undoing had different rules. A marker left over for a rule
+        // that no longer exists shows nowhere: the detail screen looks the rule up first and says
+        // "Using TikTok's value" when there is none.
+        var app = Utils.getContext();
+        String before = FeatureGateLabStore.exportSettings().toString();
+        FeatureGateLabStore.saveRule("abmock", "changed_gate", "BOOLEAN", "true", true);
+        FeatureGateLabStore.setMasterEnabled(true);
+        String after = FeatureGateLabStore.exportSettings().toString();
+
+        // saveRule clears the marker for the rule it writes, so the gate has to fire after the
+        // write this recovery is undoing, not before it.
+        FeatureGateLabStore.saveRule("abmock", "changed_gate", "BOOLEAN", "false", true);
+        FeatureGateLabRuntime.reloadRules();
+        assertFalse(FeatureGateLabRuntime.overrideBoolean("changed_gate", true));
+        assertTrue(FeatureGateLabRuntime.isTriggered("abmock", "changed_gate", "BOOLEAN"));
+        writeJournal("lab", before, after);
+
+        assertEquals(SettingsOperationJournal.Recovery.RECOVERED_PRIOR,
+                SettingsOperationJournal.initialize(app));
+        assertTrue(FeatureGateLabStore.rules().isEmpty());
+        assertTrue("a recovery threw away a record it had no reason to",
+                FeatureGateLabRuntime.isTriggered("abmock", "changed_gate", "BOOLEAN"));
     }
 
     @Test public void committedSettingsJournalIsClearedWithoutRevertingTheCommit() throws Exception {
@@ -412,19 +709,26 @@ public class SettingsBackupTest {
         }
     }
 
-    @Test public void anOlderCompleteInventoryUsesDefaultsForNewerSettings() throws Exception {
+/**
+     * A file written before a setting existed says nothing about that setting.
+     *
+     * <p>This used to assert the opposite, that the missing key took its default. Read on its
+     * own that is a defensible rule, and it is what a restore does if a backup is a picture of
+     * the whole app. It is the wrong rule for what this file actually is, which is a set of
+     * values to apply: it meant restoring any backup silently undid every setting added since
+     * it was taken, and a file from before the download destinations were split put a custom
+     * folder back to DCIM/TikTok with nothing said.
+     */
+    @Test public void anOlderCompleteInventoryLeavesNewerSettingsAsTheDeviceHasThem() throws Exception {
         Settings.MAX_VIDEO_SECONDS.save(75);
-        JSONObject root = new JSONObject(SettingsBackup.create(false));
-        org.json.JSONArray original = root.getJSONArray("setting_keys"), older = new org.json.JSONArray();
-        for (int i = 0; i < original.length(); i++) {
-            if (!original.getString(i).equals(Settings.REGION_SPOOF.key)) older.put(original.get(i));
-        }
-        root.put("setting_keys", older);
-        root.getJSONObject("settings").remove(Settings.REGION_SPOOF.key);
+        String older = withoutKeys(SettingsBackup.create(false), Settings.REGION_SPOOF.key);
         Settings.REGION_SPOOF.save(true);
         Settings.MAX_VIDEO_SECONDS.save(0);
-        SettingsBackup.restore(Utils.getContext(), root.toString(), true);
-        assertFalse(Settings.REGION_SPOOF.get());
+
+        assertEquals(1, SettingsBackup.settingsNotInFile(older));
+        SettingsBackup.restore(Utils.getContext(), older, true);
+
+        assertTrue(Settings.REGION_SPOOF.get());
         assertEquals(75, (int) Settings.MAX_VIDEO_SECONDS.get());
     }
 

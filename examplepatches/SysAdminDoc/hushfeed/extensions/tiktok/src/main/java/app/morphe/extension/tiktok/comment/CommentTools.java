@@ -83,6 +83,39 @@ public final class CommentTools {
     /** Comment model bound to each cell view. */
     private static final WeakHashMap<View, Object> CELL_COMMENTS = new WeakHashMap<>();
 
+    /**
+     * What a control looked like before the takeover, keyed by every view the takeover touched.
+     *
+     * <p>The hand-back used to restore framework defaults on any cell that came past with the
+     * setting off, whether or not it had ever been taken over, so turning the feature off
+     * stripped TikTok's own label, its tint and its touch handling from every comment row. A
+     * control is only put back if it is in here, and it is put back to what it had.
+     */
+    private static final WeakHashMap<View, ControlState> TAKEN_OVER = new WeakHashMap<>();
+
+    /** The values the takeover overwrites. One instance is shared by a row's button and icon. */
+    private static final class ControlState {
+        final View button;
+        final View icon;
+        final CharSequence description;
+        final CharSequence stateDescription;
+        final int iconImportance;
+        final android.graphics.ColorFilter iconFilter;
+        final float cellAlpha;
+
+        ControlState(View button, View icon, View cell) {
+            this.button = button;
+            this.icon = icon;
+            this.description = button == null ? null : button.getContentDescription();
+            this.stateDescription = button != null && android.os.Build.VERSION.SDK_INT >= 30
+                    ? button.getStateDescription() : null;
+            this.iconImportance = icon == null
+                    ? View.IMPORTANT_FOR_ACCESSIBILITY_AUTO : icon.getImportantForAccessibility();
+            this.iconFilter = icon instanceof ImageView ? ((ImageView) icon).getColorFilter() : null;
+            this.cellAlpha = cell == null ? 1f : cell.getAlpha();
+        }
+    }
+
     /** Accounts blocked this session, by uid, so a recycled cell shows the right state. */
     private static final Set<String> BLOCKED_UIDS = Collections.synchronizedSet(new HashSet<>());
 
@@ -99,8 +132,23 @@ public final class CommentTools {
      * fields include the bound {@code Comment}.
      */
     public static void registerCommentCell(View itemView, Object manager) {
+        if (itemView == null || manager == null) {
+            return;
+        }
         boolean block = Settings.BLOCK_FROM_COMMENT.get();
-        if ((!block && !CommentSearch.enabled()) || itemView == null || manager == null) {
+        if (!block) {
+            // The takeover used to be one way. A cell sitting in the RecyclerView's pool kept it
+            // after the setting was turned off, so the thumbs down went on blocking and a screen
+            // reader went on reading "Block this commenter", until the pool emptied, which is
+            // not something a reader can see or bring about. Every pooled cell is rebound before
+            // it is shown again, so handing the control back on a bind is self healing and needs
+            // no record of which cells were ever taken over.
+            synchronized (CELL_COMMENTS) {
+                CELL_COMMENTS.remove(itemView);
+            }
+            itemView.post(() -> releaseDislike(itemView));
+        }
+        if (!block && !CommentSearch.enabled()) {
             return;
         }
 
@@ -145,7 +193,10 @@ public final class CommentTools {
         }
 
         try {
-            List<String> keywords = byWord ? entries(Settings.COMMENT_BLOCKED_KEYWORDS.get()) : List.of();
+            List<app.morphe.extension.tiktok.feedfilter.KeywordRules.Rule> keywords = byWord
+                    ? app.morphe.extension.tiktok.feedfilter.KeywordRules.parse(
+                            Settings.COMMENT_BLOCKED_KEYWORDS.get())
+                    : List.of();
             List<String> users = byWord ? entries(Settings.COMMENT_BLOCKED_USERS.get()) : List.of();
             if (keywords.isEmpty() && users.isEmpty() && !media) {
                 return;
@@ -156,7 +207,11 @@ public final class CommentTools {
                 return;
             }
 
-            int removed = filterComments((List<?>) itemsObject, keywords, users, media);
+            // Looked up once for the page, not once per comment: two reflective calls into
+            // TikTok's account service.
+            String self = media ? signedInUserId() : null;
+
+            int removed = filterComments((List<?>) itemsObject, keywords, users, media, self);
             if (removed > 0) {
                 final int count = removed;
                 Logger.printDebug(() -> "Comment filter removed " + count + " comment(s)");
@@ -188,6 +243,7 @@ public final class CommentTools {
             // A press taken while this row held a different comment must not be released onto
             // the account that just arrived in it.
             View icon = cell.findViewById(identifier(cell, DISLIKE_ICON_ID));
+            rememberBeforeTakeover(cell, button, icon);
             wireBlockControl(button, icon);
             if (holdsAnotherComment) {
                 DISLIKE_TOUCH.forget(button);
@@ -198,6 +254,87 @@ public final class CommentTools {
         } catch (Throwable ex) {
             Logger.printException(() -> "Could not take over the comment thumbs down", ex);
         }
+    }
+
+    /**
+     * Hands the thumbs down back to TikTok on a cell that still carries the takeover.
+     *
+     * <p>The click listener is deliberately left alone. TikTok wires its own during every bind,
+     * which is the whole reason the takeover has to run after every bind rather than once, so by
+     * the time this lands the listener on the control is TikTok's again and nulling it would
+     * kill the ordinary dislike for as long as the setting is off. A listener of ours that did
+     * somehow survive cannot block anyone either: {@link #onDislikeTapped} checks the setting.
+     */
+    /** Records what the takeover is about to overwrite, the first time it touches a control. */
+    private static void rememberBeforeTakeover(View cell, View button, View icon) {
+        if (button == null) return;
+        synchronized (TAKEN_OVER) {
+            if (TAKEN_OVER.containsKey(button)) return;
+            ControlState state = new ControlState(button, icon, cell);
+            TAKEN_OVER.put(button, state);
+            if (icon != null) TAKEN_OVER.put(icon, state);
+        }
+    }
+
+    /** Hands back whichever of a row's controls this took over, and only those. */
+    private static void releaseDislike(View touched) {
+        if (touched == null) return;
+        try {
+            ControlState state = null;
+            synchronized (TAKEN_OVER) {
+                state = TAKEN_OVER.get(touched);
+                if (state == null) {
+                    // The tap-time path is handed the control; the bind-time path is handed the
+                    // row, so look inside it before deciding this row was never taken over.
+                    View button = touched.findViewById(identifier(touched, DISLIKE_BUTTON_ID));
+                    if (button != null) state = TAKEN_OVER.get(button);
+                }
+                if (state == null) return;
+                TAKEN_OVER.remove(state.button);
+                if (state.icon != null) TAKEN_OVER.remove(state.icon);
+            }
+            unwireBlockControl(state);
+        } catch (Throwable ex) {
+            Logger.printException(() -> "Could not hand the comment thumbs down back", ex);
+        }
+    }
+
+    static void unwireBlockControl(ControlState state) {
+        View button = state.button;
+        if (button != null) {
+            DISLIKE_TOUCH.forget(button);
+            // TikTok sets no touch listener of its own on this control, which is why ours
+            // survives a rebind at all, so clearing it hands the touches back rather than
+            // dropping one of TikTok's.
+            button.setOnTouchListener(null);
+            button.setContentDescription(state.description);
+            if (android.os.Build.VERSION.SDK_INT >= 30) {
+                button.setStateDescription(state.stateDescription);
+            }
+        }
+        View icon = state.icon;
+        if (icon != null) {
+            DISLIKE_TOUCH.forget(icon);
+            icon.setOnTouchListener(null);
+            icon.setImportantForAccessibility(state.iconImportance);
+            if (icon instanceof ImageView) ((ImageView) icon).setColorFilter(state.iconFilter);
+        }
+        View cell = cellOfAny(button);
+        if (cell != null && cell.getAlpha() != state.cellAlpha) cell.setAlpha(state.cellAlpha);
+    }
+
+    /** The row a control sits in, without needing it to still be in {@link #CELL_COMMENTS}. */
+    private static View cellOfAny(View view) {
+        View current = view;
+        for (int depth = 0; current != null && depth < 12; depth++) {
+            if (current.findViewById(identifier(current, DISLIKE_BUTTON_ID)) != null
+                    && current != view) {
+                return current;
+            }
+            ViewParent parent = current.getParent();
+            current = parent instanceof View ? (View) parent : null;
+        }
+        return null;
     }
 
     /**
@@ -306,6 +443,13 @@ public final class CommentTools {
     }
 
     private static void onDislikeTapped(View touched) {
+        if (!Settings.BLOCK_FROM_COMMENT.get()) {
+            // A listener left on a cell from before the setting was turned off. One tap spent
+            // handing the control back is the right answer; blocking someone the reader did not
+            // choose to block is not.
+            releaseDislike(cellOf(touched));
+            return;
+        }
         try {
             View cell = cellOf(touched);
             if (cell == null) {
@@ -489,7 +633,9 @@ public final class CommentTools {
 
     // ---- keyword filter ----------------------------------------------------------------
 
-    private static int filterComments(List<?> comments, List<String> keywords, List<String> users, boolean media) {
+    private static int filterComments(List<?> comments,
+            List<app.morphe.extension.tiktok.feedfilter.KeywordRules.Rule> keywords,
+            List<String> users, boolean media, String self) {
         int removed = 0;
         Iterator<?> iterator = comments.iterator();
         while (iterator.hasNext()) {
@@ -498,7 +644,7 @@ public final class CommentTools {
                 continue;
             }
 
-            if (matches(comment, keywords, users, media)) {
+            if (matches(comment, keywords, users, media, self)) {
                 try {
                     iterator.remove();
                     removed++;
@@ -511,25 +657,26 @@ public final class CommentTools {
 
             Object replies = Reflect.property(comment, "getReplyComments", "replyComments");
             if (replies instanceof List) {
-                removed += filterComments((List<?>) replies, keywords, users, media);
+                removed += filterComments((List<?>) replies, keywords, users, media, self);
             }
         }
         return removed;
     }
 
-    private static boolean matches(Object comment, List<String> keywords, List<String> users, boolean media) {
-        if (media && hasMedia(comment)) {
+    private static boolean matches(Object comment,
+            List<app.morphe.extension.tiktok.feedfilter.KeywordRules.Rule> keywords,
+            List<String> users, boolean media, String self) {
+        // Your own stickers and images stay. Hiding comments with pictures is about what other
+        // people post, and having your own disappear from a thread you are in reads as the
+        // comment having failed to send.
+        if (media && hasMedia(comment) && !isOwnComment(comment, self)) {
             return true;
         }
 
         String text = Reflect.string(comment, "getText", "text");
-        if (text != null && !keywords.isEmpty()) {
-            String lower = text.toLowerCase(Locale.ROOT);
-            for (String keyword : keywords) {
-                if (lower.contains(keyword.toLowerCase(Locale.ROOT))) {
-                    return true;
-                }
-            }
+        // Plain phrases as before, plus "a" & "b" and "a" !& "b".
+        if (app.morphe.extension.tiktok.feedfilter.KeywordRules.anyMatches(keywords, text)) {
+            return true;
         }
 
         if (!users.isEmpty()) {
@@ -551,6 +698,66 @@ public final class CommentTools {
      * the model: the attached images, a sticker struct, and the post items a text-on-image
      * comment is built from.
      */
+    /**
+     * Whether this comment was written by the account that is signed in.
+     *
+     * <p>Answers false when nobody is signed in, when the account service is not reachable, or
+     * when either side has no id, so a comment is only ever kept by a positive match.
+     */
+    private static boolean isOwnComment(Object comment, String self) {
+        if (self == null || self.isEmpty()) {
+            return false;
+        }
+        Object user = Reflect.property(comment, "getUser", "user");
+        if (user == null) {
+            return false;
+        }
+        String uid = Reflect.string(user, "getUid", "uid");
+        if (self.equals(uid)) {
+            return true;
+        }
+        String secUid = Reflect.string(user, "getSecUid", "secUid");
+        return secUid != null && !secUid.isEmpty() && self.equals(secUid);
+    }
+
+    /**
+     * The signed in account's id, or null when there is not one.
+     *
+     * <p>Both ids are worth having: a comment carries the plain uid and the sec uid, and which
+     * of them is filled in varies by where the list came from.
+     */
+    private static String signedInUserId() {
+        if (signedInUserIdForTests != null) {
+            return signedInUserIdForTests.isEmpty() ? null : signedInUserIdForTests;
+        }
+        try {
+            Class<?> serviceManagerClass = Class.forName(SERVICE_MANAGER_CLASS);
+            Object serviceManager = serviceManagerClass.getMethod("get").invoke(null);
+            Class<?> accountServiceClass = Class.forName(ACCOUNT_USER_SERVICE_CLASS);
+            Object accountService = serviceManagerClass
+                    .getMethod("getService", Class.class)
+                    .invoke(serviceManager, accountServiceClass);
+            if (accountService == null
+                    || !Boolean.TRUE.equals(accountServiceClass.getMethod("isLogin").invoke(accountService))) {
+                return null;
+            }
+            Object id = accountServiceClass.getMethod("getCurUserId").invoke(accountService);
+            return id instanceof String && !((String) id).isEmpty() ? (String) id : null;
+        } catch (Throwable ignored) {
+            // Not signed in, or a build where the account service moved. Either way the filter
+            // behaves as it did before: it hides every comment carrying a picture.
+            return null;
+        }
+    }
+
+    /** So a test can stand in for the account service, which needs the host to be running. */
+    static String signedInUserIdForTests;
+
+    private static final String SERVICE_MANAGER_CLASS =
+            "com.ss.android.ugc.aweme.framework.services.ServiceManager";
+    private static final String ACCOUNT_USER_SERVICE_CLASS =
+            "com.ss.android.ugc.aweme.IAccountUserService";
+
     private static boolean hasMedia(Object comment) {
         Object images = Reflect.property(comment, "getImageList", "imageList");
         if (images instanceof List && !((List<?>) images).isEmpty()) {

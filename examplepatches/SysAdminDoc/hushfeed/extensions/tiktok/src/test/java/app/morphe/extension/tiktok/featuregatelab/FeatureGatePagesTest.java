@@ -164,6 +164,9 @@ public class FeatureGatePagesTest {
             Switch control = find(detail.getView(), Switch.class);
             assertTrue(control.isEnabled());
             control.performClick();
+            // Saving an override goes through the journal now, off this thread and back.
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
             assertTrue(FeatureGateLabStore.rule("abmock", entry.key, "INT").enabled);
             UiCapture.save(detail.getView(), "pages/" + theme + "/gate-details-enabled.png");
             attach(activity, FeatureGateDetailFragment.forEntry("abmock", "missing", "INT"));
@@ -171,6 +174,45 @@ public class FeatureGatePagesTest {
                     "pages/" + theme + "/gate-details-unavailable.png");
         }
     }
+    @Test public void rebuildingTheDetailViewDoesNotStackUpTheEditorsOrLeaveADialogUp() throws Exception {
+        // This screen sits on a back stack, so its view is built again on a rotation, a font
+        // scale change, a theme change, or a return from anything deeper. Every rebuild used to
+        // append a second full set of field editors, so the text collected on save came from
+        // fields nobody could see, and each of them pinned a destroyed hierarchy.
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            FeatureGateLabStore.resetAllLabData();
+            FeatureGateLabSession.begin();
+            FeatureGateLabStore.setMasterEnabled(true);
+            var entry = new FeatureGateCatalog.Entry("object_gate", "Object gate",
+                    FeatureGateLabStore.MANAGER_SETTINGS_MANAGER, "OBJECT", true, true,
+                    List.of(), List.of(), List.of(), "", "", false, null, null,
+                    StructuredConfigControllerTest.Config.class.getName());
+            var cached = FeatureGateCatalog.class.getDeclaredField("cachedSnapshot");
+            cached.setAccessible(true);
+            cached.set(null, new FeatureGateCatalog.Snapshot(
+                    List.of(entry), Map.of(entry.identity(), entry), 0, 0, true));
+
+            FeatureGateDetailFragment detail = FeatureGateDetailFragment.forEntry(
+                    FeatureGateLabStore.MANAGER_SETTINGS_MANAGER, "object_gate", "OBJECT");
+            attach(activity, detail);
+            int editors = detail.objectEditorCountForTests();
+            assertTrue("the screen built no field editors, so this proves nothing", editors > 0);
+
+            for (int rebuild = 0; rebuild < 2; rebuild++) {
+                activity.getFragmentManager().beginTransaction().detach(detail).commit();
+                activity.getFragmentManager().executePendingTransactions();
+                activity.getFragmentManager().beginTransaction().attach(detail).commit();
+                activity.getFragmentManager().executePendingTransactions();
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+            }
+
+            assertEquals("the editors from the earlier views are still in the list",
+                    editors, detail.objectEditorCountForTests());
+        }
+    }
+
     private static void attach(Activity activity, Fragment fragment) {
         activity.getFragmentManager().beginTransaction().replace(android.R.id.content, fragment).commit();
         activity.getFragmentManager().executePendingTransactions();

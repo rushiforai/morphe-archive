@@ -1,3 +1,47 @@
+## [3.13.1](https://github.com/crimera/piko-newx/compare/v3.13.0...v3.13.1) (2026-09-09)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** handle empty timeline pages and external deeplinks ([295ba45](https://github.com/crimera/piko/commit/295ba453f9fdd660fa24a055202a03a246a9a85d))
+
+### Commits
+* **Twitter:** update agents.md ([55b0e54](https://github.com/crimera/piko/commit/55b0e547421ef0153bd7cf7dffcf4548c911b3a7))
+
+## [3.13.0](https://github.com/crimera/piko-newx/compare/v3.12.1...v3.13.0) (2026-09-08)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** allow user-initiated topic refresh ([7d4af7d](https://github.com/crimera/piko/commit/7d4af7d59e8986906794ef3bc5d9502e96de52aa))
+* **Twitter - newx:** preserve timeline position during deep-link loads ([a04d7c9](https://github.com/crimera/piko/commit/a04d7c9fa3ba1f5ca71126551be8483f2971337c))
+
+### ✨ New Features
+* **Twitter - newx:** add piko settings on sidebar ([e2976cf](https://github.com/crimera/piko/commit/e2976cf79e2327c3b15778b8a1d8ea75a021843a))
+
+## [3.12.1](https://github.com/crimera/piko-newx/compare/v3.12.0...v3.12.1) (2026-09-08)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** gate startup refresh on saved timeline position ([449c6d2](https://github.com/crimera/piko/commit/449c6d26d81b4a66f472bd7c7ff98fd33ec570cb))
+* **Twitter - newx:** suppress populated timeline auto refresh ([2b48c7b](https://github.com/crimera/piko/commit/2b48c7b267f68bc5e3b28b580c56d6f7ca8c6865))
+* **Twitter - newx:** preserve initial timeline load ([2638690](https://github.com/crimera/piko/commit/26386906402fce01e1ad8af86d9997a99128e1e0))
+* **Twitter - NewX:** hook Glide thumbnail cache ([b6bed05](https://github.com/crimera/piko/commit/b6bed05f8c5146a814e2992cf25a74ba7a66979e))
+
+### Commits
+* **Twitter:** gate thumbnail cache backend ([41d3a33](https://github.com/crimera/piko/commit/41d3a33fe4a0a53b088af69b35441edac5564ef0))
+
+## [3.12.0](https://github.com/crimera/piko-newx/compare/v3.11.0...v3.12.0) (2026-09-08)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** gate For You topic sheet on reselect ([00c446a](https://github.com/crimera/piko/commit/00c446a5ae61bf35d83e23811350e127e78b8b62))
+* **Twitter - newx:** support refactored default media tab seed ([d7708ea](https://github.com/crimera/piko/commit/d7708ea92748a0b7aa954bb6d581929cdb39eb1e))
+* **Twitter - newx:** support canonical profile links after package move ([5cc1155](https://github.com/crimera/piko/commit/5cc11555186fa34debe4465d220e1a0abb0a5cae))
+* **Twitter - newx:** support highest media quality in newer builds ([cbb7f30](https://github.com/crimera/piko/commit/cbb7f307a8f9623ae7a894fbe8a26ccc5b2bae39))
+* **Twitter - newx:** support alpha timeline tab route arrays ([6cfc118](https://github.com/crimera/piko/commit/6cfc1189103e3f1e615abf74626258dc4bb8b979))
+
+### ✨ New Features
+* **Twitter:** experimental support for 12.25.0-alpha.01 ([cd76e4b](https://github.com/crimera/piko/commit/cd76e4b58441f3bf317f74138fe125a1f8b593b5))
+* **Twitter:** Improve NewX timeline patch compatibility ([b89697a](https://github.com/crimera/piko/commit/b89697a4a3398feedbcd61e27b1c03f2395ed8a8))
+
+### Commits
+* **Twitter:** update script ([5e76a62](https://github.com/crimera/piko/commit/5e76a627058375039b97799665244ce45e1d78a4))
+
 ## [3.11.0](https://github.com/crimera/piko-newx/compare/v3.10.7...v3.11.0) (2026-09-08)
 
 ### ✨ New Features

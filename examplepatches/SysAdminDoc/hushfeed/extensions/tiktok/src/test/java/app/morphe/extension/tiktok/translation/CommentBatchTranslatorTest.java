@@ -45,6 +45,7 @@ public class CommentBatchTranslatorTest {
         Utils.setContext(context);
         clearTranslatorState();
         NativeManager.reset();
+        com.ss.android.ugc.aweme.translation.service.TranslationLangKevaServiceImpl.reset();
         Settings.COMMENT_BATCH_TRANSLATION.save(true);
     }
 
@@ -63,6 +64,37 @@ public class CommentBatchTranslatorTest {
         Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(351));
 
         assertEquals(0, NativeManager.requests);
+    }
+
+    @Test public void aBatchNobodyAskedForCostsNothingWhileTheFeatureIsOff() {
+        // This is injected at index 0 of TikTok's own completion method, so it runs for every
+        // native translation batch in the app, including the ones this feature never asked for.
+        // It used to walk the declared fields of two objects and take the global lock for all of
+        // them.
+        Settings.COMMENT_BATCH_TRANSLATION.save(false);
+        int handled = CommentBatchTranslator.completionsHandledForTests();
+
+        for (int batch = 0; batch < 50; batch++) {
+            CommentBatchTranslator.onNativeBatchComplete(
+                    new Runner(new Object(), new Comment("aid-idle", "cid-idle-" + batch)));
+        }
+
+        assertEquals("a batch this feature never asked for was walked anyway",
+                handled, CommentBatchTranslator.completionsHandledForTests());
+    }
+
+    @Test public void aRequestStillInFlightIsFinishedAfterTheSwitchGoesOff() {
+        // The other half: turning the switch off while a request is out must not strand it.
+        Anchor anchor = loadedAnchor("aid-inflight", "cid-inflight");
+        CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+        assertEquals("the request never went out", 1, NativeManager.requests);
+
+        Settings.COMMENT_BATCH_TRANSLATION.save(false);
+        int handled = CommentBatchTranslator.completionsHandledForTests();
+        CommentBatchTranslator.onNativeBatchComplete(new Runner(new Object(), anchor.comment));
+
+        assertEquals("a request still in flight was dropped when the switch went off",
+                handled + 1, CommentBatchTranslator.completionsHandledForTests());
     }
 
     @Test public void commentsAlreadyInTheCurrentLanguageAreNotDispatched() {
@@ -133,6 +165,9 @@ public class CommentBatchTranslatorTest {
         assertEquals(1, NativeManager.requests);
 
         NativeManager.fail = false;
+        // Past the first backoff window. A throw used to be retried on the very next bind, which
+        // is milliseconds later and hundreds of times over while a comment list scrolls.
+        idleFor(2_100L);
         CommentBatchTranslator.registerCommentCell(new View(context), anchor);
         assertEquals(2, NativeManager.requests);
     }
@@ -141,6 +176,7 @@ public class CommentBatchTranslatorTest {
         Anchor failed = loadedAnchor("aid-failed-completion", "cid-failed-completion");
         CommentBatchTranslator.registerCommentCell(new View(context), failed);
         CommentBatchTranslator.onNativeBatchComplete(new Runner(null, failed.comment));
+        idleFor(2_100L); // The first backoff window, which this test predates.
         CommentBatchTranslator.registerCommentCell(new View(context), failed);
         assertEquals(2, NativeManager.requests);
 
@@ -210,6 +246,199 @@ public class CommentBatchTranslatorTest {
         assertEquals(2, NativeManager.requests);
     }
 
+    @Test public void twoFailuresInARowStopTheThirdRequestUntilTheBackoffIsOver() {
+        Anchor anchor = loadedAnchor("aid-backoff", "cid-backoff");
+
+        CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+        assertEquals(1, NativeManager.requests);
+        CommentBatchTranslator.onNativeBatchComplete(new Runner(null, anchor.comment));
+
+        idleFor(2_100L);
+        CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+        assertEquals(2, NativeManager.requests);
+        CommentBatchTranslator.onNativeBatchComplete(new Runner(null, anchor.comment));
+
+        // A comment list binds cells many times a second. None of these may reach the host.
+        for (int bind = 0; bind < 20; bind++) {
+            idleFor(100L);
+            CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+        }
+        assertEquals("the third try went out inside the eight second window",
+                2, NativeManager.requests);
+
+        idleFor(6_500L);
+        CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+        assertEquals("the third try never went out at all", 3, NativeManager.requests);
+    }
+
+    @Test public void theLastFailureGivesUpOnTheBatchRatherThanWaitingLonger() throws Exception {
+        // Three waits sit between four tries, and the last of them is the thirty second one. It
+        // used to be unreachable: the give-up test fired one try early, so the delay the class
+        // and the changelog both advertised was never used.
+        // The waits are the real windows and nothing is idled after the last failure. Reaching
+        // the cap remembers the key rather than starting another window, so a bind straight
+        // after proves the give-up rather than a backoff. Waiting instead used to idle past the
+        // sixty seconds a loaded batch lives for, and a batch that had aged out would not have
+        // been dispatched whatever the attempt count said.
+        Anchor anchor = loadedAnchor("aid-give-up", "cid-give-up");
+        long[] waits = {2_100L, 8_500L, 30_500L};
+        for (int attempt = 1; attempt <= 4; attempt++) {
+            CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+            assertEquals("try " + attempt + " never reached the host", attempt, NativeManager.requests);
+            CommentBatchTranslator.onNativeBatchComplete(new Runner(null, anchor.comment));
+            if (attempt < 4) idleFor(waits[attempt - 1]);
+        }
+        assertEquals("the batch aged out before the give-up could be seen", 1, loadedBatchCount());
+        CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+        assertEquals("a batch that failed four times is still being asked for",
+                4, NativeManager.requests);
+    }
+
+    @Test public void theThirtySecondWindowIsRealRatherThanAdvertised() {
+        Anchor anchor = loadedAnchor("aid-third-window", "cid-third-window");
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+            assertEquals(attempt, NativeManager.requests);
+            CommentBatchTranslator.onNativeBatchComplete(new Runner(null, anchor.comment));
+            if (attempt < 3) idleFor(attempt == 1 ? 2_100L : 8_500L);
+        }
+
+        idleFor(20_000L);
+        CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+        assertEquals("the fourth try went out inside the thirty second window",
+                3, NativeManager.requests);
+
+        idleFor(11_000L);
+        CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+        assertEquals("the fourth try never went out at all", 4, NativeManager.requests);
+    }
+
+    @Test public void aHostThatAnswersWithoutTranslatingAnythingIsNotTakenForProgress() {
+        // Returned but never marked translated: the comment stays in the next batch, the key is
+        // unchanged, and treating any answer at all as progress cleared the attempt count every
+        // round. Forty binds, forty requests, no backoff, the same three comments each time.
+        Comment[] all = {new Comment("aid-loop", "cid-loop-0"), new Comment("aid-loop", "cid-loop-1"),
+                new Comment("aid-loop", "cid-loop-2")};
+        CommentBatchTranslator.onCommentListLoaded(new CommentItemList(all));
+        Anchor anchor = new Anchor(all[0], new TranslationContext("aid-loop"));
+
+        for (int bind = 0; bind < 12; bind++) {
+            CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+            CommentBatchTranslator.onNativeBatchComplete(
+                    new Runner(Arrays.asList(all[0]), Arrays.asList(all)));
+        }
+        assertTrue("a host that translates nothing was asked over and over: "
+                + NativeManager.requests + " requests", NativeManager.requests <= 4);
+    }
+
+    @Test public void aBatchAnsweredAFewCommentsAtATimeIsSeenThroughToTheEnd() {
+        // The key is built from the whole loaded list, so every round carries the same one.
+        // Counting those rounds as failures abandoned a long list part way through.
+        Comment[] all = new Comment[9];
+        for (int index = 0; index < all.length; index++) {
+            all[index] = new Comment("aid-drip", "cid-drip-" + index);
+        }
+        CommentBatchTranslator.onCommentListLoaded(new CommentItemList(all));
+        Anchor anchor = new Anchor(all[0], new TranslationContext("aid-drip"));
+
+        // Three at a time, which is more rounds than the attempt cap allows for a failure.
+        for (int round = 1; round <= 3; round++) {
+            CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+            assertEquals("round " + round + " was never dispatched", round, NativeManager.requests);
+            List<Comment> translated = new ArrayList<>();
+            for (int index = (round - 1) * 3; index < round * 3; index++) {
+                all[index].translated = true;
+                translated.add(all[index]);
+            }
+            CommentBatchTranslator.onNativeBatchComplete(
+                    new Runner(translated, Arrays.asList(all)));
+        }
+        assertEquals("a list translated three at a time was abandoned part way through",
+                3, NativeManager.requests);
+    }
+
+    @Test public void aCommentListLoadingAgainAsksForItsBatchAgain() {
+        Anchor anchor = loadedAnchor("aid-reload", "cid-reload");
+        CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+        assertEquals(1, NativeManager.requests);
+        CommentBatchTranslator.onNativeBatchComplete(new Runner(new Object(), anchor.comment));
+
+        CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+        assertEquals("a settled batch was asked for twice", 1, NativeManager.requests);
+
+        // The same comments arriving again is a fresh ask, which is what the class claims by
+        // saying a batch is left alone "until the list reloads".
+        CommentBatchTranslator.onCommentListLoaded(new CommentItemList(anchor.comment));
+        CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+        assertEquals("reloading the comment list did not start the batch over",
+                2, NativeManager.requests);
+    }
+
+    @Test public void aBatchThatComesBackWithOneOfThreeTranslatedIsAskedForAgain() {
+        Comment first = new Comment("aid-partial", "cid-partial-1");
+        Comment second = new Comment("aid-partial", "cid-partial-2");
+        Comment third = new Comment("aid-partial", "cid-partial-3");
+        CommentBatchTranslator.onCommentListLoaded(new CommentItemList(first, second, third));
+        Anchor anchor = new Anchor(first, new TranslationContext("aid-partial"));
+
+        CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+        assertEquals(1, NativeManager.requests);
+
+        // One of the three came back translated. The batch used to be marked done on any answer
+        // at all, so the other two were never asked for again.
+        CommentBatchTranslator.onNativeBatchComplete(
+                new Runner(Arrays.asList(first), Arrays.asList(first, second, third)));
+
+        CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+        assertEquals("the two comments that came back untranslated were never asked for again",
+                2, NativeManager.requests);
+        assertTrue("the second request did not carry the untranslated comments",
+                NativeManager.lastRequestedCids.containsAll(
+                        Arrays.asList("cid-partial-2", "cid-partial-3")));
+    }
+
+    /**
+     * The control for the partial case above. It passed before the change too, which is the
+     * point: it is here so the new "did the whole batch come back" test cannot be tightened
+     * into refusing an answer that was in fact complete.
+     */
+    @Test public void aWholeBatchComingBackTranslatedIsNotAskedForAgain() {
+        Comment first = new Comment("aid-whole", "cid-whole-1");
+        Comment second = new Comment("aid-whole", "cid-whole-2");
+        CommentBatchTranslator.onCommentListLoaded(new CommentItemList(first, second));
+        Anchor anchor = new Anchor(first, new TranslationContext("aid-whole"));
+
+        CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+        assertEquals(1, NativeManager.requests);
+        CommentBatchTranslator.onNativeBatchComplete(
+                new Runner(Arrays.asList(first, second), Arrays.asList(first, second)));
+
+        idleFor(31_000L);
+        CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+        assertEquals("a batch that came back complete was asked for a second time",
+                1, NativeManager.requests);
+    }
+
+    @Test public void aHostWithNoResultsFieldStandsTheFeatureDownInsteadOfRetrying() {
+        Anchor anchor = loadedAnchor("aid-no-field", "cid-no-field");
+        CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+        assertEquals(1, NativeManager.requests);
+
+        CommentBatchTranslator.onNativeBatchComplete(new RunnerWithoutResults(anchor.comment));
+
+        for (int bind = 0; bind < 5; bind++) {
+            idleFor(31_000L);
+            CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+        }
+        assertEquals("a host with no results field was asked again anyway",
+                1, NativeManager.requests);
+    }
+
+    /** Robolectric advances SystemClock.elapsedRealtime as the paused looper is idled. */
+    private static void idleFor(long millis) {
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(millis));
+    }
+
     private static Anchor loadedAnchor(String aid, String cid) {
         Anchor anchor = anchor(aid, cid);
         CommentBatchTranslator.onCommentListLoaded(new CommentItemList(anchor.comment));
@@ -258,18 +487,93 @@ public class CommentBatchTranslatorTest {
     }
 
     @SuppressWarnings("unchecked")
+    /**
+     * The language service is looked up once per process, so a test that wants to watch the
+     * lookup has to put the translator back to never having tried.
+     */
+    private static void forgetLanguageServiceLookup() throws Exception {
+        for (String name : new String[]{"nativeLanguageService", "nativeTargetLanguageGetter",
+                "nativeLanguageSettings", "nativeDoNotTranslateGetter"}) {
+            Field field = CommentBatchTranslator.class.getDeclaredField(name);
+            field.setAccessible(true);
+            field.set(null, null);
+        }
+        for (String name : new String[]{"nativeTargetLanguageLookedUp",
+                "nativeDoNotTranslateLookedUp"}) {
+            Field field = CommentBatchTranslator.class.getDeclaredField(name);
+            field.setAccessible(true);
+            field.setBoolean(null, false);
+        }
+    }
+
+    private static Object callPrivate(String name) throws Exception {
+        java.lang.reflect.Method method =
+                CommentBatchTranslator.class.getDeclaredMethod(name);
+        method.setAccessible(true);
+        return method.invoke(null);
+    }
+
+    @Test public void theLanguageServiceIsBuiltOnceEvenWhenItCarriesNothingUseful()
+            throws Exception {
+        // The lookup used to be remembered only when it found something, so a build whose
+        // service has no target language getter built the Keva-backed service again for every
+        // comment, and did it holding the lock TikTok needs to hand a finished batch back.
+        forgetLanguageServiceLookup();
+
+        for (int call = 0; call < 100; call++) {
+            callPrivate("getNativeTranslationTargetLanguage");
+            callPrivate("getNativeDoNotTranslateLanguages");
+        }
+
+        assertEquals("the language service was built again after coming up empty", 2,
+                com.ss.android.ugc.aweme.translation.service.TranslationLangKevaServiceImpl
+                        .constructions);
+    }
+
+    @Test public void aMethodThatCannotHoldTheLanguageListIsNeverCalled() throws Exception {
+        // Finding the do-not-translate list means calling a method on the host to get at it.
+        // Only a method whose declared return type has the list is worth calling; anything else
+        // is reaching into TikTok to see what happens.
+        forgetLanguageServiceLookup();
+
+        for (int call = 0; call < 100; call++) {
+            callPrivate("getNativeDoNotTranslateLanguages");
+        }
+
+        assertEquals("the translator called a host method that cannot hold the list", 0,
+                com.ss.android.ugc.aweme.translation.service.TranslationLangKevaServiceImpl
+                        .strayCalls);
+    }
+
+    @Test public void anEmptyLanguageServiceStillLeavesTheDeviceLanguageInCharge()
+            throws Exception {
+        // The positive control for the two above: coming up empty has to mean falling back, not
+        // failing. Without this they would both pass against a translator that gave up entirely.
+        forgetLanguageServiceLookup();
+
+        Object target = callPrivate("getNativeTranslationTargetLanguage");
+        assertEquals(java.util.Locale.getDefault().toLanguageTag(), target);
+        assertEquals(0, ((String[]) callPrivate("getNativeDoNotTranslateLanguages")).length);
+    }
+
     private static void clearTranslatorState() throws Exception {
         Field lockField = CommentBatchTranslator.class.getDeclaredField("LOCK");
         lockField.setAccessible(true);
         Object lock = lockField.get(null);
         synchronized (lock) {
             for (String name : new String[]{"visibleComments", "loadedBatches",
-                    "requestedLoadedBatchKeys", "pendingRequests", "retiredRequests"}) {
+                    "requestedLoadedBatchKeys", "pendingRequests", "retiredRequests",
+                    "retryStates"}) {
                 Field field = CommentBatchTranslator.class.getDeclaredField(name);
                 field.setAccessible(true);
                 Object value = field.get(null);
                 if (value instanceof Map) ((Map<?, ?>) value).clear();
                 else ((java.util.Collection<?>) value).clear();
+            }
+            for (String name : new String[]{"outstandingRequests", "completionsHandledForTests"}) {
+                Field counter = CommentBatchTranslator.class.getDeclaredField(name);
+                counter.setAccessible(true);
+                counter.set(null, 0);
             }
             Field latest = CommentBatchTranslator.class.getDeclaredField("latestLoadedBatch");
             latest.setAccessible(true);
@@ -280,12 +584,16 @@ public class CommentBatchTranslatorTest {
             Field generation = CommentBatchTranslator.class.getDeclaredField("nextRequestGeneration");
             generation.setAccessible(true);
             generation.setLong(null, 0L);
+            Field disabled = CommentBatchTranslator.class.getDeclaredField("disabledForSession");
+            disabled.setAccessible(true);
+            disabled.setBoolean(null, false);
         }
     }
 
     public static final class Comment {
         private final String aid;
         private final String cid;
+        boolean translated;
 
         Comment(String aid, String cid) {
             this.aid = aid;
@@ -295,7 +603,7 @@ public class CommentBatchTranslatorTest {
         public String getAid() { return aid; }
         public String getAwemeId() { return aid; }
         public String getCid() { return cid; }
-        public boolean isTranslated() { return false; }
+        public boolean isTranslated() { return translated; }
         public String getCommentLanguage() { return "zh"; }
     }
 
@@ -334,7 +642,12 @@ public class CommentBatchTranslatorTest {
         static CountDownLatch firstStarted = new CountDownLatch(1);
         static CountDownLatch releaseFirst = new CountDownLatch(1);
 
+        static List<String> lastRequestedCids = new ArrayList<>();
+
         public static void LJFF(List<Object> comments, TranslationContext context, boolean force) {
+            List<String> cids = new ArrayList<>();
+            for (Object comment : comments) cids.add(((Comment) comment).getCid());
+            lastRequestedCids = cids;
             int requestNumber = ++requests;
             if (requestNumber == 1 && blockFirst) {
                 firstStarted.countDown();
@@ -350,6 +663,7 @@ public class CommentBatchTranslatorTest {
 
         static void reset() {
             requests = 0;
+            lastRequestedCids = new ArrayList<>();
             fail = false;
             blockFirst = false;
             failFirst = false;
@@ -361,9 +675,8 @@ public class CommentBatchTranslatorTest {
     public static final class Task {
         public final List<Comment> LIZ;
 
-        Task(Comment comment) {
-            LIZ = new ArrayList<>();
-            LIZ.add(comment);
+        Task(List<Comment> comments) {
+            LIZ = new ArrayList<>(comments);
         }
     }
 
@@ -372,8 +685,21 @@ public class CommentBatchTranslatorTest {
         public final Task l1;
 
         Runner(Object results, Comment comment) {
+            this(results, Arrays.asList(comment));
+        }
+
+        Runner(Object results, List<Comment> requested) {
             l0 = results;
-            l1 = new Task(comment);
+            l1 = new Task(requested);
+        }
+    }
+
+    /** A host build that renamed the field the results arrive in. */
+    public static final class RunnerWithoutResults {
+        public final Task l1;
+
+        RunnerWithoutResults(Comment comment) {
+            l1 = new Task(Arrays.asList(comment));
         }
     }
 }

@@ -1,58 +1,153 @@
 name: Release
 
+# Stable-only releases. Push an annotated version tag on main and this
+# workflow tests, builds, and publishes the GitHub release, then points
+# patches-bundle.json (main) at the new download.
+#
+#   git checkout main && git pull
+#   bash scripts/prepare-release.sh 1.2.0
+#   git push origin main && git push origin v1.2.0
+#
+# Ordinary branch pushes run Check only; nothing here fires on branches.
+# See docs/release.md for the full procedure.
+
 on:
-  workflow_dispatch:
   push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: read
+  id-token: write
+  attestations: write
 
 jobs:
   release:
-    name: Release
-    permissions:
-      contents: write
-      packages: write
-      id-token: write
-      attestations: write
+    name: Publish stable release
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Checkout tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
-      - name: Setup Java
+      - name: Validate tag and tree
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+            || { echo "::error::Tag '$TAG' must be stable semver (vX.Y.Z, no prerelease suffix)."; exit 1; }
+          VERSION="${TAG#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+          git fetch origin main --quiet
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main \
+            || { echo "::error::Tag '$TAG' is not on main. Tag the main-branch release commit instead."; exit 1; }
+
+          PROP_VERSION="$(grep -E '^version *= *' gradle.properties | sed 's/.*= *//')"
+          [[ "$PROP_VERSION" == "$VERSION" ]] \
+            || { echo "::error::gradle.properties version '$PROP_VERSION' != tag version '$VERSION'. Run scripts/prepare-release.sh first."; exit 1; }
+
+          LIST_VERSION="$(python3 -c "import json;print(json.load(open('patches-list.json'))['version'])")"
+          [[ "$LIST_VERSION" == "$VERSION" ]] \
+            || { echo "::error::patches-list.json version '$LIST_VERSION' != tag version '$VERSION'. Run scripts/prepare-release.sh first."; exit 1; }
+
+          grep -Eq "^#{1,3} +${VERSION} +\([0-9]{4}-[0-9]{2}-[0-9]{2}\)" CHANGELOG.md \
+            || { echo "::error::CHANGELOG.md has no '## $VERSION (YYYY-MM-DD)' entry. Run scripts/prepare-release.sh first."; exit 1; }
+
+          python3 .github/scripts/extract_release_notes.py CHANGELOG.md "$VERSION" /tmp/release-notes.md
+          test -s /tmp/release-notes.md \
+            || { echo "::error::No release notes found for $VERSION."; exit 1; }
+          echo "Tag $TAG validated."
+
+      - name: Set up Java 21
         uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
         with:
-          distribution: 'temurin'
-          java-version: '21'
+          distribution: temurin
+          java-version: 21
 
-      - name: Setup vp
-        uses: voidzero-dev/setup-vp@49c3e4e92c52e7f8392712a9267bbe71c5ab30e5 # v1.19.0
-        with:
-          node-version: 'lts/*'
-          cache: true
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
 
-      - name: Install dependencies
-        run: vp install --frozen-lockfile
-
-      # Semantic release runs its own Gradle build command.
-      # Only dev and main branch will generate a release as specified by .releaserc
-      - name: Release
-        uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6
-        id: release
+      - name: Test and build bundle
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:test :extensions:extension:testDebugUnitTest buildAndroid --no-daemon
 
-      - name: Attest
-        if: steps.release.outputs.new_release_published == 'true'
+      - name: Locate bundle
+        run: |
+          set -euo pipefail
+          MPPS=()
+          for f in patches/build/libs/patches-*.mpp; do
+            case "$(basename "$f")" in *sources*|*javadoc*) continue ;; esac
+            MPPS+=("$f")
+          done
+          [[ "${#MPPS[@]}" -eq 1 ]] || { echo "::error::Expected one .mpp, found ${#MPPS[@]}: ${MPPS[*]:-}"; exit 1; }
+          [[ "$(basename "${MPPS[0]}")" == "patches-${{ env.VERSION }}.mpp" ]] \
+            || { echo "::error::Bundle '$(basename "${MPPS[0]}")' != 'patches-${{ env.VERSION }}.mpp'."; exit 1; }
+          echo "MPP=${MPPS[0]}" >> "$GITHUB_ENV"
+
+      - name: Create or reuse GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG exists (retry); keeping its notes and adding a missing asset if needed."
+            if ! gh api "repos/${{ github.repository }}/releases/tags/$TAG" \
+                --jq '.assets[].name' | grep -qx "patches-${{ env.VERSION }}.mpp"; then
+              gh release upload "$TAG" "$MPP" --clobber
+            fi
+          else
+            gh release create "$TAG" --title "$TAG" --notes-file /tmp/release-notes.md --latest "$MPP"
+          fi
+
+      - name: Attest bundle
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
         with:
-          subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
-          subject-path: patches/build/libs/patches-*.mpp
+          subject-name: 'Morphe Patches ${{ github.ref_name }}'
+          subject-path: ${{ env.MPP }}
 
-      # Always verify compilation when semantic-release did not publish a release.
-      # This covers non-main/dev branches, chore commits, docs commits, etc.
-      - name: Verify project compiles
-        if: steps.release.outputs.new_release_published != 'true'
+      # Only now is the download known to exist: point the main manifest
+      # at it so Manager readers serve the new build.
+      # Never move the tag or replace the published asset — retry instead.
+      - name: Point main manifest at the release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :patches:buildAndroid clean --no-daemon
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main --quiet
+          git checkout -B main origin/main
+          python3 - "$TAG" <<'PY'
+          import datetime, json, sys
+          tag = sys.argv[1]
+          version = tag.removeprefix("v")
+          notes = open("/tmp/release-notes.md", encoding="utf-8").read().strip()
+          repo = "${{ github.repository }}"
+          data = {
+              "created_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S"),
+              "description": notes,
+              "download_url": f"https://github.com/{repo}/releases/download/{tag}/patches-{version}.mpp",
+              "signature_download_url": "",
+              "version": version,
+          }
+          json.dump(data, open("patches-bundle.json", "w", encoding="utf-8"), indent=2)
+          open("patches-bundle.json", "a", encoding="utf-8").write("\n")
+          PY
+          git add patches-bundle.json
+          if git diff --cached --quiet; then
+            echo "main manifest already current."
+          else
+            git commit -m "Release $TAG [skip ci]" patches-bundle.json
+          fi
+          git push origin main

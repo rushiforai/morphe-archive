@@ -42,4 +42,4 @@ jobs:
             "patches/build/libs/patches-${GITHUB_REF_NAME#v}.mpp" \
             --verify-tag \
             --title "$GITHUB_REF_NAME" \
-            --notes "Initial AFFiNE 0.27.4 no-GMS patch release. Supports app.affine.pro version code 439 (arm64-v8a XAPK)."
+            --notes "Fix Morphe Manager metadata parsing, publish patches-list.json, and add AFFiNE XAPK signing-certificate metadata. Supports app.affine.pro 0.27.4, version code 439, arm64-v8a XAPK."

@@ -35,6 +35,14 @@ internal object AppCompatibilities {
         appIconColor = 0xF8991C,
     )
 
+    val BETTERSLEEP = Compatibility(
+        name = "BetterSleep",
+        packageName = "ipnossoft.rma.free",
+        apkFileType = ApkFileType.APKS_REQUIRED,
+        appIconColor = 0x1D204B,
+        targets = listOf(AppTarget(version = "26.15", versionCode = 26799, minSdk = 26)),
+    )
+
     val CX_FILE_EXPLORER = Compatibility(
         name = "Cx File Explorer",
         packageName = "com.cxinventor.file.explorer",
@@ -143,6 +151,17 @@ internal object AppCompatibilities {
         apkFileType = ApkFileType.APKS,
         appIconColor = 0x0061BD,
         targets = listOf(AppTarget(version = "26.05.20+2300", versionCode = 2300, minSdk = 16)),
+    )
+
+    val RISE = Compatibility(
+        name = "RISE Sleep Tracker",
+        packageName = "com.risesci.nyx",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x8E58FF,
+        targets = listOf(
+            AppTarget(version = "Android V1.78.49", minSdk = 26),
+            AppTarget(version = "Android V1.78.47", minSdk = 26),
+        ),
     )
 
     val RUBBER_BANDS = Compatibility(

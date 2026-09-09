@@ -9,9 +9,14 @@ import android.util.AttributeSet;
  * Invokes the {@link LogBufferManager#clearLogBuffer} method.
  */
 @SuppressWarnings({"unused", "deprecation"})
-public class ClearLogBufferPreference extends Preference {
+public class ClearLogBufferPreference extends Preference implements ImmediateAction {
+    @Override public boolean actsOnTap() { return true; }
+
 
     {
+        // A key so the settings search can index this row. Nothing in the settings
+        // framework treats it as a setting: a key with no Setting behind it is skipped.
+        setKey("action_clear_diagnostic_data");
         setOnPreferenceClickListener(pref -> {
             LogBufferManager.clearLogBuffer();
             return true;

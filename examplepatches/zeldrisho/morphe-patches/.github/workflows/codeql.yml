@@ -1,0 +1,77 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly, matching the previous default-setup cadence.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: codeql-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+# CodeQL needs security-events to upload SARIF; packages to resolve the
+# Morphe Gradle plugin from GitHub Packages during the manual Java build.
+permissions:
+  actions: read
+  contents: read
+  packages: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+            build-mode: none
+          - language: python
+            build-mode: none
+          # Kotlin requires a build; autobuild cannot authenticate to the
+          # Morphe GitHub Packages registry, so build explicitly (see below).
+          - language: java-kotlin
+            build-mode: manual
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Java 21
+        if: matrix.language == 'java-kotlin'
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Android SDK
+        if: matrix.language == 'java-kotlin'
+        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - name: Build Java/Kotlin sources
+        if: matrix.build-mode == 'manual'
+        env:
+          # Morphe Gradle plugin resolves from GitHub Packages, which needs
+          # auth even for public packages (see docs/toolchain.md).
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # clean + no-build-cache so CodeQL observes compilation instead of
+        # reusing cached outputs.
+        run: ./gradlew clean buildAndroid --no-daemon --no-build-cache
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4
+        with:
+          category: '/language:${{ matrix.language }}'

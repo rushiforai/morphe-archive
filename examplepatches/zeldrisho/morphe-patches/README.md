@@ -14,6 +14,10 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 
 Or add the source URL manually in Morphe Manager → Sources.
 
+Contributor docs: [development guide](docs/development.md) (start here),
+[toolchain setup](docs/toolchain.md) (installs), [QA checklist](docs/qa-checklist.md) (device testing),
+[release process](docs/release.md) (publishing).
+
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->

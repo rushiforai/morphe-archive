@@ -13,10 +13,15 @@ Automatic advance stopped after one video	Automatisches Weiterschalten nach eine
 Block this commenter	Diesen Kommentierenden blockieren
 Blocked	Blockiert
 Completed an interrupted settings change. Restart TikTok to apply it.	Eine unterbrochene Einstellungsänderung wurde abgeschlossen. Starte TikTok neu, um sie anzuwenden.
+Copy the sound link	Soundlink kopieren
+Copy the video link	Videolink kopieren
 Current: %1$s	Aktuell: %1$s
+Full comment sort options	Vollständige Sortieroptionen für Kommentare
+Link copied	Link kopiert
 No videos remained after Hushfeed applied your feed filters to one batch. Most matches: %1$s.	Nach Hushfeeds Feed-Filtern blieb in einem Stapel kein Video übrig. Häufigste Treffer: %1$s.
 Not blocked	Nicht blockiert
 Recovered an interrupted settings change. Restart TikTok to apply it.	Eine unterbrochene Einstellungsänderung wurde wiederhergestellt. Starte TikTok neu, um sie anzuwenden.
+Save media	Medien speichern
 Settings recovery needs attention. Use Undo or restore your backup.	Die Einstellungswiederherstellung benötigt Aufmerksamkeit. Nutze Rückgängig oder stelle deine Sicherung wieder her.
 Settings recovery could not finish. Use Undo or restore your backup.	Die Einstellungswiederherstellung konnte nicht abgeschlossen werden. Nutze Rückgängig oder stelle deine Sicherung wieder her.
 A tap on a person in the Send to row only selects them. A second tap on the same person within four seconds sends the video.	Ein Tippen auf eine Person in der Zeile „Senden an“ wählt sie nur aus. Ein zweites Tippen auf dieselbe Person innerhalb von vier Sekunden sendet das Video.
@@ -42,10 +47,14 @@ App behavior	App-Verhalten
 Applies to both video and photo downloads.	Gilt für Video- und Foto-Downloads.
 Arrange your feed and bottom tabs	Ordne deine Feed-Tabs und unteren Tabs an
 Auto-advance session limit	Limit für automatisches Weiterschalten pro Sitzung
+Show TikTok's own sort sheet on every post, with its hot, newest, media and creator options, instead of whichever cut-down row your account was given. Restart TikTok after changing this: TikTok reads the style once per run and remembers it.	TikToks eigenes Sortierfenster bei jedem Beitrag anzeigen, mit den Optionen Beliebt, Neueste, Medien und Ersteller, statt der gekürzten Zeile, die dein Konto bekommen hat. Starte TikTok danach neu: TikTok liest den Stil einmal pro Lauf und merkt ihn sich.
+Sound link copied	Soundlink kopiert
 Tap again to follow	Noch einmal tippen zum Folgen
 Tap again to like	Noch einmal tippen zum Liken
 That is one minute today	Das ist eine Minute heute
 That is one video today	Das ist ein Video heute
+This video has no link to copy	Dieses Video hat keinen Link zum Kopieren
+This video has no sound of its own	Dieses Video hat keinen eigenen Sound
 Unblock this commenter	Blockierung dieses Kommentierenden aufheben
 Zero keeps auto-advance unlimited. Count only videos that finish while Hushfeed started automatic advance; prefetches, manual swipes and native-only advance do not count. The count resets when the feed component is recreated and stays stopped across backgrounding until it is recreated or the limit changes.	Null lässt das automatische Weiterschalten unbegrenzt. Gezählt werden nur Videos, die enden, während Hushfeed das automatische Weiterschalten gestartet hat; Vorabladen, manuelles Wischen und reines natives Weiterschalten zählen nicht. Der Zähler wird beim Erstellen der Feed-Komponente zurückgesetzt und bleibt nach dem Wechsel in den Hintergrund angehalten, bis sie neu erstellt oder das Limit geändert wird.
 Auto translate comments	Kommentare automatisch übersetzen
@@ -94,9 +103,7 @@ Comma separated list of any other Inbox row titles to hide, matched exactly. Use
 Comma separated names exactly as the share sheet shows them: friends in the Send to row, share targets such as Facebook, and actions such as Create group or Repost. Stable keys such as copy, save and dislike also work before the sheet opens.	Namen, durch Kommas getrennt, genau so, wie das Teilen-Menü sie zeigt: Freunde in der Zeile „Senden an“, Ziele wie Facebook und Aktionen wie „Gruppe erstellen“ oder „Reposten“. Feste Schlüssel wie copy, save und dislike funktionieren auch, bevor das Menü sich öffnet.
 Comma separated sound ids recorded by the player's sound button. Remove one to unblock it.	Sound-IDs, durch Kommas getrennt, die über die Sound-Taste im Player erfasst wurden. Entferne eine, um sie freizugeben.
 Comma separated usernames or display names whose comments are hidden.	Nutzernamen oder Anzeigenamen, durch Kommas getrennt, deren Kommentare ausgeblendet werden.
-Comma separated words or phrases. Matching captions are skipped. Case doesn't matter.	Wörter oder Ausdrücke, durch Kommas getrennt. Passende Beschreibungen werden übersprungen. Groß- und Kleinschreibung spielt keine Rolle.
 Comma separated words to match against a sound's name, like saxophone. Case does not matter.	Wörter, durch Kommas getrennt, die mit dem Namen eines Sounds verglichen werden, zum Beispiel Saxophon. Groß- und Kleinschreibung spielt keine Rolle.
-Comma separated. A comment is hidden if its text contains any of them. Case does not matter.	Durch Kommas getrennt. Ein Kommentar wird ausgeblendet, wenn sein Text eines davon enthält. Groß- und Kleinschreibung spielt keine Rolle.
 Comment media filename	Dateiname für Kommentar-Medien
 Comments and translation	Kommentare und Übersetzung
 Comments aren't available for this video	Für dieses Video gibt es keine Kommentare
@@ -292,7 +299,7 @@ Includes all Morphe diagnostic events.	Enthält alle Morphe-Diagnoseereignisse.
 Interface	Oberfläche
 Invalid SIM preset	Ungültige SIM-Vorlage
 Keep a local record of what you have watched and drop those videos from later feed pages.	Lokal festhalten, was du gesehen hast, und diese Videos aus späteren Feed-Seiten entfernen.
-Keep automatic advance enabled. Pauses and open dialogs still stop scrolling. Restart after enabling it; use this switch to turn it off.	Automatisches Weiterschalten eingeschaltet lassen. Pausen und offene Dialoge stoppen das Scrollen weiterhin. Nach dem Einschalten neu starten; zum Ausschalten diesen Schalter verwenden.
+Keep automatic advance enabled, and show TikTok's own Auto scroll action in the video panel even if your account never had it. Pauses and open dialogs still stop scrolling. Restart after enabling it, then use this switch to turn it off.	Automatisches Weiterschalten eingeschaltet lassen und TikToks eigene Aktion „Auto-Scroll“ im Videopanel anzeigen, auch wenn dein Konto sie nie hatte. Pausen und offene Dialoge stoppen das Scrollen weiterhin. Nach dem Einschalten neu starten, dann zum Ausschalten diesen Schalter verwenden.
 Keep captions in clear display	Untertitel in der freien Ansicht behalten
 Keep holding Like from opening TikTok's repost action.	Verhindern, dass Halten von „Gefällt mir“ TikToks Repost-Aktion öffnet.
 Keep long-pressing Share from opening TikTok's quick-share interaction.	Verhindern, dass langes Drücken auf „Teilen“ TikToks schnelles Teilen öffnet.
@@ -514,7 +521,6 @@ Two letters, like us, gb or jp.	Zwei Buchstaben, etwa us, gb oder jp.
 Unblocked %1$s	%1$s entblockt
 Undo	Rückgängig
 Undo last restore or reset	Letzte Wiederherstellung oder Zurücksetzung rückgängig machen
-Unlimited	Unbegrenzt
 Up to 8 speeds from 0.5 to 3, separated by commas. Example: 0.5, 1, 1.5, 2, 2.5, 3. Leave empty for TikTok's list. Restart after changing this list.	Bis zu 8 Geschwindigkeiten von 0.5 bis 3, durch Kommas getrennt. Beispiel: 0.5, 1, 1.5, 2, 2.5, 3. Leer lassen für TikToks Liste. Nach dem Ändern der Liste neu starten.
 Updating settings	Einstellungen werden aktualisiert
 Use 0 for TikTok's size, or 12 to 48 sp. Applies to the next caption.	0 für TikToks Größe oder 12 bis 48 sp. Gilt ab dem nächsten Untertitel.
@@ -635,3 +641,27 @@ Today starts again	Heute beginnt neu
 Save the original sound	Originalsound speichern
 This video has no original sound to save	Dieses Video hat keinen Originalsound zum Speichern
 Storage permission is needed to save a sound	Zum Speichern eines Sounds wird die Speicherberechtigung gebraucht
+Settings saved. The Feature Gate Lab rules were for another TikTok version and were left out. Restart TikTok to apply all changes.	Einstellungen gespeichert. Die Feature-Gate-Lab-Regeln galten für eine andere TikTok-Version und wurden ausgelassen. Starte TikTok neu, um alle Änderungen zu übernehmen.
+That settings backup is damaged or only partly downloaded. Nothing was altered.	Diese Einstellungssicherung ist beschädigt oder nur teilweise heruntergeladen. Es wurde nichts geändert.
+That file is too large to be a settings backup. Nothing was altered.	Diese Datei ist zu groß für eine Einstellungssicherung. Es wurde nichts geändert.
+That file is not readable text, so it may have been damaged in transit. Nothing was altered.	Diese Datei ist kein lesbarer Text und wurde womöglich bei der Übertragung beschädigt. Es wurde nichts geändert.
+That is not a Hushfeed settings backup. Nothing was altered.	Das ist keine Hushfeed-Einstellungssicherung. Es wurde nichts geändert.
+That backup was written by a newer Hushfeed than this one. Nothing was altered.	Diese Sicherung stammt aus einem neueren Hushfeed als diesem. Es wurde nichts geändert.
+That settings backup is incomplete, so it may have been cut short. Nothing was altered.	Diese Einstellungssicherung ist unvollständig und wurde womöglich abgeschnitten. Es wurde nichts geändert.
+That settings backup holds a value Hushfeed cannot read. Nothing was altered.	Diese Einstellungssicherung enthält einen Wert, den Hushfeed nicht lesen kann. Es wurde nichts geändert.
+Lock today's budget	Heutiges Budget sperren
+Off by default. Switched on, the hold that starts when today's budget runs out has no way out, and the budgets, the reset hour and this switch cannot be changed again until the day starts over. Switch it off any time before the budget runs out.	Standardmäßig aus. Eingeschaltet hat die Sperre, die beim Aufbrauchen des heutigen Budgets beginnt, keinen Ausweg, und die Budgets, die Rücksetzstunde und dieser Schalter lassen sich bis zum Tagesbeginn nicht mehr ändern. Vor dem Aufbrauchen des Budgets kann er jederzeit ausgeschaltet werden.
+Today's budget is locked. This can be changed again at %1$s.	Das heutige Budget ist gesperrt. Änderungen sind wieder ab %1$s möglich.
+Today's budget is locked. The day starts over at %1$s.	Das heutige Budget ist gesperrt. Der Tag beginnt um %1$s von vorn.
+Today's budget is locked. The feed opens again at %1$s. Messages, profiles and search still work.	Das heutige Budget ist gesperrt. Der Feed öffnet wieder um %1$s. Nachrichten, Profile und Suche funktionieren weiterhin.
+Today is back where it was	Der heutige Tag ist wieder wie zuvor
+Today has moved on, so there is nothing to put back	Der Tag ist weitergezogen, es gibt nichts zurückzuholen
+Comma separated words or phrases. Matching captions are skipped. Case doesn't matter. Two phrases in quotes can be joined: "a" & "b" needs both, "a" !& "b" needs the first without the second.	Wörter oder Wendungen, durch Kommas getrennt. Passende Beschreibungen werden übersprungen. Groß- und Kleinschreibung spielt keine Rolle. Zwei Wendungen in Anführungszeichen lassen sich verbinden: "a" & "b" verlangt beide, "a" !& "b" verlangt die erste ohne die zweite.
+Comma separated. A comment is hidden if its text contains any of them. Case does not matter. Two phrases in quotes can be joined: "a" & "b" needs both, "a" !& "b" needs the first without the second.	Durch Kommas getrennt. Ein Kommentar wird ausgeblendet, wenn sein Text eines davon enthält. Groß- und Kleinschreibung spielt keine Rolle. Zwei Wendungen in Anführungszeichen lassen sich verbinden: "a" & "b" verlangt beide, "a" !& "b" verlangt die erste ohne die zweite.
+This line opens a rule and does not finish it: %1$s. Write two phrases as "a" & "b" for both, or "a" !& "b" for the first without the second.	Diese Zeile beginnt eine Regel und beendet sie nicht: %1$s. Schreiben Sie zwei Wendungen als "a" & "b" für beide oder als "a" !& "b" für die erste ohne die zweite.
+One of the quote marks in that list has nothing to close it, so the rest of the line reads as one phrase. Add the missing quote or take the stray one out.	Eines der Anführungszeichen in dieser Liste wird nicht geschlossen, deshalb liest sich der Rest der Zeile als eine einzige Wendung. Ergänzen Sie das fehlende Anführungszeichen oder entfernen Sie das überzählige.
+%1$d setting was not in that file and was left as it is.	%1$d Einstellung stand nicht in dieser Datei und bleibt unverändert.
+%1$d settings were not in that file and were left as they are.	%1$d Einstellungen standen nicht in dieser Datei und bleiben unverändert.
+Choose a subfolder under %1$s.	Wähle einen Unterordner in %1$s.
+Off	Aus
+Kept to %1$s, the nearest value this row allows	Auf %1$s gesetzt, den nächsten Wert, den diese Zeile zulässt

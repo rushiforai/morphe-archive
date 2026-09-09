@@ -1,3 +1,12 @@
 [*.{kt,kts}]
 ktlint_code_style = intellij_idea
 ktlint_standard_no-wildcard-imports = disabled
+
+[**/Fingerprints.kt]
+# Fingerprints are grouped by patch, even when a patch currently has only one.
+ktlint_standard_filename = disabled
+
+[*.sh]
+indent_style = space
+indent_size = 4
+switch_case_indent = true

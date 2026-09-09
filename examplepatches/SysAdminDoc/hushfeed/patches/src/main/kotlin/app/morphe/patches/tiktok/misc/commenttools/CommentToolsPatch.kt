@@ -17,6 +17,9 @@ import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.patches.tiktok.misc.translation.BaseCommentCellBindFingerprint
 import app.morphe.patches.tiktok.misc.translation.CommentListLoadedFingerprint
+import app.morphe.patches.tiktok.shared.callThroughLocals
+import app.morphe.patches.tiktok.shared.objectIn
+import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
@@ -101,12 +104,21 @@ val commentToolsPatch = bytecodePatch(
                 )
             }
 
+            // A register nothing is holding here. This injects into the middle of the bind,
+            // where v0 belongs to the host, and it was written over on the strength of being
+            // dead on this one build.
+            val cellRegister = getFreeRegisterProvider(
+                managerReadyIndex + 1,
+                1,
+                listOf(managerRegister),
+            ).getFreeRegister4Bit()
+
             addInstructions(
                 managerReadyIndex + 1,
                 """
-                    move-object/from16 v0, p0
-                    iget-object v0, v0, Landroidx/recyclerview/widget/RecyclerView${'$'}ViewHolder;->itemView:Landroid/view/View;
-                    invoke-static {v0, v$managerRegister}, $EXTENSION_CLASS_DESCRIPTOR->registerCommentCell(Landroid/view/View;Ljava/lang/Object;)V
+                    move-object/from16 v$cellRegister, p0
+                    iget-object v$cellRegister, v$cellRegister, Landroidx/recyclerview/widget/RecyclerView${'$'}ViewHolder;->itemView:Landroid/view/View;
+                    invoke-static {v$cellRegister, v$managerRegister}, $EXTENSION_CLASS_DESCRIPTOR->registerCommentCell(Landroid/view/View;Ljava/lang/Object;)V
                 """,
             )
         }
@@ -122,9 +134,20 @@ val commentToolsPatch = bytecodePatch(
                 "Comment tools: could not locate the loaded comment list response.",
             )
 
-            addInstruction(
+            val responseRegister = (implementation!!.instructions.elementAt(responseReadyIndex)
+                as? TwoRegisterInstruction)?.registerB ?: throw PatchException(
+                "Comment tools: the loaded comment list is not read from a register.",
+            )
+
+            addInstructions(
                 responseReadyIndex,
-                "invoke-static {v0}, $EXTENSION_CLASS_DESCRIPTOR->onCommentListLoaded(Ljava/lang/Object;)V",
+                callThroughLocals(
+                    "Comment tools",
+                    "invoke-static",
+                    "$EXTENSION_CLASS_DESCRIPTOR->onCommentListLoaded(Ljava/lang/Object;)V",
+                    false,
+                    objectIn("v$responseRegister"),
+                ),
             )
         }
     }

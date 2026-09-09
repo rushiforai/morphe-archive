@@ -301,11 +301,12 @@ public final class UniversalOverlayRuntime {
             };
             menuLayer = new FrameLayout(overlayContext);
             menuScrim = createMenuScrim();
-            menuOutline = "static".equals(config.menuOutlineAnimation) || config.outlineAnimationSpeed <= 0 ? null
+            menuOutline = "static".equals(config.menuOutlineAnimation) || config.outlineAnimationSpeed == 0 ? null
                     : UniversalOverlayViews.animatedOutline(
                             config.background,
                             config.buttonBackground,
                             config.iconBackground2,
+                            "vertical".equals(config.menuOutlineAnimation),
                             "rainbow".equals(config.menuOutlineAnimation),
                             config.outlineWidth,
                             !"square".equals(config.menuCorners),
@@ -433,19 +434,52 @@ public final class UniversalOverlayRuntime {
                 button.setBackground(image);
             } else {
                 customIconFallbackRequired = config.iconType.equals("image");
-                button.setText(config.buttonText);
-                button.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, config.iconTextSize);
-                button.setTypeface(Typeface.DEFAULT, config.iconBold ? Typeface.BOLD : Typeface.NORMAL);
-                button.setBackground(UniversalOverlayViews.gradientBackground(
-                        config.buttonBackground,
-                        config.gradientBackground ? config.iconBackground2 : config.buttonBackground,
-                        config.iconGradientAngle,
-                        config.iconOutline ? config.iconOutlineColor : Color.TRANSPARENT,
-                        config.iconOutline ? config.iconOutlineWidth : 0, config.shape == 1));
+                if (!"text".equals(config.iconStyle)) {
+                    button.setText("");
+                    button.setBackground(legacyIconDrawable());
+                    button.setContentDescription(config.iconShape + " overlay icon");
+                } else {
+                    button.setText(config.buttonText);
+                    button.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, config.iconTextSize);
+                    button.setTypeface(Typeface.DEFAULT, config.iconBold ? Typeface.BOLD : Typeface.NORMAL);
+                    button.setBackground(UniversalOverlayViews.gradientBackground(
+                            config.buttonBackground,
+                            config.gradientBackground ? config.iconBackground2 : config.buttonBackground,
+                            config.iconGradientAngle,
+                            config.iconOutline ? config.iconOutlineColor : Color.TRANSPARENT,
+                            config.iconOutline ? config.iconOutlineWidth : 0, config.shape == 1));
+                }
             }
             button.setOnClickListener(v -> toggleMenu());
             button.setOnTouchListener(this::onButtonTouch);
             return button;
+        }
+
+        private android.graphics.drawable.Drawable legacyIconDrawable() {
+            return UniversalOverlayViews.icon(
+                    config.buttonBackground,
+                    config.gradientBackground ? config.iconBackground2 : config.buttonBackground,
+                    config.iconGradientAngle,
+                    config.gradientBackground,
+                    config.iconOutline ? config.iconOutlineColor : Color.TRANSPARENT,
+                    config.iconOutline ? config.iconOutlineColor2 : Color.TRANSPARENT,
+                    config.iconOutlineGradientAngle,
+                    config.iconOutline && config.iconOutlineGradient,
+                    config.iconOutline ? dp(config.iconOutlineWidth) : 0,
+                    config.shape == 1,
+                    config.iconStyle,
+                    config.iconShape,
+                    config.iconShapeColor1,
+                    config.iconShapeColor2,
+                    config.iconShapeGradient,
+                    config.iconShapeGradientAngle,
+                    dp(config.iconShapeStrokeWidth),
+                    config.iconShapeScale / 100f,
+                    config.iconHighlight,
+                    config.iconShadow,
+                    config.iconBackgroundStyle,
+                    config.iconBackgroundColor3,
+                    config.iconBackgroundColor4);
         }
 
         /** Shows the fallback notice after the overlay root is attached to the Activity. */
@@ -734,10 +768,15 @@ public final class UniversalOverlayRuntime {
                 image.setGravity(Gravity.CENTER);
                 icon.setBackground(image);
             } else {
-                icon.setBackground(UniversalOverlayViews.gradientBackground(
-                        config.buttonBackground,
-                        config.gradientBackground ? config.iconBackground2 : config.buttonBackground,
-                        config.iconGradientAngle, Color.TRANSPARENT, 0, config.shape == 1));
+                if (!"text".equals(config.iconStyle)) {
+                    icon.setText("");
+                    icon.setBackground(legacyIconDrawable());
+                } else {
+                    icon.setBackground(UniversalOverlayViews.gradientBackground(
+                            config.buttonBackground,
+                            config.gradientBackground ? config.iconBackground2 : config.buttonBackground,
+                            config.iconGradientAngle, Color.TRANSPARENT, 0, config.shape == 1));
+                }
             }
             icon.setClickable(false);
             icon.setFocusable(false);
@@ -781,7 +820,7 @@ public final class UniversalOverlayRuntime {
             title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
             card.addView(title, new LinearLayout.LayoutParams(-1, -2));
 
-            TextView message = text("The overlay will be removed for this Activity.", 14, config.menuTextColor3);
+            TextView message = text("The overlay will close for this app process until the app is restarted.", 14, config.menuTextColor3);
             LinearLayout.LayoutParams messageParams = new LinearLayout.LayoutParams(-1, -2);
             messageParams.topMargin = dp(8);
             card.addView(message, messageParams);
@@ -1021,24 +1060,31 @@ public final class UniversalOverlayRuntime {
             ArrayAdapter<String> adapter = new ArrayAdapter<String>(overlayContext, android.R.layout.simple_spinner_item, labels) {
                 @Override public View getView(int position, View convertView, android.view.ViewGroup parentView) {
                     TextView view = (TextView) super.getView(position, convertView, parentView);
-                    view.setTextColor(config.controlForeground);
+                    view.setTextColor(config.menuTextColor1);
+                    view.setBackgroundColor(config.background);
+                    view.setPadding(dp(12), dp(8), dp(12), dp(8));
                     return view;
                 }
                 @Override public View getDropDownView(int position, View convertView, android.view.ViewGroup parentView) {
                     TextView view = (TextView) super.getDropDownView(position, convertView, parentView);
                     view.setTextColor(config.menuTextColor1);
                     view.setBackgroundColor(config.background);
+                    view.setPadding(dp(12), dp(10), dp(12), dp(10));
                     return view;
                 }
             };
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinner.setAdapter(adapter);
-            spinner.setBackground(UniversalOverlayViews.background(config.controlBackground, config.outline, false,
-                    config.outlineWidth, !"square".equals(config.menuCorners)));
+            // Keep the collapsed control and popup visually attached to the same menu surface.
+            // The platform Spinner outline can otherwise become a large black rectangle outside
+            // the panel, especially when a preset uses a dark control background.
+            spinner.setBackground(UniversalOverlayViews.background(
+                    config.background, Color.TRANSPARENT, false, 0, !"square".equals(config.menuCorners)));
             if (android.os.Build.VERSION.SDK_INT >= 16) {
                 GradientDrawable popupBackground = new GradientDrawable();
                 popupBackground.setColor(config.background);
                 popupBackground.setCornerRadius("square".equals(config.menuCorners) ? 0f : dp(24));
+                popupBackground.setStroke(0, Color.TRANSPARENT);
                 spinner.setPopupBackgroundDrawable(popupBackground);
             }
             int current = remembered == null ? module.current(activity) : remembered;

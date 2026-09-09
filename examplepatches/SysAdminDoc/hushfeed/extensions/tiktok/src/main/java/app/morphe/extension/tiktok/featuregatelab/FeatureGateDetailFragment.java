@@ -9,6 +9,8 @@ import android.app.Fragment;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.Looper;
+import android.os.Handler;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.view.Gravity;
@@ -41,7 +43,8 @@ public final class FeatureGateDetailFragment extends Fragment {
     private static final String ARG_KEY = "key";
     private static final String ARG_TYPE = "type";
 
-    private final FeatureGateLabUi.SystemBackHandler systemBack = new FeatureGateLabUi.SystemBackHandler();
+    private final app.morphe.extension.tiktok.settings.SystemBackHandler systemBack =
+            new app.morphe.extension.tiktok.settings.SystemBackHandler("FeatureGateDetailBackCallback");
 
     private FeatureGateCatalog.Entry entry;
     private FeatureGateLabStore.Rule rule;
@@ -56,6 +59,8 @@ public final class FeatureGateDetailFragment extends Fragment {
     private TextView technicalToggle;
     private List<ValueOption> options;
     private final List<ObjectFieldEditor> objectEditors = new ArrayList<>();
+    /** Held so the window can be taken down with the view that opened it. */
+    private AlertDialog customValueDialog;
     private boolean suppress;
     private int lastConcreteSelection;
 
@@ -345,6 +350,43 @@ public final class FeatureGateDetailFragment extends Fragment {
         super.onPause();
     }
 
+    /**
+     * Lets go of the view this screen was built from.
+     *
+     * <p>The screen sits on a back stack, so its view is built again on a rotation, a font scale
+     * change, a theme change, or a return from anything deeper. Without this the editors from
+     * every earlier view stayed in the list, so the text collected on save came from fields
+     * nobody could see, and each of them pinned a destroyed hierarchy. A dialog left open when
+     * the activity goes is a leaked window whose buttons reach for those same dead views.
+     */
+    @Override
+    public void onDestroyView() {
+        if (customValueDialog != null) {
+            if (customValueDialog.isShowing()) customValueDialog.dismiss();
+            customValueDialog = null;
+        }
+        objectEditors.clear();
+        status = null;
+        effectiveValue = null;
+        values = null;
+        force = null;
+        booleanValue = null;
+        reset = null;
+        saveObject = null;
+        technicalDetails = null;
+        technicalToggle = null;
+        super.onDestroyView();
+    }
+
+    /** How many object field editors the current view is holding, so a test can see them stack. */
+    int objectEditorCountForTests() {
+        return objectEditors.size();
+    }
+
+    boolean customValueDialogShowingForTests() {
+        return customValueDialog != null && customValueDialog.isShowing();
+    }
+
     private void leaveDetail() {
         if (getFragmentManager() != null) getFragmentManager().popBackStack();
     }
@@ -370,36 +412,72 @@ public final class FeatureGateDetailFragment extends Fragment {
             Utils.showToastLong(error);
             return;
         }
-        try {
-            FeatureGateLabUndo.saveRule(entry.manager, entry.key, entry.type, value, enabled);
-        } catch (Exception failure) {
-            Utils.showToastLong("Could not save this override. " + failure.getMessage());
-            return;
-        }
-        rule = FeatureGateLabStore.rule(entry.manager, entry.key, entry.type);
-        reset.setVisibility(View.VISIBLE);
-        updateStatus();
+        // Saving takes the journal lock and two write-and-verify cycles, the same as the Lab
+        // screen's own changes, which have run off the main thread since they were written.
+        Object[] saved = new Object[1];
+        runDetailChange(
+                () -> {
+                    FeatureGateLabUndo.saveRule(entry.manager, entry.key, entry.type, value, enabled);
+                    saved[0] = FeatureGateLabStore.rule(entry.manager, entry.key, entry.type);
+                },
+                () -> {
+                    rule = (FeatureGateLabStore.Rule) saved[0];
+                    reset.setVisibility(View.VISIBLE);
+                    updateStatus();
+                },
+                "Could not save this override.");
     }
 
     private void resetRule() {
-        try {
-            FeatureGateLabUndo.deleteRule(entry.manager, entry.key, entry.type);
-        } catch (Exception error) {
-            Utils.showToastLong("Could not reset this override. " + error.getMessage());
-            return;
-        }
-        rule = null;
-        suppress = true;
-        if (force != null) force.setChecked(false);
-        if (booleanValue != null) {
-            booleanValue.setChecked(Boolean.parseBoolean(bestInitialValue(entry)));
-        } else if (values != null) {
-            values.setSelection(selectedIndex(options, bestInitialValue(entry)));
-        }
-        suppress = false;
-        reset.setVisibility(View.GONE);
-        updateStatus();
-        Utils.showToastShort("Feature gate override reset");
+        runDetailChange(
+                () -> FeatureGateLabUndo.deleteRule(entry.manager, entry.key, entry.type),
+                () -> {
+                    rule = null;
+                    suppress = true;
+                    if (force != null) force.setChecked(false);
+                    if (booleanValue != null) {
+                        booleanValue.setChecked(Boolean.parseBoolean(bestInitialValue(entry)));
+                    } else if (values != null) {
+                        values.setSelection(selectedIndex(options, bestInitialValue(entry)));
+                    }
+                    suppress = false;
+                    reset.setVisibility(View.GONE);
+                    updateStatus();
+                    Utils.showToastShort("Feature gate override reset");
+                },
+                "Could not reset this override.");
+    }
+
+    /** A change that touches storage, so it does not belong on the thread drawing the screen. */
+    private interface DetailChange {
+        void run() throws Exception;
+    }
+
+    /**
+     * Runs {@code change} off the main thread, then {@code onDone} back on it.
+     *
+     * <p>{@code onDone} touches the views, so it is skipped when the screen has gone in the
+     * meantime. A failure is reported either way: the user pressed a button and is owed an
+     * answer even if they have already left.
+     */
+    private void runDetailChange(DetailChange change, Runnable onDone, String failurePrefix) {
+        Utils.runOnBackgroundThread(() -> {
+            String failure = null;
+            try {
+                change.run();
+            } catch (Exception error) {
+                failure = failurePrefix + " " + error.getMessage();
+            }
+            String notice = failure;
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (notice != null) {
+                    Utils.showToastLong(notice);
+                    return;
+                }
+                if (getActivity() == null || reset == null) return;
+                onDone.run();
+            });
+        });
     }
 
     private void showCustomValue() {
@@ -408,7 +486,7 @@ public final class FeatureGateDetailFragment extends Fragment {
         input.setHint("Custom " + entry.type.toLowerCase(Locale.ROOT) + " value (unverified)");
         input.setText(rule == null ? "" : rule.value);
         SettingsUi.styleEditText(input);
-        AlertDialog dialog = new AlertDialog.Builder(getActivity())
+        AlertDialog dialog = customValueDialog = new AlertDialog.Builder(getActivity())
                 .setTitle("Custom value (unverified)")
                 .setView(input)
                 .setPositiveButton("Use value", null)

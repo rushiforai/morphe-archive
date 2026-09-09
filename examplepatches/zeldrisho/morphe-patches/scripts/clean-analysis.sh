@@ -5,5 +5,5 @@
 set -euo pipefail
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 rm -rf "$PROJECT_DIR/analysis" "$PROJECT_DIR/patches/build" \
-  "$PROJECT_DIR/extensions/extension/build" "$PROJECT_DIR/build" "$PROJECT_DIR/.gradle"
+    "$PROJECT_DIR/extensions/extension/build" "$PROJECT_DIR/build" "$PROJECT_DIR/.gradle"
 echo "✅ Cleaned analysis/ and build dirs (all git-ignored; safe to re-fetch/rebuild)."

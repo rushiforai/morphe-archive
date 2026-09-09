@@ -1,3 +1,97 @@
+## [1.46.5](https://github.com/legendsciber/morphe-patches/compare/v1.46.4...v1.46.5) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* **iap:** set purchaseState=1 and acknowledged=true in fake Purchase JSON ([7a65066](https://github.com/legendsciber/morphe-patches/commit/7a65066de3c2ef85ab06891c1ff17dbe1015aca9))
+
+## [1.46.4](https://github.com/legendsciber/morphe-patches/compare/v1.46.3...v1.46.4) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* **iap:** use /range and /from16 for high registers (p0/v34+) ([3a731d9](https://github.com/legendsciber/morphe-patches/commit/3a731d9ff98b99c4756534722a43b4bc059f5c4c))
+
+## [1.46.3](https://github.com/legendsciber/morphe-patches/compare/v1.46.2...v1.46.3) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* **iap:** remove blank lines from smali that crash InlineSmaliCompiler ([8ddb6dc](https://github.com/legendsciber/morphe-patches/commit/8ddb6dc11a942eb672292025ad4f95150a38cf9b))
+
+## [1.46.2](https://github.com/legendsciber/morphe-patches/compare/v1.46.1...v1.46.2) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* **iap:** remove smali comments that crash InlineSmaliCompiler ([964b9e1](https://github.com/legendsciber/morphe-patches/commit/964b9e154777327340935135168e996440cec55a))
+
+## [1.46.1](https://github.com/legendsciber/morphe-patches/compare/v1.46.0...v1.46.1) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* **iap:** target BillingClientImpl.launchBillingFlow, fix field access ([ee3d202](https://github.com/legendsciber/morphe-patches/commit/ee3d202bad670cbc202445eb89307bc7df2267bb))
+
+## [1.46.0](https://github.com/legendsciber/morphe-patches/compare/v1.45.0...v1.46.0) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* **iap:** escape dollar sign in smali string templates ([a44a70e](https://github.com/legendsciber/morphe-patches/commit/a44a70e257a99ee70b67bac21a2fecc576637c13))
+
+### ✨ New Features
+
+* **iap:** add smali-only IAP bypass via launchBillingFlow interception ([0a74e17](https://github.com/legendsciber/morphe-patches/commit/0a74e177545456611ff0fe9cdf107f5f43e231e1))
+
+## [1.45.0](https://github.com/legendsciber/morphe-patches/compare/v1.44.2...v1.45.0) (2026-09-08)
+
+### ✨ New Features
+
+* v51 - exception type name dump + gp_cb field dump + il2cpp_class_get_name ([ac5ec73](https://github.com/legendsciber/morphe-patches/commit/ac5ec7301dd9686d15ddf70a1a2e00e4a1f6ffec))
+
+## [1.44.2](https://github.com/legendsciber/morphe-patches/compare/v1.44.1...v1.44.2) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* v50 - read IL2CPP exception message from OnPurchaseSuccessful ([25d8588](https://github.com/legendsciber/morphe-patches/commit/25d8588d91abd9f253c28b0be832fea0d9fb55ac))
+
+## [1.44.1](https://github.com/legendsciber/morphe-patches/compare/v1.44.0...v1.44.1) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* v49 - GooglePurchase namespace fix + offset-based field write + remove OnPurchaseFailed ([10ee89f](https://github.com/legendsciber/morphe-patches/commit/10ee89fbfa6772774a4c3b2962ffc078644d7d38))
+
+## [1.44.0](https://github.com/legendsciber/morphe-patches/compare/v1.43.9...v1.44.0) (2026-09-08)
+
+### ✨ New Features
+
+* v48 - fake GooglePurchase + OnPurchaseSuccessful via gp_cb, debug dump mgr fields ([55da5a5](https://github.com/legendsciber/morphe-patches/commit/55da5a525efb9265ce6dd818ebf9698d2faa8464))
+
+## [1.43.9](https://github.com/legendsciber/morphe-patches/compare/v1.43.8...v1.43.9) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* v47 - add il2cpp_runtime_invoke for proper IL2CPP invocation context ([049a871](https://github.com/legendsciber/morphe-patches/commit/049a8710cf26b11fea0f7a37606bdde59faa6078))
+
+## [1.43.8](https://github.com/legendsciber/morphe-patches/compare/v1.43.7...v1.43.8) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* v46 - ELF .dynsym parser to bypass dlsym, dl_iterate_phdr for libil2cpp discovery ([2e23dff](https://github.com/legendsciber/morphe-patches/commit/2e23dffcf2cba14108bb6171674c0cfcdbf09960))
+
+## [1.43.7](https://github.com/legendsciber/morphe-patches/compare/v1.43.6...v1.43.7) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* v45 - revert load_api to v43.3 format, restore RTLD_NOW|RTLD_NOLOAD dlopen ([daca437](https://github.com/legendsciber/morphe-patches/commit/daca4379b0e7ff723041bb050442506a364e8130))
+
+## [1.43.6](https://github.com/legendsciber/morphe-patches/compare/v1.43.5...v1.43.6) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* v44.2 - add dlerror logging, use RTLD_LAZY for dlopen to debug symbol loading ([d2b428c](https://github.com/legendsciber/morphe-patches/commit/d2b428c385edbfbe2391d505fc08c63310255ab3))
+
+## [1.43.5](https://github.com/legendsciber/morphe-patches/compare/v1.43.4...v1.43.5) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* v44 - attach thread to IL2CPP + GC-safe string copy for async OnPurchaseSucceeded ([1c910c2](https://github.com/legendsciber/morphe-patches/commit/1c910c27d804a328b29c8b30534b98f05ea93f12))
+
 ## [1.43.4](https://github.com/legendsciber/morphe-patches/compare/v1.43.3...v1.43.4) (2026-09-07)
 
 ### 🐛 Bug Fixes

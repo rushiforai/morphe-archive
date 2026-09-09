@@ -4,7 +4,6 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.string
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.util.smali.toInstructions
 import app.morphe.patcher.patch.*
@@ -102,6 +101,28 @@ val keepcoolThirtyDayCalendarPatch = bytecodePatch(
             BuilderInstruction22x(Opcode.MOVE_OBJECT_FROM16, 4, receiverRegister)
         )
         val weekThreeInstructions = """
+                # v6 has merged Iterator/int types here. Recount the already-built
+                # current page instead. v12/v13 are dead in the original suffix;
+                # v9 must remain the null sentinel used by its throw instruction.
+                const/16 v13, 0x1f
+                const/4 v5, 0x0
+                invoke-virtual {v3, v5}, Ljava/util/ArrayList;->get(I)Ljava/lang/Object;
+                move-result-object v8
+                check-cast v8, Ljava/util/ArrayList;
+                :j30_count_loop
+                invoke-virtual {v8}, Ljava/util/ArrayList;->size()I
+                move-result v7
+                if-ge v5, v7, :j30_count_done
+                invoke-virtual {v8, v5}, Ljava/util/ArrayList;->get(I)Ljava/lang/Object;
+                move-result-object v12
+                check-cast v12, LZ6/c;
+                iget-boolean v12, v12, LZ6/c;->e:Z
+                if-eqz v12, :j30_count_next
+                add-int/lit8 v13, v13, -0x1
+                :j30_count_next
+                add-int/lit8 v5, v5, 0x1
+                goto :j30_count_loop
+                :j30_count_done
                 # Build week +3 and append it to the page list in v3.
                 invoke-direct {v4}, $DATE_PICKER_CLASS->getCurrentCalendar()Ljava/util/Calendar;
                 move-result-object v4
@@ -117,7 +138,7 @@ val keepcoolThirtyDayCalendarPatch = bytecodePatch(
                 invoke-virtual {v3, v4}, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
             """.trimIndent()
         val compiledWeekThree = weekThreeInstructions.toInstructions(picker)
-        picker.addInstructions(insertionIndex, compiledWeekThree)
+        picker.addInstructionsWithLabels(insertionIndex, weekThreeInstructions)
         insertionIndex += compiledWeekThree.size
         picker.addInstruction(
             insertionIndex++,
@@ -137,20 +158,20 @@ val keepcoolThirtyDayCalendarPatch = bytecodePatch(
                 invoke-static {v4, v8}, $DATE_PICKER_CLASS->q(Ljava/util/Calendar;Ljava/util/List;)Ljava/util/ArrayList;
                 move-result-object v4
 
-                # v6 is 31 minus the enabled days in the current week.
+                # v13 is 31 minus the enabled days in the current week.
                 # Three complete following weeks consume 21 days. The last enabled
-                # zero-based index in week +4 is therefore v6 - 22.
-                add-int/lit8 v8, v6, -0x16
+                # zero-based index in week +4 is therefore v13 - 22.
+                add-int/lit8 v8, v13, -0x16
                 const/4 v7, 0x0
                 :j30_week4_loop
                 invoke-virtual {v4}, Ljava/util/ArrayList;->size()I
-                move-result v9
-                if-ge v7, v9, :j30_week4_done
+                move-result v12
+                if-ge v7, v12, :j30_week4_done
                 if-le v7, v8, :j30_week4_next
                 invoke-virtual {v4, v7}, Ljava/util/ArrayList;->get(I)Ljava/lang/Object;
-                move-result-object v9
-                check-cast v9, LZ6/c;
-                iput-boolean v2, v9, LZ6/c;->e:Z
+                move-result-object v12
+                check-cast v12, LZ6/c;
+                iput-boolean v2, v12, LZ6/c;->e:Z
                 :j30_week4_next
                 add-int/lit8 v7, v7, 0x1
                 goto :j30_week4_loop
@@ -169,7 +190,7 @@ val keepcoolThirtyDayCalendarPatch = bytecodePatch(
             """
                 # A partial week +5 is needed when today is Saturday or Sunday.
                 const/16 v7, 0x1c
-                if-le v6, v7, :j30_week5_skip
+                if-le v13, v7, :j30_week5_skip
                 invoke-direct {v4}, $DATE_PICKER_CLASS->getCurrentCalendar()Ljava/util/Calendar;
                 move-result-object v4
                 const/4 v5, 0x3
@@ -184,17 +205,17 @@ val keepcoolThirtyDayCalendarPatch = bytecodePatch(
 
                 # Four complete following weeks consume 28 days. Week +5 therefore
                 # enables one or two days, depending on today's weekday.
-                add-int/lit8 v8, v6, -0x1d
+                add-int/lit8 v8, v13, -0x1d
                 const/4 v7, 0x0
                 :j30_week5_loop
                 invoke-virtual {v4}, Ljava/util/ArrayList;->size()I
-                move-result v9
-                if-ge v7, v9, :j30_week5_done
+                move-result v12
+                if-ge v7, v12, :j30_week5_done
                 if-le v7, v8, :j30_week5_next
                 invoke-virtual {v4, v7}, Ljava/util/ArrayList;->get(I)Ljava/lang/Object;
-                move-result-object v9
-                check-cast v9, LZ6/c;
-                iput-boolean v2, v9, LZ6/c;->e:Z
+                move-result-object v12
+                check-cast v12, LZ6/c;
+                iput-boolean v2, v12, LZ6/c;->e:Z
                 :j30_week5_next
                 add-int/lit8 v7, v7, 0x1
                 goto :j30_week5_loop

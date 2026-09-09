@@ -16,6 +16,12 @@ object Constants {
         description = "The official Google Play XAPK for AFFiNE 0.27.4 (arm64-v8a).",
         apkFileType = ApkFileType.XAPK_REQUIRED,
         appIconColor = 0x1E96EB,
+        signatures = setOf(
+            // Google Play app-signing certificate used on Android 33 and newer.
+            "f4a6109f03eeb43484aee931e5eb9382260c67b77d86d8a69c7b641e5b631c18",
+            // Google Play app-signing certificate used on Android 24 through 32.
+            "6ce5fa30a23b1b0392cea753541b971fdb8ebbffa5b23a1fda590b5400a30ed4",
+        ),
         targets = listOf(
             AppTarget(
                 version = VERSION_NAME,

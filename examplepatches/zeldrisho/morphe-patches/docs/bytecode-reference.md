@@ -1,7 +1,8 @@
 # Bytecode reference
 
 Smali reading/writing aid, obfuscation survival rules, and fingerprint debugging.
-Companion docs: `fingerprint-guide.md` (writing fingerprints), `reverse-engineering.md` (finding targets).
+Companion docs: [fingerprint guide](fingerprint-guide.md) (writing fingerprints),
+[reverse engineering workflow](reverse-engineering.md) (finding targets).
 
 ## Type descriptors
 
@@ -56,7 +57,7 @@ return-void
 sget-object v0, Lcom/app/Tier;->PRO:Lcom/app/Tier;
 return-object v0
 # consult an extension, then branch
-invoke-static { }, Lapp/template/extension/myapp/MyPatch;->isEnabled()Z
+invoke-static { }, Lcom/zeldrisho/threads/extension/MyPatch;->isEnabled()Z
 move-result v0
 if-eqz v0, :continue
 return-void
@@ -64,17 +65,20 @@ return-void
 nop
 ```
 
+Replace the example extension path with the real class for the app being patched.
+
 ## Obfuscation: what survives
 
-R8/ProGuard rename app classes, methods, and fields every release — **never match on
-those**. What survives and is safe to fingerprint on:
+R8/ProGuard rename app classes, methods, and fields nearly every release — prefer
+stable anchors over those names (see the
+[fingerprint rules](fingerprint-guide.md#rules)):
 
 | Survives | Why | Fingerprint field |
 | -------- | --- | ----------------- |
 | Return / parameter types | Part of the signature | `returnType`, `parameters` |
 | Access flags | Structural | `accessFlags` |
 | SDK class + method names | Not covered by app obfuscation rules | `methodCall(definingClass, name)` |
-| String constants | Kept as-is (unless DexGuard) | `string(…)` / `strings` |
+| String constants | Kept as-is (unless DexGuard/string encryption) | `string(…)` / `strings` |
 | Literals, opcodes, call order | Logic flow preserved | `literal`, `opcode`, filter order |
 
 Check the level with `uvx apkid app.apk`:
@@ -90,11 +94,14 @@ Fallbacks for heavy obfuscation: `"L"` as a parameter type (matches any object),
 `classFingerprint` via a stable anchor (`toString` with readable content, e.g. Kotlin
 data-class output), SDK-call-only filters without strings.
 
-Recover real Kotlin names to *find* targets (never to *match* on): R8 cannot strip
-`@DebugMetadata(c="com.foo.Bar$…")` / `@Metadata(d2={…Lcom/foo/Bar;…})` strings —
-run `scripts/recover-kotlin-names.sh <decompiled> <mapping-dir>` for an obf → real map
-(~100% of `*Repository`/`*ViewModel`/`*Impl`). `jadx --deobf` only invents synthetic
-names; metadata recovery restores the developer-written ones.
+Recover real Kotlin names to *find* targets (never to *match* on, except under the
+version-pinned exception in the [fingerprint rules](fingerprint-guide.md#rules)):
+builds that retain `@DebugMetadata(c="com.foo.Bar$…")` / `@Metadata(d2={…Lcom/foo/Bar;…})`
+strings can be mapped with `scripts/recover-kotlin-names.sh` (see
+[recover Kotlin names](reverse-engineering.md#recover-kotlin-names-for-obfuscated-kotlin-apps)).
+Coverage is best-effort and lower when metadata is stripped or encrypted.
+`jadx --deobf` only invents synthetic names; metadata recovery restores the
+developer-written ones when the metadata survived.
 
 ## Fingerprint debugging
 
@@ -104,9 +111,9 @@ When a fingerprint stops matching, work through this order:
    fingerprint was written for.
 2. **Read smali fresh.** Find the class across all DEX dirs
    (`find smali/ -name … | xargs rg -l <sdk-call>`), read the method, and compare
-   field-by-field: return type (last char of the header), access flags (**exact** —
-   `public static` ≠ `public static final`), full parameter descriptors (SDK package
-   paths move, e.g. `…/purchases/CustomerInfo` → `…/purchases/models/CustomerInfo`),
+   field-by-field: return type (the descriptor after `)` in the header), access flags
+   (**exact** — `public static` ≠ `public static final`), full parameter descriptors
+   (SDK package paths move, e.g. `…/purchases/CustomerInfo` → `…/purchases/models/CustomerInfo`),
    filter order vs instruction order.
 3. **R8 code motion?** Small methods get inlined into callers or split — patch the
    caller / the split method instead.
@@ -119,8 +126,11 @@ When a fingerprint stops matching, work through this order:
 Incremental technique: start from `returnType` alone, add access flags, then params,
 then filters one by one until the match is unique — you'll find the lying field fast.
 
-Evidence bar: a release patch SHOULD have two independent confirmations — static smali quote + one dynamic
-observation (`reverse-engineering.md` §3.6 Frida log). Static-only is draft status: fine for a work-in-progress, not for a release patch.
+Evidence bar: runtime gates SHOULD have two independent confirmations — a static
+smali quote plus one dynamic observation (see
+[dynamic confirmation](reverse-engineering.md#dynamic-confirmation-for-runtime-gates)).
+Pure static gates may ship on smali evidence alone; anything else static-only is
+draft status, not a release patch.
 
 Also remember: `instructionMatches` requires `filters`; `strings` matches
 method-level (not class-level) content — use `classFingerprint` when you need the

@@ -1,7 +1,7 @@
 # Reverse engineering workflow
 
 How to go from an APK file to a working patch in this repo.
-Companion doc: `fingerprint-guide.md` (writing the actual fingerprint + patch code).
+Companion doc: [fingerprint guide](fingerprint-guide.md) (writing the actual fingerprint + patch code).
 
 ## Pipeline
 
@@ -12,47 +12,43 @@ RECON → DECOMPILE → HUNT → WRITE → TEST
 | Stage | Question | Output |
 | ----- | -------- | ------ |
 | Recon | What app is this? | Identity + protections + framework notes |
-| Decompile | What does it do? | `decompiled/` (jadx Java) + `smali/` (baksmali) |
+| Decompile | What does it do? | `decompiled/` (jadx Java) + `smali/` (apktool) |
 | Hunt | Where is the check? | Smali-verified target (class, method, instruction sequence) |
 | Write | How to bypass it? | `Fingerprints.kt` + `*Patch.kt` under `patches/src/main/kotlin/com/zeldrisho/threads/patches/` |
 | Test | Does it match? | `./gradlew buildAndroid`, then apply the `.mpp` in Morphe Desktop |
 
-Keep per-app work outside this repo (e.g. a sibling `analysis/<app>/` folder with
-`apk/`, `decompiled/`, `smali/`, `notes/`). Only the `.kt` patch sources live here.
+Analysis work lives **outside this repo** in a sibling directory (for example
+`../analysis/<app>/` with `apk/`, `decompiled/`, `smali/`, `notes/`). Only the
+`.kt` patch sources live here. Command examples below use
+`<analysis>/<app>/...` for that sibling workspace, whatever its absolute path is.
 
 ## Tools
 
-> Install columns reflect THIS dev box (Fedora WSL + Homebrew + uv + Android SDK in
-> `~/Android/Sdk`). Debian/Ubuntu equivalents are in parentheses where they differ.
+See [toolchain setup](toolchain.md) for the complete inventory and install commands
+for Fedora WSL and macOS, including fish PATH setup and the `uv tool` versus `uvx`
+decision. Morphe Desktop's CLI mode applies `.mpp` bundles;
+`morphe-cli.jar` is only this repo's local filename alias for the Desktop JAR.
 
-| Tool | Purpose | Install (this box) |
-| ---- | ------- | ------- |
-| `aapt2`/`aapt` | Package, version, SDK levels from an APK | Android SDK build-tools: `android sdk install build-tools/36.1.0` → `~/Android/Sdk/build-tools/36.1.0/` (on PATH via `fish_add_path`) |
-| `apkid` | Obfuscator / packer / anti-debug / anti-VM detection | `uvx apkid` |
-| `jadx` | APK → Java source | `brew install jadx` (Debian: `apt install jadx`) |
-| `baksmali` | DEX → smali bytecode | not installed here — `apktool d` covers smali extraction (Debian: `apt install libsmali-java`) |
-| `apktool` | Decode / rebuild resources (rarely needed — prefer `bytecodePatch`) | `brew install apktool` (Debian: `apt install apktool`) |
-| `rg` | Fast search over decompiled output | `dnf install ripgrep` |
-| `strings` | DEX string extraction (`apk-recon.sh` stack signals) | not installed here (`dnf install binutils`) |
-| `python3` | Kotlin name-recovery mapping (`recover-kotlin-names.sh`) | brew (preinstalled) |
-| `kaggle` | Remote-decompile uploads (large APKs only) | `uvx kaggle` / `pipx install kaggle` |
-| `adb` | Install patched APK on device | Android SDK platform-tools: `android sdk install platform-tools` → `~/Android/Sdk/platform-tools/adb` (dnf `android-tools` was uninstalled on this box) |
-| `frida-tools` | Dynamic confirmation (§3.6): list processes, inject hooks | `uv tool install frida-tools` (gives `frida`, `frida-ps` in `~/.local/bin`; needs `frida-server`/gadget on device) |
-| `objection` | One-command pinning/root bypass triage (§3.6) | `pipx install objection` / `uvx objection` |
-| `morphe-cli` | Apply `.mpp` bundles, list patches, install patched APK | `~/.local/bin/morphe-cli` (jar `~/.local/bin/morphe-cli.jar` + wrapper; `scripts/repatch.sh` default) |
-| `android` (android-cli) | SDK install/list/info (`android sdk install …`) | Homebrew cask `android-cli`; SDK root `~/Android/Sdk` (`ANDROID_HOME` in fish) |
-
-`scripts/apk-recon.sh` wraps the recon step (Phase-0 triage: framework, HTTP/DI/billing
-stack signals via DEX strings, obfuscation estimate, split-aware native libs, recommended
-next step); `scripts/extract-smali.sh` wraps the
+`scripts/apk-recon.sh` wraps the recon step (framework, HTTP/DI/billing
+stack signals via DEX strings, obfuscation estimate, split-aware native libs,
+recommended next step); `scripts/extract-smali.sh` wraps the
 DEX → smali step (including split `.apkm`/`.xapk` handling);
 `scripts/hunt-signals.sh <decompiled|smali>` counts protection/billing/ads/Ktor/Koin
 signals in one pass before hunting; `scripts/recover-kotlin-names.sh <decompiled>`
 rebuilds obfuscated → real Kotlin class names from `@DebugMetadata`/`@Metadata`.
 
-## 1. Recon
+## Recon
 
-Run `scripts/apk-recon.sh <file.apk>` (or do it manually):
+Get the original split bundle only from [APKMirror](https://www.apkmirror.com/).
+Record the download page URL and input SHA-256 alongside versionCode and ABI.
+Run `scripts/apk-recon.sh` (bash; on macOS invoke with Homebrew `bash`, as explained in
+[toolchain setup](toolchain.md#1-python-and-host-tools)):
+
+```bash
+bash scripts/apk-recon.sh <analysis>/<app>/apk/<app>_<version>.apkm
+```
+
+Manual equivalent:
 
 1. `aapt dump badging <apk>` — package, version, versionCode, SDK levels, label, launch activity.
 2. `aapt dump xmltree <apk> AndroidManifest.xml | rg -i 'split|requiredSplit'` — split-APK detection.
@@ -66,23 +62,26 @@ Run `scripts/apk-recon.sh <file.apk>` (or do it manually):
    DEX strings — `apk-recon.sh` does all of this automatically).
 6. Record native-lib architectures and notable permissions (billing, internet, etc.).
 7. Note HTTP/DI/billing stack signals from the recon report (Retrofit/OkHttp/Ktor/Apollo,
-   Hilt/Koin, RevenueCat/Adapty/Play Billing) — they pick the hunt patterns in §3.
+   Hilt/Koin, RevenueCat/Adapty/Play Billing) — they pick the hunt patterns in
+   [Hunt targets](#hunt-targets).
 
-Save as `analysis/<app>/notes/recon.md` (rename the APK to `<app>_<version>.<ext>`).
+Save as `<analysis>/<app>/notes/recon.md` (rename the APK to `<app>_<version>.<ext>`).
 
-## 2. Decompile
+## Decompile
 
 ```bash
-jadx -d analysis/<app>/decompiled <apk>
-scripts/extract-smali.sh analysis/<app>/apk/<app>_<version>.apk analysis/<app>/smali
+jadx -d <analysis>/<app>/decompiled <analysis>/<app>/apk/<app>_<version>.apkm
+bash scripts/extract-smali.sh <analysis>/<app>/apk/<app>_<version>.apkm <analysis>/<app>/smali
 ```
 
-Remote decompilation (large APKs — local jadx OOMs):
+### Remote decompilation for large APKs
+
+Local jadx can OOM on large APKs:
 
 ```bash
 KAGGLE_API_TOKEN=... KAGGLE_KERNEL_ID=user/jadx-apk-decompiler \
-  scripts/remote-decompile.sh "<direct-apk-url>" analysis/<app>/
-cd analysis/<app> && unzip *_decompiled.zip -d decompiled/
+  bash scripts/remote-decompile.sh "<direct-apk-url>" <analysis>/<app>/
+cd <analysis>/<app> && unzip *_decompiled.zip -d decompiled/
 ```
 
 Needs the `kaggle` CLI plus a private Kaggle notebook with internet access.
@@ -97,78 +96,78 @@ Notes:
 - Always extract smali from **all** DEX files; the class you need is often in
   `classes2.dex` or later, not `classes.dex`.
 
-## 3. Hunt (find targets)
+## Hunt targets
 
 Search in a fixed order — protections first, because an integrity/root check will
 break testing of everything else. Start with a one-pass triage:
 
 ```bash
-scripts/hunt-signals.sh analysis/<app>/decompiled [--files]
+bash scripts/hunt-signals.sh <analysis>/<app>/decompiled [--files]
 ```
 
-Then work the buckets below (highest signal first). These patterns are embedded
-in `scripts/hunt-signals.sh` above — the script is the canonical copy; when a
-pattern changes, update both places:
+`scripts/hunt-signals.sh` is the canonical pattern list. The buckets below
+summarize intent only; read the script for exact expressions. When a pattern
+changes, update the script first, then the recipe that motivated the change in
+[bypass patterns](bypass-patterns.md).
 
-0. **BuildConfig sweep** (almost never obfuscated — base URLs, flavors, keys):
-   `rg 'BASE_URL|API_URL|FLAVOR|API_KEY' -g 'BuildConfig.java' analysis/<app>/decompiled`
-   Read every hit; each Gradle module emits its own file.
+- **BuildConfig sweep** (usually not obfuscated — base URLs, flavors, keys):
+  search `BuildConfig.java` files for base URLs, flavors, and API keys.
+  Read every hit; each Gradle module emits its own file.
+- **Protections** — integrity/license, signature verification, root, pinning.
+- **Billing SDK detection** — tells you which bypass recipe applies
+  (RevenueCat, Adapty, Play Billing, LVL, local gates, remote config).
+- **SDK-specific search** — entitlement chains, purchase queries, or local
+  `isPremium`-style fallbacks.
+- **Ads** — `load`/`show`/`initialize` entry points. SDK class names are stable;
+  app class names are not.
+- **Feature gates** — remote-config and feature-flag reads.
+- **Modern Kotlin stacks** (when Retrofit patterns miss — KMP/Kotlin-only apps):
+  Ktor, Apollo, Koin, and request-signing signals.
 
-1. **Protections** — integrity/license, signature verification, root, pinning:
-   `pairip|PairIp|PlayIntegrity|IntegrityManager|processLicenseResponse`,
-   `GET_SIGNATURES|checkSignature|verifySignature`,
-   `isRooted|checkRoot|RootBeer|magisk|Superuser`,
-   `CertificatePinner|TrustManager|checkServerTrusted|HostnameVerifier`
-2. **Billing SDK detection** — tells you which pattern applies:
-   `revenuecat|adapty|qonversion|superwall|BillingClient|LicenseChecker`
-3. **SDK-specific search** — e.g. RevenueCat: `CustomerInfo|EntitlementInfos|getActive|getEntitlements`;
-   Play Billing: `queryPurchases|isAcknowledged`; local fallback:
-   `isPro|isPremium|isSubscribed|hasPremium`.
-4. **Ads** — `showAd|loadAd|interstitial|MobileAds|AdRequest|UnityAds|AppLovin|IronSource`;
-   per-SDK load/show/initialize methods (SDK class names are stable, app class names are not).
-5. **Feature gates** — `RemoteConfig|getBoolean|featureFlag|isFeatureEnabled`.
-6. **Modern Kotlin stacks** (when Retrofit patterns miss — KMP/Kotlin-only apps):
-   Ktor `client.get\(|client.post\(|defaultRequest|BearerTokens|loadTokens|refreshTokens`,
-   Apollo `serverUrl|OPERATION_DOCUMENT`, Koin `module {|single<|factory<|by inject`,
-   request signing `HmacSHA|SecretKeySpec|x-signature|computeSignature`.
+### Recover Kotlin names for obfuscated Kotlin apps
 
-### 3.5 Recover Kotlin names (obfuscated Kotlin apps only)
-
-R8 renames JVM symbols but cannot strip `@DebugMetadata(c="…")` / `@Metadata(d2)`
-strings. Before tracing call flows, rebuild the real names:
+R8 renames JVM symbols, but builds that keep `@DebugMetadata`/`@Metadata` strings
+leave a trail back to the original names. (Stripped or DexGuard-style builds may
+not; treat recovery coverage as best-effort.) Before tracing call flows, rebuild
+the real names:
 
 ```bash
-scripts/recover-kotlin-names.sh analysis/<app>/decompiled analysis/<app>/mapping
-# → mapping.tsv / mapping.json / by_package/; typically ~100% of
-# *Repository/*ViewModel/*UseCase/*Impl, ~80% of DTOs
+bash scripts/recover-kotlin-names.sh <analysis>/<app>/decompiled <analysis>/<app>/mapping
+# → mapping.tsv / mapping.json / by_package/
 ```
 
 Use the mapping to *find* classes (never to *match* — fingerprints still anchor on
-SDK calls/strings/opcodes per `fingerprint-guide.md`). `jadx --deobf` alone is not
-equivalent: it invents synthetic names instead of recovering the originals.
+SDK calls/strings/opcodes per the [fingerprint guide](fingerprint-guide.md)).
+`jadx --deobf` alone is not equivalent: it invents synthetic names instead of
+recovering the originals.
 
 Obfuscation-resistant fallback: when call sites inline to `a.b(c, "…")`, grep the
-path literals themselves — R8 never obfuscates string contents:
+path literals themselves — R8 does not obfuscate string contents:
 
 ```bash
-rg -o '"(/[A-Za-z0-9_{}.\-]+(/[A-Za-z0-9_{}.\-]+)+/?)"' analysis/<app>/decompiled -g '*.java'
+rg -o '"(/[A-Za-z0-9_{}.\-]+(/[A-Za-z0-9_{}.\-]+)+/?)"' <analysis>/<app>/decompiled -g '*.java'
 ```
 
-### 3.6 Dynamic confirmation (Frida — SHOULD for runtime gates)
+### Dynamic confirmation for runtime gates
 
 Static locates, dynamic confirms. For runtime gates (pinning, root, signature,
-request signing) SHOULD confirm the candidate actually runs before freezing a
-fingerprint; for pure static string gates it stays optional. Pattern: log-first
-static→dynamic loop — observe parameters + return values, mutate second.
+request signing), confirm the candidate actually runs before freezing a
+fingerprint. For pure static string gates (feature flags, manifest-gated ad SDK
+entry points), static smali evidence alone is acceptable; dynamic confirmation
+stays recommended but optional.
 
 Prerequisites: USB debugging on, target device visible via `adb`, `frida-server`
-matching the device ABI running; stop with `Ctrl-C` / `adb kill-server` (no device
-state is modified by the hooks below).
+matching the device ABI running. Stop with `Ctrl-C` (no device state is modified
+by the hooks below). Setup lives in [toolchain setup](toolchain.md#python-applications-persistent-tools-versus-one-shot-runs).
 
 ```bash
 adb devices && frida-ps -U                 # device + target process visible
-frida -U -f com.target.app -l hook.js --no-pause   # spawn early, don't attach late
+frida -U -f com.target.app -l hook.js --pause   # spawn early, don't attach late
 ```
+
+`--pause` leaves the main thread paused after spawning; omit it to let the app
+run immediately. If the installed Frida CLI reports a different flag set, check
+`frida --help` on that host before scripting it.
 
 Minimal hooks (log first, mutate only after you see traffic):
 
@@ -204,45 +203,49 @@ Java.perform(function() {
 // Pinning triage: try one-click first, hand-roll only on failure (same command as below)
 ```
 
-Order: `objection --gadget com.target.app explore -s "android sslpinning disable"` → generic unpinning script
+Order: `uvx objection --gadget com.target.app explore -s "android sslpinning disable"` → generic unpinning script
 (`CertificatePinner.check` + `TrustManagerImpl.verifyChain` +
 `HostnameVerifier.verify`) → hand-written hook for the app's exact class found in
-§3. If the app exits on inject, suspect anti-Frida (port/file self-check) — switch
+[Hunt targets](#hunt-targets). If the app exits on inject, suspect anti-Frida (port/file self-check) — switch
 to `frida-gadget`/Zygisk rather than grinding more static patterns. Log the
 confirmed class/method/args into `notes/<topic>.md` alongside the smali quote;
-a fingerprint with static smali + one dynamic observation outlives refactors that
-kill static-only guesses.
+a fingerprint with static smali plus one dynamic observation outlives refactors
+that kill static-only guesses for runtime gates.
 
-### 3.7 Smali verification (mandatory — always, even with dynamic confirmation)
+### Smali verification is mandatory
 
 Never trust jadx output alone — it mis-decompiles obfuscated code. For every candidate:
 
-1. Find the smali file across **all** DEX dirs: `find analysis/<app>/smali -name '<ClassName>.smali'`.
+1. Find the smali file across **all** DEX dirs: `find <analysis>/<app>/smali -name '<ClassName>.smali'`.
 2. Read the exact method: `rg -B 2 -A 50 '\.method.*<methodName>' <file>`.
-3. Record: access flags, return type, full parameter descriptors, register count,
-   invoke sequence **in order**, and which DEX it came from.
+3. Record: access flags, return type (the descriptor after `)` in the method header),
+   full parameter descriptors, register count, invoke sequence **in order**, and which
+   DEX it came from.
 4. If Java and smali disagree, **trust smali**.
-5. Write the finding down (`analysis/<app>/notes/<topic>.md`) with the smali evidence
+5. Write the finding down (`<analysis>/<app>/notes/<topic>.md`) with the smali evidence
    quoted, plus a fingerprint strategy (which stable strings/calls to match on —
-   see `fingerprint-guide.md`). Unverified findings are not ready for patch-writing.
+   see the [fingerprint guide](fingerprint-guide.md)). Unverified findings are not ready for patch-writing.
 
-## 4. Write
+## Write the patch
 
-Covered in `fingerprint-guide.md` and `development.md`. The handoff from hunting is:
+Covered in the [fingerprint guide](fingerprint-guide.md) and
+[patch development](patch-development.md). The handoff from hunting is:
 
-- Fully qualified class + exact smali method signature (§3.7, mandatory).
+- Fully qualified class + exact smali method signature ([smali verification](#smali-verification-is-mandatory), mandatory).
 - Ordered instruction sequence (invoke calls / const-strings).
-- Dynamic confirmation for runtime gates (Frida log of class/method/args, §3.6, SHOULD); static-only is draft status.
-- Suggested bypass (`returnEarly(true)`, instruction override, etc.).
+- Dynamic confirmation for runtime gates (Frida log of class/method/args,
+  [dynamic confirmation](#dynamic-confirmation-for-runtime-gates)); static-only is
+  acceptable for pure static gates, draft status otherwise.
+- Suggested bypass (`addInstructions` override, instruction replacement, etc.).
 
-## 5. Test
+## Test the patch
 
 ```bash
 ./gradlew buildAndroid
 ```
 
 Check the patch is registered (`list-patches` in Morphe Desktop/CLI against
-`patches/build/libs/patches-*.mpp`), apply to the **original** APK (never an
-extracted `base.apk`), install via `adb install -r`. If a fingerprint fails to
+`patches/build/libs/patches-*.mpp`), apply to the **downloaded split bundle**
+(never an extracted `base.apk`), install via `adb install -r`. If a fingerprint fails to
 match, go back to the hunt step and re-verify smali — the app version probably
 moved the code.

@@ -2,6 +2,7 @@ package app.morphe.extension.tiktok.featuregatelab;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -12,6 +13,7 @@ import app.morphe.extension.tiktok.settings.SettingsStatus;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,15 +43,35 @@ public class FeatureGateLabBoundaryTest {
         SettingsManagerObservationRecorder.clear();
         FeatureGateLabStore.resetAllLabData();
         FeatureGateLabRuntime.clearTriggered();
+        FeatureGateLabRuntime.clearCatalogRequestForTests();
         FeatureGateLabRuntime.reloadRules();
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
         FeatureGateLearnMode.cancel();
         SettingsManagerObservationRecorder.clear();
         FeatureGateLabStore.resetAllLabData();
+        // A load one of these asked for has to be finished with before the cache is cleared, or
+        // it lands in the middle of the next test and the catalogue appears from nowhere.
+        FeatureGateCatalog.awaitForTests();
+        FeatureGateCatalog.resetForTests();
         SettingsStatus.featureGateRecorderEnabled = recorderEnabled;
+    }
+
+    /** Publishes a catalogue the runtime can consult without the Lab's screen loading one. */
+    private static void publishCatalog(FeatureGateCatalog.Entry... entries) throws Exception {
+        java.util.Map<String, FeatureGateCatalog.Entry> byIdentity = new java.util.HashMap<>();
+        for (FeatureGateCatalog.Entry entry : entries) byIdentity.put(entry.identity(), entry);
+        var field = FeatureGateCatalog.class.getDeclaredField("cachedSnapshot");
+        field.setAccessible(true);
+        field.set(null, new FeatureGateCatalog.Snapshot(
+                List.of(entries), byIdentity, entries.length, 0L, true));
+    }
+
+    private static FeatureGateCatalog.Entry abEntry(String key, String type) {
+        return new FeatureGateCatalog.Entry(key, key, FeatureGateLabStore.MANAGER_ABMOCK, type,
+                true, true, List.of(), List.of(), List.of(), "", "", false, null, null);
     }
 
     @Test
@@ -135,6 +157,150 @@ public class FeatureGateLabBoundaryTest {
     }
 
     @Test
+    public void aRuleTheCatalogueDisagreesWithIsNotHandedToTheHost() throws Exception {
+        // The one path with no runtime type to check against: TikTok's cached value is null, so
+        // the rule is found by key alone. A STRING rule on a key the host reads as a number used
+        // to be handed straight back, and the ClassCastException landed in TikTok's own frame.
+        publishCatalog(abEntry("mistyped_gate", "INT"), abEntry("agreed_gate", "INT"));
+        FeatureGateLabStore.saveRule(FeatureGateLabStore.MANAGER_ABMOCK, "mistyped_gate",
+                "STRING", "not a number", true);
+        FeatureGateLabStore.saveRule(FeatureGateLabStore.MANAGER_ABMOCK, "agreed_gate",
+                "INT", "7", true);
+        FeatureGateLabStore.setMasterEnabled(true);
+
+        assertNull("a String was handed back for a key the catalogue calls INT",
+                FeatureGateLabRuntime.overrideRawAbValue("mistyped_gate", null, false));
+        assertFalse(FeatureGateLabRuntime.isTriggered(
+                FeatureGateLabStore.MANAGER_ABMOCK, "mistyped_gate", "STRING"));
+        assertEquals("the refusal was not reported anywhere", "Catalogue says INT, this rule is STRING",
+                FeatureGateLabRuntime.structuredFailure(
+                        FeatureGateLabStore.MANAGER_ABMOCK, "mistyped_gate", "STRING"));
+
+        // The positive control: a rule the catalogue agrees with still reaches the host, so the
+        // check is refusing the mistyped rule rather than the whole path.
+        assertEquals(7, FeatureGateLabRuntime.overrideRawAbValue("agreed_gate", null, false));
+        assertTrue(FeatureGateLabRuntime.isTriggered(
+                FeatureGateLabStore.MANAGER_ABMOCK, "agreed_gate", "INT"));
+    }
+
+    @Test
+    public void aKeyTheCatalogueHasNeverHeardOfKeepsTikTokValue() throws Exception {
+        // With a loaded catalogue that does not carry the key there is nothing to check the type
+        // against, so the rule is refused and the host keeps the value it had. Until the Lab's
+        // screen loads a catalogue there is nothing to consult and the rule applies, which is
+        // what withNoCatalogueLoadedTheRuleStillApplies pins.
+        publishCatalog(abEntry("known_gate", "INT"));
+        FeatureGateLabStore.saveRule(FeatureGateLabStore.MANAGER_ABMOCK, "stranger_gate",
+                "INT", "3", true);
+        FeatureGateLabStore.setMasterEnabled(true);
+
+        assertNull(FeatureGateLabRuntime.overrideRawAbValue("stranger_gate", null, false));
+        assertFalse(FeatureGateLabRuntime.isTriggered(
+                FeatureGateLabStore.MANAGER_ABMOCK, "stranger_gate", "INT"));
+    }
+
+    @Test
+    public void withNoCatalogueLoadedTheRuleStillApplies() {
+        // The Lab's screen is what loads the catalogue, so on a process where it has never been
+        // opened there is nothing to consult and the fallback works as it always did.
+        FeatureGateLabStore.saveRule(FeatureGateLabStore.MANAGER_ABMOCK, "early_gate",
+                "INT", "5", true);
+        FeatureGateLabStore.setMasterEnabled(true);
+
+        assertNull("the test started with a catalogue loaded", FeatureGateCatalog.cachedSnapshot());
+        assertEquals(5, FeatureGateLabRuntime.overrideRawAbValue("early_gate", null, false));
+    }
+
+    @Test
+    public void withNoCatalogueLoadedTheFallbackAsksForOneSoTheNextReadIsChecked() throws Exception {
+        // The check could only refuse a rule while the catalogue happened to be loaded, and
+        // nothing loaded it until the Lab's own screen was opened in that process, so on a fresh
+        // launch the fallback behaved exactly as it had before the check existed.
+        FeatureGateLabStore.saveRule(FeatureGateLabStore.MANAGER_ABMOCK, "stranger_gate",
+                "STRING", "not a number", true);
+        FeatureGateLabStore.setMasterEnabled(true);
+        assertNull("the test started with a catalogue loaded", FeatureGateCatalog.cachedSnapshot());
+
+        // This one read still has nothing to check against, and applies the rule as it always did.
+        assertEquals("not a number",
+                FeatureGateLabRuntime.overrideRawAbValue("stranger_gate", null, false));
+
+        FeatureGateCatalog.awaitForTests();
+        FeatureGateCatalog.Snapshot loaded = FeatureGateCatalog.cachedSnapshot();
+        assertNotNull("the fallback did not ask for the catalogue", loaded);
+
+        // The branch this whole check exists for, reached without the Lab screen ever opening:
+        // a key the catalogue does carry, with a rule whose type it disagrees with. Taken from
+        // the catalogue that was just loaded rather than named here, so this keeps meaning the
+        // same thing when the catalogue is regenerated.
+        FeatureGateCatalog.Entry known = anAbEntry(loaded);
+        String wrongType = "BOOLEAN".equals(FeatureGateLabStore.normalizeType(known.type))
+                ? "STRING" : "BOOLEAN";
+        FeatureGateLabStore.saveRule(
+                FeatureGateLabStore.MANAGER_ABMOCK, known.key, wrongType, "true", true);
+        assertNull("a rule the catalogue disagrees with was handed to the host",
+                FeatureGateLabRuntime.overrideRawAbValue(known.key, null, false));
+        assertTrue("the refusal did not say the catalogue disagreed: "
+                        + FeatureGateLabRuntime.structuredFailure(
+                                FeatureGateLabStore.MANAGER_ABMOCK, known.key, wrongType),
+                String.valueOf(FeatureGateLabRuntime.structuredFailure(
+                        FeatureGateLabStore.MANAGER_ABMOCK, known.key, wrongType))
+                        .startsWith("Catalogue says "));
+
+        // And a key it has never heard of is refused for the other reason.
+        assertNull(FeatureGateLabRuntime.overrideRawAbValue("stranger_gate", null, false));
+    }
+
+    /** Any AB entry the loaded catalogue carries, so the type check has something real to read. */
+    private static FeatureGateCatalog.Entry anAbEntry(FeatureGateCatalog.Snapshot loaded) {
+        for (FeatureGateCatalog.Entry entry : loaded.entries) {
+            if (FeatureGateLabStore.MANAGER_ABMOCK.equals(entry.manager)
+                    && entry.type != null && !entry.type.isEmpty()) {
+                return entry;
+            }
+        }
+        throw new AssertionError("the loaded catalogue carries no AB entry to check against");
+    }
+
+    @Test
+    public void aLowercaseTypeStillMatchesOnATurkishPhone() throws Exception {
+        // The Lab's own exports write the type in capitals, so this needs a profile from
+        // somewhere else. Turkish capitalises a dotless i to a dotted one, so "int" folded under
+        // the phone's locale is a different string from the "INT" the catalog folds to, and the
+        // rule is dropped as a type mismatch on that phone alone.
+        Locale previous = Locale.getDefault();
+        Locale.setDefault(new Locale("tr", "TR"));
+        try {
+            FeatureGateCatalog.Entry entry = new FeatureGateCatalog.Entry(
+                    "turkish_gate", "Turkish gate", FeatureGateLabStore.MANAGER_ABMOCK, "INT",
+                    true, true, List.of(), List.of(), List.of(), "", "", false, null, null);
+            JSONObject root = new JSONObject()
+                    .put("schema", 1)
+                    .put("target", "TikTok global")
+                    .put("tiktok_version", FeatureGateLabStore.TARGET_VERSION)
+                    .put("rules", new org.json.JSONArray().put(new JSONObject()
+                            .put("manager", FeatureGateLabStore.MANAGER_ABMOCK)
+                            .put("key", "turkish_gate")
+                            .put("type", "int")
+                            .put("value", "7")));
+
+            FeatureGateLabStore.ImportReview review = FeatureGateLabStore.reviewProfile(
+                    root.toString(), Map.of(entry.identity(), entry));
+            assertEquals("a lowercase type was rejected: " + review.rejected,
+                    1, review.accepted.size());
+
+            FeatureGateLabUndo.importRules(review);
+            FeatureGateLabStore.saveRule(FeatureGateLabStore.MANAGER_ABMOCK, "turkish_gate",
+                    "int", "7", true);
+            FeatureGateLabStore.setMasterEnabled(true);
+            assertEquals("the imported rule never reached the boundary",
+                    7, FeatureGateLabRuntime.overrideInt("turkish_gate", 1));
+        } finally {
+            Locale.setDefault(previous);
+        }
+    }
+
+    @Test
     public void recorderStopsWhenDisabledAndStartsWithAFreshReadSet() throws Exception {
         String key = "toggle_" + System.nanoTime();
         FeatureGateLearnMode.cancel();
@@ -202,5 +368,116 @@ public class FeatureGateLabBoundaryTest {
         assertNull(FeatureGateLabStore.validateValue("OBJECT", "{\"enable\":true}"));
         assertEquals("select at least one field",
                 FeatureGateLabStore.validateValue("OBJECT", "{}"));
+    }
+
+    @Test
+    public void aKeyReadWithoutADefaultIsOnlyWalkedOnce() {
+        // A key TikTok only ever reads through the no-default getter never lands in the
+        // default-wrapper set, so this path used to capture a full stack trace on every read of
+        // it, forever, on whatever thread the host reads settings from.
+        SettingsManagerObservationRecorder.clear();
+        SettingsManagerObservationRecorder.wrapperWalks = 0;
+
+        for (int read = 0; read < 500; read++) {
+            SettingsManagerObservationRecorder.observeWithoutDefault(
+                    "gate_read_without_default", Boolean.class, Boolean.TRUE);
+        }
+        assertEquals("the stack was walked on every read of one key",
+                1, SettingsManagerObservationRecorder.wrapperWalks);
+
+        // A second key is its own answer, so the cache is per key rather than a latch.
+        SettingsManagerObservationRecorder.observeWithoutDefault(
+                "another_gate_read", Boolean.class, Boolean.TRUE);
+        assertEquals("a different key reused the first key's answer",
+                2, SettingsManagerObservationRecorder.wrapperWalks);
+    }
+
+    @Test
+    public void aRuleSavedWhileTheSnapshotIsBuildingIsNotLost() {
+        // A gate thread reads the rules to build its snapshot; the UI thread saves a rule and
+        // clears the snapshot; the gate thread then publishes the rules it read before the save,
+        // and the new rule stays invisible until something else happens to reload. The hook
+        // creates that overlap from inside the build.
+        FeatureGateLabStore.setMasterEnabled(true);
+        FeatureGateLabRuntime.reloadRules();
+        FeatureGateLabRuntime.rulesReadHook = () -> {
+            FeatureGateLabRuntime.rulesReadHook = null;
+            FeatureGateLabStore.saveRule("abmock", "saved_mid_build", "BOOLEAN", "true", true);
+        };
+        try {
+            FeatureGateLabRuntime.overrideBoolean("saved_mid_build", false);
+        } finally {
+            FeatureGateLabRuntime.rulesReadHook = null;
+        }
+
+        assertTrue("the rule saved while the snapshot was building never took effect",
+                FeatureGateLabRuntime.overrideBoolean("saved_mid_build", false));
+    }
+
+    @Test
+    public void gateReadsBeforeTikTokHandsOverAContextDoNotKeepTakingTheMonitor() throws Exception {
+        // Before Utils has a context the snapshot could not be built, and a null was rebuilt on
+        // every read, so every gate read on every thread went through the class monitor at the
+        // point in start-up where the host reads gates hardest.
+        java.lang.reflect.Field held = Utils.class.getDeclaredField("context");
+        held.setAccessible(true);
+        Object previous = held.get(null);
+        try {
+            held.set(null, null);
+            FeatureGateLabRuntime.reloadRules();
+            FeatureGateLabRuntime.snapshotMonitorEntries = 0;
+            for (int read = 0; read < 1000; read++) {
+                FeatureGateLabRuntime.overrideBoolean("read_before_context", true);
+            }
+            assertTrue("1,000 gate reads with no context took the monitor more than once",
+                    FeatureGateLabRuntime.snapshotMonitorEntries <= 1);
+        } finally {
+            held.set(null, previous);
+        }
+
+        // And the snapshot built without a context does not outlive it, which would leave every
+        // rule dead for the rest of the process.
+        FeatureGateLabRuntime.snapshotMonitorEntries = 0;
+        FeatureGateLabRuntime.overrideBoolean("read_before_context", true);
+        assertTrue("the snapshot from before the context arrived was never rebuilt",
+                FeatureGateLabRuntime.snapshotMonitorEntries > 0);
+    }
+
+    @Test
+    public void aSwitchedOffRecorderTakesNoLockOnTheGateReadPath() throws Exception {
+        // The Lab's boundaries run for every AB, live settings and player config read TikTok
+        // makes, on whatever thread makes it, and the Recorder patch that gives them something
+        // to do ships off. Taking the class monitor before checking that put all of it behind
+        // one lock.
+        SettingsStatus.featureGateRecorderEnabled = false;
+        FeatureGateLearnMode.cancel();
+        FeatureGateLearnMode.monitorEntries = 0;
+
+        int threads = 8;
+        int callsPerThread = 1250;
+        ExecutorService pool = Executors.newFixedThreadPool(threads);
+        try {
+            List<java.util.concurrent.Future<?>> running = new ArrayList<>();
+            for (int thread = 0; thread < threads; thread++) {
+                running.add(pool.submit(() -> {
+                    for (int call = 0; call < callsPerThread; call++) {
+                        FeatureGateLabRuntime.overrideBoolean("gate_read_under_load", true);
+                    }
+                }));
+            }
+            for (java.util.concurrent.Future<?> task : running) {
+                task.get(60, TimeUnit.SECONDS);
+            }
+        } finally {
+            pool.shutdownNow();
+        }
+        assertEquals("10,000 gate reads with the Recorder off still serialised on the monitor",
+                0, FeatureGateLearnMode.monitorEntries);
+
+        // The counter is live, so the zero above is a measurement rather than a dead field.
+        SettingsStatus.featureGateRecorderEnabled = true;
+        FeatureGateLabRuntime.overrideBoolean("gate_read_under_load", true);
+        assertTrue("the counter never moves, so it cannot show the monitor being taken",
+                FeatureGateLearnMode.monitorEntries > 0);
     }
 }

@@ -1,11 +1,12 @@
 # Bypass patterns
 
-Starting points for common patch goals, distilled from community patch repos.
+Optional starting recipes for common patch goals, distilled from community patch repos.
 Always confirm against the target app's smali before writing a fingerprint
-(`reverse-engineering.md` §3); adapt register use to the method (`bytecode-reference.md`).
-Search strings here mirror the `scripts/hunt-signals.sh` buckets — the script is
-the canonical copy; when a pattern changes, update all three places
-(`hunt-signals.sh`, `reverse-engineering.md` §3, this doc).
+(see [hunt targets](reverse-engineering.md#hunt-targets)); adapt register use to the method
+(see [bytecode reference](bytecode-reference.md)).
+
+`scripts/hunt-signals.sh` owns the exact search expressions. The tables below name
+the signal family only; do not copy expressions from here into scripts.
 
 ## Which billing system? (decision guide)
 
@@ -22,7 +23,7 @@ Complex license object → injected factory method + redirect
 
 | System | Approach |
 | ------ | -------- |
-| RevenueCat | Match the `CustomerInfo → getEntitlements → getActive` chain, `returnEarly(true)` |
+| RevenueCat | Match the `CustomerInfo → getEntitlements → getActive` chain, override to allowed |
 | Play Billing | Override the purchase check or force `BillingResponseCode.OK (0)` |
 | Integrity/license, client-side | Zero the license response code, short-circuit the validator (never beats server attestation) |
 | Prefs flag | Override the `isPremium`-style getter |
@@ -32,10 +33,10 @@ Complex license object → injected factory method + redirect
 
 ## Ads (per SDK)
 
-1. Detect: `rg "AdMob|Unity|AppLovin|Mintegral|Pangle|Vungle|Yandex|TopOn|Bigo|MyTarget|AudienceNetwork"`.
-2. Per SDK found, neutralize its `load/show/initialize` entry points on the SDK's
+1. Run `scripts/hunt-signals.sh` and work the `ads` bucket it reports.
+2. Per SDK found, neutralize its `load`/`show`/`initialize` entry points on the SDK's
    well-known (non-obfuscated) classes — e.g. AdMob banner/interstitial/native/rewarded/app-open
-   loaders, Unity `initialize/isInitialized/load/show`, Meta `loadAd/show`, and so on.
+   loaders, Unity `initialize`/`isInitialized`/`load`/`show`, Meta `loadAd`/`show`, and so on.
 3. Don't forget mediation adapters — they re-enable ads behind the main SDK's back.
 
 SDK class names are stable; the app's own ad-wrapper classes are obfuscated — anchor
@@ -44,14 +45,14 @@ fingerprints on the former. For feed-style apps, runtime list filtering via an e
 
 ## Protections
 
-| Protection | Find | Neutralize |
-| ---------- | ---- | ---------- |
-| Root (incl. Firebase `CommonUtils.isRooted`, RootBeer, Magisk paths) | `isRooted\|checkRoot\|RootBeer\|magisk\|Superuser` | Force `false` on each check |
-| SSL pinning (OkHttp `CertificatePinner`, custom `TrustManager`) | `CertificatePinner\|checkServerTrusted\|X509TrustManager` | `return-void` the `check` methods |
-| Signature verification | `getPackageInfo\|GET_SIGNATURES\|signatures` | Return the original hash/bytes; deepest option is an `Application`-level hook (see below) |
-| Play Integrity / license response | `PlayIntegrity\|processLicenseResponse\|validateLicenseResponse` | Client-side bypass only (see billing table) |
-| Emulator / debug | `isEmulator\|Build.FINGERPRINT\|goldfish`, `isDebuggerConnected\|waitForDebugger` | Force `false` / skip |
-| Update nag | update-check method | `returnEarly` / `return-void` |
+| Protection | Signal family (see `hunt-signals.sh`) | Neutralize |
+| ---------- | -------------------------------------- | ---------- |
+| Root (incl. Firebase root checks, RootBeer, Magisk paths) | root | Force `false` on each check |
+| SSL pinning (OkHttp `CertificatePinner`, custom `TrustManager`) | pinning/trust | `return-void` the `check` methods |
+| Signature verification | signature | Return the original hash/bytes; deepest option is an `Application`-level hook (see below) |
+| Play Integrity / license response | integrity/license | Client-side bypass only (see billing table) |
+| Emulator / debug | emulator/debug | Force `false` / skip |
+| Update nag | version/update check | Early return / `return-void` |
 
 Signature-spoof depth ladder (shallow → deep): return the original hash string →
 return raw signature bytes (`new-array` + `fill-array-data`) → manifest-swapped
@@ -60,11 +61,14 @@ every SDK reader sees the spoofed signature. Pick the shallowest level that work
 
 ### Dynamic confirmation (Frida — which hook proves which protection)
 
-Static hunt finds candidates; a 2-minute Frida run decides the patch shape.
+Static hunt finds candidates; a short Frida run decides the patch shape.
+Setup and invocation live in
+[dynamic confirmation](reverse-engineering.md#dynamic-confirmation-for-runtime-gates);
+always run objection via `uvx objection`.
 
 | Protection | Confirm with | Patch implication |
 | ---------- | ------------ | ----------------- |
-| SSL pinning, OkHttp 3/4 `CertificatePinner` | `objection --gadget com.target.app explore -s "android sslpinning disable"`, else hook `CertificatePinner.check(String, List)` → log host | `check` returns void: bypass with `return-void`; if only some hosts fail, both OkHttp **and** `HttpsURLConnection` paths exist — hook `checkServerTrusted` + `HostnameVerifier.verify` too |
+| SSL pinning, OkHttp 3/4 `CertificatePinner` | `uvx objection --gadget com.target.app explore -s "android sslpinning disable"`, else hook `CertificatePinner.check(String, List)` → log host | `check` returns void: bypass with `return-void`; if only some hosts fail, both OkHttp **and** `HttpsURLConnection` paths exist — hook `checkServerTrusted` + `HostnameVerifier.verify` too |
 | SSL pinning, Conscrypt `TrustManagerImpl` | Hook `verifyChain` → log host; Burp shows cert errors until bypassed | `verifyChain` returns the chain: bypass by returning the untrusted chain as-is (passthrough, **not** `return-void`); note the AOSP version — impl signature moves across API levels |
 | Root (`isRooted`/`RootBeer`/su paths) | Hook `File.exists` + `Runtime.exec(String)` → log blocked path/cmd | Force `false` on each Java check **and** hide su paths; one bypass rarely covers all SDKs |
 | Emulator / debug | Spoof `Build.*` fields, hook `Debug.isDebuggerConnected` → `false` | Test-only bypass; ship only if the check blocks patched-app launch |
@@ -73,7 +77,8 @@ Static hunt finds candidates; a 2-minute Frida run decides the patch shape.
 
 Rule: log parameters + return values first, mutate second. A confirmed
 `class.method(args)` triple goes into the hunt notes next to the smali quote
-(`reverse-engineering.md` §3.6) and becomes the fingerprint anchor.
+(see [dynamic confirmation](reverse-engineering.md#dynamic-confirmation-for-runtime-gates))
+and becomes the fingerprint anchor.
 
 ## Analytics and Firebase
 
@@ -113,7 +118,7 @@ that `return-void`s on each blocked tag instead of writing N patches.
   for API-driven apps (modify requests/responses globally).
 - **Extension delegation:** inject a one-line `invoke-static` into bytecode and put the
   real logic (settings checks, player seeking, type checks) in Java — see
-  `patch-development.md` for the split rules.
+  [patch development](patch-development.md#extensions-vs-inline-smali) for the split rules.
 - **Resource-limit overrides:** some gates live in `res/values/*` (max counts) or
   localized `strings.xml` — a `resourcePatch` beats a fingerprint there.
 
@@ -129,7 +134,7 @@ that `return-void`s on each blocked tag instead of writing N patches.
 | Kotlin Multiplatform | — | Same as native (shared code compiles to DEX) |
 | DEX-loading (plugins) | `DexClassLoader\|loadClass` | Patch the loader or the loaded code |
 
-Start every hunt with the manager/billing class names (`SubscriptionManager`,
-`BillingManager`, `PurchaseManager`, `LicenseManager`) and the generic gate names
-(`isPremium|isSubscribed|hasPurchased|isFeatureEnabled|canAccess|isUnlocked|isPro`) —
+Start every hunt with `scripts/hunt-signals.sh`, then the manager/billing class names
+(`SubscriptionManager`, `BillingManager`, `PurchaseManager`, `LicenseManager`) and the
+generic gate names (`isPremium|isSubscribed|hasPurchased|isFeatureEnabled|canAccess|isUnlocked|isPro`) —
 they locate the billing neighborhood in any native app.

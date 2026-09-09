@@ -9,30 +9,7 @@ Strips ads and analytics/crash-reporting SDKs at the bytecode level, cleans buil
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.44.0-dev.5](https://github.com/BlazeFTL/FTL-Patches/releases/tag/v1.44.0-dev.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;62 patches total
-<details>
-<summary>📦 MX Player&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 3.1.4 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Add Network Stream To Me Tab](#add-network-stream-to-me-tab) | WARNING MX PLAYER HAS INTEGRITY CHECK. Mod By Youarefinished Also Has Their Own Integrity Check. So Download From Play Store, Use URV Manager With Signing Turned Off, Patch And Then Kill Signature Verification With MT Manager Enhanced (VIP Only) Or Modded Build. |  |
-| [Clean Me Tab](#clean-me-tab) | Removes promo rows and unused tiles from the Me tab: WhatsApp Status Saver, Legal/Help, the local-tiles pager, Local Network, Music Player, Cloud Drive, MX Share, and Private Folder. |  |
-| [Clean sidebar More menu](#clean-sidebar-more-menu) | Hides the "Help" section (What's New, Features, FAQ, Check for Update, Bug Report, About) from the sidebar's More menu. |  |
-| [Configure Smart Enhance toast](#configure-smart-enhance-toast) | Always skips the Smart Enhance popup animation and always drops the disable-side toast. "Show toast" on: fires a toast when Smart Enhance is enabled. Off: enabling is silent too. | • Show toast on enable |
-| [Configure SpeedUp overlay](#configure-speedup-overlay) | "2x UI": keeps the long-press SpeedUp overlay/animation, with the stock leftover-visible-view bug fixed. "No UI": the overlay never shows at all - the speed change itself still applies, since that's handled elsewhere. | • No UI |
-| [Default Shortcuts](#default-shortcuts) | Changes which player long-press/gesture shortcuts are enabled out of the box, for installs that have never customized them (Settings > Player > Customize Shortcuts still works normally and always wins once touched). Default keeps screen rotation, playback speed, background play, loop, customize items, screenshot, mirror mode and vertical flip; drops mute, shuffle, equalizer, sleep timer, repeat A-B, night mode and audio effect. | • Default shortcuts bitmask (hex) |
-| [Disable Bottom Bar And Add Me Tab To Top](#disable-bottom-bar-and-add-me-tab-to-top) | Hides the bottom navigation bar and adds a Me tab button to the toolbar. |  |
-| [Disable Smart Enhance popup](#disable-smart-enhance-popup) | Skips the "Smart Enhance" intro dialog on the player menu - tapping the menu item toggles Smart Enhance directly instead of showing the popup first. |  |
-| [Open subtitle settings by default](#open-subtitle-settings-by-default) | Expands the Sync/Speed/Panel/Customization settings block in the subtitle menu by default instead of it being collapsed. |  |
-
-</details>
-
+> **[v1.44.0-dev.19](https://github.com/BlazeFTL/FTL-Patches/releases/tag/v1.44.0-dev.19)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;58 patches total
 <details>
 <summary>📦 All Video Downloader & Ace Player&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
@@ -66,6 +43,25 @@ Strips ads and analytics/crash-reporting SDKs at the bytecode level, cleans buil
 | [Change Cleaner & Media Tab Defaults](#change-cleaner-media-tab-defaults) | Changes first-run defaults: hides the Image, Video, Audio and Cleaner tabs, and shows hidden files by default. Only affects users who have never changed the setting themselves - the preference override still takes priority. |  |
 | [Disable Rate Us Dialog](#disable-rate-us-dialog) | Prevents the in-app rate-us dialog from ever being shown. |  |
 | [Unlock Pro & Skip Splash Screen](#unlock-pro-skip-splash-screen) | Forces the ad-removed/Pro check to always return true, and renames the launcher activity from SplashActivity to MainActivity so the splash screen is skipped. |  |
+
+</details>
+
+<details>
+<summary>📦 MX Player&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 3.1.4 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Clean Me Tab](#clean-me-tab) | Removes promo rows and unused tiles from the Me tab. | • Add Network Stream tile |
+| [Configure Smart Enhance](#configure-smart-enhance) | Configures the Smart Enhance intro popup and enable/disable toast. | • Skip intro popup<br>• Show toast on enable |
+| [Configure SpeedUp overlay](#configure-speedup-overlay) | "2x UI": keeps the long-press SpeedUp overlay/animation, with the stock leftover-visible-view bug fixed. "No UI": the overlay never shows at all - the speed change itself still applies, since that's handled elsewhere. | • No UI |
+| [Disable Bottom Bar And Add Me Tab To Top](#disable-bottom-bar-and-add-me-tab-to-top) | Hides the bottom navigation bar and adds a Me tab button to the toolbar. |  |
+| [Sidebar & Player Defaults](#sidebar-player-defaults) | Cleans the player sidebar and More menu; sets default shortcuts and subtitle view. | • Hide Video Display<br>• Hide More menu Help section<br>• Change default shortcuts<br>• Default shortcuts bitmask (hex)<br>• Open subtitle settings by default<br>• Hide Bookmark<br>• Hide Favourite<br>• Hide Add to Playlist<br>• Hide Tutorial<br>• Hide Playing Queue |
 
 </details>
 

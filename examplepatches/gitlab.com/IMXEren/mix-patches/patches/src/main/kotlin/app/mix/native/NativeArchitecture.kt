@@ -3,6 +3,11 @@ package app.mix.native
 /** A semantic instruction that a native backend can encode. */
 enum class NativeOpcode {
     RETURN,
+
+    /**
+     * Sets the return-value register (w0) to zero without returning.
+     */
+    MOV_ZERO,
 }
 
 /** Architecture-specific instruction encoding used by mutable native libraries. */

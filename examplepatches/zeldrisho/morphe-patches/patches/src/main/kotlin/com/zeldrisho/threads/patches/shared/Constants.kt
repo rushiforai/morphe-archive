@@ -13,9 +13,9 @@ object Constants {
     // Threads (Meta codename "Barcelona") is built from the Instagram codebase and is heavily
     // R8-obfuscated. Obfuscated class/method names shift on nearly every Meta release, so a
     // null ("any") version is NOT realistic here (and the Morphe Manager cannot parse a null
-    // version anyway — it aborts the whole bundle). The bytecode hooks are anchored on NAMED
-    // classes (com.instagram.feed.media.Media, BarcelonaSpoolFeedCacheHandler) so they tolerate
-    // minor drift, but a different version may still need re-fingerprinting.
+    // version anyway — it aborts the whole bundle). The feed merge is structurally matched in
+    // BarcelonaFeedCache, but the extension's reflection ABI still uses pinned R8 names.
+    // Patch-time ABI validation detects missing members, not changed ad-predicate semantics.
     val COMPATIBILITY_THREADS = Compatibility(
         name = "Threads",
         packageName = "com.instagram.barcelona",

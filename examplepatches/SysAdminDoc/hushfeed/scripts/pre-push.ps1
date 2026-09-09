@@ -17,11 +17,19 @@
 param(
     [Parameter(Position = 0)][string]$RemoteName,
     [Parameter(Position = 1)][string]$RemoteUrl,
-    [string]$Root = (Split-Path -Parent $PSScriptRoot),
+    [string]$Root,
     [string[]]$ChangedPaths
 )
 
 $ErrorActionPreference = 'Stop'
+
+# Not a parameter default. Windows PowerShell leaves $PSScriptRoot empty while it evaluates the
+# defaults of an advanced script started with -File, and any [CmdletBinding()] or [Parameter(...)]
+# attribute makes a script advanced, so the default threw and the hook failed before it checked
+# anything. The hook prefers pwsh, which does not have this, and falls back to Windows PowerShell
+# wherever pwsh is off the PATH: a git hook runs with git's environment, so that is the ordinary
+# case rather than the rare one.
+if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 $zeroObject = '0' * 40
 
 function Write-Step {
@@ -98,7 +106,7 @@ try {
     }).Count -gt 0
 
     if ($touchesCode) {
-        Write-Step 'extension or patch sources changed, running the runtime tests'
+        Write-Step 'extension or patch sources changed, running the runtime tests and the API level check'
 
         # The Morphe settings plugin resolves from GitHub Packages, which needs a reader token.
         # A hook runs with git's environment, not the shell's, so these are usually absent and
@@ -117,38 +125,62 @@ try {
             $env:GITHUB_TOKEN = $token
         }
 
+        # The lint runs alongside the tests because the tests cannot see this class of defect at
+        # all: they run on a desktop JVM, where every java.util method exists whatever the
+        # payload's floor says. Only the API level check reads minSdk, and it reads the SDK_INT
+        # guards with it, so a call that is properly guarded stays quiet.
+        $tasks = @(
+            ':extensions:tiktok:test',
+            ':extensions:shared:library:lint',
+            ':extensions:tiktok:lint'
+        )
         $governor = Join-Path $HOME '.claude/scripts/build-governor.ps1'
         $global:LASTEXITCODE = 0
         if (Test-Path -LiteralPath $governor) {
-            & $governor -ProjectDir $Root -MinFreeGb 2 -NoReap -Tasks ':extensions:tiktok:test'
+            & $governor -ProjectDir $Root -MinFreeGb 2 -NoReap -Tasks $tasks
         } else {
-            & (Join-Path $Root 'gradlew.bat') ':extensions:tiktok:test'
+            & (Join-Path $Root 'gradlew.bat') @tasks
         }
         if ($LASTEXITCODE -ne 0) {
             throw ('The runtime test build did not pass. Read the output above: it says whether a ' +
-                'test failed or the build could not start. Push anyway with HUSHFEED_SKIP_PRE_PUSH=1.')
+                'test failed, an API level above the payload floor was reached, or the build could ' +
+                'not start. Push anyway with HUSHFEED_SKIP_PRE_PUSH=1.')
         }
     }
 
     if ($touchesRelease) {
         Write-Step 'a published file changed, checking the release facts'
+        # The description's test count belongs to the release it describes. Holding this tree to
+        # it only means something while the description is being rewritten, which is when
+        # patches-bundle.json is one of the files that moved.
+        $describesThisTree = @($paths | Where-Object { $_ -eq 'patches-bundle.json' }).Count -gt 0
         $validate = Join-Path $Root 'scripts/validate-release-facts.ps1'
         $global:LASTEXITCODE = 0
+        # The sources and javadoc jars share the .mpp extension, so an unfiltered listing found
+        # three files after every build, took the branch below, and the hash comparison this
+        # exists for never ran once.
         $artifacts = @(Get-ChildItem -LiteralPath (Join-Path $Root 'patches/build/libs') `
-            -Filter '*.mpp' -File -ErrorAction SilentlyContinue)
-        if ($artifacts.Count -eq 1) {
+            -Filter '*.mpp' -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -notmatch '(^|-)(sources|javadoc)\.mpp$' })
+        if ($artifacts.Count -eq 1 -and $describesThisTree) {
             # The bundle this checkout built, so the indexed URL, its hash and the hosted
-            # checksum entry can all be compared against something real.
+            # checksum entry can all be compared against something real. Only while the index is
+            # being rewritten, though: at any other time build/libs holds a bundle built from
+            # whatever the tree was at the time, and comparing that byte for byte against the
+            # published release fails as soon as any source changes, which is not a release fact
+            # going wrong.
             & $validate -Root $Root -VerifyPublishedAsset -ArtifactPath $artifacts[0].FullName
         } else {
             if ($artifacts.Count -gt 1) {
                 Write-Step "found $($artifacts.Count) bundles, so the hosted artifact is not compared"
+            } elseif ($artifacts.Count -eq 1) {
+                Write-Step 'patches-bundle.json did not change, so the local bundle is not compared'
             } else {
                 Write-Step 'no local bundle here, so the hosted artifact is not compared'
             }
             # The indexed URL is still fetched. Only the byte-for-byte hash comparison needs a
             # local bundle to compare against.
-            & $validate -Root $Root
+            & $validate -Root $Root -SkipDescriptionTestCount:(-not $describesThisTree)
         }
         if ($LASTEXITCODE -ne 0) {
             throw 'The release facts do not agree. Fix them or push with HUSHFEED_SKIP_PRE_PUSH=1.'

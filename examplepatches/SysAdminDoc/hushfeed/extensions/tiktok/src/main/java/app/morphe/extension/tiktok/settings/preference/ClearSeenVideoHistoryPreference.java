@@ -16,7 +16,10 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.seen.SeenVideoHistory;
 
 @SuppressWarnings("deprecation")
-public final class ClearSeenVideoHistoryPreference extends Preference {
+public final class ClearSeenVideoHistoryPreference extends Preference
+        implements app.morphe.extension.shared.settings.preference.ImmediateAction {
+    @Override public boolean actsOnTap() { return true; }
+
     static final String CLEAR_SUMMARY = "Delete the local record of the videos you have watched.";
     static final String UNDO_SUMMARY = "Cleared. Tap again to put the record back.";
     static final String NOT_READY = "Still reading the record. Tap again in a moment.";
@@ -24,6 +27,9 @@ public final class ClearSeenVideoHistoryPreference extends Preference {
 
     public ClearSeenVideoHistoryPreference(Context context) {
         super(context);
+        // A key so the settings search can index this row. A key with no Setting behind
+        // it is skipped by the settings framework, so nothing tries to persist it.
+        setKey("action_clear_seen_video_history");
         setTitle("Clear the seen video history");
         // Whether a clear is waiting to be undone outlives this row, so the row has to ask
         // rather than assume it is the first one ever built.

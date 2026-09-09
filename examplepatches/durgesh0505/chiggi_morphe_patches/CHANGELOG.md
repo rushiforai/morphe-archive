@@ -1,3 +1,27 @@
+## [1.21.2](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.21.1...v1.21.2) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* **googlephone:** remove Google Phone patches ([c692732](https://github.com/durgesh0505/chiggi_morphe_patches/commit/c6927326968dcc10bc36c4e2652b59905cb0907d))
+
+## [1.21.1](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.21.0...v1.21.1) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* **googlephone:** enable call recording, disable crashing call screen ([d32dbaf](https://github.com/durgesh0505/chiggi_morphe_patches/commit/d32dbaf4ab1875e4d00eea829f851faa72575f5e))
+
+## [1.21.0](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.20.0...v1.21.0) (2026-09-08)
+
+### ✨ New Features
+
+* **googlephone:** add Contacts to bottom navigation row ([ca43a5b](https://github.com/durgesh0505/chiggi_morphe_patches/commit/ca43a5b7fab40e81f21b247f44387a0588f76521))
+
+## [1.20.0](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.19.0...v1.20.0) (2026-09-08)
+
+### ✨ New Features
+
+* **googlephone:** enable call recording + call screen (UI gates) ([1e2bf44](https://github.com/durgesh0505/chiggi_morphe_patches/commit/1e2bf4434a609662a076a7dbd59e3e30736f7663))
+
 ## [1.19.0](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.18.0...v1.19.0) (2026-08-20)
 
 ### ✨ New Features

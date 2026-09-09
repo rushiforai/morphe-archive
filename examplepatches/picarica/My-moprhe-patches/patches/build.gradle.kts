@@ -12,7 +12,12 @@ patches {
     }
 }
 
+val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
+
 dependencies {
+    compileOnly(libs.gson)
+    patchListGeneratorClasspath(libs.gson)
+
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly(libs.junit.platform.launcher)
@@ -20,4 +25,11 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks.register<JavaExec>("generatePatchesList") {
+    description = "Generate patches-list.json from the built MPP"
+    dependsOn("buildAndroid")
+    classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
+    mainClass.set("util.PatchListGeneratorKt")
 }

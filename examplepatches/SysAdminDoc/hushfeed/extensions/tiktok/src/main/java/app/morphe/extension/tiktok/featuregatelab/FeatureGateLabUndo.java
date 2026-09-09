@@ -103,7 +103,7 @@ final class FeatureGateLabUndo {
                 operation.complete();
                 closed = true;
             } catch (Exception error) {
-                try { apply(before); } catch (Exception recovery) { error.addSuppressed(recovery); }
+                try { apply(before, true); } catch (Exception recovery) { error.addSuppressed(recovery); }
                 boolean rollbackComplete = matches(before);
                 if (rollbackComplete) operation.complete();
                 else operation.retainForRecovery();
@@ -127,11 +127,11 @@ final class FeatureGateLabUndo {
             JSONObject before = FeatureGateLabStore.exportSettings();
             operation.recordLab(before.toString(), saved.toString());
             try {
-                apply(saved);
+                apply(saved, false);
                 operation.complete();
                 closed = true;
             } catch (Exception error) {
-                try { apply(before); } catch (Exception recovery) { error.addSuppressed(recovery); }
+                try { apply(before, true); } catch (Exception recovery) { error.addSuppressed(recovery); }
                 boolean rollbackComplete = matches(before);
                 if (rollbackComplete) operation.complete();
                 else operation.retainForRecovery();
@@ -177,9 +177,9 @@ final class FeatureGateLabUndo {
         return FeatureGateLabStore.settingsMatch(expected);
     }
 
-    private static void apply(JSONObject saved) throws Exception {
+    private static void apply(JSONObject saved, boolean puttingBack) throws Exception {
         FeatureGateLabStore.replaceSettings(FeatureGateLabStore.parseSettings(saved),
-                saved.getBoolean("master"), saved.getBoolean("acknowledged"));
+                saved.getBoolean("master"), saved.getBoolean("acknowledged"), puttingBack);
     }
 
     private static AtomicFile file() throws IOException {

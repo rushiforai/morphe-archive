@@ -81,6 +81,238 @@ public class SettingsL10nTest {
      * English by choice, which the row that opens it says. The shared extension module is not
      * walked either: it is TikTok-independent code, and this table is TikTok's.
      */
+    @Test public void theGeneratedTableIsTheOneInTheTables() throws Exception {
+        // Every other check here reads L10nTranslations, which is generated. A value edited in a
+        // table without rerunning scripts/gen-l10n.py was invisible to all of them, and so was a
+        // generated file edited by hand, which its own header forbids.
+        //
+        // German is a tab table and Indonesian is the comma form Weblate hosts, so both readers
+        // are exercised on every run rather than one of them being a claim in the README.
+        for (String language : languages()) {
+            java.util.Map<String, String> generated = L10nTranslations.of(language);
+            java.util.Map<String, String> table = readTable(language);
+
+            java.util.List<String> problems = new java.util.ArrayList<>();
+            for (java.util.Map.Entry<String, String> row : table.entrySet()) {
+                String was = generated.get(row.getKey());
+                if (was == null) {
+                    problems.add(language + " has a row the generated table does not: " + row.getKey());
+                } else if (!was.equals(row.getValue())) {
+                    problems.add(language + " differs for " + row.getKey()
+                            + ": tsv has " + row.getValue() + ", generated has " + was);
+                }
+            }
+            for (String key : generated.keySet()) {
+                if (!table.containsKey(key)) {
+                    problems.add(language + " generated a row the table does not have: " + key);
+                }
+            }
+            assertEquals("the generated translations are not the ones in the " + language
+                    + " table, so run scripts/gen-l10n.py: " + problems, 0, problems.size());
+            assertFalse("the " + language + " table is empty", table.isEmpty());
+        }
+    }
+
+    @Test public void theTableComparisonCanActuallyFail() throws Exception {
+        // The comparison above only means something if a changed value is visible to it.
+        java.util.Map<String, String> table = readTable("de");
+        String key = table.keySet().iterator().next();
+        java.util.Map<String, String> changed = new java.util.LinkedHashMap<>(table);
+        changed.put(key, changed.get(key) + " x");
+        assertNotEquals("a changed value read the same", table.get(key), changed.get(key));
+        assertFalse("the tables compare equal after a change", table.equals(changed));
+    }
+
+    /**
+     * One language table, in whichever form it is kept.
+     *
+     * <p>Tab separated, one key then the translation with # for a comment, or the comma form
+     * Weblate hosts: a source,target header and one row per entry.
+     */
+    private static java.util.Map<String, String> readTable(String language) throws Exception {
+        java.io.File file = tableFile(language, ".tsv");
+        if (file == null) file = tableFile(language, ".csv");
+        assertNotNull("no .tsv or .csv table for " + language, file);
+        String body = new String(java.nio.file.Files.readAllBytes(file.toPath()),
+                java.nio.charset.StandardCharsets.UTF_8);
+        // A spreadsheet round trip leaves a byte order mark, which the generator now skips.
+        if (body.startsWith("\ufeff")) body = body.substring(1);
+        return file.getName().endsWith(".csv")
+                ? readCsvRows(language, body) : readTsvRows(language, body);
+    }
+
+    private static java.io.File l10nDirectory() {
+        java.io.File directory = new java.io.File("src/main/l10n");
+        if (!directory.isDirectory()) directory = new java.io.File("extensions/tiktok/src/main/l10n");
+        assertTrue("could not find the l10n tables", directory.isDirectory());
+        return directory;
+    }
+
+    /** Every language with a table, in either form. Named so a new one is covered on sight. */
+    private static java.util.List<String> languages() {
+        java.util.List<String> found = new java.util.ArrayList<>();
+        for (String name : java.util.Objects.requireNonNull(l10nDirectory().list())) {
+            if (!name.endsWith(".tsv") && !name.endsWith(".csv")) continue;
+            // Lower-cased, because that is what the generator does. A pt-rBR table, which is the
+            // spelling L10n builds for a regional tag, otherwise asks for a language the
+            // generated class has never heard of and gets null back.
+            String language = name.substring(0, name.length() - 4)
+                    .toLowerCase(java.util.Locale.ROOT);
+            if (!ENGLISH_BASE.equals(language)) found.add(language);
+        }
+        java.util.Collections.sort(found);
+        assertTrue("no language tables at all", found.size() >= 2);
+        return found;
+    }
+
+    private static java.io.File tableFile(String language, String extension) {
+        java.io.File file = new java.io.File(l10nDirectory(), language + extension);
+        return file.isFile() ? file : null;
+    }
+
+    /** The keys are English text, so the base is a list of source strings, not a translation. */
+    private static final String ENGLISH_BASE = "en";
+
+    /** A newline is the two characters \n in a table, the same as the generator reads it. */
+    private static String unescapeTableNewlines(String text) {
+        return text.replace("\\n", "\n");
+    }
+
+    private static java.util.Map<String, String> readTsvRows(String language, String body) {
+        java.util.Map<String, String> rows = new java.util.LinkedHashMap<>();
+        for (String line : body.split("\\n")) {
+            String text = line.replace("\r", "");
+            if (text.isEmpty() || text.startsWith("#")) continue;
+            int tab = text.indexOf('\t');
+            assertTrue("a row with no tab in " + language + ".tsv: " + text, tab > 0);
+            rows.put(unescapeTableNewlines(text.substring(0, tab)),
+                    unescapeTableNewlines(text.substring(tab + 1)));
+        }
+        return rows;
+    }
+
+    /** Enough of RFC 4180 for these tables: quoted fields, doubled quotes inside them. */
+    private static java.util.Map<String, String> readCsvRows(String language, String body) {
+        java.util.List<java.util.List<String>> records = new java.util.ArrayList<>();
+        java.util.List<String> record = new java.util.ArrayList<>();
+        StringBuilder field = new StringBuilder();
+        boolean quoted = false;
+        boolean atFieldStart = true;
+        for (int index = 0; index < body.length(); index++) {
+            char character = body.charAt(index);
+            if (quoted) {
+                if (character != '"') {
+                    field.append(character);
+                } else if (index + 1 < body.length() && body.charAt(index + 1) == '"') {
+                    field.append('"');
+                    index++;
+                } else {
+                    quoted = false;
+                }
+                continue;
+            }
+            if (character == '"' && atFieldStart) {
+                quoted = true;
+                atFieldStart = false;
+            } else if (character == ',') {
+                record.add(field.toString());
+                field.setLength(0);
+                atFieldStart = true;
+            } else if (character == '\n' || character == '\r') {
+                // A bare CR ends a record, the same as Python's csv. CRLF is one terminator,
+                // so the LF after a CR is taken with it rather than ending a second, empty one.
+                if (character == '\r' && index + 1 < body.length()
+                        && body.charAt(index + 1) == '\n') {
+                    index++;
+                }
+                record.add(field.toString());
+                field.setLength(0);
+                records.add(record);
+                record = new java.util.ArrayList<>();
+                atFieldStart = true;
+            } else {
+                field.append(character);
+                atFieldStart = false;
+            }
+        }
+        if (field.length() > 0 || !record.isEmpty()) {
+            record.add(field.toString());
+            records.add(record);
+        }
+
+        assertFalse("the " + language + " table has no header", records.isEmpty());
+        java.util.List<String> header = records.get(0);
+        assertTrue("the " + language + " header has to start source,target, not " + header,
+                header.size() >= 2
+                        && "source".equalsIgnoreCase(header.get(0).trim())
+                        && "target".equalsIgnoreCase(header.get(1).trim()));
+
+        java.util.Map<String, String> rows = new java.util.LinkedHashMap<>();
+        for (int index = 1; index < records.size(); index++) {
+            java.util.List<String> line = records.get(index);
+            if (line.isEmpty() || line.get(0).isEmpty() || line.get(0).startsWith("#")) continue;
+            assertTrue("a row with no target column in " + language + ".csv: " + line,
+                    line.size() >= 2);
+            rows.put(unescapeTableNewlines(line.get(0)), unescapeTableNewlines(line.get(1)));
+        }
+        return rows;
+    }
+
+    @Test public void theCsvReaderEndsARowWhereThePythonOneDoes() {
+        // No shipped table carries a bare CR, so nothing here would have caught the reader
+        // swallowing it and running two rows together. These are the shapes Python's csv module
+        // produces, checked against it.
+        java.util.Map<String, String> unixEndings =
+                readCsvRows("probe", "source,target\na,1\nb,2\n");
+        assertEquals(2, unixEndings.size());
+        assertEquals("1", unixEndings.get("a"));
+
+        java.util.Map<String, String> windowsEndings =
+                readCsvRows("probe", "source,target\r\na,1\r\nb,2\r\n");
+        assertEquals("a CRLF was read as two row endings", 2, windowsEndings.size());
+        assertEquals("1", windowsEndings.get("a"));
+
+        java.util.Map<String, String> classicMacEndings =
+                readCsvRows("probe", "source,target\ra,1\rb,2\r");
+        assertEquals("a bare CR did not end a row", 2, classicMacEndings.size());
+        assertEquals("1", classicMacEndings.get("a"));
+
+        java.util.Map<String, String> quoted =
+                readCsvRows("probe", "source,target\n\"a,b\",\"says \"\"hi\"\"\"\n");
+        assertEquals(1, quoted.size());
+        assertEquals("says \"hi\"", quoted.get("a,b"));
+
+        java.util.Map<String, String> looseQuote = readCsvRows("probe", "source,target\na,b\"c\n");
+        assertEquals("a quote inside an unquoted field opened one", "b\"c",
+                looseQuote.get("a"));
+    }
+
+    @Test public void theEnglishBaseIsExactlyTheStringsTheTablesCarry() throws Exception {
+        // Weblate translates from a monolingual base rather than from a language table. It is
+        // generated, so it goes stale the same way L10nTranslations does if nobody reruns the
+        // script, and nothing else here would notice. Both directions matter: a string added to
+        // a table has to reach it, and a string deleted from every table has to leave it, or
+        // translators keep being asked for text nothing shows any more.
+        java.util.Map<String, String> base = readTable(ENGLISH_BASE);
+        java.util.Set<String> carried = new java.util.TreeSet<>();
+        for (String language : languages()) carried.addAll(readTable(language).keySet());
+
+        java.util.Set<String> missing = new java.util.TreeSet<>(carried);
+        missing.removeAll(base.keySet());
+        assertEquals(ENGLISH_BASE + ".csv is missing source strings, so run scripts/gen-l10n.py: "
+                + missing, 0, missing.size());
+
+        java.util.Set<String> extra = new java.util.TreeSet<>(base.keySet());
+        extra.removeAll(carried);
+        assertEquals(ENGLISH_BASE + ".csv still lists strings no table carries, so run "
+                + "scripts/gen-l10n.py: " + extra, 0, extra.size());
+
+        for (java.util.Map.Entry<String, String> row : base.entrySet()) {
+            assertEquals("the base translates a string instead of repeating it",
+                    row.getKey(), row.getValue());
+        }
+    }
+
     @Test public void everyTranslationKeepsTheShapeOfItsKey() {
         // Defects the key-set checks cannot see. A placeholder that changed, was dropped or was
         // invented; a sentence that lost or gained its terminator; a quote pair that does not
@@ -181,7 +413,7 @@ public class SettingsL10nTest {
         }
 
         assertTrue("the scan found no files to read", scanned > 20);
-        assertTrue("a toast is shown to the reader, so it belongs in the translation table. "
+        assertTrue("this text reaches the reader, so it belongs in the translation table. "
                         + "Wrap it in L10n.t, or L10n.f when it carries a value:\n"
                         + String.join("\n", offenders),
                 offenders.isEmpty());
@@ -201,7 +433,7 @@ public class SettingsL10nTest {
      * messages.
      */
     private static final String SHOWS_TEXT = "(?:\\b\\w*[Tt]oast\\w*|Toast\\s*\\.\\s*makeText|showUndoBanner"
-            + "|setContentDescription|setStateDescription)\\s*\\(";
+            + "|setContentDescription|setStateDescription|SettingsUi\\s*\\.\\s*text)\\s*\\(";
 
     /** Marks every character of a source file as code, inside a literal, or inside a comment. */
     private static final byte CODE = 0, LITERAL = 1, COMMENT = 2;
@@ -252,7 +484,10 @@ public class SettingsL10nTest {
                 if (kind[at] != LITERAL || text.charAt(at) != '"') continue;
                 int literalEnd = at + 1;
                 while (literalEnd < close && kind[literalEnd] == LITERAL) literalEnd++;
-                if (!throughTheTable(text, kind, at)) {
+                // An empty literal says nothing, so there is nothing to translate. Eight of
+                // these are the getTitle() == null ? "" : ... idiom on the hand built dialogs.
+                boolean empty = literalEnd == at + 2;
+                if (!empty && !throughTheTable(text, kind, at)) {
                     found.add(lineOf(text, at) + "  "
                             + text.substring(at, Math.min(literalEnd, at + 70)));
                 }

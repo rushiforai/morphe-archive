@@ -25,11 +25,10 @@ public final class AdvancedFeedRules {
         public boolean getFiltered(Aweme item) {
             String caption = Reflect.string(item, "getDesc", "desc");
             if (caption == null) return false;
-            caption = caption.toLowerCase(Locale.ROOT);
-            for (String word : terms(Settings.BLOCKED_CAPTION_WORDS.get())) {
-                if (!word.isEmpty() && caption.contains(word)) return true;
-            }
-            return false;
+            // Plain phrases still mean what they always did. The list also takes
+            // "a" & "b" and "a" !& "b", which a phrase on its own cannot say.
+            return KeywordRules.anyMatches(
+                    KeywordRules.parse(Settings.BLOCKED_CAPTION_WORDS.get()), caption);
         }
     }
 
@@ -123,7 +122,10 @@ public final class AdvancedFeedRules {
     private static final int MATCH_BUDGET = 200_000;
 
     /** One entry that ran out of budget, so it is only complained about once. */
-    private static final Map<Pattern, Boolean> RUNAWAY = new ConcurrentHashMap<>();
+    // Declared as the class rather than Map: the toast below depends on putIfAbsent returning
+    // null exactly once, and putIfAbsent on the Map interface is an API 24 default method that
+    // D8 cannot backport, so on Android 6 it would throw from inside the feed filter instead.
+    private static final ConcurrentHashMap<Pattern, Boolean> RUNAWAY = new ConcurrentHashMap<>();
 
     /**
      * Whether the pattern matches, giving up rather than hanging the thread it is on.
@@ -148,8 +150,12 @@ public final class AdvancedFeedRules {
 
     /** Thrown out of the regex engine once a single match has read enough characters. */
     private static final class BudgetSpent extends RuntimeException {
-        BudgetSpent() {
-            super(null, null, false, false);
+        // The four argument constructor that turns the stack trace off is API 24, and this is
+        // thrown out of the regex engine on the feed path. Overriding fillInStackTrace is the
+        // same saving and has been there since API 1.
+        @Override
+        public synchronized Throwable fillInStackTrace() {
+            return this;
         }
     }
 
@@ -361,10 +367,6 @@ public final class AdvancedFeedRules {
 
     private static long positive(Object value) {
         return value instanceof Number ? Math.max(0, ((Number) value).longValue()) : 0;
-    }
-
-    private static String[] terms(String value) {
-        return value.toLowerCase(Locale.ROOT).trim().split("\\s*[,\\n]\\s*");
     }
 
     /**

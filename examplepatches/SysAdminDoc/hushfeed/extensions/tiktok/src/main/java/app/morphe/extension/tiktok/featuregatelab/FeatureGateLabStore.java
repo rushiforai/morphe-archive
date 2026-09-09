@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import app.morphe.extension.shared.Logger;
@@ -101,11 +102,27 @@ public final class FeatureGateLabStore {
         return result;
     }
 
-    public static void saveRule(String manager, String key, String type, String value, boolean enabled) {
-        if (!canWrite()) return;
+    /**
+     * Writes a rule, and answers whether it was written.
+     *
+     * <p>A structured value is checked here as well as in the screen that collects it. This is
+     * the one way into the store that skipped the check, so a structured value saved through it
+     * carried no depth bound of its own and reached the reflective apply on a gate thread
+     * unchecked. Scalars are deliberately not checked: a malformed one is refused at the
+     * boundary, where the test for that behaviour drives it.
+     */
+    public static boolean saveRule(String manager, String key, String type, String value, boolean enabled) {
+        if (!canWrite()) return false;
         SharedPreferences prefs = prefs();
         if (prefs == null) {
-            return;
+            return false;
+        }
+        if ("OBJECT".equals(normalizeType(type))) {
+            String rejected = validateValue(type, value);
+            if (rejected != null) {
+                Logger.printInfo(() -> "Refused a structured Lab rule for " + key + ": " + rejected);
+                return false;
+            }
         }
         String id = idFor(manager, key, type);
         List<String> ids = ruleIds(prefs);
@@ -125,6 +142,7 @@ public final class FeatureGateLabStore {
         FeatureGateLabRuntime.resetTriggered(id);
         FeatureGateLabRuntime.reloadRules();
         FeatureGateLabSession.markRestartNeeded();
+        return true;
     }
 
     public static void deleteRule(String manager, String key, String type) {
@@ -227,8 +245,28 @@ public final class FeatureGateLabStore {
         return rules;
     }
 
-    /** Replace configuration only; captured diagnostics are retained. Call on a worker thread. */
-    public static void replaceSettings(List<Rule> rules, boolean master, boolean acknowledged) throws java.io.IOException {
+    /**
+     * Replaces the configuration. Captured observations are retained, and so is what the Lab
+     * recorded about which overrides fired. Call on a worker thread.
+     */
+    public static void replaceSettings(List<Rule> rules, boolean master, boolean acknowledged)
+            throws java.io.IOException {
+        replaceSettings(rules, master, acknowledged, false);
+    }
+
+    /**
+     * As above, where {@code puttingBack} says these rules are the ones that were loaded until a
+     * moment ago.
+     *
+     * <p>What the Lab recorded about which overrides fired describes the rules that were loaded
+     * when they fired, so a change to those rules throws the record away. Putting the previous
+     * rules back is the case where that is wrong, and the store cannot tell on its own: a
+     * SharedPreferences commit that reports failure has already updated the map it reports on,
+     * so the rules it holds after a failed write are the new ones and a rollback looks like a
+     * change. Only the caller knows which it is doing.
+     */
+    public static void replaceSettings(List<Rule> rules, boolean master, boolean acknowledged,
+            boolean puttingBack) throws java.io.IOException {
         if (!canWrite()) {
             throw new java.io.IOException("Feature Gate Lab is writable only from the main process");
         }
@@ -247,10 +285,10 @@ public final class FeatureGateLabStore {
         boolean saved = editor.putString(RULE_IDS_KEY, join(ids)).putBoolean(MASTER_KEY, master)
                 .putBoolean(WARNING_ACK_KEY, acknowledged).putBoolean(MIGRATION_NOTICE_KEY, false)
                 .putString(STORED_TARGET_VERSION_KEY, TARGET_VERSION).commit();
-        FeatureGateLabRuntime.clearTriggered();
+        if (!saved) throw new java.io.IOException("Could not save Lab settings");
+        if (!puttingBack) FeatureGateLabRuntime.clearTriggered();
         FeatureGateLabRuntime.reloadRules();
         FeatureGateLabSession.markRestartNeeded();
-        if (!saved) throw new java.io.IOException("Could not save Lab settings");
     }
 
     public static ImportReview reviewProfile(String text, Map<String, FeatureGateCatalog.Entry> catalog) throws JSONException {
@@ -359,7 +397,7 @@ public final class FeatureGateLabStore {
                     return "unsupported type";
             }
         } catch (NumberFormatException exception) {
-            return "invalid " + normalized.toLowerCase() + " value";
+            return "invalid " + normalized.toLowerCase(Locale.ROOT) + " value";
         } catch (JSONException | java.io.IOException exception) {
             return "invalid structured value";
         }
@@ -407,7 +445,10 @@ public final class FeatureGateLabStore {
     }
 
     public static String normalizeType(String type) {
-        return safe(type).trim().toUpperCase();
+        // ROOT, like every other fold in this package: the result is an identity that goes into
+        // idFor and into supportsOverride, and a Turkish phone folds a lowercase `int` to
+        // "İNT" under the default locale, so an imported rule stops matching itself.
+        return safe(type).trim().toUpperCase(Locale.ROOT);
     }
 
     private static void deleteRuleById(String id) {

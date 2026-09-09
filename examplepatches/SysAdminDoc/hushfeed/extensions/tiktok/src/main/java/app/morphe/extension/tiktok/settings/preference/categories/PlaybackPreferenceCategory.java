@@ -10,6 +10,7 @@ import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
 import app.morphe.extension.tiktok.settings.preference.ClockHourPreference;
 import app.morphe.extension.tiktok.settings.preference.NumberInputPreference;
+import app.morphe.extension.tiktok.settings.preference.StartTodayOverPreference;
 import app.morphe.extension.tiktok.speed.PlaybackSpeedPatch;
 import android.preference.Preference;
 
@@ -39,14 +40,17 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
     @Override public void addPreferences(Context context) {
         if (SettingsStatus.autoAdvanceEnabled) {
             addPreference(new TogglePreference(context, "Advance when a video ends",
-                    "Keep automatic advance enabled. Pauses and open dialogs still stop scrolling. Restart after enabling it; use this switch to turn it off.",
+                    "Keep automatic advance enabled, and show TikTok's own Auto scroll action in "
+                            + "the video panel even if your account never had it. Pauses and open "
+                            + "dialogs still stop scrolling. Restart after enabling it, then use "
+                            + "this switch to turn it off.",
                     Settings.AUTO_ADVANCE));
             addPreference(new NumberInputPreference(context, "Auto-advance session limit",
                     "Zero keeps auto-advance unlimited. Count only videos that finish while Hushfeed "
                             + "started automatic advance; prefetches, manual swipes and native-only "
                             + "advance do not count. The count resets when the feed component is "
                             + "recreated and stays stopped across backgrounding until it is recreated "
-                            + "or the limit changes.", Settings.AUTO_ADVANCE_LIMIT, "video", "videos"));
+                            + "or the limit changes.", Settings.AUTO_ADVANCE_LIMIT, "video", "videos").zeroMeansOff());
         }
         // The counting hangs off the hook that tracks which video is on screen, which the
         // block author patch installs. Without it these would take a number and count nothing.
@@ -55,11 +59,11 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                 "Zero switches this off. Count every video that comes up in the feed, however you "
                         + "got to it, and say so once the count is reached. This is separate from "
                         + "the auto-advance limit above, which only counts videos Hushfeed itself "
-                        + "advanced past.", Settings.SESSION_BUDGET_VIDEOS, "video", "videos"));
+                        + "advanced past.", Settings.SESSION_BUDGET_VIDEOS, "video", "videos").zeroMeansOff());
         addPreference(new NumberInputPreference(context, "Daily time budget",
                 "Zero switches this off. Count the minutes the player spends running in the feed. "
                         + "Time on messages, a profile or search does not count.",
-                Settings.SESSION_BUDGET_MINUTES, "minute", "minutes"));
+                Settings.SESSION_BUDGET_MINUTES, "minute", "minutes").zeroMeansOff());
         addPreference(new NumberInputPreference(context, "Hold the feed after the budget",
                 "Zero shows the notice and leaves the feed alone. Anything else covers the feed "
                         + "for that many minutes once a budget is reached. Messages, profiles and "
@@ -69,19 +73,43 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                 "The hour both budgets reset, on a 24 hour clock. Four in the morning by default, "
                         + "because someone still scrolling at one is having last night.",
                 Settings.SESSION_BUDGET_RESET_HOUR));
+        addPreference(new TogglePreference(context, "Lock today's budget",
+                "Off by default. Switched on, the hold that starts when today's budget runs out "
+                        + "has no way out, and the budgets, the reset hour and this switch cannot "
+                        + "be changed again until the day starts over. Switch it off any time "
+                        + "before the budget runs out.",
+                Settings.SESSION_BUDGET_LOCK));
 
-        Preference clearBudget = new Preference(context);
-        clearBudget.setTitle(L10n.t(context, "Start today over"));
-        clearBudget.setSummary(L10n.t(context,
-                "Forget what has been counted today and end any hold. The budgets themselves "
-                        + "are left alone."));
-        clearBudget.setOnPreferenceClickListener(preference -> {
-            SessionBudget.clear();
-            SessionLockOverlay.sync();
-            Utils.showToastShort(L10n.t(context, "Today starts again"));
-            return true;
-        });
-        addPreference(clearBudget);
+        // Everything the budget is made of, refused for the rest of a locked day. A commitment
+        // anyone can edit their way out of in two taps is a suggestion.
+        Preference.OnPreferenceChangeListener refuseWhileLocked = (preference, value) -> {
+            if (!SessionBudget.lockedToday()) return true;
+            Utils.showToastShort(L10n.f(context,
+                    "Today's budget is locked. This can be changed again at %1$s.",
+                    SessionLockOverlay.resetTimeLabel()));
+            return false;
+        };
+        for (String key : new String[]{Settings.SESSION_BUDGET_VIDEOS.key,
+                Settings.SESSION_BUDGET_MINUTES.key, Settings.SESSION_BUDGET_LOCK_MINUTES.key,
+                Settings.SESSION_BUDGET_RESET_HOUR.key}) {
+            Preference row = findPreference(key);
+            if (row != null) row.setOnPreferenceChangeListener(refuseWhileLocked);
+        }
+
+        // The switch itself refuses the same way, and turning it on when the budget has already
+        // run out locks the rest of that day. Left to work it out from the switch and the counts
+        // together, lowering the budget under the count you already had locked the day for
+        // someone who never reached it.
+        Preference lockRow = findPreference(Settings.SESSION_BUDGET_LOCK.key);
+        if (lockRow != null) {
+            lockRow.setOnPreferenceChangeListener((preference, value) -> {
+                if (!refuseWhileLocked.onPreferenceChange(preference, value)) return false;
+                if (Boolean.TRUE.equals(value)) SessionBudget.lockIfSpent();
+                return true;
+            });
+        }
+
+        addPreference(new StartTodayOverPreference(context));
         }
 
         if (SettingsStatus.playbackSpeedEnabled) {

@@ -7,21 +7,13 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.resourcePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import org.w3c.dom.Element
 
-// No definingClass/name: the enclosing class and method are both fully
-// obfuscated (3-char class, single-letter method) with nothing real to pin.
-// Anchored purely on the real Android SDK call (setVisibility) and opcode
-// shape of the method's tail:
-//   iget-object, setVisibility(I)V, iget-object, setVisibility(I)V,
-//   iput-boolean, return-void
-// - the two consecutive iget-object+setVisibility pairs immediately
-// followed by iput-boolean+return-void (the method's end) is a distinctive
-// enough shape to be unique in the app. This is the release/deactivate
-// branch of the long-press SpeedUp overlay; the entrance/activate branch
-// (the scale-up animation) comes earlier in the same method and isn't
-// otherwise touched by the "2x UI" option - only "no UI" bypasses it.
 internal object SpeedUpOverlayFingerprint : Fingerprint(
     filters = listOf(
         opcode(Opcode.IGET_OBJECT),
@@ -33,14 +25,37 @@ internal object SpeedUpOverlayFingerprint : Fingerprint(
     ),
 )
 
+// name = null - configureSpeedUpOverlayPatch pulls this in via dependsOn as part of the same toggle.
+internal val fixSpeedUpTipStringPatch = resourcePatch(
+    name = null,
+    description = "Shortens the SpeedUp long-press tip from \"%1\$s Speed Playing\" to \"%1\$s\".",
+) {
+    compatibleWith(COMPATIBILITY_MX_PLAYER_AD)
+
+    execute {
+        document("res/values/strings.xml").use { document ->
+            val strings = document.getElementsByTagName("string")
+            for (i in 0 until strings.length) {
+                val element = strings.item(i) as Element
+                if (element.getAttribute("name") == "speed_ff_2x_tip") {
+                    element.textContent = "%1\$s"
+                    break
+                }
+            }
+        }
+    }
+}
+
 val configureSpeedUpOverlayPatch = bytecodePatch(
     name = "Configure SpeedUp overlay",
-    description = "\"2x UI\": keeps the long-press SpeedUp overlay/animation, with the stock " +
+    description =
+        "\"2x UI\": keeps the long-press SpeedUp overlay/animation, with the stock " +
         "leftover-visible-view bug fixed. \"No UI\": the overlay never shows at all - the " +
         "speed change itself still applies, since that's handled elsewhere.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_MX_PLAYER_AD)
+    dependsOn(fixSpeedUpTipStringPatch)
 
     val noUi by booleanOption(
         key = "noUi",
@@ -51,20 +66,39 @@ val configureSpeedUpOverlayPatch = bytecodePatch(
 
     execute {
         val method = SpeedUpOverlayFingerprint.method
+        val matches = SpeedUpOverlayFingerprint.instructionMatches
+
+        val firstFieldRef = matches[0].getInstruction<ReferenceInstruction>().reference as FieldReference
+        val secondFieldRef = matches[2].getInstruction<ReferenceInstruction>().reference as FieldReference
+        val firstField = "${firstFieldRef.definingClass}->${firstFieldRef.name}:${firstFieldRef.type}"
+        val secondField = "${secondFieldRef.definingClass}->${secondFieldRef.name}:${secondFieldRef.type}"
 
         if (noUi == true) {
-            // Skip the whole method: no measuring, no scale animation, no
-            // visibility changes, no auto-hide Handler scheduling.
-            method.addInstructions(0, "return-void")
+            method.addInstructions(
+                0,
+                """
+                const/4 v0, 0x4
+                iget-object v1, p0, $firstField
+                if-eqz v1, :cond_a
+                invoke-virtual {v1, v0}, Landroid/view/View;->setVisibility(I)V
+                :cond_a
+                iget-object v1, p0, $secondField
+                if-eqz v1, :cond_14
+                invoke-virtual {v1, v0}, Landroid/view/View;->setVisibility(I)V
+                :cond_14
+                return-void
+                """.trimIndent(),
+            )
             return@execute
         }
 
-        // Second setVisibility call in the release branch - force its
-        // argument register to View.INVISIBLE (4) right before the call,
-        // whatever it held before (stock leaves it View.VISIBLE, a bug).
-        val secondCall = SpeedUpOverlayFingerprint.instructionMatches[3]
-        val paramReg = secondCall.getInstruction<FiveRegisterInstruction>().registerD
+        val dSetVisibility = matches[1]
+        val eSetVisibility = matches[3]
 
-        method.addInstructions(secondCall.index, "const/4 v$paramReg, 0x4")
+        val dVisReg = dSetVisibility.getInstruction<FiveRegisterInstruction>().registerD
+        val eVisReg = eSetVisibility.getInstruction<FiveRegisterInstruction>().registerD
+
+        method.addInstructions(eSetVisibility.index, "const/4 v$eVisReg, 0x4")
+        method.addInstructions(dSetVisibility.index, "const/4 v$dVisReg, 0x0")
     }
 }

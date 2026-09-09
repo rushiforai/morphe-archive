@@ -21,7 +21,8 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
                 || SettingsStatus.commentTranslationEnabled
                 || SettingsStatus.hideCommentQuickReactionsEnabled
                 || SettingsStatus.copyCommentsWithoutUsernameEnabled
-                || SettingsStatus.hideCommentEggsEnabled;
+                || SettingsStatus.hideCommentEggsEnabled
+                || SettingsStatus.commentSortControlsEnabled;
     }
 
     @Override
@@ -55,6 +56,17 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
                     Settings.COPY_COMMENTS_WITHOUT_USERNAME
             ));
         }
+        if (SettingsStatus.commentSortControlsEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Full comment sort options",
+                    "Show TikTok's own sort sheet on every post, with its hot, newest, media and "
+                            + "creator options, instead of whichever cut-down row your account was "
+                            + "given. Restart TikTok after changing this: TikTok reads the style "
+                            + "once per run and remembers it.",
+                    Settings.COMMENT_SORT_CONTROLS
+            ));
+        }
         if (SettingsStatus.hideCommentEggsEnabled) {
             addPreference(new TogglePreference(
                     context,
@@ -81,9 +93,9 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new InputTextPreference(
                     context,
                     "Blocked comment words",
-                    "Comma separated. A comment is hidden if its text contains any of them. Case does not matter.",
+                    "Comma separated. A comment is hidden if its text contains any of them. Case does not matter. Two phrases in quotes can be joined: \"a\" & \"b\" needs both, \"a\" !& \"b\" needs the first without the second.",
                     Settings.COMMENT_BLOCKED_KEYWORDS
-            ));
+            ).withCheck(app.morphe.extension.tiktok.feedfilter.KeywordRules::problem));
             addPreference(new InputTextPreference(
                     context,
                     "Hidden commenters",

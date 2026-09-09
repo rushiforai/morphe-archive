@@ -1,0 +1,16 @@
+# Keep defaults for correctness/complexity; Spotless owns Kotlin formatting.
+config:
+  validation: true
+
+style:
+  WildcardImport:
+    active: false # Matches .editorconfig.
+  MaxLineLength:
+    active: false # Spotless/ktlint owns layout, including smali fixture strings.
+
+naming:
+  MatchingDeclarationName:
+    excludes:
+      # Fingerprints are grouped by patch; the reflection contract also has helpers.
+      - '**/Fingerprints.kt'
+      - '**/FeedReflectionContract.kt'

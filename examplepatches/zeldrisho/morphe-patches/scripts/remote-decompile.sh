@@ -19,8 +19,11 @@ KERNEL_ID="${KAGGLE_KERNEL_ID:?Set KAGGLE_KERNEL_ID (e.g. user/jadx-apk-decompil
 export KAGGLE_API_TOKEN="${KAGGLE_API_TOKEN:?Set KAGGLE_API_TOKEN (kaggle.com/settings → API)}"
 
 case "$APK_URL" in
-  http://*|https://*) ;;
-  *) echo "❌ First argument must be a URL (https://...)" >&2; exit 1 ;;
+    http://* | https://*) ;;
+    *)
+        echo "❌ First argument must be a URL (https://...)" >&2
+        exit 1
+        ;;
 esac
 
 mkdir -p "$OUTPUT_DIR"
@@ -29,7 +32,7 @@ trap 'rm -rf "$WORK_DIR"' EXIT
 
 echo "📦 Remote jadx decompile via Kaggle ($KERNEL_ID)"
 
-APK_URL="$APK_URL" WORK_DIR="$WORK_DIR" python3 << 'PYEOF'
+APK_URL="$APK_URL" WORK_DIR="$WORK_DIR" python3 <<'PYEOF'
 import json, os
 
 apk_url = os.environ["APK_URL"]
@@ -135,7 +138,7 @@ with open(os.path.join(work_dir, "jadx-decompiler.ipynb"), "w") as f:
 print("Notebook written.")
 PYEOF
 
-cat > "$WORK_DIR/kernel-metadata.json" <<METADATA
+cat >"$WORK_DIR/kernel-metadata.json" <<METADATA
 {
   "id": "$KERNEL_ID",
   "title": "jadx-apk-decompiler",
@@ -153,16 +156,16 @@ kaggle kernels push -p "$WORK_DIR"
 echo ""
 echo "⏳ Waiting for kernel to finish..."
 while true; do
-  RAW="$(kaggle kernels status "$KERNEL_ID" 2>&1)"
-  echo "  $(date +%H:%M:%S) $RAW"
-  if echo "$RAW" | grep -qi "complete"; then
-    echo "✅ Kernel completed!"
-    break
-  elif echo "$RAW" | grep -qi "error\|cancel\|fail"; then
-    echo "❌ Kernel failed — check output above." >&2
-    exit 1
-  fi
-  sleep 10
+    RAW="$(kaggle kernels status "$KERNEL_ID" 2>&1)"
+    echo "  $(date +%H:%M:%S) $RAW"
+    if echo "$RAW" | grep -qi "complete"; then
+        echo "✅ Kernel completed!"
+        break
+    elif echo "$RAW" | grep -qi "error\|cancel\|fail"; then
+        echo "❌ Kernel failed — check output above." >&2
+        exit 1
+    fi
+    sleep 10
 done
 
 echo ""

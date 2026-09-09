@@ -1,7 +1,7 @@
 package com.zeldrisho.threads.patches.misc.analytics
 
-import com.zeldrisho.threads.patches.shared.Constants.COMPATIBILITY_THREADS
 import app.morphe.patcher.patch.resourcePatch
+import com.zeldrisho.threads.patches.shared.Constants.COMPATIBILITY_THREADS
 
 /**
  * Advertising-id permissions to strip so no component (the Play Services measurement SDK, Meta ad

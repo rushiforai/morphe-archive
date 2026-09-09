@@ -1,4 +1,4 @@
-# Stremio Morphe Patches
+# Stremio for Android TV - Morphe Patches
 
 Public Morphe patch source for the official Stremio Android TV application. The three current source patches target only `com.stremio.one` `1.10.4`.
 

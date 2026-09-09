@@ -70,6 +70,24 @@ public final class SessionBudget {
     private static long watchedMs;
     private static long writtenWatchedMs;
     private static volatile long lockUntilMs;
+    /**
+     * True once today's budget ran out with the lock switched on. Read without the monitor by
+     * {@link #lockedToday()} callers on the settings screen, published under it like everything
+     * else. Cleared only by the day turning over.
+     */
+    private static volatile boolean lockedToday;
+
+    /**
+     * What "start today over" cleared, so the next tap can put it back. Held in memory rather
+     * than in the record: it is the way back from a tap a moment ago, not a second day's worth
+     * of state, and writing it would double what every clear costs.
+     */
+    private static boolean undoAvailable;
+    private static long undoDay;
+    private static int undoVideos;
+    private static long undoWatchedMs;
+    private static long undoLockUntilMs;
+    private static boolean undoNoticeShown;
     private static long lastTickMs;
     private static String lastCountedId;
     private static boolean noticeShown;
@@ -201,6 +219,9 @@ public final class SessionBudget {
             load();
             rollOver(clock.now());
             if (!spent()) {
+                // A locked day is not given back by raising the budget. The settings screen
+                // refuses that edit while the lock holds; this is the same answer at the source.
+                if (lockedToday) return false;
                 if (noticeShown || lockUntilMs != 0) {
                     noticeShown = false;
                     lockUntilMs = 0;
@@ -217,10 +238,45 @@ public final class SessionBudget {
     }
 
     private static void startLock() {
+        long now = clock.now();
+        if (Settings.SESSION_BUDGET_LOCK.get()) {
+            // A commitment rather than a timer: it runs to the hour the day turns over, and the
+            // switch that made it cannot be reached again until then.
+            lockedToday = true;
+            long untilReset = dayEndAfter(now);
+            if (untilReset > lockUntilMs) lockUntilMs = untilReset;
+            return;
+        }
         int lockMinutes = Settings.SESSION_BUDGET_LOCK_MINUTES.get();
         if (lockMinutes <= 0) return;
-        long until = clock.now() + lockMinutes * 60_000L;
+        long until = now + lockMinutes * 60_000L;
         if (until > lockUntilMs) lockUntilMs = until;
+    }
+
+    /**
+     * Whether today's budget was locked when it ran out.
+     *
+     * <p>Everything the reader could otherwise use to undo the day hangs off this: the way out
+     * of the hold, "Start today over", the budget rows and the lock switch itself.
+     */
+    public static boolean lockedToday() {
+        synchronized (LOCK) {
+            load();
+            rollOver(clock.now());
+            return lockedToday;
+        }
+    }
+
+    /** When the locked day ends, or zero when no day is locked. */
+    public static long lockedUntilMs() {
+        synchronized (LOCK) {
+            load();
+            rollOver(clock.now());
+            if (!lockedToday) return 0L;
+            // The instant the lock committed to, not one worked out again now: the reset hour
+            // and the timezone can both have moved since, and neither may bring the day forward.
+            return lockUntilMs > 0 ? lockUntilMs : dayEndAfter(clock.now());
+        }
     }
 
     // ------------------------------------------------------------------------------- the hold
@@ -259,16 +315,35 @@ public final class SessionBudget {
     public static void releaseLock() {
         synchronized (LOCK) {
             load();
+            rollOver(clock.now());
+            // The one exit the hold has, and the whole point of the lock is that today has none.
+            if (lockedToday) return;
             if (lockUntilMs == 0) return;
             lockUntilMs = 0;
             save();
         }
     }
 
-    /** Ends the hold and clears both counts. */
-    public static void clear() {
+    /**
+     * Ends the hold and clears both counts.
+     *
+     * <p>One tap does it, with no dialog asking permission first, because the next tap puts it
+     * back. That is the same bargain the seen video history row makes, and it is the one this
+     * row was not keeping: it used to leave nothing behind at all.
+     *
+     * @return false when today is locked and nothing was cleared.
+     */
+    public static boolean clear() {
         synchronized (LOCK) {
             load();
+            rollOver(clock.now());
+            if (lockedToday) return false;
+            undoDay = day;
+            undoVideos = videos;
+            undoWatchedMs = watchedMs;
+            undoLockUntilMs = lockUntilMs;
+            undoNoticeShown = noticeShown;
+            undoAvailable = true;
             day = dayOf(clock.now());
             videos = 0;
             watchedMs = 0;
@@ -277,6 +352,61 @@ public final class SessionBudget {
             lastCountedId = null;
             noticeShown = false;
             save();
+            return true;
+        }
+    }
+
+    /**
+     * Locks the rest of today when the budget has already run out, and says whether it did.
+     *
+     * <p>Called as the switch is turned on. Deriving the answer from the switch and the counts
+     * instead was a trap: {@code spent()} reads the budget live, so lowering the budget under
+     * the count you already had locked the day on the spot, for someone who never reached it.
+     * A locked day is one fact, written once, and only here or by the budget running out.
+     */
+    public static boolean lockIfSpent() {
+        synchronized (LOCK) {
+            load();
+            long now = clock.now();
+            rollOver(now);
+            if (lockedToday || !spent()) return false;
+            lockedToday = true;
+            long untilReset = dayEndAfter(now);
+            if (untilReset > lockUntilMs) lockUntilMs = untilReset;
+            save();
+            return true;
+        }
+    }
+
+    /** Whether the last "start today over" is still there to be taken back. */
+    public static boolean canUndoClear() {
+        synchronized (LOCK) {
+            load();
+            rollOver(clock.now());
+            return undoAvailable && undoDay == day;
+        }
+    }
+
+    /**
+     * Puts back the counts and any hold that "start today over" cleared.
+     *
+     * @return false when there is nothing to put back, which includes a day that has since
+     *         turned over: the counts it saved belong to a day that is finished.
+     */
+    public static boolean undoClear() {
+        synchronized (LOCK) {
+            load();
+            rollOver(clock.now());
+            if (!undoAvailable || undoDay != day) return false;
+            videos = undoVideos;
+            watchedMs = undoWatchedMs;
+            writtenWatchedMs = undoWatchedMs;
+            lockUntilMs = undoLockUntilMs;
+            noticeShown = undoNoticeShown;
+            lastCountedId = null;
+            undoAvailable = false;
+            save();
+            return true;
         }
     }
 
@@ -329,6 +459,23 @@ public final class SessionBudget {
     }
 
     /**
+     * The next moment the reset hour comes round, which is when the day containing {@code now}
+     * ends. Worked out from scratch rather than from the window cache, because a locked day has
+     * to name its end correctly on the day the clocks change too.
+     */
+    static long dayEndAfter(long now) {
+        int resetHour = Settings.SESSION_BUDGET_RESET_HOUR.get();
+        Calendar calendar = Calendar.getInstance(TimeZone.getDefault());
+        calendar.setTimeInMillis(now);
+        calendar.set(Calendar.HOUR_OF_DAY, resetHour);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        if (calendar.getTimeInMillis() <= now) calendar.add(Calendar.DAY_OF_YEAR, 1);
+        return calendar.getTimeInMillis();
+    }
+
+    /**
      * Starts a new day when one has arrived, and only then.
      *
      * <p>The day is computed from the reset hour, which the reader can change, and from the
@@ -340,11 +487,19 @@ public final class SessionBudget {
     private static void rollOver(long now) {
         long today = dayOf(now);
         if (today <= day) return;
+        // The day only ever moving forward is not enough on its own for a locked day. Moving
+        // the device's timezone forward makes the day counter jump, which cleared the lock,
+        // the hold and the counts together: two taps in the device settings and sixteen hours
+        // of hold were gone. A locked day ends at the moment it committed to, which is an
+        // instant rather than a day number and so is the same in every timezone.
+        if (lockedToday && lockUntilMs > now) return;
         day = today;
         videos = 0;
         watchedMs = 0;
         writtenWatchedMs = 0;
         lockUntilMs = 0;
+        lockedToday = false;
+        undoAvailable = false;
         lastCountedId = null;
         noticeShown = false;
         lastTickMs = 0;
@@ -370,6 +525,9 @@ public final class SessionBudget {
                     writtenWatchedMs = watchedMs;
                     lockUntilMs = Long.parseLong(parts[3]);
                     noticeShown = "1".equals(parts[4]);
+                    // A record written before the lock existed has five fields, and a day it
+                    // describes was never locked, so its absence reads as false.
+                    lockedToday = parts.length >= 6 && "1".equals(parts[5]);
                 }
             }
         } catch (RuntimeException malformed) {
@@ -385,7 +543,8 @@ public final class SessionBudget {
     private static void save() {
         writtenWatchedMs = watchedMs;
         final String record = day + "|" + videos + "|" + watchedMs + "|"
-                + lockUntilMs + "|" + (noticeShown ? "1" : "0");
+                + lockUntilMs + "|" + (noticeShown ? "1" : "0")
+                + "|" + (lockedToday ? "1" : "0");
         try {
             WRITER.execute(() -> Settings.SESSION_BUDGET_STATE.save(record));
         } catch (RejectedExecutionException stopped) {
@@ -435,6 +594,8 @@ public final class SessionBudget {
             watchedMs = 0;
             writtenWatchedMs = 0;
             lockUntilMs = 0;
+            lockedToday = false;
+            undoAvailable = false;
             lastTickMs = 0;
             lastCountedId = null;
             noticeShown = false;

@@ -23,7 +23,10 @@ import android.opengl.EGLSurface;
 import android.opengl.GLES20;
 import android.view.Surface;
 
+import androidx.annotation.RequiresApi;
+
 import java.io.FileDescriptor;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -41,6 +44,34 @@ final class AnimatedWebpMp4Converter {
      */
     private static final long MAX_FRAME_PIXELS = 16L * 1024 * 1024;
 
+    /**
+     * What this GPU will take as a texture, a side at a time, or zero when it has not said.
+     *
+     * <p>Only meaningful once an EGL context is current, so it is read there rather than beside
+     * the pixel cap, which runs before there is a context to ask.
+     */
+    static int maxTextureSize() {
+        try {
+            int[] value = new int[1];
+            GLES20.glGetIntegerv(GLES20.GL_MAX_TEXTURE_SIZE, value, 0);
+            return Math.max(0, value[0]);
+        } catch (Throwable unavailable) {
+            return 0;
+        }
+    }
+
+    /**
+     * Refuses a frame this GPU cannot hold.
+     *
+     * @param maximum a side, as the GPU reports it. Zero or less means it did not say, and a
+     *                frame is let through rather than refused on a number nobody supplied.
+     */
+    static void requireFitsTexture(int width, int height, int maximum) {
+        if (maximum <= 0 || (width <= maximum && height <= maximum)) return;
+        throw new IllegalStateException("Animated WebP frame is " + width + " by " + height
+                + ", larger than this device's maximum texture size of " + maximum);
+    }
+
     private static final String MIME_TYPE = "video/avc";
     private static final int FRAME_RATE = 30;
     private static final int I_FRAME_INTERVAL_SECONDS = 1;
@@ -49,6 +80,10 @@ final class AnimatedWebpMp4Converter {
     private AnimatedWebpMp4Converter() {
     }
 
+    // The muxer that writes to a file descriptor arrived in API 26, while the one that takes a
+    // path is API 18. Saying so here is what lets the API level check see that the only caller
+    // is behind a Q guard, rather than reporting a call it cannot follow.
+    @RequiresApi(26)
     static void convert(byte[] webpData, FileDescriptor output) throws Exception {
         convert(webpData, new MediaMuxer(output, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4));
     }
@@ -137,6 +172,9 @@ final class AnimatedWebpMp4Converter {
                         int yOffset = invokeInt(frame, "getYOffset");
                         validateFrame(sourceWidth, sourceHeight, frameWidth, frameHeight, xOffset, yOffset);
 
+                        // The same two Fresco names the GIF converter reads, and the same
+                        // finding: LIZ()Z is nativeIsBlendWithPreviousFrame and LIZIZ()Z is
+                        // nativeShouldDisposeToBackgroundColor in the 46.2.3 host.
                         boolean blend = invokeBoolean(frame, "LIZ");
                         clearPrevious = invokeBoolean(frame, "LIZIZ");
                         frameBitmap = Bitmap.createBitmap(frameWidth, frameHeight, Bitmap.Config.ARGB_8888);
@@ -201,14 +239,21 @@ final class AnimatedWebpMp4Converter {
         return (int) Math.max(500_000L, Math.min(8_000_000L, proposed));
     }
 
-    private static void drainEncoder(
+    /** Package-private so a test can drive the loop with no encoder behind it. */
+    static void drainEncoder(
             MediaCodec encoder,
             MediaMuxer muxer,
             boolean endOfStream,
             EncoderState state
-    ) {
+    ) throws IOException {
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         while (true) {
+            // An encoder that stops emitting after signalEndOfInputStream leaves this loop
+            // spinning, and dequeueOutputBuffer does not answer Thread.interrupt(), so neither
+            // the scheduler's cancel nor the job deadline could end it. One of the three media
+            // worker threads was then gone for the life of the process. This is the only place
+            // in the loop that can notice either.
+            MediaBudget.check(null);
             int outputIndex = encoder.dequeueOutputBuffer(info, CODEC_TIMEOUT_US);
             if (outputIndex == MediaCodec.INFO_TRY_AGAIN_LATER) {
                 if (!endOfStream) return;
@@ -291,7 +336,8 @@ final class AnimatedWebpMp4Converter {
         }
     }
 
-    private static final class EncoderState {
+    /** Package-private with the drain loop it belongs to, so a test can call that loop. */
+    static final class EncoderState {
         int trackIndex = -1;
         boolean muxerStarted;
     }
@@ -356,6 +402,11 @@ final class AnimatedWebpMp4Converter {
             if (!EGL14.eglMakeCurrent(display, eglSurface, eglSurface, context)) {
                 throw new IllegalStateException("Could not make codec EGL surface current");
             }
+            // The pixel cap above does not know what this GPU will take. A great many Android
+            // GPUs stop at 4096 a side, and 8192 by 2000 is well inside sixteen million pixels.
+            // Asked for anyway the upload sets GL_INVALID_VALUE, which nothing was reading, and
+            // the swap still succeeds, so the sticker saved as a black video.
+            requireFitsTexture(width, height, maxTextureSize());
 
             program = createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
             int[] textures = new int[1];
@@ -378,7 +429,21 @@ final class AnimatedWebpMp4Converter {
             GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
             GLES20.glUseProgram(program);
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture);
+            // The flag is sticky and nothing else here reads it, so program and texture setup
+            // leave whatever they set for the first frame to find. Drained first, the check
+            // below reports this upload rather than something that happened before it.
+            while (GLES20.glGetError() != GLES20.GL_NO_ERROR) {
+                // Discarding on purpose: these belong to setup, which has already succeeded far
+                // enough to get here, and attributing them to a frame would be a lie.
+            }
             android.opengl.GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
+            // Belt and braces for a device whose reported maximum is not the whole story. The
+            // caller writes the WebP as it came instead, which beats writing a black MP4.
+            int uploadError = GLES20.glGetError();
+            if (uploadError != GLES20.GL_NO_ERROR) {
+                throw new IllegalStateException("Could not upload a sticker frame to the GPU, "
+                        + "OpenGL error 0x" + Integer.toHexString(uploadError));
+            }
 
             int positionLocation = GLES20.glGetAttribLocation(program, "aPosition");
             int textureLocation = GLES20.glGetAttribLocation(program, "aTexCoord");
