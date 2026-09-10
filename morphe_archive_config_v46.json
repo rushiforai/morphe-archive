@@ -1267,14 +1267,6 @@
                 "updatedAt": 1787447738326
             },
             {
-                "name": "morphe-spotify-patches",
-                "source": "https://raw.githubusercontent.com/ImNoammm/morphe-spotify-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 162,
-                "createdAt": 1787447738409,
-                "updatedAt": 1787447738409
-            },
-            {
                 "name": "morphe-patches",
                 "source": "https://raw.githubusercontent.com/XTapped/morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
