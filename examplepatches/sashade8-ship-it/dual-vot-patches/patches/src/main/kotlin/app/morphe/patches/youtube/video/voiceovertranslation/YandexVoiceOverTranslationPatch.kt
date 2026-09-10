@@ -60,6 +60,7 @@ val yandexVoiceOverTranslationPatch = bytecodePatch(
         playerOverlayButtonsHookPatch,
         legacyPlayerControlsPatch,
         yandexVoiceOverTranslationResourcePatch,
+        yandexVotPlayerMediaTransportPatch,
     )
 
     compatibleWith(COMPATIBILITY_YOUTUBE)

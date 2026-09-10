@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import app.morphe.extension.shared.Utils;
@@ -107,6 +108,53 @@ public class FeatureGatePagesTest {
                         label.getWidth() >= laidOut.getWidth());
             }
             UiCapture.save(row, "pages/dark/lab-row-large-text.png");
+        }
+    }
+
+    /**
+     * The search field at the top of the Lab was a fixed 48dp box around 16sp text. At double
+     * text size that is 32sp of glyphs in a box built for 16, so the tops and tails of what the
+     * reader had typed were cut off. 48dp is the floor a finger needs, not the height.
+     */
+    @Test @Config(qualifiers = "w360dp-h640dp-night-mdpi", fontScale = 2)
+    public void theLabSearchFieldGrowsWithTheTextAndKeepsItsFingerSizedFloor() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            assertEquals("the font scale did not take, so this proves nothing",
+                    2f, activity.getResources().getConfiguration().fontScale, 0.01f);
+            FeatureGateLabStore.resetAllLabData();
+            FeatureGateLabSession.begin();
+            var entry = new FeatureGateCatalog.Entry("3p_login_optimization",
+                    "3p Login Optimization", "abmock", "INT", true, true,
+                    List.of(), List.of(), List.of(), "", "", false, null, null);
+            var cached = FeatureGateCatalog.class.getDeclaredField("cachedSnapshot");
+            cached.setAccessible(true);
+            cached.set(null, new FeatureGateCatalog.Snapshot(
+                    List.of(entry), Map.of(entry.identity(), entry), 0, 0, true));
+            FeatureGateLabFragment lab = new FeatureGateLabFragment();
+            attach(activity, lab);
+
+            EditText search = find(lab.getView(), EditText.class);
+            assertNotNull("the Lab has no search field, so this proves nothing", search);
+            assertEquals("the search field lost the floor a finger needs",
+                    FeatureGateLabUi.dp(activity, 48), search.getMinimumHeight());
+
+            search.setText("login");
+            View root = lab.getView();
+            root.measure(
+                    View.MeasureSpec.makeMeasureSpec(
+                            activity.getResources().getDisplayMetrics().widthPixels,
+                            View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+            root.layout(0, 0, root.getMeasuredWidth(), root.getMeasuredHeight());
+
+            android.text.Layout typed = search.getLayout();
+            assertNotNull("what was typed was never laid out", typed);
+            int needed = typed.getHeight() + search.getPaddingTop() + search.getPaddingBottom();
+            assertTrue("the search field is " + search.getHeight() + "px around " + needed
+                            + "px of text at double text size",
+                    search.getHeight() >= needed);
         }
     }
 
@@ -210,6 +258,127 @@ public class FeatureGatePagesTest {
 
             assertEquals("the editors from the earlier views are still in the list",
                     editors, detail.objectEditorCountForTests());
+        }
+    }
+
+    @Test public void enablingAnArrayOverrideKeepsItsGeneratedValues() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            FeatureGateDetailFragment detail = arrayDetail(owner.get(), false, null);
+            EditText editor = find(detail.getView(), EditText.class);
+            assertNotNull(editor);
+            assertEquals("analytics.us.tiktok.com", editor.getText().toString());
+
+            Switch force = find(detail.getView(), Switch.class);
+            assertFalse(force.isChecked());
+            force.performClick();
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            FeatureGateLabStore.Rule saved = FeatureGateLabStore.rule(
+                    FeatureGateLabStore.MANAGER_SETTINGS_MANAGER, "ad_gaid_whitelist", "OBJECT");
+            assertNotNull(saved);
+            assertTrue(saved.enabled);
+            org.json.JSONArray values = new org.json.JSONObject(saved.value).getJSONArray("$value");
+            assertEquals(1, values.length());
+            assertEquals("analytics.us.tiktok.com", values.getString(0));
+        }
+    }
+
+    @Test public void savingAnArrayOverrideKeepsTheLoadedValuesAheadOfItsDefaults() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            FeatureGateDetailFragment detail = arrayDetail(owner.get(), true,
+                    "[\"account.one\",\"account.two\"]");
+            EditText editor = find(detail.getView(), EditText.class);
+            assertNotNull(editor);
+            assertEquals("account.one\naccount.two", editor.getText().toString());
+
+            TextView save = findText(detail.getView(), "Save field values");
+            assertNotNull(save);
+            save.performClick();
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            FeatureGateLabStore.Rule saved = FeatureGateLabStore.rule(
+                    FeatureGateLabStore.MANAGER_SETTINGS_MANAGER, "ad_gaid_whitelist", "OBJECT");
+            assertNotNull(saved);
+            assertFalse("saving fields must not enable the override", saved.enabled);
+            org.json.JSONArray values = new org.json.JSONObject(saved.value).getJSONArray("$value");
+            assertEquals(2, values.length());
+            assertEquals("account.one", values.getString(0));
+            assertEquals("account.two", values.getString(1));
+        }
+    }
+
+    private static FeatureGateDetailFragment arrayDetail(Activity activity, boolean loaded,
+                                                         String currentValue) throws Exception {
+        Utils.setContext(activity);
+        FeatureGateLabStore.resetAllLabData();
+        FeatureGateLabSession.begin();
+        FeatureGateLabStore.setMasterEnabled(true);
+        // The generated 46.2.3 catalogue declares this real gate as a String[] with this default.
+        var entry = new FeatureGateCatalog.Entry("ad_gaid_whitelist", "Ad Gaid Whitelist",
+                FeatureGateLabStore.MANAGER_SETTINGS_MANAGER, "OBJECT", true, true,
+                List.of("[\"analytics.us.tiktok.com\"]"), List.of(), List.of(), "", "",
+                loaded, currentValue, loaded ? "JSON" : null, String[].class.getName());
+        var cached = FeatureGateCatalog.class.getDeclaredField("cachedSnapshot");
+        cached.setAccessible(true);
+        cached.set(null, new FeatureGateCatalog.Snapshot(
+                List.of(entry), Map.of(entry.identity(), entry), 0, 0, true));
+        FeatureGateDetailFragment detail = FeatureGateDetailFragment.forEntry(
+                entry.manager, entry.key, entry.type);
+        attach(activity, detail);
+        return detail;
+    }
+
+    private static TextView findText(View view, String text) {
+        if (view instanceof TextView && text.contentEquals(((TextView) view).getText())) {
+            return (TextView) view;
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int index = 0; index < group.getChildCount(); index++) {
+                TextView found = findText(group.getChildAt(index), text);
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The chevron on the value spinner is a compound drawable, and a compound drawable is only
+     * turned round when the view it hangs off resolves its own layout direction. An adapter
+     * hands its row back before anything attaches it, so on an Arabic or Hebrew phone the
+     * arrow sat at the reading end of the row still pointing the other way.
+     */
+    @Test @Config(sdk = 23, qualifiers = "ar-rEG-ldrtl-w480dp-h960dp-night-mdpi")
+    public void theValueSpinnersChevronTurnsRoundForARightToLeftReader() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            assertEquals("the fixture is not a right to left screen, so this proves nothing",
+                    View.LAYOUT_DIRECTION_RTL,
+                    activity.getResources().getConfiguration().getLayoutDirection());
+            FeatureGateLabStore.resetAllLabData();
+            FeatureGateLabSession.begin();
+            FeatureGateLabStore.setMasterEnabled(true);
+            var entry = new FeatureGateCatalog.Entry("rtl_gate", "Rtl gate", "abmock", "INT",
+                    true, true, List.of(), List.of(), List.of(), "", "", false, null, null);
+            var cached = FeatureGateCatalog.class.getDeclaredField("cachedSnapshot");
+            cached.setAccessible(true);
+            cached.set(null, new FeatureGateCatalog.Snapshot(
+                    List.of(entry), Map.of(entry.identity(), entry), 0, 0, true));
+
+            attach(activity, FeatureGateDetailFragment.forEntry("abmock", "rtl_gate", "INT"));
+            Spinner values = find(
+                    activity.getFragmentManager().findFragmentById(android.R.id.content).getView(),
+                    Spinner.class);
+            assertNotNull("the detail screen has no value spinner, so this proves nothing", values);
+            View row = values.getAdapter().getView(0, null, values);
+            android.graphics.drawable.Drawable chevron =
+                    ((TextView) row).getCompoundDrawablesRelative()[2];
+            assertNotNull("the spinner row carries no chevron, so this proves nothing", chevron);
+            assertEquals("the chevron points the way a left to right reader reads",
+                    View.LAYOUT_DIRECTION_RTL, chevron.getLayoutDirection());
         }
     }
 

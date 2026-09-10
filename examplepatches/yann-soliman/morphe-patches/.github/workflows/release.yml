@@ -9,6 +9,8 @@ on:
 permissions:
   contents: write
   packages: read
+  id-token: write
+  attestations: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -40,11 +42,26 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Ensure scripts are executable
+        run: chmod +x ./gradlew ./build-local.sh ./tools/*.sh
+
+      - name: Validate repository
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: ./tools/check.sh
+
+      - name: Clear build artifacts before release
+        run: |
+          rm -rf patches/build
+          find extensions -type d -name build -prune -exec rm -rf {} + 2>/dev/null || true
+
       - name: Install release dependencies
         run: npm ci
 
-      - name: Ensure Gradle wrapper is executable
-        run: chmod +x ./gradlew
+      - name: Capture current public version
+        id: previous_version
+        run: echo "version=$(jq -r '.version' patches-bundle.json)" >> "$GITHUB_OUTPUT"
 
       - name: Publish release
         env:
@@ -53,3 +70,66 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
         run: npx semantic-release
+
+      - name: Verify GitHub release
+        env:
+          PREVIOUS_VERSION: ${{ steps.previous_version.outputs.version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          NEW_VERSION="$(jq -r '.version' patches-bundle.json)"
+
+          if [[ "$NEW_VERSION" == "$PREVIOUS_VERSION" ]]; then
+            echo "No new release was created."
+            exit 0
+          fi
+
+          ASSETS="$(gh release view "v$NEW_VERSION" --json assets --jq '.assets[].name')"
+          EXPECTED="patches-$NEW_VERSION.mpp"
+
+          if [[ "$ASSETS" != "$EXPECTED" ]]; then
+            echo "Unexpected release assets for v$NEW_VERSION:" >&2
+            printf '%s\n' "$ASSETS" >&2
+            echo "Expected exactly: $EXPECTED" >&2
+            exit 1
+          fi
+
+          echo "GitHub release v$NEW_VERSION contains exactly $EXPECTED."
+
+      - name: Attest built bundle
+        if: ${{ hashFiles('patches/build/libs/patches-*.mpp') != '' }}
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: patches/build/libs/patches-*.mpp
+
+      - name: Publish personal source
+        if: ${{ github.ref_name == 'main' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          CURRENT_VERSION="$(jq -r '.version' patches-bundle.json)"
+          bash ./tools/publish-personal-bundle.sh "$CURRENT_VERSION"
+
+      - name: Remove legacy releases containing the personal patch
+        if: ${{ github.ref_name == 'main' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          for tag in \
+            keepcool-availability-dots-test.1 \
+            v1.1.0 \
+            v1.1.1 \
+            v1.2.0
+          do
+            if gh release view "$tag" >/dev/null 2>&1; then
+              gh release delete "$tag" --yes
+              echo "Deleted release $tag (tag preserved)."
+            else
+              echo "Release $tag already absent."
+            fi
+          done

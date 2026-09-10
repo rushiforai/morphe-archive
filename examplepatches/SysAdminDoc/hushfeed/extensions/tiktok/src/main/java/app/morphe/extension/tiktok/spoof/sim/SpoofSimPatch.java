@@ -20,6 +20,23 @@ public class SpoofSimPatch {
         return true;
     }
 
+    /**
+     * Whether TikTok's startup SIM change check should be skipped.
+     *
+     * <p>That check sends one telemetry event naming the country and carrier before and after
+     * the change, how many SIMs the phone reports, and how long since it last looked. What
+     * decides that something changed is the subscription id, an int none of the spoofed getters
+     * covers, so the event fires on a real SIM swap or a change of which SIM carries data. The
+     * country and carrier in it do read as the preset. The SIM count does not: it comes from
+     * SubscriptionManager, and the event still reports that the hardware moved. Nothing else in
+     * the app reads what the check stores.
+     */
+    public static boolean shouldSkipSimChangeReport() {
+        if (isContextNotSet("simChangeReport")) return false;
+
+        return Settings.SIM_SPOOF.get();
+    }
+
     public static String getCountryIso(String value) {
         if (isContextNotSet("countryIso")) return value;
 

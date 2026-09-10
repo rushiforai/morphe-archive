@@ -30,6 +30,7 @@ import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.notinterested.NotInterested;
+import app.morphe.extension.tiktok.wellbeing.SessionBudget;
 
 import java.lang.ref.WeakReference;
 
@@ -46,7 +47,10 @@ import java.lang.ref.WeakReference;
  */
 public final class BlockAuthorOverlay {
     private static final String SOUND_GLYPH = "♪";
-    private static final int BUTTON_SIZE_DP = 44;
+    // 44 clears WCAG 2.5.5 and is under Android's own 48dp guidance, and these four have no
+    // TouchDelegate to make up the difference. They sit in a column on the feed, where a
+    // miss is a like or a follow on somebody's video.
+    private static final int BUTTON_SIZE_DP = 48;
     private static final int BUTTON_GAP_DP = 8;
     private static final long UNDO_VISIBLE_MS = 6_000L;
 
@@ -76,6 +80,11 @@ public final class BlockAuthorOverlay {
     private BlockAuthorOverlay() {
     }
 
+    /** Applies changed control settings without waiting for a different creator. */
+    public static void refresh() {
+        onAuthorChanged(CurrentVideoAuthor.get());
+    }
+
     /** @param author the new current author, or null when the current item has none. */
     static void onAuthorChanged(VideoAuthor author) {
         if (!Settings.BLOCK_AUTHOR_BUTTON.get() && !notInterestedEnabled()) {
@@ -100,6 +109,8 @@ public final class BlockAuthorOverlay {
         if (button == null) {
             return;
         }
+        // A control enabled from settings can be attached after a retained hold panel.
+        visible = visible && !SessionBudget.isLocked();
         int wanted = visible && Settings.BLOCK_AUTHOR_BUTTON.get() ? View.VISIBLE : View.GONE;
         if (button.getVisibility() != wanted) {
             button.setVisibility(wanted);
@@ -137,8 +148,7 @@ public final class BlockAuthorOverlay {
     }
 
     /**
-     * Re-checks whether the feed is on screen. Runs on every layout pass, so it does
-     * nothing but read a cached view's selected state.
+     * Re-checks the cached feed selection and the active hold on each layout pass.
      */
     private static void syncVisibility() {
         Activity activity = Utils.getActivity();
@@ -298,9 +308,12 @@ public final class BlockAuthorOverlay {
         button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 28);
         button.setGravity(Gravity.CENTER);
         button.setContentDescription(L10n.t(activity, "Not interested in this video"));
+        // The same round shape and the same scrim as the three it shares the rail with. It was
+        // a rounded rectangle over a darker scrim, which on a column of four reads as a mistake
+        // rather than as a distinction.
         GradientDrawable background = new GradientDrawable();
-        background.setColor(Color.argb(180, 0, 0, 0));
-        background.setCornerRadius(SettingsUi.dp(activity, 8));
+        background.setShape(GradientDrawable.OVAL);
+        background.setColor(Color.argb(140, 0, 0, 0));
         background.setStroke(SettingsUi.dp(activity, 1), Color.argb(90, 255, 255, 255));
         button.setBackground(background);
         button.setOnClickListener(view -> NotInterested.submit());
@@ -582,7 +595,7 @@ public final class BlockAuthorOverlay {
         String after = app.morphe.extension.tiktok.feedfilter.AdvancedFeedRules.addCreatorEntry(
                 before, author.stableId());
         if (after.equals(before)) {
-            Utils.showToastShort(L10n.t("This creator is already hidden"));
+            Utils.showToastShort(L10n.t("That creator is already in the list"));
             return;
         }
         Settings.LOCAL_HIDDEN_CREATORS.save(after);
@@ -634,6 +647,21 @@ public final class BlockAuthorOverlay {
      * root is a parameter. Falls back to a plain toast when there is nowhere to draw it.
      */
     public static void showUndoBanner(ViewGroup root, String message, Runnable undoAction) {
+        showBanner(root, message, undoAction);
+    }
+
+    /**
+     * The same banner with nothing to press, for anything that only has something to say.
+     *
+     * <p>Everything worth having is in the shape rather than in the Undo: it takes no focus,
+     * takes itself away after six seconds, and announces itself once as a polite live region,
+     * which a toast does not.
+     */
+    public static void showNoticeBanner(ViewGroup root, String message) {
+        showBanner(root, message, null);
+    }
+
+    private static void showBanner(ViewGroup root, String message, Runnable undoAction) {
         Utils.runOnMainThread(() -> {
             try {
                 if (root == null) {
@@ -664,21 +692,7 @@ public final class BlockAuthorOverlay {
                 label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
                 banner.addView(label, new LinearLayout.LayoutParams(0, -2, 1f));
 
-                TextView undo = new TextView(activity);
-                undo.setText(L10n.t(activity, "Undo"));
-                undo.setContentDescription(L10n.t(activity, "Undo"));
-                undo.setTextColor(SettingsUi.OVERLAY_ACCENT);
-                undo.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-                // A banner that dismisses itself is the worst place for a small target.
-                undo.setPadding(SettingsUi.dp(activity, 16), SettingsUi.dp(activity, 12), SettingsUi.dp(activity, 16), SettingsUi.dp(activity, 12));
-                undo.setMinimumHeight(SettingsUi.dp(activity, 48));
-                undo.setMinimumWidth(SettingsUi.dp(activity, 48));
-                undo.setGravity(Gravity.CENTER);
-                undo.setOnClickListener(view -> {
-                    dismissUndo();
-                    undoAction.run();
-                });
-                banner.addView(undo, new LinearLayout.LayoutParams(-2, -2));
+                if (undoAction != null) addUndo(activity, banner, undoAction);
                 // Nothing announced this banner, so a reader using TalkBack never knew there
                 // was a way back at all.
                 banner.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
@@ -705,6 +719,25 @@ public final class BlockAuthorOverlay {
                 Utils.showToastShort(message);
             }
         });
+    }
+
+    private static void addUndo(Activity activity, LinearLayout banner, Runnable undoAction) {
+        TextView undo = new TextView(activity);
+        undo.setText(L10n.t(activity, "Undo"));
+        undo.setContentDescription(L10n.t(activity, "Undo"));
+        undo.setTextColor(SettingsUi.OVERLAY_ACCENT);
+        undo.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        // A banner that dismisses itself is the worst place for a small target.
+        undo.setPadding(SettingsUi.dp(activity, 16), SettingsUi.dp(activity, 12),
+                SettingsUi.dp(activity, 16), SettingsUi.dp(activity, 12));
+        undo.setMinimumHeight(SettingsUi.dp(activity, 48));
+        undo.setMinimumWidth(SettingsUi.dp(activity, 48));
+        undo.setGravity(Gravity.CENTER);
+        undo.setOnClickListener(view -> {
+            dismissUndo();
+            undoAction.run();
+        });
+        banner.addView(undo, new LinearLayout.LayoutParams(-2, -2));
     }
 
     private static void dismissUndo() {

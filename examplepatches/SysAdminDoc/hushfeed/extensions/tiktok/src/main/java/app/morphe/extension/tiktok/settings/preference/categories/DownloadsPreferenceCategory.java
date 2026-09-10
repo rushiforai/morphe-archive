@@ -119,7 +119,7 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
                     context,
                     "Photo filename",
                     "Tokens: {creator}, {date}, {video_id}, {index}. {index} numbers the photos of a "
-                            + "slideshow you save with Save original photos; anything saved through "
+                            + "slideshow you save with Download original photos; anything saved through "
                             + "TikTok's own button is numbered by the folder instead. The file "
                             + "extension is kept automatically.",
                     Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE
@@ -146,14 +146,14 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
         if (SettingsStatus.customOfflineVideosEnabled) {
             addPreference(new TogglePreference(
                     context,
-                    "Custom offline videos",
-                    "Let the Offline videos menu use your own limit instead of TikTok's fixed one. Restart TikTok after turning this on.",
+                    "Use your own offline videos limit",
+                    "Let the Offline videos menu use your own limit instead of TikTok's fixed one. Restart TikTok to apply this.",
                     Settings.CUSTOM_OFFLINE_VIDEOS
             ));
             addPreference(new NumberInputPreference(
                     context,
                     "Offline videos limit",
-                    "Choose 1-1000 videos. Values outside this range use the nearest valid limit. Restart TikTok after saving.",
+                    "Choose 1-1000 videos. Values outside this range use the nearest valid limit. Restart TikTok to apply this.",
                     Settings.CUSTOM_OFFLINE_VIDEO_LIMIT
             ));
         }

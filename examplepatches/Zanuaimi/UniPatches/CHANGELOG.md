@@ -1,3 +1,31 @@
+## [1.12.0](https://github.com/Zanuaimi/UniPatches/compare/v1.11.1...v1.12.0) (2026-09-09)
+
+### ✨ New Features
+
+* **overlay:** refine configuration and preset behavior ([2bee3b9](https://github.com/Zanuaimi/UniPatches/commit/2bee3b94cd896924e99e884b3e962d29a6470a72))
+* **overlay:** strengthen shared runtime module lifecycle ([f8b0579](https://github.com/Zanuaimi/UniPatches/commit/f8b0579dfb10133312f3e351ad28e2a2ea91ec73))
+* **patches:** improve compatibility and user-facing controls ([e0fe90e](https://github.com/Zanuaimi/UniPatches/commit/e0fe90eec468ed75b489cce9e31cb9d7fd5db8ae))
+
+## [1.11.1](https://github.com/Zanuaimi/UniPatches/compare/v1.11.0...v1.11.1) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* **overlay:** restrict Hill Climb example to target package ([3452b53](https://github.com/Zanuaimi/UniPatches/commit/3452b534024110b707d2d196c4e4c292a76c67ae))
+
+## [1.11.0](https://github.com/Zanuaimi/UniPatches/compare/v1.10.3...v1.11.0) (2026-09-09)
+
+### ✨ New Features
+
+* **ads:** add runtime policy controls ([d2ea7cc](https://github.com/Zanuaimi/UniPatches/commit/d2ea7cc450d308d89bc35045d7cf6aa629e653f9))
+* **overlay:** extend shared core for integrated modules ([3d1d030](https://github.com/Zanuaimi/UniPatches/commit/3d1d030e0ad426476a99af9167bc7b0cc0316838))
+* **overlay:** release universal overlay v2.0 ([4984b27](https://github.com/Zanuaimi/UniPatches/commit/4984b27cb1e8b55da66369c755fa941f82cbabf8))
+
+## [1.10.3](https://github.com/Zanuaimi/UniPatches/compare/v1.10.2...v1.10.3) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* **overlay:** finalize shared core release ([6b525ec](https://github.com/Zanuaimi/UniPatches/commit/6b525ecd8317177cdafa7c8ebaab90f7b9ad6226))
+
 ## [1.10.2](https://github.com/Zanuaimi/UniPatches/compare/v1.10.1...v1.10.2) (2026-09-08)
 
 ### 🐛 Bug Fixes

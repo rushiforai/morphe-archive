@@ -1,3 +1,19 @@
+## [1.16.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.15.0...v1.16.0) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* **docs:** fix Gboard Lite supported versions table formatting in README ([6a087f4](https://github.com/kveld9/kveld-morphe-patches/commit/6a087f4558155c1ee3f2497a48649c07e92fb6e0))
+
+### ✨ New Features
+
+* **gboard:** add armeabi-v7a and lite_release compatibility ([83c8bb8](https://github.com/kveld9/kveld-morphe-patches/commit/83c8bb8844109c5364dadf55ad8f36440b17ad76))
+
+## [1.15.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.14.0...v1.15.0) (2026-09-09)
+
+### ✨ New Features
+
+* **patches:** add DPI Resource Slimmer patch ([f98d7ce](https://github.com/kveld9/kveld-morphe-patches/commit/f98d7ce0091ef14fd7d684bcc2f99bd67db7edb7)), closes [#16](https://github.com/kveld9/kveld-morphe-patches/issues/16)
+
 ## [1.14.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.13.1...v1.14.0) (2026-09-09)
 
 ### ✨ New Features

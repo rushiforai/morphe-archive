@@ -10,7 +10,7 @@ import re
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / 'patches/src/main/kotlin/local/keepcool/KeepcoolCalendarPatch.kt'
+SOURCE = ROOT / 'patches/src/personal/kotlin/io/github/yannsoliman/patches/keepcool/KeepcoolCalendarPatch.kt'
 
 
 def parse(text):

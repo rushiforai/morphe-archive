@@ -1,3 +1,33 @@
+## [1.15.0](https://github.com/AngelDark92/steamlink-patches/compare/v1.14.2...v1.15.0) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* Merge pull request [#56](https://github.com/AngelDark92/steamlink-patches/issues/56) from AngelDark92/dev ([462d8e7](https://github.com/AngelDark92/steamlink-patches/commit/462d8e7eb3efc64375f984bbed7e8fdb6b615938))
+* retired experiment with fovea ([9476757](https://github.com/AngelDark92/steamlink-patches/commit/9476757f626c66e67866b1a5284fbb7b3cd6bed5))
+* rgb 8-bit made default because of banding on 10-bit patch ([81e941b](https://github.com/AngelDark92/steamlink-patches/commit/81e941b1333adbf65f0ae79a5b43e53ec6cdaa22))
+
+### ✨ New Features
+
+* new fovea layer experiment ([6e6719f](https://github.com/AngelDark92/steamlink-patches/commit/6e6719ff4d57d616ff2497f652ed3c1a14f0732d))
+
+## [1.15.0-dev.3](https://github.com/AngelDark92/steamlink-patches/compare/v1.15.0-dev.2...v1.15.0-dev.3) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* rgb 8-bit made default because of banding on 10-bit patch ([81e941b](https://github.com/AngelDark92/steamlink-patches/commit/81e941b1333adbf65f0ae79a5b43e53ec6cdaa22))
+
+## [1.15.0-dev.2](https://github.com/AngelDark92/steamlink-patches/compare/v1.15.0-dev.1...v1.15.0-dev.2) (2026-09-07)
+
+### 🐛 Bug Fixes
+
+* retired experiment with fovea ([9476757](https://github.com/AngelDark92/steamlink-patches/commit/9476757f626c66e67866b1a5284fbb7b3cd6bed5))
+
+## [1.15.0-dev.1](https://github.com/AngelDark92/steamlink-patches/compare/v1.14.2...v1.15.0-dev.1) (2026-09-07)
+
+### ✨ New Features
+
+* new fovea layer experiment ([6e6719f](https://github.com/AngelDark92/steamlink-patches/commit/6e6719ff4d57d616ff2497f652ed3c1a14f0732d))
+
 ## [1.14.2](https://github.com/AngelDark92/steamlink-patches/compare/v1.14.1...v1.14.2) (2026-09-06)
 
 ### 🐛 Bug Fixes

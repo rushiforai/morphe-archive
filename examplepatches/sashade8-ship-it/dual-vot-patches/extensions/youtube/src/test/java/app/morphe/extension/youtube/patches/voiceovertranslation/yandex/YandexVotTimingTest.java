@@ -20,6 +20,15 @@ public class YandexVotTimingTest {
     }
 
     @Test
+    public void onlyPostUploadServerEtaCanStartCountdown() {
+        // STATUS_AUDIO_REQUESTED is observed before the source upload.  Its absent/zero value
+        // must keep the UI indeterminate until a fresh processing response provides an ETA.
+        assertEquals(-1, YandexVotTiming.serverEstimateOrNone(-1));
+        assertEquals(-1, YandexVotTiming.serverEstimateOrNone(0));
+        assertEquals(47, YandexVotTiming.serverEstimateOrNone(47));
+    }
+
+    @Test
     public void countdownDeadlineCanTightenButNeverMoveLater() {
         long now = 1_000_000L;
         long current = now + 60_000L;

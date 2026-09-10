@@ -659,6 +659,51 @@ fun Method.findInstructionIndicesReversedOrThrow(filter: InstructionFilter): Lis
  * Overrides the first move result with an extension call.
  * Suitable for calls to extension code to override boolean and integer values.
  */
+/**
+ * The `move-result` belonging to the call the literal was loaded for.
+ *
+ * <p>Both overrides used to take the first `move-result` anywhere after the literal. A literal
+ * is usually loaded a few instructions before the call it is an argument to, and any other call
+ * that lands in that gap owns a `move-result` of its own, so the override could be written onto
+ * a value that has nothing to do with the literal. The call the literal belongs to is the first
+ * one that reads the register it was loaded into, and a `move-result` belongs to the invoke
+ * directly above it.
+ */
+private fun MutableMethod.indexOfLiteralCallResult(literalIndex: Int): Int {
+    val literalRegister = getInstruction<OneRegisterInstruction>(literalIndex).registerA
+    var invokeIndex = -1
+    for (index in literalIndex + 1 until instructions.count()) {
+        val instruction = getInstruction(index)
+        if (instruction.opcode.name.startsWith("invoke-") &&
+            literalRegister in instruction.registersUsed
+        ) {
+            invokeIndex = index
+            break
+        }
+        // Anything that writes the register again ends the literal's life. An invoke past
+        // that point reads whatever was written last, which is not what was loaded here. A wide
+        // write names only its low half, so one into the register below covers this one too.
+        // Wide here means the destination is a pair, not that the mnemonic says long: long-to-int
+        // and cmp-long both read a pair and answer in one register.
+        val written = instruction.writeRegister
+        if (written == literalRegister) break
+        if (written != null && instruction.writesAWideRegister && written + 1 == literalRegister) {
+            break
+        }
+    }
+    check(invokeIndex >= 0) {
+        "No call reads the literal loaded at index $literalIndex"
+    }
+    val resultIndex = invokeIndex + 1
+    check(
+        resultIndex < instructions.count() &&
+            getInstruction(resultIndex).opcode == MOVE_RESULT
+    ) {
+        "The call after the literal at index $literalIndex does not take its result"
+    }
+    return resultIndex
+}
+
 internal fun MutableMethod.insertLiteralOverride(literal: Long, extensionMethodDescriptor: String) {
     val literalIndex = indexOfFirstLiteralInstructionOrThrow(literal)
     insertLiteralOverride(literalIndex, extensionMethodDescriptor)
@@ -666,7 +711,7 @@ internal fun MutableMethod.insertLiteralOverride(literal: Long, extensionMethodD
 
 internal fun MutableMethod.insertLiteralOverride(literalIndex: Int, extensionMethodDescriptor: String) {
     // TODO: make this work with objects and wide primitive values.
-    val index = indexOfFirstInstructionOrThrow(literalIndex, MOVE_RESULT)
+    val index = indexOfLiteralCallResult(literalIndex)
     val register = getInstruction<OneRegisterInstruction>(index).registerA
 
     val operation = if (register < 16) {
@@ -696,7 +741,7 @@ internal fun MutableMethod.insertLiteralOverride(literal: Long, override: Boolea
  * Constant value override of the first MOVE_RESULT after the index parameter.
  */
 internal fun MutableMethod.insertLiteralOverride(literalIndex: Int, override: Boolean) {
-    val index = indexOfFirstInstructionOrThrow(literalIndex, MOVE_RESULT)
+    val index = indexOfLiteralCallResult(literalIndex)
     val register = getInstruction<OneRegisterInstruction>(index).registerA
     val overrideValue = if (override) "0x1" else "0x0"
 
@@ -709,6 +754,15 @@ internal fun MutableMethod.insertLiteralOverride(literalIndex: Int, override: Bo
 /**
  * Called for _all_ methods with the given literal value.
  * Method indices are iterated from last to first.
+ *
+ * <p>Editing inside the walk is safe, which is worth writing down because it does not look it.
+ * The indices are collected on the immutable method and applied in reverse, so an edit never
+ * moves an index still to be used. And the walk itself survives the edit: classDefForEach
+ * iterates PatchClasses.classMap.values(), while mutableClassDefBy only reads that map and
+ * swaps a field on the wrapper it finds there. Nothing is put into the map, so there is no
+ * structural change to the collection being iterated. Checked against morphe-patcher 1.12.0 by
+ * disassembling PatchClasses.mutableClassByOrNull, which is a Map.get and a
+ * ClassDefWrapper.getMutableClass and nothing else.
  */
 fun BytecodePatchContext.forEachLiteralValueInstruction(
     literal: Long,
@@ -1065,7 +1119,7 @@ fun MutableMethod.returnEarly(value: Void?) {
     check(returnType == 'L' || returnType == '[') {
         RETURN_TYPE_MISMATCH
     }
-    overrideReturnValue(false.toHexString(), false)
+    overrideReturnValue(false.toHexString(), false, nullReturn = true)
 }
 
 /**
@@ -1191,11 +1245,21 @@ fun MutableMethod.returnLate(value: Void?) {
         RETURN_TYPE_MISMATCH
     }
 
-    overrideReturnValue(false.toHexString(), true)
+    overrideReturnValue(false.toHexString(), true, nullReturn = true)
 }
 
-private fun MutableMethod.overrideReturnValue(value: String, returnLate: Boolean) {
-    val instructions = if (returnType == "Ljava/lang/String;" || returnType == "Ljava/lang/CharSequence;" ) {
+private fun MutableMethod.overrideReturnValue(
+    value: String,
+    returnLate: Boolean,
+    nullReturn: Boolean = false,
+) {
+    // A String or CharSequence return type takes the const-string path below, which is right for
+    // returnEarly(String) and wrong for returnEarly(null): it wrote the text "0x0" where the
+    // caller asked for null. A null return on those types is the same const/4 as any other
+    // object.
+    val stringValue = !nullReturn &&
+        (returnType == "Ljava/lang/String;" || returnType == "Ljava/lang/CharSequence;")
+    val instructions = if (stringValue) {
         """
             const-string v0, "$value"
             return-object v0

@@ -4,6 +4,8 @@ Checked 2026-09-06 against the real decoded `lib/arm64-v8a/libvrlink_scene.so` f
 
 ## Exact inputs
 
+2026-09-09 checkbox follow-up: production helpers passed 63 variants, 567 format/dither transitions, and 126 checkbox cases per base below. `Use 8-bit output when dithering` selects sRGB8 only when checked with Low/Standard; unchecked and Off retain the selected precision. Both shader conversion and format instructions use the resolved precision. Exact diffs, interfaces, NUL boundaries, idempotence, and unchanged source hashes passed. Cached Kotlin/Morphe compilation and all 100 JUnit tests passed; catalogs were regenerated through the production generator with the explicit experimental channel. Gradle remains blocked resolving `app.morphe.patches:1.3.3`. No end-to-end APK patching, installation, decoder/import precision measurement, or headset runtime test was performed.
+
 | Evidence | 2.0.20 / 5001712 | 2.0.22 / 5002322 |
 |---|---|---|
 | Decoded directory | `decoded-apk-android-steamlinkvr-release-base-2.0.20-5001712` | `decoded-apk-android-steamlinkvr-release-base-2.0.22-5002322` |

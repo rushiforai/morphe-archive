@@ -1,5 +1,129 @@
 ## Unreleased
 
+* The comment-sort description now explains that media and creator filters depend on the post's native availability flags. Device checks confirmed those optional categories and preserved the stock menu after disabling the switch.
+
+* Profile-picture saving now handles the current profile header and resolves the picture from the pressed component. Story long presses reach the native child that consumes the gesture and save its current story, even when the outer view holds a collection. Turning either option off keeps the native gesture.
+
+* Comment search now hides reply controls with their nonmatching parent comments. Clearing search restores the rows. Turning search off also releases its saved heights and visibility during native rebinding, with either comment-blocking setting, while preserving rows TikTok hid itself.
+
+* Follow readback now recognizes the modern profile response and keeps each relationship state with its own account identity. A reported zero remains zero; conflicting states stay unclear. Diagnostics can report a mismatch after an accepted follow without guessing its cause.
+
+* Daily-budget holds pause the current native player and resume only the player they held, while its feed is visible and audio focus permits playback. Holds survive settings returns and activity recreation. Their lower edge follows the actual tab row, including the system navigation gap, so Home and messages remain tappable.
+
+* Enabling the block or Not interested button now attaches it to the current creator immediately. Disabling the last button removes the controls. A daily-budget hold keeps those controls hidden while the feed is covered.
+
+* The phone helper rejects a log query without its required filter. That usage error no longer exits successfully after printing an error.
+
+* The phone helper reports failed activity, log and frame-stat queries instead of hiding their exit status behind output filters. A screenshot no longer claims success when its foreground check fails.
+
+* Changing font size or navigation mode keeps the Hushfeed settings page you were using. The restored page reuses its original container, and Back still returns through the pages you opened.
+
+* Follow diagnostics no longer injects a String logger over integer arguments in TikTok's detailed follow caller. Both direct follow methods are covered inside their shared native API; the separate stream path keeps its own hook. Skipped and failed requests can't inherit an earlier diagnostic ID. Account pseudonyms now use keyed SHA-256 instead of a reversible short hash.
+
+* New regressions press the installed search, Hook status and About controls, render the block symbol, and load all four generated gate catalogs. Caption checks drive real pre-draw callbacks through detach and activity replacement. Seen-history checks exercise initial loading, expired SQL records and the 200th progress-write cleanup.
+
+* Comment blocking recovers when the worker queue is full instead of leaving the button busy. Turning it off restores the original dislike touch handler and the actual comment cell's appearance. A press already started as a block can't become a native dislike, and discarded cells can be collected. Rebinding a row during a press also keeps that release away from a cancelled native gesture.
+
+* On Android 6 through 9, a profile-picture long press explains when storage permission prevents saving. Granting permission lets the same picture save. The message is translated into all four supported languages.
+
+* Saving a video without sound preserves its rotation metadata before the muxer starts. Tests also check sample timestamps, flags and cancellation without deleting the input.
+
+* Native GIPHY sticker URLs now obey the same HTTPS restriction as other sticker sources. Rebinding the save button to an invalid source can't leave the previous sticker attached.
+
+* Story saving no longer keeps discarded story screens alive through its owner index. A live or rebound story still resolves its own media; a missing owner reports that the story is unavailable.
+
+* An MP4 sticker that fails during graphics setup releases its encoder surface and graphics resources. Cleanup still runs if another release step fails, and the original error remains available.
+
+* The two long-press copy choices now copy the current video or sound link. They were wired to double tap, whose settings never offered them. Default double tap is unchanged.
+
+* Turning Inbox hide and expansion options off now preserves TikTok's own decisions. Suggested accounts and stories aren't forced into otherwise unavailable layouts, and a list TikTok already expanded stays expanded.
+
+* Repeated taps on Inbox's Clear all control keep one paced run. Failed dismissals and a closing screen release the control so it can be used again.
+
+* Enabling or saving a Feature Gate Lab override keeps populated arrays intact, including arrays loaded from TikTok. An empty default no longer replaces the edited value.
+
+* Native graphics tests serialize font initialization across Android sandboxes. Graphics errors still fail the run, and every tested Android version remains enabled.
+
+* Feed tests now run all five count ranges through real responses, with lower and upper boundaries, missing counts and disabled settings. The content fixtures also fail if the runtime catches an unstubbed getter, so an incomplete fixture can't quietly pass.
+
+- Follow diagnostics now recognizes the same real follow write routes as the CAPTCHA gate, including nearby follows and follower removals. Diagnostic requests stay bounded after the session limit while refusal notices still work.
+
+* The settings screen uses TikTok's theme before painting behind the system bars. Light TikTok on a dark phone no longer leaves the clock and battery on a black strip, and the reverse combination is covered too.
+
+* The device helper starts correctly in Bash and refuses any serial except the S22 test phone. Failed device commands stop the step before it reports success.
+
+* The oversized animated-sticker check now closes its test file on Windows. It still rejects the canvas before allocation and checks the rejection reason.
+
+## 0.27.0
+
+* The settings screens are done being half English. Around eighty strings still went out in English whatever your phone was set to, nearly all of them in the Feature Gate Lab: the gate details page top to bottom, both override switches and the sentences under them, the overflow menu, the filter, the three buttons that reset or force a selection, and nineteen of its messages. The close button on the Lab's search box and the three buttons under the tab picker went with them. All of it is in the four tables now.
+
+* Two of the Lab's lines count things, and they were built from a verb, a number and a couple of tails. No table row can hold half a sentence, and the plural rule of the language never got a say. Those are whole sentences now with the counts as placeholders, and so are the export count and the four-part import summary.
+
+* The list under the diagnostics picker reads correctly in every language. It was "Includes downloads, errors events.", lower-cased from labels that every table capitalises, which suits English and nothing else. The list comes after a colon now: "Includes these events: Downloads, Errors".
+
+* An undo of a settings backup says it's an undo. If the copy it put back held Feature Gate Lab rules for another TikTok build, the line on screen said your settings had been restored, and that's a different thing.
+
+* Thirteen wrong translations. Brazilian Portuguese said to restart TikTok "para valer", which means for real rather than to take effect. German and Indonesian pointed at two settings by names those settings don't carry, and both called a video's caption a subtitle. Spanish and Portuguese write maximum as "máx.", and ten rows had lost the period that belongs to the word.
+
+* The README named two patches by names they lost in 0.26.0, so looking either one up in Morphe Manager found nothing. The 0.26.0 notes also said seven patches were renamed when ten were, and gave the wrong number for how long a caption problem goes unreported.
+
+* Four of the checks meant to catch all of this were letting it through themselves, and each now has its own failing case pinned in front of it, because a check that has only ever seen code it passes proves nothing. A patch-time helper that overrides the result of a call reads what an instruction writes more carefully too: five comparison opcodes were in no write set at all, and a conversion away from a long was read as though its answer took two registers.
+
+## 0.26.0
+
+* The last English left on the settings screen is translated. The diagnostics picker with its eight kinds of event, the line you see after saving any of the fifty settings that ask for a restart, the message when diagnostic data is cleared, and every line of the hook status report. These live in code shared with other bundles that carry no translations at all, so they could not simply be wrapped: the shared classes ask this bundle for the words and fall back to English for anyone else. The report line was five pieces glued together, which no translation can hold, and is one sentence now.
+
+* Thirteen more strings in the Feature Gate Lab are translated: the screen titles, the two warnings about what an override can and cannot do, the empty and loading states, and the reset action. They had been going out in English because the check that catches this looks at what is handed to a view, and these went through a helper first. The check follows the helper now.
+
+* One word for one thing across the settings screens. The strip down the right of a video is the right column everywhere, not the action bar in one row and the action rail in the next. LIVE is written the way TikTok writes it. Eleven ways of saying "restart TikTok" are now one. A save that fails says so in one shape and tells you what to try. Favourite is spelled the American way, like the App behavior section it sits under. And nine patches were renamed to match the row they add, so a patch you applied by name can be found by that name in the settings: Skip content warnings, Fit the video to the screen, Keep the screen's refresh rate, Use non-personalized search, Show LIVE search, Show the progress bar, Show the progress bar thumbnail, Disable the long press quick share and Disable the long press repost. If you had any of those selected, select them again after updating.
+
+* A pass over the words on the settings screens. Photo posts are called photo posts rather than "image video", which is TikTok's own internal name. The region rows talk about the region TikTok reports instead of "region getters". The auto-advance limit lost sixty words about prefetches and component lifecycles and says what it counts. A restore, a reset and an undo say which of the three just happened, rather than all three saying "Settings saved". Both "picker is not available" messages say what to do instead. The ghost mode summary got the word it was missing, and the file name help points at a row that exists. In the patch list, "Hide BdTuring CAPTCHA popups" is now "Hide the risk control CAPTCHA"; BdTuring is ByteDance's name for the service and it stays in the description.
+
+* The dialogs that were still in English are not. The SIM country picker, the tab pickers and their help text, the Feature Gate Lab from its search box to its selection count, the gate editor with its value hints and status lines, and what a screen reader is told about all of them. Thirty-five more strings in German, Indonesian, Spanish and Brazilian Portuguese. Two of them had a German row all along and never asked for it, which is the sort of thing a check catches and reading does not, so there is a check now: text handed straight to a view in English fails the build.
+
+* The daily budget costs less to keep. Working out which day it is used to read the device's timezone on every frame the player reported, and on Android that hands back a copy each time. It now listens for the timezone changing instead, which is the one moment the answer can be wrong, so the check on the hot path is two comparisons.
+
+* One line of the settings screen was still in English on a translated phone: the summary under "Start today over" after you have tapped it. It is translated in all four languages now, and the check that catches this kind of gap taps the row itself rather than waiting for it to be found by accident.
+
+* Hook status catches the other way the caption settings can go quiet. It already reported an id this build does not have. Now it also reports an id the build does have that has been handed to some other view, which is the likelier of the two, and which used to leave the caption size and background doing nothing while the row said everything was fine. It takes twenty renders of a container holding a caption view before that is called a problem, and forty for a container that holds neither, because TikTok's own render method returns early often and an empty container is not a broken build.
+
+* The little "2 on" numbers on the settings menu mean what they say now. Each one counts the settings on the page behind it that you have moved off their default, worked out from the page itself rather than from a list kept beside it. That list had drifted: it named 17 of the 34 settings on the Feed filter page, so nine switches there changed nothing, and it counted switches that ship on as things you had turned on, which is why a fresh install showed "Comments and translation, 3 on" before you had touched anything. The numbers also move while you use the screen. Turn three filters on, press back, and the count is three; it used to be whatever it was when you opened settings.
+
+* The settings screen speaks Spanish and Brazilian Portuguese. Both tables carry all 687 strings, so a phone set to either language gets the whole screen rather than a half translated one. Neither has been read by a native speaker yet. They were written here, against the English, and corrections are welcome: each language is one file under extensions/tiktok/src/main/l10n and a pull request against it needs nothing else.
+
+* Two switches for a feed that plays when nobody is watching it. "Quieten the feed while comments are open" takes the sound the moment a comment sheet opens and hands it back when it closes. "Do not start the feed on returning" holds the feed after you come back to the app until you tap once, and leaves the tab bar alone so messages, a profile and search are still one tap away. Both are off by default. Neither presses a pause button, because there isn't one to press: they ask for the audio focus, the way the session hold does, which is how one app tells another to stop.
+
+* You can see the hold coming now. "Fade the feed out before the hold" is off by default; switched on, the feed dims over the last three quarters of a minute of a time budget, most of it in the final half minute, and the last shade of the fade is the shade of the hold itself, so there is no jump. It needs a budget in minutes and a hold to lead into, since a budget counted in videos has no time left to follow and a fade towards nothing is just a dark feed, and it does nothing at all if you have turned system animations off. It takes no touches and a screen reader is told nothing until the hold speaks for itself.
+
+* A value a settings dialog will not take no longer closes the dialog first. Type a creator pattern that will not compile, a smallest larger than the largest, or a folder Android will not write to, and the dialog stays where it is with what you typed still in it and the reason under the box. Change a budget row while today's budget is locked and the dialog stays put too, though that refusal is about the day rather than the field, so it is still said in a line at the bottom of the screen. Before this all three closed, threw the text away and put the reason in a toast over whatever was behind, so you reopened the row and typed it again.
+
+* Small things across the settings screens. "Add" in the hidden creators dialog is flat like the Cancel and Save below it, instead of the one raised button in the app, and an empty list says so where the list is rather than under a blank band of it. "Reset to loaded" in the tab pickers ticks every row and leaves the dialog open, so pressing it to see what it does no longer saves and closes. Rows say milliseconds, pixels and points instead of ms, dp and sp. Clearing diagnostics says that it also resets the hook status. The SIM switch stops promising operator fields on a build that does not have them. And blocking a creator twice says the same thing from both places it can be said.
+
+* At a large text size the settings page shows the page, not just its title. A page called "Kommentare und Ubersetzung" took five lines and most of the screen at 2x text, and the first row of the page was below the fold. The title still grows with your text size, just not without limit. The Feature Gate Lab's search box grows with it too, instead of clipping the letters in a fixed height.
+
+* The hand-drawn arrows and chevrons turn round in a right-to-left language, and they are the width they were meant to be. Their containers already mirrored, so an Arabic or Hebrew reader had a back arrow pointing left at the right edge of the screen and chevrons pointing back into the text. Separately, every one of these strokes was given its width in raw pixels, so on a dense screen the settings menu tiles drew lines under a pixel wide next to very large type, and the shadow behind a caption was almost nothing on a 3x screen, which matters most when you pick the transparent caption background. The chevron on the Lab's value picker turns round too, which it could not do before: it hangs off the text rather than sitting in its own box, and a row built by a list adapter has no direction to take one from yet.
+
+* Three small things on screens you actually touch. The four buttons on the feed are 48dp instead of 44, and "Not interested" is the same round shape over the same shade as the three it sits with, rather than a rounded rectangle over a darker one. Pressing a settings row at the corner of a card no longer paints outside the card. And every flat action in a dialog, the Saves and Cancels and Applies, is at least 48dp and is announced by a screen reader as a button rather than as a label.
+
+* A quiet reminder partway through, if you want one. "Remind me every" takes a number of minutes and shows a short line at the bottom of the feed after that much watching, then again after the same again. It goes on its own, it takes no focus, and a screen reader hears it once. It counts feed time only, so messages and profiles do not bring one on, and nothing appears while the feed is on hold. Three wordings take turns, because one sentence stops being read. Zero, the default, means none.
+
+* The Feature Gate Lab acts on a whole selection at once. Press and hold a gate to start one, tap to add and remove, then Enable, Disable or Reset the lot. It goes through as a single change, so one Undo puts all of it back rather than the last one you touched. Gates that do not take a true or false value are skipped and it says how many.
+
+* Both daily budgets show how much of today has gone. Set one to 200 videos and the row reads "Today: 57 videos" under it, so the day's progress is visible where you set the budget instead of only in the one notice when it runs out. With a budget of zero there is nothing to measure against and the line is absent.
+
+* The hold panel offers a way to your messages. It always said messages, profiles and search still work, and then covered the screen, so you had to already know the Inbox tab was underneath. There is an "Open messages" action under the countdown now. It opens the Inbox tab exactly as tapping it would, the hold stays up behind it, and it comes back when you return to the feed. If you have hidden Inbox in Feed navigation, the action is not there.
+
+* The install steps say what Android now asks for. From 2026-09-30, phones in Brazil, Indonesia, Singapore and Thailand put an app from an unverified developer through an extra flow: Developer options, a screen unlock, a restart, then a 24 hour wait before it installs, and after that a window of 7 days or indefinitely. Every release is an update, so it comes round again once that window closes. The README says so, and says that installing over adb skips it. It also now says that 640 MB is the manager's default rather than a measured minimum.
+
+* You can cap how many times a day the hold lets you through. Until now the way out on the countdown was either always there or, with Lock today's budget on, gone entirely. The new row sits between the two: pick a number and the control counts down, saying how many are left, then goes once they are spent. Zero, the default, changes nothing. The count survives the app being killed and comes back when the day starts over.
+
+* A saved gate override no longer costs 19 MB on every launch. The check that refuses an override whose type TikTok's own catalogue disagrees with used to load the whole catalogue, 17,393 entries, and hold it for as long as the app was running, on launches where the Feature Gate Lab was never opened. It now loads the one thing it reads, a type per AB key, which measured 1.9 MB against 19.1 MB. The Lab screen still loads the whole thing when you open it, and refuses exactly what it refused before.
+
+* With a SIM preset on, TikTok no longer reports your SIM changing. Swap a SIM, or change which one carries data, and a startup check sends one event: how many SIMs the phone has, how long since it last looked, and the country and carrier before and after. The preset covers the country and the carrier, so both halves read as the preset, but the SIM count comes from a part of Android the preset never reached, and the event still says the hardware changed. With a preset on the check is skipped. Nothing else in the app reads what it stored.
+
+* "Resume videos after scrolling" works on the Following and Friends tabs. TikTok kept a position for every feed it played, then handed one back only for a short list of places it built into the app, and the Following tab is not on that list. The switch looked broken there while the position was being stored all along. With the switch on, any feed that has a stored position now uses it.
+
 * Every number row says what it accepts, and says so when it moves what you typed. Twelve of the fourteen stated their range nowhere: type 5000 into "Daily time budget" and it came back "Current: 600" with no explanation. Each row now carries its range under its own wording, and a number outside it is reported rather than quietly pulled in. The seven rows whose text says zero turns them off read "Current: Off" at zero instead of "Current: 0 videos", which was a limit of none rather than no limit.
 
 * Each download destination dialog is headed by the row you tapped. Video, photo and sticker all opened a window titled "Download path", so nothing on the screen said which of the three you were editing, and the sentence under it stayed English on a German or Indonesian phone. Both follow the language now.

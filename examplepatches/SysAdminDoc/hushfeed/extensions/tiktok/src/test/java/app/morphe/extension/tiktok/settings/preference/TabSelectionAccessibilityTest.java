@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.CheckBox;
 
+import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.Settings;
 
@@ -21,6 +22,7 @@ import java.lang.reflect.Method;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
@@ -37,7 +39,72 @@ import org.robolectric.annotation.Config;
 @Config(sdk = 29)
 @SuppressWarnings("deprecation")
 public class TabSelectionAccessibilityTest {
+    @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
     public static class Host extends android.preference.PreferenceActivity {}
+
+    @Test public void resetToLoadedTicksTheRowsRatherThanSavingAndClosing() throws Exception {
+        // It sat left of Cancel and Save and saved immediately, bypassing Save, so a reader who
+        // pressed it to see what it did lost the selection they came in with, with no undo. It
+        // stages now: the ticks move and nothing is written until Save.
+        try (var owner = Robolectric.buildActivity(Host.class).setup()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            TabSelectionPreference preference =
+                    new TabSelectionPreference(activity, Settings.BOTTOM_NAVIGATION_TABS, true);
+
+            Class<?> rowClass = Class.forName(
+                    "app.morphe.extension.tiktok.settings.preference.TabSelectionPreference$OptionRow");
+            Constructor<?> make = rowClass.getDeclaredConstructors()[0];
+            make.setAccessible(true);
+            Object option = newOption(make);
+
+            Set<String> selected = new LinkedHashSet<>();
+            Method create = TabSelectionPreference.class.getDeclaredMethod(
+                    "createOptionRow", android.content.Context.class, Set.class, rowClass);
+            create.setAccessible(true);
+            android.widget.LinearLayout container = new android.widget.LinearLayout(activity);
+            container.addView((View) create.invoke(preference, activity, selected, option));
+
+            var optionsView = TabSelectionPreference.class.getDeclaredField("optionsView");
+            optionsView.setAccessible(true);
+            optionsView.set(preference, container);
+            var selectedKeys = TabSelectionPreference.class.getDeclaredField("selectedKeys");
+            selectedKeys.setAccessible(true);
+            selectedKeys.set(preference, selected);
+
+            CheckBox box = firstCheckBox(container);
+            assertFalse("the row started ticked", box.isChecked());
+
+            // What the button does: fill the set, then put the rows in step with it.
+            selected.add(optionKey(option));
+            Method refresh = TabSelectionPreference.class.getDeclaredMethod("refreshRowChecks");
+            refresh.setAccessible(true);
+            refresh.invoke(preference);
+
+            assertTrue("the rows were not put in step with the selection", box.isChecked());
+            assertEquals("the picker saved before anyone pressed Save",
+                    Settings.BOTTOM_NAVIGATION_TABS.defaultValue,
+                    Settings.BOTTOM_NAVIGATION_TABS.get());
+        }
+    }
+
+    private static String optionKey(Object option) throws Exception {
+        var field = option.getClass().getDeclaredField("key");
+        field.setAccessible(true);
+        return (String) field.get(option);
+    }
+
+    private static CheckBox firstCheckBox(View view) {
+        if (view instanceof CheckBox) return (CheckBox) view;
+        if (view instanceof android.view.ViewGroup) {
+            var group = (android.view.ViewGroup) view;
+            for (int index = 0; index < group.getChildCount(); index++) {
+                CheckBox found = firstCheckBox(group.getChildAt(index));
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
 
     @Test public void aTabRowSaysWhetherItIsOnAndSaysSoAgainAfterATap() throws Exception {
         try (var owner = Robolectric.buildActivity(Host.class).setup()) {

@@ -4,6 +4,11 @@ Implementation notes, compatibility details, validation status, and build instru
 
 ## Compatibility and implementation notes
 
+The Android-Surface Fovea experiment was **tried and retired on 2026-09-07** after
+the user reported it did not work. It copied actual fovea pixels into a Surface,
+kept 3 projections and omitted the dummy quad. Its failure cause is unknown; the
+working terminal-quad fix is unchanged. See the [retirement record](diagnostics/steamlink-surface-fovea/README.md).
+
 Steam Link VR (`com.valvesoftware.steamlinkvr`) was not built for Android XR. These patches adapt it to run on the Samsung Galaxy XR headset by injecting the missing OpenXR permissions and features, bundling the Galaxy XR XR-bridge native library, providing an optional standalone face-bridge layer for face-tracking, fixing broken permission flows, tuning the rendering pipeline, and optionally allowing the patched APK to coexist with the original install.
 
 Target APK: `com.valvesoftware.steamlinkvr`. Exact compatibility metadata and guarded adaptations include v2.0.20 builds 5001712 and 5001740 plus v2.0.22 builds 5002244, 5002313, 5002318, and 5002322. High resolution and the explicit older startup patches additionally recognize exact v2.0.22 build 5002296. The available 5001740 source is an analysis reconstruction from a malformed hybrid APK, so pristine-APK Morphe patching, installation, and headset runtime validation remain pending. The permission-free high-resolution fix accepts exact builds 5001712, 5002244, 5002296, 5002313, 5002318, and 5002322; 5002322 has historical headset validation of the native rendering fix, while the revised startup flows have no headset validation. Other decoded-base adaptations are statically validated. Reconstruction, quad-view, permission-matrix, warm-up/omit, and DFR re-arm experiments are retired.
@@ -18,7 +23,7 @@ For legacy bundles through 5002244, including **2.0.22/5002244** and **2.0.20/50
 
 Bundle selection does not broaden native compatibility: high-resolution output remains unavailable on 5001740. The high-resolution edit safely skips instead of guessing a native layout. Both 5001712 and 5002244 have the complete legacy set available.
 
-**The standalone Video dither patch remains retired.** The existing OLED patch now offers optional Comparison dithering (Off, Low, Standard), a Neutral calibration profile, and sRGB8/RGB10/experimental FP16 output. Defaults remain Final balanced, RGB10, and dithering Off. See the [controlled comparison guide](PATCH_CATALOG.md#controlled-oled-comparison).
+**The standalone Video dither patch remains retired.** The existing OLED patch now offers optional Comparison dithering (Off, Low, Standard), a Neutral calibration profile, and sRGB8/RGB10/experimental FP16 output. Defaults are Final balanced, 8-bit sRGB, and dithering Off. RGB10 and FP16 remain optional. See the [controlled comparison guide](PATCH_CATALOG.md#controlled-oled-comparison).
 
 ### Retired underside experiment — 2026-09-03
 
@@ -46,7 +51,7 @@ No desktop IP, pairing token, APK hash, or native telemetry enrollment is requir
 This section is generated from the patch catalog during releases.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.14.2](https://github.com/AngelDark92/steamlink-patches/releases/tag/v1.14.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;25 patches total
+> **[v1.15.0](https://github.com/AngelDark92/steamlink-patches/releases/tag/v1.15.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;25 patches total
 <details open>
 <summary>📦 Steam Link&nbsp;&nbsp;•&nbsp;&nbsp;25 patches</summary>
 <br>
@@ -75,7 +80,7 @@ This section is generated from the patch catalog during releases.
 | [Galaxy XR recommended set (2.0.22/5002318)](#galaxy-xr-recommended-set-2-0-22-5002318) | Applies the 9-patch Galaxy XR set for exact Steam Link 2.0.22 build 5002318, including separately listed startup permissions and splash/XR launch mode. | 5002318 |  |
 | [Galaxy XR recommended set (2.0.22/5002322)](#galaxy-xr-recommended-set-2-0-22-5002322) | Applies the 6-patch Galaxy XR set for exact Steam Link 2.0.22 build 5002322. Preserves stock startup and permission requests except battery settings; includes the Final balanced tested OLED profile. | 5002322 |  |
 | [Microphone input preset](#microphone-input-preset) | Selects the Android AAudio microphone processing mode used by Steam Link. Galaxy XR testing found Voice Recognition clearer and louder than stock Voice Communication. | 5001712, 5001740, 5002244, 5002313, 5002318, 5002322 | • Microphone mode |
-| [OLED color calibration](#oled-color-calibration) | Calibrates Galaxy XR OLED color and selects a guarded high-precision video output path for Steam Link builds 5001712, 5001740, 5002244, 5002313, 5002318, and 5002322. | 5001712, 5001740, 5002244, 5002313, 5002318, 5002322 | • Calibration profile<br>• Gamma<br>• Saturation<br>• Video output precision<br>• Comparison dithering |
+| [OLED color calibration](#oled-color-calibration) | Calibrates Galaxy XR OLED color and selects a guarded high-precision video output path for Steam Link builds 5001712, 5001740, 5002244, 5002313, 5002318, and 5002322. | 5001712, 5001740, 5002244, 5002313, 5002318, 5002322 | • Calibration profile<br>• Gamma<br>• Saturation<br>• Video output precision<br>• Comparison dithering<br>• Use 8-bit output when dithering |
 | [Startup permission requests (before 5002322)](#startup-permission-requests-before-5002322) | Requests hand, eye and face tracking, microphone and Bluetooth permissions before opening Steam Link on exact older builds. Battery settings and the visible startup splash are separate patches. | 5001712, 5001740, 5002244, 5002296, 5002313, 5002318 |  |
 | [Startup splash and XR launch mode (before 5002322)](#startup-splash-and-xr-launch-mode-before-5002322) | Adds the Launching Steam Link splash, older-build panel sizing and explicit unmanaged VRLink startup. Does not request tracking, microphone or Bluetooth permissions; select Startup permission requests separately. | 5001712, 5001740, 5002244, 5002296, 5002313, 5002318 |  |
 | [Unrestricted battery usage](#unrestricted-battery-usage) | Opens Android's per-app Battery usage page at startup so Unrestricted can be selected for XR streaming. | 5001712, 5001740, 5002244, 5002313, 5002318, 5002322 |  |

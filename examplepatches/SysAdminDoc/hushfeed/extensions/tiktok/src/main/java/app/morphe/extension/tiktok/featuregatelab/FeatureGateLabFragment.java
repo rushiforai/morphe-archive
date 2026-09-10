@@ -4,6 +4,7 @@
  */
 package app.morphe.extension.tiktok.featuregatelab;
 
+import app.morphe.extension.tiktok.settings.L10n;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
@@ -71,6 +72,20 @@ import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 public final class FeatureGateLabFragment extends Fragment {
     private static final String[] VIEW_LABELS = {"Loaded", "All actionable", "Overrides"};
     private static final String[] FILTER_LABELS = {"All", "Boolean", "Enabled", "Disabled", "Unloaded"};
+
+    /**
+     * The five filter choices in the reader's language.
+     *
+     * <p>The button and the dialog it opens show the same five words, so they are translated
+     * from one place. Translating one without the other would read worse than leaving both.
+     */
+    private static String[] filterLabels(android.content.Context context) {
+        String[] translated = new String[FILTER_LABELS.length];
+        for (int index = 0; index < FILTER_LABELS.length; index++) {
+            translated[index] = L10n.t(context, FILTER_LABELS[index]);
+        }
+        return translated;
+    }
     private static final String[] SOURCE_LABELS = {
             "All", "App AB", "Config", "Player", "Live", "Media", "Activity"
     };
@@ -107,6 +122,15 @@ public final class FeatureGateLabFragment extends Fragment {
     private final app.morphe.extension.tiktok.settings.SystemBackHandler systemBack =
             new app.morphe.extension.tiktok.settings.SystemBackHandler("FeatureGateLabBackCallback");
     private final List<FeatureGateCatalog.Entry> visible = new ArrayList<>();
+    /**
+     * The gates a long press has gathered, by identity, in the order they were chosen.
+     *
+     * <p>Empty means the list is behaving as it always did: a tap opens the gate. Held by
+     * identity rather than by index because the search and the filters rebuild {@link #visible}
+     * underneath a selection.
+     */
+    private final java.util.LinkedHashMap<String, FeatureGateCatalog.Entry> selection =
+            new java.util.LinkedHashMap<>();
 
     private FeatureGateCatalog.Snapshot snapshot;
     private GateAdapter adapter;
@@ -122,6 +146,8 @@ public final class FeatureGateLabFragment extends Fragment {
     private TextView filterButton;
     private Switch master;
     private ListView list;
+    private LinearLayout selectionBar;
+    private TextView selectionCount;
     private boolean exitPromptScheduled;
     private String searchQuery = "";
     private int selectedView;
@@ -138,7 +164,8 @@ public final class FeatureGateLabFragment extends Fragment {
     public static void open(Activity activity) {
         int containerId = findFragmentContainer(activity);
         if (containerId == View.NO_ID) {
-            Utils.showToastLong("Feature Gate Lab could not find the settings container");
+            Utils.showToastLong(L10n.t(Utils.getContext(),
+                    "Feature Gate Lab could not find the settings container"));
             return;
         }
         FeatureGateLabSession.begin();
@@ -180,7 +207,7 @@ public final class FeatureGateLabFragment extends Fragment {
 
         FrameLayout header = FeatureGateLabUi.header(
                 context,
-                "Feature Gate Lab",
+                L10n.t(context, "Feature Gate Lab"),
                 this::leaveLab,
                 this::showOverflow
         );
@@ -204,12 +231,15 @@ public final class FeatureGateLabFragment extends Fragment {
         masterRow.setBackground(SettingsUi.borderedSurface(context, 10, false));
         LinearLayout masterText = new LinearLayout(context);
         masterText.setOrientation(LinearLayout.VERTICAL);
-        masterText.addView(FeatureGateLabUi.body(context, "Enable overrides"), FeatureGateLabUi.matchWrap());
-        masterText.addView(FeatureGateLabUi.label(context, "Applies saved rules at supported getters"), FeatureGateLabUi.matchWrap());
+        masterText.addView(FeatureGateLabUi.body(context, L10n.t(context, "Enable overrides")),
+                FeatureGateLabUi.matchWrap());
+        masterText.addView(FeatureGateLabUi.label(context,
+                L10n.t(context, "Applies saved rules at supported getters")),
+                FeatureGateLabUi.matchWrap());
         masterRow.addView(masterText, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         master = new Switch(context);
         master.setChecked(FeatureGateLabStore.masterEnabled());
-        master.setContentDescription("Enable overrides");
+        master.setContentDescription(L10n.t(context, "Enable overrides"));
         SettingsUi.styleSwitch(master);
         masterRow.addView(master, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -219,7 +249,7 @@ public final class FeatureGateLabFragment extends Fragment {
 
         TextView warning = FeatureGateLabUi.label(
                 context,
-                "Account warning: forced client values apply to every account in this app data and cannot bypass server controls."
+                L10n.t(context, "Account warning: forced client values apply to every account in this app data and cannot bypass server controls.")
         );
         warning.setTextColor(FeatureGateLabUi.warningColor(context));
         LinearLayout.LayoutParams warningParams = FeatureGateLabUi.matchWrap();
@@ -236,7 +266,7 @@ public final class FeatureGateLabFragment extends Fragment {
         search.setTextSize(16);
         // No content description on a search box. On an editable view it replaces what was
         // typed in the announcement, so "cats" came back as the label. The hint names it.
-        search.setHint("Search words or key");
+        search.setHint(L10n.t(context, "Search words or key"));
         search.setBackgroundColor(Color.TRANSPARENT);
         search.setTextColor(SettingsUi.textPrimary());
         search.setHintTextColor(SettingsUi.textSecondary());
@@ -257,7 +287,11 @@ public final class FeatureGateLabFragment extends Fragment {
             if (rootView != null) rootView.requestFocus();
             return true;
         });
-        searchRow.addView(search, new LinearLayout.LayoutParams(0, FeatureGateLabUi.dp(context, 48), 1f));
+        // A fixed 48dp box clipped 32sp glyphs at 2x text. CommentSearch documents the
+        // same trap and answers it the same way: 48dp is the floor, not the height.
+        search.setMinimumHeight(FeatureGateLabUi.dp(context, 48));
+        searchRow.addView(search, new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         clearSearch = FeatureGateLabUi.clearSearchButton(context, () -> search.setText(""));
         clearSearch.setVisibility(searchQuery.isEmpty() ? View.GONE : View.VISIBLE);
         searchRow.addView(clearSearch, new LinearLayout.LayoutParams(
@@ -342,7 +376,7 @@ public final class FeatureGateLabFragment extends Fragment {
         LinearLayout resultRow = new LinearLayout(context);
         resultRow.setOrientation(LinearLayout.HORIZONTAL);
         resultRow.setGravity(Gravity.CENTER_VERTICAL);
-        count = FeatureGateLabUi.label(context, "Loading gates...");
+        count = FeatureGateLabUi.label(context, L10n.t(context, "Loading gates..."));
         count.setGravity(Gravity.CENTER_VERTICAL);
         resultRow.addView(count, new LinearLayout.LayoutParams(0, FeatureGateLabUi.dp(context, 44), 1f));
         filterButton = FeatureGateLabUi.text(context, "", 14, SettingsUi.textPrimary(), Typeface.BOLD);
@@ -362,7 +396,8 @@ public final class FeatureGateLabFragment extends Fragment {
         ));
         controls.addView(resultRow, FeatureGateLabUi.matchWrap());
 
-        loading = FeatureGateLabUi.label(context, "Loading local catalog and current TikTok cache...");
+        loading = FeatureGateLabUi.label(context,
+                L10n.t(context, "Loading local catalog and current TikTok cache..."));
         controls.addView(loading, FeatureGateLabUi.matchWrap());
 
         FrameLayout listContainer = new FrameLayout(context);
@@ -374,12 +409,30 @@ public final class FeatureGateLabFragment extends Fragment {
         list.setScrollBarStyle(View.SCROLLBARS_OUTSIDE_OVERLAY);
         adapter = new GateAdapter(context, visible);
         list.setAdapter(adapter);
-        list.setOnItemClickListener((parent, view, position, id) -> openDetail(visible.get(position)));
+        list.setOnItemClickListener((parent, view, position, id) -> {
+            FeatureGateCatalog.Entry gate = visible.get(position);
+            // While a selection is up a tap adds and removes rather than opening, which is what
+            // every list that does this does: entering the mode changes what a tap means.
+            if (selection.isEmpty()) {
+                openDetail(gate);
+                return;
+            }
+            String identity = gate.identity();
+            if (selection.remove(identity) == null) selection.put(identity, gate);
+            onSelectionChanged();
+        });
+        list.setOnItemLongClickListener((parent, view, position, id) -> {
+            FeatureGateCatalog.Entry gate = visible.get(position);
+            selection.put(gate.identity(), gate);
+            onSelectionChanged();
+            return true;
+        });
         listContainer.addView(list, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
         ));
-        empty = FeatureGateLabUi.label(context, "No gates match this search and filter.");
+        empty = FeatureGateLabUi.label(context,
+                L10n.t(context, "No gates match this search and filter."));
         empty.setGravity(Gravity.CENTER);
         empty.setPadding(
                 FeatureGateLabUi.dp(context, 24),
@@ -393,6 +446,8 @@ public final class FeatureGateLabFragment extends Fragment {
         ));
         list.setEmptyView(empty);
         root.addView(listContainer, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+
+        root.addView(buildSelectionBar(context), FeatureGateLabUi.matchWrap());
 
         master.setOnCheckedChangeListener((button, checked) -> onMasterChanged(checked));
         search.addTextChangedListener(new SimpleTextWatcher(() -> {
@@ -413,7 +468,9 @@ public final class FeatureGateLabFragment extends Fragment {
         if (activity == null || activity.isFinishing() || !FeatureGateLabStore.consumeMigrationNotice()) {
             return;
         }
-        Utils.showToastLong("Older overrides were kept disabled. Review their values before enabling them on TikTok 46.2.3.");
+        Utils.showToastLong(L10n.f(Utils.getContext(),
+                "Older overrides were kept disabled. Review their values before enabling them on TikTok %1$s.",
+                FeatureGateLabStore.TARGET_VERSION));
     }
 
     @Override
@@ -461,6 +518,8 @@ public final class FeatureGateLabFragment extends Fragment {
         filterButton = null;
         master = null;
         list = null;
+        selectionBar = null;
+        selectionCount = null;
         for (int i = 0; i < viewTabLabels.length; i++) viewTabLabels[i] = null;
         for (int i = 0; i < sourceTabLabels.length; i++) {
             sourceTabLabels[i] = null;
@@ -493,6 +552,13 @@ public final class FeatureGateLabFragment extends Fragment {
     }
 
     private void handleSystemBack() {
+        // Entering selection changed what a tap means, so Back is what takes that back. Without
+        // this the only way out was the Cancel action, and Back left the Lab entirely.
+        if (!selection.isEmpty()) {
+            selection.clear();
+            onSelectionChanged();
+            return;
+        }
         if (search != null && search.hasFocus()) {
             FeatureGateLabUi.hideKeyboard(search);
             View root = getView();
@@ -504,7 +570,9 @@ public final class FeatureGateLabFragment extends Fragment {
 
     private void load(boolean refresh) {
         loading.setVisibility(View.VISIBLE);
-        loading.setText(refresh ? "Refreshing current TikTok cache..." : "Loading local catalog and current TikTok cache...");
+        loading.setText(L10n.t(getContext(), refresh
+                ? "Refreshing current TikTok cache..."
+                : "Loading local catalog and current TikTok cache..."));
         FeatureGateCatalog.loadAsync(refresh, new FeatureGateCatalog.Callback() {
             @Override
             public void onLoaded(FeatureGateCatalog.Snapshot loaded) {
@@ -514,23 +582,25 @@ public final class FeatureGateLabFragment extends Fragment {
                     loading.setVisibility(View.GONE);
                 } else {
                     loading.setVisibility(View.VISIBLE);
-                    loading.setText("Loaded current values. Loading all known gates...");
+                    loading.setText(L10n.t(getContext(),
+                            "Loaded current values. Loading all known gates..."));
                 }
-                empty.setText("No gates match this search and filter.");
+                empty.setText(L10n.t(getContext(), "No gates match this search and filter."));
                 rebuild();
             }
 
             @Override
             public void onError(String message) {
                 if (!isAdded() || getView() == null) return;
-                loading.setText("Current cache unavailable: " + message);
+                loading.setText(
+                        L10n.f(getContext(), "Current cache unavailable: %1$s", message));
                 FeatureGateCatalog.Snapshot cached = FeatureGateCatalog.cachedSnapshot();
                 if (cached != null) {
                     snapshot = cached;
                     rebuild();
                 } else {
-                    count.setText("Gate data unavailable");
-                    empty.setText("No gate data is available. Refresh values from the menu to try again.");
+                    count.setText(L10n.t(getContext(), "Gate data unavailable"));
+                    empty.setText(L10n.t(getContext(), "No gate data is available. Refresh values from the menu to try again."));
                 }
             }
         });
@@ -662,17 +732,20 @@ public final class FeatureGateLabFragment extends Fragment {
             tab.setTypeface(Typeface.DEFAULT, selected ? Typeface.BOLD : Typeface.NORMAL);
             indicator.setBackgroundColor(selected ? SettingsUi.accent() : Color.TRANSPARENT);
         }
-        if (filterButton != null) filterButton.setText("Filter: " + FILTER_LABELS[selectedFilter]);
+        if (filterButton != null) {
+            filterButton.setText(L10n.f(getContext(), "Filter: %1$s",
+                    filterLabels(getContext())[selectedFilter]));
+        }
     }
 
     private void showFilterPicker() {
         AlertDialog dialog = new AlertDialog.Builder(getActivity())
-                .setTitle("Show gates")
-                .setSingleChoiceItems(FILTER_LABELS, selectedFilter, (choiceDialog, which) -> {
+                .setTitle(L10n.t(getContext(), "Show gates"))
+                .setSingleChoiceItems(filterLabels(getContext()), selectedFilter, (choiceDialog, which) -> {
                     onFilterSelected(which);
                     choiceDialog.dismiss();
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(L10n.t(getContext(), "Cancel"), null)
                 .create();
         showStyled(dialog);
     }
@@ -687,7 +760,7 @@ public final class FeatureGateLabFragment extends Fragment {
     private void syncMasterSwitch() {
         if (master == null) return;
         master.setChecked(FeatureGateLabStore.masterEnabled());
-        master.setContentDescription("Enable overrides");
+        master.setContentDescription(L10n.t(getContext(), "Enable overrides"));
         SettingsUi.styleSwitch(master);
     }
 
@@ -695,7 +768,8 @@ public final class FeatureGateLabFragment extends Fragment {
         if (FeatureGateLabStore.masterEnabled() == checked) return;
         if (CHANGING.get()) {
             syncMasterSwitch();
-            Utils.showToastLong("A Lab change is already running");
+            Utils.showToastLong(L10n.t(Utils.getContext(),
+                    "A Lab change is already running"));
             return;
         }
         // This is storage, not a flag: the journal lock, two write-and-verify cycles and a
@@ -705,6 +779,149 @@ public final class FeatureGateLabFragment extends Fragment {
         runLabChange(() -> FeatureGateLabUndo.setMasterEnabled(checked),
                 checked ? "Overrides enabled. Restart TikTok to apply saved values."
                         : "Overrides disabled. Restart TikTok to restore native values.");
+    }
+
+    /**
+     * The row of actions that appears once a long press has gathered a selection.
+     *
+     * <p>Built with the screen and hidden, rather than added and removed, so nothing about the
+     * layout moves when a selection starts.
+     */
+    private LinearLayout buildSelectionBar(Context context) {
+        selectionBar = new LinearLayout(context);
+        selectionBar.setOrientation(LinearLayout.VERTICAL);
+        selectionBar.setVisibility(View.GONE);
+        int padding = FeatureGateLabUi.dp(context, 16);
+        selectionBar.setPadding(padding, FeatureGateLabUi.dp(context, 12), padding,
+                FeatureGateLabUi.dp(context, 12));
+        selectionBar.setBackground(SettingsUi.roundedSurface(context, 0, false));
+
+        selectionCount = FeatureGateLabUi.label(context, "");
+        selectionBar.addView(selectionCount, FeatureGateLabUi.matchWrap());
+
+        LinearLayout actions = new LinearLayout(context);
+        actions.setOrientation(LinearLayout.HORIZONTAL);
+        actions.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        actions.addView(selectionAction(context, L10n.t(context, "Reset"), this::resetSelection));
+        actions.addView(selectionAction(context, L10n.t(context, "Disable"),
+                () -> forceSelection(false)));
+        actions.addView(selectionAction(context, L10n.t(context, "Enable"),
+                () -> forceSelection(true)));
+        actions.addView(selectionAction(context, L10n.t(context, "Cancel"), () -> {
+            selection.clear();
+            onSelectionChanged();
+        }));
+        selectionBar.addView(actions, FeatureGateLabUi.matchWrap());
+        return selectionBar;
+    }
+
+    private TextView selectionAction(Context context, String label, Runnable action) {
+        TextView button = FeatureGateLabUi.text(context, label, 14, SettingsUi.accent(), Typeface.BOLD);
+        button.setMinimumHeight(FeatureGateLabUi.dp(context, 48));
+        button.setMinimumWidth(FeatureGateLabUi.dp(context, 48));
+        button.setGravity(Gravity.CENTER);
+        int side = FeatureGateLabUi.dp(context, 12);
+        button.setPadding(side, 0, side, 0);
+        button.setContentDescription(label);
+        // A TextView with a click listener is read as text, and these are the whole of what a
+        // selection can do.
+        button.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override public void onInitializeAccessibilityNodeInfo(
+                    View host, android.view.accessibility.AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                info.setClassName(android.widget.Button.class.getName());
+            }
+        });
+        button.setOnClickListener(view -> action.run());
+        return button;
+    }
+
+    /** Shows or hides the bar and repaints the rows, which draw their own chosen state. */
+    private void onSelectionChanged() {
+        if (selectionBar != null) {
+            selectionBar.setVisibility(selection.isEmpty() ? View.GONE : View.VISIBLE);
+        }
+        if (selectionCount != null) {
+            selectionCount.setText(selection.size() == 1
+                    ? L10n.t(getContext(), "1 gate selected")
+                    : L10n.f(getContext(), "%1$d gates selected", selection.size()));
+        }
+        if (adapter != null) adapter.notifyDataSetChanged();
+    }
+
+    private void forceSelection(boolean value) {
+        List<FeatureGateCatalog.Entry> gates = new ArrayList<>(selection.values());
+        int total = gates.size();
+        boolean started = runLabChange(() -> {
+            int written = FeatureGateLabUndo.forceBoolean(gates, value);
+            if (written == 0) {
+                throw new IllegalStateException(L10n.t(Utils.getContext(),
+                        "None of these gates takes a true or false value."));
+            }
+            // The message says what happened rather than what was asked for. Reported as a
+            // failure, which is what throwing here did, it said nothing went through on a run
+            // where most of it had.
+            //
+            // Eight whole sentences rather than a verb, a count and two tails glued together.
+            // A table row holds a sentence: assembled here, the plural rule of the language
+            // never got a say and neither did the order the pieces go in.
+            android.content.Context context = Utils.getContext();
+            if (written == total) {
+                if (value) {
+                    return written == 1
+                            ? L10n.t(context, "Forced 1 gate. Restart TikTok to apply this.")
+                            : L10n.f(context, "Forced %1$d gates. Restart TikTok to apply this.",
+                                    written);
+                }
+                return written == 1
+                        ? L10n.t(context, "Turned off 1 gate. Restart TikTok to apply this.")
+                        : L10n.f(context, "Turned off %1$d gates. Restart TikTok to apply this.",
+                                written);
+            }
+            if (value) {
+                return written == 1
+                        ? L10n.f(context, "Forced 1 gate of %1$d; the rest do not take a true or false value. Restart TikTok to apply this.", total)
+                        : L10n.f(context, "Forced %1$d gates of %2$d; the rest do not take a true or false value. Restart TikTok to apply this.", written, total);
+            }
+            return written == 1
+                    ? L10n.f(context, "Turned off 1 gate of %1$d; the rest do not take a true or false value. Restart TikTok to apply this.", total)
+                    : L10n.f(context, "Turned off %1$d gates of %2$d; the rest do not take a true or false value. Restart TikTok to apply this.", written, total);
+        });
+        if (started) {
+            selection.clear();
+            onSelectionChanged();
+        }
+    }
+
+    private void resetSelection() {
+        List<FeatureGateCatalog.Entry> gates = new ArrayList<>(selection.values());
+        int total = gates.size();
+        boolean started = runLabChange(() -> {
+            int dropped = FeatureGateLabUndo.resetAll(gates);
+            if (dropped == 0) {
+                throw new IllegalStateException(L10n.t(Utils.getContext(),
+                        "None of these gates had an override to reset."));
+            }
+            // Dropped, not selected: choosing five gates of which two had an override resets two.
+            // One whole sentence per shape. Built from a count and three fragments it was four
+            // rows no table could hold, and the plural rule of the language never got a say.
+            android.content.Context context = Utils.getContext();
+            if (dropped == total) {
+                return dropped == 1
+                        ? L10n.t(context, "Reset 1 gate. Restart TikTok to apply this.")
+                        : L10n.f(context, "Reset %1$d gates. Restart TikTok to apply this.",
+                                dropped);
+            }
+            return dropped == 1
+                    ? L10n.f(context, "Reset 1 gate of %1$d. Restart TikTok to apply this.",
+                            total)
+                    : L10n.f(context, "Reset %1$d gates of %2$d. Restart TikTok to apply this.",
+                            dropped, total);
+        });
+        if (started) {
+            selection.clear();
+            onSelectionChanged();
+        }
     }
 
     private void openDetail(FeatureGateCatalog.Entry entry) {
@@ -726,12 +943,12 @@ public final class FeatureGateLabFragment extends Fragment {
                 new ContextThemeWrapper(getActivity(), popupTheme),
                 anchor
         );
-        menu.getMenu().add(0, 1, 0, "Refresh values");
-        menu.getMenu().add(0, 2, 1, "Export loaded values");
-        menu.getMenu().add(0, 3, 2, "Import loaded values");
-        menu.getMenu().add(0, 4, 3, "Reset all overrides");
-        menu.getMenu().add(0, 5, 4, "Reset all Lab data");
-        menu.getMenu().add(0, 6, 5, "Undo last Lab change");
+        menu.getMenu().add(0, 1, 0, L10n.t(getContext(), "Refresh values"));
+        menu.getMenu().add(0, 2, 1, L10n.t(getContext(), "Export loaded values"));
+        menu.getMenu().add(0, 3, 2, L10n.t(getContext(), "Import loaded values"));
+        menu.getMenu().add(0, 4, 3, L10n.t(getContext(), "Reset all overrides"));
+        menu.getMenu().add(0, 5, 4, L10n.t(getContext(), "Reset all Lab data"));
+        menu.getMenu().add(0, 6, 5, L10n.t(getContext(), "Undo last Lab change"));
         menu.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
                 case 1:
@@ -770,7 +987,8 @@ public final class FeatureGateLabFragment extends Fragment {
                             "tiktok-46.2.3-loaded-feature-gates-" + timestamp + ".json.gz");
             startActivityForResult(intent, REQUEST_EXPORT_LOADED);
         } catch (Throwable throwable) {
-            Utils.showToastLong("Could not open the export file picker");
+            Utils.showToastLong(L10n.t(Utils.getContext(),
+                    "Could not open the export file picker"));
         }
     }
 
@@ -783,7 +1001,8 @@ public final class FeatureGateLabFragment extends Fragment {
                             new String[]{"application/gzip", "application/json", "application/octet-stream"});
             startActivityForResult(intent, REQUEST_IMPORT_LOADED);
         } catch (Throwable throwable) {
-            Utils.showToastLong("Could not open the import file picker");
+            Utils.showToastLong(L10n.t(Utils.getContext(),
+                    "Could not open the import file picker"));
         }
     }
 
@@ -798,12 +1017,15 @@ public final class FeatureGateLabFragment extends Fragment {
                     if (output == null) throw new IllegalStateException("Document provider returned no output stream");
                     output.write(payload.gzipBytes);
                 }
-                postToast("Exported " + payload.count + " loaded values");
+                postToast(payload.count == 1
+                        ? L10n.t(Utils.getContext(), "Exported 1 loaded value")
+                        : L10n.f(Utils.getContext(), "Exported %1$d loaded values",
+                                payload.count));
             } catch (Throwable throwable) {
                 Logger.printException(() -> "Loaded-value file export failed", throwable);
-                postToast(deleteCreatedDocument(resolver, uri)
+                postToast(L10n.t(Utils.getContext(), deleteCreatedDocument(resolver, uri)
                         ? "Loaded-value file export failed"
-                        : "Loaded-value file export failed; cleanup also failed");
+                        : "Loaded-value file export failed; cleanup also failed"));
             }
         });
     }
@@ -821,7 +1043,8 @@ public final class FeatureGateLabFragment extends Fragment {
                 reviewLoadedImport(readLoadedJson(encoded));
             } catch (Throwable throwable) {
                 Logger.printException(() -> "Loaded-value file import failed", throwable);
-                postToast("Loaded-value file is invalid or too large");
+                postToast(L10n.t(Utils.getContext(),
+                        "Loaded-value file is invalid or too large"));
             }
         });
     }
@@ -890,9 +1113,9 @@ public final class FeatureGateLabFragment extends Fragment {
         FeatureGateLabStore.ImportReview review = FeatureGateLabStore.reviewProfile(
                 profile.toString(), currentSnapshot.byIdentity);
 
-        String message = "Imported " + review.accepted.size() + " disabled values. " + same
-                + " already matched, " + unavailable + " unavailable, " + (review.rejected.size() + malformed)
-                + " rejected. Undo last Lab change is in the menu.";
+        String message = L10n.f(Utils.getContext(),
+                "Imported %1$d disabled values. %2$d already matched, %3$d unavailable, %4$d rejected. Undo last Lab change is in the menu.",
+                review.accepted.size(), same, unavailable, review.rejected.size() + malformed);
         runLabChange(() -> FeatureGateLabUndo.importRules(review), message);
     }
 
@@ -1006,6 +1229,9 @@ public final class FeatureGateLabFragment extends Fragment {
 
     private interface LabChange { void run() throws Exception; }
 
+    /** A change that decides its own message from what it turned out to do. */
+    private interface ReportingLabChange { String run() throws Exception; }
+
     /**
      * The thread the last Lab change ran on.
      *
@@ -1019,18 +1245,33 @@ public final class FeatureGateLabFragment extends Fragment {
     }
 
     private void runLabChange(LabChange change, String message) {
+        runLabChange(() -> {
+            change.run();
+            return message;
+        });
+    }
+
+    /**
+     * @return false when another change was already running, so nothing was started. Callers with
+     *         state of their own, such as the gate selection, keep it rather than giving it up
+     *         for a change that never ran.
+     */
+    private boolean runLabChange(ReportingLabChange change) {
         if (!CHANGING.compareAndSet(false, true)) {
-            postToast("A Lab change is already running");
-            return;
+            postToast(L10n.t(Utils.getContext(), "A Lab change is already running"));
+            return false;
         }
         Utils.runOnBackgroundThread(() -> {
             lastChangeThreadForTests = Thread.currentThread().getName();
-            String result = message;
+            String result;
             try {
-                change.run();
+                result = change.run();
             } catch (Exception error) {
                 Logger.printException(() -> "Lab change failed", error);
-                result = "Could not change Lab settings. " + error.getMessage();
+                // The sentence is translated; what the failure itself said is not ours
+                // to translate, and dropping it would take the only clue with it.
+                result = L10n.t(Utils.getContext(), "Could not change Lab settings.")
+                        + " " + error.getMessage();
             }
             String notice = result;
             new Handler(Looper.getMainLooper()).post(() -> {
@@ -1043,6 +1284,7 @@ public final class FeatureGateLabFragment extends Fragment {
                 Utils.showToastLong(notice);
             });
         });
+        return true;
     }
 
     private static void showStyled(AlertDialog dialog) {
@@ -1279,6 +1521,11 @@ public final class FeatureGateLabFragment extends Fragment {
             holder.value.setText(shownValue);
             holder.value.setVisibility(entry.loaded || rule != null ? View.VISIBLE : View.GONE);
             convertView.setBackground(SettingsUi.groupedRow(context, position == 0, position == entries.size() - 1));
+            // A chosen row is drawn as chosen, and says so to a screen reader further down: a
+            // selection you cannot see is a selection you act on by accident.
+            boolean chosen = selection.containsKey(entry.identity());
+            convertView.setActivated(chosen);
+            convertView.setAlpha(!selection.isEmpty() && !chosen ? 0.55f : 1f);
 
             String state;
             int stateColor;
@@ -1297,7 +1544,13 @@ public final class FeatureGateLabFragment extends Fragment {
             }
             holder.state.setText(state);
             holder.state.setTextColor(stateColor);
-            convertView.setContentDescription(entry.title + ", " + entry.key + ", " + entry.type + ", " + shownValue + ", " + state);
+            // The row read out as one sentence. The parts are the gate's own words, and
+            // only the last piece is ours, so only that one is a key.
+            String spoken = entry.title + ", " + entry.key + ", " + entry.type
+                    + ", " + shownValue + ", " + state;
+            convertView.setContentDescription(chosen
+                    ? L10n.f(getContext(), "%1$s, selected", spoken)
+                    : spoken);
             return convertView;
         }
     }

@@ -15,7 +15,7 @@ public class EmailRegexTest {
             oldRegex = Files.readString(Path.of(args[0])).stripTrailing();
             newRegex = Files.readString(Path.of(args[1])).stripTrailing();
         } else {
-            Class<?> patch = Class.forName("local.keepcool.KeepcoolEmailPatchKt");
+            Class<?> patch = Class.forName("io.github.yannsoliman.patches.keepcool.KeepcoolEmailPatchKt");
             oldRegex = (String) patch.getField("ORIGINAL_REGEX").get(null);
             newRegex = (String) patch.getMethod("getPLUS_REGEX").invoke(null);
         }

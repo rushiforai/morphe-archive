@@ -5,11 +5,11 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.shared.Constants.COMPATIBILITY_SCANNERRADIO
 
 /**
- * Bypasses the central premium check by patching yf.c.V() (isProVersion):
+ * Bypasses the central premium check by patching hm0.a0() (isProVersion):
  *
  * - Forces return true, unlocking: no ads, recording, all themes, pro subscriptions.
- * - PlayerActivity.onResume() checks !V() to gate ad display → ads disabled.
- * - Settings, unlock screens, and subscription prompts all check V().
+ * - PlayerActivity.onResume() checks !a0() to gate ad display → ads disabled.
+ * - Settings, unlock screens, and subscription prompts all check a0().
  */
 @Suppress("unused")
 val premiumBypassPatch = bytecodePatch(

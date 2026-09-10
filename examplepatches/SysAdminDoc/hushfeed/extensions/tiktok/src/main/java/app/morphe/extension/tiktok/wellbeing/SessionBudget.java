@@ -5,6 +5,7 @@
 package app.morphe.extension.tiktok.wellbeing;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.Settings;
 
 import java.util.Calendar;
@@ -78,6 +79,25 @@ public final class SessionBudget {
     private static volatile boolean lockedToday;
 
     /**
+     * How many times the hold has been opened today. Only ever compared against
+     * {@link Settings#SESSION_BUDGET_PASSES_PER_DAY}, so it costs nothing while that is zero,
+     * but it is counted either way: a reader who sets a cap part way through a day should not
+     * get the day's passes back for having set it.
+     */
+    private static int passesUsed;
+
+    /**
+     * The watched time when the last quiet reminder went out, and how many have ever gone.
+     *
+     * <p>Measured against {@link #watchedMs} rather than the clock, so the interval is minutes
+     * of feed rather than minutes of being awake, and time on messages or a profile does not
+     * bring one on. The count is what picks the wording, so the three take turns; it is not a
+     * count of the day and does not roll over with it.
+     */
+    private static long noticeMarkMs;
+    private static long noticesShown;
+
+    /**
      * What "start today over" cleared, so the next tap can put it back. Held in memory rather
      * than in the record: it is the way back from a tap a moment ago, not a second day's worth
      * of state, and writing it would double what every clear costs.
@@ -88,6 +108,8 @@ public final class SessionBudget {
     private static long undoWatchedMs;
     private static long undoLockUntilMs;
     private static boolean undoNoticeShown;
+    private static int undoPassesUsed;
+    private static long undoNoticeMarkMs;
     private static long lastTickMs;
     private static String lastCountedId;
     private static boolean noticeShown;
@@ -101,7 +123,21 @@ public final class SessionBudget {
     private static long cachedWindowStart;
     private static long cachedWindowEnd;
     private static int cachedResetHour = -1;
-    private static String cachedZoneId = "";
+    /**
+     * Registered once, and the reason the memo does not have to read the zone.
+     *
+     * <p>TimeZone.getDefault() hands back a clone on Android, so asking it on every player
+     * callback was an allocation and a string compare several times a second for the whole
+     * time a budget was set. There is no allocation-free way to read it: getDefaultRef is
+     * package private in java.util and ZoneId.systemDefault goes through the same clone. So
+     * the memo is told instead.
+     *
+     * <p>The one thing this cannot see is the host calling TimeZone.setDefault itself, which
+     * sends no broadcast. The memo then answers with the old day until its window rolls, which
+     * is the trade the alternative was not worth: reading the zone caught that case and cost a
+     * clone on every frame the player reported.
+     */
+    private static android.content.Context watchedContext;
     private static int dayComputations;
     private static int lockChecksUnderTheMonitor;
 
@@ -120,7 +156,9 @@ public final class SessionBudget {
      */
     private static boolean counting() {
         return Settings.SESSION_BUDGET_VIDEOS.get() > 0
-                || Settings.SESSION_BUDGET_MINUTES.get() > 0;
+                || Settings.SESSION_BUDGET_MINUTES.get() > 0
+                // A reader who wants the reminders and no budget at all still has to be counted.
+                || Settings.SESSION_BUDGET_NOTICE_MINUTES.get() > 0;
     }
 
     // ---------------------------------------------------------------- what the feed reports
@@ -189,6 +227,27 @@ public final class SessionBudget {
             load();
             rollOver(clock.now());
             return watchedMs;
+        }
+    }
+
+    /**
+     * How much of the day's watching budget is left, in milliseconds.
+     *
+     * <p>Negative when there is nothing counted in time to measure against, which is a
+     * different answer from zero: a budget counted only in videos never runs down in time, so
+     * anything drawing from the clock has nothing to draw.
+     */
+    public static long budgetRemainingMs() {
+        synchronized (LOCK) {
+            load();
+            rollOver(clock.now());
+            int minuteBudget = Settings.SESSION_BUDGET_MINUTES.get();
+            // Asked first, and before spent(). A budget counted only in videos runs out
+            // without any time having run down, and answering zero there told anything
+            // drawing from the clock that it had reached the end of a clock nobody set.
+            if (minuteBudget <= 0) return -1;
+            if (spent()) return 0;
+            return Math.max(0, minuteBudget * 60_000L - watchedMs);
         }
     }
 
@@ -311,16 +370,74 @@ public final class SessionBudget {
     /**
      * Lifts a running hold without touching the counts. The budget stays reached, so the notice
      * does not come back until a new day or a raised budget puts the reader under it again.
+     *
+     * @return false when nothing was lifted, which is a locked day, no hold running, or a day
+     *         whose passes are spent.
      */
-    public static void releaseLock() {
+    public static boolean releaseLock() {
         synchronized (LOCK) {
             load();
             rollOver(clock.now());
             // The one exit the hold has, and the whole point of the lock is that today has none.
-            if (lockedToday) return;
-            if (lockUntilMs == 0) return;
+            if (lockedToday) return false;
+            if (lockUntilMs == 0) return false;
+            int cap = Settings.SESSION_BUDGET_PASSES_PER_DAY.get();
+            if (cap > 0 && passesUsed >= cap) return false;
             lockUntilMs = 0;
+            passesUsed++;
             save();
+            return true;
+        }
+    }
+
+    /**
+     * How many more times the hold may be opened today.
+     *
+     * @return {@link Integer#MAX_VALUE} when no cap is set, which is the default and what the
+     *         hold has always done.
+     */
+    /**
+     * Whether it is time for a quiet reminder, and which of the three wordings to use.
+     *
+     * <p>Never while a hold is up: the panel is the message then, and a toast underneath it
+     * would be one more thing to read on a screen that is already saying stop.
+     *
+     * @return 0, 1 or 2 for the wording, or -1 for nothing to say.
+     */
+    public static int claimIntervalNotice() {
+        int minutes = Settings.SESSION_BUDGET_NOTICE_MINUTES.get();
+        if (minutes <= 0) return -1;
+        synchronized (LOCK) {
+            load();
+            long now = clock.now();
+            rollOver(now);
+            if (lockUntilMs > now) return -1;
+            long interval = minutes * 60_000L;
+            if (watchedMs - noticeMarkMs < interval) return -1;
+            // Moved to now. Rounding down to a whole number of intervals, which this did first,
+            // left the mark behind the moment the reminder went out by however far the watched
+            // time had overshot, so the next one arrived that much early: on a five minute row a
+            // reader who reached nine minutes fifty-nine before the video changed got the second
+            // one a second after the first. Time away cannot bring one forward either way, since
+            // watchedMs only moves while the feed is playing.
+            noticeMarkMs = watchedMs;
+            // Not reset by the day, because it is not a count of anything: it is which of the
+            // three wordings comes next. Rolled over, a reader who gets one reminder a day read
+            // the same sentence every day, which is the thing having three is for.
+            int wording = (int) Math.floorMod(noticesShown, 3L);
+            noticesShown++;
+            save();
+            return wording;
+        }
+    }
+
+    public static int passesLeftToday() {
+        int cap = Settings.SESSION_BUDGET_PASSES_PER_DAY.get();
+        if (cap <= 0) return Integer.MAX_VALUE;
+        synchronized (LOCK) {
+            load();
+            rollOver(clock.now());
+            return Math.max(0, cap - passesUsed);
         }
     }
 
@@ -343,6 +460,8 @@ public final class SessionBudget {
             undoWatchedMs = watchedMs;
             undoLockUntilMs = lockUntilMs;
             undoNoticeShown = noticeShown;
+            undoPassesUsed = passesUsed;
+            undoNoticeMarkMs = noticeMarkMs;
             undoAvailable = true;
             day = dayOf(clock.now());
             videos = 0;
@@ -351,6 +470,13 @@ public final class SessionBudget {
             lockUntilMs = 0;
             lastCountedId = null;
             noticeShown = false;
+            // A pass is one of today's counts, and this row's own wording is that today is
+            // forgotten. Leaving it spent gave back the videos and the minutes and kept the way
+            // out of the hold gone, on a day the screen was showing as untouched. The reminders
+            // are counts of today for the same reason: the watched time they measure is going
+            // back to zero, so the mark they measure from has to as well.
+            passesUsed = 0;
+            noticeMarkMs = 0;
             save();
             return true;
         }
@@ -403,6 +529,8 @@ public final class SessionBudget {
             writtenWatchedMs = undoWatchedMs;
             lockUntilMs = undoLockUntilMs;
             noticeShown = undoNoticeShown;
+            passesUsed = undoPassesUsed;
+            noticeMarkMs = undoNoticeMarkMs;
             lastCountedId = null;
             undoAvailable = false;
             save();
@@ -416,16 +544,74 @@ public final class SessionBudget {
      * Which day a moment belongs to, counting the day as starting at the chosen hour. The
      * device's own zone is what the reader lives in, so that is the one used.
      */
+    /**
+     * Listens for the device's zone changing, once, and drops the memo when it does.
+     *
+     * <p>Registered lazily rather than at startup: the budget costs nothing at all until
+     * somebody sets one, and this is on the path that only runs once one is set. A receiver
+     * that cannot be registered leaves the memo as it is, which is the behaviour a device that
+     * never changes zone has anyway.
+     */
+    private static void watchTheZone() {
+        synchronized (LOCK) {
+            android.content.Context given = Utils.getContext();
+            if (given == null) return;
+            // The application, not whatever was handed over. Utils.getContext() can be the main
+            // activity, and it is wrapped again on every configuration change when an app
+            // language is set, so keying on that identity registered a receiver per wrapper and
+            // held a destroyed activity in a static field. The application is one object for
+            // the life of the process, which is also how often this should register.
+            android.content.Context context = given.getApplicationContext() == null
+                    ? given
+                    : given.getApplicationContext();
+            if (context == watchedContext) return;
+            try {
+                android.content.BroadcastReceiver receiver =
+                        new android.content.BroadcastReceiver() {
+                            @Override
+                            public void onReceive(
+                                    android.content.Context ignored, android.content.Intent sent) {
+                                forgetTheDay();
+                            }
+                        };
+                android.content.IntentFilter filter = new android.content.IntentFilter(
+                        android.content.Intent.ACTION_TIMEZONE_CHANGED);
+                // A protected system broadcast is delivered to a receiver nobody else can
+                // reach, and from API 33 a receiver has to say which it is.
+                if (android.os.Build.VERSION.SDK_INT >= 33) {
+                    context.registerReceiver(receiver, filter,
+                            android.content.Context.RECEIVER_NOT_EXPORTED);
+                } else {
+                    context.registerReceiver(receiver, filter);
+                }
+                // Only once it is registered. Assigning first meant a refusal was never
+                // tried again for that context.
+                watchedContext = context;
+            } catch (Throwable refused) {
+                Logger.printDebug(() -> "The budget could not follow the device timezone");
+            }
+        }
+    }
+
+    /** Drops the memo, so the next question is worked out from the zone the device is in now. */
+    static void forgetTheDay() {
+        synchronized (LOCK) {
+            cachedResetHour = -1;
+        }
+    }
+
     static long dayOf(long now) {
         int resetHour = Settings.SESSION_BUDGET_RESET_HOUR.get();
-        TimeZone zone = TimeZone.getDefault();
+        watchTheZone();
         synchronized (LOCK) {
-            if (resetHour == cachedResetHour && zone.getID().equals(cachedZoneId)
+            if (resetHour == cachedResetHour
                     && now >= cachedWindowStart && now < cachedWindowEnd) {
                 return cachedDay;
             }
             dayComputations++;
-            Calendar calendar = Calendar.getInstance(zone);
+            // The one place the zone is read, which is what makes this a miss rather than a
+            // question asked several times a second.
+            Calendar calendar = Calendar.getInstance(TimeZone.getDefault());
             calendar.setTimeInMillis(now);
             if (calendar.get(Calendar.HOUR_OF_DAY) < resetHour) {
                 calendar.add(Calendar.DAY_OF_YEAR, -1);
@@ -447,7 +633,6 @@ public final class SessionBudget {
                 cachedWindowStart = start;
                 cachedWindowEnd = end;
                 cachedResetHour = resetHour;
-                cachedZoneId = zone.getID();
             } else {
                 // An hour that does not exist on the day the clocks go forward lands outside its
                 // own window. Better to work it out again than to answer from a window that does
@@ -499,6 +684,8 @@ public final class SessionBudget {
         writtenWatchedMs = 0;
         lockUntilMs = 0;
         lockedToday = false;
+        passesUsed = 0;
+        noticeMarkMs = 0;
         undoAvailable = false;
         lastCountedId = null;
         noticeShown = false;
@@ -528,7 +715,17 @@ public final class SessionBudget {
                     // A record written before the lock existed has five fields, and a day it
                     // describes was never locked, so its absence reads as false.
                     lockedToday = parts.length >= 6 && "1".equals(parts[5]);
+                    // Same again for the pass count, which arrived after both. A day recorded
+                    // before it existed had no cap to spend, so zero is the honest answer.
+                    passesUsed = parts.length >= 7 ? Integer.parseInt(parts[6]) : 0;
+                    // Same again for the reminder's mark, which arrived after the passes. A
+                    // day recorded before it had none, so zero is the honest answer.
+                    noticeMarkMs = parts.length >= 8 ? Long.parseLong(parts[7]) : 0;
                 }
+                // Read whether or not the record is today's, because it is not a count of a
+                // day: it is which of the three wordings comes next, and a reader who gets one
+                // reminder a day would otherwise read the same sentence every day.
+                if (parts.length >= 9) noticesShown = Long.parseLong(parts[8]);
             }
         } catch (RuntimeException malformed) {
             Logger.printDebug(() -> "Discarded an unreadable session budget record");
@@ -544,7 +741,9 @@ public final class SessionBudget {
         writtenWatchedMs = watchedMs;
         final String record = day + "|" + videos + "|" + watchedMs + "|"
                 + lockUntilMs + "|" + (noticeShown ? "1" : "0")
-                + "|" + (lockedToday ? "1" : "0");
+                + "|" + (lockedToday ? "1" : "0")
+                + "|" + passesUsed
+                + "|" + noticeMarkMs + "|" + noticesShown;
         try {
             WRITER.execute(() -> Settings.SESSION_BUDGET_STATE.save(record));
         } catch (RejectedExecutionException stopped) {
@@ -582,7 +781,6 @@ public final class SessionBudget {
     static void resetForTests() {
         synchronized (LOCK) {
             cachedResetHour = -1;
-            cachedZoneId = "";
             cachedWindowStart = 0;
             cachedWindowEnd = 0;
             cachedDay = 0;
@@ -595,6 +793,9 @@ public final class SessionBudget {
             writtenWatchedMs = 0;
             lockUntilMs = 0;
             lockedToday = false;
+            passesUsed = 0;
+            noticeMarkMs = 0;
+            noticesShown = 0;
             undoAvailable = false;
             lastTickMs = 0;
             lastCountedId = null;

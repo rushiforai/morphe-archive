@@ -73,12 +73,56 @@ public class LogExportFilterPreference extends Preference {
         updateSummary();
     }
 
+    /**
+     * The words this row shows, so a bundle that has a translation table can put its own in.
+     *
+     * <p>This library is shared with bundles that carry no tables at all, so it cannot reach
+     * into one. The English here is what those get, and a subclass overrides what it can say
+     * better, which is what TintedLogExportFilterPreference already does for the title and the
+     * summary of the row itself.
+     */
+    protected String[] labels() {
+        return LABELS;
+    }
+
+    protected CharSequence dialogTitle() {
+        return "Include diagnostic events";
+    }
+
+    protected CharSequence positiveText() {
+        return "Apply";
+    }
+
+    protected CharSequence negativeText() {
+        return "Cancel";
+    }
+
+    protected CharSequence allEventsSummary() {
+        return "Includes all Morphe diagnostic events.";
+    }
+
+    /**
+     * The whole sentence, with the kinds already joined into it.
+     *
+     * <p>One sentence rather than a prefix and a suffix around a list: a table row holds a
+     * sentence, and a language that puts the list somewhere else in it has nowhere to go if
+     * the pieces are glued together here.
+     *
+     * <p>The list comes last, after a colon, so each kind can keep the capital its own
+     * language gives it. Reading "Includes X events." meant lower-casing every kind, which is
+     * right for English and wrong for German, and the labels became translatable while the
+     * lower-casing stayed: Einstellungen came out as einstellungen.
+     */
+    protected CharSequence includesSummary(String kinds) {
+        return "Includes these events: " + kinds;
+    }
+
     private void showPicker() {
         boolean[] checked = checkedValues();
 
         AlertDialog shownDialog = new AlertDialog.Builder(getContext())
-                .setTitle("Include diagnostic events")
-                .setMultiChoiceItems(LABELS, checked, (dialog, which, isChecked) -> {
+                .setTitle(dialogTitle())
+                .setMultiChoiceItems(labels(), checked, (dialog, which, isChecked) -> {
                     checked[which] = isChecked;
                     AlertDialog alertDialog = (AlertDialog) dialog;
 
@@ -92,11 +136,11 @@ public class LogExportFilterPreference extends Preference {
                         alertDialog.getListView().setItemChecked(0, false);
                     }
                 })
-                .setPositiveButton("Apply", (dialog, which) -> {
+                .setPositiveButton(positiveText(), (dialog, which) -> {
                     BaseSettings.DEBUG_LOG_FILTERS.save(serialize(checked));
                     updateSummary();
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(negativeText(), null)
                 .show();
         onDialogShown(shownDialog);
     }
@@ -137,22 +181,21 @@ public class LogExportFilterPreference extends Preference {
     private void updateSummary() {
         Set<String> selected = parse(BaseSettings.DEBUG_LOG_FILTERS.get());
         if (selected.isEmpty() || selected.contains(VALUE_ALL)) {
-            setSummary("Includes all Morphe diagnostic events.");
+            setSummary(allEventsSummary());
             return;
         }
 
-        StringBuilder builder = new StringBuilder("Includes ");
+        StringBuilder builder = new StringBuilder();
         int labelCount = 0;
         for (int i = 1; i < VALUES.length; i++) {
             if (!selected.contains(VALUES[i])) continue;
 
             if (labelCount > 0) builder.append(", ");
-            builder.append(LABELS[i].toLowerCase());
+            builder.append(labels()[i]);
             labelCount++;
         }
-        builder.append(" events.");
 
-        setSummary(builder.toString());
+        setSummary(includesSummary(builder.toString()));
     }
 
     public static Set<String> parse(String value) {

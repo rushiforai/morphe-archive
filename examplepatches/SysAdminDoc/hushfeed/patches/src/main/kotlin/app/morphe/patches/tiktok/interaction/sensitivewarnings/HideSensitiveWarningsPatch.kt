@@ -28,9 +28,9 @@ private const val VIDEO_ITEM_PARAMS_DESCRIPTOR =
  */
 @Suppress("unused")
 val hideSensitiveWarningsPatch = bytecodePatch(
-    name = "Hide content warnings",
+    name = "Skip content warnings",
     description = "Adds an option to play videos TikTok has classified without the warning " +
-        "overlay asking to be tapped through first. Supports TikTok 46.2.3.",
+        "overlay asking to be tapped through first.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

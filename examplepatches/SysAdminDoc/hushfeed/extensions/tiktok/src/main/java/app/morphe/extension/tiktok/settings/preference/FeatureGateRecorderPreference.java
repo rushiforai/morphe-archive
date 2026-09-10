@@ -35,7 +35,9 @@ public final class FeatureGateRecorderPreference extends Preference {
         ScrollView scroll = new ScrollView(context);
         TextView text = new TextView(context);
         text.setText(report.length() <= GateReportExport.MAX_CLIPBOARD_CHARS ? report
-                : report.substring(0, GateReportExport.MAX_CLIPBOARD_CHARS) + "\n\nPreview shortened. Save JSON includes the full report.");
+                : report.substring(0, GateReportExport.MAX_CLIPBOARD_CHARS) + "\n\n"
+                        + L10n.t(context,
+                                "Preview shortened. Save JSON includes the full report."));
         text.setTextIsSelectable(true);
         text.setTextColor(SettingsUi.textPrimary());
         text.setTextSize(13);
@@ -50,7 +52,8 @@ public final class FeatureGateRecorderPreference extends Preference {
         scroll.setMinimumHeight(SettingsUi.dp(context, Math.min(540,
                 context.getResources().getConfiguration().screenHeightDp * 3 / 5)));
         TextView title = SettingsUi.text(context,
-                L10n.f(context, "Recorded gate reads (%d)", FeatureGateLearnMode.lastCandidateCount()),
+                L10n.f(context, "Recorded gate reads (%1$d)",
+                        FeatureGateLearnMode.lastCandidateCount()),
                 28, SettingsUi.textPrimary(), 1);
         title.setPadding(padding, padding, padding, SettingsUi.dp(context, 12));
         AlertDialog.Builder builder = new AlertDialog.Builder(context)
@@ -71,7 +74,7 @@ public final class FeatureGateRecorderPreference extends Preference {
         setTitle(FeatureGateLearnMode.isRecording() ? "Stop feature gate recording" : "Start feature gate recording");
         setSummary(FeatureGateLearnMode.isRecording()
                 ? "Return after using a TikTok feature to see every gate read during the recording."
-                : L10n.f(getContext(), "Compare gate reads with their previous values. Last recording: %d gates.",
+                : L10n.f(getContext(), "Compare gate reads with their previous values. Last recording: %1$d gates.",
                         FeatureGateLearnMode.lastCandidateCount()));
     }
 

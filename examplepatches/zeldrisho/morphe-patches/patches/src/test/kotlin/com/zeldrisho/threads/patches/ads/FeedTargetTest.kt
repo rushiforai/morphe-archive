@@ -119,10 +119,14 @@ class FeedTargetTest {
         }
     }
 
-    private fun reflectionClasses(transform: (FeedReflectionMember, ImmutableMethod) -> ImmutableMethod? = { _, m -> m }) = feedReflectionMembers.groupBy { it.owner }.mapValues { (owner, members) ->
+    /** Builds class fixtures for a reflection member set, optionally transforming methods. */
+    private fun reflectionClasses(
+        members: List<FeedReflectionMember> = feedReflectionMembers,
+        transform: (FeedReflectionMember, ImmutableMethod) -> ImmutableMethod? = { _, m -> m },
+    ) = members.groupBy { it.owner }.mapValues { (owner, owned) ->
         classDef(
             owner,
-            members.mapNotNull { member ->
+            owned.mapNotNull { member ->
                 transform(
                     member,
                     ImmutableMethod(
@@ -140,17 +144,61 @@ class FeedTargetTest {
         )
     }
 
+    /** Verifies that each complete supported reflection contract is accepted. */
     @Test fun acceptsCompleteReflectionContract() {
-        val classes = reflectionClasses()
-        validateFeedReflectionContract(classes::get)
+        for (members in feedReflectionMemberSets) {
+            validateFeedReflectionContract(reflectionClasses(members)::get)
+        }
     }
 
+    /** Verifies that either supported version contract can be validated in isolation. */
+    @Test fun acceptsEachVersionSetIndependently() {
+        // 434 classes alone must pass even when no 445 class exists, and vice versa.
+        validateFeedReflectionContract(reflectionClasses(feedReflectionMembers434)::get)
+        validateFeedReflectionContract(reflectionClasses(feedReflectionMembers445)::get)
+    }
+
+    /** Verifies that incomplete members combined across versions are rejected. */
+    @Test fun rejectsMixedVersionSets() {
+        // Half of each set (e.g. 434 Media.DED + 445 wrapper) must NOT validate:
+        // a half-drifted app fails loudly instead of filtering with the wrong predicate.
+        val mixed = (feedReflectionMembers434.take(3) + feedReflectionMembers445.takeLast(3))
+            .groupBy { it.owner }.mapValues { (owner, owned) ->
+                classDef(
+                    owner,
+                    owned.map {
+                        ImmutableMethod(
+                            owner,
+                            it.name,
+                            emptyList(),
+                            it.returnType,
+                            AccessFlags.PUBLIC.value,
+                            emptySet(),
+                            emptySet(),
+                            null,
+                        )
+                    },
+                )
+            }
+        assertFailsWith<IllegalStateException> { validateFeedReflectionContract(mixed::get) }
+        // Both complete sets at once must also fail: exactly one version may match.
+        val bothComplete = reflectionClasses(feedReflectionMemberSets.flatten())
+        assertFailsWith<IllegalStateException> { validateFeedReflectionContract(bothComplete::get) }
+    }
+
+    /** Verifies that every missing member produces an actionable validation failure. */
     @Test fun rejectsEveryMissingMemberWithAnActionableMessage() {
-        for (missing in feedReflectionMembers) {
-            val classes = reflectionClasses { member, method -> method.takeUnless { member == missing } }
-            val error = assertFailsWith<IllegalStateException> { validateFeedReflectionContract(classes::get) }
-            assertTrue(error.message!!.contains("${missing.owner}->${missing.name}()${missing.returnType}"))
-            assertTrue(error.message!!.contains("docs/qa-checklist.md"))
+        for (members in feedReflectionMemberSets) {
+            for (missing in members) {
+                val classes = reflectionClasses(members) { member, method ->
+                    method.takeUnless { member == missing }
+                }
+                val error = assertFailsWith<IllegalStateException> {
+                    validateFeedReflectionContract(classes::get)
+                }
+                assertTrue(error.message!!.contains("${missing.owner}->${missing.name}()${missing.returnType}"))
+                assertTrue(error.message!!.contains("docs/qa-checklist.md"))
+            }
         }
         assertFailsWith<IllegalStateException> { validateFeedReflectionContract { null } }
     }
@@ -186,7 +234,7 @@ class FeedTargetTest {
         val path = System.getenv("THREADS_TEST_APK")
         assumeTrue("Set THREADS_TEST_APK to the original pinned base APK for DEX validation", !path.isNullOrBlank())
         val container = DexFileFactory.loadDexContainer(File(path!!), Opcodes.getDefault())
-        val wanted = feedReflectionMembers.map { it.owner }.toSet() + FeedMergeMethod.definingClass!!
+        val wanted = feedReflectionMemberSets.flatten().map { it.owner }.toSet() + FeedMergeMethod.definingClass!!
         val classes = container.dexEntryNames.asSequence().flatMap {
             container.getEntry(it)!!.dexFile.classes.asSequence()
         }.filter { it.type in wanted }.associateBy { it.type }
@@ -194,7 +242,11 @@ class FeedTargetTest {
         with(context()) {
             FeedMergeMethod.clearMatch()
             val match = FeedMergeMethod.matchAll(classes.getValue(FeedMergeMethod.definingClass!!), 1..1).single()
-            assertEquals("A0F", match.originalMethod.name)
+            // Merge entry is A0F on 434, A0G on 445 (same param shape, .locals 37).
+            assertTrue(
+                match.originalMethod.name in setOf("A0F", "A0G"),
+                "unexpected merge method: ${match.originalMethod.name}",
+            )
             assertEquals(46, match.originalMethod.implementation!!.registerCount)
         }
     }

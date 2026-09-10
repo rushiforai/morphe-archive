@@ -1,5 +1,5 @@
 {
-    "version": "v1.6.0",
+    "version": "v1.8.6",
     "patches": [
         {
             "compatiblePackages": [
@@ -39,14 +39,18 @@
                     "packageName": "com.scannerradio",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "version": "8.29"
                         }
+                    ],
+                    "versions": [
+                        "8.29"
                     ]
                 }
             ],
             "default": true,
             "dependencies": [],
-            "description": "Changes app name to 'Scanner Radio+' and tints the icon for easy identification.",
+            "description": "Changes app name to 'Scanner Radio+' for easy identification.",
             "name": "Branding",
             "options": []
         },
@@ -98,8 +102,12 @@
                     "packageName": "com.scannerradio",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "version": "8.29"
                         }
+                    ],
+                    "versions": [
+                        "8.29"
                     ]
                 }
             ],
@@ -181,6 +189,30 @@
             "compatiblePackages": [
                 {
                     "apkFileType": "APK",
+                    "appIconColor": "#2196F3",
+                    "name": "Scanner Radio",
+                    "packageName": "com.scannerradio",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "8.29"
+                        }
+                    ],
+                    "versions": [
+                        "8.29"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Disables Pairip DRM/integrity checks that crash patched APKs on startup.",
+            "name": "Pairip DRM Bypass",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
                     "appIconColor": "#B71C1C",
                     "name": "CrimeRadar",
                     "packageName": "com.newsbreak.crimeradar",
@@ -215,8 +247,12 @@
                     "packageName": "com.scannerradio",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "version": "8.29"
                         }
+                    ],
+                    "versions": [
+                        "8.29"
                     ]
                 }
             ],
@@ -322,8 +358,12 @@
                     "packageName": "com.scannerradio",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "version": "8.29"
                         }
+                    ],
+                    "versions": [
+                        "8.29"
                     ]
                 }
             ],

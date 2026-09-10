@@ -16,6 +16,7 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -47,12 +48,19 @@ public final class SessionLockOverlay {
 
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static WeakReference<View> overlayReference = new WeakReference<>(null);
+    private static WeakReference<ViewGroup> geometryRootReference = new WeakReference<>(null);
+    private static final ViewTreeObserver.OnGlobalLayoutListener GEOMETRY =
+            SessionLockOverlay::syncGeometry;
+    // All overlay geometry runs on the main thread. Reuse these on player and layout callbacks.
+    private static final int[] ROOT_POSITION = new int[2];
+    private static final int[] NAVIGATION_POSITION = new int[2];
     /** What each view behind the panel said about itself before the hold covered it. */
     private static final java.util.WeakHashMap<View, Integer> previousAccessibilityImportance =
             new java.util.WeakHashMap<>();
     private static WeakReference<TextView> remainingReference = new WeakReference<>(null);
     private static WeakReference<TextView> releaseReference = new WeakReference<>(null);
     private static WeakReference<TextView> hintReference = new WeakReference<>(null);
+    private static WeakReference<TextView> messagesReference = new WeakReference<>(null);
     private static volatile boolean ticking;
 
     /**
@@ -71,9 +79,15 @@ public final class SessionLockOverlay {
         }
     };
 
+    /** Written from the audio focus callback, which is not guaranteed to be the main thread. */
+    private static volatile boolean quietened;
+    private static AudioManager quietManager;
+    /** A transient loss keeps the request on the stack without granting playback permission. */
+    private static volatile boolean focusGranted;
+
     /**
-     * Held for the life of the hold. Nothing is done with the callbacks: this is here to stop the
-     * feed playing, not to play anything.
+     * Held while the panel covers the feed. Losing focus prevents an explicit player resume
+     * when the hold ends, so another app keeps control of the sound.
      */
     private static final AudioManager.OnAudioFocusChangeListener QUIET = change -> {
         // Losing it for good, to a call or to another app, drops us off the focus stack, and
@@ -82,10 +96,16 @@ public final class SessionLockOverlay {
         // took it, once a second, for the length of the hold. So the flag is cleared and the
         // next request waits for the panel to be put up again, which only happens when the
         // reader comes back to the feed.
-        if (change == AudioManager.AUDIOFOCUS_LOSS) quietened = false;
+        if (change == AudioManager.AUDIOFOCUS_LOSS) {
+            quietened = false;
+            focusGranted = false;
+        } else if (change == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT
+                || change == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
+            focusGranted = false;
+        } else if (change == AudioManager.AUDIOFOCUS_GAIN) {
+            focusGranted = quietened;
+        }
     };
-    /** Written from the audio focus callback, which is not guaranteed to be the main thread. */
-    private static volatile boolean quietened;
 
     private SessionLockOverlay() {
     }
@@ -130,6 +150,9 @@ public final class SessionLockOverlay {
                 }
                 return;
             }
+            // A native resume can arrive while the same panel is already visible. Reapply the
+            // actual player pause on every hold sync, before audio focus changes its play state.
+            SessionPlaybackHold.pauseIfPlaying();
             View before = overlayReference.get();
             View overlay = attach(activity);
             if (overlay == null) {
@@ -138,6 +161,7 @@ public final class SessionLockOverlay {
                 requestQuiet();
                 return;
             }
+            updateNavigationMargin(activity, parentOf(overlay), overlay);
             // A panel that was just built, or one coming back from the reader being away on
             // messages or search. Not every tick: a tick that asked again would be asking a
             // phone call to give the sound back once a second, for as long as the hold runs.
@@ -145,12 +169,31 @@ public final class SessionLockOverlay {
             overlay.setVisibility(View.VISIBLE);
             if (goingUp) hideBehind(parentOf(overlay), overlay, true);
             if (goingUp) requestQuiet();
+            // Only as the panel goes up. Whether there is an Inbox tab changes when TikTok
+            // rebuilds its tab bar, not second by second, and for a reader who has hidden Inbox
+            // the answer is a failed lookup every time: asking on every tick would be a walk of
+            // the whole view tree once a second for the length of the hold.
+            if (goingUp) applyMessagesAction(activity);
             TextView remaining = remainingReference.get();
             if (remaining != null) remaining.setText(remainingLabel());
             applyLockedState();
         } catch (Throwable error) {
             Logger.printException(() -> "Could not update the session lock overlay", error);
         }
+    }
+
+    /**
+     * Offers the way to messages only while there is an Inbox tab to open.
+     *
+     * <p>Absent when this build renames the tab and when the reader has hidden Inbox in Feed
+     * navigation, which is the same thing as far as the panel is concerned: the filter drops the
+     * tab from the model, so no view is ever built and there is nothing to offer.
+     */
+    private static void applyMessagesAction(Activity activity) {
+        TextView messages = messagesReference.get();
+        if (messages == null) return;
+        boolean reachable = activity != null && FeedVisibility.inboxTabView(activity) != null;
+        messages.setVisibility(reachable ? View.VISIBLE : View.GONE);
     }
 
     /**
@@ -162,7 +205,14 @@ public final class SessionLockOverlay {
     private static void applyLockedState() {
         boolean locked = SessionBudget.lockedToday();
         TextView release = releaseReference.get();
-        if (release != null) release.setVisibility(locked ? View.GONE : View.VISIBLE);
+        if (release != null) {
+            int left = SessionBudget.passesLeftToday();
+            // Spent is the same as locked as far as this control goes: there is no way through
+            // today. The hint below still says what does work, so the panel is not a dead end.
+            release.setVisibility(locked || left == 0 ? View.GONE : View.VISIBLE);
+            release.setText(releaseLabel(left));
+            release.setContentDescription(release.getText());
+        }
         TextView hint = hintReference.get();
         if (hint == null) return;
         // One literal, because the translation gate reads the literal handed to L10n and a
@@ -170,6 +220,19 @@ public final class SessionLockOverlay {
         hint.setText(locked
                 ? L10n.f("Today's budget is locked. The feed opens again at %1$s. Messages, profiles and search still work.", resetTimeLabel())
                 : L10n.t("Messages, profiles and search still work."));
+    }
+
+    /**
+     * What the way out says, which is how many are left when the reader capped them.
+     *
+     * <p>Each form is its own literal rather than a label with a count appended, because the
+     * translation gate reads the literal handed to L10n and a sentence built from two of them is
+     * two entries it cannot find.
+     */
+    static String releaseLabel(int passesLeft) {
+        if (passesLeft == Integer.MAX_VALUE) return L10n.t("Open the feed anyway");
+        if (passesLeft == 1) return L10n.t("Open the feed anyway, the last time today");
+        return L10n.f("Open the feed anyway, %1$d left today", passesLeft);
     }
 
     /** The hour the locked day ends, on the reader's own clock. */
@@ -210,7 +273,9 @@ public final class SessionLockOverlay {
         LinearLayout panel = new LinearLayout(activity);
         panel.setOrientation(LinearLayout.VERTICAL);
         panel.setGravity(Gravity.CENTER);
-        panel.setBackgroundColor(Color.argb(238, 0, 0, 0));
+        // The same shade the ramp finishes on, taken from there rather than written twice, so
+        // the last frame before the hold and the first frame of it cannot drift apart.
+        panel.setBackgroundColor(Color.argb(HoldRamp.FULL_ALPHA, 0, 0, 0));
         // Swallows every touch, so the feed underneath stops scrolling without being emptied.
         panel.setClickable(true);
         panel.setFocusable(true);
@@ -280,15 +345,54 @@ public final class SessionLockOverlay {
         releaseParams.topMargin = SettingsUi.dp(activity, 28);
         release.setLayoutParams(releaseParams);
         release.setOnClickListener(view -> {
-            // The model refuses this on a locked day. Checked here too, so the tap is answered
-            // rather than doing nothing at all.
+            // The model refuses this on a locked day and on a day whose passes are spent.
+            // Checked through its answer, so a refused tap says nothing rather than claiming
+            // the feed opened.
             if (SessionBudget.lockedToday()) return;
-            SessionBudget.releaseLock();
+            if (!SessionBudget.releaseLock()) {
+                sync();
+                return;
+            }
             sync();
             Utils.showToastShort(L10n.t("The feed is open again"));
         });
         panel.addView(release);
         releaseReference = new WeakReference<>(release);
+
+        // The panel says messages still work and then covers everything, so the reader has to
+        // already know the Inbox tab is under it. This is that tab's own view, clicked the way a
+        // finger would: no call into a renamed method, and TikTok's own listener does the rest.
+        TextView messages = new TextView(activity);
+        messages.setText(L10n.t(activity, "Open messages"));
+        messages.setContentDescription(L10n.t(activity, "Open messages"));
+        messages.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override public void onInitializeAccessibilityNodeInfo(
+                    View host, android.view.accessibility.AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                info.setClassName(android.widget.Button.class.getName());
+            }
+        });
+        messages.setTextColor(Color.argb(200, 255, 255, 255));
+        messages.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        messages.setGravity(Gravity.CENTER);
+        messages.setPadding(padding, SettingsUi.dp(activity, 12), padding,
+                SettingsUi.dp(activity, 12));
+        messages.setMinimumHeight(SettingsUi.dp(activity, 48));
+        LinearLayout.LayoutParams messagesParams = new LinearLayout.LayoutParams(-2, -2);
+        messagesParams.topMargin = SettingsUi.dp(activity, 8);
+        messages.setLayoutParams(messagesParams);
+        messages.setOnClickListener(view -> {
+            View inbox = FeedVisibility.inboxTabView(activity);
+            if (inbox == null) return;
+            inbox.performClick();
+            // Off the feed the panel hides itself rather than detaching, so the hold is still
+            // running and comes back the moment the reader does.
+            sync();
+        });
+        panel.addView(messages);
+        messagesReference = new WeakReference<>(messages);
+        applyMessagesAction(activity);
+
         applyLockedState();
 
         // Stops above the navigation. Covering the whole content root would take the tab bar
@@ -301,40 +405,100 @@ public final class SessionLockOverlay {
         root.addView(panel);
         hideBehind(root, panel, true);
         overlayReference = new WeakReference<>(panel);
+        panel.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override public void onViewAttachedToWindow(View view) {
+                if (overlayReference.get() == view) watchGeometry(parentOf(view));
+            }
+
+            @Override public void onViewDetachedFromWindow(View view) {
+                if (overlayReference.get() == view) stopWatchingGeometry();
+            }
+        });
+        watchGeometry(root);
         Logger.printDebug(() -> "Session lock overlay attached");
         return panel;
     }
 
     /**
-     * How much of the bottom belongs to the navigation.
+     * The bottom margin that leaves TikTok's navigation reachable, measured on the main thread.
      *
-     * <p>Measured from the Home tab's own row rather than from a fixed number of pixels: the bar
-     * is a different height on a phone with gesture navigation than on one without, and the row
-     * is the view {@code FeedVisibility} already holds. Zero when this build does not have it,
-     * which leaves the panel covering everything, because a hold that can be walked around is
-     * worse than one that covers a tab bar.
+     * <p>The content root can extend behind the system navigation bar. Its margin must include
+     * that gap below TikTok's row, while root padding has already been deducted by FrameLayout.
+     * Unknown or implausible geometry keeps the feed fully covered until a later layout.
      */
-    private static int navigationHeight(Activity activity, ViewGroup root) {
+    public static int navigationHeight(Activity activity, ViewGroup root) {
+        if (activity == null || root == null || root.getHeight() <= 0) return 0;
         View homeTab = FeedVisibility.homeTabView(activity);
         if (homeTab == null) return 0;
 
         View bar = homeTab;
+        int contentWidth = root.getWidth() - root.getPaddingLeft() - root.getPaddingRight();
         // Up to the row that spans the width, which is the bar rather than the one tab in it.
         for (int step = 0; step < 4 && bar.getParent() instanceof ViewGroup; step++) {
             ViewGroup parent = (ViewGroup) bar.getParent();
             if (parent == root) break;
             bar = parent;
-            if (bar.getWidth() >= root.getWidth() && bar.getWidth() > 0) break;
+            if (bar.getWidth() >= contentWidth && bar.getWidth() > 0) break;
         }
         int height = bar.getHeight();
-        return height > 0 && height < root.getHeight() / 3 ? height : 0;
+        if (height <= 0 || height >= root.getHeight() / 3) return 0;
+        View ancestor = bar;
+        while (ancestor != root && ancestor.getParent() instanceof View) {
+            ancestor = (View) ancestor.getParent();
+        }
+        if (ancestor != root) return 0;
+
+        root.getLocationOnScreen(ROOT_POSITION);
+        bar.getLocationOnScreen(NAVIGATION_POSITION);
+        int margin = ROOT_POSITION[1] + root.getHeight() - root.getPaddingBottom()
+                - NAVIGATION_POSITION[1];
+        return margin >= height && margin < root.getHeight() / 3 ? margin : 0;
+    }
+
+    /** A geometry change cannot request focus or change native playback. */
+    private static void syncGeometry() {
+        try {
+            View overlay = overlayReference.get();
+            ViewGroup root = geometryRootReference.get();
+            Activity activity = Utils.getActivity();
+            if (overlay == null || overlay.getVisibility() != View.VISIBLE || root == null
+                    || parentOf(overlay) != root || activity == null
+                    || activity.isFinishing() || activity.isDestroyed()
+                    || activity.findViewById(android.R.id.content) != root) return;
+            updateNavigationMargin(activity, root, overlay);
+        } catch (Throwable error) {
+            Logger.printException(() -> "Could not update the session hold geometry", error);
+        }
+    }
+
+    private static void updateNavigationMargin(Activity activity, ViewGroup root, View overlay) {
+        if (!(overlay.getLayoutParams() instanceof FrameLayout.LayoutParams)) return;
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) overlay.getLayoutParams();
+        int margin = navigationHeight(activity, root);
+        if (params.bottomMargin == margin) return;
+        params.bottomMargin = margin;
+        overlay.setLayoutParams(params);
+    }
+
+    private static void watchGeometry(ViewGroup root) {
+        if (root == geometryRootReference.get()) return;
+        stopWatchingGeometry();
+        if (root == null) return;
+        root.getViewTreeObserver().addOnGlobalLayoutListener(GEOMETRY);
+        geometryRootReference = new WeakReference<>(root);
+    }
+
+    private static void stopWatchingGeometry() {
+        ViewGroup root = geometryRootReference.get();
+        if (root != null && root.getViewTreeObserver().isAlive()) {
+            root.getViewTreeObserver().removeOnGlobalLayoutListener(GEOMETRY);
+        }
+        geometryRootReference = new WeakReference<>(null);
     }
 
     /**
-     * The panel covers the feed and swallows every touch, but the video underneath kept playing,
-     * with sound, which reads as the app having broken rather than as a hold. There is no pause
-     * hook in this extension, so the hold asks for the audio focus instead, which is how one app
-     * tells another to stop. A player that ignores it is no worse off than before.
+     * Keeps the hold on the audio focus stack as well as pausing the native player. Focus also
+     * gives release a signal that another app took control while the hold was visible.
      */
     @SuppressWarnings("deprecation")
     private static void requestQuiet() {
@@ -344,9 +508,11 @@ public final class SessionLockOverlay {
         try {
             // The request-object form arrived in API 26 and this runs from 23. The older call is
             // deprecated rather than gone, and it is the one both understand.
-            audio.requestAudioFocus(QUIET, AudioManager.STREAM_MUSIC,
+            int granted = audio.requestAudioFocus(QUIET, AudioManager.STREAM_MUSIC,
                     AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+            quietManager = audio;
             quietened = true;
+            focusGranted = granted == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
         } catch (Exception refused) {
             Logger.printDebug(() -> "The hold could not take the audio focus");
         }
@@ -354,9 +520,10 @@ public final class SessionLockOverlay {
 
     @SuppressWarnings("deprecation")
     private static void releaseQuiet() {
-        if (!quietened) return;
+        AudioManager audio = quietManager;
+        quietManager = null;
         quietened = false;
-        AudioManager audio = audioManager();
+        focusGranted = false;
         if (audio == null) return;
         try {
             audio.abandonAudioFocus(QUIET);
@@ -367,12 +534,18 @@ public final class SessionLockOverlay {
 
     private static AudioManager audioManager() {
         Context context = Utils.getContext();
+        if (context != null && context.getApplicationContext() != null) {
+            context = context.getApplicationContext();
+        }
         return context == null ? null
                 : (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
     }
 
     private static void detach() {
+        stopWatchingGeometry();
+        boolean mayResume = quietened && focusGranted;
         releaseQuiet();
+        SessionPlaybackHold.release(mayResume);
         View overlay = overlayReference.get();
         overlayReference = new WeakReference<>(null);
         remainingReference = new WeakReference<>(null);

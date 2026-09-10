@@ -38,7 +38,8 @@ fun main() {
 
 @Suppress("DEPRECATION")
 private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
-    val listJson = File("../patches-list.json")
+    val listJson = File(System.getenv("PATCH_LIST_OUTPUT") ?: "../patches-list.json")
+    listJson.parentFile?.mkdirs()
 
     val patchesMap = patches.sortedBy { it.name }.map { patch ->
         JsonPatch(

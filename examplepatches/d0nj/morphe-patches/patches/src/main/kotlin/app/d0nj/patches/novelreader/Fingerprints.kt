@@ -1,4 +1,4 @@
-package app.template.patches.novelreader
+package app.d0nj.patches.novelreader
 
 import app.morphe.patcher.Fingerprint
 import com.android.tools.smali.dexlib2.AccessFlags

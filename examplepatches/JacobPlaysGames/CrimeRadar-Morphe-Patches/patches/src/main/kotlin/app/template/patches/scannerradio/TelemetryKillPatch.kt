@@ -13,10 +13,10 @@ import app.template.patches.shared.Constants.COMPATIBILITY_SCANNERRADIO
  * 2. FairBid (com.fyber.a.start) — ad mediation entry point
  *    Collects: ad impressions, click tracking, device fingerprint
  *
- * 3. AdManager.showBannerAds (kg.g.e) — defense-in-depth
+ * 3. AdManager.showBannerAds (j8.i) — defense-in-depth
  *    Prevents banner ad display even if SDK init somehow proceeds.
  *
- * 4. AdManager.showInterstitialAds (kg.g.g) — defense-in-depth
+ * 4. AdManager.showInterstitialAds (j8.j) — defense-in-depth
  *    Prevents interstitial ad display even if SDK init somehow proceeds.
  *
  * Note: Firebase Analytics is NOT disabled here because it's wired into

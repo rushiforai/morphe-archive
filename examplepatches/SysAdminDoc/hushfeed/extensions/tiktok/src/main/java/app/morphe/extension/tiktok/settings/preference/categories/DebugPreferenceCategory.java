@@ -62,7 +62,8 @@ public class DebugPreferenceCategory extends ConditionalPreferenceCategory {
 
         var clearLogs = new TintedClearLogBufferPreference(context);
         clearLogs.setTitle(L10n.t(context, "Clear diagnostic data"));
-        clearLogs.setSummary(L10n.t(context, "Clear buffered events and saved crash reports."));
+        clearLogs.setSummary(L10n.t(context,
+                "Clear buffered events, saved crash reports and the hook status above."));
         addPreference(clearLogs);
     }
 
@@ -86,6 +87,7 @@ public class DebugPreferenceCategory extends ConditionalPreferenceCategory {
             super.onBindView(view);
             Utils.setTitleAndSummaryColor(view);
         }
+
 
         @Override
         protected void onDialogShown(AlertDialog dialog) {
@@ -117,6 +119,42 @@ public class DebugPreferenceCategory extends ConditionalPreferenceCategory {
         @Override
         protected void onDialogShown(AlertDialog dialog) {
             SettingsUi.styleStandardAlertDialog(dialog);
+        }
+        // The picker's own words. The shared class cannot reach a translation table, because it
+        // is shared with bundles that carry none, so this bundle hands its own back.
+        @Override
+        protected String[] labels() {
+            String[] english = super.labels();
+            String[] translated = new String[english.length];
+            for (int index = 0; index < english.length; index++) {
+                translated[index] = L10n.t(getContext(), english[index]);
+            }
+            return translated;
+        }
+
+        @Override
+        protected CharSequence dialogTitle() {
+            return L10n.t(getContext(), "Include diagnostic events");
+        }
+
+        @Override
+        protected CharSequence positiveText() {
+            return L10n.t(getContext(), "Apply");
+        }
+
+        @Override
+        protected CharSequence negativeText() {
+            return L10n.t(getContext(), "Cancel");
+        }
+
+        @Override
+        protected CharSequence allEventsSummary() {
+            return L10n.t(getContext(), "Includes all diagnostic events.");
+        }
+
+        @Override
+        protected CharSequence includesSummary(String kinds) {
+            return L10n.f(getContext(), "Includes these events: %1$s", kinds);
         }
     }
 

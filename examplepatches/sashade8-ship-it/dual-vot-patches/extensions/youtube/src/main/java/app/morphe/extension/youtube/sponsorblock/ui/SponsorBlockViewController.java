@@ -26,13 +26,11 @@ import kotlin.Unit;
 public class SponsorBlockViewController {
     public static final int ROUNDED_LAYOUT_MARGIN = 12;
 
-    private static WeakReference<RelativeLayout> inlineSponsorOverlayRef = new WeakReference<>(null);
     private static WeakReference<ViewGroup> youtubeOverlaysLayoutRef = new WeakReference<>(null);
-    private static WeakReference<SkipSponsorButton> skipHighlightButtonRef = new WeakReference<>(null);
+    private static WeakReference<RelativeLayout> inlineSponsorOverlayRef = new WeakReference<>(null);
     private static WeakReference<NewSegmentLayout> newSegmentLayoutRef = new WeakReference<>(null);
+    private static WeakReference<SkipSponsorButton> skipHighlightButtonRef = new WeakReference<>(null);
     private static WeakReference<SkipSponsorButton> skipSponsorButtonRef = new WeakReference<>(null);
-    @Nullable
-    private static LegacyPlayerControlButton skipSponsorPlayerButton;
     private static boolean canShowViewElements;
     private static boolean newSegmentLayoutVisible;
     @Nullable
@@ -96,7 +94,7 @@ public class SponsorBlockViewController {
                     ResourceUtils.getIdentifier(ResourceType.ID, "morphe_sb_skip_sponsor_button"))));
 
             // Handles fading in/out with the player overlay.
-            skipSponsorPlayerButton = new LegacyPlayerControlButton(
+            new LegacyPlayerControlButton(
                     layout,
                     "morphe_sb_skip_sponsor_button",
                     null,
@@ -120,7 +118,6 @@ public class SponsorBlockViewController {
                     },
                     null
             );
-            skipSponsorPlayerButton.setVisibility(View.GONE);
 
             NewSegmentLayout newSegmentLayout = Objects.requireNonNull(layout.findViewById(
                     ResourceUtils.getIdentifier(ResourceType.ID, "morphe_sb_new_segment_view")));
@@ -165,7 +162,7 @@ public class SponsorBlockViewController {
         NewSegmentLayout newSegmentLayout = newSegmentLayoutRef.get();
         // Don't show highlight button if create new segment is visible.
         final boolean buttonVisibility = newSegmentLayout == null || newSegmentLayout.getVisibility() != View.VISIBLE;
-        updateSkipButton(skipHighlightButtonRef.get(), false, segment, buttonVisibility);
+        updateSkipButton(skipHighlightButtonRef.get(), segment, buttonVisibility);
     }
 
     /**
@@ -173,7 +170,7 @@ public class SponsorBlockViewController {
      */
     public static void showSkipSegmentButton(SponsorSegment segment) {
         skipSegment = Objects.requireNonNull(segment);
-        updateSkipButton(skipSponsorButtonRef.get(), true, segment, true);
+        updateSkipButton(skipSponsorButtonRef.get(), segment, true);
     }
 
     /**
@@ -189,7 +186,7 @@ public class SponsorBlockViewController {
 
     public static void hideSkipHighlightButton() {
         skipHighlight = null;
-        updateSkipButton(skipHighlightButtonRef.get(), false, null, false);
+        updateSkipButton(skipHighlightButtonRef.get(), null, false);
     }
 
     public static void hideSkipSegmentButton() {
@@ -197,11 +194,10 @@ public class SponsorBlockViewController {
             // Must retain segment for auto hide because skip button is shown when player overlay is active.
             skipSegment = null;
         }
-        updateSkipButton(skipSponsorButtonRef.get(), true, null, false);
+        updateSkipButton(skipSponsorButtonRef.get(), null, false);
     }
 
     private static void updateSkipButton(@Nullable SkipSponsorButton button,
-                                         boolean isSkipButton,
                                          @Nullable SponsorSegment segment,
                                          boolean visible) {
         if (button == null) {
@@ -211,13 +207,7 @@ public class SponsorBlockViewController {
             button.updateSkipButtonText(segment);
         }
 
-        if (isSkipButton && Settings.SB_AUTO_HIDE_SKIP_BUTTON.get()) {
-            if (skipSponsorPlayerButton != null) {
-                skipSponsorPlayerButton.setVisibility(visible ? View.VISIBLE : View.GONE);
-            }
-        } else {
-            setGenericViewVisibility(button, visible);
-        }
+        setViewVisibility(button, visible);
     }
 
     public static void toggleNewSegmentLayoutVisibility() {
@@ -228,7 +218,7 @@ public class SponsorBlockViewController {
         }
         newSegmentLayoutVisible = (newSegmentLayout.getVisibility() != View.VISIBLE);
         if (skipHighlight != null) {
-            setGenericViewVisibility(skipHighlightButtonRef.get(), !newSegmentLayoutVisible);
+            setViewVisibility(skipHighlightButtonRef.get(), !newSegmentLayoutVisible);
         }
         if (newSegmentLayoutVisible && canShowViewElements) {
             newSegmentLayout.showWithAnimation();
@@ -245,7 +235,7 @@ public class SponsorBlockViewController {
         }
     }
 
-    private static void setGenericViewVisibility(@Nullable View view, boolean visible) {
+    private static void setViewVisibility(@Nullable View view, boolean visible) {
         if (view == null) {
             return;
         }
@@ -264,15 +254,15 @@ public class SponsorBlockViewController {
 
             NewSegmentLayout newSegmentLayout = newSegmentLayoutRef.get();
             setNewSegmentLayoutMargins(newSegmentLayout, isWatchFullScreen);
-            setGenericViewVisibility(newSegmentLayoutRef.get(), newSegmentLayoutVisible);
+            setViewVisibility(newSegmentLayoutRef.get(), newSegmentLayoutVisible);
 
             SkipSponsorButton skipHighlightButton = skipHighlightButtonRef.get();
             setSkipButtonMargins(skipHighlightButton, isWatchFullScreen);
-            setGenericViewVisibility(skipHighlightButton, skipHighlight != null);
+            setViewVisibility(skipHighlightButton, skipHighlight != null);
 
             SkipSponsorButton skipSponsorButton = skipSponsorButtonRef.get();
             setSkipButtonMargins(skipSponsorButton, isWatchFullScreen);
-            setGenericViewVisibility(skipSponsorButton, skipSegment != null);
+            setViewVisibility(skipSponsorButton, skipSegment != null);
         } catch (Exception ex) {
             Logger.printException(() -> "playerTypeChanged failure", ex);
         }

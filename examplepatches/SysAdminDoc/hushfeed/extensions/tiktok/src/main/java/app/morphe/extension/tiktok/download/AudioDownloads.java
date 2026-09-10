@@ -34,7 +34,7 @@ final class AudioDownloads {
     /** Fetches the sound itself, for the downloads this extension does not handle. */
     static void start(Object aweme, Context context) {
         if (context == null || !enabled()) return;
-        if (android.os.Build.VERSION.SDK_INT >= 23 && android.os.Build.VERSION.SDK_INT < 29
+        if (android.os.Build.VERSION.SDK_INT < 29
                 && context.checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != android.content.pm.PackageManager.PERMISSION_GRANTED) return;
         Object video = Reflect.property(aweme, "getVideo", "video");
@@ -66,7 +66,7 @@ final class AudioDownloads {
             } catch (IOException | RuntimeException exception) {
                 if (!MediaBudget.isCancellation(exception)) {
                     Logger.printException(() -> "Sound download failed", exception);
-                    Utils.showToastLong(L10n.t("The sound couldn't be saved."));
+                    Utils.showToastLong(L10n.t("The sound couldn't be saved. Try again."));
                 }
             } finally {
                 if (fetched != null && !MediaCache.delete(fetched)) {
@@ -106,7 +106,7 @@ final class AudioDownloads {
             Utils.showToastShort(L10n.f("Sound saved to %1$s", path));
         } catch (IOException | RuntimeException exception) {
             Logger.printException(() -> "Sound save failed", exception);
-            Utils.showToastLong(L10n.t("The sound couldn't be saved."));
+            Utils.showToastLong(L10n.t("The sound couldn't be saved. Try again."));
         } finally {
             if (output != null && !MediaCache.delete(output)) {
                 Logger.printInfo(() -> "Could not remove sound temporary file");

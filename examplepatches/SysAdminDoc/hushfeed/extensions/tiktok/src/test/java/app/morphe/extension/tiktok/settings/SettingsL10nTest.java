@@ -16,6 +16,7 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceGroup;
 import android.preference.PreferenceScreen;
 
+import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 import app.morphe.extension.tiktok.settings.preference.categories.CommentsPreferenceCategory;
@@ -33,12 +34,14 @@ import app.morphe.extension.tiktok.settings.preference.categories.SimSpoofPrefer
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import org.junit.Rule;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,6 +58,7 @@ import org.robolectric.annotation.Config;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28)
 public class SettingsL10nTest {
+    @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
     public static final class TestActivity extends PreferenceActivity {}
 
     /** The tables the generator wrote, which are what the app carries. */
@@ -318,14 +322,13 @@ public class SettingsL10nTest {
         // invented; a sentence that lost or gained its terminator; a quote pair that does not
         // close. The first pass of this check only looked at numbered placeholders in the key,
         // so a bare "%s" and an invented placeholder both walked past it.
+        // Every table, not the two that happened to exist when this was written: Spanish and
+        // Brazilian Portuguese were added later and went unchecked, and five Spanish rows ended
+        // in a full stop their key does not have.
         java.util.List<String> problems = new java.util.ArrayList<>();
-        java.util.Map<String, java.util.Map<String, String>> tables = new java.util.LinkedHashMap<>();
-        tables.put("de", GERMAN);
-        tables.put("in", INDONESIAN);
-
-        for (java.util.Map.Entry<String, java.util.Map<String, String>> table : tables.entrySet()) {
-            String language = table.getKey();
-            for (java.util.Map.Entry<String, String> row : table.getValue().entrySet()) {
+        for (String language : L10nTranslations.LANGUAGES) {
+            for (java.util.Map.Entry<String, String> row
+                    : L10nTranslations.of(language).entrySet()) {
                 String key = row.getKey();
                 String value = row.getValue();
 
@@ -338,7 +341,14 @@ public class SettingsL10nTest {
                             + " in: " + key);
                 }
 
-                if (terminator(key) != terminator(value)) {
+                // A full stop the key does not have is usually a sentence the translator ended
+                // differently. Sometimes it is the abbreviation the language requires: Spanish
+                // and Portuguese write maximum as "máx.", and the period belongs to the word.
+                // Reading it as a terminator and taking it off produced "mín./máx", one
+                // abbreviation with its period and the identical one beside it without.
+                boolean abbreviated = terminator(key) == ' ' && terminator(value) == '.'
+                        && endsInAnAbbreviation(value);
+                if (terminator(key) != terminator(value) && !abbreviated) {
                     problems.add(language + " ends the sentence with '" + terminator(value)
                             + "' where the key ends with '" + terminator(key) + "' in: " + key);
                 }
@@ -370,6 +380,15 @@ public class SettingsL10nTest {
         assertNotEquals("a dropped full stop", terminator("Hide the caption."),
                 terminator("Beschreibung ausblenden"));
         assertNotEquals("a changed terminator", terminator("Really?"), terminator("Wirklich."));
+        // And the one full stop that is not a terminator, against the sentence it must not
+        // excuse. The relaxation reads the length of the last word, so a sentence that happens
+        // to end in a short word is the case worth pinning.
+        assertTrue("an abbreviation was read as a sentence ending",
+                endsInAnAbbreviation("Comentarios mín./máx."));
+        assertFalse("a real sentence ending was excused as an abbreviation",
+                endsInAnAbbreviation("No está en la caché actual."));
+        assertFalse("a value with no full stop was called an abbreviation",
+                endsInAnAbbreviation("Komentar min/maks"));
     }
 
     /** Every placeholder in order, numbered or bare, so a change of either kind shows up. */
@@ -378,6 +397,25 @@ public class SettingsL10nTest {
         var match = java.util.regex.Pattern.compile("%(?:\\d+\\$)?[a-zA-Z]").matcher(text);
         while (match.find()) found.add(match.group());
         return found;
+    }
+
+    /**
+     * Whether a trailing full stop belongs to an abbreviation rather than to a sentence.
+     *
+     * <p>Read from the length of the last word: "máx." is three letters and an abbreviation,
+     * "the current cache." is not. Four letters is the ceiling, which covers every shortened
+     * form in these tables and leaves the shortest real sentence ending alone.
+     */
+    private static boolean endsInAnAbbreviation(String text) {
+        String trimmed = text.trim();
+        if (!trimmed.endsWith(".")) return false;
+        int at = trimmed.length() - 1;
+        int letters = 0;
+        while (at > 0 && Character.isLetter(trimmed.charAt(at - 1))) {
+            at--;
+            letters++;
+        }
+        return letters > 0 && letters <= 4;
     }
 
     /** The character a string ends a sentence with, or a space when it ends with none. */
@@ -402,7 +440,6 @@ public class SettingsL10nTest {
                      java.nio.file.Files.walk(base)) {
             for (java.nio.file.Path file : files.filter(p -> p.toString().endsWith(".java"))
                     .collect(java.util.stream.Collectors.toList())) {
-                if (file.toString().replace('\\', '/').contains("/featuregatelab/")) continue;
                 String text = new String(java.nio.file.Files.readAllBytes(file),
                         java.nio.charset.StandardCharsets.UTF_8);
                 scanned++;
@@ -766,11 +803,23 @@ public class SettingsL10nTest {
             while (end < to && kind[end] == LITERAL) end++;
             // The run covers both quotes, so the closing one is not part of the text.
             int contentEnd = end > at + 1 && text.charAt(end - 1) == '"' ? end - 1 : end;
-            parts.add(unescape(text.substring(at + 1, contentEnd)));
+            // A literal being compared against is a value, not words on a screen:
+            // "OBJECT".equals(entry.type) sits in an argument that does show text. Only the
+            // comparisons, named one by one. Excluding every literal with a dot after it also
+            // excused setText("A whole sentence".trim()), and a builder chain wrapped onto the
+            // next line with it.
+            if (!COMPARED.matcher(text).region(end, text.length()).lookingAt()) {
+                parts.add(unescape(text.substring(at + 1, contentEnd)));
+            }
             at = end - 1;
         }
         return parts;
     }
+
+    /** What a literal can be asked, directly after its closing quote, without being words. */
+    private static final java.util.regex.Pattern COMPARED = java.util.regex.Pattern.compile(
+            "\\s*\\.\\s*(equals|equalsIgnoreCase|contentEquals|compareTo|compareToIgnoreCase)"
+                    + "\\s*\\(");
 
     private static String unescape(String literal) {
         StringBuilder plain = new StringBuilder();
@@ -799,6 +848,492 @@ public class SettingsL10nTest {
      * repeats every key back as a literal, so including it left the orphan check unable to fail:
      * a key was "shown" because the generator had written it out again.
      */
+    /**
+     * Text a hand-built dialog puts on a view, which the checks above cannot see.
+     *
+     * <p>They reflect preference titles and summaries and they scan toasts and content
+     * descriptions. A dialog built by hand calls setText, setHint or setTitle instead, and a
+     * string handed to one of those went out in English however many tables it was in: two of
+     * these already had German rows and simply bypassed L10n.
+     *
+     * <p>The rule is about the call rather than the table. Prose reaching one of these methods
+     * has to arrive through L10n, so a later table that loses the row fails the check above
+     * rather than shipping quietly.
+     */
+    @Test
+    public void noDialogTextIsHandedStraightToAViewInEnglish() throws Exception {
+        Map<java.nio.file.Path, String> sources = new LinkedHashMap<>();
+        for (java.nio.file.Path file : tikTokSources()) {
+            sources.put(file, new String(java.nio.file.Files.readAllBytes(file),
+                    java.nio.charset.StandardCharsets.UTF_8));
+        }
+        List<String> unwrapped = unwrappedProseIn(sources);
+        assertTrue("no call to any of these was found, so this proves nothing", callsChecked > 20);
+        assertEquals("text handed straight to a view in English, wrap it in L10n.t: "
+                + unwrapped, 0, unwrapped.size());
+    }
+
+    /** How many showing calls the last scan looked inside. A scan of nothing proves nothing. */
+    private static int callsChecked;
+
+    /**
+     * Every prose literal that reaches a view in these sources without going through L10n.
+     *
+     * <p>Separate from the test so a synthetic source can be put in front of the same code.
+     * A scan whose only input is a tree that already passes says nothing about what it would
+     * catch, and four shapes walked past the first version of it.
+     */
+    private static List<String> unwrappedProseIn(Map<java.nio.file.Path, String> sources) {
+        Set<String> helpers = helpersThatPutTextOnTheScreen(sources);
+        java.util.regex.Pattern call = java.util.regex.Pattern.compile(
+                VIEW_TEXT_CALLS + helperAlternation(namesIn(helpers)));
+        List<String> unwrapped = new ArrayList<>();
+        callsChecked = 0;
+        for (Map.Entry<java.nio.file.Path, String> source : sources.entrySet()) {
+            java.nio.file.Path file = source.getKey();
+            String text = source.getValue();
+            byte[] kind = classify(text);
+            byte[] outside = withoutL10nCalls(text, kind);
+            java.util.regex.Matcher match = call.matcher(text);
+            while (match.find()) {
+                if (kind[match.start()] != CODE) continue;
+                int open = match.end() - 1;
+                int close = closingBracket(text, kind, open);
+                if (close < 0) continue;
+                callsChecked++;
+                String helper = calledName(text, match.start(), open);
+                List<int[]> arguments = argumentsOf(text, kind, open, close);
+                for (int index = 0; index < arguments.size(); index++) {
+                    // A derived helper shows one of its parameters and passes the rest along.
+                    // Reading every literal in its brackets would flag the type name in
+                    // addInfo(root, "TikTok cached value", "OBJECT".equals(entry.type) ? ...).
+                    if (helper != null && !helpers.contains(helper + "#" + index)) continue;
+                    for (String literal : literalsIn(text, outside,
+                            arguments.get(index)[0], arguments.get(index)[1])) {
+                        if (isProse(literal)) {
+                            unwrapped.add(file.getFileName() + ": " + literal);
+                        }
+                    }
+                }
+            }
+        }
+        return unwrapped;
+    }
+
+    /**
+     * The shapes this check has already been blind to, put in front of it on purpose.
+     *
+     * <p>Each of these went past it while the real tree was green, so a green run over the
+     * real tree is not evidence that the analysis works. The sentence is the same in every
+     * case and it must be reported every time.
+     */
+    @Test
+    public void theViewTextCheckCanActuallyFail() {
+        String sentence = "A whole sentence of English";
+        Map<String, String> shapes = new LinkedHashMap<>();
+        shapes.put("straight to setText",
+                "class A { void a(android.widget.TextView v) { v.setText(\"" + sentence + "\"); } }");
+        shapes.put("through a helper of its own",
+                "class A {\n"
+                        + "  void a() { show(\"" + sentence + "\"); }\n"
+                        + "  void show(String caption) { SettingsUi.text(null, caption, 1, 2, 3); }\n"
+                        + "}");
+        shapes.put("a method that trims the literal first",
+                "class A { void a(android.widget.TextView v) { v.setText(\"" + sentence
+                        + "\".trim()); } }");
+        shapes.put("a builder chain wrapped onto the next line",
+                "class A { void a(android.widget.TextView v) { v.setText(\"" + sentence + "\"\n"
+                        + "        .toUpperCase()); } }");
+        shapes.put("a helper whose first parameter is a generic type",
+                "class A {\n"
+                        + "  void a() { counted(null, \"" + sentence + "\"); }\n"
+                        + "  void counted(Map<String, Integer> counts, String caption) {\n"
+                        + "    SettingsUi.text(null, caption, 1, 2, 3);\n"
+                        + "  }\n"
+                        + "}");
+        shapes.put("a helper whose parameter carries an annotation",
+                "class A {\n"
+                        + "  void a() { noted(\"" + sentence + "\"); }\n"
+                        + "  void noted(@SuppressWarnings(\"x\") String caption) {\n"
+                        + "    SettingsUi.text(null, caption, 1, 2, 3);\n"
+                        + "  }\n"
+                        + "}");
+
+        for (Map.Entry<String, String> shape : shapes.entrySet()) {
+            Map<java.nio.file.Path, String> source = new LinkedHashMap<>();
+            source.put(java.nio.file.Paths.get("A.java"), shape.getValue());
+            List<String> found = unwrappedProseIn(source);
+            assertEquals(shape.getKey() + " was not reported",
+                    java.util.Collections.singletonList("A.java: " + sentence), found);
+        }
+
+        // And the one shape that must stay quiet, because it is a value being compared.
+        Map<java.nio.file.Path, String> comparison = new LinkedHashMap<>();
+        comparison.put(java.nio.file.Paths.get("B.java"),
+                "class B { void a(android.widget.TextView v) {\n"
+                        + "  v.setText(\"OBJECT\".equals(type) ? one : two);\n"
+                        + "} }");
+        assertEquals("a literal being compared against was read as words",
+                java.util.Collections.emptyList(), unwrappedProseIn(comparison));
+    }
+
+    /**
+     * The calls that are a view being handed words, before anything is derived from them.
+     *
+     * <p>The two named classes are the label builders this bundle draws its own screens with,
+     * so a sentence written as {@code FeatureGateLabUi.body(context, "...")} is a sentence on
+     * the screen exactly as {@code setText} is.
+     */
+    private static final String VIEW_TEXT_CALLS =
+            "\\.\\s*(setText|setHint|setTitle|setMessage|setContentDescription|setPositiveButton"
+                    + "|setNegativeButton|setNeutralButton)\\s*\\(|"
+                    + "\\b(FeatureGateLabUi|SettingsUi)\\s*\\.\\s*"
+                    + "(text|label|body|header|title|caption)\\s*\\(|"
+                    // A menu item is a row a reader reads, and Menu.add takes its words as the
+                    // last of four arguments rather than through anything setText-shaped. Six
+                    // items in the Feature Gate Lab's overflow were English because of it.
+                    + "(?:[Mm]enu\\w*|getMenu\\s*\\(\\s*\\))\\s*\\.\\s*add\\s*\\(";
+
+    /** Never a helper, whatever the block behind the bracket does with a String. */
+    private static final Set<String> NOT_A_HELPER = new LinkedHashSet<>(java.util.Arrays.asList(
+            "if", "for", "while", "switch", "catch", "synchronized", "t", "f"));
+
+    /**
+     * Every method here that hands a String it was given straight to something that shows it,
+     * as the method's name, a hash and the position of the parameter that gets shown.
+     *
+     * <p>The label builders above used to be the whole list, written out by hand, which stops
+     * the rule one hop short of wherever the code actually is. FeatureGateLabUi.iconButton
+     * hands its description to setContentDescription and FeatureGateDetailFragment.addInfo
+     * hands its label to body(), so "Clear search" and twelve rows of the Feature Gate Lab's
+     * technical details went out in English with this check reading straight past them. The
+     * declarations are walked instead: a method whose String parameter reaches a call already
+     * known to show text is one of those calls itself, and that repeats until a pass finds
+     * nothing new.
+     *
+     * <p>Straight is the whole of it. A parameter that arrives at the view through L10n is
+     * translated on the way, which is what every preference wrapper here does, so the L10n
+     * calls are blanked out before the parameter is looked for. Without that the wrappers
+     * themselves count as English and every row of every settings page is a finding.
+     */
+    private static Set<String> helpersThatPutTextOnTheScreen(
+            Map<java.nio.file.Path, String> sources) {
+        Map<java.nio.file.Path, byte[]> kinds = new LinkedHashMap<>();
+        Map<java.nio.file.Path, byte[]> masked = new LinkedHashMap<>();
+        Map<java.nio.file.Path, List<Method>> methods = new LinkedHashMap<>();
+        for (Map.Entry<java.nio.file.Path, String> source : sources.entrySet()) {
+            byte[] kind = classify(source.getValue());
+            kinds.put(source.getKey(), kind);
+            masked.put(source.getKey(), withoutL10nCalls(source.getValue(), kind));
+            methods.put(source.getKey(), methodsIn(source.getValue(), kind));
+        }
+
+        Set<String> helpers = new LinkedHashSet<>();
+        boolean grew = true;
+        while (grew) {
+            grew = false;
+            java.util.regex.Pattern shows = java.util.regex.Pattern.compile(
+                    VIEW_TEXT_CALLS + helperAlternation(namesIn(helpers)));
+            for (Map.Entry<java.nio.file.Path, String> source : sources.entrySet()) {
+                String text = source.getValue();
+                byte[] kind = kinds.get(source.getKey());
+                byte[] outside = masked.get(source.getKey());
+                for (Method method : methods.get(source.getKey())) {
+                    for (int index : shownParametersOf(text, kind, outside, method, shows,
+                            helpers)) {
+                        if (helpers.add(method.name + "#" + index)) grew = true;
+                    }
+                }
+            }
+        }
+        return helpers;
+    }
+
+    /** The bare method names of a set of name#index entries. */
+    private static Set<String> namesIn(Set<String> helpers) {
+        Set<String> names = new LinkedHashSet<>();
+        for (String helper : helpers) names.add(helper.substring(0, helper.indexOf('#')));
+        return names;
+    }
+
+    /** The alternation adding the derived helpers to the pattern, empty when there are none. */
+    private static String helperAlternation(Set<String> names) {
+        StringBuilder pattern = new StringBuilder();
+        for (String name : names) {
+            pattern.append("|\\b").append(java.util.regex.Pattern.quote(name)).append("\\s*\\(");
+        }
+        return pattern.toString();
+    }
+
+    /** Which of a method's parameters reach a showing call inside its body without going
+     * through L10n, by position in the declaration. */
+    private static Set<Integer> shownParametersOf(String text, byte[] kind, byte[] outside,
+                                                  Method method, java.util.regex.Pattern shows,
+                                                  Set<String> helpers) {
+        Set<Integer> shown = new LinkedHashSet<>();
+        java.util.regex.Matcher match = shows.matcher(text);
+        int at = method.bodyStart;
+        while (match.find(at) && match.start() < method.bodyEnd) {
+            at = match.end();
+            if (kind[match.start()] != CODE) continue;
+            int open = match.end() - 1;
+            int close = closingBracket(text, kind, open);
+            if (close < 0) continue;
+            String helper = calledName(text, match.start(), open);
+            List<int[]> arguments = argumentsOf(text, kind, open, close);
+            for (int index = 0; index < arguments.size(); index++) {
+                if (helper != null && !helpers.contains(helper + "#" + index)) continue;
+                for (int position : identifiersIn(text, outside,
+                        arguments.get(index)[0], arguments.get(index)[1])) {
+                    int declared = method.parameterAt(text, position);
+                    if (declared >= 0) shown.add(declared);
+                }
+            }
+        }
+        return shown;
+    }
+
+    /** A method declaration: its name, the parameters it takes in order, and its body. */
+    private static final class Method {
+        final String name;
+        final List<String> parameters;
+        final Set<String> stringParameters;
+        final int bodyStart;
+        final int bodyEnd;
+
+        Method(String name, List<String> parameters, Set<String> stringParameters,
+               int bodyStart, int bodyEnd) {
+            this.name = name;
+            this.parameters = parameters;
+            this.stringParameters = stringParameters;
+            this.bodyStart = bodyStart;
+            this.bodyEnd = bodyEnd;
+        }
+
+        /** The position of the String parameter named at this offset, or -1 for anything else. */
+        int parameterAt(String text, int position) {
+            int end = position;
+            while (end < text.length() && Character.isJavaIdentifierPart(text.charAt(end))) end++;
+            String word = text.substring(position, end);
+            return stringParameters.contains(word) ? parameters.indexOf(word) : -1;
+        }
+    }
+
+    /** The name of the method a matched call belongs to, or null when it is one of the seeds. */
+    private static String calledName(String text, int start, int open) {
+        String head = text.substring(start, open).trim();
+        if (head.startsWith(".") || head.contains(".")) return null;
+        return head.matches("\\w+") ? head : null;
+    }
+
+    /** Each argument of a call, as the half-open range it occupies. */
+    private static List<int[]> argumentsOf(String text, byte[] kind, int open, int close) {
+        List<int[]> arguments = new ArrayList<>();
+        int depth = 0;
+        int start = open + 1;
+        for (int at = open + 1; at < close; at++) {
+            if (kind[at] != CODE) continue;
+            char c = text.charAt(at);
+            if (c == '(' || c == '[' || c == '{') depth++;
+            else if (c == ')' || c == ']' || c == '}') depth--;
+            else if (c == ',' && depth == 0) {
+                arguments.add(new int[]{start, at});
+                start = at + 1;
+            }
+        }
+        arguments.add(new int[]{start, close});
+        return arguments;
+    }
+
+    /** Where each bare identifier starts in a range, skipping anything L10n already holds. */
+    private static List<Integer> identifiersIn(String text, byte[] outside, int from, int to) {
+        List<Integer> starts = new ArrayList<>();
+        int at = from;
+        while (at < to) {
+            if (outside[at] != CODE || !Character.isJavaIdentifierStart(text.charAt(at))) {
+                at++;
+                continue;
+            }
+            if (at > 0 && (text.charAt(at - 1) == '.'
+                    || Character.isJavaIdentifierPart(text.charAt(at - 1)))) {
+                at++;
+                continue;
+            }
+            starts.add(at);
+            while (at < to && Character.isJavaIdentifierPart(text.charAt(at))) at++;
+        }
+        return starts;
+    }
+
+    // A name and an opening bracket. Where that bracket ends is counted rather than matched,
+    // because a parameter list can hold brackets of its own: an annotation with an argument,
+    // @SuppressWarnings("x") String caption, made a pattern of "no bracket inside" walk past
+    // the declaration entirely, and a helper it never saw is a helper it never derives.
+    // A lambda's parameters carry no type, so a lambda has no String parameter by this reading.
+    private static final java.util.regex.Pattern DECLARATION = java.util.regex.Pattern.compile(
+            "(\\w+)\\s*\\(");
+
+    /** Every method in a file that takes a String or a CharSequence. */
+    private static List<Method> methodsIn(String text, byte[] kind) {
+        List<Method> methods = new ArrayList<>();
+        java.util.regex.Matcher match = DECLARATION.matcher(text);
+        while (match.find()) {
+            if (kind[match.start()] != CODE) continue;
+            String name = match.group(1);
+            if (NOT_A_HELPER.contains(name)) continue;
+            int open = match.end() - 1;
+            int close = closingBracket(text, kind, open);
+            if (close < 0) continue;
+            int brace = openingBraceAfter(text, kind, close);
+            if (brace < 0) continue;
+            List<int[]> parts = parameterPartsOf(text, kind, open, close);
+            List<String> parameters = parametersOf(text, parts);
+            Set<String> strings = stringParametersOf(text, parts);
+            // A generic type carries a comma of its own, so Map<String, Integer> counts read
+            // as two parameters and every parameter after it was recorded one place too far
+            // to the right. The call side is then checked at the wrong argument.
+            if (strings.isEmpty()) continue;
+            int end = closingBrace(text, kind, brace);
+            if (end < 0) continue;
+            methods.add(new Method(name, parameters, strings, brace, end));
+        }
+        return methods;
+    }
+
+    /**
+     * The brace that opens a method body, when the only thing between it and the bracket is a
+     * throws clause. Anything else, a call or a control statement, has no body here.
+     */
+    private static int openingBraceAfter(String text, byte[] kind, int close) {
+        StringBuilder between = new StringBuilder();
+        for (int at = close + 1; at < text.length(); at++) {
+            if (kind[at] != CODE) return -1;
+            char c = text.charAt(at);
+            if (c == '{') {
+                return between.toString().trim().matches("(?:throws\\s+[\\w.,\\s]+)?") ? at : -1;
+            }
+            between.append(c);
+            if (between.length() > 200) return -1;
+        }
+        return -1;
+    }
+
+    /**
+     * A declaration's parameters, as the ranges they occupy.
+     *
+     * <p>Like {@link #argumentsOf} but counting angle brackets too, which a declaration has and
+     * a call site does not: at a call site a {@code <} is a comparison and counting it would
+     * run the depth away.
+     */
+    private static List<int[]> parameterPartsOf(String text, byte[] kind, int open, int close) {
+        List<int[]> parts = new ArrayList<>();
+        int depth = 0;
+        int start = open + 1;
+        for (int at = open + 1; at < close; at++) {
+            if (kind[at] != CODE) continue;
+            char c = text.charAt(at);
+            if (c == '(' || c == '[' || c == '{' || c == '<') depth++;
+            else if (c == ')' || c == ']' || c == '}' || c == '>') depth--;
+            else if (c == ',' && depth == 0) {
+                parts.add(new int[]{start, at});
+                start = at + 1;
+            }
+        }
+        parts.add(new int[]{start, close});
+        return parts;
+    }
+
+    /** Every parameter name in a declaration's bracket, in order. */
+    private static List<String> parametersOf(String text, List<int[]> parts) {
+        List<String> names = new ArrayList<>();
+        for (int[] part : parts) {
+            String[] words = text.substring(part[0], part[1]).trim().split("\\s+");
+            names.add(words.length < 2 ? "" : words[words.length - 1]);
+        }
+        return names;
+    }
+
+    /** The names of the String and CharSequence parameters inside a declaration's bracket. */
+    private static Set<String> stringParametersOf(String text, List<int[]> parts) {
+        Set<String> names = new LinkedHashSet<>();
+        for (int[] part : parts) {
+            String[] words = text.substring(part[0], part[1]).trim().split("\\s+");
+            if (words.length < 2) continue;
+            String type = words[words.length - 2];
+            String name = words[words.length - 1];
+            if (!name.matches("\\w+")) continue;
+            if (type.equals("String") || type.equals("CharSequence")
+                    || type.equals("String...") || type.equals("CharSequence...")) {
+                names.add(name);
+            }
+        }
+        return names;
+    }
+
+    /** The brace closing the one at this index, counting only the braces that are code. */
+    private static int closingBrace(String text, byte[] kind, int open) {
+        int depth = 0;
+        for (int at = open; at < text.length(); at++) {
+            if (kind[at] != CODE) continue;
+            if (text.charAt(at) == '{') depth++;
+            else if (text.charAt(at) == '}' && --depth == 0) return at;
+        }
+        return -1;
+    }
+
+    /** Every .java file under the TikTok extension. */
+    private static List<java.nio.file.Path> tikTokSources() throws Exception {
+        java.io.File root = new java.io.File("src/main/java/app/morphe/extension/tiktok");
+        if (!root.isDirectory()) root = new java.io.File(
+                "extensions/tiktok/src/main/java/app/morphe/extension/tiktok");
+        assertTrue("could not find the source tree", root.isDirectory());
+        try (java.util.stream.Stream<java.nio.file.Path> files =
+                     java.nio.file.Files.walk(root.toPath())) {
+            return files.filter(p -> p.toString().endsWith(".java"))
+                    .collect(java.util.stream.Collectors.toList());
+        }
+    }
+
+    /**
+     * The same classification with every L10n call blanked out.
+     *
+     * <p>A literal inside L10n.t is the key of a translated string, which is the thing this
+     * check wants to see. Only what is left over is text going to a view as it stands.
+     */
+    private static byte[] withoutL10nCalls(String text, byte[] kind) {
+        byte[] outside = kind.clone();
+        java.util.regex.Pattern l10n = java.util.regex.Pattern.compile("L10n\\s*\\.\\s*[tf]\\s*\\(");
+        java.util.regex.Matcher match = l10n.matcher(text);
+        while (match.find()) {
+            if (kind[match.start()] != CODE) continue;
+            int close = closingBracket(text, kind, match.end() - 1);
+            if (close < 0) continue;
+            for (int index = match.start(); index <= close && index < outside.length; index++) {
+                outside[index] = COMMENT;
+            }
+        }
+        return outside;
+    }
+
+    /**
+     * Whether a literal is something a reader reads rather than a value.
+     *
+     * <p>A resource name, a package name, a format fragment and a path are all strings that
+     * mean the same in every language. Prose has a space in it, or is a capitalised word long
+     * enough not to be an abbreviation.
+     */
+    private static boolean isProse(String literal) {
+        String trimmed = literal.trim();
+        if (trimmed.length() < 4) return false;
+        if (trimmed.startsWith("%") || trimmed.contains("://")) return false;
+        // A path, a package name or a resource id: no spaces and a separator inside it.
+        if (!trimmed.contains(" ")
+                && (trimmed.contains(".") || trimmed.contains("/") || trimmed.contains("_"))) {
+            return false;
+        }
+        return trimmed.contains(" ") || Character.isUpperCase(trimmed.charAt(0));
+    }
+
     private static Set<String> runtimeStringsInSource() throws Exception {
         Set<String> literals = new LinkedHashSet<>();
         // Gradle runs the tests with the module directory as the working directory, so the paths
@@ -906,6 +1441,21 @@ public class SettingsL10nTest {
             new CommentsPreferenceCategory(activity, screen);
             new DownloadsPreferenceCategory(activity, screen);
             new PlaybackPreferenceCategory(activity, screen);
+            // "Start today over" says something different once it has been tapped, and that
+            // sentence shipped in English on every translated phone because nothing here had
+            // ever tapped it. The page is built a second time with the undo armed, and the tap
+            // is taken back afterwards: the undo flag is process wide and this method runs once
+            // per language, so leaving it armed meant the second language only ever saw the
+            // tapped wording and stopped checking the other one.
+            app.morphe.extension.tiktok.wellbeing.SessionBudget.clear();
+            PreferenceScreen afterStartingOver =
+                    activity.getPreferenceManager().createPreferenceScreen(activity);
+            new PlaybackPreferenceCategory(activity, afterStartingOver);
+            collect(afterStartingOver, strings);
+            app.morphe.extension.tiktok.wellbeing.SessionBudget.undoClear();
+            assertFalse("the tap on Start today over was not taken back, so the next language"
+                            + " will not see the untapped wording",
+                    app.morphe.extension.tiktok.wellbeing.SessionBudget.canUndoClear());
             new InboxPreferenceCategory(activity, screen);
             new SharePreferenceCategory(activity, screen);
             new SimSpoofPreferenceCategory(activity, screen);

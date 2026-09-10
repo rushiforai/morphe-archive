@@ -44,7 +44,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
     public void addPreferences(Context context) {
         if (SettingsStatus.subtitleToolsEnabled) {
             addPreference(new NumberInputPreference(context, "Caption text size",
-                    "Use 0 for TikTok's size, or 12 to 48 sp. Applies to the next caption.", Settings.CAPTION_TEXT_SIZE, "sp") {
+                    "Use 0 for TikTok's size, or 12 to 48. Applies to the next caption.", Settings.CAPTION_TEXT_SIZE, "point", "points") {
                 @Override protected int clamp(int value) { return value <= 0 ? 0 : Math.max(12, Math.min(48, value)); }
             });
             addPreference(new ChoicePreference(context, "Caption background", Settings.CAPTION_BACKGROUND,
@@ -55,13 +55,14 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
         }
         if (SettingsStatus.screenCaptureEnabled) {
             addPreference(new TogglePreference(context, "Allow screenshots and Circle to Search",
-                    "Let screenshots, screen recording and Circle to Search work on TikTok again. Restart TikTok after changing this.", Settings.ALLOW_SCREEN_CAPTURE));
+                    "Let screenshots, screen recording and Circle to Search work on TikTok again. Restart TikTok to apply this.", Settings.ALLOW_SCREEN_CAPTURE));
         }
         if (SettingsStatus.automaticClearDisplayEnabled) {
             addPreference(new TogglePreference(context, "Automatic clear display",
                     "Hide controls after each video starts. Tap to restore them.", Settings.AUTOMATIC_CLEAR_DISPLAY));
             addPreference(new NumberInputPreference(context, "Clear display delay",
-                    "Wait before hiding the controls.", Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY, "ms"));
+                    "Wait before hiding the controls.", Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY,
+                    "millisecond", "milliseconds"));
         }
         if (SettingsStatus.doubleTapEnabled) {
             addPreference(new ChoicePreference(context, "Double tap", Settings.DOUBLE_TAP_ACTION,
@@ -105,7 +106,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             addPreference(new TogglePreference(
                     context,
                     "Always show publish date",
-                    "Always show the publish date in video author information. Requires restart.",
+                    "Always show the publish date in video author information. Restart TikTok to apply this.",
                     Settings.ALWAYS_SHOW_PUBLISH_DATE
             ));
         }
@@ -147,14 +148,14 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             ));
             addPreference(new TogglePreference(
                     context,
-                    "Hide the action bar",
+                    "Hide the right column",
                     "Hide the whole column on the right, from the avatar down to the music disc.",
                     Settings.HIDE_FEED_ACTION_BAR
             ));
             addPreference(new TogglePreference(
                     context,
                     "Hide the avatar and follow button",
-                    "Hide the creator's picture and the plus button at the top of the right column.",
+                    "Hide the creator's picture and the plus button at the top of the right column. Hide the follow button on the feed hides the plus button on its own.",
                     Settings.HIDE_RAIL_FOLLOW
             ));
             addPreference(new TogglePreference(
@@ -171,8 +172,8 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             ));
             addPreference(new TogglePreference(
                     context,
-                    "Hide the favourite button",
-                    "Hide the favourite button and its count in the right column.",
+                    "Hide the favorite button",
+                    "Hide the favorite button and its count in the right column.",
                     Settings.HIDE_RAIL_FAVOURITE
             ));
             addPreference(new TogglePreference(
@@ -190,7 +191,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             addPreference(new TogglePreference(
                     context,
                     "Hide the counts on the right column",
-                    "Hide the numbers under the like, comment, favourite and share buttons. The buttons stay.",
+                    "Hide the numbers under the like, comment, favorite and share buttons. The buttons stay.",
                     Settings.HIDE_RAIL_COUNTS
             ));
             addPreference(new TogglePreference(
@@ -224,8 +225,8 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
         if (SettingsStatus.videoOverlaysEnabled || SettingsStatus.hideFeedLiveButtonEnabled) {
             addPreference(new TogglePreference(
                     context,
-                    "Hide Live entrance",
-                    "Hide the Live button in the top left corner of the feed.",
+                    "Hide the LIVE button",
+                    "Hide the LIVE button in the top left corner of the feed.",
                     Settings.HIDE_LIVE_ENTRANCE
             ));
         }
@@ -240,8 +241,8 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
         if (SettingsStatus.hideFeedFollowButtonEnabled) {
             addPreference(new TogglePreference(
                     context,
-                    "Hide feed follow button",
-                    "Hide the plus button under the creator's avatar on the action rail.",
+                    "Hide the follow button on the feed",
+                    "Hide the plus button under the creator's picture in the right column. Hide the avatar and follow button hides the picture with it.",
                     Settings.HIDE_FEED_FOLLOW_BUTTON
             ));
         }
@@ -249,7 +250,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             addPreference(new TogglePreference(
                     context,
                     "Hide feed save button",
-                    "Hide the save button on the action rail.",
+                    "Hide the save button in the right column.",
                     Settings.HIDE_FEED_SAVE_BUTTON
             ));
         }

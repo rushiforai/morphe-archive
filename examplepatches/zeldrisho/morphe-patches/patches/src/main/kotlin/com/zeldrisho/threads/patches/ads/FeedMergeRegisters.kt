@@ -3,7 +3,7 @@ package com.zeldrisho.threads.patches.ads
 /*
  * Pure, unit-testable register math for hideAdsPatch.
  *
- * A0F(this, LX/9aR, Integer, String, String, List, LX/2uI, Function3, Z):
+ * A0F (434) / A0G (445): (this, LX/obf, Integer, String, String, List, LX/obf, Function3, Z):
  * 9 params including `this`; the feed list is param index 5 (p5).
  * Dalvik param registers sit at the top of the frame, so
  * `listReg = registerCount - (paramsIncludingThis) + listParamIndex`.
@@ -16,7 +16,7 @@ private const val MAX_SHORT_MOVE_REGISTER = 15
 private const val MAX_FROM16_DESTINATION_REGISTER = 255
 
 /**
- * Calculates the Dalvik register number for the feed list parameter in A0F.
+ * Calculates the Dalvik register number for the feed list parameter in the merge method.
  * @param registerCount Total number of registers in the method implementation.
  * @param paramsIncludingThis Total parameter count including the implicit `this` (default 9).
  * @param listParamIndex Zero-based index of the List parameter (default 5).

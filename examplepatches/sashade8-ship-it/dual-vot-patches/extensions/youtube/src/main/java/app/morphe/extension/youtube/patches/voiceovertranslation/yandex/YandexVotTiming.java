@@ -20,10 +20,13 @@ public final class YandexVotTiming {
         return Math.max(1, Math.min(serverRemainingSeconds, MAX_POLL_DELAY_SECONDS));
     }
 
-    static int estimateOrDefault(int serverRemainingSeconds, int fallbackSeconds) {
-        return serverRemainingSeconds > 0
-                ? serverRemainingSeconds
-                : Math.max(1, fallbackSeconds);
+    /**
+     * Returns only an ETA that Yandex actually supplied.  A missing/zero value means that the
+     * service has accepted work but has not yet estimated processing time, so the UI must stay
+     * in its indeterminate processing state instead of inventing a countdown.
+     */
+    static int serverEstimateOrNone(int serverRemainingSeconds) {
+        return serverRemainingSeconds > 0 ? serverRemainingSeconds : -1;
     }
 
     /**

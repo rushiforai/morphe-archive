@@ -40,6 +40,7 @@ object OledDecodedCompatibilityAudit {
                 .5f to 0f, .5f to 3f, 2.5f to 0f, 2.5f to 3f)
             var variants = 0
             var transitions = 0
+            var checkboxCases = 0
             fun apply(input: ByteArray, precision: VideoOutputPrecision, dither: VideoDitherMode, profile: Pair<Float, Float>): ByteArray {
                 val result = input.copyOf()
                 paddedVideoShader(profile.first, profile.second, precision, dither).copyInto(result, findVideoShader(result))
@@ -47,6 +48,16 @@ object OledDecodedCompatibilityAudit {
             }
             for (profile in profiles) for (precision in VideoOutputPrecision.entries) for (dither in VideoDitherMode.entries) {
                 val output = apply(stock, precision, dither, profile)
+                for (checked in listOf(false, true)) {
+                    val resolved = resolveVideoOutputPrecision(precision, dither, checked)
+                    val expected = if (checked && dither != VideoDitherMode.OFF)
+                        VideoOutputPrecision.SRGB8_HIGHP else precision
+                    check(resolved == expected)
+                    // Exercise both checkbox states from an existing format, including restoration.
+                    check(apply(output, resolved, dither, profile)
+                        .contentEquals(apply(stock, expected, dither, profile)))
+                    checkboxCases++
+                }
                 check(output.size == stock.size && findVideoShader(output) == shader)
                 check(output[shader + VIDEO_SHADER_SIZE] == 0.toByte())
                 val outputShader = output.copyOfRange(shader, shader + VIDEO_SHADER_SIZE).toString(Charsets.US_ASCII)
@@ -75,7 +86,7 @@ object OledDecodedCompatibilityAudit {
                 variants++
             }
             check(library.readBytes().sha256() == base.hash) { "Source modified" }
-            println("PASS ${base.version}/${base.code}: $variants variants, $transitions transitions; exact diff, format instructions, NUL boundary, idempotence; source unchanged")
+            println("PASS ${base.version}/${base.code}: $variants variants, $transitions transitions, $checkboxCases checkbox cases; exact diff, format instructions, NUL boundary, idempotence; source unchanged")
             println("  sha256=${base.hash}; size=${stock.size}; shader=0x${shader.toString(16)}; formats=${base.offsets.joinToString { "0x${it.toString(16)}" }}")
         }
         println("Scope: real decoded native bytes + production helpers. Morphe APK packaging, GLSL driver compilation, runtime format acceptance and panel output are not tested.")

@@ -114,6 +114,7 @@ internal fun projectionModesConflict(existingMode: String, requestedMode: String
         activeProjectionModes.any { it.mode == existingMode }
 
 private val retiredProjectionModes = setOf(
+    "android_surface_fovea_v1", // Tried on 2026-09-07; user reported it did not work.
     "android_surface_underside_projection_v1",
     "android_surface_trigger_warmup_omit_v1",
     "android_surface_trigger_dfr_rearm_v1",
@@ -135,6 +136,7 @@ private val retiredProjectionModes = setOf(
     "single_projection_native_probe_v1",
 )
 private val retiredProjectionLibraries = setOf(
+    "libgxr_asf.so",
     "libgxr_ast_underside.so",
     "libgxr_ast_warmup_omit.so",
     "libgxr_ast_dfr_rearm.so",

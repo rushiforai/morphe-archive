@@ -15,7 +15,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.0](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
+> **[v1.9.0](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/releases/tag/v1.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
 <details open>
 <summary>📦 CrimeRadar&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
 <br>
@@ -39,13 +39,19 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 </details>
 
 <details open>
-<summary>📦 Scanner Radio&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<summary>📦 Scanner Radio&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
+
+**🎯 Supported versions:**
+
+| 8.29 |
+| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Branding](#branding) | Changes app name to 'Scanner Radio+' and tints the icon for easy identification. |  |
+| [Branding](#branding) | Changes app name to 'Scanner Radio+' for easy identification. |  |
 | [Change package name](#change-package-name) | Changes the app package name to allow installing alongside the original. | • New package name |
+| [Pairip DRM Bypass](#pairip-drm-bypass) | Disables Pairip DRM/integrity checks that crash patched APKs on startup. |  |
 | [Premium Bypass](#premium-bypass) | Bypasses premium subscription checks to unlock all premium features. |  |
 | [Telemetry Kill](#telemetry-kill) | Disables InMobi, FairBid telemetry/ad SDKs and ad display for privacy. |  |
 

@@ -7,9 +7,10 @@
  * Original author(s):
  * - anddea (https://github.com/anddea)
  *
- * Modified for Dual VoT Patches and Morphe 1.37.0.
- * The independent YouTube stream fallback is adapted from the MIT-licensed
- * ilyhalight/voice-over-translation project.
+ * Modified for Dual VoT Patches and Morphe.
+ * The standalone ANDROID_VR stream fallback previously adapted from the MIT-licensed
+ * ilyhalight/voice-over-translation project was removed: audio now comes only from the
+ * playing session's streaming data (see the class comment below).
  *
  * Licensed under the GNU General Public License v3.0.
  *
@@ -43,51 +44,46 @@ import android.net.Uri;
 
 import androidx.annotation.Nullable;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.innertube.utils.PlayerResponseOuterClass.Format;
 import app.morphe.extension.shared.innertube.utils.PlayerResponseOuterClass.PlayerResponse;
+import app.morphe.extension.shared.settings.SharedYouTubeSettings;
+import app.morphe.extension.shared.spoof.SpoofVideoStreamsPatch;
 import app.morphe.extension.shared.spoof.requests.StreamingDataRequest;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
+/**
+ * Uploads the original compressed audio track of the currently playing video to Yandex in
+ * ordered parts of {@link YandexVotAudioParts#PART_SIZE_BYTES}.
+ *
+ * <p><b>Implemented here.</b> A matching live player request is preferred when available.
+ * Otherwise an existing direct-DASH spoof response is reused, or an on-demand non-SABR player
+ * response is obtained through Morphe's supported TV/JS/PoToken request stack. This works
+ * independently of the user's stream-spoof setting and does not restore the obsolete standalone
+ * ANDROID_VR watch-page scraper. Low-bitrate Opus remains preferred. The complete
+ * byte-addressable response is streamed in validated bounded parts; signed URLs, cookies,
+ * tokens and private request headers are never logged or persisted.
+ *
+ * <p>A body-carrying SABR request is deliberately never treated as raw audio. Direct sources
+ * still fail closed with {@link YandexVotAudioResult#SOURCE_DENIED} if a later byte range is not
+ * authorized; no prefix or empty file is uploaded.
+ */
 final class YandexVotAudioDownloader {
-    private static final int CHUNK_SIZE_BYTES = 5_295_308;
-    private static final int CONNECTION_TIMEOUT_MS = 15_000;
-    private static final int READ_TIMEOUT_MS = 30_000;
+    /**
+     * Safety net for the whole acquisition + upload run. Every network operation is also
+     * individually bounded by the connect/read timeouts and re-checked between reads, so a
+     * stalled or slowly trickling run ends in bounded time instead of waiting forever.
+     */
+    private static final long OVERALL_TRANSFER_DEADLINE_MS = 15 * 60 * 1000L;
+
     private static final String AUDIO_DOWNLOAD_TYPE = "web_api_steal_sig_and_n";
-    private static final String USER_AGENT =
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
-                    "(KHTML, like Gecko) Chrome/134.0.0.0 YaBrowser/25.4.0.0 Safari/537.36";
-    private static final String YOUTUBE_BASE_URL = "https://m.youtube.com";
-    private static final String YOUTUBE_CLIENT_NAME = "ANDROID_VR";
-    private static final String YOUTUBE_CLIENT_VERSION = "1.65.10";
-    private static final String YOUTUBE_CLIENT_USER_AGENT =
-            "com.google.android.apps.youtube.vr.oculus/1.65.10 " +
-                    "(Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip";
-    private static final Pattern YOUTUBE_API_KEY_PATTERN =
-            Pattern.compile("[\"']INNERTUBE_API_KEY[\"']\\s*:\\s*[\"']([^\"']+)[\"']");
-    private static final Pattern YOUTUBE_STS_PATTERN =
-            Pattern.compile("[\"']STS[\"']\\s*:\\s*(\\d+)");
-    private static final Pattern YOUTUBE_VISITOR_DATA_PATTERN =
-            Pattern.compile("[\"'](?:VISITOR_DATA|visitorData)[\"']\\s*:\\s*[\"']([^\"']+)[\"']");
     private static final String CPN_ALPHABET =
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
     private static final SecureRandom CPN_RANDOM = new SecureRandom();
-
     private record AudioFormatInfo(
             String url,
             int itag,
@@ -97,10 +93,31 @@ final class YandexVotAudioDownloader {
     ) {
     }
 
-    private record WatchContext(
-            String apiKey,
-            int signatureTimestamp,
-            String visitorData
+    /** A cached protobuf format paired with the exact live player request that can deliver it. */
+    private record CapturedAudioFormat(
+            Format format,
+            YandexVotPlayerMediaTransport.Snapshot mediaRequest
+    ) {
+    }
+
+    private record ResolvedAudioFormat(
+            Format format,
+            @Nullable YandexVotPlayerMediaTransport.Snapshot mediaRequest,
+            @Nullable String clientUserAgent,
+            String sourceMode
+    ) {
+    }
+
+    private record DirectAudioFormat(Format format, String clientUserAgent) {
+    }
+
+    /** Pure format metadata used to select among only the requests the active player opened. */
+    static record AudioCandidate(int itag, String url, String mimeType, int bitrate) {
+    }
+
+    static record CapturedAudioCandidate(
+            AudioCandidate candidate,
+            YandexVotPlayerMediaTransport.Snapshot mediaRequest
     ) {
     }
 
@@ -115,127 +132,354 @@ final class YandexVotAudioDownloader {
     private YandexVotAudioDownloader() {
     }
 
-    static boolean downloadAndSend(
+    static YandexVotAudioResult downloadAndSend(
             String videoId,
             String videoUrl,
             String translationId,
             ProgressListener listener
     ) {
-        if (isEmpty(videoId) || isEmpty(videoUrl) || isEmpty(translationId)) return false;
-        if (listener.isCancelled()) return false;
+        boolean spoofIncluded = SpoofVideoStreamsPatch.isPatchIncluded();
+        boolean spoofSetting = SharedYouTubeSettings.SPOOF_VIDEO_STREAMS.get();
+        YandexVotDiagnostics.sourceEnvironment(
+                spoofIncluded,
+                spoofSetting,
+                YandexVotPlayerMediaTransport.snapshotCount());
+        YandexVotPlayerMediaTransport.logDiagnosticSummary();
+        YandexVotDiagnostics.source("enter", -1, YandexVotPlayerMediaTransport.snapshotCount());
+        if (isEmpty(videoId) || isEmpty(videoUrl) || isEmpty(translationId)) {
+            return finish(YandexVotAudioResult.SOURCE_UNAVAILABLE);
+        }
+        if (listener == null || listener.isCancelled()) {
+            return finish(YandexVotAudioResult.CANCELLED);
+        }
 
         try {
             listener.onPreparing();
-            AudioFormatInfo audioFormat = fetchAudioFormat(videoId);
-            if (listener.isCancelled()) return false;
-            if (audioFormat == null || isEmpty(audioFormat.url())) {
-                Logger.printDebug(() -> "Yandex VOT audio upload: no audio format for " + videoId);
-                return false;
+            ResolvedAudioFormat resolvedAudio = resolveAudioFormat(videoId);
+            if (listener.isCancelled()) return finish(YandexVotAudioResult.CANCELLED);
+            if (resolvedAudio == null || isEmpty(resolvedAudio.format().getUrl())) {
+                return finish(YandexVotAudioResult.SOURCE_UNAVAILABLE);
             }
 
-            String audioUrl = audioFormat.url();
-            long fileSize = audioFormat.fileSize() > 0
-                    ? audioFormat.fileSize()
-                    : resolveFileSize(audioUrl);
-            if (listener.isCancelled()) return false;
-            if (fileSize <= 0) {
-                Logger.printDebug(() -> "Yandex VOT audio upload: unknown audio size for " + videoId);
-                return false;
-            }
-
-            Logger.printDebug(() -> "Yandex VOT audio upload: selected itag="
-                    + audioFormat.itag() + ", mime=" + audioFormat.mimeType()
-                    + ", bitrate=" + audioFormat.bitrate() + ", bytes=" + fileSize);
-            String fileId = makeFileId(audioFormat.itag(), fileSize);
-            int parts = toPartsCount(fileSize);
-            if (parts <= 1) {
-                listener.onUploading(1, 1);
-                byte[] audioData = downloadRange(audioUrl, 0, fileSize - 1);
-                return !listener.isCancelled()
-                        && YandexVotApiClient.sendAudio(
-                                videoUrl, translationId, fileId, audioData);
-            }
-
-            for (int i = 0; i < parts; i++) {
-                if (listener.isCancelled()) return false;
-                listener.onUploading(i + 1, parts);
-                long start = (long) i * CHUNK_SIZE_BYTES;
-                long end = Math.min(fileSize - 1, start + CHUNK_SIZE_BYTES - 1);
-                byte[] audioData = downloadRange(audioUrl, start, end);
-                if (listener.isCancelled()
-                        || !YandexVotApiClient.sendPartialAudio(
-                                videoUrl, translationId, fileId, parts, 1, i, audioData)) {
-                    return false;
-                }
-            }
-
-            return true;
-        } catch (Exception e) {
-            Logger.printException(() -> "Yandex VOT audio upload failed for " + videoId, e);
-            return false;
-        }
-    }
-
-    @Nullable
-    private static AudioFormatInfo fetchAudioFormat(String videoId) throws Exception {
-        StreamingDataRequest request = StreamingDataRequest.getRequestForVideoId(videoId);
-        Format cachedFormat = getAudioFormat(request);
-        if (cachedFormat != null) {
-            return new AudioFormatInfo(
-                    addCpn(cachedFormat.getUrl()),
+            Format cachedFormat = resolvedAudio.format();
+            String sourceUrl = resolvedAudio.mediaRequest() == null
+                    ? addCpn(cachedFormat.getUrl())
+                    : resolvedAudio.mediaRequest().url;
+            AudioFormatInfo audioFormat = new AudioFormatInfo(
+                    cachedFormat.getUrl(),
                     cachedFormat.getItag(),
                     -1,
                     cachedFormat.getMimeType(),
                     getBitrate(cachedFormat)
             );
+            YandexVotDiagnostics.source(
+                    "selected-" + resolvedAudio.sourceMode(),
+                    audioFormat.itag(),
+                    YandexVotPlayerMediaTransport.snapshotCount());
+
+            String audioUrl = sourceUrl;
+            YandexVotHttpAudioPartReader.Factory mediaFactory = resolvedAudio.mediaRequest() == null
+                    ? YandexVotHttpAudioPartReader.factoryForUserAgent(
+                            resolvedAudio.clientUserAgent())
+                    : YandexVotPlayerMediaTransport.factoryFor(resolvedAudio.mediaRequest());
+            long fileSize = parseClen(audioUrl);
+            if (fileSize <= 0) {
+                // The MediaDataSource URL can omit clen while the cached player format has it.
+                fileSize = parseClen(audioFormat.url());
+            }
+            if (fileSize <= 0) {
+                try {
+                    fileSize = YandexVotHttpAudioPartReader.probeTotalSize(
+                            audioUrl, mediaFactory);
+                } catch (YandexVotAudioTransfer.SourceDeniedException ex) {
+                    return finish(YandexVotAudioResult.SOURCE_DENIED);
+                } catch (IOException ex) {
+                    return finish(YandexVotAudioResult.SOURCE_READ_FAILED);
+                }
+            }
+            if (listener.isCancelled()) return finish(YandexVotAudioResult.CANCELLED);
+            if (fileSize <= 0) {
+                return finish(YandexVotAudioResult.SOURCE_UNAVAILABLE);
+            }
+
+            final long resolvedFileSize = fileSize;
+            int parts = YandexVotAudioParts.partCount(resolvedFileSize);
+            String fileId = makeFileId(audioFormat.itag(), resolvedFileSize);
+
+            final long deadlineMs = android.os.SystemClock.elapsedRealtime()
+                    + OVERALL_TRANSFER_DEADLINE_MS;
+            YandexVotAudioTransfer.Deadline deadline =
+                    () -> android.os.SystemClock.elapsedRealtime() >= deadlineMs;
+            YandexVotAudioTransfer.PartReader reader =
+                    new YandexVotHttpAudioPartReader(audioUrl, resolvedFileSize, mediaFactory);
+
+            YandexVotAudioTransfer.Progress progress = new YandexVotAudioTransfer.Progress() {
+                @Override
+                public boolean isCancelled() {
+                    return listener.isCancelled();
+                }
+
+                @Override
+                public void onUploading(int part, int totalParts) {
+                    listener.onUploading(part, totalParts);
+                }
+            };
+
+            YandexVotAudioResult result = YandexVotAudioTransfer.run(
+                    resolvedFileSize,
+                    reader,
+                    fileId,
+                    new YandexVotApiUploader(videoUrl, translationId),
+                    progress,
+                    deadline
+            );
+            return finish(result);
+        } catch (Exception e) {
+            // Never expose the signed source URL or its host details. Fail the acquisition
+            // with the generic source category and keep the exact cause out of logs.
+            return finish(YandexVotAudioResult.SOURCE_READ_FAILED);
+        }
+    }
+
+    private static YandexVotAudioResult finish(YandexVotAudioResult result) {
+        YandexVotDiagnostics.source(
+                "exit-" + result.name().toLowerCase(Locale.US).replace('_', '-'),
+                -1,
+                YandexVotPlayerMediaTransport.snapshotCount());
+        return result;
+    }
+
+    /**
+     * Resolves the best audio-only format. A separate request is started only after the user
+     * asks for Yandex translation and only when neither the player transport nor the shared
+     * spoof response exposes a byte-addressable audio URL.
+     */
+    @Nullable
+    private static ResolvedAudioFormat resolveAudioFormat(String videoId) throws Exception {
+        StreamingDataRequest sharedRequest = StreamingDataRequest.getRequestForVideoId(videoId);
+
+        CapturedAudioFormat captured = getCapturedAudioFormat(videoId, sharedRequest);
+        if (captured != null) {
+            return new ResolvedAudioFormat(
+                    captured.format(), captured.mediaRequest(), null, "player-transport");
         }
 
-        // Do not start another Morphe spoof-stream request here. Such a request
-        // does not have the headers captured from YouTube and can fail with the
-        // unrelated "no client streams" playback toast. Resolve a dedicated,
-        // audio-only ANDROID_VR stream instead.
-        return fetchAudioFormatFromYouTube(videoId);
+        DirectAudioFormat sharedDirect = getDirectAudioFormat(sharedRequest, "shared");
+        if (sharedDirect != null) {
+            return new ResolvedAudioFormat(
+                    sharedDirect.format(), null, sharedDirect.clientUserAgent(), "shared-direct");
+        }
+
+        StreamingDataRequest directRequest =
+                YandexVotPlayerMediaTransport.requestDirectStreams(videoId);
+        DirectAudioFormat requestedDirect = getDirectAudioFormat(directRequest, "dedicated");
+        if (requestedDirect != null) {
+            return new ResolvedAudioFormat(
+                    requestedDirect.format(), null, requestedDirect.clientUserAgent(),
+                    "dedicated-direct");
+        }
+        return null;
     }
 
     @Nullable
-    private static Format getAudioFormat(@Nullable StreamingDataRequest request) throws IOException {
-        if (request == null) return null;
+    private static DirectAudioFormat getDirectAudioFormat(
+            @Nullable StreamingDataRequest request,
+            String sourceMode
+    ) throws IOException {
+        if (request == null) {
+            YandexVotDiagnostics.source(
+                    sourceMode + "-response-missing", -1,
+                    YandexVotPlayerMediaTransport.snapshotCount());
+            return null;
+        }
+        StreamingDataRequest.StreamData streamData = request.getStream();
+        if (streamData == null || streamData.streamingData() == null
+                || streamData.streamingData().length == 0) {
+            YandexVotDiagnostics.source(
+                    sourceMode + "-response-empty", -1,
+                    YandexVotPlayerMediaTransport.snapshotCount());
+            return null;
+        }
+        if (streamData.usesSabr()) {
+            YandexVotDiagnostics.source(
+                    sourceMode + "-sabr-response-ignored", -1,
+                    YandexVotPlayerMediaTransport.snapshotCount());
+            return null;
+        }
+        try {
+            PlayerResponse playerResponse = PlayerResponse.parseFrom(streamData.streamingData());
+            if (!playerResponse.hasStreamingData()) return null;
+            Format selected = selectBestAudioFormat(
+                    playerResponse.getStreamingData().getAdaptiveFormatsList());
+            YandexVotDiagnostics.source(
+                    selected == null
+                            ? sourceMode + "-no-direct-audio"
+                            : sourceMode + "-direct-audio-ready",
+                    selected == null ? -1 : selected.getItag(),
+                    YandexVotPlayerMediaTransport.snapshotCount());
+            return selected == null
+                    ? null
+                    : new DirectAudioFormat(selected, streamData.clientUserAgent());
+        } catch (Exception e) {
+            YandexVotDiagnostics.source(
+                    sourceMode + "-response-unparseable", -1,
+                    YandexVotPlayerMediaTransport.snapshotCount());
+            return null;
+        }
+    }
+
+    @Nullable
+    private static CapturedAudioFormat getCapturedAudioFormat(
+            String videoId,
+            @Nullable StreamingDataRequest request
+    ) throws IOException {
+        if (request == null) {
+            YandexVotDiagnostics.source(
+                    "no-cached-player-response", -1, YandexVotPlayerMediaTransport.snapshotCount());
+            return null;
+        }
 
         StreamingDataRequest.StreamData streamData = request.getStream();
-        if (streamData == null) return null;
+        if (streamData == null) {
+            YandexVotDiagnostics.source(
+                    "player-response-loading", -1, YandexVotPlayerMediaTransport.snapshotCount());
+            return null;
+        }
 
         byte[] playerResponseBytes = streamData.streamingData();
-        if (playerResponseBytes == null || playerResponseBytes.length == 0) return null;
+        if (playerResponseBytes == null || playerResponseBytes.length == 0) {
+            YandexVotDiagnostics.source(
+                    "empty-streaming-data", -1, YandexVotPlayerMediaTransport.snapshotCount());
+            return null;
+        }
 
-        PlayerResponse playerResponse = PlayerResponse.parseFrom(playerResponseBytes);
-        if (!playerResponse.hasStreamingData()) return null;
+        PlayerResponse playerResponse;
+        try {
+            playerResponse = PlayerResponse.parseFrom(playerResponseBytes);
+        } catch (Exception e) {
+            YandexVotDiagnostics.source(
+                    "unparseable-player-response", -1, YandexVotPlayerMediaTransport.snapshotCount());
+            return null;
+        }
+        if (!playerResponse.hasStreamingData()) {
+            YandexVotDiagnostics.source(
+                    "no-streaming-data", -1, YandexVotPlayerMediaTransport.snapshotCount());
+            return null;
+        }
 
-        return selectBestAudioFormat(playerResponse.getStreamingData().getAdaptiveFormatsList());
+        return selectBestCapturedAudioFormat(
+                videoId, playerResponse.getStreamingData().getAdaptiveFormatsList());
     }
 
     @Nullable
-    private static Format selectBestAudioFormat(List<Format> formats) {
-        Format bestOpus = null;
-        int bestOpusBitrate = Integer.MAX_VALUE;
-        Format bestOther = null;
-        int bestOtherBitrate = Integer.MAX_VALUE;
-
+    private static CapturedAudioFormat selectBestCapturedAudioFormat(
+            String videoId,
+            List<Format> formats
+    ) {
+        List<AudioCandidate> candidates = new ArrayList<>();
         for (Format format : formats) {
             if (isEmpty(format.getUrl()) || !isAudioFormat(format)) continue;
+            candidates.add(new AudioCandidate(
+                    format.getItag(), format.getUrl(), format.getMimeType(), getBitrate(format)));
+        }
 
-            int bitrate = getBitrate(format);
-            boolean opus = format.getMimeType().toLowerCase(Locale.US).contains("opus");
+        if (candidates.isEmpty()) {
+            YandexVotDiagnostics.source(
+                    "no-audio-formats", -1, YandexVotPlayerMediaTransport.snapshotCount());
+            return null;
+        }
+
+        CapturedAudioCandidate selected = selectBestCapturedAudioCandidate(videoId, candidates);
+        if (selected == null) {
+            YandexVotDiagnostics.source(
+                    "no-matching-media-request", -1, YandexVotPlayerMediaTransport.snapshotCount());
+            return null;
+        }
+        for (Format format : formats) {
+            if (format.getItag() == selected.candidate().itag()
+                    && selected.candidate().url().equals(format.getUrl())) {
+                return new CapturedAudioFormat(format, selected.mediaRequest());
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    static CapturedAudioCandidate selectBestCapturedAudioCandidate(
+            String videoId,
+            List<AudioCandidate> candidates
+    ) {
+        CapturedAudioCandidate bestOpus = null;
+        int bestOpusBitrate = Integer.MAX_VALUE;
+        CapturedAudioCandidate bestOther = null;
+        int bestOtherBitrate = Integer.MAX_VALUE;
+
+        for (AudioCandidate candidate : candidates) {
+            if (isEmpty(candidate.url())) continue;
+
+            YandexVotPlayerMediaTransport.Snapshot mediaRequest =
+                    YandexVotPlayerMediaTransport.findForFormat(
+                            videoId, candidate.itag(), candidate.url());
+            if (mediaRequest == null) continue;
+
+            int bitrate = candidate.bitrate();
+            boolean opus = candidate.mimeType() != null
+                    && candidate.mimeType().toLowerCase(Locale.US).contains("opus");
             if (opus) {
                 if (bestOpus == null || bitrate < bestOpusBitrate) {
-                    bestOpus = format;
+                    bestOpus = new CapturedAudioCandidate(candidate, mediaRequest);
                     bestOpusBitrate = bitrate;
                 }
             } else if (bestOther == null || bitrate < bestOtherBitrate) {
-                bestOther = format;
+                bestOther = new CapturedAudioCandidate(candidate, mediaRequest);
                 bestOtherBitrate = bitrate;
             }
         }
 
+        return bestOpus != null ? bestOpus : bestOther;
+    }
+
+    @Nullable
+    static Format selectBestAudioFormat(List<Format> formats) {
+        List<AudioCandidate> candidates = new ArrayList<>();
+        for (Format format : formats) {
+            if (isEmpty(format.getUrl()) || !isAudioFormat(format)) continue;
+            candidates.add(new AudioCandidate(
+                    format.getItag(), format.getUrl(), format.getMimeType(), getBitrate(format)));
+        }
+        AudioCandidate selected = selectBestDirectAudioCandidate(candidates);
+        if (selected == null) return null;
+        for (Format format : formats) {
+            if (format.getItag() == selected.itag()
+                    && selected.url().equals(format.getUrl())) {
+                return format;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    static AudioCandidate selectBestDirectAudioCandidate(List<AudioCandidate> candidates) {
+        AudioCandidate bestOpus = null;
+        int bestOpusBitrate = Integer.MAX_VALUE;
+        AudioCandidate bestOther = null;
+        int bestOtherBitrate = Integer.MAX_VALUE;
+
+        for (AudioCandidate candidate : candidates) {
+            if (candidate == null || isEmpty(candidate.url())) continue;
+            int bitrate = candidate.bitrate();
+            boolean opus = candidate.mimeType() != null
+                    && candidate.mimeType().toLowerCase(Locale.US).contains("opus");
+            if (opus) {
+                if (bestOpus == null || bitrate < bestOpusBitrate) {
+                    bestOpus = candidate;
+                    bestOpusBitrate = bitrate;
+                }
+            } else if (bestOther == null || bitrate < bestOtherBitrate) {
+                bestOther = candidate;
+                bestOtherBitrate = bitrate;
+            }
+        }
         return bestOpus != null ? bestOpus : bestOther;
     }
 
@@ -256,291 +500,23 @@ final class YandexVotAudioDownloader {
         return bitrate > 0 ? bitrate : Integer.MAX_VALUE - 1;
     }
 
-    @Nullable
-    private static AudioFormatInfo fetchAudioFormatFromYouTube(String videoId) throws Exception {
-        WatchContext watchContext = fetchWatchContext(videoId);
-        JSONObject client = new JSONObject();
-        client.put("clientName", YOUTUBE_CLIENT_NAME);
-        client.put("clientVersion", YOUTUBE_CLIENT_VERSION);
-        client.put("hl", "en");
-        client.put("gl", "US");
-        client.put("androidSdkVersion", 32);
-        client.put("osName", "Android");
-        client.put("osVersion", "12L");
-        client.put("platform", "MOBILE");
-        if (!isEmpty(watchContext.visitorData())) {
-            client.put("visitorData", watchContext.visitorData());
+    /** Uploads a whole part to Yandex using the existing validated protocol calls. */
+    private record YandexVotApiUploader(String videoUrl, String translationId)
+            implements YandexVotAudioTransfer.PartUploader {
+        @Override
+        public boolean uploadPart(String fileId, int totalParts, int partIndex, byte[] partData) {
+            YandexVotDiagnostics.uploadPart("start", partIndex + 1, totalParts, null);
+            boolean accepted;
+            if (totalParts <= 1) {
+                accepted = YandexVotApiClient.sendAudio(
+                        videoUrl, translationId, fileId, partData);
+            } else {
+                accepted = YandexVotApiClient.sendPartialAudio(
+                        videoUrl, translationId, fileId, totalParts, 1, partIndex, partData);
+            }
+            YandexVotDiagnostics.uploadPart("result", partIndex + 1, totalParts, accepted);
+            return accepted;
         }
-
-        JSONObject body = new JSONObject();
-        body.put("context", new JSONObject().put("client", client));
-        body.put("videoId", videoId);
-        body.put("contentCheckOk", true);
-        body.put("racyCheckOk", true);
-        if (watchContext.signatureTimestamp() > 0) {
-            JSONObject contentPlaybackContext = new JSONObject()
-                    .put("signatureTimestamp", watchContext.signatureTimestamp());
-            body.put(
-                    "playbackContext",
-                    new JSONObject().put("contentPlaybackContext", contentPlaybackContext)
-            );
-        }
-
-        String endpoint = YOUTUBE_BASE_URL + "/youtubei/v1/player?key="
-                + watchContext.apiKey();
-        HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
-        try {
-            connection.setRequestMethod("POST");
-            setYouTubeHeaders(connection);
-            connection.setRequestProperty("Content-Type", "application/json");
-            if (!isEmpty(watchContext.visitorData())) {
-                connection.setRequestProperty("X-Goog-Visitor-Id", watchContext.visitorData());
-            }
-            connection.setConnectTimeout(CONNECTION_TIMEOUT_MS);
-            connection.setReadTimeout(READ_TIMEOUT_MS);
-            connection.setDoOutput(true);
-            byte[] requestBody = body.toString().getBytes(StandardCharsets.UTF_8);
-            connection.setFixedLengthStreamingMode(requestBody.length);
-            try (OutputStream output = connection.getOutputStream()) {
-                output.write(requestBody);
-            }
-
-            int responseCode = connection.getResponseCode();
-            if (responseCode != HttpURLConnection.HTTP_OK) {
-                throw new IOException("YouTube player request failed: HTTP " + responseCode);
-            }
-
-            JSONObject response;
-            try (InputStream input = connection.getInputStream()) {
-                response = new JSONObject(new String(readAllBytes(input), StandardCharsets.UTF_8));
-            }
-            JSONObject streamingData = response.optJSONObject("streamingData");
-            if (streamingData == null) return null;
-            return selectBestJsonAudioFormat(streamingData.optJSONArray("adaptiveFormats"));
-        } catch (RuntimeException e) {
-            throw new IOException("Could not parse YouTube player response", e);
-        } finally {
-            connection.disconnect();
-        }
-    }
-
-    private static WatchContext fetchWatchContext(String videoId) throws IOException {
-        String watchUrl = YOUTUBE_BASE_URL + "/watch?v=" + videoId + "&hl=en";
-        HttpURLConnection connection = (HttpURLConnection) new URL(watchUrl).openConnection();
-        try {
-            connection.setRequestMethod("GET");
-            setYouTubeHeaders(connection);
-            connection.setConnectTimeout(CONNECTION_TIMEOUT_MS);
-            connection.setReadTimeout(READ_TIMEOUT_MS);
-            int responseCode = connection.getResponseCode();
-            if (responseCode != HttpURLConnection.HTTP_OK) {
-                throw new IOException("YouTube watch page failed: HTTP " + responseCode);
-            }
-            String html;
-            try (InputStream input = connection.getInputStream()) {
-                html = new String(readAllBytes(input), StandardCharsets.UTF_8);
-            }
-            String apiKey = findFirst(html, YOUTUBE_API_KEY_PATTERN);
-            if (isEmpty(apiKey)) {
-                throw new IOException("YouTube API key was not found");
-            }
-            String sts = findFirst(html, YOUTUBE_STS_PATTERN);
-            int signatureTimestamp = 0;
-            if (!isEmpty(sts)) {
-                try {
-                    signatureTimestamp = Integer.parseInt(sts);
-                } catch (NumberFormatException ignored) {
-                }
-            }
-            String visitorData = decodeEscapedJsonString(
-                    findFirst(html, YOUTUBE_VISITOR_DATA_PATTERN)
-            );
-            return new WatchContext(apiKey, signatureTimestamp, visitorData);
-        } finally {
-            connection.disconnect();
-        }
-    }
-
-    @Nullable
-    private static AudioFormatInfo selectBestJsonAudioFormat(@Nullable JSONArray formats) {
-        if (formats == null) return null;
-
-        AudioFormatInfo bestOpus = null;
-        AudioFormatInfo bestOther = null;
-        for (int i = 0; i < formats.length(); i++) {
-            JSONObject format = formats.optJSONObject(i);
-            if (format == null) continue;
-            String url = format.optString("url", "");
-            String mimeType = format.optString("mimeType", "");
-            if (isEmpty(url) || !mimeType.toLowerCase(Locale.US).startsWith("audio/")) {
-                continue;
-            }
-            long fileSize = parsePositiveLong(format.optString("contentLength", ""));
-            if (fileSize <= 0) continue;
-            AudioFormatInfo candidate = new AudioFormatInfo(
-                    addCpn(url),
-                    format.optInt("itag", 0),
-                    fileSize,
-                    mimeType,
-                    Math.max(0, format.optInt("bitrate", 0))
-            );
-            boolean opus = mimeType.toLowerCase(Locale.US).contains("opus");
-            if (opus) {
-                if (bestOpus == null || compareBitrate(candidate, bestOpus) < 0) {
-                    bestOpus = candidate;
-                }
-            } else if (bestOther == null || compareBitrate(candidate, bestOther) < 0) {
-                bestOther = candidate;
-            }
-        }
-        return bestOpus != null ? bestOpus : bestOther;
-    }
-
-    private static int compareBitrate(AudioFormatInfo left, AudioFormatInfo right) {
-        int leftBitrate = left.bitrate() > 0 ? left.bitrate() : Integer.MAX_VALUE;
-        int rightBitrate = right.bitrate() > 0 ? right.bitrate() : Integer.MAX_VALUE;
-        return Integer.compare(leftBitrate, rightBitrate);
-    }
-
-    private static void setYouTubeHeaders(HttpURLConnection connection) {
-        connection.setRequestProperty("Accept", "*/*");
-        connection.setRequestProperty("Accept-Encoding", "identity");
-        connection.setRequestProperty("Origin", YOUTUBE_BASE_URL);
-        connection.setRequestProperty("Referer", YOUTUBE_BASE_URL + "/");
-        connection.setRequestProperty("User-Agent", YOUTUBE_CLIENT_USER_AGENT);
-    }
-
-    private static byte[] readAllBytes(InputStream input) throws IOException {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        byte[] buffer = new byte[8192];
-        int read;
-        while ((read = input.read(buffer)) != -1) {
-            output.write(buffer, 0, read);
-        }
-        return output.toByteArray();
-    }
-
-    @Nullable
-    private static String findFirst(String text, Pattern pattern) {
-        Matcher matcher = pattern.matcher(text);
-        return matcher.find() ? matcher.group(1) : null;
-    }
-
-    private static String decodeEscapedJsonString(@Nullable String value) {
-        if (value == null) return "";
-        return value.replace("\\u0026", "&").replace("\\/", "/");
-    }
-
-    private static long parsePositiveLong(@Nullable String value) {
-        if (value == null || value.isEmpty()) return -1;
-        try {
-            long parsed = Long.parseLong(value);
-            return parsed > 0 ? parsed : -1;
-        } catch (NumberFormatException ignored) {
-            return -1;
-        }
-    }
-
-    private static String addCpn(String audioUrl) {
-        return Uri.parse(audioUrl)
-                .buildUpon()
-                .appendQueryParameter("cpn", makeCpn())
-                .build()
-                .toString();
-    }
-
-    private static String makeCpn() {
-        StringBuilder cpn = new StringBuilder(16);
-        for (int i = 0; i < 16; i++) {
-            cpn.append(CPN_ALPHABET.charAt(CPN_RANDOM.nextInt(CPN_ALPHABET.length())));
-        }
-        return cpn.toString();
-    }
-
-    private static long resolveFileSize(String audioUrl) throws IOException {
-        long size = parseClen(audioUrl);
-        if (size > 0) return size;
-
-        HttpURLConnection connection = openAudioConnection(audioUrl, 0, 0);
-        try {
-            int code = connection.getResponseCode();
-            if (code == HttpURLConnection.HTTP_PARTIAL) {
-                size = parseContentRangeSize(connection.getHeaderField("Content-Range"));
-                if (size > 0) return size;
-            }
-
-            long contentLength = connection.getContentLengthLong();
-            return contentLength > 0 ? contentLength : -1;
-        } finally {
-            connection.disconnect();
-        }
-    }
-
-    private static byte[] downloadRange(String audioUrl, long start, long end) throws IOException {
-        long expectedSize = end - start + 1;
-        if (expectedSize <= 0 || expectedSize > Integer.MAX_VALUE) {
-            throw new IOException("Invalid audio range size: " + expectedSize);
-        }
-
-        HttpURLConnection connection = openAudioConnection(audioUrl, start, end);
-        try {
-            int code = connection.getResponseCode();
-            if (code != HttpURLConnection.HTTP_PARTIAL && code != HttpURLConnection.HTTP_OK) {
-                throw new IOException("Audio download failed: HTTP " + code);
-            }
-            if (code == HttpURLConnection.HTTP_OK && start > 0) {
-                throw new IOException("Audio server ignored range request");
-            }
-
-            try (InputStream inputStream = connection.getInputStream()) {
-                byte[] bytes = readBytes(inputStream, expectedSize);
-                if (bytes.length != expectedSize) {
-                    throw new IOException(
-                            "Incomplete audio range: expected " + expectedSize
-                                    + " bytes, got " + bytes.length
-                    );
-                }
-                return bytes;
-            }
-        } finally {
-            connection.disconnect();
-        }
-    }
-
-    private static HttpURLConnection openAudioConnection(
-            String audioUrl,
-            long start,
-            long end
-    ) throws IOException {
-        HttpURLConnection connection = (HttpURLConnection) new URL(audioUrl).openConnection();
-        connection.setRequestMethod("GET");
-        connection.setRequestProperty("Range", "bytes=" + start + "-" + end);
-        connection.setRequestProperty("Accept", "*/*");
-        connection.setRequestProperty("Accept-Encoding", "identity");
-        connection.setRequestProperty("User-Agent", USER_AGENT);
-        connection.setConnectTimeout(CONNECTION_TIMEOUT_MS);
-        connection.setReadTimeout(READ_TIMEOUT_MS);
-        connection.setInstanceFollowRedirects(true);
-        return connection;
-    }
-
-    private static byte[] readBytes(InputStream inputStream, long expectedSize) throws IOException {
-        ByteArrayOutputStream out =
-                new ByteArrayOutputStream((int) Math.min(expectedSize, CHUNK_SIZE_BYTES));
-        byte[] buffer = new byte[8192];
-        long total = 0;
-        int read;
-        while ((read = inputStream.read(buffer)) != -1) {
-            total += read;
-            if (total > expectedSize) {
-                throw new IOException("Audio range exceeded expected size");
-            }
-            out.write(buffer, 0, read);
-        }
-        if (total == 0) {
-            throw new IOException("Empty audio range");
-        }
-        return out.toByteArray();
     }
 
     private static long parseClen(String audioUrl) {
@@ -560,36 +536,29 @@ final class YandexVotAudioDownloader {
         return -1;
     }
 
-    private static long parseContentRangeSize(@Nullable String contentRange) {
-        if (contentRange == null) return -1;
-
-        int slash = contentRange.lastIndexOf('/');
-        if (slash < 0 || slash == contentRange.length() - 1) return -1;
-
-        try {
-            return Long.parseLong(contentRange.substring(slash + 1).trim());
-        } catch (NumberFormatException ignored) {
-            return -1;
-        }
-    }
-
-    private static int toPartsCount(long fileSize) throws IOException {
-        long parts = (fileSize + CHUNK_SIZE_BYTES - 1) / CHUNK_SIZE_BYTES;
-        if (parts <= 0 || parts > Integer.MAX_VALUE) {
-            throw new IOException("Invalid audio parts count: " + parts);
-        }
-        return (int) parts;
-    }
-
     private static String makeFileId(int itag, long fileSize) {
         return String.format(
                 Locale.US,
                 "{\"downloadType\":\"%s\",\"itag\":%d,\"minChunkSize\":%d,\"fileSize\":\"%d\"}",
                 AUDIO_DOWNLOAD_TYPE,
                 itag,
-                CHUNK_SIZE_BYTES,
+                YandexVotAudioParts.PART_SIZE_BYTES,
                 fileSize
         );
+    }
+
+    private static String addCpn(String audioUrl) {
+        Uri uri = Uri.parse(audioUrl);
+        if (!isEmpty(uri.getQueryParameter("cpn"))) return audioUrl;
+        return uri.buildUpon().appendQueryParameter("cpn", makeCpn()).build().toString();
+    }
+
+    private static String makeCpn() {
+        StringBuilder cpn = new StringBuilder(16);
+        for (int i = 0; i < 16; i++) {
+            cpn.append(CPN_ALPHABET.charAt(CPN_RANDOM.nextInt(CPN_ALPHABET.length())));
+        }
+        return cpn.toString();
     }
 
     private static boolean isEmpty(@Nullable String value) {

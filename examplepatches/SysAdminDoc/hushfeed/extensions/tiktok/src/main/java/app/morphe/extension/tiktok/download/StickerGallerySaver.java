@@ -262,7 +262,7 @@ public final class StickerGallerySaver {
                     if (BaseSettings.DEBUG.get()) {
                         Logger.printException(() -> "[Morphe Stickers] saveSticker cancelled", error);
                     }
-                    return SaveResult.failure(L10n.t("The sticker could not be saved"));
+                    return SaveResult.failure(L10n.t("The sticker couldn't be saved. Try again."));
                 }
                 failure.addSuppressed(new IOException(
                         "Sticker mirror failed (" + error.getClass().getSimpleName() + "): "
@@ -276,7 +276,7 @@ public final class StickerGallerySaver {
         if (BaseSettings.DEBUG.get()) {
             Logger.printException(() -> "[Morphe Stickers] saveSticker failure", failure);
         }
-        return SaveResult.failure(L10n.t("The sticker could not be saved"));
+        return SaveResult.failure(L10n.t("The sticker couldn't be saved. Try again."));
     }
 
     private static String downloadSticker(
@@ -848,7 +848,7 @@ public final class StickerGallerySaver {
             Object directValue = invokeNoArg(sticker, "getUrl");
             if (directValue instanceof String) {
                 String directUrl = ((String) directValue).trim();
-                if (!directUrl.isEmpty() && !"null".equalsIgnoreCase(directUrl)) {
+                if (directUrl.startsWith("https://")) {
                     Object typeValue = invokeNoArg(sticker, "getType");
                     String type = typeValue == null
                             ? ""

@@ -1,3 +1,81 @@
+## [1.9.0](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/compare/v1.8.6...v1.9.0) (2026-09-10)
+
+### ✨ New Features
+
+* **scannerradio:** patch all 12 pairip-injected lifecycle methods ([a96f165](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/commit/a96f16525fc9cd2246821f786034a0cd7e4e5a71))
+
+## [1.8.6](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/compare/v1.8.5...v1.8.6) (2026-09-10)
+
+### 🐛 Bug Fixes
+
+* **scannerradio:** fix Kotlin lexer errors by removing string templates from R8 init ([b5942cc](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/commit/b5942cc4e4d05fabc7d5f1ce2337be71971e5bba))
+
+## [1.8.5](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/compare/v1.8.4...v1.8.5) (2026-09-10)
+
+### 🐛 Bug Fixes
+
+* **scannerradio:** init all R8 string dedup classes to prevent null NPEs in hiltInternalInject ([076864d](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/commit/076864d2eb8e97d8b34e0ca670eb841dab7bb0a3))
+
+## [1.8.4](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/compare/v1.8.3...v1.8.4) (2026-09-10)
+
+### 🐛 Bug Fixes
+
+* **scannerradio:** remove smali comments from injected instructions ([83e249f](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/commit/83e249f13b0cbca0f7282bb02732acfbeef6d2c6))
+
+## [1.8.3](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/compare/v1.8.2...v1.8.3) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* **scannerradio:** init R8 string dedup fields to prevent sjJeZY NPE ([cd680b3](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/commit/cd680b305be9b96ff7e18af182fb52ccf8d422ba))
+
+## [1.8.2](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/compare/v1.8.1...v1.8.2) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* **scannerradio:** call parent onCreate() instead of no-op to preserve Hilt DI ([c2bfad6](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/commit/c2bfad63b5009ec1257c7ac3bf1e101e45d535ce))
+
+## [1.8.1](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/compare/v1.8.0...v1.8.1) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* **scannerradio:** no-op MyApplication.onCreate() pairip-injected IronSource reflection ([643a58a](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/commit/643a58a4368114cd46a4d805c672dd24f395a5b2))
+
+## [1.8.0](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/compare/v1.7.5...v1.8.0) (2026-09-09)
+
+### ✨ New Features
+
+* **scannerradio:** add Pairip DRM bypass to fix startup SIGSEGV ([e96b89a](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/commit/e96b89abdcdb606575325f550d97e199e7ce4a45))
+
+## [1.7.5](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/compare/v1.7.4...v1.7.5) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* **scannerradio:** remove broken File() operations from BrandingPatch ([33cab2b](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/commit/33cab2b3bcf6c1039e6359de5216c4cd4330c21b))
+
+## [1.7.4](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/compare/v1.7.3...v1.7.4) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* **scannerradio:** remove accessFlags from fingerprints ([8d2e929](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/commit/8d2e929713f964a4e78210c8705554091fa0a341))
+
+## [1.7.3](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/compare/v1.7.2...v1.7.3) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* **scannerradio:** InMobi SdkInitializationListener is standalone in v8.29 ([af931ae](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/commit/af931ae1d7f5f514954690c42e23098380d00e1b))
+
+## [1.7.2](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/compare/v1.7.1...v1.7.2) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* **scannerradio:** use real smali class names not jadx deobfuscated names ([c1d8f13](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/commit/c1d8f13474276dd606af7da4b5e2b334f950a826))
+
+## [1.7.1](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/compare/v1.7.0...v1.7.1) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* **scannerradio:** update fingerprints for v8.29 ProGuard mapping ([d2efc9e](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/commit/d2efc9e46db64f505583c5fc86a7b22843f209ca))
+
 ## [1.7.0](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/compare/v1.6.0...v1.7.0) (2026-09-09)
 
 ### ✨ New Features

@@ -40,6 +40,8 @@ public class SessionBudgetTest {
         Settings.SESSION_BUDGET_LOCK_MINUTES.resetToDefault();
         Settings.SESSION_BUDGET_RESET_HOUR.resetToDefault();
         Settings.SESSION_BUDGET_LOCK.resetToDefault();
+        Settings.SESSION_BUDGET_PASSES_PER_DAY.resetToDefault();
+        Settings.SESSION_BUDGET_NOTICE_MINUTES.resetToDefault();
         Settings.SESSION_BUDGET_STATE.resetToDefault();
         Settings.AUTO_ADVANCE_LIMIT.resetToDefault();
         now.set(at(2026, Calendar.SEPTEMBER, 7, 12, 0));
@@ -49,6 +51,8 @@ public class SessionBudgetTest {
 
     @After public void tearDown() throws Exception {
         Settings.SESSION_BUDGET_LOCK.resetToDefault();
+        Settings.SESSION_BUDGET_PASSES_PER_DAY.resetToDefault();
+        Settings.SESSION_BUDGET_NOTICE_MINUTES.resetToDefault();
         SessionBudget.setClockForTests(null);
         SessionBudget.awaitWritesForTests();
         SessionBudget.resetForTests();
@@ -231,6 +235,196 @@ public class SessionBudgetTest {
         assertEquals("lifting the hold forgot the day", 1, SessionBudget.videosSeen());
         assertTrue(SessionBudget.reachedLimit());
         assertFalse("the notice came back after the hold was lifted", SessionBudget.claimNotice());
+    }
+
+    @Test public void aCapSpendsTheWayOutAndTheDayPutsItBack() throws Exception {
+        // Between a way out that is always there and Lock today, which takes it away entirely.
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(10);
+        Settings.SESSION_BUDGET_PASSES_PER_DAY.save(2);
+
+        assertEquals(2, SessionBudget.passesLeftToday());
+        assertTrue(reachTheHold("a"));
+        assertEquals(1, SessionBudget.passesLeftToday());
+        assertTrue(reachTheHold("b"));
+        assertEquals(0, SessionBudget.passesLeftToday());
+
+        // The third is refused, and the hold it was asked to lift is still up.
+        startTheHold("c");
+        assertFalse("a third pass was allowed on a cap of two", SessionBudget.releaseLock());
+        assertTrue("the refused pass lifted the hold anyway", SessionBudget.isLocked());
+
+        // It survives the process being killed, so a restart is not a way round the cap.
+        SessionBudget.awaitWritesForTests();
+        SessionBudget.resetForTests();
+        assertEquals(0, SessionBudget.passesLeftToday());
+        assertFalse(SessionBudget.releaseLock());
+
+        // And the day starting over puts them back.
+        now.set(at(2026, Calendar.SEPTEMBER, 8, 12, 0));
+        assertEquals(2, SessionBudget.passesLeftToday());
+    }
+
+    @Test public void startingTodayOverGivesTheDaysPassesBackAndUndoTakesThemAgain() {
+        // A pass is one of today's counts, and the row says today is forgotten. Left spent, it
+        // gave back the videos and the minutes while the way out of the hold stayed gone, on a
+        // day every number on the screen said was untouched.
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(10);
+        Settings.SESSION_BUDGET_PASSES_PER_DAY.save(1);
+        assertTrue(reachTheHold("a"));
+        assertEquals(0, SessionBudget.passesLeftToday());
+
+        assertTrue(SessionBudget.clear());
+        assertEquals("start today over kept the pass spent", 1, SessionBudget.passesLeftToday());
+        assertEquals(0, SessionBudget.videosSeen());
+
+        assertTrue(SessionBudget.undoClear());
+        assertEquals("undo did not put the spent pass back", 0, SessionBudget.passesLeftToday());
+    }
+
+    @Test public void aQuietReminderArrivesEveryNWatchedMinutesAndRotatesItsWording() {
+        // The hold only fires once the day's budget has gone. This is the earlier check, and it
+        // is measured in watched minutes so time on messages or a profile does not bring one on.
+        Settings.SESSION_BUDGET_NOTICE_MINUTES.save(5);
+
+        assertEquals("a reminder before anything had been watched", -1,
+                SessionBudget.claimIntervalNotice());
+        watch(5);
+        assertEquals("the first wording", 0, SessionBudget.claimIntervalNotice());
+        assertEquals("two in a row for the same five minutes", -1,
+                SessionBudget.claimIntervalNotice());
+
+        watch(4);
+        assertEquals(-1, SessionBudget.claimIntervalNotice());
+        watch(1);
+        assertEquals("the second wording", 1, SessionBudget.claimIntervalNotice());
+        watch(5);
+        assertEquals("the third wording", 2, SessionBudget.claimIntervalNotice());
+        watch(5);
+        assertEquals("the wordings did not come round again", 0,
+                SessionBudget.claimIntervalNotice());
+    }
+
+    @Test public void noReminderWithTheRowAtZeroOrWhileTheFeedIsHeld() {
+        Settings.SESSION_BUDGET_NOTICE_MINUTES.save(0);
+        watch(30);
+        assertEquals("a reminder from a row nobody set", -1, SessionBudget.claimIntervalNotice());
+
+        assertEquals("watching was counted for a reader who asked for none of this", 0,
+                SessionBudget.watchedMs());
+
+        // With a hold up the panel is the message; a toast underneath it is one more thing to
+        // read on a screen already saying stop.
+        Settings.SESSION_BUDGET_NOTICE_MINUTES.save(5);
+        Settings.SESSION_BUDGET_VIDEOS.save(1);
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(10);
+        watch(5);
+        SessionBudget.noteVideo("a");
+        assertTrue(SessionBudget.claimNotice());
+        assertTrue(SessionBudget.isLocked());
+        assertEquals("a reminder arrived over the hold", -1, SessionBudget.claimIntervalNotice());
+
+        // And once the hold is lifted the reminder that was due arrives.
+        assertTrue(SessionBudget.releaseLock());
+        assertEquals(0, SessionBudget.claimIntervalNotice());
+    }
+
+    @Test public void everyReminderIsAFullIntervalAfterTheOneBefore() {
+        // The reminder is claimed on a video change, so the watched time has almost always run
+        // past the interval by the time it fires. Rounding the mark down to a whole number of
+        // intervals, which this did first, left it behind the moment the reminder went out by
+        // exactly that overshoot, and the next one came that much early: here, three watched
+        // minutes after the first on a row that says five.
+        Settings.SESSION_BUDGET_NOTICE_MINUTES.save(5);
+        watch(12);
+        assertEquals(0, SessionBudget.claimIntervalNotice());
+
+        watch(4);
+        assertEquals("the second reminder came early", -1, SessionBudget.claimIntervalNotice());
+        watch(1);
+        assertEquals(1, SessionBudget.claimIntervalNotice());
+    }
+
+    @Test public void theReminderMarkSurvivesTheProcessAndRollsOverWithTheDay() throws Exception {
+        Settings.SESSION_BUDGET_NOTICE_MINUTES.save(5);
+        watch(5);
+        assertEquals(0, SessionBudget.claimIntervalNotice());
+
+        SessionBudget.awaitWritesForTests();
+        SessionBudget.resetForTests();
+        assertEquals("a restart handed back a reminder that had gone out", -1,
+                SessionBudget.claimIntervalNotice());
+        watch(5);
+        assertEquals("the wording restarted with the process", 1,
+                SessionBudget.claimIntervalNotice());
+
+        // The day's counts go, but which wording comes next is not one of them: a reader who
+        // gets one reminder a day would otherwise read the same sentence every day, which is
+        // the whole reason for having three.
+        now.set(at(2026, Calendar.SEPTEMBER, 8, 12, 0));
+        watch(5);
+        assertEquals("the wordings started again with the day", 2,
+                SessionBudget.claimIntervalNotice());
+    }
+
+    /** Watches for that many minutes, one player report a second. */
+    private void watch(int minutes) {
+        SessionBudget.noteWatching();
+        for (int tick = 0; tick < minutes * 60; tick++) {
+            now.addAndGet(1_000L);
+            SessionBudget.noteWatching();
+        }
+    }
+
+    @Test public void withNoCapNothingChanges() {
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(10);
+        Settings.SESSION_BUDGET_PASSES_PER_DAY.save(0);
+
+        assertEquals(Integer.MAX_VALUE, SessionBudget.passesLeftToday());
+        for (String id : new String[]{"a", "b", "c", "d", "e"}) {
+            assertTrue("a pass was refused with no cap set", reachTheHold(id));
+        }
+        assertEquals(Integer.MAX_VALUE, SessionBudget.passesLeftToday());
+    }
+
+    @Test public void aLockedDayIgnoresTheCapBecauseItHasNoWayOutAtAll() {
+        Settings.SESSION_BUDGET_VIDEOS.save(1);
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(10);
+        Settings.SESSION_BUDGET_PASSES_PER_DAY.save(3);
+        Settings.SESSION_BUDGET_LOCK.save(true);
+
+        SessionBudget.noteVideo("a");
+        assertTrue(SessionBudget.claimNotice());
+        assertTrue(SessionBudget.lockedToday());
+        assertFalse("a locked day let someone through", SessionBudget.releaseLock());
+        // Refused before the cap was consulted, so none of the day's passes was spent.
+        assertEquals(3, SessionBudget.passesLeftToday());
+    }
+
+    /** How many videos the budget has been raised to so far in one case. */
+    private int budgetSoFar;
+
+    /**
+     * Spends today's budget so the hold starts.
+     *
+     * <p>The notice fires once per budget, so a second hold in one day needs the budget raised
+     * first. That is what a reader does when they lift the hold and keep going: the count is not
+     * forgotten, so the next hold costs one more video than the last.
+     */
+    private void startTheHold(String awemeId) {
+        budgetSoFar++;
+        Settings.SESSION_BUDGET_VIDEOS.save(budgetSoFar);
+        // Raising the budget only arms the notice once something asks, which is what the feed
+        // does on its next video. Without this the second hold never starts.
+        SessionBudget.claimNotice();
+        SessionBudget.noteVideo(awemeId);
+        assertTrue("the notice did not fire", SessionBudget.claimNotice());
+        assertTrue("the hold did not start", SessionBudget.isLocked());
+    }
+
+    /** Spends the budget, takes the hold that follows, and lifts it. */
+    private boolean reachTheHold(String awemeId) {
+        startTheHold(awemeId);
+        return SessionBudget.releaseLock();
     }
 
     @Test public void theCountAndTheHoldSurviveTheProcessBeingKilled() throws Exception {
@@ -560,6 +754,119 @@ public class SessionBudgetTest {
         assertTrue("raising the budget unlocked the day", SessionBudget.lockedToday());
     }
 
+    /**
+     * Moves the device to another zone the way the device does it: the zone changes and the
+     * system says so. The memo is told rather than asked, because asking means a TimeZone clone
+     * on every player callback, so a test that changed the zone in silence would be testing a
+     * memo nobody had told.
+     */
+    private static void moveTo(String zone) {
+        java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone(zone));
+        app.morphe.extension.shared.Utils.getContext().sendBroadcast(
+                new android.content.Intent(android.content.Intent.ACTION_TIMEZONE_CHANGED));
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+    }
+
+    /**
+     * A TimeZone that counts what it costs to ask for it.
+     *
+     * <p>TimeZone.getDefault() hands back a clone of the stored zone, so a subclass sitting
+     * there is asked to clone itself every time anything reads the default.
+     */
+    private static final class CountingZone extends java.util.SimpleTimeZone {
+        static final java.util.concurrent.atomic.AtomicInteger CLONES =
+                new java.util.concurrent.atomic.AtomicInteger();
+
+        CountingZone(java.util.TimeZone copied) {
+            super(copied.getRawOffset(), copied.getID());
+        }
+
+        @Override
+        public Object clone() {
+            CLONES.incrementAndGet();
+            return super.clone();
+        }
+    }
+
+    /**
+     * What the memo costs on the path it sits on. It used to read the default zone before it
+     * looked at anything, and on Android that is a clone and a string compare on every
+     * noteVideo and noteWatching for as long as a budget is set.
+     */
+    @Test public void theMemoTakesNoTimezoneCloneAcrossAWholeDayOfCallbacks() {
+        java.util.TimeZone original = java.util.TimeZone.getDefault();
+        try {
+            Settings.SESSION_BUDGET_MINUTES.save(600);
+            java.util.TimeZone.setDefault(new CountingZone(original));
+            SessionBudget.resetForTests();
+            SessionBudget.noteWatching();
+            SessionBudget.dayOf(now.get());
+            // The first answer is worked out rather than remembered, and that one does read
+            // the zone. Everything after it is the memo.
+            CountingZone.CLONES.set(0);
+
+            for (int callback = 0; callback < 500; callback++) {
+                now.addAndGet(1_000L);
+                SessionBudget.noteWatching();
+            }
+
+            assertEquals("the memo read the device timezone on the player's callback",
+                    0, CountingZone.CLONES.get());
+            assertTrue("nothing was counted, so this proves nothing",
+                    SessionBudget.watchedMs() > 0);
+        } finally {
+            java.util.TimeZone.setDefault(original);
+            SessionBudget.resetForTests();
+        }
+    }
+
+    /**
+     * One receiver for the process, and no activity held in a static field.
+     *
+     * <p>Utils.getContext() is not always the application: the main activity is handed to it,
+     * and it is wrapped again on every configuration change when an app language is set. Keying
+     * the registration on that identity registered another receiver for every wrapper and kept
+     * the last one alive for the life of the process.
+     */
+    @Test public void theZoneIsFollowedOnceForTheWholeProcess() {
+        Settings.SESSION_BUDGET_MINUTES.save(60);
+        var application = org.robolectric.RuntimeEnvironment.getApplication();
+        int before = org.robolectric.Shadows.shadowOf(application).getRegisteredReceivers().size();
+
+        for (int wrapper = 0; wrapper < 3; wrapper++) {
+            Utils.setContext(new android.content.ContextWrapper(application));
+            SessionBudget.dayOf(now.get());
+        }
+        Utils.setContext(application);
+
+        assertEquals("a receiver was registered for every context that came along",
+                before + 1,
+                org.robolectric.Shadows.shadowOf(application).getRegisteredReceivers().size());
+    }
+
+    /**
+     * The positive control the two tests below need. They both assert that something does not
+     * happen when the device moves zone, and that is worth nothing unless the move reaches the
+     * memo at all: the memo no longer reads the zone, it is told, so a move sent in silence
+     * would leave both of them green whatever the code did.
+     */
+    @Test public void movingTheDeviceZoneMovesTheDayTheMemoAnswers() {
+        java.util.TimeZone original = java.util.TimeZone.getDefault();
+        try {
+            java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("America/Los_Angeles"));
+            SessionBudget.resetForTests();
+            now.set(at(2026, Calendar.SEPTEMBER, 7, 12, 0));
+            long before = SessionBudget.dayOf(now.get());
+            moveTo("Pacific/Kiritimati");
+            long after = SessionBudget.dayOf(now.get());
+            assertEquals("the device moved zone and the memo did not notice",
+                    before + 1, after);
+        } finally {
+            java.util.TimeZone.setDefault(original);
+            SessionBudget.resetForTests();
+        }
+    }
+
     @Test public void movingTheDeviceTimezoneForwardDoesNotEndALockedDay() {
         // The day only ever moving forward is not enough on its own. A forward zone change makes
         // the day counter jump, which used to clear the lock, the hold and the counts together:
@@ -574,7 +881,7 @@ public class SessionBudgetTest {
             assertTrue("the day did not lock", SessionBudget.lockedToday());
             long until = SessionBudget.lockedUntilMs();
 
-            java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("Pacific/Kiritimati"));
+            moveTo("Pacific/Kiritimati");
             assertTrue("a timezone change ended the locked day", SessionBudget.lockedToday());
             assertTrue("a timezone change lifted the hold", SessionBudget.isLocked());
             assertEquals("a timezone change cleared the counts", 1, SessionBudget.videosSeen());
@@ -634,7 +941,7 @@ public class SessionBudgetTest {
             long until = SessionBudget.lockedUntilMs();
             assertTrue("the switch locked no day at all", until > now.get());
 
-            java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("Pacific/Kiritimati"));
+            moveTo("Pacific/Kiritimati");
             assertTrue("a timezone change ended the day the switch locked",
                     SessionBudget.lockedToday());
             assertEquals("the locked day moved when the zone did", until,

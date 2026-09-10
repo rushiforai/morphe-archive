@@ -18,7 +18,7 @@ For environment setup see [toolchain setup](toolchain.md).
 
 ## Prerequisites
 
-All tools, SDK packages, Vite+, GitHub Packages credentials, and Morphe Desktop
+All tools, SDK packages, Python (`uv`/`uvx`) tooling, GitHub Packages credentials, and Morphe Desktop
 come from [toolchain setup](toolchain.md). Original APKs/APKMs come only from
 [APKMirror](https://www.apkmirror.com/).
 
@@ -32,6 +32,12 @@ Only re-scaffold from the upstream template when starting a new bundle repo.
 Covered in [patch development](patch-development.md) (file layout, patch types,
 build/test loop, troubleshooting) — nothing patch-specific lives here by design.
 
+## Conventions
+
+Generated-file ownership is defined in the [release rules](release.md#rules).
+For `CHANGELOG.md`, follow the [changelog policy](release.md#changelog-policy)
+and [release rules](release.md#rules).
+
 ## Verify
 
 Canonical local verification (bash):
@@ -44,11 +50,6 @@ uvx --from pre-commit==4.6.2 --with shellcheck-py==0.11.0.1 pre-commit run --all
 The `.mpp` lands in `patches/build/libs/patches-*.mpp`. This only proves the
 toolchain works — for the real loop (apply in Morphe Desktop, single-patch
 isolation, troubleshooting) see [patch development](patch-development.md#build-and-test).
-Never hand-edit `patches-list.json`, `patches-bundle.json`, or the
-`gradle.properties` version — release staging and the pipeline own them
-(`scripts/prepare-release.sh` + `release.yml`, see [release process](release.md)).
-In `CHANGELOG.md`, add bullets under `## Unreleased` only; versioned entries
-are promoted by `prepare-release.sh`, never edited by hand.
 
 ## Code quality
 

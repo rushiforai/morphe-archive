@@ -145,6 +145,40 @@ public class InputTextPreference extends EditTextPreference {
     protected void showDialog(Bundle state) {
         super.showDialog(state);
         SettingsUi.styleFramedDialog(getDialog());
+        // Rejecting a value used to close the dialog and then say why, so the reader reopened
+        // the row and typed it again. Save now answers before it closes, and the answer sits
+        // under the field rather than over the screen the dialog just left.
+        SettingsUi.keepOpenOnInvalidInput(getDialog(), new SettingsUi.DialogCheck() {
+            @Override public String problem() {
+                return check == null
+                        ? null
+                        : check.problem(String.valueOf(getEditText().getText()));
+            }
+
+            @Override public void report(String problem) {
+                getEditText().setError(problem);
+            }
+
+            @Override public boolean accept() {
+                return saveTypedValue();
+            }
+        });
+    }
+
+    /**
+     * What EditTextPreference.onDialogClosed(true) does, with the listener's answer kept rather
+     * than thrown away, and reached from both the Save button and the platform's own dismiss.
+     */
+    private boolean saveTypedValue() {
+        String typed = String.valueOf(getEditText().getText());
+        if (!callChangeListener(typed)) return false;
+        setText(typed);
+        return true;
+    }
+
+    @Override
+    protected void onDialogClosed(boolean positiveResult) {
+        if (positiveResult) saveTypedValue();
     }
 
     @Override

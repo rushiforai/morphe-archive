@@ -89,11 +89,24 @@ public class NumberInputPreference extends EditTextPreference {
         // The range is read off the setting, so every one of these rows states it without each
         // of them growing a sentence of its own. Twelve of the fourteen said nothing about it
         // and pulled an out of range number to the nearest end without a word.
+        String extra = extraSummaryLine();
         setSummary(L10n.t(getContext(), baseSummary)
                 + "\n" + L10n.f(getContext(), "%1$s to %2$s", minValue, maxValue)
                 + "\n" + (unit.isEmpty()
                         ? L10n.f(getContext(), "Current: %1$s", shown)
-                        : L10n.f(getContext(), "Current: %1$s %2$s", shown, unit)));
+                        : L10n.f(getContext(), "Current: %1$s %2$s", shown, unit))
+                + (extra == null ? "" : "\n" + extra));
+    }
+
+    /**
+     * A fourth line under the current value, or null for the rows that have nothing to add.
+     *
+     * <p>The two daily budgets use it for how much of today has gone. Called from
+     * {@link #setValue}, which the constructor calls, so an override must not read state of its
+     * own: the two that exist read the setting and the day's counts, both of them statics.
+     */
+    protected String extraSummaryLine() {
+        return null;
     }
 
     /**
@@ -168,6 +181,28 @@ public class NumberInputPreference extends EditTextPreference {
     }
 
     @Override
+    protected void showDialog(Bundle state) {
+        super.showDialog(state);
+        SettingsUi.styleFramedDialog(getDialog());
+        // Nothing typed here is rejected outright, because a number outside the range is
+        // pulled into it and said so. What does get refused is the whole row, while the day's
+        // budget is locked, and that refusal used to arrive after the dialog had closed.
+        SettingsUi.keepOpenOnInvalidInput(getDialog(), new SettingsUi.DialogCheck() {
+            @Override public String problem() {
+                return null;
+            }
+
+            @Override public void report(String problem) {
+                getEditText().setError(problem);
+            }
+
+            @Override public boolean accept() {
+                return saveTypedValue();
+            }
+        });
+    }
+
+    @Override
     protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
         builder.setPositiveButton(L10n.t(getContext(), "Save"), (dialog, which)
                 -> this.onClick(dialog, DialogInterface.BUTTON_POSITIVE));
@@ -176,15 +211,28 @@ public class NumberInputPreference extends EditTextPreference {
 
     @Override
     protected void onDialogClosed(boolean positiveResult) {
-        if (positiveResult) {
-            String typed = getEditText().getText().toString();
-            int value = parseAndClamp(typed);
-            String text = String.valueOf(value);
-            sayIfPulledIntoRange(typed, value);
-            if (callChangeListener(text)) {
-                setValue(text);
-            }
-        }
+        if (positiveResult) saveTypedValue();
+    }
+
+    /**
+     * Saves what is in the box, answering false when something refused it.
+     *
+     * <p>One method rather than a copy in each place. Save no longer reaches the method above:
+     * keeping the dialog open replaces the button's own click listener, which is what used to
+     * run it, so the platform now only calls it for the dismiss it does not act on. A second
+     * copy of the save would be the one the reader really uses and the one nothing exercises.
+     */
+    private boolean saveTypedValue() {
+        String typed = getEditText().getText().toString();
+        int value = parseAndClamp(typed);
+        String text = String.valueOf(value);
+        if (!callChangeListener(text)) return false;
+        // Only once the row has taken it. Saying "kept to 600" and then refusing the change
+        // describes something that did not happen, and with the dialog staying open it said it
+        // again on every press.
+        sayIfPulledIntoRange(typed, value);
+        setValue(text);
+        return true;
     }
 
     /**
@@ -205,12 +253,6 @@ public class NumberInputPreference extends EditTextPreference {
         if (asked == stored) return;
         app.morphe.extension.shared.Utils.showToastShort(L10n.f(getContext(),
                 "Kept to %1$s, the nearest value this row allows", displayValue(stored)));
-    }
-
-    @Override
-    protected void showDialog(Bundle state) {
-        super.showDialog(state);
-        SettingsUi.styleFramedDialog(getDialog());
     }
 
     private int parseAndClamp(String value) {

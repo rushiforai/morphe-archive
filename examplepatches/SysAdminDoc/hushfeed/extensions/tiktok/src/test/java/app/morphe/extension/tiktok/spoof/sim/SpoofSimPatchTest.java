@@ -7,6 +7,8 @@
 package app.morphe.extension.tiktok.spoof.sim;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.Settings;
@@ -78,6 +80,17 @@ public class SpoofSimPatchTest {
     @Test public void aCountryThatIsOneIsUsed() {
         Settings.SIM_SPOOF_ISO.save("jp");
         assertEquals("jp", SpoofSimPatch.getCountryIso(REAL_ISO));
+    }
+
+    @Test public void theSimChangeReportIsSkippedOnlyWhileThePresetIsOn() {
+        // The report fires when the subscription id changes, which the preset does not touch, so
+        // it is a real SIM swap that sends it. The country and carrier in it read as the preset;
+        // the phone's SIM count does not, because that comes from SubscriptionManager, and the
+        // event still says the hardware moved.
+        assertTrue(SpoofSimPatch.shouldSkipSimChangeReport());
+
+        Settings.SIM_SPOOF.save(false);
+        assertFalse(SpoofSimPatch.shouldSkipSimChangeReport());
     }
 
     @Test public void nothingIsSpoofedWhileTheSwitchIsOff() {

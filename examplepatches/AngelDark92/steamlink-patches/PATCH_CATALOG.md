@@ -9,7 +9,7 @@ direct patches listed below. Steam Link 2.0.22 build 5002318 uses a 9-patch
 recommendation with GXR face bridge (version 5002318 and below), while build 5002322 recommends only 6 patches:
 GXR tongue bridge (version 5002322 and above), Galaxy XR
 high-resolution 3-projection fix, Microphone input preset (`voice-recognition`), OLED color
-calibration (`final-balanced`, recommended `rgb10-a2-experimental` output), Unrestricted battery usage, and Visual
+calibration (`final-balanced`, recommended `srgb8-highp` output), Unrestricted battery usage, and Visual
 Delay Fix (`60` ms). Appear on top is excluded from 5002322. Video dither is removed as a
 selectable patch; the OLED patch offers optional dithering, disabled by default.
 
@@ -45,7 +45,7 @@ Both legacy bundles directly select:
 5. GXR face bridge (version 5002318 and below)
 6. Galaxy XR high-resolution 3-projection fix
 7. Microphone input preset (`voice-recognition`)
-8. OLED color calibration (`final-balanced`, `rgb10-a2-experimental`)
+8. OLED color calibration (`final-balanced`, `srgb8-highp`)
 9. Unrestricted battery usage
 10. Visual Delay Fix (`60` ms)
 11. XR Core Runtime
@@ -267,6 +267,19 @@ REFERENCE`, establishing perceived parity with Valve's native 3-projection APK w
 
 ---
 
+### Retired: Android-Surface Fovea — tried, did not work
+
+On 2026-09-07 the user tested this experiment and reported: "It's not working."
+Retired at the user's request. This was the actual 8-bit fovea-to-Android-Surface
+experiment on Steam Link 2.0.22/5002322: 3 projections, copied fovea pixels, no
+extra 2×2 quad. It was distinct from the earlier static-black underside test.
+
+The selectable patch, native helper, build target and runnable diagnostic are
+removed. Mode/library identifiers remain only for stale-resource cleanup. The
+working high-resolution fix and recommended bundles are unchanged. No new trace
+was supplied; the failure mechanism and GPU cost are not established. Do not
+repeat this as an untried idea. See [historical record](diagnostics/steamlink-surface-fovea/README.md).
+
 ### Retired: Surface-backed underside projection
 
 On 2026-09-03 the user reported that the exact 2.0.22/5002322 experiment "doesn't
@@ -428,10 +441,10 @@ The independently decoded 5001712 layout is 2,221,072 bytes with stock SHA-256 `
 | `profile` | `final-balanced` | neutral / initial / final-balanced / custom | Selects gamma+saturation pair; neutral uses `1.00` / `1.00` and retains the fixed matrix |
 | `gamma` | `1.20` | 0.50–2.50 | Custom-profile `vec3(GAMMA)` argument in `pow()` |
 | `saturation` | `1.45` | 0.00–3.00 | Custom-profile second argument in `mix()` |
-| `outputPrecision` | `rgb10-a2-experimental` | srgb8-highp / rgb10-a2-experimental / rgba16f-experimental | Selects shader transfer and every layout-specific projection swapchain format |
+| `outputPrecision` | `srgb8-highp` | srgb8-highp / rgb10-a2-experimental / rgba16f-experimental | Selects shader transfer and every layout-specific projection swapchain format |
 | `dithering` | `off` | off / low / standard | Optional noise before the EOTF; off keeps prior behavior |
 
-`rgb10-a2-experimental` is the default for OLED calibration in all 4 recommended bundles and when selected individually. `srgb8-highp` remains an explicit fallback. Host negotiation alone does not expose the Android decoder buffer or compositor precision. `rgb10-a2-experimental` is fail-closed: the patch requires the exact guarded 2,221,072-byte 2.0.20/5001712, 2,220,528-byte 2.0.20/5001740, 2,251,920-byte 2.0.22/5002244, 2,276,872-byte 2.0.22/5002313, 2,277,488-byte 2.0.22/5002318, or 2,283,400-byte 2.0.22/5002322 library layout, the unique shader/NUL boundary, every layout-specific original/already-patched instruction context, and a uniform current swapchain state. The 5001712 stock library SHA-256 is `80b62797c7e26d6b67b0cca00693b076a336bdb48ebc1383a16cccb1616ed495`. Successful RGB10_A2 projection submission was observed on Galaxy XR with 2.0.20/5001712. Other builds and end-to-end Steam Link Main10/P010 preservation through the panel remain unverified; an unsupported format can prevent stream swapchain setup.
+`srgb8-highp` is the default for OLED calibration in all 4 recommended bundles and when selected individually. RGB10 and FP16 remain explicit experimental choices. On 2026-09-09 the user reported less banding after switching the installed 2.0.20/5001712 patch from RGB10 linear to 8-bit sRGB; this observation motivates the shared default, not a claim of visual validation on every base. This changes projection output, not host encoding or decoder precision. Host negotiation alone does not expose the Android decoder buffer or compositor precision. `rgb10-a2-experimental` is fail-closed: the patch requires the exact guarded 2,221,072-byte 2.0.20/5001712, 2,220,528-byte 2.0.20/5001740, 2,251,920-byte 2.0.22/5002244, 2,276,872-byte 2.0.22/5002313, 2,277,488-byte 2.0.22/5002318, or 2,283,400-byte 2.0.22/5002322 library layout, the unique shader/NUL boundary, every layout-specific original/already-patched instruction context, and a uniform current swapchain state. The 5001712 stock library SHA-256 is `80b62797c7e26d6b67b0cca00693b076a336bdb48ebc1383a16cccb1616ed495`. Successful RGB10_A2 projection submission was observed on Galaxy XR with 2.0.20/5001712. Other builds and end-to-end Steam Link Main10/P010 preservation through the panel remain unverified; an unsupported format can prevent stream swapchain setup.
 
 `rgba16f-experimental` uses the same 6 exact guarded layouts and instruction preconditions. It preserves more linear storage precision for a comparison; it does not force the private compositor or display output to FP16. The patch does not establish runtime support: an unsupported format can fail stream setup. Repatch with RGB10 or sRGB8 to recover.
 
@@ -440,6 +453,17 @@ Static tests validate GLSL structure, fixed size, and binary placement but do no
 ---
 
 ### Controlled OLED comparison
+
+Dithering does **not** require 8-bit input or output. It adds noise to the sampled video after calibration, before output storage and (for linear formats) before sRGB-to-linear conversion. The noise strength is measured in sRGB8 code values for every output format; the shader does not first round the input to 8-bit. Decoder/import precision still depends on the actual stream and Android path; this option does not request 10-bit decoding.
+
+Set **Comparison dithering** to Low or Standard, and explicitly select RGB10 under **Video output precision** if comparing the checkbox states (the output default is now 8-bit sRGB). The **Use 8-bit output when dithering** checkbox then selects:
+
+| Checkbox | Projection output handed to the XR runtime |
+|---|---|
+| Checked | Dithered 8-bit sRGB |
+| Unchecked (default) | Dithered selected precision: 8-bit sRGB by default, or RGB10/FP16 if selected |
+
+The checkbox has no effect when dithering is Off. Unchecked retains the output selector, so selecting sRGB8 there still produces 8-bit output. These settings control app projection storage, not the compositor's later quantization, dithering, or physical panel depth. App-side dither is not guaranteed to survive later processing or improve final banding.
 
 Decoded-library compatibility is checked separately for **2.0.20/5001712** and **2.0.22/5002322**: all 3 storage formats and 3 dither modes across 7 profile/slider combinations, with 567 transitions per base. The audit executes the production helpers against exact stock native hashes and verifies allowed byte ranges, every format instruction, shader NUL boundaries, idempotence, and unchanged source libraries. Native caller evidence and runtime limits are recorded in [OLED compatibility audit](diagnostics/steamlink-colour/OLED-COMPATIBILITY-NATIVE.md).
 
@@ -457,7 +481,7 @@ Keep the same recommended patch set. In **OLED color calibration**, select **Neu
 
 Use the same dark-gradient scene, headset brightness, Steam Link bitrate/codec settings, and viewing position. Compare visible bands, near-black detail, black level, grain, and shimmer, both stationary and while moving your head. Record the actual submitted projection format with the colour diagnostic for each run: a selected option alone is not proof that the runtime accepted it. If C fails to stream, return to B or A. A smooth gradient alone does not prove panel bit depth.
 
-The defaults remain **Final balanced + RGB10 + Off**. Saved Morphe selections can override defaults. To return to the previous behavior, select those 3 values explicitly and repatch from the pristine original APK.
+The defaults are **Final balanced + 8-bit sRGB + dithering Off**, with the checkbox unchecked. Saved Morphe selections can override defaults; explicitly select 8-bit sRGB when reusing a saved RGB10 configuration. Repatch from the pristine original APK. Dithering remains an independent opt-in.
 
 The standalone `videoDitherPatch`, its old `enable` option, and recommendation dependency remain removed. Dithering now belongs to OLED calibration. The unregistered internal helper `setDitherState` in `patches/src/main/kotlin/app/template/patches/steamlink/binary/VideoDither.kt` remains for historical state handling and tests; its presence does not apply a patch.
 

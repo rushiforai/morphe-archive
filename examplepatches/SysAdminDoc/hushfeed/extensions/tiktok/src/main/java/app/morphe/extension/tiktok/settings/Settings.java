@@ -210,6 +210,19 @@ public class Settings extends BaseSettings {
     public static final IntegerSetting AUTO_ADVANCE_LIMIT = new IntegerSetting(
             "auto_advance_limit", 0, false, Setting.parent(AUTO_ADVANCE)).withRange(0, 1000);
     /**
+     * Quietens the feed while a comment sheet is open, and gives the sound back when it closes.
+     * Off by default.
+     */
+    public static final BooleanSetting PAUSE_ON_COMMENTS = new BooleanSetting(
+            "pause_on_comments", FALSE, true);
+    /**
+     * Holds the feed on returning to the app until the reader taps. Off by default. TikTok
+     * starts playing again by itself on every return, which is the one moment nobody has asked
+     * for anything.
+     */
+    public static final BooleanSetting NO_RESUME_ON_FOREGROUND = new BooleanSetting(
+            "no_resume_on_foreground", FALSE, true);
+    /**
      * A daily budget for the feed, off at zero. The two counts are independent of
      * {@link #AUTO_ADVANCE_LIMIT}, which only ever counted videos Hushfeed itself advanced past.
      */
@@ -230,6 +243,30 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SESSION_BUDGET_LOCK = new BooleanSetting(
             "session_budget_lock", FALSE, true);
+    /**
+     * How many times the hold may be opened in one day. Zero means no cap, which is what the
+     * hold has always done, and the setting sits between that and {@link #SESSION_BUDGET_LOCK},
+     * which takes the way out away entirely. Ignored while the lock is on, because there is then
+     * nothing to cap.
+     */
+    public static final IntegerSetting SESSION_BUDGET_PASSES_PER_DAY = new IntegerSetting(
+            "session_budget_passes_per_day", 0).withRange(0, 20);
+    /**
+     * Brings the hold in gradually instead of dropping it on the feed. Off by default, and it
+     * only has anything to follow when {@link #SESSION_BUDGET_MINUTES} is set: a budget counted
+     * in videos has no "how long is left" to draw a ramp from.
+     */
+    public static final BooleanSetting SESSION_BUDGET_RAMP = new BooleanSetting(
+            "session_budget_ramp", FALSE, true);
+    /**
+     * Minutes of watching between the quiet reminders, or zero for none.
+     *
+     * <p>The hold only ever fires once the day's budget has gone. This is the earlier check the
+     * wellbeing tools that measured anything all have, and it is measured in watched minutes
+     * rather than wall clock so time on messages or a profile does not count towards it.
+     */
+    public static final IntegerSetting SESSION_BUDGET_NOTICE_MINUTES = new IntegerSetting(
+            "session_budget_notice_minutes", 0).withRange(0, 120);
     /**
      * Today's counts and any running hold, so both survive the process being killed. Kept out
      * of backups: it is a record of one day, and restoring last week's would either hand back a

@@ -1,4 +1,16 @@
 <resources>
+    <!-- misc.backgroundplayback.backgroundPlaybackPatch -->
+    <string-array name="morphe_auto_pause_on_screen_lock_entries">
+        <item>@string/morphe_auto_pause_on_screen_lock_off</item>
+        <item>@string/morphe_auto_pause_on_screen_lock_always</item>
+        <item>@string/morphe_auto_pause_on_screen_lock_except_wireless</item>
+    </string-array>
+    <string-array name="morphe_auto_pause_on_screen_lock_entry_values" translatable="false">
+        <item>OFF</item>
+        <item>ALWAYS</item>
+        <item>EXCEPT_WIRELESS_AUDIO</item>
+    </string-array>
+
     <!-- layout.branding.customBrandingPatch -->
     <string-array name="morphe_custom_branding_name_entries">
         <!-- Original must be first. -->
@@ -53,12 +65,12 @@
         <item>VIDEOS_ONLY_WITH_POPULAR_DESCENDING</item>
         <item>SHORTS_ONLY_WITH_TIME_DESCENDING</item>
         <item>SHORTS_ONLY_WITH_POPULAR_DESCENDING</item>
-        <item>LIVESTREAMS_ONLY_WITH_TIME_DESCENDING</item>
-        <item>LIVESTREAMS_ONLY_WITH_POPULAR_DESCENDING</item>
+        <item>LIVE_STREAMS_ONLY_WITH_TIME_DESCENDING</item>
+        <item>LIVE_STREAMS_ONLY_WITH_POPULAR_DESCENDING</item>
         <item>ALL_MEMBERSHIPS_CONTENTS</item>
         <item>MEMBERSHIPS_VIDEOS_ONLY</item>
         <item>MEMBERSHIPS_SHORTS_ONLY</item>
-        <item>MEMBERSHIPS_LIVESTREAMS_ONLY</item>
+        <item>MEMBERSHIPS_LIVE_STREAMS_ONLY</item>
     </string-array>
 
     <!-- layout.buttons.navigation.navigationBarPatch -->

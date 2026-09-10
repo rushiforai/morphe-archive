@@ -52,13 +52,13 @@ It enhances target applications with native Pure Black AMOLED themes, comprehens
 
 <!-- PATCHES_START EXPANDED -->
 <details open>
-<summary>📦 Gboard Lite&nbsp;&nbsp;•&nbsp;&nbsp;18 patches</summary>
+<summary>📦 Gboard Lite&nbsp;&nbsp;•&nbsp;&nbsp;19 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 18.1.3.962075747-lite_beta-arm64-v8a |
-| :---: |
+| 18.1.3.962075747-lite_beta-arm64-v8a | 18.1.3.962075747-lite_beta-armeabi-v7a | 18.1.3.962075747-lite_release-arm64-v8a | 18.1.3.962075747-lite_release-armeabi-v7a |
+| :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -66,6 +66,7 @@ It enhances target applications with native Pure Black AMOLED themes, comprehens
 | **Allow Modified APK** | Bypasses internal signature check to allow custom APK execution. |  |
 | **Block Telemetry** | Disables background metrics dispatch, event logging, daily pings, and crash reporting. |  |
 | **Clone Gboard** | Changes the package name by appending a dot and custom suffix (defaults to 'kveld') to allow installing Gboard alongside the original application. | • Package name suffix |
+| **DPI Resource Slimmer** | Strips unselected screen density resource directories from res/ (e.g. drawable-mdpi, drawable-hdpi, mipmap-xhdpi). Density-independent resources (nodpi, anydpi) and orphan resources are safely preserved. | • DPI densities to keep |
 | **Disable Diagnostics** | Disables Google's diagnostic and recovery telemetry. |  |
 | **Disable Google Primes** | Neutralizes Google Primes performance profiling, jank monitoring, native crash sidecars, and background telemetry threads. |  |
 | **Disable MDD Background Sync** | Neutralizes Mobile Data Download (MDD) periodic background synchronization, automated polling, and prefetch worker tasks while preserving on-demand and user-requested downloads. |  |
@@ -84,7 +85,7 @@ It enhances target applications with native Pure Black AMOLED themes, comprehens
 </details>
 
 <details open>
-<summary>📦 Brave Private Web Browser, VPN&nbsp;&nbsp;•&nbsp;&nbsp;11 patches</summary>
+<summary>📦 Brave Private Web Browser, VPN&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -98,6 +99,7 @@ It enhances target applications with native Pure Black AMOLED themes, comprehens
 | **Brave In-Product & Commercial Notification Optimizer** | Eliminates background wakeups and notifications from Chromium tips scheduler (Job ID 105), Brave Rewards onboarding promo, and retention marketing campaigns. |  |
 | **Brave Origin** | Unlocks Brave Origin and enables local feature toggle controls. |  |
 | **Brave Startup Performance Optimization** | Optimizes startup time and eliminates background CPU/disk overhead by disabling unused OEM carrier partner customizations. |  |
+| **DPI Resource Slimmer** | Strips unselected screen density resource directories from res/ (e.g. drawable-mdpi, drawable-hdpi, mipmap-xhdpi). Density-independent resources (nodpi, anydpi) and orphan resources are safely preserved. | • DPI densities to keep |
 | **Disable Background Sync & Periodic Sync** | Eliminates background wakeups, radio modem activity, and battery drain by forcing GooglePlayServicesChecker.shouldDisableBackgroundSync() -> true and neutralizing wakeup tasks. |  |
 | **Disable Battery Status API & OS Listener** | Neutralizes the Android BatteryStatusManager broadcast listener to prevent continuous OS battery wakeups. |  |
 | **Disable Pull To Refresh** | Completely disables the pull-to-refresh overscroll gesture and animation to prevent accidental page reloads. |  |
@@ -109,7 +111,7 @@ It enhances target applications with native Pure Black AMOLED themes, comprehens
 </details>
 
 <details open>
-<summary>📦 Vivaldi Browser Snapshot&nbsp;&nbsp;•&nbsp;&nbsp;13 patches</summary>
+<summary>📦 Vivaldi Browser Snapshot&nbsp;&nbsp;•&nbsp;&nbsp;14 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -123,6 +125,7 @@ It enhances target applications with native Pure Black AMOLED themes, comprehens
 | **Block Vivaldi Telemetry** | Blocks Vivaldi usage statistics, crash reporting, Crashpad endpoints, and DirectMatch suggestions. |  |
 | **Clean Speed Dial Bookmarks** | Removes sponsored commercial affiliate bookmarks, hides the 3-dot customize button, and disables phantom touch actions on the blank Start Page. |  |
 | **Close Tabs on Exit** | Prevents tab restoration on startup, ensuring Vivaldi always opens with a clean Start Page session regardless of how the app was terminated. |  |
+| **DPI Resource Slimmer** | Strips unselected screen density resource directories from res/ (e.g. drawable-mdpi, drawable-hdpi, mipmap-xhdpi). Density-independent resources (nodpi, anydpi) and orphan resources are safely preserved. | • DPI densities to keep |
 | **Disable Background Sync & Periodic Sync** | Eliminates background wakeups, radio modem activity, and battery drain by neutralizing periodic and one-shot background sync tasks. |  |
 | **Disable Battery Status API & OS Listener** | Neutralizes the Android BatteryStatusManager broadcast listener to prevent continuous OS battery wakeups. |  |
 | **Disable Chromium Tips & Notification Scheduler** | Eliminates periodic background wakeups, native library loading, and in-product promotional tips from Chromium tips scheduler. |  |
@@ -141,14 +144,25 @@ It enhances target applications with native Pure Black AMOLED themes, comprehens
 
 ## ⚠️ Compatibility & Operational Notes
 
+### 📱 CPU Architecture Support Policy (ARM64 vs ARMv7a)
+
+> [!NOTE]
+> **Architecture Matrix & 32-bit (ARMv7a) Policy:**
+> - **Gboard Lite**: Both **`arm64-v8a` (64-bit)** and **`armeabi-v7a` (32-bit)** are officially supported. All 18 Gboard Lite patches in this suite operate strictly on Dalvik/ART DEX bytecode and Android XML resources, containing **zero native `.so` binary dependencies**. They run identically on both 64-bit and 32-bit Android runtimes.
+> - **Brave Browser & Vivaldi Snapshot**: **`arm64-v8a` (64-bit only)**. **Please do not open issues requesting `armeabi-v7a` support for Brave or Vivaldi.** Both Chromium-based browsers depend on surgical byte-level patching of the native ELF binary `lib/arm64-v8a/libchrome.so` (redirecting background telemetry, Crashpad crash uploaders, and DirectMatch endpoints to `0.0.0.0` at hardcoded 64-bit virtual memory and file offsets). Supporting 32-bit ARM for these browsers would require reverse-engineering and maintaining an entirely separate set of 32-bit ELF binary offsets for a legacy target.
+
 ### ⌨️ Gboard Lite: Target Variant & Offline Dictionary Setup
 
 > [!IMPORTANT]
-> **Always download the standalone `lite` / `lite_beta` 64-bit APK (nodpi) from [APKMirror](https://www.apkmirror.com/apk/google-inc/gboard/):**
+> **Always download the standalone `lite` / `lite_beta` APK (nodpi) from [APKMirror](https://www.apkmirror.com/apk/google-inc/gboard/):**
 >
-> - **Current Target**: `18.1.3.962075747-lite_beta-arm64-v8a`
+> - **Current Targets**:
+>   - `18.1.3.962075747-lite_beta-arm64-v8a` (64-bit)
+>   - `18.1.3.962075747-lite_beta-armeabi-v7a` (32-bit)
+>   - `18.1.3.962075747-lite_release-arm64-v8a` (64-bit)
+>   - `18.1.3.962075747-lite_release-armeabi-v7a` (32-bit)
 > - **Format**: `APK` _(Do **NOT** download `BUNDLE` / split packages)_
-> - **Architecture**: `arm64-v8a`
+> - **Architecture**: `arm64-v8a` or `armeabi-v7a` (all Gboard Lite patches in this suite are 100% ABI-agnostic Dalvik bytecode and XML transforms)
 > - **Screen DPI**: `nodpi`
 
 #### 🔧 Predictive Text & Glide Typing on Fresh Installations
@@ -274,6 +288,37 @@ ur, uz, vi, zh-CN, zh-HK, zh-TW, zu
 
 ---
 
+### 📱 Patch Documentation: DPI Resource Slimmer (Vivaldi, Brave & Gboard)
+
+The **`DPI Resource Slimmer`** patch strips unselected screen density asset directories (such as `drawable-mdpi`, `drawable-hdpi`, `drawable-xhdpi`, `mipmap-mdpi`, etc.) from `res/` to significantly reduce final APK size.
+
+#### ⚙️ Configuration in Morphe Manager
+
+When configuring the **`DPI densities to keep`** option (`dpis`), specify a comma-separated list of densities to retain:
+
+- **Default value**: `xxhdpi` (corresponds to standard 1080p displays, ~480 dpi, the most common smartphone resolution).
+- **Single density (maximum space savings)**: e.g. `xxhdpi` for 1080p devices, or `xxxhdpi` for 1440p / 2K devices.
+- **Multiple densities (broad device compatibility)**: e.g. `xhdpi, xxhdpi`.
+- **Friendly aliases**: You can also type resolution aliases such as `1080p` (maps to `xxhdpi`), `720p` (maps to `xhdpi`), or `1440p` / `2k` (maps to `xxxhdpi`).
+
+#### 📐 Screen Density Reference Guide:
+
+| Density Qualifier | Screen DPI Range | Typical Screen Resolution | Example Devices |
+| :--- | :--- | :--- | :--- |
+| **`mdpi`** | ~160 dpi (1.0x baseline) | 320x480 / 480x800 | Legacy / ultra low-end devices |
+| **`hdpi`** | ~240 dpi (1.5x) | 480x854 / 540x960 | Budget entry-level phones |
+| **`xhdpi`** | ~320 dpi (2.0x) | 720x1280 (720p HD) | Entry-level / older 720p phones |
+| **`xxhdpi`** _(Default)_ | ~480 dpi (3.0x) | 1080x1920 / 1080x2400 (1080p FHD+) | **Most modern smartphones** |
+| **`xxxhdpi`** | ~640 dpi (4.0x) | 1440x2560 / 1440x3120 (1440p QHD+) | Premium flagships (Galaxy Ultra, Pixel Pro) |
+
+#### 🛡️ Zero-Crash Safety Invariants:
+
+1. **Protected Density Qualifiers**: Density-independent directories (`drawable-nodpi`, `drawable-anydpi`, `mipmap-anydpi-v26` for vector drawables and adaptive icons) and unquantified base directories (`drawable`, `mipmap`, `values`, `layout`, etc.) are **strictly preserved and never removed**.
+2. **Orphan Asset Preservation**: If a graphical asset exists *exclusively* in a directory marked for deletion (with no corresponding file in preserved or base directories), it is automatically copied forward to the target preserved directory before deletion. This guarantees Android never encounters a `Resources$NotFoundException` at runtime.
+3. **Empty Folder Pruning**: All empty directories left behind by the removal process are cleaned up bottom-up.
+
+---
+
 ## 🛠️ Building & Development
 
 ### Prerequisites
@@ -313,6 +358,7 @@ A huge thanks to the contributors and testers who help improve, validate, and ma
 | Contributor | Role & Contributions |
 | :--- | :--- |
 | <a href="https://github.com/Lxchoooo"><img src="https://github.com/Lxchoooo.png" width="48" height="48" style="border-radius: 50%;" /><br><b>@Lxchoooo</b></a> | 🧪 Daily patch testing, runtime APK validation, and bug diagnostics. |
+| <a href="https://github.com/ll0r3nt3"><img src="https://github.com/ll0r3nt3.png" width="48" height="48" style="border-radius: 50%;" /><br><b>@ll0r3nt3</b></a> | 💡 Proposed DPI Resource Slimmer feature request ([#16](https://github.com/kveld9/kveld-morphe-patches/issues/16)). |
 
 ---
 

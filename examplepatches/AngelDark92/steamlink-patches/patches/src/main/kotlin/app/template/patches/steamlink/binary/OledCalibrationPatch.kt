@@ -1,6 +1,7 @@
 package app.template.patches.steamlink.binary
 
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.floatSliderOption
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.stringOption
@@ -130,6 +131,14 @@ internal enum class VideoDitherMode(val optionValue: String) {
                 ?: throw PatchException("Unknown OLED dithering mode: $value")
     }
 }
+
+internal fun resolveVideoOutputPrecision(
+    selected: VideoOutputPrecision,
+    dither: VideoDitherMode,
+    use8BitOutputWhenDithering: Boolean,
+): VideoOutputPrecision =
+    if (use8BitOutputWhenDithering && dither != VideoDitherMode.OFF)
+        VideoOutputPrecision.SRGB8_HIGHP else selected
 
 // Defaults remain noise-free. Optional comparison dither is applied in calibrated
 // sRGB code space before EOTF, independently of the projection storage precision.
@@ -358,14 +367,14 @@ val oledCalibrationPatch = rawResourcePatch(
 
     val outputPrecision by stringOption(
         key = "outputPrecision",
-        default = "rgb10-a2-experimental",
+        default = "srgb8-highp",
         values = mapOf(
-            "RGB10_A2 linear output (recommended)" to "rgb10-a2-experimental",
-            "8-bit sRGB highp fallback" to "srgb8-highp",
+            "8-bit sRGB highp output (recommended)" to "srgb8-highp",
+            "RGB10_A2 linear output (experimental)" to "rgb10-a2-experimental",
             "FP16 linear output (experimental; runtime support required)" to "rgba16f-experimental",
         ),
         title = "Video output precision",
-        description = "Compare sRGB8, RGB10_A2, and FP16 projection storage. Linear formats include sRGB conversion. FP16 support and performance are unverified; unsupported formats may prevent streaming. These choices do not force compositor or panel depth. Use Neutral calibration for comparisons.",
+        description = "8-bit sRGB is the default after a Galaxy XR comparison showed less banding than RGB10 linear. RGB10 can have coarser near-black steps despite its higher bit count. Linear formats include sRGB conversion. FP16 support and performance are unverified; unsupported formats may prevent streaming. These choices do not change decoder depth or force compositor/panel depth.",
         required = true,
     )
 
@@ -378,7 +387,15 @@ val oledCalibrationPatch = rawResourcePatch(
             "Standard (1 sRGB8 code peak-to-peak)" to "standard",
         ),
         title = "Comparison dithering",
-        description = "Adds fine noise after calibration, before linear conversion. Preserves exact black/white and fades noise near endpoints. Compare gradients, grain and shimmer. This is app-side noise, not final compositor dithering or proof of extra panel bits.",
+        description = "Adds fine noise after calibration, before linear conversion, at any output precision. sRGB8 codes describe noise strength, not required input or output depth. Preserves exact black/white and fades noise near endpoints. This is app-side noise, not final compositor dithering.",
+        required = true,
+    )
+
+    val use8BitOutputWhenDithering by booleanOption(
+        key = "use8BitOutputWhenDithering",
+        default = false,
+        title = "Use 8-bit output when dithering",
+        description = "With Low or Standard dithering: checked submits 8-bit sRGB projection output; unchecked keeps Video output precision (8-bit sRGB by default). Select RGB10 or FP16 and leave unchecked to dither at that output precision. Ignored when dithering is Off. Does not change decoder input depth or force compositor/panel depth.",
         required = true,
     )
 
@@ -406,10 +423,14 @@ val oledCalibrationPatch = rawResourcePatch(
             "custom" -> gamma.value!! to saturation.value!!
             else -> throw PatchException("Unknown OLED calibration profile: $profile")
         }
-        val precision = VideoOutputPrecision.fromOption(outputPrecision)
+        val dither = VideoDitherMode.fromOption(dithering)
+        val precision = resolveVideoOutputPrecision(
+            VideoOutputPrecision.fromOption(outputPrecision), dither,
+            use8BitOutputWhenDithering == true,
+        )
         val shaderPatched = bytes.copyOf().apply {
             paddedVideoShader(selectedGamma, selectedSaturation, precision,
-                VideoDitherMode.fromOption(dithering)).copyInto(this, shaderPos)
+                dither).copyInto(this, shaderPos)
         }
         file.writeBytes(
             setProjectionSwapchainFormat(

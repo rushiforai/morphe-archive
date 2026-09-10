@@ -21,7 +21,7 @@ routing. Saved explicit Samsung, Stock, or PICO profiles remain respected rather
 overridden.
 
 The exact 2.0.22/5002322 bundle selects only face bridge, high-resolution fix, microphone
-`voice-recognition`, OLED `final-balanced` with recommended `rgb10-a2-experimental`, battery usage, and Visual Delay
+`voice-recognition`, OLED `final-balanced` with recommended `srgb8-highp`, battery usage, and Visual Delay
 `60` ms. Native-XR build 5002318 retains that 6-patch set plus Device identity, where Recommended
 continues to resolve to Galaxy XR. Other supported targets outside the exact legacy recommendation
 set likewise retain Galaxy XR as their automatic choice. Neither native bundle enables legacy
@@ -30,7 +30,7 @@ conversion mutations, and 5002322 still excludes Device identity.
 The standalone Video dither patch remains removed. OLED calibration now offers `dithering`
 values `off` (default), `low`, and `standard`, plus `neutral` calibration (`1.00` gamma and
 `1.00` saturation) and optional `rgba16f-experimental` output. The defaults remain
-`final-balanced`, `rgb10-a2-experimental`, and `off`. FP16 uses the same 6 exact guarded OLED
+`final-balanced`, `srgb8-highp`, and `off`. FP16 uses the same 6 exact guarded OLED
 layouts; runtime support remains unverified and it can fail stream setup. Follow the
 [controlled comparison](PATCH_CATALOG.md#controlled-oled-comparison) to compare sRGB8, RGB10,
 and supported FP16 with dithering off, then low/standard, using the same scene and brightness
@@ -125,7 +125,7 @@ Both `libvrlink_scene.so` files contain the replacement 1087-byte video fragment
 - Saturation: `c, 1.45`
 - Zero-centered dither expression
 
-At the time of this comparison, this matched the `OLED color calibration` patch's **Final balanced** profile rather than its then-default `Initial` profile. The current defaults are `final-balanced`, `rgb10-a2-experimental`, and `dithering=off`; neutral calibration, sRGB8/FP16 output, and low/standard dithering are explicit comparison options. The archived shaders remain unchanged.
+At the time of this comparison, this matched the `OLED color calibration` patch's **Final balanced** profile rather than its then-default `Initial` profile. The current defaults are `final-balanced`, `srgb8-highp`, and `dithering=off`; neutral calibration, RGB10/FP16 output, and low/standard dithering are explicit comparison options. The archived shaders remain unchanged.
 
 Relevant current implementation:
 

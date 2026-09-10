@@ -49,7 +49,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_search_empty_history_summary">หากต้องการบันทึกประวัติการค้นหา ให้พิมพ์คำค้นหาแล้วกด Enter</string>
   <string name="morphe_settings_search_history_title">แสดงประวัติการค้นหาในการตั้งค่า</string>
   <string name="morphe_settings_name_title">ชื่อการตั้งค่า Morphe</string>
-  <string name="morphe_settings_name_default_item">ค่าเริ่มต้นThe</string>
+  <string name="morphe_settings_name_default_item">ค่าเริ่มต้น</string>
   <string name="morphe_settings_name_entry_2">เพิ่มเติม</string>
   <string name="morphe_settings_name_entry_3">การปรับแต่ง</string>
   <string name="morphe_settings_name_entry_4">เวลาแปลงร่าง</string>
@@ -179,6 +179,11 @@ Second \"item\" text"</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
   <string name="gms_core_toast_not_installed_message">MicroG ไม่ได้ติดตั้ง โปรดติดตั้ง</string>
   <string name="gms_core_dialog_title">ต้องดำเนินการ</string>
+  <string name="gms_core_dialog_outdated_message">"MicroG v%1s ของคุณล้าสมัยและอาจทำให้เกิดปัญหา
+
+โปรดอัปเดต MicroG เป็นเวอร์ชันล่าสุด v%2s"</string>
+  <string name="gms_core_dialog_update_text">อัปเดต</string>
+  <string name="gms_core_dialog_ignore_text">ไม่สนใจ</string>
   <!-- "Don't kill my app" should be kept in English and not translated -->
   <string name="gms_core_dialog_not_whitelisted_not_allowed_in_background_message">"MicroG ไม่มีสิทธิ์รันในพื้นหลัง
 

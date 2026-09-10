@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.44.0-dev.19",
+  "version": "1.44.0-dev.30",
   "patches": [
     {
       "name": "APK Junk Cleanup",
@@ -147,6 +147,49 @@
       ]
     },
     {
+      "name": "Boost Splash Screen Time",
+      "description": "Disables MX Player's welcome/splash ad so playback starts immediately.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.mxtech.videoplayer.ad",
+          "name": "MX Player",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.1.4",
+              "versionCodes": {
+                "ARM64_V8A": 2001003524,
+                "ARMEABI_V7A": 2001003524,
+                "X86_64": 2001003524,
+                "X86": 2001003524
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "3.2.1",
+              "versionCodes": {
+                "ARM64_V8A": 2001003531,
+                "ARMEABI_V7A": 2001003531,
+                "X86_64": 2001003531,
+                "X86": 2001003531
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Change Cleaner & Media Tab Defaults",
       "description": "Changes first-run defaults: hides the Image, Video, Audio and Cleaner tabs, and shows hidden files by default. Only affects users who have never changed the setting themselves - the preference override still takes priority.",
       "default": true,
@@ -199,7 +242,7 @@
     },
     {
       "name": "Clean Me Tab",
-      "description": "Removes promo rows and unused tiles from the Me tab.",
+      "description": "WARNING: MX Player has an integrity check, and some mods add their own on top. Use a Play Store build, Use URV Manager, patch with signing off, then use MT Manager Enhanced Signature Kill or the app may refuse to start.Removes promo rows and unused tiles from the Me tab. Optional Add Network Stream tile.",
       "default": false,
       "dependencies": [
         "ResourcePatch",
@@ -226,6 +269,18 @@
               "isExperimental": false,
               "minSdk": null,
               "description": null
+            },
+            {
+              "version": "3.2.1",
+              "versionCodes": {
+                "ARM64_V8A": 2001003531,
+                "ARMEABI_V7A": 2001003531,
+                "X86_64": 2001003531,
+                "X86": 2001003531
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
             }
           ]
         }
@@ -234,7 +289,7 @@
         {
           "key": "addNetworkStream",
           "title": "Add Network Stream tile",
-          "description": "WARNING: MX Player has an integrity check, and some mods add their own on top. Use a Play Store build, patch with signing off, then strip signature verification (MT Manager Enhanced or a modded build) - or the app may refuse to start.",
+          "description": "Add back network stream to me tab",
           "required": false,
           "type": "kotlin.Boolean",
           "default": true,
@@ -357,6 +412,18 @@
               "isExperimental": false,
               "minSdk": null,
               "description": null
+            },
+            {
+              "version": "3.2.1",
+              "versionCodes": {
+                "ARM64_V8A": 2001003531,
+                "ARMEABI_V7A": 2001003531,
+                "X86_64": 2001003531,
+                "X86": 2001003531
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
             }
           ]
         }
@@ -364,11 +431,11 @@
       "options": [
         {
           "key": "skipPopup",
-          "title": "Skip intro popup",
-          "description": "Tapping the menu item toggles Smart Enhance directly instead of showing the popup first.",
+          "title": "Skip intro popup and animation",
+          "description": "Tapping the menu item toggles Smart Enhance directly instead of showing the popup first and animation.",
           "required": false,
           "type": "kotlin.Boolean",
-          "default": false,
+          "default": true,
           "values": null
         },
         {
@@ -405,6 +472,18 @@
                 "ARMEABI_V7A": 2001003524,
                 "X86_64": 2001003524,
                 "X86": 2001003524
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "3.2.1",
+              "versionCodes": {
+                "ARM64_V8A": 2001003531,
+                "ARMEABI_V7A": 2001003531,
+                "X86_64": 2001003531,
+                "X86": 2001003531
               },
               "isExperimental": false,
               "minSdk": null,
@@ -479,6 +558,18 @@
                 "ARMEABI_V7A": 2001003524,
                 "X86_64": 2001003524,
                 "X86": 2001003524
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "3.2.1",
+              "versionCodes": {
+                "ARM64_V8A": 2001003531,
+                "ARMEABI_V7A": 2001003531,
+                "X86_64": 2001003531,
+                "X86": 2001003531
               },
               "isExperimental": false,
               "minSdk": null,
@@ -986,7 +1077,7 @@
     },
     {
       "name": "Remove Duplicate Graphics",
-      "description": "Keeps images for only one screen density (like xhdpi) and removes copies for all other densities. Android will automatically scale the kept images, making the app significantly smaller.",
+      "description": "Keeps only one screen-density copy of every duplicated resource (drawables, layouts, and any other resource type shipped at multiple densities) and removes the rest, letting Android scale the kept copy. Mipmaps (the launcher icon) always keep their highest-quality copy instead of following the target density, since that's the one resource users actually see blown up on their home screen. Optionally strips device-specific resources (smartwatch, Android TV, etc.) entirely.",
       "default": false,
       "dependencies": [],
       "compatiblePackages": null,
@@ -994,18 +1085,45 @@
         {
           "key": "targetDensity",
           "title": "Target density",
-          "description": "Density bucket to keep; duplicates are stripped from every other bucket.",
-          "required": false,
+          "description": "Density bucket to prefer for drawables and other non-mipmap resources; duplicates are stripped from every other bucket. If a particular resource was never shipped at this density, the next higher density available for it is kept instead, falling back to a lower one only if nothing higher exists either. Mipmaps ignore this and always keep their highest-quality copy.",
+          "required": true,
           "type": "kotlin.String",
           "default": "xhdpi",
           "values": {
-            "ldpi": "ldpi",
-            "mdpi": "mdpi",
-            "hdpi": "hdpi",
-            "xhdpi": "xhdpi",
-            "xxhdpi": "xxhdpi",
-            "xxxhdpi": "xxxhdpi"
+            "Low (ldpi)": "ldpi",
+            "Medium (mdpi)": "mdpi",
+            "High (hdpi)": "hdpi",
+            "Extra-high (xhdpi)": "xhdpi",
+            "Extra-extra-high (xxhdpi)": "xxhdpi",
+            "Extra-extra-extra-high (xxxhdpi)": "xxxhdpi"
           }
+        },
+        {
+          "key": "stripSmartwatch",
+          "title": "Remove smartwatch (Wear OS) resources",
+          "description": "Entirely removes resources qualified for smartwatches -- not just duplicate copies, all of them -- regardless of density. Off by default since it changes what device types the app supports.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "stripAndroidTv",
+          "title": "Remove Android TV resources",
+          "description": "Entirely removes resources qualified for Android TV -- not just duplicate copies, all of them -- regardless of density. Off by default since it changes what device types the app supports.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "stripOtherFormFactors",
+          "title": "Remove other device-specific resources (car, desk dock, VR headset)",
+          "description": "Entirely removes resources qualified for car head units, desk docks, or VR headsets -- not just duplicate copies, all of them -- regardless of density. Off by default since it changes what device types the app supports.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
         }
       ]
     },
@@ -1052,6 +1170,49 @@
                 "ARMEABI_V7A": 118,
                 "X86_64": 118,
                 "X86": 118
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Recycle Bin",
+      "description": "Disables the Recycle Bin and removes it from the Me tab; deleted files are removed permanently.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.mxtech.videoplayer.ad",
+          "name": "MX Player",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.1.4",
+              "versionCodes": {
+                "ARM64_V8A": 2001003524,
+                "ARMEABI_V7A": 2001003524,
+                "X86_64": 2001003524,
+                "X86": 2001003524
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "3.2.1",
+              "versionCodes": {
+                "ARM64_V8A": 2001003531,
+                "ARMEABI_V7A": 2001003531,
+                "X86_64": 2001003531,
+                "X86": 2001003531
               },
               "isExperimental": false,
               "minSdk": null,
@@ -1211,56 +1372,23 @@
               "isExperimental": false,
               "minSdk": null,
               "description": null
+            },
+            {
+              "version": "3.2.1",
+              "versionCodes": {
+                "ARM64_V8A": 2001003531,
+                "ARMEABI_V7A": 2001003531,
+                "X86_64": 2001003531,
+                "X86": 2001003531
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
             }
           ]
         }
       ],
       "options": [
-        {
-          "key": "hideVideoDisplay",
-          "title": "Hide Video Display",
-          "description": null,
-          "required": false,
-          "type": "kotlin.Boolean",
-          "default": true,
-          "values": null
-        },
-        {
-          "key": "hideMoreMenuHelp",
-          "title": "Hide More menu Help section",
-          "description": "Hides What's New, Features, FAQ, Check for Update, Bug Report, and About.",
-          "required": false,
-          "type": "kotlin.Boolean",
-          "default": true,
-          "values": null
-        },
-        {
-          "key": "enableDefaultShortcuts",
-          "title": "Change default shortcuts",
-          "description": "Settings > Player > Customize Shortcuts still works and always wins once touched.",
-          "required": false,
-          "type": "kotlin.Boolean",
-          "default": false,
-          "values": null
-        },
-        {
-          "key": "defaultShortcutsMask",
-          "title": "Default shortcuts bitmask (hex)",
-          "description": "Bit sum of enabled shortcuts, decimal or 0x-prefixed hex. Bits: 0x1 rotation, 0x2 speed, 0x4 background play, 0x8 loop, 0x10 mute, 0x20 shuffle, 0x40 equalizer, 0x100 sleep timer, 0x200 repeat A-B, 0x400 night mode, 0x800 customise items, 0x1000 screenshot, 0x2000 mirror mode, 0x4000 vertical flip, 0x8000 audio effect. Default 0x780F.",
-          "required": false,
-          "type": "kotlin.Int",
-          "default": 30735,
-          "values": null
-        },
-        {
-          "key": "openSubtitleSettings",
-          "title": "Open subtitle settings by default",
-          "description": "Expands Sync/Speed/Panel/Customization in the subtitle menu instead of collapsed.",
-          "required": false,
-          "type": "kotlin.Boolean",
-          "default": true,
-          "values": null
-        },
         {
           "key": "hideBookmark",
           "title": "Hide Bookmark",
@@ -1301,6 +1429,51 @@
           "key": "hidePlayingQueue",
           "title": "Hide Playing Queue",
           "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "hideVideoDisplay",
+          "title": "Hide Video Display",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "hideMoreMenuHelp",
+          "title": "Hide More menu Help section",
+          "description": "Hides What's New, Features, FAQ, Check for Update, Bug Report, and About.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "enableDefaultShortcuts",
+          "title": "Change default shortcuts",
+          "description": "Settings > Player > Customize Shortcuts still works and always wins once touched.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "defaultShortcutsMask",
+          "title": "Default shortcuts bitmask (hex)",
+          "description": "Bit sum of enabled shortcuts, decimal or 0x-prefixed hex. Bits: 0x1 rotation, 0x2 speed, 0x4 background play, 0x8 loop, 0x10 mute, 0x20 shuffle, 0x40 equalizer, 0x100 sleep timer, 0x200 repeat A-B, 0x400 night mode, 0x800 customise items, 0x1000 screenshot, 0x2000 mirror mode, 0x4000 vertical flip, 0x8000 audio effect. Default 0x780F.",
+          "required": false,
+          "type": "kotlin.Int",
+          "default": 30735,
+          "values": null
+        },
+        {
+          "key": "openSubtitleSettings",
+          "title": "Open subtitle settings by default",
+          "description": "Expands Sync/Speed/Panel/Customization in the subtitle menu instead of collapsed.",
           "required": false,
           "type": "kotlin.Boolean",
           "default": true,

@@ -6,6 +6,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
+import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -16,6 +18,7 @@ import app.morphe.extension.tiktok.settings.Settings;
 import java.lang.reflect.Method;
 import java.util.Calendar;
 import java.util.TimeZone;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.After;
@@ -47,6 +50,8 @@ public class SessionLockOverlayTest {
         Settings.SESSION_BUDGET_VIDEOS.resetToDefault();
         Settings.SESSION_BUDGET_LOCK_MINUTES.resetToDefault();
         Settings.SESSION_BUDGET_LOCK.resetToDefault();
+        Settings.SESSION_BUDGET_PASSES_PER_DAY.resetToDefault();
+        Settings.SESSION_BUDGET_NOTICE_MINUTES.resetToDefault();
         Settings.SESSION_BUDGET_STATE.resetToDefault();
         now.set(at(2026, Calendar.SEPTEMBER, 7, 12, 0));
         SessionBudget.setClockForTests(now::get);
@@ -57,6 +62,9 @@ public class SessionLockOverlayTest {
     }
 
     @After public void tearDown() throws Exception {
+        // Robolectric reuses its sandbox classloader across test classes, so a seeded tab view
+        // would answer for every later test that asks whether there is an Inbox.
+        seedInboxTab(null);
         // The override is a static Boolean on the shared library and Robolectric reuses its
         // sandbox classloader across test classes, so leaving it set answers for every later
         // test that expects the system configuration.
@@ -65,7 +73,13 @@ public class SessionLockOverlayTest {
         SessionBudget.setClockForTests(null);
         SessionBudget.awaitWritesForTests();
         SessionBudget.resetForTests();
+        Settings.SESSION_BUDGET_NOTICE_MINUTES.resetToDefault();
         Settings.SESSION_BUDGET_STATE.resetToDefault();
+        // Finish the timer before Robolectric clears its queue but keeps the static flag.
+        Runnable tick = org.robolectric.util.ReflectionHelpers.getStaticField(SessionLockOverlay.class, "TICK");
+        android.os.Handler handler = org.robolectric.util.ReflectionHelpers.getStaticField(SessionLockOverlay.class, "MAIN");
+        handler.removeCallbacks(tick);
+        tick.run();
     }
 
     @Test public void theHoldStopsAboveTheTabBar() throws Exception {
@@ -104,6 +118,123 @@ public class SessionLockOverlayTest {
 
             assertEquals(0, (int) navigationHeight().invoke(null, activity, root));
         }
+    }
+
+    // On S22, the tab row and system inset occupy a small bottom strip. Match the virtual
+    // display to the fixture scale so automatic window layouts preserve that proportion.
+    @Test @Config(qualifiers = "w480dp-h960dp-mdpi")
+    public void aTabRowMeasuredAfterHoldAttachmentRemainsTappable() {
+        assertProfileRemainsTappableAfterNavigationLayout(false, false);
+    }
+
+    @Test @Config(qualifiers = "w480dp-h960dp-mdpi")
+    public void aRetainedHoldTracksLaterNavigationHeightChanges() {
+        assertProfileRemainsTappableAfterNavigationLayout(true, false);
+    }
+
+    @Test @Config(qualifiers = "w480dp-h960dp-mdpi")
+    public void aMeasuredTabRowAboveTheSystemInsetRemainsTappableFromAnOffsetRoot() {
+        assertProfileRemainsTappableAfterNavigationLayout(true, true);
+    }
+
+    private void assertProfileRemainsTappableAfterNavigationLayout(
+            boolean initiallyMeasured, boolean withSystemInset) {
+        Settings.SESSION_BUDGET_VIDEOS.save(1);
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(5);
+        SessionBudget.noteVideo("held-navigation-video");
+        assertTrue(SessionBudget.claimNotice());
+
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            ViewGroup root = activity.findViewById(android.R.id.content);
+            layoutHoldRoot(root, withSystemInset);
+
+            FrameLayout bar = new FrameLayout(activity);
+            FrameLayout.LayoutParams barParams = new FrameLayout.LayoutParams(-1, 80, Gravity.BOTTOM);
+            barParams.bottomMargin = withSystemInset ? 100 : 0;
+            root.addView(bar, barParams);
+            View home = new View(activity);
+            home.setSelected(true);
+            bar.addView(home, new FrameLayout.LayoutParams(96, -1, Gravity.LEFT));
+            View profile = new View(activity);
+            AtomicInteger profileTaps = new AtomicInteger();
+            profile.setOnClickListener(view -> profileTaps.incrementAndGet());
+            bar.addView(profile, new FrameLayout.LayoutParams(96, -1, Gravity.RIGHT));
+            seedHomeTab(home);
+            if (initiallyMeasured) layoutHoldRoot(root, withSystemInset);
+            else assertEquals("the regression needs an unmeasured native row", 0, bar.getHeight());
+
+            SessionLockOverlay.sync();
+            View panel = root.getChildAt(root.getChildCount() - 1);
+            AtomicInteger panelDowns = new AtomicInteger();
+            panel.setOnTouchListener((view, event) -> {
+                if (event.getActionMasked() == MotionEvent.ACTION_DOWN) panelDowns.incrementAndGet();
+                return false;
+            });
+            if (initiallyMeasured && !withSystemInset) {
+                assertEquals(80, ((FrameLayout.LayoutParams) panel.getLayoutParams()).bottomMargin);
+                // A navigation-mode or inset change gives the retained tab row a new height.
+                ViewGroup.LayoutParams params = bar.getLayoutParams();
+                params.height = 180;
+                bar.setLayoutParams(params);
+            }
+
+            layoutHoldRoot(root, withSystemInset);
+            root.getViewTreeObserver().dispatchOnGlobalLayout();
+            layoutHoldRoot(root, withSystemInset);
+            root.getViewTreeObserver().dispatchOnGlobalLayout();
+            Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            layoutHoldRoot(root, withSystemInset);
+            assertTrue("the native tab was never laid out", profile.getHeight() > 0);
+            assertTrue("the regression must reuse the existing hold", panel.getParent() == root);
+            if (withSystemInset) {
+                int[] rootPosition = new int[2];
+                root.getLocationOnScreen(rootPosition);
+                assertTrue("the regression needs a nonzero root origin",
+                        rootPosition[0] != 0 && rootPosition[1] != 0);
+                assertEquals(100, root.getHeight() - bar.getBottom());
+            }
+
+            // The top of the enlarged tab lies under the old margin. Dispatch through the root
+            // so a stale hold must actually intercept the tap rather than just report bad bounds.
+            tapRoot(root, bar.getLeft() + profile.getLeft() + profile.getWidth() / 2f,
+                    bar.getTop() + profile.getTop() + 16);
+            assertEquals("the retained hold intercepted the native Profile tab", 1, profileTaps.get());
+            assertEquals("the native Profile tap reached the hold", 0, panelDowns.get());
+            // Also protect the last pixel of feed above the tab. Mixing screen and root
+            // coordinates can move the hold too high and expose this strip instead.
+            tapRoot(root, 240, bar.getTop() - 1);
+            assertEquals("repairing navigation uncovered the held feed", 1, panelDowns.get());
+            assertTrue(SessionBudget.isLocked());
+        } finally {
+            seedHomeTab(null);
+            Utils.setActivity(null);
+            SessionBudget.releaseLock();
+            SessionLockOverlay.sync();
+        }
+    }
+
+    private static void layoutHoldRoot(View root, boolean withSystemInset) {
+        root.measure(View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(960, View.MeasureSpec.EXACTLY));
+        int left = withSystemInset ? 24 : 0;
+        int top = withSystemInset ? 45 : 0;
+        root.layout(left, top, left + 480, top + 960);
+    }
+
+    private static void tapRoot(ViewGroup root, float x, float y) {
+        MotionEvent down = MotionEvent.obtain(10, 10, MotionEvent.ACTION_DOWN, x, y, 0);
+        MotionEvent up = MotionEvent.obtain(10, 30, MotionEvent.ACTION_UP, x, y, 0);
+        try {
+            assertTrue(root.dispatchTouchEvent(down));
+            assertTrue(root.dispatchTouchEvent(up));
+        } finally {
+            down.recycle();
+            up.recycle();
+        }
+        // View posts its click after ACTION_UP, as it does when a real tab receives a touch.
+        Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
     }
 
     @Test public void aRowTallEnoughToBeTheFeedIsNotMistakenForNavigation() throws Exception {
@@ -157,6 +288,67 @@ public class SessionLockOverlayTest {
             assertTrue("the panel does not say when the feed comes back: " + hint.getText(),
                     hint.getText().toString().contains(SessionLockOverlay.resetTimeLabel()));
         }
+    }
+
+    @Test public void aSpentCapCountsDownAndThenTakesTheWayOutAway() throws Exception {
+        // Between the way out always being there and Lock today, which removes it. The control
+        // says how many are left, and once they are gone it is as absent as it is on a locked
+        // day. The hint below still says what does work, so the panel is not a dead end.
+        Settings.SESSION_BUDGET_VIDEOS.save(1);
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(5);
+        Settings.SESSION_BUDGET_PASSES_PER_DAY.save(2);
+        SessionBudget.noteVideo("a");
+        assertTrue(SessionBudget.claimNotice());
+
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            SessionLockOverlay.sync();
+
+            // Looked up again after every sync: a hold that ends detaches the panel, so the
+            // next one is a different view and a held reference reads the old text for ever.
+            assertEquals(View.VISIBLE, wayOut(activity).getVisibility());
+            assertEquals("Open the feed anyway, 2 left today",
+                    wayOut(activity).getText().toString());
+            assertEquals("a screen reader would not hear the count",
+                    wayOut(activity).getText().toString(),
+                    wayOut(activity).getContentDescription().toString());
+
+            // Spend the first. The next hold is a raised budget away, which is what a reader
+            // who carries on scrolling does.
+            wayOut(activity).performClick();
+            assertTrue("the way out did not open the feed", !SessionBudget.isLocked());
+            reachTheHoldAgain("b", 2);
+            SessionLockOverlay.sync();
+            assertEquals("Open the feed anyway, the last time today",
+                    wayOut(activity).getText().toString());
+
+            // Spend the last, and it is gone for the rest of the day.
+            wayOut(activity).performClick();
+            assertTrue(!SessionBudget.isLocked());
+            reachTheHoldAgain("c", 3);
+            SessionLockOverlay.sync();
+            assertEquals("a spent cap left the way out on the panel",
+                    View.GONE, wayOut(activity).getVisibility());
+
+            wayOut(activity).performClick();
+            assertTrue("a tap got through a spent cap", SessionBudget.isLocked());
+        }
+    }
+
+    /** The way out on whichever panel is up now. */
+    private static android.widget.TextView wayOut(Activity activity) {
+        ViewGroup root = activity.findViewById(android.R.id.content);
+        ViewGroup panel = (ViewGroup) root.getChildAt(root.getChildCount() - 1);
+        return (android.widget.TextView) panel.getChildAt(3);
+    }
+
+    /** Raises the budget past today's count so the notice arms and the next hold starts. */
+    private static void reachTheHoldAgain(String awemeId, int budget) {
+        Settings.SESSION_BUDGET_VIDEOS.save(budget);
+        SessionBudget.claimNotice();
+        SessionBudget.noteVideo(awemeId);
+        assertTrue("the hold did not come back", SessionBudget.claimNotice());
     }
 
     @Test public void theHoldIsAnnouncedAndTakesTheFeedOutOfTheReadingOrder() throws Exception {
@@ -225,6 +417,111 @@ public class SessionLockOverlayTest {
         }
     }
 
+    @Test public void theWayToMessagesIsOfferedOnlyWhileThereIsAnInboxTabToOpen() throws Exception {
+        // The panel says messages still work and then covers everything, so without this the
+        // reader has to already know the Inbox tab is under it.
+        Settings.SESSION_BUDGET_VIDEOS.save(1);
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(5);
+        SessionBudget.noteVideo("a");
+        assertTrue(SessionBudget.claimNotice());
+
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+
+            // No Inbox tab, which is what a build that renamed it and a reader who hid it in
+            // Feed navigation both look like: the filter drops the tab and no view is built.
+            seedInboxTab(null);
+            SessionLockOverlay.sync();
+            ViewGroup root = activity.findViewById(android.R.id.content);
+            ViewGroup panel = (ViewGroup) root.getChildAt(root.getChildCount() - 1);
+            android.widget.TextView messages = (android.widget.TextView) panel.getChildAt(4);
+            assertEquals("a way to an Inbox that is not there", View.GONE,
+                    messages.getVisibility());
+
+            // With one, it is offered, reads as a button, and a tap is the tab's own click. The
+            // view has to be in the window: the cache re-resolves anything detached by name, and
+            // the resource this build looks for does not exist in a test application.
+            var inbox = new FrameLayout(activity);
+            var taps = new java.util.concurrent.atomic.AtomicInteger();
+            inbox.setOnClickListener(view -> taps.incrementAndGet());
+            root.addView(inbox, 0);
+            seedInboxTab(inbox);
+
+            // Asked as the panel goes up rather than on every tick, so the answer moves when
+            // the hold does. Ending this one and taking the next is what a reader who changed
+            // the setting and came back to the feed does.
+            SessionBudget.releaseLock();
+            SessionLockOverlay.sync();
+            Settings.SESSION_BUDGET_VIDEOS.save(2);
+            SessionBudget.claimNotice();
+            SessionBudget.noteVideo("b");
+            assertTrue(SessionBudget.claimNotice());
+            SessionLockOverlay.sync();
+
+            panel = (ViewGroup) root.getChildAt(root.getChildCount() - 1);
+            messages = (android.widget.TextView) panel.getChildAt(4);
+            assertEquals(View.VISIBLE, messages.getVisibility());
+            assertEquals("Open messages", messages.getText().toString());
+            assertEquals("a screen reader would not hear it as a button",
+                    android.widget.Button.class.getName(), roleOf(messages));
+
+            messages.performClick();
+            assertEquals("the Inbox tab was not clicked", 1, taps.get());
+            assertTrue("the hold ended when the reader went to messages",
+                    SessionBudget.isLocked());
+        }
+    }
+
+    @Test public void theQuietReminderIsABannerThatAnnouncesItselfAndGoesOnItsOwn() throws Exception {
+        // A toast takes no focus and goes on its own too, but TalkBack does not read it as a
+        // live region, and it is outside the decor tree so it cannot be captured. This is the
+        // banner the block button's undo already uses, without anything to press.
+        Settings.SESSION_BUDGET_NOTICE_MINUTES.save(5);
+        SessionBudget.noteWatching();
+        for (int tick = 0; tick < 5 * 60; tick++) {
+            now.addAndGet(1_000L);
+            SessionBudget.noteWatching();
+        }
+
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            ViewGroup root = activity.findViewById(android.R.id.content);
+            var looper = Shadows.shadowOf(android.os.Looper.getMainLooper());
+            int before = root.getChildCount();
+
+            app.morphe.extension.tiktok.wellbeing.SessionBudgetNotice.showIntervalNoticeIfDue();
+            looper.idle();
+            assertEquals("the reminder was not drawn", before + 1, root.getChildCount());
+
+            View banner = root.getChildAt(root.getChildCount() - 1);
+            assertEquals("a screen reader would never hear it",
+                    View.ACCESSIBILITY_LIVE_REGION_POLITE, banner.getAccessibilityLiveRegion());
+            assertTrue("the reminder took the focus", !banner.isFocusable());
+
+            layout(root, 480, 960);
+            app.morphe.extension.tiktok.UiCapture.save(banner, "session-reminder.png", 480, 96);
+
+            // And it takes itself away rather than waiting to be dismissed.
+            looper.idleFor(java.time.Duration.ofSeconds(7));
+            assertEquals("the reminder stayed on the feed", before, root.getChildCount());
+        }
+    }
+
+    /** What TalkBack would call the view. */
+    private static String roleOf(View view) {
+        var info = android.view.accessibility.AccessibilityNodeInfo.obtain();
+        view.onInitializeAccessibilityNodeInfo(info);
+        return String.valueOf(info.getClassName());
+    }
+
+    private static void seedInboxTab(View inboxTab) {
+        org.robolectric.util.ReflectionHelpers.setStaticField(
+                app.morphe.extension.tiktok.blockauthor.FeedVisibility.class,
+                "inboxTabReference", new java.lang.ref.WeakReference<>(inboxTab));
+    }
+
     private static Object holdOrNull() {
         return SessionBudget.isLocked() ? Boolean.TRUE : null;
     }
@@ -278,9 +575,8 @@ public class SessionLockOverlayTest {
     }
 
     @Test public void theHoldAsksTheFeedToStopPlaying() throws Exception {
-        // The panel covers the feed and swallows touches, but the video underneath kept playing
-        // with sound, which reads as the app having broken. Taking the audio focus is how one
-        // app tells another to stop, and it is the only lever this extension has.
+        // Focus remains held alongside the native pause. This also covers a restored hold
+        // before the first native player instance has reported progress.
         Settings.SESSION_BUDGET_VIDEOS.save(1);
         Settings.SESSION_BUDGET_LOCK_MINUTES.save(5);
         SessionBudget.noteVideo("a");

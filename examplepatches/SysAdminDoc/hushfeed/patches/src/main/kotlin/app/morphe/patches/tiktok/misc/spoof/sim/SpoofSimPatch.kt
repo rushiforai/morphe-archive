@@ -7,8 +7,10 @@ package app.morphe.patches.tiktok.misc.spoof.sim
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
@@ -91,6 +93,27 @@ val simSpoofPatch = bytecodePatch(
                     """,
                 )
             }
+        }
+
+        // TikTok's startup SIM check reports a change to its own telemetry: which way the SIM
+        // went, how long since the last check, how many SIMs the phone has, and the country and
+        // carrier before and after. What decides that something changed is the subscription id,
+        // an int the spoof does not touch, so the event fires on a real SIM swap or a change of
+        // which SIM carries data. The country and carrier in it read as the preset, but the SIM
+        // count does not: it comes from SubscriptionManager rather than TelephonyManager, and
+        // the event still says the hardware moved. Nothing else in the app reads what the task
+        // stores, so with the preset on it does not run.
+        CheckSimChangeTaskFingerprint.method.apply {
+            addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static {}, $EXTENSION_CLASS_DESCRIPTOR->shouldSkipSimChangeReport()Z
+                    move-result v0
+                    if-eqz v0, :run_sim_check
+                    return-void
+                """,
+                ExternalLabel("run_sim_check", getInstruction(0)),
+            )
         }
 
         SettingsStatusLoadFingerprint.method.addInstruction(

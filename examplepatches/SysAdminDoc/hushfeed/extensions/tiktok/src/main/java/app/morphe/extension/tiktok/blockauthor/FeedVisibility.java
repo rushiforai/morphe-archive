@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.view.View;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.ResourceIdCache;
 
 import java.lang.ref.WeakReference;
 import java.util.Map;
@@ -30,7 +31,20 @@ public final class FeedVisibility {
     /** Bottom navigation Home tab on TikTok 46.2.3. */
     private static final String HOME_TAB_RESOURCE_NAME = "o1k";
 
+    /** Bottom navigation Inbox tab on the same build. */
+    private static final String INBOX_TAB_RESOURCE_NAME = "o1l";
+
     private static WeakReference<View> homeTabReference = new WeakReference<>(null);
+    private static WeakReference<View> inboxTabReference = new WeakReference<>(null);
+
+    /**
+     * Names resolved once each. The view lookup below has to run again whenever the cached view
+     * is gone, and for a tab that is genuinely absent, which is what a reader who hid Inbox in
+     * Feed navigation has, that is every call. Resolving the name each time is a string search
+     * through TikTok's resource table, and the hold's panel asks once a second for as long as it
+     * is up. InboxFilter made the same fix for the same id.
+     */
+    private static final ResourceIdCache IDS = new ResourceIdCache();
     private static volatile boolean warnedMissing;
 
     // Fragment instances are weak keys, and values never retain the fragment or its view.
@@ -106,31 +120,59 @@ public final class FeedVisibility {
         return homeTab(activity);
     }
 
+    /**
+     * The Inbox tab, for anything that wants to send the reader there.
+     *
+     * <p>Null when this build renames it and, just as usefully, when the reader has hidden Inbox
+     * in Feed navigation: the filter drops the tab from the model, so no view is ever built. A
+     * caller can treat null as "there is no Inbox to open" without reasoning about the setting.
+     */
+    public static View inboxTabView(Activity activity) {
+        return tab(activity, INBOX_TAB_RESOURCE_NAME, inboxTabReference,
+                reference -> inboxTabReference = reference);
+    }
+
     private static View homeTab(Activity activity) {
-        View cached = homeTabReference.get();
+        return tab(activity, HOME_TAB_RESOURCE_NAME, homeTabReference,
+                reference -> homeTabReference = reference);
+    }
+
+    /** Holds the view weakly and re-resolves it once the old one leaves the window. */
+    private static View tab(
+            Activity activity,
+            String resourceName,
+            WeakReference<View> cache,
+            Consumer<WeakReference<View>> store
+    ) {
+        View cached = cache.get();
         if (cached != null && cached.isAttachedToWindow()) {
             return cached;
         }
 
         try {
-            int id = activity.getResources().getIdentifier(
-                    HOME_TAB_RESOURCE_NAME, "id", activity.getPackageName());
+            int id = IDS.resolve(activity.getResources(), activity.getPackageName(),
+                    resourceName, false);
             if (id == 0) {
-                warnMissing();
+                if (HOME_TAB_RESOURCE_NAME.equals(resourceName)) warnMissing();
                 return null;
             }
 
-            View homeTab = activity.findViewById(id);
-            if (homeTab == null) {
+            View tab = activity.findViewById(id);
+            if (tab == null) {
                 return null;
             }
 
-            homeTabReference = new WeakReference<>(homeTab);
-            return homeTab;
+            store.accept(new WeakReference<>(tab));
+            return tab;
         } catch (Throwable ex) {
-            Logger.printException(() -> "Could not resolve the Home tab", ex);
+            Logger.printException(() -> "Could not resolve the " + resourceName + " tab", ex);
             return null;
         }
+    }
+
+    /** API 24's own is above the payload's floor. */
+    private interface Consumer<T> {
+        void accept(T value);
     }
 
     private static void warnMissing() {

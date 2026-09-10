@@ -102,16 +102,16 @@ public final class SettingsHeaderPreference extends Preference {
     /** Shared app-owned heading used by settings and the Lab. Parent supplies the 16 dp gutter. */
     public static LinearLayout createHeader(Context context, String title, Runnable onBack) {
         LinearLayout header = new LinearLayout(context);
-        header.setTag("metra_page_header");
+        header.setTag("hushfeed_page_header");
         header.setOrientation(LinearLayout.VERTICAL);
         header.setPadding(SettingsUi.dp(context, 8), SettingsUi.dp(context, 8), SettingsUi.dp(context, 8), 0);
         header.setBackgroundColor(SettingsUi.background());
         LinearLayout toolbar = new LinearLayout(context);
-        toolbar.setTag("metra_toolbar");
+        toolbar.setTag("hushfeed_toolbar");
         toolbar.setGravity(Gravity.CENTER_VERTICAL);
         ImageView back = new ImageView(context);
         back.setContentDescription(L10n.t(context, "Back"));
-        back.setImageDrawable(new BackDrawable());
+        back.setImageDrawable(new BackDrawable(context));
         back.setOnClickListener(view -> { if (onBack != null) onBack.run(); });
         back.setFocusable(true);
         // The same accent-at-15%-alpha the grouped rows use. divider() is 1.3:1 against the
@@ -132,8 +132,9 @@ public final class SettingsHeaderPreference extends Preference {
         brandParams.setMarginStart(SettingsUi.dp(context, 8));
         toolbar.addView(brand, brandParams);
         header.addView(toolbar, new LinearLayout.LayoutParams(-1, -2));
-        TextView heading = SettingsUi.text(context, title, 40, SettingsUi.textPrimary(), 1);
-        heading.setTag("metra_page_title");
+        TextView heading = SettingsUi.text(
+                context, title, headingSizeSp(context), SettingsUi.textPrimary(), 1);
+        heading.setTag("hushfeed_page_title");
         if (android.os.Build.VERSION.SDK_INT >= 28) heading.setAccessibilityHeading(true);
         LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(-1, -2);
         titleParams.topMargin = SettingsUi.dp(context, 24);
@@ -151,26 +152,50 @@ public final class SettingsHeaderPreference extends Preference {
         return caption;
     }
 
-    private static final class BackDrawable extends Drawable {
+    /**
+     * How large the page title may be at the reader's text scale.
+     *
+     * <p>40sp against a 2x scale is 80sp of page title: "Kommentare und Uebersetzung" took five
+     * lines and 85% of the screen, with the first card of the page below the fold. The title is
+     * allowed to grow to about a third again of its own size and no further, so an ordinary
+     * scale is unchanged and a large one still leaves the page underneath it.
+     */
+    public static int headingSizeSp(Context context) {
+        float scale = context.getResources().getConfiguration().fontScale;
+        if (scale <= 1.3f) return 40;
+        return Math.max(24, Math.round(40 * 1.3f / scale));
+    }
+
+    public static final class BackDrawable extends Drawable {
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-        BackDrawable() {
+        public BackDrawable(Context context) {
             paint.setColor(SettingsUi.textPrimary());
             paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(2.1f);
+            paint.setStrokeWidth(SettingsUi.strokePx(context, 2.1f));
             paint.setStrokeCap(Paint.Cap.ROUND);
             paint.setStrokeJoin(Paint.Join.ROUND);
+        }
+
+        /**
+         * The header row mirrors, by margin and gravity, and the glyph inside it did not, so an
+         * Arabic or Hebrew reader got a left pointing back arrow parked at the right edge.
+         */
+        @Override
+        public boolean isAutoMirrored() {
+            return true;
         }
 
         @Override
         public void draw(Canvas canvas) {
             float centerX = getBounds().exactCenterX();
             float centerY = getBounds().exactCenterY();
-            float offset = Math.min(getBounds().width(), getBounds().height()) * 0.18f;
+            float size = Math.min(getBounds().width(), getBounds().height()) * 0.18f;
+            float offset = getLayoutDirection() == View.LAYOUT_DIRECTION_RTL ? -size : size;
             float pointX = centerX - offset;
             canvas.drawLine(pointX, centerY, centerX + offset, centerY, paint);
-            canvas.drawLine(pointX, centerY, centerX - offset * 0.1f, centerY - offset * 0.9f, paint);
-            canvas.drawLine(pointX, centerY, centerX - offset * 0.1f, centerY + offset * 0.9f, paint);
+            canvas.drawLine(pointX, centerY, centerX - offset * 0.1f, centerY - size * 0.9f, paint);
+            canvas.drawLine(pointX, centerY, centerX - offset * 0.1f, centerY + size * 0.9f, paint);
         }
 
         @Override

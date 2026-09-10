@@ -39,7 +39,7 @@ class PatchCompatibilityMatrixTest {
         recommendedBundles.forEach { patch ->
             assertTrue(patch.default, patch.name)
             assertTrue(oledCalibrationPatch in patch.dependencyClosure(), patch.name)
-            assertEquals("rgb10-a2-experimental", oledCalibrationPatch.options["outputPrecision"].default)
+            assertEquals("srgb8-highp", oledCalibrationPatch.options["outputPrecision"].default)
             assertEquals("off", oledCalibrationPatch.options["dithering"].default)
         }
         assertEquals("Appear on top (legacy)", appearOnTopPatch.name)
@@ -96,7 +96,7 @@ class PatchCompatibilityMatrixTest {
         assertEquals(60, hmdOnlyPatch.options["offsetMs"].default)
         assertEquals("final-balanced", oledCalibrationPatch.options["profile"].default)
         assertEquals("off", oledCalibrationPatch.options["dithering"].default)
-        assertEquals("rgb10-a2-experimental", oledCalibrationPatch.options["outputPrecision"].default)
+        assertEquals("srgb8-highp", oledCalibrationPatch.options["outputPrecision"].default)
         assertFalse(deviceIdentityPatch in galaxyXrRecommended5002322Patch.dependencyClosure())
         assertTrue(deviceIdentityPatch.supports("2.0.22", 5002322))
         assertFalse(deviceIdentityPatch.supports("2.0.20", 5002322))

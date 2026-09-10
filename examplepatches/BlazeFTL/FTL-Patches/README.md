@@ -1,6 +1,6 @@
 # 👋🧩 FTL Patches
 
-Personal collection of my Morphe Patches.
+Personal collection of my Morphe Patches
 
 ## ❓ About
 
@@ -9,7 +9,7 @@ Strips ads and analytics/crash-reporting SDKs at the bytecode level, cleans buil
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.44.0-dev.19](https://github.com/BlazeFTL/FTL-Patches/releases/tag/v1.44.0-dev.19)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;58 patches total
+> **[v1.44.0-dev.30](https://github.com/BlazeFTL/FTL-Patches/releases/tag/v1.44.0-dev.30)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;60 patches total
 <details>
 <summary>📦 All Video Downloader & Ace Player&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
@@ -30,6 +30,27 @@ Strips ads and analytics/crash-reporting SDKs at the bytecode level, cleans buil
 </details>
 
 <details>
+<summary>📦 MX Player&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 3.1.4 | 3.2.1 |
+| :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Boost Splash Screen Time](#boost-splash-screen-time) | Disables MX Player's welcome/splash ad so playback starts immediately. |  |
+| [Clean Me Tab](#clean-me-tab) | WARNING: MX Player has an integrity check, and some mods add their own on top. Use a Play Store build, Use URV Manager, patch with signing off, then use MT Manager Enhanced Signature Kill or the app may refuse to start.Removes promo rows and unused tiles from the Me tab. Optional Add Network Stream tile. | • Add Network Stream tile |
+| [Configure Smart Enhance](#configure-smart-enhance) | Configures the Smart Enhance intro popup and enable/disable toast. | • Skip intro popup and animation<br>• Show toast on enable |
+| [Configure SpeedUp overlay](#configure-speedup-overlay) | "2x UI": keeps the long-press SpeedUp overlay/animation, with the stock leftover-visible-view bug fixed. "No UI": the overlay never shows at all - the speed change itself still applies, since that's handled elsewhere. | • No UI |
+| [Disable Bottom Bar And Add Me Tab To Top](#disable-bottom-bar-and-add-me-tab-to-top) | Hides the bottom navigation bar and adds a Me tab button to the toolbar. |  |
+| [Remove Recycle Bin](#remove-recycle-bin) | Disables the Recycle Bin and removes it from the Me tab; deleted files are removed permanently. |  |
+| [Sidebar & Player Defaults](#sidebar-player-defaults) | Cleans the player sidebar and More menu; sets default shortcuts and subtitle view. | • Hide Bookmark<br>• Hide Favourite<br>• Hide Add to Playlist<br>• Hide Tutorial<br>• Hide Playing Queue<br>• Hide Video Display<br>• Hide More menu Help section<br>• Change default shortcuts<br>• Default shortcuts bitmask (hex)<br>• Open subtitle settings by default |
+
+</details>
+
+<details>
 <summary>📦 File Manager - XFolder&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
@@ -43,25 +64,6 @@ Strips ads and analytics/crash-reporting SDKs at the bytecode level, cleans buil
 | [Change Cleaner & Media Tab Defaults](#change-cleaner-media-tab-defaults) | Changes first-run defaults: hides the Image, Video, Audio and Cleaner tabs, and shows hidden files by default. Only affects users who have never changed the setting themselves - the preference override still takes priority. |  |
 | [Disable Rate Us Dialog](#disable-rate-us-dialog) | Prevents the in-app rate-us dialog from ever being shown. |  |
 | [Unlock Pro & Skip Splash Screen](#unlock-pro-skip-splash-screen) | Forces the ad-removed/Pro check to always return true, and renames the launcher activity from SplashActivity to MainActivity so the splash screen is skipped. |  |
-
-</details>
-
-<details>
-<summary>📦 MX Player&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 3.1.4 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Clean Me Tab](#clean-me-tab) | Removes promo rows and unused tiles from the Me tab. | • Add Network Stream tile |
-| [Configure Smart Enhance](#configure-smart-enhance) | Configures the Smart Enhance intro popup and enable/disable toast. | • Skip intro popup<br>• Show toast on enable |
-| [Configure SpeedUp overlay](#configure-speedup-overlay) | "2x UI": keeps the long-press SpeedUp overlay/animation, with the stock leftover-visible-view bug fixed. "No UI": the overlay never shows at all - the speed change itself still applies, since that's handled elsewhere. | • No UI |
-| [Disable Bottom Bar And Add Me Tab To Top](#disable-bottom-bar-and-add-me-tab-to-top) | Hides the bottom navigation bar and adds a Me tab button to the toolbar. |  |
-| [Sidebar & Player Defaults](#sidebar-player-defaults) | Cleans the player sidebar and More menu; sets default shortcuts and subtitle view. | • Hide Video Display<br>• Hide More menu Help section<br>• Change default shortcuts<br>• Default shortcuts bitmask (hex)<br>• Open subtitle settings by default<br>• Hide Bookmark<br>• Hide Favourite<br>• Hide Add to Playlist<br>• Hide Tutorial<br>• Hide Playing Queue |
 
 </details>
 
@@ -274,7 +276,7 @@ Strips ads and analytics/crash-reporting SDKs at the bytecode level, cleans buil
 | [Remove Analytics](#remove-analytics) | Disables tracking and crash-reporting tools, corrupts analytics web links inside the code, and removes background tracking services. |  |
 | [Remove Analytics New](#remove-analytics-new) | Corrupts analytics network URLs and split-scheme string obfuscation inside the code, and strips matching manifest components. |  |
 | [Remove Debug Info](#remove-debug-info) | Removes debug information (line numbers, variable names, source file references) from every class in the .dex files to reduce overall APK size. |  |
-| [Remove Duplicate Graphics](#remove-duplicate-graphics) | Keeps images for only one screen density (like xhdpi) and removes copies for all other densities. Android will automatically scale the kept images, making the app significantly smaller. | • Target density |
+| [Remove Duplicate Graphics](#remove-duplicate-graphics) | Keeps only one screen-density copy of every duplicated resource (drawables, layouts, and any other resource type shipped at multiple densities) and removes the rest, letting Android scale the kept copy. Mipmaps (the launcher icon) always keep their highest-quality copy instead of following the target density, since that's the one resource users actually see blown up on their home screen. Optionally strips device-specific resources (smartwatch, Android TV, etc.) entirely. | • Target density<br>• Remove smartwatch (Wear OS) resources<br>• Remove Android TV resources<br>• Remove other device-specific resources (car, desk dock, VR headset) |
 | [Remove Languages](#remove-languages) | Removes translations for languages you don't use. Only keeps the languages you pick.  | • Languages to keep |
 | [Skip Splash Screen - Expert Only](#skip-splash-screen-expert-only) | EXPERT USERS ONLY. Manually Configure It To Point At Real Splash And Main Activity As Many Apps Use Other Names. Check the log to know what the patch is doing. Ensure App Doesnt Ask For Permissions In Splash Screen. | • Splash activity name<br>• Real main activity name |
 | [Spoof App Signature](#spoof-app-signature) | Makes the app think its signing certificate is unchanged after Morphe re-signs it, useful when an app crashes or shows a tamper warning because it checks its own certificate. Does not bypass Play Integrity / SafetyNet hardware attestation. Apply with Original app certificate patch. | • Package name override (optional) |

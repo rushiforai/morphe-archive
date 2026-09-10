@@ -55,10 +55,27 @@ import app.morphe.extension.shared.spoof.potoken.PoTokenManager;
  */
 public class StreamingDataRequest {
 
-    public record StreamData(byte[] streamingData, @Nullable byte[] playerConfig, boolean hasAndroidMedia) {
+    public record StreamData(
+            byte[] streamingData,
+            @Nullable byte[] playerConfig,
+            boolean hasAndroidMedia,
+            boolean usesSabr,
+            String clientUserAgent
+    ) {
     }
 
     private static volatile ClientType[] clientOrderToUse = ClientType.values();
+
+    /**
+     * Non-SABR clients used by features that need a byte-addressable media URL rather than
+     * replacement streams for the YouTube player. Keep this independent from the user's spoof
+     * preference and from {@link #clientOrderToUse}.
+     */
+    private static final ClientType[] DIRECT_STREAM_CLIENT_ORDER = {
+            ClientType.TV_SIMPLY,
+            ClientType.TV_DASH,
+            ClientType.VISIONOS_1_03
+    };
 
     public static void setClientOrderToUse(List<ClientType> availableClients, ClientType preferredClient) {
         Objects.requireNonNull(preferredClient);
@@ -174,16 +191,36 @@ public class StreamingDataRequest {
         return videoId;
     }
 
-    private StreamingDataRequest(String videoId, boolean isInline, Map<String, String> playerHeaders) {
+    private StreamingDataRequest(
+            String videoId,
+            boolean isInline,
+            Map<String, String> playerHeaders,
+            boolean directStreamsOnly
+    ) {
         this.videoId = videoId;
         this.isInline = isInline;
         this.future = Utils.submitOnBackgroundThread(
-                () -> fetch(resolveVideoIdToFetch(videoId), isInline, playerHeaders));
+                () -> fetch(resolveVideoIdToFetch(videoId), isInline, playerHeaders,
+                        directStreamsOnly));
     }
 
     public static void fetchRequest(String videoId, boolean isInline, Map<String, String> fetchHeaders) {
         // Always fetch, even if there is an existing request for the same video.
-        cache.put(videoId, new StreamingDataRequest(videoId, isInline, fetchHeaders));
+        cache.put(videoId, new StreamingDataRequest(videoId, isInline, fetchHeaders, false));
+    }
+
+    /**
+     * Starts an uncached player request restricted to clients that return ordinary DASH URLs.
+     * The caller owns the returned request. This does not change spoof playback state, its cache,
+     * or the client shown in Stats for nerds.
+     */
+    @NonNull
+    public static StreamingDataRequest fetchDirectStreamRequest(
+            String videoId,
+            boolean isInline,
+            Map<String, String> fetchHeaders
+    ) {
+        return new StreamingDataRequest(videoId, isInline, fetchHeaders, true);
     }
 
     @Nullable
@@ -358,14 +395,14 @@ public class StreamingDataRequest {
                 return null;
             }
 
-            // In YouTube 20.21.37, manifestless livestreams cannot be played using the SABR protocol, or there are playback issues.
+            // In YouTube 20.21.37, manifestless live streams cannot be played using the SABR protocol, or there are playback issues.
             // Until code to assemble the manifestUrl is implemented or code to override the exoPlayerConfig is ready,
-            // TV SABR clients in livestreams will be temporarily fallbacked to TV DASH clients.
+            // TV SABR clients in live streams will be temporarily fallbacked to TV DASH clients.
             //
             // TODO: Override other playerConfigs such as exoPlayerConfig.
             if (clientType.requireSABR && clientType == ClientType.TV_SABR
                     && Utils.containsAny(streamingData.getServerAbrStreamingUrl(), "yt_live_broadcast", "yt_premiere_broadcast")) {
-                Logger.printDebug(() -> "Livestream detected, fallback to TV dash");
+                Logger.printDebug(() -> "Live stream detected, fallback to TV dash");
                 fallbackWithTVDash = true;
                 return null;
             }
@@ -420,7 +457,12 @@ public class StreamingDataRequest {
                 playerConfigBuffer = playerConfigBuilder.build().toByteArray();
             }
 
-            return new StreamData(streamingDataBuffer, playerConfigBuffer, hasAndroidMedia);
+            return new StreamData(
+                    streamingDataBuffer,
+                    playerConfigBuffer,
+                    hasAndroidMedia,
+                    clientType.requireSABR,
+                    clientType.userAgent);
         } catch (IOException ex) {
             Logger.printException(() -> "Failed to write player response for video stream", ex);
             return null;
@@ -435,20 +477,29 @@ public class StreamingDataRequest {
         return false;
     }
 
-    private static StreamData fetch(String videoId, boolean isInline, Map<String, String> playerHeaders) {
+    private static StreamData fetch(
+            String videoId,
+            boolean isInline,
+            Map<String, String> playerHeaders,
+            boolean directStreamsOnly
+    ) {
         final boolean debugEnabled = BaseSettings.DEBUG.get();
         final long fetchStartTime = System.currentTimeMillis();
         String authorization = playerHeaders.get(AUTHORIZATION_HEADER);
+        ClientType[] clients = directStreamsOnly
+                ? DIRECT_STREAM_CLIENT_ORDER
+                : clientOrderToUse;
 
         // Retry with different client if empty response body is received.
         int i = 0;
-        for (ClientType clientType : clientOrderToUse) {
+        for (ClientType clientType : clients) {
             if (skipClient(clientType)) {
                 continue;
             }
 
             // Show an error if the last client type fails, or if debug is enabled then show for all attempts.
-            final boolean showErrorToast = (++i == clientOrderToUse.length) || debugEnabled;
+            final boolean showErrorToast = !directStreamsOnly
+                    && ((++i == clients.length) || debugEnabled);
 
             HttpURLConnection connection = send(clientType, videoId, authorization, showErrorToast);
             StreamData streamingData = buildPlayerResponseBuffer(clientType, connection, videoId, isInline);
@@ -461,7 +512,9 @@ public class StreamingDataRequest {
             }
 
             if (streamingData != null) {
-                lastSpoofedClientType = clientType;
+                if (!directStreamsOnly) {
+                    lastSpoofedClientType = clientType;
+                }
 
                 if (clientType.requireJS) {
                     Logger.printDebug(() -> "End of fetch for JavaScript required client" +
@@ -473,6 +526,11 @@ public class StreamingDataRequest {
 
                 return streamingData;
             }
+        }
+
+        if (directStreamsOnly) {
+            Logger.printInfo(() -> "No direct stream client succeeded");
+            return null;
         }
 
         lastSpoofedClientType = null;

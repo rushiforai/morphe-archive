@@ -48,7 +48,7 @@ bash scripts/extract-smali.sh app.apkm out-smali/
 
 ```fish
 # Both hosts
-brew install openjdk@21 jadx apktool android-cli shellcheck actionlint
+brew install openjdk@21 jadx apktool android-cli
 ```
 
 Use Java **21** for this repo (CI uses Temurin; Homebrew OpenJDK 21 works locally).
@@ -112,7 +112,6 @@ required. `ANDROID_HOME` controls Gradle SDK discovery; PATH controls terminal t
 | Gradle (checked-in `./gradlew`; no separate install) | Build/test bundles and extensions |
 | `gh`, `jq` (Fedora: `sudo dnf install -y gh jq`; macOS: `brew install gh jq`) | GitHub releases/PRs and JSON |
 | Morphe Desktop CLI/GUI (see [Morphe Desktop is also the CLI](#5-morphe-desktop-is-also-the-cli)) | Apply bundles and sign APKs |
-| `shellcheck`, `actionlint` (`brew install shellcheck actionlint`) | Standalone script/workflow linting; pinned hooks, shfmt, and JVM checks: [code quality](development.md#code-quality) |
 
 ### Needed only for reverse engineering
 
@@ -222,12 +221,8 @@ adb version
 aapt version
 jadx --version
 apktool --version
-shellcheck scripts/*.sh
-actionlint
 python3 -m unittest discover -s scripts/tests
-uvx --from pre-commit==4.6.2 --with shellcheck-py==0.11.0.1 pre-commit run --all-files
-./gradlew qualityCheck :patches:test :extensions:extension:testDebugUnitTest buildAndroid --no-daemon
 ```
 
-The final command builds the bundle and companion extension; a successful build
-still needs [device QA](qa-checklist.md).
+Then follow [canonical verification](development.md#verify).
+A successful build still needs [device QA](qa-checklist.md).

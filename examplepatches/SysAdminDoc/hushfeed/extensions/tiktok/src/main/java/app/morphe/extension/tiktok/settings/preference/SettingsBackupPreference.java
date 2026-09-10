@@ -88,7 +88,8 @@ public final class SettingsBackupPreference extends Preference
         try { fragment.startActivityForResult(intent, action); }
         catch (RuntimeException error) {
             Logger.printException(() -> "Could not open settings file picker", error);
-            Utils.showToastLong(L10n.t("The file picker is not available on this device."));
+            Utils.showToastLong(L10n.t(
+                    "This phone has no file picker, so there is no way to choose a file here."));
         }
     }
 
@@ -104,8 +105,12 @@ public final class SettingsBackupPreference extends Preference
         Context context = activity.getApplicationContext();
         WeakReference<TikTokPreferenceFragment> owner = new WeakReference<>(fragment);
         if (action != EXPORT) AbstractPreferenceFragment.settingImportInProgress = true;
-        Utils.showToastShort(L10n.t(action == EXPORT
-                ? "Saving settings backup" : "Updating settings"));
+        // One line per action. "Updating settings" was said for a restore, a reset and an
+        // undo alike, so the one thing on screen did not say which of the three was running.
+        Utils.showToastShort(L10n.t(action == EXPORT ? "Saving settings backup"
+                : action == IMPORT ? "Restoring your settings"
+                : action == RESET ? "Putting the settings back to their defaults"
+                : "Undoing the last change"));
         Utils.runOnBackgroundThread(() -> {
             boolean labRulesSkipped = false;
             int keptAsTheyWere = 0;
@@ -147,10 +152,23 @@ public final class SettingsBackupPreference extends Preference
                 }
                 // Each of these is one literal, because the translation gate reads the literal
                 // handed to L10n and a string built from two of them is two entries it cannot find.
-                Utils.showToastLong(L10n.t(action == EXPORT ? "Settings backup saved"
-                        : labRulesSkipped
-                                ? "Settings saved. The Feature Gate Lab rules were for another TikTok version and were left out. Restart TikTok to apply all changes."
-                                : "Settings saved. Restart TikTok to apply all changes."));
+                // The action decides the sentence, and only then does it matter whether Lab
+                // rules were dropped. An undo copy written before a retarget carries rules for
+                // the older build too, so testing that first made every such undo say a restore
+                // had happened. The chain stays flat: a bracketed group around a nested ternary
+                // puts the literal inside brackets that are not L10n's, which is the one thing
+                // the translation gate reads.
+                Utils.showToastLong(L10n.t(
+                        action == EXPORT ? "Settings backup saved"
+                                : action == IMPORT && labRulesSkipped
+                                ? "Settings restored. The Feature Gate Lab rules were for another TikTok version and were left out. Restart TikTok to apply all changes."
+                                : action == IMPORT
+                                ? "Settings restored. Restart TikTok to apply all changes."
+                                : action == RESET
+                                ? "Settings are back to their defaults. Restart TikTok to apply all changes."
+                                : labRulesSkipped
+                                ? "The last change is undone. The Feature Gate Lab rules were for another TikTok version and were left out. Restart TikTok to apply all changes."
+                                : "The last change is undone. Restart TikTok to apply all changes."));
             } catch (Exception error) {
                 Logger.printException(() -> "Settings backup operation failed", error);
                 Utils.showToastLong(L10n.t(failureMessage(action, error)));

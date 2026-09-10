@@ -40,14 +40,18 @@ public class SimSpoofPreferenceCategory extends ConditionalPreferenceCategory {
         addPreference(new TogglePreference(
                 context,
                 "Override SIM details",
-                "Use the selected country and operator values. Restart TikTok after changing region settings.",
+                // The operator rows are only added when the SIM spoof patch is in the
+                // bundle, so on one without it this promised two fields that are not there.
+                SettingsStatus.simSpoofEnabled
+                        ? "Use the selected country and operator values. Restart TikTok to apply this."
+                        : "Use the selected country. Restart TikTok to apply this.",
                 Settings.SIM_SPOOF
         ));
         if (SettingsStatus.regionSpoofEnabled) {
             addPreference(new TogglePreference(context, "Match locale and timezone to country",
-                    "Also override TikTok's region getters. Keeps your interface language. Requires Override SIM details and a restart; IP address and account rules still apply.", Settings.REGION_SPOOF));
+                    "Also change the region TikTok reports internally. Keeps your interface language. Needs Override SIM details and a restart; your IP address and your account's own rules still apply.", Settings.REGION_SPOOF));
             addPreference(new TogglePreference(context, "Override store region (experimental)",
-                    "Use the preset for TikTok's account and store region getters too. May affect search. Requires the locale option and a restart.", Settings.REGION_STORE_SPOOF));
+                    "Use the preset for the region TikTok reports for your account and its shop too. May affect search. Needs the language option and a restart.", Settings.REGION_STORE_SPOOF));
         }
         InputTextPreference countryIsoPreference = new InputTextPreference(
                 context,

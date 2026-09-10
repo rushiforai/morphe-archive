@@ -18,7 +18,7 @@ $source = [IO.File]::ReadAllText((Join-Path $repo 'patches/src/main/kotlin/app/t
 $marker = '@Suppress("unused")'
 if ($source.IndexOf($marker) -lt 0) { throw 'OLED source boundary changed; update this audit runner.' }
 $helpers = $source.Substring(0, $source.IndexOf($marker))
-$helpers = $helpers -replace '(?m)^import app\.morphe\.patcher\.patch\.(floatSliderOption|rawResourcePatch|stringOption)\r?\n', ''
+$helpers = $helpers -replace '(?m)^import app\.morphe\.patcher\.patch\.(booleanOption|floatSliderOption|rawResourcePatch|stringOption)\r?\n', ''
 $helpers = $helpers -replace '(?m)^import app\.template\.patches\.shared\.Constants\.COMPATIBILITIES_STEAM_LINK\r?\n', ''
 [IO.File]::WriteAllText((Join-Path $output 'OledHelpers.kt'), $helpers)
 # Only the exception type is shimmed. Every shader/format mutation helper is current production source.

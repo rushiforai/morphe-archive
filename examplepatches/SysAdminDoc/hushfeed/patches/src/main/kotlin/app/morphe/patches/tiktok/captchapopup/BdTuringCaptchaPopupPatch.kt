@@ -32,11 +32,15 @@ private object RiskControlServiceExecuteFingerprint : Fingerprint(
  */
 @Suppress("unused")
 val bdTuringCaptchaPopupPatch = bytecodePatch(
-    name = "Hide BdTuring CAPTCHA popups",
-    description = "Hides TikTok's risk control CAPTCHA dialog, which the browsing CAPTCHA " +
+    // The name is what Morphe Manager lists. BdTuring is ByteDance's own SDK name and means
+    // nothing to anyone reading that list; it is kept in the description, where somebody
+    // searching for it will still find it.
+    name = "Hide the risk control CAPTCHA",
+    description = "Hides TikTok's risk control CAPTCHA dialog, raised by its BdTuring service, " +
+        "which the browsing CAPTCHA " +
         "patch does not cover. Answers the Hide CAPTCHA popups setting, never touches SMS or " +
         "two factor verification, and never hides a check the server raised over a follow, " +
-        "like, comment or repost. Off by default. Supports TikTok 46.2.3.",
+        "like, comment or repost. Off by default.",
     default = false,
 ) {
     // The recorder is what lets the gate tell a browsing puzzle from one raised over a write.

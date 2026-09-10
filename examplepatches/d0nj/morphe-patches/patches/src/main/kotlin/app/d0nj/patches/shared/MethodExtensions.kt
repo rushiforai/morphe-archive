@@ -1,4 +1,4 @@
-package app.template.patches.shared
+package app.d0nj.patches.shared
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod

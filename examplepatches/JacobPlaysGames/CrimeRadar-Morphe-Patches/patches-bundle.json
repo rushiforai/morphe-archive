@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-09T00:17:40",
-  "description": "## [1.7.0](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/compare/v1.6.0...v1.7.0) (2026-09-09)\n\n### ✨ New Features\n\n* **scannerradio:** add minSdk=29 to Scanner Radio target ([f5fa369](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/commit/f5fa36949b2bc6da0b1877ce9903dd9863476ecf))",
-  "download_url": "https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/releases/download/v1.7.0/patches-1.7.0.mpp",
+  "created_at": "2026-09-10T01:07:44",
+  "description": "## [1.9.0](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/compare/v1.8.6...v1.9.0) (2026-09-10)\n\n### ✨ New Features\n\n* **scannerradio:** patch all 12 pairip-injected lifecycle methods ([a96f165](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/commit/a96f16525fc9cd2246821f786034a0cd7e4e5a71))",
+  "download_url": "https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches/releases/download/v1.9.0/patches-1.9.0.mpp",
   "signature_download_url": "",
-  "version": "1.7.0"
+  "version": "1.9.0"
 }

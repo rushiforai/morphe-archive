@@ -7,7 +7,15 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction12x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction23x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21s
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -21,7 +29,10 @@ import org.junit.Test
  * rather than read out of an APK, so a case says what shape it needs and no more.
  */
 class BytecodeUtilsTest {
-    private fun method(returnType: String): MutableMethod = MutableMethod(
+    private fun method(
+        returnType: String,
+        vararg instructions: Instruction = arrayOf(ImmutableInstruction10x(Opcode.RETURN_VOID)),
+    ): MutableMethod = MutableMethod(
         ImmutableMethod(
             "Lcom/example/Host;",
             "value",
@@ -31,12 +42,21 @@ class BytecodeUtilsTest {
             null,
             null,
             ImmutableMethodImplementation(
-                1,
-                listOf(ImmutableInstruction10x(Opcode.RETURN_VOID)),
+                // Room for a few registers: a case that needs two of them should not have to
+                // build its own method.
+                4,
+                instructions.toList(),
                 null,
                 null,
             ),
         ),
+    )
+
+    /** A body that hands an object back, which is what returnLate needs to find. */
+    private fun returnsAnObject(returnType: String): MutableMethod = method(
+        returnType,
+        ImmutableInstruction11n(Opcode.CONST_4, 0, 0),
+        ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0),
     )
 
     private fun field(vararg flags: AccessFlags): MutableField = MutableField(
@@ -50,6 +70,10 @@ class BytecodeUtilsTest {
             null,
         ),
     )
+
+    /** The opcode at an index, without dragging the patcher's instruction extensions in. */
+    private fun opcodeAt(body: MutableMethod, index: Int): Opcode =
+        body.implementation!!.instructions.toList()[index].opcode
 
     @Test
     fun `a double returning method takes a double`() {
@@ -75,13 +99,34 @@ class BytecodeUtilsTest {
         array.returnEarly(null)
         assertEquals(Opcode.CONST_4, array.implementation!!.instructions.first().opcode)
 
-        // Not String: overrideReturnValue takes String and CharSequence down a const-string path
-        // before it looks at the first character, so a null return on one of those writes the
-        // text "0x0" rather than null. Its twin returnLate(Void?) does the same, so that is its
-        // own item rather than something this change alters.
         val obj = method("Ljava/util/List;")
         obj.returnEarly(null)
         assertEquals(Opcode.CONST_4, obj.implementation!!.instructions.first().opcode)
+
+        // String and CharSequence took a const-string path that is chosen before the first
+        // character is looked at, so a null return on either wrote the text "0x0" and the caller
+        // got a three character string where it asked for null. returnLate(Void?) did the same.
+        for (text in listOf("Ljava/lang/String;", "Ljava/lang/CharSequence;")) {
+            val early = method(text)
+            early.returnEarly(null)
+            assertEquals(
+                "returnEarly(null) on a method returning $text",
+                Opcode.CONST_4,
+                early.implementation!!.instructions.first().opcode,
+            )
+
+            val late = returnsAnObject(text)
+            late.returnLate(null)
+            assertTrue(
+                "returnLate(null) on a method returning $text wrote a string",
+                late.implementation!!.instructions.none { it.opcode == Opcode.CONST_STRING },
+            )
+            assertEquals(
+                "returnLate(null) on a method returning $text added no null",
+                2,
+                late.implementation!!.instructions.count { it.opcode == Opcode.CONST_4 },
+            )
+        }
 
         for (primitive in listOf("I", "V", "Z", "J")) {
             assertThrows(
@@ -102,5 +147,143 @@ class BytecodeUtilsTest {
         val one = field(AccessFlags.PRIVATE, AccessFlags.STATIC)
         one.removeFlags(AccessFlags.PRIVATE)
         assertEquals(AccessFlags.STATIC.value, one.accessFlags)
+    }
+
+    @Test
+    fun `the literal override edits the result of the literal's own call`() {
+        // A literal is loaded a few instructions before the call it is an argument to. Taking
+        // the first move-result anywhere after it took whichever call came first, so a call
+        // that lands in that gap had its own result overridden and the literal's was left
+        // alone. Here the literal is loaded at index 0, an unrelated call takes its result at
+        // index 2, and the literal's call is at index 3.
+        val unrelated = ImmutableMethodReference(
+            "Lcom/example/Other;", "first", emptyList(), "I",
+        )
+        val owner = ImmutableMethodReference(
+            "Lcom/example/Host;", "second", listOf("I"), "I",
+        )
+        val body = method(
+            "I",
+            ImmutableInstruction21s(Opcode.CONST_16, 0, 1234),
+            ImmutableInstruction35c(Opcode.INVOKE_STATIC, 0, 0, 0, 0, 0, 0, unrelated),
+            // Into v1, so the literal in v0 is still the literal when its own call reads it.
+            ImmutableInstruction11x(Opcode.MOVE_RESULT, 1),
+            ImmutableInstruction35c(Opcode.INVOKE_STATIC, 1, 0, 0, 0, 0, 0, owner),
+            ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+            ImmutableInstruction11x(Opcode.RETURN, 0),
+        )
+
+        body.insertLiteralOverride(0, true)
+
+        // The override goes after the move-result at index 4, not the one at index 2.
+        assertEquals(Opcode.MOVE_RESULT, opcodeAt(body, 2))
+        assertEquals(Opcode.INVOKE_STATIC, opcodeAt(body, 3))
+        assertEquals(Opcode.MOVE_RESULT, opcodeAt(body, 4))
+        assertEquals(Opcode.CONST, opcodeAt(body, 5))
+    }
+
+    @Test
+    fun `a literal overwritten before any call is refused`() {
+        // The register is loaded, written again, and only then read by a call. The value the
+        // call reads is not the literal, so overriding that call's result would be overriding
+        // something else entirely.
+        val other = ImmutableMethodReference(
+            "Lcom/example/Other;", "take", listOf("I"), "I",
+        )
+        val body = method(
+            "I",
+            ImmutableInstruction21s(Opcode.CONST_16, 0, 1234),
+            ImmutableInstruction21s(Opcode.CONST_16, 0, 5678),
+            ImmutableInstruction35c(Opcode.INVOKE_STATIC, 1, 0, 0, 0, 0, 0, other),
+            ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+            ImmutableInstruction11x(Opcode.RETURN, 0),
+        )
+
+        assertThrows(IllegalStateException::class.java) {
+            body.insertLiteralOverride(0, true)
+        }
+    }
+
+    @Test
+    fun `a literal whose call does not take a result is refused rather than guessed at`() {
+        val voidCall = ImmutableMethodReference(
+            "Lcom/example/Other;", "consume", listOf("I"), "V",
+        )
+        val body = method(
+            "I",
+            ImmutableInstruction21s(Opcode.CONST_16, 0, 1234),
+            ImmutableInstruction35c(Opcode.INVOKE_STATIC, 1, 0, 0, 0, 0, 0, voidCall),
+            ImmutableInstruction11x(Opcode.RETURN, 0),
+        )
+
+        assertThrows(IllegalStateException::class.java) {
+            body.insertLiteralOverride(0, true)
+        }
+    }
+
+    @Test
+    fun `a literal buried under a wide write is refused`() {
+        // A wide instruction names only the low half of the pair it writes, so a write into v0
+        // lands on v1 as well. The walk read the named register alone, so the literal in v1
+        // looked untouched and the call below it looked like the literal's own.
+        val other = ImmutableMethodReference(
+            "Lcom/example/Other;", "take", listOf("I"), "I",
+        )
+        val body = method(
+            "I",
+            ImmutableInstruction21s(Opcode.CONST_16, 1, 1234),
+            ImmutableInstruction21s(Opcode.CONST_WIDE_16, 0, 5678),
+            ImmutableInstruction35c(Opcode.INVOKE_STATIC, 1, 1, 0, 0, 0, 0, other),
+            ImmutableInstruction11x(Opcode.MOVE_RESULT, 1),
+            ImmutableInstruction11x(Opcode.RETURN, 1),
+        )
+
+        assertThrows(IllegalStateException::class.java) {
+            body.insertLiteralOverride(0, true)
+        }
+    }
+
+    @Test
+    fun `a conversion away from a wide value does not end the literal's life`() {
+        // long-to-int reads a pair and writes one register, but its mnemonic says long, so a
+        // check that asked whether the opcode mentions a wide value refused this method. The
+        // literal in v2 is untouched: nothing here writes v1 or v2.
+        val other = ImmutableMethodReference(
+            "Lcom/example/Other;", "take", listOf("I"), "I",
+        )
+        val body = method(
+            "I",
+            ImmutableInstruction21s(Opcode.CONST_16, 2, 1234),
+            ImmutableInstruction12x(Opcode.LONG_TO_INT, 1, 0),
+            ImmutableInstruction35c(Opcode.INVOKE_STATIC, 1, 2, 0, 0, 0, 0, other),
+            ImmutableInstruction11x(Opcode.MOVE_RESULT, 2),
+            ImmutableInstruction11x(Opcode.RETURN, 2),
+        )
+
+        body.insertLiteralOverride(0, true)
+
+        assertEquals(Opcode.MOVE_RESULT, opcodeAt(body, 3))
+        assertEquals(Opcode.CONST, opcodeAt(body, 4))
+    }
+
+    @Test
+    fun `a comparison that lands on the literal is refused`() {
+        // cmp-long reads two pairs and writes one narrow register. It was in none of the write
+        // opcodes, so writeRegister answered null and the walk never saw v1 being destroyed.
+        val other = ImmutableMethodReference(
+            "Lcom/example/Other;", "take", listOf("I"), "I",
+        )
+        val body = method(
+            "I",
+            ImmutableInstruction21s(Opcode.CONST_16, 1, 1234),
+            ImmutableInstruction23x(Opcode.CMP_LONG, 1, 2, 2),
+            ImmutableInstruction35c(Opcode.INVOKE_STATIC, 1, 1, 0, 0, 0, 0, other),
+            ImmutableInstruction11x(Opcode.MOVE_RESULT, 1),
+            ImmutableInstruction11x(Opcode.RETURN, 1),
+        )
+
+        assertThrows(IllegalStateException::class.java) {
+            body.insertLiteralOverride(0, true)
+        }
     }
 }

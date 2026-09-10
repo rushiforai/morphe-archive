@@ -180,9 +180,8 @@ To debug one patch in isolation, apply
 only it (`patch --exclusive -e "Name"`, see [CLI patching](cli.md#canonical-flows-this-repo)) before the full suite —
 a fingerprint failure elsewhere won't mask your result that way.
 
-Work on a branch, merge (no squash) to `main` for stable releases, then stage and tag
-the release; the generated-files rules live in the [release process](release.md)
-and [development guide](development.md#verify).
+For branching and publishing, follow the [release process](release.md).
+Generated-file ownership is defined in the [release rules](release.md#rules).
 
 ## Troubleshooting
 

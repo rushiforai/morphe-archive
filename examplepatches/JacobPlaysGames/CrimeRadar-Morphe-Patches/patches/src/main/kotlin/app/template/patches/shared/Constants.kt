@@ -28,8 +28,7 @@ object Constants {
         appIconColor = 0x2196F3, // Blue, matching Scanner Radio icon
         targets = listOf(
             AppTarget(
-                version = null, // Any version
-                minSdk = 29     // Scanner Radio requires Android 10+
+                version = "8.29"
             )
         )
     )

@@ -1,3 +1,69 @@
+## [1.44.0-dev.30](https://github.com/BlazeFTL/FTL-Patches/compare/v1.44.0-dev.29...v1.44.0-dev.30) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* up ([1a76a34](https://github.com/BlazeFTL/FTL-Patches/commit/1a76a349e7e8fb12ded176c49481fe9f858eeb79))
+
+## [1.44.0-dev.29](https://github.com/BlazeFTL/FTL-Patches/compare/v1.44.0-dev.28...v1.44.0-dev.29) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* up ([850437f](https://github.com/BlazeFTL/FTL-Patches/commit/850437f89391544e1626a5ab1bd0cc07a10ad256))
+
+## [1.44.0-dev.28](https://github.com/BlazeFTL/FTL-Patches/compare/v1.44.0-dev.27...v1.44.0-dev.28) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* Up Drawable clean ([53e0158](https://github.com/BlazeFTL/FTL-Patches/commit/53e01586c14227b7f378b28ad53bc5c967a4e829))
+
+## [1.44.0-dev.27](https://github.com/BlazeFTL/FTL-Patches/compare/v1.44.0-dev.26...v1.44.0-dev.27) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* up ([422b927](https://github.com/BlazeFTL/FTL-Patches/commit/422b9276542842aa8a39ad34eed797863b40e8d1))
+
+## [1.44.0-dev.26](https://github.com/BlazeFTL/FTL-Patches/compare/v1.44.0-dev.25...v1.44.0-dev.26) (2026-09-09)
+
+### ✨ New Features
+
+* Add Mx RecycleBin Remove Patch ([508bbfb](https://github.com/BlazeFTL/FTL-Patches/commit/508bbfbbe9afe9d6f4f8399dc61d84a83fdab924))
+
+## [1.44.0-dev.25](https://github.com/BlazeFTL/FTL-Patches/compare/v1.44.0-dev.24...v1.44.0-dev.25) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* Up ([feb4e9d](https://github.com/BlazeFTL/FTL-Patches/commit/feb4e9d8bd190151d5292ac609f16c75b990e1ba))
+
+## [1.44.0-dev.24](https://github.com/BlazeFTL/FTL-Patches/compare/v1.44.0-dev.23...v1.44.0-dev.24) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* Make Drawable Clean Patch More Aggressive ([6cc2621](https://github.com/BlazeFTL/FTL-Patches/commit/6cc2621c0a365269524483468f478f037db35bb2))
+
+## [1.44.0-dev.23](https://github.com/BlazeFTL/FTL-Patches/compare/v1.44.0-dev.22...v1.44.0-dev.23) (2026-09-09)
+
+### ✨ New Features
+
+* Add Boost Splash Mx Player Ad ([5809e49](https://github.com/BlazeFTL/FTL-Patches/commit/5809e490f8ed34c7d0f56017f6bb878583c1039b))
+
+## [1.44.0-dev.22](https://github.com/BlazeFTL/FTL-Patches/compare/v1.44.0-dev.21...v1.44.0-dev.22) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* Up ([8295b99](https://github.com/BlazeFTL/FTL-Patches/commit/8295b999daa1556ec752551d40237a5222d2aefb))
+
+## [1.44.0-dev.21](https://github.com/BlazeFTL/FTL-Patches/compare/v1.44.0-dev.20...v1.44.0-dev.21) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* Up ([a0f9d6d](https://github.com/BlazeFTL/FTL-Patches/commit/a0f9d6d3718113e61de7dffdaa697cae5c59bddd))
+
+## [1.44.0-dev.20](https://github.com/BlazeFTL/FTL-Patches/compare/v1.44.0-dev.19...v1.44.0-dev.20) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* Up ([fbc70d7](https://github.com/BlazeFTL/FTL-Patches/commit/fbc70d7d0c4254cc0b8b47e6cf8911ee5c86d8fe))
+
 ## [1.44.0-dev.19](https://github.com/BlazeFTL/FTL-Patches/compare/v1.44.0-dev.18...v1.44.0-dev.19) (2026-09-09)
 
 ### 🐛 Bug Fixes

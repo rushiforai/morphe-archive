@@ -161,4 +161,20 @@ object Constants {
             )
         )
     )
+
+    val FOOTEJ_COMPATIBILITY = Compatibility(
+        name = "Footej Camera",
+        packageName = "com.footej.camera",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x008D85,
+        targets = listOf(
+            AppTarget(
+                version = "2.4.1 build 202",
+                versionCodes = mapOf(
+                    SupportedAbi.ARM64_V8A to 20202,
+                    SupportedAbi.ARMEABI_V7A to 20202
+                )
+            )
+        )
+    )
 }

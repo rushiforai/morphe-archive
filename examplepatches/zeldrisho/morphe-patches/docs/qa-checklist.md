@@ -3,17 +3,19 @@
 Canonical repeatable device procedure. Other docs link here; they do not restate it.
 Manual E2E — run on a **throwaway account** (re-signed build + VPN/proxy on a
 real account = ban risk, see [lessons learned](lessons-learned.md#what-is-and-isnt-patchable)).
-Needs `adb` plus the APK pinned in `shared/Constants.kt` (currently Threads
-`434.0.0.41.74` / `TESTED_VERSION_CODE 510406926` unless re-fingerprinting —
-`Constants.kt` is the source of truth, not this checklist).
+Needs `adb` plus the APKs pinned in `shared/Constants.kt` (currently Threads
+`434.0.0.41.74` / `TESTED_VERSION_CODE 510406926` and `445.0.0.46.83` /
+`TESTED_VERSION_CODE_445 511507647` unless re-fingerprinting — `Constants.kt`
+is the source of truth, not this checklist).
 
 ## Build
 
 ```bash
 ./gradlew :patches:test :extensions:extension:testDebugUnitTest buildAndroid --no-daemon
-shellcheck scripts/*.sh
 python3 -m unittest discover -s scripts/tests -v  # offline helper regression tests
 ```
+
+Shell/shfmt/workflow lint is already covered by the `pre-commit` gate in Verify — do not re-run `shellcheck`/`actionlint` standalone here.
 
 The `.mpp` lands in `patches/build/libs/patches-*.mpp`. Successful Check workflow
 runs also retain a `patches-<sha>-<attempt>` artifact for seven days. Record the
@@ -52,6 +54,13 @@ MPP="patches/build/libs/patches-<version>.mpp" VERIFY_SDK=1 \
 discovery; pass `VERIFY_SDK=/path/to/sdk` to pin a specific SDK. Record the
 verification result alongside the bundle/input hashes.
 
+If verification fails identically across the available toolchains with an
+internal D8 error (not a patch error), the owner may waive it after passing
+device QA: record the waiver, the reproduced versions, and the device
+evidence in [lessons learned](lessons-learned.md), and revisit only if Morphe
+ships a verifier fix. Do not block a release indefinitely on a broken
+verifier.
+
 Record the input APK version/code and hash, bundle path/hash, enabled patches,
 package ID, device/Android version, and signing certificate fingerprint (never
 passwords). Multiple local bundles can exist; do not assume the helper selected
@@ -63,8 +72,8 @@ sanitized notes in the release/PR record.
 - [ ] `aapt dump badging` shows no `AD_ID` permission
 - [ ] Fresh login works with the default package and default-on patches.
       An existing session is a separate smoke test, not fresh-login evidence.
-      Preserve it: ask before logout, clearing data, or uninstalling. Use a
-      clean test device/profile where possible; the user enters credentials.
+      Preserve it: ask before logout, clearing data, or uninstalling. The
+      user enters credentials.
 - [ ] Renamed package (`PACKAGE_NAME=...`) installs **alongside stock-signed**
       Threads, no `INSTALL_FAILED_DUPLICATE_PERMISSION`. Verify the stock
       copy's signing certificate against the original APK; a patched
@@ -115,9 +124,12 @@ Do not merge the stable release while required checks remain blocked.
 
 ## Version bump (new Threads release)
 
+For each supported version:
+
 - [ ] Fingerprint `FeedMergeMethod` still resolves to exactly 1 method — 0 or >1
       means R8 drift; re-hunt per the [reverse engineering workflow](reverse-engineering.md#hunt-targets)
-- [ ] Reflection ABI validation passes; re-confirm that `DED()` still identifies
-      sponsored content. A matching method signature alone does not prove semantics.
+- [ ] Reflection ABI validation passes; re-confirm that the version's ad
+      predicate still identifies sponsored content. A matching method signature
+      alone does not prove semantics.
 - [ ] Re-run [Build](#build) through [Feed ad removal](#feed-ad-removal-issue-5-regression)
       on the new version before updating `Constants.kt`

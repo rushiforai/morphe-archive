@@ -28,6 +28,38 @@ public final class SessionBudgetNotice {
         Utils.showToastShort(spentMessage());
     }
 
+    /**
+     * The quiet reminder partway through, if one is due.
+     *
+     * <p>The same banner the block button's undo uses, without anything to press: it takes no
+     * focus, takes itself away after a few seconds, and announces itself once as a polite live
+     * region, which is the part a toast cannot do. It falls back to a toast where there is no
+     * view to draw in. It is never due while a hold is up, so it cannot end up under the panel.
+     *
+     * <p>Three wordings in rotation, because a fixed friction stops being read. None of them
+     * names the reader or the count: an interrupt that does reads as being watched, and the one
+     * lab study to measure it found that made people watch more, not less.
+     */
+    public static void showIntervalNoticeIfDue() {
+        int wording = SessionBudget.claimIntervalNotice();
+        if (wording < 0) return;
+        Utils.runOnMainThread(() -> {
+            android.app.Activity activity = Utils.getActivity();
+            android.view.ViewGroup root = activity == null
+                    ? null : activity.findViewById(android.R.id.content);
+            app.morphe.extension.tiktok.blockauthor.BlockAuthorOverlay.showNoticeBanner(
+                    root, intervalMessage(wording));
+        });
+    }
+
+    static String intervalMessage(int wording) {
+        switch (wording) {
+            case 0: return L10n.t("Still here. Nothing is waiting.");
+            case 1: return L10n.t("A good place to stop, if you want one.");
+            default: return L10n.t("The feed does not end. This is a fine time to leave it.");
+        }
+    }
+
     /** What the day came to, in whichever budget ran out. */
     static String spentMessage() {
         int minuteBudget = Settings.SESSION_BUDGET_MINUTES.get();

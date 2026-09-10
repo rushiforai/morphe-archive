@@ -1,3 +1,69 @@
+/**
+ * Which capture each tracked picture in assets/settings comes from.
+ *
+ * <p>The suite writes about ninety images under the capture directory; forty-four of them are
+ * published, under assets/settings and at the top of assets/ both. The names do not line up
+ * on their own: the light twins are a `-light` suffix here
+ * and a `pages/light` directory there, the dialogs are their own tree, Feed navigation publishes
+ * the scrolled-to-the-end capture, and the gate recorder is at the top level with a hyphen where
+ * the published name has an underscore. Every pair below was checked byte for byte against a
+ * capture of an unchanged tree, which is what makes this a mapping rather than a guess. Keyed
+ * by path under assets/, because keying by bare name left overlay-controls.png, which the
+ * README shows, outside the map and stale.
+ */
+val trackedScreenshots = mapOf(
+    "auto-advance-settings.png" to "auto-advance-settings.png",
+    "caption-settings.png" to "caption-settings.png",
+    "capture-settings.png" to "capture-settings.png",
+    "clear-display-captions.png" to "clear-display-captions.png",
+    "clear-display-settings.png" to "clear-display-settings.png",
+    "confirmation-control.png" to "confirmation-control.png",
+    "download-settings.png" to "download-settings.png",
+    "foldable-settings.png" to "foldable-settings.png",
+    "gate-recording.png" to "gate-recording.png",
+    "interface-settings.png" to "interface-settings.png",
+    "overlay-controls.png" to "overlay-controls.png",
+    "playback-settings.png" to "playback-settings.png",
+    "playback-speed-settings.png" to "playback-speed-settings.png",
+    "region-settings.png" to "region-settings.png",
+    "settings/behavior.png" to "pages/dark/behavior.png",
+    "settings/comments-german-large.png" to "pages/dark/comments-german-large.png",
+    "settings/comments-spanish-large.png" to "pages/dark/comments-spanish-large.png",
+    "settings/comments.png" to "pages/dark/comments.png",
+    "settings/creator-list.png" to "pages/dark/creator-list.png",
+    "settings/diagnostics-light.png" to "pages/light/diagnostics.png",
+    "settings/diagnostics.png" to "pages/dark/diagnostics.png",
+    "settings/dialog-multi-dark.png" to "dialogs/dark/multi-choice.png",
+    "settings/dialog-multi-light.png" to "dialogs/light/multi-choice.png",
+    "settings/dialog-single-dark.png" to "dialogs/dark/single-choice.png",
+    "settings/dialog-single-light.png" to "dialogs/light/single-choice.png",
+    "settings/downloads.png" to "pages/dark/downloads.png",
+    "settings/feed_filter.png" to "pages/dark/feed_filter.png",
+    "settings/feed_navigation.png" to "pages/dark/feed_navigation-end.png",
+    "settings/gate_details.png" to "pages/dark/gate_details.png",
+    "settings/gate_recording.png" to "gate-recording.png",
+    "settings/inbox.png" to "pages/dark/inbox.png",
+    "settings/interface.png" to "pages/dark/interface.png",
+    "settings/lab.png" to "pages/dark/lab.png",
+    "settings/playback-light.png" to "pages/light/playback.png",
+    "settings/playback.png" to "pages/dark/playback.png",
+    "settings/region.png" to "pages/dark/region.png",
+    "settings/rtl-large-light.png" to "pages/light/rtl-large.png",
+    "settings/rtl-large.png" to "pages/dark/rtl-large.png",
+    "settings/search.png" to "pages/dark/search.png",
+    "settings/session-reminder.png" to "session-reminder.png",
+    "settings/settings.png" to "pages/dark/settings.png",
+    "settings/share.png" to "pages/dark/share.png",
+    "settings/two-times-text-light.png" to "pages/light/two-times-text.png",
+    "settings/two-times-text.png" to "pages/dark/two-times-text.png",
+    "subtitle-download-settings.png" to "subtitle-download-settings.png",
+)
+
+/** Read at configuration time so the test task can ask for the capture it is about to copy. */
+val refreshingScreenshots = gradle.startParameter.taskNames.any {
+    it == "refreshScreenshots" || it.endsWith(":refreshScreenshots")
+}
+
 dependencies {
     compileOnly(project(":extensions:shared:library"))
     compileOnly(project(":extensions:tiktok:stub"))
@@ -31,6 +97,10 @@ android {
     lint {
         checkOnly += "NewApi"
         error += "NewApi"
+        // NewApi catches a call above the floor. ObsoleteSdkInt catches an SDK_INT guard at or
+        // below it, which is dead code today and a wrong floor the next time minSdk moves.
+        checkOnly += "ObsoleteSdkInt"
+        error += "ObsoleteSdkInt"
         abortOnError = true
     }
     testOptions {
@@ -43,9 +113,17 @@ android {
             it.inputs.dir(layout.projectDirectory.dir("src/main/l10n"))
                 .withPropertyName("l10nTables")
                 .withPathSensitivity(PathSensitivity.RELATIVE)
-            providers.gradleProperty("screenshotDir").orNull?.let { directory ->
-                it.systemProperty("morphe.screenshotDir", directory)
+            // refreshScreenshots asks for the capture itself, so it does not need the property
+            // and cannot be pointed at assets/ by accident. Forcing the rerun matters because a
+            // capture is not one of the task's declared outputs: an up to date test task writes
+            // no screenshots at all, and the copy below would then compare against whatever was
+            // left in build/ from a previous run.
+            val captureInto = providers.gradleProperty("screenshotDir").orNull
+                ?: if (refreshingScreenshots) "build/screenshots" else null
+            if (captureInto != null) {
+                it.systemProperty("morphe.screenshotDir", captureInto)
             }
+            if (refreshingScreenshots) it.outputs.upToDateWhen { false }
             it.jvmArgs(
                 "--add-opens=java.base/java.lang=ALL-UNNAMED",
                 "--add-opens=java.base/java.util=ALL-UNNAMED",
@@ -57,6 +135,63 @@ android {
                 "--add-opens=java.desktop/java.awt.font=ALL-UNNAMED",
                 "--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
             )
+        }
+    }
+}
+
+/**
+ * Re-captures the settings screenshots and copies back only the published ones that changed.
+ *
+ * <p>`./gradlew :extensions:tiktok:refreshScreenshots`. The capture goes to this module's build
+ * directory, never to assets/: pointing the screenshotDir property there dropped about ninety
+ * untracked files into the repository twice, on 2026-09-06 and again on 2026-09-08. What lands
+ * in assets/ is the fixed list above and nothing else, and only where the bytes moved, so the
+ * printed names are exactly the screens a change altered.
+ */
+tasks.register("refreshScreenshots") {
+    group = "documentation"
+    description = "Re-captures the settings screenshots and updates the ones in assets/settings."
+    dependsOn("testDebugUnitTest")
+
+    val captureDirectory = layout.buildDirectory.dir("screenshots")
+    val assetsDirectory = rootProject.layout.projectDirectory.dir("assets")
+    val tracked = trackedScreenshots
+
+    doLast {
+        val capture = captureDirectory.get().asFile
+        if (!capture.isDirectory) {
+            throw GradleException(
+                "No screenshots were captured in $capture. The suite writes them only when " +
+                    "morphe.screenshotDir is set, which this task does for itself."
+            )
+        }
+
+        val copied = mutableListOf<String>()
+        val absent = mutableListOf<String>()
+        for ((published, source) in tracked.toSortedMap()) {
+            val from = capture.resolve(source)
+            if (!from.isFile) {
+                absent += "$published (no $source)"
+                continue
+            }
+            val to = assetsDirectory.file(published).asFile
+            if (to.isFile && from.readBytes().contentEquals(to.readBytes())) continue
+            from.copyTo(to, overwrite = true)
+            copied += published
+        }
+
+        if (absent.isNotEmpty()) {
+            // A published picture whose capture has gone is a rename nobody carried through to
+            // the map, and silently leaving the old file in place is how it stays wrong.
+            throw GradleException(
+                "These published screenshots have no capture any more, so the map above is out " +
+                    "of date: " + absent.joinToString(", ")
+            )
+        }
+        if (copied.isEmpty()) {
+            logger.lifecycle("Screenshots: nothing moved.")
+        } else {
+            logger.lifecycle("Screenshots updated (${copied.size}): " + copied.joinToString(", "))
         }
     }
 }

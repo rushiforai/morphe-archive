@@ -1,5 +1,5 @@
 {
-    "version": "v1.13.1",
+    "version": "v1.16.0",
     "patches": [
         {
             "compatiblePackages": [
@@ -12,10 +12,25 @@
                         {
                             "isExperimental": false,
                             "version": "18.1.3.962075747-lite_beta-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_beta-armeabi-v7a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-armeabi-v7a"
                         }
                     ],
                     "versions": [
-                        "18.1.3.962075747-lite_beta-arm64-v8a"
+                        "18.1.3.962075747-lite_beta-arm64-v8a",
+                        "18.1.3.962075747-lite_beta-armeabi-v7a",
+                        "18.1.3.962075747-lite_release-arm64-v8a",
+                        "18.1.3.962075747-lite_release-armeabi-v7a"
                     ]
                 }
             ],
@@ -38,10 +53,25 @@
                         {
                             "isExperimental": false,
                             "version": "18.1.3.962075747-lite_beta-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_beta-armeabi-v7a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-armeabi-v7a"
                         }
                     ],
                     "versions": [
-                        "18.1.3.962075747-lite_beta-arm64-v8a"
+                        "18.1.3.962075747-lite_beta-arm64-v8a",
+                        "18.1.3.962075747-lite_beta-armeabi-v7a",
+                        "18.1.3.962075747-lite_release-arm64-v8a",
+                        "18.1.3.962075747-lite_release-armeabi-v7a"
                     ]
                 }
             ],
@@ -89,10 +119,25 @@
                         {
                             "isExperimental": false,
                             "version": "18.1.3.962075747-lite_beta-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_beta-armeabi-v7a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-armeabi-v7a"
                         }
                     ],
                     "versions": [
-                        "18.1.3.962075747-lite_beta-arm64-v8a"
+                        "18.1.3.962075747-lite_beta-arm64-v8a",
+                        "18.1.3.962075747-lite_beta-armeabi-v7a",
+                        "18.1.3.962075747-lite_release-arm64-v8a",
+                        "18.1.3.962075747-lite_release-armeabi-v7a"
                     ]
                 }
             ],
@@ -112,11 +157,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.28"
+                            "version": "8.2.4147.50"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.28"
+                        "8.2.4147.50"
                     ]
                 }
             ],
@@ -136,11 +181,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.28"
+                            "version": "8.2.4147.50"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.28"
+                        "8.2.4147.50"
                     ]
                 }
             ],
@@ -236,11 +281,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.28"
+                            "version": "8.2.4147.50"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.28"
+                        "8.2.4147.50"
                     ]
                 }
             ],
@@ -263,10 +308,25 @@
                         {
                             "isExperimental": false,
                             "version": "18.1.3.962075747-lite_beta-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_beta-armeabi-v7a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-armeabi-v7a"
                         }
                     ],
                     "versions": [
-                        "18.1.3.962075747-lite_beta-arm64-v8a"
+                        "18.1.3.962075747-lite_beta-arm64-v8a",
+                        "18.1.3.962075747-lite_beta-armeabi-v7a",
+                        "18.1.3.962075747-lite_release-arm64-v8a",
+                        "18.1.3.962075747-lite_release-armeabi-v7a"
                     ]
                 }
             ],
@@ -298,11 +358,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.28"
+                            "version": "8.2.4147.50"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.28"
+                        "8.2.4147.50"
                     ]
                 }
             ],
@@ -346,11 +406,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.28"
+                            "version": "8.2.4147.50"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.28"
+                        "8.2.4147.50"
                     ]
                 }
             ],
@@ -385,11 +445,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.28"
+                            "version": "8.2.4147.50"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.28"
+                        "8.2.4147.50"
                     ]
                 }
             ],
@@ -409,11 +469,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.28"
+                            "version": "8.2.4147.50"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.28"
+                        "8.2.4147.50"
                     ]
                 }
             ],
@@ -434,10 +494,25 @@
                         {
                             "isExperimental": false,
                             "version": "18.1.3.962075747-lite_beta-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_beta-armeabi-v7a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-armeabi-v7a"
                         }
                     ],
                     "versions": [
-                        "18.1.3.962075747-lite_beta-arm64-v8a"
+                        "18.1.3.962075747-lite_beta-arm64-v8a",
+                        "18.1.3.962075747-lite_beta-armeabi-v7a",
+                        "18.1.3.962075747-lite_release-arm64-v8a",
+                        "18.1.3.962075747-lite_release-armeabi-v7a"
                     ]
                 }
             ],
@@ -458,10 +533,25 @@
                         {
                             "isExperimental": false,
                             "version": "18.1.3.962075747-lite_beta-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_beta-armeabi-v7a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-armeabi-v7a"
                         }
                     ],
                     "versions": [
-                        "18.1.3.962075747-lite_beta-arm64-v8a"
+                        "18.1.3.962075747-lite_beta-arm64-v8a",
+                        "18.1.3.962075747-lite_beta-armeabi-v7a",
+                        "18.1.3.962075747-lite_release-arm64-v8a",
+                        "18.1.3.962075747-lite_release-armeabi-v7a"
                     ]
                 }
             ],
@@ -482,10 +572,25 @@
                         {
                             "isExperimental": false,
                             "version": "18.1.3.962075747-lite_beta-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_beta-armeabi-v7a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-armeabi-v7a"
                         }
                     ],
                     "versions": [
-                        "18.1.3.962075747-lite_beta-arm64-v8a"
+                        "18.1.3.962075747-lite_beta-arm64-v8a",
+                        "18.1.3.962075747-lite_beta-armeabi-v7a",
+                        "18.1.3.962075747-lite_release-arm64-v8a",
+                        "18.1.3.962075747-lite_release-armeabi-v7a"
                     ]
                 }
             ],
@@ -530,10 +635,25 @@
                         {
                             "isExperimental": false,
                             "version": "18.1.3.962075747-lite_beta-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_beta-armeabi-v7a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-armeabi-v7a"
                         }
                     ],
                     "versions": [
-                        "18.1.3.962075747-lite_beta-arm64-v8a"
+                        "18.1.3.962075747-lite_beta-arm64-v8a",
+                        "18.1.3.962075747-lite_beta-armeabi-v7a",
+                        "18.1.3.962075747-lite_release-arm64-v8a",
+                        "18.1.3.962075747-lite_release-armeabi-v7a"
                     ]
                 }
             ],
@@ -554,10 +674,25 @@
                         {
                             "isExperimental": false,
                             "version": "18.1.3.962075747-lite_beta-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_beta-armeabi-v7a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-armeabi-v7a"
                         }
                     ],
                     "versions": [
-                        "18.1.3.962075747-lite_beta-arm64-v8a"
+                        "18.1.3.962075747-lite_beta-arm64-v8a",
+                        "18.1.3.962075747-lite_beta-armeabi-v7a",
+                        "18.1.3.962075747-lite_release-arm64-v8a",
+                        "18.1.3.962075747-lite_release-armeabi-v7a"
                     ]
                 }
             ],
@@ -578,10 +713,25 @@
                         {
                             "isExperimental": false,
                             "version": "18.1.3.962075747-lite_beta-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_beta-armeabi-v7a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-armeabi-v7a"
                         }
                     ],
                     "versions": [
-                        "18.1.3.962075747-lite_beta-arm64-v8a"
+                        "18.1.3.962075747-lite_beta-arm64-v8a",
+                        "18.1.3.962075747-lite_beta-armeabi-v7a",
+                        "18.1.3.962075747-lite_release-arm64-v8a",
+                        "18.1.3.962075747-lite_release-armeabi-v7a"
                     ]
                 }
             ],
@@ -601,11 +751,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.28"
+                            "version": "8.2.4147.50"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.28"
+                        "8.2.4147.50"
                     ]
                 }
             ],
@@ -626,10 +776,25 @@
                         {
                             "isExperimental": false,
                             "version": "18.1.3.962075747-lite_beta-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_beta-armeabi-v7a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-armeabi-v7a"
                         }
                     ],
                     "versions": [
-                        "18.1.3.962075747-lite_beta-arm64-v8a"
+                        "18.1.3.962075747-lite_beta-arm64-v8a",
+                        "18.1.3.962075747-lite_beta-armeabi-v7a",
+                        "18.1.3.962075747-lite_release-arm64-v8a",
+                        "18.1.3.962075747-lite_release-armeabi-v7a"
                     ]
                 }
             ],
@@ -642,6 +807,21 @@
         {
             "compatiblePackages": [
                 {
+                    "apkFileType": "APKM",
+                    "appIconColor": "#FF4500",
+                    "name": "Brave Private Web Browser, VPN",
+                    "packageName": "com.brave.browser",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "1.94.121"
+                        }
+                    ],
+                    "versions": [
+                        "1.94.121"
+                    ]
+                },
+                {
                     "apkFileType": "APK",
                     "appIconColor": "#4285F4",
                     "name": "Gboard Lite",
@@ -650,10 +830,89 @@
                         {
                             "isExperimental": false,
                             "version": "18.1.3.962075747-lite_beta-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_beta-armeabi-v7a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-armeabi-v7a"
                         }
                     ],
                     "versions": [
-                        "18.1.3.962075747-lite_beta-arm64-v8a"
+                        "18.1.3.962075747-lite_beta-arm64-v8a",
+                        "18.1.3.962075747-lite_beta-armeabi-v7a",
+                        "18.1.3.962075747-lite_release-arm64-v8a",
+                        "18.1.3.962075747-lite_release-armeabi-v7a"
+                    ]
+                },
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#EF3939",
+                    "name": "Vivaldi Browser Snapshot",
+                    "packageName": "com.vivaldi.browser.snapshot",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "8.2.4147.50"
+                        }
+                    ],
+                    "versions": [
+                        "8.2.4147.50"
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [],
+            "description": "Strips unselected screen density resource directories from res/ (e.g. drawable-mdpi, drawable-hdpi, mipmap-xhdpi). Density-independent resources (nodpi, anydpi) and orphan resources are safely preserved.",
+            "name": "DPI Resource Slimmer",
+            "options": [
+                {
+                    "default": "xxhdpi",
+                    "description": "Comma-separated screen densities to preserve (e.g. 'xxhdpi', 'xhdpi, xxhdpi', 'xxxhdpi'). Density-independent resources (nodpi, anydpi) and unquantified base directories are always preserved.",
+                    "key": "dpis",
+                    "required": false,
+                    "title": "DPI densities to keep",
+                    "type": "kotlin.String",
+                    "values": null
+                }
+            ]
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#4285F4",
+                    "name": "Gboard Lite",
+                    "packageName": "com.google.android.inputmethod.latin",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_beta-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_beta-armeabi-v7a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-armeabi-v7a"
+                        }
+                    ],
+                    "versions": [
+                        "18.1.3.962075747-lite_beta-arm64-v8a",
+                        "18.1.3.962075747-lite_beta-armeabi-v7a",
+                        "18.1.3.962075747-lite_release-arm64-v8a",
+                        "18.1.3.962075747-lite_release-armeabi-v7a"
                     ]
                 }
             ],
@@ -674,10 +933,25 @@
                         {
                             "isExperimental": false,
                             "version": "18.1.3.962075747-lite_beta-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_beta-armeabi-v7a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-armeabi-v7a"
                         }
                     ],
                     "versions": [
-                        "18.1.3.962075747-lite_beta-arm64-v8a"
+                        "18.1.3.962075747-lite_beta-arm64-v8a",
+                        "18.1.3.962075747-lite_beta-armeabi-v7a",
+                        "18.1.3.962075747-lite_release-arm64-v8a",
+                        "18.1.3.962075747-lite_release-armeabi-v7a"
                     ]
                 }
             ],
@@ -698,10 +972,25 @@
                         {
                             "isExperimental": false,
                             "version": "18.1.3.962075747-lite_beta-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_beta-armeabi-v7a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-armeabi-v7a"
                         }
                     ],
                     "versions": [
-                        "18.1.3.962075747-lite_beta-arm64-v8a"
+                        "18.1.3.962075747-lite_beta-arm64-v8a",
+                        "18.1.3.962075747-lite_beta-armeabi-v7a",
+                        "18.1.3.962075747-lite_release-arm64-v8a",
+                        "18.1.3.962075747-lite_release-armeabi-v7a"
                     ]
                 }
             ],
@@ -722,10 +1011,25 @@
                         {
                             "isExperimental": false,
                             "version": "18.1.3.962075747-lite_beta-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_beta-armeabi-v7a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-armeabi-v7a"
                         }
                     ],
                     "versions": [
-                        "18.1.3.962075747-lite_beta-arm64-v8a"
+                        "18.1.3.962075747-lite_beta-arm64-v8a",
+                        "18.1.3.962075747-lite_beta-armeabi-v7a",
+                        "18.1.3.962075747-lite_release-arm64-v8a",
+                        "18.1.3.962075747-lite_release-armeabi-v7a"
                     ]
                 }
             ],
@@ -760,11 +1064,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.28"
+                            "version": "8.2.4147.50"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.28"
+                        "8.2.4147.50"
                     ]
                 }
             ],
@@ -795,10 +1099,25 @@
                         {
                             "isExperimental": false,
                             "version": "18.1.3.962075747-lite_beta-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_beta-armeabi-v7a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-armeabi-v7a"
                         }
                     ],
                     "versions": [
-                        "18.1.3.962075747-lite_beta-arm64-v8a"
+                        "18.1.3.962075747-lite_beta-arm64-v8a",
+                        "18.1.3.962075747-lite_beta-armeabi-v7a",
+                        "18.1.3.962075747-lite_release-arm64-v8a",
+                        "18.1.3.962075747-lite_release-armeabi-v7a"
                     ]
                 }
             ],
@@ -868,10 +1187,25 @@
                         {
                             "isExperimental": false,
                             "version": "18.1.3.962075747-lite_beta-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_beta-armeabi-v7a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-armeabi-v7a"
                         }
                     ],
                     "versions": [
-                        "18.1.3.962075747-lite_beta-arm64-v8a"
+                        "18.1.3.962075747-lite_beta-arm64-v8a",
+                        "18.1.3.962075747-lite_beta-armeabi-v7a",
+                        "18.1.3.962075747-lite_release-arm64-v8a",
+                        "18.1.3.962075747-lite_release-armeabi-v7a"
                     ]
                 },
                 {
@@ -882,11 +1216,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.28"
+                            "version": "8.2.4147.50"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.28"
+                        "8.2.4147.50"
                     ]
                 }
             ],
@@ -907,10 +1241,25 @@
                         {
                             "isExperimental": false,
                             "version": "18.1.3.962075747-lite_beta-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_beta-armeabi-v7a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-arm64-v8a"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "18.1.3.962075747-lite_release-armeabi-v7a"
                         }
                     ],
                     "versions": [
-                        "18.1.3.962075747-lite_beta-arm64-v8a"
+                        "18.1.3.962075747-lite_beta-arm64-v8a",
+                        "18.1.3.962075747-lite_beta-armeabi-v7a",
+                        "18.1.3.962075747-lite_release-arm64-v8a",
+                        "18.1.3.962075747-lite_release-armeabi-v7a"
                     ]
                 }
             ],
@@ -930,11 +1279,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.28"
+                            "version": "8.2.4147.50"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.28"
+                        "8.2.4147.50"
                     ]
                 }
             ],
@@ -969,11 +1318,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.28"
+                            "version": "8.2.4147.50"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.28"
+                        "8.2.4147.50"
                     ]
                 }
             ],
@@ -993,11 +1342,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.28"
+                            "version": "8.2.4147.50"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.28"
+                        "8.2.4147.50"
                     ]
                 }
             ],

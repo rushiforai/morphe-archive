@@ -1,0 +1,66 @@
+name: Promote dev to main
+
+on:
+  workflow_run:
+    workflows:
+      - Release
+    branches:
+      - dev
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  open-promotion-pr:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Open promotion PR when dev is ahead
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          existing="$(gh pr list \
+            --repo "$REPOSITORY" \
+            --base main \
+            --head dev \
+            --state open \
+            --json number \
+            --jq 'length')"
+
+          if [[ "$existing" != "0" ]]; then
+            echo "A dev -> main pull request already exists."
+            exit 0
+          fi
+
+          commits="$(gh api \
+            "repos/$REPOSITORY/compare/main...dev" \
+            --jq '.ahead_by')"
+
+          if [[ "$commits" == "0" ]]; then
+            echo "dev is not ahead of main."
+            exit 0
+          fi
+
+          if ! output="$(gh pr create \
+            --repo "$REPOSITORY" \
+            --base main \
+            --head dev \
+            --title "chore: promote dev to stable" \
+            --body "The Release workflow completed successfully on dev. Merge this PR after validating the pre-release on device when the change affects runtime behavior." 2>&1)"; then
+            if grep -q "GitHub Actions is not permitted to create or approve pull requests" <<<"$output"; then
+              echo "::warning::GitHub Actions cannot create pull requests for this repository. Create dev -> main manually."
+              exit 0
+            fi
+            printf '%s\n' "$output" >&2
+            exit 1
+          fi
+
+          printf '%s\n' "$output"

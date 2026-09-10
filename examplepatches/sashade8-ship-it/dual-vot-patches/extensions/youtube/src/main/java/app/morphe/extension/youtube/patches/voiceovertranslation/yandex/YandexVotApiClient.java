@@ -174,15 +174,15 @@ public class YandexVotApiClient {
             if (query != null && !query.isEmpty()) {
                 proxyUrl.append("?").append(query);
             }
-            Logger.printDebug(() -> "toProxyAudioUrl: " + originalUrl + " -> " + proxyUrl);
+            Logger.printDebug(() -> "VOT proxy audio URL prepared");
             return proxyUrl.toString();
         } catch (URISyntaxException e) {
-            Logger.printDebug(() -> "toProxyAudioUrl: invalid URL " + originalUrl);
+            Logger.printDebug(() -> "VOT proxy audio URL is invalid");
             return originalUrl;
         }
     }
 
-    private static void writeBinaryProxyRequest(
+    static void writeBinaryProxyRequest(
             @NonNull OutputStream output,
             @NonNull byte[] body,
             @NonNull Map<String, String> headers
@@ -307,7 +307,7 @@ public class YandexVotApiClient {
         String cacheKey = videoUrl + "|" + sourceLang + "|" + targetLang + "|" + useLiveVoices;
         CachedResult cached = translationCache.get(cacheKey);
         if (cached != null && !cached.isExpired()) {
-            Logger.printDebug(() -> "VOT cache hit: " + cacheKey);
+            Logger.printDebug(() -> "VOT translation cache hit");
             return cached.result();
         }
         if (cached != null) {
@@ -378,7 +378,7 @@ public class YandexVotApiClient {
                 return result;
 
             } catch (Exception e) {
-                Logger.printException(() -> "YandexVotApiClient.requestTranslation failed for " + videoUrl, e);
+                YandexVotDiagnostics.failure("api", "client-request-exception");
                 return null;
             }
         }
@@ -436,9 +436,110 @@ public class YandexVotApiClient {
         }
 
         boolean useProxy = isProxyEnabled();
-        String requestUrl = getApiUrl(path);
-        Logger.printDebug(() -> "VOT sendApiRequest: " + method + " " + requestUrl
-                + (useProxy ? " via VOT worker" : ""));
+        String configuredProxyBaseUrl = useProxy ? getProxyBaseUrl() : null;
+        String requestUrl = useProxy
+                ? YandexVotProxyRouting.initialUrl(configuredProxyBaseUrl, path, method)
+                : getApiUrl(path);
+        Logger.printDebug(() -> "VOT sendApiRequest: method=" + method
+                + " endpoint=" + path + " proxy=" + useProxy);
+
+        ApiResponse response = executeApiRequestWithTransientProxyRetries(
+                requestUrl,
+                body,
+                method,
+                useProxy,
+                yandexHeaders,
+                path
+        );
+
+        if (useProxy) {
+            String retryUrl = YandexVotProxyRouting.retryUrlAfterResponse(
+                    configuredProxyBaseUrl,
+                    requestUrl,
+                    path,
+                    method,
+                    response.statusCode()
+            );
+            if (retryUrl != null) {
+                Logger.printDebug(() -> "VOT sendApiRequest: endpoint=" + path
+                        + " status=413 proxy-large-body-fallback=true");
+                response = executeApiRequestWithTransientProxyRetries(
+                        retryUrl,
+                        body,
+                        method,
+                        true,
+                        yandexHeaders,
+                        path
+                );
+            }
+        }
+
+        if (response.statusCode() != 200) {
+            int responseCode = response.statusCode();
+            Logger.printDebug(() -> "VOT sendApiRequest: endpoint=" + path
+                    + " status=" + responseCode);
+            return null;
+        }
+
+        return response.body();
+    }
+
+    private record ApiResponse(int statusCode, byte[] body) {
+    }
+
+    @NonNull
+    private static ApiResponse executeApiRequestWithTransientProxyRetries(
+            @NonNull String requestUrl,
+            @NonNull byte[] body,
+            @NonNull String method,
+            boolean useProxy,
+            @NonNull Map<String, String> yandexHeaders,
+            @NonNull String path
+    ) throws IOException {
+        int retriesUsed = 0;
+        while (true) {
+            ApiResponse response = executeApiRequest(
+                    requestUrl,
+                    body,
+                    method,
+                    useProxy,
+                    yandexHeaders
+            );
+            if (!useProxy || !YandexVotProxyRouting.shouldRetryTransientAudioUpload(
+                    path,
+                    method,
+                    response.statusCode(),
+                    retriesUsed
+            )) {
+                return response;
+            }
+
+            int retryNumber = retriesUsed + 1;
+            long delayMillis = YandexVotProxyRouting.transientRetryDelayMillis(retriesUsed);
+            int responseCode = response.statusCode();
+            Logger.printDebug(() -> "VOT sendApiRequest: endpoint=" + path
+                    + " status=" + responseCode
+                    + " proxy-transient-retry=" + retryNumber
+                    + "/" + YandexVotProxyRouting.MAX_TRANSIENT_AUDIO_UPLOAD_RETRIES
+                    + " delayMs=" + delayMillis);
+            try {
+                Thread.sleep(delayMillis);
+            } catch (InterruptedException exception) {
+                Thread.currentThread().interrupt();
+                throw new IOException("Interrupted while retrying audio upload", exception);
+            }
+            retriesUsed = retryNumber;
+        }
+    }
+
+    @NonNull
+    private static ApiResponse executeApiRequest(
+            @NonNull String requestUrl,
+            @NonNull byte[] body,
+            @NonNull String method,
+            boolean useProxy,
+            @NonNull Map<String, String> yandexHeaders
+    ) throws IOException {
 
         HttpURLConnection connection = (HttpURLConnection) new URL(requestUrl).openConnection();
         try {
@@ -472,12 +573,10 @@ public class YandexVotApiClient {
 
             int responseCode = connection.getResponseCode();
             if (responseCode != 200) {
-                Logger.printDebug(() -> "VOT sendApiRequest: " + requestUrl
-                        + " returned " + responseCode);
-                return null;
+                return new ApiResponse(responseCode, null);
             }
 
-            return readBytes(connection.getInputStream());
+            return new ApiResponse(responseCode, readBytes(connection.getInputStream()));
 
         } finally {
             connection.disconnect();
@@ -536,8 +635,7 @@ public class YandexVotApiClient {
 
             boolean useProxy = isProxyEnabled();
             String requestUrl = getApiUrl(path);
-            Logger.printDebug(() -> "VOT createSession: POST " + requestUrl
-                    + (useProxy ? " via VOT worker" : ""));
+            Logger.printDebug(() -> "VOT createSession: proxy=" + useProxy);
 
             HttpURLConnection connection = (HttpURLConnection) new URL(requestUrl).openConnection();
             try {
@@ -696,7 +794,7 @@ public class YandexVotApiClient {
             String jsonBody = "{\"video_url\":\"" + videoUrl + "\"}";
             sendJsonRequest(path, jsonBody, "PUT");
         } catch (Exception e) {
-            Logger.printException(() -> "YandexVotApiClient.sendFailedAudio failed for " + videoUrl, e);
+            YandexVotDiagnostics.failure("upload", "abort-request-failed");
         }
     }
 
@@ -711,7 +809,7 @@ public class YandexVotApiClient {
                     translationId, videoUrl, fileId, audioData);
             return sendAudioRequestBody(body);
         } catch (Exception e) {
-            Logger.printException(() -> "YandexVotApiClient.sendAudio failed for " + videoUrl, e);
+            YandexVotDiagnostics.failure("upload", "single-part-exception");
             return false;
         }
     }
@@ -737,10 +835,7 @@ public class YandexVotApiClient {
             );
             return sendAudioRequestBody(body);
         } catch (Exception e) {
-            Logger.printException(
-                    () -> "YandexVotApiClient.sendPartialAudio failed for " + videoUrl,
-                    e
-            );
+            YandexVotDiagnostics.failure("upload", "multipart-exception");
             return false;
         }
     }
@@ -754,21 +849,6 @@ public class YandexVotApiClient {
                 null
         );
         return response != null;
-    }
-
-    /**
-     * Sends an empty audio protobuf request (PUT) to trigger translation generation
-     * on Yandex servers. Kept only as a fallback if the real YouTube audio stream
-     * cannot be downloaded or uploaded.
-     */
-    public static void sendEmptyAudio(String videoUrl, String translationId, String oauthToken) {
-        try {
-            byte[] body = YandexVotProtobuf.encodeEmptyAudioRequest(translationId, videoUrl);
-            String path = "/video-translation/audio";
-            sendApiRequest(path, body, "PUT", oauthToken);
-        } catch (Exception e) {
-            Logger.printException(() -> "YandexVotApiClient.sendEmptyAudio failed for " + videoUrl, e);
-        }
     }
 
     /**
@@ -809,8 +889,8 @@ public class YandexVotApiClient {
             }
             int responseCode = connection.getResponseCode();
             if (responseCode < 200 || responseCode >= 300) {
-                Logger.printDebug(() -> "VOT sendJsonRequest: " + requestUrl
-                        + " returned " + responseCode);
+                Logger.printDebug(() -> "VOT sendJsonRequest: endpoint=" + path
+                        + " status=" + responseCode);
             }
         } finally {
             connection.disconnect();

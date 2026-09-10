@@ -4,13 +4,13 @@
  */
 package app.morphe.extension.tiktok.featuregatelab;
 
+import app.morphe.extension.tiktok.settings.L10n;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Typeface;
-import android.os.Build;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -57,12 +57,12 @@ final class FeatureGateLabUi {
         FrameLayout frame = new FrameLayout(context);
         frame.setPadding(dp(context, 16), 0, dp(context, 16), dp(context, 24));
         LinearLayout header = app.morphe.extension.tiktok.settings.preference.SettingsHeaderPreference.createHeader(context, title, onBack);
-        ((TextView) header.findViewWithTag("metra_page_title")).setTextSize(onMenu == null ? 40 : 28);
+        ((TextView) header.findViewWithTag("hushfeed_page_title")).setTextSize(onMenu == null ? 40 : 28);
         if (onMenu != null) {
             View menu = iconButton(context, "icon_ellipsis_horizontal", android.R.drawable.ic_menu_more,
-                    "More options", onMenu);
+                    L10n.t(context, "More options"), onMenu);
             menu.setTag("feature_gate_menu");
-            ((LinearLayout) header.findViewWithTag("metra_toolbar")).addView(menu,
+            ((LinearLayout) header.findViewWithTag("hushfeed_toolbar")).addView(menu,
                     new LinearLayout.LayoutParams(dp(context, 48), dp(context, 48)));
         }
         frame.addView(header, new FrameLayout.LayoutParams(-1, -2));
@@ -74,7 +74,7 @@ final class FeatureGateLabUi {
                 context,
                 "icon_x_mark_small",
                 android.R.drawable.ic_menu_close_clear_cancel,
-                "Clear search",
+                L10n.t(context, "Clear search"),
                 onClear
         );
     }
@@ -197,9 +197,7 @@ final class FeatureGateLabUi {
         if (view instanceof RadioButton) {
             RadioButton radio = (RadioButton) view;
             radio.setTextColor(SettingsUi.textPrimary());
-            if (Build.VERSION.SDK_INT >= 21) {
-                radio.setButtonTintList(ColorStateList.valueOf(SettingsUi.accent()));
-            }
+            radio.setButtonTintList(ColorStateList.valueOf(SettingsUi.accent()));
         } else if (view instanceof Button) {
             ((Button) view).setTextColor(SettingsUi.accent());
         } else if (view instanceof TextView) {

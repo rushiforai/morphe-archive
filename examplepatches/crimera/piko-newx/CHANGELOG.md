@@ -1,3 +1,19 @@
+## [3.14.0](https://github.com/crimera/piko-newx/compare/v3.13.3...v3.14.0) (2026-09-09)
+
+### ✨ New Features
+* **Twitter:** support 12.24.0-prod.02 ([6eb5236](https://github.com/crimera/piko/commit/6eb5236af4088e19f1d3914f1ff9373f2c7d231d))
+
+## [3.13.3](https://github.com/crimera/piko-newx/compare/v3.13.2...v3.13.3) (2026-09-09)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** restore photo viewer navigation inset ([ccb7457](https://github.com/crimera/piko/commit/ccb74571c35cedd8b34aa20deb8556749960477c))
+
+## [3.13.2](https://github.com/crimera/piko-newx/compare/v3.13.1...v3.13.2) (2026-09-09)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** harden reply bar fingerprints ([ca6a72a](https://github.com/crimera/piko/commit/ca6a72ad425a3ff25a1eefa08e335c578378b63c))
+* **Twitter - newx:** eliminate post-detail reply bar gradient scrim and insets ([98ee98c](https://github.com/crimera/piko/commit/98ee98c84523b21963bb0dcfbf474855acc1402d))
+
 ## [3.13.1](https://github.com/crimera/piko-newx/compare/v3.13.0...v3.13.1) (2026-09-09)
 
 ### 🐛 Bug Fixes

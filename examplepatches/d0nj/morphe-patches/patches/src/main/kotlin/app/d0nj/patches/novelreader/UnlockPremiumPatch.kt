@@ -1,10 +1,10 @@
-package app.template.patches.novelreader
+package app.d0nj.patches.novelreader
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
-import app.template.patches.shared.clearBody
+import app.d0nj.patches.shared.clearBody
 
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(

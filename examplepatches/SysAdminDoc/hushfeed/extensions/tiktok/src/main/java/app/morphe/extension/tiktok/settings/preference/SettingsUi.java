@@ -7,6 +7,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.ColorStateList;
+import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
@@ -20,7 +21,6 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.graphics.drawable.StateListDrawable;
-import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -36,6 +36,8 @@ import android.widget.TextView;
 import android.widget.Switch;
 
 import androidx.annotation.ColorInt;
+
+import app.morphe.extension.shared.Utils;
 
 public final class SettingsUi {
     public static final @ColorInt int ACCENT = Color.rgb(255, 79, 135);
@@ -60,6 +62,13 @@ public final class SettingsUi {
     public static final int LIGHT_ACCENT = Color.rgb(184, 22, 77);
 
     private SettingsUi() {
+    }
+
+    /** Sync before painting any surface, since TikTok's theme can differ from the system's. */
+    public static void syncDarkMode(Context context) {
+        int nightMode = context.getResources().getConfiguration().uiMode
+                & Configuration.UI_MODE_NIGHT_MASK;
+        Utils.setIsDarkModeEnabled(nightMode == Configuration.UI_MODE_NIGHT_YES);
     }
 
     public static boolean isDarkMode() {
@@ -155,7 +164,27 @@ public final class SettingsUi {
 
     public static Drawable groupedRow(Context context, boolean first, boolean last) {
         return new RippleDrawable(ColorStateList.valueOf((accent() & 0x00ffffff) | 0x26000000),
-                new GroupRowDrawable(context, first, last), new ColorDrawable(Color.WHITE));
+                new GroupRowDrawable(context, first, last), groupRowMask(context, first, last));
+    }
+
+    /**
+     * The shape a press is allowed to fill, which has to be the shape the row draws.
+     *
+     * <p>A plain rectangle let the ripple fill the transparent notches a card's first and last
+     * row leave at the corners, so a press at the corner of a card spilled outside it. The
+     * corners are rounded on the same two edges {@link GroupRowDrawable} rounds and square on
+     * the others, where the row meets its neighbour.
+     */
+    public static Drawable groupRowMask(Context context, boolean first, boolean last) {
+        float radius = dp(context, 10);
+        float top = first ? radius : 0f;
+        float bottom = last ? radius : 0f;
+        GradientDrawable mask = new GradientDrawable();
+        mask.setShape(GradientDrawable.RECTANGLE);
+        mask.setColor(Color.WHITE);
+        // Clockwise from the top left, two values per corner.
+        mask.setCornerRadii(new float[]{top, top, top, top, bottom, bottom, bottom, bottom});
+        return mask;
     }
 
     private static final class GroupRowDrawable extends Drawable {
@@ -195,6 +224,18 @@ public final class SettingsUi {
 
     public static int dp(Context context, int value) {
         return Math.round(value * context.getResources().getDisplayMetrics().density);
+    }
+
+    /**
+     * The same in pixels without rounding, for a stroke width.
+     *
+     * <p>Paint.setStrokeWidth takes canvas pixels. Every hand drawn glyph here was given its
+     * width as though it were dp, so on a 420 dpi phone the menu tile's lines came out 0.69dp
+     * wide and the back arrow 0.8dp: hairlines beside 40sp type. The screenshots are captured at
+     * density 1, which is why they looked right.
+     */
+    public static float strokePx(Context context, float dpValue) {
+        return dpValue * context.getResources().getDisplayMetrics().density;
     }
 
     public static @ColorInt int background() {
@@ -433,29 +474,83 @@ public final class SettingsUi {
         button.setTypeface(button.getTypeface(), primary ? Typeface.BOLD : Typeface.NORMAL);
     }
 
+    /**
+     * A dialog's flat action, which is a TextView with a click listener.
+     *
+     * <p>TalkBack reads one of those as text, so every Save, Cancel and Apply in a hand built
+     * dialog here was announced as a label rather than as something to press. The role is set
+     * here so every consumer inherits it, and 48dp each way is Android's own guidance for
+     * anything a finger has to land on.
+     */
     public static void styleTextAction(TextView button, boolean primary) {
         button.setTextColor(primary ? accent() : textSecondary());
         button.setTypeface(button.getTypeface(), primary ? Typeface.BOLD : Typeface.NORMAL);
+        button.setMinimumHeight(dp(button.getContext(), 48));
+        button.setMinimumWidth(dp(button.getContext(), 48));
+        button.setGravity(android.view.Gravity.CENTER);
+        button.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override public void onInitializeAccessibilityNodeInfo(
+                    View host, android.view.accessibility.AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                info.setClassName(android.widget.Button.class.getName());
+            }
+        });
+    }
+
+    /** What a dialog's Save has to satisfy before the dialog is allowed to close. */
+    public interface DialogCheck {
+        /** Null when the value is fine, otherwise what is wrong with it, in the reader's words. */
+        String problem();
+
+        /** Puts the reason where the reader is looking, under the field it is about. */
+        void report(String problem);
+
+        /**
+         * Saves what the dialog holds. Runs only when {@link #problem()} answered null, and
+         * answers false when something further down refused the value and has already said
+         * why, which keeps the dialog open without a second message on top of the first.
+         */
+        boolean accept();
+    }
+
+    /**
+     * Keeps a preference dialog open when Save is pressed on something it will not take.
+     *
+     * <p>A DialogPreference dismisses on the positive button before it is told what was typed, so
+     * every one of these rejected a value by closing the dialog and then toasting the reason, and
+     * the reader had to reopen the row and type it again. Replacing the button's own listener
+     * after the dialog is showing is the only way in: the dialog closes when the value is
+     * accepted and stays put, with the text still in the box, when it is not.
+     */
+    public static void keepOpenOnInvalidInput(Dialog dialog, DialogCheck check) {
+        if (!(dialog instanceof AlertDialog)) return;
+        Button save = ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE);
+        if (save == null) return;
+        save.setOnClickListener(view -> {
+            String problem = check.problem();
+            if (problem != null) {
+                check.report(problem);
+                return;
+            }
+            if (!check.accept()) return;
+            dialog.dismiss();
+        });
     }
 
     public static void styleEditText(EditText editText) {
         editText.setTextColor(textPrimary());
         editText.setHintTextColor(textSecondary());
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            editText.setBackgroundTintList(ColorStateList.valueOf(accent()));
-        }
+        editText.setBackgroundTintList(ColorStateList.valueOf(accent()));
     }
 
     public static void styleCheckBox(CompoundButton button) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            int[][] states = new int[][]{
-                    new int[]{android.R.attr.state_checked},
-                    new int[]{-android.R.attr.state_enabled},
-                    new int[]{}
-            };
-            int[] colors = new int[]{accent(), textDisabled(), textSecondary()};
-            button.setButtonTintList(new ColorStateList(states, colors));
-        }
+        int[][] states = new int[][]{
+                new int[]{android.R.attr.state_checked},
+                new int[]{-android.R.attr.state_enabled},
+                new int[]{}
+        };
+        int[] colors = new int[]{accent(), textDisabled(), textSecondary()};
+        button.setButtonTintList(new ColorStateList(states, colors));
     }
 
     private static final class DialogCheckMarkDrawable extends Drawable {

@@ -23,6 +23,35 @@ import org.robolectric.annotation.GraphicsMode;
 @Config(sdk = 28)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class OverlayControlsTest {
+    @Test public void theInstalledBlockButtonDrawsBothTheRingAndTheSlash() throws Exception {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        Utils.setContext(activity);
+        Method factory = BlockAuthorOverlay.class.getDeclaredMethod("createButton", Activity.class);
+        factory.setAccessible(true);
+        View button = (View) factory.invoke(null, activity);
+        android.graphics.drawable.LayerDrawable layers =
+                (android.graphics.drawable.LayerDrawable) button.getBackground();
+        assertTrue(layers.getDrawable(1) instanceof BlockGlyphDrawable);
+        int size = View.MeasureSpec.makeMeasureSpec(100, View.MeasureSpec.EXACTLY);
+        button.measure(size, size);
+        button.layout(0, 0, 100, 100);
+        Bitmap bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
+        button.draw(new Canvas(bitmap));
+        assertNearWhite("the block symbol lost its diagonal bar", bitmap.getPixel(50, 50));
+        assertNearWhite("the block symbol lost its ring", bitmap.getPixel(79, 50));
+        assertNotEquals("the symbol became a filled disc", Color.WHITE, bitmap.getPixel(50, 40));
+        assertEquals("the round button filled its transparent corner", 0, Color.alpha(bitmap.getPixel(0, 0)));
+        bitmap.recycle();
+        activity.finish();
+    }
+
+    private static void assertNearWhite(String message, int pixel) {
+        // Edge coverage is fractional at a diagonal even at the centre of a 2px stroke.
+        assertTrue(message + ": " + Integer.toHexString(pixel),
+                Color.alpha(pixel) >= 225 && Color.red(pixel) >= 225
+                        && Color.green(pixel) >= 225 && Color.blue(pixel) >= 225);
+    }
+
     @Test public void renderAccessibleOverlayControls() throws Exception {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         Utils.setContext(activity);
@@ -91,6 +120,47 @@ public class OverlayControlsTest {
                     & Gravity.HORIZONTAL_GRAVITY_MASK;
             assertEquals(name + " is mirrored away from the margin that positions it",
                     Gravity.LEFT, mirrored);
+        }
+    }
+
+    @Test public void allFourFeedButtonsAreOneSizeAndOneShape() throws Exception {
+        // They sit in a column on the feed, where a miss is a like or a follow on somebody's
+        // video, and 44dp is under Android's own guidance with no TouchDelegate to make up the
+        // difference. Not interested was also the only rounded rectangle of the four, over a
+        // darker scrim, which on a column of four reads as a mistake rather than a distinction.
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        Utils.setContext(activity);
+        Utils.setActivity(activity);
+        Method attach = BlockAuthorOverlay.class.getDeclaredMethod("attach", VideoAuthor.class);
+        attach.setAccessible(true);
+        attach.invoke(null, new VideoAuthor("1", "sec", "someone", "7712345"));
+
+        int expected = app.morphe.extension.tiktok.settings.preference.SettingsUi
+                .dp(activity, 48);
+        String[] buttons = {"buttonReference", "localHideReference", "soundButtonReference",
+                "notInterestedReference"};
+        for (String name : buttons) {
+            java.lang.reflect.Field held = BlockAuthorOverlay.class.getDeclaredField(name);
+            held.setAccessible(true);
+            View view = ((java.lang.ref.WeakReference<View>) held.get(null)).get();
+            assertNotNull(name + " was never attached", view);
+
+            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
+            assertEquals(name + " is not 48dp wide", expected, params.width);
+            assertEquals(name + " is not 48dp tall", expected, params.height);
+
+            // The block button draws its symbol over the disc rather than setting it as text,
+            // because the font TikTok is using may not carry it, so its background is a layer
+            // list with the disc underneath.
+            android.graphics.drawable.Drawable background = view.getBackground();
+            if (background instanceof android.graphics.drawable.LayerDrawable) {
+                background = ((android.graphics.drawable.LayerDrawable) background)
+                        .getDrawable(0);
+            }
+            android.graphics.drawable.GradientDrawable disc =
+                    (android.graphics.drawable.GradientDrawable) background;
+            assertEquals(name + " is not the round shape the others are",
+                    android.graphics.drawable.GradientDrawable.OVAL, disc.getShape());
         }
     }
 

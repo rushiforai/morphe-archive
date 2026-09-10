@@ -14,6 +14,13 @@ explicitly disable the patches meant for other apps**, or they apply by default.
 Everything here is deliberately small. Anything that belongs upstream should go
 upstream instead; this repo is for patches that only Vantage wants.
 
+Not to be confused with [pmaxhogan/revanced-patches](https://github.com/pmaxhogan/revanced-patches):
+that one is a **fork** of anddea's full bundle that only changes a few setting
+defaults (Shorts off, Playables and AI sections hidden, and so on) and syncs
+upstream nightly. Changing what an existing upstream patch does by default goes
+there; a new patch that upstream would never take goes here. Vantage builds
+with both bundles at once.
+
 ## Patches
 
 ### Keep playback on activity destroy (YouTube Music)

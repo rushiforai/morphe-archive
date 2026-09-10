@@ -101,6 +101,9 @@ fabric.properties
 **/build/
 !src/**/build/
 
+# Kotlin compiler/session caches
+.kotlin/
+
 # Ignore Gradle GUI config
 gradle-app.setting
 

@@ -1,6 +1,7 @@
 package app.morphe.extension.tiktok.settings;
 
 import static org.junit.Assert.*;
+import app.morphe.extension.tiktok.SettingsContextRule;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Looper;
@@ -19,6 +20,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.junit.Rule;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,6 +36,7 @@ import org.robolectric.annotation.GraphicsMode;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @SuppressWarnings("deprecation")
 public class SettingsPagesTest {
+    @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
     private static final String[] SECTIONS = {"FEED_FILTER", "FEED_NAVIGATION", "INTERFACE", "COMMENTS",
             "DOWNLOADS", "PLAYBACK", "INBOX", "SHARE", "REGION", "BEHAVIOR", "DIAGNOSTICS"};
     private static final String[] TITLES = {"Feed filter", "Feed navigation", "Interface", "Comments and translation",
@@ -377,6 +380,216 @@ public class SettingsPagesTest {
         }
     }
 
+    @Test public void aPressStaysInsideTheCardTheRowIsPartOf() throws Exception {
+        // The ripple mask was an opaque rectangle while the row draws a rounded card, so a press
+        // at the corner of a card's first or last row filled the transparent notch outside it.
+        // The mask has to be the shape the row draws: rounded where the card is, square where
+        // the row meets its neighbour.
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            float radius = app.morphe.extension.tiktok.settings.preference.SettingsUi
+                    .dp(activity, 10);
+
+            for (boolean[] ends : new boolean[][]{{true, false}, {false, true},
+                    {true, true}, {false, false}}) {
+                var mask = (android.graphics.drawable.GradientDrawable)
+                        app.morphe.extension.tiktok.settings.preference.SettingsUi
+                                .groupRowMask(activity, ends[0], ends[1]);
+                float[] radii = mask.getCornerRadii();
+                assertNotNull("the mask went back to a plain rectangle", radii);
+                float top = ends[0] ? radius : 0f;
+                float bottom = ends[1] ? radius : 0f;
+                assertEquals("the top of a first=" + ends[0] + " row", top, radii[0], 0.01f);
+                assertEquals(top, radii[3], 0.01f);
+                assertEquals("the bottom of a last=" + ends[1] + " row", bottom, radii[4], 0.01f);
+                assertEquals(bottom, radii[7], 0.01f);
+            }
+        }
+    }
+
+    @Test
+    @Config(sdk = 28, qualifiers = "xhdpi")
+    public void theHandDrawnGlyphsMirrorAndAreDrawnInDp() throws Exception {
+        // Two things, both invisible on the captured screenshots because those are density 1.
+        // The containers mirror by margin and gravity, so an Arabic or Hebrew reader had a left
+        // pointing back arrow at the right edge and chevrons pointing back into the text. And
+        // Paint.setStrokeWidth takes canvas pixels, so on a dense screen the menu tile's lines
+        // came out under a dp wide beside 40sp type.
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            float density = activity.getResources().getDisplayMetrics().density;
+            assertTrue("the fixture is not a dense screen, so this proves nothing", density >= 2f);
+
+            var back = new app.morphe.extension.tiktok.settings.preference
+                    .SettingsHeaderPreference.BackDrawable(activity);
+            var chevron = new app.morphe.extension.tiktok.settings.preference
+                    .SettingsMenuPreference.ChevronDrawable(activity);
+
+            assertTrue("the back arrow does not mirror", back.isAutoMirrored());
+            assertTrue("the chevron does not mirror", chevron.isAutoMirrored());
+
+            assertEquals("the back arrow is a hairline on a dense screen",
+                    2.1f * density, strokeOf(back), 0.01f);
+            assertEquals("the chevron is a hairline on a dense screen",
+                    1.8f * density, strokeOf(chevron), 0.01f);
+            assertTrue("the chevron is under 2dp wide", strokeOf(chevron) >= 2f);
+
+            // And the glyph itself turns round, rather than only its container. Declaring
+            // isAutoMirrored is a promise; this is the drawing that keeps it. Drawn both ways
+            // and compared against its own mirror image, which is what turning round means and
+            // needs no opinion about which end is the point.
+            assertTrue("the back arrow draws the same picture in both directions",
+                    isHorizontalMirror(back));
+            assertTrue("the chevron draws the same picture in both directions",
+                    isHorizontalMirror(chevron));
+        }
+    }
+
+    /** The stroke the drawable's own paint carries. */
+    private static float strokeOf(android.graphics.drawable.Drawable drawable) throws Exception {
+        var field = drawable.getClass().getDeclaredField("paint");
+        field.setAccessible(true);
+        return ((android.graphics.Paint) field.get(drawable)).getStrokeWidth();
+    }
+
+    /**
+     * Whether the glyph drawn in a mirrored layout is the mirror image of the one drawn plainly.
+     *
+     * <p>That is what turning round means, and it holds whichever end is the point, so the test
+     * does not have to have an opinion about the shape. Fails if either the negation in draw()
+     * or the mirroring itself is taken out.
+     */
+    private static boolean isHorizontalMirror(android.graphics.drawable.Drawable glyph) {
+        int size = 48;
+        int[] ltr = render(glyph, View.LAYOUT_DIRECTION_LTR, size);
+        int[] rtl = render(glyph, View.LAYOUT_DIRECTION_RTL, size);
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
+                int drawn = android.graphics.Color.alpha(ltr[y * size + x]);
+                int mirrored = android.graphics.Color.alpha(rtl[y * size + (size - 1 - x)]);
+                // Anti-aliasing along the diagonal costs a few levels. Measured on
+                // this fixture: 2302 of the 2304 pixels match exactly and the worst
+                // pair is 16 apart, so 24 is antialiasing and anything above it is
+                // a different picture.
+                if (Math.abs(drawn - mirrored) > 24) return false;
+            }
+        }
+        // And the two are not simply the same picture, which they would be for a glyph that
+        // never turned round and happens to be symmetric.
+        for (int index = 0; index < ltr.length; index++) {
+            if (ltr[index] != rtl[index]) return true;
+        }
+        return false;
+    }
+
+    private static int[] render(
+            android.graphics.drawable.Drawable glyph, int direction, int size) {
+        glyph.setBounds(0, 0, size, size);
+        glyph.setLayoutDirection(direction);
+        var bitmap = android.graphics.Bitmap.createBitmap(
+                size, size, android.graphics.Bitmap.Config.ARGB_8888);
+        glyph.draw(new android.graphics.Canvas(bitmap));
+        int[] pixels = new int[size * size];
+        bitmap.getPixels(pixels, 0, size, 0, 0, size, size);
+        bitmap.recycle();
+        return pixels;
+    }
+
+    @Test public void aLongPageTitleLeavesRoomForThePageAtAnyTextScale() throws Exception {
+        // 40sp against a 2x text scale is 80sp of page title. The two-times-text capture showed
+        // "Kommentare und Uebersetzung" on five lines taking 85% of the screen, with the first
+        // card of the page below the fold.
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            var configuration = activity.getResources().getConfiguration();
+            float original = configuration.fontScale;
+            try {
+                configuration.fontScale = 1.0f;
+                assertEquals("the ordinary scale should be untouched", 40,
+                        app.morphe.extension.tiktok.settings.preference.SettingsHeaderPreference
+                                .headingSizeSp(activity));
+
+                configuration.fontScale = 2.0f;
+                int large = app.morphe.extension.tiktok.settings.preference
+                        .SettingsHeaderPreference.headingSizeSp(activity);
+                assertTrue("the title still fills the screen at 2x: " + large, large <= 26);
+                assertTrue("the title shrank past readable: " + large, large >= 24);
+                assertTrue("the rendered height grew by more than a third",
+                        large * 2.0f <= 40 * 1.35f);
+            } finally {
+                configuration.fontScale = original;
+            }
+        }
+    }
+
+    @Test public void theSimSwitchOnlyPromisesTheRowsThatArePresent() throws Exception {
+        // The operator rows are added only when the SIM spoof patch is in the bundle, and the
+        // switch's summary promised "the selected country and operator values" either way.
+        try (var owner = Robolectric.buildActivity(
+                app.morphe.extension.tiktok.interaction.GestureActionsTest.TestActivity.class)
+                .setup()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            boolean original = app.morphe.extension.tiktok.settings.SettingsStatus
+                    .simSpoofEnabled;
+            try {
+                app.morphe.extension.tiktok.settings.SettingsStatus.simSpoofEnabled = false;
+                assertTrue("a bundle without the patch still promised the operator rows",
+                        !summaryOfSimSwitch(activity).contains("operator"));
+
+                app.morphe.extension.tiktok.settings.SettingsStatus.simSpoofEnabled = true;
+                assertTrue("a bundle with the patch stopped naming the operator rows",
+                        summaryOfSimSwitch(activity).contains("operator"));
+            } finally {
+                app.morphe.extension.tiktok.settings.SettingsStatus.simSpoofEnabled = original;
+            }
+        }
+    }
+
+    private static String summaryOfSimSwitch(Activity activity) {
+        var host = (android.preference.PreferenceActivity) activity;
+        var screen = host.getPreferenceManager().createPreferenceScreen(activity);
+        new app.morphe.extension.tiktok.settings.preference.categories
+                .SimSpoofPreferenceCategory(activity, screen);
+        var row = screen.findPreference(
+                app.morphe.extension.tiktok.settings.Settings.SIM_SPOOF.key);
+        assertNotNull("the SIM switch is not on the page", row);
+        return String.valueOf(row.getSummary());
+    }
+
+    @Test public void everyDialogActionIsPressableAndReadsAsAButton() throws Exception {
+        // The flat actions in the hand built dialogs are TextViews with a click listener, so
+        // TalkBack read them as labels rather than as something to press, and the two pickers
+        // gave them about 35dp of touch height against a 48dp guideline. Asserted at the one
+        // point every one of them goes through.
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+
+            for (boolean primary : new boolean[]{true, false}) {
+                android.widget.TextView action = new android.widget.TextView(activity);
+                action.setText("Save");
+                app.morphe.extension.tiktok.settings.preference.SettingsUi
+                        .styleTextAction(action, primary);
+
+                int expected = app.morphe.extension.tiktok.settings.preference.SettingsUi
+                        .dp(activity, 48);
+                assertEquals("a dialog action under the touch guideline",
+                        expected, action.getMinimumHeight());
+                assertEquals(expected, action.getMinimumWidth());
+
+                var info = android.view.accessibility.AccessibilityNodeInfo.obtain();
+                action.onInitializeAccessibilityNodeInfo(info);
+                assertEquals("a screen reader would read this as text",
+                        android.widget.Button.class.getName(),
+                        String.valueOf(info.getClassName()));
+            }
+        }
+    }
+
     @Test public void renderedControlsSaveAndOpenTheirNativeEditors() throws Exception {
         try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
             Activity activity = owner.get();
@@ -486,7 +699,7 @@ public class SettingsPagesTest {
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             assertEquals("", input.getText().toString());
             assertNotNull(findPreference(page.getPreferenceScreen(), "Tippe, um Einstellungen zu durchsuchen"));
-            View toolbar = page.getView().findViewWithTag("metra_toolbar");
+            View toolbar = page.getView().findViewWithTag("hushfeed_toolbar");
             assertNotNull(toolbar);
             assertTrue(((android.view.ViewGroup) toolbar).getChildAt(0).performClick());
             activity.getFragmentManager().executePendingTransactions();
@@ -589,7 +802,7 @@ public class SettingsPagesTest {
             layout(page.getView(), 360, 800);
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             UiCapture.save(page.getView(), "pages/dark/comments-german-large.png", 360, 800);
-            android.widget.TextView heading = page.getView().findViewWithTag("metra_page_title");
+            android.widget.TextView heading = page.getView().findViewWithTag("hushfeed_page_title");
             assertNotNull(heading);
             assertTrue(heading.getLineCount() > 1);
             assertEquals(0, heading.getLayout().getEllipsisCount(heading.getLineCount() - 1));
@@ -598,6 +811,38 @@ public class SettingsPagesTest {
             assertNotNull(caption);
             assertTextFits(caption);
             assertRowsReadable(page.getView().findViewById(android.R.id.list), 48);
+        }
+    }
+
+    /**
+     * The same page in Spanish at twice the text size. Spanish and Portuguese run about a fifth
+     * longer than English, so a row that fits in English and in German still has to be looked
+     * at once in a Romance language: "Silenciar el feed mientras los comentarios están abiertos"
+     * is not a line German would have produced.
+     */
+    @Test @Config(qualifiers = "es-rES-w320dp-h800dp-night-mdpi")
+    public void longSpanishLabelsStayReadableAtTwoTimesTextSize() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            var configuration = activity.getResources().getConfiguration();
+            configuration.fontScale = 2.0f;
+            activity.getResources().updateConfiguration(
+                    configuration, activity.getResources().getDisplayMetrics());
+            TikTokPreferenceFragment page = attachSection(activity, "COMMENTS");
+            layout(page.getView(), 320, 800);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            TextView heading = page.getView().findViewWithTag("hushfeed_page_title");
+            assertNotNull(heading);
+            assertEquals("the page title is not in Spanish, so this proves nothing",
+                    "Comentarios y traducción", heading.getText().toString());
+            assertTextFits(heading);
+            TextView caption = findTextViewContaining(page.getView(), "Filtros, traducción");
+            assertNotNull("the page description is not in Spanish", caption);
+            assertTextFits(caption);
+            assertRowsReadable(page.getView().findViewById(android.R.id.list), 48);
+            UiCapture.save(page.getView(), "pages/dark/comments-spanish-large.png", 320, 800);
         }
     }
 
@@ -649,7 +894,7 @@ public class SettingsPagesTest {
                 TikTokPreferenceFragment page = attachSection(activity, section);
                 layout(page.getView(), 320, 800);
                 Shadows.shadowOf(Looper.getMainLooper()).idle();
-                TextView heading = page.getView().findViewWithTag("metra_page_title");
+                TextView heading = page.getView().findViewWithTag("hushfeed_page_title");
                 assertNotNull(section, heading);
                 assertTextFits(heading);
                 assertRowsReadable(page.getView().findViewById(android.R.id.list), 48);
@@ -676,9 +921,15 @@ public class SettingsPagesTest {
             layout(page.getView(), 320, 800);
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             forceRtl(page.getView());
-            assertEquals(View.LAYOUT_DIRECTION_RTL, configuration.getLayoutDirection());
+            // setLayoutDirection throws away the resolved direction and asks for another
+            // layout. Turning the tree round and then capturing it gave every view the left
+            // to right default back, and a view hands that on to its drawables, so the arrow
+            // in the picture pointed the way it came.
+            layout(page.getView(), 320, 800);
+assertEquals(View.LAYOUT_DIRECTION_RTL, configuration.getLayoutDirection());
+            assertBackArrowPointsTheWayTheReaderReads(page.getView());
             assertRowsReadable(page.getView().findViewById(android.R.id.list), 48);
-            TextView heading = page.getView().findViewWithTag("metra_page_title");
+            TextView heading = page.getView().findViewWithTag("hushfeed_page_title");
             assertNotNull(heading);
             assertTextFits(heading);
             UiCapture.save(page.getView(), "pages/dark/rtl-large.png", 320, 800);
@@ -691,7 +942,7 @@ public class SettingsPagesTest {
                 layout(other.getView(), 320, 800);
                 Shadows.shadowOf(Looper.getMainLooper()).idle();
                 forceRtl(other.getView());
-                TextView title = other.getView().findViewWithTag("metra_page_title");
+                TextView title = other.getView().findViewWithTag("hushfeed_page_title");
                 assertNotNull(section, title);
                 assertTextFits(title);
                 assertRowsReadable(other.getView().findViewById(android.R.id.list), 48);
@@ -718,9 +969,14 @@ public class SettingsPagesTest {
             layout(page.getView(), 320, 800);
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             forceRtl(page.getView());
-
-            assertEquals(View.LAYOUT_DIRECTION_RTL, configuration.getLayoutDirection());
-            TextView heading = page.getView().findViewWithTag("metra_page_title");
+            // setLayoutDirection throws away the resolved direction and asks for another
+            // layout. Turning the tree round and then capturing it gave every view the left
+            // to right default back, and a view hands that on to its drawables, so the arrow
+            // in the picture pointed the way it came.
+            layout(page.getView(), 320, 800);
+assertEquals(View.LAYOUT_DIRECTION_RTL, configuration.getLayoutDirection());
+            assertBackArrowPointsTheWayTheReaderReads(page.getView());
+            TextView heading = page.getView().findViewWithTag("hushfeed_page_title");
             assertNotNull(heading);
             assertTextFits(heading);
             assertRowsReadable(page.getView().findViewById(android.R.id.list), 48);
@@ -735,6 +991,122 @@ public class SettingsPagesTest {
      */
     private static final String[] MAIN_PAGES = {"FEED_FILTER", "INTERFACE", "COMMENTS",
             "DOWNLOADS", "PLAYBACK", "INBOX", "SHARE", "BEHAVIOR", "DIAGNOSTICS"};
+
+    /**
+     * A badge on the master menu says how many settings on the page behind it are away from
+     * their default. It used to read a list of settings kept by hand beside the page: the Feed
+     * filter list named 17 of the 34 settings that page binds, and every list counted a switch
+     * that is on by default as being on, so a stock install claimed "Comments and translation,
+     * 3 on" before anyone had touched anything.
+     */
+    @Test public void aStockInstallShowsNoNumbersAndTurningSomethingOnMovesOne() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            // What "stock" means, rather than whatever the test before this one left behind:
+            // capturePages turns the default speed on for its screenshots and never puts it
+            // back, so without this the Playback badge starts at one.
+            for (var setting : app.morphe.extension.shared.settings.Setting.allLoadedSettings()) {
+                setting.resetToDefault();
+            }
+
+            TikTokPreferenceFragment home = attachHome(activity);
+            for (var row : menuRows(home)) {
+                assertEquals("\"" + row.getTitle() + "\" claims settings are on in a stock"
+                                + " install", 0, row.activeCount());
+            }
+
+            // A setting on the Feed filter page that the hand-kept list of 17 never named.
+            Settings.HIDE_AI_GENERATED.save(true);
+            home = attachHome(activity);
+            assertEquals("the Feed filter badge did not count a setting that was turned on",
+                    1, badgeFor(home, "Feed filter"));
+            assertEquals("turning on a Feed filter setting moved another page's badge",
+                    0, badgeFor(home, "Downloads"));
+            Settings.HIDE_AI_GENERATED.resetToDefault();
+        }
+    }
+
+    /**
+     * And the number follows the page while the screen is open. openSection replaces this
+     * fragment and puts it on the back stack, so the master screen and its rows survive the
+     * trip; nothing rebuilt them on the way back, and the old number stayed for the session.
+     */
+    @Test public void aBadgeIsUpToDateAfterComingBackFromTheSection() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            for (var setting : app.morphe.extension.shared.settings.Setting.allLoadedSettings()) {
+                setting.resetToDefault();
+            }
+            TikTokPreferenceFragment home = attachHome(activity);
+            assertEquals(0, badgeFor(home, "Feed filter"));
+
+            // What the reader does inside the section, without going through its rows.
+            Settings.HIDE_AI_GENERATED.save(true);
+            Settings.HIDE_LIVE_REPLAYS.save(true);
+
+            // And the way back: the fragment is resumed rather than built again.
+            home.onResume();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            assertEquals("the badge still shows the count from when the screen was opened",
+                    2, badgeFor(home, "Feed filter"));
+            Settings.HIDE_AI_GENERATED.resetToDefault();
+            Settings.HIDE_LIVE_REPLAYS.resetToDefault();
+        }
+    }
+
+    /**
+     * Counting what is on a page does not change it. The count is worked out by building the
+     * section, and one row wrote the tidied form of its own stored value the moment it was
+     * built, so opening the settings menu rewrote a setting the reader had never touched.
+     */
+    @Test public void countingTheBadgesWritesNothing() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            for (var setting : app.morphe.extension.shared.settings.Setting.allLoadedSettings()) {
+                setting.resetToDefault();
+            }
+            // Stored in an order the row would tidy, which is what made the write visible.
+            Settings.FEED_NAVIGATION_TABS.save("MALL,HOT");
+
+            TikTokPreferenceFragment home = attachHome(activity);
+            home.onResume();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            assertEquals("opening the settings menu rewrote a setting nobody touched",
+                    "MALL,HOT", Settings.FEED_NAVIGATION_TABS.get());
+            assertTrue("the menu was never built", menuRows(home).size() > 3);
+            Settings.FEED_NAVIGATION_TABS.resetToDefault();
+        }
+    }
+
+    private static java.util.List<app.morphe.extension.tiktok.settings.preference
+            .SettingsMenuPreference> menuRows(TikTokPreferenceFragment fragment) {
+        var found = new java.util.ArrayList<app.morphe.extension.tiktok.settings.preference
+                .SettingsMenuPreference>();
+        var screen = fragment.getPreferenceScreen();
+        assertNotNull("the master menu was never built", screen);
+        for (int index = 0; index < screen.getPreferenceCount(); index++) {
+            Preference row = screen.getPreference(index);
+            if (row instanceof app.morphe.extension.tiktok.settings.preference
+                    .SettingsMenuPreference) {
+                found.add((app.morphe.extension.tiktok.settings.preference
+                        .SettingsMenuPreference) row);
+            }
+        }
+        assertTrue("the master menu has no rows, so this proves nothing", found.size() > 3);
+        return found;
+    }
+
+    private static int badgeFor(TikTokPreferenceFragment fragment, String title) {
+        for (var row : menuRows(fragment)) {
+            if (title.contentEquals(row.getTitle())) return row.activeCount();
+        }
+        throw new AssertionError("no row called " + title);
+    }
 
     private static TikTokPreferenceFragment attachSection(Activity activity, String section) {
         TikTokPreferenceFragment fragment = new TikTokPreferenceFragment();
@@ -853,6 +1225,27 @@ public class SettingsPagesTest {
             android.view.ViewGroup group = (android.view.ViewGroup) view;
             for (int i = 0; i < group.getChildCount(); i++) collectEditors(group.getChildAt(i), editors);
         }
+    }
+
+    /**
+     * The back arrow in the picture about to be captured turns round with the layout.
+     *
+     * <p>Turning the views round is not enough on its own. The glyph is a drawable, and a
+     * drawable takes its direction from the view it hangs off only once that view resolves,
+     * which is a thing a fixture assembled by hand does not always do. Without this the
+     * mirroring item's acceptance clause, which is about the captured picture, rested on
+     * nothing.
+     */
+    private static void assertBackArrowPointsTheWayTheReaderReads(View root) {
+        View toolbar = root.findViewWithTag("hushfeed_toolbar");
+        assertNotNull("the page has no toolbar, so this proves nothing", toolbar);
+        View back = ((android.view.ViewGroup) toolbar).getChildAt(0);
+        assertTrue("the first thing in the toolbar is not the back button",
+                back instanceof android.widget.ImageView);
+        Drawable arrow = ((android.widget.ImageView) back).getDrawable();
+        assertNotNull("the back button carries no glyph", arrow);
+        assertEquals("the arrow in the captured picture still points the other way",
+                View.LAYOUT_DIRECTION_RTL, arrow.getLayoutDirection());
     }
 
     private static void forceRtl(View view) {

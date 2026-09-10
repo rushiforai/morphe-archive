@@ -133,15 +133,6 @@ public class YandexVotProtobuf {
         }
     }
 
-    public static byte[] encodeEmptyAudioRequest(String translationId, String url) {
-        return encodeAudioRequest(
-                translationId,
-                url,
-                "web_api_get_all_generating_urls_data_from_iframe",
-                new byte[0]
-        );
-    }
-
     public static byte[] encodePartialAudioRequest(
             String translationId,
             String url,

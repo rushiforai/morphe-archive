@@ -30,9 +30,9 @@ Second \"item\" text"</string>
   <string name="morphe_sb_auto_hide_skip_button_summary">Menyembunyikan tombol Lewati setelah beberapa detik daripada menampilkannya selama seluruh segmen</string>
   <string name="morphe_sb_auto_hide_skip_button_duration_title">Durasi tombol Lewati</string>
   <string name="morphe_sb_auto_hide_skip_button_duration_summary">Atur berapa lama tombol Lewati tetap terlihat</string>
-  <string name="morphe_sb_toast_on_skip_title">Tampilkan pemberitahuan Dilewati</string>
+  <string name="morphe_sb_toast_on_skip_title">Tampilkan pemberitahuan Lewati</string>
   <string name="morphe_sb_toast_on_skip_summary">Menampilkan pemberitahuan saat segmen dilewati secara otomatis</string>
-  <string name="morphe_sb_toast_on_skip_duration_title">Durasi pemberitahuan Dilewati</string>
+  <string name="morphe_sb_toast_on_skip_duration_title">Durasi pemberitahuan Lewati</string>
   <string name="morphe_sb_toast_on_skip_duration_summary">Atur berapa lama pemberitahuan pembatalan tetap terlihat</string>
   <string name="morphe_sb_duration_1s">1 detik</string>
   <string name="morphe_sb_duration_2s">2 detik</string>
@@ -73,13 +73,6 @@ Second \"item\" text"</string>
   <string name="morphe_sb_api_url_summary">Alamat yang digunakan SponsorBlock untuk membuat panggilan ke server</string>
   <string name="morphe_sb_channel_whitelist_title">Daftar putih saluran</string>
   <string name="morphe_sb_channel_whitelist_summary">SponsorBlock dinonaktifkan untuk saluran dalam daftar putih</string>
-  <string name="morphe_sb_channel_whitelist_current_channel">Saluran saat ini:</string>
-  <string name="morphe_sb_channel_whitelist_add">Tambahkan ke daftar putih</string>
-  <string name="morphe_sb_channel_whitelist_remove">Hapus</string>
-  <string name="morphe_sb_channel_whitelist_channels_header">Saluran yang ditambahkan ke daftar putih</string>
-  <string name="morphe_sb_channel_whitelist_empty">Tidak ada saluran yang ditambahkan ke daftar putih</string>
-  <string name="morphe_sb_channel_whitelist_channel_added">Saluran ditambahkan ke daftar putih</string>
-  <string name="morphe_sb_channel_whitelist_channel_removed">Saluran dihapus dari daftar putih</string>
   <string name="morphe_sb_toast_on_whitelisted_channel_title">Beri tahu jika ada saluran dalam daftar putih</string>
   <string name="morphe_sb_toast_on_whitelisted_channel_summary">Menampilkan notifikasi saat SponsorBlock dinonaktifkan untuk saluran yang ada dalam daftar putih</string>
   <string name="morphe_sb_channel_whitelisted_toast">SponsorBlock dinonaktifkan untuk saluran ini</string>

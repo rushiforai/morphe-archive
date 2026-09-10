@@ -1,3 +1,69 @@
+## [1.55.0](https://github.com/legendsciber/morphe-patches/compare/v1.54.1...v1.55.0) (2026-09-09)
+
+### ✨ New Features
+
+* **iap:** v10 - minimal launchBillingFlow test ([5c5348e](https://github.com/legendsciber/morphe-patches/commit/5c5348e9a41b4dda45928691e6dbda0faa308a8e))
+
+## [1.54.1](https://github.com/legendsciber/morphe-patches/compare/v1.54.0...v1.54.1) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* **iap:** return int from launchBillingFlow interception ([d2d7455](https://github.com/legendsciber/morphe-patches/commit/d2d745566f95372fb914c231c384192998abfb1f))
+
+## [1.54.0](https://github.com/legendsciber/morphe-patches/compare/v1.53.0...v1.54.0) (2026-09-09)
+
+### ✨ New Features
+
+* **iap:** v8 - DISABLED for testing ([11364ee](https://github.com/legendsciber/morphe-patches/commit/11364eef164fd4f2e3788025dd01a571b6b3c7fa))
+
+## [1.53.0](https://github.com/legendsciber/morphe-patches/compare/v1.52.0...v1.53.0) (2026-09-09)
+
+### ✨ New Features
+
+* **iap:** v7 - only intercept launchBillingFlow ([e1aa7a8](https://github.com/legendsciber/morphe-patches/commit/e1aa7a8e1c6828edb96d5eaa49037a937263fc77))
+
+## [1.52.0](https://github.com/legendsciber/morphe-patches/compare/v1.51.0...v1.52.0) (2026-09-09)
+
+### ✨ New Features
+
+* **iap:** set zzb=2 in startConnection to fake connected state ([b3cf543](https://github.com/legendsciber/morphe-patches/commit/b3cf543f2053418b77b670be367abfbd8d52dc9d))
+
+## [1.51.0](https://github.com/legendsciber/morphe-patches/compare/v1.50.0...v1.51.0) (2026-09-09)
+
+### ✨ New Features
+
+* **iap:** minimal v6 - only isReady + startConnection + launchBillingFlow ([cec008d](https://github.com/legendsciber/morphe-patches/commit/cec008de56f555a6b8a695513bbb0e9987b3d9fe))
+
+## [1.50.0](https://github.com/legendsciber/morphe-patches/compare/v1.49.0...v1.50.0) (2026-09-09)
+
+### ✨ New Features
+
+* **iap:** fake billing connection - intercept isReady + startConnection ([5ddc8a8](https://github.com/legendsciber/morphe-patches/commit/5ddc8a87c0f979aa83d562841a2c52980384784e))
+
+## [1.49.0](https://github.com/legendsciber/morphe-patches/compare/v1.48.0...v1.49.0) (2026-09-09)
+
+### ✨ New Features
+
+* **iap:** intercept queryPurchasesAsync to prevent connection error ([c62bf8e](https://github.com/legendsciber/morphe-patches/commit/c62bf8e9e607decf0cc8039abbc202ac54a60951))
+
+## [1.48.0](https://github.com/legendsciber/morphe-patches/compare/v1.47.1...v1.48.0) (2026-09-09)
+
+### ✨ New Features
+
+* **iap:** triple interception - restore launchBillingFlow + keep zzbm callbacks ([9a2d1b9](https://github.com/legendsciber/morphe-patches/commit/9a2d1b9aa9820f4b2a92641e109b7272d64f866c))
+
+## [1.47.1](https://github.com/legendsciber/morphe-patches/compare/v1.47.0...v1.47.1) (2026-09-09)
+
+### 🐛 Bug Fixes
+
+* **iap:** include FINAL in fingerprint access flags ([fe45f53](https://github.com/legendsciber/morphe-patches/commit/fe45f531def4d6284c00c3e7dbaf2957848670bc))
+
+## [1.47.0](https://github.com/legendsciber/morphe-patches/compare/v1.46.5...v1.47.0) (2026-09-09)
+
+### ✨ New Features
+
+* **iap:** intercept zzbm callbacks for dual purchase injection ([11a02f2](https://github.com/legendsciber/morphe-patches/commit/11a02f2c1d04a02e4e4c810a9d3bf6b28fb15c50))
+
 ## [1.46.5](https://github.com/legendsciber/morphe-patches/compare/v1.46.4...v1.46.5) (2026-09-09)
 
 ### 🐛 Bug Fixes
