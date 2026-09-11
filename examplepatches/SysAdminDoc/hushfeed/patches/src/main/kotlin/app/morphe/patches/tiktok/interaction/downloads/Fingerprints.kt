@@ -7,8 +7,8 @@ package app.morphe.patches.tiktok.interaction.downloads
 import app.morphe.patcher.Fingerprint
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 internal object AclCommonShareFingerprint : Fingerprint(
     definingClass = "/ACLCommonShare;",
@@ -40,8 +40,16 @@ internal object AclCommonShare3Fingerprint : Fingerprint(
 // method of its shape on its class at all. What stays is the class, the signature and the strings,
 // which is what every other fingerprint in this tree is anchored on.
 
+/**
+ * The media-store helper the download patch works through. Its class was written into all six of
+ * the fingerprints below as `/0L4Q;`, and it is `LX/0LWq;` on 46.7.3 and `LX/0LEM;` on 46.8.3.
+ * Its own method names have not moved, and each of the six is named by its signature together
+ * with the SQL selection, the media type or the `MediaStore` table it works on, every one of
+ * which resolves to a single method on all three builds without the class.
+ *
+ * <p>Where a downloaded video is written.
+ */
 internal object VideoDownloadUriFingerprint : Fingerprint(
-    definingClass = "/0L4Q;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Landroid/net/Uri;",
     parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;"),
@@ -64,66 +72,25 @@ internal object CommentImageWatermarkFingerprint : Fingerprint(
     returnType = "V",
 )
 
-internal object StickerPreviewBinderFingerprint : Fingerprint(
-    returnType = "V",
-    parameters = listOf(
-        "L",
-        "Z",
-        "Ljava/lang/String;",
-        "Ljava/util/Map;",
-    ),
-    custom = { method, classDef ->
-        if (!classDef.endsWith("/0ULN;") || method.name != "LIZ") {
-            false
-        } else {
-            val instructions = method.implementation?.instructions
-            if (instructions == null) {
-                false
-            } else {
-                var readsUrlModel = false
-                var bindsActionButton = false
-                var loadsStickerImage = false
-
-                instructions.forEach { instruction ->
-                    instruction.getReference<FieldReference>()?.let { field ->
-                        if (field.type == "Lcom/ss/android/ugc/aweme/base/model/UrlModel;") {
-                            readsUrlModel = true
-                        }
-                    }
-
-                    instruction.getReference<MethodReference>()?.let { methodReference ->
-                        if (methodReference.definingClass == "LX/0ULN;" &&
-                            methodReference.name == "LIZIZ" &&
-                            methodReference.parameterTypes == listOf("LX/0GSy;", "LX/0ULU;") &&
-                            methodReference.returnType == "V"
-                        ) {
-                            bindsActionButton = true
-                        }
-
-                        if (methodReference.definingClass == "LX/16zb;" &&
-                            methodReference.name == "LIZJ"
-                        ) {
-                            loadsStickerImage = true
-                        }
-                    }
-                }
-
-                readsUrlModel && bindsActionButton && loadsStickerImage
-            }
-        }
-    },
-)
-
+/**
+ * Strings match by substring, so "/", "/Camera" and "/Camera/" are all satisfied by the
+ * lookup method's own "/Camera/" and told the two apart only by which the patcher visited
+ * first. The lookup is the one that queries by relative path and MIME type; this one must not.
+ */
 internal object PhotoDownloadUriFingerprint : Fingerprint(
-    definingClass = "/0L4Q;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Landroid/net/Uri;",
     parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;", "Ljava/lang/String;"),
     strings = listOf("/", "/Camera", "/Camera/"),
+    custom = { method, _ ->
+        method.implementation?.instructions?.none { instruction ->
+            val string = instruction.getReference<StringReference>()?.string ?: return@none false
+            string == "image/*" || string.contains("relative_path=?")
+        } == true
+    },
 )
 
 internal object VideoLookupUriFingerprint : Fingerprint(
-    definingClass = "/0L4Q;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Landroid/net/Uri;",
     parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;"),
@@ -131,7 +98,6 @@ internal object VideoLookupUriFingerprint : Fingerprint(
 )
 
 internal object PhotoLookupUriFingerprint : Fingerprint(
-    definingClass = "/0L4Q;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Landroid/net/Uri;",
     parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;", "Ljava/lang/String;"),
@@ -139,7 +105,6 @@ internal object PhotoLookupUriFingerprint : Fingerprint(
 )
 
 internal object VideoMediaStoreInsertFingerprint : Fingerprint(
-    definingClass = "/0L4Q;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Landroid/net/Uri;",
     parameters = listOf(
@@ -159,7 +124,6 @@ internal object VideoMediaStoreInsertFingerprint : Fingerprint(
 )
 
 internal object PhotoMediaStoreInsertFingerprint : Fingerprint(
-    definingClass = "/0L4Q;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Landroid/net/Uri;",
     parameters = listOf(
@@ -178,8 +142,15 @@ internal object PhotoMediaStoreInsertFingerprint : Fingerprint(
     },
 )
 
+/**
+ * The copy that puts a saved image or video into the gallery.
+ *
+ * <p>It was `LX/0L4G;` and it delegated to `LX/0L4Q;`, both written here. They are `LX/0LEA;` and
+ * `LX/0LEM;` on 46.8.3. The six-parameter signature and the three media types together name one
+ * method on all three builds without either, and what is left of the delegation check is that the
+ * two MediaStore inserts it calls are on one class, whatever that class is called.
+ */
 internal object ImagePostMediaCopyFingerprint : Fingerprint(
-    definingClass = "/0L4G;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Landroid/net/Uri;",
     parameters = listOf(
@@ -192,11 +163,20 @@ internal object ImagePostMediaCopyFingerprint : Fingerprint(
     ),
     strings = listOf("/Camera/", "video/mp4", "image/jpeg"),
     custom = { method, _ ->
-        val calls = method.implementation?.instructions?.mapNotNull { instruction ->
-            instruction.getReference<MethodReference>()
-        } ?: emptyList()
-        calls.any { it.definingClass == "LX/0L4Q;" && it.name == "LJ" } &&
-            calls.any { it.definingClass == "LX/0L4Q;" && it.name == "LIZJ" }
+        val inserts = method.implementation?.instructions
+            ?.mapNotNull { it.getReference<MethodReference>() }
+            ?.filter {
+                it.returnType == "Landroid/net/Uri;" &&
+                    it.parameterTypes.map(CharSequence::toString) == listOf(
+                        "Landroid/content/Context;",
+                        "Ljava/lang/String;",
+                        "Ljava/lang/String;",
+                        "Ljava/lang/String;",
+                    )
+            }
+            .orEmpty()
+        val distinct = inserts.distinctBy { "${it.definingClass}->${it.name}" }
+        distinct.size >= 2 && distinct.map { it.definingClass }.distinct().size == 1
     },
 )
 
@@ -213,21 +193,17 @@ internal object StickerPreviewSourceFingerprint : Fingerprint(
         "Lkotlin/jvm/functions/Function0;",
         "Lkotlin/jvm/functions/Function0;",
     ),
-    custom = { method, classDef ->
-        classDef.endsWith("/0UL9;") &&
-            method.name == "LJ" &&
+    // The parameter list names StickerItem, which TikTok does not rename, and no other method
+    // in any of the three builds shares it. The class was `LX/0UL9;` on 46.2.3 and is `LX/0WU6;`
+    // and `LX/0m0M;` on the two builds since, its own name `LJ` throughout, so what is left is
+    // that it calls the preview bind, by that bind's shape rather than by its name.
+    //
+    // Instance, because the source hook reads the StickerItem out of p2 and a static method of
+    // the same declared parameter list would have the View there.
+    custom = { method, _ ->
+        AccessFlags.STATIC.value and method.accessFlags == 0 &&
             method.implementation?.instructions?.any { instruction ->
-                instruction.getReference<MethodReference>()?.let { reference ->
-                    reference.definingClass == "LX/0ULN;" &&
-                        reference.name == "LIZ" &&
-                        reference.parameterTypes == listOf(
-                            "LX/0ULM;",
-                            "Z",
-                            "Ljava/lang/String;",
-                            "Ljava/util/Map;",
-                        ) &&
-                        reference.returnType == "V"
-                } == true
+                instruction.getReference<MethodReference>()?.isStickerPreviewBind() == true
             } == true
     },
 )

@@ -7,21 +7,31 @@ package app.morphe.patches.tiktok.misc.featuregatelab
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
-import app.morphe.patches.tiktok.misc.absettings.APP_AB_DESCRIPTOR
 import app.morphe.patches.tiktok.misc.absettings.APP_AB_INT_KEY_REGISTER
-import app.morphe.patches.tiktok.misc.absettings.APP_AB_INT_METHOD
-import app.morphe.patches.tiktok.misc.absettings.APP_AB_INT_PARAMETERS
+import app.morphe.patches.tiktok.misc.absettings.APP_AB_RAW
+import app.morphe.patches.tiktok.misc.absettings.MethodShape
+import app.morphe.patches.tiktok.misc.absettings.appAbClass
+import app.morphe.patches.tiktok.misc.absettings.methodOfShape
+import app.morphe.patches.tiktok.misc.absettings.shape
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.patches.tiktok.shared.callThroughLocals
 import app.morphe.patches.tiktok.shared.objectIn
 import app.morphe.patches.tiktok.shared.valueIn
 import app.morphe.patches.tiktok.shared.wideIn
 import app.morphe.util.cloneMutableAndPreserveParameters
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
+/**
+ * Stands in for the app AB class in the table below. That class has no name a patch can carry
+ * (it was `LX/0BYX;` on 46.2.3 and something else on every build since), so the table names it
+ * with this and execute resolves it by the getters it carries.
+ */
+private const val APP_AB = "<app ab class>"
 private const val ABMOCK_SETTINGS_MANAGER_DESCRIPTOR = "Lcom/bytedance/ies/abmock/SettingsManager;"
 private const val LIVE_SETTINGS_DESCRIPTOR = "Lcom/bytedance/android/live_settings/SettingsManager;"
 private const val ACTIVITY_CENTER_DESCRIPTOR = "Lcom/ss/android/ugc/tiktok/pns/activitycenter/EnterActivityCenterAction;"
@@ -40,32 +50,45 @@ private data class TypedBoundary(
     val runtimeMethod: String,
     val runtimeDescriptor: String,
     val wide: Boolean = false,
+    /** Whether the boundary is a static method, which is what [keyParameter] counts from. */
+    val isStatic: Boolean = false,
+    /**
+     * Whether [methodName] is a name TikTok wrote rather than one R8 assigned.
+     *
+     * <p>A keep rule saves a class name without saving its members. `SettingsManager` proves it
+     * on itself: `getSettingsValueProvider` survives and everything beside it is `LIZ`, `LIZIZ`,
+     * `LJFF`. A minified name is worth a tiebreak between two methods of one shape and nothing
+     * more, because requiring it turns a rename into a failure on a build the shape would have
+     * patched. A real name is the anchor and is required, so that an unrelated helper of the
+     * same signature cannot stand in for a getter that was inlined away.
+     */
+    val nameIsStable: Boolean = false,
 )
 
 private val boundaries = listOf(
-    TypedBoundary(APP_AB_DESCRIPTOR, "LIZ", "Z", listOf("I", "Ljava/lang/String;", "Z", "Z"), "p2", Opcode.RETURN, "overrideBoolean", "(Ljava/lang/String;Z)Z"),
-    TypedBoundary(APP_AB_DESCRIPTOR, "LIZJ", "D", listOf("D", "I", "Ljava/lang/String;", "Z"), "p4", Opcode.RETURN_WIDE, "overrideDouble", "(Ljava/lang/String;D)D", true),
-    TypedBoundary(APP_AB_DESCRIPTOR, "LIZLLL", "F", listOf("I", "Ljava/lang/String;", "Z", "F"), "p2", Opcode.RETURN, "overrideFloat", "(Ljava/lang/String;F)F"),
-    TypedBoundary(APP_AB_DESCRIPTOR, APP_AB_INT_METHOD, "I", APP_AB_INT_PARAMETERS, APP_AB_INT_KEY_REGISTER, Opcode.RETURN, "overrideInt", "(Ljava/lang/String;I)I"),
-    TypedBoundary(APP_AB_DESCRIPTOR, "LJII", "J", listOf("I", "J", "Ljava/lang/String;", "Z"), "p4", Opcode.RETURN_WIDE, "overrideLong", "(Ljava/lang/String;J)J", true),
-    TypedBoundary(APP_AB_DESCRIPTOR, "LJIIIIZZ", "Ljava/lang/String;", listOf("I", "Ljava/lang/String;", "Ljava/lang/String;", "Z"), "p2", Opcode.RETURN_OBJECT, "overrideString", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;"),
-    TypedBoundary(ABMOCK_SETTINGS_MANAGER_DESCRIPTOR, "LIZ", "Z", listOf("Ljava/lang/String;", "Z"), "p0", Opcode.RETURN, "overrideBoolean", "(Ljava/lang/String;Z)Z"),
-    TypedBoundary(ABMOCK_SETTINGS_MANAGER_DESCRIPTOR, "LIZIZ", "D", listOf("Ljava/lang/String;", "D"), "p0", Opcode.RETURN_WIDE, "overrideDouble", "(Ljava/lang/String;D)D", true),
-    TypedBoundary(ABMOCK_SETTINGS_MANAGER_DESCRIPTOR, "LIZJ", "F", listOf("Ljava/lang/String;", "F"), "p0", Opcode.RETURN, "overrideFloat", "(Ljava/lang/String;F)F"),
-    TypedBoundary(ABMOCK_SETTINGS_MANAGER_DESCRIPTOR, "LJ", "I", listOf("Ljava/lang/String;", "I"), "p0", Opcode.RETURN, "overrideInt", "(Ljava/lang/String;I)I"),
-    TypedBoundary(ABMOCK_SETTINGS_MANAGER_DESCRIPTOR, "LJFF", "J", listOf("Ljava/lang/String;", "J"), "p0", Opcode.RETURN_WIDE, "overrideLong", "(Ljava/lang/String;J)J", true),
-    TypedBoundary(ABMOCK_SETTINGS_MANAGER_DESCRIPTOR, "LJI", "Ljava/lang/String;", listOf("Ljava/lang/String;", "Ljava/lang/String;"), "p0", Opcode.RETURN_OBJECT, "overrideString", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;"),
-    TypedBoundary(LIVE_SETTINGS_DESCRIPTOR, "getBooleanValue", "Z", listOf("Ljava/lang/String;", "Z"), "p1", Opcode.RETURN, "overrideLiveBoolean", "(Ljava/lang/String;Z)Z"),
-    TypedBoundary(LIVE_SETTINGS_DESCRIPTOR, "getDoubleValue", "D", listOf("Ljava/lang/String;", "D"), "p1", Opcode.RETURN_WIDE, "overrideLiveDouble", "(Ljava/lang/String;D)D", true),
-    TypedBoundary(LIVE_SETTINGS_DESCRIPTOR, "getFloatValue", "F", listOf("Ljava/lang/String;", "F"), "p1", Opcode.RETURN, "overrideLiveFloat", "(Ljava/lang/String;F)F"),
-    TypedBoundary(LIVE_SETTINGS_DESCRIPTOR, "getIntValue", "I", listOf("Ljava/lang/String;", "I"), "p1", Opcode.RETURN, "overrideLiveInt", "(Ljava/lang/String;I)I"),
-    TypedBoundary(LIVE_SETTINGS_DESCRIPTOR, "getLongValue", "J", listOf("Ljava/lang/String;", "J"), "p1", Opcode.RETURN_WIDE, "overrideLiveLong", "(Ljava/lang/String;J)J", true),
-    TypedBoundary(LIVE_SETTINGS_DESCRIPTOR, "getStringValue", "Ljava/lang/String;", listOf("Ljava/lang/String;", "Ljava/lang/String;"), "p1", Opcode.RETURN_OBJECT, "overrideLiveString", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;"),
-    TypedBoundary(VE_CONFIG_DESCRIPTOR, "getValue", "Ljava/lang/Boolean;", listOf("Ljava/lang/String;", "Z"), "p1", Opcode.RETURN_OBJECT, "overrideVeBoolean", "(Ljava/lang/String;Ljava/lang/Boolean;)Ljava/lang/Boolean;"),
-    TypedBoundary(VE_CONFIG_DESCRIPTOR, "getValue", "F", listOf("Ljava/lang/String;", "F"), "p1", Opcode.RETURN, "overrideVeFloat", "(Ljava/lang/String;F)F"),
-    TypedBoundary(VE_CONFIG_DESCRIPTOR, "getValue", "I", listOf("Ljava/lang/String;", "I"), "p1", Opcode.RETURN, "overrideVeInt", "(Ljava/lang/String;I)I"),
-    TypedBoundary(VE_CONFIG_DESCRIPTOR, "getValue", "J", listOf("Ljava/lang/String;", "J"), "p1", Opcode.RETURN_WIDE, "overrideVeLong", "(Ljava/lang/String;J)J", true),
-    TypedBoundary(VE_CONFIG_DESCRIPTOR, "getValue", "Ljava/lang/String;", listOf("Ljava/lang/String;", "Ljava/lang/String;"), "p1", Opcode.RETURN_OBJECT, "overrideVeString", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;"),
+    TypedBoundary(APP_AB, "LIZ", "Z", listOf("I", "Ljava/lang/String;", "Z", "Z"), "p2", Opcode.RETURN, "overrideBoolean", "(Ljava/lang/String;Z)Z"),
+    TypedBoundary(APP_AB, "LIZJ", "D", listOf("D", "I", "Ljava/lang/String;", "Z"), "p4", Opcode.RETURN_WIDE, "overrideDouble", "(Ljava/lang/String;D)D", true),
+    TypedBoundary(APP_AB, "LIZLLL", "F", listOf("I", "Ljava/lang/String;", "Z", "F"), "p2", Opcode.RETURN, "overrideFloat", "(Ljava/lang/String;F)F"),
+    TypedBoundary(APP_AB, "LJFF", "I", listOf("I", "I", "Ljava/lang/String;", "Z"), APP_AB_INT_KEY_REGISTER, Opcode.RETURN, "overrideInt", "(Ljava/lang/String;I)I"),
+    TypedBoundary(APP_AB, "LJII", "J", listOf("I", "J", "Ljava/lang/String;", "Z"), "p4", Opcode.RETURN_WIDE, "overrideLong", "(Ljava/lang/String;J)J", true),
+    TypedBoundary(APP_AB, "LJIIIIZZ", "Ljava/lang/String;", listOf("I", "Ljava/lang/String;", "Ljava/lang/String;", "Z"), "p2", Opcode.RETURN_OBJECT, "overrideString", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;"),
+    TypedBoundary(ABMOCK_SETTINGS_MANAGER_DESCRIPTOR, "LIZ", "Z", listOf("Ljava/lang/String;", "Z"), "p0", Opcode.RETURN, "overrideBoolean", "(Ljava/lang/String;Z)Z", isStatic = true),
+    TypedBoundary(ABMOCK_SETTINGS_MANAGER_DESCRIPTOR, "LIZIZ", "D", listOf("Ljava/lang/String;", "D"), "p0", Opcode.RETURN_WIDE, "overrideDouble", "(Ljava/lang/String;D)D", true, isStatic = true),
+    TypedBoundary(ABMOCK_SETTINGS_MANAGER_DESCRIPTOR, "LIZJ", "F", listOf("Ljava/lang/String;", "F"), "p0", Opcode.RETURN, "overrideFloat", "(Ljava/lang/String;F)F", isStatic = true),
+    TypedBoundary(ABMOCK_SETTINGS_MANAGER_DESCRIPTOR, "LJ", "I", listOf("Ljava/lang/String;", "I"), "p0", Opcode.RETURN, "overrideInt", "(Ljava/lang/String;I)I", isStatic = true),
+    TypedBoundary(ABMOCK_SETTINGS_MANAGER_DESCRIPTOR, "LJFF", "J", listOf("Ljava/lang/String;", "J"), "p0", Opcode.RETURN_WIDE, "overrideLong", "(Ljava/lang/String;J)J", true, isStatic = true),
+    TypedBoundary(ABMOCK_SETTINGS_MANAGER_DESCRIPTOR, "LJI", "Ljava/lang/String;", listOf("Ljava/lang/String;", "Ljava/lang/String;"), "p0", Opcode.RETURN_OBJECT, "overrideString", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;", isStatic = true),
+    TypedBoundary(LIVE_SETTINGS_DESCRIPTOR, "getBooleanValue", "Z", listOf("Ljava/lang/String;", "Z"), "p1", Opcode.RETURN, "overrideLiveBoolean", "(Ljava/lang/String;Z)Z", nameIsStable = true),
+    TypedBoundary(LIVE_SETTINGS_DESCRIPTOR, "getDoubleValue", "D", listOf("Ljava/lang/String;", "D"), "p1", Opcode.RETURN_WIDE, "overrideLiveDouble", "(Ljava/lang/String;D)D", true, nameIsStable = true),
+    TypedBoundary(LIVE_SETTINGS_DESCRIPTOR, "getFloatValue", "F", listOf("Ljava/lang/String;", "F"), "p1", Opcode.RETURN, "overrideLiveFloat", "(Ljava/lang/String;F)F", nameIsStable = true),
+    TypedBoundary(LIVE_SETTINGS_DESCRIPTOR, "getIntValue", "I", listOf("Ljava/lang/String;", "I"), "p1", Opcode.RETURN, "overrideLiveInt", "(Ljava/lang/String;I)I", nameIsStable = true),
+    TypedBoundary(LIVE_SETTINGS_DESCRIPTOR, "getLongValue", "J", listOf("Ljava/lang/String;", "J"), "p1", Opcode.RETURN_WIDE, "overrideLiveLong", "(Ljava/lang/String;J)J", true, nameIsStable = true),
+    TypedBoundary(LIVE_SETTINGS_DESCRIPTOR, "getStringValue", "Ljava/lang/String;", listOf("Ljava/lang/String;", "Ljava/lang/String;"), "p1", Opcode.RETURN_OBJECT, "overrideLiveString", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;", nameIsStable = true),
+    TypedBoundary(VE_CONFIG_DESCRIPTOR, "getValue", "Ljava/lang/Boolean;", listOf("Ljava/lang/String;", "Z"), "p1", Opcode.RETURN_OBJECT, "overrideVeBoolean", "(Ljava/lang/String;Ljava/lang/Boolean;)Ljava/lang/Boolean;", nameIsStable = true),
+    TypedBoundary(VE_CONFIG_DESCRIPTOR, "getValue", "F", listOf("Ljava/lang/String;", "F"), "p1", Opcode.RETURN, "overrideVeFloat", "(Ljava/lang/String;F)F", nameIsStable = true),
+    TypedBoundary(VE_CONFIG_DESCRIPTOR, "getValue", "I", listOf("Ljava/lang/String;", "I"), "p1", Opcode.RETURN, "overrideVeInt", "(Ljava/lang/String;I)I", nameIsStable = true),
+    TypedBoundary(VE_CONFIG_DESCRIPTOR, "getValue", "J", listOf("Ljava/lang/String;", "J"), "p1", Opcode.RETURN_WIDE, "overrideVeLong", "(Ljava/lang/String;J)J", true, nameIsStable = true),
+    TypedBoundary(VE_CONFIG_DESCRIPTOR, "getValue", "Ljava/lang/String;", listOf("Ljava/lang/String;", "Ljava/lang/String;"), "p1", Opcode.RETURN_OBJECT, "overrideVeString", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;", nameIsStable = true),
 )
 
 @Suppress("unused")
@@ -79,29 +102,49 @@ val featureGateLabPatch = bytecodePatch(
 
     execute {
         boundaries.forEach { boundary ->
-            val target = mutableClassDefBy(boundary.targetDescriptor)
-            val method = target.methods.singleOrNull {
-                it.name == boundary.methodName &&
-                    it.returnType == boundary.returnType &&
-                    it.parameterTypes == boundary.parameters
-            } ?: throw PatchException("Feature Gate Lab boundary not found: ${boundary.targetDescriptor}->${boundary.methodName}${boundary.parameters}")
+            val target = if (boundary.targetDescriptor == APP_AB) appAbClass()
+            else mutableClassDefBy(boundary.targetDescriptor)
+            val shape = MethodShape(boundary.returnType, boundary.parameters, boundary.isStatic)
+            // Whether the name is required turns on whether R8 assigned it, not on whether the
+            // class name did. SettingsManager keeps its own name and calls its getters LIZ and
+            // LJFF, the same alphabet as the app AB class; live_settings and VEConfigCenter
+            // keep theirs all the way down.
+            val ofShape = target.methods.filter { it.shape() == shape }
+            val candidates =
+                if (boundary.nameIsStable) ofShape.filter { it.name == boundary.methodName }
+                else ofShape
+            val method = when (candidates.size) {
+                1 -> candidates.single()
+                0 -> throw PatchException(
+                    "Feature Gate Lab boundary not found: ${target.type} has no " +
+                        (if (boundary.nameIsStable) "${boundary.methodName} of " else "") +
+                        "${boundary.returnType}${boundary.parameters}.",
+                )
+                else -> candidates.singleOrNull { it.name == boundary.methodName }
+                    ?: throw PatchException(
+                        "Feature Gate Lab boundary is ambiguous: ${target.type} has " +
+                            "${candidates.size} of ${boundary.returnType}${boundary.parameters} and " +
+                            "none is called ${boundary.methodName}.",
+                    )
+            }
             method.patchBoundary(boundary)
         }
 
-        val rawAbmock = mutableClassDefBy(APP_AB_DESCRIPTOR)
-        val rawGetter = rawAbmock.methods.singleOrNull {
-            it.name == "LJIIJJI" &&
-                it.returnType == "Ljava/lang/Object;" &&
-                it.parameterTypes == listOf("Ljava/lang/String;", "Z")
-        } ?: throw PatchException("Feature Gate Lab raw App AB boundary not found")
-        rawGetter.patchRawAbBoundary()
+        appAbClass().methodOfShape(APP_AB_RAW, "Feature Gate Lab raw App AB boundary")
+            .patchRawAbBoundary()
 
         val settingsManager = mutableClassDefBy(ABMOCK_SETTINGS_MANAGER_DESCRIPTOR)
-        val objectGetterWithoutDefault = settingsManager.methods.singleOrNull {
-            it.name == "LJII" &&
-                it.returnType == "Ljava/lang/Object;" &&
-                it.parameterTypes == listOf("Ljava/lang/String;", "Ljava/lang/Class;")
-        } ?: throw PatchException("Feature Gate Lab SettingsManager object boundary without default not found")
+        // By shape, like the table above: these were `LJII` and `LJIIIIZZ`, which are R8's names
+        // on a class whose own name is kept, and each shape is the only one of its kind here.
+        // Static, because this one reads its key from p0 and the shape does not say so.
+        val objectGetterWithoutDefault = settingsManager.methodOfShapeOrNamed(
+            "LJII",
+            "Feature Gate Lab SettingsManager static object boundary without default",
+        ) {
+            it.returnType == "Ljava/lang/Object;" &&
+                it.parameterTypes == listOf("Ljava/lang/String;", "Ljava/lang/Class;") &&
+                AccessFlags.STATIC.value and it.accessFlags != 0
+        }
         objectGetterWithoutDefault
             .cloneMutableAndPreserveParameters()
             .patchSettingsManagerObjectBoundary(
@@ -109,15 +152,18 @@ val featureGateLabPatch = bytecodePatch(
             isStatic = true,
         )
 
-        val objectGetterWithDefault = settingsManager.methods.singleOrNull {
-            it.name == "LJIIIIZZ" &&
-                it.returnType == "Ljava/lang/Object;" &&
+        val objectGetterWithDefault = settingsManager.methodOfShapeOrNamed(
+            "LJIIIIZZ",
+            "Feature Gate Lab SettingsManager instance object boundary with default",
+        ) {
+            it.returnType == "Ljava/lang/Object;" &&
                 it.parameterTypes == listOf(
                     "Ljava/lang/String;",
                     "Ljava/lang/Class;",
                     "Ljava/lang/Object;",
-                )
-        } ?: throw PatchException("Feature Gate Lab SettingsManager object boundary with default not found")
+                ) &&
+                AccessFlags.STATIC.value and it.accessFlags == 0
+        }
         objectGetterWithDefault.patchSettingsManagerObjectBoundary(
             hasDefault = true,
             isStatic = false,
@@ -160,14 +206,12 @@ val featureGateLabPatch = bytecodePatch(
         playerGetter.patchPlayerSettingBoundary()
 
         val activityCenter = mutableClassDefBy(ACTIVITY_CENTER_DESCRIPTOR)
+        // The parameter list used to be spelled out here and 46.8.3 added a fourth, a Uri, which
+        // took the whole patch down. Nothing below reads a parameter: the schema is taken off the
+        // return register, so what identifies the method is that it is the class's one String
+        // getSchema. A second one appearing is worth failing on rather than guessing between.
         val getSchema = activityCenter.methods.singleOrNull {
-            it.name == "getSchema" &&
-                it.returnType == "Ljava/lang/String;" &&
-                it.parameterTypes == listOf(
-                    "Ljava/lang/String;",
-                    "Ljava/lang/String;",
-                    "Ljava/lang/String;",
-                )
+            it.name == "getSchema" && it.returnType == "Ljava/lang/String;"
         } ?: throw PatchException("Feature Gate Lab Activity Center schema boundary not found")
         getSchema.patchActivityCenterSchema()
 
@@ -176,6 +220,27 @@ val featureGateLabPatch = bytecodePatch(
             it.name == "isInstalled" && it.returnType == "Z" && it.parameterTypes.isEmpty()
         } ?: throw PatchException("Feature Gate Lab runtime marker not found")
         installed.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
+    }
+}
+
+/**
+ * The one method of the shape, or the one of that shape called [name] when the shape has stopped
+ * being unique. The same trade the boundary table above makes: an R8 name is worth a tiebreak and
+ * not a requirement.
+ */
+private fun MutableClass.methodOfShapeOrNamed(
+    name: String,
+    what: String,
+    shape: (MutableMethod) -> Boolean,
+): MutableMethod {
+    val ofShape = methods.filter(shape)
+    return when (ofShape.size) {
+        1 -> ofShape.single()
+        0 -> throw PatchException("$what not found on $type")
+        else -> ofShape.singleOrNull { it.name == name }
+            ?: throw PatchException(
+                "$what is ambiguous: $type has ${ofShape.size} of that shape and none is $name",
+            )
     }
 }
 
@@ -331,7 +396,7 @@ private fun MutableMethod.patchActivityCenterSchema() {
             addInstructions(
                 index,
                 """
-                    invoke-static {v$register}, $RUNTIME_DESCRIPTOR->transformActivityCenterSchema(Ljava/lang/String;)Ljava/lang/String;
+                    invoke-static/range {v$register .. v$register}, $RUNTIME_DESCRIPTOR->transformActivityCenterSchema(Ljava/lang/String;)Ljava/lang/String;
                     move-result-object v$register
                 """,
             )

@@ -109,7 +109,7 @@ public final class FeatureGateLabFragment extends Fragment {
     private static final int REQUEST_IMPORT_LOADED = 0x6f11;
     private static final int MAX_COMPRESSED_IMPORT_BYTES = 4 * 1024 * 1024;
     private static final int MAX_JSON_IMPORT_BYTES = 8 * 1024 * 1024;
-    private static final int MAX_IMPORT_RULES = 1024;
+    private static final int MAX_IMPORT_RULES = FeatureGateLabStore.MAX_RULES;
     private static final SettingsJson.Limits IMPORT_JSON_LIMITS = new SettingsJson.Limits(
             24, 8192, 64 * 1024, MAX_IMPORT_RULES, MAX_JSON_IMPORT_BYTES);
     private static final int FILTER_ALL = 0;
@@ -431,8 +431,9 @@ public final class FeatureGateLabFragment extends Fragment {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
         ));
-        empty = FeatureGateLabUi.label(context,
-                L10n.t(context, "No gates match this search and filter."));
+        // Blank until the first load answers: a ListView shows its empty view while the adapter
+        // has nothing, so "No gates match" sat under "Loading..." before anything was looked at.
+        empty = FeatureGateLabUi.label(context, "");
         empty.setGravity(Gravity.CENTER);
         empty.setPadding(
                 FeatureGateLabUi.dp(context, 24),
@@ -777,8 +778,8 @@ public final class FeatureGateLabFragment extends Fragment {
         // the main thread, and a settings restore holding the journal lock froze the screen
         // until it finished. runLabChange puts the switch back for us either way.
         runLabChange(() -> FeatureGateLabUndo.setMasterEnabled(checked),
-                checked ? "Overrides enabled. Restart TikTok to apply saved values."
-                        : "Overrides disabled. Restart TikTok to restore native values.");
+                checked ? L10n.t(getContext(), "Overrides enabled. Restart TikTok to apply saved values.")
+                        : L10n.t(getContext(), "Overrides disabled. Restart TikTok to restore native values."));
     }
 
     /**
@@ -967,7 +968,8 @@ public final class FeatureGateLabFragment extends Fragment {
                     reset(true);
                     return true;
                 case 6:
-                    runLabChange(FeatureGateLabUndo::undo, "Restored the previous Lab settings. Restart TikTok.");
+                    runLabChange(FeatureGateLabUndo::undo,
+                            L10n.t(getContext(), "Restored the previous Lab settings. Restart TikTok."));
                     return true;
                 default:
                     return false;
@@ -1043,10 +1045,20 @@ public final class FeatureGateLabFragment extends Fragment {
                 reviewLoadedImport(readLoadedJson(encoded));
             } catch (Throwable throwable) {
                 Logger.printException(() -> "Loaded-value file import failed", throwable);
-                postToast(L10n.t(Utils.getContext(),
-                        "Loaded-value file is invalid or too large"));
+                // A refusal the review could name says what it was. A file from another build
+                // used to be reported as invalid or too large, the same as a corrupt one.
+                postToast(throwable instanceof ImportRefused
+                        ? throwable.getMessage()
+                        : L10n.t(Utils.getContext(), "Loaded-value file is invalid or too large"));
             }
         });
+    }
+
+    /** A loaded-value file the review turned down, with the reason already in the reader's words. */
+    private static final class ImportRefused extends IllegalArgumentException {
+        ImportRefused(String sentence) {
+            super(sentence);
+        }
     }
 
     private void reviewLoadedImport(JSONObject imported) throws Exception {
@@ -1054,10 +1066,10 @@ public final class FeatureGateLabFragment extends Fragment {
         FeatureGateCatalog.Snapshot currentSnapshot = snapshot;
         if (activity == null || currentSnapshot == null) return;
         if (!"loaded_values".equals(imported.optString("payload_kind"))) {
-            throw new IllegalArgumentException("Unsupported Feature Gate Lab export type");
+            throw new ImportRefused(L10n.t(activity, "This file isn't a loaded-values export from the Feature Gate Lab."));
         }
         if (!FeatureGateLabStore.TARGET_VERSION.equals(imported.optString("tiktok_version"))) {
-            throw new IllegalArgumentException("Loaded values target a different TikTok version");
+            throw new ImportRefused(L10n.t(activity, "These loaded values are for a different TikTok version."));
         }
 
         Map<String, FeatureGateLabStore.Rule> existingRules = rulesByIdentity();
@@ -1066,9 +1078,9 @@ public final class FeatureGateLabFragment extends Fragment {
         int same = 0;
         int unavailable = 0;
         int malformed = 0;
-        if (sourceRules == null) throw new IllegalArgumentException("Missing loaded values");
+        if (sourceRules == null) throw new ImportRefused(L10n.t(activity, "This file has no loaded values in it."));
         if (sourceRules.length() > MAX_IMPORT_RULES) {
-            throw new IllegalArgumentException("Loaded values contain too many rules");
+            throw new ImportRefused(L10n.t(activity, "This file has more loaded values than the Lab takes at once."));
         }
         {
             for (int i = 0; i < sourceRules.length(); i++) {
@@ -1113,9 +1125,15 @@ public final class FeatureGateLabFragment extends Fragment {
         FeatureGateLabStore.ImportReview review = FeatureGateLabStore.reviewProfile(
                 profile.toString(), currentSnapshot.byIdentity);
 
-        String message = L10n.f(Utils.getContext(),
-                "Imported %1$d disabled values. %2$d already matched, %3$d unavailable, %4$d rejected. Undo last Lab change is in the menu.",
-                review.accepted.size(), same, unavailable, review.rejected.size() + malformed);
+        // An import that accepted nothing writes no undo copy, so a message offering Undo
+        // would point at whatever the previous Lab change was.
+        String message = review.accepted.isEmpty()
+                ? L10n.f(Utils.getContext(),
+                        "Nothing new was imported. %1$d already matched, %2$d unavailable, %3$d rejected.",
+                        same, unavailable, review.rejected.size() + malformed)
+                : L10n.f(Utils.getContext(),
+                        "Imported %1$d disabled values. %2$d already matched, %3$d unavailable, %4$d rejected. Undo last Lab change is in the menu.",
+                        review.accepted.size(), same, unavailable, review.rejected.size() + malformed);
         runLabChange(() -> FeatureGateLabUndo.importRules(review), message);
     }
 
@@ -1223,8 +1241,9 @@ public final class FeatureGateLabFragment extends Fragment {
     }
 
     private void reset(boolean allData) {
-        runLabChange(() -> FeatureGateLabUndo.reset(allData),
-                "Lab " + (allData ? "data" : "overrides") + " reset. Undo last Lab change is in the menu. Restart TikTok.");
+        runLabChange(() -> FeatureGateLabUndo.reset(allData), allData
+                ? L10n.t(getContext(), "Lab data reset. Undo last Lab change is in the menu. Restart TikTok.")
+                : L10n.t(getContext(), "Lab overrides reset. Undo last Lab change is in the menu. Restart TikTok."));
     }
 
     private interface LabChange { void run() throws Exception; }

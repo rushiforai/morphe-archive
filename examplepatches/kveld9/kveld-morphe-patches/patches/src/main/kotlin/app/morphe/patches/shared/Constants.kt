@@ -22,10 +22,8 @@ object Constants {
     )
 
     const val GBOARD_PACKAGE_NAME = "com.google.android.inputmethod.latin"
-    const val GBOARD_TARGET_VERSION = "18.1.3.962075747-lite_beta-arm64-v8a"
-    const val GBOARD_TARGET_VERSION_V7A = "18.1.3.962075747-lite_beta-armeabi-v7a"
-    const val GBOARD_TARGET_VERSION_RELEASE_ARM64 = "18.1.3.962075747-lite_release-arm64-v8a"
-    const val GBOARD_TARGET_VERSION_RELEASE_V7A = "18.1.3.962075747-lite_release-armeabi-v7a"
+    const val GBOARD_TARGET_VERSION = "18.2.4.969776716-lite_beta-arm64-v8a"
+    const val GBOARD_TARGET_VERSION_V7A = "18.2.4.969776716-lite_beta-armeabi-v7a"
 
     val COMPATIBILITY_GBOARD = Compatibility(
         name = "Gboard Lite",
@@ -35,36 +33,45 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = GBOARD_TARGET_VERSION,
-                description = "Download 18.1.3.962075747-lite_beta-arm64-v8a (APK nodpi) from APKMirror"
+                description = "Download 18.2.4.969776716-lite_beta-arm64-v8a (APK nodpi) from APKMirror"
             ),
             AppTarget(
                 version = GBOARD_TARGET_VERSION_V7A,
-                description = "Download 18.1.3.962075747-lite_beta-armeabi-v7a (APK nodpi) from APKMirror"
-            ),
-            AppTarget(
-                version = GBOARD_TARGET_VERSION_RELEASE_ARM64,
-                description = "Download 18.1.3.962075747-lite_release-arm64-v8a (APK nodpi) from APKMirror"
-            ),
-            AppTarget(
-                version = GBOARD_TARGET_VERSION_RELEASE_V7A,
-                description = "Download 18.1.3.962075747-lite_release-armeabi-v7a (APK nodpi) from APKMirror"
+                description = "Download 18.2.4.969776716-lite_beta-armeabi-v7a (APK nodpi) from APKMirror"
             )
         )
     )
 
-    const val VIVALDI_PACKAGE_NAME = "com.vivaldi.browser.snapshot"
-    const val VIVALDI_TARGET_VERSION = "8.2.4147.50"
+    const val VIVALDI_PACKAGE_NAME = "com.vivaldi.browser"
+    const val VIVALDI_TARGET_VERSION = "8.2.4147.58"
 
     val COMPATIBILITY_VIVALDI = Compatibility(
-        name = "Vivaldi Browser Snapshot",
+        name = "Vivaldi Browser - Fast & Safe",
         packageName = VIVALDI_PACKAGE_NAME,
-        apkFileType = ApkFileType.APK,
+        apkFileType = ApkFileType.APKM,
         appIconColor = 0xEF3939,
         targets = listOf(
             AppTarget(
                 version = VIVALDI_TARGET_VERSION,
-                description = "Download Vivaldi.8.2.4147.50_arm64-v8a.apk from vivaldi.com/blog/android/"
+                description = "Download 8.2.4147.58 (arm64-v8a) from APKMirror"
+            )
+        )
+    )
+
+    const val HEVY_PACKAGE_NAME = "com.hevy"
+    const val HEVY_TARGET_VERSION = "3.1.13"
+
+    val COMPATIBILITY_HEVY = Compatibility(
+        name = "Hevy - Gym Log Workout Tracker",
+        packageName = HEVY_PACKAGE_NAME,
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0xFF4500,
+        targets = listOf(
+            AppTarget(
+                version = HEVY_TARGET_VERSION,
+                description = "Download com.hevy v3.1.13 (APKM bundle) from APKMirror"
             )
         )
     )
 }
+

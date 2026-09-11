@@ -25,10 +25,12 @@ public class YandexVotDiagnosticsTest {
                 YandexVotDiagnostics.attemptStartedMessage(false),
                 YandexVotDiagnostics.apiResultMessage(
                         "initial", false, 6, true, true, false, false),
+                YandexVotDiagnostics.apiFailureMessage(
+                        "client-request-exception", "dns", true),
                 YandexVotDiagnostics.audioRequestMessage(
                         "exit", YandexVotAudioResult.SOURCE_UNAVAILABLE),
                 YandexVotDiagnostics.sourceMessage("selected", 251, 4),
-                YandexVotDiagnostics.sourceEnvironmentMessage(true, false, 4),
+                YandexVotDiagnostics.sourceEnvironmentMessage(true, false, true, 4),
                 YandexVotDiagnostics.transportSummaryMessage(
                         new YandexVotPlayerMediaTransport.DiagnosticSummary(
                                 1, true, 9, 11, 5, 2,
@@ -36,16 +38,19 @@ public class YandexVotDiagnosticsTest {
                 YandexVotDiagnostics.uploadPartMessage("result", 2, 3, true),
                 YandexVotDiagnostics.playbackMessage("error", "direct", 1, -1004));
 
-        assertTrue(markers.contains("build=yandex-audio-direct-v6"));
+        assertTrue(markers.contains("build=yandex-audio-direct-v7"));
         assertTrue(markers.contains("phase=button event=pressed"));
         assertTrue(markers.contains("phase=api request=initial"));
         assertTrue(markers.contains("resultNull=false status=6"));
         assertTrue(markers.contains("translationIdPresent=true"));
         assertTrue(markers.contains("audioUrlPresent=false"));
+        assertTrue(markers.contains("phase=api event=client-request-exception"
+                + " category=dns proxy=true"));
         assertTrue(markers.contains("phase=audio-request event=exit"));
         assertTrue(markers.contains("phase=source event=selected selectedItag=251 snapshots=4"));
         assertTrue(markers.contains("phase=source event=environment spoofIncluded=true"
-                + " spoofSetting=false spoofEffective=false snapshots=4"));
+                + " spoofSetting=false spoofEffective=false externalPoTokenSetting=true"
+                + " snapshots=4"));
         assertTrue(markers.contains("phase=transport event=summary engineHooks=1"
                 + " engineReady=true requestHooks=9"));
         assertTrue(markers.contains("playerRequestHooks=11 playerContextsRetained=5"
@@ -80,6 +85,8 @@ public class YandexVotDiagnosticsTest {
         String voicePatch = readUtf8(root.resolve(
                 "extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/"
                         + "voiceovertranslation/yandex/YandexVoiceOverTranslationPatch.java"));
+        String russianStrings = readUtf8(root.resolve(
+                "patches/src/main/resources/addresources/values-ru-rRU/youtube/strings.xml"));
 
         assertTrue(transportPatch.contains(
                 "internal val yandexVotPlayerMediaTransportPatch = bytecodePatch {"));
@@ -87,9 +94,15 @@ public class YandexVotDiagnosticsTest {
         assertFalse(transportPatch.contains("default = false"));
         assertTrue(transportPatch.contains("hookBuildRequest"));
         assertTrue(transportPatch.contains("recordPlayerRequest"));
+        assertTrue(transportPatch.contains(
+                "invoke-static/range { v$register .. v$register }"));
+        assertFalse(transportPatch.contains("invoke-static { v$register }"));
         assertTrue(yandexPatch.contains("yandexVotPlayerMediaTransportPatch"));
         assertTrue(transportClass.contains("public final class YandexVotPlayerMediaTransport"));
         assertTrue(voicePatch.contains("private static void beginTranslationRequestState()"));
+        assertTrue(russianStrings.contains(
+                "<string name=\"dualvot_yandex_unavailable_live\">"
+                        + "Перевод недоступен для прямых трансляций</string>"));
         int clearCacheIndex = voicePatch.indexOf("YandexVotApiClient.clearTranslationCache();");
         int restartStateIndex = voicePatch.indexOf(
                 "beginTranslationRequestState();",

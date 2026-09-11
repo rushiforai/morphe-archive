@@ -27,18 +27,18 @@ private val FAKE_ENTITLEMENT_SMALI = """
     new-instance v0, Ljava/util/LinkedHashMap;
     invoke-direct {v0}, Ljava/util/LinkedHashMap;-><init>()V
     const-string v2, "all"
-    invoke-static {v2, v0}, Lkm/v;->a(Ljava/lang/Object;Ljava/lang/Object;)Lkm/p;
+    invoke-static {v2, v0}, Lpm/v;->a(Ljava/lang/Object;Ljava/lang/Object;)Lpm/p;
     move-result-object v0
     const-string v2, "active"
-    invoke-static {v2, v1}, Lkm/v;->a(Ljava/lang/Object;Ljava/lang/Object;)Lkm/p;
+    invoke-static {v2, v1}, Lpm/v;->a(Ljava/lang/Object;Ljava/lang/Object;)Lpm/p;
     move-result-object v1
     const-string v2, "verification"
     const-string v3, "NOT_REQUESTED"
-    invoke-static {v2, v3}, Lkm/v;->a(Ljava/lang/Object;Ljava/lang/Object;)Lkm/p;
+    invoke-static {v2, v3}, Lpm/v;->a(Ljava/lang/Object;Ljava/lang/Object;)Lpm/p;
     move-result-object v2
-    filled-new-array {v0, v1, v2}, [Lkm/p;
+    filled-new-array {v0, v1, v2}, [Lpm/p;
     move-result-object v0
-    invoke-static {v0}, Llm/o0;->l([Lkm/p;)Ljava/util/Map;
+    invoke-static {v0}, Lqm/o0;->l([Lpm/p;)Ljava/util/Map;
     move-result-object v0
     return-object v0
 """.trimIndent()
@@ -114,7 +114,12 @@ val calistreePremiumPatch = bytecodePatch(
  * patches above only fake the SDK layer — without these native patches
  * Pro is NOT unlocked.
  *
- * Offsets derived from B(l)utter analysis of the 5.8.5 libapp.so snapshot.
+ * Offsets per version. 5.8.5 offsets from B(l)utter analysis; 5.9.1 offsets
+ * relocated via masked-context binary matching + cluster-relative prediction,
+ * verified byte-for-byte against the 5.9.1 libapp.so.
+ *
+ * The patch is all-or-nothing per table: it only writes when EVERY site of a
+ * known version matches its expected bytes. A partial table is never written.
  */
 @Suppress("unused")
 val calistreeDartHexPatch = rawResourcePatch(
@@ -126,53 +131,61 @@ val calistreeDartHexPatch = rawResourcePatch(
     dependsOn(calistreePremiumPatch)
 
     execute {
-        // Each entry: offset -> expected-bytes (4 bytes) -> replacement bytes
-        val hexPatches = listOf(
-            // updateState setHasProAccess param → true
-            0x20aa36c to ("e00302aa" to "60830091"),
-            // updateState state= → true
-            0x20aa398 to ("a2035ff8" to "62830091"),
-            // hasProAccess default (null cache) → true
-            0x20aa414 to ("c0c20091" to "c0820091"),
-            // hasProAccess cached → true
-            0x20aa41c to ("e00301aa" to "c0820091"),
-            // init() setHasProAccess → true
-            0x20a9b28 to ("e20303aa" to "e2830091"),
-            // Promotional check → true
-            0x29f5360 to ("c0c20091" to "c0820091"),
-            // hasReachedPlanLimit null gate → skip
-            0x22d6914 to ("40000054" to "10000014"),
-            // backup skip gate → NOP
-            0x20a98bc to ("01012037" to "1f2003d5"),
-            // StateNotifier initial state → true
-            0x20a9860 to ("e20316aa" to "c2820091"),
-            // Plan limits → unlimited
-            0x22d6960 to ("8b040054" to "24000014"),
+        // offset -> (expected bytes, replacement bytes)
+        val tables = mapOf(
+            "5.8.5" to mapOf(
+                0x20aa36c to ("e00302aa" to "60830091"), // updateState setHasProAccess param → true
+                0x20aa398 to ("a2035ff8" to "62830091"), // updateState state= → true
+                0x20aa414 to ("c0c20091" to "c0820091"), // hasProAccess default → true
+                0x20aa41c to ("e00301aa" to "c0820091"), // hasProAccess cached → true
+                0x20a9b28 to ("e20303aa" to "e2830091"), // init() setHasProAccess → true
+                0x29f5360 to ("c0c20091" to "c0820091"), // Promotional check → true
+                0x22d6914 to ("40000054" to "10000014"), // Plan limit null gate → skip
+                0x20a98bc to ("01012037" to "1f2003d5"), // backup skip gate → NOP
+                0x20a9860 to ("e20316aa" to "c2820091"), // StateNotifier init → true
+                0x22d6960 to ("8b040054" to "24000014"), // Plan limits → unlimited
+            ),
+            "5.9.1" to mapOf(
+                0x22cc468 to ("e00302aa" to "60830091"), // updateState setHasProAccess param → true
+                0x22cc494 to ("a2035ff8" to "62830091"), // updateState state= → true
+                0x22cc510 to ("c0c20091" to "c0820091"), // hasProAccess default → true
+                0x22cc518 to ("e00301aa" to "c0820091"), // hasProAccess cached → true
+                0x22cbc24 to ("e20303aa" to "e2830091"), // init() setHasProAccess → true
+                0x2c3c9f4 to ("c0c20091" to "c0820091"), // Promotional check → true
+                0x252a8fc to ("40000054" to "10000014"), // Plan limit null gate → skip
+                0x22cb9b8 to ("01012037" to "1f2003d5"), // backup skip gate → NOP
+                0x22cb95c to ("e20316aa" to "c2820091"), // StateNotifier init → true
+                0x252a948 to ("8b040054" to "24000014"), // Plan limits → unlimited
+            ),
         )
 
         val soPath = "lib/arm64-v8a/libapp.so"
         val libapp = get(soPath) ?: return@execute
 
         val bytes = libapp.readBytes()
+
+        var matchedVersion: String? = null
         var applied = 0
-        for ((offset, pair) in hexPatches) {
-            val (expected, replacement) = pair
-            val expectedBytes = hexToBytes(expected)
-            val replacementBytes = hexToBytes(replacement)
-            if (offset + replacementBytes.size > bytes.size) continue
-            val actual = bytes.copyOfRange(offset, offset + replacementBytes.size)
-            if (actual.contentEquals(expectedBytes)) {
-                replacementBytes.copyInto(bytes, offset)
-                applied++
+        for ((version, table) in tables) {
+            val hits = table.count { (offset, pair) ->
+                offset + 4 <= bytes.size &&
+                    bytes.copyOfRange(offset, offset + 4).contentEquals(hexToBytes(pair.first))
             }
+            if (hits == table.size) { matchedVersion = version; break }
         }
 
-        if (applied == hexPatches.size) {
-            libapp.writeBytes(bytes)
-            println("Calistree Dart hex patches: applied $applied/${hexPatches.size} to $soPath")
-        } else {
-            println("Calistree Dart hex patches: only $applied/${hexPatches.size} matched — libapp.so may differ from 5.8.5")
+        if (matchedVersion == null) {
+            println("Calistree Dart hex patches: libapp.so matches NO known version table (${tables.keys}) — skipping native patch")
+            return@execute
         }
+
+        for ((offset, pair) in tables.getValue(matchedVersion)) {
+            hexToBytes(pair.second).copyInto(bytes, offset)
+            applied++
+        }
+
+        libapp.writeBytes(bytes)
+        println("Calistree Dart hex patches: matched $matchedVersion table, applied $applied/10 to $soPath")
     }
 }
 

@@ -4,6 +4,7 @@ import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
+import android.view.ViewParent;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.Setting;
@@ -37,6 +38,30 @@ public final class AutoAdvance {
 
     public static boolean available(boolean nativeValue) { return Settings.AUTO_ADVANCE.get() || nativeValue; }
 
+    /**
+     * Answers the load strategy the host records beside its auto scroll component. TikTok
+     * registers that component lazily, so nothing builds it until somebody opens the video panel
+     * and asks for Auto scroll by hand. On a cold start with this setting already on, none of the
+     * hooks below had a component to run against and the feature did nothing at all. With the
+     * setting on the registration carries the host's own immediate strategy, the one its start
+     * phase already uses for the components it always builds. With the setting off the host's own
+     * choice is handed straight back.
+     */
+    public static Object loadStrategy(Object lazy) {
+        // The host registers its components outside any try block of its own, so anything
+        // thrown here escapes into the panel's own setup. Reading the setting is the first
+        // touch of the preference store on this path, and it is reached whether the setting
+        // is on or off, so it answers with the host's own choice rather than throwing.
+        try {
+            if (!Settings.AUTO_ADVANCE.get()) return lazy;
+            Object immediate = immediateLoad();
+            return immediate != null ? immediate : lazy;
+        } catch (Throwable error) {
+            Logger.printException(() -> "Could not choose the auto scroll load strategy", error);
+            return lazy;
+        }
+    }
+
     public static void onView(Object component, View view) {
         if (Looper.myLooper() != Looper.getMainLooper() || component == null || view == null) return;
         if (!observing) {
@@ -57,7 +82,15 @@ public final class AutoAdvance {
     public static void beforeCompletion(Object component, String completedId) {
         if (Looper.myLooper() != Looper.getMainLooper() || completedId == null) return;
         Control control = CONTROLS.get(component);
-        if (control == null || !control.owned) return;
+        if (control == null) return;
+        if (!control.owned) {
+            // The host reports every completion, including the ones it played on its own. A
+            // session stood down while the feed was off screen, or reset because its limit
+            // changed, has nothing else that would look again: the update posted at the time
+            // ran while the settings page still had the window. This is that second look.
+            update(component);
+            return;
+        }
         // Before the completion is recorded, not after. Reaching the hold check further down
         // through update() stood down one video late: the video that finished behind the panel
         // still spent a place in this session's limit, and could put its "stopped after N
@@ -96,9 +129,21 @@ public final class AutoAdvance {
         int completedCount;
         private String lastCompletedId;
         private boolean limitNoticeShown;
+        private int sessionLimit = Settings.AUTO_ADVANCE_LIMIT.get();
         Control(View view) { this.view = new WeakReference<>(view); }
 
+        private void refreshLimit() {
+            int next = Settings.AUTO_ADVANCE_LIMIT.get();
+            if (sessionLimit == next) return;
+            sessionLimit = next;
+            completedCount = 0;
+            lastCompletedId = null;
+            limitNoticeShown = false;
+        }
+
         boolean recordCompletion(String completedId) {
+            // A completion may arrive before the posted preference refresh.
+            refreshLimit();
             if (!owned || completedId.equals(lastCompletedId)) return false;
             lastCompletedId = completedId;
             completedCount++;
@@ -117,6 +162,9 @@ public final class AutoAdvance {
         }
 
         void update(StateReader state, Runnable start, Runnable stop) {
+            // The settings page's canonical value is ready when its posted update runs.
+            // Returning to the same value or changing another row preserves this session.
+            refreshLimit();
             if (!Settings.AUTO_ADVANCE.get()) {
                 if (owned) { stop.run(); owned = false; }
                 return;
@@ -134,11 +182,26 @@ public final class AutoAdvance {
                 return;
             }
             View live = view.get();
-            if (live == null || !live.isAttachedToWindow() || !live.isShown() || !live.hasWindowFocus()) return;
+            if (live == null || !live.isAttachedToWindow() || !live.hasWindowFocus()) return;
+            if (!feedIsOnScreen(live)) return;
             if (!named(state.read(), "AUTO_SCROLL_STATE_STOP")) return;
             start.run();
             owned = !named(state.read(), "AUTO_SCROLL_STATE_STOP");
         }
+    }
+
+    /**
+     * Whether the feed this component belongs to is on screen.
+     *
+     * The component's own view is the host's auto scroll indicator, and the host keeps it GONE
+     * until scrolling is actually running. Asking that view whether it is shown answers a
+     * different question, and on a cold start it always answered no, so nothing ever started.
+     * What matters is the feed it sits in, which is what its parent reports. A view with no
+     * parent answers no here, which is also what isShown() says about one.
+     */
+    private static boolean feedIsOnScreen(View view) {
+        ViewParent parent = view.getParent();
+        return parent instanceof View && ((View) parent).isShown();
     }
 
     private static boolean named(Object state, String name) {
@@ -146,6 +209,7 @@ public final class AutoAdvance {
     }
 
     // Replaced with native calls when the patch is applied.
+    private static Object immediateLoad() { return null; }
     private static Object readAweme(Object component) { return null; }
     private static Object readState(Object component) { return null; }
     private static void start(Object component) { }

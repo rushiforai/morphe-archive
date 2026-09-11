@@ -1,3 +1,92 @@
+## [3.19.0](https://github.com/crimera/piko-newx/compare/v3.18.1...v3.19.0) (2026-09-11)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** scope timeline position restoration ([a238d89](https://github.com/crimera/piko/commit/a238d895f6c442de0d287f2a09ce9482824dc58f))
+
+### ✨ New Features
+* **Twitter - newx:** identify download notifications by username ([5554a69](https://github.com/crimera/piko/commit/5554a693357ef7113796496da59f59790cd2e8a8))
+
+## [3.18.1](https://github.com/crimera/piko-newx/compare/v3.18.0...v3.18.1) (2026-09-11)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** support alpha.02 drawer renderer ([a4a44ad](https://github.com/crimera/piko/commit/a4a44ad50c6568822290e81f570b68156bb5e347))
+
+## [3.18.0](https://github.com/crimera/piko-newx/compare/v3.17.0...v3.18.0) (2026-09-11)
+
+### ✨ New Features
+* **Twitter - newx:** use native in-app download notifications ([d748bf9](https://github.com/crimera/piko/commit/d748bf98692a78c748d0aabb273c33dfa50b00cc))
+
+### 🔧 Improvements
+* **Twitter - newx:** deprecate versions ([ea5edef](https://github.com/crimera/piko/commit/ea5edef5a57e1c8dc1b444a24239d29bff5f354f))
+
+## [3.17.0](https://github.com/crimera/piko-newx/compare/v3.16.0...v3.17.0) (2026-09-10)
+
+### 🐛 Bug Fixes
+* **Twitter:** glide thumbnail cache routing ([9c1eb4a](https://github.com/crimera/piko/commit/9c1eb4a16465f8d4d5bbdab2948c2f029b6ddb89))
+* **Twitter - newx:** preserve optional resolver fallbacks ([d583480](https://github.com/crimera/piko/commit/d5834805446cbd5537878688b52ba7c0ee53f805))
+* **Twitter - newx:** allow missing drawer footer divider ([696e98a](https://github.com/crimera/piko/commit/696e98aba0c450c30dd68430e44b50934e94f4f2))
+* **Twitter:** help center not getting hidden ([067a2ad](https://github.com/crimera/piko/commit/067a2ad3dbe8a6e8ae99c748c77baa9cc37229ce))
+
+### ✨ New Features
+* **Twitter - newx:** add default profile post sorting ([217326e](https://github.com/crimera/piko/commit/217326e18e8362dd3519ecbead237161b615a708))
+
+### 🔧 Improvements
+* **Twitter - newx:** rename default sorting patches ([d662eba](https://github.com/crimera/piko/commit/d662ebaac0d3134195b1521d9893784f381c8830))
+* **Twitter - newx:** enforce resolver cardinality ([fad1d44](https://github.com/crimera/piko/commit/fad1d44851a1adfd1c48b4617d26efb5376b95ae))
+
+### New Patches
+* **Twitter:** NewX: Set default media tab
+* **Twitter:** NewX: Set default profile post sorting
+* **Twitter:** NewX: Set default reply sorting
+
+## [3.16.0](https://github.com/crimera/piko-newx/compare/v3.15.0...v3.16.0) (2026-09-10)
+
+### ✨ New Features
+* **Twitter - newx:** support Twitter 12.26 alpha ([57eb9ae](https://github.com/crimera/piko/commit/57eb9ae8375f601000fb5834ec3a273fd0441782))
+
+## [3.15.0](https://github.com/crimera/piko-newx/compare/v3.14.0...v3.15.0) (2026-09-10)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** enforce sensitive media write cardinality ([7b7b9d6](https://github.com/crimera/piko/commit/7b7b9d6d888c7c21b4946bb7265a38d73a392a35))
+* **Twitter - newx:** enforce For You parameter cardinality ([65c058e](https://github.com/crimera/piko/commit/65c058ec18fbb6e9fde70ff37c8fe00cdd54f2cf))
+* **Twitter - newx:** enforce premium accessor cardinality ([1a10f2b](https://github.com/crimera/piko/commit/1a10f2b28e07b9ff3396e1e2193f82dda7fb5583))
+* **Twitter - newx:** enforce reply bar lookup cardinality ([4d37b2c](https://github.com/crimera/piko/commit/4d37b2ce2cc957bb7c50afe2c638d550c287323d))
+* **Twitter - newx:** enforce inline action lookup cardinality ([6fd7cc3](https://github.com/crimera/piko/commit/6fd7cc3b8c60caf329c0bf883b1bcaa6b2389baf))
+* **Twitter - newx:** enforce feature flag lookup cardinality ([736d57e](https://github.com/crimera/piko/commit/736d57eb0609773fc7eb250448d6a56f808ae41b))
+* **Twitter - newx:** document dynamic color resolver order ([84a581c](https://github.com/crimera/piko/commit/84a581c223ae29463d23168dfea5de36c246268d))
+* **Twitter - newx:** enforce drawer resolver cardinality ([2704191](https://github.com/crimera/piko/commit/2704191ae08bf528ead1d49f96e63c4bbec75fc7))
+* **Twitter - newx:** document custom font resolver order ([eee29e6](https://github.com/crimera/piko/commit/eee29e6378694b1c6f723654b4da7e440d07e286))
+* **Twitter - newx:** accept current navigation state shape ([51e6793](https://github.com/crimera/piko/commit/51e67935ace5112cac08b1a448336f113b725f08))
+* **Twitter - newx:** resolve split drawer row renderers ([df97271](https://github.com/crimera/piko/commit/df97271873bd7cf6de01059f64d650b46485f97d))
+* **Twitter - newx:** harden timeline position resolver ([8d0b88d](https://github.com/crimera/piko/commit/8d0b88dacff1052e9c0704be31a7b937117d6955))
+* **Twitter - newx:** harden For You topic filter resolver ([6c4fa29](https://github.com/crimera/piko/commit/6c4fa295b6076f58d063875ce85c9439e58930f3))
+* **Twitter - newx:** harden timeline tab resolver ([2606017](https://github.com/crimera/piko/commit/26060175647e08839d2d9dbd74ca3da3d15b4a04))
+* **Twitter - newx:** harden premium upsell resolver ([36d35f5](https://github.com/crimera/piko/commit/36d35f53ff7765bde2bc694dc80fc1572346b8c7))
+* **Twitter - newx:** harden premium fingerprints ([12f6f7a](https://github.com/crimera/piko/commit/12f6f7a13d0f9093890be822cbaa31e7e731e499))
+* **Twitter - newx:** harden timeline model resolution ([c9ae181](https://github.com/crimera/piko/commit/c9ae18106c607269a6802004e0799718efe0b58e))
+* **Twitter - newx:** harden semantic model introspection ([c52514a](https://github.com/crimera/piko/commit/c52514ac5bea0e681701e42f1380d82e144c317a))
+* **Twitter - newx:** harden post model resolution ([e15a687](https://github.com/crimera/piko/commit/e15a68759b0d138f697cf197d4ea777dc7e38b3b))
+* **Twitter - newx:** harden share image resolver ([f64d0eb](https://github.com/crimera/piko/commit/f64d0eb49838f68a9b7a8860e837d62625063e55))
+* **Twitter - newx:** harden server logging resolver ([be3ad92](https://github.com/crimera/piko/commit/be3ad92170de01fc473f40a9ae5d939278c8d551))
+* **Twitter - newx:** harden reply sorting resolver ([2297ebb](https://github.com/crimera/piko/commit/2297ebba12937a04d122ea1f3e46be0ded2227a9))
+* **Twitter - newx:** harden post options resolver ([6ed8a40](https://github.com/crimera/piko/commit/6ed8a40cd4195a8b531ee3a4140149f1d2154c7d))
+* **Twitter - newx:** harden post reply bar resolver ([6edf348](https://github.com/crimera/piko/commit/6edf3488ac9bfb793448f82ab9683151a78c25c3))
+* **Twitter - newx:** harden default media tab resolver ([555a6e7](https://github.com/crimera/piko/commit/555a6e746d83413895b251e08553d4c0236244b2))
+* **Twitter - newx:** harden media quality resolver ([df28ff0](https://github.com/crimera/piko/commit/df28ff0ecf4f658816dc125d182ad7746c3287e3))
+* **Twitter - newx:** harden feature flag resolver ([166c6c7](https://github.com/crimera/piko/commit/166c6c7f350003ce756e923fc235fe7a828028de))
+* **Twitter - newx:** harden dynamic color resolver ([f81859b](https://github.com/crimera/piko/commit/f81859b9ac2d97bf269098dd6d4c56007460158d))
+* **Twitter - newx:** harden drawer resolver ([8df3015](https://github.com/crimera/piko/commit/8df301541fe10b583ee90f6d581c8519b7e38486))
+* **Twitter - newx:** harden custom sharing domain resolver ([f2c9c4c](https://github.com/crimera/piko/commit/f2c9c4c9aa674a11473cf6dc5caa81683ba4ac52))
+* **Twitter - newx:** harden canonical URL resolver ([75823b9](https://github.com/crimera/piko/commit/75823b9f9bdc4014541b816de4cd71fad5cee6b4))
+
+### ✨ New Features
+* **Twitter - newx:** add resolver cardinality helpers ([ad21b64](https://github.com/crimera/piko/commit/ad21b649be42715ad9677fef69e8d39dcada186f))
+
+### Commits
+* **Twitter - newx:** mark 12.25 prod compatible ([3f70880](https://github.com/crimera/piko/commit/3f70880f96729adf86a4e957ce22332bac379d8d))
+* **Twitter - newx:** add resolver cardinality linter ([3ffb421](https://github.com/crimera/piko/commit/3ffb4219ee9599bb12d601e03ba81b4a297f7a77))
+* **Twitter:** document newx resolver tooling ([ee694cb](https://github.com/crimera/piko/commit/ee694cb3721827571e103d4d470b7c114f23071b))
+
 ## [3.14.0](https://github.com/crimera/piko-newx/compare/v3.13.3...v3.14.0) (2026-09-09)
 
 ### ✨ New Features

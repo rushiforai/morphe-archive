@@ -12,7 +12,7 @@ import app.morphe.extension.shared.Logger;
 
 /** Sanitized, stable markers for one Yandex translation attempt. */
 final class YandexVotDiagnostics {
-    static final String BUILD_ID = "yandex-audio-direct-v6";
+    static final String BUILD_ID = "yandex-audio-direct-v7";
     private static final String PREFIX = "Yandex VOT diagnostics build=" + BUILD_ID + " ";
 
     private YandexVotDiagnostics() {
@@ -58,6 +58,16 @@ final class YandexVotDiagnostics {
                 + " mode=" + mode(liveMode);
     }
 
+    static void apiFailure(String event, String category, boolean proxyEnabled) {
+        log(apiFailureMessage(event, category, proxyEnabled));
+    }
+
+    static String apiFailureMessage(String event, String category, boolean proxyEnabled) {
+        return PREFIX + "phase=api event=" + event
+                + " category=" + category
+                + " proxy=" + proxyEnabled;
+    }
+
     static void audioRequest(String event, @Nullable YandexVotAudioResult result) {
         log(audioRequestMessage(event, result));
     }
@@ -78,16 +88,18 @@ final class YandexVotDiagnostics {
     }
 
     static void sourceEnvironment(boolean spoofIncluded, boolean spoofSetting,
-                                  int snapshotCount) {
-        log(sourceEnvironmentMessage(spoofIncluded, spoofSetting, snapshotCount));
+                                  boolean externalPoTokenSetting, int snapshotCount) {
+        log(sourceEnvironmentMessage(
+                spoofIncluded, spoofSetting, externalPoTokenSetting, snapshotCount));
     }
 
     static String sourceEnvironmentMessage(boolean spoofIncluded, boolean spoofSetting,
-                                           int snapshotCount) {
+                                           boolean externalPoTokenSetting, int snapshotCount) {
         return PREFIX + "phase=source event=environment"
                 + " spoofIncluded=" + spoofIncluded
                 + " spoofSetting=" + spoofSetting
                 + " spoofEffective=" + (spoofIncluded && spoofSetting)
+                + " externalPoTokenSetting=" + externalPoTokenSetting
                 + " snapshots=" + Math.max(0, snapshotCount);
     }
 

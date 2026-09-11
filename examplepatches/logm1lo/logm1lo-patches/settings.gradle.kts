@@ -18,4 +18,10 @@ plugins {
     id("app.morphe.patches") version "1.3.3"
 }
 
+settings {
+    extensions {
+        defaultNamespace = "app.morphe.extension"
+    }
+}
+
 rootProject.name = "logm1lo-patches"

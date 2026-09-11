@@ -1,3 +1,83 @@
+## [1.17.1](https://github.com/Zanuaimi/UniPatches/compare/v1.17.0...v1.17.1) (2026-09-10)
+
+### 🐛 Bug Fixes
+
+* **overlay:** update version to v2.4.0 ([c13dd05](https://github.com/Zanuaimi/UniPatches/commit/c13dd05317a6f28ef3c96d57a7da276daeaa10a2))
+
+## [1.17.0](https://github.com/Zanuaimi/UniPatches/compare/v1.16.0...v1.17.0) (2026-09-10)
+
+### 🐛 Bug Fixes
+
+* **ads:** honor SDK coverage in reward hooks ([2c4244c](https://github.com/Zanuaimi/UniPatches/commit/2c4244c811206499223a1ea4f3896bf80e8a9a69))
+* **ads:** make runtime reward controls reversible ([acf5828](https://github.com/Zanuaimi/UniPatches/commit/acf58288cb3939cc1adc8320bf6f825b2a603550))
+* **ads:** separate instant rewards from ad skipping ([8f1ba43](https://github.com/Zanuaimi/UniPatches/commit/8f1ba434c90261d04ab78e625b7dd958cc81fffc))
+
+### ✨ New Features
+
+* **overlay:** add descriptive runtime ad controls ([5ad5c11](https://github.com/Zanuaimi/UniPatches/commit/5ad5c11fc3404ae4b0723d416d48525cd9875641))
+
+## [1.16.0](https://github.com/Zanuaimi/UniPatches/compare/v1.15.1...v1.16.0) (2026-09-10)
+
+### ✨ New Features
+
+* **Hill Climb Racing Example:** clarify that app-specific modules are example and does nothing ([57a4802](https://github.com/Zanuaimi/UniPatches/commit/57a4802ce1d1de6b8528a4b08838d6b86039284c))
+
+## [1.15.1](https://github.com/Zanuaimi/UniPatches/compare/v1.15.0...v1.15.1) (2026-09-10)
+
+### 🐛 Bug Fixes
+
+* **overlay:** preserve dropdown outline and popup bounds ([95f0d88](https://github.com/Zanuaimi/UniPatches/commit/95f0d886df1df33133c441f816369d4a08629eb2))
+* **overlay:** restore Lucky action button text ([4fc42f2](https://github.com/Zanuaimi/UniPatches/commit/4fc42f250784f6d89051d16844fc1e0b98f27fa1))
+
+## [1.15.0](https://github.com/Zanuaimi/UniPatches/compare/v1.14.3...v1.15.0) (2026-09-10)
+
+### 🐛 Bug Fixes
+
+* **icon-builder:** reset template state and align geometry ([7edc063](https://github.com/Zanuaimi/UniPatches/commit/7edc0631d8a2382ca500e814ae68307a8d15e0f3))
+* **overlay:** improve control styling and popup sizing ([d59e395](https://github.com/Zanuaimi/UniPatches/commit/d59e395a405c4b308da6ae0dee8dafe0abe3d93d))
+
+### ✨ New Features
+
+* **overlay:** update presets and patch version ([184547a](https://github.com/Zanuaimi/UniPatches/commit/184547a787449b1b741a403dc5662b42a0584106))
+
+## [1.14.3](https://github.com/Zanuaimi/UniPatches/compare/v1.14.2...v1.14.3) (2026-09-10)
+
+### 🐛 Bug Fixes
+
+* trigger semantic release attestation ([8d49411](https://github.com/Zanuaimi/UniPatches/commit/8d494112b44059ffa7a6e43eaebff5b3e18f7505))
+
+### 🔧 Improvements
+
+* **ads:** reduce fallback patch heap usage ([eda705d](https://github.com/Zanuaimi/UniPatches/commit/eda705df61e647ac83151f09e34ab8fb9be1c0a8))
+* **bytecode:** avoid redundant instruction snapshots ([5dc2068](https://github.com/Zanuaimi/UniPatches/commit/5dc206858bce09b4d5e91b89be41cd5b9d061428))
+* **pairip:** narrow external VMRunner scan ([bdda520](https://github.com/Zanuaimi/UniPatches/commit/bdda52091cee752c4b6cecf698c75c81f80a15b7))
+
+## [1.14.2](https://github.com/Zanuaimi/UniPatches/compare/v1.14.1...v1.14.2) (2026-09-10)
+
+### 🐛 Bug Fixes
+
+* register fixes ([8af8e59](https://github.com/Zanuaimi/UniPatches/commit/8af8e59d11b669b1a0144a2403fc7faf7b0c37d6))
+
+## [1.14.1](https://github.com/Zanuaimi/UniPatches/compare/v1.14.0...v1.14.1) (2026-09-10)
+
+### 🐛 Bug Fixes
+
+* Update Zarchiver icon and update descriptions ([b7cc9b3](https://github.com/Zanuaimi/UniPatches/commit/b7cc9b33a3a106c0ac730dbe0d71362c81edb929))
+
+## [1.14.0](https://github.com/Zanuaimi/UniPatches/compare/v1.13.0...v1.14.0) (2026-09-10)
+
+### ✨ New Features
+
+* **addons:** integrate HCR and Ads overlays ([d4d5445](https://github.com/Zanuaimi/UniPatches/commit/d4d54458a0ebc5d6f8e8372fd780d2f452661337))
+* **overlay:** expand runtime icon customization ([e4b7510](https://github.com/Zanuaimi/UniPatches/commit/e4b7510cc7d0d7084f478d2bcd2873b339c79d6f))
+
+## [1.13.0](https://github.com/Zanuaimi/UniPatches/compare/v1.12.0...v1.13.0) (2026-09-10)
+
+### ✨ New Features
+
+* **overlay:** extend runtime configuration and icon parsing ([2ac99b5](https://github.com/Zanuaimi/UniPatches/commit/2ac99b5a8d343bf4f0046e8da504e73cb80d1985))
+* **overlay:** refine built-in preset visuals ([cb1cf3f](https://github.com/Zanuaimi/UniPatches/commit/cb1cf3f453e36db18239444d1a687842ae1b698d))
+
 ## [1.12.0](https://github.com/Zanuaimi/UniPatches/compare/v1.11.1...v1.12.0) (2026-09-09)
 
 ### ✨ New Features

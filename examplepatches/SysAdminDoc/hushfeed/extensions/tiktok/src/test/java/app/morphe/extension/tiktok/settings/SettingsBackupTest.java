@@ -166,6 +166,24 @@ public class SettingsBackupTest {
         }
     }
 
+    @Test public void aBackupWithMoreLabRulesThanTheLabKeepsIsRefusedByName() throws Exception {
+        // Some 26,000 of these fit the 2 MB cap. Restored, they made every later backup and Lab
+        // undo copy too large to write, which refused Restore, Reset and every Lab change.
+        String baseline = SettingsBackup.create(false);
+        JSONObject many = new JSONObject(baseline);
+        org.json.JSONArray rules = many.getJSONObject("lab").getJSONArray("rules");
+        for (int i = 0; i < 2000; i++) {
+            rules.put(new JSONObject().put("manager", "abmock").put("key", "gate" + i)
+                    .put("type", "BOOLEAN").put("value", "true").put("force", true));
+        }
+
+        assertEquals(SettingsBackup.Reason.LAB_RULES, reasonFor(many.toString()));
+        assertEquals("That settings backup holds more Feature Gate Lab rules than the Lab takes. "
+                + "Nothing was altered.", sentenceFor(many.toString()));
+        assertEquals(baseline, SettingsBackup.create(false));
+        assertTrue(FeatureGateLabStore.rules().isEmpty());
+    }
+
     @Test public void aBackupFromAnotherTikTokVersionRestoresSettingsAndLeavesTheLabAlone() throws Exception {
         // The target stamp is there for the Lab rules, which name gates in one TikTok build. It
         // used to refuse the whole file, so the day this project retargets, every backup anyone
@@ -623,10 +641,12 @@ public class SettingsBackupTest {
         assertFalse(new File(app.getFilesDir(), SettingsOperationJournal.FILE_NAME).isFile());
     }
 
-    @Test public void malformedSettingsJournalStaysVisibleWithoutChangingValues() throws Exception {
+    @Test public void malformedSettingsJournalIsSetAsideWithoutChangingValues() throws Exception {
         var app = Utils.getContext();
         Settings.REGION_SPOOF.save(true);
-        try (var output = new FileOutputStream(new File(app.getFilesDir(), SettingsOperationJournal.FILE_NAME))) {
+        File journal = new File(app.getFilesDir(), SettingsOperationJournal.FILE_NAME);
+        File damaged = new File(journal.getPath() + SettingsOperationJournal.DAMAGED_SUFFIX);
+        try (var output = new FileOutputStream(journal)) {
             output.write("{}".getBytes(StandardCharsets.UTF_8));
         }
         assertEquals(SettingsOperationJournal.Recovery.MALFORMED,
@@ -636,7 +656,37 @@ public class SettingsBackupTest {
         assertEquals(SettingsOperationJournal.Recovery.NONE,
                 SettingsOperationJournal.consumeRecoveryNotice());
         assertTrue(Settings.REGION_SPOOF.get());
-        new AtomicFile(new File(app.getFilesDir(), SettingsOperationJournal.FILE_NAME)).delete();
+        // The record is kept for the diagnostics and out of the way of the next change: a
+        // journal left in place refused every later operation, Undo and Restore included,
+        // which were the two things the notice told the reader to use.
+        assertFalse(journal.isFile());
+        assertTrue(damaged.isFile());
+        assertEquals("{}", new String(java.nio.file.Files.readAllBytes(damaged.toPath()),
+                StandardCharsets.UTF_8));
+        SettingsOperationJournal.Operation operation = SettingsOperationJournal.acquire(app);
+        operation.abort();
+        assertTrue(damaged.delete());
+    }
+
+    @Test public void aJournalThatCannotBeAppliedIsSetAsideAndTheNextChangeStarts() throws Exception {
+        var app = Utils.getContext();
+        // A well formed record whose Lab snapshot names another TikTok, which is what an
+        // install over an older Hushfeed leaves behind when the journal was written by the
+        // version before the retarget. parseSettings refuses it, so it can never be applied.
+        JSONObject foreign = new JSONObject(FeatureGateLabStore.exportSettings().toString());
+        foreign.put("tiktok_version", "0.0.0");
+        writeJournal("lab", foreign.toString(), foreign.toString());
+        File journal = new File(app.getFilesDir(), SettingsOperationJournal.FILE_NAME);
+        File damaged = new File(journal.getPath() + SettingsOperationJournal.DAMAGED_SUFFIX);
+
+        SettingsOperationJournal.Recovery result = SettingsOperationJournal.initialize(app);
+        assertTrue("was " + result, result == SettingsOperationJournal.Recovery.MALFORMED
+                || result == SettingsOperationJournal.Recovery.FAILED);
+        assertFalse(journal.isFile());
+        assertTrue(damaged.isFile());
+        SettingsOperationJournal.Operation operation = SettingsOperationJournal.acquire(app);
+        operation.abort();
+        assertTrue(damaged.delete());
     }
 
     @Test public void journalIntentIsDurableBeforeASettingsMutationRuns() throws Exception {

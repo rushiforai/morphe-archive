@@ -37,7 +37,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     "Use the split layout on wider screens. Restart TikTok to apply this, or unfold again if the old layout is still there.", Settings.FOLDABLE_SPLIT_VIEW));
             addPreference(new app.morphe.extension.tiktok.settings.preference.NumberInputPreference(context,
                     "Split comment minimum width", "Window width needed to enable the layout. Restart TikTok to apply this.",
-                    Settings.FOLDABLE_SPLIT_VIEW_MIN_WIDTH_DP, "pixel", "pixels"));
+                    Settings.FOLDABLE_SPLIT_VIEW_MIN_WIDTH_DP, "dp", "dp"));
         }
         if (SettingsStatus.sanitizeShareUrlsEnabled) {
             addPreference(new TogglePreference(
@@ -108,7 +108,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(
                     context,
                     "Disable the long press quick share",
-                    "Keep pressing and holding Share from opening TikTok's quick share action.",
+                    "Stop a long press on Share from opening TikTok's quick share action.",
                     Settings.DISABLE_LONG_PRESS_QUICK_SHARE
             ));
         }
@@ -116,7 +116,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(
                     context,
                     "Disable the long press repost",
-                    "Keep pressing and holding Like from opening TikTok's repost action.",
+                    "Stop a long press on Like from opening TikTok's repost action.",
                     Settings.DISABLE_LONG_PRESS_REPOST
             ));
         }
@@ -187,6 +187,17 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                             + "playing. On a 90 or 120 Hz phone that ask slows the whole app down "
                             + "to the video's rate, scrolling included.",
                     Settings.UNCAP_REFRESH_RATE
+            ));
+        }
+        if (SettingsStatus.launcherShortcutsEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide the launcher shortcuts",
+                    "Empty the menu that opens when you press and hold TikTok's icon on the home "
+                            + "screen. Turning this off asks TikTok to build them again. Tapping "
+                            + "the icon still opens the app, and a shortcut you pinned yourself "
+                            + "stays where you put it.",
+                    Settings.HIDE_LAUNCHER_SHORTCUTS
             ));
         }
 

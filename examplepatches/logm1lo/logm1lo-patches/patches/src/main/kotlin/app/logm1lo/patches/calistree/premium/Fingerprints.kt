@@ -17,6 +17,11 @@ internal object GetActiveFingerprint : Fingerprint(
     ))
 )
 
+// Kotlin stdlib obfuscation moved across versions:
+//   5.8.5: Lazy=Lkm/j; Pair=Lkm/p; TuplesKt=Lkm/v; MapsKt=Llm/o0
+//   5.9.1: Lazy=Lpm/j; Pair=Lpm/p; TuplesKt=Lpm/v; MapsKt=Lqm/o0
+// Fingerprint only the type descriptor that is guaranteed stable (the field type),
+// not the getter call chain.
 internal object GetActiveSubsFingerprint : Fingerprint(
     definingClass = "Lcom/revenuecat/purchases/CustomerInfo;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
@@ -24,7 +29,7 @@ internal object GetActiveSubsFingerprint : Fingerprint(
     parameters = listOf(),
     filters = listOf(fieldAccess(
         opcode = Opcode.IGET_OBJECT, definingClass = "Lcom/revenuecat/purchases/CustomerInfo;",
-        name = "activeSubscriptions\$delegate", type = "Lkm/j;",
+        name = "activeSubscriptions\$delegate", type = "Lpm/j;",
     ))
 )
 
@@ -46,7 +51,7 @@ internal object AllPurchasedIdsFingerprint : Fingerprint(
     parameters = listOf(),
     filters = listOf(fieldAccess(
         opcode = Opcode.IGET_OBJECT, definingClass = "Lcom/revenuecat/purchases/CustomerInfo;",
-        name = "allPurchasedProductIds\$delegate", type = "Lkm/j;",
+        name = "allPurchasedProductIds\$delegate", type = "Lpm/j;",
     ))
 )
 
@@ -58,10 +63,10 @@ internal object CustomerInfoMapFingerprint : Fingerprint(
     filters = listOf(
         methodCall(
             opcode = Opcode.INVOKE_STATIC,
-            definingClass = "Llm/o0;",
+            definingClass = "Lqm/o0;",
             name = "l",
             returnType = "Ljava/util/Map;",
-            parameters = listOf("[Lkm/p;"),
+            parameters = listOf("[Lpm/p;"),
         ),
     )
 )

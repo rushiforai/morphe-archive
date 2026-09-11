@@ -489,7 +489,7 @@ fun Method.indexOfFirstInstructionOrThrow(startIndex: Int = 0, targetOpcode: Opc
 fun Method.indexOfFirstInstructionOrThrow(startIndex: Int = 0, filter: Instruction.() -> Boolean): Int {
     val index = indexOfFirstInstruction(startIndex, filter)
     if (index < 0) {
-        throw PatchException("Could not find instruction index")
+        throw PatchException("Could not find instruction index in $definingClass->$name")
     }
 
     return index
@@ -585,7 +585,7 @@ fun Method.indexOfFirstInstructionReversedOrThrow(startIndex: Int? = null, filte
     val index = indexOfFirstInstructionReversed(startIndex, filter)
 
     if (index < 0) {
-        throw PatchException("Could not find instruction index")
+        throw PatchException("Could not find instruction index in $definingClass->$name")
     }
 
     return index
@@ -660,7 +660,8 @@ fun Method.findInstructionIndicesReversedOrThrow(filter: InstructionFilter): Lis
  * Suitable for calls to extension code to override boolean and integer values.
  */
 /**
- * The `move-result` belonging to the call the literal was loaded for.
+ * The `move-result` belonging to the call the literal was loaded for. A `const-string` counts as a
+ * literal here: a settings key is loaded and handed to its lookup the same way a number is.
  *
  * <p>Both overrides used to take the first `move-result` anywhere after the literal. A literal
  * is usually loaded a few instructions before the call it is an argument to, and any other call
@@ -669,7 +670,7 @@ fun Method.findInstructionIndicesReversedOrThrow(filter: InstructionFilter): Lis
  * one that reads the register it was loaded into, and a `move-result` belongs to the invoke
  * directly above it.
  */
-private fun MutableMethod.indexOfLiteralCallResult(literalIndex: Int): Int {
+internal fun MutableMethod.indexOfLiteralCallResult(literalIndex: Int): Int {
     val literalRegister = getInstruction<OneRegisterInstruction>(literalIndex).registerA
     var invokeIndex = -1
     for (index in literalIndex + 1 until instructions.count()) {
@@ -1397,3 +1398,24 @@ fun customLiteral(literalSupplier: () -> Long): ((method: Method, classDef: Clas
     { method, _ ->
         method.containsLiteralInstruction(literalSupplier())
     }
+
+/**
+ * The register the call at [callIndex] leaves its result in: the `move-result` family
+ * instruction right after it. Cast without a check, the instruction after a call whose result
+ * a build stopped keeping is whatever comes next, and a `const/4 v2` there is also a
+ * one-register instruction, so the override would be applied to a register the call never
+ * wrote. This names the method and the index instead.
+ */
+fun Method.moveResultRegisterAfter(callIndex: Int, what: String): Int {
+    val next = implementation?.instructions?.elementAtOrNull(callIndex + 1)
+        ?: throw PatchException("$what: nothing follows the call at $callIndex in $definingClass->$name")
+    if (next.opcode != Opcode.MOVE_RESULT && next.opcode != Opcode.MOVE_RESULT_OBJECT &&
+        next.opcode != Opcode.MOVE_RESULT_WIDE
+    ) {
+        throw PatchException(
+            "$what: the call at $callIndex in $definingClass->$name is followed by " +
+                "${next.opcode.name}, not a move-result, so its result is not kept.",
+        )
+    }
+    return (next as OneRegisterInstruction).registerA
+}

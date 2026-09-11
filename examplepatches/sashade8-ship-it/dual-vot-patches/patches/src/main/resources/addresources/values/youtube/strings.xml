@@ -1436,7 +1436,10 @@ Limitation: Reverts to old style \'More videos\' overlay"</string>
     <string name="dualvot_yandex_started">Translation started</string>
     <string name="dualvot_yandex_stopped">Translation stopped</string>
     <string name="dualvot_yandex_playback_error">Failed to play translation audio</string>
-    <string name="dualvot_yandex_server_error">Yandex could not create this translation</string>
+    <string name="dualvot_yandex_network_error">Could not connect to the Yandex translation service. Check your VPN or proxy</string>
+    <string name="dualvot_yandex_server_error">Yandex rejected the translation request for this video</string>
+    <string name="dualvot_yandex_response_error">Yandex returned a translation without an audio track</string>
+    <string name="dualvot_yandex_session_error">Could not create a Yandex translation session</string>
     <string name="dualvot_yandex_unavailable_live">Translation is not available for live streams</string>
     <string name="dualvot_yandex_unavailable_too_long">Video is too long for translation (max 4 hours)</string>
     <string name="dualvot_yandex_unavailable_same_language">Video audio is already in the target language</string>
@@ -1447,7 +1450,7 @@ Limitation: Reverts to old style \'More videos\' overlay"</string>
     <string name="dualvot_yandex_stream_ready">Translation ready, playing</string>
     <string name="dualvot_yandex_audio_preparing">Preparing the original audio…</string>
     <string name="dualvot_yandex_audio_uploading">Sending audio to Yandex… %1$d/%2$d</string>
-    <string name="dualvot_yandex_source_error">Could not get the full original audio needed for this translation</string>
+    <string name="dualvot_yandex_source_error">Could not get the video audio track required for translation</string>
     <string name="dualvot_yandex_upload_error">Could not send the original audio to Yandex</string>
     <string name="dualvot_yandex_time_sec">%d sec</string>
     <string name="dualvot_yandex_time_min">%d min</string>

@@ -7,18 +7,14 @@ Patches for apps I use, built with [Morphe](https://morphe.software).
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0](https://github.com/d0nj/morphe-patches/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
+> **[v1.2.2](https://github.com/d0nj/morphe-patches/releases/tag/v1.2.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
 <details open>
-<summary>📦 Niagara Launcher&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>📦 Niagara Launcher&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
-
-**🎯 Supported versions:**
-
-| 1.16.23 |
-| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| [Fix home screen numbers tile](#fix-home-screen-numbers-tile) | Niagara's Channels feature registers a diagnostic tip whose message is a giant fingerprint of concatenated hashCode() integers of up to 30 channel items (~850 digits). Because the provider accepts every tip request, this shows up as a tile of giant numbers on the home feed whenever the channel list refreshes, which happens when apps are installed, updated or removed (for example through ADB). Makes the provider decline tip requests so the diagnostic tip is never shown. |  |
 | [Remove analytics](#remove-analytics) | Disables all telemetry in Niagara Launcher: the weekly usage-report upload (app launches, notification metadata, survey responses), retention milestone events, GDPR consent sync, Singular attribution sessions and events (advertising ID, app set ID, install referrer, FCM token) and the runtime Firebase Analytics opt-in. |  |
 | [Unlock Pro](#unlock-pro) | Makes the entitlement holder always report Pro in Niagara Launcher. Unlocks all Pro features and bypasses the 7-day trial prompt. Server-backed features (account sync, Stripe checkout) are not affected. |  |
 
@@ -27,11 +23,6 @@ Patches for apps I use, built with [Morphe](https://morphe.software).
 <details open>
 <summary>📦 AI Audio Novel Reader&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
-
-**🎯 Supported versions:**
-
-| 3.3.23 |
-| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

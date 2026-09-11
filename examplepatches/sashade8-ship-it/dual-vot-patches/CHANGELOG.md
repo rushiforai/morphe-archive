@@ -1,3 +1,31 @@
+## 1.42.0-dualvot.8.5.1 (2026-09-10)
+
+### Compatibility hotfix
+
+* Use the range-form invoke instruction for the Cronet engine hook so methods
+  returning registers above `v15` patch without an invalid-register warning.
+* Add the missing Russian translation for the message shown when Yandex voice
+  translation is requested on a live stream.
+
+## 1.42.0-dualvot.8.5 (2026-09-10)
+
+### PoToken source-audio recovery
+
+* Refresh the external player PoToken before the isolated TV Simply fallback
+  request when Spoof video streams is disabled. This avoids reusing a cached
+  player token that was generated for a different video.
+* Keep the normal YouTube playback and Spoof video streams paths unchanged.
+
+### Clearer network and translation errors
+
+* Record safe network categories (`dns`, `timeout`, `tls`, `connect`,
+  `connection`, `io`, or `other`) and whether the Yandex proxy was enabled,
+  without exporting hosts, exception messages, tokens, or video identifiers.
+* Distinguish network, Yandex rejection, missing translated audio, session,
+  source-audio, upload, and playback failures in user-facing messages.
+* Report `STATUS_FAILED` as "Yandex rejected the translation request" instead
+  of suggesting that Yandex was technically unable to translate the video.
+
 ## 1.42.0-dualvot.8.4 (2026-09-09)
 
 ### Yandex source-audio recovery

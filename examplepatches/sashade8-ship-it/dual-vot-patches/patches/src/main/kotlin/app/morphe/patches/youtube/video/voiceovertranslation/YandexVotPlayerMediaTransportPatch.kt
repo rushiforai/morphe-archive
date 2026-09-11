@@ -65,7 +65,7 @@ internal val yandexVotPlayerMediaTransportPatch = bytecodePatch {
                 val register = getInstruction<OneRegisterInstruction>(index).registerA
                 addInstruction(
                     index,
-                    "invoke-static { v$register }, $PLAYER_MEDIA_TRANSPORT->setCronetEngine(Lorg/chromium/net/CronetEngine;)V"
+                    "invoke-static/range { v$register .. v$register }, $PLAYER_MEDIA_TRANSPORT->setCronetEngine(Lorg/chromium/net/CronetEngine;)V"
                 )
             }
         }

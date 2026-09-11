@@ -5,6 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+
+import app.morphe.extension.shared.settings.preference.LogBufferManager;
 import java.lang.reflect.Method;
 
 import org.junit.Test;
@@ -88,5 +90,42 @@ public class JavaCrashCaptureTest {
         assertFalse("the message must not carry the address", report.contains("tiktokv.com"));
         assertFalse("nor the session", report.contains("abc123"));
         assertTrue(report.contains("[url omitted]"));
+    }
+
+    @Test public void aWriteCutShortLeavesTheLastWholeReportReadable() throws Exception {
+        var context = org.robolectric.RuntimeEnvironment.getApplication();
+        String whole = "schema: 1\ncomplete: true\nthe last whole report\n";
+        LogBufferManager.persistCrashReport(context, whole);
+        // What a death in the middle of the next write leaves behind: AtomicFile moved the good
+        // copy aside to .bak before it began, and the base file holds the start of the new one.
+        java.io.File base = new java.io.File(context.getFilesDir(), "morphe_java_crash_report_v1.txt");
+        java.io.File backup = new java.io.File(base.getPath() + ".bak");
+        assertTrue(base.renameTo(backup));
+        java.nio.file.Files.write(base.toPath(), "schema: 1\ncomp".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+        assertEquals(whole, LogBufferManager.readCrashReport(context));
+        assertFalse("the half written copy is gone once the whole one is back", backup.exists());
+    }
+
+    @Test public void aReportPastTheCeilingSaysSoAndIsCutOnACharacter() throws Exception {
+        var context = org.robolectric.RuntimeEnvironment.getApplication();
+        // Well past 64,000 bytes, and every character two bytes wide, so a cut at the byte
+        // ceiling lands inside one unless the writer steps back to a boundary.
+        StringBuilder wide = new StringBuilder("schema: 1\ncomplete: true\n");
+        while (wide.length() < 50_000) wide.append("\u00e9");
+        LogBufferManager.persistCrashReport(context, wide.toString());
+        String saved = LogBufferManager.readCrashReport(context);
+
+        assertTrue("the end says the report was cut", saved.endsWith("[report truncated]\n"));
+        assertTrue("and so does the header", saved.startsWith("schema: 1\ncomplete: false\n"));
+        assertFalse("which no longer claims the report is whole", saved.contains("complete: true"));
+        assertFalse("nothing read back as a replacement character", saved.contains("\ufffd"));
+        assertTrue(saved.length() < wide.length());
+        assertTrue(saved.getBytes(java.nio.charset.StandardCharsets.UTF_8).length <= 64_000);
+
+        // A report that fits is written whole, with no marker.
+        String small = "schema: 1\ncomplete: true\nshort\n";
+        LogBufferManager.persistCrashReport(context, small);
+        assertEquals(small, LogBufferManager.readCrashReport(context));
     }
 }

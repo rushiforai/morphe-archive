@@ -6,12 +6,6 @@ import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.d0nj.patches.shared.clearBody
 
-private const val WORKER_SUCCESS_STUB = """
-    invoke-static {}, Lb/fwgiSA41qmPPy4aBT3Q;->szRaOYk1SsGxRkFQ2p()Lb/LuHTGp3sW7b9p7TVa6afWU;
-    move-result-object v0
-    return-object v0
-"""
-
 @Suppress("unused")
 val removeAnalyticsPatch = bytecodePatch(
     name = "Remove analytics",
@@ -27,34 +21,36 @@ val removeAnalyticsPatch = bytecodePatch(
             packageName = "bitpit.launcher",
             name = "Niagara Launcher",
             appIconColor = 0x1E88E5,
-            targets = listOf(AppTarget(version = "1.16.23")),
+            targets = listOf(AppTarget(version = null)),
         ),
     )
 
     execute {
-        UsageReportUploadWorkerFingerprint.method.apply {
+        val successStub = successResultStub(SingularFirstSessionWorkFingerprint.method)
+
+        UsageReportUploadWorkFingerprint.method.apply {
             clearBody()
-            addInstructions(0, WORKER_SUCCESS_STUB.trimIndent())
+            addInstructions(0, successStub)
         }
 
-        RetentionEventsWorkerFingerprint.method.apply {
+        RetentionEventsWorkFingerprint.method.apply {
             clearBody()
-            addInstructions(0, WORKER_SUCCESS_STUB.trimIndent())
+            addInstructions(0, successStub)
         }
 
-        GdprConsentSyncWorkerFingerprint.method.apply {
+        GdprConsentSyncWorkFingerprint.method.apply {
             clearBody()
-            addInstructions(0, WORKER_SUCCESS_STUB.trimIndent())
+            addInstructions(0, successStub)
         }
 
-        SingularFirstSessionReportWorkerFingerprint.method.apply {
+        SingularFirstSessionWorkFingerprint.method.apply {
             clearBody()
-            addInstructions(0, WORKER_SUCCESS_STUB.trimIndent())
+            addInstructions(0, successStub)
         }
 
-        SingularSessionReportWorkerFingerprint.method.apply {
+        SingularSessionWorkFingerprint.method.apply {
             clearBody()
-            addInstructions(0, WORKER_SUCCESS_STUB.trimIndent())
+            addInstructions(0, successStub)
         }
 
         AttributionPostFingerprint.method.apply {

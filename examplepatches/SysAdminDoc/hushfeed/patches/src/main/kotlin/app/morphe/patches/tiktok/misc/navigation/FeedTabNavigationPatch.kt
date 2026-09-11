@@ -2,6 +2,7 @@ package app.morphe.patches.tiktok.misc.navigation
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
@@ -28,6 +29,15 @@ val feedTabNavigationPatch = bytecodePatch(
             "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableFeedNavigation()V",
         )
 
+        // One method answering to both scenes would take both hooks and leave the other list
+        // unfiltered, with nothing failing.
+        if (TopTabModelListFingerprint.method.name == BottomTabModelListFingerprint.method.name) {
+            throw PatchException(
+                "Feed tab navigation: both tab lists resolved to " +
+                    "${TopTabModelListFingerprint.method.name}.",
+            )
+        }
+
         TopTabModelListFingerprint.method.let { method ->
             val returnIndices = method.implementation!!.instructions.withIndex()
                 .filter { it.value.opcode == Opcode.RETURN_OBJECT }
@@ -38,7 +48,7 @@ val feedTabNavigationPatch = bytecodePatch(
                 method.addInstructions(
                     returnIndex,
                     """
-                        invoke-static {v$register}, $EXTENSION_CLASS_DESCRIPTOR->filterTopTabs(Ljava/util/List;)Ljava/util/List;
+                        invoke-static/range {v$register .. v$register}, $EXTENSION_CLASS_DESCRIPTOR->filterTopTabs(Ljava/util/List;)Ljava/util/List;
                         move-result-object v$register
                     """,
                 )
@@ -55,7 +65,7 @@ val feedTabNavigationPatch = bytecodePatch(
                 method.addInstructions(
                     returnIndex,
                     """
-                        invoke-static {v$register}, $EXTENSION_CLASS_DESCRIPTOR->filterBottomTabs(Ljava/util/List;)Ljava/util/List;
+                        invoke-static/range {v$register .. v$register}, $EXTENSION_CLASS_DESCRIPTOR->filterBottomTabs(Ljava/util/List;)Ljava/util/List;
                         move-result-object v$register
                     """,
                 )

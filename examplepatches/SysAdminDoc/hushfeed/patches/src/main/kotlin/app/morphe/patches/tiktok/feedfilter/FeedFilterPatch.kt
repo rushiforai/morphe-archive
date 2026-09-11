@@ -4,26 +4,29 @@
  */
 package app.morphe.patches.tiktok.feedfilter
 
-import app.morphe.patches.shared.compat.AppCompatibilities
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.patches.tiktok.shared.callThroughLocals
 import app.morphe.patches.tiktok.shared.objectIn
+import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
@@ -197,15 +200,11 @@ val feedFilterPatch = bytecodePatch(
 
         val finalFeedInsertionMethod = FinalFeedInsertionFingerprint.method
         val insertionPayloadType = finalFeedInsertionMethod.parameterTypes.single().toString()
-        val insertionPayloadConstructors = mutableClassDefBy(insertionPayloadType).methods.filter { method ->
-            method.name == "<init>" &&
-                method.parameterTypes.map(CharSequence::toString) == listOf(
-                    "I",
-                    "Ljava/lang/String;",
-                    "Ljava/util/List;",
-                ) &&
-                method.returnType == "V"
-        }
+        // By the set of parameters, not their order. The payload takes an int, a feed key and a
+        // list on every build, and 46.7.3 moved the list ahead of the key, which is R8's choice
+        // and not TikTok's: the static factory beside it still takes them the old way round.
+        val insertionPayloadConstructors = mutableClassDefBy(insertionPayloadType).methods
+            .filter(Method::isInsertionPayloadConstructor)
         if (insertionPayloadConstructors.size != 1) {
             throw PatchException(
                 "Expected one final feed insertion payload constructor for $insertionPayloadType, " +
@@ -341,6 +340,7 @@ val feedFilterPatch = bytecodePatch(
             }
         }
 
+        TakoAiFeedButtonSetVisibleFingerprint.method.requireLocals("Feed filter", 1)
         TakoAiFeedButtonSetVisibleFingerprint.method.addInstructions(
             0,
             """
@@ -370,6 +370,7 @@ val feedFilterPatch = bytecodePatch(
         // Things TikTok slots into the feed that never arrive as ordinary items, so they
         // are stopped where they are built. Each is optional: a build without the surface
         // simply skips it.
+        PlaylistBottomBarAvailableFingerprint.method.requireLocals("Feed filter", 1)
         PlaylistBottomBarAvailableFingerprint.method.addInstructions(
             0,
             """
@@ -384,6 +385,7 @@ val feedFilterPatch = bytecodePatch(
         )
 
         // Null is the app's own "no recommended users to insert" result.
+        RecUserCardInsertFingerprint.method.requireLocals("Feed filter", 1)
         RecUserCardInsertFingerprint.method.addInstructions(
             0,
             """
@@ -397,6 +399,7 @@ val feedFilterPatch = bytecodePatch(
             """,
         )
 
+        FeedLynxCardLoadFingerprint.method.requireLocals("Feed filter", 1)
         FeedLynxCardLoadFingerprint.method.addInstructions(
             0,
             """
@@ -419,13 +422,14 @@ val feedFilterPatch = bytecodePatch(
                 addInstructions(
                     dramaReturnIndex,
                     """
-                        invoke-static {v$dramaRegister}, $CARD_FILTERS_CLASS_DESCRIPTOR->shouldBlockForDramaAd(Z)Z
+                        invoke-static/range {v$dramaRegister .. v$dramaRegister}, $CARD_FILTERS_CLASS_DESCRIPTOR->shouldBlockForDramaAd(Z)Z
                         move-result v$dramaRegister
                     """,
                 )
             }
         }
 
+        SpecActTouchpointAttachFingerprint.method.requireLocals("Feed filter", 1)
         SpecActTouchpointAttachFingerprint.method.addInstructions(
             0,
             """
@@ -497,6 +501,8 @@ private fun MutableMethod.filterChainedCacheDelivery(
 }
 
 private fun MutableMethod.filterPlayLagCacheInsertion() {
+    // v0 is written ahead of the host's own first instruction.
+    requireLocals("Feed filter", 1)
     addInstructionsWithLabels(
         0,
         """
@@ -514,6 +520,8 @@ private fun MutableMethod.filterReachBottomCacheDelivery(
     cachedAwemeField: FieldReference,
     cacheFailureField: FieldReference,
 ) {
+    // v0 and v1 are written ahead of the host's own first instruction.
+    requireLocals("Feed filter", 2)
     addInstructions(
         0,
         """
@@ -531,6 +539,41 @@ private fun MutableMethod.filterReachBottomCacheDelivery(
             nop
         """,
     )
+}
+
+/** The parameters of the final feed insertion payload constructor, sorted so order does not matter. */
+private val INSERTION_PAYLOAD_PARAMETERS =
+    listOf("I", "Ljava/lang/String;", "Ljava/util/List;").sorted()
+
+/**
+ * Whether the method is the payload's constructor: an int, a feed key and a list, in whatever
+ * order this build's R8 put them.
+ *
+ * <p>The static factory beside it takes the same three, so being a `<init>` returning void is
+ * what separates them, not the parameters.
+ */
+internal fun Method.isInsertionPayloadConstructor() =
+    name == "<init>" &&
+        returnType == "V" &&
+        parameterTypes.map(CharSequence::toString).sorted() == INSERTION_PAYLOAD_PARAMETERS
+
+/**
+ * The `pN` the feed key arrives in, which is whichever parameter is the String.
+ *
+ * <p>It was `p2` on 46.2.3 and the constructor takes `(int, List, String)` on 46.7.3 and 46.8.3,
+ * so a written `p2` would have handed a List to something that takes a String. Registers are
+ * counted rather than indexed, because a wide parameter takes two of them.
+ */
+internal fun MutableMethod.insertionPayloadKeyRegister(): String {
+    val keyIndex = parameterTypes.indexOfFirst { it.toString() == "Ljava/lang/String;" }
+    if (keyIndex < 0) {
+        throw PatchException(
+            "Final feed insertion payload constructor takes no feed key: $parameterTypes",
+        )
+    }
+    var register = if (AccessFlags.STATIC.value and accessFlags != 0) 0 else 1
+    parameterTypes.take(keyIndex).forEach { register += if (it == "J" || it == "D") 2 else 1 }
+    return "p$register"
 }
 
 private fun MutableMethod.filterLateInsertedAds(payloadType: String) {
@@ -562,7 +605,7 @@ private fun MutableMethod.filterLateInsertedAds(payloadType: String) {
         "invoke-static",
         "$EXTENSION_CLASS_DESCRIPTOR->filterLateInsertedAds(Ljava/lang/String;Ljava/util/List;)Ljava/util/List;",
         false,
-        objectIn("p2"),
+        objectIn(insertionPayloadKeyRegister()),
         objectIn("v$listRegister"),
     )
 

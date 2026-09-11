@@ -24,6 +24,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_screen_11_misc_title">Майда-чүйдө</string>
   <string name="morphe_settings_screen_12_video_title">Видео</string>
   <!-- misc.backgroundplayback.backgroundPlaybackPatch -->
+  <string name="morphe_auto_pause_on_screen_lock_off">Өчүк</string>
   <!-- layout.disableScrollSpeedLimitPatch -->
   <!-- layout.disableLayoutUpdatesPatch -->
   <!-- layout.hide.general.hideLayoutComponentsPatch -->
@@ -35,7 +36,7 @@ Second \"item\" text"</string>
           This button usually appears in the Home feed for refreshing the feed. -->
   <!-- 'Notifications' should be translated using the same localized wording YouTube displays for the menu item. -->
   <!-- 'Notify me' should be translated using the same localized wording YouTube displays for the button.
-          This button usually appears in the Subscriptions feed for future livestreams or unreleased videos. -->
+          This button usually appears in the Subscriptions feed for future live streams or unreleased videos. -->
   <!-- 'Show more' should be translated using the same localized wording YouTube displays for the button.
           This button usually appears when searching for a YouTube creator. -->
   <string name="morphe_hide_upload_time_title">Жүктөлгөн убакытты жашыруу</string>
@@ -61,6 +62,7 @@ Second \"item\" text"</string>
   <string name="morphe_hide_about_category_title">Маалымат</string>
   <!-- ad.hideAdsPatch -->
   <string name="morphe_hide_video_ads_title">Видео жарнамаларын жашыруу</string>
+  <!-- Channel whitelist dialog, shared by ad.hideAdsPatch and layout.sponsorblock.sponsorBlockPatch -->
   <!-- interaction.doubletap.doubleTapLengthPatch -->
   <!-- interaction.copyvideolink.copyVideoLinkButtonPatch -->
   <!-- layout.hide.signintotv.disableSignInToTVPopupPatch -->
@@ -76,7 +78,7 @@ Second \"item\" text"</string>
   <!-- interaction.savetowatchlater.saveToWatchLaterPatch -->
   <!-- interaction.livering.openChannelOfLiveAvatarPatch -->
   <!-- interaction.seekbar.disablePreciseSeekingGesturePatch -->
-  <!-- interaction.seekbar.livestreamDVRPatch -->
+  <!-- interaction.seekbar.liveStreamDVRPatch -->
   <!-- interaction.seekbar.seekbarThumbnailPreviewPatch -->
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
@@ -156,9 +158,9 @@ Second \"item\" text"</string>
   <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
   <!-- 'Join' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- YouTube may no longer use this feature and this setting may be obsolete. -->
+  <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- 'Save' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- 'Share' should be translated using the same localized wording YouTube displays for the button. -->
-  <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- layout.hide.endscreensuggestedvideo.hideEndScreenSuggestedVideoPatch -->
   <!-- layout.hide.relatedvideos.hideRelatedVideosPatch -->
   <!-- layout.hide.relatedvideooverlay.hideRelatedVideoOverlayPatch -->
@@ -213,6 +215,7 @@ Second \"item\" text"</string>
   <!-- video.quality.button.videoQualityDialogButtonPatch -->
   <!-- video.speed.custom.customPlaybackSpeedPatch -->
   <!-- video.speed.remember.rememberPlaybackSpeedPatch -->
+  <!-- video.livestream.rememberLiveStreamPositionPatch -->
   <!-- video.codecs.disableVideoCodecsPatch -->
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
   <!-- video.quality.advancedVideoQualityMenuPatch -->

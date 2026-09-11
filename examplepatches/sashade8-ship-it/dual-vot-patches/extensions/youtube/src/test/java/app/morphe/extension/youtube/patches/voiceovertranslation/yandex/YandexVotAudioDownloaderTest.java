@@ -9,6 +9,8 @@ package app.morphe.extension.youtube.patches.voiceovertranslation.yandex;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
 import org.junit.Test;
@@ -78,6 +80,18 @@ public class YandexVotAudioDownloaderTest {
                 new YandexVotAudioDownloader.AudioCandidate(
                         251, "", "audio/webm; codecs=opus", 70_000)
         )));
+    }
+
+    @Test
+    public void refreshesDedicatedPoTokenOnlyForExternalProviderMode() {
+        assertTrue(YandexVotAudioDownloader.shouldRefreshDedicatedPoToken(
+                true, false, true));
+        assertFalse(YandexVotAudioDownloader.shouldRefreshDedicatedPoToken(
+                true, true, true));
+        assertFalse(YandexVotAudioDownloader.shouldRefreshDedicatedPoToken(
+                true, false, false));
+        assertFalse(YandexVotAudioDownloader.shouldRefreshDedicatedPoToken(
+                false, false, true));
     }
 
     private static void recordPlayerRequest(int itag) {

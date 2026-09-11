@@ -1,3 +1,22 @@
+## [1.19.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.18.0...v1.19.0) (2026-09-11)
+
+### ✨ New Features
+
+* **hevy:** add pro unlock, telemetry blocking, and resource optimization patches ([2dde79c](https://github.com/kveld9/kveld-morphe-patches/commit/2dde79cc5a1b3c4d3f2f2d2a8f70cad69388312e))
+* **shared:** promote locale slimmer to universal and add apk junk cleaner ([a9127bb](https://github.com/kveld9/kveld-morphe-patches/commit/a9127bbc2123a9a6d5b52aaaf0516ae186d18f97))
+
+## [1.18.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.17.0...v1.18.0) (2026-09-10)
+
+### ✨ New Features
+
+* **vivaldi:** add support for Vivaldi Browser Stable v8.2.4147.58 ([b81c003](https://github.com/kveld9/kveld-morphe-patches/commit/b81c003c07840789313aa6a66399bd025572a0ef))
+
+## [1.17.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.16.0...v1.17.0) (2026-09-10)
+
+### ✨ New Features
+
+* **gboard:** update compatibility to Gboard Lite v18.2.4 ([7d52471](https://github.com/kveld9/kveld-morphe-patches/commit/7d52471f94bb918b7522231501280c67e86b84ce))
+
 ## [1.16.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.15.0...v1.16.0) (2026-09-09)
 
 ### 🐛 Bug Fixes

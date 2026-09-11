@@ -4,25 +4,28 @@
  */
 package app.morphe.patches.tiktok.misc.settings
 
-import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
-import app.morphe.util.findMutableMethodOf
+import app.morphe.patches.tiktok.shared.requireLocals
+import app.morphe.patches.tiktok.shared.requireRegisters
 import app.morphe.util.findFreeRegister
+import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.numberOfParameterRegisters
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method as SmaliMethod
-import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -43,13 +46,37 @@ private data class OpenDebugTargets(
     val composeMutable: MutableMethod,
 )
 
+/**
+ * The type of TikTok's `VectorResource(resId: Int)` data class, found by the string constant its
+ * generated toString() appends. Exactly one class carries it, and it has to have the one-int
+ * constructor the patch calls, or the patch says so rather than assembling a call to nothing.
+ */
+private fun BytecodePatchContext.vectorResourceClass(): String {
+    val carriers = getAllClassesWithString(VECTOR_RESOURCE_TO_STRING)
+    if (carriers.size != 1) {
+        throw PatchException(
+            "Settings: expected one class carrying \"$VECTOR_RESOURCE_TO_STRING\", found ${carriers.size}.",
+        )
+    }
+    val type = carriers.single().type
+    val hasIntConstructor = carriers.single().methods.any {
+        it.name == "<init>" && it.parameterTypes.toList() == listOf("I")
+    }
+    if (!hasIntConstructor) {
+        throw PatchException("Settings: $type has no <init>(I)V to build the icon with.")
+    }
+    return type
+}
+
+private const val VECTOR_RESOURCE_TO_STRING = "VectorResource(resId="
+
 @Suppress("unused")
 val settingsPatch = bytecodePatch(
     name = "Settings",
     description = "Adds the Hushfeed settings screen to TikTok.",
     default = true,
 ) {
-    dependsOn(sharedExtensionPatch)
+    dependsOn(sharedExtensionPatch, settingsIconResourcePatch)
 
     compatibleWith(*AppCompatibilities.tiktok4623())
 
@@ -232,6 +259,10 @@ val settingsPatch = bytecodePatch(
         }
 
         fun MutableMethod.openMorpheSettingsAtStart(contextRegister: String) {
+            // The body replaces the lambda outright and returns, so the parameters are fair
+            // to write over; the frame still has to hold the three registers it names. The
+            // OpenDebug lambda has no locals at all on 46.2.3, only its parameters.
+            requireRegisters("Settings", 3)
             addInstructions(
                 0,
                 """
@@ -351,6 +382,7 @@ val settingsPatch = bytecodePatch(
         }
 
         AdPersonalizationActivityOnBackPressedFingerprint.method.apply {
+            requireLocals("Settings", 1)
             addInstructionsWithLabels(
                 0,
                 """
@@ -392,18 +424,29 @@ val settingsPatch = bytecodePatch(
             }
             val constructor = stateConstructor
                 ?: throw PatchException("Settings: OpenDebug state constructor was not found.")
+
+            // The row's icon is a Kotlin data class wrapping a resource id. Its obfuscated name
+            // changes with every build and was once written here as a literal, which is what took
+            // the whole bundle down on 46.7.3: Settings failed, and the sixty-two patches that
+            // depend on it failed with it. What a data class keeps through obfuscation is the
+            // string its toString() builds from, so that is the anchor.
+            val vectorResource = vectorResourceClass()
             val iconLoadIndex = constructor.indexOfFirstInstructionOrThrow {
-                opcode == Opcode.SGET_OBJECT && getReference<FieldReference>()?.type == "LX/08EY;"
+                opcode == Opcode.SGET_OBJECT && getReference<FieldReference>()?.type == vectorResource
             }
             val iconRegister = constructor.getInstruction<OneRegisterInstruction>(iconLoadIndex).registerA
             val tempRegister = constructor.findFreeRegister(iconLoadIndex + 1, iconRegister)
+            val iconResourceId = settingsIconResourceId
+                ?: throw PatchException(
+                    "Settings: the icon resource was not resolved before the bytecode patch ran.",
+                )
 
             constructor.addInstructions(
                 iconLoadIndex + 1,
                 """
-                    new-instance v$iconRegister, LX/08EY;
-                    const v$tempRegister, 0x7f010088
-                    invoke-direct {v$iconRegister, v$tempRegister}, LX/08EY;-><init>(I)V
+                    new-instance v$iconRegister, $vectorResource
+                    const v$tempRegister, $iconResourceId
+                    invoke-direct {v$iconRegister, v$tempRegister}, $vectorResource-><init>(I)V
                 """,
             )
         }
@@ -411,6 +454,10 @@ val settingsPatch = bytecodePatch(
         val clickWrapperMethod = resolveClickWrapperMethod()
         val openDebugClickWrapperClass = clickWrapperMethod.definingClass
         clickWrapperMethod.apply {
+            // v0, v1 and v2 all written at index 0, and the body returns without reaching the
+            // wrapper's own code, so the parameters may be written over. The frame has to hold
+            // three registers all the same.
+            requireRegisters("Settings", 3)
             addInstructions(
                 0,
                 """

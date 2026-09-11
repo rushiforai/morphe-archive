@@ -2,6 +2,7 @@
 .gradle/
 /build/
 patches/build/
+extensions/*/build/
 !gradle/wrapper/gradle-wrapper.jar
 !gradle/wrapper/gradle-wrapper.properties
 
@@ -9,6 +10,9 @@ patches/build/
 .idea/
 *.iml
 .vscode/
+
+# Android SDK location (machine-specific)
+local.properties
 
 # Secrets
 .env
@@ -35,6 +39,9 @@ Thumbs.db
 morphe-cli.jar
 morphe-data/
 scripts/baksmali.jar
+
+# Root workflow scratch (firmware downloads, patched images)
+scripts/root-work/
 
 # Keystore
 Morphe.keystore

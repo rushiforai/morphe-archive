@@ -72,6 +72,18 @@ public class Settings extends BaseSettings {
             new BooleanSetting("fit_video_to_screen", FALSE);
     public static final BooleanSetting UNCAP_REFRESH_RATE =
             new BooleanSetting("uncap_refresh_rate", FALSE);
+    public static final BooleanSetting HIDE_LAUNCHER_SHORTCUTS =
+            new BooleanSetting("hide_launcher_shortcuts", FALSE);
+    /**
+     * Whether {@link #HIDE_LAUNCHER_SHORTCUTS} has taken the launcher shortcuts away and not yet
+     * put them back. No row of its own: it is how turning that switch back off knows there is
+     * something to ask TikTok to rebuild, rather than asking on behalf of somebody who never
+     * turned it on. Kept out of import and export for the same reason. It describes what happened
+     * on one phone, and restoring it onto another would have that phone ask TikTok to rebuild
+     * shortcuts nothing had removed.
+     */
+    public static final BooleanSetting LAUNCHER_SHORTCUTS_REMOVED =
+            new BooleanSetting("launcher_shortcuts_removed", FALSE, false, false);
     public static final BooleanSetting ALLOW_DUET_AND_STITCH =
             new BooleanSetting("allow_duet_and_stitch", FALSE);
     public static final BooleanSetting HIDE_FOLLOWER_NOTIFICATIONS =

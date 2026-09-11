@@ -1308,7 +1308,11 @@ Second \"item\" text"</string>
     <string name="dualvot_yandex_started">Перевод запущен</string>
     <string name="dualvot_yandex_stopped">Перевод остановлен</string>
     <string name="dualvot_yandex_playback_error">Не удалось воспроизвести аудио перевода</string>
-    <string name="dualvot_yandex_server_error">Яндекс не смог создать перевод для этого видео</string>
+    <string name="dualvot_yandex_network_error">Не удалось связаться с сервисом Яндекс-перевода. Проверьте VPN или прокси</string>
+    <string name="dualvot_yandex_server_error">Яндекс отклонил запрос на перевод этого видео</string>
+    <string name="dualvot_yandex_response_error">Яндекс вернул перевод без аудиодорожки</string>
+    <string name="dualvot_yandex_session_error">Не удалось создать сессию Яндекс-перевода</string>
+    <string name="dualvot_yandex_unavailable_live">Перевод недоступен для прямых трансляций</string>
     <string name="dualvot_yandex_unavailable_too_long">Видео слишком длинное для перевода (макс. 4 часа)</string>
     <string name="dualvot_yandex_unavailable_same_language">Аудио видео уже на языке перевода</string>
     <string name="dualvot_yandex_stream_waiting">Ожидание… ~%s</string>
@@ -1318,7 +1322,7 @@ Second \"item\" text"</string>
     <string name="dualvot_yandex_stream_ready">Перевод готов, воспроизведение</string>
     <string name="dualvot_yandex_audio_preparing">Подготовка оригинальной аудиодорожки…</string>
     <string name="dualvot_yandex_audio_uploading">Отправка аудио в Яндекс… %1$d/%2$d</string>
-    <string name="dualvot_yandex_source_error">Не удалось получить полную оригинальную аудиодорожку для этого перевода</string>
+    <string name="dualvot_yandex_source_error">Не удалось получить аудиодорожку видео для перевода</string>
     <string name="dualvot_yandex_upload_error">Не удалось отправить оригинальную аудиодорожку в Яндекс</string>
     <string name="dualvot_yandex_time_sec">%d сек</string>
     <string name="dualvot_yandex_time_min">%d мин</string>

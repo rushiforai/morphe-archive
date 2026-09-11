@@ -9,8 +9,8 @@ it too.
 
 ## State markers (update on every sync)
 
-- **Upstream baseline:** stable tag `v1.41.0` (commit `ef9de18f11f6`)
-- **Last synced upstream release:** v1.41.0 (2026-09-01)
+- **Upstream baseline:** stable tag `v1.42.0` (commit `c898919d0118`)
+- **Last synced upstream release:** v1.42.0 (2026-09-09)
 
 ## What is fork-local
 

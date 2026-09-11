@@ -67,6 +67,7 @@ public class SettingsStatus {
     public static boolean inboxFilterEnabled = false;
     public static boolean videoFitEnabled = false;
     public static boolean refreshRateEnabled = false;
+    public static boolean launcherShortcutsEnabled = false;
     public static boolean duetStitchEnabled = false;
     public static boolean notificationControlsEnabled = false;
     public static boolean hideSuggestedAccountsEnabled = false;
@@ -215,6 +216,10 @@ public class SettingsStatus {
         refreshRateEnabled = true;
     }
 
+    public static void enableLauncherShortcuts() {
+        launcherShortcutsEnabled = true;
+    }
+
     public static void enableVideoFit() {
         videoFitEnabled = true;
     }
@@ -273,6 +278,12 @@ public class SettingsStatus {
 
     public static void enableVideoOverlays() {
         videoOverlaysEnabled = true;
+    }
+
+    static {
+        // The patcher fills load() with selected registrations. Runtime hooks can run before settings opens.
+        // Keep this after field initializers so their default values cannot overwrite those registrations.
+        load();
     }
 
     public static void load() {

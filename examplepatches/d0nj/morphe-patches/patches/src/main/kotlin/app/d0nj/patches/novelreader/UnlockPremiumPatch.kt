@@ -18,7 +18,7 @@ val unlockPremiumPatch = bytecodePatch(
             packageName = "com.thien.novelreader",
             name = "AI Audio Novel Reader",
             appIconColor = 0x006200EE,
-            targets = listOf(AppTarget(version = "3.3.23")),
+            targets = listOf(AppTarget(version = null)),
         ),
     )
 

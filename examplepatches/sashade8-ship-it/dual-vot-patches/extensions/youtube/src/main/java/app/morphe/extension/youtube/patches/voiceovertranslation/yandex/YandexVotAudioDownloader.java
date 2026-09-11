@@ -54,6 +54,7 @@ import app.morphe.extension.shared.innertube.utils.PlayerResponseOuterClass.Form
 import app.morphe.extension.shared.innertube.utils.PlayerResponseOuterClass.PlayerResponse;
 import app.morphe.extension.shared.settings.SharedYouTubeSettings;
 import app.morphe.extension.shared.spoof.SpoofVideoStreamsPatch;
+import app.morphe.extension.shared.spoof.potoken.PoTokenManager;
 import app.morphe.extension.shared.spoof.requests.StreamingDataRequest;
 
 /**
@@ -140,9 +141,11 @@ final class YandexVotAudioDownloader {
     ) {
         boolean spoofIncluded = SpoofVideoStreamsPatch.isPatchIncluded();
         boolean spoofSetting = SharedYouTubeSettings.SPOOF_VIDEO_STREAMS.get();
+        boolean externalPoTokenSetting = SharedYouTubeSettings.EXTERNAL_POTOKEN_PROVIDER.get();
         YandexVotDiagnostics.sourceEnvironment(
                 spoofIncluded,
                 spoofSetting,
+                externalPoTokenSetting,
                 YandexVotPlayerMediaTransport.snapshotCount());
         YandexVotPlayerMediaTransport.logDiagnosticSummary();
         YandexVotDiagnostics.source("enter", -1, YandexVotPlayerMediaTransport.snapshotCount());
@@ -155,7 +158,10 @@ final class YandexVotAudioDownloader {
 
         try {
             listener.onPreparing();
-            ResolvedAudioFormat resolvedAudio = resolveAudioFormat(videoId);
+            ResolvedAudioFormat resolvedAudio = resolveAudioFormat(
+                    videoId,
+                    shouldRefreshDedicatedPoToken(
+                            spoofIncluded, spoofSetting, externalPoTokenSetting));
             if (listener.isCancelled()) return finish(YandexVotAudioResult.CANCELLED);
             if (resolvedAudio == null || isEmpty(resolvedAudio.format().getUrl())) {
                 return finish(YandexVotAudioResult.SOURCE_UNAVAILABLE);
@@ -255,7 +261,10 @@ final class YandexVotAudioDownloader {
      * spoof response exposes a byte-addressable audio URL.
      */
     @Nullable
-    private static ResolvedAudioFormat resolveAudioFormat(String videoId) throws Exception {
+    private static ResolvedAudioFormat resolveAudioFormat(
+            String videoId,
+            boolean refreshDedicatedPoToken
+    ) throws Exception {
         StreamingDataRequest sharedRequest = StreamingDataRequest.getRequestForVideoId(videoId);
 
         CapturedAudioFormat captured = getCapturedAudioFormat(videoId, sharedRequest);
@@ -270,6 +279,14 @@ final class YandexVotAudioDownloader {
                     sharedDirect.format(), null, sharedDirect.clientUserAgent(), "shared-direct");
         }
 
+        if (refreshDedicatedPoToken) {
+            // TV Simply's player PoToken is bound to the video. The shared Morphe cache is
+            // process-wide, so force a fresh binding only for this isolated fallback request.
+            PoTokenManager.reset();
+            YandexVotDiagnostics.source(
+                    "dedicated-potoken-refresh", -1,
+                    YandexVotPlayerMediaTransport.snapshotCount());
+        }
         StreamingDataRequest directRequest =
                 YandexVotPlayerMediaTransport.requestDirectStreams(videoId);
         DirectAudioFormat requestedDirect = getDirectAudioFormat(directRequest, "dedicated");
@@ -279,6 +296,14 @@ final class YandexVotAudioDownloader {
                     "dedicated-direct");
         }
         return null;
+    }
+
+    static boolean shouldRefreshDedicatedPoToken(
+            boolean spoofIncluded,
+            boolean spoofSetting,
+            boolean externalPoTokenSetting
+    ) {
+        return spoofIncluded && !spoofSetting && externalPoTokenSetting;
     }
 
     @Nullable

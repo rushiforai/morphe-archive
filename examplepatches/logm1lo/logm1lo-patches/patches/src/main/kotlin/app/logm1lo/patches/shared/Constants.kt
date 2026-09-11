@@ -11,6 +11,7 @@ val COMPATIBILITY_CALISTREE = Compatibility(
     apkFileType = ApkFileType.APK,
     targets = listOf(
         AppTarget(version = "5.8.5"),
+        AppTarget(version = "5.9.1"),
     )
 )
 

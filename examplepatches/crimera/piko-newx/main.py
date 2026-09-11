@@ -7,7 +7,7 @@ import re
 import apkmirror
 import github
 from apkmirror import Version
-from build_piko import PIKO_REPO, PikoBuild, build_piko_patches
+from build_piko import PikoBuild, build_piko_patches
 from build_variants import get_xlite_patches
 from constants import REPO
 from download_bins import download_morphe_cli
@@ -21,10 +21,6 @@ PATCHES_LIST_ASSET = "patches-list.json"
 PATCHES_MPP = "bins/patches.mpp"
 RELEASE_TAG_PATTERN = re.compile(r"^v\d+\.\d+\.\d+$")
 LEGACY_RELEASE_PATTERN = re.compile(r"^(?P<app>.+)-(?P<piko>[0-9a-f]{7,40})$")
-CONVENTIONAL_COMMIT_PATTERN = re.compile(
-    r"^(?P<type>[a-z]+)(?:\((?P<scope>[^)]+)\))?!?:\s+(?P<description>.+)$",
-    re.IGNORECASE,
-)
 
 
 def get_latest_version(
@@ -148,67 +144,10 @@ def write_patches_list(patches: list[str]) -> None:
     )
 
 
-def get_piko_commits(
-    previous_release: github.GithubRelease | None,
-    previous_piko_commit: str | None,
-    current_commit: str,
-) -> list[github.GithubCommit] | None:
-    if previous_release is None or previous_piko_commit is None:
-        return None
-
-    if current_commit.startswith(previous_piko_commit):
-        return []
-
-    return github.get_commits_between(PIKO_REPO, previous_piko_commit, current_commit)
-
-
-def format_commit_list(commits: list[github.GithubCommit] | None) -> str:
-    if not commits:
-        return ""
-
-    entries = "\n".join(format_changelog_commit(commit) for commit in commits)
-    return f"Piko commits since previous release:\n{entries}"
-
-
-def get_commits_not_in_changelog(
-    commits: list[github.GithubCommit] | None,
-    generated_changelog: str,
-) -> list[github.GithubCommit] | None:
-    if commits is None or not generated_changelog:
-        return commits
-
-    return [
-        commit
-        for commit in commits
-        if f"[{commit.sha[:7]}]" not in generated_changelog
-    ]
-
-
-def format_changelog_commit(commit: github.GithubCommit) -> str:
-    match = CONVENTIONAL_COMMIT_PATTERN.fullmatch(commit.subject)
-    scope = CHANGELOG_APP_NAME
-    description = commit.subject
-
-    if match is not None:
-        source_scope = match.group("scope")
-        if source_scope is not None:
-            normalized_scope = source_scope.casefold()
-            normalized_app_name = CHANGELOG_APP_NAME.casefold()
-            if normalized_scope.startswith(f"{normalized_app_name} - "):
-                scope = source_scope
-            elif normalized_scope != normalized_app_name:
-                scope = f"{CHANGELOG_APP_NAME} - {source_scope}"
-        description = match.group("description")
-
-    commit_link = f"([{commit.sha[:7]}]({commit.html_url}))"
-    return f"* **{scope}:** {description} {commit_link}"
-
-
 def update_changelog(
     version: str,
     tag: str,
     new_patches: list[str],
-    commits: list[github.GithubCommit] | None,
     generated_changelog: str = "",
     repo: str = REPO,
     previous_tag: str | None = None,
@@ -226,10 +165,6 @@ def update_changelog(
 
     if generated_changelog:
         sections.append(generated_changelog)
-
-    if commits:
-        commit_bullets = "\n".join(format_changelog_commit(commit) for commit in commits)
-        sections.append(f"### Commits\n{commit_bullets}")
 
     if new_patches:
         patch_bullets = "\n".join(
@@ -256,7 +191,6 @@ def process(
     piko_build: PikoBuild,
     release_tag: str,
     previous_release: github.GithubRelease | None = None,
-    previous_piko_commit: str | None = None,
     generated_changelog: str = "",
 ) -> None:
     piko_commit = piko_build.commit[:7]
@@ -277,32 +211,19 @@ def process(
         if previous_patches is not None
         else patches
     )
-    commits = get_piko_commits(
-        previous_release, previous_piko_commit, piko_build.commit
-    )
-    remaining_commits = get_commits_not_in_changelog(commits, generated_changelog)
-
     update_changelog(
         version=release_tag,
         tag=release_tag,
         new_patches=new_patches,
-        commits=remaining_commits,
         generated_changelog=generated_changelog,
         previous_tag=previous_release.tag_name if previous_release else None,
     )
 
     patch_list = format_new_patch_list(new_patches)
-    commit_list = format_commit_list(remaining_commits)
     release_sections = [
-        section for section in (generated_changelog, commit_list, patch_list) if section
+        section for section in (generated_changelog, patch_list) if section
     ]
-    additional_notes = "\n\n".join(release_sections)
-    additional_notes = f"{additional_notes}\n\n" if additional_notes else ""
-    message = f"""{additional_notes}Piko source:
-[x-lite@{piko_commit}](https://github.com/crimera/piko/commit/{piko_build.commit})
-X app version: `{latest_version.version}`
-Release version: `{release_tag}`
-"""
+    message = "\n\n".join(release_sections)
 
     signature = sign_artifact(PATCHES_MPP)
     release_assets = [PATCHES_MPP, PATCHES_LIST_ASSET, *( [signature] if signature else [] )]
@@ -350,9 +271,6 @@ def main(
 
     previous_release = github.get_last_build_version(REPO)
     metadata = read_release_metadata()
-    _, previous_piko_commit = get_previous_release_context(
-        previous_release, metadata
-    )
     if not should_publish(
         latest_version, piko_build, previous_release, semantic_bump, metadata
     ):
@@ -365,7 +283,6 @@ def main(
         piko_build,
         release_tag=release_tag,
         previous_release=previous_release,
-        previous_piko_commit=previous_piko_commit,
         generated_changelog=generated_changelog,
     )
 
@@ -391,9 +308,6 @@ def manual(
     )
     previous_release = github.get_last_build_version(REPO)
     metadata = read_release_metadata()
-    _, previous_piko_commit = get_previous_release_context(
-        previous_release, metadata
-    )
     if not should_publish(
         latest_version, piko_build, previous_release, semantic_bump, metadata
     ):
@@ -405,7 +319,6 @@ def manual(
         piko_build,
         release_tag=release_tag,
         previous_release=previous_release,
-        previous_piko_commit=previous_piko_commit,
         generated_changelog=generated_changelog,
     )
 

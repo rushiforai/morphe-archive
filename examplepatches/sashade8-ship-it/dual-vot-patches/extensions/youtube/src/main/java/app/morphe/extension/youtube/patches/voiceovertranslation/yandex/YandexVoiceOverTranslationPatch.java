@@ -608,7 +608,7 @@ public class YandexVoiceOverTranslationPatch {
                     setWaitingTimeSeconds(-1);
                     translationStarting = false;
                     refreshOriginalAudioVolume();
-                    showTranslationErrorToast(str("dualvot_yandex_playback_error"));
+                    showTranslationErrorToast(str("dualvot_yandex_network_error"));
                 });
                 return;
             }
@@ -621,7 +621,7 @@ public class YandexVoiceOverTranslationPatch {
                         setWaitingTimeSeconds(-1);
                         translationStarting = false;
                         refreshOriginalAudioVolume();
-                        showTranslationErrorToast(str("dualvot_yandex_playback_error"));
+                        showTranslationErrorToast(str("dualvot_yandex_response_error"));
                     });
                 }
             } else if (status == YandexVotApiClient.STATUS_FAILED) {
@@ -668,7 +668,7 @@ public class YandexVoiceOverTranslationPatch {
                     setWaitingTimeSeconds(-1);
                     translationStarting = false;
                     refreshOriginalAudioVolume();
-                    showTranslationErrorToast(str("dualvot_yandex_playback_error"));
+                    showTranslationErrorToast(str("dualvot_yandex_session_error"));
                 });
             } else if (status == YandexVotApiClient.STATUS_AUDIO_REQUESTED) {
                 String translationId = result.translationId();
@@ -710,7 +710,7 @@ public class YandexVoiceOverTranslationPatch {
             runOnUiIfCurrentGen(generation, () -> {
                 translationStarting = false;
                 refreshOriginalAudioVolume();
-                showTranslationErrorToast(str("dualvot_yandex_playback_error"));
+                showTranslationErrorToast(str("dualvot_yandex_network_error"));
             });
         } finally {
             isTranslating.set(false);
@@ -754,7 +754,7 @@ public class YandexVoiceOverTranslationPatch {
                     runOnUiIfCurrentGen(generation, () -> {
                         translationStarting = false;
                         refreshOriginalAudioVolume();
-                        showTranslationErrorToast(str("dualvot_yandex_playback_error"));
+                        showTranslationErrorToast(str("dualvot_yandex_network_error"));
                     });
                 }
                 return;
@@ -768,7 +768,7 @@ public class YandexVoiceOverTranslationPatch {
                 runOnUiIfCurrentGen(generation, () -> {
                     translationStarting = false;
                     refreshOriginalAudioVolume();
-                    showTranslationErrorToast(str("dualvot_yandex_playback_error"));
+                    showTranslationErrorToast(str("dualvot_yandex_response_error"));
                 });
                 return;
             } else if (status == YandexVotApiClient.STATUS_FAILED) {
@@ -807,7 +807,7 @@ public class YandexVoiceOverTranslationPatch {
                 runOnUiIfCurrentGen(generation, () -> {
                     translationStarting = false;
                     refreshOriginalAudioVolume();
-                    showTranslationErrorToast(str("dualvot_yandex_playback_error"));
+                    showTranslationErrorToast(str("dualvot_yandex_session_error"));
                 });
                 return;
             } else if (status == YandexVotApiClient.STATUS_AUDIO_REQUESTED) {
@@ -848,7 +848,7 @@ public class YandexVoiceOverTranslationPatch {
                 runOnUiIfCurrentGen(generation, () -> {
                     translationStarting = false;
                     refreshOriginalAudioVolume();
-                    showTranslationErrorToast(str("dualvot_yandex_playback_error"));
+                    showTranslationErrorToast(str("dualvot_yandex_network_error"));
                 });
             }
         }

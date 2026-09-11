@@ -188,12 +188,12 @@ YouTube Premium 사용자는 이 설정이 필요하지 않을 수 있습니다"
   <string name="morphe_potoken_provider_screen_title">PoToken 제공자</string>
   <string name="morphe_potoken_provider_screen_summary">PoToken 제공자를 구성하여 재생 문제를 해결할 수 있습니다</string>
   <string name="morphe_external_potoken_provider_title">외부 PoToken 제공자</string>
-  <string name="morphe_external_potoken_provider_summary">"외부 PoToken 생성기를 사용하여 재생 문제를 수정합니다 (실험 기능)
+  <string name="morphe_external_potoken_provider_summary">"외부 PoToken 제공자를 사용하여 재생 문제를 수정합니다 (실험 기능)
 
 YouTube Premium 사용자는 이 설정이 필요하지 않을 수 있습니다"</string>
   <!-- "Fixes playback issues using an external PoToken minter (Experimental)" should use the same wording as morphe_external_potoken_provider_summary
          'Spoof video streams' must use the same translation as morphe_spoof_video_streams_title -->
-  <string name="morphe_external_potoken_provider_unavailable_summary">"외부 PoToken 생성기를 사용하여 재생 문제를 수정합니다 (실험 기능)
+  <string name="morphe_external_potoken_provider_unavailable_summary">"외부 PoToken 제공자를 사용하여 재생 문제를 수정합니다 (실험 기능)
 
 이 기능을 사용하려면, '동영상 스트림 속이기'를 비활성화하세요"</string>
   <string name="morphe_external_potoken_provider_user_dialog_message">이 기능이 작동하지 않는다면, MicroG를 강제로 종료하세요</string>
@@ -214,7 +214,7 @@ PotHelper를 다운로드하려면 여기를 탭하세요"</string>
   <string name="morphe_app_refresh_rate_title">앱 주사율</string>
   <string name="morphe_app_refresh_rate_default">기본값</string>
   <string name="morphe_app_refresh_rate_fps">%s FPS</string>
-  <string name="morphe_app_refresh_rate_type_title">주사율 재정의하기</string>
+  <string name="morphe_app_refresh_rate_type_title">앱 주사율 재정의하기</string>
   <string name="morphe_app_refresh_rate_type_entry_1">항상</string>
   <string name="morphe_app_refresh_rate_type_entry_2">세로 모드 재생</string>
   <string name="morphe_app_refresh_rate_type_entry_3">전체 화면 재생</string>

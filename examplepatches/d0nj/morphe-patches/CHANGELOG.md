@@ -1,3 +1,28 @@
+## [1.2.2](https://github.com/d0nj/morphe-patches/compare/v1.2.1...v1.2.2) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* allow Unlock premium patch on any NovelReader version ([e4ce242](https://github.com/d0nj/morphe-patches/commit/e4ce242a00f1fa5cce25e0c1ec2a86b1bae8b483))
+
+## [1.2.1](https://github.com/d0nj/morphe-patches/compare/v1.2.0...v1.2.1) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* anchor Unlock Pro fingerprint to the niagarald account record ([90b09ec](https://github.com/d0nj/morphe-patches/commit/90b09ec17535348dfb01ebb9987ffd7a00be4020))
+* suppress Channels diagnostic tip rendering as giant numbers on home feed ([f5db2c3](https://github.com/d0nj/morphe-patches/commit/f5db2c37a6d555fbe59b1eeffdc906a19e9b1d37))
+
+## [1.2.0](https://github.com/d0nj/morphe-patches/compare/v1.1.0...v1.2.0) (2026-09-10)
+
+### ✨ New Features
+
+* support any launcher version via structural fingerprints ([249313e](https://github.com/d0nj/morphe-patches/commit/249313ead7a051a54f2358aa0dfa849e06bc45b5))
+
+## [1.1.0](https://github.com/d0nj/morphe-patches/compare/v1.0.0...v1.1.0) (2026-09-10)
+
+### ✨ New Features
+
+* version-universal fingerprints (verified on 1.16.23/1.16.27/1.16.28) ([85e0c3a](https://github.com/d0nj/morphe-patches/commit/85e0c3a9dd3bcff426ace6cf5327eafd9fbe383c))
+
 ## 1.0.0 (2026-09-09)
 
 ### ✨ New Features

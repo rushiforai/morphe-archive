@@ -9,7 +9,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.55.0](https://github.com/legendsciber/morphe-patches/releases/tag/v1.55.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
+> **[v1.57.0](https://github.com/legendsciber/morphe-patches/releases/tag/v1.57.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
 <details open>
 <summary>📦 Block Blast&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -86,7 +86,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Shadow Fight 2 IAP Bypass (Smali)](#shadow-fight-2-iap-bypass-smali) | Bypasses in-app purchases via smali patching. |  |
+| [Shadow Fight 2 IAP Bypass (Smali)](#shadow-fight-2-iap-bypass-smali) | Bypasses anti-tamper + intercepts billing for free IAP. |  |
 
 </details>
 

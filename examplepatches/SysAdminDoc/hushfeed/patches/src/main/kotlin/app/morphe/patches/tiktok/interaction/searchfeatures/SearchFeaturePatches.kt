@@ -26,16 +26,23 @@ private fun BytecodePatchContext.patchBooleanGate(
     extensionMethod: String,
 ) {
     fingerprint.method.apply {
-        implementation!!.instructions.withIndex()
+        val returns = implementation!!.instructions.withIndex()
             .filter { it.value.opcode == Opcode.RETURN }
             .map { it.index }
-            .asReversed()
+        // A gate with no boolean return, because it throws or boxes its answer, would leave
+        // the switch applied and doing nothing.
+        check(returns.isNotEmpty()) {
+            "Search features: $definingClass->$name has no boolean return to hook for $extensionMethod."
+        }
+        returns.asReversed()
             .forEach { returnIndex ->
+                // The range form names any register a return can hold, so a wide frame is no
+                // reason to refuse the gate.
                 val register = getInstruction<OneRegisterInstruction>(returnIndex).registerA
                 addInstructions(
                     returnIndex,
                     """
-                        invoke-static {v$register}, $FEATURE_CONTROLS_DESCRIPTOR->$extensionMethod(Z)Z
+                        invoke-static/range {v$register .. v$register}, $FEATURE_CONTROLS_DESCRIPTOR->$extensionMethod(Z)Z
                         move-result v$register
                     """,
                 )

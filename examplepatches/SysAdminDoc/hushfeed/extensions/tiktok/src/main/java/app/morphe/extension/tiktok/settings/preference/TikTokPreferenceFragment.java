@@ -11,6 +11,7 @@ import android.app.FragmentManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -35,6 +36,7 @@ import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment;
 import app.morphe.extension.tiktok.blockauthor.BlockAuthorOverlay;
+import app.morphe.extension.tiktok.comment.CommentSearch;
 import app.morphe.extension.tiktok.featuregatelab.FeatureGateLabFragment;
 import app.morphe.extension.tiktok.featuregatelab.FeatureGateLabRuntime;
 import app.morphe.extension.tiktok.settings.Settings;
@@ -147,6 +149,30 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     }
 
     @Override
+    protected void syncPreferenceWithStoredValue(@NonNull Preference pref,
+                                                @NonNull Setting<?> setting,
+                                                @NonNull SharedPreferences preferences) {
+        if (pref instanceof NumberInputPreference) {
+            NumberInputPreference numberPref = (NumberInputPreference) pref;
+            numberPref.setValue(preferences.getString(setting.key, setting.defaultValue.toString()));
+        } else if (pref instanceof CreatorListPreference) {
+            CreatorListPreference creatorPref = (CreatorListPreference) pref;
+            creatorPref.setValue(preferences.getString(setting.key, setting.defaultValue.toString()));
+        } else if (pref instanceof RangeValuePreference) {
+            RangeValuePreference rangePref = (RangeValuePreference) pref;
+            rangePref.setValue(preferences.getString(setting.key, setting.defaultValue.toString()));
+        } else if (pref instanceof DownloadPathPreference) {
+            DownloadPathPreference pathPref = (DownloadPathPreference) pref;
+            pathPref.setValue(preferences.getString(setting.key, setting.defaultValue.toString()));
+        } else if (pref instanceof TabSelectionPreference) {
+            TabSelectionPreference tabsPref = (TabSelectionPreference) pref;
+            tabsPref.setValue(preferences.getString(setting.key, setting.defaultValue.toString()));
+        } else {
+            super.syncPreferenceWithStoredValue(pref, setting, preferences);
+        }
+    }
+
+    @Override
     protected void syncSettingWithPreference(
             @NonNull Preference pref,
             @NonNull Setting setting,
@@ -195,6 +221,9 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                 || setting == Settings.NOT_INTERESTED_BUTTON)) {
             BlockAuthorOverlay.refresh();
         }
+        if (!applySettingToPreference && setting == Settings.COMMENT_SEARCH) {
+            CommentSearch.onSettingChanged();
+        }
     }
 
     @Override
@@ -235,6 +264,23 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         savedMessage = L10n.t(context, "Saved. Restart TikTok to apply this.");
         app.morphe.extension.shared.settings.preference.LogBufferManager.clearedMessage =
                 L10n.t(context, "Diagnostic data cleared.");
+        // The rest of what the shared export path says, on a German phone in German. Every one
+        // of these reached the reader in English, branded for the library rather than the
+        // bundle, and two of them carried an exception's text.
+        app.morphe.extension.shared.settings.preference.LogBufferManager.nothingToExportMessage =
+                L10n.t(context, "No matching diagnostics found.");
+        app.morphe.extension.shared.settings.preference.LogBufferManager.copiedMessage =
+                L10n.t(context, "Diagnostic report copied to the clipboard.");
+        app.morphe.extension.shared.settings.preference.LogBufferManager.exportFailedMessage =
+                L10n.t(context, "The diagnostic report could not be exported.");
+        app.morphe.extension.shared.settings.preference.LogBufferManager.noContextMessage =
+                L10n.t(context, "The diagnostic report could not be saved yet. Try again in a moment.");
+        app.morphe.extension.shared.settings.preference.LogBufferManager.alreadySavingMessage =
+                L10n.t(context, "A diagnostic report is already being saved.");
+        app.morphe.extension.shared.settings.preference.LogBufferManager.savedToMessage =
+                L10n.t(context, "Full report saved to %1$s");
+        app.morphe.extension.shared.settings.preference.LogBufferManager.couldNotStartMessage =
+                L10n.t(context, "Could not start the report export. Try again shortly.");
         // Four whole sentences rather than five fragments, so each one is a row a translator
         // can move the numbers around inside. The context is asked for when a line is written
         // rather than captured here: this writer is a static and outlives the screen.

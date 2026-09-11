@@ -133,3 +133,18 @@ object IAPBypassQuerySkuDetailsAsyncFingerprint : Fingerprint(
         "Lcom/android/billingclient/api/SkuDetailsResponseListener;"
     )
 )
+
+/**
+ * SecurityManager.VerifyStep() — game's anti-tamper check that verifies
+ * APK signature, installer ID, debug/emulator state. When APK is
+ * repackaged by Morphe, signature check fails and C++ code disables
+ * billing (showing "connection error" on any purchase attempt).
+ * Intercepted to always call NotifyOnSuccess(), bypassing all checks.
+ */
+object IAPBypassSecurityVerifyStepFingerprint : Fingerprint(
+    definingClass = "Lcom/nekki/utils/security/SecurityManager;",
+    name = "VerifyStep",
+    returnType = "V",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    parameters = emptyList()
+)

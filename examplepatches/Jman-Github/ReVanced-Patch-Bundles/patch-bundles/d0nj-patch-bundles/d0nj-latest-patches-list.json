@@ -1,5 +1,5 @@
 {
-    "version": "v1.0.0",
+    "version": "v1.2.0",
     "patches": [
         {
             "compatiblePackages": [
@@ -9,12 +9,8 @@
                     "packageName": "bitpit.launcher",
                     "targets": [
                         {
-                            "isExperimental": false,
-                            "version": "1.16.23"
+                            "isExperimental": false
                         }
-                    ],
-                    "versions": [
-                        "1.16.23"
                     ]
                 }
             ],
@@ -55,12 +51,8 @@
                     "packageName": "bitpit.launcher",
                     "targets": [
                         {
-                            "isExperimental": false,
-                            "version": "1.16.23"
+                            "isExperimental": false
                         }
-                    ],
-                    "versions": [
-                        "1.16.23"
                     ]
                 }
             ],

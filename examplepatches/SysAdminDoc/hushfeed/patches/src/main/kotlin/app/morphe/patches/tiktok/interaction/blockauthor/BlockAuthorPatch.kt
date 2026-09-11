@@ -73,19 +73,12 @@ val blockAuthorPatch = bytecodePatch(
 
         // A replacement native activity can take focus from the hold itself. Observe its
         // actual grant and loss so release can distinguish that from an external audio owner.
-        val nativeFocus = mutableClassDefBy("LX/0q3r;")
-        nativeFocus.methods.single {
-            it.name == "LIZIZ" && it.returnType == "V"
-                && it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;")
-        }.captureNativeFocusRequest()
-        nativeFocus.methods.single {
-            it.name == "LIZ" && it.returnType == "V"
-                && it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;")
-        }.captureNativeFocusAbandon()
-        mutableClassDefBy("LX/0q3s;").methods.single {
-            it.name == "onAudioFocusChange" && it.returnType == "V"
-                && it.parameterTypes.map(CharSequence::toString) == listOf("I")
-        }.captureNativeFocusChange()
+        // The helper and its listener are found by their shape; their names were once written
+        // here and were the first thing a newer build renamed.
+        val nativeFocus = resolveNativeFocus()
+        nativeFocus.request.captureNativeFocusRequest()
+        nativeFocus.abandon.captureNativeFocusAbandon()
+        nativeFocus.change.captureNativeFocusChange()
 
         // Assert the block endpoint still looks the way the extension expects. The
         // extension calls it by reflection, so without this the patch would install a
@@ -101,7 +94,13 @@ val blockAuthorPatch = bytecodePatch(
             Triple("onDestroyView", emptyList(), "onDetailDestroyed(Ljava/lang/Object;)V"),
             Triple("setUserVisibleHint", listOf("Z"), "onDetailVisibility(Ljava/lang/Object;Z)V"),
         ).forEach { (name, parameters, callback) ->
-            val method = detail.methods.single { it.name == name && it.parameterTypes == parameters }
+            val candidates = detail.methods.filter { it.name == name && it.parameterTypes == parameters }
+            check(candidates.size == 1) {
+                "Block author: expected DetailPageFragment to declare one $name$parameters, " +
+                    "found ${candidates.size}. A lifecycle method it no longer overrides is " +
+                    "inherited, and there is nothing on the class to hook."
+            }
+            val method = candidates.single()
             val endRegister = if (parameters.isEmpty()) "p0" else "p1"
             method.addInstruction(0, "invoke-static/range { p0 .. $endRegister }, $visibility->$callback")
         }

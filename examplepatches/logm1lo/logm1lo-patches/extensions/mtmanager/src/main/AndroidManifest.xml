@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      MT Manager tool-reimplementation extension.
+
+      This module has no activities; its classes are invoked directly from
+      smali injected by the patches module (MtTools.dispatch etc.). The
+      manifest only exists because the Morphe ExtensionPlugin builds the
+      module as an Android application to produce a DEX for the .mpe file.
+    -->
+
+</manifest>

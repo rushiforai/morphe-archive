@@ -1,4 +1,88 @@
-## Unreleased
+## 0.30.0
+
+* Fit the video to the screen now works on the For You feed. The feed cell never sized its video through the method the patch hooked; it hands the size to a helper of its own, and that helper is what the patch reaches now, on every build seen. A fitted video is handed back as a copy of TikTok's own answer, so the size the feed applies and the size it checks against are the same one. The story cell's own path is still covered, and the copy it keeps is looked up by the object rather than by its numbers, which a size change had moved out from under.
+
+* Fit the video to the screen no longer writes a size of nothing into a story when it can't read the video's size. On every path where it has nothing to fit, it leaves TikTok's own numbers alone, the way it did before the feed rework. The patch also refuses a build where either feed helper it hooks has a twin, instead of hooking whichever one it met first, and checks the size getters and the copy method the feed path relies on before it writes anything. With the switch off, the feed skips the size lookups altogether.
+
+* Anchors that find a setting behind a lazily read value no longer skip a class that carries two methods of the shape they were looking for. Before, such a class was passed over as if it read some other key, and the failure said no class read the key at all. The walk through R8's merged lambda groups also follows entry points that take an argument, reads every no-argument method of a lambda class rather than the first, takes the constant from the register the factory call actually reads, and answers only from the switch that opens the dispatcher.
+
+* A settings journal that can't be read or applied is set aside instead of being left in place. Left there, every later settings change, Undo and Restore included, was refused with a notice telling you to use Undo or Restore. The notice now says what happened. The lock that guards the journal is also released through a finally block, so an out-of-memory error during recovery can't leave every later change waiting forever.
+
+* Twelve toasts and one dialog in the Feature Gate Lab and the diagnostics export reached the reader in English on a translated phone, several of them branded for the shared library rather than for Hushfeed, and two carried an exception's own text. All of them go through the translation table now. The Undo entry says there is nothing to undo instead of showing the path of a file that doesn't exist, and an import that accepted nothing no longer offers an Undo that would revert the previous Lab change.
+
+* The creator list dialog saves a handle that was typed into the box and never added with the button. It was dropped without a word.
+
+* The free-space check before a save no longer stands down when the destination folder doesn't exist yet, which is exactly the first save into it. A crash report cut at the size ceiling now says so, at the top as well as where it stops, and is cut on a character boundary rather than in the middle of one. Converting a sticker to GIF checks the job's deadline once per frame, while it decodes and again while it encodes, the way the MP4 path does, so a small canvas with tens of thousands of frames can't hold a media worker for good. A muxer that fails mid-copy no longer replaces the real error with its own complaint on release.
+
+* A log message that fails while being built, or a log line that can't be written, no longer throws out of the hook that was logging, into TikTok. The follow diagnostics path looks up the request's path through the cached reflection helper rather than an uncached lookup on every network request.
+
+* Patches refuse more of the builds they can't patch, by name, rather than applying and doing nothing or shipping an instruction a phone's verifier rejects: every injection that writes a scratch register at the start of a method checks that the method has a local to write; every call that names a register read off a return uses the range form; the quick reactions gate reads its return register off each return instead of assuming v0; follow diagnostics counts its hooks and fails when a rename leaves one unhooked; the photo download anchor no longer matches the lookup method beside it; the risk-control CAPTCHA patch checks the request and callback shapes it calls; and a missing instruction is reported with the method it was missing from.
+
+* Follow diagnostics checks all three of its hooks before writing any of them. A build that renamed one used to fail the patch with the other two already written into the app.
+
+* Resume videos after scrolling no longer writes three of TikTok's internal class names into the code it adds. Those names only mean the right thing on 46.2.3. On a newer TikTok they belong to other classes, so the patch applied without complaint there and the first video played to the end with the switch on would have stopped the app. It now reads where TikTok keeps its playback positions off TikTok's own code, and refuses a build where that doesn't add up.
+
+* Comment tools reads the reply row's model off TikTok's own code too, instead of naming it. The search box above the comments uses that model to keep a collapsed reply row collapsed, and three of the four names it needs are different on a newer TikTok.
+
+* The thumbs down that Comment tools turns into a block button is found by what it does now. TikTok installs the like and the dislike touch handlers back to back, and the patch used to take the second of the two by the name of the view it sat on. It now follows each handler to the code that runs on a touch and takes the one that asks whether the comment is disliked, so the block gesture can't end up on the like button if the two ever swap places. The same change lets Comment tools apply to TikTok 46.7.3 and 46.8.3, where it used to fail.
+
+* Custom offline videos limit finds TikTok's lists of offline choices through the offline page that reads them, instead of by the name the class had in 46.2.3. Newer builds keep four lists instead of two, and the custom limit is added to every one of them, so the patch applies to TikTok 46.7.3 and 46.8.3 as well.
+
+* The Hook status row in Hushfeed's debug settings says so when a build has renamed the bottom navigation tabs. The block button relies on the Home tab to tell the feed from other screens, and on a build without it the button quietly stopped hiding itself off the feed.
+
+* Search features, Allow Duet and Stitch and Open links in external browser no longer refuse a build just because the value they read sits in a high register. They use the instruction forms that reach it.
+
+* A crash report that was being written when the app died is read back from the last whole copy. It used to look as though no crash had been saved.
+
+* The included diagnostics picker won't apply with every kind cleared. It used to save that as all events and then say it included all of them.
+
+* The Feature Gate Lab says why it turned down a loaded-values file: it's from another TikTok version, it isn't that kind of file, it has no values in it, or it has more than the Lab takes at once. It used to call every one of them invalid or too large.
+
+* Automatic video advance and Comment sort controls override the setting they read by following the setting's key to the lookup it is handed to. They used to take the first answer after the key, which on a build with another call in between would have been some other value.
+
+* A settings backup carrying more Feature Gate Lab rules than the Lab keeps is refused, and the refusal says so. A hand-edited one used to restore, and after that every backup, every Reset and every Lab change failed because the next copy was too large to write.
+
+* The pre-push check runs the patch module's tests as well as the runtime ones, and treats the version catalog, the settings script, the dependency verification file and the Gradle wrapper as release facts. A push touching only one of those ran no gate at all. A README edit on a clean checkout is no longer blocked by a release check that wanted a built bundle it had just said it didn't need.
+
+* The device scripts read as success when adb refused an install, chose the clean APK by file size, could carry one dex2oat exit code over to the next run, left gigabytes of unpacked APK behind, and wrote an empty screenshot when the capture failed. Each of those is fixed. The verification probe compiles again and holds its broadcasts to the DUMP permission, which the shell has and an ordinary app can only be given over adb.
+
+* The register check keeps its report when it fails. Run without a report path, it named the report in its FAIL line and then deleted the folder the report was in.
+
+* The README's Patches heading renders on GitHub again; a stray line break tag had swallowed it into body text. The bug report template asks for the phone and its Android version, and its example names a Manager release that can load this bundle. The split-view width setting says dp, which is what it compares against, instead of pixels. The Feature Gate Lab no longer says "No gates match" under "Loading" before it has looked, every switch on its detail page has a name for a screen reader, its page title follows the font scale like every other page, the share checklist's boxes take the theme, and the greyed Undo row says why it's greyed.
+
+## 0.29.0
+
+* A new switch empties the menu that opens when you press and hold TikTok's icon on the home screen. Those entries are not declared anywhere in the app, TikTok builds them while it runs, and it only rewrites them when it notices a difference. So the switch takes away what is already published and answers the handover that would publish more. Turning it off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut you pinned to a home screen yourself is left alone.
+
+* The v0.28.0 download has been replaced. The bundle pins a build stamp to the commit it was built from, so that anyone can rebuild it and check the published checksum against their own, and that file was built a couple of commits before the release it shipped as. Its patches were the right ones, entry for entry; only the stamp was wrong. The release check now reads the stamp back and refuses a bundle that was not built from the commit being released.
+
+* Everything the patches inject is now checked against the register count of the method it lands in, and against the Android runtime's own verifier on a phone. A patch that writes into a register a method never declared assembles cleanly, applies cleanly, and fails only on a device; nothing here does that.
+
+## 0.28.0
+
+* Automatic video advance now works from a cold start. Two things stood in the way. TikTok builds its auto scroll component only once somebody opens the video panel and asks for it by hand, so with the setting already on, a fresh launch had nothing to work with. And the check for whether the feed was on screen asked TikTok's auto scroll indicator about itself, which TikTok keeps hidden until scrolling is already running, so the answer was always no. With the setting on, the component is now built alongside the ones TikTok always builds, and the feed it sits in is what answers for being on screen. With the setting off, TikTok's own choice is left alone. Automatic advance also looks again when a video ends rather than staying down for the rest of the session, so changing the session limit or coming back to the feed picks it up again without restarting TikTok.
+
+* Changing the auto-advance session limit now starts a fresh count on the same feed. The new session can count its current video and show its own stop notice. Saving the same limit, changing another setting or returning from settings keeps the existing count.
+
+* A final playback report can arrive before TikTok applies a daily hold's queued pause. That report now keeps the matching resume ready for audio focus to return. Playback after an observed pause still releases that ownership.
+
+* A daily hold now keeps its paused video ready when another app owns audio focus at expiry. A later native focus grant can resume that same video once, provided its feed is still visible. A reported independent resume gives up that ownership, so a later pause won't be undone.
+
+* Profile-picture saves now try TikTok's largest image before the medium and smaller variants. The previous priority picked a 300-pixel image even when the current profile supplied a 1080-pixel original. Current-profile ownership and secure fallback URLs are preserved.
+
+* Long-press actions now run from the current feed's coordinate callback as well as its older gesture listener. The patch keeps TikTok's own timer and menu coordinates, and hands the gesture back when the chosen action doesn't handle it.
+
+* Edge seeking now converts the requested position into the percentage TikTok's player expects. Its position, video identity and duration checks still use milliseconds. The player fixtures were corrected to use the native conversion, which exposed this mismatch.
+
+* Turning comment search off removes its box from an already open comment sheet and restores the rows it hid. Turning it back on works with those same loaded comments, while rows TikTok collapsed keep their native state.
+
+* Selected patches now activate on app launch, before their first runtime hook. Opening Hushfeed settings is no longer needed to turn them on, including search controls used before that page opens.
+
+* Settings changes now survive an older settings page remaining open. Each page reads the saved choice before refreshing its controls, so an old switch or text field can't undo a newer choice.
+
+* Custom long-press actions now take precedence over TikTok's 2x edge hold, including seeking by the chosen distance. The default keeps TikTok's behavior.
+
+* Hiding search suggestions now also covers cached recommendations and search-page returns. Your search history stays available.
 
 * The comment-sort description now explains that media and creator filters depend on the post's native availability flags. Device checks confirmed those optional categories and preserved the stock menu after disabling the switch.
 

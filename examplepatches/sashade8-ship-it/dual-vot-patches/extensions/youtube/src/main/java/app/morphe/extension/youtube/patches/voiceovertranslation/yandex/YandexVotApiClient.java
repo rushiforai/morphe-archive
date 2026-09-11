@@ -51,6 +51,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -67,6 +68,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import javax.net.ssl.SSLException;
 
 
 import app.morphe.extension.shared.Logger;
@@ -378,7 +380,10 @@ public class YandexVotApiClient {
                 return result;
 
             } catch (Exception e) {
-                YandexVotDiagnostics.failure("api", "client-request-exception");
+                YandexVotDiagnostics.apiFailure(
+                        "client-request-exception",
+                        networkFailureCategory(e),
+                        isProxyEnabled());
                 return null;
             }
         }
@@ -409,6 +414,22 @@ public class YandexVotApiClient {
      */
     private static byte[] sendApiRequest(String path, byte[] body, String oauthToken) throws IOException {
         return sendApiRequest(path, body, "POST", oauthToken);
+    }
+
+    /** Returns a stable, non-sensitive category suitable for exported diagnostics. */
+    static String networkFailureCategory(Throwable error) {
+        Throwable current = error;
+        boolean sawIOException = false;
+        for (int depth = 0; current != null && depth < 8; depth++) {
+            if (current instanceof UnknownHostException) return "dns";
+            if (current instanceof SocketTimeoutException) return "timeout";
+            if (current instanceof SSLException) return "tls";
+            if (current instanceof ConnectException) return "connect";
+            if (current instanceof SocketException) return "connection";
+            if (current instanceof IOException) sawIOException = true;
+            current = current.getCause();
+        }
+        return sawIOException ? "io" : "other";
     }
 
     private static byte[] sendApiRequest(String path, byte[] body, String method, String oauthToken) throws IOException {
@@ -696,15 +717,20 @@ public class YandexVotApiClient {
                 connection.disconnect();
             }
         } catch (UnknownHostException e) {
+            YandexVotDiagnostics.apiFailure("session-create-exception", "dns", isProxyEnabled());
             Logger.printException(() -> "VOT createSession failed: DNS resolution error", e);
             return false;
         } catch (SocketTimeoutException e) {
+            YandexVotDiagnostics.apiFailure("session-create-exception", "timeout", isProxyEnabled());
             Logger.printException(() -> "VOT createSession failed: connection timeout", e);
             return false;
         } catch (ConnectException e) {
+            YandexVotDiagnostics.apiFailure("session-create-exception", "connect", isProxyEnabled());
             Logger.printException(() -> "VOT createSession failed: connection refused", e);
             return false;
         } catch (Exception e) {
+            YandexVotDiagnostics.apiFailure(
+                    "session-create-exception", networkFailureCategory(e), isProxyEnabled());
             Logger.printException(() -> "VOT createSession failed", e);
             return false;
         }

@@ -10,26 +10,141 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.interaction.blockauthor.blockAuthorPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
 import app.morphe.util.numberOfParameterRegisters
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val EXTENSION = "Lapp/morphe/extension/tiktok/interaction/GestureActions;"
 private const val SEEK_EXTENSION = "Lapp/morphe/extension/tiktok/interaction/FeedSeek;"
 private const val MOTION_EVENT = "Landroid/view/MotionEvent;"
+private const val EDGE_SPEEDUP = "Lcom/ss/android/ugc/aweme/feed/longvideo/edgespeedup/EdgeSpeedupAssem;"
+private const val FEED_PAGE_PARAMS = "Lcom/ss/android/ugc/aweme/feed/model/BaseFeedPageParams;"
+
+/** Whether the method is the coordinate callback: a public final one taking two floats. */
+private fun Method.isCoordinateCallback() =
+    returnType == "V" &&
+        parameterTypes.map(CharSequence::toString) == listOf("F", "F") &&
+        accessFlags == (AccessFlags.PUBLIC.value or AccessFlags.FINAL.value)
+
+/**
+ * The feed's two coordinate long-press listeners, found by what they are.
+ *
+ * <p>They were `LX/0QPc;` and `LX/0QPd;` in this patch, which are the 46.2.3 names. On 46.7.3
+ * they are `LX/0QYB;` and `LX/0QYC;`, and on 46.8.3 they are back to `LX/0QPc;` and `LX/0QPd;`
+ * again, which is worse than a clean break: the literals resolve on the newest build by
+ * coincidence and would have hooked whatever else those names landed on if they had not.
+ *
+ * <p>What holds is the shape. Both carry a `BaseFeedPageParams`, which TikTok did not rename,
+ * both implement the same one-method interface, and that method takes the two floats. Exactly
+ * two classes match on all three builds and they are the two the literals named. One of them
+ * holds a Context and the other an int, which is the ordinary cell against the adapter's; the
+ * patch hooks both the same way so it does not need to tell them apart.
+ */
+internal fun BytecodePatchContext.coordinateLongPressCallbacks(): List<MutableMethod> {
+    val found = mutableListOf<Pair<ClassDef, Method>>()
+    classDefForEach { classDef ->
+        if (classDef.fields.none { it.type == FEED_PAGE_PARAMS }) return@classDefForEach
+        val callback = classDef.methods.singleOrNull { it.isCoordinateCallback() }
+            ?: return@classDefForEach
+        found += classDef to callback
+    }
+    if (found.size != 2) {
+        throw PatchException(
+            "Long-press controls: expected two feed coordinate listeners holding a " +
+                "BaseFeedPageParams and one (float, float) callback, found ${found.size}.",
+        )
+    }
+    val shared = found[0].first.interfaces.toSet() intersect found[1].first.interfaces.toSet()
+    val declaresCallback = shared.singleOrNull()?.let { type ->
+        classDefByOrNull(type)?.methods?.singleOrNull { method ->
+            method.returnType == "V" &&
+                method.parameterTypes.map(CharSequence::toString) == listOf("F", "F")
+        }
+    } != null
+    if (!declaresCallback) {
+        throw PatchException(
+            "Long-press controls: the two feed coordinate listeners no longer share one " +
+                "interface declaring the (float, float) callback; they share $shared.",
+        )
+    }
+    return found.map { (classDef, callback) ->
+        mutableClassDefBy(classDef).findMutableMethodOf(callback)
+    }
+}
+
+internal fun MutableMethod.hookCoordinateLongPress() {
+    check(isCoordinateCallback()) {
+        "Long-press controls: unexpected native coordinate callback signature."
+    }
+    val registers = implementation!!.registerCount
+    check(registers - numberOfParameterRegisters >= 1 && registers <= 16) {
+        "Long-press controls: native coordinates no longer fit the gesture hook."
+    }
+    // 0R9T's existing timer supplies local DOWN x in p1. Native p2/y and the event body survive.
+    addInstructionsWithLabels(0, """
+        invoke-static { p1 }, $EXTENSION->onLongPress(F)Z
+        move-result v0
+        if-eqz v0, :native_coordinate_action
+        return-void
+    """, ExternalLabel("native_coordinate_action", getInstruction(0)))
+}
+
+/**
+ * EdgeSpeedupAssem keeps its name and its eligibility check does not: it was `NU1` on 46.2.3
+ * and is `J22` on 46.8.3. It is the class's only public final method taking two floats and
+ * answering a boolean, and the custom clause holds it to being the only one, so a second
+ * arriving is a failure to read rather than a coin toss.
+ */
+private object EdgeSpeedupEligibilityFingerprint : Fingerprint(
+    definingClass = EDGE_SPEEDUP,
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = listOf("F", "F"),
+    returnType = "Z",
+    custom = { _, classDef -> classDef.methods.count { it.isEdgeSpeedupEligibility() } == 1 },
+)
+
+/** Whether the method is the edge-speedup eligibility check: public final, two floats, boolean. */
+private fun Method.isEdgeSpeedupEligibility() =
+    returnType == "Z" &&
+        parameterTypes.map(CharSequence::toString) == listOf("F", "F") &&
+        accessFlags == (AccessFlags.PUBLIC.value or AccessFlags.FINAL.value)
+
+internal fun MutableMethod.preserveConfiguredLongPressFromEdgeSpeedup() {
+    check(definingClass == EDGE_SPEEDUP && isEdgeSpeedupEligibility()) {
+        "Long-press controls: unexpected native edge-speedup eligibility signature."
+    }
+    val registers = implementation!!.registerCount
+    check(registers - numberOfParameterRegisters >= 1 && registers <= 16) {
+        "Long-press controls: edge-speedup coordinates no longer fit the gesture hook."
+    }
+    // Native NU1 gets local DOWN x in p1. False prevents its earlier 300 ms speedup timer.
+    addInstructionsWithLabels(0, """
+        invoke-static { p1 }, $EXTENSION->allowNativeEdgeSpeedup(F)Z
+        move-result v0
+        if-nez v0, :native_edge_speedup
+        return v0
+    """, ExternalLabel("native_edge_speedup", getInstruction(0)))
+}
 
 /**
  * The feed's gesture listener. Its class name is obfuscated and changes between builds, so
  * it is found by shape: the OnGestureListener whose {@code onDoubleTap} hands the event to
  * the real-named {@code handleDoubleClick(MotionEvent)}. Only that listener does, and it is
- * the one VideoViewCell installs on the cell's touch layer. The landscape cell has its own
- * listener, which does not reach handleDoubleClick and so is left alone.
+ * the one VideoViewCell installs on its gradual-mask view. Ordinary cells also have a separate
+ * coordinate timer hooked above. The landscape listener does not reach handleDoubleClick.
  */
 private object FeedLongPressFingerprint : Fingerprint(
     name = "onLongPress",
@@ -89,6 +204,9 @@ val longPressPatch = bytecodePatch(
     dependsOn(settingsPatch, blockAuthorPatch, doubleTapPatch)
 
     execute {
+        EdgeSpeedupEligibilityFingerprint.method.preserveConfiguredLongPressFromEdgeSpeedup()
+        coordinateLongPressCallbacks().forEach(MutableMethod::hookCoordinateLongPress)
+
         FeedLongPressFingerprint.method.apply {
             // v0 is scratch; the check keeps it a local rather than a parameter register.
             check(implementation!!.registerCount - numberOfParameterRegisters >= 1) {

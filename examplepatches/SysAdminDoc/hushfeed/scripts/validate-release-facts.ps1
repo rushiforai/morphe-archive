@@ -25,8 +25,10 @@ param(
     # is written and drift apart with the next test anyone adds, so a push that only touches
     # README would fail on it for the rest of the release cycle. scripts/pre-push.ps1 passes this
     # when patches-bundle.json is not among the changed files; a release, which rewrites that
-    # file, does not. The rest of the test results check, that a run exists and carries no
-    # failures or skips, always runs, and a run by hand checks everything.
+    # file, does not. With it, a checkout that has no test results at all (a fresh clone pushing
+    # a README edit, which runs no tests) is not held to a run it had no reason to make; any
+    # results that are there are still checked for age, completeness, failures and skips. A
+    # release and a run by hand check everything.
     [switch]$SkipDescriptionTestCount
 )
 
@@ -234,7 +236,11 @@ if ($SkipUrlCheck) {
 $testRoot = Join-Path $rootPath 'extensions/tiktok/build/test-results/testDebugUnitTest'
 $testFiles = @(Get-ChildItem -LiteralPath $testRoot -Filter '*.xml' -File -ErrorAction SilentlyContinue)
 if ($testFiles.Count -eq 0) {
-    throw "No runtime test results found under $testRoot. Run :extensions:tiktok:test first."
+    if (-not $SkipDescriptionTestCount) {
+        throw "No runtime test results found under $testRoot. Run :extensions:tiktok:test first."
+    }
+    Write-Host ('[release] no runtime test results here, and this push rewrites no release ' +
+        'description, so there is no run to check')
 }
 
 # Gradle leaves the previous run's XML in place, so results from before the last edit satisfy
@@ -248,14 +254,14 @@ if ($testFiles.Count -eq 0) {
 # The newest result is the one to compare. Gradle never removes the XML of a test class that was
 # deleted or renamed, and that file keeps its original timestamp through every later run, so
 # taking the oldest would refuse forever after the first class is dropped.
-$sourceRoots = @('extensions/tiktok/src', 'extensions/shared/library/src') |
+$sourceRoots = @('extensions/tiktok/src', 'extensions/tiktok/stub/src', 'extensions/shared/library/src') |
     ForEach-Object { Join-Path $rootPath $_ } |
     Where-Object { Test-Path -LiteralPath $_ }
 $newestSource = $sourceRoots |
     ForEach-Object { Get-ChildItem -LiteralPath $_ -Recurse -File -ErrorAction SilentlyContinue } |
     Sort-Object LastWriteTimeUtc -Descending |
     Select-Object -First 1
-if ($null -ne $newestSource) {
+if ($null -ne $newestSource -and $testFiles.Count -gt 0) {
     $newestResult = $testFiles | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
     if ($newestResult.LastWriteTimeUtc -lt $newestSource.LastWriteTimeUtc) {
         throw ("Runtime test results are older than the sources. The newest result " +
@@ -270,7 +276,7 @@ if ($null -ne $newestSource) {
 # said 682. The failure named the index rather than the filtered run, and anyone reconciling the
 # index to match would have written down a number no full run ever produced.
 $testSourceRoot = Join-Path $rootPath 'extensions/tiktok/src/test'
-if (Test-Path -LiteralPath $testSourceRoot) {
+if ($testFiles.Count -gt 0 -and (Test-Path -LiteralPath $testSourceRoot)) {
     $sourceClasses = @(Get-ChildItem -LiteralPath $testSourceRoot -Recurse -File -Filter '*Test.java' |
         ForEach-Object { $_.BaseName })
     # TEST-<package>.<Class>.xml, and the package is not needed to tell one class from another.
@@ -301,9 +307,11 @@ foreach ($file in $testFiles) {
     }
     $testCount += @($results.testsuite.testcase).Count
 }
+$testFacts = if ($testFiles.Count -gt 0) { "$testCount runtime tests" } else { 'no runtime test results here' }
 if ($SkipDescriptionTestCount) {
+    $ranHere = if ($testFiles.Count -gt 0) { "; $testCount tests ran here" } else { '' }
     Write-Host ("[release] patches-bundle.json did not change, so its description is left " +
-        "against the release it describes; " + $testCount + " tests ran here")
+        "against the release it describes" + $ranHere)
 } else {
     Require-Match -Text ([string]$bundle.description) -Pattern "\b$testCount runtime tests passed\b" -Description 'bundle description test count'
 }
@@ -358,6 +366,48 @@ if ($VerifyPublishedAsset) {
         if ($listedHash -ne $publishedHash) {
             throw "SHA256SUMS.txt lists $listedHash for $assetName, but the hosted artifact is $publishedHash."
         }
+        # A matching hash proves the published file is the one this checkout built. It does not
+        # prove either of them is what the released commit builds, and on v0.28.0 the two came
+        # apart: the bundle was built while HEAD was still two commits back, was published, and
+        # then the release commit was made. The hashes agreed at the time and the README's offer
+        # to rebuild the bundle and compare checksums was false for the rest of the release.
+        #
+        # Checked against the local artifact and HEAD rather than against the published file and
+        # the tag, because the tag cannot be the answer here. It only points at the release commit
+        # once that commit is on the remote, and the push that puts it there is the push this
+        # check gates, so a tag comparison could never pass at the one moment it matters. Held
+        # together with the hash comparison above, which says published and local are the same
+        # bytes, this gives the whole claim: the published bundle is pinned to the commit being
+        # released.
+        #
+        # SOURCE_DATE_EPOCH is deliberately not consulted. It is the same variable the build
+        # reads, so accepting it as the expected value would compare the builder's own input
+        # against itself and agree whichever commit the bundle came from.
+        $headEpoch = (& git -C $rootPath log -1 --format=%ct 2>$null | Select-Object -First 1)
+        $headEpoch = "$headEpoch".Trim()
+        if ($headEpoch -notmatch '^\d+$') {
+            throw 'Could not read the commit being released, so the bundle cannot be held to it.'
+        }
+        $expectedStamp = [long]$headEpoch * 1000
+        Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction SilentlyContinue
+        $localStamp = $null
+        $zip = [System.IO.Compression.ZipFile]::OpenRead($ArtifactPath)
+        try {
+            $manifestEntry = $zip.GetEntry('META-INF/MANIFEST.MF')
+            if ($null -eq $manifestEntry) { throw "The local $assetName has no META-INF/MANIFEST.MF." }
+            $reader = New-Object IO.StreamReader($manifestEntry.Open())
+            try { $manifestText = $reader.ReadToEnd() } finally { $reader.Dispose() }
+            $stampMatch = [regex]::Match($manifestText, '(?m)^Timestamp: (\d+)')
+            if (-not $stampMatch.Success) { throw "The local $assetName manifest has no Timestamp line." }
+            $localStamp = [long]$stampMatch.Groups[1].Value
+        } finally { $zip.Dispose() }
+        if ($localStamp -ne $expectedStamp) {
+            throw ("The bundle in patches/build/libs is pinned to $localStamp but the commit being " +
+                "released is $expectedStamp. Build the bundle after making the release commit, so " +
+                'that rebuilding from the tag reproduces the published hash.')
+        }
+        $publishedStamp = $localStamp
+        Write-Host ("[release] published bundle is pinned to the released commit; timestamp=" + $publishedStamp)
         Write-Host ("[release] verified " + $assetName + " from the indexed URL; sha256=" + $publishedHash)
         # No caller passed -DesktopJar and nothing in the repo set the variable, so this check
         # printed "NOT COUNTED" and passed on every run it has ever had. A switch named
@@ -427,8 +477,18 @@ $bundlePath = if ($ArtifactPath) { $ArtifactPath } else {
     Join-Path $rootPath "patches/build/libs/patches-$releaseVersion.mpp"
 }
 if (-not (Test-Path -LiteralPath $bundlePath -PathType Leaf)) {
-    throw ("The built bundle is missing, so its patcher version cannot be checked against the " +
-        "$pinnedPatcher the catalog pins: $bundlePath. Run :patches:buildAndroid first.")
+    # The stamp is a fact about a built bundle, and only the hash comparison needs one built
+    # here. The pre-push hook reaches this after saying "no local bundle here, so the hosted
+    # artifact is not compared", so a clean checkout pushing a README edit must not die on the
+    # line after that. A release run passes -VerifyPublishedAsset and is held to it.
+    if ($VerifyPublishedAsset) {
+        throw ("The built bundle is missing, so its patcher version cannot be checked against " +
+            "the $pinnedPatcher the catalog pins: $bundlePath. Run :patches:buildAndroid first.")
+    }
+    Write-Host ("[release] no built bundle at $bundlePath, so its patcher stamp is not compared " +
+        "against the catalog pin $pinnedPatcher")
+    Write-Host ("[facts] " + $sourceVersion + ": " + $patchCount + " patches for " + $targetPackage + " " + $targetVersion + "; " + $testFacts)
+    exit 0
 }
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $manifestText = $null
@@ -454,7 +514,7 @@ if ($stampMatch.Groups[1].Value -ne $pinnedPatcher) {
 }
 Write-Host "[release] the bundle stamps patcher $pinnedPatcher, as the catalog pins"
 
-Write-Host ("[facts] " + $sourceVersion + ": " + $patchCount + " patches for " + $targetPackage + " " + $targetVersion + "; " + $testCount + " runtime tests")
+Write-Host ("[facts] " + $sourceVersion + ": " + $patchCount + " patches for " + $targetPackage + " " + $targetVersion + "; " + $testFacts)
 
 # Callers check the exit code, and a script invoked with & leaves the previous native
 # command's code in $LASTEXITCODE, so a clean run has to say so itself.
