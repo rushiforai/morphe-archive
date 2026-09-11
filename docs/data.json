@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-09-10 03:15 UTC",
-  "configFile": "morphe_archive_config_v46.json",
-  "configVersion": 46,
-  "repoCount": 204,
-  "appCount": 808,
-  "patchCount": 4349,
-  "universalPatchCount": 570,
+  "generatedAt": "2026-09-11 03:12 UTC",
+  "configFile": "morphe_archive_config_v47.json",
+  "configVersion": 47,
+  "repoCount": 206,
+  "appCount": 812,
+  "patchCount": 4361,
+  "universalPatchCount": 574,
   "hostCounts": {
-    "github.com": 199,
+    "github.com": 201,
     "gitlab.com": 5
   },
   "visitorStats": {
-    "today": 8,
-    "yesterday": 11,
-    "total": 508,
-    "online": 8
+    "today": 1,
+    "yesterday": 25,
+    "total": 526,
+    "online": 0
   },
   "repos": [
     {
@@ -241,12 +241,12 @@
       "createdDate": "2026-07-28",
       "updatedDate": "2026-07-28",
       "latestChanges": {
-        "title": "1.4.9 (2026-09-02)",
-        "date": "2026-09-02",
+        "title": "1.4.10 (2026-09-10)",
+        "date": "2026-09-10",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Support SofaTime v1.3.1 (Fixes #10)"
+            "text": "Support SofaTime v1.3.3 (Fixes #11, Fixes #12)"
           }
         ]
       },
@@ -1321,6 +1321,29 @@
             "text": "mock PairIP LicenseCheckState to LOCAL_CHECK_OK to prevent native overlay"
           }
         ]
+      },
+      "apps": []
+    },
+    {
+      "name": "Haiagaru-Morphe",
+      "repo": "areteruhiro/Haiagaru-Morphe",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/main/CHANGELOG.md",
+      "webUrl": "https://github.com/areteruhiro/Haiagaru-Morphe",
+      "addUrl": "https://morphe.software/add-source?github=areteruhiro/Haiagaru-Morphe",
+      "avatarUrl": "https://github.com/areteruhiro.png?size=96",
+      "patchCount": 0,
+      "appCount": 0,
+      "createdAt": 1789096297956,
+      "updatedAt": 1789096297956,
+      "createdDate": "2026-09-11",
+      "updatedDate": "2026-09-11",
+      "latestChanges": {
+        "title": "",
+        "date": "",
+        "items": []
       },
       "apps": []
     },
@@ -3159,12 +3182,16 @@
       "createdDate": "2026-08-29",
       "updatedDate": "2026-08-29",
       "latestChanges": {
-        "title": "3.14.0 (2026-09-09)",
-        "date": "2026-09-09",
+        "title": "3.19.0 (2026-09-11)",
+        "date": "2026-09-11",
         "items": [
           {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**Twitter - newx:** scope timeline position restoration"
+          },
+          {
             "category": "\u2728 New Features",
-            "text": "**Twitter:** support 12.24.0-prod.02"
+            "text": "**Twitter - newx:** identify download notifications by username"
           }
         ]
       },
@@ -3216,19 +3243,19 @@
       "webUrl": "https://github.com/d0nj/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=d0nj/morphe-patches",
       "avatarUrl": "https://github.com/d0nj.png?size=96",
-      "patchCount": 3,
+      "patchCount": 4,
       "appCount": 2,
       "createdAt": 1785553246080,
       "updatedAt": 1785553246080,
       "createdDate": "2026-08-01",
       "updatedDate": "2026-08-01",
       "latestChanges": {
-        "title": "1.0.0 (2026-09-09)",
-        "date": "2026-09-09",
+        "title": "1.2.2 (2026-09-11)",
+        "date": "2026-09-11",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "d0nj Patches \u2014 Niagara Launcher (unlock Pro, remove analytics), AI Audio Novel Reader (unlock premium)"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "allow Unlock premium patch on any NovelReader version"
           }
         ]
       },
@@ -3243,7 +3270,7 @@
         {
           "name": "Niagara Launcher",
           "packageName": "bitpit.launcher",
-          "patchCount": 2,
+          "patchCount": 3,
           "iconUrl": "https://play-lh.googleusercontent.com/hVqi9FxxDkYgEnRJUwKiRbOglrEK-PtGybQRkl2gwbq1KYtCmG6E00cU0Evyd3HbEdeaz9X9JtqOjwdxNeWS",
           "iconColor": "#1E88E5"
         }
@@ -6326,6 +6353,63 @@
           "patchCount": 1,
           "iconUrl": "",
           "iconColor": "#2D7AED"
+        }
+      ]
+    },
+    {
+      "name": "android-patches",
+      "repo": "Epxec/android-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/Epxec/android-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/Epxec/android-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/Epxec/android-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/Epxec/android-patches",
+      "addUrl": "https://morphe.software/add-source?github=Epxec/android-patches",
+      "avatarUrl": "https://github.com/Epxec.png?size=96",
+      "patchCount": 4,
+      "appCount": 4,
+      "createdAt": 1789096296529,
+      "updatedAt": 1789096296529,
+      "createdDate": "2026-09-11",
+      "updatedDate": "2026-09-11",
+      "latestChanges": {
+        "title": "1.1.0 (2026-09-10)",
+        "date": "2026-09-10",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "add \"Halo Reels Pro\" VIP patch"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Decompile",
+          "packageName": "com.apktools.app.decompile",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF1234"
+        },
+        {
+          "name": "Halo Reels Pro",
+          "packageName": "com.halo.reels.movie.fast.pro",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF1234"
+        },
+        {
+          "name": "Remindio",
+          "packageName": "dmytro.palamarchuk.dailyreminder",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF1234"
+        },
+        {
+          "name": "Touch The Notch",
+          "packageName": "com.notch.touch",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF0045"
         }
       ]
     },
@@ -9488,12 +9572,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.22.0 (2026-09-09)",
-        "date": "2026-09-09",
+        "title": "1.23.0 (2026-09-10)",
+        "date": "2026-09-10",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "Bump some apps (Lifesum/Lyfta/Yazio)"
+            "text": "Bump Lifesum and fix Lyfta patches"
           }
         ]
       },
@@ -9683,23 +9767,23 @@
       "webUrl": "https://github.com/kveld9/kveld-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=kveld9/kveld-morphe-patches",
       "avatarUrl": "https://github.com/kveld9.png?size=96",
-      "patchCount": 38,
-      "appCount": 3,
+      "patchCount": 43,
+      "appCount": 4,
       "createdAt": 1787275038494,
       "updatedAt": 1787275038494,
       "createdDate": "2026-08-21",
       "updatedDate": "2026-08-21",
       "latestChanges": {
-        "title": "1.16.0 (2026-09-09)",
-        "date": "2026-09-09",
+        "title": "1.19.0 (2026-09-11)",
+        "date": "2026-09-11",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**docs:** fix Gboard Lite supported versions table formatting in README"
+            "category": "\u2728 New Features",
+            "text": "**hevy:** add pro unlock, telemetry blocking, and resource optimization patches"
           },
           {
             "category": "\u2728 New Features",
-            "text": "**gboard:** add armeabi-v7a and lite_release compatibility"
+            "text": "**shared:** promote locale slimmer to universal and add apk junk cleaner"
           }
         ]
       },
@@ -9707,21 +9791,28 @@
         {
           "name": "Brave Private Web Browser, VPN",
           "packageName": "com.brave.browser",
-          "patchCount": 12,
+          "patchCount": 10,
           "iconUrl": "https://play-lh.googleusercontent.com/UBrZnuXGb-QACU0uUdF5r_n5nx5oBbdfPyEbtsr0xXv00RN7rpaTVu3GjLeE90aHFmNlbaCmm8vNcmY0eE98U9E",
           "iconColor": "#FF4500"
         },
         {
           "name": "Gboard Lite",
           "packageName": "com.google.android.inputmethod.latin",
-          "patchCount": 19,
+          "patchCount": 16,
           "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA",
           "iconColor": "#4285F4"
         },
         {
-          "name": "Vivaldi Browser Snapshot",
-          "packageName": "com.vivaldi.browser.snapshot",
-          "patchCount": 14,
+          "name": "Hevy - Gym Log Workout Tracker",
+          "packageName": "com.hevy",
+          "patchCount": 4,
+          "iconUrl": "https://play-lh.googleusercontent.com/bLlRnwjt0tKva6ob0ZrtxkUs-z4MhQ4cPIOnXeh_knD8QVAXSLFiMGyKo2kLF7PV2uSK1Wly1L4q-6Sv1k13",
+          "iconColor": "#FF4500"
+        },
+        {
+          "name": "Vivaldi Browser - Fast & Safe",
+          "packageName": "com.vivaldi.browser",
+          "patchCount": 12,
           "iconUrl": "",
           "iconColor": "#EF3939"
         }
@@ -9838,12 +9929,12 @@
       "createdDate": "2026-08-25",
       "updatedDate": "2026-08-25",
       "latestChanges": {
-        "title": "1.55.0 (2026-09-09)",
-        "date": "2026-09-09",
+        "title": "1.57.0 (2026-09-10)",
+        "date": "2026-09-10",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**iap:** v10 - minimal launchBillingFlow test"
+            "text": "**iap:** add launchBillingFlow interception on top of anti-tamper bypass"
           }
         ]
       },
@@ -10089,12 +10180,40 @@
       "createdDate": "2026-08-06",
       "updatedDate": "2026-08-06",
       "latestChanges": {
-        "title": "1.1.0 (2026-08-08)",
-        "date": "2026-08-08",
+        "title": "1.2.0 (2026-09-10)",
+        "date": "2026-09-10",
         "items": [
           {
-            "category": "New Features",
-            "text": "add Cube Solver patches, fix Calistree Dart unlock"
+            "category": "Bug Fixes",
+            "text": "default empty feed paths to /storage/emulated/0 in MtTools extension"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "file browser now functional - real rows + working clicks"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "force User Agreement flag to true so EULA never re-shows"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "make file-browser feed patch apply standalone with splice"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "make MT Manager tool reimplementation work on-device (08d634a), closes PKCS#12"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "prevent Purchase-VIP / account screen NPE from null native Map getter"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "remove stub-native dependencies + clear native flags on patched getters"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "status-counter feed now fires + diagnostic logging (warm-state shortcut removed)"
           }
         ]
       },
@@ -11887,12 +12006,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.3.2 (2026-09-06)",
-        "date": "2026-09-06",
+        "title": "1.3.3 (2026-09-10)",
+        "date": "2026-09-10",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**Strava - Add route export:** Patch additional methods"
+            "text": "**Google Photos:** Add version recommendation"
           }
         ]
       },
@@ -13903,40 +14022,24 @@
       "createdDate": "2026-09-02",
       "updatedDate": "2026-09-02",
       "latestChanges": {
-        "title": "1.42.0-dualvot.8.4 (2026-09-09)",
-        "date": "2026-09-09",
+        "title": "1.42.0-dualvot.8.5.1 (2026-09-10)",
+        "date": "2026-09-10",
         "items": [
           {
-            "category": "Yandex source-audio recovery",
-            "text": "Replace the obsolete standalone Android VR download with source audio from"
+            "category": "Compatibility hotfix",
+            "text": "Use the range-form invoke instruction for the Cronet engine hook so methods"
           },
           {
-            "category": "Yandex source-audio recovery",
-            "text": "YouTube's current player request stack and active media transport."
+            "category": "Compatibility hotfix",
+            "text": "returning registers above v15 patch without an invalid-register warning."
           },
           {
-            "category": "Yandex source-audio recovery",
-            "text": "Work with Spoof video streams both disabled and enabled by reusing a"
+            "category": "Compatibility hotfix",
+            "text": "Add the missing Russian translation for the message shown when Yandex voice"
           },
           {
-            "category": "Yandex source-audio recovery",
-            "text": "compatible cached response or requesting a fresh direct-DASH response."
-          },
-          {
-            "category": "Yandex source-audio recovery",
-            "text": "Prefer low-bitrate Opus and validate byte ranges, content lengths, part"
-          },
-          {
-            "category": "Yandex source-audio recovery",
-            "text": "ordering, bounded memory use, cancellation, and cleanup."
-          },
-          {
-            "category": "Multipart, proxy, and timing reliability",
-            "text": "Stream exact multipart uploads with visible N/M progress and separate"
-          },
-          {
-            "category": "Multipart, proxy, and timing reliability",
-            "text": "errors for acquisition, upload, Yandex processing, translated URL readiness,"
+            "category": "Compatibility hotfix",
+            "text": "translation is requested on a live stream."
           }
         ]
       },
@@ -14363,47 +14466,47 @@
       "webUrl": "https://github.com/SysAdminDoc/hushfeed",
       "addUrl": "https://morphe.software/add-source?github=SysAdminDoc/hushfeed",
       "avatarUrl": "https://github.com/SysAdminDoc.png?size=96",
-      "patchCount": 70,
+      "patchCount": 71,
       "appCount": 1,
       "createdAt": 1788750210347,
       "updatedAt": 1788750210347,
       "createdDate": "2026-09-07",
       "updatedDate": "2026-09-07",
       "latestChanges": {
-        "title": "Unreleased",
+        "title": "0.30.0",
         "date": "",
         "items": [
           {
             "category": "",
-            "text": "The comment-sort description now explains that media and creator filters depend on the post's native availability flags. Device checks confirmed those optional categories and preserved the stock menu after disabling the switch."
+            "text": "Fit the video to the screen now works on the For You feed. The feed cell never sized its video through the method the patch hooked; it hands the size to a helper of its own, and that helper is what the patch reaches now, on every build seen. A fitted video is handed back as a copy of TikTok's own answer, so the size the feed applies and the size it checks against are the same one. The story cell's own path is still covered, and the copy it keeps is looked up by the object rather than by its numbers, which a size change had moved out from under."
           },
           {
             "category": "",
-            "text": "Profile-picture saving now handles the current profile header and resolves the picture from the pressed component. Story long presses reach the native child that consumes the gesture and save its current story, even when the outer view holds a collection. Turning either option off keeps the native gesture."
+            "text": "Fit the video to the screen no longer writes a size of nothing into a story when it can't read the video's size. On every path where it has nothing to fit, it leaves TikTok's own numbers alone, the way it did before the feed rework. The patch also refuses a build where either feed helper it hooks has a twin, instead of hooking whichever one it met first, and checks the size getters and the copy method the feed path relies on before it writes anything. With the switch off, the feed skips the size lookups altogether."
           },
           {
             "category": "",
-            "text": "Comment search now hides reply controls with their nonmatching parent comments. Clearing search restores the rows. Turning search off also releases its saved heights and visibility during native rebinding, with either comment-blocking setting, while preserving rows TikTok hid itself."
+            "text": "Anchors that find a setting behind a lazily read value no longer skip a class that carries two methods of the shape they were looking for. Before, such a class was passed over as if it read some other key, and the failure said no class read the key at all. The walk through R8's merged lambda groups also follows entry points that take an argument, reads every no-argument method of a lambda class rather than the first, takes the constant from the register the factory call actually reads, and answers only from the switch that opens the dispatcher."
           },
           {
             "category": "",
-            "text": "Follow readback now recognizes the modern profile response and keeps each relationship state with its own account identity. A reported zero remains zero; conflicting states stay unclear. Diagnostics can report a mismatch after an accepted follow without guessing its cause."
+            "text": "A settings journal that can't be read or applied is set aside instead of being left in place. Left there, every later settings change, Undo and Restore included, was refused with a notice telling you to use Undo or Restore. The notice now says what happened. The lock that guards the journal is also released through a finally block, so an out-of-memory error during recovery can't leave every later change waiting forever."
           },
           {
             "category": "",
-            "text": "Daily-budget holds pause the current native player and resume only the player they held, while its feed is visible and audio focus permits playback. Holds survive settings returns and activity recreation. Their lower edge follows the actual tab row, including the system navigation gap, so Home and messages remain tappable."
+            "text": "Twelve toasts and one dialog in the Feature Gate Lab and the diagnostics export reached the reader in English on a translated phone, several of them branded for the shared library rather than for Hushfeed, and two carried an exception's own text. All of them go through the translation table now. The Undo entry says there is nothing to undo instead of showing the path of a file that doesn't exist, and an import that accepted nothing no longer offers an Undo that would revert the previous Lab change."
           },
           {
             "category": "",
-            "text": "Enabling the block or Not interested button now attaches it to the current creator immediately. Disabling the last button removes the controls. A daily-budget hold keeps those controls hidden while the feed is covered."
+            "text": "The creator list dialog saves a handle that was typed into the box and never added with the button. It was dropped without a word."
           },
           {
             "category": "",
-            "text": "The phone helper rejects a log query without its required filter. That usage error no longer exits successfully after printing an error."
+            "text": "The free-space check before a save no longer stands down when the destination folder doesn't exist yet, which is exactly the first save into it. A crash report cut at the size ceiling now says so, at the top as well as where it stops, and is cut on a character boundary rather than in the middle of one. Converting a sticker to GIF checks the job's deadline once per frame, while it decodes and again while it encodes, the way the MP4 path does, so a small canvas with tens of thousands of frames can't hold a media worker for good. A muxer that fails mid-copy no longer replaces the real error with its own complaint on release."
           },
           {
             "category": "",
-            "text": "The phone helper reports failed activity, log and frame-stat queries instead of hiding their exit status behind output filters. A screenshot no longer claims success when its foreground check fails."
+            "text": "A log message that fails while being built, or a log line that can't be written, no longer throws out of the hook that was logging, into TikTok. The follow diagnostics path looks up the request's path through the cached reflection helper rather than an uncached lookup on every network request."
           }
         ]
       },
@@ -14411,7 +14514,7 @@
         {
           "name": "com.zhiliaoapp.musically",
           "packageName": "com.zhiliaoapp.musically",
-          "patchCount": 70,
+          "patchCount": 71,
           "iconUrl": "https://play-lh.googleusercontent.com/2o7iuqPe-0msP3DvNhzoOgNo4eZ6GkL_RtGVeKyBn5UBQAW5cw-GW5V3wDOHB1yTQuqWzrFLFOv2u4_5ea1uhg",
           "iconColor": ""
         }
@@ -14765,19 +14868,19 @@
       "webUrl": "https://github.com/variablenine/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=variablenine/morphe-patches",
       "avatarUrl": "https://github.com/variablenine.png?size=96",
-      "patchCount": 147,
+      "patchCount": 148,
       "appCount": 3,
       "createdAt": 1784837695652,
       "updatedAt": 1784837695652,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.4.2 (2026-09-07)",
-        "date": "2026-09-07",
+        "title": "1.4.3 (2026-09-10)",
+        "date": "2026-09-10",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Only treat a post's own indicator as NSFW"
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "Sync upstream Morphe patches v1.42.0"
           }
         ]
       },
@@ -14792,7 +14895,7 @@
         {
           "name": "YouTube",
           "packageName": "com.google.android.youtube",
-          "patchCount": 82,
+          "patchCount": 83,
           "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg",
           "iconColor": "#FF0033"
         },
@@ -17000,12 +17103,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.12.13 (2026-09-09)",
-        "date": "2026-09-09",
+        "title": "1.12.14 (2026-09-10)",
+        "date": "2026-09-10",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**wildberries:** support version 7.7.9003-rustore"
+            "text": "**tbank:** support version 8.2.3"
           }
         ]
       },
@@ -17232,20 +17335,12 @@
       "createdDate": "2026-09-05",
       "updatedDate": "2026-09-05",
       "latestChanges": {
-        "title": "1.12.0 (2026-09-09)",
-        "date": "2026-09-09",
+        "title": "1.17.1 (2026-09-10)",
+        "date": "2026-09-10",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "**overlay:** refine configuration and preset behavior"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**overlay:** strengthen shared runtime module lifecycle"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**patches:** improve compatibility and user-facing controls"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**overlay:** update version to v2.4.0"
           }
         ]
       },
@@ -19612,12 +19707,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/d0nj/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/d0nj.png?size=96",
           "latestChanges": {
-            "title": "1.0.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.2.2 (2026-09-11)",
+            "date": "2026-09-11",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "d0nj Patches \u2014 Niagara Launcher (unlock Pro, remove analytics), AI Audio Novel Reader (unlock premium)"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "allow Unlock premium patch on any NovelReader version"
               }
             ]
           },
@@ -19634,9 +19729,7 @@
               "description": "Makes isPremium() always return true in AI Audio Novel Reader. Unlocks all premium features and disables the 10-hour trial countdown."
             }
           ],
-          "versions": [
-            "3.3.23"
-          ]
+          "versions": []
         }
       ],
       "patches": [
@@ -19648,9 +19741,7 @@
           "description": "Makes isPremium() always return true in AI Audio Novel Reader. Unlocks all premium features and disables the 10-hour trial countdown."
         }
       ],
-      "versions": [
-        "3.3.23"
-      ],
+      "versions": [],
       "iconColor": "#6200EE",
       "iconUrl": ""
     },
@@ -21135,12 +21226,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -21295,12 +21386,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -22553,12 +22644,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -25459,12 +25550,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.12.13 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.12.14 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**wildberries:** support version 7.7.9003-rustore"
+                "text": "**tbank:** support version 8.2.3"
               }
             ]
           },
@@ -28038,12 +28129,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.55.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.57.0 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**iap:** v10 - minimal launchBillingFlow test"
+                "text": "**iap:** add launchBillingFlow interception on top of anti-tamper bypass"
               }
             ]
           },
@@ -30333,16 +30424,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kveld9.png?size=96",
           "latestChanges": {
-            "title": "1.16.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.19.0 (2026-09-11)",
+            "date": "2026-09-11",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**docs:** fix Gboard Lite supported versions table formatting in README"
+                "category": "\u2728 New Features",
+                "text": "**hevy:** add pro unlock, telemetry blocking, and resource optimization patches"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "**gboard:** add armeabi-v7a and lite_release compatibility"
+                "text": "**shared:** promote locale slimmer to universal and add apk junk cleaner"
               }
             ]
           },
@@ -30376,15 +30467,11 @@
             },
             {
               "name": "Disable Battery Status API & OS Listener",
-              "description": "Neutralizes the Android BatteryStatusManager broadcast listener to prevent continuous OS battery wakeups."
+              "description": "Neutralizes the Battery Status API (navigator.getBattery) to prevent cross-site device fingerprinting and drops OS battery change broadcasts."
             },
             {
               "name": "Disable Pull To Refresh",
               "description": "Completely disables the pull-to-refresh overscroll gesture and animation to prevent accidental page reloads."
-            },
-            {
-              "name": "DPI Resource Slimmer",
-              "description": "Strips unselected screen density resource directories from res/ (e.g. drawable-mdpi, drawable-hdpi, mipmap-xhdpi). Density-independent resources (nodpi, anydpi) and orphan resources are safely preserved."
             },
             {
               "name": "Locale PAK Slimmer",
@@ -30393,10 +30480,6 @@
             {
               "name": "Native Bloat Slimmer",
               "description": "Strips unused native companion binaries (Impress Vision AI, WireGuard VPN, and Android XR) to significantly reduce APK size."
-            },
-            {
-              "name": "PNG Asset Optimizer",
-              "description": "Losslessly recompresses PNG assets with maximum zlib compression and strips non-rendering metadata chunks (pHYs, tEXt, tIME) while preserving 9-patch structures and pixel accuracy."
             },
             {
               "name": "Skip First Run",
@@ -30416,10 +30499,8 @@
         "Disable Background Sync & Periodic Sync",
         "Disable Battery Status API & OS Listener",
         "Disable Pull To Refresh",
-        "DPI Resource Slimmer",
         "Locale PAK Slimmer",
         "Native Bloat Slimmer",
-        "PNG Asset Optimizer",
         "Skip First Run"
       ],
       "patchDetails": [
@@ -30445,15 +30526,11 @@
         },
         {
           "name": "Disable Battery Status API & OS Listener",
-          "description": "Neutralizes the Android BatteryStatusManager broadcast listener to prevent continuous OS battery wakeups."
+          "description": "Neutralizes the Battery Status API (navigator.getBattery) to prevent cross-site device fingerprinting and drops OS battery change broadcasts."
         },
         {
           "name": "Disable Pull To Refresh",
           "description": "Completely disables the pull-to-refresh overscroll gesture and animation to prevent accidental page reloads."
-        },
-        {
-          "name": "DPI Resource Slimmer",
-          "description": "Strips unselected screen density resource directories from res/ (e.g. drawable-mdpi, drawable-hdpi, mipmap-xhdpi). Density-independent resources (nodpi, anydpi) and orphan resources are safely preserved."
         },
         {
           "name": "Locale PAK Slimmer",
@@ -30462,10 +30539,6 @@
         {
           "name": "Native Bloat Slimmer",
           "description": "Strips unused native companion binaries (Impress Vision AI, WireGuard VPN, and Android XR) to significantly reduce APK size."
-        },
-        {
-          "name": "PNG Asset Optimizer",
-          "description": "Losslessly recompresses PNG assets with maximum zlib compression and strips non-rendering metadata chunks (pHYs, tEXt, tIME) while preserving 9-patch structures and pixel accuracy."
         },
         {
           "name": "Skip First Run",
@@ -31683,12 +31756,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/logm1lo/logm1lo-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/logm1lo.png?size=96",
           "latestChanges": {
-            "title": "1.1.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.2.0 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
-                "category": "New Features",
-                "text": "add Cube Solver patches, fix Calistree Dart unlock"
+                "category": "Bug Fixes",
+                "text": "default empty feed paths to /storage/emulated/0 in MtTools extension"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "file browser now functional - real rows + working clicks"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "force User Agreement flag to true so EULA never re-shows"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "make file-browser feed patch apply standalone with splice"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "make MT Manager tool reimplementation work on-device (08d634a), closes PKCS#12"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "prevent Purchase-VIP / account screen NPE from null native Map getter"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "remove stub-native dependencies + clear native flags on patched getters"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "status-counter feed now fires + diagnostic logging (warm-state shortcut removed)"
               }
             ]
           },
@@ -31710,7 +31811,8 @@
             }
           ],
           "versions": [
-            "5.8.5"
+            "5.8.5",
+            "5.9.1"
           ]
         }
       ],
@@ -31729,7 +31831,8 @@
         }
       ],
       "versions": [
-        "5.8.5"
+        "5.8.5",
+        "5.9.1"
       ],
       "iconColor": "#4CAF50",
       "iconUrl": ""
@@ -36510,12 +36613,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -38857,16 +38960,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kveld9.png?size=96",
           "latestChanges": {
-            "title": "1.16.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.19.0 (2026-09-11)",
+            "date": "2026-09-11",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**docs:** fix Gboard Lite supported versions table formatting in README"
+                "category": "\u2728 New Features",
+                "text": "**hevy:** add pro unlock, telemetry blocking, and resource optimization patches"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "**gboard:** add armeabi-v7a and lite_release compatibility"
+                "text": "**shared:** promote locale slimmer to universal and add apk junk cleaner"
               }
             ]
           },
@@ -38923,10 +39026,6 @@
               "description": "Neutralizes background WorkManager initialization, database creation, and periodic maintenance workers."
             },
             {
-              "name": "DPI Resource Slimmer",
-              "description": "Strips unselected screen density resource directories from res/ (e.g. drawable-mdpi, drawable-hdpi, mipmap-xhdpi). Density-independent resources (nodpi, anydpi) and orphan resources are safely preserved."
-            },
-            {
               "name": "Enable Access Points Menu Redesign",
               "description": "Enables the redesigned access points menu bar and customization panel (Panel V2)."
             },
@@ -38943,23 +39042,13 @@
               "description": "Enables Gboard internal external intent protection against unauthorized intent hijacking."
             },
             {
-              "name": "Locale Resource Slimmer",
-              "description": "Strips unselected language translation directories from res/ (e.g. values-*, raw-*, xml-*). Base fallback resources with no language qualifiers are always preserved."
-            },
-            {
-              "name": "PNG Asset Optimizer",
-              "description": "Losslessly recompresses PNG assets with maximum zlib compression and strips non-rendering metadata chunks (pHYs, tEXt, tIME) while preserving 9-patch structures and pixel accuracy."
-            },
-            {
               "name": "Resource Slimmer",
               "description": "Strips embedded third-party license text, onboarding tutorial Lottie animations, promotional GIFs, and APK root metadata/junk files."
             }
           ],
           "versions": [
-            "18.1.3.962075747-lite_beta-arm64-v8a",
-            "18.1.3.962075747-lite_beta-armeabi-v7a",
-            "18.1.3.962075747-lite_release-arm64-v8a",
-            "18.1.3.962075747-lite_release-armeabi-v7a"
+            "18.2.4.969776716-lite_beta-arm64-v8a",
+            "18.2.4.969776716-lite_beta-armeabi-v7a"
           ]
         }
       ],
@@ -38993,10 +39082,9 @@
         "Disable telemetry & federated learning",
         "Disable Tenor Share Tracking",
         "Disable WorkManager",
-        "DPI Resource Slimmer",
         "Emojis, stickers & GIFs Tab Order",
-        "Enable Access Points Menu Redesign",
         "Enable access points menu redesign",
+        "Enable Access Points Menu Redesign",
         "Enable accessibility layout",
         "Enable clipboard in incognito",
         "Enable cursor trackpad mode",
@@ -39024,11 +39112,9 @@
         "Install as Gboard Clone",
         "Key Shape Selection",
         "Latin Globe Key Ignore Interval",
-        "Locale Resource Slimmer",
         "Long-Press Editing Shortcuts",
         "Network privacy",
         "Package Rename",
-        "PNG Asset Optimizer",
         "Quick Insert",
         "Remove promotional banners",
         "Resource Slimmer",
@@ -39168,20 +39254,16 @@
           "description": "Neutralizes background WorkManager initialization, database creation, and periodic maintenance workers."
         },
         {
-          "name": "DPI Resource Slimmer",
-          "description": "Strips unselected screen density resource directories from res/ (e.g. drawable-mdpi, drawable-hdpi, mipmap-xhdpi). Density-independent resources (nodpi, anydpi) and orphan resources are safely preserved."
-        },
-        {
           "name": "Emojis, stickers & GIFs Tab Order",
           "description": "\u81ea\u8a02 Gboard\u300cEmojis, stickers & GIFs\u300d\u5e95\u90e8 tabs \u7684\u6392\u5e8f\uff0c\u652f\u63f4\u62d6\u66f3\u8abf\u6574\nCustomize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with drag-and-drop reordering."
         },
         {
-          "name": "Enable Access Points Menu Redesign",
-          "description": "Enables the redesigned access points menu bar and customization panel (Panel V2)."
-        },
-        {
           "name": "Enable access points menu redesign",
           "description": "Enables the redesign of the additional actions menu."
+        },
+        {
+          "name": "Enable Access Points Menu Redesign",
+          "description": "Enables the redesigned access points menu bar and customization panel (Panel V2)."
         },
         {
           "name": "Enable accessibility layout",
@@ -39292,10 +39374,6 @@
           "description": "\u65b0\u589e\u82f1\u6587\u9375\u76e4\u5730\u7403\u9375\u5ffd\u7565\u6642\u9593\u8986\u5beb\uff0c\u53ef\u7368\u7acb\u63a7\u5236\u8f38\u5165\u5f8c\u5207\u8a9e\u8a00\u5ef6\u9072\nAdd an independent English globe key ignore interval override for post-typing language-switch delay."
         },
         {
-          "name": "Locale Resource Slimmer",
-          "description": "Strips unselected language translation directories from res/ (e.g. values-*, raw-*, xml-*). Base fallback resources with no language qualifiers are always preserved."
-        },
-        {
           "name": "Long-Press Editing Shortcuts",
           "description": "\u5728\u82f1\u6587 QWERTY \u8207\u6ce8\u97f3\u9375\u76e4\u52a0\u5165\u5168\u9078\u3001\u5fa9\u539f\u3001\u8907\u88fd\u3001\u526a\u4e0b\u3001\u8cbc\u4e0a\u8207\u91cd\u505a\u9577\u6309\u5feb\u6377\u9375\nAdd Select all, Undo, Copy, Cut, Paste, and Redo long-press shortcuts to English QWERTY and Zhuyin."
         },
@@ -39306,10 +39384,6 @@
         {
           "name": "Package Rename",
           "description": "\u5c07\u5957\u4ef6\u540d\u7a31\u6539\u6210 dev.jason.com.google.android.inputmethod.latin \u4ee5\u4fbf\u5171\u5b58\u5b89\u88dd\nRename the package to dev.jason.com.google.android.inputmethod.latin so it can be installed alongside the official Gboard."
-        },
-        {
-          "name": "PNG Asset Optimizer",
-          "description": "Losslessly recompresses PNG assets with maximum zlib compression and strips non-rendering metadata chunks (pHYs, tEXt, tIME) while preserving 9-patch structures and pixel accuracy."
         },
         {
           "name": "Quick Insert",
@@ -39395,10 +39469,8 @@
       "versions": [
         "17.7.7.932364120-release-arm64-v8a",
         "18.0.3.954559732-release-arm64-v8a",
-        "18.1.3.962075747-lite_beta-arm64-v8a",
-        "18.1.3.962075747-lite_beta-armeabi-v7a",
-        "18.1.3.962075747-lite_release-arm64-v8a",
-        "18.1.3.962075747-lite_release-armeabi-v7a"
+        "18.2.4.969776716-lite_beta-arm64-v8a",
+        "18.2.4.969776716-lite_beta-armeabi-v7a"
       ],
       "iconColor": "#1A73E8",
       "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA"
@@ -42748,40 +42820,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/SysAdminDoc/hushfeed/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/SysAdminDoc.png?size=96",
           "latestChanges": {
-            "title": "Unreleased",
+            "title": "0.30.0",
             "date": "",
             "items": [
               {
                 "category": "",
-                "text": "The comment-sort description now explains that media and creator filters depend on the post's native availability flags. Device checks confirmed those optional categories and preserved the stock menu after disabling the switch."
+                "text": "Fit the video to the screen now works on the For You feed. The feed cell never sized its video through the method the patch hooked; it hands the size to a helper of its own, and that helper is what the patch reaches now, on every build seen. A fitted video is handed back as a copy of TikTok's own answer, so the size the feed applies and the size it checks against are the same one. The story cell's own path is still covered, and the copy it keeps is looked up by the object rather than by its numbers, which a size change had moved out from under."
               },
               {
                 "category": "",
-                "text": "Profile-picture saving now handles the current profile header and resolves the picture from the pressed component. Story long presses reach the native child that consumes the gesture and save its current story, even when the outer view holds a collection. Turning either option off keeps the native gesture."
+                "text": "Fit the video to the screen no longer writes a size of nothing into a story when it can't read the video's size. On every path where it has nothing to fit, it leaves TikTok's own numbers alone, the way it did before the feed rework. The patch also refuses a build where either feed helper it hooks has a twin, instead of hooking whichever one it met first, and checks the size getters and the copy method the feed path relies on before it writes anything. With the switch off, the feed skips the size lookups altogether."
               },
               {
                 "category": "",
-                "text": "Comment search now hides reply controls with their nonmatching parent comments. Clearing search restores the rows. Turning search off also releases its saved heights and visibility during native rebinding, with either comment-blocking setting, while preserving rows TikTok hid itself."
+                "text": "Anchors that find a setting behind a lazily read value no longer skip a class that carries two methods of the shape they were looking for. Before, such a class was passed over as if it read some other key, and the failure said no class read the key at all. The walk through R8's merged lambda groups also follows entry points that take an argument, reads every no-argument method of a lambda class rather than the first, takes the constant from the register the factory call actually reads, and answers only from the switch that opens the dispatcher."
               },
               {
                 "category": "",
-                "text": "Follow readback now recognizes the modern profile response and keeps each relationship state with its own account identity. A reported zero remains zero; conflicting states stay unclear. Diagnostics can report a mismatch after an accepted follow without guessing its cause."
+                "text": "A settings journal that can't be read or applied is set aside instead of being left in place. Left there, every later settings change, Undo and Restore included, was refused with a notice telling you to use Undo or Restore. The notice now says what happened. The lock that guards the journal is also released through a finally block, so an out-of-memory error during recovery can't leave every later change waiting forever."
               },
               {
                 "category": "",
-                "text": "Daily-budget holds pause the current native player and resume only the player they held, while its feed is visible and audio focus permits playback. Holds survive settings returns and activity recreation. Their lower edge follows the actual tab row, including the system navigation gap, so Home and messages remain tappable."
+                "text": "Twelve toasts and one dialog in the Feature Gate Lab and the diagnostics export reached the reader in English on a translated phone, several of them branded for the shared library rather than for Hushfeed, and two carried an exception's own text. All of them go through the translation table now. The Undo entry says there is nothing to undo instead of showing the path of a file that doesn't exist, and an import that accepted nothing no longer offers an Undo that would revert the previous Lab change."
               },
               {
                 "category": "",
-                "text": "Enabling the block or Not interested button now attaches it to the current creator immediately. Disabling the last button removes the controls. A daily-budget hold keeps those controls hidden while the feed is covered."
+                "text": "The creator list dialog saves a handle that was typed into the box and never added with the button. It was dropped without a word."
               },
               {
                 "category": "",
-                "text": "The phone helper rejects a log query without its required filter. That usage error no longer exits successfully after printing an error."
+                "text": "The free-space check before a save no longer stands down when the destination folder doesn't exist yet, which is exactly the first save into it. A crash report cut at the size ceiling now says so, at the top as well as where it stops, and is cut on a character boundary rather than in the middle of one. Converting a sticker to GIF checks the job's deadline once per frame, while it decodes and again while it encodes, the way the MP4 path does, so a small canvas with tens of thousands of frames can't hold a media worker for good. A muxer that fails mid-copy no longer replaces the real error with its own complaint on release."
               },
               {
                 "category": "",
-                "text": "The phone helper reports failed activity, log and frame-stat queries instead of hiding their exit status behind output filters. A screenshot no longer claims success when its foreground check fails."
+                "text": "A log message that fails while being built, or a log line that can't be written, no longer throws out of the hook that was logging, into TikTok. The follow diagnostics path looks up the request's path through the cached reflection helper rather than an uncached lookup on every network request."
               }
             ]
           },
@@ -42970,6 +43042,10 @@
               "description": "Stops the suggested accounts list from being built on the Activity, New followers and Inbox pages. Shares its switch with Hide inbox items. "
             },
             {
+              "name": "Hide the launcher shortcuts",
+              "description": "Empties the menu that opens on pressing and holding TikTok's icon on the home screen. The entries are built while the app runs rather than declared in it, and TikTok only rewrites them when it notices a difference, so this takes away what is already published and answers the handover that would publish more. Turning it off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut pinned to a home screen is left alone."
+            },
+            {
               "name": "Hide the risk control CAPTCHA",
               "description": "Hides TikTok's risk control CAPTCHA dialog, raised by its BdTuring service, which the browsing CAPTCHA patch does not cover. Answers the Hide CAPTCHA popups setting, never touches SMS or two factor verification, and never hides a check the server raised over a follow, like, comment or repost. Off by default."
             },
@@ -43130,6 +43206,7 @@
         "Hide quick comment reactions",
         "Hide search suggestions",
         "Hide suggested accounts",
+        "Hide the launcher shortcuts",
         "Hide the risk control CAPTCHA",
         "Hide video overlays",
         "Hold-and-slide 2x lock",
@@ -43361,6 +43438,10 @@
         {
           "name": "Hide suggested accounts",
           "description": "Stops the suggested accounts list from being built on the Activity, New followers and Inbox pages. Shares its switch with Hide inbox items. "
+        },
+        {
+          "name": "Hide the launcher shortcuts",
+          "description": "Empties the menu that opens on pressing and holding TikTok's icon on the home screen. The entries are built while the app runs rather than declared in it, and TikTok only rewrites them when it notices a difference, so this takes away what is already published and answers the handover that would publish more. Turning it off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut pinned to a home screen is left alone."
         },
         {
           "name": "Hide the risk control CAPTCHA",
@@ -44684,12 +44765,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -45495,12 +45576,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/logm1lo/logm1lo-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/logm1lo.png?size=96",
           "latestChanges": {
-            "title": "1.1.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.2.0 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
-                "category": "New Features",
-                "text": "add Cube Solver patches, fix Calistree Dart unlock"
+                "category": "Bug Fixes",
+                "text": "default empty feed paths to /storage/emulated/0 in MtTools extension"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "file browser now functional - real rows + working clicks"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "force User Agreement flag to true so EULA never re-shows"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "make file-browser feed patch apply standalone with splice"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "make MT Manager tool reimplementation work on-device (08d634a), closes PKCS#12"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "prevent Purchase-VIP / account screen NPE from null native Map getter"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "remove stub-native dependencies + clear native flags on patched getters"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "status-counter feed now fires + diagnostic logging (warm-state shortcut removed)"
               }
             ]
           },
@@ -46584,6 +46693,64 @@
         "5.1.5"
       ],
       "iconColor": "#006B52",
+      "iconUrl": ""
+    },
+    {
+      "packageName": "com.apktools.app.decompile",
+      "name": "Decompile",
+      "repos": [
+        "Epxec/android-patches"
+      ],
+      "sources": [
+        {
+          "repo": "Epxec/android-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/Epxec/android-patches",
+          "addUrl": "https://morphe.software/add-source?github=Epxec/android-patches",
+          "source": "https://raw.githubusercontent.com/Epxec/android-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/Epxec/android-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/Epxec.png?size=96",
+          "latestChanges": {
+            "title": "1.1.0 (2026-09-10)",
+            "date": "2026-09-10",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "add \"Halo Reels Pro\" VIP patch"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-apktools-app-decompile-epxec-android-patches",
+            "releaseTag": "app-com-apktools-app-decompile-epxec-android-patches",
+            "assetName": "decompile-epxec-android-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Enable Premium",
+              "description": "Enables the premium features of the app."
+            }
+          ],
+          "versions": [
+            "3.3.2"
+          ]
+        }
+      ],
+      "patches": [
+        "Enable Premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Enable Premium",
+          "description": "Enables the premium features of the app."
+        }
+      ],
+      "versions": [
+        "3.3.2"
+      ],
+      "iconColor": "#FF1234",
       "iconUrl": ""
     },
     {
@@ -49619,12 +49786,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.55.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.57.0 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**iap:** v10 - minimal launchBillingFlow test"
+                "text": "**iap:** add launchBillingFlow interception on top of anti-tamper bypass"
               }
             ]
           },
@@ -49972,12 +50139,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -50307,12 +50474,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.23.0 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Bump some apps (Lifesum/Lyfta/Yazio)"
+                "text": "Bump Lifesum and fix Lyfta patches"
               }
             ]
           },
@@ -53489,12 +53656,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -53974,12 +54141,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -54008,7 +54175,9 @@
               "description": "Spoofs the device to enable Google Pixel exclusive features, including unlimited storage."
             }
           ],
-          "versions": []
+          "versions": [
+            "7.90.0.971743778"
+          ]
         },
         {
           "repo": "rushiranpise/morphe-patches",
@@ -54283,12 +54452,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -54726,6 +54895,64 @@
         "1.15.2"
       ],
       "iconColor": "#4CAF50",
+      "iconUrl": ""
+    },
+    {
+      "packageName": "com.halo.reels.movie.fast.pro",
+      "name": "Halo Reels Pro",
+      "repos": [
+        "Epxec/android-patches"
+      ],
+      "sources": [
+        {
+          "repo": "Epxec/android-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/Epxec/android-patches",
+          "addUrl": "https://morphe.software/add-source?github=Epxec/android-patches",
+          "source": "https://raw.githubusercontent.com/Epxec/android-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/Epxec/android-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/Epxec.png?size=96",
+          "latestChanges": {
+            "title": "1.1.0 (2026-09-10)",
+            "date": "2026-09-10",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "add \"Halo Reels Pro\" VIP patch"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-halo-reels-movie-fast-pro-epxec-android-patches",
+            "releaseTag": "app-com-halo-reels-movie-fast-pro-epxec-android-patches",
+            "assetName": "halo-reels-pro-epxec-android-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Enable VIP",
+              "description": "Enables the VIP features of the app."
+            }
+          ],
+          "versions": [
+            "1.1.0"
+          ]
+        }
+      ],
+      "patches": [
+        "Enable VIP"
+      ],
+      "patchDetails": [
+        {
+          "name": "Enable VIP",
+          "description": "Enables the VIP features of the app."
+        }
+      ],
+      "versions": [
+        "1.1.0"
+      ],
+      "iconColor": "#FF1234",
       "iconUrl": ""
     },
     {
@@ -55403,7 +55630,8 @@
       "packageName": "com.hevy",
       "name": "Hevy",
       "repos": [
-        "arandomhooman/hoomans-morphe-patches"
+        "arandomhooman/hoomans-morphe-patches",
+        "kveld9/kveld-morphe-patches"
       ],
       "sources": [
         {
@@ -55440,19 +55668,86 @@
           "versions": [
             "3.1.0"
           ]
+        },
+        {
+          "repo": "kveld9/kveld-morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/kveld9/kveld-morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=kveld9/kveld-morphe-patches",
+          "source": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/kveld9.png?size=96",
+          "latestChanges": {
+            "title": "1.19.0 (2026-09-11)",
+            "date": "2026-09-11",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "**hevy:** add pro unlock, telemetry blocking, and resource optimization patches"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**shared:** promote locale slimmer to universal and add apk junk cleaner"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-hevy-kveld9-kveld-morphe-patches",
+            "releaseTag": "app-com-hevy-kveld9-kveld-morphe-patches",
+            "assetName": "hevy-kveld9-kveld-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Block Hevy Telemetry & Trackers",
+              "description": "Neutralizes Sentry crash reporting, Adjust attribution, Facebook AppEvents, Branch referral tracking, and WearOS background sync."
+            },
+            {
+              "name": "Hevy Battery Optimization & Background Sync Killer",
+              "description": "Disables background WorkManager alarms, periodic job schedulers, Firebase messaging wakeups, and DataTransport schedulers to eliminate battery drain in sleep."
+            },
+            {
+              "name": "Hevy Resource Slimmer",
+              "description": "Strips embedded onboarding MP4 tutorial video, heavy IMG.LY photo editor stickers/textures, and compiler junk metadata."
+            },
+            {
+              "name": "Unlock Pro",
+              "description": "Unlocks local Hevy Pro capabilities (unlimited workout routines, routine folders, advanced graphs, and local analytics) by dynamically enabling the offline-Pro grace period in Hermes Bytecode (HBC96)."
+            }
+          ],
+          "versions": [
+            "3.1.13"
+          ]
         }
       ],
       "patches": [
+        "Block Hevy Telemetry & Trackers",
+        "Hevy Battery Optimization & Background Sync Killer",
+        "Hevy Resource Slimmer",
         "Unlock Pro"
       ],
       "patchDetails": [
         {
+          "name": "Block Hevy Telemetry & Trackers",
+          "description": "Neutralizes Sentry crash reporting, Adjust attribution, Facebook AppEvents, Branch referral tracking, and WearOS background sync."
+        },
+        {
+          "name": "Hevy Battery Optimization & Background Sync Killer",
+          "description": "Disables background WorkManager alarms, periodic job schedulers, Firebase messaging wakeups, and DataTransport schedulers to eliminate battery drain in sleep."
+        },
+        {
+          "name": "Hevy Resource Slimmer",
+          "description": "Strips embedded onboarding MP4 tutorial video, heavy IMG.LY photo editor stickers/textures, and compiler junk metadata."
+        },
+        {
           "name": "Unlock Pro",
-          "description": "Unlocks Hevy's Pro features without a subscription, like unlimited routines and advanced workout analytics. They run on the workout data on your device. Anything Hevy serves only to subscribed accounts can still stay locked."
+          "description": "Unlocks local Hevy Pro capabilities (unlimited workout routines, routine folders, advanced graphs, and local analytics) by dynamically enabling the offline-Pro grace period in Hermes Bytecode (HBC96)."
         }
       ],
       "versions": [
-        "3.1.0"
+        "3.1.0",
+        "3.1.13"
       ],
       "iconColor": "#101012",
       "iconUrl": "https://play-lh.googleusercontent.com/bLlRnwjt0tKva6ob0ZrtxkUs-z4MhQ4cPIOnXeh_knD8QVAXSLFiMGyKo2kLF7PV2uSK1Wly1L4q-6Sv1k13"
@@ -55473,12 +55768,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -55817,12 +56112,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.55.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.57.0 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**iap:** v10 - minimal launchBillingFlow test"
+                "text": "**iap:** add launchBillingFlow interception on top of anti-tamper bypass"
               }
             ]
           },
@@ -55860,20 +56155,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Zanuaimi/UniPatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Zanuaimi.png?size=96",
           "latestChanges": {
-            "title": "1.12.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.17.1 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**overlay:** refine configuration and preset behavior"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**overlay:** strengthen shared runtime module lifecycle"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**patches:** improve compatibility and user-facing controls"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**overlay:** update version to v2.4.0"
               }
             ]
           },
@@ -55886,8 +56173,8 @@
           },
           "patches": [
             {
-              "name": "Hill Climb Racing Overlay Example (Experimental)",
-              "description": "Safe app-specific overlay example for Hill Climb Racing (com.fingersoft.hillclimb). Select one or more preview modules, patch, then use their Settings and Preview controls in the shared overlay UI. Values are session-only and reset when the app process restarts. This contributor example demonstrates explicit launcher injection, styled settings popups, checkbox lists, and one-shot actions; it never alters currencies, unlocks, purchases, saves, or game bytecode. Do not combine with Universal Overlay Patch, because both patches install the same shared overlay runtime."
+              "name": "Hill Climb Racing Example Overlay Addon",
+              "description": "Example overlay addon for Hill Climb Racing (com.fingersoft.hillclimb), used together with UniPatches Universal Overlay.\n        It adds six safe, mock-only app-specific preview modules to the shared overlay: A\n        - Add Coins\n        - Add Gems\n        - Add Paints \n        - Vehicle Selection\n        - Stage Selection\n        - Garage Selection. \n        All these six module options are enabled by default and can be disabled independently. \n        \n        Module settings and Preview actions are session-only; this example addon never reads or changes currencies, vehicles, stages, garage state, purchases, save files, or game bytecode."
             }
           ],
           "versions": []
@@ -55895,14 +56182,18 @@
       ],
       "patches": [
         "Hill Climb Racing Ad Removal",
+        "Hill Climb Racing Example Overlay Addon",
         "Hill Climb Racing Free Store",
-        "Hill Climb Racing Instant Rewarded Video Rewards",
-        "Hill Climb Racing Overlay Example (Experimental)"
+        "Hill Climb Racing Instant Rewarded Video Rewards"
       ],
       "patchDetails": [
         {
           "name": "Hill Climb Racing Ad Removal",
           "description": "Completely removes ads: banners and interstitials can never be displayed (CFirebaseAds.showBanners/showInterstitial become no-ops) and ad-free is granted once per app start \u2014 loadStore() seeds mAdFree = 1, the native engine's poll grants it and the store's own reset (inappPurchasesProcessed) zeroes the field, so no repeated purchase popups."
+        },
+        {
+          "name": "Hill Climb Racing Example Overlay Addon",
+          "description": "Example overlay addon for Hill Climb Racing (com.fingersoft.hillclimb), used together with UniPatches Universal Overlay.\n        It adds six safe, mock-only app-specific preview modules to the shared overlay: A\n        - Add Coins\n        - Add Gems\n        - Add Paints \n        - Vehicle Selection\n        - Stage Selection\n        - Garage Selection. \n        All these six module options are enabled by default and can be disabled independently. \n        \n        Module settings and Preview actions are session-only; this example addon never reads or changes currencies, vehicles, stages, garage state, purchases, save files, or game bytecode."
         },
         {
           "name": "Hill Climb Racing Free Store",
@@ -55911,10 +56202,6 @@
         {
           "name": "Hill Climb Racing Instant Rewarded Video Rewards",
           "description": "Rewarded video ads grant their reward instantly without playing the ad: the native engine receives onVideoStartedSuccess + onVideoCompletedSuccess on the GL thread, exactly as if the video had been watched and completed."
-        },
-        {
-          "name": "Hill Climb Racing Overlay Example (Experimental)",
-          "description": "Safe app-specific overlay example for Hill Climb Racing (com.fingersoft.hillclimb). Select one or more preview modules, patch, then use their Settings and Preview controls in the shared overlay UI. Values are session-only and reset when the app process restarts. This contributor example demonstrates explicit launcher injection, styled settings popups, checkbox lists, and one-shot actions; it never alters currencies, unlocks, purchases, saves, or game bytecode. Do not combine with Universal Overlay Patch, because both patches install the same shared overlay runtime."
         }
       ],
       "versions": [
@@ -57096,12 +57383,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -60294,12 +60581,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -63733,12 +64020,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -64031,12 +64318,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.23.0 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Bump some apps (Lifesum/Lyfta/Yazio)"
+                "text": "Bump Lifesum and fix Lyfta patches"
               }
             ]
           },
@@ -64054,7 +64341,7 @@
             }
           ],
           "versions": [
-            "20.8.0"
+            "20.9.0"
           ]
         }
       ],
@@ -64073,7 +64360,8 @@
         }
       ],
       "versions": [
-        "20.8.0"
+        "20.8.0",
+        "20.9.0"
       ],
       "iconColor": "#00C853",
       "iconUrl": "https://play-lh.googleusercontent.com/gMeT8cxzZOnlrCKwYIOPHT90C9kb9pPbE0mHlk2gixDIadJ_B9QmslnPkQ3Sc0y9KuS8KMxPDxFgsL_GLnXbsg"
@@ -65551,12 +65839,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.23.0 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Bump some apps (Lifesum/Lyfta/Yazio)"
+                "text": "Bump Lifesum and fix Lyfta patches"
               }
             ]
           },
@@ -67308,12 +67596,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.23.0 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Bump some apps (Lifesum/Lyfta/Yazio)"
+                "text": "Bump Lifesum and fix Lyfta patches"
               }
             ]
           },
@@ -67931,12 +68219,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -68586,12 +68874,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -71588,12 +71876,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.23.0 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Bump some apps (Lifesum/Lyfta/Yazio)"
+                "text": "Bump Lifesum and fix Lyfta patches"
               }
             ]
           },
@@ -74203,12 +74491,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/d0nj/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/d0nj.png?size=96",
           "latestChanges": {
-            "title": "1.0.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.2.2 (2026-09-11)",
+            "date": "2026-09-11",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "d0nj Patches \u2014 Niagara Launcher (unlock Pro, remove analytics), AI Audio Novel Reader (unlock premium)"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "allow Unlock premium patch on any NovelReader version"
               }
             ]
           },
@@ -74221,6 +74509,10 @@
           },
           "patches": [
             {
+              "name": "Fix home screen numbers tile",
+              "description": "Niagara's Channels feature registers a diagnostic tip whose message is a giant fingerprint of concatenated hashCode() integers of up to 30 channel items (~850 digits). Because the provider accepts every tip request, this shows up as a tile of giant numbers on the home feed whenever the channel list refreshes, which happens when apps are installed, updated or removed (for example through ADB). Makes the provider decline tip requests so the diagnostic tip is never shown."
+            },
+            {
               "name": "Remove analytics",
               "description": "Disables all telemetry in Niagara Launcher: the weekly usage-report upload (app launches, notification metadata, survey responses), retention milestone events, GDPR consent sync, Singular attribution sessions and events (advertising ID, app set ID, install referrer, FCM token) and the runtime Firebase Analytics opt-in."
             },
@@ -74229,9 +74521,7 @@
               "description": "Makes the entitlement holder always report Pro in Niagara Launcher. Unlocks all Pro features and bypasses the 7-day trial prompt. Server-backed features (account sync, Stripe checkout) are not affected."
             }
           ],
-          "versions": [
-            "1.16.23"
-          ]
+          "versions": []
         },
         {
           "repo": "Entree3k/Morning-Entree-Patches",
@@ -74336,6 +74626,7 @@
       ],
       "patches": [
         "Enable Niagara Pro",
+        "Fix home screen numbers tile",
         "Remove analytics",
         "Unlock Pro"
       ],
@@ -74343,6 +74634,10 @@
         {
           "name": "Enable Niagara Pro",
           "description": "Unlocks Pro"
+        },
+        {
+          "name": "Fix home screen numbers tile",
+          "description": "Niagara's Channels feature registers a diagnostic tip whose message is a giant fingerprint of concatenated hashCode() integers of up to 30 channel items (~850 digits). Because the provider accepts every tip request, this shows up as a tile of giant numbers on the home feed whenever the channel list refreshes, which happens when apps are installed, updated or removed (for example through ADB). Makes the provider decline tip requests so the diagnostic tip is never shown."
         },
         {
           "name": "Remove analytics",
@@ -74355,7 +74650,6 @@
       ],
       "versions": [
         "1.16.15",
-        "1.16.23",
         "1.16.24",
         "1.16.7"
       ],
@@ -74715,12 +75009,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -74978,12 +75272,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -77114,12 +77408,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.23.0 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Bump some apps (Lifesum/Lyfta/Yazio)"
+                "text": "Bump Lifesum and fix Lyfta patches"
               }
             ]
           },
@@ -77426,12 +77720,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.12.13 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.12.14 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**wildberries:** support version 7.7.9003-rustore"
+                "text": "**tbank:** support version 8.2.3"
               }
             ]
           },
@@ -78141,12 +78435,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.23.0 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Bump some apps (Lifesum/Lyfta/Yazio)"
+                "text": "Bump Lifesum and fix Lyfta patches"
               }
             ]
           },
@@ -79594,12 +79888,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -79724,12 +80018,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -80412,12 +80706,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.23.0 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Bump some apps (Lifesum/Lyfta/Yazio)"
+                "text": "Bump Lifesum and fix Lyfta patches"
               }
             ]
           },
@@ -81639,12 +81933,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -85477,8 +85771,8 @@
         "Hide upgrade upselling",
         "Remove 'Sent from' signature",
         "Remove free accounts limit",
-        "Unlock custom time picker",
         "Unlock Custom Time Picker",
+        "Unlock custom time picker",
         "Unlock Unlimited Plan"
       ],
       "patchDetails": [
@@ -85499,12 +85793,12 @@
           "description": "Removes the limit for maximum free accounts logged in."
         },
         {
-          "name": "Unlock custom time picker",
-          "description": "Enables picking a custom date and time when snoozing conversations and scheduling messages."
-        },
-        {
           "name": "Unlock Custom Time Picker",
           "description": "Unlocks the custom scheduled send date/time picker for all users."
+        },
+        {
+          "name": "Unlock custom time picker",
+          "description": "Enables picking a custom date and time when snoozing conversations and scheduling messages."
         },
         {
           "name": "Unlock Unlimited Plan",
@@ -88867,40 +89161,24 @@
           "changelogUrl": "https://raw.githubusercontent.com/sashade8-ship-it/dual-vot-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/sashade8-ship-it.png?size=96",
           "latestChanges": {
-            "title": "1.42.0-dualvot.8.4 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.42.0-dualvot.8.5.1 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
-                "category": "Yandex source-audio recovery",
-                "text": "Replace the obsolete standalone Android VR download with source audio from"
+                "category": "Compatibility hotfix",
+                "text": "Use the range-form invoke instruction for the Cronet engine hook so methods"
               },
               {
-                "category": "Yandex source-audio recovery",
-                "text": "YouTube's current player request stack and active media transport."
+                "category": "Compatibility hotfix",
+                "text": "returning registers above v15 patch without an invalid-register warning."
               },
               {
-                "category": "Yandex source-audio recovery",
-                "text": "Work with Spoof video streams both disabled and enabled by reusing a"
+                "category": "Compatibility hotfix",
+                "text": "Add the missing Russian translation for the message shown when Yandex voice"
               },
               {
-                "category": "Yandex source-audio recovery",
-                "text": "compatible cached response or requesting a fresh direct-DASH response."
-              },
-              {
-                "category": "Yandex source-audio recovery",
-                "text": "Prefer low-bitrate Opus and validate byte ranges, content lengths, part"
-              },
-              {
-                "category": "Yandex source-audio recovery",
-                "text": "ordering, bounded memory use, cancellation, and cleanup."
-              },
-              {
-                "category": "Multipart, proxy, and timing reliability",
-                "text": "Stream exact multipart uploads with visible N/M progress and separate"
-              },
-              {
-                "category": "Multipart, proxy, and timing reliability",
-                "text": "errors for acquisition, upload, Yandex processing, translated URL readiness,"
+                "category": "Compatibility hotfix",
+                "text": "translation is requested on a live stream."
               }
             ]
           },
@@ -89003,12 +89281,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/variablenine/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/variablenine.png?size=96",
           "latestChanges": {
-            "title": "1.4.2 (2026-09-07)",
-            "date": "2026-09-07",
+            "title": "1.4.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Only treat a post's own indicator as NSFW"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "Sync upstream Morphe patches v1.42.0"
               }
             ]
           },
@@ -89223,8 +89501,8 @@
         "Disable screenshot popup",
         "Disable Screenshot Popup",
         "Force system font",
-        "Hide ads",
         "Hide Ads",
+        "Hide ads",
         "Hide Ask button",
         "Hide Ask button from search bar",
         "Hide awards",
@@ -89240,8 +89518,8 @@
         "Hide Promoted Posts",
         "Hide Reddit search",
         "Hide share count",
-        "Hide Sidebar Components",
         "Hide sidebar components",
+        "Hide Sidebar Components",
         "Hide Trending Shelves",
         "Hide Trending shelves",
         "Hide upvote scores",
@@ -89256,8 +89534,8 @@
         "Remove Subreddit Dialogs",
         "Sanitize Reddit share links",
         "Sanitize share links",
-        "Sanitize sharing links",
         "Sanitize Sharing Links",
+        "Sanitize sharing links",
         "Show view count",
         "Spoof signature",
         "Unlock Premium"
@@ -89328,12 +89606,12 @@
           "description": "Adds an option that renders Reddit with the device system font instead of Reddit Sans / Roboto."
         },
         {
-          "name": "Hide ads",
-          "description": "Adds options to hide ads."
-        },
-        {
           "name": "Hide Ads",
           "description": "Removes promoted posts and comment ads without requiring Reddit Premium unlock."
+        },
+        {
+          "name": "Hide ads",
+          "description": "Adds options to hide ads."
         },
         {
           "name": "Hide Ask button",
@@ -89396,12 +89674,12 @@
           "description": "Hides the share count on Reddit posts."
         },
         {
-          "name": "Hide Sidebar Components",
-          "description": "Hides About, Resources, and Reddit Pro sections from the community sidebar."
-        },
-        {
           "name": "Hide sidebar components",
           "description": "Adds options to hide the sidebar components."
+        },
+        {
+          "name": "Hide Sidebar Components",
+          "description": "Hides About, Resources, and Reddit Pro sections from the community sidebar."
         },
         {
           "name": "Hide Trending Shelves",
@@ -89460,12 +89738,12 @@
           "description": "Unshortens and removes the tracking query parameters from shared links."
         },
         {
-          "name": "Sanitize sharing links",
-          "description": "Adds an option to sanitize sharing links by removing tracking query parameters."
-        },
-        {
           "name": "Sanitize Sharing Links",
           "description": "Returns the raw permalink before UTM tracking parameters are appended to shared Reddit URLs."
+        },
+        {
+          "name": "Sanitize sharing links",
+          "description": "Adds an option to sanitize sharing links by removing tracking query parameters."
         },
         {
           "name": "Show view count",
@@ -89739,6 +90017,64 @@
         "2026073010.0.0"
       ],
       "iconColor": "#1A1A2E",
+      "iconUrl": ""
+    },
+    {
+      "packageName": "dmytro.palamarchuk.dailyreminder",
+      "name": "Remindio",
+      "repos": [
+        "Epxec/android-patches"
+      ],
+      "sources": [
+        {
+          "repo": "Epxec/android-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/Epxec/android-patches",
+          "addUrl": "https://morphe.software/add-source?github=Epxec/android-patches",
+          "source": "https://raw.githubusercontent.com/Epxec/android-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/Epxec/android-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/Epxec.png?size=96",
+          "latestChanges": {
+            "title": "1.1.0 (2026-09-10)",
+            "date": "2026-09-10",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "add \"Halo Reels Pro\" VIP patch"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "dmytro-palamarchuk-dailyreminder-epxec-android-patches",
+            "releaseTag": "app-dmytro-palamarchuk-dailyreminder-epxec-android-patches",
+            "assetName": "remindio-epxec-android-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Enable Premium",
+              "description": "Enables the premium features of the app."
+            }
+          ],
+          "versions": [
+            "2.25.8"
+          ]
+        }
+      ],
+      "patches": [
+        "Enable Premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Enable Premium",
+          "description": "Enables the premium features of the app."
+        }
+      ],
+      "versions": [
+        "2.25.8"
+      ],
+      "iconColor": "#FF1234",
       "iconUrl": ""
     },
     {
@@ -93297,12 +93633,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.55.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.57.0 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**iap:** v10 - minimal launchBillingFlow test"
+                "text": "**iap:** add launchBillingFlow interception on top of anti-tamper bypass"
               }
             ]
           },
@@ -93316,7 +93652,7 @@
           "patches": [
             {
               "name": "Shadow Fight 2 IAP Bypass (Smali)",
-              "description": "Bypasses in-app purchases via smali patching."
+              "description": "Bypasses anti-tamper + intercepts billing for free IAP."
             }
           ],
           "versions": [
@@ -93330,7 +93666,7 @@
       "patchDetails": [
         {
           "name": "Shadow Fight 2 IAP Bypass (Smali)",
-          "description": "Bypasses in-app purchases via smali patching."
+          "description": "Bypasses anti-tamper + intercepts billing for free IAP."
         }
       ],
       "versions": [
@@ -94670,12 +95006,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.55.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.57.0 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**iap:** v10 - minimal launchBillingFlow test"
+                "text": "**iap:** add launchBillingFlow interception on top of anti-tamper bypass"
               }
             ]
           },
@@ -95830,12 +96166,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/alan7383/sofatime-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/alan7383.png?size=96",
           "latestChanges": {
-            "title": "1.4.9 (2026-09-02)",
-            "date": "2026-09-02",
+            "title": "1.4.10 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Support SofaTime v1.3.1 (Fixes #10)"
+                "text": "Support SofaTime v1.3.3 (Fixes #11, Fixes #12)"
               }
             ]
           },
@@ -95874,7 +96210,9 @@
             "1.2.8",
             "1.2.9",
             "1.3.0",
-            "1.3.1"
+            "1.3.1",
+            "1.3.2",
+            "1.3.3"
           ]
         }
       ],
@@ -95912,7 +96250,9 @@
         "1.2.8",
         "1.2.9",
         "1.3.0",
-        "1.3.1"
+        "1.3.1",
+        "1.3.2",
+        "1.3.3"
       ],
       "iconColor": "#1E1E2E",
       "iconUrl": ""
@@ -96744,12 +97084,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.23.0 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Bump some apps (Lifesum/Lyfta/Yazio)"
+                "text": "Bump Lifesum and fix Lyfta patches"
               }
             ]
           },
@@ -99147,12 +99487,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -100594,18 +100934,18 @@
         }
       ],
       "patches": [
-        "Unlock premium",
         "Unlock Premium",
+        "Unlock premium",
         "Unlock Symfonium"
       ],
       "patchDetails": [
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all premium features."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Turns on Symfonium's paid features. The build ships as a public beta with a built-in trial, so this also prevents the expired-beta screen. The license is checked locally and the unlock does not require an account. Connecting Plex, Jellyfin and other media servers is untouched."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all premium features."
         },
         {
           "name": "Unlock Symfonium",
@@ -102046,12 +102386,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.12.13 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.12.14 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**wildberries:** support version 7.7.9003-rustore"
+                "text": "**tbank:** support version 8.2.3"
               }
             ]
           },
@@ -102077,7 +102417,8 @@
             "7.40.1",
             "8.0.0",
             "8.1.0",
-            "8.2.1"
+            "8.2.1",
+            "8.2.3"
           ]
         }
       ],
@@ -102100,7 +102441,8 @@
         "7.40.1",
         "8.0.0",
         "8.1.0",
-        "8.2.1"
+        "8.2.1",
+        "8.2.3"
       ],
       "iconColor": "#FFDD2D",
       "iconUrl": ""
@@ -105389,12 +105731,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.55.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.57.0 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**iap:** v10 - minimal launchBillingFlow test"
+                "text": "**iap:** add launchBillingFlow interception on top of anti-tamper bypass"
               }
             ]
           },
@@ -105914,6 +106256,64 @@
       ],
       "iconColor": "#1565C0",
       "iconUrl": "https://play-lh.googleusercontent.com/iXczZGftq8t6RNwWnyWAxaEFRv91QPHHq_uUAehvxsCA4fckus0kr90aqmAoXbjpVylSaBmVWN1zr2HLVJHCRXQ"
+    },
+    {
+      "packageName": "com.notch.touch",
+      "name": "Touch The Notch",
+      "repos": [
+        "Epxec/android-patches"
+      ],
+      "sources": [
+        {
+          "repo": "Epxec/android-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/Epxec/android-patches",
+          "addUrl": "https://morphe.software/add-source?github=Epxec/android-patches",
+          "source": "https://raw.githubusercontent.com/Epxec/android-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/Epxec/android-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/Epxec.png?size=96",
+          "latestChanges": {
+            "title": "1.1.0 (2026-09-10)",
+            "date": "2026-09-10",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "add \"Halo Reels Pro\" VIP patch"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-notch-touch-epxec-android-patches",
+            "releaseTag": "app-com-notch-touch-epxec-android-patches",
+            "assetName": "touch-the-notch-epxec-android-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Enable Premium",
+              "description": "Enables the premium features of the app."
+            }
+          ],
+          "versions": [
+            "2.1.7"
+          ]
+        }
+      ],
+      "patches": [
+        "Enable Premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Enable Premium",
+          "description": "Enables the premium features of the app."
+        }
+      ],
+      "versions": [
+        "2.1.7"
+      ],
+      "iconColor": "#FF0045",
+      "iconUrl": ""
     },
     {
       "packageName": "com.mindful.code.studio.toxly.scanner",
@@ -107414,8 +107814,8 @@
       ],
       "patches": [
         "Disable analytics",
-        "Disable Telemetry",
         "Disable telemetry",
+        "Disable Telemetry",
         "Disable update check",
         "Enable premium features",
         "GMS sign-in bypass",
@@ -107459,11 +107859,11 @@
           "description": "Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry."
         },
         {
-          "name": "Disable Telemetry",
+          "name": "Disable telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
-          "name": "Disable telemetry",
+          "name": "Disable Telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
@@ -108251,12 +108651,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -109796,12 +110196,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-09-06)",
-            "date": "2026-09-06",
+            "title": "1.3.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Strava - Add route export:** Patch additional methods"
+                "text": "**Google Photos:** Add version recommendation"
               }
             ]
           },
@@ -110233,8 +110633,8 @@
       "iconUrl": ""
     },
     {
-      "packageName": "com.vivaldi.browser.snapshot",
-      "name": "Vivaldi Browser Snapshot",
+      "packageName": "com.vivaldi.browser",
+      "name": "Vivaldi Browser - Fast & Safe",
       "repos": [
         "kveld9/kveld-morphe-patches"
       ],
@@ -110248,23 +110648,23 @@
           "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kveld9.png?size=96",
           "latestChanges": {
-            "title": "1.16.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.19.0 (2026-09-11)",
+            "date": "2026-09-11",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**docs:** fix Gboard Lite supported versions table formatting in README"
+                "category": "\u2728 New Features",
+                "text": "**hevy:** add pro unlock, telemetry blocking, and resource optimization patches"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "**gboard:** add armeabi-v7a and lite_release compatibility"
+                "text": "**shared:** promote locale slimmer to universal and add apk junk cleaner"
               }
             ]
           },
           "builder": {
-            "buildId": "com-vivaldi-browser-snapshot-kveld9-kveld-morphe-patches",
-            "releaseTag": "app-com-vivaldi-browser-snapshot-kveld9-kveld-morphe-patches",
-            "assetName": "vivaldi-browser-snapshot-kveld9-kveld-morphe-patches.apk",
+            "buildId": "com-vivaldi-browser-kveld9-kveld-morphe-patches",
+            "releaseTag": "app-com-vivaldi-browser-kveld9-kveld-morphe-patches",
+            "assetName": "vivaldi-browser-fast-and-safe-kveld9-kveld-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -110287,11 +110687,11 @@
             },
             {
               "name": "Disable Background Sync & Periodic Sync",
-              "description": "Eliminates background wakeups, radio modem activity, and battery drain by neutralizing periodic and one-shot background sync tasks."
+              "description": "Prevents Web Background Sync and Periodic Sync APIs from scheduling wakeups and background tasks in Android JobScheduler."
             },
             {
               "name": "Disable Battery Status API & OS Listener",
-              "description": "Neutralizes the Android BatteryStatusManager broadcast listener to prevent continuous OS battery wakeups."
+              "description": "Neutralizes the Battery Status API (navigator.getBattery) to prevent cross-site device fingerprinting and drops OS battery change broadcasts."
             },
             {
               "name": "Disable Chromium Tips & Notification Scheduler",
@@ -110302,16 +110702,8 @@
               "description": "Disables in-app donation prompts, search engine switch promos, rate-app popups, background privacy report alarms, and default browser promotional handlers."
             },
             {
-              "name": "DPI Resource Slimmer",
-              "description": "Strips unselected screen density resource directories from res/ (e.g. drawable-mdpi, drawable-hdpi, mipmap-xhdpi). Density-independent resources (nodpi, anydpi) and orphan resources are safely preserved."
-            },
-            {
               "name": "Locale PAK Slimmer",
               "description": "Strips unselected language resource PAKs from assets/locales/."
-            },
-            {
-              "name": "PNG Asset Optimizer",
-              "description": "Losslessly recompresses PNG assets with maximum zlib compression and strips non-rendering metadata chunks (pHYs, tEXt, tIME) while preserving 9-patch structures and pixel accuracy."
             },
             {
               "name": "Resource Slimmer",
@@ -110323,11 +110715,11 @@
             },
             {
               "name": "Vivaldi Startup Performance Optimization",
-              "description": "Optimizes cold startup time, eliminates background CPU/disk overhead, and guards against early CompositorView LayoutStateObserver crashes."
+              "description": "Guards against fatal CompositorView NullPointerException crashes on cold startup and bypasses carrier partner customizations."
             }
           ],
           "versions": [
-            "8.2.4147.50"
+            "8.2.4147.58"
           ]
         }
       ],
@@ -110340,9 +110732,7 @@
         "Disable Battery Status API & OS Listener",
         "Disable Chromium Tips & Notification Scheduler",
         "Disable Vivaldi Prompts & In-App Popups",
-        "DPI Resource Slimmer",
         "Locale PAK Slimmer",
-        "PNG Asset Optimizer",
         "Resource Slimmer",
         "Skip First Run",
         "Vivaldi Startup Performance Optimization"
@@ -110366,11 +110756,11 @@
         },
         {
           "name": "Disable Background Sync & Periodic Sync",
-          "description": "Eliminates background wakeups, radio modem activity, and battery drain by neutralizing periodic and one-shot background sync tasks."
+          "description": "Prevents Web Background Sync and Periodic Sync APIs from scheduling wakeups and background tasks in Android JobScheduler."
         },
         {
           "name": "Disable Battery Status API & OS Listener",
-          "description": "Neutralizes the Android BatteryStatusManager broadcast listener to prevent continuous OS battery wakeups."
+          "description": "Neutralizes the Battery Status API (navigator.getBattery) to prevent cross-site device fingerprinting and drops OS battery change broadcasts."
         },
         {
           "name": "Disable Chromium Tips & Notification Scheduler",
@@ -110381,16 +110771,8 @@
           "description": "Disables in-app donation prompts, search engine switch promos, rate-app popups, background privacy report alarms, and default browser promotional handlers."
         },
         {
-          "name": "DPI Resource Slimmer",
-          "description": "Strips unselected screen density resource directories from res/ (e.g. drawable-mdpi, drawable-hdpi, mipmap-xhdpi). Density-independent resources (nodpi, anydpi) and orphan resources are safely preserved."
-        },
-        {
           "name": "Locale PAK Slimmer",
           "description": "Strips unselected language resource PAKs from assets/locales/."
-        },
-        {
-          "name": "PNG Asset Optimizer",
-          "description": "Losslessly recompresses PNG assets with maximum zlib compression and strips non-rendering metadata chunks (pHYs, tEXt, tIME) while preserving 9-patch structures and pixel accuracy."
         },
         {
           "name": "Resource Slimmer",
@@ -110402,11 +110784,11 @@
         },
         {
           "name": "Vivaldi Startup Performance Optimization",
-          "description": "Optimizes cold startup time, eliminates background CPU/disk overhead, and guards against early CompositorView LayoutStateObserver crashes."
+          "description": "Guards against fatal CompositorView NullPointerException crashes on cold startup and bypasses carrier partner customizations."
         }
       ],
       "versions": [
-        "8.2.4147.50"
+        "8.2.4147.58"
       ],
       "iconColor": "#EF3939",
       "iconUrl": ""
@@ -112574,12 +112956,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.12.13 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.12.14 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**wildberries:** support version 7.7.9003-rustore"
+                "text": "**tbank:** support version 8.2.3"
               }
             ]
           },
@@ -114398,12 +114780,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.22.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.23.0 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Bump some apps (Lifesum/Lyfta/Yazio)"
+                "text": "Bump Lifesum and fix Lyfta patches"
               }
             ]
           },
@@ -115839,40 +116221,24 @@
           "changelogUrl": "https://raw.githubusercontent.com/sashade8-ship-it/dual-vot-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/sashade8-ship-it.png?size=96",
           "latestChanges": {
-            "title": "1.42.0-dualvot.8.4 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.42.0-dualvot.8.5.1 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
-                "category": "Yandex source-audio recovery",
-                "text": "Replace the obsolete standalone Android VR download with source audio from"
+                "category": "Compatibility hotfix",
+                "text": "Use the range-form invoke instruction for the Cronet engine hook so methods"
               },
               {
-                "category": "Yandex source-audio recovery",
-                "text": "YouTube's current player request stack and active media transport."
+                "category": "Compatibility hotfix",
+                "text": "returning registers above v15 patch without an invalid-register warning."
               },
               {
-                "category": "Yandex source-audio recovery",
-                "text": "Work with Spoof video streams both disabled and enabled by reusing a"
+                "category": "Compatibility hotfix",
+                "text": "Add the missing Russian translation for the message shown when Yandex voice"
               },
               {
-                "category": "Yandex source-audio recovery",
-                "text": "compatible cached response or requesting a fresh direct-DASH response."
-              },
-              {
-                "category": "Yandex source-audio recovery",
-                "text": "Prefer low-bitrate Opus and validate byte ranges, content lengths, part"
-              },
-              {
-                "category": "Yandex source-audio recovery",
-                "text": "ordering, bounded memory use, cancellation, and cleanup."
-              },
-              {
-                "category": "Multipart, proxy, and timing reliability",
-                "text": "Stream exact multipart uploads with visible N/M progress and separate"
-              },
-              {
-                "category": "Multipart, proxy, and timing reliability",
-                "text": "errors for acquisition, upload, Yandex processing, translated URL readiness,"
+                "category": "Compatibility hotfix",
+                "text": "translation is requested on a live stream."
               }
             ]
           },
@@ -116277,12 +116643,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/variablenine/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/variablenine.png?size=96",
           "latestChanges": {
-            "title": "1.4.2 (2026-09-07)",
-            "date": "2026-09-07",
+            "title": "1.4.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Only treat a post's own indicator as NSFW"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "Sync upstream Morphe patches v1.42.0"
               }
             ]
           },
@@ -116464,7 +116830,7 @@
             },
             {
               "name": "Hide player overlay buttons",
-              "description": "Adds options to hide the player Cast, Autoplay, Captions, Previous & Next buttons, and the player control buttons background."
+              "description": "Adds options to hide the player Cast, Autoplay, Captions, Previous & Next buttons, and to hide or change the opacity of the player control buttons background."
             },
             {
               "name": "Hide related video overlay",
@@ -116508,7 +116874,7 @@
             },
             {
               "name": "Network proxy",
-              "description": "Adds settings to route supported network requests through an HTTP or HTTPS proxy."
+              "description": "Adds settings to route supported network requests through an HTTP or HTTPS proxy. Including this patch may cause connectivity problems on certain devices"
             },
             {
               "name": "Open channel of live avatar",
@@ -116555,6 +116921,10 @@
               "description": "Adds an option to display reload video button in the video player."
             },
             {
+              "name": "Remember live stream playback position",
+              "description": "Adds an option to remember the playback position of an ongoing live stream and resume from there when reopening that live stream."
+            },
+            {
               "name": "Remove background playback restrictions",
               "description": "Removes restrictions on background playback, including playing kids videos in the background."
             },
@@ -116576,7 +116946,7 @@
             },
             {
               "name": "Seekbar",
-              "description": "Adds options to show old seekbar thumbnails, disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in livestreams, and expanding the livestream DVR duration."
+              "description": "Adds options to show old seekbar thumbnails, disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in live streams, and expanding the live stream DVR duration."
             },
             {
               "name": "Settings menu filter",
@@ -116626,12 +116996,11 @@
           "versions": [
             "20.21.37",
             "20.31.42",
-            "20.51.39",
-            "21.04.223",
             "21.07.247",
+            "21.13.164",
             "21.28.208",
-            "21.34.243",
-            "21.35.442"
+            "21.35.442",
+            "21.36.45"
           ]
         },
         {
@@ -117059,8 +117428,8 @@
         "Save to Watch later",
         "Seekbar",
         "Seekbar components",
-        "Set Transcript Cookies",
         "Set transcript cookies",
+        "Set Transcript Cookies",
         "Settings for YouTube",
         "Settings menu filter",
         "Shorts autoplay",
@@ -117550,11 +117919,11 @@
           "description": "Adds options to hide or change components related to the seekbar."
         },
         {
-          "name": "Set Transcript Cookies",
+          "name": "Set transcript cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
-          "name": "Set transcript cookies",
+          "name": "Set Transcript Cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
@@ -117687,7 +118056,6 @@
         "21.28.204",
         "21.28.208",
         "21.29.366",
-        "21.34.243",
         "21.35.442",
         "21.36.45"
       ],
@@ -118584,40 +118952,24 @@
           "changelogUrl": "https://raw.githubusercontent.com/sashade8-ship-it/dual-vot-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/sashade8-ship-it.png?size=96",
           "latestChanges": {
-            "title": "1.42.0-dualvot.8.4 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.42.0-dualvot.8.5.1 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
-                "category": "Yandex source-audio recovery",
-                "text": "Replace the obsolete standalone Android VR download with source audio from"
+                "category": "Compatibility hotfix",
+                "text": "Use the range-form invoke instruction for the Cronet engine hook so methods"
               },
               {
-                "category": "Yandex source-audio recovery",
-                "text": "YouTube's current player request stack and active media transport."
+                "category": "Compatibility hotfix",
+                "text": "returning registers above v15 patch without an invalid-register warning."
               },
               {
-                "category": "Yandex source-audio recovery",
-                "text": "Work with Spoof video streams both disabled and enabled by reusing a"
+                "category": "Compatibility hotfix",
+                "text": "Add the missing Russian translation for the message shown when Yandex voice"
               },
               {
-                "category": "Yandex source-audio recovery",
-                "text": "compatible cached response or requesting a fresh direct-DASH response."
-              },
-              {
-                "category": "Yandex source-audio recovery",
-                "text": "Prefer low-bitrate Opus and validate byte ranges, content lengths, part"
-              },
-              {
-                "category": "Yandex source-audio recovery",
-                "text": "ordering, bounded memory use, cancellation, and cleanup."
-              },
-              {
-                "category": "Multipart, proxy, and timing reliability",
-                "text": "Stream exact multipart uploads with visible N/M progress and separate"
-              },
-              {
-                "category": "Multipart, proxy, and timing reliability",
-                "text": "errors for acquisition, upload, Yandex processing, translated URL readiness,"
+                "category": "Compatibility hotfix",
+                "text": "translation is requested on a live stream."
               }
             ]
           },
@@ -118852,12 +119204,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/variablenine/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/variablenine.png?size=96",
           "latestChanges": {
-            "title": "1.4.2 (2026-09-07)",
-            "date": "2026-09-07",
+            "title": "1.4.3 (2026-09-10)",
+            "date": "2026-09-10",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Only treat a post's own indicator as NSFW"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "Sync upstream Morphe patches v1.42.0"
               }
             ]
           },
@@ -118975,7 +119327,7 @@
             },
             {
               "name": "Network proxy",
-              "description": "Adds settings to route supported network requests through an HTTP or HTTPS proxy."
+              "description": "Adds settings to route supported network requests through an HTTP or HTTPS proxy. Including this patch may cause connectivity problems on certain devices"
             },
             {
               "name": "Play albums songs",
@@ -119040,9 +119392,9 @@
           ],
           "versions": [
             "9.15.51",
-            "9.32.51",
             "9.33.52",
-            "9.34.52"
+            "9.34.52",
+            "9.35.54"
           ]
         },
         {
@@ -119675,7 +120027,6 @@
         "9.25.50",
         "9.26.51",
         "9.28.51",
-        "9.32.51",
         "9.33.52",
         "9.34.52",
         "9.35.54"
@@ -121303,12 +121654,12 @@
       "avatarUrl": "https://github.com/kondratjev.png?size=96",
       "patchCount": 3,
       "latestChanges": {
-        "title": "1.22.0 (2026-09-09)",
-        "date": "2026-09-09",
+        "title": "1.23.0 (2026-09-10)",
+        "date": "2026-09-10",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "Bump some apps (Lifesum/Lyfta/Yazio)"
+            "text": "Bump Lifesum and fix Lyfta patches"
           }
         ]
       },
@@ -121326,6 +121677,52 @@
         {
           "name": "Disable Pairip license check",
           "description": "Disables the Pairip license verification check.",
+          "default": false
+        }
+      ]
+    },
+    {
+      "repo": "kveld9/kveld-morphe-patches",
+      "host": "github.com",
+      "webUrl": "https://github.com/kveld9/kveld-morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=kveld9/kveld-morphe-patches",
+      "source": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/patches-bundle.json",
+      "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
+      "avatarUrl": "https://github.com/kveld9.png?size=96",
+      "patchCount": 4,
+      "latestChanges": {
+        "title": "1.19.0 (2026-09-11)",
+        "date": "2026-09-11",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "**hevy:** add pro unlock, telemetry blocking, and resource optimization patches"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**shared:** promote locale slimmer to universal and add apk junk cleaner"
+          }
+        ]
+      },
+      "patches": [
+        {
+          "name": "APK Junk Cleaner",
+          "description": "Strips non-functional build metadata, compiler properties, Kotlin coroutines debug tables, and duplicate license texts from META-INF and APK root.",
+          "default": false
+        },
+        {
+          "name": "DPI Resource Slimmer",
+          "description": "Strips unselected screen density resource directories from res/ (e.g. drawable-mdpi, drawable-hdpi, mipmap-xhdpi). Density-independent resources (nodpi, anydpi) and orphan resources are safely preserved.",
+          "default": false
+        },
+        {
+          "name": "Locale Resource Slimmer",
+          "description": "Strips unselected language translation directories from res/ (e.g. values-*, raw-*, xml-*). Base fallback resources with no language qualifiers are always preserved.",
+          "default": false
+        },
+        {
+          "name": "PNG Asset Optimizer",
+          "description": "Losslessly recompresses PNG assets with maximum zlib compression and strips non-rendering metadata chunks (pHYs, tEXt, tIME) while preserving 9-patch structures and pixel accuracy.",
           "default": false
         }
       ]
@@ -123316,12 +123713,12 @@
       "avatarUrl": "https://github.com/RookieEnough.png?size=96",
       "patchCount": 1,
       "latestChanges": {
-        "title": "1.3.2 (2026-09-06)",
-        "date": "2026-09-06",
+        "title": "1.3.3 (2026-09-10)",
+        "date": "2026-09-10",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**Strava - Add route export:** Patch additional methods"
+            "text": "**Google Photos:** Add version recommendation"
           }
         ]
       },
@@ -123609,40 +124006,24 @@
       "avatarUrl": "https://github.com/sashade8-ship-it.png?size=96",
       "patchCount": 4,
       "latestChanges": {
-        "title": "1.42.0-dualvot.8.4 (2026-09-09)",
-        "date": "2026-09-09",
+        "title": "1.42.0-dualvot.8.5.1 (2026-09-10)",
+        "date": "2026-09-10",
         "items": [
           {
-            "category": "Yandex source-audio recovery",
-            "text": "Replace the obsolete standalone Android VR download with source audio from"
+            "category": "Compatibility hotfix",
+            "text": "Use the range-form invoke instruction for the Cronet engine hook so methods"
           },
           {
-            "category": "Yandex source-audio recovery",
-            "text": "YouTube's current player request stack and active media transport."
+            "category": "Compatibility hotfix",
+            "text": "returning registers above v15 patch without an invalid-register warning."
           },
           {
-            "category": "Yandex source-audio recovery",
-            "text": "Work with Spoof video streams both disabled and enabled by reusing a"
+            "category": "Compatibility hotfix",
+            "text": "Add the missing Russian translation for the message shown when Yandex voice"
           },
           {
-            "category": "Yandex source-audio recovery",
-            "text": "compatible cached response or requesting a fresh direct-DASH response."
-          },
-          {
-            "category": "Yandex source-audio recovery",
-            "text": "Prefer low-bitrate Opus and validate byte ranges, content lengths, part"
-          },
-          {
-            "category": "Yandex source-audio recovery",
-            "text": "ordering, bounded memory use, cancellation, and cleanup."
-          },
-          {
-            "category": "Multipart, proxy, and timing reliability",
-            "text": "Stream exact multipart uploads with visible N/M progress and separate"
-          },
-          {
-            "category": "Multipart, proxy, and timing reliability",
-            "text": "errors for acquisition, upload, Yandex processing, translated URL readiness,"
+            "category": "Compatibility hotfix",
+            "text": "translation is requested on a live stream."
           }
         ]
       },
@@ -123721,12 +124102,12 @@
       "avatarUrl": "https://github.com/variablenine.png?size=96",
       "patchCount": 4,
       "latestChanges": {
-        "title": "1.4.2 (2026-09-07)",
-        "date": "2026-09-07",
+        "title": "1.4.3 (2026-09-10)",
+        "date": "2026-09-10",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Only treat a post's own indicator as NSFW"
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "Sync upstream Morphe patches v1.42.0"
           }
         ]
       },
@@ -124098,12 +124479,12 @@
       "avatarUrl": "https://github.com/xob0t.png?size=96",
       "patchCount": 13,
       "latestChanges": {
-        "title": "1.12.13 (2026-09-09)",
-        "date": "2026-09-09",
+        "title": "1.12.14 (2026-09-10)",
+        "date": "2026-09-10",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**wildberries:** support version 7.7.9003-rustore"
+            "text": "**tbank:** support version 8.2.3"
           }
         ]
       },
@@ -124212,20 +124593,12 @@
       "avatarUrl": "https://github.com/Zanuaimi.png?size=96",
       "patchCount": 8,
       "latestChanges": {
-        "title": "1.12.0 (2026-09-09)",
-        "date": "2026-09-09",
+        "title": "1.17.1 (2026-09-10)",
+        "date": "2026-09-10",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "**overlay:** refine configuration and preset behavior"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**overlay:** strengthen shared runtime module lifecycle"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**patches:** improve compatibility and user-facing controls"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**overlay:** update version to v2.4.0"
           }
         ]
       },
@@ -124241,8 +124614,8 @@
           "default": false
         },
         {
-          "name": "Control App Ads Patch (Experimental, Enhanced)",
-          "description": "A merged ad-control patch based on Nai64's No Ads and Ads Free Rewards patches, plus\nliteral-host blocking inspired by Entree and Adobo. Block common ad formats, choose the\nSDKs to target, optionally grant ad rewards without an ad, and redirect matching literal\nad/tracker hosts embedded in the APK.\n\nHost filters are small embedded subsets inspired by uBlock Origin, EasyList, AdGuard,\nOISD, HaGeZi Pro mini, Privacy Essentials, EasyPrivacy, and Peter Lowe's list; they are\nnot downloaded full subscriptions. Each filter is independently toggleable. They only\naffect hosts stored as literal strings by the app; they cannot block dynamically generated\nhosts, encrypted traffic, or requests made entirely inside Google Play services.\n\nCompatibility: when combined with Disable Forced Online Checks, keep that patch's \u201cExclude\nad SDK and networking code\u201d option enabled; otherwise blocked ad hosts may be treated as\nonline and retried. PairIP Firebase cleanup/removal can disable Firebase-backed reward,\nsign-in, billing, and attribution flows, which this patch cannot restore.\n\nOptional overlay integration is opt-in. To use it, patch Control App Ads together with\nUniversal Overlay or an app-specific overlay, enable \u201cOverlay integration > Runtime policy\u201d,\nand enable one or more modules below it. The selected modules then appear under \u201cAd control\nhook modules\u201d in the overlay; their initial values copy this patch's settings. If no overlay\npatch is selected, the normal static ad controls still work but there is no runtime menu.\nRuntime changes last for the current app process and affect only methods and literal hosts\nsuccessfully instrumented by this patch. Its policy is attached to the selected overlay's\nown startup bridge, including a manual Activity override; it does not independently choose\nan Application or Activity. Native, dynamically generated, unsupported, or unrecognized\nSDK paths remain unchanged.\n\nCredits: Nai64Patches from Nai64; host-blocking approach inspired by Entree and Adobo.",
+          "name": "Configure App Ads Patch ( Experimental, Enhanced, Has Overlay Addon )",
+          "description": "A merged ad-control patch based on Nai64's No Ads and Ads Free Rewards patches, plus\nliteral-host blocking inspired by Entree and Adobo. Block common ad formats, choose the\nSDKs to target, optionally grant ad rewards without an ad, and redirect matching literal\nad/tracker hosts embedded in the APK.\n\nHost filters are small embedded subsets inspired by uBlock Origin, EasyList, AdGuard,\nOISD, HaGeZi Pro mini, Privacy Essentials, EasyPrivacy, and Peter Lowe's list; they are\nnot downloaded full subscriptions. Each filter is independently toggleable. They only\naffect hosts stored as literal strings by the app; they cannot block dynamically generated\nhosts, encrypted traffic, or requests made entirely inside Google Play services.\n\nCompatibility: when combined with Disable Forced Online Checks, keep that patch's \u201cExclude\nad SDK and networking code\u201d option enabled; otherwise blocked ad hosts may be treated as\nonline and retried. PairIP Firebase cleanup/removal can disable Firebase-backed reward,\nsign-in, billing, and attribution flows, which this patch cannot restore.\n\nThis patch includes an optional Universal Overlay addon. To use the addon, patch Configure App Ads\ntogether with Universal Overlay, enable \u201cOverlay integration >\nEnable runtime controls\u201d, and select one or more of its three overlay addon modules:\n\u201cBlock Ads\u201d, \u201cRewards without ads\u201d, and \u201cBlock ad/tracking hosts\u201d. The selected modules\nappear under \u201cAd control hook modules\u201d in Universal Overlay, with initial values copied\nfrom this patch's ad settings. Universal Overlay is required for the runtime policy to be\ninstalled; if it is not selected, the normal static ad controls still work but these\nruntime addon modules are not available.\nRuntime changes last for the current app process and affect only methods and literal hosts\nsuccessfully instrumented by this patch. Its policy is attached to the selected overlay's\nown startup bridge, including a manual Activity override; it does not independently choose\nan Application or Activity. Native, dynamically generated, unsupported, or unrecognized\nSDK paths remain unchanged.\n\nCredits: Nai64Patches from Nai64; host-blocking approach inspired by Entree and Adobo.",
           "default": false
         },
         {
@@ -124266,14 +124639,71 @@
           "default": false
         },
         {
-          "name": "UniPatches Universal Overlay Patch v2.1 (Experimental)",
-          "description": "A customizable in-app overlay for Android apps and games. For a quick first build: choose a visual\npreset, select the overlay modules you want, optionally supply an icon image, then patch. Modules\nare excluded and disabled by default. Monitor modules show information, Activity modules control\nthe current Activity, and Hook modules make best-effort changes to app behavior. Text is the\ndefault legacy icon; an optional image replaces it completely, while the advanced Multi-parts editor\nsupports custom drawn icons. This is experimental\nand may not work on all apps. UI presets can save and reuse supported appearance and advanced icon\nsettings. The title, description, repository button text, and repository button URL remain\ncontrolled by the visible Morphe settings. Module selections and module behavior are excluded\nbecause hook and module combinations can be app-specific. If Control App Ads is patched\nwith its optional runtime policy enabled, its selected ad-control modules appear here\nautomatically; Universal Overlay does not patch ad SDKs by itself. When both patches are\nselected, Control App Ads attaches its runtime policy to this overlay's exact startup bridge,\nincluding an explicit Activity override, instead of selecting a separate Activity.\n\nAttribution: the idea and initial work for this Universal Overlay Patch are from Zanuaimi / Noobite.",
+          "name": "UniPatches Universal Overlay Patch v2.4.0 (Experimental)",
+          "description": "A customizable in-app overlay for Android apps and games. For a quick first build: choose a visual\npreset, select the overlay modules you want, optionally supply an icon image, then patch. Modules\nare excluded and disabled by default. Monitor modules show information, Activity modules control\nthe current Activity, and Hook modules make best-effort changes to app behavior. Text is the\ndefault legacy icon; an optional image replaces it completely, while the advanced Multi-parts editor\nsupports custom drawn icons, and can be conveniently made in Icon Builder local website in UniPatches repo.\n\nThis is an experimental patch and may not work on all apps. UI presets can save and reuse supported appearance and advanced icon\nsettings. The title, description, repository button text, and repository button URL remain\ncontrolled by the visible Morphe settings. Module selections and module behavior are excluded\nbecause hook and module combinations can be app-specific. \n\nIf Control App Ads is patched with its optional runtime policy enabled, its selected ad-control modules appear here\nautomatically; Universal Overlay does not patch ad SDKs by itself. When both patches are\nselected, Control App Ads attaches its runtime policy to this overlay's exact startup bridge,\nincluding an explicit Activity override, instead of selecting a separate Activity.\n\nAttribution: The idea and initial works of Universal Overlay Patch are from Zanuaimi / Noobite.",
           "default": false
         }
       ]
     }
   ],
   "recentSources": [
+    {
+      "name": "android-patches",
+      "repo": "Epxec/android-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/Epxec/android-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/Epxec/android-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/Epxec/android-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/Epxec/android-patches",
+      "addUrl": "https://morphe.software/add-source?github=Epxec/android-patches",
+      "avatarUrl": "https://github.com/Epxec.png?size=96",
+      "patchCount": 4,
+      "appCount": 4,
+      "createdAt": 1789096296529,
+      "updatedAt": 1789096296529,
+      "createdDate": "2026-09-11",
+      "updatedDate": "2026-09-11",
+      "latestChanges": {
+        "title": "1.1.0 (2026-09-10)",
+        "date": "2026-09-10",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "add \"Halo Reels Pro\" VIP patch"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Decompile",
+          "packageName": "com.apktools.app.decompile",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF1234"
+        },
+        {
+          "name": "Halo Reels Pro",
+          "packageName": "com.halo.reels.movie.fast.pro",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF1234"
+        },
+        {
+          "name": "Remindio",
+          "packageName": "dmytro.palamarchuk.dailyreminder",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF1234"
+        },
+        {
+          "name": "Touch The Notch",
+          "packageName": "com.notch.touch",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF0045"
+        }
+      ]
+    },
     {
       "name": "CrimeRadar-Morphe-Patches",
       "repo": "JacobPlaysGames/CrimeRadar-Morphe-Patches",
@@ -127974,47 +128404,47 @@
       "webUrl": "https://github.com/SysAdminDoc/hushfeed",
       "addUrl": "https://morphe.software/add-source?github=SysAdminDoc/hushfeed",
       "avatarUrl": "https://github.com/SysAdminDoc.png?size=96",
-      "patchCount": 70,
+      "patchCount": 71,
       "appCount": 1,
       "createdAt": 1788750210347,
       "updatedAt": 1788750210347,
       "createdDate": "2026-09-07",
       "updatedDate": "2026-09-07",
       "latestChanges": {
-        "title": "Unreleased",
+        "title": "0.30.0",
         "date": "",
         "items": [
           {
             "category": "",
-            "text": "The comment-sort description now explains that media and creator filters depend on the post's native availability flags. Device checks confirmed those optional categories and preserved the stock menu after disabling the switch."
+            "text": "Fit the video to the screen now works on the For You feed. The feed cell never sized its video through the method the patch hooked; it hands the size to a helper of its own, and that helper is what the patch reaches now, on every build seen. A fitted video is handed back as a copy of TikTok's own answer, so the size the feed applies and the size it checks against are the same one. The story cell's own path is still covered, and the copy it keeps is looked up by the object rather than by its numbers, which a size change had moved out from under."
           },
           {
             "category": "",
-            "text": "Profile-picture saving now handles the current profile header and resolves the picture from the pressed component. Story long presses reach the native child that consumes the gesture and save its current story, even when the outer view holds a collection. Turning either option off keeps the native gesture."
+            "text": "Fit the video to the screen no longer writes a size of nothing into a story when it can't read the video's size. On every path where it has nothing to fit, it leaves TikTok's own numbers alone, the way it did before the feed rework. The patch also refuses a build where either feed helper it hooks has a twin, instead of hooking whichever one it met first, and checks the size getters and the copy method the feed path relies on before it writes anything. With the switch off, the feed skips the size lookups altogether."
           },
           {
             "category": "",
-            "text": "Comment search now hides reply controls with their nonmatching parent comments. Clearing search restores the rows. Turning search off also releases its saved heights and visibility during native rebinding, with either comment-blocking setting, while preserving rows TikTok hid itself."
+            "text": "Anchors that find a setting behind a lazily read value no longer skip a class that carries two methods of the shape they were looking for. Before, such a class was passed over as if it read some other key, and the failure said no class read the key at all. The walk through R8's merged lambda groups also follows entry points that take an argument, reads every no-argument method of a lambda class rather than the first, takes the constant from the register the factory call actually reads, and answers only from the switch that opens the dispatcher."
           },
           {
             "category": "",
-            "text": "Follow readback now recognizes the modern profile response and keeps each relationship state with its own account identity. A reported zero remains zero; conflicting states stay unclear. Diagnostics can report a mismatch after an accepted follow without guessing its cause."
+            "text": "A settings journal that can't be read or applied is set aside instead of being left in place. Left there, every later settings change, Undo and Restore included, was refused with a notice telling you to use Undo or Restore. The notice now says what happened. The lock that guards the journal is also released through a finally block, so an out-of-memory error during recovery can't leave every later change waiting forever."
           },
           {
             "category": "",
-            "text": "Daily-budget holds pause the current native player and resume only the player they held, while its feed is visible and audio focus permits playback. Holds survive settings returns and activity recreation. Their lower edge follows the actual tab row, including the system navigation gap, so Home and messages remain tappable."
+            "text": "Twelve toasts and one dialog in the Feature Gate Lab and the diagnostics export reached the reader in English on a translated phone, several of them branded for the shared library rather than for Hushfeed, and two carried an exception's own text. All of them go through the translation table now. The Undo entry says there is nothing to undo instead of showing the path of a file that doesn't exist, and an import that accepted nothing no longer offers an Undo that would revert the previous Lab change."
           },
           {
             "category": "",
-            "text": "Enabling the block or Not interested button now attaches it to the current creator immediately. Disabling the last button removes the controls. A daily-budget hold keeps those controls hidden while the feed is covered."
+            "text": "The creator list dialog saves a handle that was typed into the box and never added with the button. It was dropped without a word."
           },
           {
             "category": "",
-            "text": "The phone helper rejects a log query without its required filter. That usage error no longer exits successfully after printing an error."
+            "text": "The free-space check before a save no longer stands down when the destination folder doesn't exist yet, which is exactly the first save into it. A crash report cut at the size ceiling now says so, at the top as well as where it stops, and is cut on a character boundary rather than in the middle of one. Converting a sticker to GIF checks the job's deadline once per frame, while it decodes and again while it encodes, the way the MP4 path does, so a small canvas with tens of thousands of frames can't hold a media worker for good. A muxer that fails mid-copy no longer replaces the real error with its own complaint on release."
           },
           {
             "category": "",
-            "text": "The phone helper reports failed activity, log and frame-stat queries instead of hiding their exit status behind output filters. A screenshot no longer claims success when its foreground check fails."
+            "text": "A log message that fails while being built, or a log line that can't be written, no longer throws out of the hook that was logging, into TikTok. The follow diagnostics path looks up the request's path through the cached reflection helper rather than an uncached lookup on every network request."
           }
         ]
       },
@@ -128022,7 +128452,7 @@
         {
           "name": "com.zhiliaoapp.musically",
           "packageName": "com.zhiliaoapp.musically",
-          "patchCount": 70,
+          "patchCount": 71,
           "iconUrl": "https://play-lh.googleusercontent.com/2o7iuqPe-0msP3DvNhzoOgNo4eZ6GkL_RtGVeKyBn5UBQAW5cw-GW5V3wDOHB1yTQuqWzrFLFOv2u4_5ea1uhg",
           "iconColor": ""
         }
@@ -128120,42 +128550,6 @@
           "patchCount": 6,
           "iconUrl": "",
           "iconColor": ""
-        }
-      ]
-    },
-    {
-      "name": "supreme-patches",
-      "repo": "drnhzn/supreme-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/drnhzn/supreme-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/drnhzn/supreme-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/drnhzn/supreme-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/drnhzn/supreme-patches",
-      "addUrl": "https://morphe.software/add-source?github=drnhzn/supreme-patches",
-      "avatarUrl": "https://github.com/drnhzn.png?size=96",
-      "patchCount": 1,
-      "appCount": 1,
-      "createdAt": 1788578448342,
-      "updatedAt": 1788578448342,
-      "createdDate": "2026-09-05",
-      "updatedDate": "2026-09-05",
-      "latestChanges": {
-        "title": "1.0.0 (2026-08-20)",
-        "date": "2026-08-20",
-        "items": [
-          {
-            "category": "\u2728 New Features",
-            "text": "Add Reclub unlock premium patch"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "Reclub",
-          "packageName": "co.reclub",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#00B894"
         }
       ]
     }

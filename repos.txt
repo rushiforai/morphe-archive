@@ -17,6 +17,7 @@ DarioDKM/ringconn-patches
 Dr4w/morphe-patches
 Educal72/educal-patches
 Entree3k/Morning-Entree-Patches
+Epxec/android-patches
 FoxxoOwO/foxxo-patches
 Freeman022026/rustore-privacy-patches
 GoldRift/morphe-patches
@@ -101,6 +102,7 @@ ang3lo-azevedo/morphe-patches
 anxyis/anxy-patches
 arandomhooman/hoomans-morphe-patches
 archie9211/morphe-patches
+areteruhiro/Haiagaru-Morphe
 ariecos/gemini-patches
 arunpdl/morphe-patches
 babyhuehnchen/morphe-patches

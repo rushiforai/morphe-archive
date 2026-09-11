@@ -1681,6 +1681,22 @@
                 "sortOrder": 219,
                 "createdAt": 1788923769963,
                 "updatedAt": 1788923769963
+            },
+            {
+                "name": "android-patches",
+                "source": "https://raw.githubusercontent.com/Epxec/android-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 220,
+                "createdAt": 1789096296529,
+                "updatedAt": 1789096296529
+            },
+            {
+                "name": "Haiagaru-Morphe",
+                "source": "https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 221,
+                "createdAt": 1789096297956,
+                "updatedAt": 1789096297956
             }
         ]
     }
