@@ -11,6 +11,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import patches.universal.ads.util.findMutableMethodOf
 import java.util.logging.Logger
 
 @Suppress("unused")
@@ -19,6 +20,9 @@ val spoofBatteryLevelPatch = bytecodePatch(
     description = "Fakes the battery level.",
     default = false,
 ) {
+    // Guarded: morphe-patcher < 1.13.0 has no category() and the bundle
+    // must still load there (ungrouped) instead of dying on linkage.
+    try { category("Spoof") } catch (_: NoSuchMethodError) {}
     val level by intOption(
         title = "Battery level (%)",
         default = 100,
@@ -31,8 +35,9 @@ val spoofBatteryLevelPatch = bytecodePatch(
         val target = (level ?: 100).coerceIn(0, 100)
         var patched = 0
         classDefForEach { classDef ->
-            val mutableClass = mutableClassDefBy(classDef)
-            for (method in mutableClass.methods) {
+            val mutableClass by lazy { mutableClassDefBy(classDef) }
+            for (method in classDef.methods) {
+                val mutableMethod by lazy { mutableClass.findMutableMethodOf(method) }
                 val implementation = method.implementation ?: continue
                 // Snapshot; one-for-one replacements keep indices valid.
                 val instructions: List<Instruction> = implementation.instructions.toList()
@@ -77,8 +82,8 @@ val spoofBatteryLevelPatch = bytecodePatch(
                         }
                         // For values > 7 const/4 insufficient; use const/16 path above
                         val insn = if (target in -8..7) const else "const/16 v$resultRegister, $target"
-                        method.replaceInstruction(index, insn)
-                        method.replaceInstruction(index + 1, "nop")
+                        mutableMethod.replaceInstruction(index, insn)
+                        mutableMethod.replaceInstruction(index + 1, "nop")
                         patched++
                     }
                 }

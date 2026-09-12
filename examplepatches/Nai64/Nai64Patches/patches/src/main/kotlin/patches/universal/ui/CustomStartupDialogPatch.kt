@@ -10,6 +10,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
 import patches.universal.ads.util.cloneMutable
+import patches.universal.ads.util.findMutableMethodOf
 import patches.universal.ads.util.p0Register
 import java.util.logging.Logger
 
@@ -19,6 +20,9 @@ val customStartupDialogPatch = bytecodePatch(
     description = "Shows a customizable dialog once when the app is opened",
     default = false,
 ) {
+    // Guarded: morphe-patcher < 1.13.0 has no category() and the bundle
+    // must still load there (ungrouped) instead of dying on linkage.
+    try { category("Interface") } catch (_: NoSuchMethodError) {}
     dependsOn(StartupHooks.resolveRealApplicationPatch)
 
     val title by stringOption(
@@ -100,12 +104,13 @@ val customStartupDialogPatch = bytecodePatch(
         val candidates = mutableListOf<Pair<MutableClass, MutableMethod>>()
         classDefForEach { classDef ->
             if (!isActivity(classDef.type)) return@classDefForEach
-            val mutableClass = mutableClassDefBy(classDef)
-            val onCreate = mutableClass.methods.firstOrNull {
+            val onCreate = classDef.methods.firstOrNull {
                 it.name == "onCreate" && it.returnType == "V" &&
                     it.parameterTypes == listOf("Landroid/os/Bundle;")
             } ?: return@classDefForEach
-            candidates.add(mutableClass to onCreate)
+            val mutableClass = mutableClassDefBy(classDef)
+            val mutableOnCreate = mutableClass.findMutableMethodOf(onCreate)
+            candidates.add(mutableClass to mutableOnCreate)
         }
 
         // Skip the launcher activity only when the app has more than one

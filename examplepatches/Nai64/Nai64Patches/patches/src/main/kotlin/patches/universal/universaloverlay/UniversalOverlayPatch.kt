@@ -167,6 +167,9 @@ val universalOverlayPatch = bytecodePatch(
     """.trimIndent(),
     default = false,
 ) {
+    // Guarded: morphe-patcher < 1.13.0 has no category() and the bundle
+    // must still load there (ungrouped) instead of dying on linkage.
+    try { category("Misc") } catch (_: NoSuchMethodError) {}
     // Keep the extension DEX as the runtime boundary; generated Smali should only start it and
     // must not contain overlay UI or feature implementation.
     extendWith("extensions/extension.mpe")
@@ -599,9 +602,8 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.findFallbackActivity()
     val candidates = mutableListOf<MutableClass>()
     classDefForEach { classDef ->
         if (!isActivity(classDef.type)) return@classDefForEach
-        val candidate = mutableClassDefBy(classDef)
-        if (candidate.methods.any { it.name == "onCreate" && it.returnType == "V" && it.parameterTypes == listOf("Landroid/os/Bundle;") }) {
-            candidates += candidate
+        if (classDef.methods.any { it.name == "onCreate" && it.returnType == "V" && it.parameterTypes == listOf("Landroid/os/Bundle;") }) {
+            candidates += mutableClassDefBy(classDef)
         }
     }
     return candidates.firstOrNull { it.type == override } ?: candidates.firstOrNull()

@@ -8,6 +8,9 @@ repos:
         args: [--assume-in-merge]
       - id: mixed-line-ending
         args: [--fix=no]
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-json
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: 745eface02aef23e168a8afb6b5737818efbea95 # v0.11.0.1
@@ -26,3 +29,9 @@ repos:
     rev: 914e7df21a07ef503a81201c76d2b11c789d3fca # v1.7.12
     hooks:
       - id: actionlint
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: 36243b70e5ce219623c3503f5afba0f8c96fda55 # v0.14.9
+    hooks:
+      - id: ruff-check
+      - id: ruff-format

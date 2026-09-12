@@ -1,6 +1,63 @@
 {
-    "version": "v1.16.0",
+    "version": "v1.18.0",
     "patches": [
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#30E66D",
+                    "name": "MovieBox",
+                    "packageName": "com.community.oneroom",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "minSdk": 29,
+                            "version": "4.0.02.0828.03",
+                            "versionCodes": {
+                                "ARM64_V8A": 50020125,
+                                "ARMEABI_V7A": 50020125,
+                                "X86": 50020125,
+                                "X86_64": 50020125
+                            }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 29,
+                            "version": "4.0.02.0831.03",
+                            "versionCodes": {
+                                "ARM64_V8A": 50020126,
+                                "ARMEABI_V7A": 50020126,
+                                "X86": 50020126,
+                                "X86_64": 50020126
+                            }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 29,
+                            "version": "4.0.02.0903.02",
+                            "versionCodes": {
+                                "ARM64_V8A": 50020128,
+                                "ARMEABI_V7A": 50020128,
+                                "X86": 50020128,
+                                "X86_64": 50020128
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "4.0.02.0828.03",
+                        "4.0.02.0831.03",
+                        "4.0.02.0903.02"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [
+                "ResourcePatch"
+            ],
+            "description": "Enables video playback and downloads, removes ads and upsell prompts, and bypasses the region block. Requires Android 10 or later.",
+            "name": "All-In-One",
+            "options": []
+        },
         {
             "compatiblePackages": [
                 {
@@ -66,8 +123,19 @@
                     "packageName": "ai.perplexity.app.android",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "minSdk": 32,
+                            "version": "2.95.0",
+                            "versionCodes": {
+                                "ARM64_V8A": 260642,
+                                "ARMEABI_V7A": 260642,
+                                "X86": 260642,
+                                "X86_64": 260642
+                            }
                         }
+                    ],
+                    "versions": [
+                        "2.95.0"
                     ]
                 }
             ],
@@ -137,8 +205,19 @@
                     "packageName": "com.michaldrabik.showly2",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "minSdk": 23,
+                            "version": "3.70.0",
+                            "versionCodes": {
+                                "ARM64_V8A": 840,
+                                "ARMEABI_V7A": 840,
+                                "X86": 840,
+                                "X86_64": 840
+                            }
                         }
+                    ],
+                    "versions": [
+                        "3.70.0"
                     ]
                 }
             ],
@@ -146,6 +225,75 @@
             "dependencies": [],
             "description": "Replaces the dark theme background with pure black.",
             "name": "AMOLED dark theme",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#1AACAC",
+                    "name": "DWG FastView",
+                    "packageName": "com.gstarmc.android",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "minSdk": 26,
+                            "version": "5.19.4",
+                            "versionCodes": {
+                                "ARM64_V8A": 614,
+                                "ARMEABI_V7A": 614,
+                                "X86": 614,
+                                "X86_64": 614
+                            }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 26,
+                            "version": "5.19.6",
+                            "versionCodes": {
+                                "ARM64_V8A": 616,
+                                "ARMEABI_V7A": 616,
+                                "X86": 616,
+                                "X86_64": 616
+                            }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 26,
+                            "version": "5.20.0",
+                            "versionCodes": {
+                                "ARM64_V8A": 620,
+                                "ARMEABI_V7A": 620,
+                                "X86": 620,
+                                "X86_64": 620
+                            }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 26,
+                            "version": "5.21.0",
+                            "versionCodes": {
+                                "ARM64_V8A": 630,
+                                "ARMEABI_V7A": 630,
+                                "X86": 630,
+                                "X86_64": 630
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "5.19.4",
+                        "5.19.6",
+                        "5.20.0",
+                        "5.21.0"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [
+                "RawResourcePatch"
+            ],
+            "description": "Blocks the Umeng, ByteDance and ad network analytics endpoints.",
+            "name": "Block telemetry",
             "options": []
         },
         {
@@ -186,14 +334,68 @@
         {
             "compatiblePackages": [
                 {
+                    "apkFileType": "APKS",
+                    "appIconColor": "#8E58FF",
+                    "name": "RISE Sleep Tracker",
+                    "packageName": "com.risesci.nyx",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "minSdk": 26,
+                            "version": "Android V1.78.49"
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 26,
+                            "version": "Android V1.78.47"
+                        }
+                    ],
+                    "versions": [
+                        "Android V1.78.49",
+                        "Android V1.78.47"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Stops crash and error reports from reaching Sentry.",
+            "name": "Disable telemetry",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
                     "apkFileType": "APK",
                     "appIconColor": "#F08029",
                     "name": "Projectivy Launcher",
                     "packageName": "com.spocky.projengmenu",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "minSdk": 23,
+                            "version": "4.71",
+                            "versionCodes": {
+                                "ARM64_V8A": 95,
+                                "ARMEABI_V7A": 95,
+                                "X86": 95,
+                                "X86_64": 95
+                            }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 23,
+                            "version": "4.70",
+                            "versionCodes": {
+                                "ARM64_V8A": 92,
+                                "ARMEABI_V7A": 92,
+                                "X86": 92,
+                                "X86_64": 92
+                            }
                         }
+                    ],
+                    "versions": [
+                        "4.71",
+                        "4.70"
                     ]
                 }
             ],
@@ -201,6 +403,37 @@
             "dependencies": [],
             "description": "Disables analytics and crash reporting.",
             "name": "Disable tracking",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKS",
+                    "appIconColor": "#8E58FF",
+                    "name": "RISE Sleep Tracker",
+                    "packageName": "com.risesci.nyx",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "minSdk": 26,
+                            "version": "Android V1.78.49"
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 26,
+                            "version": "Android V1.78.47"
+                        }
+                    ],
+                    "versions": [
+                        "Android V1.78.49",
+                        "Android V1.78.47"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Stops app usage events from being uploaded. Local usage tracking remains enabled.",
+            "name": "Disable usage tracking",
             "options": []
         },
         {
@@ -375,8 +608,19 @@
                     "packageName": "com.audible.application",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "version": "26.30.05",
+                            "versionCodes": {
+                                "ARM64_V8A": 2090263005,
+                                "ARMEABI_V7A": 2090263005,
+                                "X86": 2090263005,
+                                "X86_64": 2090263005
+                            }
                         }
+                    ],
+                    "versions": [
+                        "26.30.05"
                     ]
                 }
             ],
@@ -384,6 +628,75 @@
             "dependencies": [],
             "description": "Hides the membership promotion on the Home screen and the free trial bottom sheet.",
             "name": "Hide membership upselling",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#1AACAC",
+                    "name": "DWG FastView",
+                    "packageName": "com.gstarmc.android",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "minSdk": 26,
+                            "version": "5.19.4",
+                            "versionCodes": {
+                                "ARM64_V8A": 614,
+                                "ARMEABI_V7A": 614,
+                                "X86": 614,
+                                "X86_64": 614
+                            }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 26,
+                            "version": "5.19.6",
+                            "versionCodes": {
+                                "ARM64_V8A": 616,
+                                "ARMEABI_V7A": 616,
+                                "X86": 616,
+                                "X86_64": 616
+                            }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 26,
+                            "version": "5.20.0",
+                            "versionCodes": {
+                                "ARM64_V8A": 620,
+                                "ARMEABI_V7A": 620,
+                                "X86": 620,
+                                "X86_64": 620
+                            }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 26,
+                            "version": "5.21.0",
+                            "versionCodes": {
+                                "ARM64_V8A": 630,
+                                "ARMEABI_V7A": 630,
+                                "X86": 630,
+                                "X86_64": 630
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "5.19.4",
+                        "5.19.6",
+                        "5.20.0",
+                        "5.21.0"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [
+                "RawResourcePatch"
+            ],
+            "description": "Removes the prompt asking for a store review.",
+            "name": "Hide rating dialog",
             "options": []
         },
         {
@@ -482,8 +795,19 @@
                     "packageName": "com.audible.application",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "version": "26.30.05",
+                            "versionCodes": {
+                                "ARM64_V8A": 2090263005,
+                                "ARMEABI_V7A": 2090263005,
+                                "X86": 2090263005,
+                                "X86_64": 2090263005
+                            }
                         }
+                    ],
+                    "versions": [
+                        "26.30.05"
                     ]
                 }
             ],
@@ -751,8 +1075,18 @@
                     "packageName": "psyberia.alpinequest.free",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "version": "2.4.0e",
+                            "versionCodes": {
+                                "ARM64_V8A": 412,
+                                "ARMEABI_V7A": 412,
+                                "X86": 412,
+                                "X86_64": 412
+                            }
                         }
+                    ],
+                    "versions": [
+                        "2.4.0e"
                     ]
                 }
             ],
@@ -871,14 +1205,94 @@
                     "packageName": "com.myvitale.forus",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "minSdk": 26,
+                            "version": "3.0.15",
+                            "versionCodes": {
+                                "ARM64_V8A": 96,
+                                "ARMEABI_V7A": 96,
+                                "X86": 96,
+                                "X86_64": 96
+                            }
                         }
+                    ],
+                    "versions": [
+                        "3.0.15"
                     ]
                 }
             ],
             "default": true,
             "dependencies": [],
             "description": "Unlocks all premium features.",
+            "name": "Unlock premium",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#1AACAC",
+                    "name": "DWG FastView",
+                    "packageName": "com.gstarmc.android",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "minSdk": 26,
+                            "version": "5.19.4",
+                            "versionCodes": {
+                                "ARM64_V8A": 614,
+                                "ARMEABI_V7A": 614,
+                                "X86": 614,
+                                "X86_64": 614
+                            }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 26,
+                            "version": "5.19.6",
+                            "versionCodes": {
+                                "ARM64_V8A": 616,
+                                "ARMEABI_V7A": 616,
+                                "X86": 616,
+                                "X86_64": 616
+                            }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 26,
+                            "version": "5.20.0",
+                            "versionCodes": {
+                                "ARM64_V8A": 620,
+                                "ARMEABI_V7A": 620,
+                                "X86": 620,
+                                "X86_64": 620
+                            }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 26,
+                            "version": "5.21.0",
+                            "versionCodes": {
+                                "ARM64_V8A": 630,
+                                "ARMEABI_V7A": 630,
+                                "X86": 630,
+                                "X86_64": 630
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "5.19.4",
+                        "5.19.6",
+                        "5.20.0",
+                        "5.21.0"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [
+                "RawResourcePatch"
+            ],
+            "description": "Unlocks the paid drawing, annotation and measurement tools, and removes ads.",
             "name": "Unlock premium",
             "options": []
         },
@@ -928,8 +1342,31 @@
                     "packageName": "com.spocky.projengmenu",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "minSdk": 23,
+                            "version": "4.71",
+                            "versionCodes": {
+                                "ARM64_V8A": 95,
+                                "ARMEABI_V7A": 95,
+                                "X86": 95,
+                                "X86_64": 95
+                            }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 23,
+                            "version": "4.70",
+                            "versionCodes": {
+                                "ARM64_V8A": 92,
+                                "ARMEABI_V7A": 92,
+                                "X86": 92,
+                                "X86_64": 92
+                            }
                         }
+                    ],
+                    "versions": [
+                        "4.71",
+                        "4.70"
                     ]
                 }
             ],
@@ -985,8 +1422,19 @@
                     "packageName": "com.sry.rateglance",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "minSdk": 32,
+                            "version": "1.14.8",
+                            "versionCodes": {
+                                "ARM64_V8A": 278,
+                                "ARMEABI_V7A": 278,
+                                "X86": 278,
+                                "X86_64": 278
+                            }
                         }
+                    ],
+                    "versions": [
+                        "1.14.8"
                     ]
                 }
             ],
@@ -1038,8 +1486,19 @@
                     "packageName": "app.rubberbands.fit",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "minSdk": 26,
+                            "version": "3.9",
+                            "versionCodes": {
+                                "ARM64_V8A": 291,
+                                "ARMEABI_V7A": 291,
+                                "X86": 291,
+                                "X86_64": 291
+                            }
                         }
+                    ],
+                    "versions": [
+                        "3.9"
                     ]
                 }
             ],
@@ -1117,6 +1576,17 @@
                         {
                             "isExperimental": false,
                             "minSdk": 32,
+                            "version": "15.0.1",
+                            "versionCodes": {
+                                "ARM64_V8A": 127798,
+                                "ARMEABI_V7A": 127798,
+                                "X86": 127798,
+                                "X86_64": 127798
+                            }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 32,
                             "version": "14.0.0 TV",
                             "versionCodes": {
                                 "ARM64_V8A": 227708,
@@ -1129,6 +1599,7 @@
                     "versions": [
                         "14.0.0",
                         "14.1.0",
+                        "15.0.1",
                         "14.0.0 TV"
                     ]
                 }
@@ -1148,8 +1619,19 @@
                     "packageName": "com.streetwriters.notesnook",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "minSdk": 24,
+                            "version": "3.4.12",
+                            "versionCodes": {
+                                "ARM64_V8A": 4197422,
+                                "ARMEABI_V7A": 4197422,
+                                "X86": 4197422,
+                                "X86_64": 4197422
+                            }
                         }
+                    ],
+                    "versions": [
+                        "3.4.12"
                     ]
                 }
             ],

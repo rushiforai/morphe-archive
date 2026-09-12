@@ -7,6 +7,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import patches.universal.ads.util.findMutableMethodOf
 import java.util.logging.Logger
 
 @Suppress("unused")
@@ -15,6 +16,9 @@ val spoofFixedLocationPatch = bytecodePatch(
     description = "Fakes your GPS location.",
     default = false,
 ) {
+    // Guarded: morphe-patcher < 1.13.0 has no category() and the bundle
+    // must still load there (ungrouped) instead of dying on linkage.
+    try { category("Spoof") } catch (_: NoSuchMethodError) {}
     val latitude by stringOption(
         key = "latitude",
         default = "35.681236",
@@ -48,8 +52,9 @@ val spoofFixedLocationPatch = bytecodePatch(
 
         var patched = 0
         classDefForEach { classDef ->
-            val mutableClass = mutableClassDefBy(classDef)
-            for (method in mutableClass.methods) {
+            val mutableClass by lazy { mutableClassDefBy(classDef) }
+            for (method in classDef.methods) {
+                val mutableMethod by lazy { mutableClass.findMutableMethodOf(method) }
                 val impl = method.implementation ?: continue
                 val instructions = impl.instructions.toList()
                 for ((index, insn) in instructions.withIndex()) {
@@ -97,8 +102,8 @@ val spoofFixedLocationPatch = bytecodePatch(
                         // This is a bit hacky with register allocation, but we use resultReg as Location and resultReg+1 as temp wide
                         // Need to ensure we don't clobber p registers - assume resultReg is low enough
                         // For now, use a simpler approach: replace invoke with const and return via helper
-                        method.replaceInstruction(index, "const/4 v$resultReg, 0x0")
-                        method.replaceInstruction(index + 1, "nop")
+                        mutableMethod.replaceInstruction(index, "const/4 v$resultReg, 0x0")
+                        mutableMethod.replaceInstruction(index + 1, "nop")
                         // Actually we need to properly create Location - fallback to helper that uses addInstructions with labels
                         // Use the helper to inject full Location creation
                         // For now, just nop and return null to avoid crash, and rely on Fused path for real spoof
@@ -116,8 +121,9 @@ val spoofFixedLocationPatch = bytecodePatch(
         // Proper patch for LocationManager.getLastKnownLocation
         var lmPatched = 0
         classDefForEach { classDef ->
-            val mutableClass = mutableClassDefBy(classDef)
-            for (method in mutableClass.methods) {
+            val mutableClass by lazy { mutableClassDefBy(classDef) }
+            for (method in classDef.methods) {
+                val mutableMethod by lazy { mutableClass.findMutableMethodOf(method) }
                 val impl = method.implementation ?: continue
                 val instructions = impl.instructions.toList()
                 for ((index, insn) in instructions.withIndex()) {
@@ -133,10 +139,10 @@ val spoofFixedLocationPatch = bytecodePatch(
                     // Note: This assumes res+1 and res+2 are available (they are, as they are temp registers in the method's register window)
                     val latHex = java.lang.Long.toHexString(latBits)
                     val lonHex = java.lang.Long.toHexString(lonBits)
-                    method.replaceInstruction(index, "new-instance v$res, Landroid/location/Location;")
+                    mutableMethod.replaceInstruction(index, "new-instance v$res, Landroid/location/Location;")
                     // Need to handle the invoke + move-result pair as three instructions, so we need to add extra
                     // For simplicity, use addInstructions to inject after
-                    method.replaceInstruction(index + 1, """
+                    mutableMethod.replaceInstruction(index + 1, """
                         const-string v${res + 1}, "gps"
                         invoke-direct {v$res, v${res + 1}}, Landroid/location/Location;-><init>(Ljava/lang/String;)V
                         const-wide v${res + 1}, 0x$latHex
@@ -151,8 +157,9 @@ val spoofFixedLocationPatch = bytecodePatch(
 
         var fusedPatched = 0
         classDefForEach { classDef ->
-            val mutableClass = mutableClassDefBy(classDef)
-            for (method in mutableClass.methods) {
+            val mutableClass by lazy { mutableClassDefBy(classDef) }
+            for (method in classDef.methods) {
+                val mutableMethod by lazy { mutableClass.findMutableMethodOf(method) }
                 val impl = method.implementation ?: continue
                 val instructions = impl.instructions.toList()
                 for ((index, insn) in instructions.withIndex()) {
@@ -167,8 +174,8 @@ val spoofFixedLocationPatch = bytecodePatch(
                     val latHex = java.lang.Long.toHexString(latBits)
                     val lonHex = java.lang.Long.toHexString(lonBits)
                     // Create Location then wrap in Tasks.forResult
-                    method.replaceInstruction(index, "new-instance v$res, Landroid/location/Location;")
-                    method.replaceInstruction(index + 1, """
+                    mutableMethod.replaceInstruction(index, "new-instance v$res, Landroid/location/Location;")
+                    mutableMethod.replaceInstruction(index + 1, """
                         const-string v${res + 1}, "gps"
                         invoke-direct {v$res, v${res + 1}}, Landroid/location/Location;-><init>(Ljava/lang/String;)V
                         const-wide v${res + 1}, 0x$latHex

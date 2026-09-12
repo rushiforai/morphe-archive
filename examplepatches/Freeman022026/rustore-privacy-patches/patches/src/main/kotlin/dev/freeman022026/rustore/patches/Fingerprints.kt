@@ -210,6 +210,54 @@ internal val updateAuthSuggestFingerprint = methodFingerprint(
     listOf("Lzt0/c;")
 )
 
+internal val metricsEventCollectionFingerprint = methodFingerprint(
+    "Lx41/i0;", "invoke", "Ljava/lang/Object;",
+    strings = listOf("metrics_event_table", "job_config_version")
+)
+
+internal val metricsEventSendFingerprint = methodFingerprint(
+    "Lx41/t0;", "a", "V", listOf("Ljava/util/List;"),
+    listOf("USER_ID_KEY", "X-Metrics-Request-Time")
+)
+
+internal val mediaScopeTrackFingerprint = methodFingerprint(
+    "Lhn1/d;", "a", "Ljava/lang/Object;", listOf("Lzt0/c;"),
+    listOf("mediaScopeCustomLaunch")
+)
+
+internal val inAppStoryInitializeFingerprint = methodFingerprint(
+    "Lqn2/l;", "b", "Ljava/lang/Object;", listOf("Lzt0/c;"),
+    listOf("story.initilized", "story_user_id")
+)
+
+internal val applicationOnCreateFingerprint = methodFingerprint(
+    "Lru/vk/store/App;", "onCreate", "V",
+    strings = listOf("App process started: version=")
+)
+
+internal val googleAdvertisingIdFingerprint = methodFingerprint(
+    "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient;",
+    "getAdvertisingIdInfo",
+    "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient\$Info;",
+    listOf("Landroid/content/Context;"),
+    listOf("Creating AdvertisingIdClient")
+)
+
+internal val rustoreSdkDeviceIdFingerprint = methodFingerprint(
+    "Lz41/hj;",
+    "a",
+    "Ljava/lang/String;",
+    strings = listOf("android_id", "value")
+)
+
+internal val vkSdkDeviceIdFingerprint = methodFingerprint(
+    "Lb40/c;",
+    "a",
+    "Ljava/lang/String;",
+    listOf("Landroid/content/Context;"),
+    listOf("__vk_device_id__", "next_device_id is null or empty: ")
+)
+
 internal val autoUpdateForegroundRestrictionFingerprint = Fingerprint(
     custom = { method, classDef ->
         classDef.type == "Lwj1/l;" &&

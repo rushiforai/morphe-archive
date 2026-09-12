@@ -97,6 +97,18 @@ jobs:
           --github-output "$GITHUB_OUTPUT"
           --require-official-signer
 
+      - name: Check native, component, and DEX package inventories
+        run: >-
+          python3 scripts/rustore_upstream.py audit-upstream
+          --apk build/RuStore.apk
+          --aapt "$ANDROID_HOME/build-tools/36.0.0/aapt"
+          --apkanalyzer "$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer"
+          --baseline upstream/inventory.json
+          --output build/upstream-inventory.json
+
+      - name: Test inventory review gates
+        run: python3 scripts/test_rustore_upstream.py
+
       - name: Build the Morphe patch bundle
         run: ./gradlew clean :patches:buildAndroid --no-daemon
 
@@ -114,6 +126,7 @@ jobs:
           python3 scripts/rustore_upstream.py audit-patched
           --apk build/rustore-privacy.apk
           --aapt "$ANDROID_HOME/build-tools/36.0.0/aapt"
+          --apkanalyzer "$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer"
 
       - name: Record the audited upstream build
         id: promote
@@ -123,6 +136,8 @@ jobs:
           --inspection build/rustore-apk.json
           --state upstream/rustore.json
           --constants patches/src/main/kotlin/dev/freeman022026/rustore/patches/Constants.kt
+          --inventory build/upstream-inventory.json
+          --baseline upstream/inventory.json
           --github-output "$GITHUB_OUTPUT"
 
       - name: Commit verified support to main
@@ -151,6 +166,7 @@ jobs:
           name: rustore-audit-failure-${{ github.run_id }}
           path: |
             build/rustore-apk.json
+            build/upstream-inventory.json
             build/patch-result.json
             build/metadata/rustore-head.json
           if-no-files-found: ignore

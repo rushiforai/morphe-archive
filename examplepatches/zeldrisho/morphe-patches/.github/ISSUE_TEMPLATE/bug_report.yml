@@ -6,12 +6,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        # Patches template bug report
+        # Zeldris Patches bug report
 
         Before creating a new bug report, please keep the following in mind:
 
-        - **Do not submit a duplicate bug report**: Search for existing bug reports [here](https://github.com/TEMPLATE/template-patches-template/issues?q=label%3A%22Bug+report%22).
-        - **Review the contribution guidelines**: Make sure your bug report adheres to it. You can find the guidelines [here](https://github.com/TEMPLATE/template-patches-template/blob/main/CONTRIBUTING.md).
+        - **Do not submit a duplicate bug report**: Search for existing bug reports [here](https://github.com/zeldrisho/morphe-patches/issues?q=label%3A%22Bug+report%22).
+        - **Contributor docs**: Start with the [development guide](https://github.com/zeldrisho/morphe-patches/blob/main/docs/development.md), then follow its reading order (toolchain, CLI patching, QA checklist, release process).
   - type: textarea
     attributes:
       label: Bug description
@@ -21,6 +21,50 @@ body:
         - Add images and videos if possible
     validations:
       required: true
+  - type: input
+    attributes:
+      label: App and version
+      description: Patched app name and exact version, e.g. <App name> <version> (see the README patch table for current targets).
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: App versionCode
+      description: versionCode of the original APK/APKM if known (e.g. <versionCode>). Same version names from different mirrors can carry different codes.
+  - type: input
+    attributes:
+      label: Patch bundle version
+      description: Which patches-*.mpp you used (e.g. v1.1.0 release, or local build commit SHA).
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Selected patches and options
+      description: |
+        Which patches were enabled, and with which options, semicolon-separated
+        with one patch state/option per item (e.g. Hide ads: on;
+        Remove AD_ID permission: on; Change app name: on,
+        appName="Threads Morphe"). See patches-list.json or the README
+        patch table for the current patch names if these have drifted.
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Morphe version
+      description: Morphe Manager / Desktop version used to patch (e.g. Morphe Desktop 1.x).
+  - type: textarea
+    attributes:
+      label: Reproduction steps
+      description: |
+        Minimal repeatable path, per the QA checklist provenance rule:
+        input bundle, .mpp, enabled patches/options, then device result.
+        (Step 1. Patch ... Step 2. Install ... Step 3. Observe ...)
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected vs actual behavior
+      description: What you expected, and what happened instead.
   - type: textarea
     attributes:
       label: Error logs

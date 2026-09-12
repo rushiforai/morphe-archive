@@ -10,7 +10,37 @@ https://github.com/areteruhiro/Haiagaru
 * Modify User-Agent
 * Remove MonaKey
 
+## インストールできない場合
+
+ChMate `0.8.10.241`では、アプリデータを残したまま以前のChMateをアンインストールすると、再インストール時に既存のパッケージとの競合が表示される場合があります。
+
+1. ChMateの設定や必要なデータをバックアップします。
+2. 以前のChMateを、アプリデータも含めて完全にアンインストールします。
+3. パッチ済みAPKをインストールします。
+4. 必要に応じて、手順1のバックアップからデータを復元します。
+
+アプリデータを削除すると、バックアップしていない設定や履歴は失われます。必ずアンインストール前にバックアップを確認してください。
+
+情報提供: あかまつさん
+
+## URV Managerへの追加と更新
+
+パッチソースには次のURLを登録してください。
+
+```text
+https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/master/patches-bundle.json
+```
+
+パッチ本体のバージョンは `1.2.2` です。同じバージョン内で修正版を配布する場合は、
+URV Managerが更新を検出できるようにJSON上の配布リビジョン（例: `1.2.2-r3`）だけを更新します。
+更新が表示されない場合は、パッチソース画面から手動で更新を実行してください。
+
 ## 更新履歴
+
+### 1.2.2
+
+- ChMate `0.8.10.191 dev` のBEアイコン分類と表示を修正
+- URV Managerが1.2.2内の修正版を検出できる配布リビジョンを追加
 
 ### 1.2.1
 
@@ -44,7 +74,7 @@ https://github.com/areteruhiro/Haiagaru
 生成物:
 
 ```text
-patches\build\libs\patches-1.2.1.mpp
+patches\build\libs\patches-1.2.2.mpp
 ```
 
 Morphe Desktopでは `Haiagaru` を有効にして対象APKへ適用します。
@@ -86,3 +116,8 @@ https://github.com/Chipppppppppp/Binnosoko
 
 Contribution <br>
 LEINsに対して寄付/ご購入してくださった皆様
+
+<br>
+フォークされる方へ
+<br>
+必須ではありませんが、このリポジトリのURLを貼ってくれると嬉しいです

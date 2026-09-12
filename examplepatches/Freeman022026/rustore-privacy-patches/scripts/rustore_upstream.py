@@ -10,6 +10,7 @@ import re
 import subprocess
 import sys
 import urllib.request
+import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -92,6 +93,11 @@ DISABLED_COMPONENT_PREFIXES = {
     "ru.vk.store.feature.storeapp.install.referrer",
     "ru.ok.tracer",
     "sid.sdk.global.utils.sms",
+}
+
+DEVICE_IDENTIFIER_STUBS = {
+    "z41.hj": "a()Ljava/lang/String;",
+    "b40.c": "a(Landroid/content/Context;)Ljava/lang/String;",
 }
 
 INVALID_COMPONENT_PREFIXES = ("xav.", "xid.", "xo.", "xom.", "xu.")
@@ -250,7 +256,98 @@ def manifest_components(manifest: str) -> tuple[list[dict[str, object]], set[int
     return components, class_name_lines
 
 
+def apk_inventory(apk: Path, aapt: Path, apkanalyzer: Path) -> dict:
+    with zipfile.ZipFile(apk) as archive:
+        libraries = {
+            name: hashlib.sha256(archive.read(name)).hexdigest()
+            for name in sorted(archive.namelist())
+            if re.fullmatch(r"lib/[^/]+/[^/]+\.so", name)
+        }
+    manifest = run(str(aapt), "dump", "xmltree", str(apk), "AndroidManifest.xml")
+    components, _ = manifest_components(manifest)
+    packages = readable_packages(
+        run(str(apkanalyzer), "dex", "packages", "--defined-only", str(apk))
+    )
+    if not libraries or not components:
+        raise RuntimeError("APK inventory is empty or incomplete")
+    return {
+        "apk_sha256": hashlib.sha256(apk.read_bytes()).hexdigest(),
+        "native_libraries": libraries,
+        "manifest_components": sorted(f"{c['tag']}:{c['name']}" for c in components),
+        "readable_packages": packages,
+    }
+
+
+def readable_packages(output: str) -> list[str]:
+    # Single-segment obfuscated packages churn on rebuilds. Keep all dotted packages.
+    packages = sorted(set(re.findall(
+        r"^P d\s+\d+\s+\d+\s+\d+\s+([\w$]+(?:\.[\w$]+)+)\s*$",
+        output, re.MULTILINE,
+    )))
+    if not packages:
+        raise RuntimeError("apkanalyzer did not report any readable DEX packages")
+    return packages
+
+
+def inventory_diff(baseline: dict, current: dict) -> dict:
+    differences = {}
+    for field in ("native_libraries", "manifest_components", "readable_packages"):
+        before, after = set(baseline[field]), set(current[field])
+        differences[field] = {
+            "added": sorted(after - before), "removed": sorted(before - after),
+        }
+    differences["native_libraries"]["changed"] = sorted(
+        name for name in baseline["native_libraries"].keys() & current["native_libraries"].keys()
+        if baseline["native_libraries"][name] != current["native_libraries"][name]
+    )
+    differences["review_required"] = bool(
+        differences["native_libraries"]["added"]
+        or differences["native_libraries"]["removed"]
+        or any(name.endswith("/libbridge_helper.so")
+               for name in differences["native_libraries"]["changed"])
+        or differences["manifest_components"]["added"]
+        or differences["manifest_components"]["removed"]
+        or differences["readable_packages"]["added"]
+    )
+    return differences
+
+
+def audit_upstream(args: argparse.Namespace) -> None:
+    baseline = json.loads(args.baseline.read_text(encoding="utf-8"))
+    current = apk_inventory(args.apk, args.aapt, args.apkanalyzer)
+    write_json(args.output, current)
+    differences = inventory_diff(baseline, current)
+    print(json.dumps(differences, indent=2))
+    if differences["review_required"]:
+        raise RuntimeError("Upstream inventory changed; review the candidate before updating the baseline")
+
+
 def audit_patched(args: argparse.Namespace) -> None:
+    ad_class = "com.google.android.gms.ads.identifier.AdvertisingIdClient"
+    ad_code = run(
+        str(args.apkanalyzer), "dex", "code", "--class", ad_class,
+        "--method", f"getAdvertisingIdInfo(Landroid/content/Context;)L{ad_class.replace('.', '/')}$Info;",
+        str(args.apk),
+    )
+    verify_google_ad_id_stub(ad_code)
+    unit_stub = ["sget-object v0, Ltt0/e0;->a:Ltt0/e0;", "return-object v0"]
+    telemetry_stubs = {
+        "x41.i0": ("invoke()Ljava/lang/Object;", unit_stub),
+        "x41.t0": ("a(Ljava/util/List;)V", ["return-void"]),
+        "hn1.d": ("a(Lzt0/c;)Ljava/lang/Object;", unit_stub),
+        "qn2.l": ("b(Lzt0/c;)Ljava/lang/Object;", unit_stub),
+    }
+    for class_name, (method, expected) in telemetry_stubs.items():
+        code = run(str(args.apkanalyzer), "dex", "code", "--class", class_name,
+                   "--method", method, str(args.apk))
+        verify_instruction_prefix(code, expected, class_name)
+    for class_name, method in DEVICE_IDENTIFIER_STUBS.items():
+        code = run(str(args.apkanalyzer), "dex", "code", "--class", class_name,
+                   "--method", method, str(args.apk))
+        verify_device_identifier_stub(code, class_name)
+    startup_code = run(str(args.apkanalyzer), "dex", "code", "--class", "ru.vk.store.App",
+                       "--method", "onCreate()V", str(args.apk))
+    verify_instruction_prefix(startup_code, push_service_cleanup_prefix(), "Push service cleanup")
     badging = run(str(args.aapt), "dump", "badging", str(args.apk))
     permissions = set(re.findall(r"uses-permission: name='([^']+)'", badging))
     missing = sorted(REQUIRED_PERMISSIONS - permissions)
@@ -334,10 +431,63 @@ def audit_patched(args: argparse.Namespace) -> None:
                     INVALID_COMPONENT_PREFIXES
                 ),
                 "work_manager_boot_rescheduler_preserved": True,
+                "google_ad_id_lookup_stubbed": True,
+                "direct_telemetry_stubbed": sorted(telemetry_stubs),
+                "stable_device_identifiers_stubbed": sorted(DEVICE_IDENTIFIER_STUBS),
+                "persisted_push_services_disabled_at_startup": True,
             },
             indent=2,
         )
     )
+
+
+def verify_instruction_prefix(code: str, expected: list[str], name: str) -> None:
+    code = re.sub(r"(?ms)^\s*\.annotation\b.*?^\s*\.end annotation\s*$", "", code)
+    instructions = [
+        line.strip() for line in code.splitlines()
+        if line.strip() and not line.strip().startswith((".", ":", "#"))
+    ]
+    if instructions[:len(expected)] != expected:
+        raise RuntimeError(f"{name} entry-point audit failed")
+
+
+def verify_google_ad_id_stub(code: str) -> None:
+    info = "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;"
+    expected = [
+        f"new-instance v0, {info}",
+        'const-string v1, "00000000-0000-0000-0000-000000000000"',
+        "const/4 v2, 0x1",
+        f"invoke-direct {{v0, v1, v2}}, {info}-><init>(Ljava/lang/String;Z)V",
+        "return-object v0",
+    ]
+    verify_instruction_prefix(code, expected, "Google advertising-ID lookup")
+
+
+def verify_device_identifier_stub(code: str, name: str) -> None:
+    expected = [
+        'const-string v0, "00000000-0000-0000-0000-000000000000"',
+        "return-object v0",
+    ]
+    verify_instruction_prefix(code, expected, name)
+
+
+def push_service_cleanup_prefix() -> list[str]:
+    expected = [
+        "move-object/from16 v6, p0",
+        "invoke-virtual {v6}, Landroid/content/Context;->getPackageManager()Landroid/content/pm/PackageManager;",
+        "move-result-object v0",
+    ]
+    for service in ("com.vk.push.authsdk.ipc.AuthService", "com.vk.push.pushsdk.ipc.PushService",
+                    "com.vk.push.pushsdk.masterhost.MasterSelectionService"):
+        expected.extend([
+            "new-instance v1, Landroid/content/ComponentName;",
+            f'const-string v2, "{service}"',
+            "invoke-direct {v1, v6, v2}, Landroid/content/ComponentName;-><init>(Landroid/content/Context;Ljava/lang/String;)V",
+            "const/4 v3, 0x2",
+            "const/4 v4, 0x1",
+            "invoke-virtual {v0, v1, v3, v4}, Landroid/content/pm/PackageManager;->setComponentEnabledSetting(Landroid/content/ComponentName;II)V",
+        ])
+    return expected
 
 
 def promote(args: argparse.Namespace) -> None:
@@ -345,6 +495,12 @@ def promote(args: argparse.Namespace) -> None:
     inspection = json.loads(args.inspection.read_text(encoding="utf-8"))
     state = json.loads(args.state.read_text(encoding="utf-8"))
     constants = args.constants.read_text(encoding="utf-8")
+    inventory = json.loads(args.inventory.read_text(encoding="utf-8"))
+    baseline = json.loads(args.baseline.read_text(encoding="utf-8"))
+    if inventory["apk_sha256"] != inspection["sha256"]:
+        raise RuntimeError("Inventory and inspection refer to different APKs")
+    if inventory_diff(baseline, inventory)["review_required"]:
+        raise RuntimeError("Cannot promote an APK with unreviewed inventory changes")
 
     current_match = re.search(r'const val AUDITED_VERSION = "([^"]+)"', constants)
     if current_match is None:
@@ -392,9 +548,18 @@ def parser() -> argparse.ArgumentParser:
     inspect_parser.add_argument("--require-official-signer", action="store_true")
     inspect_parser.set_defaults(handler=inspect_apk)
 
+    upstream_parser = commands.add_parser("audit-upstream")
+    upstream_parser.add_argument("--apk", type=Path, required=True)
+    upstream_parser.add_argument("--aapt", type=Path, required=True)
+    upstream_parser.add_argument("--apkanalyzer", type=Path, required=True)
+    upstream_parser.add_argument("--baseline", type=Path, required=True)
+    upstream_parser.add_argument("--output", type=Path, required=True)
+    upstream_parser.set_defaults(handler=audit_upstream)
+
     audit_parser = commands.add_parser("audit-patched")
     audit_parser.add_argument("--apk", type=Path, required=True)
     audit_parser.add_argument("--aapt", type=Path, required=True)
+    audit_parser.add_argument("--apkanalyzer", type=Path, required=True)
     audit_parser.set_defaults(handler=audit_patched)
 
     promote_parser = commands.add_parser("promote")
@@ -402,6 +567,8 @@ def parser() -> argparse.ArgumentParser:
     promote_parser.add_argument("--inspection", type=Path, required=True)
     promote_parser.add_argument("--state", type=Path, required=True)
     promote_parser.add_argument("--constants", type=Path, required=True)
+    promote_parser.add_argument("--inventory", type=Path, required=True)
+    promote_parser.add_argument("--baseline", type=Path, required=True)
     promote_parser.add_argument("--github-output", type=Path)
     promote_parser.set_defaults(handler=promote)
     return root

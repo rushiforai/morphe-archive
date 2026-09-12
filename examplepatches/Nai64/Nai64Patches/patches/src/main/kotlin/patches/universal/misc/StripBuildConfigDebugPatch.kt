@@ -7,6 +7,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import patches.universal.ads.util.findMutableMethodOf
 import java.util.logging.Logger
 
 @Suppress("unused")
@@ -15,6 +16,9 @@ val stripBuildConfigDebugPatch = bytecodePatch(
     description = "Forces BuildConfig.DEBUG to false so apps hide debug banners and verbose checks.",
     default = false,
 ) {
+    // Guarded: morphe-patcher < 1.13.0 has no category() and the bundle
+    // must still load there (ungrouped) instead of dying on linkage.
+    try { category("Strip") } catch (_: NoSuchMethodError) {}
     val forceDebug by booleanOption(
         title = "Force debug",
         default = false,
@@ -27,8 +31,9 @@ val stripBuildConfigDebugPatch = bytecodePatch(
         val target = if (forceDebug == true) "0x1" else "0x0"
         var patched = 0
         classDefForEach { classDef ->
-            val mutableClass = mutableClassDefBy(classDef)
-            for (method in mutableClass.methods) {
+            val mutableClass by lazy { mutableClassDefBy(classDef) }
+            for (method in classDef.methods) {
+                val mutableMethod by lazy { mutableClass.findMutableMethodOf(method) }
                 val impl = method.implementation ?: continue
                 val instructions = impl.instructions.toList()
                 for ((index, insn) in instructions.withIndex()) {
@@ -39,7 +44,7 @@ val stripBuildConfigDebugPatch = bytecodePatch(
                     if (!ref.definingClass.endsWith("BuildConfig;")) continue
                     val reg = (insn as? OneRegisterInstruction)?.registerA ?: continue
                     val constInstr = if (reg <= 0xf) "const/4 v$reg, $target" else "const/16 v$reg, $target"
-                    method.replaceInstruction(index, constInstr)
+                    mutableMethod.replaceInstruction(index, constInstr)
                     patched++
                 }
             }

@@ -113,7 +113,7 @@ internal object AppCompatibilities {
         packageName = "com.google.android.apps.photos",
         appIconColor = 0xFC3F3C,
         targets = listOf(
-            AppTarget(version = "7.90.0.971743778")
+            AppTarget(version = "7.80.0.929302933")
         )
     )
 
@@ -123,12 +123,16 @@ internal object AppCompatibilities {
         appIconColor = 0x00B020,
     )
 
-    val PIXIV = Compatibility(
+    val PIXIV_ADS = Compatibility(
         name = "Pixiv",
         packageName = "jp.pxv.android",
         appIconColor = 0x0096FA,
-        targets = listOf(AppTarget("6.141.1")),
+        targets = listOf(
+            AppTarget("6.196.0"),
+        )
     )
+
+    val PIXIV = PIXIV_ADS.including(AppTarget("6.141.1"))
 
     val CRICBUZZ = Compatibility(
         name = "Cricbuzz",

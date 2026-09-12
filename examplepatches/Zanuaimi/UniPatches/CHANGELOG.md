@@ -1,3 +1,22 @@
+## [1.17.4](https://github.com/Zanuaimi/UniPatches/compare/v1.17.3...v1.17.4) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* **ads:** keep runtime rewards startup-safe ([8d46ce9](https://github.com/Zanuaimi/UniPatches/commit/8d46ce9206585dd38730829da8a540ea00e02fc9))
+
+## [1.17.3](https://github.com/Zanuaimi/UniPatches/compare/v1.17.2...v1.17.3) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* **ads:** expose rewards control in overlay ([0842968](https://github.com/Zanuaimi/UniPatches/commit/0842968c8863790dd448892e990893519e304634))
+
+## [1.17.2](https://github.com/Zanuaimi/UniPatches/compare/v1.17.1...v1.17.2) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* dismiss overlay settings with Back ([253ab3a](https://github.com/Zanuaimi/UniPatches/commit/253ab3aba524deaf33487216aef6503a11585a9d))
+* harden Configure App Ads runtime controls ([82a9b4a](https://github.com/Zanuaimi/UniPatches/commit/82a9b4ad47efe18922823c3510abf381aecb6b85))
+
 ## [1.17.1](https://github.com/Zanuaimi/UniPatches/compare/v1.17.0...v1.17.1) (2026-09-10)
 
 ### 🐛 Bug Fixes

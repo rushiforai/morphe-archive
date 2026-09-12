@@ -1,8 +1,10 @@
 name: Release
 
-# Stable-only releases. Pushing a version tag on main tests,
-# builds, and publishes the GitHub release, then points patches-bundle.json
-# (main) at the new download. See docs/release.md#staging-a-release for the
+# Stable-only releases. Pushing a version tag on main validates the tag,
+# tests, builds, publishes the GitHub release, and attests the bundle.
+# The Manager manifest (patches-bundle.json) is staged upfront by
+# scripts/prepare-release.sh in the release PR — this workflow never
+# pushes to main. See docs/release.md#staging-a-release for the
 # staging flow (branch at origin/main, PR, merge, tag post-merge main).
 #
 # Ordinary branch pushes run Check only; nothing here fires on branches.
@@ -55,15 +57,19 @@ jobs:
           [[ "$LIST_VERSION" == "$VERSION" ]] \
             || { echo "::error::patches-list.json version '$LIST_VERSION' != tag version '$VERSION'. Run scripts/prepare-release.sh first."; exit 1; }
 
+          BUNDLE_VERSION="$(python3 -c "import json;print(json.load(open('patches-bundle.json'))['version'])")"
+          [[ "$BUNDLE_VERSION" == "$VERSION" ]] \
+            || { echo "::error::patches-bundle.json version '$BUNDLE_VERSION' != tag version '$VERSION'. Run scripts/prepare-release.sh first."; exit 1; }
+
           # Fail fast on an invalid bare/inline-linked heading or empty notes,
           # before toolchain setup and build/tests. The extractor owns the regex.
-          python3 .github/scripts/extract_release_notes.py CHANGELOG.md "$VERSION" /tmp/release-notes.md "${{ github.repository }}"
+          python3 scripts/extract_release_notes.py CHANGELOG.md "$VERSION" /tmp/release-notes.md "${{ github.repository }}"
           test -s /tmp/release-notes.md \
             || { echo "::error::No release notes found for $VERSION."; exit 1; }
           echo "Tag $TAG validated."
 
       - name: Set up Java 21
-        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           distribution: temurin
           java-version: 21
@@ -74,7 +80,7 @@ jobs:
       - name: Test and build bundle
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :patches:test :extensions:extension:testDebugUnitTest buildAndroid --no-daemon
+        run: ./gradlew :patches:test :extensions:threads:testDebugUnitTest :extensions:zalo:testDebugUnitTest :patches:verifyBundleExtension --no-daemon
 
       - name: Locate bundle
         run: |
@@ -105,45 +111,10 @@ jobs:
             gh release create "$TAG" --title "$TAG" --notes-file /tmp/release-notes.md --latest "$MPP"
           fi
 
+      # Never move a published tag or replace a published asset — fix
+      # forward with a new version instead (see docs/release.md).
       - name: Attest bundle
-        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-name: 'Morphe Patches ${{ github.ref_name }}'
           subject-path: ${{ env.MPP }}
-
-      # Only now is the download known to exist: point the main manifest
-      # at it so Manager readers serve the new build.
-      # Never move the tag or replace the published asset — retry instead.
-      - name: Point main manifest at the release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.ref_name }}
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin main --quiet
-          git checkout -B main origin/main
-          python3 - "$TAG" <<'PY'
-          import datetime, json, sys
-          tag = sys.argv[1]
-          version = tag.removeprefix("v")
-          notes = open("/tmp/release-notes.md", encoding="utf-8").read().strip()
-          repo = "${{ github.repository }}"
-          data = {
-              "created_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S"),
-              "description": notes,
-              "download_url": f"https://github.com/{repo}/releases/download/{tag}/patches-{version}.mpp",
-              "signature_download_url": "",
-              "version": version,
-          }
-          json.dump(data, open("patches-bundle.json", "w", encoding="utf-8"), indent=2)
-          open("patches-bundle.json", "a", encoding="utf-8").write("\n")
-          PY
-          git add patches-bundle.json
-          if git diff --cached --quiet; then
-            echo "main manifest already current."
-          else
-            git commit -m "Release $TAG [skip ci]" patches-bundle.json
-          fi
-          git push origin main

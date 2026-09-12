@@ -15,15 +15,24 @@ decisions, not duplicate instructions.
   [QA checklist](qa-checklist.md). Record input/bundle/options provenance with
   every device result; a passing build without provenance does not validate the
   current bundle.
+- External patch repositories are recon references, not compatibility proof:
+  [external-reference workflow](reverse-engineering.md#learning-from-other-patch-projects)
+  covers artifact identity, independent verification, state invariants, and licensing.
+- Data-migration patch feasibility, sandbox/signing limits, and recovery evidence:
+  [investigation principles](reverse-engineering.md#investigating-data-migration-patches).
+  External media transfer is not proof of full chat restoration.
 - Incident context: [lessons learned](lessons-learned.md).
 - `docs/plan.md` contains only remaining actionable work, not completed checks
   or session transcripts. Keep recurring procedures in the QA checklist and
   durable cross-feature lessons here; retain sanitized release evidence in the
   release/PR record rather than creating feature-specific session documents.
+- Temporary CI-artifact download links used for compatibility fixes must have a
+  tracked upstream exit condition and be replaced with a stable release URL
+  once the upstream fix is published.
 
 ## Standing rules
 
-- Check the installed Morphe Desktop CLI's help when flags fail. Temporary patch
+- Check the installed Morphe CLI's help when flags fail. Temporary patch
   files are purged by default; keep errors visible when diagnosing helper failures.
 - Inspect keystore aliases rather than guessing capitalization; keytool-made
   stores may contain lowercase `morphe`. Test keys must stay out of Git and
@@ -31,7 +40,7 @@ decisions, not duplicate instructions.
 - Pin exact `AppTarget` versions plus the tested `versionCode`
   (`Constants.TESTED_VERSION_CODE`) — a version *name* alone does not identify
   the APK variant. Use only APKMirror originals and record the download URL,
-  ABI/variant, and input hash; see [toolchain setup](toolchain.md#6-original-apk-source).
+  ABI/variant, and input hash; see [toolchain setup](toolchain.md#7-original-apk-source).
 - `FingerprintSurfaceTest` pins the repo-side contract (compatibility target,
   tested versionCode, register-helper behavior) so drift in our own sources fails
   loudly. It does not inspect a downloaded APK; APK-side drift is caught by

@@ -12,11 +12,11 @@ spotless {
         ktlint("1.8.0")
     }
     kotlinGradle {
-        target("*.gradle.kts", "patches/*.gradle.kts", "extensions/extension/*.gradle.kts")
+        target("*.gradle.kts", "patches/*.gradle.kts", "extensions/*/*.gradle.kts")
         ktlint("1.8.0")
     }
     java {
-        target("extensions/extension/src/**/*.java")
+        target("extensions/*/src/**/*.java")
         googleJavaFormat("1.28.0")
     }
 }
@@ -25,5 +25,10 @@ spotless {
 tasks.register("qualityCheck") {
     group = "verification"
     description = "Check JVM formatting, Kotlin analysis, and Android lint"
-    dependsOn("spotlessCheck", ":patches:detekt", ":extensions:extension:lintDebug")
+    dependsOn(
+        "spotlessCheck",
+        ":patches:detekt",
+        ":extensions:threads:lintDebug",
+        ":extensions:zalo:lintDebug",
+    )
 }

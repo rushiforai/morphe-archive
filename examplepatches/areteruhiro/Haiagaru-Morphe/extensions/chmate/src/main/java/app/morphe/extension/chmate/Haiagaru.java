@@ -256,6 +256,36 @@ public final class Haiagaru {
         return original.replace("5ch.net", "5ch.io");
     }
 
+    public static String normalizeBeIconUrl(String original) {
+        if (original == null) return null;
+        return original.replace("://img.5ch.net/", "://img.5ch.io/");
+    }
+
+    public static String prepareLegacyBeParsing(String original) {
+        if (original == null || !original.contains("sssp://img.5ch.io/")) return original;
+        return original.replace("sssp://img.5ch.io/", "sssp://img.5ch.net/");
+    }
+
+    public static boolean classifyLegacyBeIcon(
+            String text,
+            int[] linkInfo,
+            boolean found
+    ) {
+        if (!found || text == null || linkInfo == null || linkInfo.length < 6) return found;
+
+        int start = Math.max(0, Math.min(linkInfo[0], linkInfo[1]));
+        int end = Math.min(text.length(), linkInfo[2]);
+        if (start >= end) return found;
+
+        String candidate = text.substring(start, end).toLowerCase(Locale.ROOT);
+        if (candidate.contains("img.5ch.io/ico/")
+                || candidate.contains("img.5ch.net/ico/")) {
+            linkInfo[3] = 0;
+            linkInfo[5] = 4;
+        }
+        return found;
+    }
+
     public static boolean is5chHost(String host) {
         if (host == null) return false;
         String normalized = host.toLowerCase(Locale.ROOT);

@@ -29,6 +29,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import app.mix.extension.shared.requests.Requester;
 
@@ -37,11 +40,16 @@ public final class ProfileFeedMerger {
     private static final String ARCTIC_HOST = "arctic-shift.photon-reddit.com";
     private static final String ARCTIC_BASE = "https://" + ARCTIC_HOST + "/api/";
     private static final String REDDIT_URL = "https://oauth.reddit.com/";
-    private static final String TOKEN_URL = "https://ssl.reddit.com/api/v1/access_token";
+    private static final String TOKEN_URL = "https://oauth.reddit.com/api/v1/access_token";
     private static final int ARCHIVE_LIMIT = 100;
     private static final int MAX_SEEN_IDS = 1200;
+    private static final int MAX_POST_METADATA_CACHE = 1000;
+    private static final int CONNECT_TIMEOUT_MS = 10_000;
+    private static final int READ_TIMEOUT_MS = 20_000;
 
+    private static final ExecutorService networkExecutor = Executors.newFixedThreadPool(2);
     private static final Map<String, FeedState> states = new HashMap<>();
+    private static final Map<String, JSONObject> postMetadataCache = new LinkedHashMap<>();
     private static volatile String cachedAccessToken;
     private static volatile long cachedAccessTokenExpiry;
 
@@ -85,6 +93,34 @@ public final class ProfileFeedMerger {
         return archiveSearchUrl(kind, name, before);
     }
 
+    public static void prefetch(Context context, String url, String basicAuth,
+                                String userAgent) {
+        if (!isArchiveUrl(url)) {
+            return;
+        }
+        String name = queryAuthor(url);
+        if (name == null) {
+            return;
+        }
+        synchronized (ProfileFeedMerger.class) {
+            FeedState state = states.get(name.toLowerCase(Locale.ROOT));
+            if (state == null) {
+                return;
+            }
+            state.cancelPrefetch();
+            state.prefetchUrl = url;
+            FeedSnapshot snapshot = new FeedSnapshot(state, url);
+            state.prefetchedNative = networkExecutor.submit(
+                    () -> fetchNative(context, name, snapshot, basicAuth, userAgent));
+            if ("Overview".equalsIgnoreCase(state.tab)) {
+                String commentsUrl = archiveSearchUrl(
+                        "t1", name, state.oldestCommentCreatedUtc);
+                state.prefetchedComments = networkExecutor.submit(
+                        () -> fetchArchiveComments(commentsUrl, userAgent));
+            }
+        }
+    }
+
     public static boolean isArchiveUrl(String url) {
         return url != null && url.contains(ARCTIC_HOST);
     }
@@ -113,19 +149,19 @@ public final class ProfileFeedMerger {
                 if (state == null) {
                     return body;
                 }
-                snapshot = new FeedSnapshot(state);
+                snapshot = new FeedSnapshot(state, url);
             }
 
             String primaryKind = url.contains("/comments/") ? "t1" : "t3";
             List<Thing> archiveThings = parseArchiveThings(body, primaryKind);
             if ("Overview".equalsIgnoreCase(snapshot.tab) && "t3".equals(primaryKind)) {
-                archiveThings.addAll(fetchArchiveThings(
-                        archiveSearchUrl("t1", name, snapshot.oldestCommentCreatedUtc),
-                        "t1", userAgent));
+                archiveThings.addAll(awaitArchiveComments(snapshot, name, userAgent));
+            } else if ("t1".equals(primaryKind)) {
+                enrichComments(archiveThings, userAgent);
             }
-            enrichComments(archiveThings, userAgent);
-            NativePage nativePage = fetchNative(
-                    context, name, snapshot, basicAuth, userAgent);
+            NativePage nativePage = snapshot.prefetchedNative == null
+                    ? fetchNative(context, name, snapshot, basicAuth, userAgent)
+                    : awaitNative(snapshot.prefetchedNative);
             return buildListing(context, userKey, snapshot, archiveThings, nativePage);
         } catch (Exception ignored) {
             return body;
@@ -140,7 +176,7 @@ public final class ProfileFeedMerger {
         try {
             connection = (HttpURLConnection) new URL(url).openConnection();
             connection.setRequestMethod("GET");
-            setUserAgent(connection, userAgent);
+            configureConnection(connection, userAgent);
             int status = connection.getResponseCode();
             if (status == 429) {
                 RateLimitThrottle.observe(
@@ -160,6 +196,12 @@ public final class ProfileFeedMerger {
                 connection.disconnect();
             }
         }
+    }
+
+    private static List<Thing> fetchArchiveComments(String url, String userAgent) {
+        List<Thing> comments = fetchArchiveThings(url, "t1", userAgent);
+        enrichComments(comments, userAgent);
+        return comments;
     }
 
     private static List<Thing> parseArchiveThings(String body, String kind) throws Exception {
@@ -192,16 +234,36 @@ public final class ProfileFeedMerger {
                 }
             }
         }
-        if (linkIds.isEmpty() || RateLimitThrottle.isThrottled()) {
+        if (linkIds.isEmpty()) {
             return;
         }
 
-        String ids = Uri.encode(String.join(",", linkIds), ",");
-        String url = ARCTIC_BASE + "posts/ids?ids=" + ids;
-        List<Thing> linkedPosts = fetchArchiveThings(url, "t3", userAgent);
         Map<String, JSONObject> postsById = new HashMap<>();
-        for (Thing post : linkedPosts) {
-            postsById.put(post.data.optString("id"), post.data);
+        synchronized (ProfileFeedMerger.class) {
+            for (String id : linkIds) {
+                JSONObject cached = postMetadataCache.get(id);
+                if (cached != null) {
+                    postsById.put(id, cached);
+                }
+            }
+        }
+        linkIds.removeAll(postsById.keySet());
+        if (!linkIds.isEmpty() && !RateLimitThrottle.isThrottled()) {
+            String ids = Uri.encode(String.join(",", linkIds), ",");
+            String url = ARCTIC_BASE + "posts/ids?ids=" + ids
+                    + "&fields=id,title,author,url,subreddit";
+            List<Thing> linkedPosts = fetchArchiveThings(url, "t3", userAgent);
+            synchronized (ProfileFeedMerger.class) {
+                for (Thing post : linkedPosts) {
+                    String id = post.data.optString("id");
+                    postsById.put(id, post.data);
+                    postMetadataCache.put(id, post.data);
+                }
+                while (postMetadataCache.size() > MAX_POST_METADATA_CACHE) {
+                    String oldest = postMetadataCache.keySet().iterator().next();
+                    postMetadataCache.remove(oldest);
+                }
+            }
         }
         for (Thing thing : things) {
             if (!"t1".equals(thing.kind)) {
@@ -213,18 +275,26 @@ public final class ProfileFeedMerger {
             }
             copyIfPresent(post, "title", thing.data, "link_title");
             copyIfPresent(post, "author", thing.data, "link_author");
-            copyIfPresent(post, "permalink", thing.data, "link_permalink");
             copyIfPresent(post, "url", thing.data, "link_url");
+            String subreddit = post.optString("subreddit");
+            String postId = post.optString("id");
+            if (!subreddit.isEmpty() && !postId.isEmpty()) {
+                put(thing.data, "link_permalink", "/r/" + subreddit + "/comments/" + postId);
+            }
         }
     }
 
     private static void copyIfPresent(JSONObject source, String sourceKey,
                                       JSONObject target, String targetKey) {
         if (source.has(sourceKey) && !source.isNull(sourceKey)) {
-            try {
-                target.put(targetKey, source.opt(sourceKey));
-            } catch (Exception ignored) {
-            }
+            put(target, targetKey, source.opt(sourceKey));
+        }
+    }
+
+    private static void put(JSONObject target, String key, Object value) {
+        try {
+            target.put(key, value);
+        } catch (Exception ignored) {
         }
     }
 
@@ -259,7 +329,7 @@ public final class ProfileFeedMerger {
             HttpURLConnection connection =
                     (HttpURLConnection) new URL(url.toString()).openConnection();
             connection.setRequestMethod("GET");
-            setUserAgent(connection, userAgent);
+            configureConnection(connection, userAgent);
             connection.setRequestProperty("Authorization", "bearer " + accessToken);
             if (connection.getResponseCode() != 200) {
                 connection.disconnect();
@@ -302,7 +372,7 @@ public final class ProfileFeedMerger {
             connection.setDoOutput(true);
             connection.setRequestProperty("Authorization", basicAuth);
             connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            setUserAgent(connection, userAgent);
+            configureConnection(connection, userAgent);
             byte[] form = ("grant_type=refresh_token&refresh_token="
                     + encode(refreshToken)).getBytes(StandardCharsets.UTF_8);
             connection.setFixedLengthStreamingMode(form.length);
@@ -558,7 +628,30 @@ public final class ProfileFeedMerger {
         return separator >= 0 ? id.substring(separator + 1) : id;
     }
 
-    private static void setUserAgent(HttpURLConnection connection, String userAgent) {
+    private static List<Thing> awaitArchiveComments(FeedSnapshot snapshot, String name,
+                                                     String userAgent) {
+        if (snapshot.prefetchedComments != null) {
+            try {
+                return snapshot.prefetchedComments.get();
+            } catch (Exception ignored) {
+                return new ArrayList<>();
+            }
+        }
+        return fetchArchiveComments(
+                archiveSearchUrl("t1", name, snapshot.oldestCommentCreatedUtc), userAgent);
+    }
+
+    private static NativePage awaitNative(Future<NativePage> request) {
+        try {
+            return request.get();
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private static void configureConnection(HttpURLConnection connection, String userAgent) {
+        connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
+        connection.setReadTimeout(READ_TIMEOUT_MS);
         if (userAgent != null && !userAgent.isEmpty()) {
             connection.setRequestProperty("User-Agent", userAgent);
         }
@@ -580,13 +673,29 @@ public final class ProfileFeedMerger {
         Long oldestPostCreatedUtc;
         Long oldestCommentCreatedUtc;
         String nativeAfter;
+        String prefetchUrl;
+        Future<List<Thing>> prefetchedComments;
+        Future<NativePage> prefetchedNative;
         final Set<String> seen = new HashSet<>();
 
         void resetPaging() {
             oldestPostCreatedUtc = null;
             oldestCommentCreatedUtc = null;
             nativeAfter = null;
+            cancelPrefetch();
             seen.clear();
+        }
+
+        void cancelPrefetch() {
+            if (prefetchedComments != null) {
+                prefetchedComments.cancel(true);
+            }
+            if (prefetchedNative != null) {
+                prefetchedNative.cancel(true);
+            }
+            prefetchUrl = null;
+            prefetchedComments = null;
+            prefetchedNative = null;
         }
     }
 
@@ -596,13 +705,18 @@ public final class ProfileFeedMerger {
         final String time;
         final Long oldestCommentCreatedUtc;
         final String nativeAfter;
+        final Future<List<Thing>> prefetchedComments;
+        final Future<NativePage> prefetchedNative;
 
-        FeedSnapshot(FeedState state) {
+        FeedSnapshot(FeedState state, String url) {
             tab = state.tab;
             sort = state.sort;
             time = state.time;
             oldestCommentCreatedUtc = state.oldestCommentCreatedUtc;
             nativeAfter = state.nativeAfter;
+            boolean matchesPrefetch = url.equals(state.prefetchUrl);
+            prefetchedComments = matchesPrefetch ? state.prefetchedComments : null;
+            prefetchedNative = matchesPrefetch ? state.prefetchedNative : null;
         }
     }
 

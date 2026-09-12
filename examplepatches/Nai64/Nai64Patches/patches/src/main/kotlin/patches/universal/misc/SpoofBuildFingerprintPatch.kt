@@ -7,6 +7,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import patches.universal.ads.util.findMutableMethodOf
 import java.util.logging.Logger
 
 private const val BUILD_CLASS = "Landroid/os/Build;"
@@ -23,6 +24,9 @@ val spoofBuildFingerprintPatch = bytecodePatch(
             "and device checks. Leave empty to keep the original fingerprint",
     default = false,
 ) {
+    // Guarded: morphe-patcher < 1.13.0 has no category() and the bundle
+    // must still load there (ungrouped) instead of dying on linkage.
+    try { category("Spoof") } catch (_: NoSuchMethodError) {}
     val fingerprint by stringOption(
         title = "Fingerprint",
         default = "",
@@ -43,8 +47,9 @@ val spoofBuildFingerprintPatch = bytecodePatch(
 
         var patched = 0
         classDefForEach { classDef ->
-            val mutableClass = mutableClassDefBy(classDef)
-            for (method in mutableClass.methods) {
+            val mutableClass by lazy { mutableClassDefBy(classDef) }
+            for (method in classDef.methods) {
+                val mutableMethod by lazy { mutableClass.findMutableMethodOf(method) }
                 val implementation = method.implementation ?: continue
                 // Snapshot; one-for-one replacements keep indices valid.
                 val instructions = implementation.instructions.toList()
@@ -56,11 +61,11 @@ val spoofBuildFingerprintPatch = bytecodePatch(
 
                     val next = instructions.getOrNull(index + 1) as? OneRegisterInstruction
                     if (next != null && next.opcode == Opcode.MOVE_RESULT_OBJECT) {
-                        method.replaceInstruction(
+                        mutableMethod.replaceInstruction(
                             index,
                             "const-string v${next.registerA}, \"${escapeSmali(value)}\"",
                         )
-                        method.replaceInstruction(index + 1, "nop")
+                        mutableMethod.replaceInstruction(index + 1, "nop")
                         patched++
                     }
                 }

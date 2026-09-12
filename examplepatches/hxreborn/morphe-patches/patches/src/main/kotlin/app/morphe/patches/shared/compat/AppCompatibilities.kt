@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2026 hxreborn
+ * Copyright (C) 2026 hxreborn
  * SPDX-License-Identifier: GPL-3.0-only
  *
  * Central Morphe `Compatibility` metadata so Morphe Manager shows human-readable
@@ -26,6 +26,7 @@ internal object AppCompatibilities {
         packageName = "psyberia.alpinequest.free",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x0057BD,
+        targets = listOf(AppTarget(version = "2.4.0e", versionCode = 412)),
     )
 
     val AUDIBLE = Compatibility(
@@ -33,6 +34,7 @@ internal object AppCompatibilities {
         packageName = "com.audible.application",
         apkFileType = ApkFileType.APK,
         appIconColor = 0xF8991C,
+        targets = listOf(AppTarget(version = "26.30.05", versionCode = 2090263005, minSdk = 28)),
     )
 
     val BETTERSLEEP = Compatibility(
@@ -51,6 +53,19 @@ internal object AppCompatibilities {
         targets = listOf(AppTarget(version = "2.7.8", versionCode = 278, minSdk = 21)),
     )
 
+    val DWG_FASTVIEW = Compatibility(
+        name = "DWG FastView",
+        packageName = "com.gstarmc.android",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x1AACAC,
+        targets = listOf(
+            AppTarget(version = "5.19.4", versionCode = 614, minSdk = 26),
+            AppTarget(version = "5.19.6", versionCode = 616, minSdk = 26),
+            AppTarget(version = "5.20.0", versionCode = 620, minSdk = 26),
+            AppTarget(version = "5.21.0", versionCode = 630, minSdk = 26),
+        ),
+    )
+
     val ETSY = Compatibility(
         name = "Etsy",
         packageName = "com.etsy.android",
@@ -64,6 +79,7 @@ internal object AppCompatibilities {
         packageName = "com.myvitale.forus",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x0772BA,
+        targets = listOf(AppTarget(version = "3.0.15", versionCode = 96, minSdk = 26)),
     )
 
     val GAMMA_SCAN = Compatibility(
@@ -81,11 +97,24 @@ internal object AppCompatibilities {
         appIconColor = 0x53FC18,
     )
 
+    val MOVIEBOX = Compatibility(
+        name = "MovieBox",
+        packageName = "com.community.oneroom",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x30E66D,
+        targets = listOf(
+            AppTarget(version = "4.0.02.0828.03", versionCode = 50020125, minSdk = 29),
+            AppTarget(version = "4.0.02.0831.03", versionCode = 50020126, minSdk = 29),
+            AppTarget(version = "4.0.02.0903.02", versionCode = 50020128, minSdk = 29),
+        ),
+    )
+
     val NOTESNOOK = Compatibility(
         name = "Notesnook",
         packageName = "com.streetwriters.notesnook",
         apkFileType = ApkFileType.APKS,
         appIconColor = 0x008837,
+        targets = listOf(AppTarget(version = "3.4.12", versionCode = 4197422, minSdk = 24)),
     )
 
     val PERPLEXITY = Compatibility(
@@ -93,6 +122,7 @@ internal object AppCompatibilities {
         packageName = "ai.perplexity.app.android",
         apkFileType = ApkFileType.APKS,
         appIconColor = 0x20808D,
+        targets = listOf(AppTarget(version = "2.95.0", versionCode = 260642, minSdk = 32)),
     )
 
     val PHOTO_EDITOR_PRO = Compatibility(
@@ -111,6 +141,10 @@ internal object AppCompatibilities {
         packageName = "com.spocky.projengmenu",
         apkFileType = ApkFileType.APK,
         appIconColor = 0xF08029,
+        targets = listOf(
+            AppTarget(version = "4.71", versionCode = 95, minSdk = 23),
+            AppTarget(version = "4.70", versionCode = 92, minSdk = 23),
+        ),
     )
 
     val PROTON_MAIL = Compatibility(
@@ -143,6 +177,7 @@ internal object AppCompatibilities {
         packageName = "com.sry.rateglance",
         apkFileType = ApkFileType.APKS,
         appIconColor = 0x0D192C,
+        targets = listOf(AppTarget(version = "1.14.8", versionCode = 278, minSdk = 32)),
     )
 
     val READERA = Compatibility(
@@ -169,16 +204,10 @@ internal object AppCompatibilities {
         packageName = "app.rubberbands.fit",
         apkFileType = ApkFileType.APKS,
         appIconColor = 0xFD8700,
+        targets = listOf(AppTarget(version = "3.9", versionCode = 291, minSdk = 26)),
     )
 
     val SHOWLY = Compatibility(
-        name = "Showly",
-        packageName = "com.michaldrabik.showly2",
-        apkFileType = ApkFileType.APK,
-        appIconColor = 0xF44336,
-    )
-
-    val SHOWLY_3_70 = Compatibility(
         name = "Showly",
         packageName = "com.michaldrabik.showly2",
         apkFileType = ApkFileType.APK,
@@ -194,6 +223,7 @@ internal object AppCompatibilities {
         targets = listOf(
             AppTarget(version = "14.0.0", versionCode = 127708, minSdk = 28),
             AppTarget(version = "14.1.0", versionCode = 127734, minSdk = 32),
+            AppTarget(version = "15.0.1", versionCode = 127798, minSdk = 32),
             AppTarget(version = "14.0.0 TV", versionCode = 227708, minSdk = 32),
         ),
     )

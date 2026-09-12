@@ -19,6 +19,16 @@ val disableAdvertisementsPatch = bytecodePatch(
     dependsOn(advertisingManifestPatch)
 
     execute {
+        googleAdvertisingIdFingerprint.method.addInstructions(
+            0,
+            """
+                new-instance v0, Lcom/google/android/gms/ads/identifier/AdvertisingIdClient${'$'}Info;
+                const-string v1, "00000000-0000-0000-0000-000000000000"
+                const/4 v2, 0x1
+                invoke-direct {v0, v1, v2}, Lcom/google/android/gms/ads/identifier/AdvertisingIdClient${'$'}Info;-><init>(Ljava/lang/String;Z)V
+                return-object v0
+            """
+        )
         rawAdvertisementRepositoryGetFingerprint.method.addInstructions(
             0,
             """
@@ -79,6 +89,22 @@ val disableAnalyticsAndTrackersPatch = bytecodePatch(
     dependsOn(analyticsManifestPatch)
 
     execute {
+        // These paths run directly, outside the blocked WorkManager workers.
+        listOf(
+            metricsEventCollectionFingerprint,
+            mediaScopeTrackFingerprint,
+            inAppStoryInitializeFingerprint
+        ).forEach { fingerprint ->
+            fingerprint.method.addInstructions(
+                0,
+                """
+                    sget-object v0, Ltt0/e0;->a:Ltt0/e0;
+                    return-object v0
+                """
+            )
+        }
+        // Also discard queued events from installations predating this patch.
+        metricsEventSendFingerprint.method.addInstruction(0, "return-void")
         requestDeviceIdFingerprint.method.addInstructions(
             0,
             """
@@ -140,6 +166,44 @@ val disableAnalyticsAndTrackersPatch = bytecodePatch(
 }
 
 @Suppress("unused")
+val replaceRuStoreSdkDeviceIdentifierPatch = bytecodePatch(
+    name = "Replace RuStore SDK device identifier",
+    description = "Replaces the RuStore SDK device identifier sent with payment and session requests with the zero UUID.",
+    default = true
+) {
+    compatibleWith(RUSTORE_COMPATIBILITY)
+
+    execute {
+        rustoreSdkDeviceIdFingerprint.method.addInstructions(
+            0,
+            """
+                const-string v0, "00000000-0000-0000-0000-000000000000"
+                return-object v0
+            """
+        )
+    }
+}
+
+@Suppress("unused")
+val replaceVkSdkDeviceIdentifierPatch = bytecodePatch(
+    name = "Replace VK SDK device identifier",
+    description = "Replaces the VK SDK device fingerprint sent by VK ID and VK Pay request paths with the zero UUID.",
+    default = true
+) {
+    compatibleWith(RUSTORE_COMPATIBILITY)
+
+    execute {
+        vkSdkDeviceIdFingerprint.method.addInstructions(
+            0,
+            """
+                const-string v0, "00000000-0000-0000-0000-000000000000"
+                return-object v0
+            """
+        )
+    }
+}
+
+@Suppress("unused")
 val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
     name = "Restrict background work to updates",
     description = "Keeps only the workers required for automatic updates and allows update checks to run while RuStore is foreground or background.",
@@ -149,6 +213,30 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
     dependsOn(analyticsManifestPatch, disablePushServicesPatch)
 
     execute {
+        // Android preserves explicit component overrides across APK updates.
+        val disablePersistedPushServices = listOf(
+            "com.vk.push.authsdk.ipc.AuthService",
+            "com.vk.push.pushsdk.ipc.PushService",
+            "com.vk.push.pushsdk.masterhost.MasterSelectionService"
+        ).joinToString("\n") { service ->
+            """
+                new-instance v1, Landroid/content/ComponentName;
+                const-string v2, "$service"
+                invoke-direct {v1, v6, v2}, Landroid/content/ComponentName;-><init>(Landroid/content/Context;Ljava/lang/String;)V
+                const/4 v3, 0x2
+                const/4 v4, 0x1
+                invoke-virtual {v0, v1, v3, v4}, Landroid/content/pm/PackageManager;->setComponentEnabledSetting(Landroid/content/ComponentName;II)V
+            """
+        }
+        applicationOnCreateFingerprint.method.addInstructions(
+            0,
+            """
+                move-object/from16 v6, p0
+                invoke-virtual {v6}, Landroid/content/Context;->getPackageManager()Landroid/content/pm/PackageManager;
+                move-result-object v0
+                $disablePersistedPushServices
+            """
+        )
         autoUpdateForegroundRestrictionFingerprint.method.addInstructions(
             0,
             """

@@ -14,10 +14,13 @@ import patches.universal.manifest.applicationOrNull
 
 @Suppress("unused")
 val pairipBypassPatch = bytecodePatch(
-    name = "★ Pairip Bypass",
+    name = "Pairip Bypass",
     description = "Bypass app protection so the patched app can start.",
     default = false,
 ) {
+    // Guarded: morphe-patcher < 1.13.0 has no category() and the bundle
+    // must still load there (ungrouped) instead of dying on linkage.
+    try { category("Featured") } catch (_: NoSuchMethodError) {}
     val localInstallerChecks by booleanOption(
         key = "localInstallerChecks",
         default = true,
@@ -51,6 +54,9 @@ val pairipBypassPatch = bytecodePatch(
         name = "Pairip Firebase Cleanup (internal)",
         default = false,
     ) {
+        // Guarded: morphe-patcher < 1.13.0 has no category() and the bundle
+        // must still load there (ungrouped) instead of dying on linkage.
+        try { category("Misc") } catch (_: NoSuchMethodError) {}
         execute {
             val logger = Logger.getLogger(this::class.java.name)
             if (disableFirebase != true) {

@@ -1,0 +1,90 @@
+/*
+ * Forked from:
+ * https://github.com/ReVanced/revanced-patches/blob/377d4e15016296b45d809697f7f69bce74badd3a/extensions/tiktok/src/main/java/app/revanced/extension/tiktok/settings/preference/categories/DownloadsPreferenceCategory.java
+ */
+
+package app.morphe.extension.tiktok.settings.preference.categories;
+
+import android.content.Context;
+import android.preference.PreferenceScreen;
+
+import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.settings.SettingsStatus;
+import app.morphe.extension.tiktok.settings.preference.DownloadPathPreference;
+import app.morphe.extension.tiktok.settings.preference.DownloadQualityPreference;
+import app.morphe.extension.tiktok.settings.preference.DownloadSourcePreference;
+import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
+import app.morphe.extension.tiktok.settings.preference.NumberInputPreference;
+import app.morphe.extension.tiktok.settings.preference.TogglePreference;
+
+@SuppressWarnings("deprecation")
+public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
+    public DownloadsPreferenceCategory(Context context, PreferenceScreen screen) {
+        super(context, screen);
+        setTitle("Downloads");
+    }
+
+    @Override
+    public boolean getSettingsStatus() {
+        return SettingsStatus.downloadEnabled;
+    }
+
+    @Override
+    public void addPreferences(Context context) {
+        addPreference(new DownloadPathPreference(
+                context,
+                "Download path",
+                Settings.DOWNLOAD_PATH
+        ));
+        addPreference(new InputTextPreference(
+                context,
+                "Video filename",
+                "Tokens: {creator}, {date}, {video_id}. The file extension is kept automatically.",
+                Settings.DOWNLOAD_VIDEO_FILENAME_TEMPLATE
+        ));
+        addPreference(new InputTextPreference(
+                context,
+                "Photo filename",
+                "Tokens: {creator}, {date}, {video_id}, {index}. The file extension is kept automatically.",
+                Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE
+        ));
+        addPreference(new InputTextPreference(
+                context,
+                "Comment media filename",
+                "Tokens: {date}, {media_id}. Works for image and video stickers.",
+                Settings.DOWNLOAD_COMMENT_MEDIA_FILENAME_TEMPLATE
+        ));
+        addPreference(new TogglePreference(
+                context,
+                "Remove watermark",
+                "Apply to video downloads and image downloads.",
+                Settings.DOWNLOAD_WATERMARK
+        ));
+        if (SettingsStatus.originalPhotoModeDownloaderEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Original Photo Mode downloads",
+                    "Save original CDN image bytes and remove TikTok's rendered copies only after all originals were saved successfully.",
+                    Settings.DOWNLOAD_ORIGINAL_PHOTOS
+            ));
+        }
+        if (SettingsStatus.advancedDownloadsEnabled) {
+            addPreference(new DownloadQualityPreference(context, Settings.DOWNLOAD_VIDEO_QUALITY));
+            addPreference(new DownloadSourcePreference(context, Settings.DOWNLOAD_VIDEO_SOURCE));
+        }
+        addPreference(new TogglePreference(
+                context,
+                "Custom offline videos",
+                "Adds a custom option to TikTok's offline videos menu after restart.",
+                Settings.CUSTOM_OFFLINE_VIDEOS
+        ));
+        addPreference(new NumberInputPreference(
+                context,
+                "Offline videos limit",
+                "Choose 201-500 videos. Restart TikTok after saving.",
+                Settings.CUSTOM_OFFLINE_VIDEO_LIMIT,
+                201,
+                500
+        ));
+    }
+}

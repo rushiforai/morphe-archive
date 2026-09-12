@@ -1,3 +1,15 @@
+## [1.3.0](https://github.com/WZSE/aapam-patches/compare/v1.2.0...v1.3.0) (2026-09-11)
+
+### ✨ New Features
+
+* Coloring & Learn adblock & premium ([1ab6536](https://github.com/WZSE/aapam-patches/commit/1ab653640027974e819ba2f495589673345d5c63))
+
+## [1.3.0-dev.1](https://github.com/WZSE/aapam-patches/compare/v1.2.0...v1.3.0-dev.1) (2026-09-11)
+
+### ✨ New Features
+
+* Coloring & Learn adblock & premium ([1ab6536](https://github.com/WZSE/aapam-patches/commit/1ab653640027974e819ba2f495589673345d5c63))
+
 ## [1.2.0](https://github.com/WZSE/aapam-patches/compare/v1.1.0...v1.2.0) (2026-09-05)
 
 ### ✨ New Features

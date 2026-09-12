@@ -86,13 +86,17 @@ It does **not** guarantee build-tools **36.1.0**, nor install `adb` just for a b
 Inspect first, then install packages needed for a fresh setup:
 
 ```fish
-android --sdk="$ANDROID_HOME" info
-android --sdk="$ANDROID_HOME" sdk list
-android --sdk="$ANDROID_HOME" sdk install platforms/android-36
-android --sdk="$ANDROID_HOME" sdk install platform-tools
+android info
+android sdk list
+android sdk install platforms/android-36
+android sdk install platform-tools
+android sdk install "ndk;29.0.14206865"
 # Explicit analysis/signature tools; not a repo build-tools pin:
-android --sdk="$ANDROID_HOME" sdk install build-tools/36.1.0
-fish_add_path "$ANDROID_HOME/build-tools/36.1.0" "$ANDROID_HOME/platform-tools" ~/.local/bin
+android sdk install build-tools/36.1.0
+# Fedora WSL:
+fish_add_path "$ANDROID_HOME/build-tools/36.1.0" "$ANDROID_HOME/platform-tools" "$ANDROID_HOME/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin" ~/.local/bin
+# macOS:
+fish_add_path "$ANDROID_HOME/build-tools/36.1.0" "$ANDROID_HOME/platform-tools" "$ANDROID_HOME/ndk/29.0.14206865/toolchains/llvm/prebuilt/darwin-x86_64/bin" ~/.local/bin
 ```
 
 `build-tools/36.1.0` is valid [Android CLI package syntax](https://developer.android.com/tools/agents/android-cli#sdk-install).
@@ -104,14 +108,14 @@ required. `ANDROID_HOME` controls Gradle SDK discovery; PATH controls terminal t
 
 | Tool | Purpose |
 | --- | --- |
-| `java`, `javac`, `keytool` (`brew install openjdk@21`) | Build, run Morphe Desktop, inspect signing keys |
+| `java`, `javac`, `keytool` (`brew install openjdk@21`) | Build, run Morphe, inspect signing keys |
 | `android` (`brew install android-cli`) | Manage SDK packages |
 | `adb` (`android sdk install platform-tools`) | Device pairing, install, logcat |
 | `aapt`, `aapt2`, `apksigner`, `zipalign` (`android sdk install build-tools/36.1.0`, or an installed suitable version) | APK metadata and signing/alignment checks |
 | `git`, `curl`, `unzip`, `zip`, `bash`, `fish`, `python3` (host commands in [Python and host tools](#1-python-and-host-tools)) | Host/script prerequisites |
 | Gradle (checked-in `./gradlew`; no separate install) | Build/test bundles and extensions |
 | `gh`, `jq` (Fedora: `sudo dnf install -y gh jq`; macOS: `brew install gh jq`) | GitHub releases/PRs and JSON |
-| Morphe Desktop CLI/GUI (see [Morphe Desktop is also the CLI](#5-morphe-desktop-is-also-the-cli)) | Apply bundles and sign APKs |
+| Morphe CLI/GUI (see [Morphe CLI and GUI share one JAR](#5-morphe-cli-and-gui-share-one-jar)) | Apply bundles and sign APKs |
 
 ### Needed only for reverse engineering
 
@@ -162,52 +166,81 @@ Use a GitHub PAT with `read:packages` for the Morphe Gradle registry:
 `GITHUB_ACTOR` / `GITHUB_TOKEN`, or `gpr.user` / `gpr.key` in your private
 `~/.gradle/gradle.properties`. Never commit credentials.
 
-## 5. Morphe Desktop is also the CLI
+## 5. Morphe CLI and GUI share one JAR
 
 Upstream distributes **`morphe-desktop-*-all.jar`**, not a separate CLI package.
-The same JAR launches the GUI without a subcommand and the CLI with one.
+The same JAR launches the Morphe GUI without a subcommand and the Morphe CLI with one.
 See the [upstream README](https://github.com/MorpheApp/morphe-desktop) and
 [CLI reference](https://github.com/MorpheApp/morphe-desktop/blob/main/docs/documentation.md#cli).
-In this repo, `morphe-cli.jar` is only the local filename alias for that JAR.
+In this repo nothing needs to be exported: `scripts/repatch.sh` discovers the
+newest `morphe-desktop-*-all.jar` in `~/.local/share/morphe/`. For manual
+testing, `scripts/repatch.sh --jar <path>` overrides discovery.
 
-Download the latest stable official JAR (requires `gh auth login`):
-
-```fish
-mkdir -p ~/.local/share/morphe-desktop ~/.local/bin
-gh release download --repo MorpheApp/morphe-desktop --pattern 'morphe-desktop-*-all.jar' --dir ~/.local/share/morphe-desktop
-```
-
-Choose the exact downloaded filename and either set `MORPHE_CLI` to it, or copy it
-to `~/.local/bin/morphe-cli.jar`. Do not replace a JAR during an active patch run.
+Download the latest stable official JAR to `~/.local/share/morphe/`
+(requires `gh auth login`):
 
 ```fish
-# Substitute the actual downloaded version; keep this in config.fish if desired.
-set -gx MORPHE_CLI "$HOME/.local/share/morphe-desktop/morphe-desktop-VERSION-all.jar"
-java -jar "$MORPHE_CLI" --version
-java -jar "$MORPHE_CLI" --help
-# GUI:
-java -jar "$MORPHE_CLI"
-# CLI via this repo's helper (bash):
-# bash scripts/repatch.sh /path/to/app.apkm /tmp/app-patched.apk
+mkdir -p ~/.local/share/morphe
+gh release download --repo MorpheApp/morphe-desktop --pattern 'morphe-desktop-*-all.jar' --dir ~/.local/share/morphe
 ```
+
+Do not replace a JAR during an active patch run.
+
+```bash
+MORPHE="${MORPHE:-$(find ~/.local/share/morphe -maxdepth 1 -type f \
+  -name 'morphe-desktop-*-all.jar' -print0 |
+  xargs -0 ls -t | head -n1)}"
+java -jar "$MORPHE" --version
+java -jar "$MORPHE" --help
+# Morphe GUI:
+java -jar "$MORPHE"
+# Helper (no environment variables needed):
+bash scripts/repatch.sh /path/to/app.apkm /tmp/app-patched.apk
+```
+
+`scripts/repatch.sh` works out of the box with zero environment variable
+configuration: it discovers the newest `morphe-desktop-*-all.jar`, the signing
+keystore, and the patch bundle from their standard locations.
+
+Morphe keeps its runtime data (cached patches, logs, scratch, default keystore)
+under `MORPHE_DATA_DIR` when set to a writable directory, else
+`<jar-dir>/morphe-data/`, else `~/morphe/` — see [CLI patching](cli.md) for the
+full priority and the startup-log line that reports the winner.
 
 `scripts/repatch.sh` uses `java -jar`, `options-create`, and `patch`.
 Full flag reference and terminal flows (discovery, single-patch isolation,
 signing, updates): [CLI patching](cli.md).
-It needs a JAR path, **not** a shell wrapper. It explicitly selects the patch
-bundle, temporary directory, and keystore; its keystore default is the repo's
-`Morphe.keystore`, not the Desktop data directory. Set `KEYSTORE` to your
-existing signing key and preserve its alias/password settings; see
+It explicitly selects the patch
+bundle and temporary directory, and passes the discovered keystore
+(`imported.keystore` preferred, `--keystore-password=Morphe` by default);
+use `KEYSTORE=`/`KEYSTORE_PASSWORD=` only to override what discovery finds
+and preserve its alias/password settings; see
 [signing incidents](lessons-learned.md#signing).
-Desktop's data-directory defaults can change between versions; check startup
-logs or GUI **Tools → Open App Data**, rather than guessing a key location.
+Morphe's data-directory defaults can change between versions; check startup
+logs or the Morphe GUI **Tools → Open App Data**, rather than guessing a key
+location. Signing-key priority and password overrides are documented in
+[CLI patching](cli.md#signing).
 
-## 6. Original APK source
+## 6. Storage and path conventions
+
+Keep host-specific runtime paths in this section; other procedures link here rather
+than repeating them. On the standard Fedora WSL host, original APKMirror split
+bundles (`.apkm`) are stored in `/mnt/c/Users/zeldrisho/Downloads/`. The default
+Morphe runtime data and signing keys are discovered in this order:
+`$MORPHE_DATA_DIR`, `<morphe-JAR-directory>/morphe-data/`, then `~/morphe/`.
+The default key is `morphe.keystore` (alias `Morphe`); `scripts/repatch.sh`
+prefers `imported.keystore` when present. See [CLI signing](cli.md#signing)
+for password, override, and legacy-repository-key details.
+
+## 7. Original APK source
 
 Download original APKs/APKMs **only from [APKMirror](https://www.apkmirror.com/)**.
-Pass the downloaded split bundle (`.apkm`) directly to Morphe Desktop or
-`scripts/repatch.sh`; never pre-extract `base.apk`. Record the page
-URL, version name, versionCode, ABI/variant, and SHA-256 of the downloaded input.
+On the standard WSL host, store downloads in
+`/mnt/c/Users/zeldrisho/Downloads/` (the canonical path used by
+[CLI patching](cli.md)); other hosts may use any local directory. Pass the
+downloaded split bundle (`.apkm`) directly to Morphe or
+`scripts/repatch.sh`; never pre-extract `base.apk`. Record the page URL, version
+name, versionCode, ABI/variant, and SHA-256 of the downloaded input.
 Other mirrors are not sources for this project's original APKs.
 
 ## Verify setup
@@ -216,7 +249,7 @@ Other mirrors are not sources for this project's original APKs.
 python3 --version
 java -version
 ./gradlew --version
-android --sdk="$ANDROID_HOME" sdk list
+android sdk list
 adb version
 aapt version
 jadx --version

@@ -1,3 +1,17 @@
+## [1.7.1](https://gitlab.com/IMXEren/mix-patches/compare/v1.7.0...v1.7.1) (2026-09-11)
+
+### 🔧 Improvements
+
+* **reddit-sync:** fetch profile sources concurrently ([450efdb](https://gitlab.com/IMXEren/mix-patches/commit/450efdb197fca0c03ed0707ee7f09af6faba7eec))
+* **reddit-sync:** reduce profile metadata lookups ([d8a7d64](https://gitlab.com/IMXEren/mix-patches/commit/d8a7d64ec5069e7167e4cbb628db4eaef863ad33))
+
+## [1.7.1-dev.1](https://gitlab.com/IMXEren/mix-patches/compare/v1.7.0...v1.7.1-dev.1) (2026-09-11)
+
+### 🔧 Improvements
+
+* **reddit-sync:** fetch profile sources concurrently ([450efdb](https://gitlab.com/IMXEren/mix-patches/commit/450efdb197fca0c03ed0707ee7f09af6faba7eec))
+* **reddit-sync:** reduce profile metadata lookups ([d8a7d64](https://gitlab.com/IMXEren/mix-patches/commit/d8a7d64ec5069e7167e4cbb628db4eaef863ad33))
+
 ## [1.7.0](https://gitlab.com/IMXEren/mix-patches/compare/v1.6.0...v1.7.0) (2026-09-08)
 
 ### 🐛 Bug Fixes

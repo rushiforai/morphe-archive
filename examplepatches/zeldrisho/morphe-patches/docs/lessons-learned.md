@@ -1,108 +1,73 @@
 # Lessons learned
 
-Incident-driven context, distilled from sibling Morphe patch bundles
-(`chiggi_morphe_patches`, see its `RULEBOOK.md`; `FroggoMorphePatches`
-Facebook 573 patches) and from this repo's Threads work. Each rule earned
-its place because an incident cost someone something —
-the "Why" column is the actual incident. Add rows here when it happens to us;
-one line each.
+Short, reusable rules from incidents in this repository. Procedures belong in
+[development](development.md), [patch development](patch-development.md), and
+[QA](qa-checklist.md).
 
-Canonical procedures live elsewhere; this file explains *why*, not *how*.
-Follow the linked owner doc for the current rule.
+## Patching
 
-Read this before writing a bypass, re-signing a build, or touching release config.
+| Rule | Why |
+| --- | --- |
+| Prove a client-side gate before bypassing a server response or telemetry signal. | Otherwise the proposed patch has no effect or suppresses harmless reporting. |
+| Preserve initialization and error handling; patch the narrow predicate or callsite. | Shared helpers and lifecycle code have broad, hard-to-test consequences. |
+| Filter returned collections rather than mutating unknown list implementations. | Immutable or shared lists can reject in-place edits or corrupt later consumers. |
+| Guard version, ABI, and method-shape assumptions in native and bytecode patches. | A patch that matches the wrong artifact can crash or silently do nothing. |
+| Treat a successful build as necessary, not sufficient. | Runtime behavior can differ after signing, installation, optimization, or data restoration. |
 
-## What is (and isn't) patchable
+## Analysis and diagnostics
 
-Canonical bypass recipes: [bypass patterns](bypass-patterns.md).
-Authoring policy: [patch development](patch-development.md#file-layout).
+| Rule | Why |
+| --- | --- |
+| Establish a stock control before interpreting a patched run. | It separates app/device/toolchain failures from the change under test. |
+| Use staged isolation: loader, entrypoint, helper, then predicate. | Broad stubs can hide the failure while also removing required setup. |
+| Record exact artifact hashes, version, ABI, offsets, bytes, and raw logs. | Findings are otherwise not reproducible or portable to another build. |
+| Prefer fail-loud diagnostic probes over broad hooks. | Broad instrumentation can perturb timing, loading, or register state. |
+| Do not retain a diagnostic mutation as a production patch. | Stubs and NOPs commonly remove registration, cleanup, or required state. |
+| When isolating native startup failures, preserve setup and neutralize only the failing dispatch. | Bypassing an entire initializer can remove required TLS/JNI state and create misleading secondary crashes. |
+| Treat native calls that populate shared configuration as required initialization until proven otherwise. | Replacing a configuration call with a NOP can leave downstream key/API fields null and turn the original failure into unrelated request-construction crashes. |
+| When a native routine resolves a framework method through JNI, trace the JNIEnv table call and its argument setup before changing Java callers. | Nearby smali `System.exit` callers may be unrelated; a JNI-dispatched exit can survive broad bytecode suppression. |
+| For a surgical native fix, validate both the preserved prerequisite instruction and the replaced terminal dispatch bytes. | Checking only the mutation can silently break required initialization or apply to the wrong ABI/build. |
+| Treat process survival and UI reachability as separate from initialization correctness. | A suppressed exit can expose later null shared state; validate required fields and request construction before calling the run successful. |
+| Restore the stock initializer before diagnosing later lifecycle or authentication failures. | A valid control distinguishes a patch regression from the app's independent integrity or device behavior. |
 
-| Observation (historical) | Why |
-| ---- | --- |
-| Before bypassing a server "verdict", grep for the client enum/branch that READS it; if the payload is opaque (ByteString/blob) and only the network layer touches it, there is nothing to bypass. | A "proxy-state bypass" shipped against an opaque server-minted `ByteString` with no client-side `NO_PROXY`/`BLOCKED` enum — the bypass was fictional. |
-| Never neuter a stateful echo/ACK protocol; if the client stores a server value and echoes it back on later requests, dropping it self-reports tamper on EVERY request. | Returning Unit in a proxy-state interceptor made the client echo "clean" forever while the server said BLOCKED → 24h account lock for "malicious activity". |
-| An `AD_ID`/billing permission does NOT imply a patchable surface; verify real `AdView`/`InterstitialAd`/`BillingClient` usage in app code first. | An app with AD_ID had zero in-app ads and no billing (AdMob string was just the ads-identifier SDK) → nothing to patch. |
-| Don't fake an "unlock" for server-config-driven lists; confirm a client gate exists. | Video quality came from a server JSON with no client subscription filter; the real ceiling was server manifest + Widevine — unpatchable. |
-| Block screens rendered from server widgets (protobuf-driven fragments re-fetched on every navigation) are not client-patchable; the block text isn't in the APK. | "Go to home" just re-ran the server's own actions → same screen loop. |
-| Telemetry-only signals (`isRooted`/`isEmulator`/attestation logged but never gating) must NOT be patched — risk for zero benefit. | Operator feared a block that didn't exist; nothing gated login/playback on those signals. |
-| Re-signing + VPN/proxy + client spoofs on a REAL streaming/social/paid account = ban risk; recommend a throwaway account early, official app for the real one. | Re-signed build + VPN got a real account locked 24h. |
+## Device diagnostics
 
-## Patching pitfalls
+| Rule | Why |
+| --- | --- |
+| Confirm the device is awake, unlocked, and displaying the app before diagnosing a startup stall. | A locked or dozing device can leave the foreground activity unchanged while the app is healthy and interactive underneath. |
+| Distinguish an activity's registered/alias name from the screen currently rendered. | Launchers and aliases can continue to report an entry activity after navigation into an in-app flow. |
+| Treat worker-thread exceptions and noisy system logs as evidence to correlate, not proof of the root cause. | Background failures may be recoverable or unrelated; correlate them with UI state, activity history, and process health. |
+| Record device state, app state, exact commands, and bounded log evidence for runtime findings. | This makes failures reproducible without turning feature-specific observations into permanent QA procedure. |
+| Start logcat capture before reproducing an error and stop it immediately afterward. | A post hoc buffer can omit the request, response, and client decision that caused the visible error. |
+| Treat a startup-integrity bypass and authentication trust as separate gates. | A re-signed app can boot normally while a Java or server-side certificate check rejects login. |
+| Treat third-party account/Drive authorization as a separate signing-identity gate. | A re-signed client may reach its UI and authenticate to its own service while Google token issuance still rejects its certificate. |
+| Trace the provider boundary before redirecting a third-party SDK. | A client can use standard `AccountManager` account types and a hard-coded GMS component even when the installed implementation uses a different package identity; blind string replacement can break account selection or service binding. |
+| Keep provider package identity separate from compatibility API namespaces. | A package-renamed GMS implementation may expose `com.google.android.gms.*` API/service descriptors while its actual Android application package and namespaced intent actions differ; redirect only the proven boundary. |
+| Validate account type independently of provider package redirection. | `AccountManager` discovery and token lookup can fail even when the redirected token service is reachable if the client and provider use different account-type strings. |
+| Distinguish account existence from account visibility. | `dumpsys account` can show an account while `getAccountsByType()` returns an empty array because the caller is not listed in that account's visibility settings; inspect visibility before adding or re-creating an account. |
+| Match framework API overloads to the device runtime, not only the compile SDK. | Android 16 exposed the `newChooseAccountIntent` overload accepting `List<Account>`; emitting the `Account[]` overload caused a runtime `NoSuchMethodError` despite successful compilation. |
+| Treat picker success and OAuth authorization as separate gates. | On SM-S936B the picker returned the selected account and MicroG received the `drive.appdata` request through `app.revanced.android.gms`; the remaining `UNREGISTERED_ON_API_CONSOLE` failure was the Morphe signing certificate not being registered for the OAuth client. |
+| Keep configuration cache separate from the build cache. | `org.gradle.caching=true` caches task outputs; configuration cache is opt-in via `--configuration-cache` or `org.gradle.configuration-cache=true`, and custom/plugin tasks must be verified before enabling it by default. |
+| If a request fails with a local exception before an HTTP response is logged, classify it as client-side first. | Generic UI error numbers do not establish a server response; capture the request lifecycle before attributing a failure to the endpoint. |
+| Confirm the runtime path before attributing a string or native offset to a failure. | Native strings and nearby helpers can be unused, while the active path may be ordinary Java code. |
+| Separate provider transport success from upstream authorization. | A successful account picker, IPC bind, and token-service request do not prove that the upstream OAuth client accepts the installed package and certificate. |
+| Treat re-signing as an authentication boundary. | OAuth clients commonly bind authorization to package identity and signing certificate; a locally valid APK can still be rejected upstream. |
+| Validate signing inputs before attributing failures to runtime code. | Keystore format, password, and alias errors can prevent a reproducible install; verify the selected entry and APK certificate before device QA. |
+| Treat Morphe keystore aliases as case-sensitive. | `morphe` and `Morphe` are different aliases; pass the exact alias with its matching key password or signing will be non-reproducible. |
+| Keep microG signature formats distinct. | The `SPOOFED_PACKAGE_SIGNATURE` metadata uses the stock certificate's raw DER hex for signature spoofing, while Google OAuth client registration uses the lowercase 40-character SHA-1 fingerprint (`9487ba76b32e9e36785fb4c3540021f85af8d7b7`). |
 
-Hunt and authoring owners: [hunt targets](reverse-engineering.md#hunt-targets),
-[patch development](patch-development.md).
+## OAuth-dependent device QA finding
 
-| Observation (historical) | Why |
-| ---- | --- |
-| Force boxed getters carefully: returning null NPE-crashes when the caller unboxes; return a safe value instead (e.g. version getter → `"0"`). | A forced-update patch NPE'd because the caller `.intValue()`'d the result immediately. |
-| Verify a pasted `.java` isn't truncated (unterminated `/**`): `awk '{o+=gsub(/\/\*/,"&")-gsub(/\*\//,"&")} END{print o}' file.java` must print 0. | A file cut at 80 cols ate method bodies → compile break only surfaced at `:patches:build`. |
-| Leave dependency-injected UI SDKs (e.g. CleverTap) intact; disable only standalone telemetry (AppsFlyer, Firebase flags). | CleverTap drives in-app overlays via DI — disabling it crashed parts of the app. |
-| Renaming a package can break web-OAuth/App-Links/Google sign-in (package+cert bound); keep rename toggleable and offer label-only as fallback. | Rename risked breaking Google/Apple/OAuth login; only email/password survived. |
-| PairIP-style license checks on re-signed builds must be neutered or the app won't open at all; ship that bypass on by default. | Patched app redirected to the Play Store on every launch until the license check was bypassed. |
-| Never edit a large shared dispatcher to suppress one caller: patching the shared `refreshForRevisit` itself caused `VerifyError` crashes on some devices. Neutralize the specific callsites instead (const-overwrite the triggering registers before the invoke) and leave the shared method stock. | Froggo Facebook 573 refresh patch: touching the big shared method crashed devices; per-callsite guards in `NewsFeedFragment` worked. |
-| SDK verification can fail inside D8 even when Morphe's normal compiler succeeds. | On Threads 445 (`445.0.0.46.83`, versionCode `511507647`), `VERIFY_SDK=1` with the installed Android SDK (`platforms/android-36`, build-tools `36.1.0`) applied all patches but failed verifying the generated `classes6.dex` with an internal `SdkDexVerifier`/D8 `NullPointerException` (`e6.H1()`). Retries pinned to build-tools `36.0.0` (`H2.G1()` returned null) and `35.0.0` / D8 `8.6.2-dev` (`D2.K1()` returned null) reproduced the same failure shape across three D8 versions (`9.0.3`, `8.10.9`, `8.6.2`), pointing at a Morphe-verifier input issue rather than a single bad toolchain version. Stock `classes6.dex` passes the same standalone D8 invocation; `STRIP_SAFE` reproduces the failure and `FULL` instead exceeds the single-dex limit. Waived for this release (owner decision): the same internal NPE reproduces across three D8 versions, so no available toolchain unblocks it, while device QA on the single test phone passed (feed, pagination, video, no crash, no AD_ID). Revisit only if Morphe ships a verifier fix; this waiver is not a patch-success claim for other phones. |
-| Never remove an ad provider — filter its output. Deleting the Story-ads provider broke its lifecycle and cold-start logging showed the first Story failing before provider init. Let the provider run stock, then strip ad items from its returned collection at the return boundary. | Froggo Facebook 573 Story-ads patch: provider removal broke cold start; return-value filtering (`instanceof` strip) kept lifecycle intact. |
+A re-signed build can launch without crashes and reach a Drive restore flow while the provider still returns `UNREGISTERED_ON_API_CONSOLE`. A captured `drive.appdata` request may contain both `client_sig` and `callerSig` as raw stock-certificate DER hex, proving the transport path but not upstream authorization. The account picker and OAuth authorization are separate gates. Drive backup/restore remains unverified until the OAuth project accepts the package and certificate, and may remain unavailable for re-signed clients when server-side project-key attestation is enforced.
 
-## App identity, compatibility, and device testing
+If authentication fails before the main UI is available, record ad and feature checks as BLOCKED rather than treating the startup result as full functional QA.
 
-| Observation | Why it matters |
-| ---- | ---- |
-| Meta apps may depend on their original package identity even when a resource patch successfully rewrites the manifest. | Threads 445 launched and logged in with `com.instagram.barcelona`, but the renamed `com.instagram.barcelona.morphe.test` build crashed when the first feed loaded (`PostLiveMetricsRepository` NPE). Treat package renaming as best-effort; verify login and feed behavior separately. |
-| A Work Profile can isolate app data and install a second copy, but it does not make a differently signed APK with the original package coexist reliably with the stock APK. | Shelter is useful for data isolation, not for bypassing Android package/signature rules. |
-| A successful patch run is not runtime proof; test the exact APK installed on the device and retain its input/bundle hashes, options, package ID, and certificate fingerprint. | The 445 build patched successfully and removed visible ads, while the renamed variant failed at runtime; patch-time success alone would not distinguish those outcomes. |
+## Compatibility and QA
 
-## TV / ABI / install issues
-
-Device procedure owner: [QA checklist](qa-checklist.md).
-
-| Observation (historical) | Why |
-| ---- | --- |
-| An arm64-only "universal" APK fails `INSTALL_FAILED_NO_MATCHING_ABIS` on 32-bit (armeabi-v7a) TVs; merge the ABI splits into one universal before patching. | An APK shipping only `arm64-v8a` `.so` files failed to install on an armeabi-v7a TV. |
-| Morphe Manager auto-selects the config split matching the PATCHING phone, so patching a multi-ABI TV bundle on an arm64 phone drops the other ABI split; feed the Manager a pre-merged universal instead (a patch cannot override split selection). | Phone-patched TV output wouldn't install on a differently-ABI'd Android TV. |
-| "Not compatible with your TV" = a REQUIRED `<uses-feature>` the device lacks; check `aapt dump badging` (e.g. `android.software.live_tv required=true` blocks tuner-less devices). Mark it optional — distinct from the touchscreen phone→TV case. | A TV build's required `live_tv` feature blocked Chromecast/Google TV installs. |
-| Verify native-lib page-alignment with the REAL tool (`zipalign -c -p 4`), never a hand-rolled offset calc; the Desktop CLI already page-aligns `.so` on rebuild. | A python offset check falsely flagged aligned `.so` files; `zipalign -c` said OK. |
-| Mark TV-only apps with an `(Android TV)` suffix in `Compatibility(name)`, verified by a `LEANBACK_LAUNCHER` / `android.software.leanback` manifest check. | TV builds were indistinguishable from phone apps in the Manager list. |
-
-## Signing
-
-Helper owner: `scripts/repatch.sh`. CLI reference: run `java -jar "$MORPHE_CLI" --help`.
-
-| Observation (historical) | Why |
-| ---- | --- |
-| Morphe.keystore is **BKS**: empty store password, alias `Morphe`, key password `Morphe`. Read/convert it with keytool only via `-provider org.bouncycastle.jce.provider.BouncyCastleProvider -providerpath <desktop-jar>`; plain keytool says "Unrecognized keystore format". | Recovered by listing with the BC provider. |
-| The repo's default keystore historically signed with NO password/alias flags; that applied to that BKS store, not to every keystore. `scripts/repatch.sh` supports `KEYSTORE_ALIAS`, `KEYSTORE_PASSWORD`, and `KEYSTORE_ENTRY_PASSWORD` overrides — use them for keytool-made stores (which often lowercase the alias to `morphe`). CLI options need the `=` form (`--keystore-entry-alias=Morphe`), not space-separated. | Both the missing-flag and wrong-alias mistakes cost real build cycles. |
-| The CLI's "Keystore does not contain entry with alias Morphe Key" is a MASK for a swallowed earlier error; when signing masks the real failure, build `--unsigned` then sign with `apksigner` (export key to PKCS12 first). If `apksigner` then fails reading the manifest, `zipalign -p -f 4` the APK and pass `--min-sdk-version <N>`. | ~10 cycles chased on a phantom alias error. |
-
-## Feed / list-based removal (ads, promoted items)
-
-Recipe owner: [bypass patterns](bypass-patterns.md). QA owner: [QA checklist](qa-checklist.md#feed-ad-removal-issue-5-regression).
-
-| Observation (historical) | Why |
-| ---- | --- |
-| "Labels/tags disappeared but the content is still there" is the signature of RELABELING (neutralizing a classification predicate), not removal. Removing means filtering the item out of the visible list; relabeling only hides chrome. | An ad patch that forced the app's isAd predicate false stripped the "Sponsored" tag but left the ad post in the feed (the user-visible bug). |
-| In feed-style apps find the single merge/insertion funnel the fetched list passes through and filter there (gap-free, cache stays clean); don't chase per-item render hooks. | Runtime probes showed the feed's only ad signal was one isAd predicate and every page merged through one cache method; no ad-specific construction/insert hook existed. |
-| Same-named classes can exist in several dex copies with only ONE active at runtime (legacy/longtail duplicates) — confirm which copy actually runs (entry log markers, counts) before anchoring a fingerprint. | A whole "spool coordinator" layer matched smali perfectly yet never fired; the live copy lived in another dex. |
-| When injecting into an unknown list type, don't mutate in place with `Iterator.remove()`: immutable/copy lists throw `UnsupportedOperationException` — swallow it and it silently does nothing. Return a filtered COPY and overwrite the parameter register. | Filter found the ad unit ("DED true") but removed 0 because the list was immutable and the exception was swallowed. |
-| Overwriting a suspend/coroutine method's parameter register at entry worked in the observed case because that producer copied params to locals immediately. Re-verify per method: count parameter **words** (wide `J`/`D` take two registers), since param registers are not guaranteed preserved across suspension. | Original code did `move-object v3, pN` right after entry, so a replaced pN flowed into the rest of the method. |
-| Give each feed surface its own patch (Feed vs Reels/clips vs Stories) with its own seams; a shared six-seam feed patch that also touched Reels/Stories becomes untestable and unportable. | Froggo Facebook 573 ships Block-Feed-ads, Block-Reels-ads, and Block-Story-ads as three patches; our Hide-ads patch is likewise feed-scoped by design. |
-| When hooking a provider's return, read the actual return register and guard it (`require` the opcode is `RETURN_OBJECT` and the register fits the invoke encoding) so drift fails loudly at patch time instead of silently shipping an unfiltered list. | Froggo Facebook 573 Story-ads patch injects its filter before the provider's normal return using the matched return register. |
-
-## Runtime confirmation on non-rooted devices
-
-Dynamic owner: [dynamic confirmation](reverse-engineering.md#dynamic-confirmation-for-runtime-gates).
-QA owner: [QA checklist](qa-checklist.md).
-
-| Observation (historical) | Why |
-| ---- | --- |
-| For runtime flow questions, inject `Log.i(tag, site)` entry markers via a throwaway bytecode patch and read `adb logcat -s <tag>`; avoid frida-gadget on non-rooted phones unless you must. | Gadget CLI attach fought "Failed to spawn: connection closed" and accepted only one connection per app start; logcat-canaries needed no root and no extra tooling. |
-| Wireless adb needs no root for install/logcat/uiautomator; the pairing port differs from the connect port on the Wireless-debugging screen. | Repeated "connection refused" until the main listener port was used; adb also drops the listener on phone lock/timeout. |
-| When you can't view screenshots (headless/vision-less model), read the screen as text: `uiautomator dump` + grep for labels/content-desc (e.g. an "Ad" tag) to confirm what's rendered. | A screenshot was unreadable by the agent; UI-dump text confirmed the ad was a normal post with an "Ad" tag. |
-| Frida-gadget embed needs the `.so` in the target's native dir AND a load trigger; injected smali must respect each instruction's register encoding (some forms address only low registers — the build caught a `v17` that needed a `from16` form). | A high-register move was rejected until the wide-register encoding was used. |
-
-## Build hygiene
-
-Release owner: [release process](release.md). Environment owner: [toolchain setup](toolchain.md).
-
-| Observation (historical) | Why |
-| ---- | --- |
-| Use only APKMirror for original APKs. Verify versionCode, variant, and hash even when the version NAME matches — fingerprints pin to the code path, not the marketing version. | Pinned `434.0.0.41.74`; tested APKMirror 510406926 while the plan documented 510406907. |
+| Rule | Why |
+| --- | --- |
+| Keep package identity and signing assumptions explicit. | Renaming or re-signing can break authentication, app links, or native checks. |
+| Test cold start, foreground/background transitions, and the main user flow. | Startup success alone does not prove lifecycle or feature compatibility. |
+| Verify backup and restore with the app's supported mechanism. | External files are not necessarily a complete application-data backup. |
+| Keep risky patches disabled until device QA proves the default path. | A patch should fail safely and remain easy to remove. |
+| Do not infer an endpoint or server rejection from a generic UI error alone. | Reproduce with bounded network/client logs or a controlled response capture before selecting a patch target. |

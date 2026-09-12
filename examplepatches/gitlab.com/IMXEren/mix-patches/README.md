@@ -7,7 +7,7 @@ Custom patches using Morphe. 'Mix' originates from Morphe + IMXEren (also, mixed
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.0](https://gitlab.com/IMXEren/mix-patches/-/releases/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
+> **[v1.7.1](https://gitlab.com/IMXEren/mix-patches/-/releases/v1.7.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
 <details open>
 <summary>📦 RailOne&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>

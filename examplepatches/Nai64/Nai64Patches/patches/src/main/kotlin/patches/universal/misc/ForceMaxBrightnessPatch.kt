@@ -6,11 +6,11 @@ import app.morphe.patcher.patch.intOption
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction3rc
-import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import patches.universal.ads.util.findMutableMethodOf
 import java.util.logging.Logger
 
 @Suppress("unused")
@@ -19,6 +19,9 @@ val forceMaxBrightnessPatch = bytecodePatch(
     description = "Forces the system screen brightness setting to a chosen value (default 255) so apps that read it cannot dim or restrict the screen.",
     default = false,
 ) {
+    // Guarded: morphe-patcher < 1.13.0 has no category() and the bundle
+    // must still load there (ungrouped) instead of dying on linkage.
+    try { category("Force") } catch (_: NoSuchMethodError) {}
     val brightness by intOption(
         title = "Brightness (0-255)",
         default = 255,
@@ -31,8 +34,9 @@ val forceMaxBrightnessPatch = bytecodePatch(
         val target = (brightness ?: 255).coerceIn(0, 255)
         var patched = 0
         classDefForEach { classDef ->
-            val mutableClass = mutableClassDefBy(classDef)
-            for (method in mutableClass.methods) {
+            val mutableClass by lazy { mutableClassDefBy(classDef) }
+            for (method in classDef.methods) {
+                val mutableMethod by lazy { mutableClass.findMutableMethodOf(method) }
                 val implementation = method.implementation ?: continue
                 // Snapshot; one-for-one replacements keep indices valid.
                 val instructions = implementation.instructions.toList()
@@ -76,11 +80,11 @@ val forceMaxBrightnessPatch = bytecodePatch(
                         } else {
                             "const v$resultRegister, $target"
                         }
-                        method.replaceInstruction(index, const)
-                        method.replaceInstruction(index + 1, "nop")
+                        mutableMethod.replaceInstruction(index, const)
+                        mutableMethod.replaceInstruction(index + 1, "nop")
                         patched++
                     } else {
-                        method.replaceInstruction(index, "nop")
+                        mutableMethod.replaceInstruction(index, "nop")
                     }
                 }
             }

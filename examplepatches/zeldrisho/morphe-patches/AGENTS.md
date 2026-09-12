@@ -5,10 +5,11 @@
 | Path | Purpose |
 | ---- | ------- |
 | `patches/` | Patch + fingerprint sources; builds `patches/build/libs/patches-*.mpp` |
-| `extensions/extension/` | Companion extension source; builds `extensions/extension.mpe` |
+| `extensions/threads/` | Threads companion extension; builds `extensions/extension.mpe` |
+| `extensions/zalo/` | Zalo companion extension; builds `extensions/zalo.mpe` |
 | `scripts/` | Helper scripts (APK recon, re-patch, release staging, cleanup) |
 | `docs/` | Contributor docs (setup, development, release, QA) |
-| `config/` | Static-analysis config (`detekt.yml`) |
+| `config/` | Static-analysis config (`detekt/detekt.yml`) |
 | `analysis/` | Gitignored local APK analysis scratch |
 
 ## Commands
@@ -16,7 +17,7 @@
 | Task | Command |
 | ---- | ------- |
 | Verify | Follow [canonical verification](docs/development.md#verify) |
-| Test single class | `./gradlew :patches:test --tests "<class>" --no-daemon` (extension: `:extensions:extension:testDebugUnitTest --tests "<class>"`) |
+| Test single class | `./gradlew :patches:test --tests "<class>" --no-daemon` (Threads: `:extensions:threads:testDebugUnitTest --tests "<class>"`; Zalo: `:extensions:zalo:testDebugUnitTest --tests "<class>"`) |
 | Build patches bundle | `./gradlew buildAndroid` → `patches/build/libs/patches-*.mpp` |
 | Re-patch + sign an APK | `bash scripts/repatch.sh <app.apkm> [out.apk]` (env overrides: see `docs/cli.md`) |
 | Stage a release | Follow [release staging](docs/release.md#staging-a-release) |

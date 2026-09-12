@@ -1,3 +1,29 @@
+## [1.6.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.5.0...v1.6.0) (2026-09-11)
+
+### ✨ New Features
+
+* beatly ([7804931](https://github.com/ShuhaibNC/morphe-patches/commit/78049311106b91a3ba47c21144f42706c475d954))
+* reverso ([23fac96](https://github.com/ShuhaibNC/morphe-patches/commit/23fac96b008180d77e45b796c669374556ff0914))
+
+## [1.6.0-dev.1](https://github.com/ShuhaibNC/morphe-patches/compare/v1.5.0...v1.6.0-dev.1) (2026-09-11)
+
+### ✨ New Features
+
+* beatly ([7804931](https://github.com/ShuhaibNC/morphe-patches/commit/78049311106b91a3ba47c21144f42706c475d954))
+* reverso ([23fac96](https://github.com/ShuhaibNC/morphe-patches/commit/23fac96b008180d77e45b796c669374556ff0914))
+
+## [1.5.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.4.0...v1.5.0) (2026-09-11)
+
+### ✨ New Features
+
+* mvideo ([5737f88](https://github.com/ShuhaibNC/morphe-patches/commit/5737f882c29f44333788c879d0c4b22277c8c426))
+
+## [1.5.0-dev.1](https://github.com/ShuhaibNC/morphe-patches/compare/v1.4.0...v1.5.0-dev.1) (2026-09-11)
+
+### ✨ New Features
+
+* mvideo ([5737f88](https://github.com/ShuhaibNC/morphe-patches/commit/5737f882c29f44333788c879d0c4b22277c8c426))
+
 ## [1.4.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.3.0...v1.4.0) (2026-09-09)
 
 ### ✨ New Features

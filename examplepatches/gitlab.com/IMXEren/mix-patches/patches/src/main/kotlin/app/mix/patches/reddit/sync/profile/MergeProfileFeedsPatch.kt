@@ -34,6 +34,10 @@ val mergeProfileFeedsPatch = bytecodePatch(
     dependsOn(sharedExtensionPatch)
 
     execute {
+        val applicationContextMethod = applicationContextFingerprint.method.smaliReference
+        val basicAuthMethod = oauthBasicHeaderFingerprint.method.smaliReference
+        val userAgentMethod = userAgentFingerprint.method.smaliReference
+
         postsRequestConstructorFingerprint.method.apply {
             val cursorField = stringFieldOfParameter(5)
             val urlResultIndex = postsUrlResultIndex()
@@ -47,14 +51,18 @@ val mergeProfileFeedsPatch = bytecodePatch(
                 move-object/from16 v4, p4
                 invoke-static {v3, v0, v1, v2, v4}, $EXTENSION_CLASS->rewriteUrl(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
                 move-result-object v3
+                invoke-static {}, $applicationContextMethod
+                move-result-object v0
+                invoke-static {}, $basicAuthMethod
+                move-result-object v1
+                invoke-static {}, $userAgentMethod
+                move-result-object v2
+                invoke-static {v0, v3, v1, v2}, $EXTENSION_CLASS->prefetch(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
                 """,
             )
         }
 
         postsResponseParserFingerprint.method.apply {
-            val applicationContextMethod = applicationContextFingerprint.method.smaliReference
-            val basicAuthMethod = oauthBasicHeaderFingerprint.method.smaliReference
-            val userAgentMethod = userAgentFingerprint.method.smaliReference
             val bodyIndex = indexOfFirstInstructionOrThrow {
                 getReference<MethodReference>()?.let {
                     it.definingClass == "Ljava/lang/String;" && it.name == "<init>"

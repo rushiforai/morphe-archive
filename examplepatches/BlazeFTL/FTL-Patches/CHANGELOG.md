@@ -1,3 +1,39 @@
+## [1.44.0-dev.53](https://github.com/BlazeFTL/FTL-Patches/compare/v1.44.0-dev.52...v1.44.0-dev.53) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* up ([ae42505](https://github.com/BlazeFTL/FTL-Patches/commit/ae425052c484780a31bf27d43de1d4fadfc44e61))
+
+## [1.44.0-dev.52](https://github.com/BlazeFTL/FTL-Patches/compare/v1.44.0-dev.51...v1.44.0-dev.52) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* up ([f41b9ae](https://github.com/BlazeFTL/FTL-Patches/commit/f41b9ae87007b4896681c84f13ccaa45174fb77e))
+
+## [1.44.0-dev.51](https://github.com/BlazeFTL/FTL-Patches/compare/v1.44.0-dev.50...v1.44.0-dev.51) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* up ([ca80b49](https://github.com/BlazeFTL/FTL-Patches/commit/ca80b493d2971403091d39c4a19c0b926a244ecc))
+
+## [1.44.0-dev.50](https://github.com/BlazeFTL/FTL-Patches/compare/v1.44.0-dev.49...v1.44.0-dev.50) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* up ([56b3c79](https://github.com/BlazeFTL/FTL-Patches/commit/56b3c7911886475b950984cf63c634ca51aa55e1))
+
+## [1.44.0-dev.49](https://github.com/BlazeFTL/FTL-Patches/compare/v1.44.0-dev.48...v1.44.0-dev.49) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* up ([ee7c5e5](https://github.com/BlazeFTL/FTL-Patches/commit/ee7c5e5216c3a4dadeec930e73618bc2a26c84a0))
+
+## [1.44.0-dev.48](https://github.com/BlazeFTL/FTL-Patches/compare/v1.44.0-dev.47...v1.44.0-dev.48) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* up ([eaa3f2b](https://github.com/BlazeFTL/FTL-Patches/commit/eaa3f2bf641c6c16dd4fdfd49becebf4a625c865))
+
 ## [1.44.0-dev.47](https://github.com/BlazeFTL/FTL-Patches/compare/v1.44.0-dev.46...v1.44.0-dev.47) (2026-09-10)
 
 ### 🐛 Bug Fixes

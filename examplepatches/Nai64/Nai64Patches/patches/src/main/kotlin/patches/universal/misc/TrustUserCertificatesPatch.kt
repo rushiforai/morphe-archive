@@ -2,6 +2,7 @@ package patches.universal.misc
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import patches.universal.ads.util.findMutableMethodOf
 import java.util.logging.Logger
 
 private const val TRUST_MANAGER = "Ljavax/net/ssl/X509TrustManager;"
@@ -14,6 +15,9 @@ val trustUserCertificatesPatch = bytecodePatch(
             "certificate validation (including pinning reimplemented by hand) accepts anything",
     default = false,
 ) {
+    // Guarded: morphe-patcher < 1.13.0 has no category() and the bundle
+    // must still load there (ungrouped) instead of dying on linkage.
+    try { category("Misc") } catch (_: NoSuchMethodError) {}
     execute {
         val logger = Logger.getLogger(this::class.java.name)
 
@@ -25,14 +29,14 @@ val trustUserCertificatesPatch = bytecodePatch(
             // Only classes that directly implement the trust manager interface.
             if (classDef.interfaces.none { it == TRUST_MANAGER }) return@classDefForEach
 
-            val mutableClass = mutableClassDefBy(classDef)
+            val mutableClass by lazy { mutableClassDefBy(classDef) }
             var changed = false
-            for (method in mutableClass.methods) {
+            for (method in classDef.methods) {
                 // Both check methods are void; an immediate return accepts every chain.
                 if (method.returnType != "V") continue
                 if (method.name !in checkMethods) continue
 
-                method.addInstruction(0, "return-void")
+                mutableClass.findMutableMethodOf(method).addInstruction(0, "return-void")
                 changed = true
                 patchedMethods++
             }

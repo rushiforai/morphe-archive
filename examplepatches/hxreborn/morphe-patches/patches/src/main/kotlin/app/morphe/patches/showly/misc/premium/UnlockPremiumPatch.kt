@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2026 hxreborn
+ * Copyright (C) 2026 hxreborn
  * SPDX-License-Identifier: GPL-3.0-only
  *
  * Additional terms under GPLv3 section 7:
@@ -29,7 +29,7 @@ val unlockPremiumPatch = bytecodePatch(
     name = "Unlock premium",
     description = "Unlocks ad removal, light theme, custom images, list view types, quick ratings, and transparent widgets. The News feed is not included.",
 ) {
-    compatibleWith(AppCompatibilities.SHOWLY_3_70)
+    compatibleWith(AppCompatibilities.SHOWLY)
 
     dependsOn(resourceMappingPatch)
 

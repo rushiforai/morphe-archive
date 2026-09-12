@@ -1,3 +1,99 @@
+## [1.61.8](https://github.com/legendsciber/morphe-patches/compare/v1.61.7...v1.61.8) (2026-09-12)
+
+### 🐛 Bug Fixes
+
+* **iap:** add Toast fallback to morpheLog for debugging ([6e417f4](https://github.com/legendsciber/morphe-patches/commit/6e417f4f6b9f939f4a2fab7a85faef1ce61649fc))
+
+## [1.61.7](https://github.com/legendsciber/morphe-patches/compare/v1.61.6...v1.61.7) (2026-09-12)
+
+### 🐛 Bug Fixes
+
+* **iap:** replace System.setProperty with file-based purchase storage ([69cc6a8](https://github.com/legendsciber/morphe-patches/commit/69cc6a8adecdcca9631fddaf721cb8b3a5d1e931))
+
+## [1.61.6](https://github.com/legendsciber/morphe-patches/compare/v1.61.5...v1.61.6) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* **iap:** replace invalid 'pop' smali with 'move-result-object' ([a0bc5ea](https://github.com/legendsciber/morphe-patches/commit/a0bc5ea63b4243c6f479e7af53d38bf22c118650))
+
+## [1.61.5](https://github.com/legendsciber/morphe-patches/compare/v1.61.4...v1.61.5) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* **iap:** store fake purchase for queryPurchasesAsync verification ([59ae133](https://github.com/legendsciber/morphe-patches/commit/59ae133171992b5ecc28deeb593019b5b344aaf5))
+* **iap:** use System.setProperty for purchase state (no field needed) ([368b068](https://github.com/legendsciber/morphe-patches/commit/368b068bb13d038ee48f82d47a4752d50621cb1e))
+
+## [1.61.4](https://github.com/legendsciber/morphe-patches/compare/v1.61.3...v1.61.4) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* **iap:** cast zzh() elements to ProductDetailsParams ([718bc13](https://github.com/legendsciber/morphe-patches/commit/718bc136107744aa175a1e2665306b63ec83dae3))
+
+## [1.61.3](https://github.com/legendsciber/morphe-patches/compare/v1.61.2...v1.61.3) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* **iap:** force release for zzh() debug logging ([e6d9821](https://github.com/legendsciber/morphe-patches/commit/e6d9821f3a78d8b62fec393ae22e5096a5dae25e))
+* **iap:** log zzh() element class name for SKU extraction ([779feb0](https://github.com/legendsciber/morphe-patches/commit/779feb0092ee25c7f416604bb805248ac1272a38))
+
+## [1.61.2](https://github.com/legendsciber/morphe-patches/compare/v1.61.1...v1.61.2) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* **iap:** fix SkuDetails label ordering in morpheFakePurchase ([3e97210](https://github.com/legendsciber/morphe-patches/commit/3e9721071bafe77f5e1331115ac6eaa3118b95e2))
+
+## [1.61.1](https://github.com/legendsciber/morphe-patches/compare/v1.61.0...v1.61.1) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* **iap:** extract SKU from SkuDetails fallback ([d4af4fc](https://github.com/legendsciber/morphe-patches/commit/d4af4fc66d49c8277bb54c1b60ca15834ba0f3fc))
+
+## [1.61.0](https://github.com/legendsciber/morphe-patches/compare/v1.60.2...v1.61.0) (2026-09-11)
+
+### ✨ New Features
+
+* **iap:** hook startConnection to fake billing connection state ([eab345b](https://github.com/legendsciber/morphe-patches/commit/eab345bb8ddf52efc2e886dde74d39376683823f))
+
+## [1.60.2](https://github.com/legendsciber/morphe-patches/compare/v1.60.1...v1.60.2) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* **iap:** zzbt→zzco return type + isReady debug log ([172853d](https://github.com/legendsciber/morphe-patches/commit/172853db7bac11919958096bf46640d8520e2487))
+
+## [1.60.1](https://github.com/legendsciber/morphe-patches/compare/v1.60.0...v1.60.1) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* **iap:** queryPurchasesAsync FINAL + isReady FINAL flags restored ([97da8af](https://github.com/legendsciber/morphe-patches/commit/97da8afc11bbb2a4d89551613c0cc19cd534a251))
+
+## [1.60.0](https://github.com/legendsciber/morphe-patches/compare/v1.59.0...v1.60.0) (2026-09-11)
+
+### ✨ New Features
+
+* **iap:** hook isReady(true) + fake ProductDetails + remove FINAL ([40858e7](https://github.com/legendsciber/morphe-patches/commit/40858e7487c9bc9ad70b38092945f0f1d0bb6f91))
+
+## [1.59.0](https://github.com/legendsciber/morphe-patches/compare/v1.58.1...v1.59.0) (2026-09-11)
+
+### ✨ New Features
+
+* **iap:** add debug logging to morphe_log.txt ([949bc8c](https://github.com/legendsciber/morphe-patches/commit/949bc8cabe2877ff24feedfa38068adeb1a35d66))
+
+## [1.58.1](https://github.com/legendsciber/morphe-patches/compare/v1.58.0...v1.58.1) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* **iap:** purchaseState 0 instead of 1 (PURCHASED not CANCELED) ([be1b310](https://github.com/legendsciber/morphe-patches/commit/be1b310889a354adff65ab28126140e05d31ad85))
+
+## [1.58.0](https://github.com/legendsciber/morphe-patches/compare/v1.57.0...v1.58.0) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* **iap:** move const vals to file level, fix $ escaping for inner classes ([1645b00](https://github.com/legendsciber/morphe-patches/commit/1645b00c7300ab6ab0202a71dbce4219f76fb814))
+
+### ✨ New Features
+
+* **iap:** 6-hook smali bypass with helper method pattern ([ced0ca4](https://github.com/legendsciber/morphe-patches/commit/ced0ca4f56ed66ca8ef00a9766198f490fd6bf9b))
+
 ## [1.57.0](https://github.com/legendsciber/morphe-patches/compare/v1.56.0...v1.57.0) (2026-09-10)
 
 ### ✨ New Features

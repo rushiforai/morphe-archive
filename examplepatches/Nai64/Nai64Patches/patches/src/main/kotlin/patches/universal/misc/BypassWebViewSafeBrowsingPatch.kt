@@ -4,10 +4,10 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import patches.universal.ads.util.findMutableMethodOf
 import java.util.logging.Logger
 
 private fun BytecodePatchContext.replaceVoidCallsWithProceed(
@@ -17,8 +17,11 @@ private fun BytecodePatchContext.replaceVoidCallsWithProceed(
 ): Int {
     var patched = 0
     classDefForEach { classDef ->
-        val mutableClass = mutableClassDefBy(classDef)
-        for (method in mutableClass.methods) {
+        val mutableClass by lazy { mutableClassDefBy(classDef) }
+        for (method in classDef.methods) {
+            val mutableMethod by lazy {
+                mutableClass.findMutableMethodOf(method)
+            }
             val impl = method.implementation ?: continue
             val instructions = impl.instructions.toList()
             for ((index, insn) in instructions.withIndex()) {
@@ -33,7 +36,7 @@ private fun BytecodePatchContext.replaceVoidCallsWithProceed(
                     is RegisterRangeInstruction -> insn.startRegister
                     else -> continue
                 }
-                method.replaceInstruction(index, "invoke-virtual {v$objReg}, $targetClass->proceed()V")
+                mutableMethod.replaceInstruction(index, "invoke-virtual {v$objReg}, $targetClass->proceed()V")
                 patched++
             }
         }
@@ -47,6 +50,9 @@ val bypassWebViewSafeBrowsingPatch = bytecodePatch(
     description = "Bypasses deceptive site warnings in WebView.",
     default = false,
 ) {
+    // Guarded: morphe-patcher < 1.13.0 has no category() and the bundle
+    // must still load there (ungrouped) instead of dying on linkage.
+    try { category("Bypass") } catch (_: NoSuchMethodError) {}
     execute {
         val logger = Logger.getLogger(this::class.java.name)
         val a = replaceVoidCallsWithProceed(

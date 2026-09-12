@@ -1,3 +1,17 @@
+## [1.3.1](https://github.com/d0nj/morphe-patches/compare/v1.3.0...v1.3.1) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* merge English voices into the visible list and harden downloads ([0c1edc8](https://github.com/d0nj/morphe-patches/commit/0c1edc8f89675c14482577928eea0ac7a18fd5bc))
+* remove English TTS voices patch ([af68c13](https://github.com/d0nj/morphe-patches/commit/af68c13aed738b50ebb8e9604847a13925370ed7))
+* use sherpa-compatible model files with embedded metadata ([9418d96](https://github.com/d0nj/morphe-patches/commit/9418d966d85c0269c08fb1c22ba0781f9018f8c9))
+
+## [1.3.0](https://github.com/d0nj/morphe-patches/compare/v1.2.2...v1.3.0) (2026-09-11)
+
+### ✨ New Features
+
+* add English TTS voices for AI Audio Novel Reader ([72996c4](https://github.com/d0nj/morphe-patches/commit/72996c4ea7e310256c54708bf7c71418f26e398d))
+
 ## [1.2.2](https://github.com/d0nj/morphe-patches/compare/v1.2.1...v1.2.2) (2026-09-11)
 
 ### 🐛 Bug Fixes

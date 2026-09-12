@@ -177,4 +177,50 @@ object Constants {
             )
         )
     )
+    val MVIDEO_COMPATIBILITY = Compatibility(
+        name = "Mvideo",
+        packageName = "music.videomaker.slideshow",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x7DFD91,
+        targets = listOf(
+            AppTarget(
+                version = "1.0.11515",
+                versionCodes = mapOf(
+                    SupportedAbi.ARM64_V8A to 11515,
+                    SupportedAbi.ARMEABI_V7A to 11515
+                )
+            )
+        )
+    )
+
+    val BEATLY_COMPATIBILITY = Compatibility(
+        name = "Beat.ly",
+        packageName = "vinkle.video.editor",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x0B0217,
+        targets = listOf(
+            AppTarget(
+                version = "2.46.10897",
+                versionCodes = mapOf(
+                    SupportedAbi.ARM64_V8A to 10897,
+                    SupportedAbi.ARMEABI_V7A to 10897
+                )
+            )
+        )
+    )
+    val REVERSO_COMPATIBILITY = Compatibility(
+        name = "Reverso Context",
+        packageName = "com.softissimo.reverso.context",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0xF8FBFF,
+        targets = listOf(
+            AppTarget(
+                version = "16.1.0",
+                versionCodes = mapOf(
+                    SupportedAbi.ARM64_V8A to 12000096,
+                    SupportedAbi.ARMEABI_V7A to 12000096
+                )
+            )
+        )
+    )
 }

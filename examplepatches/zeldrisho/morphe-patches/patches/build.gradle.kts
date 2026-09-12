@@ -1,3 +1,15 @@
+import java.util.zip.ZipFile
+
+// Single source of truth for the companion-extension wiring on the Gradle
+// side. The Kotlin call site (HideAdsPatch.kt extendWith(...)) cannot import
+// build-script values across that boundary, so it points back here in a
+// comment and any rename must change both together.
+val extensionProjects = listOf(":extensions:threads", ":extensions:zalo")
+val extensionArtifacts = mapOf(
+    ":extensions:threads" to ("morphe/extensions/extension.mpe" to "extensions/extension.mpe"),
+    ":extensions:zalo" to ("morphe/extensions/zalo.mpe" to "extensions/zalo.mpe"),
+)
+
 plugins {
     // Matches the Kotlin 2.4.10 compiler supplied by Morphe; see docs/development.md.
     id("dev.detekt") version "2.0.0-alpha.6"
@@ -8,7 +20,7 @@ detekt {
     config.setFrom(rootProject.file("config/detekt/detekt.yml"))
 }
 
-group = "com.zeldrisho.threads"
+group = "com.zeldrisho.patches"
 
 patches {
     about {
@@ -44,39 +56,53 @@ tasks {
         }
     }
 
-    // The extension module build only produces
-    // extensions/extension/build/morphe/extensions/extension.mpe, but the
-    // Hide-ads patch resolves extendWith("extensions/extension.mpe") relative
-    // to the patch working dir (repo root). This copy used to be manual (see
-    // docs/plan.md) — now it is part of the build so CI and local builds
-    // cannot silently ship a stale/missing dex. Single-file outputs keep
-    // Gradle validation happy (no whole-directory ownership).
-    register("copyExtensionMpe") {
-        description = "Copy the companion extension .mpe to repo-relative extensions/extension.mpe"
-        val src = project(":extensions:extension").layout.buildDirectory.file("morphe/extensions/extension.mpe")
-        val dst = rootDir.resolve("extensions/extension.mpe")
-        inputs.file(src)
-        outputs.file(dst)
-        dependsOn(":extensions:extension:syncExtension")
+    // Fail-fast pre-check only: confirms the extension module produced its
+    // plugin-owned artifact before the full bundle build runs. This shortens
+    // the failure loop; the authoritative signal stays the embedded-in-.mpp
+    // check in verifyBundleExtension below.
+    register("checkExtensionArtifact") {
+        description = "Fail fast when the extension module output is missing before building"
+        dependsOn(extensionProjects.map { "$it:syncExtension" })
         doLast {
-            project.copy {
-                from(src)
-                into(dst.parentFile)
+            extensionArtifacts.forEach { (projectPath, paths) ->
+                val mpe = project(projectPath).layout.buildDirectory.file(paths.first).get().asFile
+                check(mpe.isFile) {
+                    "Missing extension artifact $mpe after $projectPath:syncExtension — " +
+                        "check $projectPath:mergeDexRelease output."
+                }
             }
         }
     }
 
-    // Fail fast when the companion extension dex is missing instead of producing
-    // a bundle whose Hide-ads patch silently no-ops at runtime (extendWith is a
-    // load-time reference, so buildAndroid succeeds even without the .mpe).
-    register("verifyExtensionMpe") {
-        description = "Fail fast when the companion extension .mpe is missing or stale"
-        dependsOn("copyExtensionMpe")
+    // The Morphe Gradle plugin publishes the extension modules' build/morphe
+    // directories and consumes them as patches resources, so the built .mpp
+    // already embeds both extension artifacts. extendWith loads
+    // it via the bundle classloader (ClassLoader.getResourceAsStream), not
+    // from a repo-relative filesystem path. This guard fails fast after the
+    // build when the embedded dex is missing instead of shipping a bundle
+    // whose Hide-ads patch silently no-ops at runtime.
+    register("verifyBundleExtension") {
+        description = "Fail fast when the built .mpp misses the embedded extension dex"
+        dependsOn("buildAndroid")
         doLast {
-            val mpe = rootDir.resolve("extensions/extension.mpe")
-            check(mpe.isFile) {
-                "Missing extensions/extension.mpe after copyExtensionMpe — " +
-                    "check :extensions:extension:assembleRelease output."
+            val libs = layout.buildDirectory.dir("libs").get().asFile
+            val mpps = libs.listFiles { file ->
+                file.name.endsWith(".mpp") &&
+                    !file.name.contains("sources") &&
+                    !file.name.contains("javadoc")
+            }?.toList().orEmpty()
+            val currentMpps = mpps.filter { it.name == "patches-${project.version}.mpp" }
+            check(currentMpps.size == 1) {
+                "Expected one distributable patches-${project.version}.mpp in $libs, found: ${mpps.map { it.name }}"
+            }
+            val mpp = currentMpps.single()
+            ZipFile(mpp).use { zip ->
+                extensionArtifacts.values.forEach { paths ->
+                    check(zip.getEntry(paths.second) != null) {
+                        "Bundle ${mpp.name} is missing ${paths.second} — " +
+                            "check the corresponding extension sync task output."
+                    }
+                }
             }
         }
     }
@@ -91,14 +117,9 @@ tasks {
     }
 }
 
-// The Hide-ads patch loads the companion extension dex via
-// extendWith("extensions/extension.mpe"). Ensure the .mpe is copied fresh and
-// present before compiling the Android bundle, so a stale/missing copy fails
-// here with a clear message instead of shipping a broken patch.
-// processResources consumes the copied .mpe, so it must run after the copy.
+// Run the lightweight extension pre-check before the full bundle build so a
+// missing/broken extension fails in seconds; verifyBundleExtension remains
+// the authoritative pass/fail signal on the embedded artifact.
 tasks.matching { it.name == "buildAndroid" }.configureEach {
-    dependsOn("verifyExtensionMpe")
-}
-tasks.matching { it.name == "processResources" }.configureEach {
-    dependsOn("copyExtensionMpe")
+    dependsOn("checkExtensionArtifact")
 }

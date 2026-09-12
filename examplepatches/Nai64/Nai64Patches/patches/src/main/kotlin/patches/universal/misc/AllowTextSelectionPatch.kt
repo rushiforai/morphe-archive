@@ -10,6 +10,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import patches.universal.ads.util.findMutableMethodOf
 import java.util.logging.Logger
 
 /**
@@ -24,12 +25,18 @@ val allowTextSelectionPatch = bytecodePatch(
     description = "Makes protected text selectable and copyable.",
     default = false,
 ) {
+    // Guarded: morphe-patcher < 1.13.0 has no category() and the bundle
+    // must still load there (ungrouped) instead of dying on linkage.
+    try { category("Allow") } catch (_: NoSuchMethodError) {}
     execute {
         val logger = Logger.getLogger(this::class.java.name)
         var patched = 0
         classDefForEach { classDef ->
-            val mutableClass = mutableClassDefBy(classDef)
-            for (method in mutableClass.methods) {
+            val mutableClass by lazy { mutableClassDefBy(classDef) }
+            for (method in classDef.methods) {
+                val mutableMethod by lazy {
+                    mutableClass.findMutableMethodOf(method)
+                }
                 val implementation = method.implementation ?: continue
                 // Snapshot; one-for-one replacements keep indices valid.
                 val instructions: List<Instruction> = implementation.instructions.toList()
@@ -66,7 +73,7 @@ val allowTextSelectionPatch = bytecodePatch(
                             // Already enabled (or a different value); leave it.
                             break
                         }
-                        method.replaceInstruction(j, "const/4 v$argRegister, 0x1")
+                        mutableMethod.replaceInstruction(j, "const/4 v$argRegister, 0x1")
                         patched++
                         break
                     }

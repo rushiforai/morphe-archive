@@ -3,7 +3,7 @@
 Practical reference for writing fingerprints and bytecode patches in this repo.
 See the [reverse engineering workflow](reverse-engineering.md) for how to find targets,
 [architecture](architecture.md) for module layout, and
-`patches/src/main/kotlin/com/zeldrisho/threads/patches/ads/HideAdsPatch.kt`
+`patches/src/main/kotlin/com/zeldrisho/patches/threads/ads/HideAdsPatch.kt`
 for the Threads patch; `ads/Fingerprints.kt` contains its fingerprint.
 
 ## Rules

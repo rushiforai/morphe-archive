@@ -1,3 +1,15 @@
+## [1.2.0](https://github.com/Epxec/android-patches/compare/v1.1.0...v1.2.0) (2026-09-11)
+
+### ✨ New Features
+
+* add "FreeReels" vip and no-ad download patch ([47b738b](https://github.com/Epxec/android-patches/commit/47b738b3bc7c189015f3c67da93fe458e636e418))
+
+## [1.2.0-dev.1](https://github.com/Epxec/android-patches/compare/v1.1.0...v1.2.0-dev.1) (2026-09-11)
+
+### ✨ New Features
+
+* add "FreeReels" vip and no-ad download patch ([47b738b](https://github.com/Epxec/android-patches/commit/47b738b3bc7c189015f3c67da93fe458e636e418))
+
 ## [1.1.0](https://github.com/Epxec/android-patches/compare/v1.0.0...v1.1.0) (2026-09-10)
 
 ### ✨ New Features

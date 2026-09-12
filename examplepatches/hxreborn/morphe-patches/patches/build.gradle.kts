@@ -2,7 +2,7 @@ group = "app.hxreborn"
 
 patches {
     about {
-        name = "hxreborn Patches"
+        name = "hxreborn’s patches"
         description = "Patches for the apps I actually use"
         source = "git@github.com:hxreborn/morphe-patches.git"
         author = "hxreborn"
@@ -18,17 +18,25 @@ kotlin {
     }
 }
 
-// Separate configuration so gson is available at runtime for the
-// generatePatchesList task but never bundled into the APK.
+// Matches the plugin's targetCompatibility 11 for this module's Java sources
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+}
+
 val patchListGeneratorClasspath: Configuration by configurations.creating
 
 dependencies {
     compileOnly(libs.gson)
     implementation(libs.morphe.patches.library)
     patchListGeneratorClasspath(libs.gson)
+    testImplementation(kotlin("test"))
 }
 
 tasks {
+    withType<Test> {
+        useJUnitPlatform()
+    }
+
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"
 
@@ -38,7 +46,6 @@ tasks {
         mainClass.set("util.PatchListGeneratorKt")
     }
 
-    // Used by gradle-semantic-release-plugin.
     publish {
         dependsOn("generatePatchesList")
     }

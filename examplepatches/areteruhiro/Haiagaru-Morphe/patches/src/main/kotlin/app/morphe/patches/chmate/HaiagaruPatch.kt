@@ -914,6 +914,74 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchSetTextCalls() {
  */
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacy5chIoCompatibility() {
     val urlInfoClass = mutableClassDefBy("Ljp/syoboi/a2chMate/client/BBSUrlInfo;")
+    val legacyLinkParserType =
+        "Ljp/syoboi/utils/NativeUtils\$RemoteActionCompatParcelizer;"
+
+    // The 191 native text parser predates img.5ch.io. Feed only sssp BE tokens
+    // through its known host form so it selects the emoticon-span branch. The
+    // drawable constructor below changes the extracted fetch URL back to .io.
+    val legacyTextParserMethod = mutableClassDefBy("Lo/ocd;").methods.single { method ->
+        method.name == "e"
+            && method.returnType == "V"
+            && method.parameters.map(CharSequence::toString) == listOf(
+                legacyLinkParserType,
+                "Lo/o8;",
+                "Ljava/lang/String;",
+                "Lo/r8lambda0m18vyepBPbBImKp0mAya80YXc8;",
+                "Z"
+            )
+    }
+    legacyTextParserMethod.addInstructionsWithLabels(
+        0,
+        """
+            invoke-static/range { p2 .. p2 }, $EXTENSION->prepareLegacyBeParsing(Ljava/lang/String;)Ljava/lang/String;
+            move-result-object p2
+        """
+    )
+
+    // Some current responses expose the BE image as a regular or protocol-relative
+    // URL. Correct the native parser's result buffer directly so the existing 191
+    // emoticon branch is selected regardless of the input URL spelling.
+    val legacyTextParserInstructions = legacyTextParserMethod.implementation?.instructions
+        ?: error("ChMate legacy text parser has no implementation")
+    val linkScanIndex = legacyTextParserInstructions.mapIndexedNotNull { index, instruction ->
+        val reference = (instruction as? ReferenceInstruction)?.reference
+            as? MethodReference ?: return@mapIndexedNotNull null
+        if (reference.definingClass == legacyLinkParserType
+            && reference.name == "a"
+            && reference.returnType == "Z"
+            && reference.parameterTypes.isEmpty()
+        ) index else null
+    }.single()
+    val linkFoundRegister = (legacyTextParserInstructions.getOrNull(linkScanIndex + 1)
+        ?.takeIf { it.opcode == Opcode.MOVE_RESULT }
+        as? OneRegisterInstruction)?.registerA
+        ?: error("ChMate legacy link parser result was not found")
+    legacyTextParserMethod.addInstructionsWithLabels(
+        linkScanIndex + 2,
+        """
+            move-object/from16 v6, p2
+            move-object/from16 v7, p0
+            iget-object v7, v7, $legacyLinkParserType->e:[I
+            invoke-static { v6, v7, v$linkFoundRegister }, $EXTENSION->classifyLegacyBeIcon(Ljava/lang/String;[IZ)Z
+            move-result v$linkFoundRegister
+        """
+    )
+
+    // Current ChMate normalizes legacy BE icon hosts before its dedicated
+    // DynamicDrawableSpan fetches them. Port that narrow behavior to 191.
+    mutableClassDefBy("Lo/oa;").methods.single { method ->
+        method.name == "<init>"
+            && method.returnType == "V"
+            && method.parameters.map(CharSequence::toString) ==
+            listOf("Landroid/content/Context;", "Ljava/lang/String;")
+    }.addInstructionsWithLabels(
+        0,
+        """
+            invoke-static/range { p2 .. p2 }, $EXTENSION->normalizeBeIconUrl(Ljava/lang/String;)Ljava/lang/String;
+            move-result-object p2
+        """
+    )
 
     urlInfoClass.methods.single { method ->
         method.name == "b"

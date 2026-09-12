@@ -1,13 +1,26 @@
 package app.shadowfight.patches.iap
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.methodCall
 import com.android.tools.smali.dexlib2.AccessFlags
 
 /**
- * BillingClientImpl.launchBillingFlow — the base implementation called
- * at runtime when the game's C++ code invokes launchBillingFlow via JNI.
- * Intercepted to prevent Google Play from opening and instead trigger
- * the purchase callback with a fake Purchase.
+ * SecurityManager.VerifyStep() — game's anti-tamper check that verifies
+ * APK signature, installer ID, debug/emulator state. Intercepted to
+ * always call NotifyOnSuccess(), bypassing all checks.
+ */
+object IAPBypassSecurityVerifyStepFingerprint : Fingerprint(
+    definingClass = "Lcom/nekki/utils/security/SecurityManager;",
+    name = "VerifyStep",
+    returnType = "V",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    parameters = emptyList()
+)
+
+/**
+ * BillingClientImpl.launchBillingFlow — .locals 32, huge method with
+ * complex exception table (1864 lines). Helper method approach required.
+ * Fingerprint pins definingClass + name + exact params + method calls.
  */
 object IAPBypassLaunchBillingFlowFingerprint : Fingerprint(
     definingClass = "Lcom/android/billingclient/api/BillingClientImpl;",
@@ -21,45 +34,74 @@ object IAPBypassLaunchBillingFlowFingerprint : Fingerprint(
 )
 
 /**
- * zzbm.onPurchasesUpdated — Unity JNI bridge callback that receives
- * purchase results from Google Play Billing. Intercepted to inject a
- * fake Purchase and call nativeOnPurchasesUpdated directly, bypassing
- * Google Play while triggering the game's C# purchase completion flow.
+ * BillingClientImpl.acknowledgePurchase(AcknowledgePurchaseParams, AcknowledgePurchaseResponseListener)
+ * — intercepts to return OK immediately, preventing billing error on acknowledge.
  */
-object IAPBypassOnPurchasesUpdatedFingerprint : Fingerprint(
-    definingClass = "Lcom/android/billingclient/api/zzbm;",
-    name = "onPurchasesUpdated",
+object IAPBypassAcknowledgePurchaseFingerprint : Fingerprint(
+    definingClass = "Lcom/android/billingclient/api/BillingClientImpl;",
+    name = "acknowledgePurchase",
     returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    accessFlags = listOf(AccessFlags.PUBLIC),
     parameters = listOf(
-        "Lcom/android/billingclient/api/BillingResult;",
-        "Ljava/util/List;"
+        "Lcom/android/billingclient/api/AcknowledgePurchaseParams;",
+        "Lcom/android/billingclient/api/AcknowledgePurchaseResponseListener;"
+    ),
+    filters = listOf(
+        methodCall(
+            definingClass = "Lcom/android/billingclient/api/BillingClientImpl;",
+            name = "isReady"
+        )
     )
 )
 
 /**
- * zzbm.onQueryPurchasesResponse — Unity JNI bridge callback that receives
- * query-purchase results. Intercepted to inject the same fake Purchase so
- * the C++ side sees a valid purchase when verifying via queryPurchasesAsync.
+ * BillingClientImpl.consumeAsync(ConsumeParams, ConsumeResponseListener)
+ * — intercepts to return OK + token immediately.
  */
-object IAPBypassOnQueryPurchasesResponseFingerprint : Fingerprint(
-    definingClass = "Lcom/android/billingclient/api/zzbm;",
-    name = "onQueryPurchasesResponse",
+object IAPBypassConsumeAsyncFingerprint : Fingerprint(
+    definingClass = "Lcom/android/billingclient/api/BillingClientImpl;",
+    name = "consumeAsync",
     returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    accessFlags = listOf(AccessFlags.PUBLIC),
     parameters = listOf(
-        "Lcom/android/billingclient/api/BillingResult;",
-        "Ljava/util/List;"
+        "Lcom/android/billingclient/api/ConsumeParams;",
+        "Lcom/android/billingclient/api/ConsumeResponseListener;"
+    ),
+    filters = listOf(
+        methodCall(
+            definingClass = "Lcom/android/billingclient/api/BillingClientImpl;",
+            name = "isReady"
+        )
+    )
+)
+
+/**
+ * BillingClientImpl.queryProductDetailsAsync(QueryProductDetailsParams, ProductDetailsResponseListener)
+ * — intercepts to return fake ProductDetails for each requested SKU.
+ */
+object IAPBypassQueryProductDetailsAsyncFingerprint : Fingerprint(
+    definingClass = "Lcom/android/billingclient/api/BillingClientImpl;",
+    name = "queryProductDetailsAsync",
+    returnType = "V",
+    accessFlags = listOf(AccessFlags.PUBLIC),
+    parameters = listOf(
+        "Lcom/android/billingclient/api/QueryProductDetailsParams;",
+        "Lcom/android/billingclient/api/ProductDetailsResponseListener;"
+    ),
+    filters = listOf(
+        methodCall(
+            definingClass = "Lcom/android/billingclient/api/BillingClientImpl;",
+            name = "isReady"
+        )
     )
 )
 
 /**
  * BillingClientImpl.queryPurchasesAsync(QueryPurchasesParams, PurchasesResponseListener)
- * — intercepts the query to return fake OK result with empty list, preventing
- * the "connection error" that occurs when zzaI checks isReady() (false without
- * Google Play connection).
+ * — intercepts to return OK with empty purchase list.
+ * Method is `public final` in SF2 billing 7.1.1.
  */
-object IAPBypassQueryPurchasesAsyncParamsFingerprint : Fingerprint(
+object IAPBypassQueryPurchasesAsyncFingerprint : Fingerprint(
     definingClass = "Lcom/android/billingclient/api/BillingClientImpl;",
     name = "queryPurchasesAsync",
     returnType = "V",
@@ -71,42 +113,10 @@ object IAPBypassQueryPurchasesAsyncParamsFingerprint : Fingerprint(
 )
 
 /**
- * BillingClientImpl.queryPurchasesAsync(String, PurchasesResponseListener)
- * — intercepts the query to return fake OK result with empty list.
- */
-object IAPBypassQueryPurchasesAsyncStringFingerprint : Fingerprint(
-    definingClass = "Lcom/android/billingclient/api/BillingClientImpl;",
-    name = "queryPurchasesAsync",
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    parameters = listOf(
-        "Ljava/lang/String;",
-        "Lcom/android/billingclient/api/PurchasesResponseListener;"
-    )
-)
-
-/**
- * BillingClientImpl.isReady() — returns true to make the game think
- * the billing client is connected to Google Play, preventing
- * "connection error" when the game checks billing state.
- */
-object IAPBypassIsReadyFingerprint : Fingerprint(
-    definingClass = "Lcom/android/billingclient/api/BillingClientImpl;",
-    name = "isReady",
-    returnType = "Z",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    parameters = emptyList()
-)
-
-/**
- * BillingClientStateListener.onBillingSetupFinished callback interface
- * used by startConnection interception.
- */
-
-/**
  * BillingClientImpl.startConnection(BillingClientStateListener)
- * — intercepts to call listener.onBillingSetupFinished(OK) immediately,
- * making the game think billing is connected.
+ * — fakes billing connection by setting zzb=2 (CONNECTED) and calling
+ * onBillingSetupFinished(OK) immediately. This makes C++ code see a
+ * properly connected billing client.
  */
 object IAPBypassStartConnectionFingerprint : Fingerprint(
     definingClass = "Lcom/android/billingclient/api/BillingClientImpl;",
@@ -116,35 +126,4 @@ object IAPBypassStartConnectionFingerprint : Fingerprint(
     parameters = listOf(
         "Lcom/android/billingclient/api/BillingClientStateListener;"
     )
-)
-
-/**
- * BillingClientImpl.querySkuDetailsAsync(SkuDetailsParams, SkuDetailsResponseListener)
- * — intercepts to return fake OK result with empty list, preventing
- * connection error when querying product details.
- */
-object IAPBypassQuerySkuDetailsAsyncFingerprint : Fingerprint(
-    definingClass = "Lcom/android/billingclient/api/BillingClientImpl;",
-    name = "querySkuDetailsAsync",
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC),
-    parameters = listOf(
-        "Lcom/android/billingclient/api/SkuDetailsParams;",
-        "Lcom/android/billingclient/api/SkuDetailsResponseListener;"
-    )
-)
-
-/**
- * SecurityManager.VerifyStep() — game's anti-tamper check that verifies
- * APK signature, installer ID, debug/emulator state. When APK is
- * repackaged by Morphe, signature check fails and C++ code disables
- * billing (showing "connection error" on any purchase attempt).
- * Intercepted to always call NotifyOnSuccess(), bypassing all checks.
- */
-object IAPBypassSecurityVerifyStepFingerprint : Fingerprint(
-    definingClass = "Lcom/nekki/utils/security/SecurityManager;",
-    name = "VerifyStep",
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
-    parameters = emptyList()
 )

@@ -1,13 +1,16 @@
 <div align="center">
 
-# 🧩 hxreborn Patches
+# 🧩 hxreborn’s patches
 
-**Patches for the Android apps I use, built for [Morphe](https://morphe.software).**
+**A collection of Android app patches for [Morphe](https://morphe.software).**
 
-[![Release badge](https://img.shields.io/github/v/release/hxreborn/morphe-patches?style=for-the-badge&label=Release&color=D29922)](https://github.com/hxreborn/morphe-patches/releases/latest)
-[![Downloads badge](https://img.shields.io/github/downloads/hxreborn/morphe-patches/total?style=for-the-badge&label=Downloads&color=2F81F7)](https://github.com/hxreborn/morphe-patches/releases/latest)
-[![Documentation badge](https://img.shields.io/badge/Documentation-8957E5?style=for-the-badge&logo=github)](https://github.com/MorpheApp/morphe-documentation#readme)
-[![License badge](https://img.shields.io/badge/License-GPLv3-3FB950?style=for-the-badge)](LICENSE)
+[![Release badge](https://img.shields.io/github/v/release/hxreborn/morphe-patches?style=for-the-badge&label=Release&color=D29922&logo=github&logoColor=white)](https://github.com/hxreborn/morphe-patches/releases/latest)
+[![Downloads badge](https://img.shields.io/github/downloads/hxreborn/morphe-patches/total?style=for-the-badge&label=Downloads&color=2F81F7&logo=github&logoColor=white)](https://github.com/hxreborn/morphe-patches/releases/latest)
+[![Updated badge](https://img.shields.io/github/release-date/hxreborn/morphe-patches?style=for-the-badge&label=Updated&color=3FB950&logo=clockify&logoColor=white)](https://github.com/hxreborn/morphe-patches/releases/latest)
+[![Patches badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhxreborn%2Fmorphe-patches%2Fmain%2Fpatches-list.json&query=%24.patches.length&style=for-the-badge&label=Patches&color=DB61A2&logo=android&logoColor=white)](#-patches-list)
+
+[![Build badge](https://img.shields.io/github/actions/workflow/status/hxreborn/morphe-patches/release.yml?branch=main&style=for-the-badge&label=Build&logo=githubactions&logoColor=white)](https://github.com/hxreborn/morphe-patches/actions/workflows/release.yml)
+[![License badge](https://img.shields.io/badge/License-GPLv3-3FB950?style=for-the-badge&logo=gnu&logoColor=white)](LICENSE)
 
 <a href="https://morphe.software/add-source?github=hxreborn/morphe-patches" title="Add this source to Morphe">
   <img alt="Add to Morphe" src="https://img.shields.io/badge/Morphe-Add%20this%20source-00A8FF?style=for-the-badge" height="38"/>
@@ -18,10 +21,10 @@
 &nbsp;
 ## ❓ About
 
-I maintain these because I use them, but [requests](https://github.com/hxreborn/morphe-patches/issues?q=is%3Aissue+state%3Aopen+label%3A%22app+request%22+sort%3Areactions-%2B1-desc) for other apps are welcome. Upvote an existing request with a 👍 reaction or [open a new one](https://github.com/hxreborn/morphe-patches/issues/new?template=app_request.yml).
+I also accept [requests for other apps](https://github.com/hxreborn/morphe-patches/issues/new?template=app_request.yml).
 
-Based off the prior work of [ReVanced](https://github.com/ReVanced). All modifications made
-here, along with their dates, can be found in the Git history.
+Based on prior work by [ReVanced](https://github.com/ReVanced). Changes and their dates are
+recorded in the Git history.
 
 App icons in the patches list belong to their respective developers and are used only to
 identify each app. They are not covered by this repository's licence. See
@@ -31,7 +34,7 @@ identify each app. They are not covered by this repository's licence. See
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.16.0](https://github.com/hxreborn/morphe-patches/releases/tag/v1.16.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total
+> **[v1.18.0](https://github.com/hxreborn/morphe-patches/releases/tag/v1.18.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;42 patches total
 <details open>
 <summary><img src=".github/assets/icons/cx.png" width="18" align="top">&nbsp;&nbsp;Cx File Explorer&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -70,7 +73,7 @@ identify each app. They are not covered by this repository's licence. See
 
 **🎯 Supported versions:**
 
-| Any version |
+| 2.95.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
@@ -115,13 +118,62 @@ identify each app. They are not covered by this repository's licence. See
 </details>
 
 <details open>
+<summary><img src=".github/assets/icons/moviebox.png" width="18" align="top">&nbsp;&nbsp;MovieBox&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.0.02.0828.03 | 4.0.02.0831.03 | 4.0.02.0903.02 |
+| :---: | :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| <a id="moviebox-all-in-one"></a>[All-In-One](patches/src/main/kotlin/app/morphe/patches/moviebox/misc/allinone/AllInOnePatch.kt) | Enables video playback and downloads, removes ads and upsell prompts, and bypasses the region block. Requires Android 10 or later. |
+
+</details>
+
+<details open>
+<summary><img src=".github/assets/icons/dwgfastview.png" width="18" align="top">&nbsp;&nbsp;DWG FastView&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 5.19.4 | 5.19.6 | 5.20.0 | 5.21.0 |
+| :---: | :---: | :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| <a id="dwg-fastview-block-telemetry"></a>[Block telemetry](patches/src/main/kotlin/app/morphe/patches/gstarmc/misc/telemetry/BlockTelemetryPatch.kt) | Blocks the Umeng, ByteDance and ad network analytics endpoints. |
+| <a id="dwg-fastview-hide-rating-dialog"></a>[Hide rating dialog](patches/src/main/kotlin/app/morphe/patches/gstarmc/misc/rating/HideRatingDialogPatch.kt) | Removes the prompt asking for a store review. |
+| <a id="dwg-fastview-unlock-premium"></a>[Unlock premium](patches/src/main/kotlin/app/morphe/patches/gstarmc/misc/premium/UnlockPremiumPatch.kt) | Unlocks the paid drawing, annotation and measurement tools, and removes ads. |
+
+</details>
+
+<details open>
+<summary><img src=".github/assets/icons/risesleep.png" width="18" align="top">&nbsp;&nbsp;RISE Sleep Tracker&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| Android V1.78.49 | Android V1.78.47 |
+| :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| <a id="rise-sleep-tracker-disable-telemetry"></a>[Disable telemetry](patches/src/main/kotlin/app/morphe/patches/rise/misc/telemetry/DisableTelemetryPatch.kt) | Stops crash and error reports from reaching Sentry. |
+| <a id="rise-sleep-tracker-disable-usage-tracking"></a>[Disable usage tracking](patches/src/main/kotlin/app/morphe/patches/rise/misc/telemetry/DisableUsageTrackingPatch.kt) | Stops app usage events from being uploaded. Local usage tracking remains enabled. |
+| <a id="rise-sleep-tracker-unlock-premium"></a>[Unlock premium](patches/src/main/kotlin/app/morphe/patches/rise/misc/premium/UnlockPremiumPatch.kt) | Unlocks the energy schedule, habit tools, smart alarm and progress insights. Requires a RISE account. |
+
+</details>
+
+<details open>
 <summary><img src=".github/assets/icons/projectivy.png" width="18" align="top">&nbsp;&nbsp;Projectivy Launcher&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| Any version |
-| :---: |
+| 4.71 | 4.70 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
@@ -216,7 +268,7 @@ identify each app. They are not covered by this repository's licence. See
 
 **🎯 Supported versions:**
 
-| Any version |
+| 26.30.05 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
@@ -247,7 +299,7 @@ identify each app. They are not covered by this repository's licence. See
 
 **🎯 Supported versions:**
 
-| Any version |
+| 2.4.0e |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
@@ -257,7 +309,7 @@ identify each app. They are not covered by this repository's licence. See
 </details>
 
 <details open>
-<summary>📦&nbsp;BetterSleep&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary><img src=".github/assets/icons/bettersleep.png" width="18" align="top">&nbsp;&nbsp;BetterSleep&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -277,7 +329,7 @@ identify each app. They are not covered by this repository's licence. See
 
 **🎯 Supported versions:**
 
-| Any version |
+| 3.0.15 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
@@ -287,7 +339,7 @@ identify each app. They are not covered by this repository's licence. See
 </details>
 
 <details open>
-<summary>📦&nbsp;Quranify&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary><img src=".github/assets/icons/quranify.png" width="18" align="top">&nbsp;&nbsp;Quranify&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -302,12 +354,12 @@ identify each app. They are not covered by this repository's licence. See
 </details>
 
 <details open>
-<summary>📦&nbsp;RateGlance&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary><img src=".github/assets/icons/rateglance.png" width="18" align="top">&nbsp;&nbsp;RateGlance&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| Any version |
+| 1.14.8 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
@@ -317,27 +369,12 @@ identify each app. They are not covered by this repository's licence. See
 </details>
 
 <details open>
-<summary>📦&nbsp;RISE Sleep Tracker&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| Android V1.78.49 | Android V1.78.47 |
-| :---: | :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description |
-|----------|----------------|
-| <a id="rise-sleep-tracker-unlock-premium"></a>[Unlock premium](patches/src/main/kotlin/app/morphe/patches/rise/misc/premium/UnlockPremiumPatch.kt) | Unlocks the energy schedule, habit tools, smart alarm and progress insights. Requires a RISE account. |
-
-</details>
-
-<details open>
 <summary><img src=".github/assets/icons/rubberbands.png" width="18" align="top">&nbsp;&nbsp;Rubber Bands&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| Any version |
+| 3.9 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
@@ -352,8 +389,8 @@ identify each app. They are not covered by this repository's licence. See
 
 **🎯 Supported versions:**
 
-| 14.0.0 | 14.1.0 | 14.0.0 TV |
-| :---: | :---: | :---: |
+| 14.0.0 | 14.1.0 | 15.0.1 | 14.0.0 TV |
+| :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
@@ -367,7 +404,7 @@ identify each app. They are not covered by this repository's licence. See
 
 **🎯 Supported versions:**
 
-| Any version |
+| 3.4.12 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
@@ -407,13 +444,13 @@ You need Java 21 and a GitHub token with `read:packages`:
 ./gradlew buildAndroid
 ```
 
-The bundle lands in `patches/build/libs/`. See the
-[Morphe documentation](https://github.com/MorpheApp/morphe-documentation) for the full setup.
+The build writes the bundle to `patches/build/libs/`. See the
+[Morphe documentation](https://github.com/MorpheApp/morphe-documentation) for setup instructions.
 
 &nbsp;
 ## 📜 License
 
-hxreborn Patches are licensed under the [GNU General Public License v3.0](LICENSE), with
+hxreborn’s patches are licensed under the [GNU General Public License v3.0](LICENSE), with
 additional conditions under GPLv3 Section 7 inherited from Morphe:
 
 - **Attribution (7b):** all original notices and disclaimers are preserved.

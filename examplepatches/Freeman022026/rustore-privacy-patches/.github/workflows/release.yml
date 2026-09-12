@@ -45,6 +45,23 @@ jobs:
           mkdir -p build
           curl --fail --location --retry 3 --output build/RuStore.apk https://static.rustore.ru/release/RuStore.apk
 
+      - name: Test inventory review gates
+        run: python3 scripts/test_rustore_upstream.py
+
+      - name: Verify the official APK and reviewed inventories
+        if: github.ref_name == 'main' || github.ref_name == 'dev'
+        run: |
+          python3 scripts/rustore_upstream.py inspect \
+            --apk build/RuStore.apk \
+            --aapt "$ANDROID_HOME/build-tools/36.0.0/aapt" \
+            --apksigner "$ANDROID_HOME/build-tools/36.0.0/apksigner" \
+            --output build/rustore-apk.json --require-official-signer
+          python3 scripts/rustore_upstream.py audit-upstream \
+            --apk build/RuStore.apk \
+            --aapt "$ANDROID_HOME/build-tools/36.0.0/aapt" \
+            --apkanalyzer "$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer" \
+            --baseline upstream/inventory.json --output build/upstream-inventory.json
+
       - name: Build and apply the patch bundle
         if: github.ref_name == 'main' || github.ref_name == 'dev'
         env:
@@ -58,12 +75,13 @@ jobs:
           DESKTOP_JAR=$(find build/morphe -name '*-all.jar' -print -quit)
           java -jar "$DESKTOP_JAR" patch --force --patches "$PATCH_BUNDLE" --out build/rustore-privacy.apk --result-file build/patch-result.json build/RuStore.apk
 
-      - name: Audit launch-critical manifest components
+      - name: Audit manifest components and advertising-ID lookup
         if: github.ref_name == 'main' || github.ref_name == 'dev'
         run: >-
           python3 scripts/rustore_upstream.py audit-patched
           --apk build/rustore-privacy.apk
           --aapt "$ANDROID_HOME/build-tools/36.0.0/aapt"
+          --apkanalyzer "$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer"
 
       - name: Clean integration-test artifacts
         if: github.ref_name == 'main' || github.ref_name == 'dev'

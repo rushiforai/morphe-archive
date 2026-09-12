@@ -6,7 +6,7 @@ For environment setup see [toolchain setup](toolchain.md).
 ## Reading order
 
 1. [Toolchain setup](toolchain.md) — install once per host.
-2. [CLI patching](cli.md) — terminal flows (Desktop JAR flags, `repatch.sh`, signing).
+2. [CLI patching](cli.md) — terminal flows (Morphe CLI flags, `repatch.sh`, signing).
 3. [Architecture](architecture.md) — module and data-flow overview.
 4. [Reverse engineering workflow](reverse-engineering.md) — finding targets.
 5. [Fingerprint guide](fingerprint-guide.md) — writing fingerprints.
@@ -18,14 +18,23 @@ For environment setup see [toolchain setup](toolchain.md).
 
 ## Prerequisites
 
-All tools, SDK packages, Python (`uv`/`uvx`) tooling, GitHub Packages credentials, and Morphe Desktop
+All tools, SDK packages, Python (`uv`/`uvx`) tooling, GitHub Packages credentials, and Morphe
 come from [toolchain setup](toolchain.md). Original APKs/APKMs come only from
 [APKMirror](https://www.apkmirror.com/).
 
 ## Repo state
 
-Template init is complete; this repo is already renamed to `com.zeldrisho.threads`.
-Only re-scaffold from the upstream template when starting a new bundle repo.
+Template init is complete. Current coordinates: Gradle `group` is
+`com.zeldrisho.patches`; Kotlin patch sources live under
+`com.zeldrisho.patches.threads` / `com.zeldrisho.patches.zalo` (app-agnostic
+helpers in `com.zeldrisho.patches.shared`); the extension Java package
+intentionally stays `com.zeldrisho.threads.extension` (its class descriptor
+is embedded in injected smali). `:extensions:threads` is deliberately scoped
+to Threads runtime; any future app (e.g. Zalo) requiring runtime extension
+bytecode must declare its own independent sibling subproject
+(e.g. `:extensions:zalo`) rather than sharing or overloading this
+module. Only re-scaffold from the upstream template
+when starting a new bundle repo.
 
 ## Adding a patch
 
@@ -43,12 +52,15 @@ and [release rules](release.md#rules).
 Canonical local verification (bash):
 
 ```bash
-uvx --from pre-commit==4.6.2 --with shellcheck-py==0.11.0.1 pre-commit run --all-files --show-diff-on-failure
-./gradlew qualityCheck :patches:test :extensions:extension:testDebugUnitTest buildAndroid --no-daemon
+uvx pre-commit run --all-files --show-diff-on-failure
+./gradlew qualityCheck :patches:test :extensions:threads:testDebugUnitTest :extensions:zalo:testDebugUnitTest :patches:verifyBundleExtension --no-daemon
 ```
 
-The `.mpp` lands in `patches/build/libs/patches-*.mpp`. This only proves the
-toolchain works — for the real loop (apply in Morphe Desktop, single-patch
+
+The `.mpp` lands in `patches/build/libs/patches-*.mpp` (`verifyBundleExtension`
+runs `buildAndroid`, then fails fast when the embedded
+`extensions/extension.mpe` is missing). This only proves the
+toolchain works — for the real loop (apply with Morphe, single-patch
 isolation, troubleshooting) see [patch development](patch-development.md#build-and-test).
 
 ## Code quality
@@ -61,7 +73,7 @@ analysis directories are not formatting targets.
 | --- | --- |
 | Spotless: ktlint + google-java-format | Root `build.gradle.kts`; Kotlin sources/tests, Gradle scripts, extension Java sources/tests |
 | detekt | `patches/build.gradle.kts`, `config/detekt/detekt.yml`; Kotlin source analysis, without type resolution |
-| Android Lint | `:extensions:extension:lintDebug`; extension production and test sources |
+| Android Lint | `:extensions:threads:lintDebug`, `:extensions:zalo:lintDebug`; extension production and test sources |
 | ShellCheck + shfmt | `.pre-commit-config.yaml`; `scripts/**/*.sh` |
 | actionlint | `.pre-commit-config.yaml`; GitHub Actions workflows; also uses ShellCheck when on PATH (installed explicitly in CI) |
 | Merge conflicts + mixed line endings | `.pre-commit-config.yaml`; tracked text files |
@@ -69,7 +81,7 @@ analysis directories are not formatting targets.
 `qualityCheck` aggregates Spotless, detekt, and Android Lint. It does not run unit
 tests or build the bundle; `buildAndroid` alone does not run this quality gate.
 Reports are under `patches/build/reports/detekt/` and
-`extensions/extension/build/reports/`.
+`extensions/threads/build/reports/`.
 
 Tool versions are pinned in the Gradle files, hook revisions, and CI install step.
 Detekt **2.0.0-alpha.6** is intentional: its embedded compiler matches Morphe's
@@ -82,9 +94,9 @@ These checks cannot establish real-APK fingerprint compatibility or device behav
 ### Optional commit hooks
 
 ```bash
-uvx --from pre-commit==4.6.2 pre-commit install
+uvx pre-commit install
 # Remove only the pre-commit-managed hook:
-uvx --from pre-commit==4.6.2 pre-commit uninstall
+uvx pre-commit uninstall
 ```
 
 The first run downloads isolated hook environments (including Go for actionlint

@@ -38,7 +38,9 @@ git fetch origin --tags &&
 This pins `gradle.properties` to the version, promotes `## Unreleased` to a
 dated version heading with an inline compare link (bare for the first release;
 see [changelog policy](#changelog-policy)), regenerates `patches-list.json`
-(stamped with the version) and the `README.md` patch table, and commits the staging. Then:
+(stamped with the version) and the `README.md` patch table, stages
+`patches-bundle.json` (version, notes as description, tag-anchored download
+URL), and commits the staging. Then:
 
 ```bash
 git push origin release/1.2.0
@@ -72,16 +74,18 @@ Tag synchronization is a caller prerequisite; the script does not fetch tags.
 ## What `release.yml` does
 
 1. Validates the tag: stable `vX.Y.Z`, reachable from `main`, and matching
-   `gradle.properties`, `patches-list.json`, and the `CHANGELOG.md` heading.
-   Extracts that version's section as the release notes.
-2. Runs unit tests and `buildAndroid`; the single `.mpp` must be named
-   `patches-<version>.mpp`.
+   `gradle.properties`, `patches-list.json`, `patches-bundle.json`, and the
+   `CHANGELOG.md` heading. Extracts that version's section as the release notes.
+2. Runs unit tests and `:patches:verifyBundleExtension` (runs `buildAndroid`, then
+   fails fast when the embedded `extensions/extension.mpe` is missing); the single
+   `.mpp` must be named `patches-<version>.mpp`.
 3. Creates the GitHub release (marked latest) with the notes and the `.mpp`.
    A retry reuses the existing release and uploads a missing asset instead
    of failing. `attest-build-provenance` attests the bundle.
-4. Writes `patches-bundle.json` (version, notes as description, download URL)
-   and pushes it to `main`, so Manager readers serve the new build.
-   This happens only after the download exists.
+
+The workflow never pushes to `main`: the Manager manifest is staged upfront
+by `prepare-release.sh`, so no bot commit — and no branch-ruleset
+status-check conflict — follows a release.
 
 To retry a failed run, use the Actions "Re-run jobs" control or `gh run rerun <run-id>` for the tag's run — re-pushing an existing tag does not start a new run (`push.tags` fires only on a new ref update). Never move a published tag or
 replace a published asset — fix forward with a new version instead.
@@ -98,7 +102,10 @@ Group bullets under these `###` category headings; omit empty categories:
 
 - `🐛 Bug Fixes` — fixed bugs.
 - `✨ New Features` — entirely new patches or new patch options.
-- `🚀 Updated App Support` — adding/dropping supported app versions, including experimental support.
+- `🚀 Updated App Support` — adding/dropping supported app versions. State the
+  support level in the bullet: stable targets (`isExperimental: false`) use
+  `Add support for <version>`, experimental targets (`isExperimental: true`)
+  use `Add experimental support for <version>`.
 - `🔧 Improvements` — non-bug, non-feature refinements; use only when genuinely needed.
 
 Category names are display text, not parser keys; scoped bullet syntax is unchanged.
@@ -138,8 +145,8 @@ section body, excluding its version heading.
 
 ## Release recovery
 
-- A failed run may already have created the release or pushed a manifest
-  commit. Inspect remote state (`gh release view`, `git ls-remote`) before
+- A failed run may already have created the release. Inspect remote state
+  (`gh release view`, `git ls-remote`) before
   retrying; re-running the failed run resumes safely (it reuses the existing release and uploads a missing asset).
 - Do not delete/repoint published tags or force-push release history.
 - Verify publication directly; a green workflow does not by itself prove an
@@ -153,8 +160,8 @@ section body, excluding its version heading.
   let `release.yml` publish.
 - Never force-push a release commit; ship a new release instead.
 - Never hand-edit `patches-list.json`, `patches-bundle.json`, `README.md`
-  patch list, or the `gradle.properties` version — the release staging and
-  pipeline own them (`prepare-release.sh` + `release.yml`).
+  patch list, or the `gradle.properties` version — the release staging owns
+  them (`prepare-release.sh` regenerates and commits all four).
 - In `CHANGELOG.md`, add bullets under `## Unreleased` only — versioned
   entries are promoted by `prepare-release.sh`, never edited by hand.
 - Keep unrelated pending work out of release staging commits.

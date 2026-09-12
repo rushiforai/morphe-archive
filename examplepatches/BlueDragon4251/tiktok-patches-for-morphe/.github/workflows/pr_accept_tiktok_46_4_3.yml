@@ -1,0 +1,267 @@
+name: TikTok 46.4.3 acceptance
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Build patch bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid :patches:generatePatchesList --no-daemon
+
+      - name: Resolve runtime bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          MPP="$(find patches/build/libs -maxdepth 1 -type f -name '*.mpp' ! -name '*-sources.mpp' ! -name '*-javadoc.mpp' | sort | head -n 1)"
+          test -n "$MPP"
+          case "$MPP" in
+            *-sources.mpp|*-javadoc.mpp) echo "Refusing non-runtime MPP: $MPP" >&2; exit 1 ;;
+          esac
+          echo "Using runtime bundle: $MPP"
+          echo "MPP=$MPP" >> "$GITHUB_ENV"
+
+      - name: Download exact TikTok 46.4.3 APK
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib, html, urllib.request
+          from html.parser import HTMLParser
+
+          PAGE = "https://www.mediafire.com/file/sd2x6vnmv1ocnv7/com.zhiliaoapp.musically_46.4.3-2024604030_minAPI23(arm64-v8a,armeabi-v7a)(nodpi)_apkmirror.com.apk/file"
+          UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/140 Safari/537.36"
+          EXPECTED = "79062fb88d2eef8d6e11bbf766b4b40ee08d89cdc594ff26b549ccce7b50c4b2"
+
+          class Parser(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.url = None
+              def handle_starttag(self, tag, attrs):
+                  values = dict(attrs)
+                  if tag == "a" and values.get("id") == "downloadButton":
+                      self.url = values.get("href")
+
+          request = urllib.request.Request(PAGE, headers={"User-Agent": UA})
+          with urllib.request.urlopen(request, timeout=60) as response:
+              page = response.read().decode("utf-8", errors="replace")
+          parser = Parser(); parser.feed(page)
+          if not parser.url:
+              raise RuntimeError("MediaFire download URL not found")
+          request = urllib.request.Request(html.unescape(parser.url), headers={"User-Agent": UA})
+          digest = hashlib.sha256(); size = 0
+          with urllib.request.urlopen(request, timeout=180) as response, open("tiktok-46.4.3.apk", "wb") as output:
+              while True:
+                  chunk = response.read(1024 * 1024)
+                  if not chunk:
+                      break
+                  output.write(chunk); digest.update(chunk); size += len(chunk)
+          actual = digest.hexdigest()
+          print("Downloaded bytes:", size); print("SHA-256:", actual)
+          if actual != EXPECTED:
+              raise RuntimeError(f"SHA mismatch: {actual}")
+          PY
+
+      - name: Inspect exact 46.4.3 model structures
+        continue-on-error: true
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set +e
+          ANALYZER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name apkanalyzer 2>/dev/null | sort | tail -n 1)"
+          {
+            echo "=== BlueIT exact TikTok 46.4.3 model evidence ==="
+            echo "apkanalyzer=$ANALYZER"
+            if [ -z "$ANALYZER" ]; then
+              echo "apkanalyzer unavailable"
+              exit 0
+            fi
+            echo "=== PhotoModeImageInfo ==="
+            timeout 25s "$ANALYZER" dex code --class com.ss.android.ugc.aweme.feed.model.PhotoModeImageInfo tiktok-46.4.3.apk 2>&1 | head -n 1200
+            echo "=== Video ==="
+            timeout 25s "$ANALYZER" dex code --class com.ss.android.ugc.aweme.feed.model.Video tiktok-46.4.3.apk 2>&1 | head -n 1800
+            echo "=== quick string evidence ==="
+            mkdir -p /tmp/blueit-dex
+            unzip -q -j tiktok-46.4.3.apk 'classes*.dex' -d /tmp/blueit-dex || true
+            find /tmp/blueit-dex -type f -name '*.dex' -print0 | xargs -0 strings 2>/dev/null \
+              | grep -Ei 'onDoubleTap|onSingleTapConfirmed|onLongPress|DoubleTap|SingleTap|Gesture|Digg|seekTo|PhotoModeImageInfo|BitRate' \
+              | sort -u | head -n 1000
+          } > target-evidence.txt 2>&1
+          cat target-evidence.txt | head -n 3500
+          exit 0
+
+      - name: Download Morphe Desktop CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          RELEASE_JSON="$(curl -fsSL -H 'Accept: application/vnd.github+json' https://api.github.com/repos/MorpheApp/morphe-desktop/releases/latest)"
+          URL="$(printf '%s' "$RELEASE_JSON" | jq -r '.assets[] | select(.name | endswith("-all.jar")) | .browser_download_url' | head -n 1)"
+          test -n "$URL" && test "$URL" != null
+          curl -fL --retry 3 "$URL" -o morphe-desktop.jar
+
+      - name: Apply all default patches
+        id: patch
+        shell: bash
+        env:
+          JAVA_TOOL_OPTIONS: -Xmx6g
+        run: |
+          set +e
+          java -jar morphe-desktop.jar patch \
+            -p "$MPP" \
+            --continue-on-error \
+            --unsigned \
+            --result-file morphe-result.json \
+            -o /tmp/tiktok-patched.apk \
+            tiktok-46.4.3.apk 2>&1 | tee morphe.log
+          code=${PIPESTATUS[0]}
+          if grep -q 'INFO: Applying 0 patches' morphe.log; then code=97; fi
+          if grep -q '^WARNING: Skipping ".*": incompatible with com.zhiliaoapp.musically 46.4.3' morphe.log; then code=98; fi
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Apply full catalog including Diagnostic tools
+        id: patch_full
+        shell: bash
+        env:
+          JAVA_TOOL_OPTIONS: -Xmx6g
+        run: |
+          set +e
+          PATCH_NAMES="$(python3 - <<'PY'
+          import json
+          data = json.load(open('patches-list.json'))
+          for patch in data.get('patches') or []:
+              versions = (patch.get('compatiblePackages') or {}).get('com.zhiliaoapp.musically') or []
+              if '46.4.3' in versions:
+                  print(patch['name'])
+          PY
+          )"
+          args=()
+          while IFS= read -r name; do
+            [ -n "$name" ] && args+=(-e "$name")
+          done <<< "$PATCH_NAMES"
+          java -jar morphe-desktop.jar patch \
+            -p "$MPP" \
+            --continue-on-error \
+            --unsigned \
+            --result-file morphe-full-result.json \
+            "${args[@]}" \
+            -o /tmp/tiktok-full-patched.apk \
+            tiktok-46.4.3.apk 2>&1 | tee morphe-full.log
+          code=${PIPESTATUS[0]}
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Validate complete 46.4.3 catalog
+        id: validate
+        shell: bash
+        run: |
+          set +e
+          python3 - <<'PY'
+          import json, sys
+          from pathlib import Path
+          package = "com.zhiliaoapp.musically"
+          version = "46.4.3"
+          failures = []
+          metadata_path = Path("patches-list.json")
+          if not metadata_path.exists():
+              failures.append("patches-list.json was not generated")
+              metadata = {"patches": []}
+          else:
+              metadata = json.loads(metadata_path.read_text())
+          compatible = {}
+          for patch in metadata.get("patches") or []:
+              versions = (patch.get("compatiblePackages") or {}).get(package) or []
+              if version in versions:
+                  compatible[patch.get("name")] = bool(patch.get("use"))
+          expected_defaults = {name for name, use in compatible.items() if use}
+          expected_full = set(compatible)
+          print("Expected default patches:", sorted(expected_defaults))
+          print("Expected full catalog:", sorted(expected_full))
+          for label, filename, expected in (
+              ("defaults", "morphe-result.json", expected_defaults),
+              ("full catalog", "morphe-full-result.json", expected_full),
+          ):
+              path = Path(filename)
+              if not path.exists():
+                  failures.append(f"{label}: {filename} was not produced")
+                  continue
+              data = json.loads(path.read_text())
+              applied = {item.get("name") for item in (data.get("appliedPatches") or [])}
+              failed = data.get("failedPatches") or []
+              missing = sorted(expected - applied)
+              unexpected = sorted(applied - expected)
+              print(f"{label}: applied={len(applied)} expected={len(expected)} failed={len(failed)}")
+              if failed:
+                  failures.append(f"{label}: failed patches: {failed}")
+              if missing:
+                  failures.append(f"{label}: compatible patches not applied: {missing}")
+              if unexpected:
+                  failures.append(f"{label}: unexpected applied patches: {unexpected}")
+              if not expected:
+                  failures.append(f"{label}: generated metadata selected no 46.4.3 patches")
+          if failures:
+              for failure in failures:
+                  print(failure, file=sys.stderr)
+              raise SystemExit(1)
+          PY
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Summarize failures
+        if: always()
+        shell: bash
+        run: |
+          echo '=== DEFAULT PATCH FAILURES / SKIPS ==='
+          grep -E 'SEVERE: FAILED:|Patching aborted|PatchException|Failed to match|Could not find instruction|WARNING: Skipping' morphe.log || true
+          echo '=== DEFAULT APPLIED COUNT ==='
+          grep -c '^INFO: Applied:' morphe.log || true
+          echo '=== FULL-CATALOG PATCH FAILURES / SKIPS ==='
+          grep -E 'SEVERE: FAILED:|Patching aborted|PatchException|Failed to match|Could not find instruction|WARNING: Skipping' morphe-full.log || true
+          echo '=== BLUEIT GESTURE DISCOVERY ==='
+          grep '\[BlueITGestureDiscovery\]' morphe-full.log || true
+          echo '=== FULL-CATALOG APPLIED COUNT ==='
+          grep -c '^INFO: Applied:' morphe-full.log || true
+          echo '=== DEFAULT RESULT JSON ==='
+          cat morphe-result.json 2>/dev/null || true
+          echo '=== FULL-CATALOG RESULT JSON ==='
+          cat morphe-full-result.json 2>/dev/null || true
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tiktok-46.4.3-acceptance
+          path: |
+            morphe.log
+            morphe-result.json
+            morphe-full.log
+            morphe-full-result.json
+            patches-list.json
+            target-evidence.txt
+          if-no-files-found: warn
+          retention-days: 1
+
+      - name: Fail if acceptance reported failures
+        if: always()
+        shell: bash
+        run: |
+          test "${{ steps.patch.outputs.exit_code }}" = "0"
+          test "${{ steps.patch_full.outputs.exit_code }}" = "0"
+          test "${{ steps.validate.outputs.exit_code }}" = "0"

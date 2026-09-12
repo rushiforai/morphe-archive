@@ -59,4 +59,17 @@ object Constants {
         )
     )
 
+    val COMPATIBILITY_Freereels = Compatibility(
+        name = "FreeReels",
+        packageName = "com.freereels.app",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0xFF1234,
+        targets = listOf(
+            AppTarget(
+                version = "2.4.70",
+                versionCode = 200470001
+            )
+        )
+    )
+
 }

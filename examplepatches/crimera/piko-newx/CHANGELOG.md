@@ -1,3 +1,13 @@
+## [3.19.2](https://github.com/crimera/piko-newx/compare/v3.19.1...v3.19.2) (2026-09-12)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** preserve inline download icon on recomposition ([baf3189](https://github.com/crimera/piko/commit/baf3189040abdfddb40cb76ecffd233846d8e995))
+
+## [3.19.1](https://github.com/crimera/piko-newx/compare/v3.19.0...v3.19.1) (2026-09-11)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** keep dynamic color resolver API 29 compatible ([7242871](https://github.com/crimera/piko/commit/72428718c7e5de462ca81fecd9aa72eeedf0d2bf))
+
 ## [3.19.0](https://github.com/crimera/piko-newx/compare/v3.18.1...v3.19.0) (2026-09-11)
 
 ### 🐛 Bug Fixes

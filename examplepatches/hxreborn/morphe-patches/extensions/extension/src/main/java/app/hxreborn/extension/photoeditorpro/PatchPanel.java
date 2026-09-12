@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2026 hxreborn
+ * Copyright (C) 2026 hxreborn
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package app.hxreborn.extension.photoeditorpro;
@@ -44,7 +44,7 @@ import app.morphe.extension.shared.settings.Setting;
 
 public final class PatchPanel {
 
-    private static final String TITLE = "hxreborn Patches";
+    private static final String TITLE = "hxreborn’s patches";
     private static final String BUNDLE_VERSION = BuildConfig.BUNDLE_VERSION;
 
     private static final int BG = Color.parseColor("#0B0B0D");

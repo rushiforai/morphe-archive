@@ -8,14 +8,17 @@
 #      inline compare link after the initial release (see docs/release.md).
 #   3. Regenerates patches-list.json, stamps its version, and refreshes the
 #      README.md patch table.
-#   4. Commits the release staging.
+#   4. Stages patches-bundle.json upfront (version, notes as description, and
+#      the predictable tag-anchored download URL), so release.yml never pushes
+#      to main.
+#   5. Commits the release staging.
 #
 # Then publish with (see docs/release.md#staging-a-release): push the staging
 # branch, open a PR, merge, sync main, and tag the post-merge main tip:
 #   git push origin <staging-branch>
 #   git tag v<X.Y.Z> && git push origin v<X.Y.Z>
-# Pushing the tag runs .github/workflows/release.yml, which tests, builds,
-# creates the GitHub release, and points patches-bundle.json at the download.
+# Pushing the tag runs .github/workflows/release.yml, which validates the tag,
+# tests, builds, creates the GitHub release, and attests the bundle.
 set -euo pipefail
 
 VERSION="${1:?Usage: scripts/prepare-release.sh <X.Y.Z>}"
@@ -194,10 +197,33 @@ data["version"] = sys.argv[1]
 json.dump(data, open(path, "w", encoding="utf-8"), indent=2)
 open(path, "a", encoding="utf-8").write("\n")
 PY
-python3 .github/scripts/generate_patches_readme.py "$REPO" main patches-list.json README.md
+python3 scripts/generate_patches_readme.py "$REPO" main patches-list.json README.md
 
-# 4. Stage the release.
-git add gradle.properties CHANGELOG.md patches-list.json README.md
+# 4. Stage the Manager manifest upfront. The download URL is fully determined
+#    by the tag name, so the manifest is committed in the staging PR and
+#    release.yml never pushes to main (which also avoids branch-ruleset
+#    status-check conflicts from bot commits).
+tmp_notes="$(mktemp "${TMPDIR:-/tmp}/morphe-staging-notes.XXXXXX")"
+trap 'rm -f "$tmp_notes"' EXIT
+python3 scripts/extract_release_notes.py CHANGELOG.md "$VERSION" "$tmp_notes" "$REPO"
+CREATED_AT="$(date -u +%Y-%m-%dT%H:%M:%S)"
+python3 - "$VERSION" "$REPO" "$CREATED_AT" "$tmp_notes" <<'MANIFEST_PY'
+import json, sys
+version, repo, created_at, notes_path = sys.argv[1:]
+notes = open(notes_path, encoding="utf-8").read().strip()
+data = {
+    "created_at": created_at,
+    "description": notes,
+    "download_url": f"https://github.com/{repo}/releases/download/v{version}/patches-{version}.mpp",
+    "signature_download_url": "",
+    "version": version,
+}
+json.dump(data, open("patches-bundle.json", "w", encoding="utf-8"), indent=2)
+open("patches-bundle.json", "a", encoding="utf-8").write("\n")
+MANIFEST_PY
+
+# 5. Stage the release.
+git add gradle.properties CHANGELOG.md patches-list.json README.md patches-bundle.json
 git diff --cached --quiet && die "nothing to commit"
 git commit -m "chore(release): release v$VERSION"
 echo

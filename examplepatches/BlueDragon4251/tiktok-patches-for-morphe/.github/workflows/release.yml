@@ -1,0 +1,95 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Guard dev release metadata
+        if: github.ref == 'refs/heads/dev'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          previous_tag="$(git tag --list 'v*-dev.*' --sort=-v:refname | head -n 1 || true)"
+          if [[ -z "$previous_tag" ]]; then
+            echo "No previous dev tag exists; nothing to preserve yet."
+            exit 0
+          fi
+
+          previous_version="${previous_tag#v}"
+          echo "Previous dev release: $previous_tag"
+
+          if ! git merge-base --is-ancestor "$previous_tag" HEAD; then
+            echo "::error::The previous dev release $previous_tag is not an ancestor of this dev push."
+            echo "Refusing to release because the dev branch history would be disconnected."
+            exit 1
+          fi
+
+          if ! grep -Fq "$previous_version" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md lost the previous dev release $previous_version."
+            echo "Preserve release-managed dev files when syncing an accepted feature tree into dev."
+            exit 1
+          fi
+
+          metadata_version="$(jq -r '.version // empty' patches-bundle.json)"
+          if [[ "$metadata_version" != "$previous_version" ]]; then
+            echo "::error::patches-bundle.json regressed from $previous_version to '$metadata_version' before semantic-release."
+            echo "Preserve the current dev patches-bundle.json during the sync; semantic-release will bump it afterwards."
+            exit 1
+          fi
+
+          echo "Dev history and release metadata are intact."
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid generatePatchesList clean
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v5
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Attest
+        if: steps.release.outputs.new_release_published == 'true'
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-*.mpp

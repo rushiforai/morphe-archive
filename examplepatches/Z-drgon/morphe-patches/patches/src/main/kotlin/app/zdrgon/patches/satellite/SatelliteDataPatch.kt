@@ -15,7 +15,7 @@ import org.w3c.dom.Element
 val satelliteDataPatch = resourcePatch(
     name = "Satellite Data Optimization",
     description = "Injects PROPERTY_SATELLITE_DATA_OPTIMIZED meta-data tag into AndroidManifest.xml to enable Direct-To-Cell (DTC) satellite data on T-Mobile / SpaceX network.",
-    default = true
+    default = false
 ) {
     execute {
         document("AndroidManifest.xml").use { document ->
