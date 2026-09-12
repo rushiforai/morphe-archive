@@ -11,6 +11,7 @@ AzukiSensei/aniskip-stremio
 BholeyKaBhakt/android-patches-xtra
 BlazeFTL/FTL-Patches
 BlazeFTL/Morphe-Portal-Patches-New
+BlueDragon4251/tiktok-patches-for-morphe
 Burhanverse/test
 Dan1elTheMan1el/Morphe-Patches
 DarioDKM/ringconn-patches
@@ -40,17 +41,20 @@ Jman-Github/Universal-ReVanced-Manager
 Joristdh/Platypatch
 Joussflls10/Jouss-Patches
 Kecerim24/morphe-patches
+LOCKhart07/morphe-patches
 LaBlazer/morphe-patches
 LaKakaReal/LaKakaShitPatches
 Lynx6319/patch-youtube-scroll-block
 MarcaDian/morphe-patches-yavot
 MauroGamerVN/Morphe-Patches
 MiguelNinja19/miguel-morphe-patches
+MohamedElnaggar00/morphe-patches-tiktok-lite-only
 MoonShadowKeeper/Telegram-patchesMorphe
 MorpheApp/morphe-patches
 Nagol12344/patch
 Nai64/Nai64Patches
 NekoGryphou/gryphous-morphe-patches
+Nerahikada/asken-patches
 NullWaypoint/morphe-patches
 Okazakee/iptv-morphe-patches
 Pa-kon/morphe-screenshot-patches
@@ -66,8 +70,10 @@ RealCyberwash/max-patches
 Ripthulhu/morphe-google-patches
 RookieEnough/De-Vanced
 RoundSalmon4/morphe-patches-template
+Santodan/santodan-patches
 SapitoSucio/FroggoMorphePatches
 Seobject/Seobject-patches
+Sfehhrths/ekispert-morphe-patches
 ShuhaibNC/morphe-patches
 SouBryan/pinterest-morphed
 SysAdminDoc/hushfeed
@@ -79,6 +85,7 @@ Utsavrajputt/Modx-patches
 V4n1X/morphe-patches
 WZSE/aapam-patches
 WZSE/morphe-patches
+WalkTheEarth/morphe-ytvr-patches
 XTapped/morphe-patches
 Xhehab/Xhehab-Patches
 Xisrr1/Revancify-Xisr
@@ -168,6 +175,7 @@ hxreborn/hxreborn-tiktok-patches
 hxreborn/morphe-patches
 icysymmetra/tiktok-patches-for-morphe
 ilikeadofai/vocacolle-morphe-patches
+ispacecase/patchweaver
 isuruhg/cricinfo-tweaks
 isuruhg/fin-tweaks
 itsthejoker/itsthejoker-patches
@@ -177,6 +185,7 @@ jaredcat/morphe-patches
 jasonwu1994/Gboard-patches
 jkennethcarino/adobo
 jrddupont/discord-patches
+kanup4m/morphe-patches
 kareemlukitomo/morphe-patches
 kiraio-moe/Lain-Patches
 kolaron/morphe-patches

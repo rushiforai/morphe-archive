@@ -1697,6 +1697,78 @@
                 "sortOrder": 221,
                 "createdAt": 1789096297956,
                 "updatedAt": 1789096297956
+            },
+            {
+                "name": "tiktok-patches-for-morphe",
+                "source": "https://raw.githubusercontent.com/BlueDragon4251/tiktok-patches-for-morphe/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 222,
+                "createdAt": 1789183046161,
+                "updatedAt": 1789183046161
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/LOCKhart07/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 223,
+                "createdAt": 1789183046699,
+                "updatedAt": 1789183046699
+            },
+            {
+                "name": "morphe-patches-tiktok-lite-only",
+                "source": "https://raw.githubusercontent.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 224,
+                "createdAt": 1789183046907,
+                "updatedAt": 1789183046907
+            },
+            {
+                "name": "asken-patches",
+                "source": "https://raw.githubusercontent.com/Nerahikada/asken-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 225,
+                "createdAt": 1789183047028,
+                "updatedAt": 1789183047028
+            },
+            {
+                "name": "santodan-patches",
+                "source": "https://raw.githubusercontent.com/Santodan/santodan-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 226,
+                "createdAt": 1789183047150,
+                "updatedAt": 1789183047150
+            },
+            {
+                "name": "ekispert-morphe-patches",
+                "source": "https://raw.githubusercontent.com/Sfehhrths/ekispert-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 227,
+                "createdAt": 1789183047187,
+                "updatedAt": 1789183047187
+            },
+            {
+                "name": "morphe-ytvr-patches",
+                "source": "https://raw.githubusercontent.com/WalkTheEarth/morphe-ytvr-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 228,
+                "createdAt": 1789183047476,
+                "updatedAt": 1789183047476
+            },
+            {
+                "name": "patchweaver",
+                "source": "https://raw.githubusercontent.com/ispacecase/patchweaver/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 229,
+                "createdAt": 1789183048686,
+                "updatedAt": 1789183048686
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/kanup4m/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 230,
+                "createdAt": 1789183048894,
+                "updatedAt": 1789183048894
             }
         ]
     }
