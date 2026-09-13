@@ -3,6 +3,8 @@ package app.morphe.util
 import app.morphe.patcher.patch.loadPatchesFromJar
 import com.google.gson.JsonParser
 import java.io.File
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.util.jar.JarFile
 import java.security.MessageDigest
 
@@ -18,9 +20,15 @@ object BundleVerifier {
                 val entry = requireNotNull(jar.getJarEntry(name)) { "Bundle is missing $name" }
                 require(entry.size > 0) { "Bundle entry is empty: $name" }
                 jar.getInputStream(entry).use { stream ->
-                    require(stream.readNBytes(4).contentEquals(byteArrayOf(100, 101, 120, 10))) {
+                    val header = stream.readNBytes(100)
+                    require(header.size == 100
+                            && header.copyOfRange(0, 4).contentEquals(byteArrayOf(100, 101, 120, 10))) {
                         "Bundle entry is not a DEX file: $name"
                     }
+                    val classDefinitions = ByteBuffer.wrap(header, 96, 4)
+                        .order(ByteOrder.LITTLE_ENDIAN)
+                        .int
+                    require(classDefinitions > 0) { "Bundle DEX has no classes: $name" }
                 }
             }
             require(jar.manifest.mainAttributes.getValue("Version") == args[2]) {
@@ -44,6 +52,6 @@ object BundleVerifier {
             "Patch list mismatch: bundle has ${bundled.size}, metadata has ${listed.size}; " +
                 "missing=${listed.toSet() - bundled.toSet()}, extra=${bundled.toSet() - listed.toSet()}"
         }
-        println("Verified ${bundle.name}: ${bundled.size} patches and all three DEX payloads")
+        println("Verified ${bundle.name}: ${bundled.size} patches and all three non-empty DEX payloads")
     }
 }

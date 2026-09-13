@@ -8,13 +8,13 @@ package app.morphe.patches.tiktok.interaction.duetstitch
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
@@ -71,7 +71,7 @@ val duetStitchPatch = bytecodePatch(
                 returns.asReversed().forEach { index ->
                     // The range form names any register a return can hold.
                     val setting = getInstruction<OneRegisterInstruction>(index).registerA
-                    addInstructions(
+                    addInstructionsAtControlFlowLabel(
                         index,
                         """
                             invoke-static/range { v$setting .. v$setting }, $EXTENSION->setting(I)I

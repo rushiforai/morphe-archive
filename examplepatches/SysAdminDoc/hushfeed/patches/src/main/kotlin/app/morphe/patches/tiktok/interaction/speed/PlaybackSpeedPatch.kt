@@ -14,6 +14,7 @@ import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.patches.tiktok.shared.OnRenderFirstFrameFingerprint
 import app.morphe.patches.tiktok.interaction.cleardisplay.OnRenderFirstFrameBodyFingerprint
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.cloneMutable
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -194,7 +195,7 @@ val playbackSpeedPatch = bytecodePatch(
         }
         returns.asReversed().forEach { (index, instruction) ->
             val register = (instruction as OneRegisterInstruction).registerA
-            factory.addInstructions(index, """
+            factory.addInstructionsAtControlFlowLabel(index, """
                 invoke-static/range {v$register .. v$register}, $EXTENSION->menuSpeeds(Ljava/lang/Object;)Ljava/lang/Object;
                 move-result-object v$register
             """)

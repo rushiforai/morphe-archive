@@ -34,6 +34,19 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public final class HookStatus {
     /** Enough detail to describe a broken build; past this a family says it stopped counting. */
     private static final int MAX_ENTRIES_PER_FAMILY = 200;
+    /** Serializes first observations with diagnostic snapshot, clear, and restore. */
+    private static final Object STATE_LOCK = new Object();
+
+    /** One immutable miss keeps the raw dedupe key and its displayed detail inseparable. */
+    private static final class Miss {
+        final String key;
+        final String detail;
+
+        Miss(String key, String detail) {
+            this.key = key;
+            this.detail = detail;
+        }
+    }
 
     private static final class Family {
         // newKeySet() is API 24 and D8 cannot backport it, so on Android 6 it throws where the
@@ -42,8 +55,8 @@ public final class HookStatus {
         /** Raw names, so the hot path compares what the caller already holds. */
         final Set<String> bound = Collections.newSetFromMap(new ConcurrentHashMap<>());
         final Set<String> missed = Collections.newSetFromMap(new ConcurrentHashMap<>());
-        /** The same misses in the order they arrived, for the first-miss line. */
-        final List<String> order = new CopyOnWriteArrayList<>();
+        /** Raw key and displayed detail together, in the order misses arrived. */
+        final List<Miss> order = new CopyOnWriteArrayList<>();
         volatile boolean truncated;
         volatile boolean boundTruncated;
     }
@@ -54,15 +67,48 @@ public final class HookStatus {
     /** Families in the order the app first touched them; the map does not keep that. */
     private static final List<String> SEEN = new CopyOnWriteArrayList<>();
 
+    /** A deep copy used by the diagnostic clear row's one-tap undo. */
+    public static final class Snapshot {
+        private final List<FamilySnapshot> families;
+
+        private Snapshot(List<FamilySnapshot> families) {
+            this.families = families;
+        }
+
+        public boolean isEmpty() {
+            return families.isEmpty();
+        }
+    }
+
+    private static final class FamilySnapshot {
+        final String name;
+        final List<String> bound;
+        final List<Miss> misses;
+        final boolean truncated;
+        final boolean boundTruncated;
+
+        FamilySnapshot(String name, Family family) {
+            this.name = name;
+            this.bound = new ArrayList<>(family.bound);
+            this.misses = new ArrayList<>(family.order);
+            this.truncated = family.truncated;
+            this.boundTruncated = family.boundTruncated;
+        }
+    }
+
     private HookStatus() {
     }
 
     /** A lookup that found what it wanted. A repeat costs one hash lookup and nothing else. */
     public static void bound(String family, String name) {
-        Family entry = family(family);
-        if (entry.boundTruncated || entry.bound.contains(name)) return;
-        if (entry.bound.size() < MAX_ENTRIES_PER_FAMILY) entry.bound.add(name);
-        else entry.boundTruncated = true;
+        Family entry = FAMILIES.get(family);
+        if (entry != null && (entry.boundTruncated || entry.bound.contains(name))) return;
+        synchronized (STATE_LOCK) {
+            entry = family(family);
+            if (entry.boundTruncated || entry.bound.contains(name)) return;
+            if (entry.bound.size() < MAX_ENTRIES_PER_FAMILY) entry.bound.add(name);
+            else entry.boundTruncated = true;
+        }
     }
 
     /**
@@ -73,30 +119,35 @@ public final class HookStatus {
      * argument would allocate a string per pass and throw it away.
      */
     public static void missingViewId(String family, String name) {
-        Family entry = family(family);
+        Family entry = FAMILIES.get(family);
         // The truncated check comes first. Past the cap a key is never added, so without this
         // every later pass would miss the set and rebuild the wording it is not going to use.
-        if (entry.truncated || entry.missed.contains(name)) return;
-        record(entry, family, name, "view id '" + name + "'");
+        if (entry != null && (entry.truncated || entry.missed.contains(name))) return;
+        record(family, name, "view id '" + name + "'");
     }
 
     /** A member the extension asked for by name and this build does not have. */
     public static void missingMember(String family, String kind, String owner, String name) {
-        Family entry = family(family);
-        if (entry.truncated) return;
         String key = owner + '#' + name;
-        if (entry.missed.contains(key)) return;
-        record(entry, family, key, kind + " " + owner + "#" + name);
+        Family entry = FAMILIES.get(family);
+        if (entry != null && (entry.truncated || entry.missed.contains(key))) return;
+        record(family, key, kind + " " + owner + "#" + name);
     }
 
-    private static void record(Family entry, String family, String key, String detail) {
-        if (entry.missed.size() >= MAX_ENTRIES_PER_FAMILY) {
-            entry.truncated = true;
-            return;
+    private static void record(String family, String key, String detail) {
+        synchronized (STATE_LOCK) {
+            Family entry = family(family);
+            if (entry.truncated || entry.missed.contains(key)) return;
+            if (entry.missed.size() >= MAX_ENTRIES_PER_FAMILY) {
+                entry.truncated = true;
+                return;
+            }
+            entry.missed.add(key);
+            entry.order.add(new Miss(key, detail));
         }
-        if (!entry.missed.add(key)) return;
-        entry.order.add(detail);
 
+        // Never hold STATE_LOCK while Logger enters LogBufferManager. Diagnostic clear takes
+        // the buffer lock first and then snapshots this state, so doing both here would deadlock.
         String message = "no " + detail + " for " + family;
         Logger.printInfo(() -> "This TikTok build has " + message);
         LogBufferManager.appendEvent(DiagnosticCategory.PATCH_ERRORS, "HookStatus", "WARN", message);
@@ -114,37 +165,49 @@ public final class HookStatus {
 
     /** Every lookup that missed, across every family, first miss first. */
     public static List<String> missing() {
-        List<String> all = new ArrayList<>();
-        for (String name : SEEN) {
-            Family entry = FAMILIES.get(name);
-            if (entry == null) continue;
-            for (String detail : entry.order) all.add(name + ": " + detail);
+        synchronized (STATE_LOCK) {
+            List<String> all = new ArrayList<>();
+            for (String name : SEEN) {
+                Family entry = FAMILIES.get(name);
+                if (entry == null) continue;
+                for (Miss miss : entry.order) all.add(name + ": " + miss.detail);
+            }
+            return all;
         }
-        return all;
     }
 
     /** What one family looked for and did not find, first miss first. */
     public static List<String> missing(String family) {
-        Family entry = FAMILIES.get(family);
-        return entry == null ? new ArrayList<>() : new ArrayList<>(entry.order);
+        synchronized (STATE_LOCK) {
+            Family entry = FAMILIES.get(family);
+            List<String> result = new ArrayList<>();
+            if (entry != null) {
+                for (Miss miss : entry.order) result.add(miss.detail);
+            }
+            return result;
+        }
     }
 
     /** True once any family has reported a miss, so a caller can say "all bound" cheaply. */
     public static boolean anyMissing() {
-        for (Family entry : FAMILIES.values()) {
-            if (!entry.order.isEmpty()) return true;
+        synchronized (STATE_LOCK) {
+            for (Family entry : FAMILIES.values()) {
+                if (!entry.order.isEmpty()) return true;
+            }
+            return false;
         }
-        return false;
     }
 
     /** The families missing something, in the order the app first touched them. */
     public static List<String> familiesMissingSomething() {
-        List<String> names = new ArrayList<>();
-        for (String name : SEEN) {
-            Family entry = FAMILIES.get(name);
-            if (entry != null && !entry.order.isEmpty()) names.add(name);
+        synchronized (STATE_LOCK) {
+            List<String> names = new ArrayList<>();
+            for (String name : SEEN) {
+                Family entry = FAMILIES.get(name);
+                if (entry != null && !entry.order.isEmpty()) names.add(name);
+            }
+            return names;
         }
-        return names;
     }
 
     /**
@@ -180,24 +243,105 @@ public final class HookStatus {
     }
 
     public static List<String> report() {
-        List<String> lines = new ArrayList<>();
-        for (String name : SEEN) {
-            Family entry = FAMILIES.get(name);
-            if (entry == null) continue;
-            LineWriter writer = lineWriter;
-            lines.add((writer == null ? ENGLISH : writer).line(
-                    name,
-                    entry.bound.size(),
-                    entry.order.size(),
-                    entry.truncated || entry.boundTruncated,
-                    entry.order.isEmpty() ? null : entry.order.get(0)));
+        synchronized (STATE_LOCK) {
+            List<String> lines = new ArrayList<>();
+            for (String name : SEEN) {
+                Family entry = FAMILIES.get(name);
+                if (entry == null) continue;
+                LineWriter writer = lineWriter;
+                lines.add((writer == null ? ENGLISH : writer).line(
+                        name,
+                        entry.bound.size(),
+                        entry.order.size(),
+                        entry.truncated || entry.boundTruncated,
+                        entry.order.isEmpty() ? null : entry.order.get(0).detail));
+            }
+            return lines;
         }
-        return lines;
+    }
+
+    /** Takes the state that a diagnostic clear is about to remove. */
+    public static Snapshot snapshot() {
+        synchronized (STATE_LOCK) {
+            return snapshotLocked();
+        }
+    }
+
+    /** Atomically takes the state a diagnostic clear removes, then starts a new generation. */
+    public static Snapshot snapshotAndClear() {
+        synchronized (STATE_LOCK) {
+            Snapshot snapshot = snapshotLocked();
+            FAMILIES.clear();
+            SEEN.clear();
+            return snapshot;
+        }
+    }
+
+    private static Snapshot snapshotLocked() {
+        List<FamilySnapshot> copy = new ArrayList<>();
+        for (String name : SEEN) {
+            Family family = FAMILIES.get(name);
+            if (family != null) copy.add(new FamilySnapshot(name, family));
+        }
+        return new Snapshot(copy);
+    }
+
+    /**
+     * Puts a cleared snapshot before anything learned since the clear.
+     *
+     * <p>A hook can run again while the row still offers Undo. Keeping those later observations
+     * avoids turning Undo into another destructive action. Misses are merged without going
+     * through {@link #missingViewId}, because restoring old evidence must not emit new events.
+     */
+    public static void restore(Snapshot snapshot) {
+        if (snapshot == null || snapshot.isEmpty()) return;
+
+        synchronized (STATE_LOCK) {
+            List<String> currentOrder = new ArrayList<>(SEEN);
+            for (FamilySnapshot saved : snapshot.families) {
+                Family current = family(saved.name);
+                for (String name : saved.bound) {
+                    if (current.bound.contains(name)) continue;
+                    if (current.bound.size() < MAX_ENTRIES_PER_FAMILY) current.bound.add(name);
+                    else current.boundTruncated = true;
+                }
+
+                List<Miss> laterMisses = new ArrayList<>(current.order);
+                current.order.clear();
+                current.missed.clear();
+                for (Miss miss : saved.misses) {
+                    if (!current.missed.add(miss.key)) continue;
+                    current.order.add(miss);
+                }
+                for (Miss miss : laterMisses) {
+                    if (current.missed.contains(miss.key)) continue;
+                    if (current.missed.size() >= MAX_ENTRIES_PER_FAMILY) {
+                        current.truncated = true;
+                        break;
+                    }
+                    current.missed.add(miss.key);
+                    current.order.add(miss);
+                }
+                current.truncated |= saved.truncated;
+                current.boundTruncated |= saved.boundTruncated;
+            }
+
+            // The restored families were observed first. Keep newer families after them.
+            SEEN.clear();
+            for (FamilySnapshot saved : snapshot.families) {
+                if (!SEEN.contains(saved.name)) SEEN.add(saved.name);
+            }
+            for (String name : currentOrder) {
+                if (!SEEN.contains(name)) SEEN.add(name);
+            }
+        }
     }
 
     /** Forgets everything, which is what clearing the diagnostic data does. */
     public static void clear() {
-        FAMILIES.clear();
-        SEEN.clear();
+        synchronized (STATE_LOCK) {
+            FAMILIES.clear();
+            SEEN.clear();
+        }
     }
 }

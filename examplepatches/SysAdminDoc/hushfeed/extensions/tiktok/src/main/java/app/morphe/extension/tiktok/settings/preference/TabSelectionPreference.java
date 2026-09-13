@@ -139,6 +139,7 @@ public class TabSelectionPreference extends Preference {
         title.setTextColor(getTitleTextColor());
         title.setTextSize(20);
         title.setTypeface(title.getTypeface(), Typeface.BOLD);
+        SettingsUi.markDialogHeading(title);
         dialogView.addView(title, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT

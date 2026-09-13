@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.shared.Utils;
@@ -43,6 +44,14 @@ public class ShareActionChecklistTest {
             View view = preference.onCreateDialogView();
             EditText search = view.findViewWithTag("share_action_search");
             assertNotNull(search);
+            TextView count = view.findViewWithTag("share_action_result_count");
+            assertNotNull(count);
+            assertEquals("2 results", count.getText().toString());
+            assertEquals(View.ACCESSIBILITY_LIVE_REGION_POLITE,
+                    count.getAccessibilityLiveRegion());
+            TextView title = (TextView) ((ViewGroup) view).getChildAt(0);
+            assertTrue("the dialog title is not exposed as a heading",
+                    title.isAccessibilityHeading());
             CheckBox copy = findCheckBox(view, "share_action_copy");
             CheckBox weird = findCheckBox(view, "share_action_weird action");
             assertNotNull(copy);
@@ -52,6 +61,10 @@ public class ShareActionChecklistTest {
 
             search.setText("custom");
             assertNotNull(findCheckBox(view, "share_action_weird action"));
+            assertEquals("1 result", count.getText().toString());
+            search.setText("does not exist");
+            assertEquals("0 results", count.getText().toString());
+            search.setText("custom");
             weird.performClick();
             preference.onDialogClosed(true);
             assertEquals("unknown_key, weird action", Settings.SHARE_HIDDEN_ITEMS.get());

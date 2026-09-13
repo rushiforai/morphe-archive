@@ -9,6 +9,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findInstructionIndicesReversedOrThrow
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -41,7 +42,7 @@ val playbackQualityPatch = bytecodePatch(
                 QualityGetter(owner, getter, type).method.apply {
                     findInstructionIndicesReversedOrThrow { opcode == Opcode.RETURN_OBJECT }.forEach { index ->
                         val register = getInstruction<OneRegisterInstruction>(index).registerA
-                        addInstructions(index, """
+                        addInstructionsAtControlFlowLabel(index, """
                             invoke-static/range { v$register .. v$register }, $EXTENSION->$callback($type)$type
                             move-result-object v$register
                         """)

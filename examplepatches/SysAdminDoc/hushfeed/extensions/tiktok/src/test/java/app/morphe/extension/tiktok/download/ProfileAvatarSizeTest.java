@@ -122,7 +122,6 @@ public class ProfileAvatarSizeTest {
 
     @After public void tearDown() throws Exception {
         try {
-            MediaJobScheduler.cancelAll();
             awaitSave();
             if (activity != null) activity.close();
             if (directory != null && directory.isDirectory()) {

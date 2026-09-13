@@ -1,3 +1,45 @@
+## [1.20.2](https://github.com/Zanuaimi/UniPatches/compare/v1.20.1...v1.20.2) (2026-09-12)
+
+### 🐛 Bug Fixes
+
+* **ads:** simplify reward versions and split SDK controls ([405ccd8](https://github.com/Zanuaimi/UniPatches/commit/405ccd8f03dd2fad89d2d4a771e587c39d332188))
+* **overlay:** constrain settings popup width ([e84c20a](https://github.com/Zanuaimi/UniPatches/commit/e84c20a16ebb0caff54fa72375fd7e49f40bdc39))
+
+## [1.20.1](https://github.com/Zanuaimi/UniPatches/compare/v1.20.0...v1.20.1) (2026-09-12)
+
+### 🐛 Bug Fixes
+
+* **ads:** add runtime safety regression coverage ([5e11651](https://github.com/Zanuaimi/UniPatches/commit/5e11651a19fdbadab8266720da57f87230dba9d4))
+* **ads:** prevent runtime media readiness interference ([d4f3509](https://github.com/Zanuaimi/UniPatches/commit/d4f3509f86f6e42888959f9920f71e759380655f))
+
+## [1.20.0](https://github.com/Zanuaimi/UniPatches/compare/v1.19.0...v1.20.0) (2026-09-12)
+
+### ✨ New Features
+
+* **unipatches:** Categorized patches ([bd8bdbb](https://github.com/Zanuaimi/UniPatches/commit/bd8bdbbe0b535e589407abd16d49b4a3f160e6ed))
+
+## [1.19.0](https://github.com/Zanuaimi/UniPatches/compare/v1.18.0...v1.19.0) (2026-09-12)
+
+### 🐛 Bug Fixes
+
+* **ads:** harden runtime policy instrumentation ([9908658](https://github.com/Zanuaimi/UniPatches/commit/99086580f4d968ad2838625dc76a28f61bbee9f8))
+* **overlay:** align runtime bridge startup ([eeea72b](https://github.com/Zanuaimi/UniPatches/commit/eeea72b3c19b3bb1e8c220f8184d4954855e1722))
+
+### ✨ New Features
+
+* **docs:** document overlay runtime architecture ([4439f33](https://github.com/Zanuaimi/UniPatches/commit/4439f3368a4027bd0b52448f9e85e2b3378075bf))
+
+## [1.18.0](https://github.com/Zanuaimi/UniPatches/compare/v1.17.4...v1.18.0) (2026-09-12)
+
+### 🐛 Bug Fixes
+
+* **docs:** align ads runtime guidance ([0daff87](https://github.com/Zanuaimi/UniPatches/commit/0daff8760ac50515d0fd2aa43d28a21aca70aeec))
+* **tests:** cover ads runtime defaults ([9ced2e8](https://github.com/Zanuaimi/UniPatches/commit/9ced2e8e4d60bec39453ba4779a92858ff784118))
+
+### ✨ New Features
+
+* **ads:** rework rewards runtime controls ([8bff967](https://github.com/Zanuaimi/UniPatches/commit/8bff967a38edf74b13ba270a33372687bd63c5e8))
+
 ## [1.17.4](https://github.com/Zanuaimi/UniPatches/compare/v1.17.3...v1.17.4) (2026-09-11)
 
 ### 🐛 Bug Fixes

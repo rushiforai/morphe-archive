@@ -20,9 +20,7 @@ val bypassLicenseVerificationPatch = bytecodePatch(
     description = "Forces Google Play's license (LVL) check to pass, so the app does not refuse to run on unlicensed or modified builds.",
     default = false,
 ) {
-    // Guarded: morphe-patcher < 1.13.0 has no category() and the bundle
-    // must still load there (ungrouped) instead of dying on linkage.
-    try { category("Bypass") } catch (_: NoSuchMethodError) {}
+    category("Bypass")
     execute {
         val logger = Logger.getLogger(this::class.java.name)
 
@@ -43,7 +41,8 @@ val bypassLicenseVerificationPatch = bytecodePatch(
             0,
             """
             const/16 v0, 0x100
-            invoke-interface {p1, v0}, Lcom/google/android/vending/licensing/LicenseCheckerCallback;->allow(I)V
+            move-object/from16 v1, p1
+            invoke-interface {v1, v0}, Lcom/google/android/vending/licensing/LicenseCheckerCallback;->allow(I)V
             return-void
             """.trimIndent(),
         )

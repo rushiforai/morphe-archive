@@ -1,0 +1,45 @@
+<svg width="2048" height="512" viewBox="0 0 2048 512" xmlns="http://www.w3.org/2000/svg">
+
+  <defs>
+    <linearGradient id="buttonGradient"
+                    x1="0%" y1="0%"
+                    x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1769FF"/>
+      <stop offset="50%" stop-color="#129FEF"/>
+      <stop offset="100%" stop-color="#10D8D8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect
+    x="0"
+    y="0"
+    width="2048"
+    height="512"
+    rx="128"
+    fill="url(#buttonGradient)"
+  />
+
+  <!-- Plus -->
+  <g
+    fill="none"
+    stroke="#FFFFFF"
+    stroke-width="30"
+    stroke-linecap="round"
+  >
+    <line x1="425" y1="175" x2="425" y2="337"/>
+    <line x1="344" y1="256" x2="506" y2="256"/>
+  </g>
+
+  <!-- Add Patch -->
+  <text
+    x="660"
+    y="256"
+    fill="#FFFFFF"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="180"
+    font-weight="600"
+    dominant-baseline="middle"
+  >Add Patch</text>
+
+</svg>

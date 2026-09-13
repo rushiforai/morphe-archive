@@ -1,3 +1,28 @@
+## [3.21.0](https://github.com/crimera/piko-newx/compare/v3.20.0...v3.21.0) (2026-09-13)
+
+### 🐛 Bug Fixes
+* **Twitter:** inline download icon classification ([47e6a6d](https://github.com/crimera/piko/commit/47e6a6db8e42b28301cd2b20a474f80629d0ee34))
+* **Twitter:** group custom NewX post menu options ([ddacbad](https://github.com/crimera/piko/commit/ddacbad92cb4c65c8eaa1d3126ec44791121a223))
+
+### ✨ New Features
+* **Twitter - newx:** register dynamic choice resources ([fbf56bf](https://github.com/crimera/piko/commit/fbf56bfebdd021c9784ada806f4ed989b5cf4ec9))
+
+### 🔧 Improvements
+* **Twitter - newx:** discover drawer options dynamically ([7f21814](https://github.com/crimera/piko/commit/7f2181486a390b2d30ad27263f60340171e24415))
+
+## [3.20.0](https://github.com/crimera/piko-newx/compare/v3.19.3...v3.20.0) (2026-09-13)
+
+### ✨ New Features
+* **Twitter - newx:** hide post and reply dividers ([46c7e67](https://github.com/crimera/piko/commit/46c7e6787c7a882485769790e7d8e0e6f6b1d519))
+
+### New Patches
+* **Twitter:** NewX: Hide post dividers
+
+## [3.19.3](https://github.com/crimera/piko-newx/compare/v3.19.2...v3.19.3) (2026-09-12)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** support 12.26.0-alpha.03 ([0394de0](https://github.com/crimera/piko/commit/0394de0ff0f6983f175219e27d127c40bb7d8150))
+
 ## [3.19.2](https://github.com/crimera/piko-newx/compare/v3.19.1...v3.19.2) (2026-09-12)
 
 ### 🐛 Bug Fixes

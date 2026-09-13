@@ -55,6 +55,7 @@ public final class FeatureGateRecorderPreference extends Preference {
                 L10n.f(context, "Recorded gate reads (%1$d)",
                         FeatureGateLearnMode.lastCandidateCount()),
                 28, SettingsUi.textPrimary(), 1);
+        SettingsUi.markDialogHeading(title);
         title.setPadding(padding, padding, padding, SettingsUi.dp(context, 12));
         AlertDialog.Builder builder = new AlertDialog.Builder(context)
                 .setCustomTitle(title)

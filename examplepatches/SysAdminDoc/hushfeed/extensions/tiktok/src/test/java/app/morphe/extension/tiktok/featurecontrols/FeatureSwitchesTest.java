@@ -39,7 +39,7 @@ public class FeatureSwitchesTest {
                 Settings.EXPAND_ACTIVITY_LIST, Settings.HIDE_HOMEPAGE_COIN,
                 Settings.HIDE_FEED_FOLLOW_BUTTON, Settings.HIDE_FEED_SAVE_BUTTON,
                 Settings.HIDE_LIVE_ENTRANCE, Settings.HIDE_FEED_SEARCH_BUTTON,
-                Settings.ENABLE_LONG_PRESS_SPEED_LOCK}) {
+                Settings.HIDE_COMMENT_QUICK_REACTIONS, Settings.ENABLE_LONG_PRESS_SPEED_LOCK}) {
             setting.save(setting.defaultValue);
         }
     }
@@ -109,6 +109,20 @@ public class FeatureSwitchesTest {
         Settings.HIDE_FEED_SAVE_BUTTON.save(true);
         assertEquals(View.GONE, FeatureControls.hideFeedFollowButtonVisibility(View.VISIBLE));
         assertEquals(View.GONE, FeatureControls.hideFeedSaveButtonVisibility(View.VISIBLE));
+    }
+
+    @Test public void quickCommentReactionsKeepNativeVisibilityUntilHidden() {
+        Settings.HIDE_COMMENT_QUICK_REACTIONS.save(false);
+        assertEquals(View.VISIBLE,
+                FeatureControls.hideQuickCommentReactionsVisibility(View.VISIBLE));
+        assertEquals(View.INVISIBLE,
+                FeatureControls.hideQuickCommentReactionsVisibility(View.INVISIBLE));
+
+        Settings.HIDE_COMMENT_QUICK_REACTIONS.save(true);
+        assertEquals(View.GONE,
+                FeatureControls.hideQuickCommentReactionsVisibility(View.VISIBLE));
+        assertEquals(View.GONE,
+                FeatureControls.hideQuickCommentReactionsVisibility(View.INVISIBLE));
     }
 
     /** These two answer "is it enabled", so hiding means returning false rather than GONE. */

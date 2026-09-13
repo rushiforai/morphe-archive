@@ -25,6 +25,7 @@ import app.morphe.patches.tiktok.shared.constantBefore
 import app.morphe.patches.tiktok.shared.dispatchTarget
 import app.morphe.patches.tiktok.shared.dispatchesOnIndex
 import app.morphe.patches.tiktok.shared.objectIn
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
@@ -287,7 +288,7 @@ internal fun MutableMethod.registerReplySearch(classOf: (String) -> ClassDef?) {
         // The relayout has finished changing the control's native height. Its model owns the
         // parent Comment and computes state4 for a control that must stay collapsed when search
         // clears.
-        addInstructions(
+        addInstructionsAtControlFlowLabel(
             index,
             """
                 move-object/from16 v$viewRegister, p0

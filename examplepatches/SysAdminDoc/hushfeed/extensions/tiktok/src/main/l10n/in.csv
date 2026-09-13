@@ -557,7 +557,6 @@ Feed and navigation,Feed dan navigasi
 Errors,Kesalahan
 Other,Lainnya
 Saved. Restart TikTok to apply this.,Tersimpan. Mulai ulang TikTok agar berlaku.
-Diagnostic data cleared.,Data diagnostik dihapus.
 Includes these events: %1$s,Termasuk peristiwa berikut: %1$s
 Gate details,Detail gate
 This catalog entry is no longer available. Refresh the Lab and try again.,Entri katalog ini sudah tidak tersedia. Segarkan Lab dan coba lagi.
@@ -606,6 +605,16 @@ Filter: %1$s,Filter: %1$s
 Show gates,Tampilkan gate
 1 gate selected,1 gate dipilih
 %1$d gates selected,%1$d gate dipilih
+1 result,1 hasil
+%1$d results,%1$d hasil
+Loaded,Dimuat
+All actionable,Semua yang dapat diubah
+Overrides,Penggantian
+App AB,AB aplikasi
+Config,Konfigurasi
+Player,Pemutar
+Live,LIVE
+Activity,Aktivitas
 Preview shortened. Save JSON includes the full report.,Pratinjau dipendekkan. Simpan JSON memuat laporan lengkapnya.
 Choose a preset to fill the SIM details.,Pilih preset untuk mengisi detail SIM.
 Search countries or operators,Cari negara atau operator
@@ -620,6 +629,7 @@ Add hidden creator,Tambah kreator tersembunyi
 Creator handle or id,Handle atau ID kreator
 Creators hidden from later feed batches by the player action. Search the list and remove one entry at a time.,Kreator yang disembunyikan dari pemuatan feed berikutnya lewat aksi pemutar. Cari di daftar dan hapus satu entri setiap kali.
 Enter a creator handle or id,Masukkan handle atau ID kreator
+Enter a number,Masukkan angka
 Filter the list,Saring daftar
 Hidden %1$s locally,%1$s disembunyikan secara lokal
 Hide this creator locally,Sembunyikan kreator ini secara lokal
@@ -629,6 +639,7 @@ No creators are hidden yet,Belum ada kreator yang disembunyikan
 No hidden creators match this search,Tidak ada kreator tersembunyi yang cocok dengan pencarian ini
 Remove,Hapus
 Remove %1$s,Hapus %1$s
+Removed %1$s,%1$s dihapus
 Search hidden creators,Cari kreator tersembunyi
 Showing %1$s again,Tampilkan %1$s lagi
 That creator is already in the list,Kreator itu sudah ada di daftar
@@ -797,6 +808,7 @@ Turned off %1$d gates. Restart TikTok to apply this.,%1$d gate dimatikan. Mulai 
 Turned off 1 gate of %1$d; the rest do not take a true or false value. Restart TikTok to apply this.,1 dari %1$d gate dimatikan; sisanya tidak menerima nilai true atau false. Mulai ulang TikTok agar berlaku.
 Turned off %1$d gates of %2$d; the rest do not take a true or false value. Restart TikTok to apply this.,%1$d dari %2$d gate dimatikan; sisanya tidak menerima nilai true atau false. Mulai ulang TikTok agar berlaku.
 Feature gate override reset,Penggantian gate diatur ulang
+Feature gate override saved,Penggantian gate disimpan
 Invalid field value: %1$s,Nilai bidang tidak valid: %1$s
 Could not save this override.,Penggantian ini tidak bisa disimpan.
 Could not reset this override.,Penggantian ini tidak bisa diatur ulang.
@@ -849,3 +861,11 @@ Full report saved to %1$s,Laporan lengkap disimpan ke %1$s
 Could not start the report export. Try again shortly.,Ekspor laporan tidak bisa dimulai. Coba lagi sebentar.
 Copy quick report,Salin laporan singkat
 Save full report,Simpan laporan lengkap
+Diagnostic data cleared. Tap again to put it back.,Data diagnostik dihapus. Ketuk lagi untuk mengembalikannya.
+Diagnostic data put back.,Data diagnostik dikembalikan.
+There is no diagnostic data to put back.,Tidak ada data diagnostik yang dapat dikembalikan.
+Could not put back the diagnostic data. Try again.,Data diagnostik tidak dapat dikembalikan. Coba lagi.
+Loaded values are still being read. Try again in a moment.,Nilai yang dimuat masih dibaca. Coba lagi sebentar lagi.
+The selected loaded-values file could not be read. Try again.,Berkas nilai yang dimuat dan dipilih tidak dapat dibaca. Coba lagi.
+Enter a number. The previous value was kept.,Masukkan angka. Nilai sebelumnya dipertahankan.
+There is no diagnostic data to clear.,Tidak ada data diagnostik yang perlu dihapus.

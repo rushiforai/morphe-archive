@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.SystemClock;
 
+import java.lang.reflect.Method;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -33,6 +34,7 @@ import app.morphe.extension.tiktok.settings.Settings;
  * treated as gating that write.
  */
 public final class CaptchaGate {
+    private static final String HOOK_FAMILY = "CAPTCHA account state";
     /**
      * How long a write request keeps a risk check attached to it. The server raises the
      * check in its response, so the request has always just been sent, but the puzzle can
@@ -302,17 +304,24 @@ public final class CaptchaGate {
     }
 
     private static boolean isLoggedIn() {
-        try {
-            Class<?> serviceManagerClass = Class.forName(SERVICE_MANAGER_CLASS);
-            Object serviceManager = serviceManagerClass.getMethod("get").invoke(null);
-            Class<?> accountServiceClass = Class.forName(ACCOUNT_USER_SERVICE_CLASS);
-            Object accountService = serviceManagerClass
-                    .getMethod("getService", Class.class)
-                    .invoke(serviceManager, accountServiceClass);
-            return accountService != null
-                    && Boolean.TRUE.equals(accountServiceClass.getMethod("isLogin").invoke(accountService));
-        } catch (Throwable ignored) {
-            return false;
-        }
+        Class<?> serviceManagerClass = Reflect.requiredClass(SERVICE_MANAGER_CLASS, HOOK_FAMILY);
+        Method getManager = Reflect.requiredMethod(
+                serviceManagerClass, "get", HOOK_FAMILY);
+        Object serviceManager = Reflect.invokeRequired(getManager, null, HOOK_FAMILY);
+        if (serviceManager == null) return false;
+
+        Class<?> accountServiceClass = Reflect.requiredClass(
+                ACCOUNT_USER_SERVICE_CLASS, HOOK_FAMILY);
+        if (accountServiceClass == null) return false;
+        Method getService = Reflect.requiredMethod(
+                serviceManagerClass, "getService", HOOK_FAMILY, Class.class);
+        Object accountService = Reflect.invokeRequired(
+                getService, serviceManager, HOOK_FAMILY, accountServiceClass);
+        if (accountService == null) return false;
+
+        Method isLogin = Reflect.requiredMethod(
+                accountServiceClass, "isLogin", HOOK_FAMILY);
+        return Boolean.TRUE.equals(Reflect.invokeRequired(
+                isLogin, accountService, HOOK_FAMILY));
     }
 }

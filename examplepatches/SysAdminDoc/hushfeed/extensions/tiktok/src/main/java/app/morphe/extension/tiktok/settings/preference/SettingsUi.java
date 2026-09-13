@@ -21,10 +21,13 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.graphics.drawable.StateListDrawable;
+import android.os.Build;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.AbsListView;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -38,6 +41,7 @@ import android.widget.Switch;
 import androidx.annotation.ColorInt;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.tiktok.settings.L10n;
 
 public final class SettingsUi {
     public static final @ColorInt int ACCENT = Color.rgb(255, 79, 135);
@@ -270,6 +274,17 @@ public final class SettingsUi {
         return isDarkMode() ? DARK_TEXT_DISABLED : LIGHT_TEXT_DISABLED;
     }
 
+    /** Text that repaints itself when its control is enabled or disabled. */
+    public static ColorStateList enabledTextColors(@ColorInt int enabledColor) {
+        return new ColorStateList(
+                new int[][]{
+                        new int[]{-android.R.attr.state_enabled},
+                        new int[]{}
+                },
+                new int[]{textDisabled(), enabledColor}
+        );
+    }
+
     public static void styleTitleAndSummary(View view) {
         TextView title = view.findViewById(android.R.id.title);
         if (title != null) {
@@ -295,10 +310,49 @@ public final class SettingsUi {
         TextView textView = new TextView(context);
         textView.setText(value);
         textView.setIncludeFontPadding(true);
-        textView.setTextColor(color);
+        textView.setTextColor(enabledTextColors(color));
         textView.setTextSize(sizeSp);
         textView.setTypeface(textView.getTypeface(), style);
         return textView;
+    }
+
+    /** Marks a title in a hand-built dialog as a heading for accessibility services. */
+    public static void markDialogHeading(TextView title) {
+        if (Build.VERSION.SDK_INT >= 28) {
+            title.setAccessibilityHeading(true);
+            return;
+        }
+        // Before API 28, accessibility services recognize the heading bit carried by a
+        // CollectionItemInfo. These titles are newly created for hand-built dialogs and have no
+        // delegate to preserve.
+        title.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override
+            public void onInitializeAccessibilityNodeInfo(
+                    View host,
+                    AccessibilityNodeInfo info
+            ) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                info.setCollectionItemInfo(AccessibilityNodeInfo.CollectionItemInfo.obtain(
+                        0, 1, 0, 1, true));
+            }
+        });
+    }
+
+    /** A visible status line that politely announces a filtered list's result count. */
+    public static TextView resultCount(Context context, String tag) {
+        TextView result = text(context, "", 13, textSecondary(), Typeface.BOLD);
+        result.setTag(tag);
+        result.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        return result;
+    }
+
+    /** Updates a result status only when it changed, avoiding duplicate announcements. */
+    public static void setResultCount(TextView view, int count) {
+        if (view == null) return;
+        String next = count == 1
+                ? L10n.t(view.getContext(), "1 result")
+                : L10n.f(view.getContext(), "%1$d results", count);
+        if (!TextUtils.equals(view.getText(), next)) view.setText(next);
     }
 
     public static GradientDrawable roundedSurface(Context context, int radiusDp, boolean lifted) {
@@ -469,7 +523,7 @@ public final class SettingsUi {
         if (button == null) {
             return;
         }
-        button.setTextColor(primary ? accent() : textSecondary());
+        button.setTextColor(enabledTextColors(primary ? accent() : textSecondary()));
         button.setAllCaps(false);
         button.setTypeface(button.getTypeface(), primary ? Typeface.BOLD : Typeface.NORMAL);
     }
@@ -483,11 +537,16 @@ public final class SettingsUi {
      * anything a finger has to land on.
      */
     public static void styleTextAction(TextView button, boolean primary) {
-        button.setTextColor(primary ? accent() : textSecondary());
+        button.setTextColor(enabledTextColors(primary ? accent() : textSecondary()));
         button.setTypeface(button.getTypeface(), primary ? Typeface.BOLD : Typeface.NORMAL);
         button.setMinimumHeight(dp(button.getContext(), 48));
         button.setMinimumWidth(dp(button.getContext(), 48));
         button.setGravity(android.view.Gravity.CENTER);
+        markAsButton(button);
+    }
+
+    /** Gives a custom clickable view the platform button role. */
+    public static void markAsButton(View button) {
         button.setAccessibilityDelegate(new View.AccessibilityDelegate() {
             @Override public void onInitializeAccessibilityNodeInfo(
                     View host, android.view.accessibility.AccessibilityNodeInfo info) {
@@ -538,9 +597,15 @@ public final class SettingsUi {
     }
 
     public static void styleEditText(EditText editText) {
-        editText.setTextColor(textPrimary());
-        editText.setHintTextColor(textSecondary());
-        editText.setBackgroundTintList(ColorStateList.valueOf(accent()));
+        editText.setTextColor(enabledTextColors(textPrimary()));
+        editText.setHintTextColor(enabledTextColors(textSecondary()));
+        editText.setBackgroundTintList(new ColorStateList(
+                new int[][]{
+                        new int[]{-android.R.attr.state_enabled},
+                        new int[]{}
+                },
+                new int[]{border(), accent()}
+        ));
     }
 
     public static void styleCheckBox(CompoundButton button) {

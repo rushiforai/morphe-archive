@@ -95,7 +95,7 @@ final class GifEncoder {
         Map<Integer, Integer> nearest = new HashMap<>();
         for (Frame frame : frames) {
             // Every frame is another full pass of mapping and compression, so this is where a
-            // job past its deadline or cancelled stops, as the decode loop before it does.
+            // job past its deadline stops, as the decode loop before it does.
             MediaBudget.check(null);
             // Delay is in hundredths of a second, and a zero delay runs as fast as the viewer
             // feels like, so the shortest frame still gets one tick.

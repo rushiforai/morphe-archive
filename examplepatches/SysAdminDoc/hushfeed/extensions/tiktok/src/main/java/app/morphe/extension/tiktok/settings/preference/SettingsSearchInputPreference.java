@@ -28,6 +28,8 @@ public final class SettingsSearchInputPreference extends Preference {
     private final QueryListener queryListener;
     private EditText editText;
     private TextView clearButton;
+    private TextView resultCount;
+    private int shownResults = -1;
 
     public SettingsSearchInputPreference(Context context, QueryListener queryListener) {
         super(context);
@@ -39,6 +41,8 @@ public final class SettingsSearchInputPreference extends Preference {
     @Override
     protected View onCreateView(ViewGroup parent) {
         Context context = getContext();
+        LinearLayout root = new LinearLayout(context);
+        root.setOrientation(LinearLayout.VERTICAL);
         LinearLayout row = new LinearLayout(context);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setPadding(
@@ -79,6 +83,7 @@ public final class SettingsSearchInputPreference extends Preference {
         clearButton.setText("×");
         clearButton.setTextSize(24);
         clearButton.setTextColor(SettingsUi.accent());
+        SettingsUi.styleTextAction(clearButton, true);
         clearButton.setGravity(Gravity.CENTER);
         clearButton.setContentDescription(L10n.t(context, "Clear search"));
         clearButton.setFocusable(true);
@@ -88,7 +93,18 @@ public final class SettingsSearchInputPreference extends Preference {
         clearButton.setOnClickListener(view -> editText.setText(""));
         row.addView(clearButton, new LinearLayout.LayoutParams(-2, -2));
         updateClearButton();
-        return row;
+        root.addView(row, new LinearLayout.LayoutParams(-1, -2));
+
+        resultCount = SettingsUi.resultCount(context, "settings_search_result_count");
+        resultCount.setPadding(
+                SettingsUi.dp(context, 18),
+                0,
+                SettingsUi.dp(context, 18),
+                SettingsUi.dp(context, 6)
+        );
+        root.addView(resultCount, new LinearLayout.LayoutParams(-1, -2));
+        updateResultCount();
+        return root;
     }
 
     private void updateClearButton() {
@@ -99,5 +115,21 @@ public final class SettingsSearchInputPreference extends Preference {
 
     public String getQuery() {
         return editText == null ? "" : editText.getText().toString();
+    }
+
+    public void showResultCount(int count) {
+        shownResults = Math.max(0, count);
+        updateResultCount();
+    }
+
+    public void hideResultCount() {
+        shownResults = -1;
+        updateResultCount();
+    }
+
+    private void updateResultCount() {
+        if (resultCount == null) return;
+        resultCount.setVisibility(shownResults < 0 ? View.GONE : View.VISIBLE);
+        if (shownResults >= 0) SettingsUi.setResultCount(resultCount, shownResults);
     }
 }

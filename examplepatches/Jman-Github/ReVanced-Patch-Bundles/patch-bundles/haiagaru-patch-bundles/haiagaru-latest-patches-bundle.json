@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-11T14:23:04",
-  "description": "Haiagaru 1.2.2 \u306e\u4fee\u6b63\u7248\u3067\u3059\u3002\n\n- ChMate 0.8.10.191 dev \u306e BE \u30a2\u30a4\u30b3\u30f3\u5206\u985e\u3092\u4fee\u6b63\n- img.5ch.io/ico/ \u306e\u901a\u5e38URL\u30fb\u30d7\u30ed\u30c8\u30b3\u30eb\u76f8\u5bfeURL\u3082\u65e2\u5b58\u306eBE\u8868\u793a\u7d4c\u8def\u3078\u5206\u985e\n- URV Manager\u5411\u3051\u914d\u5e03\u30ea\u30d3\u30b8\u30e7\u30f3 1.2.2-r3\n- master/main \u306e\u4e21\u30d6\u30e9\u30f3\u30c1\u304b\u3089 patches-bundle.json \u3092\u53d6\u5f97\u53ef\u80fd\n\nURV Manager\u7528\u30d1\u30c3\u30c1\u30bd\u30fc\u30b9:\nhttps://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/master/patches-bundle.json",
-  "download_url": "https://github.com/areteruhiro/Haiagaru-Morphe/releases/download/1.2.2/haiagaru_patches-1.2.2.mpp",
+  "created_at": "2026-09-12T15:36:36",
+  "description": "## Haiagaru 1.2.2-r9\r\n\r\n- ChMate `0.8.10.191 dev`\uff0f`0.8.10.241`\uff0f`0.8.10.243 dev` \u306e\u5168\u5bfe\u5fdc\u7248\u3067URL\u81ea\u52d5\u88dc\u6b63\u3092\u6709\u52b9\u5316\r\n- `kako.5ch.io`\u3001`itest.5ch.io`\u3001`2ch.sc` \u306e\u81ea\u52d5DAT\u53d6\u5f97\u7d4c\u8def\u3092\u30b9\u30ec\u30c3\u30c9URL\u8d77\u52d5\u6642\u306b\u3082\u9069\u7528\r\n- 191 dev\u306f `ResListActivity`\u3001241\uff0f243 dev\u306f `Hilt_ResListActivity` \u306e\u69cb\u9020\u5dee\u306b\u5408\u308f\u305b\u3066\u6ce8\u5165\r\n- Android\u7248Morphe Manager\u5411\u3051\u306b `classes.dex` \u3068ChMate\u62e1\u5f35\u3092\u53ce\u9332\r\n\r\n### \u914d\u5e03\u30d5\u30a1\u30a4\u30eb\r\n\r\n- `haiagaru_patches-1.2.2.mpp`: Morphe\u7528\u30d1\u30c3\u30c1\r\n- `patches-bundle.json`: URV Manager\u5b89\u5b9a\u7248\u7528\u30d1\u30c3\u30c1\u30d0\u30f3\u30c9\u30eb\r\n- `patches-bundle-pre.json`: URV Manager\u30d7\u30ec\u30ea\u30ea\u30fc\u30b9\u7528\u30d1\u30c3\u30c1\u30d0\u30f3\u30c9\u30eb\r\n\r\n\u65e2\u5b58\u306e1.2.2-r8\u304b\u3089\u306e\u5dee\u5206\u3067\u3059\u3002\u5bfe\u5fdc\u7248\u4ee5\u5916\u306eChMate\u3067\u306f\u9069\u7528\u3055\u308c\u307e\u305b\u3093\u3002\r\n",
+  "download_url": "https://github.com/areteruhiro/Haiagaru-Morphe/releases/download/1.2.2-r9/haiagaru_patches-1.2.2-r9.mpp",
   "signature_download_url": "N/A",
-  "version": "1.2.2"
+  "version": "1.2.2-r9"
 }

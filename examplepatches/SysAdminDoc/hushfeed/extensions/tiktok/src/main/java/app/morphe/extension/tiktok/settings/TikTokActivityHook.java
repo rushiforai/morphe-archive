@@ -25,7 +25,7 @@ import com.bytedance.ies.ugc.aweme.commercialize.compliance.personalization.AdPe
 /**
  * Hooks AdPersonalizationActivity to inject a custom {@link TikTokPreferenceFragment}.
  */
-@SuppressWarnings({"deprecation", "NewApi", "unused"})
+@SuppressWarnings({"deprecation", "unused"})
 public class TikTokActivityHook {
     private static final String SETTINGS_ACTION = "morphe_settings";
     private static final String SETTINGS_EXTRA = "morphe";

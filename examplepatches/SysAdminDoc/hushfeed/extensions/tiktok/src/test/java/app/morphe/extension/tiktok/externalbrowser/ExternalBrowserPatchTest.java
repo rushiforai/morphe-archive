@@ -3,9 +3,14 @@ package app.morphe.extension.tiktok.externalbrowser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.settings.Settings;
+
+import java.util.List;
+import java.util.Map;
 
 import org.junit.After;
 import org.junit.Before;
@@ -20,11 +25,13 @@ import org.robolectric.annotation.Config;
 public class ExternalBrowserPatchTest {
     @Before public void setUp() {
         Utils.setContext(RuntimeEnvironment.getApplication());
+        HookStatus.clear();
         Settings.OPEN_EXTERNAL_LINKS.save(true);
     }
 
     @After public void tearDown() {
         Settings.OPEN_EXTERNAL_LINKS.save(false);
+        HookStatus.clear();
     }
 
     @Test public void resolverAcceptsPlainHttpsTargetsAndKnownWrappers() {
@@ -49,5 +56,22 @@ public class ExternalBrowserPatchTest {
     @Test public void publicHooksRejectDisallowedScreensBeforeOpeningAService() {
         assertFalse(ExternalBrowserPatch.openSparkThirdContext(null, new Object()));
         assertFalse(ExternalBrowserPatch.openStoryLink(new Object(), new Object()));
+    }
+
+    @Test public void aRenamedBrowserServiceIsVisibleInHookStatus() {
+        AllowedSparkContext spark = new AllowedSparkContext();
+        assertFalse(ExternalBrowserPatch.openSparkThirdContext(
+                RuntimeEnvironment.getApplication(), spark));
+
+        List<String> missing = HookStatus.missing("external browser");
+        assertEquals(missing.toString(), 2, missing.size());
+        assertTrue(missing.get(0), missing.get(0).contains("IMainService"));
+        assertTrue(missing.get(1), missing.get(1).contains("ServiceManager"));
+    }
+
+    public static final class AllowedSparkContext {
+        public final String url = "https://example.com/path";
+        public final Map<String, String> defaultParams =
+                Map.of("sec_link_scene", "bio_url");
     }
 }

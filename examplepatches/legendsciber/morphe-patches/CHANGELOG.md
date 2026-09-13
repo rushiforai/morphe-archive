@@ -1,3 +1,39 @@
+## [1.62.1](https://github.com/legendsciber/morphe-patches/compare/v1.62.0...v1.62.1) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* remove appInfo reference from hex patch ([96af74b](https://github.com/legendsciber/morphe-patches/commit/96af74bf6991121ac5021343e712780fc1f41a59))
+
+## [1.62.0](https://github.com/legendsciber/morphe-patches/compare/v1.61.12...v1.62.0) (2026-09-12)
+
+### ✨ New Features
+
+* add libil2cpp.so hex patch for server verification bypass ([63e088e](https://github.com/legendsciber/morphe-patches/commit/63e088eaba540ba66b201500bba9663b68baae4b))
+
+## [1.61.12](https://github.com/legendsciber/morphe-patches/compare/v1.61.11...v1.61.12) (2026-09-12)
+
+### 🐛 Bug Fixes
+
+* **iap:** add fake signature to Purchase constructor ([0310bef](https://github.com/legendsciber/morphe-patches/commit/0310bef5c6cd318cc9c7042785e1958ee286531b))
+
+## [1.61.11](https://github.com/legendsciber/morphe-patches/compare/v1.61.10...v1.61.11) (2026-09-12)
+
+### 🐛 Bug Fixes
+
+* **iap:** add file-based purchase storage with register-safe smali ([24a9168](https://github.com/legendsciber/morphe-patches/commit/24a91684b7d441af35c99643406a496d9acadf26))
+
+## [1.61.10](https://github.com/legendsciber/morphe-patches/compare/v1.61.9...v1.61.10) (2026-09-12)
+
+### 🐛 Bug Fixes
+
+* **iap:** re-release exact v1.61.4 code for baseline test ([3f47eb4](https://github.com/legendsciber/morphe-patches/commit/3f47eb41558512588205ad702845b02faa1e1eed))
+
+## [1.61.9](https://github.com/legendsciber/morphe-patches/compare/v1.61.8...v1.61.9) (2026-09-12)
+
+### 🐛 Bug Fixes
+
+* **iap:** restore v1.61.4 base + file-based purchase storage ([248a3f1](https://github.com/legendsciber/morphe-patches/commit/248a3f185708ea66301501a20fff4de3d38e2672))
+
 ## [1.61.8](https://github.com/legendsciber/morphe-patches/compare/v1.61.7...v1.61.8) (2026-09-12)
 
 ### 🐛 Bug Fixes

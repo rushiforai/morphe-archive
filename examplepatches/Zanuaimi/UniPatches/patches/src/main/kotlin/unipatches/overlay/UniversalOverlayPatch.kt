@@ -500,7 +500,7 @@ private fun validate(
 
 @Suppress("unused")
 val universalOverlayPatch = bytecodePatch(
-    name = "UniPatches Universal Overlay Patch v2.4.2 (Experimental)",
+    name = "UniPatches Universal Overlay Patch v2.4.5 (Experimental)",
     description = """
         A customizable in-app overlay for Android apps and games. For a quick first build: choose a visual
         preset, select the overlay modules you want, optionally supply an icon image, then patch. Modules
@@ -523,6 +523,8 @@ val universalOverlayPatch = bytecodePatch(
     """.trimIndent(),
     default = false,
 ) {
+    // Guarded: morphe-patcher < 1.13.0 has no category() and keeps the patch ungrouped.
+    try { category("★ Universal Overlay") } catch (_: NoSuchMethodError) {}
     // Keep the extension DEX as the runtime boundary; generated Smali should only start it and
     // must not contain overlay UI or feature implementation.
     extendWith("extensions/extension.mpe")

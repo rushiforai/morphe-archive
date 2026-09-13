@@ -8,6 +8,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.patches.tiktok.misc.spoof.sim.simSpoofPatch
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -81,7 +82,7 @@ val regionSpoofPatch = bytecodePatch(
             val wrapper = if (method == priority || method == store) "storeCountry" else "country"
             method.implementation!!.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_OBJECT }
                 .map { it.index to (it.value as OneRegisterInstruction).registerA }.reversed().forEach { (index, register) ->
-                    method.addInstructions(index, """
+                    method.addInstructionsAtControlFlowLabel(index, """
                         invoke-static/range { v$register .. v$register }, $EXTENSION->$wrapper(Ljava/lang/String;)Ljava/lang/String;
                         move-result-object v$register
                     """)

@@ -42,7 +42,7 @@ public final class OriginalPhotos {
         if (!ACTIVE.add(id)) return true;
         Context app = context.getApplicationContext();
         Utils.showToastShort(L10n.f("Saving %1$s original photos", photoSnapshot.size()));
-        MediaJobScheduler.JobHandle job = MediaJobScheduler.submit("original photos", () -> {
+        boolean submitted = MediaJobScheduler.submit("original photos", () -> {
             int saved = 0;
             try {
                 for (int i = 0; i < photoSnapshot.size(); i++) {
@@ -62,15 +62,14 @@ public final class OriginalPhotos {
                         ? L10n.t("Saved one original photo")
                         : L10n.f("Saved %1$s original photos", saved));
             } catch (IOException | RuntimeException exception) {
-                if (MediaBudget.isCancellation(exception)) return;
                 int completed = saved;
                 Logger.printException(() -> "Original photo download failed after " + completed + " photos", exception);
                 Utils.showToastLong(L10n.f("Saved %1$s photos. The rest failed, so try again.", saved));
             } finally {
                 ACTIVE.remove(id);
             }
-        }, () -> ACTIVE.remove(id));
-        if (job == null) {
+        });
+        if (!submitted) {
             ACTIVE.remove(id);
             return false;
         }

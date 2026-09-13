@@ -161,6 +161,7 @@ Each area, how many of the things it looks for are in this build and how many ar
 Enable diagnostic logging	Activar el registro de diagnóstico
 Enable hold-and-slide 2x lock	Activar el bloqueo a 2x manteniendo y deslizando
 Enter a creator handle or id	Escribe un nombre de usuario o un id de creador
+Enter a number	Escribe un número
 Enter a valid two-letter country code	Escribe un código de país válido de dos letras
 Enter a whole number, or one like 20K, 1.5M or 2B	Escribe un número entero, o uno como 20K, 1.5M o 2B
 Enter up to 8 comma-separated speeds from 0.5 to 3	Escribe hasta 8 velocidades separadas por comas, de 0.5 a 3
@@ -431,6 +432,7 @@ Region settings	Ajustes de región
 Remind me every	Recordármelo cada
 Remove	Quitar
 Remove %1$s	Quitar %1$s
+Removed %1$s	Se quitó %1$s
 Remove feed ads	Quitar los anuncios del feed
 Remove the Share via row.	Quitar la fila Compartir con.
 Remove the actions row from the share sheet.	Quitar la fila de acciones del panel de compartir.
@@ -489,7 +491,6 @@ Feed and navigation	Feed y navegación
 Errors	Errores
 Other	Otros
 Saved. Restart TikTok to apply this.	Guardado. Reinicia TikTok para que se aplique.
-Diagnostic data cleared.	Datos de diagnóstico borrados.
 Includes these events: %1$s	Incluye estos eventos: %1$s
 Gate details	Detalles del interruptor
 This catalog entry is no longer available. Refresh the Lab and try again.	Esta entrada del catálogo ya no está disponible. Actualiza el Laboratorio e inténtalo otra vez.
@@ -538,6 +539,16 @@ Filter: %1$s	Filtro: %1$s
 Show gates	Mostrar interruptores
 1 gate selected	1 interruptor seleccionado
 %1$d gates selected	%1$d interruptores seleccionados
+1 result	1 resultado
+%1$d results	%1$d resultados
+Loaded	Cargados
+All actionable	Todos los modificables
+Overrides	Sustituciones
+App AB	AB de la aplicación
+Config	Configuración
+Player	Reproductor
+Live	LIVE
+Activity	Actividad
 Preview shortened. Save JSON includes the full report.	Vista previa recortada. Guardar JSON incluye el informe completo.
 Choose a preset to fill the SIM details.	Elige un ajuste preestablecido para rellenar los datos de la SIM.
 Search countries or operators	Buscar países u operadores
@@ -796,6 +807,7 @@ Turned off %1$d gates. Restart TikTok to apply this.	%1$d interruptores apagados
 Turned off 1 gate of %1$d; the rest do not take a true or false value. Restart TikTok to apply this.	1 interruptor de %1$d apagado; los demás no aceptan un valor true o false. Reinicia TikTok para aplicar esto.
 Turned off %1$d gates of %2$d; the rest do not take a true or false value. Restart TikTok to apply this.	%1$d interruptores de %2$d apagados; los demás no aceptan un valor true o false. Reinicia TikTok para aplicar esto.
 Feature gate override reset	Sustitución del interruptor restablecida
+Feature gate override saved	Sustitución del interruptor guardada
 Invalid field value: %1$s	Valor de campo no válido: %1$s
 Could not save this override.	No se ha podido guardar esta sustitución.
 Could not reset this override.	No se ha podido restablecer esta sustitución.
@@ -848,3 +860,11 @@ Full report saved to %1$s	Informe completo guardado en %1$s
 Could not start the report export. Try again shortly.	No se pudo iniciar la exportación del informe. Inténtalo de nuevo en breve.
 Copy quick report	Copiar informe rápido
 Save full report	Guardar informe completo
+Diagnostic data cleared. Tap again to put it back.	Se borraron los datos de diagnóstico. Toca de nuevo para restaurarlos.
+Diagnostic data put back.	Se restauraron los datos de diagnóstico.
+There is no diagnostic data to put back.	No hay datos de diagnóstico que restaurar.
+Could not put back the diagnostic data. Try again.	No se pudieron restaurar los datos de diagnóstico. Inténtalo de nuevo.
+Loaded values are still being read. Try again in a moment.	Los valores cargados aún se están leyendo. Inténtalo de nuevo en un momento.
+The selected loaded-values file could not be read. Try again.	No se pudo leer el archivo de valores cargados seleccionado. Inténtalo de nuevo.
+Enter a number. The previous value was kept.	Introduce un número. Se conservó el valor anterior.
+There is no diagnostic data to clear.	No hay datos de diagnóstico que borrar.

@@ -119,12 +119,20 @@ dependencies {
 }
 
 tasks {
-    // ReadmePatchNamesTest reads the README, which is not a source file of this module, so
-    // nothing told Gradle the answer changes when it does. Without this the task stayed
-    // up to date over a README edit and the gate passed a table it had never looked at.
+    // The README tests read marketing and patch-list files outside this module. Declare those
+    // inputs so Gradle reruns them when the public page or its selected artwork changes.
     test {
         inputs.file(rootProject.file("README.md"))
             .withPropertyName("readme")
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+        inputs.file(rootProject.file("assets/readme-hero.png"))
+            .withPropertyName("readmeHero")
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+        inputs.file(rootProject.file("patches-bundle.png"))
+            .withPropertyName("approvedLogo")
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+        inputs.dir(rootProject.file("concepts/marketing/2026-09-12"))
+            .withPropertyName("marketingArchive")
             .withPathSensitivity(PathSensitivity.RELATIVE)
     }
     val verifyBundle = register<JavaExec>("verifyBundle") {

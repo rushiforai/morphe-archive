@@ -19,9 +19,7 @@ val unlockPremiumPatch = bytecodePatch(
     description = "Unlock premium features and remove paywalls.",
     default = false,
 ) {
-    // Guarded: morphe-patcher < 1.13.0 has no category() and the bundle
-    // must still load there (ungrouped) instead of dying on linkage.
-    try { category("Featured") } catch (_: NoSuchMethodError) {}
+    category("Featured")
     val extraKeys by stringOption(
         title = "Extra keys",
         default = "",
@@ -237,12 +235,13 @@ val unlockPremiumPatch = bytecodePatch(
                 """.trimIndent()
             }
             it.addInstructions(0, """
-                invoke-interface {p1}, Lcom/facebook/react/bridge/ReadableArray;->size()I
+                move-object/from16 v5, p1
+                invoke-interface {v5}, Lcom/facebook/react/bridge/ReadableArray;->size()I
                 move-result v0
                 const/4 v1, 0x1
                 if-ne v0, v1, :morphe_async_orig
                 const/4 v1, 0x0
-                invoke-interface {p1, v1}, Lcom/facebook/react/bridge/ReadableArray;->getString(I)Ljava/lang/String;
+                invoke-interface {v5, v1}, Lcom/facebook/react/bridge/ReadableArray;->getString(I)Ljava/lang/String;
                 move-result-object v1
                 if-eqz v1, :morphe_async_orig
                 invoke-virtual {v1}, Ljava/lang/String;->toLowerCase()Ljava/lang/String;
@@ -255,7 +254,7 @@ val unlockPremiumPatch = bytecodePatch(
                 invoke-static {}, Lcom/facebook/react/bridge/Arguments;->createArray()Lcom/facebook/react/bridge/WritableArray;
                 move-result-object v3
                 const/4 v4, 0x0
-                invoke-interface {p1, v4}, Lcom/facebook/react/bridge/ReadableArray;->getString(I)Ljava/lang/String;
+                invoke-interface {v5, v4}, Lcom/facebook/react/bridge/ReadableArray;->getString(I)Ljava/lang/String;
                 move-result-object v4
                 invoke-interface {v3, v4}, Lcom/facebook/react/bridge/WritableArray;->pushString(Ljava/lang/String;)V
                 const-string v4, "1"
@@ -268,7 +267,8 @@ val unlockPremiumPatch = bytecodePatch(
                 aput-object v5, v3, v4
                 const/4 v4, 0x1
                 aput-object v2, v3, v4
-                invoke-interface {p2, v3}, Lcom/facebook/react/bridge/Callback;->invoke([Ljava/lang/Object;)V
+                move-object/from16 v2, p2
+                invoke-interface {v2, v3}, Lcom/facebook/react/bridge/Callback;->invoke([Ljava/lang/Object;)V
                 return-void
                 :morphe_async_orig
             """.trimIndent())

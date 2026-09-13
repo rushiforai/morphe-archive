@@ -11,7 +11,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.media.MediaScannerConnection;
@@ -29,11 +28,12 @@ import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.shared.settings.BaseSettings;
@@ -51,7 +51,6 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.InterruptedIOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
@@ -63,6 +62,7 @@ import java.util.WeakHashMap;
 @SuppressWarnings("unused")
 public final class StickerGallerySaver {
     private static final String ACTION_LABEL = "Save media";
+    private static final String HOOK_FAMILY = "sticker saves";
     /**
      * Marks the button this file added, so finding it again does not depend on its wording.
      *
@@ -182,7 +182,7 @@ public final class StickerGallerySaver {
                     textTemplate.getPaddingBottom()
             );
         } else {
-            button.setTextColor(Color.WHITE);
+            button.setTextColor(SettingsUi.enabledTextColors(SettingsUi.textPrimary()));
             button.setTextSize(16);
             int paddingHorizontal = SettingsUi.dp(context, 16);
             int paddingVertical = SettingsUi.dp(context, 10);
@@ -206,16 +206,15 @@ public final class StickerGallerySaver {
     private static void saveStickerFromButton(View button, StickerAsset asset) {
         Context context = button.getContext().getApplicationContext();
         button.setEnabled(false);
-        toast(context, L10n.t("Saving sticker"));
+        Utils.showToastShort(L10n.t("Saving sticker"));
 
-        // A submitted job stays in the scheduler's static map until it finishes, which is up to
-        // the two minute deadline with eight more queued behind it. Capturing the button held
-        // the sheet's Activity for that whole window after the sheet itself was gone. Every
-        // other view this file keeps hold of is already weak.
+        // A submitted job can wait behind eight others, then run up to the two minute deadline.
+        // Capturing the button would hold the sheet's Activity for that whole window after the
+        // sheet itself was gone. Every other view this file keeps hold of is already weak.
         WeakReference<View> anchor = new WeakReference<>(button);
-        MediaJobScheduler.JobHandle job = MediaJobScheduler.submit(
-                "sticker", stickerSaveWork(context, asset, anchor), handBackLater(anchor));
-        if (job == null) handBackLater(anchor).run();
+        boolean submitted = MediaJobScheduler.submit(
+                "sticker", stickerSaveWork(context, asset, anchor));
+        if (!submitted) handBackLater(anchor).run();
     }
 
     /** The work one sticker save does, holding the sheet by nothing stronger than {@code anchor}. */
@@ -224,7 +223,7 @@ public final class StickerGallerySaver {
             SaveResult result = saveSticker(context, asset);
             MAIN_HANDLER.post(() -> {
                 handBack(anchor);
-                toast(context, result.message);
+                Utils.showToastShort(result.message);
                 if (result.success) {
                     debugLog("[Morphe Stickers] saved sticker path=" + result.path);
                 } else if (BaseSettings.DEBUG.get()) {
@@ -258,12 +257,6 @@ public final class StickerGallerySaver {
                 if (!result.success) throw new IOException(result.message);
                 return result;
             } catch (Throwable error) {
-                if (MediaBudget.isCancellation(error)) {
-                    if (BaseSettings.DEBUG.get()) {
-                        Logger.printException(() -> "[Morphe Stickers] saveSticker cancelled", error);
-                    }
-                    return SaveResult.failure(L10n.t("The sticker couldn't be saved. Try again."));
-                }
                 failure.addSuppressed(new IOException(
                         "Sticker mirror failed (" + error.getClass().getSimpleName() + "): "
                                 + summarizeUrl(url), error));
@@ -313,10 +306,6 @@ public final class StickerGallerySaver {
                 }
                 return connection.getContentType();
             } catch (IOException | RuntimeException error) {
-                if (MediaBudget.isCancellation(error)) {
-                    if (error instanceof InterruptedIOException) throw (InterruptedIOException) error;
-                    throw new InterruptedIOException("Media job cancelled");
-                }
                 boolean retryable = MediaBudget.isRetryableTransport(error);
                 if (retryable && attempt + 1 < MediaBudget.MAX_ATTEMPTS_PER_MIRROR) {
                     MediaBudget.waitBeforeRetry(null, attempt, deadline);
@@ -809,20 +798,32 @@ public final class StickerGallerySaver {
     }
 
     private static StickerAsset findStickerAsset(Object model) {
-        StickerAsset sourceAsset = findSourceStickerAsset(model);
-        if (sourceAsset != null) return sourceAsset;
+        Object source;
+        synchronized (STICKER_SOURCES) {
+            source = STICKER_SOURCES.get(model);
+        }
+        StickerAsset sourceAsset = findSourceStickerAsset(source);
+        if (sourceAsset != null) {
+            HookStatus.bound(HOOK_FAMILY, source.getClass().getName() + "#source adapter");
+            return sourceAsset;
+        }
 
         UrlModel urlModel = findUrlModel(model);
         List<String> urls = usableUrls(urlModel);
-        if (urls.isEmpty()) return null;
+        if (urls.isEmpty()) {
+            if (source != null && !hasKnownStickerSourceMember(source)) {
+                HookStatus.missingMember(
+                        HOOK_FAMILY,
+                        "source adapter",
+                        source.getClass().getName(),
+                        "LLILLIZIL or X.0UD5");
+            }
+            return null;
+        }
         return new StickerAsset(urls, isAnimatedStickerModel(model));
     }
 
-    private static StickerAsset findSourceStickerAsset(Object previewModel) {
-        Object source;
-        synchronized (STICKER_SOURCES) {
-            source = STICKER_SOURCES.get(previewModel);
-        }
+    private static StickerAsset findSourceStickerAsset(Object source) {
         if (source == null) return null;
 
         Object sticker = resolveSourceSticker(source);
@@ -887,22 +888,73 @@ public final class StickerGallerySaver {
             return source;
         }
 
+        java.lang.reflect.Method adapter = richStickerAdapter(source);
         try {
-            Class<?> helperClass = Class.forName("X.0UD5");
-            for (java.lang.reflect.Method method : helperClass.getDeclaredMethods()) {
-                Class<?>[] parameterTypes = method.getParameterTypes();
-                if (!java.lang.reflect.Modifier.isStatic(method.getModifiers())
-                        || parameterTypes.length != 1
-                        || !parameterTypes[0].isAssignableFrom(source.getClass())
-                        || !isRichStickerType(method.getReturnType())) {
-                    continue;
-                }
-                method.setAccessible(true);
-                Object value = method.invoke(null, source);
+            if (adapter != null) {
+                adapter.setAccessible(true);
+                Object value = adapter.invoke(null, source);
                 if (value != null) return value;
             }
         } catch (Throwable ignored) {
             // Fall through to StickerItem.currentImage().
+        }
+        return null;
+    }
+
+    /**
+     * Whether this source still exposes any supported route to a sticker.
+     *
+     * <p>The legacy field, the conversion helper and StickerItem are alternatives. Reporting
+     * each miss while another one works would call a healthy build broken, so this is checked
+     * only after the source and preview routes both fail.
+     */
+    private static boolean hasKnownStickerSourceMember(Object source) {
+        if (hasNamedField(source.getClass(), "LLILLIZIL")) return true;
+        for (String method : new String[]{
+                "getStaticUrl", "getAnimateUrl", "getAnimatedUrl", "currentImage"
+        }) {
+            if (hasNoArgMethod(source.getClass(), method)) return true;
+        }
+        return richStickerAdapter(source) != null;
+    }
+
+    private static boolean hasNamedField(Class<?> type, String name) {
+        for (Class<?> current = type; current != null; current = current.getSuperclass()) {
+            try {
+                current.getDeclaredField(name);
+                return true;
+            } catch (NoSuchFieldException ignored) {
+                // Keep climbing.
+            } catch (Throwable ignored) {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasNoArgMethod(Class<?> type, String name) {
+        try {
+            type.getMethod(name);
+            return true;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    private static java.lang.reflect.Method richStickerAdapter(Object source) {
+        try {
+            Class<?> helperClass = Class.forName("X.0UD5");
+            for (java.lang.reflect.Method method : helperClass.getDeclaredMethods()) {
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                if (java.lang.reflect.Modifier.isStatic(method.getModifiers())
+                        && parameterTypes.length == 1
+                        && parameterTypes[0].isAssignableFrom(source.getClass())
+                        && isRichStickerType(method.getReturnType())) {
+                    return method;
+                }
+            }
+        } catch (Throwable ignored) {
+            // The caller decides whether another supported source route remains.
         }
         return null;
     }
@@ -1123,10 +1175,6 @@ public final class StickerGallerySaver {
             String withoutQuery = queryIndex >= 0 ? url.substring(0, queryIndex) : url;
             return withoutQuery.length() <= 96 ? withoutQuery : withoutQuery.substring(0, 96) + "...";
         }
-    }
-
-    private static void toast(Context context, String message) {
-        MAIN_HANDLER.post(() -> Toast.makeText(context, message, Toast.LENGTH_SHORT).show());
     }
 
     private static void debugLog(String message) {

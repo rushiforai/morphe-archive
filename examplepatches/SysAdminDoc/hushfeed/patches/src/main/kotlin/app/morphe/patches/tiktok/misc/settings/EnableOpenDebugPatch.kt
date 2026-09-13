@@ -4,6 +4,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.numberOfParameterRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -45,7 +46,7 @@ val enableOpenDebugPatch = bytecodePatch(
             .map { it.index }
 
         returnIndices.asReversed().forEach { returnIndex ->
-            npthExtent.addInstruction(
+            npthExtent.addInstructionsAtControlFlowLabel(
                 returnIndex,
                 "invoke-static {$contextRegister}, $CRASH_CAPTURE_INITIALIZER",
             )

@@ -559,7 +559,6 @@ Feed and navigation	Feed und Navigation
 Errors	Fehler
 Other	Sonstiges
 Saved. Restart TikTok to apply this.	Gespeichert. TikTok neu starten, damit das gilt.
-Diagnostic data cleared.	Diagnosedaten gelöscht.
 Includes these events: %1$s	Enthält diese Ereignisse: %1$s
 Gate details	Schalterdetails
 This catalog entry is no longer available. Refresh the Lab and try again.	Dieser Katalogeintrag ist nicht mehr verfügbar. Das Labor aktualisieren und es erneut versuchen.
@@ -608,6 +607,16 @@ Filter: %1$s	Filter: %1$s
 Show gates	Schalter anzeigen
 1 gate selected	1 Schalter ausgewählt
 %1$d gates selected	%1$d Schalter ausgewählt
+1 result	1 Ergebnis
+%1$d results	%1$d Ergebnisse
+Loaded	Geladen
+All actionable	Alle änderbaren
+Overrides	Überschreibungen
+App AB	App-AB
+Config	Konfiguration
+Player	Wiedergabe
+Live	LIVE
+Activity	Aktivität
 Preview shortened. Save JSON includes the full report.	Vorschau gekürzt. JSON speichern enthält den vollständigen Bericht.
 Choose a preset to fill the SIM details.	Eine Vorlage wählen, um die SIM-Angaben auszufüllen.
 Search countries or operators	Nach Ländern oder Anbietern suchen
@@ -622,6 +631,7 @@ Add hidden creator	Ausgeblendeten Creator hinzufügen
 Creator handle or id	Creator-Handle oder ID
 Creators hidden from later feed batches by the player action. Search the list and remove one entry at a time.	Mit der Player-Aktion lokal ausgeblendete Creator aus späteren Feed-Ladungen ausblenden. Durchsuche die Liste und entferne einzelne Einträge.
 Enter a creator handle or id	Gib einen Creator-Handle oder eine ID ein
+Enter a number	Gib eine Zahl ein
 Filter the list	Liste filtern
 Hidden %1$s locally	%1$s lokal ausgeblendet
 Hide this creator locally	Diesen Creator lokal ausblenden
@@ -631,6 +641,7 @@ No creators are hidden yet	Noch keine Creator ausgeblendet
 No hidden creators match this search	Keine ausgeblendeten Creator passen zu dieser Suche
 Remove	Entfernen
 Remove %1$s	%1$s entfernen
+Removed %1$s	%1$s entfernt
 Search hidden creators	Ausgeblendete Creator durchsuchen
 Showing %1$s again	%1$s wieder anzeigen
 That creator is already in the list	Dieser Creator ist bereits in der Liste
@@ -799,6 +810,7 @@ Turned off %1$d gates. Restart TikTok to apply this.	%1$d Schalter ausgeschaltet
 Turned off 1 gate of %1$d; the rest do not take a true or false value. Restart TikTok to apply this.	1 von %1$d Schaltern ausgeschaltet; die übrigen nehmen kein true oder false. TikTok neu starten, damit das gilt.
 Turned off %1$d gates of %2$d; the rest do not take a true or false value. Restart TikTok to apply this.	%1$d von %2$d Schaltern ausgeschaltet; die übrigen nehmen kein true oder false. TikTok neu starten, damit das gilt.
 Feature gate override reset	Überschreibung des Schalters zurückgesetzt
+Feature gate override saved	Überschreibung des Schalters gespeichert
 Invalid field value: %1$s	Ungültiger Feldwert: %1$s
 Could not save this override.	Diese Überschreibung konnte nicht gespeichert werden.
 Could not reset this override.	Diese Überschreibung konnte nicht zurückgesetzt werden.
@@ -851,3 +863,11 @@ Full report saved to %1$s	Vollständiger Bericht gespeichert unter %1$s
 Could not start the report export. Try again shortly.	Der Export des Berichts ließ sich nicht starten. Versuche es gleich noch einmal.
 Copy quick report	Kurzbericht kopieren
 Save full report	Vollständigen Bericht speichern
+Diagnostic data cleared. Tap again to put it back.	Diagnosedaten gelöscht. Tippe erneut, um sie wiederherzustellen.
+Diagnostic data put back.	Diagnosedaten wiederhergestellt.
+There is no diagnostic data to put back.	Es gibt keine Diagnosedaten zum Wiederherstellen.
+Could not put back the diagnostic data. Try again.	Die Diagnosedaten konnten nicht wiederhergestellt werden. Versuche es erneut.
+Loaded values are still being read. Try again in a moment.	Die geladenen Werte werden noch gelesen. Versuche es gleich noch einmal.
+The selected loaded-values file could not be read. Try again.	Die ausgewählte Datei mit geladenen Werten konnte nicht gelesen werden. Versuche es erneut.
+Enter a number. The previous value was kept.	Gib eine Zahl ein. Der vorherige Wert wurde beibehalten.
+There is no diagnostic data to clear.	Es gibt keine Diagnosedaten zum Löschen.

@@ -1,6 +1,7 @@
 package app.morphe.extension.tiktok.blockauthor;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 
 import android.preference.PreferenceActivity;
@@ -124,5 +125,26 @@ public class CurrentVideoAuthorTest {
         } finally {
             Settings.BLOCK_AUTHOR_BUTTON.save(false);
         }
+    }
+
+    @Test
+    public void authorEqualityAndHashingUseTheSameCanonicalIdentifier() {
+        VideoAuthor first = new VideoAuthor("uid-1", "sec-1", "First", "video-1");
+        VideoAuthor rebound = new VideoAuthor("uid-1", "sec-2", "Renamed", "video-2");
+        VideoAuthor secureOnly = new VideoAuthor(null, "sec-1", "First", "video-3");
+        VideoAuthor emptyUid = new VideoAuthor("", "sec-1", "First", "video-4");
+
+        assertEquals(first, rebound);
+        assertEquals(first.hashCode(), rebound.hashCode());
+        assertNotEquals(first, secureOnly);
+        assertEquals(secureOnly, emptyUid);
+        assertEquals(secureOnly.hashCode(), emptyUid.hashCode());
+
+        java.util.Set<VideoAuthor> authors = new java.util.HashSet<>();
+        authors.add(first);
+        authors.add(rebound);
+        authors.add(secureOnly);
+        authors.add(emptyUid);
+        assertEquals(2, authors.size());
     }
 }

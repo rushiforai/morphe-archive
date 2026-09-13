@@ -6,6 +6,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
 import app.morphe.util.numberOfParameterRegisters
@@ -164,7 +165,7 @@ private fun MutableMethod.insertAll(insertions: Insertions) {
     // lower one moves all of them; this held for the lancets only because the catch handler
     // happens to sit last on this build.
     insertions.sortedByDescending { it.first }.forEach { (index, instruction) ->
-        addInstructions(index, instruction)
+        addInstructionsAtControlFlowLabel(index, instruction)
     }
 }
 

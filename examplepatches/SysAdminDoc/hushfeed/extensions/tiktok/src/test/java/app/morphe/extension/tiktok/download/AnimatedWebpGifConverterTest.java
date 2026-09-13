@@ -188,7 +188,7 @@ public class AnimatedWebpGifConverterTest {
 
     @Test
     public void aStickerTooLargeToHoldIsRefusedBeforeAnythingIsAllocated() {
-        // 2048 x 2048 across three frames is 12.6 million pixels, past the 8 million cap.
+        // Three stored frames plus the canvas and decoded piece need 80 MiB of ARGB pixels.
         Webp builder = new Webp(2048, 2048);
         for (int frame = 0; frame < 3; frame++) {
             builder.frame(0, 0, 2048, 2048, 40, false, false, RED);
@@ -199,6 +199,20 @@ public class AnimatedWebpGifConverterTest {
         assertThrows(IllegalStateException.class,
                 () -> AnimatedWebpGifConverter.convert(webp, out));
         assertEquals(0, out.size());
+    }
+
+    @Test
+    public void memoryBudgetCountsTheCanvasAndDecodedPieceAsWellAsStoredFrames() {
+        // The old width * height * frames check accepted this one-frame shape at exactly its
+        // eight-million-pixel cap, even though its three full surfaces require 96 MiB.
+        assertThrows(IllegalStateException.class,
+                () -> AnimatedWebpGifConverter.validateWorkingMemory(4096, 2048, 1));
+
+        // Thirty 512-square frames plus the two live bitmaps are exactly 32 MiB. One more frame
+        // must cross the bound, which also makes the arithmetic itself part of the contract.
+        AnimatedWebpGifConverter.validateWorkingMemory(512, 512, 30);
+        assertThrows(IllegalStateException.class,
+                () -> AnimatedWebpGifConverter.validateWorkingMemory(512, 512, 31));
     }
 
     @Test

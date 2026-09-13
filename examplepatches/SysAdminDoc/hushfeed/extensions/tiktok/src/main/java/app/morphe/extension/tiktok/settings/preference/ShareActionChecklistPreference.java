@@ -40,6 +40,7 @@ public final class ShareActionChecklistPreference extends DialogPreference {
     private final Set<String> selected = new LinkedHashSet<>();
     private LinearLayout rows;
     private EditText search;
+    private TextView resultCount;
     private String originalHidden = "";
 
     public ShareActionChecklistPreference(Context context) {
@@ -75,6 +76,7 @@ public final class ShareActionChecklistPreference extends DialogPreference {
 
         TextView title = SettingsUi.text(context, getTitle().toString(), 20,
                 SettingsUi.textPrimary(), Typeface.BOLD);
+        SettingsUi.markDialogHeading(title);
         root.addView(title, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
@@ -92,6 +94,12 @@ public final class ShareActionChecklistPreference extends DialogPreference {
         SettingsUi.styleEditText(search);
         root.addView(search, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        resultCount = SettingsUi.resultCount(context, "share_action_result_count");
+        LinearLayout.LayoutParams resultParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        resultParams.topMargin = SettingsUi.dp(context, 10);
+        root.addView(resultCount, resultParams);
 
         ScrollView scroll = new ScrollView(context);
         rows = new LinearLayout(context);
@@ -117,6 +125,7 @@ public final class ShareActionChecklistPreference extends DialogPreference {
         rows.removeAllViews();
         String normalized = query == null ? "" : query.trim().toLowerCase(Locale.ROOT);
         if (catalog.isEmpty()) {
+            SettingsUi.setResultCount(resultCount, 0);
             addState("No share actions have been observed yet",
                     "Open a share sheet once, then return here to choose its actions.");
             return;
@@ -148,6 +157,7 @@ public final class ShareActionChecklistPreference extends DialogPreference {
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             shown++;
         }
+        SettingsUi.setResultCount(resultCount, shown);
         if (shown == 0) {
             addState("No share actions match this search", "Try a different word or clear the search.");
         }

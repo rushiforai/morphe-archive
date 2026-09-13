@@ -5,11 +5,14 @@
 package app.morphe.patches.shared.misc.ijiami
 
 import app.morphe.patcher.patch.PatchException
+import kotlin.math.abs
 
 private const val REGISTERS_SIZE_OFFSET = 0
 private const val OUTS_SIZE_OFFSET = 4
+private const val TRIES_SIZE_OFFSET = 6
 private const val INSTRUCTIONS_SIZE_OFFSET = 12
 private const val INSTRUCTIONS_OFFSET = 16
+private const val TRY_ITEM_SIZE = 8
 
 private const val OP_SGET_OBJECT = 0x62
 private const val OP_INVOKE_STATIC = 0x71
@@ -20,6 +23,7 @@ private const val OP_RETURN_OBJECT = 0x11
 private const val OP_CONST_4 = 0x12
 private const val OP_CONST_16 = 0x13
 private const val OP_CONST = 0x14
+private const val OP_CONST_STRING = 0x1a
 
 private const val STRING = "Ljava/lang/String;"
 private const val BOXED_BOOLEAN = "Ljava/lang/Boolean;"
@@ -62,7 +66,7 @@ internal class IjiamiPayload(
     }
 
     private fun bodiesOf(classDescriptor: String, name: String): List<MethodBody> {
-        val bodies = dexes.flatMap { it.bodiesOf(classDescriptor, name) }
+        val bodies = dexes.flatMap { it.bodiesOf(classDescriptor, name, opaqueRanges) }
 
         if (bodies.any { body -> opaqueRanges.any { body.range.overlaps(it) } }) {
             throw PatchException(
@@ -85,7 +89,7 @@ internal class PayloadMethods(private val bodies: List<MethodBody>) {
 
     fun returnNull() = bodies.forEach { it.returnNull() }
 
-    fun returnDigits(value: Int) = bodies.forEach { it.returnDigits(value) }
+    fun returnString(value: String) = bodies.forEach { it.returnString(value) }
 
     fun returnBoxed(value: Boolean) = bodies.forEach { it.returnBoxed(value) }
 
@@ -98,13 +102,17 @@ internal class MethodBody(
     private val codeOffset: Int,
     private val returnType: String,
     private val description: String,
+    private val opaqueRanges: List<IntRange>,
 ) {
     private val registers = payload.readShort(codeOffset + REGISTERS_SIZE_OFFSET)
     private val outgoing = payload.readShort(codeOffset + OUTS_SIZE_OFFSET)
-    private val instructionsSize = payload.readInt(codeOffset + INSTRUCTIONS_SIZE_OFFSET)
-    private val instructions = codeOffset + INSTRUCTIONS_OFFSET
+    private val tryCount = payload.readShort(codeOffset + TRIES_SIZE_OFFSET)
+    private val instructionCodeUnits = payload.readInt(codeOffset + INSTRUCTIONS_SIZE_OFFSET)
+    private val instructionsOffset = codeOffset + INSTRUCTIONS_OFFSET
+    private val tryItemsOffset =
+        dex.start + ((instructionsOffset + instructionCodeUnits * 2 - dex.start + 3) and 3.inv())
 
-    val range = codeOffset until instructions + instructionsSize * 2
+    val range = codeOffset until instructionsOffset + instructionCodeUnits * 2
 
     fun returnVoid() {
         requireReturnType("V")
@@ -118,25 +126,22 @@ internal class MethodBody(
         writeConstant(0, OP_RETURN_OBJECT)
     }
 
-    fun returnDigits(value: Int) {
+    fun returnString(value: String) {
         requireReturnType(STRING)
         requireRegister()
-        requireOutgoing()
 
-        val method = dex.methodIndexOf(STRING, VALUE_OF, VALUE_OF_INT_SHORTY)
-            ?: throw PatchException("Missing method reference $STRING.$VALUE_OF in dex for $description")
-        requireIndex(method, "$STRING.$VALUE_OF")
+        val string = dex.stringIndexOf(value)
+            ?: throw PatchException("Missing string \"$value\" in dex for $description")
+        if (string > 0xFFFF) {
+            throw PatchException("String index $string exceeds 0xFFFF for \"$value\" in $description")
+        }
 
         write(
-            constantFor(value) + byteArrayOf(
-                OP_INVOKE_STATIC.toByte(),
-                0x10,
-                method.toByte(),
-                (method shr 8).toByte(),
+            byteArrayOf(
+                OP_CONST_STRING.toByte(),
                 0,
-                0,
-                OP_MOVE_RESULT_OBJECT.toByte(),
-                0,
+                string.toByte(),
+                (string shr 8).toByte(),
                 OP_RETURN_OBJECT.toByte(),
                 0,
             ),
@@ -236,11 +241,80 @@ internal class MethodBody(
     }
 
     private fun write(code: ByteArray) {
-        if (instructionsSize * 2 < code.size) {
+        val replacementCodeUnits = code.size / 2
+        if (instructionCodeUnits * 2 < code.size) {
             throw PatchException(
-                "Replacement for $description requires ${code.size} bytes, available: ${instructionsSize * 2}",
+                "Replacement for $description requires ${code.size} bytes, available: ${instructionCodeUnits * 2}",
             )
         }
-        code.copyInto(payload, instructions)
+        if (tryCount > 0 && replacementCodeUnits + tryCount > instructionCodeUnits) {
+            throw PatchException(
+                "Replacement for $description leaves no room for its $tryCount try blocks",
+            )
+        }
+        payload.fill(0, instructionsOffset, instructionsOffset + instructionCodeUnits * 2)
+        code.copyInto(payload, instructionsOffset)
+        if (tryCount > 0) relocateExceptionTableToNopTail(replacementCodeUnits)
     }
+
+    private fun relocateExceptionTableToNopTail(replacementCodeUnits: Int) {
+        repeat(tryCount) { index ->
+            payload.writeInt(tryItemsOffset + index * TRY_ITEM_SIZE, replacementCodeUnits + index)
+            payload.writeShort(tryItemsOffset + index * TRY_ITEM_SIZE + 4, 1)
+        }
+
+        var cursor = tryItemsOffset + tryCount * TRY_ITEM_SIZE
+        val handlerCount = payload.readUleb128(cursor)
+        cursor = payload.leb128EndOffset(cursor)
+        repeat(handlerCount) {
+            val size = payload.readSleb128(cursor)
+            cursor = payload.leb128EndOffset(cursor)
+            repeat(abs(size)) {
+                cursor = payload.leb128EndOffset(cursor)
+                cursor = payload.rewriteUleb128PreservingWidth(cursor, replacementCodeUnits)
+            }
+            if (size <= 0) cursor = payload.rewriteUleb128PreservingWidth(cursor, replacementCodeUnits)
+        }
+
+        if (opaqueRanges.any { (codeOffset until cursor).overlaps(it) }) {
+            throw PatchException("Cannot rewrite $description: its exception table overlaps an opaque payload block")
+        }
+    }
+}
+
+private fun ByteArray.leb128EndOffset(offset: Int): Int {
+    var end = offset
+    while (this[end].toInt() and 0x80 != 0) end++
+    return end + 1
+}
+
+private fun ByteArray.readUleb128(offset: Int): Int {
+    var value = 0
+    var shift = 0
+    var cursor = offset
+    do {
+        val byte = this[cursor++].toInt()
+        value = value or ((byte and 0x7f) shl shift)
+        shift += 7
+    } while (byte and 0x80 != 0)
+    return value
+}
+
+private fun ByteArray.readSleb128(offset: Int): Int {
+    val value = readUleb128(offset)
+    val bits = (leb128EndOffset(offset) - offset) * 7
+    return if (bits < 32 && value and (1 shl (bits - 1)) != 0) value or (-1 shl bits) else value
+}
+
+private fun ByteArray.rewriteUleb128PreservingWidth(offset: Int, value: Int): Int {
+    val end = leb128EndOffset(offset)
+    val width = end - offset
+    if (width < 5 && value ushr (width * 7) != 0) {
+        throw PatchException("Relocated address $value does not fit the original $width-byte ULEB128")
+    }
+    for (index in offset until end) {
+        val group = (value ushr ((index - offset) * 7)) and 0x7f
+        this[index] = (if (index < end - 1) group or 0x80 else group).toByte()
+    }
+    return end
 }

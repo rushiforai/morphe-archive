@@ -29,6 +29,13 @@ the local artifact hash and the hosted checksum entry. The local release helpers
 The jar runs on JDK 21 or newer, so set `HUSHFEED_JAVA` or `JAVA_HOME` if that is not the `java`
 first on your PATH.
 
+Commit and push the new source version while `patches-bundle.json` still names the previous
+working release. Build from that exact commit, publish its bundle and checksum, then update the
+index and repository description in a second commit. The pre-push gate allows the index to lag
+only during that first step. During the index push, it checks the artifact timestamp against the
+published version tag, not the later index commit. It won't compare a new artifact with an old
+release.
+
 Translations live in `extensions/tiktok/src/main/l10n/`, either as a tab separated `<code>.tsv`
 or as the `source,target` CSV a Weblate export gives you. `scripts/gen-l10n.py` reads both and
 writes `en.csv`, the base a Weblate project translates from. Rerun it after touching a table:

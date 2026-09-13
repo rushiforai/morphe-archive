@@ -1,13 +1,13 @@
 package app.morphe.patches.tiktok.misc.navigation
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
@@ -45,7 +45,7 @@ val feedTabNavigationPatch = bytecodePatch(
 
             returnIndices.asReversed().forEach { returnIndex ->
                 val register = (method.implementation!!.instructions[returnIndex] as OneRegisterInstruction).registerA
-                method.addInstructions(
+                method.addInstructionsAtControlFlowLabel(
                     returnIndex,
                     """
                         invoke-static/range {v$register .. v$register}, $EXTENSION_CLASS_DESCRIPTOR->filterTopTabs(Ljava/util/List;)Ljava/util/List;
@@ -62,7 +62,7 @@ val feedTabNavigationPatch = bytecodePatch(
 
             returnIndices.asReversed().forEach { returnIndex ->
                 val register = (method.implementation!!.instructions[returnIndex] as OneRegisterInstruction).registerA
-                method.addInstructions(
+                method.addInstructionsAtControlFlowLabel(
                     returnIndex,
                     """
                         invoke-static/range {v$register .. v$register}, $EXTENSION_CLASS_DESCRIPTOR->filterBottomTabs(Ljava/util/List;)Ljava/util/List;

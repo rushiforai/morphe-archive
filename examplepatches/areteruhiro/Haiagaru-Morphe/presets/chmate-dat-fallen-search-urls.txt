@@ -1,0 +1,3 @@
+{$host[match:\.[25]ch\.(?:net|io)$]}【Haiagaru】5ch公式過去ログへ https://kako.5ch.io/test/read.cgi/{$bbs}/{$key}/
+{$host[match:\.[25]ch\.(?:net|io)$]}【Haiagaru】5ch現在サーバーへ https://itest.5ch.io/test/read.cgi/{$bbs}/{$key}/
+{$host[match:\.[25]ch\.(?:net|io)$]}【Haiagaru】2ch.scへ https://2ch.sc/test/read.cgi/{$bbs}/{$key}/

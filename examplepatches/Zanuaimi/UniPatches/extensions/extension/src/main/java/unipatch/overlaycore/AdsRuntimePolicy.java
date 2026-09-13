@@ -38,8 +38,15 @@ public final class AdsRuntimePolicy {
         String[] values = encoded.split("\\|", -1);
         if (values.length < 9 || !"1".equals(values[0])) return;
         try {
-            modules = Integer.parseInt(values[1]);
-            blockedFormats = Integer.parseInt(values[2]);
+            int parsedModules = Integer.parseInt(values[1]);
+            int parsedBlockedFormats = Integer.parseInt(values[2]);
+            if (parsedModules < 0 || (parsedModules & ~7) != 0 ||
+                    parsedBlockedFormats < 0 || (parsedBlockedFormats & ~63) != 0) return;
+            if (!isBooleanField(values[3]) || !isBooleanField(values[4]) ||
+                    !isBooleanField(values[5]) || !isBooleanField(values[6]) ||
+                    !isBooleanField(values[7])) return;
+            modules = parsedModules;
+            blockedFormats = parsedBlockedFormats;
             skipRewarded = "1".equals(values[3]);
             grantReward = "1".equals(values[4]);
             fakeAvailability = "1".equals(values[5]);
@@ -55,6 +62,10 @@ public final class AdsRuntimePolicy {
         }
     }
 
+    private static boolean isBooleanField(String value) {
+        return "0".equals(value) || "1".equals(value);
+    }
+
     public static synchronized boolean isIntegrated() { return integrated; }
     public static synchronized boolean hasModule(int module) { return integrated && (modules & module) != 0; }
     public static synchronized boolean hasAnyModule() { return integrated && modules != 0; }
@@ -63,8 +74,11 @@ public final class AdsRuntimePolicy {
     public static synchronized boolean shouldBlockAppOpen() { return hasModule(MODULE_BLOCK_ADS) && (blockedFormats & 4) != 0; }
     public static synchronized boolean shouldBlockMrec() { return hasModule(MODULE_BLOCK_ADS) && (blockedFormats & 8) != 0; }
     public static synchronized boolean shouldBlockRewarded() {
-        return (hasModule(MODULE_BLOCK_ADS) && (blockedFormats & 16) != 0) ||
-                shouldSkipRewarded();
+        return shouldBlockRewardedFormat() || shouldSkipRewarded();
+    }
+    /** Format blocking only. Rewarded readiness must not be disabled merely because skipping is enabled. */
+    public static synchronized boolean shouldBlockRewardedFormat() {
+        return hasModule(MODULE_BLOCK_ADS) && (blockedFormats & 16) != 0;
     }
     public static synchronized boolean shouldBlockNative() { return hasModule(MODULE_BLOCK_ADS) && (blockedFormats & 32) != 0; }
     public static synchronized boolean shouldSkipRewarded() { return hasModule(MODULE_REWARDS) && skipRewarded; }

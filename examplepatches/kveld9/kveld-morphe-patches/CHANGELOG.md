@@ -1,3 +1,27 @@
+## [1.22.1](https://github.com/kveld9/kveld-morphe-patches/compare/v1.22.0...v1.22.1) (2026-09-13)
+
+### ♻️ Code Refactoring
+
+* **harness:** eradicate hardcoded identifiers and harden validation toolchain ([57c23e5](https://github.com/kveld9/kveld-morphe-patches/commit/57c23e5d5d543c1ea6c5884ac743072230b48ee9))
+
+## [1.22.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.21.2...v1.22.0) (2026-09-12)
+
+### ✨ New Features
+
+* **tiktok:** integrate TikLite patch suite and validation harness ([f3006d1](https://github.com/kveld9/kveld-morphe-patches/commit/f3006d1730ed4b685e9d71d5ce7fb3e524d3010d))
+
+## [1.21.2](https://github.com/kveld9/kveld-morphe-patches/compare/v1.21.1...v1.21.2) (2026-09-12)
+
+### ♻️ Code Refactoring
+
+* **brave:** resolve boolean field dynamically in startup performance patch ([858068e](https://github.com/kveld9/kveld-morphe-patches/commit/858068e7fb1176786ce32be9e5055a685ee782c9))
+
+## [1.21.1](https://github.com/kveld9/kveld-morphe-patches/compare/v1.21.0...v1.21.1) (2026-09-12)
+
+### 🐛 Bug Fixes
+
+* **vivaldi:** neutralize donation and search engine bottom sheet prompt ([ca96f0f](https://github.com/kveld9/kveld-morphe-patches/commit/ca96f0ff342795beddb1a25265aaaae1c04a0723)), closes [#22](https://github.com/kveld9/kveld-morphe-patches/issues/22)
+
 ## [1.21.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.20.1...v1.21.0) (2026-09-11)
 
 ### ✨ New Features
@@ -79,7 +103,7 @@
 
 ### ✨ New Features
 
-* **brave:** update patches for v1.94.119 and validate on physical arm64 device ([3e1fc19](https://github.com/kveld9/kveld-morphe-patches/commit/3e1fc19f62e796e02852f52b234e972ecf89a23a))
+* **brave:** update patches for v1.94.119 and validate on physical arm64 device (3e1fc19)
 
 ## [1.10.1](https://github.com/kveld9/kveld-morphe-patches/compare/v1.10.0...v1.10.1) (2026-08-30)
 
@@ -121,7 +145,7 @@
 
 ### ✨ New Features
 
-* **brave:** add Background Sync, Battery Optimization, and Disable Pull-to-Refresh patches ([fe89f48](https://github.com/kveld9/kveld-morphe-patches/commit/fe89f4892a14b0cb8a92af0c712824806ff3060f))
+* **brave:** add Background Sync, Battery Optimization, and Disable Pull-to-Refresh patches (fe89f48)
 
 ## [1.4.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.3.0...v1.4.0) (2026-08-22)
 

@@ -18,6 +18,7 @@ import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.patches.tiktok.shared.requireLocals
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findFreeRegister
 import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.getFreeRegisterProvider
@@ -122,7 +123,7 @@ val downloadsPatch = bytecodePatch(
 
                 // Range form: a return names its register in eight bits, and the plain invoke
                 // can only name the first sixteen.
-                addInstructions(
+                addInstructionsAtControlFlowLabel(
                     returnIndex,
                     """
                         invoke-static/range {v$register .. v$register}, $EXTENSION_CLASS_DESCRIPTOR->patchVideoObject(Lcom/ss/android/ugc/aweme/feed/model/Video;)V
@@ -185,7 +186,7 @@ val downloadsPatch = bytecodePatch(
             // Every way out of the bind, not only the last one written. A build that returns
             // early on any path would have shown a sheet with no save button and said nothing.
             findInstructionIndicesReversedOrThrow { opcode == Opcode.RETURN_VOID }.forEach { returnIndex ->
-                addInstructions(
+                addInstructionsAtControlFlowLabel(
                     returnIndex,
                     """
                         invoke-static/range {p0 .. p1}, $STICKER_EXTENSION_CLASS_DESCRIPTOR->attachSaveImageButton(Landroid/view/View;Ljava/lang/Object;)V
@@ -463,4 +464,3 @@ val downloadsPatch = bytecodePatch(
         }
     }
 }
-

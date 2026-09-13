@@ -54,17 +54,13 @@ public final class VideoAuthor {
             return false;
         }
         VideoAuthor that = (VideoAuthor) other;
-        if (uid != null && that.uid != null) {
-            return uid.equals(that.uid);
-        }
-        return secUid != null && secUid.equals(that.secUid);
+        String identity = stableId();
+        return identity != null && identity.equals(that.stableId());
     }
 
     @Override
     public int hashCode() {
-        if (uid != null) {
-            return uid.hashCode();
-        }
-        return secUid != null ? secUid.hashCode() : 0;
+        String identity = stableId();
+        return identity != null ? identity.hashCode() : 0;
     }
 }

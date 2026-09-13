@@ -1,7 +1,6 @@
 package app.morphe.extension.tiktok.download;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -17,11 +16,9 @@ public class MediaBudgetTest {
         assertEquals(1_000L, MediaBudget.retryAfterMillis("1", 0));
     }
 
-    @Test public void socketTimeoutsRetryButInterruptionsCancel() {
+    @Test public void socketTimeoutsRetry() {
         SocketTimeoutException timeout = new SocketTimeoutException("read timed out");
-        assertFalse(MediaBudget.isCancellation(timeout));
         assertTrue(MediaBudget.isRetryableTransport(timeout));
-        assertTrue(MediaBudget.isCancellation(new java.io.InterruptedIOException("cancelled")));
     }
 
     @Test public void nestedMediaOperationsReuseTheRunningJobDeadline() {

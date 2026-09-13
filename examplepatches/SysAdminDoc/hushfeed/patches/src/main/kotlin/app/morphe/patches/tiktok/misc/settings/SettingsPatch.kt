@@ -33,11 +33,17 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val SETTINGS_EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/settings/TikTokActivityHook;"
 private const val OPEN_DEBUG_CELL_VM_DESCRIPTOR =
     "Lcom/ss/android/ugc/aweme/setting/ui/rvmpcompose/group/support/cells/OpenDebugCellVM;"
+private const val AD_WEB_MORE_ACTION_SERVICE_DESCRIPTOR =
+    "Lcom/ss/android/ugc/aweme/commercialize/hybrid/impl/web/AdWebMoreActionService;"
+private const val SPARK_CONTEXT_DESCRIPTOR = "Lcom/bytedance/hybrid/spark/SparkContext;"
+private const val TUX_ICON_VIEW_DESCRIPTOR = "Lcom/bytedance/tux/icon/TuxIconView;"
+private const val AD_BROWSER_SETTINGS_KEY = "ad_browser_settings"
 
 private const val ANDROID_CONTEXT_GET_STRING = "Landroid/content/Context;->getString(I)Ljava/lang/String;"
 
@@ -70,13 +76,121 @@ private fun BytecodePatchContext.vectorResourceClass(): String {
 
 private const val VECTOR_RESOURCE_TO_STRING = "VectorResource(resId="
 
+/**
+ * Reads TikTok's settings gear id from the bytecode that renders the Ad Browser settings action.
+ *
+ * The action is found by its stable key. The stable AdWebMoreActionService then identifies which
+ * zero-argument interface method supplies the icon it passes to TuxIconView. The Ad Browser
+ * implementations share one returned resource id in that method, even when one offers a second
+ * conditional icon. This copies TikTok's own answer without opening resources.arsc or assuming
+ * the id assigned by a particular build.
+ */
+internal fun resolveSettingsIconResourceId(
+    iconRenderer: SmaliMethod,
+    keyCarriers: Iterable<ClassDef>,
+): Int {
+    val rendererInstructions = iconRenderer.implementation?.instructions?.toList().orEmpty()
+    val iconCalls = rendererInstructions.mapNotNull { instruction ->
+        if (instruction.opcode != Opcode.INVOKE_INTERFACE) return@mapNotNull null
+        val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            ?: return@mapNotNull null
+        reference.takeIf { it.parameterTypes.isEmpty() && it.returnType == "I" }
+    }
+    if (iconCalls.size != 1) {
+        throw PatchException(
+            "Settings: expected AdWebMoreActionService to make one interface icon call, " +
+                "found ${iconCalls.size}.",
+        )
+    }
+    val iconMethod = iconCalls.single()
+
+    val implementations = keyCarriers.filter { classDef ->
+        iconMethod.definingClass in classDef.interfaces && classDef.methods.any { method ->
+            val instructions = method.implementation?.instructions?.toList() ?: return@any false
+            method.parameterTypes.isEmpty() &&
+                method.returnType == "Ljava/lang/String;" &&
+                instructions.size == 2 &&
+                instructions[0].opcode == Opcode.CONST_STRING &&
+                ((instructions[0] as? ReferenceInstruction)?.reference as? StringReference)?.string ==
+                AD_BROWSER_SETTINGS_KEY &&
+                instructions[1].opcode == Opcode.RETURN_OBJECT &&
+                (instructions[0] as? OneRegisterInstruction)?.registerA ==
+                (instructions[1] as? OneRegisterInstruction)?.registerA
+        }
+    }.toList()
+    if (implementations.isEmpty()) {
+        throw PatchException(
+            "Settings: no $AD_BROWSER_SETTINGS_KEY action implements ${iconMethod.definingClass}.",
+        )
+    }
+
+    val returnedIds = implementations.associate { classDef ->
+        val method = classDef.methods.singleOrNull { candidate ->
+            candidate.name == iconMethod.name &&
+                candidate.parameterTypes == iconMethod.parameterTypes &&
+                candidate.returnType == iconMethod.returnType
+        } ?: throw PatchException(
+            "Settings: ${classDef.type} does not implement the selected icon method $iconMethod once.",
+        )
+        val instructions = method.implementation?.instructions?.toList()
+            ?: throw PatchException("Settings: ${classDef.type}'s icon method has no implementation.")
+        val ids = instructions.zipWithNext().mapNotNull { (value, exit) ->
+            if (exit.opcode != Opcode.RETURN) return@mapNotNull null
+            val valueRegister = (value as? OneRegisterInstruction)?.registerA
+                ?: return@mapNotNull null
+            val returnRegister = (exit as? OneRegisterInstruction)?.registerA
+                ?: return@mapNotNull null
+            if (valueRegister != returnRegister) return@mapNotNull null
+            (value as? NarrowLiteralInstruction)?.narrowLiteral
+        }.toSet()
+        if (ids.isEmpty()) {
+            throw PatchException(
+                "Settings: ${classDef.type}'s icon method has no direct integer return.",
+            )
+        }
+        classDef.type to ids
+    }
+    val sharedIds = returnedIds.values.reduce(Set<Int>::intersect)
+    if (sharedIds.size != 1) {
+        throw PatchException(
+            "Settings: $AD_BROWSER_SETTINGS_KEY implementations do not identify one shared icon: " +
+                returnedIds.entries.joinToString { (type, ids) ->
+                    "$type=[${ids.joinToString { "0x${it.toUInt().toString(16)}" }}]"
+                } + ".",
+        )
+    }
+    val id = sharedIds.single()
+    if (id ushr 24 != 0x7f) {
+        throw PatchException(
+            "Settings: $AD_BROWSER_SETTINGS_KEY returned non-app resource 0x${id.toUInt().toString(16)}.",
+        )
+    }
+    return id
+}
+
+private fun BytecodePatchContext.settingsIconResourceId(): Int {
+    val renderer = mutableClassDefBy(AD_WEB_MORE_ACTION_SERVICE_DESCRIPTOR).methods.singleOrNull { method ->
+        method.returnType == "V" && method.parameterTypes == listOf(
+            SPARK_CONTEXT_DESCRIPTOR,
+            "Landroid/content/Context;",
+            TUX_ICON_VIEW_DESCRIPTOR,
+        )
+    } ?: throw PatchException(
+        "Settings: AdWebMoreActionService icon renderer was not found once.",
+    )
+    return resolveSettingsIconResourceId(
+        renderer,
+        getAllClassesWithString(AD_BROWSER_SETTINGS_KEY),
+    )
+}
+
 @Suppress("unused")
 val settingsPatch = bytecodePatch(
     name = "Settings",
     description = "Adds the Hushfeed settings screen to TikTok.",
     default = true,
 ) {
-    dependsOn(sharedExtensionPatch, settingsIconResourcePatch)
+    dependsOn(sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4623())
 
@@ -426,20 +540,16 @@ val settingsPatch = bytecodePatch(
                 ?: throw PatchException("Settings: OpenDebug state constructor was not found.")
 
             // The row's icon is a Kotlin data class wrapping a resource id. Its obfuscated name
-            // changes with every build and was once written here as a literal, which is what took
-            // the whole bundle down on 46.7.3: Settings failed, and the sixty-two patches that
-            // depend on it failed with it. What a data class keeps through obfuscation is the
-            // string its toString() builds from, so that is the anchor.
+            // changes with every build, so its generated toString label is the type anchor. The
+            // value comes from TikTok's own Ad Browser settings action, whose stable renderer says
+            // which interface method supplies the gear it puts in a TuxIconView.
             val vectorResource = vectorResourceClass()
             val iconLoadIndex = constructor.indexOfFirstInstructionOrThrow {
                 opcode == Opcode.SGET_OBJECT && getReference<FieldReference>()?.type == vectorResource
             }
             val iconRegister = constructor.getInstruction<OneRegisterInstruction>(iconLoadIndex).registerA
             val tempRegister = constructor.findFreeRegister(iconLoadIndex + 1, iconRegister)
-            val iconResourceId = settingsIconResourceId
-                ?: throw PatchException(
-                    "Settings: the icon resource was not resolved before the bytecode patch ran.",
-                )
+            val iconResourceId = settingsIconResourceId()
 
             constructor.addInstructions(
                 iconLoadIndex + 1,

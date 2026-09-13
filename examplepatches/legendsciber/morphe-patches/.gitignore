@@ -132,3 +132,5 @@ local.properties
 .direnv
 apk
 apk_unpacked
+patches/src/main/kotlin/app/shadowfight/patches/iap/IAPBypassPatch.kt
+patches/src/main/kotlin/app/shadowfight/patches/iap/IAPBypassSmaliFingerprint.kt

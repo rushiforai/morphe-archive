@@ -1,3 +1,34 @@
+## [1.20.0](https://github.com/hxreborn/morphe-patches/compare/v1.19.1...v1.20.0) (2026-09-12)
+
+### Bug Fixes
+
+* **iJiami:** disable packer checks at their call sites to close crash race at launch ([b385011](https://github.com/hxreborn/morphe-patches/commit/b385011bc484cc352e1fe0a777da1d662bcadc48))
+* **MovieBox - All-In-One:** report no SIM operator ([d2af9f8](https://github.com/hxreborn/morphe-patches/commit/d2af9f83849376ce918ebd40ef28ce164db20eb0))
+
+### New Features
+
+* **MovieBox - All-In-One:** remove password access to Laboratory under Me → Settings → About us ([3373cce](https://github.com/hxreborn/morphe-patches/commit/3373cce8a95e004fb64e5ef225e7942c09e75d4d))
+
+## [1.19.1](https://github.com/hxreborn/morphe-patches/compare/v1.19.0...v1.19.1) (2026-09-12)
+
+### Bug Fixes
+
+* **iJiami:** relocate try blocks past replaced instructions to pass ART verification ([0d6edb9](https://github.com/hxreborn/morphe-patches/commit/0d6edb9c1a460b2f8704151a8adb214f9d78eeec))
+
+## [1.19.0](https://github.com/hxreborn/morphe-patches/compare/v1.18.0...v1.19.0) (2026-09-12)
+
+### Bug Fixes
+
+* **iJiami:** fix VerifyError at launch on devices where ART verifies the payload ([08e0e17](https://github.com/hxreborn/morphe-patches/commit/08e0e17c6a6b28717f7acbec6af4a11dd3262923))
+
+### New Features
+
+* **1Weather - Disable tracking:** stop installs, sessions and in-app events reaching AppsFlyer ([dda60d4](https://github.com/hxreborn/morphe-patches/commit/dda60d429e79e907642aa08b9dc978cffa89a479))
+* **1Weather - Hide Shorts:** remove the Shorts card from the Today screen ([ca8781e](https://github.com/hxreborn/morphe-patches/commit/ca8781eeec645cdbf80e7cbf8637a204afbe62ba))
+* **1Weather - Hide Skyla:** hide AI assistant, prompts and summarize buttons ([10d6195](https://github.com/hxreborn/morphe-patches/commit/10d61958cc190ee632d47ac32a3775d8538b4c63))
+* **1Weather - Unlock premium:** remove ads, upgrade prompts and the free plan label ([2e75258](https://github.com/hxreborn/morphe-patches/commit/2e75258119e55cd7812e5832d9464a9db1102d23))
+* **1Weather:** support 13.1.0 ([aa1c65a](https://github.com/hxreborn/morphe-patches/commit/aa1c65a87d3c68800c075f850523f3f6a95f0f20))
+
 ## [1.18.0](https://github.com/hxreborn/morphe-patches/compare/v1.17.0...v1.18.0) (2026-09-11)
 
 ### Bug Fixes

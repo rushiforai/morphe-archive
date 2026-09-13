@@ -38,8 +38,12 @@ public final class Reflect {
         return HookStatus.missing(FAMILY);
     }
 
+    private static void noteMissing(String family, String kind, Class<?> type, String name) {
+        HookStatus.missingMember(family, kind, type.getName(), name);
+    }
+
     private static void noteMissing(String kind, Class<?> type, String name) {
-        HookStatus.missingMember(FAMILY, kind, type.getName(), name);
+        noteMissing(FAMILY, kind, type, name);
     }
 
     /** The key both caches and the hook report use, built once per lookup. */
@@ -101,18 +105,88 @@ public final class Reflect {
      * null; {@link #missingMembers()} is what tells those apart afterwards.
      */
     public static Object required(Object target, String methodName) {
+        return required(target, methodName, FAMILY);
+    }
+
+    /** A required no-argument method belonging to the caller's own hook family. */
+    public static Object required(Object target, String methodName, String family) {
         if (target == null) {
             return null;
         }
         Method method = method(target.getClass(), methodName);
         if (method == null) {
-            noteMissing("method", target.getClass(), methodName);
+            noteMissing(family, "method", target.getClass(), methodName);
             return null;
         }
-        HookStatus.bound(FAMILY, key(target.getClass(), methodName));
+        HookStatus.bound(family, key(target.getClass(), methodName));
         try {
             return method.invoke(target);
         } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    /** A required field belonging to the caller's own hook family. */
+    public static Object requiredField(Object target, String fieldName, String family) {
+        if (target == null) return null;
+        Class<?> type = target.getClass();
+        Field field = field(type, fieldName);
+        if (field == null) {
+            noteMissing(family, "field", type, fieldName);
+            return null;
+        }
+        HookStatus.bound(family, key(type, fieldName));
+        try {
+            return field.get(target);
+        } catch (Throwable ignored) {
+            noteMissing(family, "field", type, fieldName);
+            return null;
+        }
+    }
+
+    /** A class whose absence disables the caller's whole hook family. */
+    public static Class<?> requiredClass(String className, String family) {
+        try {
+            Class<?> type = Class.forName(className);
+            HookStatus.bound(family, "TikTok#" + className);
+            return type;
+        } catch (Throwable ignored) {
+            HookStatus.missingMember(family, "class", "TikTok", className);
+            return null;
+        }
+    }
+
+    /** A public method whose absence disables the caller's whole hook family. */
+    public static Method requiredMethod(
+            Class<?> type,
+            String methodName,
+            String family,
+            Class<?>... parameterTypes
+    ) {
+        if (type == null) return null;
+        try {
+            Method method = type.getMethod(methodName, parameterTypes);
+            method.setAccessible(true);
+            HookStatus.bound(family, key(type, methodName));
+            return method;
+        } catch (Throwable ignored) {
+            noteMissing(family, "method", type, methodName);
+            return null;
+        }
+    }
+
+    /** Invokes a required member and reports an unusable member instead of hiding the failure. */
+    public static Object invokeRequired(
+            Method method,
+            Object target,
+            String family,
+            Object... arguments
+    ) {
+        if (method == null) return null;
+        try {
+            return method.invoke(target, arguments);
+        } catch (Throwable ignored) {
+            noteMissing(family, "call", method.getDeclaringClass(), method.getName());
             return null;
         }
     }

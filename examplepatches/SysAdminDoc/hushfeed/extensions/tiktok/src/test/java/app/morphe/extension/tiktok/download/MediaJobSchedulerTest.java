@@ -1,8 +1,6 @@
 package app.morphe.extension.tiktok.download;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import app.morphe.extension.shared.Utils;
@@ -38,7 +36,6 @@ public class MediaJobSchedulerTest {
     @After public void tearDown() throws Exception {
         for (CountDownLatch latch : released) latch.countDown();
         released.clear();
-        MediaJobScheduler.cancelAll();
         drain();
     }
 
@@ -67,15 +64,15 @@ public class MediaJobSchedulerTest {
         int accepted = 0;
         boolean refused = false;
         for (int job = 0; job <= capacity; job++) {
-            MediaJobScheduler.JobHandle handle = MediaJobScheduler.submit("job-" + job, () -> {
+            boolean submitted = MediaJobScheduler.submit("job-" + job, () -> {
                 ran.incrementAndGet();
                 try {
                     hold.await(10, TimeUnit.SECONDS);
                 } catch (InterruptedException interrupted) {
                     Thread.currentThread().interrupt();
                 }
-            }, null);
-            if (handle == null) {
+            });
+            if (!submitted) {
                 refused = true;
                 break;
             }
@@ -93,29 +90,4 @@ public class MediaJobSchedulerTest {
         assertEquals("a job the pool accepted never ran", expected, ran.get());
     }
 
-    @Test public void cancellingAQueuedJobTellsItsOwner() throws Exception {
-        CountDownLatch hold = new CountDownLatch(1);
-        released.add(hold);
-        AtomicInteger cancelled = new AtomicInteger();
-
-        List<MediaJobScheduler.JobHandle> handles = new ArrayList<>();
-        for (int job = 0; job < MediaJobScheduler.MAX_RUNNING_JOBS + 1; job++) {
-            handles.add(MediaJobScheduler.submit("job-" + job, () -> {
-                try {
-                    hold.await(10, TimeUnit.SECONDS);
-                } catch (InterruptedException interrupted) {
-                    Thread.currentThread().interrupt();
-                }
-            }, cancelled::incrementAndGet));
-        }
-
-        // The last one is still waiting, so cancelling it runs the queued-cancel callback.
-        MediaJobScheduler.JobHandle waiting = handles.get(handles.size() - 1);
-        assertNotNull(waiting);
-        assertTrue("a waiting job refused to cancel", waiting.cancel());
-
-        hold.countDown();
-        for (int wait = 0; wait < 100 && cancelled.get() == 0; wait++) Thread.sleep(20);
-        assertEquals("the owner was not told its queued job went away", 1, cancelled.get());
-    }
 }

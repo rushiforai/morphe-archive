@@ -14,9 +14,7 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -31,14 +29,12 @@ import org.robolectric.Shadows;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowToast;
-import org.robolectric.util.ReflectionHelpers;
 
 /** The installed avatar action must explain a consumed press that cannot save anything. */
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE, sdk = 28, qualifiers = "en")
 public class ProfileAvatarPermissionTest {
     private final CountDownLatch release = new CountDownLatch(1);
-    private final List<MediaJobScheduler.JobHandle> held = new ArrayList<>();
     private ActivityController<Activity> owner;
     private View avatar;
 
@@ -64,32 +60,25 @@ public class ProfileAvatarPermissionTest {
         assertEquals(0, MediaJobScheduler.runningJobs());
         CountDownLatch started = new CountDownLatch(MediaJobScheduler.MAX_RUNNING_JOBS);
         for (int index = 0; index < MediaJobScheduler.MAX_RUNNING_JOBS; index++) {
-            MediaJobScheduler.JobHandle job = MediaJobScheduler.submit("permission test hold", () -> {
+            boolean submitted = MediaJobScheduler.submit("permission test hold", () -> {
                 started.countDown();
                 try {
                     release.await(60, TimeUnit.SECONDS);
                 } catch (InterruptedException interrupted) {
                     Thread.currentThread().interrupt();
                 }
-            }, null);
-            assertNotNull(job);
-            held.add(job);
+            });
+            assertTrue(submitted);
         }
         assertTrue("the media workers never started", started.await(5, TimeUnit.SECONDS));
         ShadowToast.reset();
     }
 
     @After public void tearDown() throws Exception {
-        // Cancel queued avatar work before freeing any worker. The allowed control reaches
-        // real scheduling, but never fetches or publishes media during this permission test.
-        Map<?, MediaJobScheduler.JobHandle> jobs = ReflectionHelpers.getStaticField(
-                MediaJobScheduler.class, "HANDLES");
-        for (MediaJobScheduler.JobHandle job : new ArrayList<>(jobs.values())) {
-            if (job.label.equals("profile picture")) job.cancel();
-        }
         release.countDown();
-        for (MediaJobScheduler.JobHandle job : held) job.cancel();
-        for (int wait = 0; wait < 250 && MediaJobScheduler.runningJobs() != 0; wait++) {
+        for (int wait = 0; wait < 500
+                && (MediaJobScheduler.runningJobs() != 0 || MediaJobScheduler.queuedJobs() != 0);
+             wait++) {
             Thread.sleep(20);
         }
         Settings.SAVE_PROFILE_PICTURE.save(false);
@@ -150,6 +139,6 @@ public class ProfileAvatarPermissionTest {
     }
 
     public static final class Address {
-        public final List<String> urlList = List.of("https://example.com/avatar.jpg");
+        public final List<String> urlList = List.of("https://127.0.0.1:1/avatar.jpg");
     }
 }

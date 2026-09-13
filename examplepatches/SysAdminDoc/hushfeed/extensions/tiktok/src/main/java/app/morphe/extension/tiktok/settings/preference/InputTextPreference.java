@@ -91,6 +91,7 @@ public class InputTextPreference extends EditTextPreference {
                 SettingsUi.textPrimary(),
                 android.graphics.Typeface.BOLD
         );
+        SettingsUi.markDialogHeading(title);
         dialogView.addView(title, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT

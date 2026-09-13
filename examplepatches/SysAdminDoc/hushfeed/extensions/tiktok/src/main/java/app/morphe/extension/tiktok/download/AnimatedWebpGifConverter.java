@@ -27,8 +27,13 @@ import java.util.List;
  * not, so it can only be reached by name.
  */
 final class AnimatedWebpGifConverter {
-    /** A cap on the frames held at once, so a long sticker cannot run the app out of memory. */
-    private static final long MAX_PIXELS = 8L * 1024 * 1024;
+    /**
+     * Pixel storage held before the encoder starts: one canvas, one worst-case decoded piece,
+     * and one full-canvas int array for every frame. The encoder needs working memory too, so
+     * this deliberately leaves most of TikTok's heap free.
+     */
+    private static final long MAX_PIXEL_STORAGE_BYTES = 32L * 1024 * 1024;
+    private static final long ARGB_BYTES_PER_PIXEL = 4L;
 
     private AnimatedWebpGifConverter() {
     }
@@ -54,12 +59,7 @@ final class AnimatedWebpGifConverter {
             int height = invokeInt(image, "getHeight");
             int frameCount = invokeInt(image, "getFrameCount");
             int[] durations = (int[]) invoke(image, "getFrameDurations");
-            if (width <= 0 || height <= 0 || frameCount <= 0) {
-                throw new IllegalStateException("Invalid animated WebP dimensions or frame count");
-            }
-            if ((long) width * height * frameCount > MAX_PIXELS) {
-                throw new IllegalStateException("Animated WebP is too large to hold as a GIF");
-            }
+            validateWorkingMemory(width, height, frameCount);
 
             canvas = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
             Canvas painter = new Canvas(canvas);
@@ -68,8 +68,8 @@ final class AnimatedWebpGifConverter {
 
             List<GifEncoder.Frame> frames = new ArrayList<>(frameCount);
             for (int frameIndex = 0; frameIndex < frameCount; frameIndex++) {
-                // The one place in the loop that can notice the job's deadline or a cancel.
-                // The pixel cap bounds the memory, not the time: a small canvas with tens of
+                // The one place in the loop that can notice the job's deadline.
+                // The memory cap does not bound time: a small canvas with tens of
                 // thousands of frames passes it and then holds one of the three media worker
                 // threads for as long as the decoding takes. The MP4 path checks the same way.
                 MediaBudget.check(null);
@@ -126,6 +126,18 @@ final class AnimatedWebpGifConverter {
         } finally {
             if (canvas != null) canvas.recycle();
             dispose(image);
+        }
+    }
+
+    static void validateWorkingMemory(int width, int height, int frameCount) {
+        if (width <= 0 || height <= 0 || frameCount <= 0) {
+            throw new IllegalStateException("Invalid animated WebP dimensions or frame count");
+        }
+        long canvasPixels = (long) width * height;
+        long fullCanvasSurfaces = (long) frameCount + 2L;
+        long maximumPixels = MAX_PIXEL_STORAGE_BYTES / ARGB_BYTES_PER_PIXEL / fullCanvasSurfaces;
+        if (canvasPixels > maximumPixels) {
+            throw new IllegalStateException("Animated WebP is too large to hold as a GIF");
         }
     }
 

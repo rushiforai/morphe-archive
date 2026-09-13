@@ -59,6 +59,7 @@ public class NumberInputPreference extends EditTextPreference {
         setKey(setting.key);
         setValue(String.valueOf(clamp(setting.get())));
         getEditText().setInputType(InputType.TYPE_CLASS_NUMBER);
+        getEditText().setHint(L10n.t(context, "Enter a number"));
     }
 
     /**
@@ -142,6 +143,7 @@ public class NumberInputPreference extends EditTextPreference {
                 SettingsUi.textPrimary(),
                 android.graphics.Typeface.BOLD
         );
+        SettingsUi.markDialogHeading(title);
         dialogView.addView(title, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -155,12 +157,17 @@ public class NumberInputPreference extends EditTextPreference {
                     SettingsUi.textSecondary(),
                     android.graphics.Typeface.NORMAL
             );
-            LinearLayout.LayoutParams summaryParams = new LinearLayout.LayoutParams(
+            android.widget.ScrollView scroller = new android.widget.ScrollView(context);
+            scroller.setFillViewport(false);
+            scroller.addView(summary, new android.widget.FrameLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT
+            ));
+            LinearLayout.LayoutParams summaryParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f
             );
             summaryParams.setMargins(0, SettingsUi.dp(context, 14), 0, SettingsUi.dp(context, 10));
-            dialogView.addView(summary, summaryParams);
+            dialogView.addView(scroller, summaryParams);
         }
 
         EditText editText = getEditText();
@@ -189,7 +196,7 @@ public class NumberInputPreference extends EditTextPreference {
         // budget is locked, and that refusal used to arrive after the dialog had closed.
         SettingsUi.keepOpenOnInvalidInput(getDialog(), new SettingsUi.DialogCheck() {
             @Override public String problem() {
-                return null;
+                return typedProblem(getEditText().getText().toString());
             }
 
             @Override public void report(String problem) {
@@ -224,6 +231,13 @@ public class NumberInputPreference extends EditTextPreference {
      */
     private boolean saveTypedValue() {
         String typed = getEditText().getText().toString();
+        String problem = typedProblem(typed);
+        if (problem != null) {
+            getEditText().setError(problem);
+            app.morphe.extension.shared.Utils.showToastShort(problem);
+            return false;
+        }
+        getEditText().setError(null);
         int value = parseAndClamp(typed);
         String text = String.valueOf(value);
         if (!callChangeListener(text)) return false;
@@ -233,6 +247,15 @@ public class NumberInputPreference extends EditTextPreference {
         sayIfPulledIntoRange(typed, value);
         setValue(text);
         return true;
+    }
+
+    private String typedProblem(String typed) {
+        try {
+            Integer.parseInt(typed.trim());
+            return null;
+        } catch (Exception unreadable) {
+            return L10n.t(getContext(), "Enter a number. The previous value was kept.");
+        }
     }
 
     /**

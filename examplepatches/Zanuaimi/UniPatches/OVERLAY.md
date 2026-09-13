@@ -170,42 +170,58 @@ it adds its selected app-specific profile and modules to the Universal bridge re
 same patch run. If Universal did not inject a bridge, HCR fails instead of producing a partial
 overlay patch.
 
-`Configure App Ads Patch ( Experimental, Enhanced, Has Overlay Addon )` includes an optional overlay
-addon. Its three overlay addon modules are `Block Ads`, `Rewards without ads`, and `Block ad/tracking
+`Control App Ads Patch ( Experimental, Enhanced, Has Overlay Addon )` includes an optional overlay
+addon. Its three overlay addon modules are `Block Ads`, `Ads Free Rewards`, and `Block Ads / Tracking
 hosts`. They expose session-local runtime controls through the shared overlay and start with values
-copied from the Ads patch settings. Enable the addon and choose its modules in the Ads settings,
+copied from the Ads patch settings. The Ads patch has separate `Enable No Ads`, `Enable Ads Free
+Rewards`, and `Enable Block Ads / Tracking Hosts` master switches. The first two masters control
+whether their matching runtime modules are exposed. The host module only requires runtime policy,
+while its master controls its initial enabled state. Enable the addon and choose its modules in the Ads settings,
 then select Universal Overlay or an app-specific overlay patch. The complete user flow is:
 
-1. Select `Configure App Ads Patch ( Experimental, Enhanced, Has Overlay Addon )` and `UniPatches Universal Overlay Patch`, or select the HCR
+1. Select `Control App Ads Patch ( Experimental, Enhanced, Has Overlay Addon )` and `UniPatches Universal Overlay Patch`, or select the HCR
    companion together with Universal Overlay when building the HCR example. App-specific companions
    add modules to Universal; they do not install a second shared overlay bridge.
-2. In Configure App Ads, enable `Overlay integration > Enable runtime controls`.
-3. Under `Overlay integration > Runtime controls`, enable `Block Ads`, `Rewards without ads`,
-   and/or `Block ad/tracking hosts`. These module switches are disabled by default. The Rewards
-   without ads runtime control also requires `Rewards without ads > Enable`.
+2. In Control App Ads, enable `Overlay integration > Enable runtime controls`.
+3. Under `Overlay integration > Runtime controls`, enable `Block Ads`, `Ads Free Rewards`,
+   and/or `Block Ads / Tracking Hosts`. These module switches are disabled by default. `Block Ads`
+   requires `Enable No Ads`, and `Ads Free Rewards` requires `Enable Ads Free Rewards`; disabling
+   either master prevents its runtime module from being exposed. The host module requires only
+   runtime policy and starts according to `Enable Block Ads / Tracking Hosts`. The runtime controls
+   mirror the relevant Ads patch settings initially.
 4. Patch the APK. Control App Ads initializes the session policy from its ordinary settings during
-   Application startup; the overlay reads that policy when its menu opens. The two patches do not
-   depend on patch ordering.
+   Application startup, and the overlay reads that policy when its menu opens. The two patches do
+   not depend on patch ordering. If runtime controls are enabled without selecting any runtime
+   module, the request is logged and normal permanent patching is used instead.
 5. Open the overlay. A section named `Ad control hook modules` appears only when the policy was
    initialized and at least one runtime module was selected. Use its Settings popup or checkbox to
    change the policy for the current app process.
 
-The runtime module is an optional bridge, not a second ad patch. Its initial format, reward, and
-host values copy Control App Ads, while later changes are session-local and reset when the process
-restarts. Only SDK methods, availability checks, and literal hosts successfully instrumented by
-Control App Ads can respond; native, encrypted, dynamically generated, or unsupported paths remain
-unchanged. If no overlay patch is selected, Control App Ads still applies its normal static changes,
-but no runtime menu can be displayed. The Ads Free Rewards module can change matched availability
-and policy guards, but it cannot create a missing SDK-specific reward callback.
+The runtime module is an optional bridge, not a second ad patch. When runtime controls are enabled
+with at least one selected module, static behavior is replaced by guarded instrumentation for the
+selected capabilities and the initial control values mirror the corresponding Control App Ads
+settings. The selected runtime module controls which instrumented paths are policy-aware; unrelated
+SDK initialization and unsupported paths retain their original behavior. Later changes are
+session-local and reset when the process restarts. If runtime controls are enabled without modules,
+the patch falls back to ordinary permanent behavior and logs that decision. Only SDK methods,
+availability checks, and literal hosts successfully instrumented by Control App Ads can respond;
+native, encrypted, dynamically generated, or unsupported paths remain unchanged. If no overlay patch
+is selected, Control App Ads still applies its normal static changes, but no runtime menu can be
+displayed. The Ads Free Rewards module can change matched availability and policy guards, but it
+cannot create a missing SDK-specific reward callback.
 
-The patch-time handoff is implemented by `OverlayAdsRuntimeIntegration.kt`. Control App Ads queues
+The patch-time coordination is implemented by `OverlayAdsRuntimeIntegration.kt`. Control App Ads queues
 its serialized policy, and the selected overlay consumes it at the same bridge target. If the overlay
 patch runs first, `OverlayInjection.kt` records the exact owner, method, and parameter signature;
 Control App Ads then attaches its configuration call only when the patching context is the same.
 This prevents the two patches from independently guessing different Activities. If no compatible
-handoff target exists, normal static Ads changes remain safe and runtime controls are not exposed.
+bridge target exists, normal static Ads changes remain safe and runtime controls are not exposed.
 `AdsRuntimePolicy.java` is the process-local policy store; it is configured before an app-specific
-Activity overlay is shown and is not persistent.
+Activity overlay is shown and is not persistent. For an Application bridge, the policy is configured
+after the Application superclass startup completes so SDK initialization runs with original behavior.
+The Ads provider is registered by `OverlayRuntime`, and its modules are added only when the decoded
+policy is integrated and contains a selected module bit. Malformed policies fail open and produce no
+Ads modules.
 
 `Import UI preset` accepts a path to a JSON file and is used only in Custom mode. A valid supported
 preset overrides the visible settings during patching; an empty, unreadable, malformed, or
@@ -234,6 +250,7 @@ This is the Morphe patch entry point. It:
 - serializes configuration into a Base64-delimited payload;
 - includes the extension DEX through extensions/extension.mpe;
 - finds the real Application onCreate method when possible;
+- configures the optional Ads Runtime Policy after Application superclass startup completes;
 - injects a small bridge call using safe temporary registers;
 - falls back to a suitable Activity onCreate method when an Application entry point is unavailable.
 
@@ -248,7 +265,7 @@ App-specific patch entries should call these helpers rather than implementing a 
 
 patches/src/main/kotlin/unipatches/overlay/OverlayAdsRuntimeIntegration.kt
 
-This is the patch-process-only handoff between Control App Ads and an overlay patch. It stores the
+This is the patch-process-only coordination layer between Control App Ads and an overlay patch. It stores the
 pending policy and exact bridge identity temporarily; it does not become part of the patched APK.
 
 patches/src/main/kotlin/unipatches/overlay/OverlayConfigPayload.kt
@@ -283,7 +300,7 @@ UniPatches
 |   `-- UniversalOverlayPatch.kt       Morphe settings and safe injection bridge
 |   |-- HillClimbRacingOverlayExamplePatch.kt app-specific shared-core example
 |   |-- OverlayInjection.kt             shared bridge injection and fallback helpers
-|   |-- OverlayAdsRuntimeIntegration.kt patch-process Ads policy handoff
+|   |-- OverlayAdsRuntimeIntegration.kt patch-process Ads policy coordination
 |   |-- presets/OverlayPreset.kt         Shared preset model and value builder
 |   |-- presets/OverlayPresetCatalog.kt Central preset registry
 |   |-- presets/UniPatchesPreset.kt     UniPatches preset
@@ -317,7 +334,8 @@ UniPatches
         |-- OverlaySessionState.java   process-session values for action-module settings
         |-- activity/                            Activity implementations
         |-- statistic/                           statistic implementations
-        `-- hook/                                hook implementations
+        |-- hook/                                hook implementations
+        `-- ads/                                 integrated Ads runtime provider and modules
 ```
 
 Module inheritance is intentionally separated by responsibility:

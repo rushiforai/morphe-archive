@@ -49,27 +49,13 @@ public class AnimatedWebpMp4ConverterTest {
                 AnimatedWebpMp4Converter.validateFrame(100, 100, 1, 1, -1, 0));
     }
 
-    @Test public void drainingStopsWhenTheJobIsCancelled() throws Exception {
-        // The encoder and muxer are null on purpose: reaching either of them means the budget
-        // check is not the first thing the loop body does, which is the whole fix.
-        Thread.currentThread().interrupt();
-        try {
-            AnimatedWebpMp4Converter.drainEncoder(null, null, true, new AnimatedWebpMp4Converter.EncoderState());
-            fail("the drain loop ran with the job already cancelled");
-        } catch (java.io.InterruptedIOException cancelled) {
-            assertEquals("Media job cancelled", cancelled.getMessage());
-        } finally {
-            Thread.interrupted();
-        }
-    }
-
     @Test public void drainingStopsWhenTheJobDeadlineHasPassed() throws Exception {
         withExpiredDeadline(() -> {
             try {
                 AnimatedWebpMp4Converter.drainEncoder(null, null, true, new AnimatedWebpMp4Converter.EncoderState());
                 fail("the drain loop ran past the job deadline");
             } catch (java.io.InterruptedIOException wrong) {
-                fail("reported cancellation for an expired deadline");
+                fail("reported an interrupted transfer for an expired deadline");
             } catch (java.io.IOException expired) {
                 assertEquals("Media job deadline exceeded", expired.getMessage());
             }
@@ -78,9 +64,9 @@ public class AnimatedWebpMp4ConverterTest {
 
     @Test public void aLiveJobIsNotStoppedByTheNewCheck() {
         // Without this the two tests above would pass just as well against a loop that always
-        // threw. A live, uncancelled job has to get past the check and reach the encoder, which
+        // threw. A live job has to get past the check and reach the encoder, which
         // here is null, so the failure has to be the null encoder and not an IOException.
-        assertFalse("the drain loop refused a job that is neither cancelled nor out of time",
+        assertFalse("the drain loop refused a job that is still within its deadline",
                 Thread.currentThread().isInterrupted());
         assertThrows(NullPointerException.class, () ->
                 AnimatedWebpMp4Converter.drainEncoder(null, null, true, new AnimatedWebpMp4Converter.EncoderState()));

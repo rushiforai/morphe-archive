@@ -38,6 +38,10 @@ import app.morphe.patcher.patch.rawResourcePatch
  * - Function #19759 (checkShowPopupUpsellModal, 428 bytes) at offset 0x00FC65D3.
  * - Change the final `true` returns to `false`.
  *   (Identical byte pattern to rc92/rc93; bundle offset shifted.)
+ * - Function #21661 (checkForUpdate, 43 bytes) at offset 0x010312E5.
+ * - Disable OTA hot-updater: replace function prologue with LoadConstNull r1; Ret r1.
+ *   This prevents Sankaku from downloading a new JS bundle that would override the above patches.
+ *   The 14-byte prefix is unique in the bundle. Bytes 4-13 are retained as dead code.
  */
 @Suppress("unused")
 val disableInfinitePopupPatch = rawResourcePatch(
@@ -114,6 +118,21 @@ val disableInfinitePopupPatch = rawResourcePatch(
             0x96.toByte(), 0x02, 0x76, 0x02,
         )
 
+        // rc96: disable the hot-updater checkForUpdate (#21661) so it returns null immediately.
+        // This prevents Sankaku from downloading a new OTA bundle that would override our patches.
+        // Function at 0x010312E5 (43 bytes). The 14-byte prefix is unique; bytes 4-13 are dead code.
+        val rc96CheckForUpdateTargetPattern = byteArrayOf(
+            0x93.toByte(), 0x01, 0x89.toByte(), 0x03, 0x00, 0x34, 0x02, 0x00,
+            0x3B, 0x02, 0x02, 0x05, 0x44, 0x04,
+        )
+
+        val rc96CheckForUpdateReplacementPattern = byteArrayOf(
+            0x94.toByte(), 0x01,               // LoadConstNull r1
+            0x76, 0x01,                        // Ret r1  (returns null; caller awaits null → no update)
+            0x00, 0x34, 0x02, 0x00,            // dead code (original bytes 4-7, retained for size parity)
+            0x3B, 0x02, 0x02, 0x05, 0x44, 0x04, // dead code (original bytes 8-13)
+        )
+
         val rc91TargetPattern = byteArrayOf(
             0x29, 0x00, 0x00,              // GetEnvironment r0, 0
             0x2E.toByte(), 0x01, 0x00, 0x03, // LoadFromEnvironment r1, r0, 3
@@ -127,10 +146,11 @@ val disableInfinitePopupPatch = rawResourcePatch(
         )
 
         val patchTargets = listOf(
-            // rc96: showPopupUpsell Addr8 returned to 0x70 (same as rc92); checkShowPopupModal unchanged.
+            // rc96: same showPopup/checkShowPopup patterns as rc92; plus OTA update disabler.
             "4.26-rc96" to listOf(
                 BundlePatch("showPopupUpsell early return", rc92ShowPopupTargetPattern, rc92ShowPopupReplacementPattern),
                 BundlePatch("checkShowPopupUpsellModal returns false", rc92CheckPopupTargetPattern, rc92CheckPopupReplacementPattern),
+                BundlePatch("disable hot-updater checkForUpdate", rc96CheckForUpdateTargetPattern, rc96CheckForUpdateReplacementPattern),
             ),
             "4.25-rc93" to listOf(
                 BundlePatch("showPopupUpsell early return", rc93ShowPopupTargetPattern, rc93ShowPopupReplacementPattern),

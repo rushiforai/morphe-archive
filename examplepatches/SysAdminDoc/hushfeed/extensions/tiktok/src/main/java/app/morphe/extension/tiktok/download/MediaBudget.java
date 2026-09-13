@@ -2,7 +2,6 @@ package app.morphe.extension.tiktok.download;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.net.SocketTimeoutException;
 
 /** Shared transfer, disk and deadline limits for extension-owned media jobs. */
@@ -38,9 +37,6 @@ final class MediaBudget {
 
     static void check(Deadline deadline) throws IOException {
         if (deadline == null) deadline = CURRENT_DEADLINE.get();
-        if (Thread.currentThread().isInterrupted()) {
-            throw new InterruptedIOException("Media job cancelled");
-        }
         if (deadline != null && deadline.expired()) {
             throw new IOException("Media job deadline exceeded");
         }
@@ -58,15 +54,6 @@ final class MediaBudget {
     static boolean isRetryableTransport(Throwable error) {
         for (Throwable current = error; current != null; current = current.getCause()) {
             if (current instanceof SocketTimeoutException || current instanceof java.net.ConnectException) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    static boolean isCancellation(Throwable error) {
-        for (Throwable current = error; current != null; current = current.getCause()) {
-            if (current instanceof InterruptedIOException && !(current instanceof SocketTimeoutException)) {
                 return true;
             }
         }
@@ -137,7 +124,7 @@ final class MediaBudget {
             Thread.sleep(delay);
         } catch (InterruptedException error) {
             Thread.currentThread().interrupt();
-            throw new InterruptedIOException("Media job cancelled");
+            throw new IOException("Media retry interrupted", error);
         }
         check(deadline);
     }

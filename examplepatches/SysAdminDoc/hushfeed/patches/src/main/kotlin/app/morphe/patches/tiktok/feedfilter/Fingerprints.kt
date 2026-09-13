@@ -7,6 +7,7 @@ package app.morphe.patches.tiktok.feedfilter
 import app.morphe.patcher.Fingerprint
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
@@ -135,6 +136,36 @@ internal object ColdStartCachedFeedFingerprint : Fingerprint(
                 it.getReference<FieldReference>()?.type ==
                 "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;"
         } == 4
+    },
+)
+
+/** Names TikTok's cache-result data class without depending on its R8 descriptor. */
+internal object CacheResultClassFingerprint : Fingerprint(
+    name = "toString",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Ljava/lang/String;",
+    parameters = emptyList(),
+    strings = listOf("CacheLoadResult(success="),
+)
+
+/**
+ * Newer cache providers pass every result through this normalizer before a callback sees it.
+ * The result and helper descriptors move with R8; Aweme's survey cleanup method does not.
+ */
+internal object CacheResultNormalizerFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "V",
+    custom = custom@{ method, _ ->
+        if (method.parameterTypes.size != 1) return@custom false
+
+        method.implementation?.instructions?.count { instruction ->
+            instruction.getReference<MethodReference>()?.let { reference ->
+                reference.definingClass == AWEME_DESCRIPTOR &&
+                    reference.name == "clearSurveyInfoForCacheConsume" &&
+                    reference.parameterTypes.isEmpty() &&
+                    reference.returnType == "V"
+            } == true
+        } == 2
     },
 )
 
@@ -345,9 +376,26 @@ internal object FriendsFeedSuccessFingerprint : Fingerprint(
 
 internal object TakoAiFeedButtonSetVisibleFingerprint : Fingerprint(
     definingClass = "/feed/assem/tikbot/TakoAssem;",
-    name = "bq",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
     parameters = listOf("Z"),
+    strings = listOf("right_container_chat_gpt"),
+    custom = { method, _ ->
+        val references = method.implementation?.instructions
+            ?.mapNotNull { it.getReference<MethodReference>() }
+            ?: emptyList()
+        references.any { reference ->
+            reference.definingClass == "Landroid/view/View;" &&
+                reference.name == "getVisibility" &&
+                reference.parameterTypes.isEmpty() &&
+                reference.returnType == "I"
+        } && references.any { reference ->
+            reference.definingClass == "Landroid/view/View;" &&
+                reference.name == "isShown" &&
+                reference.parameterTypes.isEmpty() &&
+                reference.returnType == "Z"
+        }
+    },
 )
 
 internal object FollowFeedPresenterPostProcessFingerprint : Fingerprint(
@@ -399,11 +447,19 @@ internal object SpecActTouchpointAttachFingerprint : Fingerprint(
     parameters = listOf("Landroid/view/ViewGroup;", "Landroidx/fragment/app/Fragment;"),
 )
 
+private val REC_USER_CARD_PARAMETERS =
+    listOf("I", "Ljava/util/List;", "Ljava/lang/String;", "Lkotlin/jvm/functions/Function0;").sorted()
+
+/** The semantic method shape survives R8 reordering its List and String parameters. */
+internal fun Method.isRecUserCardInsertion() =
+    parameterTypes.map(CharSequence::toString).sorted() == REC_USER_CARD_PARAMETERS
+
 /** Builds the friend recommendation card; a null result is the app's own "nothing to insert". */
 internal object RecUserCardInsertFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Lkotlin/Pair;",
-    parameters = listOf("I", "Ljava/util/List;", "Ljava/lang/String;", "Lkotlin/jvm/functions/Function0;"),
     strings = listOf("friend_recommend_card"),
+    custom = { method, _ -> method.isRecUserCardInsertion() },
 )
 
 /** Loads the Lynx view behind an inserted card, which happens before any list filter runs. */

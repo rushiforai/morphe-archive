@@ -1,3 +1,35 @@
+## 0.30.1
+
+* TikTok's own Photo Mode save now gives every image its own `{index}` number instead of naming the whole slideshow as image 1. This also prevents later photos replacing the first one on Android 6 through 9. Animated WebP to GIF conversion now budgets the canvas and decoded frame alongside the stored frame pixels, which cuts the worst pixel allocation from about 100 MiB to 32 MiB before encoder overhead. Turning off Keep captions in clear display removes its overlay and layout observer immediately. Media jobs keep their two minute deadline without carrying a cancel path that no shipped control could call.
+
+* Creator identity now uses the same canonical value for equality and hash collections. Fire-and-forget background and main-thread callbacks report every failure instead of letting an Error escape into TikTok. Android API checks now cover the full shared and settings source rather than being disabled for two whole files, the TikTok stub matches the app's API 23 floor and has its own namespace, and artifact verification rejects any DEX payload with no classes.
+
+* Silent reflection failures now reach Hook status for CAPTCHA account checks, external browser handoff, sticker source adapters and story saves. Each feature keeps its existing fallback, while a renamed required class, method or field identifies the affected family and member in Diagnostics.
+
+* The dark and light Included diagnostics screenshots now come from the shipped preference. Both show its eight real choices and Apply and Cancel actions. The capture test rejects a missing choice or the return of the invented Done button.
+
+* The Feature Gate Lab filter now uses the same themed radio rows as the other settings pickers. Rows stay fully readable while selecting several gates. Exporting before values have loaded says why it cannot start, and a selected import keeps going if the Lab closes while its file is being read. The Lab itself now appears when its title or description is entered in Settings search.
+
+* Numeric dialogs let long descriptions scroll without squeezing out the field, and an empty number stays open with a clear explanation. The sticker save button follows the current text colors when TikTok gives it no text button to copy. Clearing diagnostic data can be undone with the next tap, including buffered events, saved crashes and hook findings.
+
+* Feature Gate Lab saves now confirm when they finish, and disabled values have a visible muted state. Its custom actions are announced as buttons, source tabs report the selected tab from the focused control, and filtered lists in the Lab and settings announce their result count. Creator removal says which entry was removed and moves focus to the next action. Number fields now carry a hint, and custom dialog titles are marked as headings for screen readers.
+
+* Hooks that change a value as TikTok returns it now keep the return's branch label on the hook. A direct jump to that return can no longer skip Hushfeed's filter, setting override, diagnostic callback or UI attachment. The same rule now covers every current return hook, including ones added after the original audit.
+
+* Settings no longer unpacks the APK just to find the Hushfeed row's gear icon. The patch reads the icon from TikTok's own Ad Browser settings action, following the method that the stable icon renderer calls. Ordinary patch jobs can now stay in bytecode-only mode. The full resource rewrite still runs when the optional AMOLED theme is selected.
+
+* Feed filtering follows TikTok's rebuilt cache delivery on 46.7.3 and 46.8.3. Cached videos now pass through the same filters before either new callback wrapper sees them, including the local seen-video history. The older 46.2.3 chain stays supported. A rejected reach-bottom cache result is also marked unsuccessful, so TikTok asks the next source for a video instead of treating the rejected one as delivered. The friend recommendation-card selector now tolerates TikTok swapping its String and List parameters, and the Tako button selector follows stable view behavior instead of its changing method name.
+
+* Hide quick comment reactions works on TikTok 46.8.3 after TikTok removed the experiment the patch used to change. The reaction row still exists, but an Aweme check now decides whether to show it. The patch follows the row itself and applies the setting to every native visibility change, which also keeps 46.2.3 and 46.7.3 working without their old experiment name.
+
+* The project page now opens with a 1600 by 900 hero built around the approved H and current native settings screens. The artwork carries no release number, so a routine version bump cannot make it stale.
+
+* The README puts the Morphe source link, latest bundle, settings tour and patch list near the top. Its feature overview is shorter, the exact supported TikTok build is harder to miss, and the release link points at the current bundle.
+
+* The previous header, both finished hero layouts, README-width previews, fresh offscreen screenshots and rejected mark studies now live in the marketing concept archive. A regression test keeps the selected hero first, prevents a second copy, checks its dimensions and locks the approved H to the supplied file.
+
+* The release gate now checks the published bundle against the version tag during the final index push. The index is committed after the artifact exists, so comparing the bundle to that later commit rejected a correct release.
+
 ## 0.30.0
 
 * Fit the video to the screen now works on the For You feed. The feed cell never sized its video through the method the patch hooked; it hands the size to a helper of its own, and that helper is what the patch reaches now, on every build seen. A fitted video is handed back as a copy of TikTok's own answer, so the size the feed applies and the size it checks against are the same one. The story cell's own path is still covered, and the copy it keeps is looked up by the object rather than by its numbers, which a size change had moved out from under.

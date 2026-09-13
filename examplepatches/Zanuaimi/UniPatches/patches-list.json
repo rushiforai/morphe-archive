@@ -1,9 +1,10 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.17.4",
+  "version": "1.20.2",
   "patches": [
     {
       "name": "Bypass Emulator Detection",
+      "category": "Bypass Emulator Detection",
       "description": "Hides common emulator traces by spoofing Build info and related checks so apps are less likely\nto identify an emulator. This patch is marked for enhancement in future updates; coverage is\ncurrently limited to the checks it can safely recognize.\n\nCompatibility: PairIP Bypass and other server-side integrity systems can still reject a\ndevice when entitlement is bound to genuine device signals, package identity, or attestation.\nCombining spoofing with those patches is app-specific and cannot safely bypass remote checks.\n\nCredits: Nai64Patches from Nai64.",
       "default": false,
       "dependencies": [],
@@ -26,6 +27,7 @@
     },
     {
       "name": "Bypass Forced Updates (Experimental)",
+      "category": "Bypass Forced Updates",
       "description": "Try to bypass high-confidence client-side forced-update screens. Start with the defaults;\neach option handles a different part of an update flow. This cannot bypass a server that\nrefuses old app versions, and an unsupported app may still require an update.",
       "default": false,
       "dependencies": [],
@@ -70,28 +72,25 @@
       ]
     },
     {
-      "name": "Configure App Ads Patch ( Experimental, Enhanced, Has Overlay Addon )",
-      "description": "A merged ad-control patch based on Nai64's No Ads and Ads Free Rewards patches, plus\nliteral-host blocking inspired by Entree and Adobo. Block common ad formats, choose the\nSDKs to target, optionally grant ad rewards without an ad, and redirect matching literal\nad/tracker hosts embedded in the APK.\n\nHost filters are small embedded subsets inspired by uBlock Origin, EasyList, AdGuard,\nOISD, HaGeZi Pro mini, Privacy Essentials, EasyPrivacy, and Peter Lowe's list; they are\nnot downloaded full subscriptions. Each filter is independently toggleable. They only\naffect hosts stored as literal strings by the app; they cannot block dynamically generated\nhosts, encrypted traffic, or requests made entirely inside Google Play services.\n\nCompatibility: when combined with Disable Forced Online Checks, keep that patch's “Exclude\nad SDK and networking code” option enabled; otherwise blocked ad hosts may be treated as\nonline and retried. PairIP Firebase cleanup/removal can disable Firebase-backed reward,\nsign-in, billing, and attribution flows, which this patch cannot restore.\n\nThis patch includes an optional Universal Overlay addon. To use the addon, patch Configure App Ads\ntogether with Universal Overlay, enable “Overlay integration >\nEnable runtime controls”, and select one or more of its three overlay addon modules:\n“Block Ads”, “Rewards without ads”, and “Block ad/tracking hosts”. The selected modules\nappear under “Ad control hook modules” in Universal Overlay when selected. Host blocking\nstarts disabled for startup safety. Universal Overlay is required for the runtime policy to be\ninstalled; if it is not selected, the normal static ad controls still work but these\nruntime addon modules are not available.\nRuntime changes last for the current app process and affect only methods and literal hosts\nsuccessfully instrumented by this patch. Its policy is attached to the selected overlay's\nown startup bridge, including a manual Activity override; it does not independently choose\nan Application or Activity. Native, dynamically generated, unsupported, or unrecognized\nSDK paths remain unchanged.\n\nCredits: Nai64Patches from Nai64; host-blocking approach inspired by Entree and Adobo.",
+      "name": "Control App Ads Patch ( Experimental, Enhanced, Has Overlay Addon )",
+      "category": "Control App Ads Enhanced",
+      "description": "A merged ad-control patch based on Nai64's No Ads and Ads Free Rewards patches, plus\nliteral-host blocking inspired by Entree and Adobo. Block common ad formats, choose the\nSDKs to target, optionally grant ad rewards without an ad, and redirect matching literal\nad/tracker hosts embedded in the APK.\n\nHost filters are small embedded subsets inspired by uBlock Origin, EasyList, AdGuard,\nOISD, HaGeZi Pro mini, Privacy Essentials, EasyPrivacy, and Peter Lowe's list; they are\nnot downloaded full subscriptions. Each filter is independently toggleable. They only\naffect hosts stored as literal strings by the app; they cannot block dynamically generated\nhosts, encrypted traffic, or requests made entirely inside Google Play services.\n\nCompatibility: when combined with Disable Forced Online Checks, keep that patch's “Exclude\nad SDK and networking code” option enabled; otherwise blocked ad hosts may be treated as\nonline and retried. PairIP Firebase cleanup/removal can disable Firebase-backed reward,\nsign-in, billing, and attribution flows, which this patch cannot restore.\n\nThis patch includes an optional Universal Overlay addon. To use the addon, patch Control App Ads\ntogether with Universal Overlay, enable “Overlay integration >\nEnable runtime controls”, and select one or more of its three overlay addon modules:\n“Block Ads”, “Ads Free Rewards”, and “Block ad/tracking hosts”. The selected modules\nappear under “Ad control hook modules” in Universal Overlay when selected. Host blocking\nstarts according to the Enable Block Ads / Tracking Hosts master setting. Universal Overlay is required for the runtime policy to be\ninstalled; if it is not selected, the normal static ad controls still work but these\nruntime addon modules are not available.\nRuntime changes last for the current app process and affect only methods and literal hosts\nsuccessfully instrumented by this patch. Its policy is attached to the selected overlay's\nown startup bridge, including a manual Activity override; it does not independently choose\nan Application or Activity. Native, dynamically generated, unsupported, or unrecognized\nSDK paths remain unchanged.\n\nCredits: Nai64Patches from Nai64; host-blocking approach inspired by Entree and Adobo.",
       "default": false,
       "dependencies": [],
       "compatiblePackages": null,
       "options": [
         {
-          "key": "preset",
-          "title": "Quick setup > 1. Choose ad policy",
-          "description": "Start here. Recommended blocks common ads but keeps rewarded flows available. Aggressive also blocks rewarded ads. Choose Custom only when you want to select each ad format below.",
+          "key": "enableNoAds",
+          "title": "Enable No Ads",
+          "description": "Enable permanent or runtime-controlled blocking for the selected ad formats below.",
           "required": false,
-          "type": "kotlin.String",
-          "default": "recommended",
-          "values": {
-            "Recommended (keep rewarded)": "recommended",
-            "Aggressive (block all)": "aggressive",
-            "Custom": "custom"
-          }
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
         },
         {
           "key": "blockInterstitials",
-          "title": "Quick setup > 2. Ad formats > Block interstitial ads",
+          "title": "Ad formats > Block interstitial ads",
           "description": "Full-screen ads between levels or menus. Safe to block in most apps.",
           "required": false,
           "type": "kotlin.Boolean",
@@ -100,7 +99,7 @@
         },
         {
           "key": "blockBanners",
-          "title": "Quick setup > 2. Ad formats > Block banner ads",
+          "title": "Ad formats > Block banner ads",
           "description": "Thin banners at top/bottom. Safe to block; rarely breaks layout.",
           "required": false,
           "type": "kotlin.Boolean",
@@ -109,7 +108,7 @@
         },
         {
           "key": "blockAppOpen",
-          "title": "Quick setup > 2. Ad formats > Block app-open ads",
+          "title": "Ad formats > Block app-open ads",
           "description": "Ads on cold start. Block to skip the launch ad.",
           "required": false,
           "type": "kotlin.Boolean",
@@ -118,7 +117,7 @@
         },
         {
           "key": "blockMRec",
-          "title": "Quick setup > 2. Ad formats > Block MREC ads",
+          "title": "Ad formats > Block MREC ads",
           "description": "Medium rectangles (300x250) inside feeds. Safe to block.",
           "required": false,
           "type": "kotlin.Boolean",
@@ -127,8 +126,8 @@
         },
         {
           "key": "blockRewarded",
-          "title": "Quick setup > 2. Ad formats > Block rewarded ads",
-          "description": "Rewarded video  -  disable if you use Ads Free Rewards, otherwise progress gates may break. Enable only to fully remove rewarded ads.",
+          "title": "Ad formats > Block rewarded ads",
+          "description": "Rewarded video. Disable if you use Ads Free Rewards, otherwise progress gates may break. Enable only to fully remove rewarded ads.",
           "required": false,
           "type": "kotlin.Boolean",
           "default": false,
@@ -136,7 +135,7 @@
         },
         {
           "key": "blockNative",
-          "title": "Quick setup > 2. Ad formats > Block native ads",
+          "title": "Ad formats > Block native ads",
           "description": "Native ads blended into feeds/lists. Enable for cleaner feeds (may leave empty placeholders).",
           "required": false,
           "type": "kotlin.Boolean",
@@ -144,17 +143,26 @@
           "values": null
         },
         {
-          "key": "adsFreeRewards",
-          "title": "Rewards without ads > Enable",
-          "description": "Try to complete supported rewarded-ad flows without showing an ad. Keep Block rewarded ads disabled: this option needs the reward flow to remain reachable.",
+          "key": "enableAdsFreeRewards",
+          "title": "Enable Ads Free Rewards",
+          "description": "Enable permanent or runtime-controlled Ads Free Rewards behavior for the three settings below.",
           "required": false,
           "type": "kotlin.Boolean",
-          "default": false,
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "adsFreeRewardsSkip",
+          "title": "Ads Free Rewards > Skip Rewarded Ads",
+          "description": "Do not show a supported rewarded ad after the user clicks its button. In runtime mode, this becomes the initial value of the overlay control.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
           "values": null
         },
         {
           "key": "adsFreeRewardsStrategy",
-          "title": "Rewards without ads > SDK strategy",
+          "title": "Ads Free Rewards > SDK strategy",
           "description": "Auto detects supported reward SDKs. Select one SDK only when Auto causes a problem in a specific app.",
           "required": false,
           "type": "kotlin.String",
@@ -170,8 +178,8 @@
         },
         {
           "key": "adsFreeRewardsInstant",
-          "title": "Rewards without ads > Grant reward immediately",
-          "description": "Grant the supported reward as soon as its ad flow is opened. Turn off only if an app expects the normal completion callback timing.",
+          "title": "Ads Free Rewards > Instant Rewards",
+          "description": "Give the supported reward immediately after the rewarded-ad button is clicked. If Skip Rewarded Ads is disabled, the ad can still be shown while the reward is granted immediately.",
           "required": false,
           "type": "kotlin.Boolean",
           "default": true,
@@ -179,8 +187,8 @@
         },
         {
           "key": "adsFreeRewardsAvailability",
-          "title": "Rewards without ads > Show unavailable reward buttons",
-          "description": "Make supported SDK availability checks report an ad as ready, so games still show their reward button after ad blocking.",
+          "title": "Ads Free Rewards > Fake Ad Availability",
+          "description": "Make supported SDK availability checks report an ad as available so the game can display its rewarded-ad button.",
           "required": false,
           "type": "kotlin.Boolean",
           "default": true,
@@ -277,9 +285,54 @@
           "values": null
         },
         {
-          "key": "adsSdkOther",
-          "title": "SDK coverage > Other supported SDKs",
-          "description": "Allow patches for detected StartApp, MoPub, Chartboost, InMobi, and Mintegral entry points.",
+          "key": "adsSdkStartApp",
+          "title": "SDK coverage > StartApp",
+          "description": "Allow detected StartApp interstitial entry points to be patched.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "adsSdkMoPub",
+          "title": "SDK coverage > MoPub",
+          "description": "Allow detected MoPub interstitial entry points to be patched.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "adsSdkChartboost",
+          "title": "SDK coverage > Chartboost",
+          "description": "Allow detected Chartboost interstitial entry points to be patched.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "adsSdkInMobi",
+          "title": "SDK coverage > InMobi",
+          "description": "Allow detected InMobi interstitial and rewarded entry points to be patched, including automatic reward availability checks.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "adsSdkMintegral",
+          "title": "SDK coverage > Mintegral",
+          "description": "Allow detected Mintegral interstitial entry points to be patched.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "enableBlockHosts",
+          "title": "Enable Block Ads / Tracking Hosts",
+          "description": "Enable permanent or runtime-controlled blocking for the host filters below.",
           "required": false,
           "type": "kotlin.Boolean",
           "default": true,
@@ -395,8 +448,8 @@
         },
         {
           "key": "adsRuntimeRewardsModule",
-          "title": "Overlay integration > Runtime controls > Rewards without ads",
-          "description": "Add one Rewards without ads settings control to Universal Overlay. The runtime addon enables only its safely instrumented reward paths; unsupported and native reward paths remain unchanged. Requires Enable runtime controls and Universal Overlay.",
+          "title": "Overlay integration > Runtime controls > Ads Free Rewards",
+          "description": "Add one Ads Free Rewards settings control to Universal Overlay. Its three controls mirror the Ads Free Rewards patch settings initially and affect only safely instrumented reward paths; unsupported and native reward paths remain unchanged. Requires Enable runtime controls and Universal Overlay.",
           "required": false,
           "type": "kotlin.Boolean",
           "default": false,
@@ -404,8 +457,8 @@
         },
         {
           "key": "adsRuntimeHostsModule",
-          "title": "Overlay integration > Runtime controls > Block ad/tracking hosts",
-          "description": "Add one host-blocking checkbox to the overlay. It starts disabled for startup safety and controls literal hosts instrumented by this patch after you opt in; encrypted or dynamically generated requests remain unchanged. Requires Enable runtime controls.",
+          "title": "Overlay integration > Runtime controls > Block Ads / Tracking Hosts",
+          "description": "Add one host-blocking checkbox to the overlay. Its initial state follows Enable Block Ads / Tracking Hosts and controls literal hosts instrumented by this patch; encrypted or dynamically generated requests remain unchanged. Requires Enable runtime controls.",
           "required": false,
           "type": "kotlin.Boolean",
           "default": false,
@@ -424,6 +477,7 @@
     },
     {
       "name": "Custom App Display Patch (Experimental, Enhanced)",
+      "category": "Custom App Display Enhanced",
       "description": "Adjust an APK's display compatibility: screen shape, Unity window-size request, preferred\nrefresh rate, Unity renderer preference, ANGLE preference, and Android game-category hint.\nStart with Display scaling. Android and the app can ignore any request.\n\nResolution and renderer overrides currently target Unity activities. Scaling removes Android\naspect-ratio restrictions where present; it cannot universally rescale every game engine.\n\nCustom App Resolution and game-optimization inspiration: Nai64Patches from Nai64.\nFrame-rate, graphics-driver, ANGLE, and aspect-ratio controls are UniPatches work.",
       "default": false,
       "dependencies": [
@@ -548,6 +602,7 @@
     },
     {
       "name": "Custom App Output Patch (Experimental, Enhanced)",
+      "category": "Custom App Output Enhanced",
       "description": "Customize an APK's install identity and launcher presentation in one patch. Start with the\nlauncher name or icon; enable Clone only when you need a side-by-side copy. Name, icon,\nhide-icon, and target-SDK options are\nindependent. This cannot preserve original-app data when a package or signing identity\nchanges. Clone mode rewrites supported manifest identifiers only; it does not rewrite\nbytecode strings, explicit process names, task affinities, or arbitrary SDK configuration.\nA clone has a new Android package identity and normally a new signing identity: package- or\ncertificate-bound OAuth, Firebase, Google Play Games, billing, deep links, and server\nlicenses may therefore not work and cannot be repaired safely by this patch. If PairIP\nBypass is also enabled, server/package-bound PairIP enforcement can still reject the clone.\n\nInspired by Nai64Patches from Nai64: Clone, Custom App Icon, Hide App Icon, and target\nSDK customization patches.",
       "default": false,
       "dependencies": [],
@@ -686,6 +741,7 @@
     },
     {
       "name": "Disable Forced Online Checks (Experimental)",
+      "category": "Bypass Forced Online Checks",
       "description": "Try to bypass high-confidence client-side “internet required” gates. Start with Auto mode.\nThis cannot bypass server-side login, entitlement, multiplayer, or game-state checks.\n\nCompatibility: Control App Ads can intentionally block ad hosts. Keep “Exclude ad SDK and\nnetworking code” enabled when both patches are selected so blocked ads are not falsely told\nthe device is online and repeatedly retried. This does not bypass server-enforced online play.",
       "default": false,
       "dependencies": [],
@@ -758,10 +814,11 @@
     },
     {
       "name": "Hill Climb Racing Example Overlay Addon",
+      "category": "Hill Climb Racing Example Overlay",
       "description": "Example overlay addon for Hill Climb Racing (com.fingersoft.hillclimb), used together with UniPatches Universal Overlay.\n        It adds six safe, mock-only app-specific preview modules to the shared overlay: A\n        - Add Coins\n        - Add Gems\n        - Add Paints \n        - Vehicle Selection\n        - Stage Selection\n        - Garage Selection. \n        All these six module options are enabled by default and can be disabled independently. \n        \n        Module settings and Preview actions are session-only; this example addon never reads or changes currencies, vehicles, stages, garage state, purchases, save files, or game bytecode.",
       "default": false,
       "dependencies": [
-        "UniPatches Universal Overlay Patch v2.4.2 (Experimental)"
+        "UniPatches Universal Overlay Patch v2.4.5 (Experimental)"
       ],
       "compatiblePackages": [
         {
@@ -841,6 +898,7 @@
     },
     {
       "name": "PairIP Bypass Patch (Experimental, Enhanced)",
+      "category": "PairIP Bypass Enhanced",
       "description": "A merged experimental PairIP bypass for common legacy, V2, and V3 protection layouts.\n\nAutomatic mode applies compatible strategies up to the selected risk level. It defaults to\nLow and Med Risk Strategies; that setting includes medium-risk strategies, while Low, Med,\nand High Risk Strategies also includes invasive high-risk strategies.\n\nTurn off automatic mode to test individual strategies. Manual selections are independent of\nthe automatic risk-level setting. Firebase auto-init disabling, Firebase component removal,\nand the LicenseClient FULL_CHECK_OK state strategy are manual-only: automatic mode ignores\nthem at every risk level, including “Low, Med, and High Risk Strategies.” Every manual\nstrategy is disabled by default.\n\nThis patch is experimental and app-dependent. It does not bypass server-side Play Integrity,\nserver-side licensing, or other server-side enforcement.\n\nCompatibility: cloned APKs can still fail when PairIP or a server binds entitlement to the\noriginal package or signing certificate. Firebase component removal can break Firebase Auth,\nGoogle Play Games, billing, analytics, and ad rewards. Device spoofing can also change apps'\ndevice-integrity behavior. These identity and server-side conditions cannot be fixed safely\nby combining PairIP Bypass with Custom App Output, Control App Ads, or Emulator Detection.\n\nThis enhanced patch is a merged product of the PairIP bypass patches from the credited\ndevelopers, with improvements for broader functionality, safer strategy selection, and usability.\n\nCredits: Nai64Patches from Nai64, Entree, kondratjev, and rushiranpise (Doom).",
       "default": false,
       "dependencies": [
@@ -1305,7 +1363,8 @@
       ]
     },
     {
-      "name": "UniPatches Universal Overlay Patch v2.4.2 (Experimental)",
+      "name": "UniPatches Universal Overlay Patch v2.4.5 (Experimental)",
+      "category": "★ Universal Overlay",
       "description": "A customizable in-app overlay for Android apps and games. For a quick first build: choose a visual\npreset, select the overlay modules you want, optionally supply an icon image, then patch. Modules\nare excluded and disabled by default. Monitor modules show information, Activity modules control\nthe current Activity, and Hook modules make best-effort changes to app behavior. Text is the\ndefault legacy icon; an optional image replaces it completely, while the advanced Multi-parts editor\nsupports custom drawn icons, and can be conveniently made in Icon Builder local website in UniPatches repo.\n\nThis is an experimental patch and may not work on all apps. UI presets can save and reuse supported appearance and advanced icon\nsettings. The title, description, repository button text, and repository button URL remain\ncontrolled by the visible Morphe settings. Module selections and module behavior are excluded\nbecause hook and module combinations can be app-specific. \n\nIf Control App Ads is patched with its optional runtime policy enabled, its selected ad-control modules appear here\nautomatically; Universal Overlay does not patch ad SDKs by itself. When both patches are\nselected, Control App Ads attaches its runtime policy to this overlay's exact startup bridge,\nincluding an explicit Activity override, instead of selecting a separate Activity.\n\nAttribution: The idea and initial works of Universal Overlay Patch are from Zanuaimi / Noobite.",
       "default": false,
       "dependencies": [

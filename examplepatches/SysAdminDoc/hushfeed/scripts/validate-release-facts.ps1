@@ -5,7 +5,9 @@
 .DESCRIPTION
     The generated patches-list.json is the local source for the release version, target
     package, target version and patch count. This check makes README.md, patches-bundle.json
-    and the recorded runtime test count agree before a release is published.
+    and the recorded runtime test count agree before a release is published. A guarded
+    preparation mode lets the source commit reach GitHub while the public index still points
+    at the previous working bundle. Published-asset verification remains strict.
 #>
 [CmdletBinding()]
 param(
@@ -29,7 +31,12 @@ param(
     # a README edit, which runs no tests) is not held to a run it had no reason to make; any
     # results that are there are still checked for age, completeness, failures and skips. A
     # release and a run by hand check everything.
-    [switch]$SkipDescriptionTestCount
+    [switch]$SkipDescriptionTestCount,
+    # A release source commit has to reach GitHub before its tag and bundle can be published.
+    # During that first push, the source version is newer while patches-bundle.json must still
+    # name the previous working release. The pre-push gate uses this only when the index itself
+    # did not change. Asset verification is refused until the index catches up.
+    [switch]$AllowPublishedIndexLag
 )
 
 $ErrorActionPreference = 'Stop'
@@ -162,10 +169,26 @@ if ($targetVersions.Count -ne 1) {
 }
 $targetVersion = $targetVersions[0]
 
-if ([string]$bundle.version -ne $releaseVersion) {
-    throw "patches-bundle.json version does not match $sourceVersion."
+$bundleVersion = [string]$bundle.version
+$indexLagsSource = $bundleVersion -ne $releaseVersion
+if ($indexLagsSource) {
+    if (-not $AllowPublishedIndexLag) {
+        throw "patches-bundle.json version does not match $sourceVersion."
+    }
+    if ($bundleVersion -notmatch '^\d+\.\d+\.\d+$') {
+        throw "patches-bundle.json has an invalid published version: $bundleVersion"
+    }
+    if ([version]$releaseVersion -le [version]$bundleVersion) {
+        throw ("patches-bundle.json may lag only while a newer release is being prepared. " +
+            "Source is $releaseVersion and the published index is $bundleVersion.")
+    }
+    if ($VerifyPublishedAsset) {
+        throw 'A source artifact cannot be checked against the previous published index. Publish the new release and update patches-bundle.json first.'
+    }
+    Write-Host ("[release] source $releaseVersion is being prepared while the working index remains on $bundleVersion")
 }
-Require-Match -Text ([string]$bundle.download_url) -Pattern "/v$([regex]::Escape($releaseVersion))/patches-$([regex]::Escape($releaseVersion))\.mpp$" -Description 'patches-bundle.json download URL'
+$publishedVersion = if ($indexLagsSource) { $bundleVersion } else { $releaseVersion }
+Require-Match -Text ([string]$bundle.download_url) -Pattern "/v$([regex]::Escape($publishedVersion))/patches-$([regex]::Escape($publishedVersion))\.mpp$" -Description 'patches-bundle.json download URL'
 
 # Matching the pattern only proves the index spells the version right. Reaching the address is
 # what catches an index pointed at a tag nobody published, which is how the bundle went missing
@@ -176,9 +199,17 @@ if ($assetUri.Scheme -ne 'https') {
     throw "The published bundle URL must use HTTPS: $($bundle.download_url)"
 }
 $assetName = [IO.Path]::GetFileName($assetUri.AbsolutePath)
-if ($assetName -ne "patches-$releaseVersion.mpp") {
-    throw "The published bundle URL names $assetName instead of patches-$releaseVersion.mpp."
+if ($assetName -ne "patches-$publishedVersion.mpp") {
+    throw "The published bundle URL names $assetName instead of patches-$publishedVersion.mpp."
 }
+if ($assetUri.Host -ne 'github.com') {
+    throw "The indexed bundle URL must be on github.com: $assetUri"
+}
+$segments = @($assetUri.AbsolutePath.Trim('/') -split '/')
+if ($segments.Count -lt 2) {
+    throw "Could not read an owner and repository out of the indexed bundle URL: $assetUri"
+}
+$slug = $segments[0] + '/' + $segments[1]
 if ($SkipUrlCheck) {
     Write-Host '[release] the indexed URL was not fetched because -SkipUrlCheck was given'
 } else {
@@ -187,8 +218,23 @@ if ($SkipUrlCheck) {
 Require-Match -Text $readme -Pattern "\b$patchCount patches\b" -Description 'README patch count'
 Require-Match -Text $readme -Pattern ([regex]::Escape($targetPackage)) -Description 'README package name'
 Require-Match -Text $readme -Pattern "TikTok\s+$([regex]::Escape($targetVersion))(?!\d)" -Description 'README target version'
-Require-Match -Text ([string]$bundle.description) -Pattern "\b$patchCount patches\b" -Description 'bundle description patch count'
-Require-Match -Text ([string]$bundle.description) -Pattern "$([regex]::Escape($targetVersion))(?!\d)" -Description 'bundle description target version'
+$descriptionVersion = $sourceVersion
+$descriptionPatchCount = $patchCount
+$descriptionTargetVersion = $targetVersion
+if ($indexLagsSource) {
+    $publishedPatchMatch = [regex]::Match([string]$bundle.description, '\b(\d+) patches\b')
+    $publishedTargetMatch = [regex]::Match([string]$bundle.description, 'TikTok\s+(\d+(?:\.\d+)+)')
+    if (-not $publishedPatchMatch.Success -or -not $publishedTargetMatch.Success) {
+        throw 'The published bundle description does not name its patch count and TikTok target.'
+    }
+    Require-Match -Text ([string]$bundle.description) -Pattern "\bv$([regex]::Escape($publishedVersion))\b" -Description 'published bundle description version'
+    $descriptionVersion = "v$publishedVersion"
+    $descriptionPatchCount = [int]$publishedPatchMatch.Groups[1].Value
+    $descriptionTargetVersion = $publishedTargetMatch.Groups[1].Value
+} else {
+    Require-Match -Text ([string]$bundle.description) -Pattern "\b$patchCount patches\b" -Description 'bundle description patch count'
+    Require-Match -Text ([string]$bundle.description) -Pattern "$([regex]::Escape($targetVersion))(?!\d)" -Description 'bundle description target version'
+}
 
 # The one line GitHub shows above the README, which is also what search results, the awesome
 # lists and the Manager's community button repeat. Nothing here read it until now, and it had
@@ -197,15 +243,6 @@ Require-Match -Text ([string]$bundle.description) -Pattern "$([regex]::Escape($t
 if ($SkipUrlCheck) {
     Write-Host '[release] the repository description was not read because -SkipUrlCheck was given'
 } else {
-    if ($assetUri.Host -ne 'github.com') {
-        throw "The indexed bundle URL is not on github.com, so the repository description cannot be checked: $assetUri"
-    }
-    $segments = @($assetUri.AbsolutePath.Trim('/') -split '/')
-    if ($segments.Count -lt 2) {
-        throw "Could not read an owner and repository out of the indexed bundle URL: $assetUri"
-    }
-    $slug = $segments[0] + '/' + $segments[1]
-
     if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
         throw ('The gh CLI is needed to read the repository description of ' + $slug +
             '. Install it, or pass -SkipUrlCheck to run the rest with no network.')
@@ -218,19 +255,19 @@ if ($SkipUrlCheck) {
     $description = $description.Trim()
 
     $wanted = @(
-        @{ Pattern = "\b$([regex]::Escape($sourceVersion))\b";  Wanted = $sourceVersion }
-        @{ Pattern = "\b$patchCount patches\b";                 Wanted = "$patchCount patches" }
-        @{ Pattern = "TikTok\s+$([regex]::Escape($targetVersion))(?!\d)"; Wanted = "TikTok $targetVersion" }
+        @{ Pattern = "\b$([regex]::Escape($descriptionVersion))\b"; Wanted = $descriptionVersion }
+        @{ Pattern = "\b$descriptionPatchCount patches\b"; Wanted = "$descriptionPatchCount patches" }
+        @{ Pattern = "TikTok\s+$([regex]::Escape($descriptionTargetVersion))(?!\d)"; Wanted = "TikTok $descriptionTargetVersion" }
     )
     $missing = @($wanted | Where-Object { $description -notmatch $_.Pattern } | ForEach-Object { $_.Wanted })
     if ($missing.Count -gt 0) {
         throw ("The GitHub description of $slug does not say " + ($missing -join ', ') + '. It reads: ' +
             $description + [Environment]::NewLine +
-            'Set it with: gh repo edit ' + $slug + ' --description "Hushfeed ' + $sourceVersion +
-            ': ... ' + $patchCount + ' patches for TikTok ' + $targetVersion + '."')
+            'Set it with: gh repo edit ' + $slug + ' --description "Hushfeed ' + $descriptionVersion +
+            ': ... ' + $descriptionPatchCount + ' patches for TikTok ' + $descriptionTargetVersion + '."')
     }
-    Write-Host ("[release] the GitHub description of " + $slug + " names " + $sourceVersion +
-        ", " + $patchCount + " patches and TikTok " + $targetVersion)
+    Write-Host ("[release] the GitHub description of " + $slug + " names " + $descriptionVersion +
+        ", " + $descriptionPatchCount + " patches and TikTok " + $descriptionTargetVersion)
 }
 
 $testRoot = Join-Path $rootPath 'extensions/tiktok/build/test-results/testDebugUnitTest'
@@ -372,23 +409,43 @@ if ($VerifyPublishedAsset) {
         # then the release commit was made. The hashes agreed at the time and the README's offer
         # to rebuild the bundle and compare checksums was false for the rest of the release.
         #
-        # Checked against the local artifact and HEAD rather than against the published file and
-        # the tag, because the tag cannot be the answer here. It only points at the release commit
-        # once that commit is on the remote, and the push that puts it there is the push this
-        # check gates, so a tag comparison could never pass at the one moment it matters. Held
-        # together with the hash comparison above, which says published and local are the same
-        # bytes, this gives the whole claim: the published bundle is pinned to the commit being
-        # released.
+        # A release is built from the source commit, then its public index is updated in a later
+        # commit. HEAD is therefore the wrong comparison during that index push. Resolve the
+        # published version's remote tag and hold the local artifact to that commit instead.
+        # Held together with the hash comparison above, this gives the whole claim: the hosted
+        # bundle is byte-for-byte local and reproducible from the release tag.
         #
         # SOURCE_DATE_EPOCH is deliberately not consulted. It is the same variable the build
         # reads, so accepting it as the expected value would compare the builder's own input
         # against itself and agree whichever commit the bundle came from.
-        $headEpoch = (& git -C $rootPath log -1 --format=%ct 2>$null | Select-Object -First 1)
-        $headEpoch = "$headEpoch".Trim()
-        if ($headEpoch -notmatch '^\d+$') {
-            throw 'Could not read the commit being released, so the bundle cannot be held to it.'
+        $releaseTagRef = "refs/tags/v$publishedVersion"
+        $peeledTagRef = "$releaseTagRef^{}"
+        $remoteUrl = "https://github.com/$slug.git"
+        $remoteTags = @(& git ls-remote $remoteUrl $releaseTagRef $peeledTagRef 2>$null)
+        $remoteStatus = $LASTEXITCODE
+        if ($remoteStatus -ne 0) {
+            throw "Could not read v$publishedVersion from $remoteUrl."
         }
-        $expectedStamp = [long]$headEpoch * 1000
+        $tagLine = $remoteTags |
+            Where-Object { $_ -match "\s+$([regex]::Escape($peeledTagRef))$" } |
+            Select-Object -First 1
+        if (-not $tagLine) {
+            $tagLine = $remoteTags |
+                Where-Object { $_ -match "\s+$([regex]::Escape($releaseTagRef))$" } |
+                Select-Object -First 1
+        }
+        $tagCommitMatch = [regex]::Match([string]$tagLine, '^([0-9a-fA-F]{40,64})\s+')
+        if (-not $tagCommitMatch.Success) {
+            throw "The published release tag v$publishedVersion does not exist on $remoteUrl."
+        }
+        $releaseCommit = $tagCommitMatch.Groups[1].Value.ToLowerInvariant()
+        $releaseEpoch = (& git -C $rootPath log -1 --format=%ct $releaseCommit 2>$null |
+            Select-Object -First 1)
+        $releaseEpoch = "$releaseEpoch".Trim()
+        if ($releaseEpoch -notmatch '^\d+$') {
+            throw "Could not read tagged release commit $releaseCommit in this checkout."
+        }
+        $expectedStamp = [long]$releaseEpoch * 1000
         Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction SilentlyContinue
         $localStamp = $null
         $zip = [System.IO.Compression.ZipFile]::OpenRead($ArtifactPath)
@@ -402,12 +459,13 @@ if ($VerifyPublishedAsset) {
             $localStamp = [long]$stampMatch.Groups[1].Value
         } finally { $zip.Dispose() }
         if ($localStamp -ne $expectedStamp) {
-            throw ("The bundle in patches/build/libs is pinned to $localStamp but the commit being " +
-                "released is $expectedStamp. Build the bundle after making the release commit, so " +
-                'that rebuilding from the tag reproduces the published hash.')
+            throw ("The bundle in patches/build/libs is pinned to $localStamp but release tag " +
+                "v$publishedVersion ($releaseCommit) is $expectedStamp. Build the bundle from " +
+                'the tagged commit so rebuilding from the tag reproduces the published hash.')
         }
         $publishedStamp = $localStamp
-        Write-Host ("[release] published bundle is pinned to the released commit; timestamp=" + $publishedStamp)
+        Write-Host ("[release] published bundle is pinned to v$publishedVersion ($releaseCommit); timestamp=" +
+            $publishedStamp)
         Write-Host ("[release] verified " + $assetName + " from the indexed URL; sha256=" + $publishedHash)
         # No caller passed -DesktopJar and nothing in the repo set the variable, so this check
         # printed "NOT COUNTED" and passed on every run it has ever had. A switch named

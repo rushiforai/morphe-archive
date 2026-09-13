@@ -14,6 +14,7 @@ import android.view.ViewConfiguration;
 import android.widget.FrameLayout;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
@@ -60,6 +61,7 @@ public class StoryNativeLongPressTest {
         controller = Robolectric.buildActivity(Activity.class).setup();
         activity = controller.get();
         Utils.setContext(activity);
+        HookStatus.clear();
         ShadowToast.reset();
     }
 
@@ -73,6 +75,7 @@ public class StoryNativeLongPressTest {
         SettingsStatus.advancedDownloadsEnabled = previousPatch;
         Settings.SAVE_STORY.save(previousSetting);
         Settings.EXTERNAL_DOWNLOADER_PACKAGE.save(previousDownloader);
+        HookStatus.clear();
         assertEquals("a story test queued network work", 0, MediaJobScheduler.queuedJobs());
         assertEquals("a story test started network work", 0, MediaJobScheduler.runningJobs());
     }
@@ -130,6 +133,32 @@ public class StoryNativeLongPressTest {
         assertEquals(0, unrelated.child.handled + released.child.handled);
         assertNull(Shadows.shadowOf(activity).getNextStartedActivity());
         assertEquals(0, ShadowToast.shownToastCount());
+    }
+
+    @Test public void renamedCurrentStoryMembersAreVisibleInHookStatus() {
+        assertMissingStoryMember(new View(activity), "android.view.View#LLJIJIL");
+        assertMissingStoryMember(new FieldView(activity, new Object()),
+                "java.lang.Object#LLJIJIL");
+        assertMissingStoryMember(new FieldView(activity, new FieldBox(new Object())),
+                "java.lang.Object#LL");
+        assertMissingStoryMember(
+                new FieldView(activity, new FieldBox(new ParamsBox(new Object()))),
+                "java.lang.Object#getAweme");
+    }
+
+    private void assertMissingStoryMember(View child, String expectedMember) {
+        HookStatus.clear();
+        Object owner = new Object();
+        FrameLayout root = new FrameLayout(activity);
+        root.addView(child, new FrameLayout.LayoutParams(-1, -1));
+        StoryDownloads.recordStory(owner, 0, new Story("7101"));
+        StoryDownloads.attachPlayArea(owner, root);
+
+        assertTrue(StoryDownloads.onNativeLongPress(child));
+
+        List<String> missing = HookStatus.missing("story saves");
+        assertEquals(missing.toString(), 1, missing.size());
+        assertTrue(missing.get(0), missing.get(0).contains(expectedMember));
     }
 
     private PlayArea area(boolean registered, String current, String collection) {
@@ -226,6 +255,21 @@ public class StoryNativeLongPressTest {
         private final Story story;
         VideoItemParams(Story value) { story = value; }
         public Story getAweme() { return story; }
+    }
+    public static final class FieldView extends View {
+        public final Object LLJIJIL;
+        FieldView(Activity activity, Object value) {
+            super(activity);
+            LLJIJIL = value;
+        }
+    }
+    public static final class FieldBox {
+        public final Object LLJIJIL;
+        FieldBox(Object value) { LLJIJIL = value; }
+    }
+    public static final class ParamsBox {
+        public final Object LL;
+        ParamsBox(Object value) { LL = value; }
     }
     public static final class Story {
         private final String aid;

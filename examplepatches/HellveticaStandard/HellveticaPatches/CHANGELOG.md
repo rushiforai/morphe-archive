@@ -1,3 +1,9 @@
+## [1.1.3](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.1.2...v1.1.3) (2026-09-12)
+
+### 🐛 Bug Fixes
+
+* **rc96:** disable OTA hot-updater to prevent popup patch override ([8651d4b](https://github.com/HellveticaStandard/HellveticaPatches/commit/8651d4bb2a855b60ec74230e60ff385eb7267658)), closes [#21661](https://github.com/HellveticaStandard/HellveticaPatches/issues/21661)
+
 ## [1.1.2](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.1.1...v1.1.2) (2026-09-02)
 
 ### 🚀 Updated App Support

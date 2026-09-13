@@ -23,6 +23,8 @@ public final class CaptionTools {
     private static final Map<Object, String> OWNERS = new WeakHashMap<>();
     private static WeakReference<TextView> overlay = new WeakReference<>(null);
     private static WeakReference<View> captionSource = new WeakReference<>(null);
+    private static WeakReference<View> observedDecor = new WeakReference<>(null);
+    private static ViewTreeObserver.OnPreDrawListener preDrawListener;
     private static String currentId, cueId, cue = "";
     private static boolean clear;
 
@@ -63,15 +65,27 @@ public final class CaptionTools {
         } catch (RuntimeException error) { Logger.printException(() -> "Could not update captions", error); }
     }
 
+    /** Applies the clear-display switch immediately, without waiting for another caption cue. */
+    public static void onSettingChanged() {
+        Utils.runOnMainThreadNowOrLater(() -> {
+            if (!Settings.KEEP_CAPTIONS_CLEAR_DISPLAY.get()) {
+                detachOverlay();
+                return;
+            }
+            View source = captionSource.get();
+            if (source != null) attach(source);
+            refresh();
+        });
+    }
+
     private static void attach(View source) {
         Activity activity = activity(source.getContext());
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) return;
         View decor = activity.getWindow().getDecorView();
         TextView existing = overlay.get();
-        if (existing != null && existing.getRootView() == decor) return;
-        if (existing != null && existing.getParent() instanceof android.view.ViewGroup) {
-            ((android.view.ViewGroup) existing.getParent()).removeView(existing);
-        }
+        if (existing != null && existing.getParent() != null
+                && existing.getRootView() == decor && observedDecor.get() == decor) return;
+        detachOverlay();
         if (!(decor instanceof FrameLayout)) return;
         TextView text = new TextView(activity);
         text.setTextColor(Color.WHITE);
@@ -91,21 +105,45 @@ public final class CaptionTools {
         ((FrameLayout) decor).addView(text, params);
         overlay = new WeakReference<>(text);
         ViewTreeObserver.OnPreDrawListener draw = () -> { refresh(); return true; };
+        observedDecor = new WeakReference<>(decor);
+        preDrawListener = draw;
         decor.getViewTreeObserver().addOnPreDrawListener(draw);
         text.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
             @Override public void onViewAttachedToWindow(View view) { }
             @Override public void onViewDetachedFromWindow(View view) {
-                if (decor.getViewTreeObserver().isAlive()) decor.getViewTreeObserver().removeOnPreDrawListener(draw);
+                if (overlay.get() == view) detachOverlay();
             }
         });
     }
 
+    private static void detachOverlay() {
+        TextView text = overlay.get();
+        View decor = observedDecor.get();
+        ViewTreeObserver.OnPreDrawListener draw = preDrawListener;
+        overlay = new WeakReference<>(null);
+        observedDecor = new WeakReference<>(null);
+        preDrawListener = null;
+        if (decor != null && draw != null && decor.getViewTreeObserver().isAlive()) {
+            decor.getViewTreeObserver().removeOnPreDrawListener(draw);
+        }
+        if (text != null) {
+            text.setVisibility(View.GONE);
+            if (text.getParent() instanceof android.view.ViewGroup) {
+                ((android.view.ViewGroup) text.getParent()).removeView(text);
+            }
+        }
+    }
+
     static void refresh() {
+        if (!Settings.KEEP_CAPTIONS_CLEAR_DISPLAY.get()) {
+            detachOverlay();
+            return;
+        }
         TextView text = overlay.get();
         if (text == null) return;
         Activity activity = activity(text.getContext());
         View source = captionSource.get();
-        boolean visible = Settings.KEEP_CAPTIONS_CLEAR_DISPLAY.get() && clear && !cue.isEmpty()
+        boolean visible = clear && !cue.isEmpty()
                 && cueId != null && cueId.equals(currentId) && source != null && source.isAttachedToWindow()
                 && activity != null && !activity.isFinishing() && !activity.isDestroyed()
                 && activity.hasWindowFocus() && FeedVisibility.isOnFeed(activity);

@@ -401,6 +401,94 @@ public class FeatureGateLabActionsTest {
         }
     }
 
+    @Test public void exportBeforeTheSnapshotIsReadySaysWhy() throws Exception {
+        try (var owner = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
+            var activity = owner.get();
+            var fragment = attach(activity);
+            var snapshot = FeatureGateLabFragment.class.getDeclaredField("snapshot");
+            snapshot.setAccessible(true);
+            snapshot.set(fragment, null);
+
+            ShadowToast.reset();
+            action(fragment, 2);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            assertEquals("Loaded values are still being read. Try again in a moment.",
+                    ShadowToast.getTextOfLatestToast());
+            assertNull("an empty export still opened a file picker",
+                    Shadows.shadowOf(activity).getNextStartedActivityForResult());
+        }
+    }
+
+    @Test public void importBeforeTheSnapshotIsReadySaysWhy() throws Exception {
+        try (var owner = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
+            var activity = owner.get();
+            var fragment = attach(activity);
+            var snapshot = FeatureGateLabFragment.class.getDeclaredField("snapshot");
+            snapshot.setAccessible(true);
+            snapshot.set(fragment, null);
+            JSONObject root = new JSONObject().put("payload_kind", "loaded_values")
+                    .put("tiktok_version", FeatureGateLabStore.TARGET_VERSION)
+                    .put("rules", new JSONArray().put(rule("gate", "true")));
+            var uri = android.net.Uri.parse("content://lab-test/not-ready.json");
+            Shadows.shadowOf(activity.getContentResolver()).registerInputStream(uri,
+                    new ByteArrayInputStream(root.toString().getBytes(StandardCharsets.UTF_8)));
+
+            ShadowToast.reset();
+            var read = FeatureGateLabFragment.class.getDeclaredMethod(
+                    "readLoadedValuesFile", android.net.Uri.class);
+            read.setAccessible(true);
+            read.invoke(fragment, uri);
+            waitFor("Loaded values are still being read. Try again in a moment.");
+            assertTrue(FeatureGateLabStore.rules().isEmpty());
+        }
+    }
+
+    @Test public void aSelectedImportFinishesAfterTheLabIsClosed() throws Exception {
+        try (var owner = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
+            var activity = owner.get();
+            var fragment = attach(activity);
+            JSONObject root = new JSONObject().put("payload_kind", "loaded_values")
+                    .put("tiktok_version", FeatureGateLabStore.TARGET_VERSION)
+                    .put("rules", new JSONArray().put(rule("gate", "true")));
+            var uri = android.net.Uri.parse("content://lab-test/leaving.json");
+            Shadows.shadowOf(activity.getContentResolver()).registerInputStream(uri,
+                    new ByteArrayInputStream(root.toString().getBytes(StandardCharsets.UTF_8)));
+
+            var executorField = FeatureGateLabFragment.class.getDeclaredField("FILE_IO_EXECUTOR");
+            executorField.setAccessible(true);
+            var executor = (java.util.concurrent.ExecutorService) executorField.get(null);
+            var started = new java.util.concurrent.CountDownLatch(1);
+            var release = new java.util.concurrent.CountDownLatch(1);
+            executor.execute(() -> {
+                started.countDown();
+                try {
+                    release.await();
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                }
+            });
+            try {
+                assertTrue("the file worker did not reach the test barrier",
+                        started.await(2, java.util.concurrent.TimeUnit.SECONDS));
+
+                var read = FeatureGateLabFragment.class.getDeclaredMethod(
+                        "readLoadedValuesFile", android.net.Uri.class);
+                read.setAccessible(true);
+                read.invoke(fragment, uri);
+                activity.getFragmentManager().beginTransaction().remove(fragment).commit();
+                activity.getFragmentManager().executePendingTransactions();
+                assertNull(fragment.getActivity());
+            } finally {
+                release.countDown();
+            }
+
+            waitFor("Imported 1 disabled values.");
+            assertEquals("true", FeatureGateLabStore.rule(
+                    "abmock", "gate", "BOOLEAN").value);
+        }
+    }
+
     private static void assertLoadedJsonRejected(byte[] bytes) throws Exception {
         var method = FeatureGateLabFragment.class.getDeclaredMethod("readLoadedJson", byte[].class);
         method.setAccessible(true);
@@ -494,6 +582,10 @@ public class FeatureGateLabActionsTest {
                     .onItemLongClick(list, null, 0, list.getItemIdAtPosition(0)));
             assertEquals(android.view.View.VISIBLE, bar.getVisibility());
             assertEquals("1 gate selected", selectionCountText(fragment));
+            android.view.View stillActionable = list.getAdapter().getView(1, null, list);
+            assertEquals("an unselected row was dimmed below readable contrast",
+                    1f, stillActionable.getAlpha(), 0.001f);
+            assertTrue(stillActionable.isEnabled());
 
             assertTrue(list.performItemClick(null, 1, list.getItemIdAtPosition(1)));
             assertEquals("2 gates selected", selectionCountText(fragment));

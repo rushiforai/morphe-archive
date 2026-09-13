@@ -1,5 +1,6 @@
 # Gradle files
 .gradle/
+.kotlin/
 build/
 !patches/src/main/kotlin/app/morphe/patches/all/misc/build/
 !patches/src/main/kotlin/app/morphe/patches/all/misc/build/**
@@ -58,3 +59,4 @@ Roadmap_Blocked.md
 !README.md
 !CHANGELOG.md
 !CONTRIBUTING.md
+!concepts/**/*.md

@@ -597,17 +597,25 @@ val pngOptimizerPatch = resourcePatch(
     name = "Png Optimizer",
     description = "Quantizes PNG images to a 64-color palette (matching pngquant) and re-picks " +
         "the optimal per-row filter before recompressing at maximum zlib compression (matching " +
-        "optipng), stripping hidden metadata along the way. Nine-patch (.9.png) files are only " +
-        "quantized, never re-filtered, mirroring how these are handled upstream. Quantization " +
-        "is skipped for images it can't safely decode (16-bit depth, interlaced, or " +
-        "already-indexed); those still get the filter/recompression pass. A file is only " +
-        "rewritten when the result is actually smaller.",
+        "optipng), stripping hidden metadata along the way.",
     default = false,
 ) {
     execute {
-        val roots = listOf("res", "assets")
-            .map { get(it, false) }
-            .filter { it.isDirectory }
+        // Same issue DrawableCleanPatch had: get("res", false) is scoped to the manifest
+        // package only. Walk up to resourcesRoot and scan every package's own res/ folder;
+        // assets/ isn't part of the per-package ARSC resource system, so it stays a single root.
+        val mainRes = get("res", false)
+        val resRoots = if (mainRes.isDirectory) {
+            mainRes.parentFile.parentFile
+                .listFiles { f -> f.isDirectory }
+                ?.map { it.resolve("res") }
+                ?.filter { it.isDirectory }
+                ?: listOf(mainRes)
+        } else {
+            emptyList()
+        }
+        val assetsRoot = get("assets", false).takeIf { it.isDirectory }
+        val roots = resRoots + listOfNotNull(assetsRoot)
         if (roots.isEmpty()) return@execute
 
         val pngFiles = roots.flatMap { root ->

@@ -15,6 +15,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.moveResultRegisterAfter
@@ -111,7 +112,7 @@ private fun MutableMethod.filterPromotionalTouchPoint() {
         ?: throw PatchException("TouchPoint promotional getter has no implementation")
 
     returnIndices.asReversed().forEach { (index, register) ->
-        addInstructions(
+        addInstructionsAtControlFlowLabel(
             index,
             """
                 invoke-static/range {v$register .. v$register}, $FEATURE_CONTROLS_CLASS_DESCRIPTOR->filterPromotionalTouchPoint(Ljava/lang/Object;)Ljava/lang/Object;

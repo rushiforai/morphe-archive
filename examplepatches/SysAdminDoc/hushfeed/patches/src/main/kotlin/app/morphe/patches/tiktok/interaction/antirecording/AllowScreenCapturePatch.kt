@@ -2,7 +2,6 @@ package app.morphe.patches.tiktok.interaction.antirecording
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
@@ -10,6 +9,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
@@ -76,7 +76,7 @@ val allowScreenCapturePatch = bytecodePatch(
         CircleSearchBlockFingerprint.method.apply {
             findInstructionIndicesReversedOrThrow { opcode == Opcode.RETURN_OBJECT }.forEach { index ->
                 val register = getInstruction<OneRegisterInstruction>(index).registerA
-                addInstructions(index, """
+                addInstructionsAtControlFlowLabel(index, """
                     invoke-static/range { v$register .. v$register }, $EXTENSION->circleBlock(Ljava/lang/Object;)Ljava/lang/Object;
                     move-result-object v$register
                 """)

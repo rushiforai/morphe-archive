@@ -161,6 +161,7 @@ Each area, how many of the things it looks for are in this build and how many ar
 Enable diagnostic logging	Ligar o registro de diagnóstico
 Enable hold-and-slide 2x lock	Ligar a trava de 2x segurando e deslizando
 Enter a creator handle or id	Digite um nome de usuário ou id de criador
+Enter a number	Digite um número
 Enter a valid two-letter country code	Digite um código de país válido de duas letras
 Enter a whole number, or one like 20K, 1.5M or 2B	Digite um número inteiro, ou um como 20K, 1.5M ou 2B
 Enter up to 8 comma-separated speeds from 0.5 to 3	Digite até 8 velocidades separadas por vírgula, de 0.5 a 3
@@ -431,6 +432,7 @@ Region settings	Configurações de região
 Remind me every	Me lembrar a cada
 Remove	Remover
 Remove %1$s	Remover %1$s
+Removed %1$s	%1$s removido
 Remove feed ads	Remover os anúncios do feed
 Remove the Share via row.	Remover a linha Compartilhar via.
 Remove the actions row from the share sheet.	Remover a linha de ações da folha de compartilhamento.
@@ -489,7 +491,6 @@ Feed and navigation	Feed e navegação
 Errors	Erros
 Other	Outros
 Saved. Restart TikTok to apply this.	Salvo. Reinicie o TikTok para aplicar.
-Diagnostic data cleared.	Dados de diagnóstico apagados.
 Includes these events: %1$s	Inclui estes eventos: %1$s
 Gate details	Detalhes do gate
 This catalog entry is no longer available. Refresh the Lab and try again.	Esta entrada do catálogo não está mais disponível. Atualize o Laboratório e tente de novo.
@@ -538,6 +539,16 @@ Filter: %1$s	Filtro: %1$s
 Show gates	Mostrar gates
 1 gate selected	1 gate selecionado
 %1$d gates selected	%1$d gates selecionados
+1 result	1 resultado
+%1$d results	%1$d resultados
+Loaded	Carregados
+All actionable	Todos os editáveis
+Overrides	Substituições
+App AB	AB do app
+Config	Configuração
+Player	Reprodutor
+Live	LIVE
+Activity	Atividade
 Preview shortened. Save JSON includes the full report.	Prévia encurtada. Salvar JSON traz o relatório inteiro.
 Choose a preset to fill the SIM details.	Escolha uma predefinição para preencher os dados do SIM.
 Search countries or operators	Buscar países ou operadoras
@@ -796,6 +807,7 @@ Turned off %1$d gates. Restart TikTok to apply this.	%1$d gates desligados. Rein
 Turned off 1 gate of %1$d; the rest do not take a true or false value. Restart TikTok to apply this.	1 de %1$d gates desligado; os demais não aceitam um valor true ou false. Reinicie o TikTok para aplicar.
 Turned off %1$d gates of %2$d; the rest do not take a true or false value. Restart TikTok to apply this.	%1$d de %2$d gates desligados; os demais não aceitam um valor true ou false. Reinicie o TikTok para aplicar.
 Feature gate override reset	Substituição do gate redefinida
+Feature gate override saved	Substituição do gate salva
 Invalid field value: %1$s	Valor de campo inválido: %1$s
 Could not save this override.	Não foi possível salvar esta substituição.
 Could not reset this override.	Não foi possível redefinir esta substituição.
@@ -848,3 +860,11 @@ Full report saved to %1$s	Relatório completo salvo em %1$s
 Could not start the report export. Try again shortly.	Não foi possível iniciar a exportação do relatório. Tente de novo em breve.
 Copy quick report	Copiar relatório rápido
 Save full report	Salvar relatório completo
+Diagnostic data cleared. Tap again to put it back.	Dados de diagnóstico apagados. Toque novamente para restaurá-los.
+Diagnostic data put back.	Dados de diagnóstico restaurados.
+There is no diagnostic data to put back.	Não há dados de diagnóstico para restaurar.
+Could not put back the diagnostic data. Try again.	Não foi possível restaurar os dados de diagnóstico. Tente novamente.
+Loaded values are still being read. Try again in a moment.	Os valores carregados ainda estão sendo lidos. Tente novamente em instantes.
+The selected loaded-values file could not be read. Try again.	Não foi possível ler o arquivo de valores carregados selecionado. Tente novamente.
+Enter a number. The previous value was kept.	Digite um número. O valor anterior foi mantido.
+There is no diagnostic data to clear.	Não há dados de diagnóstico para apagar.

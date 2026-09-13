@@ -12,6 +12,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.cloneMutable
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
@@ -241,7 +242,7 @@ val autoAdvancePatch = bytecodePatch(
         }
         returns.asReversed().forEach { (index, instruction) ->
             val register = (instruction as OneRegisterInstruction).registerA
-            available.addInstructions(index, """
+            available.addInstructionsAtControlFlowLabel(index, """
                 invoke-static/range {v$register .. v$register}, $EXTENSION->available(Z)Z
                 move-result v$register
             """)
@@ -280,7 +281,7 @@ val autoAdvancePatch = bytecodePatch(
         }
         panelReturns.asReversed().forEach { (index, instruction) ->
             val register = (instruction as OneRegisterInstruction).registerA
-            panelGate.addInstructions(
+            panelGate.addInstructionsAtControlFlowLabel(
                 index,
                 """
                     invoke-static/range {v$register .. v$register}, $EXTENSION->available(Z)Z

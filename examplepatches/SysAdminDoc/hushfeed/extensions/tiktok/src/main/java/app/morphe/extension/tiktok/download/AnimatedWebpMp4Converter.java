@@ -249,10 +249,8 @@ final class AnimatedWebpMp4Converter {
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         while (true) {
             // An encoder that stops emitting after signalEndOfInputStream leaves this loop
-            // spinning, and dequeueOutputBuffer does not answer Thread.interrupt(), so neither
-            // the scheduler's cancel nor the job deadline could end it. One of the three media
-            // worker threads was then gone for the life of the process. This is the only place
-            // in the loop that can notice either.
+            // spinning. One of the three media worker threads was then gone for the life of the
+            // process. This is the only place in the loop that can notice the job deadline.
             MediaBudget.check(null);
             int outputIndex = encoder.dequeueOutputBuffer(info, CODEC_TIMEOUT_US);
             if (outputIndex == MediaCodec.INFO_TRY_AGAIN_LATER) {

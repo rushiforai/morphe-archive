@@ -21,6 +21,7 @@ import app.morphe.patches.tiktok.shared.callThroughLocals
 import app.morphe.patches.tiktok.shared.objectIn
 import app.morphe.patches.tiktok.shared.valueIn
 import app.morphe.patches.tiktok.shared.wideIn
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.cloneMutableAndPreserveParameters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -280,7 +281,7 @@ private fun MutableMethod.patchLiveSettingsObjectBoundary(hasClassKey: Boolean) 
                 )
             }
             val hook = "$call\nmove-result-object v$register$returnCast"
-            addInstructions(index, hook)
+            addInstructionsAtControlFlowLabel(index, hook)
         }
 }
 
@@ -329,7 +330,7 @@ private fun MutableMethod.patchSettingsManagerObjectBoundary(
                 )
             }
             val hook = "$call\nmove-result-object v$register"
-            addInstructions(index, hook)
+            addInstructionsAtControlFlowLabel(index, hook)
         }
 }
 
@@ -353,7 +354,7 @@ private fun MutableMethod.patchPlayerSettingBoundary() {
                 objectIn("p2"),
                 objectIn("v$register"),
             )
-            addInstructions(index, "$call\nmove-result-object v$register")
+            addInstructionsAtControlFlowLabel(index, "$call\nmove-result-object v$register")
         }
 }
 
@@ -377,7 +378,7 @@ private fun MutableMethod.patchRawAbBoundary() {
                 objectIn("v$register"),
                 valueIn("p2"),
             )
-            addInstructions(index, "$call\nmove-result-object v$register")
+            addInstructionsAtControlFlowLabel(index, "$call\nmove-result-object v$register")
         }
 }
 
@@ -393,7 +394,7 @@ private fun MutableMethod.patchActivityCenterSchema() {
         }
         .asReversed()
         .forEach { (index, register) ->
-            addInstructions(
+            addInstructionsAtControlFlowLabel(
                 index,
                 """
                     invoke-static/range {v$register .. v$register}, $RUNTIME_DESCRIPTOR->transformActivityCenterSchema(Ljava/lang/String;)Ljava/lang/String;
@@ -435,6 +436,6 @@ private fun MutableMethod.patchBoundary(boundary: TypedBoundary) {
                 Opcode.RETURN_OBJECT -> "move-result-object v$register"
                 else -> "move-result v$register"
             }
-            addInstructions(index, "$call\n$moveResult")
+            addInstructionsAtControlFlowLabel(index, "$call\n$moveResult")
         }
 }

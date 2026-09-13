@@ -114,6 +114,7 @@ public class RangeValuePreference extends DialogPreference {
                 SettingsUi.textPrimary(),
                 Typeface.BOLD
         );
+        SettingsUi.markDialogHeading(title);
         dialogView.addView(title, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT

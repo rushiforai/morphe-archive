@@ -36,6 +36,7 @@ import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment;
 import app.morphe.extension.tiktok.blockauthor.BlockAuthorOverlay;
+import app.morphe.extension.tiktok.captions.CaptionTools;
 import app.morphe.extension.tiktok.comment.CommentSearch;
 import app.morphe.extension.tiktok.featuregatelab.FeatureGateLabFragment;
 import app.morphe.extension.tiktok.featuregatelab.FeatureGateLabRuntime;
@@ -56,6 +57,7 @@ import app.morphe.extension.tiktok.settings.preference.categories.SimSpoofPrefer
 
 @SuppressWarnings("deprecation")
 public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
+    private static final String FEATURE_GATE_LAB_KEY = "action_feature_gate_lab";
     private static final int REQUEST_DOWNLOAD_PATH_FOLDER = 8841;
     private static final String ARG_SECTION = "morphe_settings_section";
     private static final String ARG_SEARCH = "morphe_settings_search";
@@ -72,6 +74,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     private PreferenceScreen searchScreen;
     private List<SearchResult> searchIndex;
     private final List<Preference> searchRows = new ArrayList<>();
+    private SettingsSearchInputPreference searchInput;
 
     /**
      * Each section carries one sentence, used both as the subtitle on the home row and as the
@@ -224,6 +227,9 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         if (!applySettingToPreference && setting == Settings.COMMENT_SEARCH) {
             CommentSearch.onSettingChanged();
         }
+        if (!applySettingToPreference && setting == Settings.KEEP_CAPTIONS_CLEAR_DISPLAY) {
+            CaptionTools.onSettingChanged();
+        }
     }
 
     @Override
@@ -263,7 +269,15 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         // settings screen is being built and a context is at hand.
         savedMessage = L10n.t(context, "Saved. Restart TikTok to apply this.");
         app.morphe.extension.shared.settings.preference.LogBufferManager.clearedMessage =
-                L10n.t(context, "Diagnostic data cleared.");
+                L10n.t(context, "Diagnostic data cleared. Tap again to put it back.");
+        app.morphe.extension.shared.settings.preference.LogBufferManager.nothingToClearMessage =
+                L10n.t(context, "There is no diagnostic data to clear.");
+        app.morphe.extension.shared.settings.preference.LogBufferManager.restoredMessage =
+                L10n.t(context, "Diagnostic data put back.");
+        app.morphe.extension.shared.settings.preference.LogBufferManager.nothingToRestoreMessage =
+                L10n.t(context, "There is no diagnostic data to put back.");
+        app.morphe.extension.shared.settings.preference.LogBufferManager.restoreFailedMessage =
+                L10n.t(context, "Could not put back the diagnostic data. Try again.");
         // The rest of what the shared export path says, on a German phone in German. Every one
         // of these reached the reader in English, branded for the library rather than the
         // bundle, and two of them carried an exception's text.
@@ -423,8 +437,9 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         screen.addPreference(SettingsHeaderPreference.section(context, "Search settings", this::navigateBack));
         screen.addPreference(SettingsHeaderPreference.caption(context,
                 "Search translated titles and descriptions, then open the original setting."));
-        screen.addPreference(new SettingsSearchInputPreference(context, this::updateSearchResults));
-        searchIndex = buildSearchIndex(context);
+        searchInput = new SettingsSearchInputPreference(context, this::updateSearchResults);
+        screen.addPreference(searchInput);
+        searchIndex = buildSearchIndex(context, FeatureGateLabRuntime.isInstalled());
         updateSearchResults("");
     }
 
@@ -441,6 +456,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         // empty as typed but folds away to nothing, and every setting contains "".
         String normalizedQuery = normalizeSearchText(query == null ? "" : query.trim());
         if (normalizedQuery.isEmpty()) {
+            if (searchInput != null) searchInput.hideResultCount();
             addSearchState("Type to search settings", "Search a title, description or category.");
             return;
         }
@@ -451,6 +467,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                 matches.add(result);
             }
         }
+        if (searchInput != null) searchInput.showResultCount(matches.size());
         if (matches.isEmpty()) {
             addSearchState("No matching settings", "Try a different word or clear the search.");
             return;
@@ -463,7 +480,11 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             row.setSummary(result.displaySummary());
             row.setOrder(order++);
             row.setOnPreferenceClickListener(preference -> {
-                openSection(result.section, result.key);
+                if (FEATURE_GATE_LAB_KEY.equals(result.key)) {
+                    FeatureGateLabFragment.open(getActivity());
+                } else {
+                    openSection(result.section, result.key);
+                }
                 return true;
             });
             searchRows.add(row);
@@ -575,7 +596,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                 || SettingsStatus.refreshRateEnabled;
     }
 
-    private List<SearchResult> buildSearchIndex(Context context) {
+    private List<SearchResult> buildSearchIndex(Context context, boolean featureGateLabInstalled) {
         List<SearchResult> results = new ArrayList<>();
         PreferenceScreen scratch = getPreferenceManager().createPreferenceScreen(context);
         for (Section section : Section.values()) {
@@ -595,6 +616,18 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                 indexRows(results, backupRows, section, categoryTitle);
             }
             scratch.removePreference(category);
+        }
+        // This row opens its own fragment from the master menu rather than living in one of the
+        // section categories walked above. Without an explicit entry, both its title and its
+        // summary returned zero results on a patched phone even though the row was visible.
+        if (featureGateLabInstalled) {
+            results.add(new SearchResult(
+                    null,
+                    FEATURE_GATE_LAB_KEY,
+                    L10n.t(context, "Feature Gate Lab"),
+                    L10n.t(context, "Search and override gate flags"),
+                    L10n.t(context, "Settings")
+            ));
         }
         return results;
     }
@@ -727,17 +760,20 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         }
 
         if (FeatureGateLabRuntime.isInstalled()) {
-            screen.addPreference(new SettingsMenuPreference(
+            SettingsMenuPreference featureGateLab = new SettingsMenuPreference(
                     context,
-                    "Feature Gate Lab",
-                    "Search and override gate flags",
+                    L10n.t(context, "Feature Gate Lab"),
+                    L10n.t(context, "Search and override gate flags"),
                     SettingsMenuPreference.Icon.LAB,
                     0,
                     preference -> {
                         FeatureGateLabFragment.open(getActivity());
                         return true;
                     }
-            ));
+            );
+            // Stable key for settings search, UI automation and accessibility inspection.
+            featureGateLab.setKey(FEATURE_GATE_LAB_KEY);
+            screen.addPreference(featureGateLab);
         }
 
         if (SettingsStatus.featureGateRecorderEnabled) {

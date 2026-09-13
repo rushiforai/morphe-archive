@@ -7,6 +7,7 @@ import android.os.Looper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.CheckedTextView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Switch;
@@ -14,6 +15,7 @@ import android.widget.TextView;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.UiCapture;
 import app.morphe.extension.tiktok.settings.SettingsPagesTest.PageActivity;
+import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
@@ -25,6 +27,7 @@ import org.robolectric.Shadows;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
+import org.robolectric.shadows.ShadowToast;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28, qualifiers = "w480dp-h960dp-night-mdpi")
@@ -43,6 +46,122 @@ public class FeatureGatePagesTest {
     @Test public void darkLabSearchAndOverrideEditorWork() throws Exception { exercise("dark"); }
     @Test @Config(qualifiers = "w480dp-h960dp-notnight-mdpi")
     public void lightLabSearchAndOverrideEditorWork() throws Exception { exercise("light"); }
+
+    @Test public void labFiltersExposeActionRolesCountsAndTheFocusedSourceSelection()
+            throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            FeatureGateLabStore.resetAllLabData();
+            FeatureGateLabSession.begin();
+            var entry = new FeatureGateCatalog.Entry("source_gate", "Source gate", "abmock",
+                    "INT", true, true, List.of("0", "1"), List.of(), List.of(), "", "",
+                    true, "1", "INT");
+            var cached = FeatureGateCatalog.class.getDeclaredField("cachedSnapshot");
+            cached.setAccessible(true);
+            cached.set(null, new FeatureGateCatalog.Snapshot(
+                    List.of(entry), Map.of(entry.identity(), entry), 0, 0, true));
+
+            FeatureGateLabFragment lab = new FeatureGateLabFragment();
+            attach(activity, lab);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            for (String tag : new String[]{"feature_gate_view_0", "feature_gate_view_1",
+                    "feature_gate_view_2", "feature_gate_filter"}) {
+                TextView action = lab.getView().findViewWithTag(tag);
+                assertNotNull(tag, action);
+                assertButtonRole(action);
+            }
+
+            View allSources = lab.getView().findViewWithTag("feature_gate_source_0");
+            View appAb = lab.getView().findViewWithTag("feature_gate_source_1");
+            assertEquals(android.widget.Button.class.getName(),
+                    allSources.createAccessibilityNodeInfo().getClassName());
+            assertTrue("the focused source container does not carry the selected state",
+                    allSources.isSelected());
+            appAb.performClick();
+            assertFalse(allSources.isSelected());
+            assertTrue(appAb.isSelected());
+
+            TextView count = lab.getView().findViewWithTag("feature_gate_result_count");
+            assertNotNull(count);
+            assertEquals("1 result", count.getText().toString());
+            assertEquals(View.ACCESSIBILITY_LIVE_REGION_POLITE,
+                    count.getAccessibilityLiveRegion());
+            EditText search = find(lab.getView(), EditText.class);
+            search.setText("nothing-here");
+            Shadows.shadowOf(Looper.getMainLooper())
+                    .idleFor(java.time.Duration.ofMillis(200));
+            assertEquals("0 results", count.getText().toString());
+        }
+    }
+
+    @Test public void darkLabFilterUsesTheSharedSingleChoiceTheme() throws Exception {
+        assertLabFilterUsesTheSharedTheme("pages/dark/lab-filter.png");
+    }
+
+    @Test @Config(qualifiers = "w480dp-h960dp-notnight-mdpi")
+    public void lightLabFilterUsesTheSharedSingleChoiceTheme() throws Exception {
+        assertLabFilterUsesTheSharedTheme("pages/light/lab-filter.png");
+    }
+
+    private void assertLabFilterUsesTheSharedTheme(String screenshot) throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            FeatureGateLabStore.resetAllLabData();
+            FeatureGateLabSession.begin();
+            var entry = new FeatureGateCatalog.Entry("filter_gate", "Filter gate", "abmock",
+                    "INT", true, true, List.of("1"), List.of(), List.of(), "", "",
+                    true, "1", "INT");
+            var cached = FeatureGateCatalog.class.getDeclaredField("cachedSnapshot");
+            cached.setAccessible(true);
+            cached.set(null, new FeatureGateCatalog.Snapshot(
+                    List.of(entry), Map.of(entry.identity(), entry), 0, 0, true));
+
+            FeatureGateLabFragment lab = new FeatureGateLabFragment();
+            attach(activity, lab);
+            TextView filter = lab.getView().findViewWithTag("feature_gate_filter");
+            assertTrue(filter.performClick());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            android.app.AlertDialog dialog = (android.app.AlertDialog)
+                    org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            assertNotNull(dialog);
+            ListView choices = dialog.getListView();
+            assertEquals(ListView.CHOICE_MODE_SINGLE, choices.getChoiceMode());
+            View decor = dialog.getWindow().getDecorView();
+            decor.measure(View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(960, View.MeasureSpec.EXACTLY));
+            decor.layout(0, 0, 480, 960);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            CheckedTextView first = findCheckedTextView(choices.getChildAt(0));
+            assertNotNull("the filter did not render a platform choice row", first);
+            assertEquals(SettingsUi.textPrimary(), first.getCurrentTextColor());
+            assertNull("the platform check mark leaked through the shared picker style",
+                    first.getCheckMarkDrawable());
+            assertNotNull("the shared radio indicator is missing",
+                    first.getCompoundDrawablesRelative()[0]);
+            assertEquals("DialogCheckMarkDrawable",
+                    first.getCompoundDrawablesRelative()[0].getClass().getSimpleName());
+            assertNotNull("the shared divider is missing", choices.getDivider());
+            UiCapture.save(decor, screenshot);
+            dialog.dismiss();
+        }
+    }
+
+    private static CheckedTextView findCheckedTextView(View view) {
+        if (view instanceof CheckedTextView) return (CheckedTextView) view;
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int index = 0; index < group.getChildCount(); index++) {
+                CheckedTextView found = findCheckedTextView(group.getChildAt(index));
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
 
     /**
      * The state column on the right of a Lab row held three stacked 12sp labels in a fixed
@@ -206,22 +325,70 @@ public class FeatureGatePagesTest {
             attach(activity, detail);
             UiCapture.save(detail.getView(), "pages/" + theme + "/gate_details.png");
             assertFalse(find(detail.getView(), Switch.class).isEnabled());
+            Spinner disabledValue = find(detail.getView(), Spinner.class);
+            assertNotNull(disabledValue);
+            assertFalse(disabledValue.isEnabled());
+            TextView disabledChoice = (TextView) disabledValue.getAdapter()
+                    .getView(0, null, disabledValue);
+            assertEquals("the disabled spinner still looks active",
+                    app.morphe.extension.tiktok.settings.preference.SettingsUi.textDisabled(),
+                    disabledChoice.getCurrentTextColor());
             FeatureGateLabStore.setMasterEnabled(true);
             detail = FeatureGateDetailFragment.forEntry("abmock", entry.key, "INT");
             attach(activity, detail);
             Switch control = find(detail.getView(), Switch.class);
             assertTrue(control.isEnabled());
+            ShadowToast.reset();
             control.performClick();
             // Saving an override goes through the journal now, off this thread and back.
             Utils.awaitBackgroundTasksForTests();
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             assertTrue(FeatureGateLabStore.rule("abmock", entry.key, "INT").enabled);
+            assertEquals("Feature gate override saved", ShadowToast.getTextOfLatestToast());
+            assertButtonRole(findText(detail.getView(), "Reset override"));
+            assertButtonRole(findText(detail.getView(), "Show"));
             UiCapture.save(detail.getView(), "pages/" + theme + "/gate-details-enabled.png");
             attach(activity, FeatureGateDetailFragment.forEntry("abmock", "missing", "INT"));
             UiCapture.save(activity.getFragmentManager().findFragmentById(android.R.id.content).getView(),
                     "pages/" + theme + "/gate-details-unavailable.png");
         }
     }
+
+    @Test public void aFinishedSaveIsReportedAfterTheDetailScreenCloses() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            FeatureGateLabStore.resetAllLabData();
+            FeatureGateLabSession.begin();
+            FeatureGateLabStore.setMasterEnabled(true);
+            var entry = new FeatureGateCatalog.Entry("leaving_gate", "Leaving gate", "abmock",
+                    "INT", true, true, List.of("0", "1"), List.of(), List.of(), "", "",
+                    false, null, null);
+            var cached = FeatureGateCatalog.class.getDeclaredField("cachedSnapshot");
+            cached.setAccessible(true);
+            cached.set(null, new FeatureGateCatalog.Snapshot(
+                    List.of(entry), Map.of(entry.identity(), entry), 0, 0, true));
+            FeatureGateDetailFragment detail = FeatureGateDetailFragment.forEntry(
+                    entry.manager, entry.key, entry.type);
+            attach(activity, detail);
+            Switch control = find(detail.getView(), Switch.class);
+            assertNotNull(control);
+
+            ShadowToast.reset();
+            synchronized (FeatureGateLabUndo.class) {
+                control.performClick();
+                activity.getFragmentManager().beginTransaction().remove(detail).commit();
+                activity.getFragmentManager().executePendingTransactions();
+                assertNull(detail.getActivity());
+            }
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            assertTrue(FeatureGateLabStore.rule("abmock", entry.key, "INT").enabled);
+            assertEquals("Feature gate override saved", ShadowToast.getTextOfLatestToast());
+        }
+    }
+
     @Test public void rebuildingTheDetailViewDoesNotStackUpTheEditorsOrLeaveADialogUp() throws Exception {
         // This screen sits on a back stack, so its view is built again on a rotation, a font
         // scale change, a theme change, or a return from anything deeper. Every rebuild used to
@@ -294,6 +461,8 @@ public class FeatureGatePagesTest {
 
             TextView save = findText(detail.getView(), "Save field values");
             assertNotNull(save);
+            assertButtonRole(save);
+            ShadowToast.reset();
             save.performClick();
             Utils.awaitBackgroundTasksForTests();
             Shadows.shadowOf(Looper.getMainLooper()).idle();
@@ -306,7 +475,14 @@ public class FeatureGatePagesTest {
             assertEquals(2, values.length());
             assertEquals("account.one", values.getString(0));
             assertEquals("account.two", values.getString(1));
+            assertEquals("Feature gate override saved", ShadowToast.getTextOfLatestToast());
         }
+    }
+
+    private static void assertButtonRole(TextView view) {
+        assertNotNull(view);
+        assertEquals(android.widget.Button.class.getName(),
+                view.createAccessibilityNodeInfo().getClassName());
     }
 
     private static FeatureGateDetailFragment arrayDetail(Activity activity, boolean loaded,

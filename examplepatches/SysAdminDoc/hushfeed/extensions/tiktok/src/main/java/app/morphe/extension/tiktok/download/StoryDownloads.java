@@ -40,6 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @SuppressWarnings("unused")
 public final class StoryDownloads {
+    private static final String HOOK_FAMILY = "story saves";
     private static final Set<String> ACTIVE = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
     /** The model each play area binds, and the view each play area put on screen. */
@@ -110,10 +111,10 @@ public final class StoryDownloads {
             }
             if (owned) {
                 // 0R9T's monitor reads this same current sub-cell model when pausing it.
-                Object monitor = Reflect.readField(view, "LLJIJIL");
-                Object state = Reflect.readField(monitor, "LLJIJIL");
-                Object params = Reflect.readField(state, "LL");
-                return save(view, Reflect.invoke(params, "getAweme"));
+                Object monitor = Reflect.requiredField(view, "LLJIJIL", HOOK_FAMILY);
+                Object state = Reflect.requiredField(monitor, "LLJIJIL", HOOK_FAMILY);
+                Object params = Reflect.requiredField(state, "LL", HOOK_FAMILY);
+                return save(view, Reflect.required(params, "getAweme", HOOK_FAMILY));
             }
             ViewParent parent = ancestor.getParent();
             ancestor = parent instanceof View ? (View) parent : null;
@@ -194,7 +195,7 @@ public final class StoryDownloads {
         Utils.showToastShort(L10n.t("Saving the story"));
         try {
             String capturedAudioName = audioName;
-            MediaJobScheduler.JobHandle job = MediaJobScheduler.submit("story", () -> {
+            boolean submitted = MediaJobScheduler.submit("story", () -> {
                 try {
                     if (photoSnapshot.isEmpty()) {
                         saveVideo(app, aweme, videoSnapshot, capturedAudioName);
@@ -202,15 +203,13 @@ public final class StoryDownloads {
                         savePhotos(app, aweme, photoSnapshot);
                     }
                 } catch (IOException | RuntimeException exception) {
-                    if (!MediaBudget.isCancellation(exception)) {
-                        Logger.printException(() -> "Story download failed", exception);
-                        Utils.showToastLong(L10n.t("The story couldn't be saved."));
-                    }
+                    Logger.printException(() -> "Story download failed", exception);
+                    Utils.showToastLong(L10n.t("The story couldn't be saved."));
                 } finally {
                     ACTIVE.remove(id);
                 }
-            }, () -> ACTIVE.remove(id));
-            if (job == null) {
+            });
+            if (!submitted) {
                 ACTIVE.remove(id);
                 return false;
             }

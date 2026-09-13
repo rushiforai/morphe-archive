@@ -32,6 +32,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/FeedItemsFilter;"
 private const val PROFILE_DETAIL_PANEL_DESCRIPTOR =
@@ -165,7 +166,7 @@ val feedFilterPatch = bytecodePatch(
                 "Feed filter: the Friends feed response constructor does not return."
             }
             returns.asReversed().forEach { index ->
-                addInstruction(
+                addInstructionsAtControlFlowLabel(
                     index,
                     "invoke-static/range {p0 .. p0}, " +
                         "$EXTENSION_CLASS_DESCRIPTOR->filterFriendsFeed(Ljava/lang/Object;)V",
@@ -221,41 +222,61 @@ val feedFilterPatch = bytecodePatch(
             """,
         )
 
-        val cacheChainMethod = CacheChainDeliveryFingerprint.method
-        val cacheResultType = cacheChainMethod.parameterTypes.single().toString()
+        // The result data class keeps this identity across the old and rebuilt cache stacks.
+        // Its obfuscated descriptor does not.
+        val cacheResultType = CacheResultClassFingerprint.originalClassDef.type
         val cacheResultClass = classDefBy(cacheResultType)
-        val cachePayloadFields = cacheResultClass.fields.filter { field ->
-            field.type.startsWith("L") &&
-                field.type != "Ljava/lang/String;" &&
-                field.type != "Ljava/util/List;"
+        val cachePayloads = cacheResultClass.fields.mapNotNull { field ->
+            if (!field.type.startsWith("L")) return@mapNotNull null
+            val payloadClass = classDefByOrNull(field.type) ?: return@mapNotNull null
+            val awemeFields = payloadClass.fields.filter { candidate ->
+                candidate.type == "Lcom/ss/android/ugc/aweme/feed/model/Aweme;"
+            }
+            if (awemeFields.size == 1) field to awemeFields.single() else null
         }
-        if (cachePayloadFields.size != 1) {
+        if (cachePayloads.size != 1) {
             throw PatchException(
-                "Expected one cache-result payload field in $cacheResultType, " +
-                    "found ${cachePayloadFields.size}",
+                "Expected one cache-result field whose value holds an Aweme in $cacheResultType, " +
+                    "found ${cachePayloads.size}",
             )
         }
-        val cachePayloadField = cachePayloadFields.single()
-        val cachedAwemeFields = classDefBy(cachePayloadField.type).fields.filter { field ->
-            field.type == "Lcom/ss/android/ugc/aweme/feed/model/Aweme;"
-        }
-        if (cachedAwemeFields.size != 1) {
+        val (cachePayloadField, cachedAwemeField) = cachePayloads.single()
+        val cacheSuccessFields = cacheResultClass.fields.filter { it.type == "Z" }
+        if (cacheSuccessFields.size != 1) {
             throw PatchException(
-                "Expected one Aweme field in ${cachePayloadField.type}, " +
-                    "found ${cachedAwemeFields.size}",
+                "Expected one cache-result success field in $cacheResultType, " +
+                    "found ${cacheSuccessFields.size}",
             )
         }
-        val cachedAwemeField = cachedAwemeFields.single()
-        val cacheFailureFields = cacheResultClass.fields.filter { it.type == "Z" }
-        if (cacheFailureFields.size != 1) {
-            throw PatchException(
-                "Expected one cache-result failure field in $cacheResultType, " +
-                    "found ${cacheFailureFields.size}",
-            )
-        }
-        val cacheFailureField = cacheFailureFields.single()
+        val cacheSuccessField = cacheSuccessFields.single()
 
-        cacheChainMethod.filterChainedCacheDelivery(cachePayloadField, cachedAwemeField)
+        val legacyCacheChain = CacheChainDeliveryFingerprint.methodOrNull
+        val cacheNormalizer = CacheResultNormalizerFingerprint.methodOrNull
+        if ((legacyCacheChain == null) == (cacheNormalizer == null)) {
+            throw PatchException(
+                "Expected exactly one cache delivery strategy, found legacy=" +
+                    "${legacyCacheChain != null}, normalizer=${cacheNormalizer != null}",
+            )
+        }
+        when {
+            cacheNormalizer != null -> {
+                if (cacheNormalizer.parameterTypes.single().toString() != cacheResultType) {
+                    throw PatchException(
+                        "Cache normalizer and CacheLoadResult toString use different result contracts",
+                    )
+                }
+                cacheNormalizer.filterNormalizedCacheDelivery(cachePayloadField, cachedAwemeField)
+            }
+            legacyCacheChain != null -> {
+                if (legacyCacheChain.parameterTypes.single().toString() != cacheResultType) {
+                    throw PatchException(
+                        "Legacy cache callback and CacheLoadResult toString use different result contracts",
+                    )
+                }
+                legacyCacheChain.filterChainedCacheDelivery(cachePayloadField, cachedAwemeField)
+            }
+        }
+
         InsertCacheWhenPlayLagFingerprint.method.filterPlayLagCacheInsertion()
 
         ReachBottomCacheDeliveryFingerprint.method.let { method ->
@@ -267,7 +288,7 @@ val feedFilterPatch = bytecodePatch(
             method.filterReachBottomCacheDelivery(
                 cachePayloadField,
                 cachedAwemeField,
-                cacheFailureField,
+                cacheSuccessField,
             )
         }
 
@@ -384,20 +405,38 @@ val feedFilterPatch = bytecodePatch(
             """,
         )
 
-        // Null is the app's own "no recommended users to insert" result.
-        RecUserCardInsertFingerprint.method.requireLocals("Feed filter", 1)
-        RecUserCardInsertFingerprint.method.addInstructions(
-            0,
-            """
-                invoke-static {}, $CARD_FILTERS_CLASS_DESCRIPTOR->shouldHideInsertedCards()Z
-                move-result v0
-                if-eqz v0, :morphe_insert_rec_user_card
-                const/4 v0, 0x0
-                return-object v0
-                :morphe_insert_rec_user_card
-                nop
-            """,
-        )
+        // TikTok may remove this surface in a future build. If the marker still exists, its
+        // insertion hook is mandatory; if the surface itself is absent, there is no card here
+        // to suppress.
+        var recUserCardSurfacePresent = false
+        classDefForEach { classDef ->
+            if (!recUserCardSurfacePresent) {
+                recUserCardSurfacePresent = classDef.methods.any { method ->
+                    method.implementation?.instructions?.any { instruction ->
+                        instruction.getReference<StringReference>()?.string == "friend_recommend_card"
+                    } == true
+                }
+            }
+        }
+        selectRecUserCardInsertion(
+            RecUserCardInsertFingerprint.methodOrNull,
+            recUserCardSurfacePresent,
+        )?.let { insertion ->
+            // Null is the app's own "no recommended users to insert" result.
+            insertion.requireLocals("Feed filter", 1)
+            insertion.addInstructions(
+                0,
+                """
+                    invoke-static {}, $CARD_FILTERS_CLASS_DESCRIPTOR->shouldHideInsertedCards()Z
+                    move-result v0
+                    if-eqz v0, :morphe_insert_rec_user_card
+                    const/4 v0, 0x0
+                    return-object v0
+                    :morphe_insert_rec_user_card
+                    nop
+                """,
+            )
+        }
 
         FeedLynxCardLoadFingerprint.method.requireLocals("Feed filter", 1)
         FeedLynxCardLoadFingerprint.method.addInstructions(
@@ -419,7 +458,7 @@ val feedFilterPatch = bytecodePatch(
             // only one of them filtered, silently.
             findInstructionIndicesReversedOrThrow { opcode == Opcode.RETURN }.forEach { dramaReturnIndex ->
                 val dramaRegister = getInstruction<OneRegisterInstruction>(dramaReturnIndex).registerA
-                addInstructions(
+                addInstructionsAtControlFlowLabel(
                     dramaReturnIndex,
                     """
                         invoke-static/range {v$dramaRegister .. v$dramaRegister}, $CARD_FILTERS_CLASS_DESCRIPTOR->shouldBlockForDramaAd(Z)Z
@@ -442,6 +481,56 @@ val feedFilterPatch = bytecodePatch(
             """,
         )
     }
+}
+
+/** Refuses to skip a recommendation-card surface whose known insertion method merely drifted. */
+internal fun selectRecUserCardInsertion(
+    insertion: MutableMethod?,
+    surfacePresent: Boolean,
+): MutableMethod? {
+    if (insertion == null && surfacePresent) {
+        throw PatchException(
+            "Feed filter: friend_recommend_card still exists, but its insertion method was not found.",
+        )
+    }
+    return insertion
+}
+
+/**
+ * Filters the result before the rebuilt cache stack forwards it to any callback.
+ *
+ * The host's one local is v0 and its only parameter is p0. A rejected payload becomes null,
+ * which is the cache stack's own signal to advance to the next source. Both known normalizers
+ * use two registers in all, so p0 is v1 and every field instruction remains four-bit safe.
+ */
+internal fun MutableMethod.filterNormalizedCacheDelivery(
+    cachePayloadField: FieldReference,
+    cachedAwemeField: FieldReference,
+) {
+    requireLocals("Feed filter", 1)
+    val registers = implementation?.registerCount
+        ?: throw PatchException("Feed filter: cache normalizer has no implementation")
+    if (registers > 16) {
+        throw PatchException(
+            "Feed filter: cache normalizer holds $registers registers, and its result parameter " +
+                "cannot be named by an object field instruction.",
+        )
+    }
+
+    addInstructionsWithLabels(
+        0,
+        """
+            iget-object v0, p0, $cachePayloadField
+            if-eqz v0, :morphe_keep_normalized_cache_result
+            iget-object v0, v0, $cachedAwemeField
+            invoke-static/range {v0 .. v0}, $EXTENSION_CLASS_DESCRIPTOR->shouldKeepCachedAweme(Lcom/ss/android/ugc/aweme/feed/model/Aweme;)Z
+            move-result v0
+            if-nez v0, :morphe_keep_normalized_cache_result
+            const/4 v0, 0x0
+            iput-object v0, p0, $cachePayloadField
+        """,
+        ExternalLabel("morphe_keep_normalized_cache_result", getInstruction(0)),
+    )
 }
 
 private fun MutableMethod.filterChainedCacheDelivery(
@@ -515,10 +604,10 @@ private fun MutableMethod.filterPlayLagCacheInsertion() {
     )
 }
 
-private fun MutableMethod.filterReachBottomCacheDelivery(
+internal fun MutableMethod.filterReachBottomCacheDelivery(
     cachePayloadField: FieldReference,
     cachedAwemeField: FieldReference,
-    cacheFailureField: FieldReference,
+    cacheSuccessField: FieldReference,
 ) {
     // v0 and v1 are written ahead of the host's own first instruction.
     requireLocals("Feed filter", 2)
@@ -532,9 +621,9 @@ private fun MutableMethod.filterReachBottomCacheDelivery(
             invoke-static/range {v0 .. v0}, $EXTENSION_CLASS_DESCRIPTOR->shouldKeepCachedAweme(Lcom/ss/android/ugc/aweme/feed/model/Aweme;)Z
             move-result v0
             if-nez v0, :morphe_keep_reach_bottom_cache_result
-            const/4 v0, 0x1
+            const/4 v0, 0x0
             move-object/from16 v1, p1
-            iput-boolean v0, v1, $cacheFailureField
+            iput-boolean v0, v1, $cacheSuccessField
             :morphe_keep_reach_bottom_cache_result
             nop
         """,

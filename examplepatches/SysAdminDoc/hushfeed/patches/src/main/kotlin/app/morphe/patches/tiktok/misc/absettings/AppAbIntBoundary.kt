@@ -4,7 +4,6 @@
  */
 package app.morphe.patches.tiktok.misc.absettings
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -13,6 +12,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.tiktok.shared.callThroughLocals
 import app.morphe.patches.tiktok.shared.objectIn
 import app.morphe.patches.tiktok.shared.valueIn
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -127,7 +127,7 @@ internal fun BytecodePatchContext.hookAppAbIntBoundary(
                     objectIn(APP_AB_INT_KEY_REGISTER),
                     valueIn("v$register"),
                 )
-                addInstructions(returnIndex, "$call\nmove-result v$register")
+                addInstructionsAtControlFlowLabel(returnIndex, "$call\nmove-result v$register")
             }
     }
 }

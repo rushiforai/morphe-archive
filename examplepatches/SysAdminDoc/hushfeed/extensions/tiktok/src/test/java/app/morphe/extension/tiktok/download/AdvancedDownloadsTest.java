@@ -94,9 +94,16 @@ public class AdvancedDownloadsTest {
     public static final class Item {
         private final Author author;
         private final String aid;
-        Item(String creator, String aid) { this.author = new Author(creator); this.aid = aid; }
+        private final List<Object> imageInfos;
+        Item(String creator, String aid) { this(creator, aid, 0); }
+        Item(String creator, String aid, int photoCount) {
+            this.author = new Author(creator);
+            this.aid = aid;
+            this.imageInfos = java.util.Collections.nCopies(photoCount, new Object());
+        }
         public Author getAuthor() { return author; }
         public String getAid() { return aid; }
+        public List<Object> getImageInfos() { return imageInfos; }
     }
     /** A profile, carrying only the avatar sizes a given test wants to offer. */
     public static final class Account {
@@ -272,6 +279,24 @@ public class AdvancedDownloadsTest {
             Item post = new Item("dancer", "7712345");
 
             assertEquals("dancer_1.jpg", resolveSavedName(folder, "source_1.jpg", post));
+        } finally {
+            Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE.save(photoTemplate);
+        }
+    }
+
+    @Test public void tiktokRegistrationNumbersEveryPhotoAndResetsAfterTheBatch() throws IOException {
+        Utils.setContext(RuntimeEnvironment.getApplication());
+        String photoTemplate = Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE.get();
+        try {
+            Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE.save("{creator}_{index}");
+            File folder = Files.createTempDirectory("hushfeed-native-slideshow").toFile();
+            Item post = new Item("dancer", "7712345-native", 3);
+
+            assertEquals("dancer_1.jpg", resolveSavedName(folder, "stage-a.jpg", post));
+            assertEquals("dancer_2.jpg", resolveSavedName(folder, "stage-b.jpg", post));
+            assertEquals("dancer_3.jpg", resolveSavedName(folder, "stage-c.jpg", post));
+            assertEquals("the next save of the same post did not restart its numbering",
+                    "dancer_1.jpg", resolveSavedName(folder, "stage-d.jpg", post));
         } finally {
             Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE.save(photoTemplate);
         }

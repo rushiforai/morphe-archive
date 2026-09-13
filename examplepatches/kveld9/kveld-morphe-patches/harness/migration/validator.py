@@ -52,7 +52,6 @@ class AdversarialValidator:
         results["bravePerformanceOptimizationPatch"] = self._audit_performance_patch()
         results["braveBackgroundSyncPatch"] = self._audit_background_sync_patch()
         results["braveBatteryOptimizationPatch"] = self._audit_battery_optimization_patch()
-        results["braveDisablePullToRefreshPatch"] = self._audit_disable_pull_to_refresh_patch()
         results["braveSkipFirstRunPatch"] = self._audit_skip_first_run_patch()
         results["braveLocaleSlimmerPatch"] = self._audit_locale_slimmer_patch()
         results["braveNativeBloatSlimmerPatch"] = self._audit_native_bloat_slimmer_patch()
@@ -420,40 +419,6 @@ class AdversarialValidator:
             evidence=evidence,
         )
 
-    def _audit_disable_pull_to_refresh_patch(self) -> PatchAuditResult:
-        queries = [
-            FingerprintQuery(
-                name_id="ptr_start",
-                return_type="Z",
-                parameters=["I", "I"],
-                strings=["brave_pull_to_refresh", "Android.OverscrollFromBottom.CanStart"],
-            ),
-            FingerprintQuery(
-                name_id="ptr_pull",
-                return_type="V",
-                parameters=["F", "F"],
-                strings=["SwipeRefreshHandler.pull"],
-            ),
-        ]
-        fp_res = []
-        blocking = []
-        evidence = []
-        for q in queries:
-            res = self.fp_resolver.resolve(q)
-            fp_res.append((q.name_id, res.status.value, res.matched_method.full_name if res.matched_method else "NONE"))
-            if res.status != FingerprintStatus.VERIFIED:
-                blocking.append(f"Fingerprint '{q.name_id}' failed: {res.status.value}")
-            else:
-                evidence.extend(res.evidence)
-        status = PatchStatus.VERIFIED if not blocking else PatchStatus.BLOCKED
-        return PatchAuditResult(
-            patch_name="Disable Pull To Refresh",
-            status=status,
-            fingerprint_results=fp_res,
-            blocking_reasons=blocking,
-            evidence=evidence,
-        )
-
     def _audit_skip_first_run_patch(self) -> PatchAuditResult:
         queries = [
             FingerprintQuery(
@@ -661,6 +626,12 @@ class AdversarialValidator:
                 strings=["DONATE_PROMPT", "searchEnginePrompt", "donationPrompt"],
             ),
             FingerprintQuery(
+                name_id="vivaldi_bottom_sheet_prompt_launcher",
+                return_type="V",
+                strings=["DIALOG_TYPE"],
+                custom_predicate=lambda m: len(m.parameters) == 4 and m.parameters[0] == "Lcom/google/android/material/bottomsheet/BottomSheetDialogFragment;",
+            ),
+            FingerprintQuery(
                 name_id="vivaldi_privacy_receiver",
                 defining_class="Lorg/vivaldi/browser/prompts/PrivacyReportNotificationReceiver;",
                 method_name="onReceive",
@@ -819,9 +790,10 @@ class AdversarialValidator:
             return False, bundle_err
 
         # Run README sync
+        repo_slug = os.environ.get("GITHUB_REPOSITORY") or "kveld9/kveld-morphe-patches"
         readme_cmd = [
             "python", ".github/scripts/generate_patches_readme.py",
-            "kveld9/morphe-patches", "main", "patches-list.json", "README.md"
+            repo_slug, "main", "patches-list.json", "README.md"
         ]
         res_readme = subprocess.run(readme_cmd, cwd=str(self.repo_root), capture_output=True, text=True)
         if res_readme.returncode != 0:

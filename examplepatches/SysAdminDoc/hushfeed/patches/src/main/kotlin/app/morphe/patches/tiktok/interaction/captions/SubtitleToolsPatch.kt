@@ -11,6 +11,7 @@ import app.morphe.patches.tiktok.interaction.downloads.advancedDownloadsPatch
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.cloneMutable
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.Opcode
@@ -86,7 +87,7 @@ val subtitleToolsPatch = bytecodePatch(
         """)
         render.implementation!!.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }
             .map { it.index }.reversed().forEach { index ->
-                render.addInstruction(index,
+                render.addInstructionsAtControlFlowLabel(index,
                     "invoke-static/range { p0 .. p3 }, ${EXTENSION}CaptionTools;->onCaption(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/String;)V")
             }
         val extension = mutableClassDefBy("${EXTENSION}CaptionTools;")

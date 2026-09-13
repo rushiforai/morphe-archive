@@ -1,16 +1,30 @@
-# 👋🧩 SNC Patches - Shuhaib's Morphe Patches
+# 🐈‍⬛ Shuhaib's Patches
 
-Efficiency justice for morphe patches.
+<b>Patches for apps I like.</b>
 
-## ❓ About
+## Add Patch to Morphe Manager
+
+Click here to add these patches to Morphe:<br><br>
+<a href="https://morphe.software/add-source?github=ShuhaibNC/morphe-patches">
+<img src="button.svg" alt="Add Patch Button" width="120"/></a>
+
+## Request Patches
+
+<p align="center">
+<p>Request In My Telegram Group for Patches You Like.</p>
+    <a href="https://telegram.me/ShuhaibsChat">
+        <img
+            src="https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white"
+            alt="Telegram"
+        />
+    </a>
+</p>
+
+## About
 
 A collection of patches that I think would be useful to add, based on features, improvements, and customizations that could make the overall experience better.
 
 <!-- TODO: Update this about section with a brief introduction/summary about this repo and what it offers. -->
-
-### How to use these patches
-
-Click here to add these patches to Morphe: https://morphe.software/add-source?github=ShuhaibNC/morphe-patches
 
 ## 🩹 Patches list
 

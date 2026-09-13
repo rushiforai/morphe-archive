@@ -86,7 +86,7 @@ final class VideoDownloads {
                         ? "Saving the selected video quality without sound"
                         : "Saving the selected video quality")
                 : L10n.f("Saving video and subtitles to %1$s", path));
-        MediaJobScheduler.JobHandle job = MediaJobScheduler.submit("video", () -> {
+        boolean submitted = MediaJobScheduler.submit("video", () -> {
             List<File> temporary = new ArrayList<>();
             try {
                 File picture = temp(app, temporary);
@@ -124,16 +124,14 @@ final class VideoDownloads {
                 int saved = SubtitleDownloads.save(app, captionSnapshot, savedName, path);
                 Utils.showToastLong(subtitleResult(captionSnapshot.size(), saved, path));
             } catch (IOException | RuntimeException exception) {
-                if (!MediaBudget.isCancellation(exception)) {
-                    Logger.printException(() -> "Selected-quality download failed", exception);
-                    Utils.showToastLong(L10n.t("The video couldn't be saved. Try again, or choose Automatic."));
-                }
+                Logger.printException(() -> "Selected-quality download failed", exception);
+                Utils.showToastLong(L10n.t("The video couldn't be saved. Try again, or choose Automatic."));
             } finally {
                 for (File file : temporary) if (!MediaCache.delete(file)) Logger.printInfo(() -> "Could not remove video temporary file");
                 ACTIVE.remove(id);
             }
-        }, () -> ACTIVE.remove(id));
-        if (job == null) {
+        });
+        if (!submitted) {
             ACTIVE.remove(id);
             return false;
         }

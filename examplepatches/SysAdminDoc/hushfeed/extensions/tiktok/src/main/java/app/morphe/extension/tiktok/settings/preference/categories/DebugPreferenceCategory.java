@@ -62,8 +62,10 @@ public class DebugPreferenceCategory extends ConditionalPreferenceCategory {
 
         var clearLogs = new TintedClearLogBufferPreference(context);
         clearLogs.setTitle(L10n.t(context, "Clear diagnostic data"));
-        clearLogs.setSummary(L10n.t(context,
-                "Clear buffered events, saved crash reports and the hook status above."));
+        clearLogs.setClearAndUndoSummaries(
+                L10n.t(context,
+                        "Clear buffered events, saved crash reports and the hook status above."),
+                L10n.t(context, "Diagnostic data cleared. Tap again to put it back."));
         addPreference(clearLogs);
     }
 

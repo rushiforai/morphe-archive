@@ -78,7 +78,7 @@ private val NEED_PAID_HOLDERS = listOf(
     "Lcom/transsion/shorttv/bean/Subject;",
 )
 
-private const val SIM_OPERATOR = 62130
+private const val NO_SIM = ""
 
 private val SIM_OPERATOR_READERS = listOf(
     "Lcom/transsion/api/gateway/utils/DeviceUtils;" to "getSimOperator",
@@ -98,7 +98,8 @@ private val MINTEGRAL_LOADERS = listOf(
 val allInOnePatch = resourcePatch(
     name = "All-In-One",
     description = "Enables video playback and downloads, removes ads and upsell prompts, " +
-        "and bypasses the region block. Requires Android 10 or later.",
+        "bypasses the region block, and unlocks the hidden Laboratory menu. " +
+        "Requires Android 10 or later.",
 ) {
     compatibleWith(AppCompatibilities.MOVIEBOX)
     dependsOn(ijiamiPatch)
@@ -147,7 +148,7 @@ val allInOnePatch = resourcePatch(
             method(AD_SCENE_CONFIG, AD_SCENE_TIMEOUT).returnEarly(0)
             MINTEGRAL_LOADERS.forEach { (holder, name) -> method(holder, name).returnEarly() }
 
-            SIM_OPERATOR_READERS.forEach { (holder, name) -> method(holder, name).returnDigits(SIM_OPERATOR) }
+            SIM_OPERATOR_READERS.forEach { (holder, name) -> method(holder, name).returnString(NO_SIM) }
 
             REGION_BLOCK_HANDLERS.forEach { method(LIFE_STATUS_INTERCEPTOR, it).returnEarly() }
             method(LIFE_STATUS_INTERCEPTOR, BACKGROUND_REQUEST_FREEZE).returnEarly(false)

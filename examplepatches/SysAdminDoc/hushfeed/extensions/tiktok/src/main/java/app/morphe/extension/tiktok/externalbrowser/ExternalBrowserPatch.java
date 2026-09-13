@@ -14,9 +14,16 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Map;
 
+import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.settings.Settings;
 
 public final class ExternalBrowserPatch {
+    private static final String HOOK_FAMILY = "external browser";
+    private static final String MAIN_SERVICE_CLASS =
+            "com.ss.android.ugc.aweme.services.IMainService";
+    private static final String SERVICE_MANAGER_CLASS =
+            "com.ss.android.ugc.aweme.framework.services.ServiceManager";
+
     private ExternalBrowserPatch() {
     }
 
@@ -74,20 +81,26 @@ public final class ExternalBrowserPatch {
             return false;
         }
 
-        try {
-            Class<?> serviceClass = Class.forName("com.ss.android.ugc.aweme.services.IMainService");
-            Object manager = Class.forName("com.ss.android.ugc.aweme.framework.services.ServiceManager")
-                    .getMethod("get")
-                    .invoke(null);
-            Object service = manager.getClass()
-                    .getMethod("getService", Class.class)
-                    .invoke(manager, serviceClass);
-            return Boolean.TRUE.equals(serviceClass
-                    .getMethod("openSystemBrowser", Context.class, String.class)
-                    .invoke(service, context, uri.toString()));
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
-            return false;
-        }
+        Class<?> serviceClass = Reflect.requiredClass(MAIN_SERVICE_CLASS, HOOK_FAMILY);
+        Class<?> managerClass = Reflect.requiredClass(SERVICE_MANAGER_CLASS, HOOK_FAMILY);
+        Method getManager = Reflect.requiredMethod(managerClass, "get", HOOK_FAMILY);
+        Object manager = Reflect.invokeRequired(getManager, null, HOOK_FAMILY);
+        if (serviceClass == null || manager == null) return false;
+
+        Method getService = Reflect.requiredMethod(
+                manager.getClass(), "getService", HOOK_FAMILY, Class.class);
+        Object service = Reflect.invokeRequired(
+                getService, manager, HOOK_FAMILY, serviceClass);
+        if (service == null) return false;
+
+        Method openBrowser = Reflect.requiredMethod(
+                serviceClass,
+                "openSystemBrowser",
+                HOOK_FAMILY,
+                Context.class,
+                String.class);
+        return Boolean.TRUE.equals(Reflect.invokeRequired(
+                openBrowser, service, HOOK_FAMILY, context, uri.toString()));
     }
 
     static Uri resolveTarget(String source) {

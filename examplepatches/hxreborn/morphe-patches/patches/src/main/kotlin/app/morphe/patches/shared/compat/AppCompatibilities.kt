@@ -117,6 +117,17 @@ internal object AppCompatibilities {
         targets = listOf(AppTarget(version = "3.4.12", versionCode = 4197422, minSdk = 24)),
     )
 
+    val ONE_WEATHER = Compatibility(
+        name = "1Weather",
+        packageName = "com.handmark.expressweather",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x089AED,
+        targets = listOf(
+            AppTarget(version = "13.1.0", versionCode = 130010, minSdk = 26),
+            AppTarget(version = "12.9.3", versionCode = 120093, minSdk = 26),
+        ),
+    )
+
     val PERPLEXITY = Compatibility(
         name = "Perplexity",
         packageName = "ai.perplexity.app.android",

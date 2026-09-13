@@ -10,7 +10,6 @@ import app.morphe.extension.tiktok.SettingsContextRule;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -54,26 +53,6 @@ public class TrackMuxerTest {
     @Test public void videoOnlyAcceptsZeroAndAbsentRotationWithoutChangingSamples() throws Exception {
         assertVideoOnly(0);
         assertVideoOnly(null);
-    }
-
-    @Test public void cancelledVideoOnlyLeavesBothFilesAndOpensNoMedia() throws Exception {
-        File source = sourceWithTracks(90), output = files.newFile();
-        byte[] existingOutput = {81, 82};
-        Files.write(output.toPath(), existingOutput);
-        try {
-            Thread.currentThread().interrupt();
-            InterruptedIOException failure = assertThrows(InterruptedIOException.class,
-                    () -> TrackMuxer.videoOnly(source, output));
-            assertEquals("Media job cancelled", failure.getMessage());
-        } finally {
-            Thread.interrupted();
-        }
-        assertNull(SampleExtractor.last);
-        assertTrue(RecordingMuxer.events.isEmpty());
-        assertArrayEquals(SOURCE, Files.readAllBytes(source.toPath()));
-        assertArrayEquals(existingOutput, Files.readAllBytes(output.toPath()));
-        assertTrue(source.delete());
-        assertTrue(output.delete());
     }
 
     private File sourceWithTracks(Integer rotation) throws IOException {

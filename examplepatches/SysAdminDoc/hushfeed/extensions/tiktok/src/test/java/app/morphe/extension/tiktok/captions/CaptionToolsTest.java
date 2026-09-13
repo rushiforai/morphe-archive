@@ -369,15 +369,23 @@ public class CaptionToolsTest {
             assertEquals(childCount, secondDecor.getChildCount());
             assertEquals("Next window cue", caption.getText().toString());
 
-            // Only the new window's pre-draw may refresh its overlay. An old listener calls
-            // the same static refresh method and would incorrectly change the new caption.
+            // Turning the setting off retires the overlay and observer immediately. Dispatching
+            // either window afterwards must not bring that observer back.
             Settings.KEEP_CAPTIONS_CLEAR_DISPLAY.save(false);
-            assertEquals(View.VISIBLE, caption.getVisibility());
+            CaptionTools.onSettingChanged();
+            assertNull(caption.getParent());
             firstDecor.getViewTreeObserver().dispatchOnPreDraw();
-            assertEquals("the detached overlay left a listener on its previous window",
-                    View.VISIBLE, caption.getVisibility());
             secondDecor.getViewTreeObserver().dispatchOnPreDraw();
-            assertEquals(View.GONE, caption.getVisibility());
+            assertNull("a retired observer put the overlay back", caption.getParent());
+
+            // The current source and cue are still known, so enabling the setting can restore
+            // the caption without waiting for TikTok to render it again.
+            Settings.KEEP_CAPTIONS_CLEAR_DISPLAY.save(true);
+            CaptionTools.onSettingChanged();
+            TextView restored = find(secondDecor, "Next window cue");
+            assertNotNull(restored);
+            assertNotSame(caption, restored);
+            assertEquals(View.VISIBLE, restored.getVisibility());
         }
     }
 

@@ -20,9 +20,7 @@ private val manifestResolutionPatch = resourcePatch(
     name = "Custom App Resolution Manifest (internal)",
     default = false,
 ) {
-    // Guarded: morphe-patcher < 1.13.0 has no category() and the bundle
-    // must still load there (ungrouped) instead of dying on linkage.
-    try { category("Resolution") } catch (_: NoSuchMethodError) {}
+    category("Resolution")
     execute {
         val logger = Logger.getLogger(this::class.java.name)
 
@@ -75,9 +73,7 @@ val customResolutionPatch = bytecodePatch(
 ) {
     dependsOn(manifestResolutionPatch)
 
-    // Guarded: morphe-patcher < 1.13.0 has no category() and the bundle
-    // must still load there (ungrouped) instead of dying on linkage.
-    try { category("Resolution") } catch (_: NoSuchMethodError) {}
+    category("Resolution")
     val enableCustomResolution by booleanOption(
         title = "Enable Custom Resolution",
         default = false,
@@ -122,7 +118,8 @@ val customResolutionPatch = bytecodePatch(
         // Assumes standard register layout: p0=this, p1=Bundle
         // Use v0/v1 for loaded values, v2 for window reference
         match.addInstructions(0, """
-            invoke-virtual {p0}, Landroid/app/Activity;->getWindow()Landroid/view/Window;
+            move-object/from16 v2, p0
+            invoke-virtual {v2}, Landroid/app/Activity;->getWindow()Landroid/view/Window;
             move-result-object v2
             const v0, ${w}
             const v1, ${h}

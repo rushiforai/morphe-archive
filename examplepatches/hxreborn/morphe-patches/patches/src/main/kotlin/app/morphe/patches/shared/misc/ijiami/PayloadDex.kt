@@ -210,6 +210,8 @@ internal class PayloadDex private constructor(
         }
     }
 
+    fun stringIndexOf(value: String) = (0 until stringIdsSize).firstOrNull { stringAt(it) == value }
+
     private fun typeIndexOf(classDescriptor: String) =
         (0 until typeIdsSize).firstOrNull { typeDescriptor(it) == classDescriptor }
 
@@ -220,7 +222,11 @@ internal class PayloadDex private constructor(
 
     fun reseal() = payload.sealDexAt(start, size)
 
-    fun bodiesOf(classDescriptor: String, name: String): List<MethodBody> {
+    fun bodiesOf(
+        classDescriptor: String,
+        name: String,
+        opaqueRanges: List<IntRange> = emptyList(),
+    ): List<MethodBody> {
         val bodies = mutableListOf<MethodBody>()
 
         for (classData in classDataByDescriptor[classDescriptor].orEmpty()) {
@@ -275,6 +281,7 @@ internal class PayloadDex private constructor(
                             codeOffset = start + codeOffset,
                             returnType = returnTypeOf(methodIndex),
                             description = "$classDescriptor->$name",
+                            opaqueRanges = opaqueRanges,
                         )
                     }
                 }

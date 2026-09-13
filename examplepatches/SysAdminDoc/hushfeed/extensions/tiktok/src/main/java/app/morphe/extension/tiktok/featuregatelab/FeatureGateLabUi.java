@@ -123,6 +123,7 @@ final class FeatureGateLabUi {
         }
         icon.setContentDescription(description);
         icon.setFocusable(true);
+        SettingsUi.markAsButton(icon);
         icon.setOnClickListener(view -> action.run());
         return icon;
     }

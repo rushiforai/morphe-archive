@@ -8,7 +8,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -163,10 +162,6 @@ final class SubtitleDownloads {
                         return SubtitleFormat.toSrt(new String(output.toByteArray(), StandardCharsets.UTF_8), format);
                 }
                 } catch (IOException | RuntimeException error) {
-                    if (MediaBudget.isCancellation(error)) {
-                        if (error instanceof InterruptedIOException) throw (InterruptedIOException) error;
-                        throw new InterruptedIOException("Media job cancelled");
-                    }
                     boolean retryable = MediaBudget.isRetryableTransport(error);
                     if (retryable && attempt + 1 < MediaBudget.MAX_ATTEMPTS_PER_MIRROR) {
                         MediaBudget.waitBeforeRetry(null, attempt, deadline);

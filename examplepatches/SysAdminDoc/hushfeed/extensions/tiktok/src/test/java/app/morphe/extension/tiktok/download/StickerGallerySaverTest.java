@@ -185,7 +185,7 @@ public class StickerGallerySaverTest {
 
         Runnable work = StickerGallerySaver.stickerSaveWork(
                 RuntimeEnvironment.getApplication(), asset, anchor);
-        Runnable cancelled = StickerGallerySaver.handBackLater(anchor);
+        Runnable rejected = StickerGallerySaver.handBackLater(anchor);
 
         // The control: a closure that does capture the button has to be found, or the walk below
         // proves nothing about the two that should not.
@@ -195,8 +195,8 @@ public class StickerGallerySaverTest {
 
         assertFalse("a queued sticker save holds the button, and through it the Activity",
                 reaches(work, button));
-        assertFalse("a cancelled sticker save holds the button",
-                reaches(cancelled, button));
+        assertFalse("a rejected sticker save holds the button",
+                reaches(rejected, button));
     }
 
     @Test public void aSaveThatNeverRanStillHandsTheButtonBack() {
@@ -284,6 +284,32 @@ public class StickerGallerySaverTest {
         parent.addView(button);
         assertTrue("a translated button is not recognised, so a second one gets added",
                 (Boolean) has.invoke(null, parent));
+    }
+
+    @Test public void aSheetWithoutATextTemplateUsesTheSettingsThemeColours() throws Exception {
+        android.content.Context context = RuntimeEnvironment.getApplication();
+        app.morphe.extension.shared.Utils.setContext(context);
+        Method create = StickerGallerySaver.class.getDeclaredMethod(
+                "createActionButton", View.class, View.class);
+        create.setAccessible(true);
+
+        app.morphe.extension.shared.Utils.setIsDarkModeEnabled(true);
+        android.widget.TextView dark = (android.widget.TextView) create.invoke(
+                null, new View(context), new View(context));
+        assertEquals(app.morphe.extension.tiktok.settings.preference.SettingsUi.textPrimary(),
+                dark.getCurrentTextColor());
+        dark.setEnabled(false);
+        assertEquals(app.morphe.extension.tiktok.settings.preference.SettingsUi.textDisabled(),
+                dark.getCurrentTextColor());
+
+        app.morphe.extension.shared.Utils.setIsDarkModeEnabled(false);
+        android.widget.TextView light = (android.widget.TextView) create.invoke(
+                null, new View(context), new View(context));
+        assertEquals(app.morphe.extension.tiktok.settings.preference.SettingsUi.textPrimary(),
+                light.getCurrentTextColor());
+        assertNotEquals("the fallback colour stayed fixed across themes",
+                dark.getTextColors().getColorForState(new int[]{android.R.attr.state_enabled}, 0),
+                light.getCurrentTextColor());
     }
 
     @Test public void aCleartextStickerMirrorIsNotFetchedFrom() {

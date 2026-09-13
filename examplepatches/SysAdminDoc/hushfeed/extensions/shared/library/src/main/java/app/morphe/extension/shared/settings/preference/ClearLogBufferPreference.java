@@ -12,15 +12,34 @@ import android.util.AttributeSet;
 public class ClearLogBufferPreference extends Preference implements ImmediateAction {
     @Override public boolean actsOnTap() { return true; }
 
+    private CharSequence clearSummary;
+    private CharSequence undoSummary = "Diagnostic data cleared. Tap again to put it back.";
 
     {
         // A key so the settings search can index this row. Nothing in the settings
         // framework treats it as a setting: a key with no Setting behind it is skipped.
         setKey("action_clear_diagnostic_data");
         setOnPreferenceClickListener(pref -> {
+            if (LogBufferManager.canUndoClear()) {
+                LogBufferManager.UndoResult result = LogBufferManager.undoClear();
+                if (result != LogBufferManager.UndoResult.FAILED && clearSummary != null) {
+                    setSummary(clearSummary);
+                }
+                return true;
+            }
+
+            if (clearSummary == null) clearSummary = getSummary();
             LogBufferManager.clearLogBuffer();
+            if (LogBufferManager.canUndoClear()) setSummary(undoSummary);
             return true;
         });
+    }
+
+    /** Supplies the two row summaries in the bundle's language. */
+    public final void setClearAndUndoSummaries(CharSequence clearSummary, CharSequence undoSummary) {
+        this.clearSummary = clearSummary;
+        this.undoSummary = undoSummary;
+        setSummary(LogBufferManager.canUndoClear() ? undoSummary : clearSummary);
     }
 
     public ClearLogBufferPreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {

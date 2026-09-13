@@ -57,25 +57,23 @@ final class AudioDownloads {
             return;
         }
         if (!ACTIVE.add(id)) return;
-        MediaJobScheduler.JobHandle job = MediaJobScheduler.submit("sound", () -> {
+        boolean submitted = MediaJobScheduler.submit("sound", () -> {
             File fetched = null;
             try {
                 fetched = MediaCache.createTempFile(app, "sound-source-", ".mp4");
                 RemoteMedia.fetch(sourceUrls, fetched, RemoteMedia.Kind.VIDEO);
                 write(app, audioName, fetched);
             } catch (IOException | RuntimeException exception) {
-                if (!MediaBudget.isCancellation(exception)) {
-                    Logger.printException(() -> "Sound download failed", exception);
-                    Utils.showToastLong(L10n.t("The sound couldn't be saved. Try again."));
-                }
+                Logger.printException(() -> "Sound download failed", exception);
+                Utils.showToastLong(L10n.t("The sound couldn't be saved. Try again."));
             } finally {
                 if (fetched != null && !MediaCache.delete(fetched)) {
                     Logger.printInfo(() -> "Could not remove sound temporary file");
                 }
                 ACTIVE.remove(id);
             }
-        }, () -> ACTIVE.remove(id));
-        if (job == null) ACTIVE.remove(id);
+        });
+        if (!submitted) ACTIVE.remove(id);
     }
 
     /**

@@ -20,7 +20,7 @@ rm -rf ./*.apk ./*.apkm ./*.xapk ./*.mpp ./*.mpe ./*.idsig
 
 # 3. Clean temporary directories if they exist
 echo "==> Removing temporary cache directories..."
-rm -rf morphe-temporary-files/ morphe-data/ scratch/ apks-ultima-version/
+rm -rf morphe-temporary-files/ morphe-data/ scratch/ apks-ultima-version/ apks/
 
 # 4. Clean Python bytecode caches
 echo "==> Cleaning Python caches..."
@@ -34,7 +34,8 @@ rm -rf validation/physical_harness/results/patched/* \
        validation/physical_harness/results/vanilla/* \
        validation/physical_harness/results/*.md \
        validation/physical_harness/results/*.txt \
-       validation/runtime/crashes/* \
-       validation/combined/* 2>/dev/null || true
+       validation/runtime/* \
+       validation/combined/* \
+       *.logcat *.tombstone 2>/dev/null || true
 
 echo "✨ Workspace cleanup complete!"

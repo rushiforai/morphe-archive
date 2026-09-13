@@ -21,6 +21,7 @@ import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.patches.tiktok.shared.callThroughLocals
 import app.morphe.patches.tiktok.shared.objectIn
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.getReference
 import app.morphe.util.numberOfParameterRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -195,7 +196,7 @@ internal fun MutableMethod.hookInitialLynxParameter() {
                 "$EXTENSION->filterLynxParameter(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;",
                 objectIn("p0"), objectIn("v$register"),
             )
-            addInstructions(index, "$call\nmove-result-object v$register")
+            addInstructionsAtControlFlowLabel(index, "$call\nmove-result-object v$register")
         }
 }
 

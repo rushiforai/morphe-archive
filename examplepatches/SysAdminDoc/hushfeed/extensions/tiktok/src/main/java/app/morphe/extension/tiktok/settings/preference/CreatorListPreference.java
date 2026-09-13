@@ -43,6 +43,8 @@ public class CreatorListPreference extends DialogPreference {
     private EditText searchEditText;
     private EditText addEditText;
     private TextView emptyState;
+    private TextView resultCount;
+    private final List<TextView> removeButtons = new ArrayList<>();
 
     public CreatorListPreference(Context context, String title, String summary, StringSetting setting) {
         super(context);
@@ -87,6 +89,7 @@ public class CreatorListPreference extends DialogPreference {
                 SettingsUi.textPrimary(),
                 Typeface.BOLD
         );
+        SettingsUi.markDialogHeading(title);
         dialogView.addView(title, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -156,6 +159,14 @@ public class CreatorListPreference extends DialogPreference {
         addRow.addView(addButton, addButtonParams);
         dialogView.addView(addRow);
 
+        resultCount = SettingsUi.resultCount(context, "creator_list_result_count");
+        LinearLayout.LayoutParams resultParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        resultParams.setMargins(0, SettingsUi.dp(context, 10), 0, 0);
+        dialogView.addView(resultCount, resultParams);
+
         ScrollView scroll = new ScrollView(context);
         scroll.setFillViewport(true);
         entriesContainer = new LinearLayout(context);
@@ -218,6 +229,7 @@ public class CreatorListPreference extends DialogPreference {
     private void refreshEntryRows() {
         if (entriesContainer == null) return;
         entriesContainer.removeAllViews();
+        removeButtons.clear();
         String query = searchEditText == null ? "" : searchEditText.getText().toString()
                 .trim().toLowerCase(Locale.ROOT);
         int visible = 0;
@@ -226,6 +238,7 @@ public class CreatorListPreference extends DialogPreference {
             addEntryRow(entry);
             visible++;
         }
+        SettingsUi.setResultCount(resultCount, visible);
         if (visible == 0) {
             emptyState.setText(pendingEntries.isEmpty()
                     ? L10n.t(getContext(), "No creators are hidden yet")
@@ -262,10 +275,10 @@ public class CreatorListPreference extends DialogPreference {
         remove.setPadding(SettingsUi.dp(context, 8), 0, SettingsUi.dp(context, 8), 0);
         SettingsUi.styleTextAction(remove, false);
         remove.setTag("creator_remove_" + entry);
-        remove.setOnClickListener(view -> {
-            pendingEntries.remove(entry);
-            refreshEntryRows();
-        });
+        remove.setFocusable(true);
+        remove.setFocusableInTouchMode(true);
+        remove.setOnClickListener(view -> removeEntry(entry, remove));
+        removeButtons.add(remove);
         row.addView(remove, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -277,6 +290,27 @@ public class CreatorListPreference extends DialogPreference {
         );
         rowParams.setMargins(0, SettingsUi.dp(context, 4), 0, 0);
         entriesContainer.addView(row, rowParams);
+    }
+
+    private void removeEntry(String entry, TextView pressed) {
+        int position = Math.max(0, removeButtons.indexOf(pressed));
+        pendingEntries.remove(entry);
+        refreshEntryRows();
+        View next = removeButtons.isEmpty()
+                ? searchEditText
+                : removeButtons.get(Math.min(position, removeButtons.size() - 1));
+        if (next != null) {
+            Runnable moveFocus = () -> {
+                next.requestFocus();
+                next.performAccessibilityAction(
+                        android.view.accessibility.AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS,
+                        null
+                );
+            };
+            if (next.isAttachedToWindow()) next.post(moveFocus);
+            else moveFocus.run();
+        }
+        Utils.showToastShort(L10n.f(getContext(), "Removed %1$s", entry));
     }
 
     @Override

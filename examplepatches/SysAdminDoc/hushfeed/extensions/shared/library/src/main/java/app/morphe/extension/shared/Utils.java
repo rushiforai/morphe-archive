@@ -65,7 +65,6 @@ import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.ui.Dim;
 
-@SuppressWarnings("NewApi")
 public class Utils {
     private static WeakReference<Activity> activityRef = new WeakReference<>(null);
 
@@ -257,7 +256,7 @@ public class Utils {
         try {
             backgroundThreadPool.execute(() -> {
                 try {
-                    task.run();
+                    runAndLogFailure(task);
                 } finally {
                     backgroundTasksInFlight.decrementAndGet();
                 }
@@ -736,14 +735,7 @@ public class Utils {
      * Automatically logs any exceptions the runnable throws.
      */
     public static void runOnMainThreadDelayed(Runnable runnable, long delayMillis) {
-        Runnable loggingRunnable = () -> {
-            try {
-                runnable.run();
-            } catch (Exception ex) {
-                Logger.printException(() -> runnable.getClass().getSimpleName() + ": " + ex.getMessage(), ex);
-            }
-        };
-        new Handler(Looper.getMainLooper()).postDelayed(loggingRunnable, delayMillis);
+        new Handler(Looper.getMainLooper()).postDelayed(() -> runAndLogFailure(runnable), delayMillis);
     }
 
     /**
@@ -752,9 +744,21 @@ public class Utils {
      */
     public static void runOnMainThreadNowOrLater(Runnable runnable) {
         if (isCurrentlyOnMainThread()) {
-            runnable.run();
+            runAndLogFailure(runnable);
         } else {
             runOnMainThread(runnable);
+        }
+    }
+
+    /** Keeps a fire-and-forget callback from escaping into TikTok's process. */
+    private static void runAndLogFailure(Runnable runnable) {
+        try {
+            runnable.run();
+        } catch (Throwable failure) {
+            Logger.printException(
+                    () -> runnable.getClass().getSimpleName() + ": " + failure.getMessage(),
+                    failure
+            );
         }
     }
 

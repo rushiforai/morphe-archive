@@ -128,7 +128,7 @@ public final class OriginalSoundDownloads {
 
         Context app = context.getApplicationContext();
         if (!ACTIVE.add(id)) return;
-        MediaJobScheduler.JobHandle job = MediaJobScheduler.submit("original-sound", () -> {
+        boolean submitted = MediaJobScheduler.submit("original-sound", () -> {
             File fetched = null;
             try {
                 fetched = MediaCache.createTempFile(app, "original-sound-", ".tmp");
@@ -141,17 +141,15 @@ public final class OriginalSoundDownloads {
                 MediaFileWriter.publish(app, fetched, name, mimeFor(extension), path, true);
                 Utils.showToastShort(L10n.f("Sound saved to %1$s", path));
             } catch (IOException | RuntimeException exception) {
-                if (!MediaBudget.isCancellation(exception)) {
-                    Logger.printException(() -> "Original sound download failed", exception);
-                    Utils.showToastLong(L10n.t("The sound couldn't be saved. Try again."));
-                }
+                Logger.printException(() -> "Original sound download failed", exception);
+                Utils.showToastLong(L10n.t("The sound couldn't be saved. Try again."));
             } finally {
                 if (fetched != null && !MediaCache.delete(fetched)) {
                     Logger.printInfo(() -> "Could not remove sound temporary file");
                 }
                 ACTIVE.remove(id);
             }
-        }, () -> ACTIVE.remove(id));
-        if (job == null) ACTIVE.remove(id);
+        });
+        if (!submitted) ACTIVE.remove(id);
     }
 }

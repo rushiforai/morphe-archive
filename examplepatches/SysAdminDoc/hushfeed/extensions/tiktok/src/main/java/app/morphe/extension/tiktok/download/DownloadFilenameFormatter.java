@@ -47,6 +47,12 @@ public final class DownloadFilenameFormatter {
             return size() > 64;
         }
     };
+    private static final Map<String, PhotoSequence> PHOTO_SEQUENCES = new LinkedHashMap<String, PhotoSequence>() {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, PhotoSequence> eldest) {
+            return size() > 64;
+        }
+    };
 
     private DownloadFilenameFormatter() {
     }
@@ -80,6 +86,7 @@ public final class DownloadFilenameFormatter {
                     "unknown"
             );
             long createdAt = readCreateTime(aweme);
+            int index = photo ? nextPhotoIndex(aweme, aid, System.currentTimeMillis()) : 1;
 
             File target = resolveTarget(
                     original,
@@ -88,7 +95,8 @@ public final class DownloadFilenameFormatter {
                     sanitizeToken(creator),
                     formatDate(createdAt),
                     sanitizeToken(aid),
-                    null
+                    null,
+                    index
             );
             if (target.equals(original)) {
                 return;
@@ -139,7 +147,8 @@ public final class DownloadFilenameFormatter {
                 null,
                 formatDate(System.currentTimeMillis()),
                 null,
-                sanitizeToken(mediaId)
+                sanitizeToken(mediaId),
+                1
         );
         return result.getName();
     }
@@ -216,7 +225,8 @@ public final class DownloadFilenameFormatter {
             String creator,
             String date,
             String videoId,
-            String mediaId
+            String mediaId,
+            int index
     ) {
         String source = template == null ? "" : template.trim();
         if (source.isEmpty()) {
@@ -225,10 +235,7 @@ public final class DownloadFilenameFormatter {
 
         String originalBase = stripExtension(original.getName());
         boolean hasIndexToken = source.contains("{index}");
-        // A single number, because this is not where a taken name is discovered. The token
-        // numbers the photos of a slideshow, and those arrive already numbered through
-        // formatOriginalPhotoName; a single video has one of itself.
-        String counter = "1";
+        String counter = String.valueOf(Math.max(1, index));
         String base = source
                 .replace("{creator}", safeToken(creator))
                 .replace("{date}", safeToken(date))
@@ -245,6 +252,42 @@ public final class DownloadFilenameFormatter {
                 ? boundTemplatedName(base, MAX_BASENAME_LENGTH, counter)
                 : trimToLength(base, MAX_BASENAME_LENGTH, MAX_BASENAME_BYTES);
         return new File(original.getParentFile(), boundedBase + "." + sanitizeExtension(extension));
+    }
+
+    /**
+     * TikTok's save callback supplies one staging path and the post, but no photo position. The
+     * callbacks share the post id, so they take consecutive numbers until the post's image count
+     * is reached. Completing the batch removes its state and makes a later save start at one.
+     */
+    private static int nextPhotoIndex(Object aweme, String aid, long now) {
+        int count = photoCount(aweme);
+        if (count <= 1) return 1;
+        String key = "unknown".equals(aid)
+                ? aweme.getClass().getName() + '@' + System.identityHashCode(aweme)
+                : aid;
+        synchronized (PENDING_NAMES) {
+            PhotoSequence sequence = PHOTO_SEQUENCES.get(key);
+            if (sequence == null || sequence.count != count
+                    || now - sequence.updatedAt > PENDING_NAME_TTL_MS
+                    || sequence.nextIndex > count) {
+                sequence = new PhotoSequence(count, now);
+                PHOTO_SEQUENCES.put(key, sequence);
+            }
+            int index = sequence.nextIndex++;
+            sequence.updatedAt = now;
+            if (index >= count) PHOTO_SEQUENCES.remove(key);
+            return index;
+        }
+    }
+
+    private static int photoCount(Object aweme) {
+        Object direct = firstNonNull(invoke(aweme, "getImageInfos"), readField(aweme, "imageInfos"));
+        if (direct instanceof List && !((List<?>) direct).isEmpty()) return ((List<?>) direct).size();
+        Object info = firstNonNull(
+                invoke(aweme, "getPhotoModeImageInfo"),
+                readField(aweme, "photoModeImageInfo"));
+        Object images = firstNonNull(invoke(info, "getImageList"), readField(info, "imageList"));
+        return images instanceof List ? ((List<?>) images).size() : 0;
     }
 
     /**
@@ -410,6 +453,17 @@ public final class DownloadFilenameFormatter {
         PendingName(String name, long createdAt) {
             this.name = name;
             this.createdAt = createdAt;
+        }
+    }
+
+    private static final class PhotoSequence {
+        final int count;
+        int nextIndex = 1;
+        long updatedAt;
+
+        PhotoSequence(int count, long updatedAt) {
+            this.count = count;
+            this.updatedAt = updatedAt;
         }
     }
 }

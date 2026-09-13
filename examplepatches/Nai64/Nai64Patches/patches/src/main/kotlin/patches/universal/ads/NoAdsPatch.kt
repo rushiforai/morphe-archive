@@ -151,9 +151,7 @@ val noAdsPatch = bytecodePatch(
     description = "Blocks ads by type. Pick what to block. For rewarded ads use Ads Free Rewards instead.",
     default = false,
 ) {
-    // Guarded: morphe-patcher < 1.13.0 has no category() and the bundle
-    // must still load there (ungrouped) instead of dying on linkage.
-    try { category("Featured") } catch (_: NoSuchMethodError) {}
+    category("Featured")
     val preset by stringOption(
         key = "preset",
         default = "recommended",
@@ -354,12 +352,13 @@ val noAdsPatch = bytecodePatch(
         // -- VK MyTarget / RuStore build --
         if (hasMyTarget && (effectiveBlockInterstitials || effectiveBlockRewarded)) {
             val myTargetChecks = buildString {
+                appendLine("move-object/from16 v1, p0")
                 if (effectiveBlockRewarded) {
-                    appendLine("instance-of v0, p0, Lcom/my/target/ads/RewardedAd;")
+                    appendLine("instance-of v0, v1, Lcom/my/target/ads/RewardedAd;")
                     appendLine("if-nez v0, :morphe_no_ads_mytarget_block")
                 }
                 if (effectiveBlockInterstitials) {
-                    appendLine("instance-of v0, p0, Lcom/my/target/ads/InterstitialAd;")
+                    appendLine("instance-of v0, v1, Lcom/my/target/ads/InterstitialAd;")
                     appendLine("if-nez v0, :morphe_no_ads_mytarget_block")
                 }
                 appendLine("goto :morphe_no_ads_mytarget_continue")

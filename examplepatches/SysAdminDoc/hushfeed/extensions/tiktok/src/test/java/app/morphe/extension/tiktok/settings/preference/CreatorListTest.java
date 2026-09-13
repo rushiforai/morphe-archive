@@ -108,6 +108,10 @@ public class CreatorListTest {
         return null;
     }
 
+    private static TextView resultCount(View view) {
+        return view.findViewWithTag("creator_list_result_count");
+    }
+
     /** The text of the empty state when it is showing, or null when rows are. */
     private static String emptyState(View view) {
         for (String text : new String[]{"No creators are hidden yet", "No hidden creators match this search"}) {
@@ -141,6 +145,10 @@ public class CreatorListTest {
             View view = preference.onCreateDialogView();
             assertEquals(java.util.List.of("alice", "bob"), rows(view));
             assertNull(emptyState(view));
+            assertEquals("2 results", resultCount(view).getText().toString());
+            TextView title = (TextView) ((ViewGroup) view).getChildAt(0);
+            assertTrue("the dialog title is not exposed as a heading",
+                    title.isAccessibilityHeading());
 
             // Remove one, then cancel: the setting is untouched.
             byDescription(view, "Remove bob").performClick();
@@ -248,19 +256,45 @@ public class CreatorListTest {
 
             search.setText("BOB");
             assertEquals(java.util.List.of("bob", "bobby"), rows(view));
+            assertEquals("2 results", resultCount(view).getText().toString());
             assertNull(emptyState(view));
 
             search.setText("zed");
             assertEquals(java.util.List.of(), rows(view));
+            assertEquals("0 results", resultCount(view).getText().toString());
             assertEquals("No hidden creators match this search", emptyState(view));
 
             search.setText("");
             assertEquals(java.util.List.of("alice", "bob", "bobby"), rows(view));
+            assertEquals("3 results", resultCount(view).getText().toString());
 
             // A search never changes what is saved, only what is shown.
             search.setText("bob");
             preference.onDialogClosed(true);
             assertEquals("alice, bob, bobby", Settings.LOCAL_HIDDEN_CREATORS.get());
+        }
+    }
+
+    @Test
+    public void removingACreatorReportsItAndMovesFocusToTheNextRemoveAction() {
+        try (var owner = Robolectric.buildActivity(app.morphe.extension.tiktok.captions.CaptionToolsTest.CaptionActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            Settings.LOCAL_HIDDEN_CREATORS.save("alice, bob, bobby");
+
+            View view = open(activity).onCreateDialogView();
+            View removeBob = byDescription(view, "Remove bob");
+            assertNotNull(removeBob);
+            removeBob.requestFocus();
+            ShadowToast.reset();
+            removeBob.performClick();
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+
+            assertEquals("Removed bob", ShadowToast.getTextOfLatestToast());
+            View removeBobby = byDescription(view, "Remove bobby");
+            assertNotNull(removeBobby);
+            assertTrue("focus vanished with the removed row", removeBobby.hasFocus());
+            assertEquals("2 results", resultCount(view).getText().toString());
         }
     }
 

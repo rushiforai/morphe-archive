@@ -45,6 +45,10 @@ public final class LogBufferManager {
      * English below, which is what a bundle carrying no table gets.
      */
     public static CharSequence clearedMessage;
+    public static CharSequence nothingToClearMessage;
+    public static CharSequence restoredMessage;
+    public static CharSequence nothingToRestoreMessage;
+    public static CharSequence restoreFailedMessage;
 
     /**
      * The other sentences the export path says. Each is null until a bundle with a translation
@@ -73,7 +77,40 @@ public final class LogBufferManager {
     private static final Deque<DiagnosticEvent> logBuffer = new ConcurrentLinkedDeque<>();
     private static final AtomicInteger logBufferCharSize = new AtomicInteger();
     private static final Object CRASH_FILE_LOCK = new Object();
+    private static final Object CLEAR_UNDO_LOCK = new Object();
     private static final AtomicBoolean FILE_EXPORT_RUNNING = new AtomicBoolean();
+    private static ClearSnapshot lastClear;
+
+    /** Everything the clear row removes, kept in memory until its next tap. */
+    private static final class ClearSnapshot {
+        final List<DiagnosticEvent> events;
+        final app.morphe.extension.shared.diagnostics.HookStatus.Snapshot hooks;
+        final String javaCrash;
+        final String nativeCrash;
+
+        ClearSnapshot(
+                List<DiagnosticEvent> events,
+                app.morphe.extension.shared.diagnostics.HookStatus.Snapshot hooks,
+                String javaCrash,
+                String nativeCrash
+        ) {
+            this.events = events;
+            this.hooks = hooks;
+            this.javaCrash = javaCrash;
+            this.nativeCrash = nativeCrash;
+        }
+
+        boolean isEmpty() {
+            return events.isEmpty() && hooks.isEmpty()
+                    && javaCrash.isEmpty() && nativeCrash.isEmpty();
+        }
+    }
+
+    public enum UndoResult {
+        RESTORED,
+        NOTHING_TO_RESTORE,
+        FAILED
+    }
 
     private LogBufferManager() {
     }
@@ -98,13 +135,15 @@ public final class LogBufferManager {
                 safe(message)
         );
         int eventSize = event.format().length();
-        logBuffer.addLast(event);
-        int newSize = logBufferCharSize.addAndGet(eventSize);
+        synchronized (CLEAR_UNDO_LOCK) {
+            logBuffer.addLast(event);
+            int newSize = logBufferCharSize.addAndGet(eventSize);
 
-        while (newSize > BUFFER_MAX_CHARS || logBuffer.size() > BUFFER_MAX_SIZE) {
-            DiagnosticEvent removed = logBuffer.pollFirst();
-            if (removed == null) return;
-            newSize = logBufferCharSize.addAndGet(-removed.format().length());
+            while (newSize > BUFFER_MAX_CHARS || logBuffer.size() > BUFFER_MAX_SIZE) {
+                DiagnosticEvent removed = logBuffer.pollFirst();
+                if (removed == null) return;
+                newSize = logBufferCharSize.addAndGet(-removed.format().length());
+            }
         }
     }
 
@@ -421,6 +460,14 @@ public final class LogBufferManager {
     static final String CRASH_TRUNCATED_MARKER = "\n[report truncated]\n";
 
     private static void persistCrashReport(Context context, String fileName, String report) throws Exception {
+        synchronized (CLEAR_UNDO_LOCK) {
+            persistCrashReportLocked(context, fileName, report);
+        }
+    }
+
+    /** Writes while the diagnostic generation lock is already held. */
+    private static void persistCrashReportLocked(Context context, String fileName, String report)
+            throws Exception {
         byte[] bytes = safe(report).getBytes(StandardCharsets.UTF_8);
         if (bytes.length > CRASH_MAX_BYTES) {
             // The header's own claim goes with the cut. The marker at the end said the report
@@ -496,16 +543,101 @@ public final class LogBufferManager {
     }
 
     public static void clearLogBuffer() {
-        clearLogBufferData();
-        app.morphe.extension.shared.diagnostics.HookStatus.clear();
-        clearCrashReports(Utils.getContext());
-        Utils.showToastShort(say(clearedMessage, "Diagnostic data cleared."));
+        boolean restorable;
+        synchronized (CLEAR_UNDO_LOCK) {
+            Context context = Utils.getContext();
+            ClearSnapshot removed = new ClearSnapshot(
+                    new ArrayList<>(logBuffer),
+                    app.morphe.extension.shared.diagnostics.HookStatus.snapshotAndClear(),
+                    readCrashReport(context),
+                    readNpthCrashReport(context)
+            );
+            clearLogBufferData();
+            clearCrashReports(context);
+            lastClear = removed.isEmpty() ? null : removed;
+            restorable = lastClear != null;
+        }
+        Utils.showToastShort(restorable
+                ? say(clearedMessage, "Diagnostic data cleared. Tap again to put it back.")
+                : say(nothingToClearMessage, "There is no diagnostic data to clear."));
+    }
+
+    /** True while the clear row's next tap can restore what its previous tap removed. */
+    public static boolean canUndoClear() {
+        synchronized (CLEAR_UNDO_LOCK) {
+            return lastClear != null;
+        }
+    }
+
+    /** Restores the most recent clear while retaining events and hook findings recorded since. */
+    public static UndoResult undoClear() {
+        UndoResult result;
+        synchronized (CLEAR_UNDO_LOCK) {
+            ClearSnapshot saved = lastClear;
+            if (saved == null) {
+                result = UndoResult.NOTHING_TO_RESTORE;
+            } else {
+                try {
+                    Context context = Utils.getContext();
+                    restoreCrashReportIfMissing(context, CRASH_FILE, saved.javaCrash);
+                    restoreCrashReportIfMissing(context, NPTH_CRASH_FILE, saved.nativeCrash);
+                    restoreLogBufferData(saved.events);
+                    app.morphe.extension.shared.diagnostics.HookStatus.restore(saved.hooks);
+                    lastClear = null;
+                    result = UndoResult.RESTORED;
+                } catch (Exception error) {
+                    Logger.printException(() -> "Failed to restore cleared diagnostics", error);
+                    result = UndoResult.FAILED;
+                }
+            }
+        }
+
+        if (result == UndoResult.RESTORED) {
+            Utils.showToastShort(say(restoredMessage, "Diagnostic data put back."));
+        } else if (result == UndoResult.NOTHING_TO_RESTORE) {
+            Utils.showToastShort(say(nothingToRestoreMessage,
+                    "There is no diagnostic data to put back."));
+        } else {
+            Utils.showToastLong(say(restoreFailedMessage,
+                    "Could not put back the diagnostic data. Try again."));
+        }
+        return result;
     }
 
     private static void clearLogBufferData() {
         while (!logBuffer.isEmpty()) {
             DiagnosticEvent removed = logBuffer.pollFirst();
             if (removed != null) logBufferCharSize.addAndGet(-removed.format().length());
+        }
+    }
+
+    private static void restoreLogBufferData(List<DiagnosticEvent> saved) {
+        // Older saved events go in front of anything recorded after the clear. If the combined
+        // buffer is too large, the usual oldest-first bound applies.
+        for (int index = saved.size() - 1; index >= 0; index--) {
+            DiagnosticEvent event = saved.get(index);
+            logBuffer.addFirst(event);
+            logBufferCharSize.addAndGet(event.format().length());
+        }
+        while (logBufferCharSize.get() > BUFFER_MAX_CHARS || logBuffer.size() > BUFFER_MAX_SIZE) {
+            DiagnosticEvent removed = logBuffer.pollFirst();
+            if (removed == null) break;
+            logBufferCharSize.addAndGet(-removed.format().length());
+        }
+    }
+
+    private static void restoreCrashReportIfMissing(
+            Context context,
+            String fileName,
+            String report
+    ) throws Exception {
+        if (report.isEmpty()) return;
+        if (context == null) throw new IOException("Application context unavailable");
+        // A newer crash is better evidence than the one that was cleared. Undo fills only the
+        // empty slot so it cannot erase a crash recorded after the first tap.
+        synchronized (CRASH_FILE_LOCK) {
+            if (!readCrashReport(context, fileName).isEmpty()) return;
+            persistCrashReportLocked(context, fileName, report);
         }
     }
 

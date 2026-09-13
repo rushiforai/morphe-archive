@@ -187,8 +187,12 @@ try {
                 Write-Step 'no local bundle here, so the hosted artifact is not compared'
             }
             # The indexed URL is still fetched. Only the byte-for-byte hash comparison needs a
-            # local bundle to compare against.
-            & $validate -Root $Root -SkipDescriptionTestCount:(-not $describesThisTree)
+            # local bundle to compare against. A release source commit reaches GitHub before its
+            # tag and bundle can exist, so an unchanged index may keep naming the previous
+            # working release during that first push. The index update takes the strict path.
+            & $validate -Root $Root `
+                -SkipDescriptionTestCount:(-not $describesThisTree) `
+                -AllowPublishedIndexLag:(-not $describesThisTree)
         }
         if ($LASTEXITCODE -ne 0) {
             throw 'The release facts do not agree. Fix them or push with HUSHFEED_SKIP_PRE_PUSH=1.'

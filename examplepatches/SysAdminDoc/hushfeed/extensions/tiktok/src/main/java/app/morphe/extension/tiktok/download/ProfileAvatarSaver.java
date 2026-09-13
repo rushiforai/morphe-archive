@@ -189,7 +189,7 @@ public final class ProfileAvatarSaver {
             Utils.showToastShort(L10n.t("Still saving the last one"));
             return;
         }
-        MediaJobScheduler.JobHandle job = MediaJobScheduler.submit("profile picture", () -> {
+        boolean submitted = MediaJobScheduler.submit("profile picture", () -> {
             File temp = null;
             try {
                 MediaBudget.checkDiskSpace(app.getCacheDir(), -1L);
@@ -208,7 +208,7 @@ public final class ProfileAvatarSaver {
                 }
                 RUNNING.set(false);
             }
-        }, () -> RUNNING.set(false));
-        if (job == null) RUNNING.set(false);
+        });
+        if (!submitted) RUNNING.set(false);
     }
 }

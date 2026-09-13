@@ -43,8 +43,8 @@ public final class FeatureControls {
         return distanceDp > 0 ? distanceDp : DEFAULT_LONG_PRESS_LOCK_DISTANCE_DP;
     }
 
-    public static boolean overrideHideQuickCommentEmoji(boolean original, int followStatus) {
-        return Settings.HIDE_COMMENT_QUICK_REACTIONS.get() || original;
+    public static int hideQuickCommentReactionsVisibility(int originalVisibility) {
+        return Settings.HIDE_COMMENT_QUICK_REACTIONS.get() ? View.GONE : originalVisibility;
     }
 
     public static int hideFeedFollowButtonVisibility(int originalVisibility) {

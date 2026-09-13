@@ -5,11 +5,13 @@ import static org.junit.Assert.*;
 import android.view.View;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import com.ss.android.ugc.aweme.base.model.UrlModel;
 
 import java.util.List;
 import java.util.Map;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,6 +26,11 @@ import org.robolectric.util.ReflectionHelpers;
 public class StickerSourceTransportTest {
     @Before public void setUp() {
         Utils.setContext(RuntimeEnvironment.getApplication());
+        HookStatus.clear();
+    }
+
+    @After public void tearDown() {
+        HookStatus.clear();
     }
 
     @Test public void registeredRichStickerKeepsItsTrimmedHttpsUrl() {
@@ -69,6 +76,22 @@ public class StickerSourceTransportTest {
         assertNotNull("rejecting the direct source also discarded the usable preview", asset);
         assertEquals("https://cdn.example/preview.png", asset.url);
         assertEquals(List.of("https://cdn.example/preview.png"), asset.urls);
+        assertTrue("a working preview fallback was reported as broken",
+                HookStatus.missing("sticker saves").isEmpty());
+    }
+
+    @Test public void aRenamedSourceAdapterIsVisibleInHookStatus() {
+        View sheet = new View(RuntimeEnvironment.getApplication());
+        PreviewModel preview = new PreviewModel(null);
+        StickerGallerySaver.registerStickerSource(preview, new RenamedSource());
+
+        StickerGallerySaver.attachSaveImageButton(sheet, preview);
+
+        assertNull(resolved(sheet));
+        List<String> missing = HookStatus.missing("sticker saves");
+        assertEquals(missing.toString(), 1, missing.size());
+        assertTrue(missing.get(0), missing.get(0).contains("LLILLIZIL"));
+        assertTrue(missing.get(0), missing.get(0).contains("X.0UD5"));
     }
 
     private static StickerGallerySaver.StickerAsset resolved(View sheet) {
@@ -88,6 +111,10 @@ public class StickerSourceTransportTest {
     public static final class SourceHolder {
         public final RichSticker LLILLIZIL;
         SourceHolder(RichSticker sticker) { LLILLIZIL = sticker; }
+    }
+
+    /** A newer build renamed both supported rich-source entry points. */
+    public static final class RenamedSource {
     }
 
     /** IMGiphyInfo exposes a direct getUrl string rather than an UrlModel. */

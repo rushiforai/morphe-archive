@@ -16,8 +16,10 @@ import android.content.Context;
 import android.os.Looper;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.settings.Settings;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -70,9 +72,15 @@ public class CaptchaGateTest {
     public void setUp() {
         Context context = RuntimeEnvironment.getApplication();
         Utils.setContext(context);
+        HookStatus.clear();
         CaptchaGate.resetForTests();
         Settings.HIDE_CAPTCHA_POPUPS.save(true);
         now = CaptchaGate.now();
+    }
+
+    @After
+    public void tearDown() {
+        HookStatus.clear();
     }
 
     /** A clock past every write recorded up to now, whatever ran before this test. */
@@ -162,6 +170,16 @@ public class CaptchaGateTest {
     public void accountVerificationIsNeverHidden() {
         assertEquals("it is account verification",
                 CaptchaGate.showReason(null, "{\"scene\":\"/passport/mobile/check\"}", afterEveryWrite()));
+    }
+
+    @Test
+    public void aRenamedAccountServiceIsVisibleInHookStatus() {
+        assertEquals("no account is signed in",
+                CaptchaGate.showReason(null, "{\"subtype\":\"slide\"}", afterEveryWrite()));
+
+        java.util.List<String> missing = HookStatus.missing("CAPTCHA account state");
+        assertEquals(missing.toString(), 1, missing.size());
+        assertTrue(missing.get(0), missing.get(0).contains("ServiceManager"));
     }
 
     @Test
