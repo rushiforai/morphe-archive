@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-09-12 03:18 UTC",
+  "generatedAt": "2026-09-13 03:23 UTC",
   "configFile": "morphe_archive_config_v48.json",
   "configVersion": 48,
   "repoCount": 215,
   "appCount": 827,
-  "patchCount": 4454,
-  "universalPatchCount": 581,
+  "patchCount": 4555,
+  "universalPatchCount": 670,
   "hostCounts": {
     "github.com": 210,
     "gitlab.com": 5
   },
   "visitorStats": {
-    "today": 1,
-    "yesterday": 8,
-    "total": 534,
-    "online": 1
+    "today": 0,
+    "yesterday": 5,
+    "total": 538,
+    "online": 0
   },
   "repos": [
     {
@@ -2434,19 +2434,19 @@
       "webUrl": "https://github.com/byehi98/okish-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=byehi98/okish-morphe-patches",
       "avatarUrl": "https://github.com/byehi98.png?size=96",
-      "patchCount": 55,
+      "patchCount": 56,
       "appCount": 26,
       "createdAt": 1784836032190,
       "updatedAt": 1784836032190,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.26.0 (2026-09-09)",
-        "date": "2026-09-09",
+        "title": "1.26.1 (2026-09-12)",
+        "date": "2026-09-12",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "**onlyone:** enable free in-app purchases"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
           }
         ]
       },
@@ -2573,7 +2573,7 @@
         {
           "name": "Plague Inc.",
           "packageName": "com.miniclip.plagueinc",
-          "patchCount": 7,
+          "patchCount": 8,
           "iconUrl": "",
           "iconColor": "#B71C1C"
         },
@@ -2724,12 +2724,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.13.0 (2026-09-03)",
-        "date": "2026-09-03",
+        "title": "1.13.1 (2026-09-12)",
+        "date": "2026-09-12",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "**Undercover:** Enable Premium"
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "**Citymapper:** support for 11.58"
           }
         ]
       },
@@ -3218,12 +3218,24 @@
       "createdDate": "2026-08-29",
       "updatedDate": "2026-08-29",
       "latestChanges": {
-        "title": "3.19.2 (2026-09-12)",
-        "date": "2026-09-12",
+        "title": "3.21.0 (2026-09-13)",
+        "date": "2026-09-13",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**Twitter - newx:** preserve inline download icon on recomposition"
+            "text": "**Twitter:** inline download icon classification"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**Twitter:** group custom NewX post menu options"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**Twitter - newx:** register dynamic choice resources"
+          },
+          {
+            "category": "\ud83d\udd27 Improvements",
+            "text": "**Twitter - newx:** discover drawer options dynamically"
           }
         ]
       },
@@ -6995,12 +7007,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.1.2 (2026-09-02)",
-        "date": "2026-09-02",
+        "title": "1.1.3 (2026-09-12)",
+        "date": "2026-09-12",
         "items": [
           {
-            "category": "\ud83d\ude80 Updated App Support",
-            "text": "**sankaku:** add support for 4.26-rc96 (dd2b334), closes #19759"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**rc96:** disable OTA hot-updater to prevent popup patch override (8651d4b), closes #21661"
           }
         ]
       },
@@ -7923,51 +7935,38 @@
       "webUrl": "https://github.com/hxreborn/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=hxreborn/morphe-patches",
       "avatarUrl": "https://github.com/hxreborn.png?size=96",
-      "patchCount": 42,
-      "appCount": 24,
+      "patchCount": 46,
+      "appCount": 25,
       "createdAt": 1784837695114,
       "updatedAt": 1784837695114,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.18.0 (2026-09-11)",
-        "date": "2026-09-11",
+        "title": "1.20.0 (2026-09-12)",
+        "date": "2026-09-12",
         "items": [
           {
             "category": "Bug Fixes",
-            "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+            "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "**MovieBox - All-In-One:** report no SIM operator"
           },
           {
             "category": "New Features",
-            "text": "**AlpineQuest:** add support for 2.4.0e"
-          },
-          {
-            "category": "New Features",
-            "text": "**Audible:** add support for 26.30.05"
-          },
-          {
-            "category": "New Features",
-            "text": "**ForusApp:** add support for 3.0.15"
-          },
-          {
-            "category": "New Features",
-            "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-          },
-          {
-            "category": "New Features",
-            "text": "**Notesnook:** add support for 3.4.12"
-          },
-          {
-            "category": "New Features",
-            "text": "**Perplexity:** add support for 2.95.0"
-          },
-          {
-            "category": "New Features",
-            "text": "**Projectivy:** add support for 4.70 and 4.71"
+            "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
           }
         ]
       },
       "apps": [
+        {
+          "name": "1Weather",
+          "packageName": "com.handmark.expressweather",
+          "patchCount": 4,
+          "iconUrl": "",
+          "iconColor": "#089AED"
+        },
         {
           "name": "All-In-One Calculator",
           "packageName": "all.in.one.calculator",
@@ -9880,19 +9879,19 @@
       "webUrl": "https://github.com/kveld9/kveld-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=kveld9/kveld-morphe-patches",
       "avatarUrl": "https://github.com/kveld9.png?size=96",
-      "patchCount": 43,
-      "appCount": 4,
+      "patchCount": 51,
+      "appCount": 5,
       "createdAt": 1787275038494,
       "updatedAt": 1787275038494,
       "createdDate": "2026-08-21",
       "updatedDate": "2026-08-21",
       "latestChanges": {
-        "title": "1.21.0 (2026-09-11)",
-        "date": "2026-09-11",
+        "title": "1.22.1 (2026-09-13)",
+        "date": "2026-09-13",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "**brave:** update target to v1.95.101 and align libchrome offsets"
+            "category": "\u267b\ufe0f Code Refactoring",
+            "text": "**harness:** eradicate hardcoded identifiers and harden validation toolchain"
           }
         ]
       },
@@ -9900,7 +9899,7 @@
         {
           "name": "Brave Private Web Browser, VPN",
           "packageName": "com.brave.browser",
-          "patchCount": 10,
+          "patchCount": 9,
           "iconUrl": "https://play-lh.googleusercontent.com/UBrZnuXGb-QACU0uUdF5r_n5nx5oBbdfPyEbtsr0xXv00RN7rpaTVu3GjLeE90aHFmNlbaCmm8vNcmY0eE98U9E",
           "iconColor": "#FF4500"
         },
@@ -9917,6 +9916,13 @@
           "patchCount": 4,
           "iconUrl": "https://play-lh.googleusercontent.com/bLlRnwjt0tKva6ob0ZrtxkUs-z4MhQ4cPIOnXeh_knD8QVAXSLFiMGyKo2kLF7PV2uSK1Wly1L4q-6Sv1k13",
           "iconColor": "#FF4500"
+        },
+        {
+          "name": "TikTok",
+          "packageName": "com.zhiliaoapp.musically",
+          "patchCount": 9,
+          "iconUrl": "https://play-lh.googleusercontent.com/2o7iuqPe-0msP3DvNhzoOgNo4eZ6GkL_RtGVeKyBn5UBQAW5cw-GW5V3wDOHB1yTQuqWzrFLFOv2u4_5ea1uhg",
+          "iconColor": "#FE2C55"
         },
         {
           "name": "Vivaldi Browser - Fast & Safe",
@@ -10032,18 +10038,18 @@
       "addUrl": "https://morphe.software/add-source?github=legendsciber/morphe-patches",
       "avatarUrl": "https://github.com/legendsciber.png?size=96",
       "patchCount": 11,
-      "appCount": 6,
+      "appCount": 5,
       "createdAt": 1787620440197,
       "updatedAt": 1787620440197,
       "createdDate": "2026-08-25",
       "updatedDate": "2026-08-25",
       "latestChanges": {
-        "title": "1.61.8 (2026-09-12)",
-        "date": "2026-09-12",
+        "title": "1.62.1 (2026-09-13)",
+        "date": "2026-09-13",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**iap:** add Toast fallback to morpheLog for debugging"
+            "text": "remove appInfo reference from hex patch"
           }
         ]
       },
@@ -10068,13 +10074,6 @@
           "patchCount": 3,
           "iconUrl": "",
           "iconColor": "#2E7D32"
-        },
-        {
-          "name": "Shadow Fight 2",
-          "packageName": "com.nekki.shadowfight",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#1A1A1A"
         },
         {
           "name": "Smash Hit",
@@ -10987,35 +10986,47 @@
       "webUrl": "https://github.com/Nai64/Nai64Patches",
       "addUrl": "https://morphe.software/add-source?github=Nai64/Nai64Patches",
       "avatarUrl": "https://github.com/Nai64.png?size=96",
-      "patchCount": 349,
+      "patchCount": 437,
       "appCount": 1,
       "createdAt": 1784836023539,
       "updatedAt": 1784836023539,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.47.0 (2026-09-11)",
-        "date": "2026-09-11",
+        "title": "1.49.0 (2026-09-12)",
+        "date": "2026-09-12",
         "items": [
           {
             "category": "Bug Fixes",
-            "text": "remove star prefixes from featured patch names"
+            "text": "copy activity to v-reg in resolution patch"
           },
           {
             "category": "Bug Fixes",
-            "text": "Use mutable class only if required (#96)"
+            "text": "copy callback to v-reg in license bypass"
           },
           {
             "category": "Bug Fixes",
-            "text": "use mutable method for instruction replacement in spoof fixed location"
+            "text": "copy callback to v-reg in Maps fix"
           },
           {
-            "category": "New Features",
-            "text": "group all patches into morphe categories"
+            "category": "Bug Fixes",
+            "text": "copy listener to v-reg in consent skip"
           },
           {
-            "category": "New Features",
-            "text": "tag featured patches with morphe category"
+            "category": "Bug Fixes",
+            "text": "copy listener to v-reg in LVL bypass"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "copy params to v-regs in rewards shims"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "copy React params to v-regs in premium shim"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "copy this to v-reg in MAX callback shims"
           }
         ]
       },
@@ -14805,40 +14816,40 @@
       "createdDate": "2026-09-07",
       "updatedDate": "2026-09-07",
       "latestChanges": {
-        "title": "0.30.0",
+        "title": "0.30.1",
         "date": "",
         "items": [
           {
             "category": "",
-            "text": "Fit the video to the screen now works on the For You feed. The feed cell never sized its video through the method the patch hooked; it hands the size to a helper of its own, and that helper is what the patch reaches now, on every build seen. A fitted video is handed back as a copy of TikTok's own answer, so the size the feed applies and the size it checks against are the same one. The story cell's own path is still covered, and the copy it keeps is looked up by the object rather than by its numbers, which a size change had moved out from under."
+            "text": "TikTok's own Photo Mode save now gives every image its own {index} number instead of naming the whole slideshow as image 1. This also prevents later photos replacing the first one on Android 6 through 9. Animated WebP to GIF conversion now budgets the canvas and decoded frame alongside the stored frame pixels, which cuts the worst pixel allocation from about 100 MiB to 32 MiB before encoder overhead. Turning off Keep captions in clear display removes its overlay and layout observer immediately. Media jobs keep their two minute deadline without carrying a cancel path that no shipped control could call."
           },
           {
             "category": "",
-            "text": "Fit the video to the screen no longer writes a size of nothing into a story when it can't read the video's size. On every path where it has nothing to fit, it leaves TikTok's own numbers alone, the way it did before the feed rework. The patch also refuses a build where either feed helper it hooks has a twin, instead of hooking whichever one it met first, and checks the size getters and the copy method the feed path relies on before it writes anything. With the switch off, the feed skips the size lookups altogether."
+            "text": "Creator identity now uses the same canonical value for equality and hash collections. Fire-and-forget background and main-thread callbacks report every failure instead of letting an Error escape into TikTok. Android API checks now cover the full shared and settings source rather than being disabled for two whole files, the TikTok stub matches the app's API 23 floor and has its own namespace, and artifact verification rejects any DEX payload with no classes."
           },
           {
             "category": "",
-            "text": "Anchors that find a setting behind a lazily read value no longer skip a class that carries two methods of the shape they were looking for. Before, such a class was passed over as if it read some other key, and the failure said no class read the key at all. The walk through R8's merged lambda groups also follows entry points that take an argument, reads every no-argument method of a lambda class rather than the first, takes the constant from the register the factory call actually reads, and answers only from the switch that opens the dispatcher."
+            "text": "Silent reflection failures now reach Hook status for CAPTCHA account checks, external browser handoff, sticker source adapters and story saves. Each feature keeps its existing fallback, while a renamed required class, method or field identifies the affected family and member in Diagnostics."
           },
           {
             "category": "",
-            "text": "A settings journal that can't be read or applied is set aside instead of being left in place. Left there, every later settings change, Undo and Restore included, was refused with a notice telling you to use Undo or Restore. The notice now says what happened. The lock that guards the journal is also released through a finally block, so an out-of-memory error during recovery can't leave every later change waiting forever."
+            "text": "The dark and light Included diagnostics screenshots now come from the shipped preference. Both show its eight real choices and Apply and Cancel actions. The capture test rejects a missing choice or the return of the invented Done button."
           },
           {
             "category": "",
-            "text": "Twelve toasts and one dialog in the Feature Gate Lab and the diagnostics export reached the reader in English on a translated phone, several of them branded for the shared library rather than for Hushfeed, and two carried an exception's own text. All of them go through the translation table now. The Undo entry says there is nothing to undo instead of showing the path of a file that doesn't exist, and an import that accepted nothing no longer offers an Undo that would revert the previous Lab change."
+            "text": "The Feature Gate Lab filter now uses the same themed radio rows as the other settings pickers. Rows stay fully readable while selecting several gates. Exporting before values have loaded says why it cannot start, and a selected import keeps going if the Lab closes while its file is being read. The Lab itself now appears when its title or description is entered in Settings search."
           },
           {
             "category": "",
-            "text": "The creator list dialog saves a handle that was typed into the box and never added with the button. It was dropped without a word."
+            "text": "Numeric dialogs let long descriptions scroll without squeezing out the field, and an empty number stays open with a clear explanation. The sticker save button follows the current text colors when TikTok gives it no text button to copy. Clearing diagnostic data can be undone with the next tap, including buffered events, saved crashes and hook findings."
           },
           {
             "category": "",
-            "text": "The free-space check before a save no longer stands down when the destination folder doesn't exist yet, which is exactly the first save into it. A crash report cut at the size ceiling now says so, at the top as well as where it stops, and is cut on a character boundary rather than in the middle of one. Converting a sticker to GIF checks the job's deadline once per frame, while it decodes and again while it encodes, the way the MP4 path does, so a small canvas with tens of thousands of frames can't hold a media worker for good. A muxer that fails mid-copy no longer replaces the real error with its own complaint on release."
+            "text": "Feature Gate Lab saves now confirm when they finish, and disabled values have a visible muted state. Its custom actions are announced as buttons, source tabs report the selected tab from the focused control, and filtered lists in the Lab and settings announce their result count. Creator removal says which entry was removed and moves focus to the next action. Number fields now carry a hint, and custom dialog titles are marked as headings for screen readers."
           },
           {
             "category": "",
-            "text": "A log message that fails while being built, or a log line that can't be written, no longer throws out of the hook that was logging, into TikTok. The follow diagnostics path looks up the request's path through the cached reflection helper rather than an uncached lookup on every network request."
+            "text": "Hooks that change a value as TikTok returns it now keep the return's branch label on the hook. A direct jump to that return can no longer skip Hushfeed's filter, setting override, diagnostic callback or UI attachment. The same rule now covers every current return hook, including ones added after the original audit."
           }
         ]
       },
@@ -17710,12 +17721,16 @@
       "createdDate": "2026-09-05",
       "updatedDate": "2026-09-05",
       "latestChanges": {
-        "title": "1.17.4 (2026-09-11)",
-        "date": "2026-09-11",
+        "title": "1.20.2 (2026-09-12)",
+        "date": "2026-09-12",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**ads:** keep runtime rewards startup-safe"
+            "text": "**ads:** simplify reward versions and split SDK controls"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**overlay:** constrain settings popup width"
           }
         ]
       },
@@ -18145,6 +18160,101 @@
       ],
       "iconColor": "#2196F3",
       "iconUrl": "https://play-lh.googleusercontent.com/RTKE8PfBmgWxT1Q7pdvw1kkyHWegQ6c_sBFTfOByK9Ncl9oVn_WA7pqBzYqjRSLY23AmTIHnaVAMZLVLyrFabQ"
+    },
+    {
+      "packageName": "com.handmark.expressweather",
+      "name": "1Weather",
+      "repos": [
+        "hxreborn/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "hxreborn/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/hxreborn/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=hxreborn/morphe-patches",
+          "source": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/hxreborn.png?size=96",
+          "latestChanges": {
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
+            "items": [
+              {
+                "category": "Bug Fixes",
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
+              },
+              {
+                "category": "New Features",
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-handmark-expressweather-hxreborn-morphe-patches",
+            "releaseTag": "app-com-handmark-expressweather-hxreborn-morphe-patches",
+            "assetName": "1weather-hxreborn-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Disable tracking",
+              "description": "Stops installs, sessions and in-app events from reaching AppsFlyer."
+            },
+            {
+              "name": "Hide Shorts",
+              "description": "Hides the 1Weather Shorts card from the Today screen."
+            },
+            {
+              "name": "Hide Skyla",
+              "description": "Hides the Skyla AI assistant, its prompts and the Summarize buttons."
+            },
+            {
+              "name": "Unlock premium",
+              "description": "Unlocks premium and removes ads."
+            }
+          ],
+          "versions": [
+            "12.9.3",
+            "13.1.0"
+          ]
+        }
+      ],
+      "patches": [
+        "Disable tracking",
+        "Hide Shorts",
+        "Hide Skyla",
+        "Unlock premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Disable tracking",
+          "description": "Stops installs, sessions and in-app events from reaching AppsFlyer."
+        },
+        {
+          "name": "Hide Shorts",
+          "description": "Hides the 1Weather Shorts card from the Today screen."
+        },
+        {
+          "name": "Hide Skyla",
+          "description": "Hides the Skyla AI assistant, its prompts and the Summarize buttons."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks premium and removes ads."
+        }
+      ],
+      "versions": [
+        "12.9.3",
+        "13.1.0"
+      ],
+      "iconColor": "#089AED",
+      "iconUrl": ""
     },
     {
       "packageName": "com.Meteosolutions.Meteo3b",
@@ -19127,12 +19237,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -21197,40 +21307,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -21438,40 +21528,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -21524,12 +21594,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -21582,12 +21652,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -24538,8 +24608,8 @@
       ],
       "patches": [
         "Disable PairIP DRM",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -24547,12 +24617,12 @@
           "description": "Disables PairIP signature verification and Google Play LVL license check. Required for the app to launch after re-signing."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks AT4K Launcher's premium features without paying, like more apps per row and the premium wallpaper options. It all runs on the device, so nothing stays locked."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
         }
       ],
       "versions": [
@@ -24998,40 +25068,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -28346,40 +28396,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -28432,12 +28462,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -28613,12 +28643,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.61.8 (2026-09-12)",
-            "date": "2026-09-12",
+            "title": "1.62.1 (2026-09-13)",
+            "date": "2026-09-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**iap:** add Toast fallback to morpheLog for debugging"
+                "text": "remove appInfo reference from hex patch"
               }
             ]
           },
@@ -30908,12 +30938,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kveld9.png?size=96",
           "latestChanges": {
-            "title": "1.21.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.22.1 (2026-09-13)",
+            "date": "2026-09-13",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**brave:** update target to v1.95.101 and align libchrome offsets"
+                "category": "\u267b\ufe0f Code Refactoring",
+                "text": "**harness:** eradicate hardcoded identifiers and harden validation toolchain"
               }
             ]
           },
@@ -30950,10 +30980,6 @@
               "description": "Neutralizes the Battery Status API (navigator.getBattery) to prevent cross-site device fingerprinting and drops OS battery change broadcasts."
             },
             {
-              "name": "Disable Pull To Refresh",
-              "description": "Completely disables the pull-to-refresh overscroll gesture and animation to prevent accidental page reloads."
-            },
-            {
               "name": "Locale PAK Slimmer",
               "description": "Strips unselected language resource PAKs from assets/locales/."
             },
@@ -30978,7 +31004,6 @@
         "Brave Startup Performance Optimization",
         "Disable Background Sync & Periodic Sync",
         "Disable Battery Status API & OS Listener",
-        "Disable Pull To Refresh",
         "Locale PAK Slimmer",
         "Native Bloat Slimmer",
         "Skip First Run"
@@ -31007,10 +31032,6 @@
         {
           "name": "Disable Battery Status API & OS Listener",
           "description": "Neutralizes the Battery Status API (navigator.getBattery) to prevent cross-site device fingerprinting and drops OS battery change broadcasts."
-        },
-        {
-          "name": "Disable Pull To Refresh",
-          "description": "Completely disables the pull-to-refresh overscroll gesture and animation to prevent accidental page reloads."
         },
         {
           "name": "Locale PAK Slimmer",
@@ -31420,12 +31441,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -35433,12 +35454,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-09-03)",
-            "date": "2026-09-03",
+            "title": "1.13.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**Undercover:** Enable Premium"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**Citymapper:** support for 11.58"
               }
             ]
           },
@@ -35460,7 +35481,7 @@
             }
           ],
           "versions": [
-            "11.57.2"
+            "11.58"
           ]
         },
         {
@@ -35618,7 +35639,8 @@
       ],
       "versions": [
         "11.56.2",
-        "11.57.2"
+        "11.57.2",
+        "11.58"
       ],
       "iconColor": "#37AA2F",
       "iconUrl": "https://play-lh.googleusercontent.com/U0baiS5SFsdl6hU6WW2Rq94xd5lIscxgwVZNw0rsN2G7Tqlg3m86KieOuhgR9GTQZMYngD_ilppCeot9lBuBPQ"
@@ -37075,28 +37097,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Nai64.png?size=96",
           "latestChanges": {
-            "title": "1.47.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.49.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "remove star prefixes from featured patch names"
+                "text": "copy activity to v-reg in resolution patch"
               },
               {
                 "category": "Bug Fixes",
-                "text": "Use mutable class only if required (#96)"
+                "text": "copy callback to v-reg in license bypass"
               },
               {
                 "category": "Bug Fixes",
-                "text": "use mutable method for instruction replacement in spoof fixed location"
+                "text": "copy callback to v-reg in Maps fix"
               },
               {
-                "category": "New Features",
-                "text": "group all patches into morphe categories"
+                "category": "Bug Fixes",
+                "text": "copy listener to v-reg in consent skip"
               },
               {
-                "category": "New Features",
-                "text": "tag featured patches with morphe category"
+                "category": "Bug Fixes",
+                "text": "copy listener to v-reg in LVL bypass"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "copy params to v-regs in rewards shims"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "copy React params to v-regs in premium shim"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "copy this to v-reg in MAX callback shims"
               }
             ]
           },
@@ -39499,12 +39533,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kveld9.png?size=96",
           "latestChanges": {
-            "title": "1.21.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.22.1 (2026-09-13)",
+            "date": "2026-09-13",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**brave:** update target to v1.95.101 and align libchrome offsets"
+                "category": "\u267b\ufe0f Code Refactoring",
+                "text": "**harness:** eradicate hardcoded identifiers and harden validation toolchain"
               }
             ]
           },
@@ -39530,7 +39564,7 @@
             },
             {
               "name": "Clone Gboard",
-              "description": "Changes the package name by appending a dot and custom suffix (defaults to 'kveld') to allow installing Gboard alongside the original application."
+              "description": "Changes the package name by appending a dot and custom suffix (defaults to 'clone') to allow installing Gboard alongside the original application."
             },
             {
               "name": "Disable Diagnostics",
@@ -39625,8 +39659,8 @@
         "Enable cursor trackpad mode",
         "Enable extended clipboard history",
         "Enable Inline Autofill Suggestions",
-        "Enable Key Shape Selection",
         "Enable key shape selection",
+        "Enable Key Shape Selection",
         "Enable OCR / Scan Text",
         "Enable OCR feature",
         "Enable split keyboard",
@@ -39742,7 +39776,7 @@
         },
         {
           "name": "Clone Gboard",
-          "description": "Changes the package name by appending a dot and custom suffix (defaults to 'kveld') to allow installing Gboard alongside the original application."
+          "description": "Changes the package name by appending a dot and custom suffix (defaults to 'clone') to allow installing Gboard alongside the original application."
         },
         {
           "name": "Close Proactive Suggestions",
@@ -39821,12 +39855,12 @@
           "description": "\u555f\u7528\u5167\u5d4c\u81ea\u52d5\u586b\u5165\u5efa\u8b70\nEnable Inline Autofill Suggestions"
         },
         {
-          "name": "Enable Key Shape Selection",
-          "description": "Enables the key border shape selection UI (Default, Semi-rounded, Round) in theme customization."
-        },
-        {
           "name": "Enable key shape selection",
           "description": "Enables an option to select a key shape from the theme."
+        },
+        {
+          "name": "Enable Key Shape Selection",
+          "description": "Enables the key border shape selection UI (Default, Semi-rounded, Round) in theme customization."
         },
         {
           "name": "Enable OCR / Scan Text",
@@ -42943,6 +42977,7 @@
         "hxreborn/hxreborn-tiktok-patches",
         "icysymmetra/tiktok-patches-for-morphe",
         "kareemlukitomo/morphe-patches",
+        "kveld9/kveld-morphe-patches",
         "SysAdminDoc/hushfeed"
       ],
       "sources": [
@@ -43543,6 +43578,71 @@
           ]
         },
         {
+          "repo": "kveld9/kveld-morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/kveld9/kveld-morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=kveld9/kveld-morphe-patches",
+          "source": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/kveld9.png?size=96",
+          "latestChanges": {
+            "title": "1.22.1 (2026-09-13)",
+            "date": "2026-09-13",
+            "items": [
+              {
+                "category": "\u267b\ufe0f Code Refactoring",
+                "text": "**harness:** eradicate hardcoded identifiers and harden validation toolchain"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-zhiliaoapp-musically-kveld9-kveld-morphe-patches",
+            "releaseTag": "app-com-zhiliaoapp-musically-kveld9-kveld-morphe-patches",
+            "assetName": "com-zhiliaoapp-musically-kveld9-kveld-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Core Asset De-bloat",
+              "description": "Strips embedded Microblink credit card OCR models, C2PA AI content origin verification libraries, and unused non-Latin fonts to save APK space."
+            },
+            {
+              "name": "Instant Launch & Splash Blocker",
+              "description": "Eliminates cold startup delays, real-time splash advertisements, and background TopView preloading (<0.4s launch)."
+            },
+            {
+              "name": "Language Pack Purger",
+              "description": "Strips unselected language string bundles from assets/strings#lang_* to save APK space."
+            },
+            {
+              "name": "Live Stream Suite Optimizer",
+              "description": "Strips Live link mic SDK (liblink_mic_sdk.so) and live stream interactive minigames, and disables 3D gift particle animation preloading."
+            },
+            {
+              "name": "Network & Background Traffic Governor",
+              "description": "Throttles aggressive video preloading buffer and disables background push polling alarms to save cellular data and battery."
+            },
+            {
+              "name": "Runtime Memory Governor",
+              "description": "Optimizes Fresco bitmap memory pool retention and suppresses aggressive animated frame allocations to reduce memory pressure."
+            },
+            {
+              "name": "Studio & Creation De-bloat",
+              "description": "Strips heavy video creation, CapCut-like video editor SDK (libttvesdk_plugin.so), and AR camera face models to save over 22MB."
+            },
+            {
+              "name": "Unified Telemetry & Tracker Silencer",
+              "description": "Neutralizes ByteDance AppLog user tracking, APM/Npth/Heimdallr crash monitors, AppsFlyer attribution, and Firebase analytics."
+            },
+            {
+              "name": "Update Prompt Suppressor",
+              "description": "Neutralizes background update polling tasks and device ID check routines to prevent forced update popups."
+            }
+          ],
+          "versions": []
+        },
+        {
           "repo": "SysAdminDoc/hushfeed",
           "host": "github.com",
           "webUrl": "https://github.com/SysAdminDoc/hushfeed",
@@ -43551,40 +43651,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/SysAdminDoc/hushfeed/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/SysAdminDoc.png?size=96",
           "latestChanges": {
-            "title": "0.30.0",
+            "title": "0.30.1",
             "date": "",
             "items": [
               {
                 "category": "",
-                "text": "Fit the video to the screen now works on the For You feed. The feed cell never sized its video through the method the patch hooked; it hands the size to a helper of its own, and that helper is what the patch reaches now, on every build seen. A fitted video is handed back as a copy of TikTok's own answer, so the size the feed applies and the size it checks against are the same one. The story cell's own path is still covered, and the copy it keeps is looked up by the object rather than by its numbers, which a size change had moved out from under."
+                "text": "TikTok's own Photo Mode save now gives every image its own {index} number instead of naming the whole slideshow as image 1. This also prevents later photos replacing the first one on Android 6 through 9. Animated WebP to GIF conversion now budgets the canvas and decoded frame alongside the stored frame pixels, which cuts the worst pixel allocation from about 100 MiB to 32 MiB before encoder overhead. Turning off Keep captions in clear display removes its overlay and layout observer immediately. Media jobs keep their two minute deadline without carrying a cancel path that no shipped control could call."
               },
               {
                 "category": "",
-                "text": "Fit the video to the screen no longer writes a size of nothing into a story when it can't read the video's size. On every path where it has nothing to fit, it leaves TikTok's own numbers alone, the way it did before the feed rework. The patch also refuses a build where either feed helper it hooks has a twin, instead of hooking whichever one it met first, and checks the size getters and the copy method the feed path relies on before it writes anything. With the switch off, the feed skips the size lookups altogether."
+                "text": "Creator identity now uses the same canonical value for equality and hash collections. Fire-and-forget background and main-thread callbacks report every failure instead of letting an Error escape into TikTok. Android API checks now cover the full shared and settings source rather than being disabled for two whole files, the TikTok stub matches the app's API 23 floor and has its own namespace, and artifact verification rejects any DEX payload with no classes."
               },
               {
                 "category": "",
-                "text": "Anchors that find a setting behind a lazily read value no longer skip a class that carries two methods of the shape they were looking for. Before, such a class was passed over as if it read some other key, and the failure said no class read the key at all. The walk through R8's merged lambda groups also follows entry points that take an argument, reads every no-argument method of a lambda class rather than the first, takes the constant from the register the factory call actually reads, and answers only from the switch that opens the dispatcher."
+                "text": "Silent reflection failures now reach Hook status for CAPTCHA account checks, external browser handoff, sticker source adapters and story saves. Each feature keeps its existing fallback, while a renamed required class, method or field identifies the affected family and member in Diagnostics."
               },
               {
                 "category": "",
-                "text": "A settings journal that can't be read or applied is set aside instead of being left in place. Left there, every later settings change, Undo and Restore included, was refused with a notice telling you to use Undo or Restore. The notice now says what happened. The lock that guards the journal is also released through a finally block, so an out-of-memory error during recovery can't leave every later change waiting forever."
+                "text": "The dark and light Included diagnostics screenshots now come from the shipped preference. Both show its eight real choices and Apply and Cancel actions. The capture test rejects a missing choice or the return of the invented Done button."
               },
               {
                 "category": "",
-                "text": "Twelve toasts and one dialog in the Feature Gate Lab and the diagnostics export reached the reader in English on a translated phone, several of them branded for the shared library rather than for Hushfeed, and two carried an exception's own text. All of them go through the translation table now. The Undo entry says there is nothing to undo instead of showing the path of a file that doesn't exist, and an import that accepted nothing no longer offers an Undo that would revert the previous Lab change."
+                "text": "The Feature Gate Lab filter now uses the same themed radio rows as the other settings pickers. Rows stay fully readable while selecting several gates. Exporting before values have loaded says why it cannot start, and a selected import keeps going if the Lab closes while its file is being read. The Lab itself now appears when its title or description is entered in Settings search."
               },
               {
                 "category": "",
-                "text": "The creator list dialog saves a handle that was typed into the box and never added with the button. It was dropped without a word."
+                "text": "Numeric dialogs let long descriptions scroll without squeezing out the field, and an empty number stays open with a clear explanation. The sticker save button follows the current text colors when TikTok gives it no text button to copy. Clearing diagnostic data can be undone with the next tap, including buffered events, saved crashes and hook findings."
               },
               {
                 "category": "",
-                "text": "The free-space check before a save no longer stands down when the destination folder doesn't exist yet, which is exactly the first save into it. A crash report cut at the size ceiling now says so, at the top as well as where it stops, and is cut on a character boundary rather than in the middle of one. Converting a sticker to GIF checks the job's deadline once per frame, while it decodes and again while it encodes, the way the MP4 path does, so a small canvas with tens of thousands of frames can't hold a media worker for good. A muxer that fails mid-copy no longer replaces the real error with its own complaint on release."
+                "text": "Feature Gate Lab saves now confirm when they finish, and disabled values have a visible muted state. Its custom actions are announced as buttons, source tabs report the selected tab from the focused control, and filtered lists in the Lab and settings announce their result count. Creator removal says which entry was removed and moves focus to the next action. Number fields now carry a hint, and custom dialog titles are marked as headings for screen readers."
               },
               {
                 "category": "",
-                "text": "A log message that fails while being built, or a log line that can't be written, no longer throws out of the hook that was logging, into TikTok. The follow diagnostics path looks up the request's path through the cached reflection helper rather than an uncached lookup on every network request."
+                "text": "Hooks that change a value as TikTok returns it now keep the return's branch label on the hook. A direct jump to that return can no longer skip Hushfeed's filter, setting override, diagnostic callback or UI attachment. The same rule now covers every current return hook, including ones added after the original audit."
               }
             ]
           },
@@ -43902,6 +44002,7 @@
         "Comment tools",
         "Confirm feed interactions",
         "Copy comments without username",
+        "Core Asset De-bloat",
         "Custom offline videos limit",
         "Diagnostic tools",
         "Disable login requirement",
@@ -43946,8 +44047,12 @@
         "Hide the risk control CAPTCHA",
         "Hide video overlays",
         "Hold-and-slide 2x lock",
+        "Instant Launch & Splash Blocker",
         "Keep the screen's refresh rate",
+        "Language Pack Purger",
+        "Live Stream Suite Optimizer",
         "Long-press controls",
+        "Network & Background Traffic Governor",
         "Not interested button",
         "Notification controls",
         "Open external links directly",
@@ -43957,6 +44062,7 @@
         "Region spoof",
         "Remember clear display",
         "Resume videos after scrolling",
+        "Runtime Memory Governor",
         "Sanitize sharing links",
         "Settings",
         "Share sheet modification",
@@ -43970,9 +44076,12 @@
         "SIM spoof",
         "Skip content warnings",
         "Stop video looping",
+        "Studio & Creation De-bloat",
         "Subtitle tools",
         "TikTokIndiaRegionUnlock (STUB)",
         "Translate comments",
+        "Unified Telemetry & Tracker Silencer",
+        "Update Prompt Suppressor",
         "Use non-personalized search"
       ],
       "patchDetails": [
@@ -44035,6 +44144,10 @@
         {
           "name": "Copy comments without username",
           "description": "Copies only the comment text without including the creator's username."
+        },
+        {
+          "name": "Core Asset De-bloat",
+          "description": "Strips embedded Microblink credit card OCR models, C2PA AI content origin verification libraries, and unused non-Latin fonts to save APK space."
         },
         {
           "name": "Custom offline videos limit",
@@ -44213,12 +44326,28 @@
           "description": "Enables TikTok's native hold, slide down, and release gesture to lock 2x speed."
         },
         {
+          "name": "Instant Launch & Splash Blocker",
+          "description": "Eliminates cold startup delays, real-time splash advertisements, and background TopView preloading (<0.4s launch)."
+        },
+        {
           "name": "Keep the screen's refresh rate",
           "description": "Stops TikTok asking the screen to run slower than it can, which it does by asking for the frame rate of the video it is playing. On a 90 or 120 Hz phone that ask takes the whole app down to that rate, scrolling included. A request that is not slower than the screen is left alone."
         },
         {
+          "name": "Language Pack Purger",
+          "description": "Strips unselected language string bundles from assets/strings#lang_* to save APK space."
+        },
+        {
+          "name": "Live Stream Suite Optimizer",
+          "description": "Strips Live link mic SDK (liblink_mic_sdk.so) and live stream interactive minigames, and disables 3D gift particle animation preloading."
+        },
+        {
           "name": "Long-press controls",
           "description": "Lets a long press on a video keep TikTok's own action, do nothing, open the video's comments, save the original sound, or copy the link to the video or its sound, and can turn a press on the left or right third of the screen into a jump back or forward. Brings Double-tap controls with it, which supplies the comment control. "
+        },
+        {
+          "name": "Network & Background Traffic Governor",
+          "description": "Throttles aggressive video preloading buffer and disables background push polling alarms to save cellular data and battery."
         },
         {
           "name": "Not interested button",
@@ -44255,6 +44384,10 @@
         {
           "name": "Resume videos after scrolling",
           "description": "Continues supported videos from where playback stopped when returning after a scroll."
+        },
+        {
+          "name": "Runtime Memory Governor",
+          "description": "Optimizes Fresco bitmap memory pool retention and suppresses aggressive animated frame allocations to reduce memory pressure."
         },
         {
           "name": "Sanitize sharing links",
@@ -44309,6 +44442,10 @@
           "description": "Stops videos at the end instead of replaying them."
         },
         {
+          "name": "Studio & Creation De-bloat",
+          "description": "Strips heavy video creation, CapCut-like video editor SDK (libttvesdk_plugin.so), and AR camera face models to save over 22MB."
+        },
+        {
           "name": "Subtitle tools",
           "description": "Saves subtitle files beside downloaded videos and adds caption size, background, and clear-display options."
         },
@@ -44321,6 +44458,14 @@
           "description": "Adds comment translation controls using TikTok's translation system, with selectable language exclusions."
         },
         {
+          "name": "Unified Telemetry & Tracker Silencer",
+          "description": "Neutralizes ByteDance AppLog user tracking, APM/Npth/Heimdallr crash monitors, AppsFlyer attribution, and Firebase analytics."
+        },
+        {
+          "name": "Update Prompt Suppressor",
+          "description": "Neutralizes background update polling tasks and device ID check routines to prevent forced update popups."
+        },
+        {
           "name": "Use non-personalized search",
           "description": "Uses TikTok's non-personalized search mode instead of its saved account choice."
         }
@@ -44330,7 +44475,7 @@
         "46.2.3",
         "46.4.3"
       ],
-      "iconColor": "",
+      "iconColor": "#FE2C55",
       "iconUrl": "https://play-lh.googleusercontent.com/2o7iuqPe-0msP3DvNhzoOgNo4eZ6GkL_RtGVeKyBn5UBQAW5cw-GW5V3wDOHB1yTQuqWzrFLFOv2u4_5ea1uhg"
     },
     {
@@ -46676,40 +46821,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -48377,12 +48502,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -48740,12 +48865,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -49116,40 +49241,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -49226,12 +49331,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -50343,40 +50448,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -50658,12 +50743,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.61.8 (2026-09-12)",
-            "date": "2026-09-12",
+            "title": "1.62.1 (2026-09-13)",
+            "date": "2026-09-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**iap:** add Toast fallback to morpheLog for debugging"
+                "text": "remove appInfo reference from hex patch"
               }
             ]
           },
@@ -51346,12 +51431,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -53448,40 +53533,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -53825,12 +53890,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -55782,12 +55847,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -56733,12 +56798,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kveld9.png?size=96",
           "latestChanges": {
-            "title": "1.21.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.22.1 (2026-09-13)",
+            "date": "2026-09-13",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**brave:** update target to v1.95.101 and align libchrome offsets"
+                "category": "\u267b\ufe0f Code Refactoring",
+                "text": "**harness:** eradicate hardcoded identifiers and harden validation toolchain"
               }
             ]
           },
@@ -57119,12 +57184,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -57163,12 +57228,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.61.8 (2026-09-12)",
-            "date": "2026-09-12",
+            "title": "1.62.1 (2026-09-13)",
+            "date": "2026-09-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**iap:** add Toast fallback to morpheLog for debugging"
+                "text": "remove appInfo reference from hex patch"
               }
             ]
           },
@@ -57206,12 +57271,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Zanuaimi/UniPatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Zanuaimi.png?size=96",
           "latestChanges": {
-            "title": "1.17.4 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.2 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**ads:** keep runtime rewards startup-safe"
+                "text": "**ads:** simplify reward versions and split SDK controls"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**overlay:** constrain settings popup width"
               }
             ]
           },
@@ -59556,12 +59625,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -60845,12 +60914,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -62166,12 +62235,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -63768,40 +63837,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -70432,12 +70481,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-09-03)",
-            "date": "2026-09-03",
+            "title": "1.13.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**Undercover:** Enable Premium"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**Citymapper:** support for 11.58"
               }
             ]
           },
@@ -70744,12 +70793,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -72454,40 +72503,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -72501,7 +72530,7 @@
           "patches": [
             {
               "name": "All-In-One",
-              "description": "Enables video playback and downloads, removes ads and upsell prompts, and bypasses the region block. Requires Android 10 or later."
+              "description": "Enables video playback and downloads, removes ads and upsell prompts, bypasses the region block, and unlocks the hidden Laboratory menu. Requires Android 10 or later."
             }
           ],
           "versions": [
@@ -76101,40 +76130,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -78080,12 +78089,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -80402,40 +80411,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -80854,40 +80843,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -83273,12 +83242,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -83307,6 +83276,10 @@
               "description": "Registers unlocked premium content with the native engine so premium modes run without trial banners."
             },
             {
+              "name": "Plague Inc. Unlock All Genes",
+              "description": "Unlocks all genes by earning them through the game's own unlock path when the gene menu opens."
+            },
+            {
               "name": "Plague Inc. Unlock Disease Types",
               "description": "Unlocks all disease types including Neurax Worm, Necroa Virus, Simian Flu and Shadow Plague."
             },
@@ -83329,6 +83302,7 @@
         "Plague Inc. Remove Banner Ads",
         "Plague Inc. Skip Rewarded Video Ads",
         "Plague Inc. Sync Premium Entitlements",
+        "Plague Inc. Unlock All Genes",
         "Plague Inc. Unlock Disease Types",
         "Plague Inc. Unlock Expansions",
         "Plague Inc. Unlock Fast-Forward"
@@ -83349,6 +83323,10 @@
         {
           "name": "Plague Inc. Sync Premium Entitlements",
           "description": "Registers unlocked premium content with the native engine so premium modes run without trial banners."
+        },
+        {
+          "name": "Plague Inc. Unlock All Genes",
+          "description": "Unlocks all genes by earning them through the game's own unlock path when the gene menu opens."
         },
         {
           "name": "Plague Inc. Unlock Disease Types",
@@ -86275,12 +86253,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -86522,40 +86500,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -86619,8 +86577,8 @@
       ],
       "patches": [
         "Disable tracking",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -86628,12 +86586,12 @@
           "description": "Disables analytics and crash reporting."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all premium features."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks Projectivy Launcher Premium"
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all premium features."
         }
       ],
       "versions": [
@@ -86865,40 +86823,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -87048,8 +86986,8 @@
         "Hide upgrade upselling",
         "Remove 'Sent from' signature",
         "Remove free accounts limit",
-        "Unlock custom time picker",
         "Unlock Custom Time Picker",
+        "Unlock custom time picker",
         "Unlock Unlimited Plan"
       ],
       "patchDetails": [
@@ -87070,12 +87008,12 @@
           "description": "Removes the limit for maximum free accounts logged in."
         },
         {
-          "name": "Unlock custom time picker",
-          "description": "Enables picking a custom date and time when snoozing conversations and scheduling messages."
-        },
-        {
           "name": "Unlock Custom Time Picker",
           "description": "Unlocks the custom scheduled send date/time picker for all users."
+        },
+        {
+          "name": "Unlock custom time picker",
+          "description": "Enables picking a custom date and time when snoozing conversations and scheduling messages."
         },
         {
           "name": "Unlock Unlimited Plan",
@@ -88533,40 +88471,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -88817,40 +88735,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -89290,40 +89188,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -89534,40 +89412,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -90763,20 +90621,20 @@
         "Hide Ask button",
         "Hide Ask button from search bar",
         "Hide awards",
-        "Hide communities shelf",
         "Hide Communities Shelf",
+        "Hide communities shelf",
         "Hide community highlights",
         "Hide community menu badge",
-        "Hide Navigation Buttons",
         "Hide navigation buttons",
+        "Hide Navigation Buttons",
         "Hide permanent ban banner",
         "Hide post view counts",
         "Hide prominent search bar",
         "Hide Promoted Posts",
         "Hide Reddit search",
         "Hide share count",
-        "Hide sidebar components",
         "Hide Sidebar Components",
+        "Hide sidebar components",
         "Hide Trending Shelves",
         "Hide Trending shelves",
         "Hide upvote scores",
@@ -90883,12 +90741,12 @@
           "description": "Hides the awards on Reddit posts and comments."
         },
         {
-          "name": "Hide communities shelf",
-          "description": "Adds an option to hide the related or suggested communities shelf in subreddits."
-        },
-        {
           "name": "Hide Communities Shelf",
           "description": "Hides the related or suggested communities shelf in subreddits."
+        },
+        {
+          "name": "Hide communities shelf",
+          "description": "Adds an option to hide the related or suggested communities shelf in subreddits."
         },
         {
           "name": "Hide community highlights",
@@ -90899,12 +90757,12 @@
           "description": "Hides the red notification badge on the community menu (hamburger menu)."
         },
         {
-          "name": "Hide Navigation Buttons",
-          "description": "Removes the Create Post button from the bottom navigation bar."
-        },
-        {
           "name": "Hide navigation buttons",
           "description": "Adds options to hide buttons in the navigation bar."
+        },
+        {
+          "name": "Hide Navigation Buttons",
+          "description": "Removes the Create Post button from the bottom navigation bar."
         },
         {
           "name": "Hide permanent ban banner",
@@ -90931,12 +90789,12 @@
           "description": "Hides the share count on Reddit posts."
         },
         {
-          "name": "Hide sidebar components",
-          "description": "Adds options to hide the sidebar components."
-        },
-        {
           "name": "Hide Sidebar Components",
           "description": "Hides About, Resources, and Reddit Pro sections from the community sidebar."
+        },
+        {
+          "name": "Hide sidebar components",
+          "description": "Adds options to hide the sidebar components."
         },
         {
           "name": "Hide Trending Shelves",
@@ -91699,40 +91557,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -92039,12 +91877,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -92715,40 +92553,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -93552,12 +93370,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/HellveticaStandard/HellveticaPatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/HellveticaStandard.png?size=96",
           "latestChanges": {
-            "title": "1.1.2 (2026-09-02)",
-            "date": "2026-09-02",
+            "title": "1.1.3 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "**sankaku:** add support for 4.26-rc96 (dd2b334), closes #19759"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**rc96:** disable OTA hot-updater to prevent popup patch override (8651d4b), closes #21661"
               }
             ]
           },
@@ -95048,64 +94866,6 @@
       "iconUrl": ""
     },
     {
-      "packageName": "com.nekki.shadowfight",
-      "name": "Shadow Fight 2",
-      "repos": [
-        "legendsciber/morphe-patches"
-      ],
-      "sources": [
-        {
-          "repo": "legendsciber/morphe-patches",
-          "host": "github.com",
-          "webUrl": "https://github.com/legendsciber/morphe-patches",
-          "addUrl": "https://morphe.software/add-source?github=legendsciber/morphe-patches",
-          "source": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/patches-bundle.json",
-          "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
-          "avatarUrl": "https://github.com/legendsciber.png?size=96",
-          "latestChanges": {
-            "title": "1.61.8 (2026-09-12)",
-            "date": "2026-09-12",
-            "items": [
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**iap:** add Toast fallback to morpheLog for debugging"
-              }
-            ]
-          },
-          "builder": {
-            "buildId": "com-nekki-shadowfight-legendsciber-morphe-patches",
-            "releaseTag": "app-com-nekki-shadowfight-legendsciber-morphe-patches",
-            "assetName": "shadow-fight-2-legendsciber-morphe-patches.apk",
-            "repo": "rushiforai/morphe-builder",
-            "webUrl": "https://github.com/rushiforai/morphe-builder"
-          },
-          "patches": [
-            {
-              "name": "Shadow Fight 2 IAP Bypass (Smali)",
-              "description": "Bypasses anti-tamper + intercepts billing for free IAP."
-            }
-          ],
-          "versions": [
-            "2.46.0"
-          ]
-        }
-      ],
-      "patches": [
-        "Shadow Fight 2 IAP Bypass (Smali)"
-      ],
-      "patchDetails": [
-        {
-          "name": "Shadow Fight 2 IAP Bypass (Smali)",
-          "description": "Bypasses anti-tamper + intercepts billing for free IAP."
-        }
-      ],
-      "versions": [
-        "2.46.0"
-      ],
-      "iconColor": "#1A1A1A",
-      "iconUrl": ""
-    },
-    {
       "packageName": "shareit.premium",
       "name": "SHAREit Premium",
       "repos": [
@@ -95343,40 +95103,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -96366,12 +96106,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -96436,12 +96176,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.61.8 (2026-09-12)",
-            "date": "2026-09-12",
+            "title": "1.62.1 (2026-09-13)",
+            "date": "2026-09-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**iap:** add Toast fallback to morpheLog for debugging"
+                "text": "remove appInfo reference from hex patch"
               }
             ]
           },
@@ -97842,12 +97582,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-09-03)",
-            "date": "2026-09-03",
+            "title": "1.13.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**Undercover:** Enable Premium"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**Citymapper:** support for 11.58"
               }
             ]
           },
@@ -101555,12 +101295,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-09-03)",
-            "date": "2026-09-03",
+            "title": "1.13.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**Undercover:** Enable Premium"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**Citymapper:** support for 11.58"
               }
             ]
           },
@@ -102174,12 +101914,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -102310,40 +102050,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -102369,18 +102089,18 @@
         }
       ],
       "patches": [
-        "Unlock premium",
         "Unlock Premium",
+        "Unlock premium",
         "Unlock Symfonium"
       ],
       "patchDetails": [
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all premium features."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Turns on Symfonium's paid features. The build ships as a public beta with a built-in trial, so this also prevents the expired-beta screen. The license is checked locally and the unlock does not require an account. Connecting Plex, Jellyfin and other media servers is untouched."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all premium features."
         },
         {
           "name": "Unlock Symfonium",
@@ -105154,12 +104874,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -107284,12 +107004,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/legendsciber.png?size=96",
           "latestChanges": {
-            "title": "1.61.8 (2026-09-12)",
-            "date": "2026-09-12",
+            "title": "1.62.1 (2026-09-13)",
+            "date": "2026-09-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**iap:** add Toast fallback to morpheLog for debugging"
+                "text": "remove appInfo reference from hex patch"
               }
             ]
           },
@@ -108604,12 +108324,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -108671,40 +108391,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.20.0 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**MovieBox - All-In-One:** load content on devices with a region-restricted SIM"
+                "text": "**iJiami:** disable packer checks at their call sites to close crash race at launch"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**MovieBox - All-In-One:** report no SIM operator"
               },
               {
                 "category": "New Features",
-                "text": "**AlpineQuest:** add support for 2.4.0e"
-              },
-              {
-                "category": "New Features",
-                "text": "**Audible:** add support for 26.30.05"
-              },
-              {
-                "category": "New Features",
-                "text": "**ForusApp:** add support for 3.0.15"
-              },
-              {
-                "category": "New Features",
-                "text": "**MovieBox - All-In-One:** open titles in streaming mode regardless of region"
-              },
-              {
-                "category": "New Features",
-                "text": "**Notesnook:** add support for 3.4.12"
-              },
-              {
-                "category": "New Features",
-                "text": "**Perplexity:** add support for 2.95.0"
-              },
-              {
-                "category": "New Features",
-                "text": "**Projectivy:** add support for 4.70 and 4.71"
+                "text": "**MovieBox - All-In-One:** remove password access to Laboratory under Me \u2192 Settings \u2192 About us"
               }
             ]
           },
@@ -109343,8 +109043,8 @@
       ],
       "patches": [
         "Disable analytics",
-        "Disable telemetry",
         "Disable Telemetry",
+        "Disable telemetry",
         "Disable update check",
         "Enable premium features",
         "GMS sign-in bypass",
@@ -109388,11 +109088,11 @@
           "description": "Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry."
         },
         {
-          "name": "Disable telemetry",
+          "name": "Disable Telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
-          "name": "Disable Telemetry",
+          "name": "Disable telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
@@ -109563,12 +109263,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -110820,12 +110520,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-09-03)",
-            "date": "2026-09-03",
+            "title": "1.13.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**Undercover:** Enable Premium"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**Citymapper:** support for 11.58"
               }
             ]
           },
@@ -111414,12 +111114,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.26.0 (2026-09-09)",
-            "date": "2026-09-09",
+            "title": "1.26.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**onlyone:** enable free in-app purchases"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**plagueinc:** unlocking genes, fixing genes unlocked in store but remains locked"
               }
             ]
           },
@@ -112177,12 +111877,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kveld9.png?size=96",
           "latestChanges": {
-            "title": "1.21.0 (2026-09-11)",
-            "date": "2026-09-11",
+            "title": "1.22.1 (2026-09-13)",
+            "date": "2026-09-13",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**brave:** update target to v1.95.101 and align libchrome offsets"
+                "category": "\u267b\ufe0f Code Refactoring",
+                "text": "**harness:** eradicate hardcoded identifiers and harden validation toolchain"
               }
             ]
           },
@@ -113203,12 +112903,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-09-03)",
-            "date": "2026-09-03",
+            "title": "1.13.1 (2026-09-12)",
+            "date": "2026-09-12",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**Undercover:** Enable Premium"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**Citymapper:** support for 11.58"
               }
             ]
           },
@@ -118916,8 +118616,8 @@
         "Save to Watch later",
         "Seekbar",
         "Seekbar components",
-        "Set transcript cookies",
         "Set Transcript Cookies",
+        "Set transcript cookies",
         "Settings for YouTube",
         "Settings menu filter",
         "Shorts autoplay",
@@ -119407,11 +119107,11 @@
           "description": "Adds options to hide or change components related to the seekbar."
         },
         {
-          "name": "Set transcript cookies",
+          "name": "Set Transcript Cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
-          "name": "Set Transcript Cookies",
+          "name": "Set transcript cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
@@ -122758,12 +122458,12 @@
       "avatarUrl": "https://github.com/cesbar.png?size=96",
       "patchCount": 1,
       "latestChanges": {
-        "title": "1.13.0 (2026-09-03)",
-        "date": "2026-09-03",
+        "title": "1.13.1 (2026-09-12)",
+        "date": "2026-09-12",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "**Undercover:** Enable Premium"
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "**Citymapper:** support for 11.58"
           }
         ]
       },
@@ -123596,12 +123296,12 @@
       "avatarUrl": "https://github.com/kveld9.png?size=96",
       "patchCount": 4,
       "latestChanges": {
-        "title": "1.21.0 (2026-09-11)",
-        "date": "2026-09-11",
+        "title": "1.22.1 (2026-09-13)",
+        "date": "2026-09-13",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "**brave:** update target to v1.95.101 and align libchrome offsets"
+            "category": "\u267b\ufe0f Code Refactoring",
+            "text": "**harness:** eradicate hardcoded identifiers and harden validation toolchain"
           }
         ]
       },
@@ -123624,6 +123324,33 @@
         {
           "name": "PNG Asset Optimizer",
           "description": "Losslessly recompresses PNG assets with maximum zlib compression and strips non-rendering metadata chunks (pHYs, tEXt, tIME) while preserving 9-patch structures and pixel accuracy.",
+          "default": false
+        }
+      ]
+    },
+    {
+      "repo": "legendsciber/morphe-patches",
+      "host": "github.com",
+      "webUrl": "https://github.com/legendsciber/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=legendsciber/morphe-patches",
+      "source": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/patches-bundle.json",
+      "changelogUrl": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/CHANGELOG.md",
+      "avatarUrl": "https://github.com/legendsciber.png?size=96",
+      "patchCount": 1,
+      "latestChanges": {
+        "title": "1.62.1 (2026-09-13)",
+        "date": "2026-09-13",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "remove appInfo reference from hex patch"
+          }
+        ]
+      },
+      "patches": [
+        {
+          "name": "In-App Purchase Bypass",
+          "description": "Bypasses server-side purchase verification.",
           "default": false
         }
       ]
@@ -123795,30 +123522,42 @@
       "source": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/patches-bundle.json",
       "changelogUrl": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/CHANGELOG.md",
       "avatarUrl": "https://github.com/Nai64.png?size=96",
-      "patchCount": 341,
+      "patchCount": 429,
       "latestChanges": {
-        "title": "1.47.0 (2026-09-11)",
-        "date": "2026-09-11",
+        "title": "1.49.0 (2026-09-12)",
+        "date": "2026-09-12",
         "items": [
           {
             "category": "Bug Fixes",
-            "text": "remove star prefixes from featured patch names"
+            "text": "copy activity to v-reg in resolution patch"
           },
           {
             "category": "Bug Fixes",
-            "text": "Use mutable class only if required (#96)"
+            "text": "copy callback to v-reg in license bypass"
           },
           {
             "category": "Bug Fixes",
-            "text": "use mutable method for instruction replacement in spoof fixed location"
+            "text": "copy callback to v-reg in Maps fix"
           },
           {
-            "category": "New Features",
-            "text": "group all patches into morphe categories"
+            "category": "Bug Fixes",
+            "text": "copy listener to v-reg in consent skip"
           },
           {
-            "category": "New Features",
-            "text": "tag featured patches with morphe category"
+            "category": "Bug Fixes",
+            "text": "copy listener to v-reg in LVL bypass"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "copy params to v-regs in rewards shims"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "copy React params to v-regs in premium shim"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "copy this to v-reg in MAX callback shims"
           }
         ]
       },
@@ -123874,6 +123613,11 @@
           "default": false
         },
         {
+          "name": "Always Show Scrollbars",
+          "description": "Forces scrollbars to stay enabled so scroll position is always visible",
+          "default": false
+        },
+        {
           "name": "AMOLED Theme",
           "description": "Makes dark mode pure black for AMOLED screens. Light mode stays normal.",
           "default": false
@@ -123884,13 +123628,108 @@
           "default": false
         },
         {
+          "name": "Block Analytics Long Tail",
+          "description": "Stops smaller product analytics SDKs so events never reach their dashboards",
+          "default": false
+        },
+        {
+          "name": "Block APM Suites",
+          "description": "Stops app performance monitoring SDKs so timings, crashes and network traces never upload",
+          "default": false
+        },
+        {
+          "name": "Block Attribution Extras",
+          "description": "Stops smaller attribution SDKs so installs and opens are never credited to ad networks",
+          "default": false
+        },
+        {
+          "name": "Block BLE Scan",
+          "description": "Blocks Bluetooth Low Energy scans so apps cannot track nearby beacons or accessories",
+          "default": false
+        },
+        {
+          "name": "Block Crash Extras",
+          "description": "Stops smaller crash reporters missed by Disable Crash Reporters so stack traces never upload",
+          "default": false
+        },
+        {
+          "name": "Block Data Pipelines",
+          "description": "Stops customer data pipeline SDKs so events never stream into warehouses or profiles",
+          "default": false
+        },
+        {
+          "name": "Block GMS Tracking",
+          "description": "Blocks Google activity recognition and geofencing so apps cannot track movement or location zones",
+          "default": false
+        },
+        {
+          "name": "Block Huawei Analytics",
+          "description": "Stops Huawei Analytics event uploads so usage never reaches Huawei servers",
+          "default": false
+        },
+        {
+          "name": "Block Install Referrer",
+          "description": "Blocks the Play Install Referrer API so apps cannot read which ad or link installed them",
+          "default": false
+        },
+        {
+          "name": "Block Legacy Analytics",
+          "description": "Stops pre-Firebase Google Analytics so screen views and hits never upload",
+          "default": false
+        },
+        {
+          "name": "Block Location Trackers",
+          "description": "Stops location intelligence SDKs so visits and beacon sightings never upload",
+          "default": false
+        },
+        {
+          "name": "Block MoEngage",
+          "description": "Stops the MoEngage SDK so events and profile traits never reach its engagement cloud",
+          "default": false
+        },
+        {
+          "name": "Block PostHog",
+          "description": "Stops the PostHog SDK so captures, screens and feature flags never upload",
+          "default": false
+        },
+        {
+          "name": "Block Profile Tracking",
+          "description": "Stops user profile stitching in analytics SDKs whose events are blocked but identity calls are not",
+          "default": false
+        },
+        {
           "name": "Block Push Ads",
           "description": "Block push notification ads (Firebase Cloud Messaging). Also blocks legitimate notifications.",
           "default": false
         },
         {
+          "name": "Block Push Analytics",
+          "description": "Stops push engagement SDKs so tags, outcomes and identity never reach push vendors",
+          "default": false
+        },
+        {
           "name": "Block Screenshot Detection",
           "description": "Adds FLAG_SECURE to every activity window so the system blocks screenshots, screen recording and recents previews of the app",
+          "default": false
+        },
+        {
+          "name": "Block Session Replay",
+          "description": "Stops session recording SDKs so apps cannot film your taps, scrolling or screen content",
+          "default": false
+        },
+        {
+          "name": "Block Snowplow",
+          "description": "Stops the Snowplow tracker so structured events never reach its collectors",
+          "default": false
+        },
+        {
+          "name": "Block TikTok Events",
+          "description": "Stops the TikTok Events SDK so app activity never reaches TikTok for ad targeting",
+          "default": false
+        },
+        {
+          "name": "Block Yandex Metrica",
+          "description": "Stops Yandex Metrica activation and event reports so usage never reaches Yandex servers",
           "default": false
         },
         {
@@ -123989,6 +123828,11 @@
           "default": false
         },
         {
+          "name": "Bypass Play License Check",
+          "description": "Answers the Play license check (LVL) with LICENSED without contacting Google. Only affects apps using the legacy licensing library.",
+          "default": false
+        },
+        {
           "name": "Bypass Safe Mode",
           "description": "Makes PackageManager.isSafeMode() report false so apps that disable functionality in safe mode behave normally.",
           "default": false
@@ -124049,6 +123893,11 @@
           "default": false
         },
         {
+          "name": "Custom Accent Color",
+          "description": "Replaces the app accent color (buttons, switches, highlights) in every theme",
+          "default": false
+        },
+        {
           "name": "Custom App Icon",
           "description": "Change the app icon.",
           "default": false
@@ -124056,6 +123905,11 @@
         {
           "name": "Custom App Resolution (Experimental)",
           "description": "Set a custom resolution for the game",
+          "default": false
+        },
+        {
+          "name": "Custom Navigation Bar Color",
+          "description": "Sets a custom background color for the navigation bar in every theme",
           "default": false
         },
         {
@@ -124074,8 +123928,28 @@
           "default": false
         },
         {
+          "name": "Custom Status Bar Color",
+          "description": "Sets a custom background color for the status bar in every theme",
+          "default": false
+        },
+        {
+          "name": "Custom Window Background",
+          "description": "Sets a custom window background color in every theme",
+          "default": false
+        },
+        {
+          "name": "Deny Permission Checks",
+          "description": "Forces permission checks to report denied so the app cannot silently access permission-gated data",
+          "default": false
+        },
+        {
           "name": "Disable Activity Transitions",
           "description": "No-ops Activity.overridePendingTransition(...) so the app's custom activity enter/exit animations are skipped.",
+          "default": false
+        },
+        {
+          "name": "Disable Ad SDK Init",
+          "description": "Stops ad SDKs from initializing at startup (no tracking, faster launch). Aggressive: apps gating content on init callbacks may hang. Do not combine with Ads Free Rewards, which needs live SDKs.",
           "default": false
         },
         {
@@ -124099,8 +123973,23 @@
           "default": false
         },
         {
+          "name": "Disable Audio Effects",
+          "description": "Keeps equalizer, bass boost and other audio effects disabled.",
+          "default": false
+        },
+        {
+          "name": "Disable Audio Recording",
+          "description": "Drops microphone recording calls so the app cannot capture audio.",
+          "default": false
+        },
+        {
           "name": "Disable Autofill",
           "description": "Makes AutofillManager report as disabled so apps stop showing autofill prompts.",
+          "default": false
+        },
+        {
+          "name": "Disable Background Dim",
+          "description": "Removes the dim behind dialogs and popups so the background stays fully bright",
           "default": false
         },
         {
@@ -124144,8 +124033,18 @@
           "default": false
         },
         {
+          "name": "Disable Content Capture",
+          "description": "Reports content capture as disabled so apps stop sharing their view hierarchy with capture services",
+          "default": false
+        },
+        {
           "name": "Disable Crash Reporters",
           "description": "Blocks crash reporting so the app doesn't send crash logs.",
+          "default": false
+        },
+        {
+          "name": "Disable DTMF Tones",
+          "description": "Makes dialer tone playback report failure so keypad tones stay silent.",
           "default": false
         },
         {
@@ -124154,8 +124053,23 @@
           "default": false
         },
         {
+          "name": "Disable Elevation Shadows",
+          "description": "Drops view elevation and shadow calls for a flatter, faster UI.",
+          "default": false
+        },
+        {
           "name": "Disable Facebook SDK Auto-Init",
           "description": "Adds Facebook SDK manifest switches that stop auto-initialization, automatic app event logging and advertiser ID collection at startup",
+          "default": false
+        },
+        {
+          "name": "Disable Firebase Auto-Init",
+          "description": "Stops Firebase Analytics, Crashlytics, Performance, Messaging, In-App Messaging and ad-ID collection from auto-initializing, and removes the measurement provider, receiver and services. Standalone version of the Pairip Bypass Firebase cleanup.",
+          "default": false
+        },
+        {
+          "name": "Disable Firebase Performance",
+          "description": "Noops Firebase Performance traces and HTTP metrics (start, stop, counters). Stops performance spying with zero behavior change.",
           "default": false
         },
         {
@@ -124166,6 +124080,16 @@
         {
           "name": "Disable Forced Online Checks (Experimental)",
           "description": "Lets the app start without internet.",
+          "default": false
+        },
+        {
+          "name": "Disable Game Sounds",
+          "description": "Makes SoundPool playback return an invalid stream so short game sounds stay silent.",
+          "default": false
+        },
+        {
+          "name": "Disable Google Pay",
+          "description": "Reports Google Pay as unavailable so GPay buttons and prompts never appear. Does not touch the app's own checkout flow.",
           "default": false
         },
         {
@@ -124186,6 +124110,11 @@
         {
           "name": "Disable Hardware Acceleration",
           "description": "Sets android:hardwareAccelerated=\"false\" on the <application> so the app renders on the software path (fixes some rendering/compat bugs).",
+          "default": false
+        },
+        {
+          "name": "Disable HDR Detection",
+          "description": "Makes HDR and wide-gamut checks report false so apps skip HDR rendering.",
           "default": false
         },
         {
@@ -124259,8 +124188,23 @@
           "default": false
         },
         {
+          "name": "Disable Popup Keyboard",
+          "description": "Makes soft-keyboard requests report failure so the keyboard stops popping up.",
+          "default": false
+        },
+        {
           "name": "Disable Quiet Mode",
           "description": "Makes UserManager.isQuietModeEnabled() report false so apps behave as if quiet mode is off.",
+          "default": false
+        },
+        {
+          "name": "Disable Remote Config Fetch",
+          "description": "Remote Config fetches complete instantly (fetch resolves empty, activate reports success) so apps run on bundled defaults and server-side kill switches never land.",
+          "default": false
+        },
+        {
+          "name": "Disable Ringtone Playback",
+          "description": "Drops ringtone playback calls so ringtones stay silent.",
           "default": false
         },
         {
@@ -124309,6 +124253,11 @@
           "default": false
         },
         {
+          "name": "Disable Text-to-Speech",
+          "description": "Reports text-to-speech success without playing anything so spoken prompts stay silent.",
+          "default": false
+        },
+        {
           "name": "Disable Toasts",
           "description": "No-ops Toast.show() so the app cannot display toast pop-ups.",
           "default": false
@@ -124326,6 +124275,11 @@
         {
           "name": "Disable WebView Safe Browsing",
           "description": "Forces WebSettings.setSafeBrowsingEnabled(false) to disable WebView Google Safe Browsing checks (complements the callback bypass).",
+          "default": false
+        },
+        {
+          "name": "Disable Window Blur",
+          "description": "Drops window and view blur calls for sharper UI and better performance.",
           "default": false
         },
         {
@@ -124634,6 +124588,16 @@
           "default": false
         },
         {
+          "name": "Fix Maps on MicroG",
+          "description": "Reports Maps init SUCCESS and fires the initialized callback with the LATEST renderer so maps keep loading without real Play Services.",
+          "default": false
+        },
+        {
+          "name": "Force 32-Bit Color",
+          "description": "Requests RGBA_8888 window format to reduce color banding.",
+          "default": false
+        },
+        {
           "name": "Force 5GHz Band Supported",
           "description": "Makes WifiManager.is5GHzBandSupported() report true so apps that require 5GHz Wi-Fi functionality run normally.",
           "default": false
@@ -124674,8 +124638,18 @@
           "default": false
         },
         {
+          "name": "Force Dark Mode",
+          "description": "Makes night-mode checks report dark theme on so apps render their dark theme.",
+          "default": false
+        },
+        {
           "name": "Force Data Capable",
           "description": "Makes TelephonyManager.isDataCapable() report true so apps that require mobile-data support run on Wi-Fi-only devices.",
+          "default": false
+        },
+        {
+          "name": "Force Do Not Disturb Off",
+          "description": "Makes interruption-filter checks report all so apps behave as if Do Not Disturb is off.",
           "default": false
         },
         {
@@ -124689,6 +124663,11 @@
           "default": false
         },
         {
+          "name": "Force Google Signed-Out",
+          "description": "Forces the Google signed-out state: permission checks fail and last-account returns null (documented nullable). Apps fall back to guest or offline mode instead of nagging for sign-in.",
+          "default": false
+        },
+        {
           "name": "Force Haptics Available",
           "description": "Makes Vibrator.hasVibrator() report true so apps that require vibration/haptics run on devices without a vibrator.",
           "default": false
@@ -124696,6 +124675,11 @@
         {
           "name": "Force Hardware Acceleration",
           "description": "Sets android:hardwareAccelerated so every activity renders with GPU acceleration, even when the app disables it globally",
+          "default": false
+        },
+        {
+          "name": "Force Hardware Layers",
+          "description": "Makes hardware-acceleration checks report true for smoother rendering.",
           "default": false
         },
         {
@@ -124724,6 +124708,11 @@
           "default": false
         },
         {
+          "name": "Force Light Mode",
+          "description": "Makes night-mode checks report light theme so apps render their light theme even in dark mode",
+          "default": false
+        },
+        {
           "name": "Force Max Brightness",
           "description": "Forces the system screen brightness setting to a chosen value (default 255) so apps that read it cannot dim or restrict the screen.",
           "default": false
@@ -124741,6 +124730,11 @@
         {
           "name": "Force Normal Audio Mode",
           "description": "Makes AudioManager.getMode() report MODE_NORMAL (0) so apps that change behavior in call/ringtone modes run normally.",
+          "default": false
+        },
+        {
+          "name": "Force Overlay Permission",
+          "description": "Makes overlay permission checks report granted so floating features work without the system prompt.",
           "default": false
         },
         {
@@ -124784,6 +124778,11 @@
           "default": false
         },
         {
+          "name": "Force Speakerphone On",
+          "description": "Forces the speakerphone on and makes speakerphone checks report true.",
+          "default": false
+        },
+        {
           "name": "Force Storage Non-Removable",
           "description": "Makes Environment.isExternalStorageRemovable() report false so apps that refuse to run from removable storage treat it as internal.",
           "default": false
@@ -124796,6 +124795,11 @@
         {
           "name": "Force Voice Capable",
           "description": "Makes TelephonyManager.isVoiceCapable() report true so apps that require voice-call support run on data-only devices.",
+          "default": false
+        },
+        {
+          "name": "Force Wide Color Gamut",
+          "description": "Makes wide-gamut checks report true so apps render richer colors.",
           "default": false
         },
         {
@@ -124820,7 +124824,7 @@
         },
         {
           "name": "Free In-app Purchases",
-          "description": "Get paid items for free. Best for offline games.",
+          "description": "Get paid items free: buying grants items without charging. Best for offline games.",
           "default": false
         },
         {
@@ -124869,8 +124873,18 @@
           "default": false
         },
         {
+          "name": "Hide Audio Devices",
+          "description": "Reports no audio devices so apps cannot enumerate microphones, speakers or Bluetooth audio routes",
+          "default": false
+        },
+        {
           "name": "Hide Cell Location",
           "description": "Makes cell location appear unavailable so apps cannot read your tower location.",
+          "default": false
+        },
+        {
+          "name": "Hide Cell Signal",
+          "description": "Reports no cell signal strength so apps cannot read your tower signal or track location changes",
           "default": false
         },
         {
@@ -124886,6 +124900,11 @@
         {
           "name": "Hide Current Location",
           "description": "Prevents the app from requesting your current location.",
+          "default": false
+        },
+        {
+          "name": "Hide Data Usage",
+          "description": "Nulls network stats queries so apps cannot read your mobile and WiFi data consumption",
           "default": false
         },
         {
@@ -124909,6 +124928,21 @@
           "default": false
         },
         {
+          "name": "Hide Eavesdropping",
+          "description": "Hides active notifications and microphones so apps cannot snoop on other apps or enumerate audio inputs",
+          "default": false
+        },
+        {
+          "name": "Hide Hardware Address",
+          "description": "Returns an empty hardware address for network interfaces so apps cannot read the device MAC",
+          "default": false
+        },
+        {
+          "name": "Hide Input Devices",
+          "description": "Hides physical keyboards, gamepads and other input devices so apps cannot fingerprint your hardware",
+          "default": false
+        },
+        {
           "name": "Hide Input Methods",
           "description": "Makes input methods appear empty so apps cannot fingerprint keyboards.",
           "default": false
@@ -124924,13 +124958,28 @@
           "default": false
         },
         {
+          "name": "Hide Navigation Bar",
+          "description": "Hides the navigation bar for a cleaner fullscreen view",
+          "default": false
+        },
+        {
           "name": "Hide Neighboring Cells",
           "description": "Makes neighboring cell info appear empty so apps cannot read nearby towers.",
           "default": false
         },
         {
+          "name": "Hide Network Identity",
+          "description": "Hides network interfaces, DNS servers and the local IP so apps cannot fingerprint your LAN",
+          "default": false
+        },
+        {
           "name": "Hide Nfc Adapter",
           "description": "Makes NfcAdapter.getDefaultAdapter return null so NFC probes fail uniformly",
+          "default": false
+        },
+        {
+          "name": "Hide Personal Data",
+          "description": "Blocks contacts, call log, SMS, calendar and photo reads by emptying sensitive provider queries",
           "default": false
         },
         {
@@ -124954,6 +125003,11 @@
           "default": false
         },
         {
+          "name": "Hide Service State",
+          "description": "Nulls cell service state so apps cannot read your voice and data registration or operator detail",
+          "default": false
+        },
+        {
           "name": "Hide Storage Volumes",
           "description": "Makes StorageManager return empty lists so volume enumeration for fingerprint sees nothing",
           "default": false
@@ -124964,6 +125018,11 @@
           "default": false
         },
         {
+          "name": "Hide Title Bar",
+          "description": "Removes the title bar and action bar from every theme for more content space",
+          "default": false
+        },
+        {
           "name": "Hide Usage Events",
           "description": "Makes usage events appear empty so apps cannot read your app launch history.",
           "default": false
@@ -124971,6 +125030,21 @@
         {
           "name": "Hide Usage Stats",
           "description": "Makes UsageStatsManager return empty lists so app usage fingerprinting sees nothing",
+          "default": false
+        },
+        {
+          "name": "Hide USB Devices",
+          "description": "Reports no USB devices or accessories so apps cannot fingerprint connected hardware",
+          "default": false
+        },
+        {
+          "name": "Hide Wallpaper",
+          "description": "Nulls wallpaper reads so apps cannot grab your home or lock screen image",
+          "default": false
+        },
+        {
+          "name": "Ignore Data Saver",
+          "description": "Makes Data Saver checks report disabled so apps do not throttle downloads or quality on metered networks.",
           "default": false
         },
         {
@@ -125019,6 +125093,11 @@
           "default": false
         },
         {
+          "name": "Legacy App Reviver",
+          "description": "Revives Android 1.0-5.0 era apps on modern Android: restores the removed Apache HTTP stack, and declares the foreground-service, exact-alarm and Bluetooth permissions that old apps assume. Combine with SpoofTargetSdk (28), AllowCleartextTraffic, LegacyExternalStorage, SupportAllScreens, UnlockMaxAspectRatio, RelaxSharedLibraries, SpoofImei, Bypass Play License Check, Bypass Google Play Services Check, DisableHeapPointerTagging and VmSafeMode. Cannot fix armeabi-only native code on 64-bit-only devices or shut-down game servers.",
+          "default": false
+        },
+        {
           "name": "Legacy External Storage",
           "description": "Sets android:requestLegacyExternalStorage so the app keeps using the classic shared-storage model instead of scoped storage (Android 10; ignored on 11+)",
           "default": false
@@ -125041,6 +125120,11 @@
         {
           "name": "No Ads",
           "description": "Blocks ads by type. Pick what to block. For rewarded ads use Ads Free Rewards instead.",
+          "default": false
+        },
+        {
+          "name": "Null Play Location",
+          "description": "Makes Play Services location return empty results: last location resolves to null and update requests complete instantly without fixes. Apps fall back to no-location behavior.",
           "default": false
         },
         {
@@ -125154,8 +125238,23 @@
           "default": false
         },
         {
+          "name": "Show Navigation Bar",
+          "description": "Keeps the navigation bar visible in apps that hide it",
+          "default": false
+        },
+        {
           "name": "Show Status Bar",
           "description": "Keep the status bar visible in fullscreen apps",
+          "default": false
+        },
+        {
+          "name": "Silence Notification Channels",
+          "description": "Forces notification channel importance to none so channels stay silent.",
+          "default": false
+        },
+        {
+          "name": "Silence Play Services Errors",
+          "description": "Kills Google Play Services error dialogs, notifications and resolvable-error flags. Apps stop nagging about missing or outdated Play Services. Pair with Bypass Google Play Services Check.",
           "default": false
         },
         {
@@ -125171,6 +125270,11 @@
         {
           "name": "Skip Splash Screen (Experimental)",
           "description": "Skip or shorten splash screen delays",
+          "default": false
+        },
+        {
+          "name": "Spoof 24-Hour Format",
+          "description": "Reports a chosen clock format so apps render times the way you prefer.",
           "default": false
         },
         {
@@ -125204,6 +125308,11 @@
           "default": false
         },
         {
+          "name": "Spoof Bluetooth Audio On",
+          "description": "Makes Bluetooth audio checks report connected so headset-gated features stay active.",
+          "default": false
+        },
+        {
           "name": "Spoof Bluetooth Enabled",
           "description": "Forces Settings.Global BLUETOOTH_ON reads to 0 (off) so apps that behave differently when Bluetooth is enabled cannot tell it is on.",
           "default": false
@@ -125224,6 +125333,11 @@
           "default": false
         },
         {
+          "name": "Spoof Board and Hardware",
+          "description": "Reports Pixel board and hardware names so apps cannot fingerprint the real device through them.",
+          "default": false
+        },
+        {
           "name": "Spoof BSSID",
           "description": "Reports a chosen value from WifiInfo.getBSSID() so apps cannot read the real access point MAC address.",
           "default": false
@@ -125236,6 +125350,11 @@
         {
           "name": "Spoof Build Serial",
           "description": "Reports a chosen device serial through Build.getSerial() so apps that fingerprint by serial number see a constant value.",
+          "default": false
+        },
+        {
+          "name": "Spoof Build Type and Tags",
+          "description": "Reports a user build with release-keys tags so apps stop treating the device as rooted or debuggable.",
           "default": false
         },
         {
@@ -125259,6 +125378,11 @@
           "default": false
         },
         {
+          "name": "Spoof Device Provisioned",
+          "description": "Reports a chosen setup state so apps that gate on setup completion keep working.",
+          "default": false
+        },
+        {
           "name": "Spoof Device Software Version",
           "description": "Reports a chosen value from TelephonyManager.getDeviceSoftwareVersion() so apps cannot read the real radio/software version.",
           "default": false
@@ -125269,8 +125393,18 @@
           "default": false
         },
         {
+          "name": "Spoof GPU Info",
+          "description": "Replaces OpenGL renderer and vendor strings so apps see a chosen GPU.",
+          "default": false
+        },
+        {
           "name": "Spoof Group ID Level 1",
           "description": "Reports a chosen value from TelephonyManager.getGroupIdLevel1() so apps cannot read the real SIM GID1.",
+          "default": false
+        },
+        {
+          "name": "Spoof High Sample Rate",
+          "description": "Reports 48000 Hz sample rate so apps unlock high-quality audio paths.",
           "default": false
         },
         {
@@ -125304,6 +125438,16 @@
           "default": false
         },
         {
+          "name": "Spoof Media Playing",
+          "description": "Makes media-player checks report playing so playback-gated features stay active.",
+          "default": false
+        },
+        {
+          "name": "Spoof Multi-Window Mode",
+          "description": "Makes multi-window checks report true so split-screen layouts stay active.",
+          "default": false
+        },
+        {
           "name": "Spoof Network Access Identifier",
           "description": "Reports a chosen string from TelephonyManager.getNai() so apps cannot read the network access identifier.",
           "default": false
@@ -125324,6 +125468,11 @@
           "default": false
         },
         {
+          "name": "Spoof OpenGL ES Version",
+          "description": "Reports a chosen GLES version so games unlock higher graphics options.",
+          "default": false
+        },
+        {
           "name": "Spoof Phone Number",
           "description": "Reports a chosen phone number from TelephonyManager.getLine1Number() and getLine2Number() so apps cannot read the device's phone number.",
           "default": false
@@ -125331,6 +125480,11 @@
         {
           "name": "Spoof Play Integrity",
           "description": "Makes the app think it passed Google's device check.",
+          "default": false
+        },
+        {
+          "name": "Spoof Play Services Version",
+          "description": "Reports a high Play Services version (25000000) so apps stop demanding a Play Services update. Useful on MicroG and de-Googled ROMs.",
           "default": false
         },
         {
@@ -125384,6 +125538,11 @@
           "default": false
         },
         {
+          "name": "Spoof Stream Volume",
+          "description": "Reports a chosen level for stream-volume reads so apps behave as if the volume is set there.",
+          "default": false
+        },
+        {
           "name": "Spoof Subscriber ID",
           "description": "Reports a chosen subscriber id (IMSI) through TelephonyManager.getSubscriberId() so apps that fingerprint by IMSI see a constant value.",
           "default": false
@@ -125399,6 +125558,11 @@
           "default": false
         },
         {
+          "name": "Spoof Tracking IDs",
+          "description": "Spoofs the App Set ID and Firebase Instance ID so reinstalls cannot be linked to your device",
+          "default": false
+        },
+        {
           "name": "Spoof UiMode Night State",
           "description": "Forces UiModeManager to report TYPE_NORMAL and night mode off so car/TV/night gates never trigger",
           "default": false
@@ -125411,6 +125575,11 @@
         {
           "name": "Spoof WebView User Agent",
           "description": "Replaces WebSettings.getUserAgentString() with a desktop browser user agent so embedded webviews load desktop versions of sites.",
+          "default": false
+        },
+        {
+          "name": "Spoof Widevine L1",
+          "description": "Reports a chosen Widevine security level so streaming apps unlock HD playback.",
           "default": false
         },
         {
@@ -125524,8 +125693,18 @@
           "default": false
         },
         {
+          "name": "Use Display Cutout Area",
+          "description": "Renders inside the notch and punch-hole area for fullscreen games.",
+          "default": false
+        },
+        {
           "name": "VM Safe Mode",
           "description": "Sets android:vmSafeMode so the app runs with AOT/JIT optimizations disabled, which can stabilize apps that crash from compiler optimizations on some devices",
+          "default": false
+        },
+        {
+          "name": "WebView Private Mode",
+          "description": "Hardens WebViews: denies geolocation prompts and disables cookies, DOM storage and saved form data",
           "default": false
         }
       ]
@@ -126539,12 +126718,16 @@
       "avatarUrl": "https://github.com/Zanuaimi.png?size=96",
       "patchCount": 8,
       "latestChanges": {
-        "title": "1.17.4 (2026-09-11)",
-        "date": "2026-09-11",
+        "title": "1.20.2 (2026-09-12)",
+        "date": "2026-09-12",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**ads:** keep runtime rewards startup-safe"
+            "text": "**ads:** simplify reward versions and split SDK controls"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**overlay:** constrain settings popup width"
           }
         ]
       },
@@ -126560,8 +126743,8 @@
           "default": false
         },
         {
-          "name": "Configure App Ads Patch ( Experimental, Enhanced, Has Overlay Addon )",
-          "description": "A merged ad-control patch based on Nai64's No Ads and Ads Free Rewards patches, plus\nliteral-host blocking inspired by Entree and Adobo. Block common ad formats, choose the\nSDKs to target, optionally grant ad rewards without an ad, and redirect matching literal\nad/tracker hosts embedded in the APK.\n\nHost filters are small embedded subsets inspired by uBlock Origin, EasyList, AdGuard,\nOISD, HaGeZi Pro mini, Privacy Essentials, EasyPrivacy, and Peter Lowe's list; they are\nnot downloaded full subscriptions. Each filter is independently toggleable. They only\naffect hosts stored as literal strings by the app; they cannot block dynamically generated\nhosts, encrypted traffic, or requests made entirely inside Google Play services.\n\nCompatibility: when combined with Disable Forced Online Checks, keep that patch's \u201cExclude\nad SDK and networking code\u201d option enabled; otherwise blocked ad hosts may be treated as\nonline and retried. PairIP Firebase cleanup/removal can disable Firebase-backed reward,\nsign-in, billing, and attribution flows, which this patch cannot restore.\n\nThis patch includes an optional Universal Overlay addon. To use the addon, patch Configure App Ads\ntogether with Universal Overlay, enable \u201cOverlay integration >\nEnable runtime controls\u201d, and select one or more of its three overlay addon modules:\n\u201cBlock Ads\u201d, \u201cRewards without ads\u201d, and \u201cBlock ad/tracking hosts\u201d. The selected modules\nappear under \u201cAd control hook modules\u201d in Universal Overlay when selected. Host blocking\nstarts disabled for startup safety. Universal Overlay is required for the runtime policy to be\ninstalled; if it is not selected, the normal static ad controls still work but these\nruntime addon modules are not available.\nRuntime changes last for the current app process and affect only methods and literal hosts\nsuccessfully instrumented by this patch. Its policy is attached to the selected overlay's\nown startup bridge, including a manual Activity override; it does not independently choose\nan Application or Activity. Native, dynamically generated, unsupported, or unrecognized\nSDK paths remain unchanged.\n\nCredits: Nai64Patches from Nai64; host-blocking approach inspired by Entree and Adobo.",
+          "name": "Control App Ads Patch ( Experimental, Enhanced, Has Overlay Addon )",
+          "description": "A merged ad-control patch based on Nai64's No Ads and Ads Free Rewards patches, plus\nliteral-host blocking inspired by Entree and Adobo. Block common ad formats, choose the\nSDKs to target, optionally grant ad rewards without an ad, and redirect matching literal\nad/tracker hosts embedded in the APK.\n\nHost filters are small embedded subsets inspired by uBlock Origin, EasyList, AdGuard,\nOISD, HaGeZi Pro mini, Privacy Essentials, EasyPrivacy, and Peter Lowe's list; they are\nnot downloaded full subscriptions. Each filter is independently toggleable. They only\naffect hosts stored as literal strings by the app; they cannot block dynamically generated\nhosts, encrypted traffic, or requests made entirely inside Google Play services.\n\nCompatibility: when combined with Disable Forced Online Checks, keep that patch's \u201cExclude\nad SDK and networking code\u201d option enabled; otherwise blocked ad hosts may be treated as\nonline and retried. PairIP Firebase cleanup/removal can disable Firebase-backed reward,\nsign-in, billing, and attribution flows, which this patch cannot restore.\n\nThis patch includes an optional Universal Overlay addon. To use the addon, patch Control App Ads\ntogether with Universal Overlay, enable \u201cOverlay integration >\nEnable runtime controls\u201d, and select one or more of its three overlay addon modules:\n\u201cBlock Ads\u201d, \u201cAds Free Rewards\u201d, and \u201cBlock ad/tracking hosts\u201d. The selected modules\nappear under \u201cAd control hook modules\u201d in Universal Overlay when selected. Host blocking\nstarts according to the Enable Block Ads / Tracking Hosts master setting. Universal Overlay is required for the runtime policy to be\ninstalled; if it is not selected, the normal static ad controls still work but these\nruntime addon modules are not available.\nRuntime changes last for the current app process and affect only methods and literal hosts\nsuccessfully instrumented by this patch. Its policy is attached to the selected overlay's\nown startup bridge, including a manual Activity override; it does not independently choose\nan Application or Activity. Native, dynamically generated, unsupported, or unrecognized\nSDK paths remain unchanged.\n\nCredits: Nai64Patches from Nai64; host-blocking approach inspired by Entree and Adobo.",
           "default": false
         },
         {
@@ -126585,7 +126768,7 @@
           "default": false
         },
         {
-          "name": "UniPatches Universal Overlay Patch v2.4.2 (Experimental)",
+          "name": "UniPatches Universal Overlay Patch v2.4.5 (Experimental)",
           "description": "A customizable in-app overlay for Android apps and games. For a quick first build: choose a visual\npreset, select the overlay modules you want, optionally supply an icon image, then patch. Modules\nare excluded and disabled by default. Monitor modules show information, Activity modules control\nthe current Activity, and Hook modules make best-effort changes to app behavior. Text is the\ndefault legacy icon; an optional image replaces it completely, while the advanced Multi-parts editor\nsupports custom drawn icons, and can be conveniently made in Icon Builder local website in UniPatches repo.\n\nThis is an experimental patch and may not work on all apps. UI presets can save and reuse supported appearance and advanced icon\nsettings. The title, description, repository button text, and repository button URL remain\ncontrolled by the visible Morphe settings. Module selections and module behavior are excluded\nbecause hook and module combinations can be app-specific. \n\nIf Control App Ads is patched with its optional runtime policy enabled, its selected ad-control modules appear here\nautomatically; Universal Overlay does not patch ad SDKs by itself. When both patches are\nselected, Control App Ads attaches its runtime policy to this overlay's exact startup bridge,\nincluding an explicit Activity override, instead of selecting a separate Activity.\n\nAttribution: The idea and initial works of Universal Overlay Patch are from Zanuaimi / Noobite.",
           "default": false
         }
