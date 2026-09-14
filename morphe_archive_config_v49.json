@@ -747,14 +747,6 @@
                 "updatedAt": 1784837376882
             },
             {
-                "name": "ikura-patches",
-                "source": "https://raw.githubusercontent.com/Ikuradachi/ikura-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 90,
-                "createdAt": 1784837693824,
-                "updatedAt": 1784837693824
-            },
-            {
                 "name": "abeja-morphe-patches",
                 "source": "https://raw.githubusercontent.com/TheRealCrazyfuy/abeja-morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -1721,14 +1713,6 @@
                 "sortOrder": 224,
                 "createdAt": 1789183046907,
                 "updatedAt": 1789183046907
-            },
-            {
-                "name": "asken-patches",
-                "source": "https://raw.githubusercontent.com/Nerahikada/asken-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 225,
-                "createdAt": 1789183047028,
-                "updatedAt": 1789183047028
             },
             {
                 "name": "santodan-patches",

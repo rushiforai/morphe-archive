@@ -2,7 +2,7 @@
 
 An auto-generated, continuously updated index of every GitHub or GitLab repository that publishes a [Morphe](https://morphe.software) (`.mpp`) patch bundle.
 
-![Repos tracked](https://img.shields.io/badge/repos%20tracked-214-6366f1) ![Last updated](https://img.shields.io/badge/last%20updated-2026-09-13%2003:21%20UTC-555)
+![Repos tracked](https://img.shields.io/badge/repos%20tracked-212-6366f1) ![Last updated](https://img.shields.io/badge/last%20updated-2026-09-14%2003:33%20UTC-555)
 
 ---
 
@@ -48,7 +48,7 @@ Use this archive at your own risk. I do not verify every repository listed here,
 
 ---
 
-## Tracked Repositories (214)
+## Tracked Repositories (212)
 
 | # | Repository | Source | Morphe |
 |---|------------|--------|--------|
@@ -150,122 +150,120 @@ Use this archive at your own risk. I do not verify every repository listed here,
 | 96 | `hxreborn/hxreborn-tiktok-patches` | [Open](https://github.com/hxreborn/hxreborn-tiktok-patches) | [Add Source](https://morphe.software/add-source?github=hxreborn/hxreborn-tiktok-patches) |
 | 97 | `hxreborn/morphe-patches` | [Open](https://github.com/hxreborn/morphe-patches) | [Add Source](https://morphe.software/add-source?github=hxreborn/morphe-patches) |
 | 98 | `icysymmetra/tiktok-patches-for-morphe` | [Open](https://github.com/icysymmetra/tiktok-patches-for-morphe) | [Add Source](https://morphe.software/add-source?github=icysymmetra/tiktok-patches-for-morphe) |
-| 99 | `Ikuradachi/ikura-patches` | [Open](https://github.com/Ikuradachi/ikura-patches) | [Add Source](https://morphe.software/add-source?github=Ikuradachi/ikura-patches) |
-| 100 | `ilikeadofai/vocacolle-morphe-patches` | [Open](https://github.com/ilikeadofai/vocacolle-morphe-patches) | [Add Source](https://morphe.software/add-source?github=ilikeadofai/vocacolle-morphe-patches) |
-| 101 | `ImmortalZeus/ImmortalZeus-Morphe-Patches` | [Open](https://github.com/ImmortalZeus/ImmortalZeus-Morphe-Patches) | [Add Source](https://morphe.software/add-source?github=ImmortalZeus/ImmortalZeus-Morphe-Patches) |
-| 102 | `IMXEren/mix-patches` | [Open](https://github.com/IMXEren/mix-patches) | [Add Source](https://morphe.software/add-source?github=IMXEren/mix-patches) |
-| 103 | `ispacecase/patchweaver` | [Open](https://github.com/ispacecase/patchweaver) | [Add Source](https://morphe.software/add-source?github=ispacecase/patchweaver) |
-| 104 | `isuruhg/cricinfo-tweaks` | [Open](https://github.com/isuruhg/cricinfo-tweaks) | [Add Source](https://morphe.software/add-source?github=isuruhg/cricinfo-tweaks) |
-| 105 | `jackblk/morphe-patches` | [Open](https://github.com/jackblk/morphe-patches) | [Add Source](https://morphe.software/add-source?github=jackblk/morphe-patches) |
-| 106 | `JacobPlaysGames/CrimeRadar-Morphe-Patches` | [Open](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches) | [Add Source](https://morphe.software/add-source?github=JacobPlaysGames/CrimeRadar-Morphe-Patches) |
-| 107 | `jancerny2001/morphe-patches` | [Open](https://github.com/jancerny2001/morphe-patches) | [Add Source](https://morphe.software/add-source?github=jancerny2001/morphe-patches) |
-| 108 | `jaredcat/morphe-patches` | [Open](https://github.com/jaredcat/morphe-patches) | [Add Source](https://morphe.software/add-source?github=jaredcat/morphe-patches) |
-| 109 | `jasonwu1994/Gboard-patches` | [Open](https://github.com/jasonwu1994/Gboard-patches) | [Add Source](https://morphe.software/add-source?github=jasonwu1994/Gboard-patches) |
-| 110 | `jkennethcarino/adobo` | [Open](https://github.com/jkennethcarino/adobo) | [Add Source](https://morphe.software/add-source?github=jkennethcarino/adobo) |
-| 111 | `Jl4cTuk/morphe-patches` | [Open](https://github.com/Jl4cTuk/morphe-patches) | [Add Source](https://morphe.software/add-source?github=Jl4cTuk/morphe-patches) |
-| 112 | `Joristdh/Platypatch` | [Open](https://github.com/Joristdh/Platypatch) | [Add Source](https://morphe.software/add-source?github=Joristdh/Platypatch) |
-| 113 | `Joussflls10/Jouss-Patches` | [Open](https://github.com/Joussflls10/Jouss-Patches) | [Add Source](https://morphe.software/add-source?github=Joussflls10/Jouss-Patches) |
-| 114 | `jrddupont/discord-patches` | [Open](https://github.com/jrddupont/discord-patches) | [Add Source](https://morphe.software/add-source?github=jrddupont/discord-patches) |
-| 115 | `JZ6/Flexboard` | [Open](https://github.com/JZ6/Flexboard) | [Add Source](https://morphe.software/add-source?github=JZ6/Flexboard) |
-| 116 | `kanup4m/morphe-patches` | [Open](https://github.com/kanup4m/morphe-patches) | [Add Source](https://morphe.software/add-source?github=kanup4m/morphe-patches) |
-| 117 | `kareemlukitomo/morphe-patches` | [Open](https://github.com/kareemlukitomo/morphe-patches) | [Add Source](https://morphe.software/add-source?github=kareemlukitomo/morphe-patches) |
-| 118 | `Kecerim24/morphe-patches` | [Open](https://github.com/Kecerim24/morphe-patches) | [Add Source](https://morphe.software/add-source?github=Kecerim24/morphe-patches) |
-| 119 | `kiraio-moe/Lain-Patches` | [Open](https://github.com/kiraio-moe/Lain-Patches) | [Add Source](https://morphe.software/add-source?github=kiraio-moe/Lain-Patches) |
-| 120 | `kolaron/morphe-patches` | [Open](https://github.com/kolaron/morphe-patches) | [Add Source](https://morphe.software/add-source?github=kolaron/morphe-patches) |
-| 121 | `kondratjev/morphe-patches` | [Open](https://github.com/kondratjev/morphe-patches) | [Add Source](https://morphe.software/add-source?github=kondratjev/morphe-patches) |
-| 122 | `kontsevoye/emorphe-patches` | [Open](https://github.com/kontsevoye/emorphe-patches) | [Add Source](https://morphe.software/add-source?github=kontsevoye/emorphe-patches) |
-| 123 | `kuchingneko28/ipusnas-patches` | [Open](https://github.com/kuchingneko28/ipusnas-patches) | [Add Source](https://morphe.software/add-source?github=kuchingneko28/ipusnas-patches) |
-| 124 | `kuntal-devrat/diskwala-patches` | [Open](https://github.com/kuntal-devrat/diskwala-patches) | [Add Source](https://morphe.software/add-source?github=kuntal-devrat/diskwala-patches) |
-| 125 | `kveld9/kveld-morphe-patches` | [Open](https://github.com/kveld9/kveld-morphe-patches) | [Add Source](https://morphe.software/add-source?github=kveld9/kveld-morphe-patches) |
-| 126 | `LaBlazer/morphe-patches` | [Open](https://github.com/LaBlazer/morphe-patches) | [Add Source](https://morphe.software/add-source?github=LaBlazer/morphe-patches) |
-| 127 | `LaKakaReal/LaKakaShitPatches` | [Open](https://github.com/LaKakaReal/LaKakaShitPatches) | [Add Source](https://morphe.software/add-source?github=LaKakaReal/LaKakaShitPatches) |
-| 128 | `legendsciber/morphe-patches` | [Open](https://github.com/legendsciber/morphe-patches) | [Add Source](https://morphe.software/add-source?github=legendsciber/morphe-patches) |
-| 129 | `liongalahad/liongalahad-nuviotv-morphe-patches` | [Open](https://github.com/liongalahad/liongalahad-nuviotv-morphe-patches) | [Add Source](https://morphe.software/add-source?github=liongalahad/liongalahad-nuviotv-morphe-patches) |
-| 130 | `liongalahad/liongalahad-stremio-morphe-patches` | [Open](https://github.com/liongalahad/liongalahad-stremio-morphe-patches) | [Add Source](https://morphe.software/add-source?github=liongalahad/liongalahad-stremio-morphe-patches) |
-| 131 | `liongalahad/nuviotv-morphe-patches` | [Open](https://github.com/liongalahad/nuviotv-morphe-patches) | [Add Source](https://morphe.software/add-source?github=liongalahad/nuviotv-morphe-patches) |
-| 132 | `liongalahad/nuviotv-patches` | [Open](https://github.com/liongalahad/nuviotv-patches) | [Add Source](https://morphe.software/add-source?github=liongalahad/nuviotv-patches) |
-| 133 | `liongalahad/stremio-androidTV-morphe-patches` | [Open](https://github.com/liongalahad/stremio-androidTV-morphe-patches) | [Add Source](https://morphe.software/add-source?github=liongalahad/stremio-androidTV-morphe-patches) |
-| 134 | `LOCKhart07/morphe-patches` | [Open](https://github.com/LOCKhart07/morphe-patches) | [Add Source](https://morphe.software/add-source?github=LOCKhart07/morphe-patches) |
-| 135 | `logm1lo/logm1lo-patches` | [Open](https://github.com/logm1lo/logm1lo-patches) | [Add Source](https://morphe.software/add-source?github=logm1lo/logm1lo-patches) |
-| 136 | `lootdev78/psylos-morphe-patches` | [Open](https://github.com/lootdev78/psylos-morphe-patches) | [Add Source](https://morphe.software/add-source?github=lootdev78/psylos-morphe-patches) |
-| 137 | `loskutov/youtube-domain-fronting-patch` | [Open](https://github.com/loskutov/youtube-domain-fronting-patch) | [Add Source](https://morphe.software/add-source?github=loskutov/youtube-domain-fronting-patch) |
-| 138 | `lyyako/realme-link-patches` | [Open](https://github.com/lyyako/realme-link-patches) | [Add Source](https://morphe.software/add-source?github=lyyako/realme-link-patches) |
-| 139 | `madhu-gowda6/atharv-patches` | [Open](https://github.com/madhu-gowda6/atharv-patches) | [Add Source](https://morphe.software/add-source?github=madhu-gowda6/atharv-patches) |
-| 140 | `MarcaDian/morphe-patches-yavot` | [Open](https://github.com/MarcaDian/morphe-patches-yavot) | [Add Source](https://morphe.software/add-source?github=MarcaDian/morphe-patches-yavot) |
-| 141 | `meridianfresco/morphe-meta-patches` | [Open](https://github.com/meridianfresco/morphe-meta-patches) | [Add Source](https://morphe.software/add-source?github=meridianfresco/morphe-meta-patches) |
-| 142 | `MiguelNinja19/miguel-morphe-patches` | [Open](https://github.com/MiguelNinja19/miguel-morphe-patches) | [Add Source](https://morphe.software/add-source?github=MiguelNinja19/miguel-morphe-patches) |
-| 143 | `MohamedElnaggar00/morphe-patches-tiktok-lite-only` | [Open](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only) | [Add Source](https://morphe.software/add-source?github=MohamedElnaggar00/morphe-patches-tiktok-lite-only) |
-| 144 | `MoonShadowKeeper/Telegram-patchesMorphe` | [Open](https://github.com/MoonShadowKeeper/Telegram-patchesMorphe) | [Add Source](https://morphe.software/add-source?github=MoonShadowKeeper/Telegram-patchesMorphe) |
-| 145 | `MorpheApp/morphe-patches` | [Open](https://github.com/MorpheApp/morphe-patches) | [Add Source](https://morphe.software/add-source?github=MorpheApp/morphe-patches) |
-| 146 | `mvaishak/letterboxd-morphe-patches` | [Open](https://github.com/mvaishak/letterboxd-morphe-patches) | [Add Source](https://morphe.software/add-source?github=mvaishak/letterboxd-morphe-patches) |
-| 147 | `mxkrgt/dbtcoach-morphe-patches` | [Open](https://github.com/mxkrgt/dbtcoach-morphe-patches) | [Add Source](https://morphe.software/add-source?github=mxkrgt/dbtcoach-morphe-patches) |
-| 148 | `Nai64/Nai64Patches` | [Open](https://github.com/Nai64/Nai64Patches) | [Add Source](https://morphe.software/add-source?github=Nai64/Nai64Patches) |
-| 149 | `NekoGryphou/gryphous-morphe-patches` | [Open](https://github.com/NekoGryphou/gryphous-morphe-patches) | [Add Source](https://morphe.software/add-source?github=NekoGryphou/gryphous-morphe-patches) |
-| 150 | `Nerahikada/asken-patches` | [Open](https://github.com/Nerahikada/asken-patches) | [Add Source](https://morphe.software/add-source?github=Nerahikada/asken-patches) |
-| 151 | `nosini/disable-shorts-repeat` | [Open](https://github.com/nosini/disable-shorts-repeat) | [Add Source](https://morphe.software/add-source?github=nosini/disable-shorts-repeat) |
-| 152 | `NullWaypoint/morphe-patches` | [Open](https://github.com/NullWaypoint/morphe-patches) | [Add Source](https://morphe.software/add-source?github=NullWaypoint/morphe-patches) |
-| 153 | `Okazakee/iptv-morphe-patches` | [Open](https://github.com/Okazakee/iptv-morphe-patches) | [Add Source](https://morphe.software/add-source?github=Okazakee/iptv-morphe-patches) |
-| 154 | `osirisad/teamsnap-patches` | [Open](https://github.com/osirisad/teamsnap-patches) | [Add Source](https://morphe.software/add-source?github=osirisad/teamsnap-patches) |
-| 155 | `ozeroztas/Morphe-Patch` | [Open](https://github.com/ozeroztas/Morphe-Patch) | [Add Source](https://morphe.software/add-source?github=ozeroztas/Morphe-Patch) |
-| 156 | `Pa-kon/morphe-screenshot-patches` | [Open](https://github.com/Pa-kon/morphe-screenshot-patches) | [Add Source](https://morphe.software/add-source?github=Pa-kon/morphe-screenshot-patches) |
-| 157 | `PawiX25/pepper-morphe-patches` | [Open](https://github.com/PawiX25/pepper-morphe-patches) | [Add Source](https://morphe.software/add-source?github=PawiX25/pepper-morphe-patches) |
-| 158 | `picarica/My-moprhe-patches` | [Open](https://github.com/picarica/My-moprhe-patches) | [Add Source](https://morphe.software/add-source?github=picarica/My-moprhe-patches) |
-| 159 | `PixelPusher247/morphe-patches` | [Open](https://github.com/PixelPusher247/morphe-patches) | [Add Source](https://morphe.software/add-source?github=PixelPusher247/morphe-patches) |
-| 160 | `polka-bear/morphe-patches` | [Open](https://github.com/polka-bear/morphe-patches) | [Add Source](https://morphe.software/add-source?github=polka-bear/morphe-patches) |
-| 161 | `PrathxmOp/Prathxm-Patches` | [Open](https://github.com/PrathxmOp/Prathxm-Patches) | [Add Source](https://morphe.software/add-source?github=PrathxmOp/Prathxm-Patches) |
-| 162 | `PrathxmOp/ytmusic-patches` | [Open](https://github.com/PrathxmOp/ytmusic-patches) | [Add Source](https://morphe.software/add-source?github=PrathxmOp/ytmusic-patches) |
-| 163 | `pseudofractal/morphe-patches` | [Open](https://github.com/pseudofractal/morphe-patches) | [Add Source](https://morphe.software/add-source?github=pseudofractal/morphe-patches) |
-| 164 | `PyFlat-JR/Morphe-Patches` | [Open](https://github.com/PyFlat-JR/Morphe-Patches) | [Add Source](https://morphe.software/add-source?github=PyFlat-JR/Morphe-Patches) |
-| 165 | `quantavil/edge-morphe-patches` | [Open](https://github.com/quantavil/edge-morphe-patches) | [Add Source](https://morphe.software/add-source?github=quantavil/edge-morphe-patches) |
-| 166 | `Quantro100/Morphe-patches` | [Open](https://github.com/Quantro100/Morphe-patches) | [Add Source](https://morphe.software/add-source?github=Quantro100/Morphe-patches) |
-| 167 | `RabehX/rabehx-patches` | [Open](https://github.com/RabehX/rabehx-patches) | [Add Source](https://morphe.software/add-source?github=RabehX/rabehx-patches) |
-| 168 | `rafag00/morphe-patches` | [Open](https://github.com/rafag00/morphe-patches) | [Add Source](https://morphe.software/add-source?github=rafag00/morphe-patches) |
-| 169 | `RealCyberwash/max-patches` | [Open](https://github.com/RealCyberwash/max-patches) | [Add Source](https://morphe.software/add-source?github=RealCyberwash/max-patches) |
-| 170 | `rhubarbshoelaces/morphe-patches` | [Open](https://github.com/rhubarbshoelaces/morphe-patches) | [Add Source](https://morphe.software/add-source?github=rhubarbshoelaces/morphe-patches) |
-| 171 | `riky-dev/morphe-patches` | [Open](https://github.com/riky-dev/morphe-patches) | [Add Source](https://morphe.software/add-source?github=riky-dev/morphe-patches) |
-| 172 | `Ripthulhu/morphe-google-patches` | [Open](https://github.com/Ripthulhu/morphe-google-patches) | [Add Source](https://morphe.software/add-source?github=Ripthulhu/morphe-google-patches) |
-| 173 | `RookieEnough/De-Vanced` | [Open](https://github.com/RookieEnough/De-Vanced) | [Add Source](https://morphe.software/add-source?github=RookieEnough/De-Vanced) |
-| 174 | `RoundSalmon4/morphe-patches-template` | [Open](https://github.com/RoundSalmon4/morphe-patches-template) | [Add Source](https://morphe.software/add-source?github=RoundSalmon4/morphe-patches-template) |
-| 175 | `rushiranpise/RI-Vanced-Universal-Morphe-Patches` | [Open](https://github.com/rushiranpise/RI-Vanced-Universal-Morphe-Patches) | [Add Source](https://morphe.software/add-source?github=rushiranpise/RI-Vanced-Universal-Morphe-Patches) |
-| 176 | `rushiranpise/Ri-Vanced-Universal-Morphe-Patches` | [Open](https://github.com/rushiranpise/Ri-Vanced-Universal-Morphe-Patches) | [Add Source](https://morphe.software/add-source?github=rushiranpise/Ri-Vanced-Universal-Morphe-Patches) |
-| 177 | `ryuya0124/gemini-microg-patches` | [Open](https://github.com/ryuya0124/gemini-microg-patches) | [Add Source](https://morphe.software/add-source?github=ryuya0124/gemini-microg-patches) |
-| 178 | `saieshshirodkar/saiesh-morphe-patches` | [Open](https://github.com/saieshshirodkar/saiesh-morphe-patches) | [Add Source](https://morphe.software/add-source?github=saieshshirodkar/saiesh-morphe-patches) |
-| 179 | `Santodan/santodan-patches` | [Open](https://github.com/Santodan/santodan-patches) | [Add Source](https://morphe.software/add-source?github=Santodan/santodan-patches) |
-| 180 | `SapitoSucio/FroggoMorphePatches` | [Open](https://github.com/SapitoSucio/FroggoMorphePatches) | [Add Source](https://morphe.software/add-source?github=SapitoSucio/FroggoMorphePatches) |
-| 181 | `sashade8-ship-it/dual-vot-patches` | [Open](https://github.com/sashade8-ship-it/dual-vot-patches) | [Add Source](https://morphe.software/add-source?github=sashade8-ship-it/dual-vot-patches) |
-| 182 | `Seobject/Seobject-patches` | [Open](https://github.com/Seobject/Seobject-patches) | [Add Source](https://morphe.software/add-source?github=Seobject/Seobject-patches) |
-| 183 | `Sfehhrths/ekispert-morphe-patches` | [Open](https://github.com/Sfehhrths/ekispert-morphe-patches) | [Add Source](https://morphe.software/add-source?github=Sfehhrths/ekispert-morphe-patches) |
-| 184 | `shaun-the-sheep-patches/morphe-patches` | [Open](https://github.com/shaun-the-sheep-patches/morphe-patches) | [Add Source](https://morphe.software/add-source?github=shaun-the-sheep-patches/morphe-patches) |
-| 185 | `ShuhaibNC/morphe-patches` | [Open](https://github.com/ShuhaibNC/morphe-patches) | [Add Source](https://morphe.software/add-source?github=ShuhaibNC/morphe-patches) |
-| 186 | `sjshb57/Pairip-Patches` | [Open](https://github.com/sjshb57/Pairip-Patches) | [Add Source](https://morphe.software/add-source?github=sjshb57/Pairip-Patches) |
-| 187 | `skulldogged/cobalt-morphe` | [Open](https://github.com/skulldogged/cobalt-morphe) | [Add Source](https://morphe.software/add-source?github=skulldogged/cobalt-morphe) |
-| 188 | `SouBryan/pinterest-morphed` | [Open](https://github.com/SouBryan/pinterest-morphed) | [Add Source](https://morphe.software/add-source?github=SouBryan/pinterest-morphed) |
-| 189 | `spookyexe/morphe-patches` | [Open](https://github.com/spookyexe/morphe-patches) | [Add Source](https://morphe.software/add-source?github=spookyexe/morphe-patches) |
-| 190 | `subenoeva/roadsync-patches` | [Open](https://github.com/subenoeva/roadsync-patches) | [Add Source](https://morphe.software/add-source?github=subenoeva/roadsync-patches) |
-| 191 | `sushruth/imgur-patches` | [Open](https://github.com/sushruth/imgur-patches) | [Add Source](https://morphe.software/add-source?github=sushruth/imgur-patches) |
-| 192 | `SysAdminDoc/hushfeed` | [Open](https://github.com/SysAdminDoc/hushfeed) | [Add Source](https://morphe.software/add-source?github=SysAdminDoc/hushfeed) |
-| 193 | `theabhishekbhujang/morphe-patches` | [Open](https://github.com/theabhishekbhujang/morphe-patches) | [Add Source](https://morphe.software/add-source?github=theabhishekbhujang/morphe-patches) |
-| 194 | `TheRealCrazyfuy/abeja-morphe-patches` | [Open](https://github.com/TheRealCrazyfuy/abeja-morphe-patches) | [Add Source](https://morphe.software/add-source?github=TheRealCrazyfuy/abeja-morphe-patches) |
-| 195 | `tiaruebar1024/tiaruebar-patches` | [Open](https://github.com/tiaruebar1024/tiaruebar-patches) | [Add Source](https://morphe.software/add-source?github=tiaruebar1024/tiaruebar-patches) |
-| 196 | `Tornillo2/movistar-block-ads-morphe` | [Open](https://github.com/Tornillo2/movistar-block-ads-morphe) | [Add Source](https://morphe.software/add-source?github=Tornillo2/movistar-block-ads-morphe) |
-| 197 | `totsiaw/proxma-patches` | [Open](https://github.com/totsiaw/proxma-patches) | [Add Source](https://morphe.software/add-source?github=totsiaw/proxma-patches) |
-| 198 | `Trimpsuz/morphe-busuu` | [Open](https://github.com/Trimpsuz/morphe-busuu) | [Add Source](https://morphe.software/add-source?github=Trimpsuz/morphe-busuu) |
-| 199 | `V4n1X/morphe-patches` | [Open](https://github.com/V4n1X/morphe-patches) | [Add Source](https://morphe.software/add-source?github=V4n1X/morphe-patches) |
-| 200 | `variablenine/morphe-patches` | [Open](https://github.com/variablenine/morphe-patches) | [Add Source](https://morphe.software/add-source?github=variablenine/morphe-patches) |
-| 201 | `vladon/morphe-patches-navi` | [Open](https://github.com/vladon/morphe-patches-navi) | [Add Source](https://morphe.software/add-source?github=vladon/morphe-patches-navi) |
-| 202 | `vomw/morphe-patches` | [Open](https://github.com/vomw/morphe-patches) | [Add Source](https://morphe.software/add-source?github=vomw/morphe-patches) |
-| 203 | `WalkTheEarth/morphe-ytvr-patches` | [Open](https://github.com/WalkTheEarth/morphe-ytvr-patches) | [Add Source](https://morphe.software/add-source?github=WalkTheEarth/morphe-ytvr-patches) |
-| 204 | `wchill/patcheddit` | [Open](https://github.com/wchill/patcheddit) | [Add Source](https://morphe.software/add-source?github=wchill/patcheddit) |
-| 205 | `wchill/rvx-morphed` | [Open](https://github.com/wchill/rvx-morphed) | [Add Source](https://morphe.software/add-source?github=wchill/rvx-morphed) |
-| 206 | `WZSE/aapam-patches` | [Open](https://github.com/WZSE/aapam-patches) | [Add Source](https://morphe.software/add-source?github=WZSE/aapam-patches) |
-| 207 | `Xhehab/Xhehab-Patches` | [Open](https://github.com/Xhehab/Xhehab-Patches) | [Add Source](https://morphe.software/add-source?github=Xhehab/Xhehab-Patches) |
-| 208 | `xob0t/morphe-patches` | [Open](https://github.com/xob0t/morphe-patches) | [Add Source](https://morphe.software/add-source?github=xob0t/morphe-patches) |
-| 209 | `XTapped/morphe-patches` | [Open](https://github.com/XTapped/morphe-patches) | [Add Source](https://morphe.software/add-source?github=XTapped/morphe-patches) |
-| 210 | `yann-soliman/morphe-patches` | [Open](https://github.com/yann-soliman/morphe-patches) | [Add Source](https://morphe.software/add-source?github=yann-soliman/morphe-patches) |
-| 211 | `ynotzort/morphe-patches` | [Open](https://github.com/ynotzort/morphe-patches) | [Add Source](https://morphe.software/add-source?github=ynotzort/morphe-patches) |
-| 212 | `Z-drgon/morphe-patches` | [Open](https://github.com/Z-drgon/morphe-patches) | [Add Source](https://morphe.software/add-source?github=Z-drgon/morphe-patches) |
-| 213 | `Zanuaimi/UniPatches` | [Open](https://github.com/Zanuaimi/UniPatches) | [Add Source](https://morphe.software/add-source?github=Zanuaimi/UniPatches) |
-| 214 | `zeldrisho/morphe-patches` | [Open](https://github.com/zeldrisho/morphe-patches) | [Add Source](https://morphe.software/add-source?github=zeldrisho/morphe-patches) |
+| 99 | `ilikeadofai/vocacolle-morphe-patches` | [Open](https://github.com/ilikeadofai/vocacolle-morphe-patches) | [Add Source](https://morphe.software/add-source?github=ilikeadofai/vocacolle-morphe-patches) |
+| 100 | `ImmortalZeus/ImmortalZeus-Morphe-Patches` | [Open](https://github.com/ImmortalZeus/ImmortalZeus-Morphe-Patches) | [Add Source](https://morphe.software/add-source?github=ImmortalZeus/ImmortalZeus-Morphe-Patches) |
+| 101 | `IMXEren/mix-patches` | [Open](https://github.com/IMXEren/mix-patches) | [Add Source](https://morphe.software/add-source?github=IMXEren/mix-patches) |
+| 102 | `ispacecase/patchweaver` | [Open](https://github.com/ispacecase/patchweaver) | [Add Source](https://morphe.software/add-source?github=ispacecase/patchweaver) |
+| 103 | `isuruhg/cricinfo-tweaks` | [Open](https://github.com/isuruhg/cricinfo-tweaks) | [Add Source](https://morphe.software/add-source?github=isuruhg/cricinfo-tweaks) |
+| 104 | `jackblk/morphe-patches` | [Open](https://github.com/jackblk/morphe-patches) | [Add Source](https://morphe.software/add-source?github=jackblk/morphe-patches) |
+| 105 | `JacobPlaysGames/CrimeRadar-Morphe-Patches` | [Open](https://github.com/JacobPlaysGames/CrimeRadar-Morphe-Patches) | [Add Source](https://morphe.software/add-source?github=JacobPlaysGames/CrimeRadar-Morphe-Patches) |
+| 106 | `jancerny2001/morphe-patches` | [Open](https://github.com/jancerny2001/morphe-patches) | [Add Source](https://morphe.software/add-source?github=jancerny2001/morphe-patches) |
+| 107 | `jaredcat/morphe-patches` | [Open](https://github.com/jaredcat/morphe-patches) | [Add Source](https://morphe.software/add-source?github=jaredcat/morphe-patches) |
+| 108 | `jasonwu1994/Gboard-patches` | [Open](https://github.com/jasonwu1994/Gboard-patches) | [Add Source](https://morphe.software/add-source?github=jasonwu1994/Gboard-patches) |
+| 109 | `jkennethcarino/adobo` | [Open](https://github.com/jkennethcarino/adobo) | [Add Source](https://morphe.software/add-source?github=jkennethcarino/adobo) |
+| 110 | `Jl4cTuk/morphe-patches` | [Open](https://github.com/Jl4cTuk/morphe-patches) | [Add Source](https://morphe.software/add-source?github=Jl4cTuk/morphe-patches) |
+| 111 | `Joristdh/Platypatch` | [Open](https://github.com/Joristdh/Platypatch) | [Add Source](https://morphe.software/add-source?github=Joristdh/Platypatch) |
+| 112 | `Joussflls10/Jouss-Patches` | [Open](https://github.com/Joussflls10/Jouss-Patches) | [Add Source](https://morphe.software/add-source?github=Joussflls10/Jouss-Patches) |
+| 113 | `jrddupont/discord-patches` | [Open](https://github.com/jrddupont/discord-patches) | [Add Source](https://morphe.software/add-source?github=jrddupont/discord-patches) |
+| 114 | `JZ6/Flexboard` | [Open](https://github.com/JZ6/Flexboard) | [Add Source](https://morphe.software/add-source?github=JZ6/Flexboard) |
+| 115 | `kanup4m/morphe-patches` | [Open](https://github.com/kanup4m/morphe-patches) | [Add Source](https://morphe.software/add-source?github=kanup4m/morphe-patches) |
+| 116 | `kareemlukitomo/morphe-patches` | [Open](https://github.com/kareemlukitomo/morphe-patches) | [Add Source](https://morphe.software/add-source?github=kareemlukitomo/morphe-patches) |
+| 117 | `Kecerim24/morphe-patches` | [Open](https://github.com/Kecerim24/morphe-patches) | [Add Source](https://morphe.software/add-source?github=Kecerim24/morphe-patches) |
+| 118 | `kiraio-moe/Lain-Patches` | [Open](https://github.com/kiraio-moe/Lain-Patches) | [Add Source](https://morphe.software/add-source?github=kiraio-moe/Lain-Patches) |
+| 119 | `kolaron/morphe-patches` | [Open](https://github.com/kolaron/morphe-patches) | [Add Source](https://morphe.software/add-source?github=kolaron/morphe-patches) |
+| 120 | `kondratjev/morphe-patches` | [Open](https://github.com/kondratjev/morphe-patches) | [Add Source](https://morphe.software/add-source?github=kondratjev/morphe-patches) |
+| 121 | `kontsevoye/emorphe-patches` | [Open](https://github.com/kontsevoye/emorphe-patches) | [Add Source](https://morphe.software/add-source?github=kontsevoye/emorphe-patches) |
+| 122 | `kuchingneko28/ipusnas-patches` | [Open](https://github.com/kuchingneko28/ipusnas-patches) | [Add Source](https://morphe.software/add-source?github=kuchingneko28/ipusnas-patches) |
+| 123 | `kuntal-devrat/diskwala-patches` | [Open](https://github.com/kuntal-devrat/diskwala-patches) | [Add Source](https://morphe.software/add-source?github=kuntal-devrat/diskwala-patches) |
+| 124 | `kveld9/kveld-morphe-patches` | [Open](https://github.com/kveld9/kveld-morphe-patches) | [Add Source](https://morphe.software/add-source?github=kveld9/kveld-morphe-patches) |
+| 125 | `LaBlazer/morphe-patches` | [Open](https://github.com/LaBlazer/morphe-patches) | [Add Source](https://morphe.software/add-source?github=LaBlazer/morphe-patches) |
+| 126 | `LaKakaReal/LaKakaShitPatches` | [Open](https://github.com/LaKakaReal/LaKakaShitPatches) | [Add Source](https://morphe.software/add-source?github=LaKakaReal/LaKakaShitPatches) |
+| 127 | `legendsciber/morphe-patches` | [Open](https://github.com/legendsciber/morphe-patches) | [Add Source](https://morphe.software/add-source?github=legendsciber/morphe-patches) |
+| 128 | `liongalahad/liongalahad-nuviotv-morphe-patches` | [Open](https://github.com/liongalahad/liongalahad-nuviotv-morphe-patches) | [Add Source](https://morphe.software/add-source?github=liongalahad/liongalahad-nuviotv-morphe-patches) |
+| 129 | `liongalahad/liongalahad-stremio-morphe-patches` | [Open](https://github.com/liongalahad/liongalahad-stremio-morphe-patches) | [Add Source](https://morphe.software/add-source?github=liongalahad/liongalahad-stremio-morphe-patches) |
+| 130 | `liongalahad/nuviotv-morphe-patches` | [Open](https://github.com/liongalahad/nuviotv-morphe-patches) | [Add Source](https://morphe.software/add-source?github=liongalahad/nuviotv-morphe-patches) |
+| 131 | `liongalahad/nuviotv-patches` | [Open](https://github.com/liongalahad/nuviotv-patches) | [Add Source](https://morphe.software/add-source?github=liongalahad/nuviotv-patches) |
+| 132 | `liongalahad/stremio-androidTV-morphe-patches` | [Open](https://github.com/liongalahad/stremio-androidTV-morphe-patches) | [Add Source](https://morphe.software/add-source?github=liongalahad/stremio-androidTV-morphe-patches) |
+| 133 | `LOCKhart07/morphe-patches` | [Open](https://github.com/LOCKhart07/morphe-patches) | [Add Source](https://morphe.software/add-source?github=LOCKhart07/morphe-patches) |
+| 134 | `logm1lo/logm1lo-patches` | [Open](https://github.com/logm1lo/logm1lo-patches) | [Add Source](https://morphe.software/add-source?github=logm1lo/logm1lo-patches) |
+| 135 | `lootdev78/psylos-morphe-patches` | [Open](https://github.com/lootdev78/psylos-morphe-patches) | [Add Source](https://morphe.software/add-source?github=lootdev78/psylos-morphe-patches) |
+| 136 | `loskutov/youtube-domain-fronting-patch` | [Open](https://github.com/loskutov/youtube-domain-fronting-patch) | [Add Source](https://morphe.software/add-source?github=loskutov/youtube-domain-fronting-patch) |
+| 137 | `lyyako/realme-link-patches` | [Open](https://github.com/lyyako/realme-link-patches) | [Add Source](https://morphe.software/add-source?github=lyyako/realme-link-patches) |
+| 138 | `madhu-gowda6/atharv-patches` | [Open](https://github.com/madhu-gowda6/atharv-patches) | [Add Source](https://morphe.software/add-source?github=madhu-gowda6/atharv-patches) |
+| 139 | `MarcaDian/morphe-patches-yavot` | [Open](https://github.com/MarcaDian/morphe-patches-yavot) | [Add Source](https://morphe.software/add-source?github=MarcaDian/morphe-patches-yavot) |
+| 140 | `meridianfresco/morphe-meta-patches` | [Open](https://github.com/meridianfresco/morphe-meta-patches) | [Add Source](https://morphe.software/add-source?github=meridianfresco/morphe-meta-patches) |
+| 141 | `MiguelNinja19/miguel-morphe-patches` | [Open](https://github.com/MiguelNinja19/miguel-morphe-patches) | [Add Source](https://morphe.software/add-source?github=MiguelNinja19/miguel-morphe-patches) |
+| 142 | `MohamedElnaggar00/morphe-patches-tiktok-lite-only` | [Open](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only) | [Add Source](https://morphe.software/add-source?github=MohamedElnaggar00/morphe-patches-tiktok-lite-only) |
+| 143 | `MoonShadowKeeper/Telegram-patchesMorphe` | [Open](https://github.com/MoonShadowKeeper/Telegram-patchesMorphe) | [Add Source](https://morphe.software/add-source?github=MoonShadowKeeper/Telegram-patchesMorphe) |
+| 144 | `MorpheApp/morphe-patches` | [Open](https://github.com/MorpheApp/morphe-patches) | [Add Source](https://morphe.software/add-source?github=MorpheApp/morphe-patches) |
+| 145 | `mvaishak/letterboxd-morphe-patches` | [Open](https://github.com/mvaishak/letterboxd-morphe-patches) | [Add Source](https://morphe.software/add-source?github=mvaishak/letterboxd-morphe-patches) |
+| 146 | `mxkrgt/dbtcoach-morphe-patches` | [Open](https://github.com/mxkrgt/dbtcoach-morphe-patches) | [Add Source](https://morphe.software/add-source?github=mxkrgt/dbtcoach-morphe-patches) |
+| 147 | `Nai64/Nai64Patches` | [Open](https://github.com/Nai64/Nai64Patches) | [Add Source](https://morphe.software/add-source?github=Nai64/Nai64Patches) |
+| 148 | `NekoGryphou/gryphous-morphe-patches` | [Open](https://github.com/NekoGryphou/gryphous-morphe-patches) | [Add Source](https://morphe.software/add-source?github=NekoGryphou/gryphous-morphe-patches) |
+| 149 | `nosini/disable-shorts-repeat` | [Open](https://github.com/nosini/disable-shorts-repeat) | [Add Source](https://morphe.software/add-source?github=nosini/disable-shorts-repeat) |
+| 150 | `NullWaypoint/morphe-patches` | [Open](https://github.com/NullWaypoint/morphe-patches) | [Add Source](https://morphe.software/add-source?github=NullWaypoint/morphe-patches) |
+| 151 | `Okazakee/iptv-morphe-patches` | [Open](https://github.com/Okazakee/iptv-morphe-patches) | [Add Source](https://morphe.software/add-source?github=Okazakee/iptv-morphe-patches) |
+| 152 | `osirisad/teamsnap-patches` | [Open](https://github.com/osirisad/teamsnap-patches) | [Add Source](https://morphe.software/add-source?github=osirisad/teamsnap-patches) |
+| 153 | `ozeroztas/Morphe-Patch` | [Open](https://github.com/ozeroztas/Morphe-Patch) | [Add Source](https://morphe.software/add-source?github=ozeroztas/Morphe-Patch) |
+| 154 | `Pa-kon/morphe-screenshot-patches` | [Open](https://github.com/Pa-kon/morphe-screenshot-patches) | [Add Source](https://morphe.software/add-source?github=Pa-kon/morphe-screenshot-patches) |
+| 155 | `PawiX25/pepper-morphe-patches` | [Open](https://github.com/PawiX25/pepper-morphe-patches) | [Add Source](https://morphe.software/add-source?github=PawiX25/pepper-morphe-patches) |
+| 156 | `picarica/My-moprhe-patches` | [Open](https://github.com/picarica/My-moprhe-patches) | [Add Source](https://morphe.software/add-source?github=picarica/My-moprhe-patches) |
+| 157 | `PixelPusher247/morphe-patches` | [Open](https://github.com/PixelPusher247/morphe-patches) | [Add Source](https://morphe.software/add-source?github=PixelPusher247/morphe-patches) |
+| 158 | `polka-bear/morphe-patches` | [Open](https://github.com/polka-bear/morphe-patches) | [Add Source](https://morphe.software/add-source?github=polka-bear/morphe-patches) |
+| 159 | `PrathxmOp/Prathxm-Patches` | [Open](https://github.com/PrathxmOp/Prathxm-Patches) | [Add Source](https://morphe.software/add-source?github=PrathxmOp/Prathxm-Patches) |
+| 160 | `PrathxmOp/ytmusic-patches` | [Open](https://github.com/PrathxmOp/ytmusic-patches) | [Add Source](https://morphe.software/add-source?github=PrathxmOp/ytmusic-patches) |
+| 161 | `pseudofractal/morphe-patches` | [Open](https://github.com/pseudofractal/morphe-patches) | [Add Source](https://morphe.software/add-source?github=pseudofractal/morphe-patches) |
+| 162 | `PyFlat-JR/Morphe-Patches` | [Open](https://github.com/PyFlat-JR/Morphe-Patches) | [Add Source](https://morphe.software/add-source?github=PyFlat-JR/Morphe-Patches) |
+| 163 | `quantavil/edge-morphe-patches` | [Open](https://github.com/quantavil/edge-morphe-patches) | [Add Source](https://morphe.software/add-source?github=quantavil/edge-morphe-patches) |
+| 164 | `Quantro100/Morphe-patches` | [Open](https://github.com/Quantro100/Morphe-patches) | [Add Source](https://morphe.software/add-source?github=Quantro100/Morphe-patches) |
+| 165 | `RabehX/rabehx-patches` | [Open](https://github.com/RabehX/rabehx-patches) | [Add Source](https://morphe.software/add-source?github=RabehX/rabehx-patches) |
+| 166 | `rafag00/morphe-patches` | [Open](https://github.com/rafag00/morphe-patches) | [Add Source](https://morphe.software/add-source?github=rafag00/morphe-patches) |
+| 167 | `RealCyberwash/max-patches` | [Open](https://github.com/RealCyberwash/max-patches) | [Add Source](https://morphe.software/add-source?github=RealCyberwash/max-patches) |
+| 168 | `rhubarbshoelaces/morphe-patches` | [Open](https://github.com/rhubarbshoelaces/morphe-patches) | [Add Source](https://morphe.software/add-source?github=rhubarbshoelaces/morphe-patches) |
+| 169 | `riky-dev/morphe-patches` | [Open](https://github.com/riky-dev/morphe-patches) | [Add Source](https://morphe.software/add-source?github=riky-dev/morphe-patches) |
+| 170 | `Ripthulhu/morphe-google-patches` | [Open](https://github.com/Ripthulhu/morphe-google-patches) | [Add Source](https://morphe.software/add-source?github=Ripthulhu/morphe-google-patches) |
+| 171 | `RookieEnough/De-Vanced` | [Open](https://github.com/RookieEnough/De-Vanced) | [Add Source](https://morphe.software/add-source?github=RookieEnough/De-Vanced) |
+| 172 | `RoundSalmon4/morphe-patches-template` | [Open](https://github.com/RoundSalmon4/morphe-patches-template) | [Add Source](https://morphe.software/add-source?github=RoundSalmon4/morphe-patches-template) |
+| 173 | `rushiranpise/RI-Vanced-Universal-Morphe-Patches` | [Open](https://github.com/rushiranpise/RI-Vanced-Universal-Morphe-Patches) | [Add Source](https://morphe.software/add-source?github=rushiranpise/RI-Vanced-Universal-Morphe-Patches) |
+| 174 | `rushiranpise/Ri-Vanced-Universal-Morphe-Patches` | [Open](https://github.com/rushiranpise/Ri-Vanced-Universal-Morphe-Patches) | [Add Source](https://morphe.software/add-source?github=rushiranpise/Ri-Vanced-Universal-Morphe-Patches) |
+| 175 | `ryuya0124/gemini-microg-patches` | [Open](https://github.com/ryuya0124/gemini-microg-patches) | [Add Source](https://morphe.software/add-source?github=ryuya0124/gemini-microg-patches) |
+| 176 | `saieshshirodkar/saiesh-morphe-patches` | [Open](https://github.com/saieshshirodkar/saiesh-morphe-patches) | [Add Source](https://morphe.software/add-source?github=saieshshirodkar/saiesh-morphe-patches) |
+| 177 | `Santodan/santodan-patches` | [Open](https://github.com/Santodan/santodan-patches) | [Add Source](https://morphe.software/add-source?github=Santodan/santodan-patches) |
+| 178 | `SapitoSucio/FroggoMorphePatches` | [Open](https://github.com/SapitoSucio/FroggoMorphePatches) | [Add Source](https://morphe.software/add-source?github=SapitoSucio/FroggoMorphePatches) |
+| 179 | `sashade8-ship-it/dual-vot-patches` | [Open](https://github.com/sashade8-ship-it/dual-vot-patches) | [Add Source](https://morphe.software/add-source?github=sashade8-ship-it/dual-vot-patches) |
+| 180 | `Seobject/Seobject-patches` | [Open](https://github.com/Seobject/Seobject-patches) | [Add Source](https://morphe.software/add-source?github=Seobject/Seobject-patches) |
+| 181 | `Sfehhrths/ekispert-morphe-patches` | [Open](https://github.com/Sfehhrths/ekispert-morphe-patches) | [Add Source](https://morphe.software/add-source?github=Sfehhrths/ekispert-morphe-patches) |
+| 182 | `shaun-the-sheep-patches/morphe-patches` | [Open](https://github.com/shaun-the-sheep-patches/morphe-patches) | [Add Source](https://morphe.software/add-source?github=shaun-the-sheep-patches/morphe-patches) |
+| 183 | `ShuhaibNC/morphe-patches` | [Open](https://github.com/ShuhaibNC/morphe-patches) | [Add Source](https://morphe.software/add-source?github=ShuhaibNC/morphe-patches) |
+| 184 | `sjshb57/Pairip-Patches` | [Open](https://github.com/sjshb57/Pairip-Patches) | [Add Source](https://morphe.software/add-source?github=sjshb57/Pairip-Patches) |
+| 185 | `skulldogged/cobalt-morphe` | [Open](https://github.com/skulldogged/cobalt-morphe) | [Add Source](https://morphe.software/add-source?github=skulldogged/cobalt-morphe) |
+| 186 | `SouBryan/pinterest-morphed` | [Open](https://github.com/SouBryan/pinterest-morphed) | [Add Source](https://morphe.software/add-source?github=SouBryan/pinterest-morphed) |
+| 187 | `spookyexe/morphe-patches` | [Open](https://github.com/spookyexe/morphe-patches) | [Add Source](https://morphe.software/add-source?github=spookyexe/morphe-patches) |
+| 188 | `subenoeva/roadsync-patches` | [Open](https://github.com/subenoeva/roadsync-patches) | [Add Source](https://morphe.software/add-source?github=subenoeva/roadsync-patches) |
+| 189 | `sushruth/imgur-patches` | [Open](https://github.com/sushruth/imgur-patches) | [Add Source](https://morphe.software/add-source?github=sushruth/imgur-patches) |
+| 190 | `SysAdminDoc/hushfeed` | [Open](https://github.com/SysAdminDoc/hushfeed) | [Add Source](https://morphe.software/add-source?github=SysAdminDoc/hushfeed) |
+| 191 | `theabhishekbhujang/morphe-patches` | [Open](https://github.com/theabhishekbhujang/morphe-patches) | [Add Source](https://morphe.software/add-source?github=theabhishekbhujang/morphe-patches) |
+| 192 | `TheRealCrazyfuy/abeja-morphe-patches` | [Open](https://github.com/TheRealCrazyfuy/abeja-morphe-patches) | [Add Source](https://morphe.software/add-source?github=TheRealCrazyfuy/abeja-morphe-patches) |
+| 193 | `tiaruebar1024/tiaruebar-patches` | [Open](https://github.com/tiaruebar1024/tiaruebar-patches) | [Add Source](https://morphe.software/add-source?github=tiaruebar1024/tiaruebar-patches) |
+| 194 | `Tornillo2/movistar-block-ads-morphe` | [Open](https://github.com/Tornillo2/movistar-block-ads-morphe) | [Add Source](https://morphe.software/add-source?github=Tornillo2/movistar-block-ads-morphe) |
+| 195 | `totsiaw/proxma-patches` | [Open](https://github.com/totsiaw/proxma-patches) | [Add Source](https://morphe.software/add-source?github=totsiaw/proxma-patches) |
+| 196 | `Trimpsuz/morphe-busuu` | [Open](https://github.com/Trimpsuz/morphe-busuu) | [Add Source](https://morphe.software/add-source?github=Trimpsuz/morphe-busuu) |
+| 197 | `V4n1X/morphe-patches` | [Open](https://github.com/V4n1X/morphe-patches) | [Add Source](https://morphe.software/add-source?github=V4n1X/morphe-patches) |
+| 198 | `variablenine/morphe-patches` | [Open](https://github.com/variablenine/morphe-patches) | [Add Source](https://morphe.software/add-source?github=variablenine/morphe-patches) |
+| 199 | `vladon/morphe-patches-navi` | [Open](https://github.com/vladon/morphe-patches-navi) | [Add Source](https://morphe.software/add-source?github=vladon/morphe-patches-navi) |
+| 200 | `vomw/morphe-patches` | [Open](https://github.com/vomw/morphe-patches) | [Add Source](https://morphe.software/add-source?github=vomw/morphe-patches) |
+| 201 | `WalkTheEarth/morphe-ytvr-patches` | [Open](https://github.com/WalkTheEarth/morphe-ytvr-patches) | [Add Source](https://morphe.software/add-source?github=WalkTheEarth/morphe-ytvr-patches) |
+| 202 | `wchill/patcheddit` | [Open](https://github.com/wchill/patcheddit) | [Add Source](https://morphe.software/add-source?github=wchill/patcheddit) |
+| 203 | `wchill/rvx-morphed` | [Open](https://github.com/wchill/rvx-morphed) | [Add Source](https://morphe.software/add-source?github=wchill/rvx-morphed) |
+| 204 | `WZSE/aapam-patches` | [Open](https://github.com/WZSE/aapam-patches) | [Add Source](https://morphe.software/add-source?github=WZSE/aapam-patches) |
+| 205 | `Xhehab/Xhehab-Patches` | [Open](https://github.com/Xhehab/Xhehab-Patches) | [Add Source](https://morphe.software/add-source?github=Xhehab/Xhehab-Patches) |
+| 206 | `xob0t/morphe-patches` | [Open](https://github.com/xob0t/morphe-patches) | [Add Source](https://morphe.software/add-source?github=xob0t/morphe-patches) |
+| 207 | `XTapped/morphe-patches` | [Open](https://github.com/XTapped/morphe-patches) | [Add Source](https://morphe.software/add-source?github=XTapped/morphe-patches) |
+| 208 | `yann-soliman/morphe-patches` | [Open](https://github.com/yann-soliman/morphe-patches) | [Add Source](https://morphe.software/add-source?github=yann-soliman/morphe-patches) |
+| 209 | `ynotzort/morphe-patches` | [Open](https://github.com/ynotzort/morphe-patches) | [Add Source](https://morphe.software/add-source?github=ynotzort/morphe-patches) |
+| 210 | `Z-drgon/morphe-patches` | [Open](https://github.com/Z-drgon/morphe-patches) | [Add Source](https://morphe.software/add-source?github=Z-drgon/morphe-patches) |
+| 211 | `Zanuaimi/UniPatches` | [Open](https://github.com/Zanuaimi/UniPatches) | [Add Source](https://morphe.software/add-source?github=Zanuaimi/UniPatches) |
+| 212 | `zeldrisho/morphe-patches` | [Open](https://github.com/zeldrisho/morphe-patches) | [Add Source](https://morphe.software/add-source?github=zeldrisho/morphe-patches) |
 
 ---
 
@@ -275,6 +273,6 @@ This README is regenerated automatically by GitHub Actions whenever `repos.txt` 
 To add a repo manually, append it to `custom_repos.txt`. To remove one permanently, add it to `ignore_repos.txt`.
 Use `owner/repo` for GitHub, or `gitlab.com/group/project` for GitLab.
 
-39 approved repo entries were hidden because their bundle URL is currently invalid.
+41 approved repo entries were hidden because their bundle URL is currently invalid.
 
-*Last generated: 2026-09-13 03:21 UTC*
+*Last generated: 2026-09-14 03:33 UTC*
