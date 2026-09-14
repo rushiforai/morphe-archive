@@ -240,35 +240,16 @@ public class OriginalSoundDownloadsTest {
         return bytes;
     }
 
-    /** Serves {@code body} once over loopback and returns what the fetch made of it. */
+    /** Returns what the real fetch and signature detector make of one public HTTPS response. */
     private static String fetchServed(byte[] body) throws Exception {
-        java.net.ServerSocket server = new java.net.ServerSocket(
-                0, 1, java.net.InetAddress.getByName("127.0.0.1"));
-        var response = new java.util.concurrent.FutureTask<Void>(() -> {
-            try (var socket = server.accept()) {
-                socket.setSoTimeout(5000);
-                var input = new java.io.BufferedReader(
-                        new java.io.InputStreamReader(socket.getInputStream()));
-                String line;
-                while ((line = input.readLine()) != null && !line.isEmpty()) { }
-                var output = socket.getOutputStream();
-                output.write(("HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Length: "
-                        + body.length + "\r\n\r\n").getBytes(java.nio.charset.StandardCharsets.US_ASCII));
-                output.write(body);
-            }
-            return null;
-        });
-        Thread responder = new Thread(response);
-        responder.setDaemon(true);
-        responder.start();
+        MediaTransport.Client transport = MediaTransportFixtures.publicClient(url ->
+                MediaTransportFixtures.response(url, 200, body));
         java.io.File temp = java.io.File.createTempFile("original-sound-test", ".tmp");
         try {
             return RemoteMedia.fetch(
-                    List.of("http://127.0.0.1:" + server.getLocalPort() + "/sound"),
-                    temp, RemoteMedia.Kind.AUDIO);
+                    List.of("https://v16.tiktokcdn.com/sound"),
+                    temp, RemoteMedia.Kind.AUDIO, transport);
         } finally {
-            server.close();
-            responder.join(1000);
             temp.delete();
         }
     }

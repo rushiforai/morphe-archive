@@ -10,6 +10,7 @@ import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.util.cloneMutable
+import app.morphe.util.singleOrPatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 
@@ -31,16 +32,18 @@ val notInterestedPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.tiktok4623())
     execute {
         val factory = mutableClassDefBy(DislikeRequestFactoryFingerprint.method.definingClass)
-        val service = factory.fields.single { it.accessFlags and AccessFlags.STATIC.value != 0 }
-        val endpoint = mutableClassDefBy(service.type).methods.single { method ->
+        val service = factory.fields.filter { it.accessFlags and AccessFlags.STATIC.value != 0 }
+            .singleOrPatchException("Not interested: dislike request service field")
+        val endpoint = mutableClassDefBy(service.type).methods.filter { method ->
             method.parameterTypes == listOf("Ljava/lang/String;", "Ljava/lang/String;", "Ljava/util/Map;") &&
                 method.annotations.any { annotation -> annotation.elements.any {
                     (it.value as? StringEncodedValue)?.value == "/aweme/v1/commit/dislike/item/"
                 } }
-        }
+        }.singleOrPatchException("Not interested: annotated dislike endpoint")
         // Resolve the service and endpoint from code/annotations. No obfuscated names in the extension.
         val bridgeClass = mutableClassDefBy(EXTENSION)
-        val original = bridgeClass.methods.single { it.name == "createCall" }
+        val original = bridgeClass.methods.filter { it.name == "createCall" }
+            .singleOrPatchException("Not interested: extension createCall bridge")
         val bridge = original.cloneMutable(additionalRegisters = 4)
         bridgeClass.methods.remove(original)
         bridgeClass.methods.add(bridge)

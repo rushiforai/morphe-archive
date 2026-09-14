@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.Settings;
@@ -224,44 +225,87 @@ public class VideoOverlayHiderTest {
     }
 
     @Test
-    public void theCountsGoWithoutTheButtons() {
-        String[] counts = {"fwu", "ecq", "ht9", "v5x"};
-        int[] countIds = new int[counts.length];
-        for (int i = 0; i < counts.length; i++) {
-            countIds[i] = 0x7f0a0200 + i;
-            VideoOverlayHider.resolveForTests(counts[i], countIds[i]);
+    public void countRowsAndTheirInnerTextAnchorsGoWithoutTheButtons() {
+        String[] rowNames = {"fwu", "ecq", "ht9", "v5x"};
+        String[] textNames = {"fwt", "ecp", "ht8", "v5w"};
+        String[] buttonNames = {"fws", "ehl", "hu9", "v9o"};
+        int[] rowIds = new int[rowNames.length];
+        int[] textIds = new int[textNames.length];
+        int[] buttonIds = new int[buttonNames.length];
+        for (int i = 0; i < rowNames.length; i++) {
+            rowIds[i] = 0x7f0a0200 + i;
+            textIds[i] = 0x7f0a0210 + i;
+            buttonIds[i] = 0x7f0a0220 + i;
+            VideoOverlayHider.resolveForTests(rowNames[i], rowIds[i]);
+            VideoOverlayHider.resolveForTests(textNames[i], textIds[i]);
+            VideoOverlayHider.resolveForTests(buttonNames[i], buttonIds[i]);
         }
-        int likeButtonId = 0x7f0a0210;
-        VideoOverlayHider.resolveForTests("fws", likeButtonId);
 
         try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
             Activity activity = controller.get();
             Utils.setContext(activity);
             LinearLayout root = new LinearLayout(activity);
-            View likeButton = new View(activity);
-            likeButton.setId(likeButtonId);
-            root.addView(likeButton);
-            View[] rows = new View[counts.length];
-            for (int i = 0; i < counts.length; i++) {
-                rows[i] = new View(activity);
-                rows[i].setId(countIds[i]);
-                root.addView(rows[i]);
+            View[] buttons = new View[buttonNames.length];
+            View[] knownRows = new View[rowNames.length];
+            LinearLayout[] changedRows = new LinearLayout[rowNames.length];
+            TextView[] changedRowCounts = new TextView[textNames.length];
+            for (int i = 0; i < rowNames.length; i++) {
+                buttons[i] = new View(activity);
+                buttons[i].setId(buttonIds[i]);
+                buttons[i].setClickable(true);
+                root.addView(buttons[i]);
+
+                // TikTok 46.2.3 uses the first ID on the count row. Some feed layouts
+                // replace that wrapper, but retain the second ID on the numeric TextView.
+                knownRows[i] = new LinearLayout(activity);
+                knownRows[i].setId(rowIds[i]);
+                knownRows[i].setClickable(false);
+                knownRows[i].setContentDescription("known count row " + i);
+                root.addView(knownRows[i]);
+
+                changedRows[i] = new LinearLayout(activity);
+                changedRows[i].setId(0x7f0a0230 + i);
+                changedRowCounts[i] = new TextView(activity);
+                changedRowCounts[i].setId(textIds[i]);
+                changedRowCounts[i].setText(Integer.toString(100 + i));
+                changedRows[i].addView(changedRowCounts[i]);
+                root.addView(changedRows[i]);
             }
             activity.setContentView(root);
 
             Settings.HIDE_RAIL_LIKE.save(false);
             Settings.HIDE_RAIL_COUNTS.save(true);
             VideoOverlayHider.applyTo(activity);
-            for (int i = 0; i < counts.length; i++) {
-                assertEquals(counts[i], View.GONE, rows[i].getVisibility());
+            for (int i = 0; i < rowNames.length; i++) {
+                assertEquals(rowNames[i], View.GONE, knownRows[i].getVisibility());
+                assertEquals(textNames[i], View.GONE, changedRowCounts[i].getVisibility());
+                assertEquals("an unknown row stays", View.VISIBLE, changedRows[i].getVisibility());
+                assertEquals(buttonNames[i], View.VISIBLE, buttons[i].getVisibility());
+                assertTrue(buttonNames[i] + " remains clickable", buttons[i].isClickable());
             }
-            assertEquals("the button itself stays", View.VISIBLE, likeButton.getVisibility());
+
+            // A newly bound feed cell must be covered on the next layout pass too.
+            root.removeView(changedRows[0]);
+            LinearLayout reboundRow = new LinearLayout(activity);
+            TextView reboundCount = new TextView(activity);
+            reboundCount.setId(textIds[0]);
+            reboundCount.setText("999");
+            reboundRow.addView(reboundCount);
+            root.addView(reboundRow);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.GONE, reboundCount.getVisibility());
 
             Settings.HIDE_RAIL_COUNTS.save(false);
             VideoOverlayHider.applyTo(activity);
-            for (int i = 0; i < counts.length; i++) {
-                assertEquals(counts[i], View.VISIBLE, rows[i].getVisibility());
+            for (int i = 0; i < rowNames.length; i++) {
+                assertEquals(rowNames[i], View.VISIBLE, knownRows[i].getVisibility());
+                if (i != 0) {
+                    assertEquals(textNames[i], View.VISIBLE, changedRowCounts[i].getVisibility());
+                }
             }
+            assertEquals("the rebound count comes back", View.VISIBLE, reboundCount.getVisibility());
+        } finally {
+            Settings.HIDE_RAIL_COUNTS.save(false);
         }
     }
 

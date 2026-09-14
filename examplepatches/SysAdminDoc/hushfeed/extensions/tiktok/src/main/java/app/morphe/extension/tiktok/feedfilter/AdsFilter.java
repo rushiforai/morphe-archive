@@ -11,7 +11,9 @@ public class AdsFilter implements IFilter {
 
     @Override
     public boolean getFiltered(Aweme item) {
-        return item.isAd() || item.isSoftAd() || item.isWithPromotionalMusic();
+        return item.isAd()
+                || item.isSoftAd()
+                || item.getAwemeRawAd() != null
+                || item.isWithPromotionalMusic();
     }
 }
-

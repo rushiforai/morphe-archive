@@ -3,6 +3,7 @@ package app.morphe.extension.tiktok.featuregatelab;
 import android.util.AtomicFile;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.settings.SettingsJson;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.SettingsBackup;
@@ -29,9 +30,17 @@ final class FeatureGateLabUndo {
         observationsUndo = null;
     }
 
-    static synchronized void reset(boolean allData) throws Exception {
+    /** @return whether this reset wrote an undo snapshot. */
+    static synchronized boolean reset(boolean allData) throws Exception {
+        if (allData && FeatureGateLabStore.storedRuleCount() > FeatureGateLabStore.MAX_RULES) {
+            FeatureGateLabStore.clearAllLabDataWithoutParsing();
+            observationsUndo = null;
+            discardUndoAfterRecovery();
+            return false;
+        }
         replace(List.of(), !allData && FeatureGateLabStore.masterEnabled(),
                 !allData && FeatureGateLabStore.warningAcknowledged(), allData);
+        return true;
     }
 
     static synchronized void setMasterEnabled(boolean enabled) throws Exception {
@@ -144,6 +153,7 @@ final class FeatureGateLabUndo {
 
     private static void replace(List<FeatureGateLabStore.Rule> rules, boolean master,
             boolean acknowledged, boolean clearObservations) throws Exception {
+        FeatureGateLabStore.requireRuleLimit(rules);
         SettingsOperationJournal.Operation operation = SettingsOperationJournal.acquire(Utils.getContext());
         boolean closed = false;
         try {
@@ -224,6 +234,14 @@ final class FeatureGateLabUndo {
         }
         try (var input = file.openRead()) {
             if (!text.equals(SettingsBackup.read(input))) throw new IOException("Could not verify Lab undo copy");
+        }
+    }
+
+    private static void discardUndoAfterRecovery() {
+        try {
+            file().delete();
+        } catch (Exception error) {
+            Logger.printException(() -> "Could not discard the stale Lab undo after recovery", error);
         }
     }
 

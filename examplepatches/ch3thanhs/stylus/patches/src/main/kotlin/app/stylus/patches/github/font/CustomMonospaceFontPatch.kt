@@ -23,6 +23,8 @@ val customMonospaceFontGithubPatch = resourcePatch(
     description = "Replaces GitHub's bundled Roboto Mono code font with a custom monospace font file.",
     default = false,
 ) {
+    category("Font")
+    
     compatibleWith(COMPATIBILITY_GITHUB)
 
     customMonospaceFontFileOption()

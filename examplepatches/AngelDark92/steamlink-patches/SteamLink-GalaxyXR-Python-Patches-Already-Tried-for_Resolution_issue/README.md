@@ -2,6 +2,16 @@
 
 This directory is the historical record for approaches that did not produce permission-free, persistently high resolution. Do not stack these experiments into a new APK.
 
+## 2026-09-11 — Android Surface actual video: tried, low resolution; do not reapply
+
+**Android Surface actual video (experimental)** (`surface_video_v1`, `libgxr_surface_video.so`) did not meet the resolution goal. The user reported low-resolution output and requested that it be recorded here to avoid applying it again. Keep this version out of future APK selections; do not present it as an untried experiment.
+
+The experiment copies all rendered video projections, including foveal alpha, into Android Surface swapchains. It targets exact 2.0.20/5001712 and 2.0.22/5002322, but this report does not establish a separate headset failure on each base. The exact tested APK, Surface precision and runtime activation/fallback state were not verified.
+
+The local bundle and saved reconstructed test APKs passed a fresh payload check. Source inspection found no deliberate downscale, but this mode excludes the established terminal-quad high-resolution trigger and preserves projection-only submission. This is a possible explanation, not a proven runtime cause. Kernel inspection did not establish a Surface-specific resolution gate or justify a kernel change.
+
+See the [low-resolution assessment](../diagnostics/steamlink-surface-video/LOW-RESOLUTION-ASSESSMENT-20260911.md). The active patch, native implementation/build targets, packaged resources and catalog entry were subsequently removed on 2026-09-11. The dedicated local installable bundle was deleted. Historical evidence is retained; old identifiers remain cleanup-only. The working **Galaxy XR high-resolution 3-projection fix** is a separate patch and is not marked failed by this result.
+
 ## Captured on build 5002322
 
 | Experiment | Result |

@@ -1,19 +1,21 @@
 package app.morphe
 
+import com.google.gson.JsonParser
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The patch table in the README against the names the patches actually carry.
+ * The patch table in the README against the catalog Morphe Manager actually reads.
  *
- * <p>A patch is chosen by name in Morphe Manager, so the README table is the only place a
- * reader can look up what a name does before applying it. Nine patches were renamed in 0.26.0
- * and two of the rows kept the old name, which points a reader at something no longer in the
- * list. Nothing else in this repository reads the README, so nothing else noticed.
+ * <p>A patch is chosen by name in Morphe Manager, while its description comes from the generated
+ * patch list. The README is the public lookup table before patching, so both fields have to agree
+ * with what the Manager presents.
  */
 class ReadmePatchNamesTest {
+    private data class ReadmeRow(val name: String, val description: String)
+
     /**
      * Every name a patch declares, and how many patches were found declaring one.
      *
@@ -83,15 +85,35 @@ class ReadmePatchNamesTest {
         return root.walkTopDown().filter { it.extension == "kt" }.map { it.readText() }.toList()
     }
 
-    /** Every name the README's patch table lists, which is the first cell of each row. */
-    private fun readmePatchNames(): Set<String> {
+    /** Every patch row in the README, with escaped table pipes restored in its description. */
+    private fun readmePatchRows(): List<ReadmeRow> {
         val readme = File("../README.md").takeIf { it.isFile } ?: File("README.md")
         assertTrue("could not find the README from ${File(".").absolutePath}", readme.isFile)
-        return readme.readLines().mapNotNull { ROW.find(it)?.groupValues?.get(1) }.toSet()
+        return readme.readLines().mapNotNull { line ->
+            ROW.find(line)?.let { match ->
+                ReadmeRow(
+                    name = match.groupValues[1],
+                    description = match.groupValues[2].trim().replace("\\|", "|"),
+                )
+            }
+        }
+    }
+
+    /** Names and descriptions from the generated catalog shipped beside the bundle. */
+    private fun shippedPatchDescriptions(): Map<String, String> {
+        val catalog = File("../patches-list.json").takeIf { it.isFile }
+            ?: File("patches-list.json")
+        assertTrue("could not find the patch list from ${File(".").absolutePath}", catalog.isFile)
+        val patches = JsonParser.parseString(catalog.readText())
+            .asJsonObject.getAsJsonArray("patches")
+        return patches.associate { element ->
+            val patch = element.asJsonObject
+            patch.get("name").asString to patch.get("description").asString.trim()
+        }
     }
 
     @Test
-    fun `the README patch table and the patch names say the same thing`() {
+    fun `the README patch table and shipped catalog say the same thing`() {
         var factories = 0
         val declared = mutableSetOf<String>()
         patchSources().forEach { source ->
@@ -101,8 +123,11 @@ class ReadmePatchNamesTest {
             assertEquals("a patch factory declares no name, so nothing can look it up",
                 count, names.size)
         }
-        val listed = readmePatchNames()
+        val rows = readmePatchRows()
+        val listed = rows.map { it.name }.toSet()
+        val shipped = shippedPatchDescriptions()
         assertTrue("the scan found no patches", factories > 50)
+        assertEquals("the README has a duplicate patch row", rows.size, listed.size)
 
         assertEquals(
             "the README lists a patch by a name no patch carries, so a reader cannot find it " +
@@ -114,6 +139,16 @@ class ReadmePatchNamesTest {
             "a patch ships with no row in the README table",
             emptyList<String>(),
             (declared - listed).sorted(),
+        )
+        assertEquals(
+            "the generated patch list and patch sources name different patches",
+            declared.sorted(),
+            shipped.keys.sorted(),
+        )
+        assertEquals(
+            "a README description differs from the description shipped to Morphe Manager",
+            shipped.toSortedMap(),
+            rows.associate { it.name to it.description }.toSortedMap(),
         )
     }
 
@@ -191,6 +226,6 @@ class ReadmePatchNamesTest {
 
         // The table rows are the only lines that open with a pipe and a backticked name. The
         // credits further down name patches in prose, which is not a claim about the table.
-        val ROW = Regex("""^\|\s*`([^`]+)`\s*\|""")
+        val ROW = Regex("""^\|\s*`([^`]+)`\s*\|\s*(.*?)\s*\|$""")
     }
 }

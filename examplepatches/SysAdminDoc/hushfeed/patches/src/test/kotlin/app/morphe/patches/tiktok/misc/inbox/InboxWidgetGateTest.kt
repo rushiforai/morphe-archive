@@ -6,42 +6,67 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertSame
 import org.junit.Test
 
 class InboxWidgetGateTest {
     @Test
     fun `an off hide switch preserves the native gate and its work`() {
-        for (callback in listOf("shouldShowSuggestedAccounts", "shouldShowInboxStories")) {
-            for (nativeResult in listOf(false, true)) {
-                for (resultRegister in listOf(0, 17)) {
-                    val method = nativeGate(resultRegister)
-                    method.hideInboxWidget(callback)
-                    assertEquals(
-                        "$callback native=$nativeResult register=$resultRegister",
-                        nativeResult to 1,
-                        runGate(method, callback, shouldShow = true, nativeResult),
-                    )
-                }
+        val callback = "shouldShowSuggestedAccounts"
+        for (nativeResult in listOf(false, true)) {
+            for (resultRegister in listOf(0, 17)) {
+                val method = nativeGate(resultRegister)
+                method.hideInboxWidget(callback)
+                assertEquals(
+                    "$callback native=$nativeResult register=$resultRegister",
+                    nativeResult to 1,
+                    runGate(method, callback, shouldShow = true, nativeResult),
+                )
             }
         }
     }
 
     @Test
     fun `hiding a widget skips its native gate and returns false`() {
-        for (callback in listOf("shouldShowSuggestedAccounts", "shouldShowInboxStories")) {
-            for (nativeResult in listOf(false, true)) {
-                val method = nativeGate(0)
-                method.hideInboxWidget(callback)
-                assertEquals(false to 0, runGate(method, callback, shouldShow = false, nativeResult))
-            }
+        val callback = "shouldShowSuggestedAccounts"
+        for (nativeResult in listOf(false, true)) {
+            val method = nativeGate(0)
+            method.hideInboxWidget(callback)
+            assertEquals(false to 0, runGate(method, callback, shouldShow = false, nativeResult))
         }
+    }
+
+    @Test
+    fun `both inbox patches share one live layout observer call`() {
+        val method = mainActivityOnCreate()
+        val original = method.implementation!!.instructions.single()
+
+        method.installInboxLayoutFilter()
+        method.installInboxLayoutFilter()
+
+        val code = method.implementation!!.instructions
+        assertEquals(2, code.size)
+        assertSame(original, code[1])
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, code[0].opcode)
+        val call = code[0] as RegisterRangeInstruction
+        assertEquals(0, call.startRegister)
+        assertEquals(1, call.registerCount)
+        val target = (code[0] as ReferenceInstruction).reference as MethodReference
+        assertEquals("Lapp/morphe/extension/tiktok/inbox/InboxFilter;", target.definingClass)
+        assertEquals("install", target.name)
+        assertEquals(listOf("Landroid/app/Activity;"),
+            target.parameterTypes.map(CharSequence::toString))
+        assertEquals("V", target.returnType)
     }
 
     private fun nativeGate(resultRegister: Int) = MutableMethod(
@@ -59,6 +84,24 @@ class InboxWidgetGateTest {
                     ImmutableInstruction11x(Opcode.RETURN, resultRegister),
                 ),
                 null, null,
+            ),
+        ),
+    )
+
+    private fun mainActivityOnCreate() = MutableMethod(
+        ImmutableMethod(
+            "Lcom/ss/android/ugc/aweme/main/MainActivity;",
+            "onCreate",
+            listOf(ImmutableMethodParameter("Landroid/os/Bundle;", null, null)),
+            "V",
+            AccessFlags.PUBLIC.value,
+            null,
+            null,
+            ImmutableMethodImplementation(
+                2,
+                listOf(ImmutableInstruction10x(Opcode.RETURN_VOID)),
+                null,
+                null,
             ),
         ),
     )

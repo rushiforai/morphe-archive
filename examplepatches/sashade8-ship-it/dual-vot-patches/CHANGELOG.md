@@ -1,3 +1,17 @@
+## 1.42.0-dualvot.8.5.2 (2026-09-13)
+
+### Correct Dual VoT update checks
+
+* Use this repository's `main` or `dev` metadata in the in-app About screen so
+  upstream Morphe versions without the `-dualvot.*` suffix no longer produce
+  false update notifications.
+
+### More resilient scheduled updates
+
+* Give the two staggered cron deliveries independent concurrency groups so a
+  runner-queue stall in one slot cannot block the fallback slot. Manual
+  synchronization runs remain serialized.
+
 ## 1.42.0-dualvot.8.5.1 (2026-09-10)
 
 ### Compatibility hotfix

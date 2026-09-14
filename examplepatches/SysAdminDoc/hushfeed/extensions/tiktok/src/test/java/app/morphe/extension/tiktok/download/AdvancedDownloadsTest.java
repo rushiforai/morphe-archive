@@ -13,7 +13,6 @@ import com.ss.android.ugc.aweme.base.model.UrlModel;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.util.Base64;
 import java.util.LinkedHashSet;
@@ -422,38 +421,23 @@ public class AdvancedDownloadsTest {
 
     @Test public void failedMirrorFallsBackAndGalleryGetsExactOriginalBytes() throws Exception {
         byte[] png = Base64.getDecoder().decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII=");
-        ServerSocket server = new ServerSocket(0, 2, java.net.InetAddress.getByName("127.0.0.1"));
-        var response = new java.util.concurrent.FutureTask<Void>(() -> {
-            for (int i = 0; i < 2; i++) {
-                try (var socket = server.accept()) {
-                    socket.setSoTimeout(5000);
-                    var input = new java.io.BufferedReader(new java.io.InputStreamReader(socket.getInputStream()));
-                    boolean bad = input.readLine().contains("/bad");
-                    String line;
-                    while ((line = input.readLine()) != null && !line.isEmpty()) { }
-                    var output = socket.getOutputStream();
-                    String header = "HTTP/1.1 " + (bad ? "403 Forbidden" : "200 OK")
-                            + "\r\nConnection: close\r\nContent-Length: " + (bad ? 0 : png.length) + "\r\n\r\n";
-                    output.write(header.getBytes(java.nio.charset.StandardCharsets.US_ASCII));
-                    if (!bad) output.write(png);
-                }
-            }
-            return null;
-        });
-        Thread responder = new Thread(response);
-        responder.setDaemon(true);
-        responder.start();
+        MediaTransport.Client transport = MediaTransportFixtures.publicClient(url ->
+                MediaTransportFixtures.response(url,
+                        url.getPath().contains("bad") ? 403 : 200,
+                        url.getPath().contains("bad") ? new byte[0] : png));
         File temp = File.createTempFile("photo-test", ".tmp");
         try {
-            String base = "http://127.0.0.1:" + server.getLocalPort();
-            assertEquals("png", RemoteMedia.fetch(List.of("https://[bad", base + "/bad", base + "/photo"), temp, RemoteMedia.Kind.IMAGE));
-            response.get(5, java.util.concurrent.TimeUnit.SECONDS);
+            assertEquals("png", RemoteMedia.fetch(List.of(
+                    "https://[bad",
+                    "https://first.tiktokcdn.com/bad",
+                    "https://second.tiktokcdn.com/photo"),
+                    temp, RemoteMedia.Kind.IMAGE, transport));
             assertArrayEquals(png, Files.readAllBytes(temp.toPath()));
             MediaFileWriter.publish(RuntimeEnvironment.getApplication(), temp, "source.png", "image/png", "DCIM/OriginalPhotosTest", false);
             File saved = new File(Environment.getExternalStorageDirectory(), "DCIM/OriginalPhotosTest/source.png");
             assertArrayEquals(png, Files.readAllBytes(saved.toPath()));
             assertTrue(saved.delete());
-        } finally { server.close(); responder.join(1000); assertTrue(temp.delete()); }
+        } finally { assertTrue(temp.delete()); }
     }
 
     @Test public void allMalformedMediaMirrorsReturnOneRedactedFailure() throws Exception {

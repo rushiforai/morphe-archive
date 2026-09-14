@@ -1,6 +1,7 @@
 package app.shadowfight.patches.iap
 
 import app.morphe.patcher.patch.rawResourcePatch
+import app.shadowfight.patches.shared.Constants.COMPATIBILITY_SF2
 import java.util.logging.Logger
 
 @Suppress("unused")
@@ -9,6 +10,7 @@ val sfIAPBypassHexPatch = rawResourcePatch(
     description = "Bypasses server-side purchase verification.",
     default = false,
 ) {
+    compatibleWith(COMPATIBILITY_SF2)
     execute {
         val logger = Logger.getLogger("SF2HexPatch")
 

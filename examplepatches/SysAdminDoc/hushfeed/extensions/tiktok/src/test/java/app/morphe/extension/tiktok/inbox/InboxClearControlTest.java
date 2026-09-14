@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.settings.SettingsStatus;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -44,6 +45,7 @@ public class InboxClearControlTest {
 
     @Before public void setUp() {
         Utils.setContext(RuntimeEnvironment.getApplication());
+        SettingsStatus.inboxFilterEnabled = true;
         Settings.HIDE_INBOX_SUGGESTED_ACCOUNTS.save(false);
         Settings.HIDE_INBOX_STORIES.save(false);
         Settings.HIDE_INBOX_CUSTOM_TITLES.save("");
@@ -62,6 +64,7 @@ public class InboxClearControlTest {
             advance(300);
             owner.close();
         }
+        SettingsStatus.inboxFilterEnabled = false;
     }
 
     @Test public void repeatedTapsKeepOnePacedRunAndReportOnce() {

@@ -10,10 +10,12 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.util.getReference
+import app.morphe.util.implementationOrPatchException
 import app.morphe.util.indexOfFirstInstructionOrThrow
-import app.morphe.util.indexOfFirstInstructionReversedOrThrow
+import app.morphe.util.singleOrPatchException
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -24,6 +26,18 @@ private const val CUSTOM_OFFLINE_VIDEOS_HELPER =
 
 /** The option enum's constructor: the name, the ordinal, the limit, the minutes and the size. */
 private val OPTION_CONSTRUCTOR = listOf("Ljava/lang/String;", "I", "I", "I", "I")
+
+/** The exact range constructor whose final three arguments hold the configurable values. */
+internal fun isCustomOfflineOptionConstructor(instruction: Instruction, optionEnum: String): Boolean {
+    if (instruction.opcode != Opcode.INVOKE_DIRECT_RANGE) return false
+    val range = instruction as? RegisterRangeInstruction ?: return false
+    val reference = instruction.getReference<MethodReference>() ?: return false
+    return range.registerCount == OPTION_CONSTRUCTOR.size + 1 &&
+        reference.definingClass == optionEnum &&
+        reference.name == "<init>" &&
+        reference.returnType == "V" &&
+        reference.parameterTypes.map(CharSequence::toString) == OPTION_CONSTRUCTOR
+}
 
 @Suppress("unused")
 val customOfflineVideosLimitPatch = bytecodePatch(
@@ -63,23 +77,22 @@ val customOfflineVideosLimitPatch = bytecodePatch(
         // as its view is made: the one class it asks a no-argument boolean whose initialiser
         // builds static Lists out of boxed counts.
         val detail = OfflineModeDetailViewCreatedFingerprint.method
-        val asked = detail.implementation!!.instructions.mapNotNull { instruction ->
-            if (instruction.opcode != Opcode.INVOKE_STATIC) return@mapNotNull null
-            val call = instruction.getReference<MethodReference>() ?: return@mapNotNull null
-            call.definingClass.takeIf { call.parameterTypes.isEmpty() && call.returnType == "Z" }
-        }.distinct()
+        val asked = detail.implementationOrPatchException("Custom offline videos limit")
+            .instructions.mapNotNull { instruction ->
+                if (instruction.opcode != Opcode.INVOKE_STATIC) return@mapNotNull null
+                val call = instruction.getReference<MethodReference>() ?: return@mapNotNull null
+                call.definingClass.takeIf { call.parameterTypes.isEmpty() && call.returnType == "Z" }
+            }.distinct()
         val holders = asked.filter { type ->
             classDefByOrNull(type)?.methods?.firstOrNull { it.name == "<clinit>" }
                 ?.let { optionListWrites(it, type).isNotEmpty() && it.boxesCounts() } == true
         }
-        if (holders.size != 1) {
-            throw PatchException(
-                "Custom offline videos limit: expected the offline detail page to ask one class " +
-                    "that builds the option lists, found ${holders.size} among $asked.",
-            )
-        }
-        val holder = holders.single()
-        val holderInit = mutableClassDefBy(holder).methods.single { it.name == "<clinit>" }
+        val holder = holders.singleOrNull() ?: throw PatchException(
+            "Custom offline videos limit: expected the offline detail page to ask one class " +
+                "that builds the option lists, found ${holders.size} among $asked.",
+        )
+        val holderInit = mutableClassDefBy(holder).methods.filter { it.name == "<clinit>" }
+            .singleOrPatchException("Custom offline videos limit: $holder class initialiser")
         val listResults = optionListResults(holderInit, holder)
 
         // The download limit choices: an enum found by the constants it declares, whose custom
@@ -99,17 +112,16 @@ val customOfflineVideosLimitPatch = bytecodePatch(
         // Six registers (the new value, the name, the ordinal and three numbers) only fit the
         // range form, which is the one the three builds use. A plain invoke used to be accepted
         // here and then cast to a range, which would have thrown instead of saying so.
-        val customEnumConstructorIndex = options.indexOfFirstInstructionReversedOrThrow(
-            customEnumFieldWriteIndex - 1,
-        ) {
-            opcode == Opcode.INVOKE_DIRECT_RANGE &&
-                getReference<MethodReference>()?.let { reference ->
-                    reference.definingClass == optionEnum &&
-                        reference.name == "<init>" &&
-                        reference.returnType == "V" &&
-                        reference.parameterTypes.map(CharSequence::toString) == OPTION_CONSTRUCTOR
-                } == true
-        }
+        val optionInstructions = options.implementationOrPatchException("Custom offline videos limit")
+            .instructions.toList()
+        val customEnumConstructorIndex = optionInstructions
+            .take(customEnumFieldWriteIndex)
+            .withIndex()
+            .lastOrNull { (_, instruction) -> isCustomOfflineOptionConstructor(instruction, optionEnum) }
+            ?.index ?: throw PatchException(
+            "Custom offline videos limit: no six-register /range $optionEnum constructor with " +
+                "parameters $OPTION_CONSTRUCTOR precedes DOWNLOAD_200_VIDEOS.",
+        )
         val constructor = options.getInstruction<RegisterRangeInstruction>(customEnumConstructorIndex)
         val limitRegister = constructor.startRegister + 3
         val minutesRegister = limitRegister + 1
@@ -182,10 +194,17 @@ internal fun optionListResults(init: Method, holder: String): List<Int> {
         throw PatchException("Custom offline videos limit: $holder stores no option list.")
     }
     return writes.map { writeIndex ->
-        val stored = (instructions[writeIndex] as OneRegisterInstruction).registerA
+        val write = instructions[writeIndex]
+        val stored = (write as? OneRegisterInstruction)?.registerA
+            ?: throw PatchException(
+                "Custom offline videos limit: $holder option-list write at $writeIndex has no register.",
+            )
         val result = instructions.getOrNull(writeIndex - 1)
         val freeze = instructions.getOrNull(writeIndex - 2)?.getReference<MethodReference>()
-        val field = instructions[writeIndex].getReference<FieldReference>()!!.name
+        val field = write.getReference<FieldReference>()?.name
+            ?: throw PatchException(
+                "Custom offline videos limit: $holder option-list write at $writeIndex has no field.",
+            )
         if (result?.opcode != Opcode.MOVE_RESULT_OBJECT ||
             (result as OneRegisterInstruction).registerA != stored ||
             freeze?.returnType != "Ljava/util/List;" ||

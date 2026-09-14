@@ -9,7 +9,9 @@ import android.widget.TextView;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.settings.SettingsStatus;
 import java.lang.reflect.Method;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,6 +31,7 @@ public class InboxRowLanguageTest {
 
     @Before public void setup() throws Exception {
         Utils.setContext(RuntimeEnvironment.getApplication());
+        SettingsStatus.inboxFilterEnabled = true;
         settings = new BooleanSetting[]{Settings.HIDE_INBOX_NEW_FOLLOWERS,
                 Settings.HIDE_INBOX_ACTIVITY, Settings.HIDE_INBOX_ARCHIVE,
                 Settings.HIDE_INBOX_TAKO, Settings.HIDE_INBOX_SHOP};
@@ -47,6 +50,10 @@ public class InboxRowLanguageTest {
         InboxFilter.resolveForTests(packageName, "kmx", 200);
         predicate = InboxFilter.class.getDeclaredMethod("shouldHideRow", Activity.class, View.class);
         predicate.setAccessible(true);
+    }
+
+    @After public void tearDown() {
+        SettingsStatus.inboxFilterEnabled = false;
     }
 
     @Test public void everyCategoryUsesModelIdentityAcrossLanguagesAndIndependentSwitches() throws Exception {

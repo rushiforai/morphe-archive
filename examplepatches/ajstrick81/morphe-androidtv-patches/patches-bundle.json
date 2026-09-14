@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-09T01:37:09",
-  "description": "## [1.35.1](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.35.0...v1.35.1) (2026-09-09)\n\n\n### Bug Fixes\n\n* **pluto:** mute live ad breaks at stream level so audio can't survive the mask ([#152](https://github.com/ajstrick81/morphe-androidtv-patches/issues/152)) ([4a904fc](https://github.com/ajstrick81/morphe-androidtv-patches/commit/4a904fc6dda49d26438f6fe792294a3bd5b16798))",
-  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.35.1/patches-1.35.1.mpp",
+  "created_at": "2026-09-14T01:44:25",
+  "description": "# [1.36.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.35.3...v1.36.0) (2026-09-14)\n\n\n### Features\n\n* **netflix:** atomic wildcard MASTER fallback + drift self-detection ([#166](https://github.com/ajstrick81/morphe-androidtv-patches/issues/166)) ([e2382b4](https://github.com/ajstrick81/morphe-androidtv-patches/commit/e2382b4c86004235beb8f098ce987d542da84004))\n* **netflix:** wildcard ADV fallback to close getAdMetadata middle branch ([#166](https://github.com/ajstrick81/morphe-androidtv-patches/issues/166)) ([cc6d974](https://github.com/ajstrick81/morphe-androidtv-patches/commit/cc6d9740c954a90c1d795125a1b2f0b1ddc5dd0f))",
+  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.36.0/patches-1.36.0.mpp",
   "signature_download_url": "",
-  "version": "1.35.1"
+  "version": "1.36.0"
 }

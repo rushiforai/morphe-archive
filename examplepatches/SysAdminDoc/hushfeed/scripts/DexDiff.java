@@ -20,6 +20,8 @@ import com.android.tools.smali.dexlib2.iface.reference.Reference;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -60,11 +62,51 @@ import java.util.TreeSet;
  * scripts/verify-injected-registers.ps1.
  *
  *   java -cp &lt;cli jar&gt; DexDiff.java &lt;cleanApk&gt; &lt;patchedApk&gt; &lt;reportFile&gt;
+ *       &lt;removalAllowlist&gt;
  */
 public class DexDiff {
 
     /** Anything under here is the bundle's own code rather than the host's. */
     private static final String OWN = "Lapp/morphe/";
+
+    private static final class RemovalAllowlist {
+        final Set<String> methods = new TreeSet<>();
+        final Set<String> dexEntries = new TreeSet<>();
+    }
+
+    private static RemovalAllowlist readRemovalAllowlist(File file) throws Exception {
+        if (!file.isFile()) throw new IllegalArgumentException("Removal allowlist not found: " + file);
+        RemovalAllowlist allowlist = new RemovalAllowlist();
+        int lineNumber = 0;
+        for (String raw : Files.readAllLines(file.toPath(), StandardCharsets.UTF_8)) {
+            lineNumber++;
+            String line = raw.trim();
+            if (line.isEmpty() || line.startsWith("#")) continue;
+            Set<String> target;
+            String value;
+            if (line.startsWith("method ")) {
+                target = allowlist.methods;
+                value = line.substring("method ".length()).trim();
+            } else if (line.startsWith("dex ")) {
+                target = allowlist.dexEntries;
+                value = line.substring("dex ".length()).trim();
+            } else {
+                throw new IllegalArgumentException("Invalid removal allowlist line " + lineNumber
+                        + ": expected method or dex");
+            }
+            if (value.isEmpty() || !target.add(value)) {
+                throw new IllegalArgumentException("Invalid removal allowlist line " + lineNumber
+                        + ": value is empty or duplicated");
+            }
+        }
+        return allowlist;
+    }
+
+    private static Set<String> dexEntries(File apk) throws Exception {
+        MultiDexContainer<? extends DexFile> container =
+                DexFileFactory.loadDexContainer(apk, Opcodes.getDefault());
+        return new TreeSet<>(container.getDexEntryNames());
+    }
 
     /** Signature -> "registerCount:bodyHash", for every method of an APK. */
     private static Map<String, String> fingerprintAll(File apk) throws Exception {
@@ -189,18 +231,22 @@ public class DexDiff {
     }
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 3) {
-            System.err.println("usage: DexDiff <cleanApk> <patchedApk> <reportFile>");
+        if (args.length < 4) {
+            System.err.println("usage: DexDiff <cleanApk> <patchedApk> <reportFile> <removalAllowlist>");
             System.exit(2);
         }
         File clean = new File(args[0]);
         File patched = new File(args[1]);
+        File allowlistFile = new File(args[3]);
+        RemovalAllowlist allowlist = readRemovalAllowlist(allowlistFile);
 
         System.out.println("[diff] fingerprinting clean " + clean.getName());
         Map<String, String> before = fingerprintAll(clean);
+        Set<String> beforeDexEntries = dexEntries(clean);
         System.out.println("[diff] " + before.size() + " methods");
         System.out.println("[diff] fingerprinting patched " + patched.getName());
         Map<String, String> after = fingerprintAll(patched);
+        Set<String> afterDexEntries = dexEntries(patched);
         System.out.println("[diff] " + after.size() + " methods");
 
         Set<String> changed = new TreeSet<>();
@@ -212,6 +258,17 @@ public class DexDiff {
         }
         Set<String> removed = new TreeSet<>();
         for (String k : before.keySet()) if (!after.containsKey(k)) removed.add(k);
+        Set<String> removedDexEntries = new TreeSet<>(beforeDexEntries);
+        removedDexEntries.removeAll(afterDexEntries);
+
+        Set<String> rejectedRemoved = new TreeSet<>(removed);
+        rejectedRemoved.removeAll(allowlist.methods);
+        Set<String> rejectedDexEntries = new TreeSet<>(removedDexEntries);
+        rejectedDexEntries.removeAll(allowlist.dexEntries);
+        Set<String> staleAllowedMethods = new TreeSet<>(allowlist.methods);
+        staleAllowedMethods.removeAll(removed);
+        Set<String> staleAllowedDexEntries = new TreeSet<>(allowlist.dexEntries);
+        staleAllowedDexEntries.removeAll(removedDexEntries);
 
         Set<String> ownAdded = new TreeSet<>();
         for (String s : added) if (s.startsWith(OWN)) ownAdded.add(s);
@@ -219,7 +276,10 @@ public class DexDiff {
         System.out.println("[diff] host methods changed: " + changed.size());
         System.out.println("[diff] methods added: " + added.size()
                 + " (" + ownAdded.size() + " under " + OWN + ")");
-        System.out.println("[diff] methods removed: " + removed.size());
+        System.out.println("[diff] methods removed: " + removed.size()
+                + " (rejected " + rejectedRemoved.size() + ")");
+        System.out.println("[diff] DEX entries removed: " + removedDexEntries.size()
+                + " (rejected " + rejectedDexEntries.size() + ")");
 
         // A pair of files with nothing between them is not a clean bill of health, it is the wrong
         // pair of files. Both of these were reachable by pointing the run at one APK twice.
@@ -234,6 +294,22 @@ public class DexDiff {
                     + ", so no extension code was added to it.");
             problems++;
         }
+        if (!rejectedRemoved.isEmpty()) {
+            System.out.println("[diff] FAIL: removed host methods are not allowed:");
+            for (String method : rejectedRemoved) System.out.println("[diff]   " + method);
+            problems += rejectedRemoved.size();
+        }
+        if (!rejectedDexEntries.isEmpty()) {
+            System.out.println("[diff] FAIL: removed DEX entries are not allowed:");
+            for (String entry : rejectedDexEntries) System.out.println("[diff]   " + entry);
+            problems += rejectedDexEntries.size();
+        }
+        if (!staleAllowedMethods.isEmpty() || !staleAllowedDexEntries.isEmpty()) {
+            System.out.println("[diff] FAIL: the removal allowlist contains entries this pair did not remove:");
+            for (String method : staleAllowedMethods) System.out.println("[diff]   method " + method);
+            for (String entry : staleAllowedDexEntries) System.out.println("[diff]   dex " + entry);
+            problems += staleAllowedMethods.size() + staleAllowedDexEntries.size();
+        }
 
         System.out.println("[diff] reading both bodies for the changed and added methods");
         Set<String> wanted = new TreeSet<>(changed);
@@ -246,8 +322,23 @@ public class DexDiff {
             report.println("Methods a patched APK does not share with the clean build it came from.");
             report.println("clean:   " + clean.getAbsolutePath());
             report.println("patched: " + patched.getAbsolutePath());
+            report.println("removal allowlist: " + allowlistFile.getAbsolutePath());
             report.println("changed=" + changed.size() + " added=" + added.size()
-                    + " (own=" + ownAdded.size() + ") removed=" + removed.size());
+                    + " (own=" + ownAdded.size() + ") removed=" + removed.size()
+                    + " removedDex=" + removedDexEntries.size());
+            report.println();
+
+            report.println("Removed methods:");
+            for (String method : removed) {
+                report.println((allowlist.methods.contains(method) ? "  allowed " : "  FAIL    ") + method);
+            }
+            report.println("Removed DEX entries:");
+            for (String entry : removedDexEntries) {
+                report.println((allowlist.dexEntries.contains(entry) ? "  allowed " : "  FAIL    ") + entry);
+            }
+            report.println("Stale removal allowlist entries:");
+            for (String method : staleAllowedMethods) report.println("  FAIL    method " + method);
+            for (String entry : staleAllowedDexEntries) report.println("  FAIL    dex " + entry);
             report.println();
 
             int overRegister = 0;

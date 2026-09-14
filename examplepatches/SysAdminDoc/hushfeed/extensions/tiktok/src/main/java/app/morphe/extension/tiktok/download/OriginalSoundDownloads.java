@@ -59,13 +59,13 @@ public final class OriginalSoundDownloads {
                 // out of a server response, and a cleartext one hands the fetch to whoever is
                 // on the network between the phone and the host.
                 String text = url.toString().trim();
-                if (text.startsWith("https://")) mirrors.add(text);
+                if (MediaTransport.hasAllowedShape(text)) mirrors.add(text);
             }
         }
         if (mirrors.isEmpty()) {
             // Some builds carry only the single uri and no list at all.
             String single = Reflect.string(playUrl, "getUri", "uri");
-            if (single != null && single.startsWith("https://")) mirrors.add(single);
+            if (MediaTransport.hasAllowedShape(single)) mirrors.add(single);
         }
         return List.copyOf(mirrors);
     }

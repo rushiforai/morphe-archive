@@ -19,7 +19,9 @@ on:
           - dev
 
 concurrency:
-  group: dual-vot-upstream-sync
+  # Keep the two scheduled deliveries independent so a runner-queue stall in
+  # one slot cannot block the fallback slot. Manual runs remain serialized.
+  group: dual-vot-upstream-sync-${{ github.event.schedule || 'manual' }}
   cancel-in-progress: false
 
 jobs:

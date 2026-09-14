@@ -24,10 +24,12 @@ and patch list generation. It checks the generated version, target package, targ
 patch count and test count against the README and `patches-bundle.json`. After uploading the
 bundle and `SHA256SUMS.txt`, run it again with `-VerifyPublishedAsset` to check the indexed URL,
 the local artifact hash and the hosted checksum entry. The local release helpers are
-`scripts/gen-l10n.py`, `scripts/verify-all-patches.ps1` and
-`scripts/measure-patch-heap.ps1`; the latter two need a Morphe desktop jar and a fixture APK.
+`scripts/gen-l10n.py`, `scripts/verify-all-patches.ps1`, `scripts/patch-for-device.ps1` and
+`scripts/measure-patch-heap.ps1`; the last three need a Morphe desktop jar and a fixture APK.
+Run `scripts/test-script-contracts.ps1` after changing a PowerShell helper. The local pre-push
+hook runs it automatically for files under `scripts/`.
 The jar runs on JDK 21 or newer, so set `HUSHFEED_JAVA` or `JAVA_HOME` if that is not the `java`
-first on your PATH.
+first on your PATH. An explicit `-Java` directory must contain `bin/java.exe` or `bin/java`.
 
 Commit and push the new source version while `patches-bundle.json` still names the previous
 working release. Build from that exact commit, publish its bundle and checksum, then update the

@@ -15,6 +15,7 @@ import static org.junit.Assert.assertTrue;
 import android.os.Looper;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.tiktok.settings.Settings;
 
@@ -288,6 +289,23 @@ public class FollowDiagnosticsTest {
         FollowDiagnostics.logParsedResponse(null, new ParsedResponse(refusal));
         Shadows.shadowOf(Looper.getMainLooper()).idle();
         assertEquals(0, ShadowToast.shownToastCount());
+    }
+
+    @Test
+    public void aMissingRequestPathNamesTheFollowHookInsteadOfStayingUnknown() throws Exception {
+        HookStatus.clear();
+        try {
+            java.lang.reflect.Method requestPath = FollowDiagnostics.class.getDeclaredMethod(
+                    "requestPath", Object.class);
+            requestPath.setAccessible(true);
+            assertEquals(null, requestPath.invoke(null, new Object()));
+
+            List<String> missing = HookStatus.missing("follow diagnostics");
+            assertEquals("Expected one missing request path, got " + missing, 1, missing.size());
+            assertTrue(missing.get(0), missing.get(0).contains("java.lang.Object#getPath"));
+        } finally {
+            HookStatus.clear();
+        }
     }
 
     /**

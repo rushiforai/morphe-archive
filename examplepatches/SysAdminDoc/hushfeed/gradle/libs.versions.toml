@@ -3,6 +3,9 @@
 # at the version the stable Morphe Manager bundles: a newer pin trips the manager's
 # Patcher-Version gate and it refuses the bundle.
 morphe-patcher = "1.12.0"
+# First stable Manager release that bundled the patcher above. The release fact check holds the
+# README's stated floor to this value.
+manager-floor = "1.29.0"
 # Read by the app.morphe.patches settings plugin, not by anything in this repo: remove it and
 # configuration fails with "Version with alias smali not found in version catalog". The commit
 # resolves as com.github.MorpheApp.smali through JitPack. It is not waiting on an official

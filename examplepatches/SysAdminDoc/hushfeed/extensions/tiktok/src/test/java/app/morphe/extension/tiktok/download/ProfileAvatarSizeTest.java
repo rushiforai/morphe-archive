@@ -82,8 +82,8 @@ public class ProfileAvatarSizeTest {
 
         // Replace only the connection boundary. These handlers return local image bytes;
         // URL selection, HTTPS filtering, scheduling and publication remain production code.
-        new URL("http://avatar.example/");
-        new URL("https://avatar.example/");
+        new URL("http://8.8.8.8/");
+        new URL("https://8.8.8.8/");
         handlers = ReflectionHelpers.getStaticField(URL.class, "handlers");
         URLStreamHandler transport = new URLStreamHandler() {
             @Override protected URLConnection openConnection(URL url) throws IOException {
@@ -221,7 +221,7 @@ public class ProfileAvatarSizeTest {
         }
         String path = "/nasa/cropcenter:" + side + ":" + side + ".png";
         pictures.put(path, output.toByteArray());
-        return "https://avatar.example" + path;
+        return "https://8.8.8.8" + path;
     }
 
     private static void awaitSave() throws InterruptedException {

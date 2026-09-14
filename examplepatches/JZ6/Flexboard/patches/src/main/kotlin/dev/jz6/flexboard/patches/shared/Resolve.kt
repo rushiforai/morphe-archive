@@ -1,5 +1,6 @@
 package dev.jz6.flexboard.patches.shared
 
+import com.android.tools.smali.dexlib2.AccessFlags
 import app.morphe.patcher.patch.BytecodePatchContext
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -40,13 +41,65 @@ internal fun BytecodePatchContext.checkMethodExists(descriptor: String, what: St
     }
 }
 
+/**
+ * How an emission spells a call. Getting this wrong is not a compile error and not a patch failure:
+ * it assembles, and the device throws `IncompatibleClassChangeError` at the call site.
+ */
+internal enum class InvokeKind(val mnemonic: String) {
+    STATIC("invoke-static"),
+    VIRTUAL("invoke-virtual"),
+    INTERFACE("invoke-interface"),
+    DIRECT("invoke-direct"),
+}
+
+/**
+ * Fails the patch when [descriptor] is not callable the way [kind] spells it.
+ *
+ * [checkMethodExists] proves a name is present. It says nothing about whether the thing behind the
+ * name is static, or whether its owner is an interface, and every emission in this project picks an
+ * invoke mnemonic by hand. A method that stops being static, or a class that becomes an interface,
+ * leaves the descriptor intact and the emission wrong -- and the error arrives on a phone, where
+ * this project cannot read it.
+ */
+internal fun BytecodePatchContext.checkInvokeKind(
+    descriptor: String,
+    kind: InvokeKind,
+    what: String,
+) {
+    checkMethodExists(descriptor, what)
+    val owner = descriptor.substringBefore("->")
+    val definition = classDefByOrNull(owner) ?: return
+    val method = definition.methods.single { it.toDescriptor() == descriptor }
+    val isStatic = AccessFlags.STATIC.isSet(method.accessFlags)
+    val isInterface = AccessFlags.INTERFACE.isSet(definition.accessFlags)
+
+    check(isStatic == (kind == InvokeKind.STATIC)) {
+        "$what emits ${kind.mnemonic} for $descriptor, which is ${if (isStatic) "" else "not "}" +
+            "static — the call would assemble and fail to verify on the device"
+    }
+    check(isInterface == (kind == InvokeKind.INTERFACE)) {
+        "$what emits ${kind.mnemonic} for $descriptor, but $owner is " +
+            "${if (isInterface) "an interface" else "a class"} — invoke-interface and " +
+            "invoke-virtual are not interchangeable and the mismatch is an " +
+            "IncompatibleClassChangeError at the call site"
+    }
+}
+
 /** Fails the patch when [descriptor] names a field the APK does not contain, inherited or not. */
 internal fun BytecodePatchContext.checkFieldExists(descriptor: String, what: String) {
     val owner = descriptor.substringBefore("->")
     val name = descriptor.substringAfter("->").substringBefore(":")
     val type = descriptor.substringAfter(":")
-    val found = findInstanceField(owner, name)
-        ?: error("$what refers to $descriptor, but neither $owner nor anything above it declares `$name`")
+    val found = when (val lookup = findField(owner, name)) {
+        is FieldLookup.Found -> lookup.field
+        // Saying nothing beats failing a patch on a framework class this cannot see. The same
+        // choice checkAssignable makes, for the same reason.
+        is FieldLookup.Unknowable -> return
+        FieldLookup.Absent -> error(
+            "$what refers to $descriptor, but neither $owner nor anything above it declares " +
+                "`$name`, and the whole chain was readable inside the APK",
+        )
+    }
     check(found.type == type) {
         "$what refers to $descriptor, but `$name` is a ${found.type} — the letter survived on a " +
             "field of a different type, so emitting this would read the wrong thing"
@@ -96,12 +149,11 @@ internal fun BytecodePatchContext.soleMethodWithSignature(
     what: String,
 ): String {
     val matches = methodsWithSignature(owner, signature)
-    check(matches.size == 1) {
+    return matches.sole {
         "Expected exactly one $what on $owner — a method with signature $signature — but found " +
-            "${matches.size}: ${matches.map { it.name }}. A name cannot be picked out by shape " +
+            "$it: ${matches.map { it.name }}. A name cannot be picked out by shape " +
             "alone here, so this needs resolving by behaviour instead."
-    }
-    return matches.single().toDescriptor()
+    }.toDescriptor()
 }
 
 /**
@@ -119,13 +171,12 @@ internal fun BytecodePatchContext.soleMethodCalling(
 ): String {
     val candidates = methodsWithSignature(owner, signature)
     val matches = candidates.filter { it.calls(needle) }
-    check(matches.size == 1) {
+    return matches.sole {
         "Expected exactly one $what on $owner — a method with signature $signature calling " +
-            "$needle — but found ${matches.size} of ${candidates.size} candidates " +
+            "$needle — but found $it of ${candidates.size} candidates " +
             "(${candidates.map { it.name }}). Gboard no longer implements it the way this " +
             "resolution assumes."
-    }
-    return matches.single().toDescriptor()
+    }.toDescriptor()
 }
 
 /**
@@ -142,13 +193,12 @@ internal fun BytecodePatchContext.soleMethodNotCalling(
 ): String {
     val candidates = methodsWithSignature(owner, signature)
     val matches = candidates.filterNot { it.calls(needle) }
-    check(matches.size == 1) {
+    return matches.sole {
         "Expected exactly one $what on $owner — a method with signature $signature that does not " +
-            "call $needle — but found ${matches.size} of ${candidates.size} candidates " +
+            "call $needle — but found $it of ${candidates.size} candidates " +
             "(${candidates.map { it.name }}). Gboard no longer implements it the way this " +
             "resolution assumes."
-    }
-    return matches.single().toDescriptor()
+    }.toDescriptor()
 }
 
 /**

@@ -27,10 +27,8 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'Resolve-Java.ps1')
 $Java = Resolve-Java -Explicit $Java
 $root = Split-Path -Parent $PSScriptRoot
-$expectedPackageName = 'com.zhiliaoapp.musically'
-$expectedPackageVersion = '46.2.3'
-
 . (Join-Path $PSScriptRoot 'patch-report.ps1')
+. (Join-Path $PSScriptRoot 'patch-target.ps1')
 
 function Resolve-WithinRoot {
     param([string]$Path, [string]$Root)
@@ -68,13 +66,16 @@ if (-not (Test-Path -LiteralPath $Apk -PathType Leaf)) { throw "APK not found: $
 if (-not (Test-Path -LiteralPath $DesktopJar -PathType Leaf)) { throw "Desktop CLI jar not found: $DesktopJar" }
 
 try {
-    $names = @((Get-Content -LiteralPath $PatchList -Raw | ConvertFrom-Json).patches | ForEach-Object { $_.name })
+    $catalog = Get-Content -LiteralPath $PatchList -Raw | ConvertFrom-Json
+    $names = @($catalog.patches | ForEach-Object { $_.name })
 } catch {
     throw "Could not read patch list ${PatchList}: $($_.Exception.Message)"
 }
+$expectedTarget = Get-PatchTarget -PatchList $catalog
 if ($names.Count -eq 0 -or @($names | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -ne 0) {
     throw "No valid patches listed in $PatchList."
 }
+$dependencyNames = @(Get-PatchDependencyNames -PatchList $catalog -RequestedNames $names)
 Write-Host "[verify] $($names.Count) patches from $(Split-Path -Leaf $Bundle)"
 
 New-Item -ItemType Directory -Force -Path $WorkDir | Out-Null
@@ -104,8 +105,9 @@ try {
         try { $report = Get-Content -LiteralPath $result -Raw | ConvertFrom-Json }
         catch { Write-Warning "Could not parse result JSON: $($_.Exception.Message)" }
     }
-    $validation = Test-PatchingReport -Report $report -ExpectedNames $names -OutputPath $out `
-        -ExpectedPackageName $expectedPackageName -ExpectedPackageVersion $expectedPackageVersion
+    $validation = Test-PatchingReport -Report $report -ExpectedNames $names `
+        -AllowedDependencyNames $dependencyNames -OutputPath $out `
+        -ExpectedPackageName $expectedTarget.PackageName -ExpectedPackageVersion $expectedTarget.PackageVersion
     $reportApplied = if ($null -ne $report) { @($report.appliedPatches).Count } else { 0 }
     $reportFailed = if ($null -ne $report) { @($report.failedPatches).Count } else { 0 }
     $target = if ($null -ne $report) { "$($report.packageName) $($report.packageVersion)" } else { 'unknown target' }

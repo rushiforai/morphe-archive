@@ -1,6 +1,9 @@
 /*
  * Forked from:
  * https://gitlab.com/ReVanced/revanced-patches/-/blob/main/patches/src/main/kotlin/app/revanced/patches/tiktok/misc/telemetry/Fingerprints.kt
+ * Npth task selectors adapted from kveld9/kveld-morphe-patches at
+ * fcb1768620b8f98a6dd31e801074589ce9a63356 (GPL-3.0):
+ * https://github.com/kveld9/kveld-morphe-patches/tree/fcb1768620b8f98a6dd31e801074589ce9a63356
  */
 package app.morphe.patches.tiktok.misc.telemetry
 
@@ -14,6 +17,7 @@ private const val FIREBASE_ANALYTICS_DESCRIPTOR = "Lcom/google/firebase/analytic
 private const val MONITOR_CRASH_DESCRIPTOR = "Lcom/bytedance/crash/MonitorCrash;"
 
 private val publicStaticAccessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC)
+private val publicFinalAccessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
 
 internal object AppLogOnEventFingerprint : Fingerprint(
     definingClass = APP_LOG_DESCRIPTOR,
@@ -180,4 +184,20 @@ internal object MonitorCrashReportEventFingerprint : Fingerprint(
         "Lorg/json/JSONObject;",
         "Lorg/json/JSONObject;",
     ),
+)
+
+internal object NpthCoreInitTaskFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/legoImp/task/NpthCoreInitTask;",
+    name = "run",
+    accessFlags = publicFinalAccessFlags,
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;"),
+)
+
+internal object NpthSecondInitTaskFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/legoImp/task/NpthSecondInitTask;",
+    name = "run",
+    accessFlags = publicFinalAccessFlags,
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;"),
 )

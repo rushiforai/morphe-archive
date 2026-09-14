@@ -42,13 +42,23 @@ public final class SettingsOperationJournal {
         FAILED
     }
 
+    @FunctionalInterface
+    interface JournalDelete {
+        void delete(AtomicFile file) throws IOException;
+    }
+
     /** Reads and reconciles the journal. This is safe to call more than once during startup. */
     public static Recovery initialize(Context context) {
+        return initialize(context, SettingsOperationJournal::delete);
+    }
+
+    /** Package-visible deletion seam for exercising storage failures after reconciliation. */
+    static Recovery initialize(Context context, JournalDelete journalDelete) {
         if (context == null || !Utils.isMainProcess()) return Recovery.NONE;
         Context app = applicationContext(context);
         LOCK.lock();
         try {
-            return reconcileLocked(app);
+            return reconcileLocked(app, journalDelete);
         } finally {
             LOCK.unlock();
         }
@@ -102,7 +112,7 @@ public final class SettingsOperationJournal {
         // from it, and a lock left held by a thread that has gone parks every later caller.
         boolean handedOver = false;
         try {
-            reconcileLocked(app);
+            reconcileLocked(app, SettingsOperationJournal::delete);
             // A record that could not be read or applied has been set aside by then. The one
             // reason left to refuse is a journal still in place, which is a record that has
             // not been reconciled and must not be written over.
@@ -196,7 +206,7 @@ public final class SettingsOperationJournal {
         }
     }
 
-    private static Recovery reconcileLocked(Context context) {
+    private static Recovery reconcileLocked(Context context, JournalDelete journalDelete) {
         AtomicFile file = journalFile(context);
         // AtomicFile may leave the last durable copy in its .bak file when the process
         // dies between startWrite and finishWrite. Let openRead restore that copy instead
@@ -214,8 +224,9 @@ public final class SettingsOperationJournal {
             text = read(file);
             fingerprint = fingerprint(text);
         } catch (Exception error) {
+            String unreadableFingerprint = unreadableFingerprint(file);
             setAside(file);
-            publish(Recovery.MALFORMED, file.getBaseFile().getAbsolutePath());
+            publish(Recovery.MALFORMED, unreadableFingerprint);
             return Recovery.MALFORMED;
         }
 
@@ -229,19 +240,27 @@ public final class SettingsOperationJournal {
             return Recovery.MALFORMED;
         }
 
+        Recovery result;
         try {
-            Recovery result = entry.settings
-                    ? reconcileSettings(entry)
-                    : reconcileLab(entry);
-            delete(file);
-            publish(result, fingerprint);
-            return result;
+            result = entry.settings ? reconcileSettings(entry) : reconcileLab(entry);
         } catch (Exception error) {
             Logger.printException(() -> "Could not reconcile the settings journal", error);
             setAside(file);
             publish(Recovery.FAILED, fingerprint);
             return Recovery.FAILED;
         }
+
+        // The state result belongs to reconciliation, not to cleanup. Publish it first. If the
+        // durable record cannot be deleted, retain it as diagnostics without relabelling an
+        // already recovered or already committed settings change as a recovery failure.
+        publish(result, fingerprint);
+        try {
+            journalDelete.delete(file);
+        } catch (Exception error) {
+            Logger.printException(() -> "Could not clear the reconciled settings journal", error);
+            setAside(file);
+        }
+        return result;
     }
 
     /** The name a journal that could not be used is kept under, beside where it was. */
@@ -417,6 +436,13 @@ public final class SettingsOperationJournal {
 
     private static String fingerprint(String text) {
         return text.length() + ":" + text.hashCode();
+    }
+
+    /** Identity for bytes that could not be decoded and therefore have no content fingerprint. */
+    private static String unreadableFingerprint(AtomicFile file) {
+        File base = file.getBaseFile();
+        File source = base.isFile() ? base : new File(base.getPath() + ".bak");
+        return source.getAbsolutePath() + ":" + source.length() + ":" + source.lastModified();
     }
 
     private static final class JournalEntry {

@@ -13,6 +13,8 @@ private val forceSystemFontGithubCssPatch = resourcePatch(
     description = "Internal dependency patch for force system font webview CSS override.",
     default = true,
 ) {
+    category("Font")
+
     compatibleWith(COMPATIBILITY_GITHUB)
 
     execute {

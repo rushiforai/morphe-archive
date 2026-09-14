@@ -32,10 +32,11 @@ param(
     # results that are there are still checked for age, completeness, failures and skips. A
     # release and a run by hand check everything.
     [switch]$SkipDescriptionTestCount,
-    # A release source commit has to reach GitHub before its tag and bundle can be published.
-    # During that first push, the source version is newer while patches-bundle.json must still
-    # name the previous working release. The pre-push gate uses this only when the index itself
-    # did not change. Asset verification is refused until the index catches up.
+    # Release source changes have to reach GitHub before their tag and bundle can be published.
+    # During that preparation, patches-bundle.json still describes the working release. This
+    # includes a newer source version and an unreleased catalog change held at the current version.
+    # The pre-push gate uses this only when the index itself did not change. Asset verification is
+    # refused until the index catches up.
     [switch]$AllowPublishedIndexLag
 )
 
@@ -48,6 +49,7 @@ $ErrorActionPreference = 'Stop'
 if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 
 . (Join-Path $PSScriptRoot 'Resolve-Java.ps1')
+. (Join-Path $PSScriptRoot 'patch-target.ps1')
 
 function Resolve-DesktopCli {
     <#
@@ -150,27 +152,19 @@ $patches = @($patchList.patches)
 if ($patches.Count -eq 0) { throw 'patches-list.json contains no patches.' }
 $patchCount = $patches.Count
 
-$targets = @{}
-foreach ($patch in $patches) {
-    foreach ($property in $patch.compatiblePackages.PSObject.Properties) {
-        $versions = @($property.Value | ForEach-Object { [string]$_ })
-        if (-not $targets.ContainsKey($property.Name)) { $targets[$property.Name] = @() }
-        $targets[$property.Name] += $versions
-    }
-}
-$targetPackages = @($targets.Keys | Sort-Object)
-if ($targetPackages.Count -ne 1) {
-    throw "Expected one compatible package, found $($targetPackages -join ', ')."
-}
-$targetPackage = $targetPackages[0]
-$targetVersions = @($targets[$targetPackage] | Sort-Object -Unique)
-if ($targetVersions.Count -ne 1) {
-    throw "Expected one compatible version for $targetPackage, found $($targetVersions -join ', ')."
-}
-$targetVersion = $targetVersions[0]
+$target = Get-PatchTarget -PatchList $patchList
+$targetPackage = $target.PackageName
+$targetVersion = $target.PackageVersion
 
 $bundleVersion = [string]$bundle.version
-$indexLagsSource = $bundleVersion -ne $releaseVersion
+$publishedPatchMatch = [regex]::Match([string]$bundle.description, '\b(\d+) patches\b')
+$publishedTargetMatch = [regex]::Match([string]$bundle.description, 'TikTok\s+(\d+(?:\.\d+)+)')
+$publishedFactsDifferAtSameVersion = $AllowPublishedIndexLag -and
+    $bundleVersion -eq $releaseVersion -and
+    $publishedPatchMatch.Success -and $publishedTargetMatch.Success -and
+    ([int]$publishedPatchMatch.Groups[1].Value -ne $patchCount -or
+        $publishedTargetMatch.Groups[1].Value -ne $targetVersion)
+$indexLagsSource = $bundleVersion -ne $releaseVersion -or $publishedFactsDifferAtSameVersion
 if ($indexLagsSource) {
     if (-not $AllowPublishedIndexLag) {
         throw "patches-bundle.json version does not match $sourceVersion."
@@ -178,14 +172,19 @@ if ($indexLagsSource) {
     if ($bundleVersion -notmatch '^\d+\.\d+\.\d+$') {
         throw "patches-bundle.json has an invalid published version: $bundleVersion"
     }
-    if ([version]$releaseVersion -le [version]$bundleVersion) {
+    if ($bundleVersion -ne $releaseVersion -and [version]$releaseVersion -le [version]$bundleVersion) {
         throw ("patches-bundle.json may lag only while a newer release is being prepared. " +
             "Source is $releaseVersion and the published index is $bundleVersion.")
     }
     if ($VerifyPublishedAsset) {
         throw 'A source artifact cannot be checked against the previous published index. Publish the new release and update patches-bundle.json first.'
     }
-    Write-Host ("[release] source $releaseVersion is being prepared while the working index remains on $bundleVersion")
+    if ($publishedFactsDifferAtSameVersion) {
+        Write-Host ("[release] source $releaseVersion has an unreleased catalog while the working index " +
+            "remains on its published facts")
+    } else {
+        Write-Host ("[release] source $releaseVersion is being prepared while the working index remains on $bundleVersion")
+    }
 }
 $publishedVersion = if ($indexLagsSource) { $bundleVersion } else { $releaseVersion }
 Require-Match -Text ([string]$bundle.download_url) -Pattern "/v$([regex]::Escape($publishedVersion))/patches-$([regex]::Escape($publishedVersion))\.mpp$" -Description 'patches-bundle.json download URL'
@@ -222,8 +221,6 @@ $descriptionVersion = $sourceVersion
 $descriptionPatchCount = $patchCount
 $descriptionTargetVersion = $targetVersion
 if ($indexLagsSource) {
-    $publishedPatchMatch = [regex]::Match([string]$bundle.description, '\b(\d+) patches\b')
-    $publishedTargetMatch = [regex]::Match([string]$bundle.description, 'TikTok\s+(\d+(?:\.\d+)+)')
     if (-not $publishedPatchMatch.Success -or -not $publishedTargetMatch.Success) {
         throw 'The published bundle description does not name its patch count and TikTok target.'
     }
@@ -530,6 +527,17 @@ if (-not $catalogMatch.Success) {
     throw 'gradle/libs.versions.toml does not pin morphe-patcher.'
 }
 $pinnedPatcher = $catalogMatch.Groups[1].Value
+$managerFloorMatch = [regex]::Match($catalogText, '(?m)^\s*manager-floor\s*=\s*"([^"]+)"')
+if (-not $managerFloorMatch.Success) {
+    throw 'gradle/libs.versions.toml does not pin manager-floor beside morphe-patcher.'
+}
+$managerFloor = $managerFloorMatch.Groups[1].Value
+if ($managerFloor -notmatch '^\d+\.\d+\.\d+$') {
+    throw "gradle/libs.versions.toml has an invalid manager-floor: $managerFloor"
+}
+$managerFloorPattern = "\bMorphe Manager\s+$([regex]::Escape($managerFloor))\s+or newer\b"
+Require-Match -Text $readme -Pattern $managerFloorPattern -Description 'README Manager floor'
+Write-Host "[release] README requires Morphe Manager $managerFloor or newer for patcher $pinnedPatcher"
 
 $bundlePath = if ($ArtifactPath) { $ArtifactPath } else {
     Join-Path $rootPath "patches/build/libs/patches-$releaseVersion.mpp"
@@ -567,8 +575,8 @@ if (-not $stampMatch.Success) {
 }
 if ($stampMatch.Groups[1].Value -ne $pinnedPatcher) {
     throw ("The bundle stamps Patcher-Version " + $stampMatch.Groups[1].Value + " but the catalog " +
-        "pins morphe-patcher " + $pinnedPatcher + ". The README's Manager floor is written from " +
-        'the pin, so one of the two is now wrong.')
+        "pins morphe-patcher " + $pinnedPatcher + ". The README floor is held separately to " +
+        "Morphe Manager $managerFloor, so the patcher pin or built bundle is now wrong.")
 }
 Write-Host "[release] the bundle stamps patcher $pinnedPatcher, as the catalog pins"
 

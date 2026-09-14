@@ -14,6 +14,7 @@ import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.tiktok.settings.Settings;
 
 import com.ss.android.ugc.aweme.feed.model.Aweme;
+import com.ss.android.ugc.aweme.feed.model.AwemeRawAd;
 
 import org.junit.After;
 import org.junit.Before;
@@ -34,6 +35,7 @@ public class FriendsFeedFilterTest {
         @Override public String getAid() { return advert ? "ad" : "video"; }
         @Override public boolean isAd() { return advert; }
         @Override public boolean isSoftAd() { return false; }
+        @Override public AwemeRawAd getAwemeRawAd() { return null; }
         @Override public boolean isWithPromotionalMusic() { return false; }
     }
 

@@ -468,6 +468,7 @@ Story saved to %1$s,Story disimpan ke %1$s
 Subtitle language,Bahasa subtitle
 Take away the streak button in a chat and the reminder message that goes with it.,Hilangkan tombol rentetan di obrolan beserta pesan pengingatnya.
 Tap %1$s again to send,Ketuk %1$s lagi untuk mengirim
+Tap again to send,Ketuk lagi untuk mengirim
 Tap the feed Follow button twice within four seconds.,Ketuk tombol Ikuti di feed dua kali dalam empat detik.
 Tap the like heart twice within four seconds. Removing a like stays immediate.,Ketuk ikon hati dua kali dalam empat detik. Membatalkan suka tetap langsung berlaku.
 "That is not an app name. Try something like com.example.downloader, or leave the box empty to keep saving in TikTok.","Itu bukan nama aplikasi. Coba seperti com.example.downloader, atau kosongkan saja biar tetap disimpan di TikTok."
@@ -869,3 +870,5 @@ Loaded values are still being read. Try again in a moment.,Nilai yang dimuat mas
 The selected loaded-values file could not be read. Try again.,Berkas nilai yang dimuat dan dipilih tidak dapat dibaca. Coba lagi.
 Enter a number. The previous value was kept.,Masukkan angka. Nilai sebelumnya dipertahankan.
 There is no diagnostic data to clear.,Tidak ada data diagnostik yang perlu dihapus.
+"Lab data was over its rule limit, so it was cleared without an undo copy. Restart TikTok.","Data Lab melebihi batas aturan, jadi data dihapus tanpa salinan untuk dibatalkan. Mulai ulang TikTok."
+"The Lab keeps at most %1$s rules. This change would make %2$s, so nothing was changed.","Lab menyimpan paling banyak %1$s aturan. Perubahan ini akan membuat jumlahnya %2$s, jadi tidak ada yang diubah."

@@ -38,6 +38,7 @@ public final class VideoFit {
     private static final class Fitted {
         final Object result;
         final int height;
+        int offsetsRemaining = 2;
 
         Fitted(Object result, int height) {
             this.result = result;
@@ -130,7 +131,10 @@ public final class VideoFit {
     private static void centre(View view) {
         ViewGroup.LayoutParams params = view.getLayoutParams();
         if (params instanceof FrameLayout.LayoutParams) {
-            ((FrameLayout.LayoutParams) params).gravity = Gravity.CENTER;
+            FrameLayout.LayoutParams frame = (FrameLayout.LayoutParams) params;
+            if (frame.gravity == Gravity.CENTER) return;
+            frame.gravity = Gravity.CENTER;
+            view.setLayoutParams(frame);
         }
     }
 
@@ -182,8 +186,8 @@ public final class VideoFit {
     /**
      * The height that goes with the width already handed back, or the one TikTok chose.
      *
-     * <p>Left in place rather than taken, because the offsets are asked about after this and the
-     * entry is what says the video was fitted. The next pass clears it before deciding again.
+     * <p>Left in place rather than taken, because the two offsets are asked about after this and
+     * the entry is what says the video was fitted. The second offset read clears it.
      */
     public static int fittedHeightFor(Object result) {
         Fitted fitted = fittedFor(result);
@@ -197,7 +201,10 @@ public final class VideoFit {
      * nothing hanging over an edge, so the same offsets would push it off the other side.
      */
     public static Float fittedTranslation(Object result, Float translation) {
-        return fittedFor(result) != null ? Float.valueOf(0f) : translation;
+        Fitted fitted = fittedFor(result);
+        if (fitted == null) return translation;
+        if (--fitted.offsetsRemaining == 0) LAST.remove();
+        return Float.valueOf(0f);
     }
 
     /** The decision made for exactly this result on this thread, if the last one was for it. */

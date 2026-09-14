@@ -44,8 +44,10 @@ import java.util.WeakHashMap;
  *   id/twc                the strip across the top holding For You, Following and the rest
  *   id/hvo id/fws id/ehl  the six id/eoh buttons inside id/kzj, in order: avatar and
  *   id/hu9 id/p2l id/v9o  follow, like, comments, favourite, music disc, share
- *   id/fwu id/ecq         the count under each of those, in its own row so the icon
- *   id/ht9 id/v5x         above it stays put when the count goes
+ *   id/fwu id/ecq         the rows under like, comment, favourite and share; the icon
+ *   id/ht9 id/v5x         above each row stays put when its count goes
+ *   id/fwt id/ecp         the numeric TextViews inside those rows; these are also targeted
+ *   id/ht8 id/v5w         because account-specific layouts can replace the outer row
  * </pre>
  * The first two belong to TikTok's search dynamic feature module, so they resolve under
  * that module's package name rather than the app's. Views are re-hidden on every layout
@@ -65,9 +67,12 @@ public final class VideoOverlayHider {
     private static final String TAB_STRIP_ID = "twc";
     /** The six buttons inside the action column, in the order they are stacked. */
     /** The row under each rail button holding its count, without the button itself. */
-    private static final String[] RAIL_COUNT_IDS = {"fwu", "ecq", "ht9", "v5x"};
+    private static final String[] RAIL_COUNT_ROW_IDS = {"fwu", "ecq", "ht9", "v5x"};
+    /** The numeric text inside each row, retained by layouts that replace the row wrapper. */
+    private static final String[] RAIL_COUNT_TEXT_IDS = {"fwt", "ecp", "ht8", "v5w"};
     private static final String[] RAIL_BUTTON_IDS = {"hvo", "fws", "ehl", "hu9", "p2l", "v9o"};
-    private static final int TRAVERSAL_TARGET_COUNT = 5 + RAIL_BUTTON_IDS.length + RAIL_COUNT_IDS.length;
+    private static final int TRAVERSAL_TARGET_COUNT = 5 + RAIL_BUTTON_IDS.length
+            + RAIL_COUNT_ROW_IDS.length + RAIL_COUNT_TEXT_IDS.length;
 
     private static final int LEGACY_STATUS_BAR_FLAGS = View.SYSTEM_UI_FLAG_FULLSCREEN
             | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -200,9 +205,15 @@ public final class VideoOverlayHider {
                     hidden[5 + i] = rail[i];
                 }
                 int countsAt = 5 + RAIL_BUTTON_IDS.length;
-                for (int i = 0; i < RAIL_COUNT_IDS.length; i++) {
-                    ids[countsAt + i] = identifier(activity, APP_PACKAGE, RAIL_COUNT_IDS[i]);
+                for (int i = 0; i < RAIL_COUNT_ROW_IDS.length; i++) {
+                    ids[countsAt + i] = identifier(activity, APP_PACKAGE, RAIL_COUNT_ROW_IDS[i]);
                     hidden[countsAt + i] = counts;
+                }
+                int countTextAt = countsAt + RAIL_COUNT_ROW_IDS.length;
+                for (int i = 0; i < RAIL_COUNT_TEXT_IDS.length; i++) {
+                    ids[countTextAt + i] = identifier(
+                            activity, APP_PACKAGE, RAIL_COUNT_TEXT_IDS[i]);
+                    hidden[countTextAt + i] = counts;
                 }
 
                 List<List<View>> found = TRAVERSAL.found;

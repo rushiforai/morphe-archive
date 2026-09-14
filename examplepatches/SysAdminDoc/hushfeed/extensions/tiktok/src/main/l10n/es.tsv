@@ -631,6 +631,7 @@ Story saved to %1$s	Historia guardada en %1$s
 Subtitle language	Idioma de los subtítulos
 Take away the streak button in a chat and the reminder message that goes with it.	Quitar el botón de racha de un chat y el mensaje recordatorio que lo acompaña.
 Tap %1$s again to send	Toca %1$s otra vez para enviar
+Tap again to send	Toca otra vez para enviar
 Tap again to follow	Toca otra vez para seguir
 Tap again to like	Toca otra vez para dar me gusta
 Tap the feed Follow button twice within four seconds.	Toca el botón Seguir del feed dos veces en menos de cuatro segundos.
@@ -868,3 +869,5 @@ Loaded values are still being read. Try again in a moment.	Los valores cargados 
 The selected loaded-values file could not be read. Try again.	No se pudo leer el archivo de valores cargados seleccionado. Inténtalo de nuevo.
 Enter a number. The previous value was kept.	Introduce un número. Se conservó el valor anterior.
 There is no diagnostic data to clear.	No hay datos de diagnóstico que borrar.
+Lab data was over its rule limit, so it was cleared without an undo copy. Restart TikTok.	Los datos del Lab superaban el límite de reglas, así que se borraron sin una copia para deshacer. Reinicia TikTok.
+The Lab keeps at most %1$s rules. This change would make %2$s, so nothing was changed.	El Lab admite como máximo %1$s reglas. Este cambio daría un total de %2$s, así que no se cambió nada.

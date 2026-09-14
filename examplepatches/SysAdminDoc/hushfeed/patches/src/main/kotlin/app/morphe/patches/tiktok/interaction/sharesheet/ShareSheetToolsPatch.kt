@@ -20,9 +20,10 @@ private const val EXTENSION_CLASS_DESCRIPTOR =
 @Suppress("unused")
 val shareSheetToolsPatch = bytecodePatch(
     name = "Share sheet tools",
-    description = "Asks for a second tap before a video is sent to a friend from the share " +
-        "sheet, and hides chosen people or share options, or the whole Send to row. " +
-        "",
+    description = "Asks twice before a video is sent to a friend from the share sheet. " +
+        "The check follows the account or conversation instead of the visible name and covers " +
+        "accessibility actions and keyboard input. It can also hide chosen people, share options " +
+        "or the whole Send to row.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)
@@ -31,6 +32,7 @@ val shareSheetToolsPatch = bytecodePatch(
 
     execute {
         hookShareModel()
+        hookShareRecipientConfirmation()
         SettingsStatusLoadFingerprint.method.addInstruction(
             0,
             "invoke-static {}, " +

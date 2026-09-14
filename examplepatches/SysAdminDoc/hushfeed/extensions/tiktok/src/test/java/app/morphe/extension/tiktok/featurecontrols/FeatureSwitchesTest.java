@@ -64,21 +64,17 @@ public class FeatureSwitchesTest {
         assertTrue(DisableTelemetryPatch.isTelemetryDisabled());
     }
 
-    @Test public void anInboxSectionIsBuiltOnlyWhileItsSwitchIsOff() {
+    @Test public void nativeInboxControlsFollowTheirSwitches() {
         Settings.HIDE_INBOX_SUGGESTED_ACCOUNTS.save(false);
-        Settings.HIDE_INBOX_STORIES.save(false);
         Settings.EXPAND_ACTIVITY_LIST.save(false);
         assertTrue(InboxControls.shouldShowSuggestedAccounts());
-        assertTrue(InboxControls.shouldShowInboxStories());
         // With the switch off, native expanded and collapsed lists retain their state.
         assertFalse(InboxControls.shouldCollapseActivityList(false));
         assertTrue(InboxControls.shouldCollapseActivityList(true));
 
         Settings.HIDE_INBOX_SUGGESTED_ACCOUNTS.save(true);
-        Settings.HIDE_INBOX_STORIES.save(true);
         Settings.EXPAND_ACTIVITY_LIST.save(true);
         assertFalse(InboxControls.shouldShowSuggestedAccounts());
-        assertFalse(InboxControls.shouldShowInboxStories());
         assertFalse(InboxControls.shouldCollapseActivityList(false));
         assertFalse(InboxControls.shouldCollapseActivityList(true));
     }

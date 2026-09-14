@@ -1,7 +1,9 @@
 package app.morphe.extension.shared;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import app.morphe.extension.shared.diagnostics.DiagnosticCategory;
 import app.morphe.extension.shared.settings.preference.LogBufferManager;
 import app.morphe.extension.tiktok.SettingsContextRule;
 
@@ -47,5 +49,37 @@ public class UtilsSchedulingTest {
         assertTrue(Utils.isCurrentlyOnMainThread());
         Utils.runOnMainThreadNowOrLater(() -> { throw new AssertionError("main sentinel"); });
         assertTrue(LogBufferManager.buildExportText().contains("main sentinel"));
+    }
+
+    @Test
+    public void aBrokenFailureDescriptionCannotEscapeMessageFallback() {
+        RuntimeException[] failures = {
+                new RuntimeException() {
+                    @Override public String getMessage() {
+                        throw new AssertionError("getMessage must stay contained");
+                    }
+                },
+                new RuntimeException() {
+                    @Override public String toString() {
+                        throw new AssertionError("toString must stay contained");
+                    }
+                }
+        };
+
+        for (RuntimeException failure : failures) {
+            Logger.diagnosticError(
+                    DiagnosticCategory.PATCH_ERRORS,
+                    "LoggerFailureContainmentTest",
+                    () -> { throw failure; },
+                    null
+            );
+        }
+
+        String report = LogBufferManager.buildExportText();
+        assertEquals(2, occurrences(report, "Could not build the log message."));
+    }
+
+    private static int occurrences(String text, String needle) {
+        return (text.length() - text.replace(needle, "").length()) / needle.length();
     }
 }

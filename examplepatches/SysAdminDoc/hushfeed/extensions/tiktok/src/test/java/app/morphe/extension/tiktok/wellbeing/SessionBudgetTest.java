@@ -471,6 +471,71 @@ public class SessionBudgetTest {
         assertEquals(1, SessionBudget.videosSeen());
     }
 
+    @Test public void everyMalformedNumericFieldResetsAndRewritesTheWholeRecord()
+            throws Exception {
+        Settings.SESSION_BUDGET_VIDEOS.save(100);
+        Settings.SESSION_BUDGET_PASSES_PER_DAY.save(5);
+        long today = SessionBudget.dayOf(now.get());
+        String[] valid = new String[]{Long.toString(today), "7", "60000",
+                Long.toString(now.get() + 300_000L), "1", "1", "2", "30000", "8"};
+        String clean = today + "|0|0|0|0|0|0|0|0";
+
+        for (int field : new int[]{0, 1, 2, 3, 6, 7, 8}) {
+            String[] malformed = valid.clone();
+            malformed[field] = "broken";
+            Settings.SESSION_BUDGET_STATE.save(String.join("|", malformed));
+            SessionBudget.resetForTests();
+
+            assertEquals("field " + field + " retained a video count", 0,
+                    SessionBudget.videosSeen());
+            assertEquals("field " + field + " retained watched time", 0L,
+                    SessionBudget.watchedMs());
+            assertFalse("field " + field + " retained a hold", SessionBudget.isLocked());
+            assertFalse("field " + field + " retained a locked day", SessionBudget.lockedToday());
+            assertEquals("field " + field + " retained spent passes", 5,
+                    SessionBudget.passesLeftToday());
+            SessionBudget.awaitWritesForTests();
+            assertEquals("field " + field + " was not rewritten cleanly", clean,
+                    Settings.SESSION_BUDGET_STATE.get());
+        }
+    }
+
+    @Test public void malformedFlagsAndFieldCountsAreRewrittenCleanly() throws Exception {
+        Settings.SESSION_BUDGET_VIDEOS.save(100);
+        long today = SessionBudget.dayOf(now.get());
+        String clean = today + "|0|0|0|0|0|0|0|0";
+        String[] malformed = new String[]{
+                today + "|7|60000|0|broken|0|2|30000|8",
+                today + "|7|60000|0|1|broken|2|30000|8",
+                today + "|7|60000|0",
+                today + "|7|60000|0|1|0|2|30000|8|extra"
+        };
+
+        for (String record : malformed) {
+            Settings.SESSION_BUDGET_STATE.save(record);
+            SessionBudget.resetForTests();
+            assertEquals("a malformed record retained a count", 0, SessionBudget.videosSeen());
+            SessionBudget.awaitWritesForTests();
+            assertEquals("a malformed record was not rewritten cleanly", clean,
+                    Settings.SESSION_BUDGET_STATE.get());
+        }
+    }
+
+    @Test public void negativePersistedCountersAreNormalizedAndRewritten() throws Exception {
+        Settings.SESSION_BUDGET_VIDEOS.save(100);
+        Settings.SESSION_BUDGET_PASSES_PER_DAY.save(5);
+        long today = SessionBudget.dayOf(now.get());
+        Settings.SESSION_BUDGET_STATE.save(today + "|-7|-60000|-1|0|0|-2|-3|-4");
+        SessionBudget.resetForTests();
+
+        assertEquals(0, SessionBudget.videosSeen());
+        assertEquals(0L, SessionBudget.watchedMs());
+        assertFalse(SessionBudget.isLocked());
+        assertEquals(5, SessionBudget.passesLeftToday());
+        SessionBudget.awaitWritesForTests();
+        assertEquals(today + "|0|0|0|0|0|0|0|0", Settings.SESSION_BUDGET_STATE.get());
+    }
+
     @Test public void theBudgetIsNotTheAutoAdvanceLimit() {
         // AUTO_ADVANCE_LIMIT counts only videos Hushfeed itself advanced past, and lives on the
         // per-component controller. Wiring one to the other would stop the feed for someone who
@@ -987,11 +1052,38 @@ public class SessionBudgetTest {
         // as an unreadable record that throws the whole day away.
         long today = SessionBudget.dayOf(now.get());
         Settings.SESSION_BUDGET_STATE.save(today + "|7|60000|0|1");
+        Settings.SESSION_BUDGET_VIDEOS.save(7);
+        Settings.SESSION_BUDGET_PASSES_PER_DAY.save(3);
+        Settings.SESSION_BUDGET_NOTICE_MINUTES.save(1);
         SessionBudget.resetForTests();
         SessionBudget.setClockForTests(now::get);
 
         assertEquals("an older record was thrown away", 7, SessionBudget.videosSeen());
+        assertEquals("an older record lost its watched time", 60000L, SessionBudget.watchedMs());
         assertFalse("an older record came back locked", SessionBudget.lockedToday());
+        assertFalse("an older record forgot its claimed budget notice", SessionBudget.claimNotice());
+        assertEquals("an older record invented a spent pass", 3, SessionBudget.passesLeftToday());
+        assertEquals("an older record did not default reminder state", 0,
+                SessionBudget.claimIntervalNotice());
+    }
+
+    @Test public void aCurrentNineFieldRecordLoadsEveryValue() {
+        long today = SessionBudget.dayOf(now.get());
+        Settings.SESSION_BUDGET_VIDEOS.save(7);
+        Settings.SESSION_BUDGET_PASSES_PER_DAY.save(5);
+        Settings.SESSION_BUDGET_NOTICE_MINUTES.save(1);
+        Settings.SESSION_BUDGET_STATE.save(today + "|7|120000|0|1|0|2|60000|2");
+        SessionBudget.resetForTests();
+        SessionBudget.setClockForTests(now::get);
+
+        assertEquals(7, SessionBudget.videosSeen());
+        assertEquals(120000L, SessionBudget.watchedMs());
+        assertFalse(SessionBudget.isLocked());
+        assertFalse(SessionBudget.lockedToday());
+        assertFalse("the claimed budget notice was forgotten", SessionBudget.claimNotice());
+        assertEquals("the spent passes were not loaded", 3, SessionBudget.passesLeftToday());
+        assertEquals("the reminder mark or wording count was not loaded", 2,
+                SessionBudget.claimIntervalNotice());
     }
 
     private static String read(String relative) throws Exception {

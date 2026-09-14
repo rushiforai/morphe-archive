@@ -18,7 +18,11 @@
     clean APK and the patched APK are both put through dex2oat with the verify filter and the
     verifier's messages are compared. This target's own code raises lock-verification warnings
     on both, which is why it compares the two tallies rather than looking for an empty one: the
-    patched build has to raise the messages the clean build raises, as often, and nothing else.
+    patched build has to raise exactly the same message multiset as the clean build.
+
+    Removed host methods and DEX entries fail the static check. The allowlist beside this script
+    accepts only exact reviewed removals, and a stale entry fails so an old exception cannot mask
+    a later regression.
 
     Both halves refuse to pass on absent evidence. A run where the clean build raised nothing,
     or the patched build raised nothing, or the dex comparison found no difference at all, is
@@ -50,6 +54,8 @@ $ErrorActionPreference = 'Stop'
 # The vendor 46.2.3 build the README links, which is the only clean side this comparison means.
 $CleanApkSha256 = '2fbe277a568e0e820cb51b09bcf0c0d788dc4fb070e66025f12d11cd3ec16936'
 . (Join-Path $PSScriptRoot 'Resolve-Java.ps1')
+. (Join-Path $PSScriptRoot 'injected-register-contracts.ps1')
+. (Join-Path $PSScriptRoot 'injected-register-device.ps1')
 $Java = Resolve-Java -Explicit $Java
 
 if (-not $DesktopJar) { $DesktopJar = $env:HUSHFEED_DESKTOP_JAR }
@@ -130,7 +136,8 @@ Write-Host "[registers] clean   $CleanApk"
 Write-Host "[registers] patched $PatchedApk"
 
 $diffOutput = & $Java '-Xmx6g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'DexDiff.java') `
-    $CleanApk $PatchedApk $ReportPath 2>&1
+    $CleanApk $PatchedApk $ReportPath `
+    (Join-Path $PSScriptRoot 'injected-register-removal-allowlist.txt') 2>&1
 $diffExit = $LASTEXITCODE
 $diffOutput | ForEach-Object { Write-Host "[registers] $_" }
 
@@ -143,64 +150,36 @@ if ($diffExit -ne 0) {
 
 if ($Serial) {
     Write-Host "[registers] running the device verifier on $Serial"
-
-    function Invoke-ArtVerify {
-        param([string]$Local, [string]$Label)
-        $remote = "/data/local/tmp/hushfeed-verify-$Label.apk"
-        $dir = "/data/local/tmp/hushfeed-verify-$Label"
-        & $adbPath -s $Serial push $Local $remote | Out-Null
-        if ($LASTEXITCODE -ne 0) { throw "Could not push $Label to $Serial." }
-        & $adbPath -s $Serial shell "rm -rf $dir && mkdir -p $dir" | Out-Null
-        & $adbPath -s $Serial logcat -c | Out-Null
-        if ($LASTEXITCODE -ne 0) { throw "Could not clear logcat on $Serial before verifying $Label; an earlier run's messages would count against the baseline." }
-        # Reset before the run, or a shell that printed no exit line leaves the previous
-        # verification's zero here and the patched build passes on the clean one's result.
-        $script:dexoatExit = $null
-        & $adbPath -s $Serial shell "dex2oat64 --dex-file=$remote --oat-file=$dir/out.oat --output-vdex=$dir/out.vdex --instruction-set=arm64 --compiler-filter=verify --runtime-arg -Xmx1024m -j4; echo exit=`$?" |
-            ForEach-Object { if ("$_" -match 'exit=(\d+)') { $script:dexoatExit = [int]$Matches[1] } }
-        $log = & $adbPath -s $Serial logcat -d 2>$null
-        & $adbPath -s $Serial shell "rm -rf $dir $remote" | Out-Null
-        if ($null -eq $script:dexoatExit) { throw "dex2oat on $Label reported no exit code; the shell did not finish." }
-        if ($script:dexoatExit -ne 0) { throw "dex2oat on $Label exited $($script:dexoatExit)." }
-        # The message carries the method it is about, so the method name is the identity here:
-        # timestamps and pids differ between two runs of the same APK and mean nothing. Counted
-        # rather than de-duplicated, because a patch that makes one warning fire five hundred
-        # times is a change and a set comparison cannot see it.
-        $messages = @($log | ForEach-Object { "$_" } |
-            Where-Object { $_ -match 'dex2oat' } |
-            Where-Object { $_ -match '(failed lock verification|Verification error|Rejecting class|VerifyError)' } |
-            ForEach-Object { ($_ -replace '^.*dex2oat[0-9]*:\s*', '').Trim() })
-        $tally = @{}
-        foreach ($m in $messages) { $tally[$m] = 1 + [int]$tally[$m] }
-        return $tally
-    }
-
-    $cleanTally = Invoke-ArtVerify -Local $CleanApk -Label 'clean'
-    $patchedTally = Invoke-ArtVerify -Local $PatchedApk -Label 'patched'
-    $cleanTotal = ($cleanTally.Values | Measure-Object -Sum).Sum
-    $patchedTotal = ($patchedTally.Values | Measure-Object -Sum).Sum
-    Write-Host "[registers] verifier messages: clean $cleanTotal, patched $patchedTotal"
+    $cleanTally = Invoke-AndroidVerifierTally -Adb $adbPath -Serial $Serial `
+        -Local $CleanApk -Label 'clean'
+    $patchedTally = Invoke-AndroidVerifierTally -Adb $adbPath -Serial $Serial `
+        -Local $PatchedApk -Label 'patched'
+    $comparison = Compare-VerifierTallies -Clean $cleanTally -Patched $patchedTally
+    Write-Host "[registers] verifier messages: clean $($comparison.CleanTotal), patched $($comparison.PatchedTotal)"
 
     # Both sides have to have said something. An empty set compares equal to anything, so a
     # push or a verify that produced nothing would otherwise read as a clean result.
-    if ($cleanTotal -eq 0 -or $patchedTotal -eq 0) {
+    if (-not $comparison.HasEvidence) {
         Write-Host '[registers] FAIL: one of the two runs raised no verifier message at all, so the comparison proves nothing.'
         $failed = $true
-    } else {
-        $extra = @()
-        foreach ($m in $patchedTally.Keys) {
-            $was = [int]$cleanTally[$m]
-            if ($patchedTally[$m] -gt $was) {
-                $extra += ("{0}  (clean {1}, patched {2})" -f $m, $was, $patchedTally[$m])
+    } elseif (-not $comparison.Valid) {
+        $missing = @($comparison.Deltas | Where-Object Kind -eq 'missing')
+        $extra = @($comparison.Deltas | Where-Object Kind -eq 'extra')
+        if ($missing.Count -ne 0) {
+            Write-Host "[registers] FAIL: the patched build is missing $($missing.Count) verifier message tally entry or count:"
+            $missing | Select-Object -First 20 | ForEach-Object {
+                Write-Host ("[registers]   {0}  (clean {1}, patched {2})" -f $_.Message, $_.Clean, $_.Patched)
             }
         }
         if ($extra.Count -ne 0) {
-            Write-Host "[registers] FAIL: the patched build raises $($extra.Count) verifier message(s) more often than the clean build:"
-            $extra | Select-Object -First 20 | ForEach-Object { Write-Host "[registers]   $_" }
-            $failed = $true
-        } else {
-            Write-Host '[registers] device: the patched build raises no verifier message the clean build does not.'
+            Write-Host "[registers] FAIL: the patched build has $($extra.Count) extra verifier message tally entry or count:"
+            $extra | Select-Object -First 20 | ForEach-Object {
+                Write-Host ("[registers]   {0}  (clean {1}, patched {2})" -f $_.Message, $_.Clean, $_.Patched)
+            }
         }
+        $failed = $true
+    } else {
+        Write-Host '[registers] device: the clean and patched verifier message tallies are identical.'
     }
 }
 

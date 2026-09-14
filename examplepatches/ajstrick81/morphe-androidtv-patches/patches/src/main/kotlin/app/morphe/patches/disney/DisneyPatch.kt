@@ -89,12 +89,30 @@ val disneyPatch = bytecodePatch(
         // still fires at +25.52s (sent from upstream in the MEL layer before
         // started() is called) — this can be suppressed at DNS level via AGH
         // if desired, but has no visible effect since started() never renders.
+        //
+        // OPTIONAL (issue #167): v26.16.0 refactored + obfuscated the MEL pause
+        // layer — the clear class com.disneystreaming.nve.player.mel.MediaXPauseSession
+        // and the "pauseData" string are gone (R8-renamed; "MediaX/NVE" +
+        // "pauseSessionEnded=" survive), so this exact fingerprint no longer
+        // resolves. Because a single unresolved fingerprint aborts the whole
+        // patch, that made ALL of Disney+ fail to patch on 26.16+ even though
+        // Patches 1&2 (the pre/mid-roll ad-block) still match. Wrap this so a
+        // missing pause-ad seam degrades gracefully: pre/mid-roll ads are still
+        // removed; pause-ad blocking is simply skipped until the seam is
+        // re-anchored (needs on-device pcap verification of the new render
+        // method, as the original v3 was). On <=26.15.2 it still matches and
+        // applies exactly as before.
         // ------------------------------------------------------------------
-        PauseAdStartedFingerprint.method.addInstructions(
-            0,
-            """
-                return-void
-            """.trimIndent(),
-        )
+        try {
+            PauseAdStartedFingerprint.method.addInstructions(
+                0,
+                """
+                    return-void
+                """.trimIndent(),
+            )
+        } catch (_: Exception) {
+            // Pause-ad render seam not found (v26.16.0+ obfuscation refactor).
+            // Skip — pre/mid-roll ad removal above is unaffected. See #167.
+        }
     }
 }

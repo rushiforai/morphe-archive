@@ -403,6 +403,7 @@ Keep the screen's refresh rate,Keep the screen's refresh rate
 LIVE replays,LIVE replays
 LIVE videos,LIVE videos
 Lab data reset. Undo last Lab change is in the menu. Restart TikTok.,Lab data reset. Undo last Lab change is in the menu. Restart TikTok.
+"Lab data was over its rule limit, so it was cleared without an undo copy. Restart TikTok.","Lab data was over its rule limit, so it was cleared without an undo copy. Restart TikTok."
 Lab overrides reset. Undo last Lab change is in the menu. Restart TikTok.,Lab overrides reset. Undo last Lab change is in the menu. Restart TikTok.
 Last original value,Last original value
 Leave maximum empty to keep it unlimited.,Leave maximum empty to keep it unlimited.
@@ -711,6 +712,7 @@ Take away the streak button in a chat and the reminder message that goes with it
 Tap %1$s again to send,Tap %1$s again to send
 Tap again to follow,Tap again to follow
 Tap again to like,Tap again to like
+Tap again to send,Tap again to send
 Tap the feed Follow button twice within four seconds.,Tap the feed Follow button twice within four seconds.
 Tap the like heart twice within four seconds. Removing a like stays immediate.,Tap the like heart twice within four seconds. Removing a like stays immediate.
 Tap to start the feed,Tap to start the feed
@@ -733,6 +735,7 @@ That settings backup is damaged or only partly downloaded. Nothing was altered.,
 "That settings backup is incomplete, so it may have been cut short. Nothing was altered.","That settings backup is incomplete, so it may have been cut short. Nothing was altered."
 That settings change did not go through. Nothing was altered.,That settings change did not go through. Nothing was altered.
 That sticker is in a format Hushfeed cannot read,That sticker is in a format Hushfeed cannot read
+"The Lab keeps at most %1$s rules. This change would make %2$s, so nothing was changed.","The Lab keeps at most %1$s rules. This change would make %2$s, so nothing was changed."
 The destination contains an invalid folder name,The destination contains an invalid folder name
 The diagnostic report could not be exported.,The diagnostic report could not be exported.
 The diagnostic report could not be saved yet. Try again in a moment.,The diagnostic report could not be saved yet. Try again in a moment.

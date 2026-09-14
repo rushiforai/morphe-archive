@@ -68,6 +68,31 @@ class SyncUpstreamTests(unittest.TestCase):
         self.assertIn("cron: '23 */2 * * *'", workflow)
         self.assertIn("cron: '53 */2 * * *'", workflow)
         self.assertNotIn("cron: '23 */6 * * *'", workflow)
+        self.assertIn(
+            "group: dual-vot-upstream-sync-${{ github.event.schedule || 'manual' }}",
+            workflow,
+        )
+
+    def test_about_update_check_uses_dual_vot_metadata(self):
+        root = MODULE_PATH.parents[2]
+        source = (
+            root
+            / "extensions/shared/library/src/main/java/app/morphe/extension/shared/"
+            "settings/preference/about/AboutRoutes.java"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn(
+            "/sashade8-ship-it/dual-vot-patches/refs/heads/dev/patches-bundle.json",
+            source,
+        )
+        self.assertIn(
+            "/sashade8-ship-it/dual-vot-patches/refs/heads/main/patches-bundle.json",
+            source,
+        )
+        self.assertNotIn(
+            "/MorpheApp/morphe-patches/refs/heads/",
+            source,
+        )
 
     def test_dev_merge_keeps_metadata_but_refreshes_controller_from_main(self):
         calls = []

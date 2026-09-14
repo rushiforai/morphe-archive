@@ -27,7 +27,11 @@ class CommentDislikeTouchTest {
         for (range in listOf(false, true)) {
             val method = nativeTouchInstalls(range)
             val before = method.implementation!!.instructions.toList()
-            method.captureDislikeTouchListener(listeners())
+            val write = method.resolveDislikeTouchListener(listeners())
+            val planned = method.implementation!!.instructions.toList()
+            assertEquals(before.size, planned.size)
+            for (index in before.indices) assertSame(before[index], planned[index])
+            write()
             val after = method.implementation!!.instructions.toList()
             assertEquals(before.size, after.size)
             // Only the final native install changes. The preceding like install stays virtual.

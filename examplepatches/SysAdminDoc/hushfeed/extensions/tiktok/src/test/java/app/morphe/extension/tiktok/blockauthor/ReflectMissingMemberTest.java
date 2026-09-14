@@ -53,6 +53,13 @@ public class ReflectMissingMemberTest {
         public Boolean somethingElse() { return Boolean.TRUE; }
     }
 
+    /** A future request shape whose public path moved onto an interface. */
+    public interface DefaultPathRequest {
+        default String getPath() { return "/aweme/v1/commit/follow/user/"; }
+    }
+
+    public static final class InterfaceRequest implements DefaultPathRequest {}
+
     @Test public void aMemberThisBuildLacksIsNamedInTheReport() {
         assertNull(Reflect.required(new RenamedCard(), "isAdOrContainAd"));
 
@@ -78,6 +85,15 @@ public class ReflectMissingMemberTest {
         assertNull(Reflect.required(new QuietCard(), "isAdOrContainAd"));
 
         assertEquals("A member that is there was reported: " + Reflect.missingMembers(),
+                0, Reflect.missingMembers().size());
+    }
+
+    @Test public void aPublicInterfaceDefaultIsFoundAfterTheDeclaredWalk() {
+        assertEquals("/aweme/v1/commit/follow/user/",
+                Reflect.invoke(new InterfaceRequest(), "getPath"));
+        assertNull("Object methods stay outside this model lookup",
+                Reflect.method(InterfaceRequest.class, "toString"));
+        assertEquals("An inherited default was reported missing: " + Reflect.missingMembers(),
                 0, Reflect.missingMembers().size());
     }
 

@@ -698,42 +698,100 @@ public final class SessionBudget {
     private static void load() {
         if (loaded) return;
         String stored = Settings.SESSION_BUDGET_STATE.get();
-        day = dayOf(clock.now());
-        try {
-            String[] parts = stored.split("\\|", -1);
-            if (parts.length >= 5) {
+        long currentDay = dayOf(clock.now());
+        long nextDay = currentDay;
+        int nextVideos = 0;
+        long nextWatchedMs = 0;
+        long nextLockUntilMs = 0;
+        boolean nextNoticeShown = false;
+        boolean nextLockedToday = false;
+        int nextPassesUsed = 0;
+        long nextNoticeMarkMs = 0;
+        long nextNoticesShown = 0;
+        boolean rewrite = false;
+
+        if (!stored.isEmpty()) {
+            try {
+                String[] parts = stored.split("\\|", -1);
+                if (parts.length < 5 || parts.length > 9) {
+                    throw new IllegalArgumentException("unexpected field count");
+                }
+
                 long storedDay = Long.parseLong(parts[0]);
+                int storedVideos = Integer.parseInt(parts[1]);
+                long storedWatchedMs = Long.parseLong(parts[2]);
+                long storedLockUntilMs = Long.parseLong(parts[3]);
+                boolean storedNoticeShown = parseFlag(parts[4]);
+                // Each later field was added at the end, so records with five through nine
+                // fields are historical formats rather than truncated current records.
+                boolean storedLockedToday = parts.length >= 6 && parseFlag(parts[5]);
+                int storedPassesUsed = parts.length >= 7
+                        ? Integer.parseInt(parts[6]) : 0;
+                long storedNoticeMarkMs = parts.length >= 8
+                        ? Long.parseLong(parts[7]) : 0;
+                long storedNoticesShown = parts.length >= 9
+                        ? Long.parseLong(parts[8]) : 0;
+
+                int cleanVideos = Math.max(0, storedVideos);
+                long cleanWatchedMs = Math.max(0, storedWatchedMs);
+                long cleanLockUntilMs = Math.max(0, storedLockUntilMs);
+                int cleanPassesUsed = Math.max(0, storedPassesUsed);
+                long cleanNoticeMarkMs = Math.min(cleanWatchedMs,
+                        Math.max(0, storedNoticeMarkMs));
+                long cleanNoticesShown = Math.max(0, storedNoticesShown);
+                rewrite = cleanVideos != storedVideos
+                        || cleanWatchedMs != storedWatchedMs
+                        || cleanLockUntilMs != storedLockUntilMs
+                        || cleanPassesUsed != storedPassesUsed
+                        || cleanNoticeMarkMs != storedNoticeMarkMs
+                        || cleanNoticesShown != storedNoticesShown;
+
                 // A record from a day that has not arrived yet belongs to a clock that has since
                 // gone backwards, and it is still the reader's own day.
-                if (storedDay >= day) {
-                    day = storedDay;
-                    videos = Integer.parseInt(parts[1]);
-                    watchedMs = Long.parseLong(parts[2]);
-                    writtenWatchedMs = watchedMs;
-                    lockUntilMs = Long.parseLong(parts[3]);
-                    noticeShown = "1".equals(parts[4]);
-                    // A record written before the lock existed has five fields, and a day it
-                    // describes was never locked, so its absence reads as false.
-                    lockedToday = parts.length >= 6 && "1".equals(parts[5]);
-                    // Same again for the pass count, which arrived after both. A day recorded
-                    // before it existed had no cap to spend, so zero is the honest answer.
-                    passesUsed = parts.length >= 7 ? Integer.parseInt(parts[6]) : 0;
-                    // Same again for the reminder's mark, which arrived after the passes. A
-                    // day recorded before it had none, so zero is the honest answer.
-                    noticeMarkMs = parts.length >= 8 ? Long.parseLong(parts[7]) : 0;
+                if (storedDay >= currentDay) {
+                    nextDay = storedDay;
+                    nextVideos = cleanVideos;
+                    nextWatchedMs = cleanWatchedMs;
+                    nextLockUntilMs = cleanLockUntilMs;
+                    nextNoticeShown = storedNoticeShown;
+                    nextLockedToday = storedLockedToday;
+                    nextPassesUsed = cleanPassesUsed;
+                    nextNoticeMarkMs = cleanNoticeMarkMs;
                 }
                 // Read whether or not the record is today's, because it is not a count of a
                 // day: it is which of the three wordings comes next, and a reader who gets one
                 // reminder a day would otherwise read the same sentence every day.
-                if (parts.length >= 9) noticesShown = Long.parseLong(parts[8]);
+                nextNoticesShown = cleanNoticesShown;
+            } catch (RuntimeException malformed) {
+                Logger.printDebug(() -> "Discarded an unreadable session budget record");
+                rewrite = true;
             }
-        } catch (RuntimeException malformed) {
-            Logger.printDebug(() -> "Discarded an unreadable session budget record");
         }
+
+        // Parse and validate the whole record before touching shared state. The volatile loaded
+        // write below publishes this complete snapshot to the lock-free isLocked() fast path.
+        day = nextDay;
+        videos = nextVideos;
+        watchedMs = nextWatchedMs;
+        writtenWatchedMs = nextWatchedMs;
+        lockUntilMs = nextLockUntilMs;
+        noticeShown = nextNoticeShown;
+        lockedToday = nextLockedToday;
+        passesUsed = nextPassesUsed;
+        noticeMarkMs = nextNoticeMarkMs;
+        noticesShown = nextNoticesShown;
+        if (rewrite) save();
         // Published last, on purpose. isLocked() reads this without the monitor, so setting it
         // first left a window where another thread saw "loaded, no hold" while the hold it was
         // about to read was still in the record, and auto advance started during a hold.
         loaded = true;
+    }
+
+    /** Reads an exact persisted boolean instead of silently treating damaged data as false. */
+    private static boolean parseFlag(String value) {
+        if ("0".equals(value)) return false;
+        if ("1".equals(value)) return true;
+        throw new IllegalArgumentException("invalid flag");
     }
 
     /** Hands the record to the writer thread, because the settings store commits synchronously. */

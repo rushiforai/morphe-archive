@@ -47,10 +47,34 @@ final class GifEncoder {
     private static final int EXACT_COLOR_LIMIT = 4096;
     private static final int COARSE = 0xF8F8F8;
 
+    enum FramePass {
+        PRECISION_MASK,
+        PALETTE,
+        ENCODE
+    }
+
+    @FunctionalInterface
+    interface BudgetCheck {
+        void check(FramePass pass, int frameIndex) throws IOException;
+    }
+
+    private static final BudgetCheck MEDIA_BUDGET =
+            (pass, frameIndex) -> MediaBudget.check(null);
+
     private GifEncoder() {
     }
 
     static void write(OutputStream out, int width, int height, List<Frame> frames) throws IOException {
+        write(out, width, height, frames, MEDIA_BUDGET);
+    }
+
+    static void write(
+            OutputStream out,
+            int width,
+            int height,
+            List<Frame> frames,
+            BudgetCheck budget
+    ) throws IOException {
         if (width <= 0 || height <= 0) throw new IOException("GIF needs a positive size");
         if (frames == null || frames.isEmpty()) throw new IOException("GIF needs at least one frame");
         int pixels = width * height;
@@ -60,8 +84,8 @@ final class GifEncoder {
             }
         }
 
-        int mask = precisionMask(frames);
-        int[] palette = palette(frames, mask);
+        int mask = precisionMask(frames, budget);
+        int[] palette = palette(frames, mask, budget);
         int transparent = palette.length;
         int tableSize = tableSize(palette.length + 1);
         int bits = Integer.numberOfTrailingZeros(tableSize);
@@ -93,10 +117,11 @@ final class GifEncoder {
         }
 
         Map<Integer, Integer> nearest = new HashMap<>();
+        int frameIndex = 0;
         for (Frame frame : frames) {
             // Every frame is another full pass of mapping and compression, so this is where a
             // job past its deadline stops, as the decode loop before it does.
-            MediaBudget.check(null);
+            budget.check(FramePass.ENCODE, frameIndex++);
             // Delay is in hundredths of a second, and a zero delay runs as fast as the viewer
             // feels like, so the shortest frame still gets one tick.
             int delay = Math.max(1, Math.round(frame.delayMs / 10f));
@@ -129,11 +154,12 @@ final class GifEncoder {
     }
 
     /** One palette for every frame, so the colours do not swim as the animation runs. */
-    private static int[] palette(List<Frame> frames, int mask) throws IOException {
+    private static int[] palette(List<Frame> frames, int mask, BudgetCheck budget) throws IOException {
         List<Integer> colors = new ArrayList<>();
         Map<Integer, Boolean> seen = new HashMap<>();
+        int frameIndex = 0;
         for (Frame frame : frames) {
-            MediaBudget.check(null);
+            budget.check(FramePass.PALETTE, frameIndex++);
             for (int color : frame.argb) {
                 if ((color >>> 24) < ALPHA_FLOOR) continue;
                 Integer rgb = color & mask;
@@ -154,10 +180,11 @@ final class GifEncoder {
      * it does not. Counting stops as soon as the answer is known, so a photographic frame does
      * not build a map of every colour in it just to find that out.
      */
-    private static int precisionMask(List<Frame> frames) throws IOException {
+    private static int precisionMask(List<Frame> frames, BudgetCheck budget) throws IOException {
         Map<Integer, Boolean> seen = new HashMap<>();
+        int frameIndex = 0;
         for (Frame frame : frames) {
-            MediaBudget.check(null);
+            budget.check(FramePass.PRECISION_MASK, frameIndex++);
             for (int color : frame.argb) {
                 if ((color >>> 24) < ALPHA_FLOOR) continue;
                 seen.put(color & 0xFFFFFF, Boolean.TRUE);

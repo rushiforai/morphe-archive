@@ -1,3 +1,65 @@
+## Unreleased
+
+* Eight optional TikTok optimizer patches from Kveld are now built into Hushfeed. The four resource patches validate complete path and SHA-256 profiles before emptying language, creator, LIVE, C2PA or card-scanner assets. The startup, network, Fresco and update patches use exact reviewed method contracts, stay off by default and describe their feature tradeoffs. Disable telemetry also covers TikTok's two Npth startup tasks behind its existing switch. The pre-push preparation check can keep the published 71-patch index intact while this unreleased catalog grows at the same version. Strict publication checks still reject the mismatch.
+
+* Media downloads now validate the original address and every redirect. They allow only public HTTPS destinations with no embedded credentials, stop redirect loops after five hops, recheck DNS before connecting, and remove partial files when a destination or body is refused.
+
+* Right-column counts now follow both parts of TikTok's feed layout: the outer count row and the numeric text inside it. Layout variants that replace the row can no longer leave like, comment, favorite or share counts visible, and turning the switch off restores only the views Hushfeed hid.
+
+* Hide inbox stories now responds without restarting TikTok. It hides only the story tray, restores recycled rows when they change purpose, and shares one live Inbox observer with Hide inbox items when both patches are selected.
+
+* Remove feed ads now recognizes TikTok's raw auction metadata even when both native Boolean ad flags are false. The shared check covers response, cache, Following, Friends, profile, search and late-insertion feeds while leaving ordinary paid-partnership posts alone.
+
+* Share sheet confirmation now handles every click path, including accessibility actions and keyboard input. It follows the recipient's account or conversation ID. Reusing a row or letting the timer expire resets the check, and TikTok's original row highlight comes back. If the confirmation setup or setting read fails, the tap is stopped and an older confirmation is forgotten. Turning confirmation off restores normal sending even if an old row highlight cannot be cleared.
+
+* Feature Gate Lab now checks its 1,024-rule limit before writing a change or importing a file. Reset all Lab data can recover an older oversized store without clearing other Hushfeed settings.
+
+* Settings Undo now recognizes an interrupted current or legacy undo write when only its recovery file remains. It always prefers the current Hushfeed copy, and the next verified snapshot moves storage off the old Metra filename.
+
+* Injected-register verification now requires identical Android verifier message counts from clean and patched APKs. Its static check also rejects removed host methods and DEX files unless an exact reviewed removal is listed beside the verifier.
+
+* Device verification now removes each uploaded APK and its generated ART files after every result, including failed uploads and disconnected runs. Cleanup errors are reported without replacing the verification failure that caused them.
+
+* Session budget recovery now validates the whole persisted record before making any of it live. Damaged fields and invalid shapes reset to clean current-day values and are rewritten, while historical five-field records and the current nine-field format keep their exact meaning.
+
+## 0.30.2
+
+* GIF conversion now has separate deadline regressions for its colour-precision, palette and frame-encoding passes. Each check has to stop before the second frame, so losing one cannot hide behind an earlier pass.
+
+* Logger keeps a failed message builder contained even when the thrown object also breaks its own `toString()` or `getMessage()`. The emergency line falls back to fixed text and the original hook can keep running.
+
+* Comment tools now resolves every native anchor, reply model, field and register before it changes the APK. If a later TikTok build makes the reply row ambiguous, patching fails without leaving the settings flag or dislike redirect behind.
+
+* The obfuscated identity audit now records Java binary class names such as `X.0GSy`, as well as smali descriptors. Exact token boundaries keep longer names and ordinary Java text from being counted, and a regression proves a new `Class.forName` literal stops the build.
+
+* Patch result checks now accept dependency rows declared by a selected patch while still rejecting a missing root or any duplicate or unrelated row. Device patching and fixture checks use the rule, as does heap measurement.
+
+* Cached model reflection now finds public methods inherited from interfaces. Follow diagnostics uses the required lookup for a request path, so a future TikTok rename appears in Hook status instead of making every path look unknown.
+
+* Video fitting now hands a changed center gravity back to Android so the view is laid out again. The story path forgets its fitted result after both offset reads, and its tests now prove the feed and story paths independently read an uncopyable result.
+
+* Lazy AB gate discovery now follows one integer register move back to the factory number, including a second four-instruction lookback. A merged-lambda entry point must switch on its own integer `$t` field, so an unrelated field and switch cannot make a decoy class look like the requested gate.
+
+* Passing a Java directory without `bin/java.exe` or `bin/java` now stops with that directory in the error. It can no longer ignore the explicit choice and run a different Java from `PATH`. Java discovery also works in Windows PowerShell, where the normal `java -version` banner arrives on the error stream.
+
+* Device replacement now checks whether TikTok is installed before trying to remove it, so a clean phone proceeds to installation. Device patching, fixture verification, heap checks and release validation all read the target package and version from the generated patch catalog.
+
+* CAPTCHA patch validation now follows request and callback methods inherited from superclasses or interfaces. The risk-control hook also refuses a static `execute` method because its injected parameter registers require an instance receiver.
+
+* Settings journal recovery now has direct regression coverage for a valid record that storage refuses to apply. The test requires the failed recovery notice, retains the record for diagnostics and confirms that the next settings change can start.
+
+* Each unreadable settings journal now gets its own recovery notice. Its fallback identity includes the actual file path, length and modification time, so another damaged record at the same path is not hidden for the rest of that process.
+
+* A settings journal that was recovered successfully keeps that result when only deletion of the journal fails. The record is set aside for diagnostics, while the notice still reports recovered or already completed settings.
+
+* The release check now ties the README's minimum Morphe Manager version to a `manager-floor` value beside the patcher pin. Device-only signing helpers read their password from `HUSHFEED_SIDELOAD_KEYSTORE_PASSWORD`, retain `sideload` as the documented local test-key fallback, and keep the value out of child process command lines.
+
+* The README patch table now uses the same descriptions Morphe Manager reads from the shipped catalog. A regression checks every name and description, so changing either side cannot leave the project page describing a different feature.
+
+* Patch failures now name the selector or method contract that changed instead of ending in a collection or null crash. The offline option hook requires the exact six-register enum constructor it reads. Story downloads require both bind methods, and the settings row reserves low registers for its plain invokes. Region spoof keeps the getter's documented first-field rule. Screen-capture patching no longer writes a count to standard output.
+
+* The release gate now checks the published bundle against the version tag during the final index push. The index is committed after the artifact exists, so comparing the bundle to that later commit rejected a correct release.
+
 ## 0.30.1
 
 * TikTok's own Photo Mode save now gives every image its own `{index}` number instead of naming the whole slideshow as image 1. This also prevents later photos replacing the first one on Android 6 through 9. Animated WebP to GIF conversion now budgets the canvas and decoded frame alongside the stored frame pixels, which cuts the worst pixel allocation from about 100 MiB to 32 MiB before encoder overhead. Turning off Keep captions in clear display removes its overlay and layout observer immediately. Media jobs keep their two minute deadline without carrying a cancel path that no shipped control could call.
@@ -27,8 +89,6 @@
 * The README puts the Morphe source link, latest bundle, settings tour and patch list near the top. Its feature overview is shorter, the exact supported TikTok build is harder to miss, and the release link points at the current bundle.
 
 * The previous header, both finished hero layouts, README-width previews, fresh offscreen screenshots and rejected mark studies now live in the marketing concept archive. A regression test keeps the selected hero first, prevents a second copy, checks its dimensions and locks the approved H to the supplied file.
-
-* The release gate now checks the published bundle against the version tag during the final index push. The index is committed after the artifact exists, so comparing the bundle to that later commit rejected a correct release.
 
 ## 0.30.0
 
@@ -230,7 +290,7 @@
 
 * The hold panel offers a way to your messages. It always said messages, profiles and search still work, and then covered the screen, so you had to already know the Inbox tab was underneath. There is an "Open messages" action under the countdown now. It opens the Inbox tab exactly as tapping it would, the hold stays up behind it, and it comes back when you return to the feed. If you have hidden Inbox in Feed navigation, the action is not there.
 
-* The install steps say what Android now asks for. From 2026-09-30, phones in Brazil, Indonesia, Singapore and Thailand put an app from an unverified developer through an extra flow: Developer options, a screen unlock, a restart, then a 24 hour wait before it installs, and after that a window of 7 days or indefinitely. Every release is an update, so it comes round again once that window closes. The README says so, and says that installing over adb skips it. It also now says that 640 MB is the manager's default rather than a measured minimum.
+* The install steps say what Android now asks for. From 2026-09-30, phones in Brazil, Indonesia, Singapore and Thailand put an app from an unverified developer through an extra flow: Developer options, confirmation of the device lock, a restart, then a 24 hour wait before it installs, and after that a window of 7 days or indefinitely. Every release is an update, so it comes round again once that window closes. The README says so, and says that installing over adb skips it. It also now says that 640 MB is the manager's default rather than a measured minimum.
 
 * You can cap how many times a day the hold lets you through. Until now the way out on the countdown was either always there or, with Lock today's budget on, gone entirely. The new row sits between the two: pick a number and the control counts down, saying how many are left, then goes once they are spent. Zero, the default, changes nothing. The count survives the app being killed and comes back when the day starts over.
 
@@ -585,7 +645,7 @@
 
 * Persistent settings and Feature Gate Lab data now accept writes only from the package's main process. Secondary processes can still read current values, but stale snapshots cannot overwrite newer settings or consume migration state.
 
-* Settings text that said the wrong thing. The thumbs down block claimed it needed a restart, which it never did. The two region switches claimed one and never asked for it, and now they do, because TikTok reads the country at startup. A dozen summaries that talked about secure window flags, native seekbars, candidates and pages now say what actually happens.
+* Incorrect settings text was fixed. The thumbs down block claimed it needed a restart, which it never did. The two region switches claimed one and never asked for it, and now they do, because TikTok reads the country at startup. A dozen summaries that talked about secure window flags, native seekbars, candidates and pages now say what actually happens.
 
 * Every message the patches show you is now in your own language, not just the settings screens. Blocking, saving, seeking, the confirm taps and the backup actions all spoke English on a German or Indonesian phone. The ones that name something, a handle or a file, are built so the translation decides the word order rather than having English word order with the name dropped in.
 
@@ -619,7 +679,7 @@
 
 * A box above the comments that narrows them to what you are looking for, by what a comment says or who said it. Nothing is taken out of TikTok's list: comments that do not match are collapsed where they sit, so clearing the box brings them all back and paging, replies and counts never know anything happened.
 
-* Review pass over the last three switches. The refresh rate one was overwriting the register TikTok stores its own record of the rate in, so it now replaces the store outright and leaves the value alone; it also only declines a request that is slower than the screen, because not every one of the six places that asks is asking for less. Duet and Stitch was skipping the commercial refusal as well as the creator's, which is the one most likely to get a post taken down, so only the creator's is answered now and the description that said so is true. A muted save no longer downloads a sound it will not use, no longer fails outright when that download fails, no longer quietly saves with sound when the stream is missing, and on Automatic keeps the file TikTok would have saved rather than jumping to the largest one. Saving a story asks the other app too.
+* Review pass over the last three switches. The refresh rate one was overwriting the register TikTok stores its own record of the rate in, so it now replaces the store outright and leaves the value alone; it also only declines a request that is slower than the screen, because not every one of the six places that asks is asking for less. Duet and Stitch was skipping the commercial refusal as well as the creator's, which is the one most likely to get a post taken down, so only the creator's is answered now and its description is accurate again. A muted save no longer downloads a sound it will not use, no longer fails outright when that download fails, no longer quietly saves with sound when the stream is missing, and on Automatic keeps the file TikTok would have saved rather than jumping to the largest one. Saving a story asks the other app too.
 
 * A switch that ignores the creator's Duet and Stitch setting, so the entries appear on videos that closed them. Only that one check is skipped. A photo post still cannot be duetted, a private video still cannot, and the app's other reasons for refusing all still stand. Whether the upload is accepted is the server's call and not something a patch can decide, so treat this as making the button available rather than a promise the post will stay up.
 

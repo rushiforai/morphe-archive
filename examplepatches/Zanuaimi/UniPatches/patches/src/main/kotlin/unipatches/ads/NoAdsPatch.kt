@@ -224,11 +224,11 @@ private fun BytecodePatchContext.flushAdsFallbackOperations(logger: Logger): Int
                             return@forEach
                         }
                         if (runtimeCategory != null) {
-                            val guard = runtimeGuard(runtimeCategory) ?: return@forEach
+                            val guard = runtimeGuard(runtimeCategory, booleanReturnInstructions(false)) ?: return@forEach
                             if (mutableMethod.implementation!!.registerCount - mutableMethod.numberOfParameterRegisters < 1) return@forEach
-                            mutableMethod.addInstructions(0, guard.replace("return-void", "const/4 v0, 0x0\nreturn v0"))
+                            mutableMethod.addInstructions(0, guard)
                         } else {
-                            mutableMethod.addInstructions(0, "const/4 v0, 0x0\nreturn v0")
+                            mutableMethod.addInstructions(0, booleanReturnInstructions(false))
                         }
                         if (runtimeCategory != null) runtimeGuardedMethods += methodKey
                         patched++
@@ -263,7 +263,7 @@ private fun BytecodePatchContext.cachedAdsMutableClass(classType: String): Mutab
     return mutableClassDefByOrNull(classType)?.also { adsFallbackMutableClasses[classType] = it }
 }
 
-private fun runtimeGuard(category: String): String? {
+private fun runtimeGuard(category: String, blockedInstructions: String = "return-void"): String? {
     if (!runtimeHooksEnabled) return null
     val method = when (category) {
         "interstitials" -> "shouldBlockInterstitials"
@@ -281,7 +281,7 @@ private fun runtimeGuard(category: String): String? {
             move-result v0
             if-eqz v0, :unipatch_ads_runtime_shared_continue
             :unipatch_ads_runtime_shared_block
-            return-void
+            $blockedInstructions
             :unipatch_ads_runtime_shared_continue
         """.trimIndent()
         else -> return null
@@ -290,7 +290,7 @@ private fun runtimeGuard(category: String): String? {
         invoke-static {}, $ADS_POLICY_CLASS->$method()Z
         move-result v0
         if-eqz v0, :unipatch_ads_runtime_continue
-        return-void
+        $blockedInstructions
         :unipatch_ads_runtime_continue
     """.trimIndent()
 }
@@ -306,7 +306,17 @@ private fun BytecodePatchContext.injectOrSkip(
         )
         return 0
     }
-    val effectiveInstructions = runtimeCategoryByFingerprint[fingerprint]?.let { runtimeGuard(it) } ?: instructions
+    // Callers that need a non-void return type provide a typed runtime guard.
+    // Do not replace it with the default void guard here. Custom instructions
+    // without a policy call are still wrapped for runtime-selected fingerprints.
+    val effectiveInstructions = if (
+        runtimeCategoryByFingerprint[fingerprint] != null &&
+        !instructions.contains("AdsRuntimePolicy;->")
+    ) {
+        runtimeGuard(runtimeCategoryByFingerprint.getValue(fingerprint)) ?: instructions
+    } else {
+        instructions
+    }
     val methodKey = guardMethodKey(method)
     if (effectiveInstructions.contains("AdsRuntimePolicy;->") &&
         (methodKey in runtimeGuardedMethods || hasRuntimePolicyGuard(method))
@@ -373,16 +383,17 @@ private fun BytecodePatchContext.patchReturnFalse(fingerprint: Fingerprint): Int
 
     val exact = fingerprint.methodOrNull
     if (exact != null && exact.implementation != null) {
-        runtimeCategoryByFingerprint[fingerprint]?.let { category ->
-            val guard = runtimeGuard(category) ?: return@let 0
-            val dynamic = guard.replace("return-void", "const/4 v0, 0x0\nreturn v0")
-            return injectOrSkip(fingerprint, dynamic)
-        }
-        if (exact.returnType != "Z" || (exact.implementation?.registerCount ?: 0) < 1) {
-            logger.warning("No Ads: skipping $name: boolean method has no usable register")
+        if (exact.returnType != "Z" || (exact.implementation?.registerCount ?: 0) < 1 ||
+            (exact.implementation?.registerCount ?: 0) - exact.numberOfParameterRegisters < 1
+        ) {
+            logger.warning("No Ads: skipping $name: boolean method has no usable local register")
             return 0
         }
-        exact.addInstructions(0, "const/4 v0, 0x0\nreturn v0")
+        runtimeCategoryByFingerprint[fingerprint]?.let { category ->
+            val guard = runtimeGuard(category, booleanReturnInstructions(false)) ?: return@let 0
+            return injectOrSkip(fingerprint, guard)
+        }
+        exact.addInstructions(0, booleanReturnInstructions(false))
         logger.info("No Ads: forced $name -> false (exact 1 impl)")
         return 1
     }
@@ -622,13 +633,6 @@ val controlAppAdsPatch = bytecodePatch(
         default = true,
         key = "adsFreeRewardsSkip",
         description = "Do not show a supported rewarded ad after the user clicks its button. In runtime mode, this becomes the initial value of the overlay control.",
-    )
-    val rewardStrategy by stringOption(
-        title = "Ads Free Rewards > SDK strategy",
-        default = "auto",
-        key = "adsFreeRewardsStrategy",
-        description = "Auto detects supported reward SDKs. Select one SDK only when Auto causes a problem in a specific app.",
-        values = linkedMapOf("Automatic (recommended)" to "auto", "AppLovin MAX" to "max", "Unity Ads" to "unityAds", "ironSource / LevelPlay" to "ironSource", "RuStore / MyTarget" to "rustore", "Huawei Ads" to "huawei"),
     )
     val instantReward by booleanOption(
         title = "Ads Free Rewards > Instant Rewards",
@@ -1091,9 +1095,16 @@ val controlAppAdsPatch = bytecodePatch(
         }
         // Unity Ads v4 exposes one shared show(...) method for multiple ad
         // formats. Blocking it for interstitials alone also breaks rewarded
-        // flows. Preserve the shared method whenever rewarded ads are allowed
-        // so Ads Free Rewards can still reach its completion callbacks.
-        if (sdkUnity == true && effectiveBlockInterstitials && effectiveBlockRewarded) {
+        // flows. In runtime mode, never permanently replace this method: its
+        // guarded reward implementation must retain control of the original
+        // SDK call until the session policy explicitly changes behavior.
+        if (shouldPatchUnityAdsV4Permanently(
+                runtimeHooksEnabled = runtimeHooksEnabled,
+                unitySdkEnabled = sdkUnity == true,
+                blockInterstitials = effectiveBlockInterstitials,
+                blockRewarded = effectiveBlockRewarded,
+            )
+        ) {
             totalPatched += patchVoid(UnityAdsV4Show3ArgFingerprint)
             totalPatched += patchVoid(UnityAdsV4Show4ArgFingerprint)
         }
@@ -1209,7 +1220,9 @@ val controlAppAdsPatch = bytecodePatch(
             totalPatched += patchReturnFalse(UnityAdsAdvertisementIsReadyPlacementFingerprint)
             totalPatched += patchReturnFalse(UnityAdsSdkIsReadyFingerprint)
             totalPatched += patchReturnFalse(IronSourceIsRewardedVideoAvailableFingerprint)
-            totalPatched += patchReturnFalse(MaxRewardedAdIsReadyFingerprint)
+            if (!runtimeHooksEnabled) {
+                totalPatched += patchReturnFalse(MaxRewardedAdIsReadyFingerprint)
+            }
         }
 
         totalPatched += flushAdsFallbackOperations(detectionLogger)
@@ -1256,7 +1269,7 @@ val controlAppAdsPatch = bytecodePatch(
         }
 
         if ((!runtimeRewardsEnabled && staticAdsFreeRewardsEnabled) || runtimeRewardsEnabled) {
-            applyAdsFreeRewards(detectionLogger, rewardStrategy, instantReward, sdkCoverage)
+            applyAdsFreeRewards(detectionLogger, instantReward, sdkCoverage)
         }
         logHeap(detectionLogger, "after-method-patches")
         // Availability needs a guarded method even when the initial runtime value is false;
@@ -1264,7 +1277,6 @@ val controlAppAdsPatch = bytecodePatch(
         if ((!runtimeRewardsEnabled && staticAdsFreeRewardsEnabled && fakeAdAvailability == true) || runtimeRewardsEnabled) {
             totalPatched += forceAdAvailability(
                 detectionLogger,
-                rewardStrategy,
                 runtimeRewardsEnabled,
                 sdkCoverage,
             )

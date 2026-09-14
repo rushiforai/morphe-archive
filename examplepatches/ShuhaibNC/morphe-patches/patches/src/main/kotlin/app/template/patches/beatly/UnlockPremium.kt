@@ -5,7 +5,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.shared.Constants.BEATLY_COMPATIBILITY
-import app.template.patches.beatly.PremiumFingerprint
+import app.template.patches.beatly.PremiumFingerprint1
+import app.template.patches.beatly.PremiumFingerprint2
+import app.template.patches.beatly.PremiumFingerprint3
 import app.template.patches.shared.clearBody
 
 @Suppress("unused")
@@ -18,15 +20,22 @@ val unlockPremiumPatch = bytecodePatch(
 
     // Business logic to unlock premium features.
     execute {
-        PremiumFingerprint.method.apply {
-            clearBody()
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0x1
-                    return v0
-                """
-            )
+        listOf(
+            PremiumFingerprint1,
+            PremiumFingerprint2,
+            PremiumFingerprint3,
+            PremiumFingerprint4
+        ).forEach { fingerprint ->
+            fingerprint.method.apply {
+                clearBody()
+                addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x1
+                        return v0
+                    """
+                )
+            }
         }
     }
 }

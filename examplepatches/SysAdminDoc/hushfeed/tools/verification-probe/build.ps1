@@ -10,6 +10,10 @@
     platform refuses to instrument a package that is not debuggable unless the instrumentation
     carries the same signature, and the patched TikTok is not debuggable.
 
+    The signing password comes from HUSHFEED_SIDELOAD_KEYSTORE_PASSWORD. When it is unset, the
+    local test keystore's documented password, sideload, is used. apksigner receives an env:
+    reference, so the password value is not in the child process command line.
+
 .EXAMPLE
     tools/verification-probe/build.ps1 -Serial R5CT139QJ5F -Install
 
@@ -33,7 +37,6 @@ param(
     [switch]$Uninstall,
     [string]$Sdk = "$env:LOCALAPPDATA\Android\Sdk",
     [string]$Keystore = "$HOME\.android\sideload-release.jks",
-    [string]$KeystorePassword = 'sideload',
     [string]$KeyAlias = 'sideload',
     [string]$OutDir = (Join-Path $env:TEMP 'hushfeed-probe')
 )
@@ -125,10 +128,28 @@ $aligned = Join-Path $OutDir 'probe-aligned.apk'
 if ($LASTEXITCODE -ne 0) { throw 'zipalign failed.' }
 
 $signed = Join-Path $OutDir 'hushfeed-verification-probe.apk'
-& (Join-Path $buildTools.FullName 'apksigner.bat') sign --ks $Keystore `
-    --ks-pass "pass:$KeystorePassword" --ks-key-alias $KeyAlias --key-pass "pass:$KeystorePassword" `
-    --min-sdk-version 23 --out $signed $aligned
-if ($LASTEXITCODE -ne 0) { throw 'apksigner failed.' }
+$passwordVariable = 'HUSHFEED_SIDELOAD_KEYSTORE_PASSWORD'
+$previousPassword = [Environment]::GetEnvironmentVariable(
+    $passwordVariable, [EnvironmentVariableTarget]::Process)
+$usingFallbackPassword = [string]::IsNullOrEmpty($previousPassword)
+if ($usingFallbackPassword) {
+    [Environment]::SetEnvironmentVariable(
+        $passwordVariable, 'sideload', [EnvironmentVariableTarget]::Process)
+    Write-Host "[probe] $passwordVariable is unset; using the documented local test-key fallback"
+}
+$signExitCode = 1
+try {
+    & (Join-Path $buildTools.FullName 'apksigner.bat') sign --ks $Keystore `
+        --ks-pass "env:$passwordVariable" --ks-key-alias $KeyAlias `
+        --key-pass "env:$passwordVariable" --min-sdk-version 23 --out $signed $aligned
+    $signExitCode = $LASTEXITCODE
+} finally {
+    if ($usingFallbackPassword) {
+        [Environment]::SetEnvironmentVariable(
+            $passwordVariable, $null, [EnvironmentVariableTarget]::Process)
+    }
+}
+if ($signExitCode -ne 0) { throw 'apksigner failed.' }
 Write-Host "[probe] $signed"
 
 if ($Install) {

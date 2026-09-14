@@ -1,27 +1,121 @@
+# [2.4.1](https://github.com/JZ6/Flexboard/compare/v2.4.0...v2.4.1) (2026-09-13)
+
+* **Gboard:** feat: Rambler on by default, confirmed on a device
+* **Gboard:** feat: modern keypress haptics on by default
+* **Gboard:** test: the gesture probe types a marker instead of deleting
+
+# [2.4.1-dev.0](https://github.com/JZ6/Flexboard/compare/v2.4.0...v2.4.1-dev.0) (2026-09-13)
+
+* **Gboard:** feat: Rambler on by default, confirmed on a device
+* **Gboard:** feat: modern keypress haptics on by default
+* **Gboard:** test: the gesture probe types a marker instead of deleting
+
+# [2.4.0](https://github.com/JZ6/Flexboard/compare/v2.3.0...v2.4.0) (2026-09-13)
+
+* **Gboard:** fix: both long-flag rewrites used a fingerprint that cannot match
+* **Gboard:** test: catch the flag-layout mistakes in the gate
+* **Gboard:** fix: enable_agentic_dictation shares its constant forward
+* **Gboard:** feat: modern keypress haptics
+* **Gboard:** fix: Rambler forced three flags Gboard already ships on
+* **Gboard:** feat: enable Rambler
+* **Gboard:** docs: the Rambler refusal was wrong
+* **Gboard:** test: diagnostic round two, direction test only
+* **Gboard:** fix: name the real cause when both swipe-up patches are enabled
+* **Gboard:** test: a diagnostic build for the swipe-up gesture
+* **Gboard:** docs: why Rambler cannot be enabled
+* **Gboard:** fix: the scratch veto refused a correct patch
+* **Gboard:** fix: importing a blob left stale icon overrides behind
+* **Gboard:** fix: Export and Import were paired to nothing
+* **Gboard:** fix: four preflight checks that were weaker than their names
+* **Gboard:** fix: assertions that were stated in prose and never made
+* **Gboard:** test: a suite for the code the gate trusts
+* **Gboard:** fix: the gate step had no GitHub Packages credentials
+* **Gboard:** fix: four ways CI could be green while guarding nothing
+* **Gboard:** fix: guard the extension paths that can take the keyboard down
+* **Gboard:** fix: the resource lane was rehearsing a different row and a shorter array
+* **Gboard:** fix: assert invoke kinds and one unguarded scratch register
+* **Gboard:** fix: two emission lint rules were checking nothing
+* **Gboard:** fix: live_free was blind to range invokes, wide pairs and switches
+* **Gboard:** fix: Hidden Features was turning on four flags and saying two
+* **Gboard:** fix: checkFieldExists rejected every static field
+* **Gboard:** docs: README section for the undo-autocorrect patch, and two namings
+* **Gboard:** fix: UndoEmitter checked its scratch registers by hand
+* **Gboard:** refactor: one sole() for the twenty-six single-match searches
+* **Gboard:** test: pin the invoke kinds and the one anchor R8 cannot move
+* **Gboard:** fix: live_free over-reported dead registers
+* **Gboard:** feat: swipe up to undo an autocorrect
+* **Gboard:** docs: settle the scrub contention and write the plan down
+* **Gboard:** docs: research for swipe-up-to-undo-autocorrect, and the gesture layer
+* **Gboard:** docs: record that the rebuilt default-on ship was verified
+
+# [2.3.1-dev.7](https://github.com/JZ6/Flexboard/compare/v2.3.1-dev.6...v2.3.1-dev.7) (2026-09-13)
+
+* **Gboard:** fix: both long-flag rewrites used a fingerprint that cannot match
+
+# [2.3.1-dev.6](https://github.com/JZ6/Flexboard/compare/v2.3.1-dev.5...v2.3.1-dev.6) (2026-09-12)
+
+* **Gboard:** test: catch the flag-layout mistakes in the gate
+* **Gboard:** fix: enable_agentic_dictation shares its constant forward
+
+# [2.3.1-dev.5](https://github.com/JZ6/Flexboard/compare/v2.3.1-dev.4...v2.3.1-dev.5) (2026-09-11)
+
+* **Gboard:** feat: modern keypress haptics
+
+# [2.3.1-dev.4](https://github.com/JZ6/Flexboard/compare/v2.3.1-dev.3...v2.3.1-dev.4) (2026-09-11)
+
+* **Gboard:** fix: Rambler forced three flags Gboard already ships on
+
+# [2.3.1-dev.3](https://github.com/JZ6/Flexboard/compare/v2.3.1-dev.2...v2.3.1-dev.3) (2026-09-10)
+
+* **Gboard:** feat: enable Rambler
+* **Gboard:** docs: the Rambler refusal was wrong
+* **Gboard:** test: diagnostic round two, direction test only
+* **Gboard:** fix: name the real cause when both swipe-up patches are enabled
+
+# [2.3.1-dev.2](https://github.com/JZ6/Flexboard/compare/v2.3.1-dev.1...v2.3.1-dev.2) (2026-09-10)
+
+* **Gboard:** test: a diagnostic build for the swipe-up gesture
+* **Gboard:** docs: why Rambler cannot be enabled
+
+# [2.3.1-dev.1](https://github.com/JZ6/Flexboard/compare/v2.3.1-dev.0...v2.3.1-dev.1) (2026-09-10)
+
+* **Gboard:** fix: the scratch veto refused a correct patch
+* **Gboard:** fix: importing a blob left stale icon overrides behind
+* **Gboard:** fix: Export and Import were paired to nothing
+* **Gboard:** fix: four preflight checks that were weaker than their names
+* **Gboard:** fix: assertions that were stated in prose and never made
+* **Gboard:** test: a suite for the code the gate trusts
+
+# [2.3.1-dev.0](https://github.com/JZ6/Flexboard/compare/v2.3.0...v2.3.1-dev.0) (2026-09-09)
+
+* **Gboard:** fix: the gate step had no GitHub Packages credentials
+* **Gboard:** fix: four ways CI could be green while guarding nothing
+* **Gboard:** fix: guard the extension paths that can take the keyboard down
+* **Gboard:** fix: the resource lane was rehearsing a different row and a shorter array
+* **Gboard:** fix: assert invoke kinds and one unguarded scratch register
+* **Gboard:** fix: two emission lint rules were checking nothing
+* **Gboard:** fix: live_free was blind to range invokes, wide pairs and switches
+* **Gboard:** fix: Hidden Features was turning on four flags and saying two
+* **Gboard:** fix: checkFieldExists rejected every static field
+* **Gboard:** docs: README section for the undo-autocorrect patch, and two namings
+* **Gboard:** fix: UndoEmitter checked its scratch registers by hand
+* **Gboard:** refactor: one sole() for the twenty-six single-match searches
+* **Gboard:** test: pin the invoke kinds and the one anchor R8 cannot move
+* **Gboard:** fix: live_free over-reported dead registers
+* **Gboard:** feat: swipe up to undo an autocorrect
+* **Gboard:** docs: settle the scrub contention and write the plan down
+* **Gboard:** docs: research for swipe-up-to-undo-autocorrect, and the gesture layer
+* **Gboard:** docs: record that the rebuilt default-on ship was verified
+
 # [2.3.0](https://github.com/JZ6/Flexboard/compare/v2.3.0-dev.4...v2.3.0) (2026-09-08)
 
 * **Gboard:** docs: write down what forcing a Phenotype flag actually does
-
-# [2.3.0-dev.4](https://github.com/JZ6/Flexboard/compare/v2.3.0-dev.3...v2.3.0-dev.4) (2026-09-06)
-
 * **Gboard:** feat: default-on the two flags that were watched working
-
-# [2.3.0-dev.3](https://github.com/JZ6/Flexboard/compare/v2.3.0-dev.2...v2.3.0-dev.3) (2026-09-06)
-
 * **Gboard:** fix: drop on-device proofread, the flag that would not let Gboard start
-
-# [2.3.0-dev.2](https://github.com/JZ6/Flexboard/compare/v2.3.0-dev.1...v2.3.0-dev.2) (2026-09-06)
-
 * **Gboard:** fix: split Hidden Features into one patch per flag, all opt-in
-
-# [2.3.0-dev.1](https://github.com/JZ6/Flexboard/compare/v2.3.0-dev.0...v2.3.0-dev.1) (2026-09-06)
-
 * **Gboard:** 2.3.0-dev.1
 * **Gboard:** docs: finish counting the ids the slot raise changed
 * **Gboard:** feat: raise the hotkey slots from six to eight
-
-# [2.3.0-dev.0](https://github.com/JZ6/Flexboard/compare/v2.2.1...v2.3.0-dev.0) (2026-09-05)
-
 * **Gboard:** refactor: separate the two biggest patches from their emitters
 * **Gboard:** refactor: give every feature's fingerprints one place to live
 * **Gboard:** refactor: name ToolbarIdAdmissionPatch.kt for what it declares

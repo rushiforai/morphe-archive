@@ -13,6 +13,8 @@ val forceSystemFontPatch = bytecodePatch(
     description = "Renders the app using the device's system font instead of DM Sans / Roboto.",
     default = true,
 ) {
+    category("Font")
+
     compatibleWith(COMPATIBILITY_BITWARDEN)
 
     extendWith("extensions/extension.mpe")

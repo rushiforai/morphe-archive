@@ -1,5 +1,6 @@
 package dev.jz6.flexboard.patches.shared
 
+import com.android.tools.smali.dexlib2.AccessFlags
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.iface.Field
@@ -98,6 +99,24 @@ internal fun BytecodePatchContext.superclassChain(type: String): List<String>? {
  * patch author reading it should not have to open the APK to understand what went wrong.
  */
 internal fun BytecodePatchContext.checkAssignable(type: String, target: String, what: String) {
+    // The rule was stated in this file's own header as prose and never enforced. An interface
+    // target makes the superclass walk below meaningless -- implementing a type does not put it in
+    // the chain -- so the check would produce a confident, wrong failure.
+    classDefByOrNull(target)?.let {
+        check(!AccessFlags.INTERFACE.isSet(it.accessFlags)) {
+            "$what checks assignability to $target, which is an interface. A superclass walk " +
+                "cannot answer that; assert the cast at its use instead."
+        }
+    }
+    // A primitive or an array is not a class, so `classDefByOrNull` returns null for it and the
+    // walk below would return early and pass. Silently accepting `I` where a Context is required
+    // is the failure this function exists to stop.
+    check(target.startsWith("L") && target.endsWith(";")) {
+        "$what checks assignability to $target, which is not a class descriptor"
+    }
+    check(type.startsWith("L") && type.endsWith(";")) {
+        "$what is $type, which is not a class descriptor, so it cannot be a $target"
+    }
     if (type == target) return
     // Unknowable rather than wrong. Saying nothing beats failing a patch on a framework subclass
     // this cannot see, which would make the check worse than useless.
@@ -163,6 +182,7 @@ internal fun validateScratchRegisters(
     scratch: List<Int>,
     avoid: List<Int>,
     what: String,
+    registerCount: Int? = null,
 ) {
     check(scratch.distinct().size == scratch.size) {
         "Scratch registers $scratch are not distinct in $what"
@@ -173,11 +193,23 @@ internal fun validateScratchRegisters(
     check(scratch.all { it < PACKED_INVOKE_REGISTER_LIMIT }) {
         "Scratch registers $scratch do not all fit a 35c invoke's nibbles in $what"
     }
+    check(scratch.all { it >= 0 }) {
+        "Scratch registers $scratch include a negative slot in $what"
+    }
+    // The nibble limit is an *encoding* ceiling. The method's own frame is a second one, usually
+    // lower: v12 in a ten-register method assembles and fails to verify. Every caller has just
+    // called assertRegisterCount and is holding the number, so passing it costs nothing.
+    if (registerCount != null) {
+        check(scratch.all { it < registerCount }) {
+            "Scratch registers $scratch do not all fit $what's $registerCount-register frame"
+        }
+    }
 }
 
 /**
- * Instance field [name] on [type] or any class above it, resolved the way the runtime resolves a
- * field reference — by walking up until something declares it.
+ * Instance field [name] on [type] or any class above it. Use [findField] unless the field being
+ * *an instance field* is itself the property under test — the one caller here reads an `iget`
+ * receiver, where a static would be the wrong answer rather than an acceptable one.
  *
  * **`ClassDef.instanceFields` is not enough**, which is worth stating because assuming otherwise
  * shipped as `0.0.2-dev.1`. It lists only what a class *declares*, and inherited fields are the
@@ -188,6 +220,47 @@ internal fun validateScratchRegisters(
  * Returns the declaration, so callers get the class that actually declares the field and can emit
  * that spelling rather than a subclass's.
  */
+/**
+ * The outcome of resolving a field reference, which is three-valued and not two.
+ *
+ * "Not found" and "cannot tell" are different answers and conflating them is what let a real patch
+ * be rejected: the walk left the APK at `Ljava/lang/Enum;`, returned the same `null` it uses for
+ * absence, and the caller reported a field that plainly exists as missing. [superclassChain] draws
+ * this distinction already; field lookup did not.
+ */
+internal sealed interface FieldLookup {
+    /** Declared here, with the class that declares it. */
+    data class Found(val field: Field) : FieldLookup
+
+    /** The chain was walked to its root inside the APK, and nothing declares it. */
+    data object Absent : FieldLookup
+
+    /** The chain left the APK at [at], so nothing above it can be read. */
+    data class Unknowable(val at: String) : FieldLookup
+}
+
+/**
+ * Field [name] on [type] or anything above it, **static or instance**, resolved the way the runtime
+ * resolves a field reference.
+ *
+ * Both kinds, because a descriptor does not say which it is and the emitters read both: `sget-object
+ * Lpmy;->c:Lpmy;` is an enum constant, and enum constants are static. Searching only
+ * `instanceFields` made [checkFieldExists] reject every `sget` this project emits — a patch that
+ * throws before writing an instruction, which Morphe catches and continues past, shipping a build
+ * with the feature quietly missing.
+ */
+internal fun BytecodePatchContext.findField(type: String, name: String): FieldLookup {
+    var current: String? = type
+    while (current != null) {
+        val definition = classDefByOrNull(current) ?: return FieldLookup.Unknowable(current)
+        (definition.staticFields + definition.instanceFields)
+            .firstOrNull { it.name == name }
+            ?.let { return FieldLookup.Found(it) }
+        current = definition.superclass
+    }
+    return FieldLookup.Absent
+}
+
 internal fun BytecodePatchContext.findInstanceField(type: String, name: String): Field? {
     var current: String? = type
     while (current != null) {

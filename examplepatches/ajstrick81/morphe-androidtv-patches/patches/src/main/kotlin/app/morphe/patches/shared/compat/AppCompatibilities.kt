@@ -25,6 +25,7 @@ object AppCompatibilities {
                          AppTarget("26.8.0+rc6-2026.05.20"),
                          AppTarget("26.9.2+rc1-2026.06.12"),
                          AppTarget("26.12.1+rc1-2026.07.15"),
+                         AppTarget("26.16.0+rc2-2026.09.08"),
         ),
     )
 

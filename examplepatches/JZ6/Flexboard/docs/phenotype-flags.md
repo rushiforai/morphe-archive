@@ -116,10 +116,117 @@ Two consequences:
 1. `forceFlagsOn` is boolean-only and structurally cannot do this. Setting a group needs a typed
    override covering the long and string factories as well. `ToolbarCapacityPatch` already flips a
    long-valued flag (`config_max_access_points`) through its own `raiseFlagDefault`, so the same job
-   is currently written twice in two shapes.
+   is currently written twice in two shapes. That duplication is a refactor, **not a missing
+   capability**, and reading it as one is what produced the wrong Rambler answer recorded below.
+   Long and string flags can be written today by rewriting the literal, exactly as
+   `raiseFlagDefault` does; what `forceFlagsOn` lacks is a *shared* way to do it.
 2. A flag whose safety depends on what the *device* can provide should be a user choice with a
    conservative default, not a compile-time constant. There is no way to detect AICore provisioning
    from inside a patch.
+
+## A worked mistake: Rambler
+
+Asked to enable "rambler mode" from the roadmap, the answer came out as *no*. **The answer was
+wrong**, and it is kept here in full because the way it was wrong is more instructive than the seven
+earlier results. The gate analysis below is correct; the conclusion drawn from it was not.
+
+**Rambler is agentic dictation** — `libs/agenticdictation/`, 51 classes, "Push to Ramble". It rewrites
+speech into composed text. Nothing in the dex spells `rambler mode`; the marketing name and the
+internal one (`jetson`) differ, which is why the first search for it has to be for the feature rather
+than the phrase.
+
+The eligibility check is `Lmev;->B(Landroid/content/Context;)Z`, and it requires all six of:
+
+| | Condition | Ships as |
+|---|---|---|
+| 1 | `enable_agentic_dictation` | boolean `0` — forceable |
+| 2 | `config_agentic_dictation` | boolean `1` — already on |
+| 3 | `enable_jetson_in_toolbar` | boolean — forceable |
+| 4 | `ModuleManager` reports `Lmql;` enabled | module registration |
+| 5 | `Lmqk;->b(Context)` | reads the user preference `enable_jetson`, default off |
+| 6 | `Lmqk;->c()` | **`ad_activation_type == 2`** |
+
+Condition 6 ends it:
+
+```smali
+# Lmqk;->c()
+sget-object v0, Lmql;->D:Lnxp;        # ad_activation_type
+...
+const/4 v2, #4
+invoke-static {v2}, La;->ad(I)I       # 4 != 1, so 4 - 2 = 2
+cmp-long v0, v0, v2
+```
+
+```smali
+# Lmql;-><clinit>
+const-string  v0, 'ad_activation_type'
+const-wide/16 v1, #1
+invoke-static {v0, v1, v2}, Lnxs;->c(Ljava/lang/String;J)Lnxp;
+```
+
+**The gate needs 2 and the flag ships 1**, so `c()` is false and `B()` is false no matter what any
+boolean does.
+
+### Why the conclusion was wrong
+
+From that, the original write-up concluded: *it is also a `long`, which `forceFlagsOn` structurally
+cannot write, so the feature is out of reach.* The first clause is true. The second does not follow,
+and the counter-example was already in this repository:
+
+```kotlin
+// ToolbarCapacityPatch.raiseFlagDefault — a long-valued flag, rewritten in place
+replaceInstruction(defaultIndex, "const-wide/16 v$register, 0x${TOOLBAR_CAPACITY.toString(16)}")
+```
+
+`forceFlagsOn` is boolean-only. Rewriting a `const-wide/16` literal is not `forceFlagsOn`, and this
+project has done it since the toolbar work. The paragraph two sections above even says so — filed
+there as a *tidiness* complaint about the same job being written twice, and read as one.
+
+The error is worth naming precisely, because it is not a missing fact. Every fact needed was present
+and correct. The step that failed was concluding **"the capability does not exist"** from **"the
+helper I reached for does not have it"**. A second implementation was thirty lines away in a sibling
+patch.
+
+The fix is one instruction:
+
+```kotlin
+replaceInstruction(valueIndex, "const-wide/16 v$valueRegister, 0x2")
+```
+
+The server-configured argument was overstated too. The quota, consent and compliance machinery is
+real, and a resigned build cannot obtain any of it — but "cannot be configured" and "cannot be
+enabled" are different claims, and only the first was ever established.
+
+**Settled on a device.** Rambler now works on a patched build: three booleans forced, the
+activation type rewritten from 1 to 2, and the feature offered as a choice in Voice settings. It
+took four attempts, each failing on a different misreading of how the flags take their defaults —
+hoisted mistaken for off, an unresolved value used anyway, a flag that owns its constant and shares
+it forward, and a fingerprint asking for `STATIC` where a `<clinit>` is `STATIC | CONSTRUCTOR`. The
+first three now reproduce in the gate; the fourth cannot, because the gate never executes a patch,
+so its precondition is pinned instead.
+
+The lasting correction is not about Rambler. It is that a long-valued flag was treated as
+unreachable for months because the helper reached for was boolean-only, while a literal rewrite sat
+in a sibling patch the whole time.
+
+Everything behind the gate is the server-configured pattern in its clearest form:
+`agentic_dictation_backend_type` (`..._BACKEND_TYPE_S3`), `..._max_server_retries`,
+`..._quota_refresh_hour_pt`, `..._server_quota_drained_error_code` with an
+`AgenticDictationQuotaDrainedDialog`, an `agenticdictation/compliance/` package, seventeen onboarding
+strings including `AGENTIC_DICTATION_ONBOARDING_ACCEPTED`, and `agentic_dictation_excluded_language_tags`.
+An activation mode, a quota and a consent record are three things a resigned build cannot obtain.
+
+Condition 5 is the one part that *is* reachable: `enable_jetson` is an ordinary preference key, and
+`GboardSettings` already writes Gboard preferences from the extension. It sits downstream of a gate
+that is not reachable, which is the whole lesson in one line.
+
+**A note on method.** The first pass at this reported zero dex strings containing `rambl`, because
+the scan looped over `d.h['string_ids_size']` and `Dex` has no `h` attribute — so it iterated nothing
+and returned a confident empty answer. The correct attribute is `str_n`; the real count is 56 across
+120,537 strings. A search that finds nothing and a search that never ran look identical, which is the
+same failure this document's own classifier section is about. The second thing found was that
+`show_rambler_dict_settings` has **zero readers in the dex** — it had been proposed as the "safest
+first probe" precisely because it sounded harmless, and it is inert.
 
 ## Trying to automate the rule, and failing
 

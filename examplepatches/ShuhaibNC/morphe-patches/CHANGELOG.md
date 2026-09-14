@@ -1,3 +1,15 @@
+## [1.6.1](https://github.com/ShuhaibNC/morphe-patches/compare/v1.6.0...v1.6.1) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* beatly ([a77deb7](https://github.com/ShuhaibNC/morphe-patches/commit/a77deb75b1fa6f5f49de1a9279a1bf4f26f6a6a2))
+
+## [1.6.1-dev.1](https://github.com/ShuhaibNC/morphe-patches/compare/v1.6.0...v1.6.1-dev.1) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* beatly ([a77deb7](https://github.com/ShuhaibNC/morphe-patches/commit/a77deb75b1fa6f5f49de1a9279a1bf4f26f6a6a2))
+
 ## [1.6.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.5.0...v1.6.0) (2026-09-11)
 
 ### ✨ New Features

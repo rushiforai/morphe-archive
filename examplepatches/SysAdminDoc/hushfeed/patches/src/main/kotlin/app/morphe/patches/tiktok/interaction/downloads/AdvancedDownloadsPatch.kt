@@ -14,6 +14,7 @@ import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.util.getReference
+import app.morphe.util.implementationOrPatchException
 import app.morphe.util.numberOfParameterRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -41,7 +42,7 @@ internal fun MutableMethod.interceptProfileAvatarLongPress(captureField: String)
     check(accessFlags and AccessFlags.STATIC.value != 0
         && parameterTypes.map(CharSequence::toString) == listOf(definingClass, VIEW)
         && returnType == "V") { "Advanced downloads: unexpected avatar callback signature." }
-    val registers = implementation!!.registerCount
+    val registers = implementationOrPatchException("Advanced downloads").registerCount
     check(registers - numberOfParameterRegisters >= 1 && registers <= 16) {
         "Advanced downloads: avatar callback registers no longer fit the native gesture hook."
     }
@@ -151,6 +152,25 @@ private object StoryPlayAreaBindFingerprint : Fingerprint(
     custom = { method, _ -> method.accessFlags and AccessFlags.STATIC.value == 0 },
 )
 
+/** The two concrete page bind methods named by [StoryPlayAreaBindFingerprint]'s contract. */
+internal fun requireStoryBindMethods(matches: Iterable<MutableMethod>): List<MutableMethod> {
+    val signatureMatches = matches.toList()
+    if (signatureMatches.size != 2) {
+        throw PatchException(
+            "Advanced downloads: expected exactly two StoryImmersivePlayAreaComponent bind " +
+                "methods taking (Int, Aweme), found ${signatureMatches.size}.",
+        )
+    }
+    val bodyless = signatureMatches.filter { it.implementation == null }
+    if (bodyless.isNotEmpty()) {
+        throw PatchException(
+            "Advanced downloads: ${bodyless.size} of the two story bind methods has no " +
+                "implementation to hook.",
+        )
+    }
+    return signatureMatches
+}
+
 private object StartDownloadFingerprint : Fingerprint(
     strings = listOf("download_method", "download_action"),
     parameters = listOf("Lcom/ss/android/ugc/aweme/feed/model/Aweme;", "Landroid/content/Context;", "I", "Ljava/lang/String;", "Z", "Lcom/ss/android/ugc/aweme/sharer/model/SharePackage;"),
@@ -168,7 +188,8 @@ val advancedDownloadsPatch = bytecodePatch(
     execute {
         listOf(DownloadAddressFingerprint, CleanDownloadAddressFingerprint).forEach { fingerprint ->
             fingerprint.method.apply {
-                check(implementation!!.registerCount - numberOfParameterRegisters >= 1) {
+                check(implementationOrPatchException("Advanced downloads").registerCount -
+                    numberOfParameterRegisters >= 1) {
                     "Advanced downloads: ${fingerprint.method.name} has no free local register."
                 }
                 addInstructionsWithLabels(0, """
@@ -180,7 +201,8 @@ val advancedDownloadsPatch = bytecodePatch(
             }
         }
         StartDownloadFingerprint.method.apply {
-            check(implementation!!.registerCount - numberOfParameterRegisters >= 1) {
+            check(implementationOrPatchException("Advanced downloads").registerCount -
+                numberOfParameterRegisters >= 1) {
                 "Advanced downloads: the photo download start has no free local register."
             }
             addInstructionsWithLabels(0, """
@@ -204,12 +226,14 @@ val advancedDownloadsPatch = bytecodePatch(
             OwnProfileAvatarLongPressFingerprint,
             OtherProfileAvatarLongPressFingerprint,
         ).map { it.method }
+        val firstAvatarHandler = avatarHandlers.firstOrNull()
+            ?: throw PatchException("Advanced downloads: no profile avatar hold handler resolved.")
         // One fingerprint is the other's strings plus two, so a build that blurred the two apart
         // would have them both land here and one gesture would go unhooked with nothing said.
         if (avatarHandlers.distinctBy { "${it.definingClass}->${it.name}" }.size != avatarHandlers.size) {
             throw PatchException(
                 "Advanced downloads: both profile avatar handlers resolved to " +
-                    "${avatarHandlers.first().definingClass}->${avatarHandlers.first().name}.",
+                    "${firstAvatarHandler.definingClass}->${firstAvatarHandler.name}.",
             )
         }
         avatarHandlers.forEach { handler ->
@@ -223,9 +247,7 @@ val advancedDownloadsPatch = bytecodePatch(
             "invoke-static/range { p0 .. p1 }, ${EXTENSION}StoryDownloads;->" +
                 "attachPlayArea(Ljava/lang/Object;Landroid/view/View;)V",
         )
-        StoryPlayAreaBindFingerprint.matchAll()
-            .map { it.method }
-            .filter { it.implementation != null }
+        requireStoryBindMethods(StoryPlayAreaBindFingerprint.matchAll().map { it.method })
             .forEach { method ->
                 method.addInstruction(
                     0,

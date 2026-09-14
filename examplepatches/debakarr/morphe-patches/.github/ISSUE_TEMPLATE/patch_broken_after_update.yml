@@ -11,7 +11,7 @@ body:
         Use this form when a patch worked before, but stopped working after updating the target app.
 
         Before creating a new report, please search existing open and closed bug reports:
-        https://github.com/rushiranpise/morphe-patches/issues?q=label%3A%22bug%22
+        https://github.com/debakarr/morphe-patches/issues?q=label%3A%22bug%22
   - type: input
     id: app_name
     attributes:
@@ -73,7 +73,7 @@ body:
     id: error_logs
     attributes:
       label: Error logs
-      description: 'Required: paste the relevant patching or runtime logs. See the README for how to capture logs: https://github.com/rushiranpise/morphe-patches#capture-logs'
+      description: 'Required: paste the relevant patching or runtime logs. See the README for how to capture logs: https://github.com/debakarr/morphe-patches#capture-logs'
       render: shell
     validations:
       required: true

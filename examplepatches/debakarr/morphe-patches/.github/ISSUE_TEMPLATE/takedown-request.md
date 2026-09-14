@@ -18,4 +18,4 @@
 <!-- Any other details -->
 
 /label ~takedown ~priority
-/assign @rushiranpise
+/assign @debakarr

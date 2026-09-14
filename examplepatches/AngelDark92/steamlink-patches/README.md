@@ -17,7 +17,7 @@ This repository contains the patch source and downloadable `.mpp` patch bundles,
 
 ## 1. Get the Steam Link VR APK
 
-On your PC, open the Steam console with `steam://open/console`, then run the command for the version you want:
+On your PC, open the Steam console with `steam://open/console` on your web browser, then on steam run the command for the version you want:
 
 | Steam Link version / build | Steam console command |
 |---|---|

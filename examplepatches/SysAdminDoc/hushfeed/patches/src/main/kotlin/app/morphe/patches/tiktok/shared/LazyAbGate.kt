@@ -19,14 +19,19 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.SwitchPayload
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction31t
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 /** The factory a merged lambda group hands out instances from, indexed by the lambda's number. */
 private const val GROUP_FACTORY = "get\$arr\$"
+
+/** R8's field holding the number that selects one lambda body from a merged group. */
+private const val GROUP_INDEX_FIELD = "\$t"
 
 /** How deep R8's split switch is followed before giving up. */
 private const val MAX_DISPATCH_DEPTH = 8
@@ -36,6 +41,9 @@ private const val CONSTANT_LOOKBACK = 4
 
 /** How far past a switch target the call it makes is looked for. */
 private const val TARGET_LOOKAHEAD = 4
+
+/** Integer register copies R8 may place between a factory number and its call. */
+private val INTEGER_MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)
 
 /**
  * The one class that reads the setting [key] behind a lazy value, and the method on it of the
@@ -175,15 +183,30 @@ internal class LazyAbGateSearch(private val classOf: (String) -> ClassDef?) {
  * The constant the factory is handed: the last one loaded into the [register] the call reads,
  * looking back a few instructions. Matched on the register rather than on being the nearest
  * constant, because the initialiser loads other numbers around the call and the nearest one is
- * not necessarily the one handed over.
+ * not necessarily the one handed over. One ordinary register move is followed, with a fresh
+ * lookback from that move, because R8 may copy the number into the factory's argument register.
  */
-internal fun constantBefore(instructions: List<Instruction>, at: Int, register: Int): Int? {
+internal fun constantBefore(instructions: List<Instruction>, at: Int, register: Int): Int? =
+    constantBefore(instructions, at, register, followMove = true)
+
+private fun constantBefore(
+    instructions: List<Instruction>,
+    at: Int,
+    register: Int,
+    followMove: Boolean,
+): Int? {
     for (index in (at - 1) downTo maxOf(0, at - CONSTANT_LOOKBACK)) {
         val instruction = instructions[index]
-        if (instruction !is WideLiteralInstruction) continue
-        if (!instruction.opcode.name.startsWith("const")) continue
-        if ((instruction as? OneRegisterInstruction)?.registerA != register) continue
-        return instruction.wideLiteral.toInt()
+        if (instruction is WideLiteralInstruction &&
+            instruction.opcode.name.startsWith("const") &&
+            (instruction as? OneRegisterInstruction)?.registerA == register
+        ) {
+            return instruction.wideLiteral.toInt()
+        }
+        if (!followMove || instruction.opcode !in INTEGER_MOVES) continue
+        val move = instruction as? TwoRegisterInstruction ?: continue
+        if (move.registerA != register) continue
+        return constantBefore(instructions, index, move.registerB, followMove = false)
     }
     return null
 }
@@ -192,9 +215,19 @@ internal fun constantBefore(instructions: List<Instruction>, at: Int, register: 
 internal fun Method.dispatchesOnIndex(): Boolean {
     val instructions = implementation?.instructions?.toList() ?: return false
     if (instructions.size < 2) return false
-    if (instructions[0].opcode != Opcode.IGET) return false
-    return instructions[1].opcode == Opcode.PACKED_SWITCH ||
-        instructions[1].opcode == Opcode.SPARSE_SWITCH
+    val read = instructions[0]
+    if (read.opcode != Opcode.IGET) return false
+    val field = read.getReference<FieldReference>() ?: return false
+    if (field.definingClass != definingClass ||
+        field.name != GROUP_INDEX_FIELD ||
+        field.type != "I"
+    ) {
+        return false
+    }
+    val switch = instructions[1]
+    if (switch.opcode != Opcode.PACKED_SWITCH && switch.opcode != Opcode.SPARSE_SWITCH) return false
+    return (read as? TwoRegisterInstruction)?.registerA ==
+        (switch as? OneRegisterInstruction)?.registerA
 }
 
 /**

@@ -84,7 +84,7 @@ private fun MutableMethod.checkCameraPathRun(fieldIndex: Int) {
 @Suppress("unused")
 val downloadsPatch = bytecodePatch(
     name = "Downloads",
-    description = "Adds watermark-free downloads, comment sticker saving, configurable folders, and filename templates.",
+    description = "Adds watermark-free downloads, comment sticker saving, configurable folders, and filename templates. Network fetches accept public HTTPS addresses and follow at most five checked redirects.",
     default = true,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

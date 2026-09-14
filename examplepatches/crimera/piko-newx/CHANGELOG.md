@@ -1,3 +1,22 @@
+## [3.21.2](https://github.com/crimera/piko-newx/compare/v3.21.1...v3.21.2) (2026-09-13)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** stabilize inline download icon selection ([764cd7b](https://github.com/crimera/piko/commit/764cd7bf765d96482b3412f356710098ce55fa97))
+* **Twitter - newx:** skip disabled inline download render hooks ([3da9efd](https://github.com/crimera/piko/commit/3da9efdbe81d02dabf5c367726069878ab476742))
+* **Twitter - newx:** make inline action membership identity based ([d2b0adb](https://github.com/crimera/piko/commit/d2b0adba393b38a49c9a3733f644bb5bd7051ca7))
+* **Twitter - newx:** skip unnecessary inline media inspection ([148c74b](https://github.com/crimera/piko/commit/148c74bd9472b8783df5690d4dd25bfb62af0f66))
+* **Twitter - newx:** avoid full media parsing during composition ([3bfd7ad](https://github.com/crimera/piko/commit/3bfd7ad087233e3fb867b211635364be21b79357))
+* **Twitter - newx:** gate inline download diagnostics ([2391e51](https://github.com/crimera/piko/commit/2391e5129a37c843345c57921ae3d72a5d3f49e2))
+
+### 🔧 Improvements
+* **Twitter:** prune low-value NewX tests, add test policy to AGENTS.md ([88bd311](https://github.com/crimera/piko/commit/88bd311247e1992d383bbed8d8fe37b6f5555479))
+
+## [3.21.1](https://github.com/crimera/piko-newx/compare/v3.21.0...v3.21.1) (2026-09-13)
+
+### 🐛 Bug Fixes
+* **Twitter:** inline download button showing the share icon ([f94e38c](https://github.com/crimera/piko/commit/f94e38c52418e06d607fdd6382caf027ae0e6760))
+* **Twitter - newx:** validate dynamic choice resources ([0c01bf1](https://github.com/crimera/piko/commit/0c01bf1cb8db738d4046eb1602dc2dde56051349))
+
 ## [3.21.0](https://github.com/crimera/piko-newx/compare/v3.20.0...v3.21.0) (2026-09-13)
 
 ### 🐛 Bug Fixes

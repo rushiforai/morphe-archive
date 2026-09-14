@@ -14,12 +14,14 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.util.numberOfParameterRegisters
-import com.android.tools.smali.dexlib2.AccessFlags
 
-private object RiskControlServiceExecuteFingerprint : Fingerprint(
+internal object RiskControlServiceExecuteFingerprint : Fingerprint(
     definingClass = "Lcom/bytedance/bdturing/verify/RiskControlService;",
     name = "execute",
     returnType = "Z",
+    // The injection reads the first two declared parameters from p1 and p2. A static method
+    // starts them at p0, so accepting one would call the gate with the wrong objects.
+    custom = { method, _ -> method.hasInstanceReceiver() },
 )
 
 /**
@@ -64,19 +66,8 @@ val bdTuringCaptchaPopupPatch = bytecodePatch(
             }
             val requestType = parameterTypes[0].toString()
             val callbackType = parameterTypes[1].toString()
-            val request = classDefByOrNull(requestType)
-                ?: throw PatchException("Hide the risk control CAPTCHA: $requestType is not a class in this build.")
-            for ((getter, returns) in listOf("getActivity" to "Landroid/app/Activity;", "getServiceType" to "Ljava/lang/String;")) {
-                check(request.methods.any { it.name == getter && it.parameterTypes.none() && it.returnType == returns }) {
-                    "Hide the risk control CAPTCHA: $requestType has no $getter()$returns."
-                }
-            }
-            val callback = classDefByOrNull(callbackType)
-                ?: throw PatchException("Hide the risk control CAPTCHA: $callbackType is not a class in this build.")
-            check(callback.methods.any { it.name == "onFail" && it.returnType == "V" && it.parameterTypes.map(CharSequence::toString) == listOf("I") }) {
-                "Hide the risk control CAPTCHA: $callbackType has no onFail(I)V to refuse the request with."
-            }
-            val onFailInvoke = if (AccessFlags.INTERFACE.value and callback.accessFlags != 0) "invoke-interface" else "invoke-virtual"
+            val callback = requireRiskControlMembers(requestType, callbackType) { classDefByOrNull(it) }
+            val onFailInvoke = callback.instanceInvokeKind()
 
             // v0 to v2 are used as scratch. If the frame has fewer than three locals they
             // would be parameter registers instead, and writing v2 would destroy p2 (the

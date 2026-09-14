@@ -129,6 +129,29 @@ class LazyAbGateTest {
     }
 
     @Test
+    fun `the factory number follows one move with a fresh lookback`() {
+        val clinit = method("<clinit>", emptyList(), "V", 5).apply {
+            addInstructionsWithLabels(
+                0,
+                """
+                    const/16 v3, 0x5c0
+                    const/4 v4, 0x0
+                    const/4 v4, 0x1
+                    move v0, v3
+                    const/4 v1, 0x2
+                    const/4 v2, 0x3
+                    invoke-static { v0 }, $group->get${'$'}arr${'$'}(I)Ljava/lang/Object;
+                    return-void
+                """,
+            )
+        }
+        val instructions = clinit.implementation!!.instructions.toList()
+        val call = instructions.indexOfFirst { it.opcode == Opcode.INVOKE_STATIC }
+
+        assertEquals(1472, constantBefore(instructions, call, 0))
+    }
+
+    @Test
     fun `the search refuses a class with two methods of the gate's shape by name`() {
         // The old prefilter asked for exactly one method of the shape and skipped the class
         // when there were two, so the failure read as "no class reads that key" when one did.
@@ -198,6 +221,52 @@ class LazyAbGateTest {
     }
 
     @Test
+    fun `a decoy switch on another field does not make a second gate class`() {
+        val key = "a_settings_key"
+        val realType = "LX/RealGate;"
+        val realClinit = method("<clinit>", emptyList(), "V", 1, owner = realType).apply {
+            addInstructionsWithLabels(0, "const-string v0, \"$key\"\nreturn-void")
+        }
+        val realGate = lazyRead(unwraps = true, owner = realType)
+        val realClass = classDef(realType, realClinit, realGate)
+
+        val decoyType = "LX/DecoyGate;"
+        val decoyClinit = method("<clinit>", emptyList(), "V", 1, owner = decoyType).apply {
+            addInstructionsWithLabels(
+                0,
+                """
+                    const/4 v0, 0x7
+                    invoke-static { v0 }, $group->get${'$'}arr${'$'}(I)Ljava/lang/Object;
+                    return-void
+                """,
+            )
+        }
+        val decoyClass = classDef(
+            decoyType,
+            decoyClinit,
+            lazyRead(unwraps = true, owner = decoyType, name = "LIZ"),
+            lazyRead(unwraps = true, owner = decoyType, name = "LIZIZ"),
+        )
+        val decoyDispatcher = dispatcher(
+            "invoke",
+            firstKey = 7,
+            targets = listOf("invoke\$7"),
+            fieldName = "\$u",
+        )
+        val groupDef = group(decoyDispatcher, body("invoke\$7", key))
+        val search = LazyAbGateSearch { type -> if (type == group) groupDef else null }
+        val gate = { method: Method -> method.returnType == "Z" && method.isLazyAbRead() }
+
+        val (foundClass, foundMethod) = search.find("What", key, gate) { accept ->
+            accept(realClass)
+            accept(decoyClass)
+        }
+        assertEquals(realType, foundClass.type)
+        assertEquals(realGate.name, foundMethod.name)
+        assertFalse(decoyDispatcher.dispatchesOnIndex())
+    }
+
+    @Test
     fun `the key is found in any no-argument method of a lambda class, not only the first`() {
         // Kotlin adds a bridge invoke()Object beside invoke()String, and R8 can list the bridge
         // first. The bridge holds no string.
@@ -240,6 +309,22 @@ class LazyAbGateTest {
         val entry = dispatcher("invoke", firstKey = 1, targets = listOf("invoke\$1"))
         assertTrue(entry.dispatchesOnIndex())
         assertFalse(body("invoke\$1").dispatchesOnIndex())
+        assertFalse(
+            dispatcher(
+                "invoke",
+                firstKey = 1,
+                targets = listOf("invoke\$1"),
+                fieldOwner = "LX/AnotherGroup;",
+            ).dispatchesOnIndex(),
+        )
+        assertFalse(
+            dispatcher(
+                "invoke",
+                firstKey = 1,
+                targets = listOf("invoke\$1"),
+                fieldName = "\$u",
+            ).dispatchesOnIndex(),
+        )
     }
 
     @Test
@@ -254,6 +339,8 @@ class LazyAbGateTest {
         firstKey: Int,
         targets: List<String>,
         parameters: List<String> = emptyList(),
+        fieldOwner: String = group,
+        fieldName: String = "\$t",
     ): MutableMethod {
         val cases = targets.mapIndexed { index, target ->
             """
@@ -268,7 +355,7 @@ class LazyAbGateTest {
             addInstructionsWithLabels(
                 0,
                 """
-                    iget v0, v1, $group->${'$'}t:I
+                    iget v0, v1, $fieldOwner->$fieldName:I
                     packed-switch v0, :switch_data
                     const/4 v0, 0x0
                     return-object v0

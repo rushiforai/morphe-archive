@@ -470,6 +470,7 @@ Story saved to %1$s	Story gespeichert unter %1$s
 Subtitle language	Untertitelsprache
 Take away the streak button in a chat and the reminder message that goes with it.	Entfernt die Serien-Schaltfläche in einem Chat und die zugehörige Erinnerung.
 Tap %1$s again to send	Zum Senden noch einmal auf %1$s tippen
+Tap again to send	Zum Senden noch einmal tippen
 Tap the feed Follow button twice within four seconds.	Tippe die Folgen-Schaltfläche im Feed innerhalb von vier Sekunden zweimal an.
 Tap the like heart twice within four seconds. Removing a like stays immediate.	Tippe das Like-Herz innerhalb von vier Sekunden zweimal an. Das Entfernen eines Likes bleibt sofort.
 That is not an app name. Try something like com.example.downloader, or leave the box empty to keep saving in TikTok.	Das ist kein App-Name. Versuche etwas wie com.example.downloader, oder lass das Feld leer, damit weiter in TikTok gespeichert wird.
@@ -871,3 +872,5 @@ Loaded values are still being read. Try again in a moment.	Die geladenen Werte w
 The selected loaded-values file could not be read. Try again.	Die ausgewählte Datei mit geladenen Werten konnte nicht gelesen werden. Versuche es erneut.
 Enter a number. The previous value was kept.	Gib eine Zahl ein. Der vorherige Wert wurde beibehalten.
 There is no diagnostic data to clear.	Es gibt keine Diagnosedaten zum Löschen.
+Lab data was over its rule limit, so it was cleared without an undo copy. Restart TikTok.	Die Lab-Daten überschritten das Regellimit und wurden daher ohne Rückgängig-Kopie gelöscht. Starte TikTok neu.
+The Lab keeps at most %1$s rules. This change would make %2$s, so nothing was changed.	Das Lab speichert höchstens %1$s Regeln. Diese Änderung würde %2$s ergeben, daher wurde nichts geändert.

@@ -1268,9 +1268,18 @@ public final class FeatureGateLabFragment extends Fragment {
     }
 
     private void reset(boolean allData) {
-        runLabChange(() -> FeatureGateLabUndo.reset(allData), allData
-                ? L10n.t(getContext(), "Lab data reset. Undo last Lab change is in the menu. Restart TikTok.")
-                : L10n.t(getContext(), "Lab overrides reset. Undo last Lab change is in the menu. Restart TikTok."));
+        runLabChange(() -> {
+            boolean undoAvailable = FeatureGateLabUndo.reset(allData);
+            if (allData && !undoAvailable) {
+                return L10n.t(Utils.getContext(),
+                        "Lab data was over its rule limit, so it was cleared without an undo copy. Restart TikTok.");
+            }
+            return allData
+                    ? L10n.t(Utils.getContext(),
+                            "Lab data reset. Undo last Lab change is in the menu. Restart TikTok.")
+                    : L10n.t(Utils.getContext(),
+                            "Lab overrides reset. Undo last Lab change is in the menu. Restart TikTok.");
+        });
     }
 
     private interface LabChange { void run() throws Exception; }

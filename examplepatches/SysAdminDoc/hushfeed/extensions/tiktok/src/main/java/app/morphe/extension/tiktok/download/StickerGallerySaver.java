@@ -51,9 +51,7 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -278,52 +276,58 @@ public final class StickerGallerySaver {
             Context context,
             MediaBudget.Deadline deadline
     ) throws IOException {
+        return downloadSticker(url, target, context, deadline, MediaTransport.DEFAULT);
+    }
+
+    static String downloadSticker(
+            String url,
+            File target,
+            Context context,
+            MediaBudget.Deadline deadline,
+            MediaTransport.Client transport
+    ) throws IOException {
         IOException failure = new IOException("Sticker URL failed");
         for (int attempt = 0; attempt < MediaBudget.MAX_ATTEMPTS_PER_MIRROR; attempt++) {
-            HttpURLConnection connection = null;
-            try {
+            try (MediaTransport.Response response = transport.open(
+                    url, deadline, CONNECT_TIMEOUT_MS, READ_TIMEOUT_MS,
+                    "TikTok 46.2.3 Morphe", false)) {
                 MediaBudget.check(deadline);
-                connection = (HttpURLConnection) new URL(url).openConnection();
-                connection.setConnectTimeout(MediaBudget.timeoutMillis(deadline, CONNECT_TIMEOUT_MS));
-                connection.setReadTimeout(MediaBudget.timeoutMillis(deadline, READ_TIMEOUT_MS));
-                connection.setInstanceFollowRedirects(true);
-                connection.setRequestProperty("User-Agent", "TikTok 46.2.3 Morphe");
-                int responseCode = connection.getResponseCode();
+                int responseCode = response.statusCode;
                 if (MediaBudget.isTransientStatus(responseCode)
                         && attempt + 1 < MediaBudget.MAX_ATTEMPTS_PER_MIRROR) {
-                    MediaBudget.waitBeforeRetry(connection.getHeaderField("Retry-After"), attempt, deadline);
+                    MediaBudget.waitBeforeRetry(response.header("Retry-After"), attempt, deadline);
                     continue;
                 }
                 if (responseCode < 200 || responseCode >= 300) {
                     throw new IOException("Sticker server returned " + responseCode);
                 }
-                long declaredLength = contentLength(connection);
+                long declaredLength = contentLength(response.header("Content-Length"));
                 MediaBudget.checkTransferLength(declaredLength);
                 MediaBudget.checkDiskSpace(context.getCacheDir(), declaredLength, deadline);
-                try (InputStream input = connection.getInputStream();
+                try (InputStream input = response.inputStream();
                      OutputStream output = new FileOutputStream(target)) {
                     MediaFileWriter.copy(input, output, MAX_STICKER_BYTES, deadline);
                 }
-                return connection.getContentType();
+                return response.contentType();
             } catch (IOException | RuntimeException error) {
+                boolean cleaned = MediaCache.delete(target);
                 boolean retryable = MediaBudget.isRetryableTransport(error);
-                if (retryable && attempt + 1 < MediaBudget.MAX_ATTEMPTS_PER_MIRROR) {
+                if (cleaned && retryable && attempt + 1 < MediaBudget.MAX_ATTEMPTS_PER_MIRROR) {
                     MediaBudget.waitBeforeRetry(null, attempt, deadline);
                     continue;
                 }
                 failure.addSuppressed(new IOException(
                         "Sticker attempt failed (" + error.getClass().getSimpleName() + "): "
                                 + summarizeUrl(url), error));
+                if (!cleaned) failure.addSuppressed(
+                        new IOException("Could not remove partial sticker output"));
                 break;
-            } finally {
-                if (connection != null) connection.disconnect();
             }
         }
         throw failure;
     }
 
-    private static long contentLength(HttpURLConnection connection) {
-        String header = connection.getHeaderField("Content-Length");
+    private static long contentLength(String header) {
         if (header == null) return -1L;
         try {
             return Long.parseLong(header.trim());
@@ -849,7 +853,7 @@ public final class StickerGallerySaver {
             Object directValue = invokeNoArg(sticker, "getUrl");
             if (directValue instanceof String) {
                 String directUrl = ((String) directValue).trim();
-                if (directUrl.startsWith("https://")) {
+                if (MediaTransport.hasAllowedShape(directUrl)) {
                     Object typeValue = invokeNoArg(sticker, "getType");
                     String type = typeValue == null
                             ? ""
@@ -974,7 +978,7 @@ public final class StickerGallerySaver {
             // Over TLS only. These bytes are fetched and handed to a native WebP decoder, so a
             // cleartext mirror is an unauthenticated body reaching a parser written in C.
             String url = item.toString().trim();
-            if (url.startsWith("https://")) result.add(url);
+            if (MediaTransport.hasAllowedShape(url)) result.add(url);
         }
         return result.isEmpty() ? Collections.emptyList() : List.copyOf(result);
     }

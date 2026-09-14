@@ -8,8 +8,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,10 +38,14 @@ final class SubtitleDownloads {
             if (format == null || !List.of("srt", "webvtt", "vtt", "creator_caption", "json").contains(format)) continue;
             List<String> urls = new ArrayList<>();
             String url = Reflect.string(caption, "getUrl", "url");
-            if (url != null && url.startsWith("https://")) urls.add(url);
+            if (MediaTransport.hasAllowedShape(url)) urls.add(url);
             Object mirrors = Reflect.readField(caption, "urlList");
             if (mirrors instanceof List<?>) for (Object mirror : (List<?>) mirrors) {
-                if (mirror instanceof String && ((String) mirror).startsWith("https://") && !urls.contains(mirror)) urls.add((String) mirror);
+                if (mirror instanceof String
+                        && MediaTransport.hasAllowedShape((String) mirror)
+                        && !urls.contains(mirror)) {
+                    urls.add((String) mirror);
+                }
             }
             if (urls.isEmpty()) continue;
             String label = Reflect.firstNonBlank(Reflect.string(caption, "getLanguageCode", "languageCode"),
@@ -100,6 +102,16 @@ final class SubtitleDownloads {
     }
 
     static int save(Context context, List<Track> tracks, String videoName, String path) {
+        return save(context, tracks, videoName, path, MediaTransport.DEFAULT);
+    }
+
+    static int save(
+            Context context,
+            List<Track> tracks,
+            String videoName,
+            String path,
+            MediaTransport.Client transport
+    ) {
         int saved = 0;
         // The name comes back from the media provider, which is free to hand back one with no
         // extension. Taking the whole name then keeps the subtitle beside its video instead of
@@ -113,7 +125,7 @@ final class SubtitleDownloads {
             File temp = null;
             try {
                 MediaBudget.check(null);
-                String srt = fetch(track.urls, track.format);
+                String srt = fetch(track.urls, track.format, transport);
                 MediaBudget.checkDiskSpace(context.getCacheDir(), srt.length() * 2L);
                 temp = MediaCache.createTempFile(context, "subtitle-", ".srt");
                 try (var output = new FileOutputStream(temp)) { output.write(srt.getBytes(StandardCharsets.UTF_8)); }
@@ -129,25 +141,29 @@ final class SubtitleDownloads {
     }
 
     static String fetch(List<String> urls, String format) throws IOException {
+        return fetch(urls, format, MediaTransport.DEFAULT);
+    }
+
+    static String fetch(
+            List<String> urls,
+            String format,
+            MediaTransport.Client transport
+    ) throws IOException {
         IOException last = new IOException("No subtitle URL");
         MediaBudget.Deadline deadline = MediaBudget.deadline();
         for (String url : urls) {
             for (int attempt = 0; attempt < MediaBudget.MAX_ATTEMPTS_PER_MIRROR; attempt++) {
-                HttpURLConnection connection = null;
-                try {
+                try (MediaTransport.Response response = transport.open(
+                        url, deadline, 15000, 30000, null, true)) {
                     MediaBudget.check(deadline);
-                    connection = (HttpURLConnection) new URL(url).openConnection();
-                    connection.setConnectTimeout(MediaBudget.timeoutMillis(deadline, 15000));
-                    connection.setReadTimeout(MediaBudget.timeoutMillis(deadline, 30000));
-                    connection.setRequestProperty("Accept-Encoding", "identity");
-                    int responseCode = connection.getResponseCode();
+                    int responseCode = response.statusCode;
                     if (MediaBudget.isTransientStatus(responseCode)
                             && attempt + 1 < MediaBudget.MAX_ATTEMPTS_PER_MIRROR) {
-                        MediaBudget.waitBeforeRetry(connection.getHeaderField("Retry-After"), attempt, deadline);
+                        MediaBudget.waitBeforeRetry(response.header("Retry-After"), attempt, deadline);
                         continue;
                     }
                     if (responseCode != 200) throw new IOException("Subtitle server returned " + responseCode);
-                    String lengthHeader = connection.getHeaderField("Content-Length");
+                    String lengthHeader = response.header("Content-Length");
                     if (lengthHeader != null) {
                         try {
                             if (Long.parseLong(lengthHeader.trim()) > 2 * 1024 * 1024) {
@@ -157,7 +173,7 @@ final class SubtitleDownloads {
                             // The streamed copy below remains the authoritative size limit.
                         }
                     }
-                    try (var input = connection.getInputStream(); var output = new ByteArrayOutputStream()) {
+                    try (var input = response.inputStream(); var output = new ByteArrayOutputStream()) {
                         MediaFileWriter.copy(input, output, 2 * 1024 * 1024, deadline);
                         return SubtitleFormat.toSrt(new String(output.toByteArray(), StandardCharsets.UTF_8), format);
                 }
@@ -170,8 +186,6 @@ final class SubtitleDownloads {
                     last = new IOException("Subtitle mirror failed ("
                             + error.getClass().getSimpleName() + "): " + RemoteMedia.summarizeUrl(url));
                     break;
-                } finally {
-                    if (connection != null) connection.disconnect();
                 }
             }
         }

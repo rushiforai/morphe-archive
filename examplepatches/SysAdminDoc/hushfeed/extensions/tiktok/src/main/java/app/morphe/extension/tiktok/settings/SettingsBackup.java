@@ -223,7 +223,7 @@ public final class SettingsBackup {
 
     /** Restores the undo copy and returns its text, so the caller can report what it held. */
     public static String undo(Context context) throws Exception {
-        return restoreFrom(context, undoFile(context).openRead(), false);
+        return restoreFrom(context, readableUndoFile(context).openRead(), false);
     }
 
     /**
@@ -247,8 +247,7 @@ public final class SettingsBackup {
      * an undo that works behind a base file that is missing. The row was greyed out over it.
      */
     public static boolean hasUndo(Context context) {
-        File base = undoFile(context).getBaseFile();
-        return base.isFile() || new File(base.getPath() + ".bak").isFile();
+        return hasAtomicFile(readableUndoFile(context));
     }
 
     private static boolean ordinarySettingsMatch(Map<String, ?> expected) {
@@ -297,8 +296,9 @@ public final class SettingsBackup {
     }
 
     private static boolean hasVerifiedUndo(Context context) {
-        if (!hasUndo(context)) return false;
-        try (InputStream input = undoFile(context).openRead()) {
+        AtomicFile file = readableUndoFile(context);
+        if (!hasAtomicFile(file)) return false;
+        try (InputStream input = file.openRead()) {
             parse(read(input));
             return true;
         } catch (Exception error) {
@@ -371,15 +371,15 @@ public final class SettingsBackup {
         }
     }
 
-    private static AtomicFile undoFile(Context context) {
-        File current = new File(context.getFilesDir(), "hushfeed-settings-undo.json");
-        File legacy = new File(context.getFilesDir(), "metra-settings-undo.json");
-        // An undo copy saved before the rename stays usable until the next restore writes the new file.
-        return new AtomicFile(!current.isFile() && legacy.isFile() ? legacy : current);
+    private static AtomicFile readableUndoFile(Context context) {
+        AtomicFile current = currentUndoFile(context);
+        if (hasAtomicFile(current)) return current;
+        AtomicFile legacy = legacyUndoFile(context);
+        return hasAtomicFile(legacy) ? legacy : current;
     }
 
     private static void writeUndo(Context context, String text) throws IOException {
-        AtomicFile file = undoFile(context);
+        AtomicFile file = currentUndoFile(context);
         var output = file.startWrite();
         try {
             output.write(text.getBytes(StandardCharsets.UTF_8));
@@ -389,6 +389,20 @@ public final class SettingsBackup {
             throw error;
         }
         if (!text.equals(read(file.openRead()))) throw new IOException("Could not verify the undo copy");
+        legacyUndoFile(context).delete();
+    }
+
+    private static AtomicFile currentUndoFile(Context context) {
+        return new AtomicFile(new File(context.getFilesDir(), "hushfeed-settings-undo.json"));
+    }
+
+    private static AtomicFile legacyUndoFile(Context context) {
+        return new AtomicFile(new File(context.getFilesDir(), "metra-settings-undo.json"));
+    }
+
+    private static boolean hasAtomicFile(AtomicFile file) {
+        File base = file.getBaseFile();
+        return base.isFile() || new File(base.getPath() + ".bak").isFile();
     }
 
     static Snapshot parseForJournal(String text) throws JSONException, IOException {

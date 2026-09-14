@@ -51,7 +51,10 @@ public final class Reflect {
         return type.getName() + '#' + name;
     }
 
-    /** The no-argument method {@code name} on {@code type} or a superclass, or null. */
+    /**
+     * The no-argument method {@code name} declared on {@code type} or a superclass, or inherited
+     * from a public interface, or null.
+     */
     public static Method method(Class<?> type, String name) {
         String key = key(type, name);
         Object cached = METHODS.get(key);
@@ -68,6 +71,19 @@ public final class Reflect {
                     // keep climbing
                 } catch (Throwable ignored) {
                     break;
+                }
+            }
+            if (cached == MISSING) {
+                try {
+                    Method method = type.getMethod(name);
+                    if (method.getDeclaringClass() != Object.class) {
+                        method.setAccessible(true);
+                        cached = method;
+                    }
+                } catch (NoSuchMethodException ignored) {
+                    // Public interface methods are the inherited shape the declared walk misses.
+                } catch (Throwable ignored) {
+                    // An unusable public method is a miss to the caller.
                 }
             }
             METHODS.put(key, cached);

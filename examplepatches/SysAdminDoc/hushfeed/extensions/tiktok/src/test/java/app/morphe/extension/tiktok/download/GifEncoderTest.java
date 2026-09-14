@@ -162,6 +162,44 @@ public class GifEncoderTest {
                 List.of(new GifEncoder.Frame(new int[0], 40))));
     }
 
+    @Test
+    public void precisionPassStopsBeforeTheSecondFrame() {
+        assertStopsBeforeSecondFrame(GifEncoder.FramePass.PRECISION_MASK);
+    }
+
+    @Test
+    public void palettePassStopsBeforeTheSecondFrame() {
+        assertStopsBeforeSecondFrame(GifEncoder.FramePass.PALETTE);
+    }
+
+    @Test
+    public void encodePassStopsBeforeTheSecondFrame() {
+        assertStopsBeforeSecondFrame(GifEncoder.FramePass.ENCODE);
+    }
+
+    private static void assertStopsBeforeSecondFrame(GifEncoder.FramePass stoppedPass) {
+        List<GifEncoder.Frame> frames = new ArrayList<>();
+        for (int index = 0; index < 3; index++) {
+            frames.add(new GifEncoder.Frame(
+                    new int[]{0xFF000000, 0xFFFFFFFF, 0xFF000000, 0xFFFFFFFF},
+                    40
+            ));
+        }
+
+        IOException failure = assertThrows(IOException.class, () -> GifEncoder.write(
+                new ByteArrayOutputStream(),
+                2,
+                2,
+                frames,
+                (pass, frameIndex) -> {
+                    if (pass == stoppedPass && frameIndex == 1) {
+                        throw new IOException("stopped during " + stoppedPass);
+                    }
+                }
+        ));
+        assertEquals("stopped during " + stoppedPass, failure.getMessage());
+    }
+
     // ------------------------------------------------------------------ a reader of our own
 
     private static GifReader encodeAndRead(int width, int height, List<GifEncoder.Frame> frames) throws Exception {

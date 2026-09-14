@@ -36,8 +36,8 @@ class AboutRoutes {
     private static final String GITHUB_URL = "https://raw.githubusercontent.com";
     private static final Route.CompiledRoute GITHUB_ROUTE_PATCHES = new Route(Route.Method.GET,
             (Utils.isPreReleasePatches()
-                    ? "/MorpheApp/morphe-patches/refs/heads/dev/patches-bundle.json"
-                    : "/MorpheApp/morphe-patches/refs/heads/main/patches-bundle.json")
+                    ? "/sashade8-ship-it/dual-vot-patches/refs/heads/dev/patches-bundle.json"
+                    : "/sashade8-ship-it/dual-vot-patches/refs/heads/main/patches-bundle.json")
     ).compile();
 
     @Nullable

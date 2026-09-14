@@ -1,3 +1,9 @@
+## [1.62.2](https://github.com/legendsciber/morphe-patches/compare/v1.62.1...v1.62.2) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* add compatibleWith to restrict hex patch to v2.46.0 ([d4c8456](https://github.com/legendsciber/morphe-patches/commit/d4c845623fef719f8ba93f01146028d662c80989))
+
 ## [1.62.1](https://github.com/legendsciber/morphe-patches/compare/v1.62.0...v1.62.1) (2026-09-13)
 
 ### 🐛 Bug Fixes

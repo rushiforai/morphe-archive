@@ -82,6 +82,8 @@ val customFontGithubPatch = resourcePatch(
     description = "Replaces GitHub's bundled Inter and Mona Sans UI fonts with a custom font file.",
     default = false,
 ) {
+    category("Font")
+
     compatibleWith(COMPATIBILITY_GITHUB)
 
     customFontFileOption()

@@ -13,6 +13,10 @@ the normal update cadence within two hours and limits a single missed GitHub
 schedule event to the next staggered delivery. It synchronizes exact Morphe
 release tags, not arbitrary unreleased branch commits.
 
+Each scheduled delivery uses its own concurrency group. A queued runner job in
+one schedule slot therefore cannot block the other slot; manual runs remain
+serialized with each other.
+
 ## Safety model
 
 Preparation and publication run as separate jobs:

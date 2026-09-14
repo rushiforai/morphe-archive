@@ -5,6 +5,7 @@ import dev.jz6.flexboard.patches.shared.Constants.COMPATIBILITY_GBOARD
 import dev.jz6.flexboard.patches.shared.androidAttribute
 import dev.jz6.flexboard.patches.shared.childElements
 import dev.jz6.flexboard.patches.shared.setAndroidAttribute
+import dev.jz6.flexboard.patches.shared.sole
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 
@@ -128,9 +129,13 @@ private fun Document.disableGlideRows() {
  * leaving two, and Glide delete is the first of those. The assertions cover the shape — four rows,
  * exactly two left after eliminating — but they cannot catch a reorder.
  *
- * What makes that acceptable is the pin. `COMPATIBILITY_GBOARD` fixes this bundle to one Gboard
- * build by version *and* signature, and a reorder cannot reach us without a new build failing that
- * gate first. It is also a milder bet than several the project already makes: the hardcoded
+ * What makes that acceptable is **not** the pin, and this paragraph used to say it was.
+ * `COMPATIBILITY_GBOARD` is advisory metadata: `shared/Constants.kt` records that Patcher never
+ * reads `compatiblePackages`, and AGENTS.md repeats it. A reorder would reach us with nothing
+ * failing first. This is the live instance of the warning those two were written about.
+ *
+ * What actually makes it acceptable is the size of the loss. It is a milder bet than several the
+ * project already makes: the hardcoded
  * resource ids in [forceScrubPreferencesPatch] and `suggestedSettingsPatch` would silently write
  * *wrong preference* on a changed build, where the worst this can do is grey the cursor-control row
  * instead of this one. Cosmetic, and visible the moment the screen is opened.
@@ -174,21 +179,19 @@ private fun Element.findGlideDeleteRow(glideRow: Element): Element {
  */
 private fun Element.findGlideTypingRow(): Element {
     val dependents = childElements().filter { it.androidAttribute("dependency") != null }.toList()
-    check(dependents.size == 1) {
+    val dependencyKey = dependents.sole {
         // Gboard's own Glide trail row, which depends on glide typing. This patch adds no
         // dependency of its own any more, so the only one in the file is Gboard's.
         "Expected exactly one row with android:dependency=… in $GESTURE_SETTINGS_XML, found " +
-            "${dependents.size} — the row that identifies glide typing is no longer unique"
-    }
-    val dependencyKey = dependents.single().androidAttribute("dependency")
+            "$it — the row that identifies glide typing is no longer unique"
+    }.androidAttribute("dependency")
 
     val matches = childElements().filter { it.androidAttribute("key") == dependencyKey }.toList()
-    check(matches.size == 1) {
+    val glideRow = matches.sole {
         "Expected exactly one row keyed '$dependencyKey' in $GESTURE_SETTINGS_XML, found " +
-            "${matches.size} — obfuscated key names are no longer distinct once decoded, so the " +
+            "$it — obfuscated key names are no longer distinct once decoded, so the " +
             "glide typing row cannot be told apart from its siblings"
     }
-    val glideRow = matches.single()
     check(glideRow.androidAttribute("dependency") == null) {
         "The glide typing row already declares a dependency on " +
             "'${glideRow.androidAttribute("dependency")}', which this patch would overwrite"

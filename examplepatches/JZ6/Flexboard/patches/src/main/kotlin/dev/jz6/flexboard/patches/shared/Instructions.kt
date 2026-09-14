@@ -5,6 +5,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -101,6 +103,24 @@ internal fun Instruction.invokeRegisterCount(): Int =
         ?: error("Not an invoke: `${opcode.name}`")
 
 /**
+ * Every register this instruction names as a source.
+ *
+ * Deliberately over-inclusive: a destination that is also a source (`add-int/2addr` reads its first
+ * operand) is included, and no attempt is made to widen a wide *source* to its second word. Both
+ * choices err toward reporting a read. Every caller uses this to decide whether a register is still
+ * in use, where a false "yes" costs an emission a register and a false "no" corrupts a value.
+ */
+internal fun Instruction.registersRead(): List<Int> = when (this) {
+    is FiveRegisterInstruction ->
+        listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
+    is RegisterRangeInstruction -> (startRegister until startRegister + registerCount).toList()
+    is ThreeRegisterInstruction -> listOf(registerA, registerB, registerC)
+    is TwoRegisterInstruction -> listOf(registerA, registerB)
+    is OneRegisterInstruction -> listOf(registerA)
+    else -> emptyList()
+}
+
+/**
  * The register this instruction *writes*, or null when it writes none.
  *
  * Reading `registerA` directly is not the same thing and gets liveness checks backwards: for
@@ -121,14 +141,76 @@ internal fun Instruction.destinationRegistersOrEmpty(): List<Int> {
 }
 
 /**
+ * The only element, failing with [lazyMessage] when there is not exactly one. The count is passed
+ * in so a message can report what it found.
+ *
+ * Every one of these searches genuinely expects a single hit, and "silently took the first of two"
+ * is the failure worth spending an assertion on — Gboard grows near-duplicate methods between
+ * releases, and a resolution that quietly picks one patches something nobody looked at. Written out
+ * by hand at twenty-five sites before this existed, which is twenty-five chances to write
+ * `.first()` and forget the check.
+ */
+internal inline fun <T> Collection<T>.sole(lazyMessage: (Int) -> String): T {
+    check(size == 1) { lazyMessage(size) }
+    return single()
+}
+
+/**
  * Index of the single instruction invoking [descriptor], failing loudly when there is not exactly
  * one. Every call site in these patches genuinely expects one, and "silently patched the wrong one
  * of two" is the failure mode worth spending an assertion on.
  */
 internal fun List<Instruction>.indexOfSoleCall(descriptor: String, context: String): Int {
-    val matches = withIndex().filter { (_, instruction) -> instruction.callsMethod(descriptor) }
-    check(matches.size == 1) {
-        "Expected exactly one call to $descriptor in $context, found ${matches.size}"
+    return withIndex()
+        .filter { (_, instruction) -> instruction.callsMethod(descriptor) }
+        .sole { "Expected exactly one call to $descriptor in $context, found $it" }
+        .index
+}
+
+/**
+ * Refuses a build where a scratch register is read before anything writes it, **within the basic
+ * block the insertion lands in**.
+ *
+ * A veto, never a licence, and the scope is the whole of what makes it usable. Linear order is only
+ * control flow up to the next branch; past one, the next instruction in the list may not be
+ * reachable at all. Scanning further does not merely fail to prove deadness -- it invents failures,
+ * which is worse, because it refuses a patch that is correct. That is not hypothetical: this walked
+ * past a `goto -> 123` in `ScrubMotionEventHandler->r`, read the `add-int/2addr v2, v5` eleven
+ * instructions later at pc 112 -- code that jump cannot reach -- and stopped Swipe Left to Delete
+ * from applying at all, on a device.
+ *
+ * So the walk stops at the first instruction that transfers control. That instruction's own reads
+ * still count: `if-eqz v5` reads v5.
+ *
+ * A pass proves nothing either way. The registers come from preflight's backward analysis over the
+ * real control-flow graph, which the gate runs; this is the cheap copy that makes a build which
+ * moved them fail at patch time too.
+ */
+internal fun assertNotReadBeforeWritten(
+    body: List<Instruction>,
+    insertIndex: Int,
+    scratch: List<Int>,
+    what: String,
+) {
+    for (register in scratch) {
+        for (index in insertIndex until body.size) {
+            val instruction = body[index]
+            if (register in instruction.registersRead()) {
+                error(
+                    "v$register is read by `${instruction.opcodeName()}` at $index before anything " +
+                        "writes it, walking forward from the insertion point in $what — it carries " +
+                        "a live value across the seam and cannot be scratch",
+                )
+            }
+            if (register in instruction.destinationRegistersOrEmpty()) break
+            if (instruction.transfersControl()) break
+        }
     }
-    return matches.single().index
+}
+
+/** True when this instruction can send control somewhere other than the next one in the list. */
+private fun Instruction.transfersControl(): Boolean {
+    val name = opcodeName()
+    return name.startsWith("GOTO") || name.startsWith("IF_") || name.startsWith("RETURN") ||
+        name == "THROW" || name.endsWith("SWITCH")
 }

@@ -4,9 +4,6 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.Collections;
 import java.util.List;
 
@@ -24,31 +21,33 @@ final class RemoteMedia {
     enum Kind { IMAGE, VIDEO, AUDIO }
 
     static String fetch(List<String> urls, File target, Kind kind) throws IOException {
+        return fetch(urls, target, kind, MediaTransport.DEFAULT);
+    }
+
+    static String fetch(
+            List<String> urls,
+            File target,
+            Kind kind,
+            MediaTransport.Client transport
+    ) throws IOException {
         IOException failure = new IOException("No media URL succeeded");
         MediaBudget.Deadline deadline = MediaBudget.deadline();
         for (String url : urls == null ? Collections.<String>emptyList() : urls) {
             for (int attempt = 0; attempt < MediaBudget.MAX_ATTEMPTS_PER_MIRROR; attempt++) {
-                HttpURLConnection connection = null;
-                try {
+                try (MediaTransport.Response response = transport.open(
+                        url, deadline, 15000, 30000, null, false)) {
                     MediaBudget.check(deadline);
-                    URLConnection opened = new URL(url).openConnection();
-                    if (!(opened instanceof HttpURLConnection)) {
-                        throw new IOException("Media URL is not HTTP");
-                    }
-                    connection = (HttpURLConnection) opened;
-                    connection.setConnectTimeout(MediaBudget.timeoutMillis(deadline, 15000));
-                    connection.setReadTimeout(MediaBudget.timeoutMillis(deadline, 30000));
-                    int responseCode = connection.getResponseCode();
+                    int responseCode = response.statusCode;
                     if (MediaBudget.isTransientStatus(responseCode)
                             && attempt + 1 < MediaBudget.MAX_ATTEMPTS_PER_MIRROR) {
-                        MediaBudget.waitBeforeRetry(connection.getHeaderField("Retry-After"), attempt, deadline);
+                        MediaBudget.waitBeforeRetry(response.header("Retry-After"), attempt, deadline);
                         continue;
                     }
                     if (responseCode != 200) throw new IOException("Media server returned " + responseCode);
-                    long expected = contentLength(connection);
+                    long expected = contentLength(response.header("Content-Length"));
                     MediaBudget.checkTransferLength(expected);
                     MediaBudget.checkDiskSpace(target == null ? null : target.getParentFile(), expected);
-                    try (BufferedInputStream input = new BufferedInputStream(connection.getInputStream())) {
+                    try (BufferedInputStream input = new BufferedInputStream(response.inputStream())) {
                         input.mark(32);
                         byte[] header = new byte[16];
                         int offset = 0, read;
@@ -65,8 +64,9 @@ final class RemoteMedia {
                         return extension;
                 }
                 } catch (IOException | RuntimeException exception) {
+                    boolean cleaned = target == null || MediaCache.delete(target);
                     boolean retryable = MediaBudget.isRetryableTransport(exception);
-                    if (retryable && attempt + 1 < MediaBudget.MAX_ATTEMPTS_PER_MIRROR) {
+                    if (cleaned && retryable && attempt + 1 < MediaBudget.MAX_ATTEMPTS_PER_MIRROR) {
                         MediaBudget.waitBeforeRetry(null, attempt, deadline);
                         continue;
                     }
@@ -74,10 +74,10 @@ final class RemoteMedia {
                     // message contains only a query-free, bounded address summary.
                     failure.addSuppressed(new IOException(
                             "Media mirror failed (" + exception.getClass().getSimpleName() + "): "
-                                    + summarizeUrl(url)));
+                                     + summarizeUrl(url)));
+                    if (!cleaned) failure.addSuppressed(
+                            new IOException("Could not remove partial media output"));
                     break;
-                } finally {
-                    if (connection != null) connection.disconnect();
                 }
             }
         }
@@ -100,8 +100,7 @@ final class RemoteMedia {
         return withoutQuery.length() <= 96 ? withoutQuery : withoutQuery.substring(0, 96) + "...";
     }
 
-    private static long contentLength(HttpURLConnection connection) {
-        String header = connection.getHeaderField("Content-Length");
+    private static long contentLength(String header) {
         if (header == null) return -1L;
         try {
             return Long.parseLong(header.trim());

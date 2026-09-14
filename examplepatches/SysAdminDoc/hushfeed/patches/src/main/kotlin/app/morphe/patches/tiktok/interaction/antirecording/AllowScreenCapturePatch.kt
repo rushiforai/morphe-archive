@@ -4,6 +4,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
@@ -60,7 +61,11 @@ val allowScreenCapturePatch = bytecodePatch(
                             }
                             is RegisterRangeInstruction -> "invoke-static/range { v" + instruction.startRegister +
                                 " .. v" + (instruction.startRegister + instruction.registerCount - 1) + " }, "
-                            else -> error("Unsupported capture call format")
+                            else -> throw PatchException(
+                                "Allow screenshots and Circle to Search: ${owner.type}->${method.name} " +
+                                    "instruction $index is ${instruction.javaClass.simpleName}; expected " +
+                                    "a five-register or range Window invocation.",
+                            )
                         }
                         sites += CaptureSite(owner, method, index, invoke + EXTENSION + "->" + target)
                     }
@@ -68,7 +73,11 @@ val allowScreenCapturePatch = bytecodePatch(
             }
         }
         listOf("addFlags", "setFlags", "setAttributes").forEach { name ->
-            require(sites.any { it.replacement.contains("->$name(") }) { "Missing native Window.$name call" }
+            if (sites.none { it.replacement.contains("->$name(") }) {
+                throw PatchException(
+                    "Allow screenshots and Circle to Search: no native Window.$name call was found.",
+                )
+            }
         }
         sites.forEach { site ->
             mutableClassDefBy(site.owner).findMutableMethodOf(site.method).replaceInstruction(site.index, site.replacement)
@@ -84,6 +93,5 @@ val allowScreenCapturePatch = bytecodePatch(
         }
         SettingsStatusLoadFingerprint.method.addInstruction(0,
             "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableScreenCapture()V")
-        println("Screen capture: replaced " + sites.size + " native window calls and the Circle to Search gate")
     }
 }

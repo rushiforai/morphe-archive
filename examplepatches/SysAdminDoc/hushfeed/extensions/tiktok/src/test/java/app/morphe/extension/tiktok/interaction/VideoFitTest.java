@@ -8,9 +8,11 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import android.content.Context;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceScreen;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import app.morphe.extension.tiktok.SettingsContextRule;
@@ -79,8 +81,20 @@ public class VideoFitTest {
 
     /** A result whose size can be read, with no copy to remake it through. */
     public static final class Uncopyable {
-        public int getWidth() { return 1440; }
-        public int getHeight() { return 2560; }
+        int widthReads;
+        int heightReads;
+        public int getWidth() { widthReads++; return 1440; }
+        public int getHeight() { heightReads++; return 2560; }
+    }
+
+    /** Records whether changing gravity is handed back to Android as a layout change. */
+    public static final class LayoutTrackingView extends View {
+        int layoutWrites;
+        LayoutTrackingView(Context context) { super(context); }
+        @Override public void setLayoutParams(ViewGroup.LayoutParams params) {
+            layoutWrites++;
+            super.setLayoutParams(params);
+        }
     }
 
     @Test public void theWholeVideoLandsInsideTheWindowWhicheverWayItOverflows() {
@@ -198,10 +212,11 @@ public class VideoFitTest {
             var activity = controller.get();
             Utils.setContext(activity);
             FrameLayout container = new FrameLayout(activity);
-            View video = new View(activity);
+            LayoutTrackingView video = new LayoutTrackingView(activity);
             container.addView(video);
             container.layout(0, 0, 1200, 900);
             video.setLayoutParams(new FrameLayout.LayoutParams(1440, 2560));
+            int layoutWritesBeforeFit = video.layoutWrites;
             Object operator = new Object();
             Result cropped = new Result(1440, 2560, 0f, -320f, operator);
 
@@ -221,6 +236,7 @@ public class VideoFitTest {
             assertSame(operator, copy.getResultOperator());
             assertEquals(android.view.Gravity.CENTER,
                     ((FrameLayout.LayoutParams) video.getLayoutParams()).gravity);
+            assertEquals(layoutWritesBeforeFit + 1, video.layoutWrites);
             // The result handed in is left exactly as it was.
             assertEquals(1440, cropped.getWidth());
             assertEquals(2560, cropped.getHeight());
@@ -237,9 +253,14 @@ public class VideoFitTest {
             assertSame(shapeless, VideoFit.fitted(video, shapeless));
             // A result that can be read but not remade is also handed back as it is. Readable,
             // as the story path proves by working out a size from it; only the copy is missing.
-            Uncopyable uncopyable = new Uncopyable();
-            assertEquals(506, VideoFit.fitWidthFor(uncopyable, video));
-            assertSame(uncopyable, VideoFit.fitted(video, uncopyable));
+            Uncopyable storyResult = new Uncopyable();
+            assertEquals(506, VideoFit.fitWidthFor(storyResult, video));
+            assertEquals(1, storyResult.widthReads);
+            assertEquals(1, storyResult.heightReads);
+            Uncopyable feedResult = new Uncopyable();
+            assertSame(feedResult, VideoFit.fitted(video, feedResult));
+            assertEquals(1, feedResult.widthReads);
+            assertEquals(1, feedResult.heightReads);
 
             // A copy that is not public, on a class in another package, is still the copy to
             // remake the result through. VideoFit sits outside TikTok's package the way it sits
@@ -251,6 +272,33 @@ public class VideoFitTest {
             assertEquals(506, ((NarrowedResult) remade).getWidth());
             assertEquals(900, ((NarrowedResult) remade).getHeight());
         } finally {
+            Settings.FIT_VIDEO_TO_SCREEN.save(false);
+        }
+    }
+
+    @Test public void aStoryFitStopsOwningTheResultAfterBothOffsets() {
+        try (var controller = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            var activity = controller.get();
+            Utils.setContext(activity);
+            FrameLayout container = new FrameLayout(activity);
+            View video = new View(activity);
+            container.addView(video);
+            container.layout(0, 0, 1200, 900);
+            video.setLayoutParams(new FrameLayout.LayoutParams(1440, 2560));
+            Result cropped = new Result(1440, 2560);
+
+            Settings.FIT_VIDEO_TO_SCREEN.save(true);
+            assertEquals(506, VideoFit.fitWidthFor(cropped, video));
+            cropped.width = 506;
+            assertEquals(900, VideoFit.fittedHeightFor(cropped));
+            assertEquals(Float.valueOf(0f),
+                    VideoFit.fittedTranslation(cropped, Float.valueOf(12f)));
+            assertEquals(Float.valueOf(0f),
+                    VideoFit.fittedTranslation(cropped, Float.valueOf(34f)));
+            assertEquals(Float.valueOf(56f),
+                    VideoFit.fittedTranslation(cropped, Float.valueOf(56f)));
+        } finally {
+            VideoFit.fitWidthFor(null, null);
             Settings.FIT_VIDEO_TO_SCREEN.save(false);
         }
     }

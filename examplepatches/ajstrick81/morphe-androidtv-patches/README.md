@@ -16,9 +16,9 @@ I'm just like you — I enjoy watching TV and movies without being bored and ann
 
 | App | Package | Status | Tested Version | Date |
 |-----|---------|--------|---------------|------|
-| 🟢 Disney+ | `com.disney.disneyplus` | Working | `26.12.1+rc1-2026.07.15` | 7/21/26 |
-| 🟢 Prime Video | `com.amazon.amazonvideo.livingroom` | Working — native in-app ad strip (movies + TV shows), no DNS required | `6.23.23+v15.5.0.70-armv7a` | 7/30/26 |
-| 🟢 Netflix | `com.netflix.ninja` | Working — native in-app ad strip (pre-roll, mid-roll, pause-screen ad), no DNS required. Installs as a **side-by-side clone**; keep stock Netflix installed | `13.0.1 build 25028` | 8/14/26 |
+| 🟢 Disney+ | `com.disney.disneyplus` | Working | `26.16.0+rc2-2026.09.08` | 9/14/26 |
+| 🟢 Prime Video | `com.amazon.amazonvideo.livingroom` | Working — native in-app ad strip (movies + TV shows), no DNS required. ⚠️ **Use `6.23.23` / engine `v15.5.x`; do NOT update to `6.24.x` (engine `v16`)** — v16 moved the ad pipeline into the native engine, so ads return there ([#120](https://github.com/ajstrick81/morphe-androidtv-patches/issues/120)). Keep **auto-updates disabled** | `6.23.23+v15.5.0.70-armv7a` | 7/30/26 |
+| 🟢 Netflix | `com.netflix.ninja` | Working — native in-app ad strip (pre-roll, mid-roll, pause-screen ad), no DNS required. Installs as a **side-by-side clone**; keep stock Netflix installed | `13.0.1 build 25028` | 9/14/26 |
 | 🟢 HBO Max | `com.wbd.hbomax` | Working — **fully ad-free by default** (v1.30.0). The **Prefer Ad-Free Stream** patch loads HBO's own ad-free manifest (its resiliency-fallback stream), so pre-rolls, mid-rolls, and even the ad-tier's stitched **SSAI baked-in ads** are gone — along with the ad markers/countdown — on both fresh start and resume, and it loads faster. No DNS required. (Legacy opt-in **Block SSAI Ad Origins** is now off by default and superseded.) | `v7.9.0.61` | 8/26/26 |
 | 🟢 Peacock | `com.peacocktv.peacockandroid` | Working — no DNS required | `v7.8.100` | 9/6/26 |
 | 🟢 Tubi | `com.tubitv` | Working | `v10.28.5000` | 7/20/26 |
@@ -53,7 +53,7 @@ All patches follow the same general workflow using **Morphe Manager**:
 
 ### 🎬 Disney+
 
-1. Open the **[Disney+ (Android TV) listing on APKMirror](https://www.apkmirror.com/apk/disney/disney-android-tv/)** and select version **`26.12.1+rc1-2026.07.15`**
+1. Open the **[Disney+ (Android TV) listing on APKMirror](https://www.apkmirror.com/apk/disney/disney-android-tv/)** and select version **`26.16.0+rc2-2026.09.08`**
 2. Download the `.apkm` file
 3. Select it in Morphe Manager
 4. Apply the patch
@@ -82,6 +82,12 @@ All patches follow the same general workflow using **Morphe Manager**:
 > hook (`libpvhook.so`), so movies and TV shows play ad-free without any external
 > DNS blocklist, proxy, or root. Movie prerolls/mid-rolls and TV-show
 > prerolls/mid-rolls are all removed on the device before they play.
+>
+> ⚠️ **Stay on `6.23.23` (engine `v15.5.x`) — do NOT update to `6.24.x` (engine
+> `v16`).** In v16 Amazon moved the ad pipeline into the app's native engine, out
+> of reach of the current strip, so **ads return on 6.24.x** ([#120](https://github.com/ajstrick81/morphe-androidtv-patches/issues/120)).
+> Enable **Disable auto-updates** when patching (on by default) so Amazon can't
+> push you to v16. If you're already on 6.24.x, uninstall and reinstall `6.23.23`.
 >
 > TV-show ad removal is newly shipped (v1.16.0) and in wider testing. One known
 > edge case: very aggressive fast-forward + resume can occasionally nudge the

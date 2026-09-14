@@ -183,7 +183,7 @@ final class VideoDownloads {
             List<String> candidates = new ArrayList<>();
             for (String[] field : new String[][]{{"getMainUrl", "mainUrl"}, {"getBackupUrl", "backupUrl"}, {"getFallbackUrl", "fallbackUrl"}}) {
                 String url = Reflect.string(addresses, field[0], field[1]);
-                if (url != null && url.startsWith("https://")) candidates.add(url);
+                if (MediaTransport.hasAllowedShape(url)) candidates.add(url);
             }
             Object rate = Reflect.property(meta, "getBitrate", "bitrate");
             long value = rate instanceof Number ? ((Number) rate).longValue() : 0;
@@ -197,7 +197,9 @@ final class VideoDownloads {
         Object raw = Reflect.property(address, "getUrlList", "urlList");
         List<String> result = new ArrayList<>();
         if (raw instanceof List<?>) for (Object url : (List<?>) raw) {
-            if (url instanceof String && ((String) url).startsWith("https://")) result.add((String) url);
+            if (url instanceof String && MediaTransport.hasAllowedShape((String) url)) {
+                result.add((String) url);
+            }
         }
         return result;
     }

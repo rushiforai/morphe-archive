@@ -28,6 +28,9 @@ PATCHES = ROOT / "patches/src/main/kotlin"
 SETTINGS_XML = ROOT / "patches/src/main/resources/xml/flexboard_settings.xml"
 # (Kotlin name, Java name). The names differ where each side reads more naturally on its own terms;
 # what has to match is the value.
+# What may follow the index in a generated family key. "" is the bare `prefix + index` form.
+FAMILY_SUFFIXES = {"", "text", "icon"}
+
 PAIRS = [
     # The ordinals the patch hands the extension's constructor. The extension maps them to
     # android.R.id.* so the framework constants stay symbolic in the one language that can name
@@ -43,6 +46,11 @@ PAIRS = [
     # handler matches on. A drift here is a row that silently does nothing when tapped.
     ("ABOUT_SOURCE_KEY", "ABOUT_SOURCE_KEY"),
     ("TRY_KEYBOARD_KEY", "TRY_KEYBOARD_KEY"),
+    # Export and Import. Previously bare literals on both sides, blessed only by a prefix family
+    # borrowed from the toolbar id namespace, so renaming one side passed every lane and left the
+    # row doing nothing when tapped.
+    ("HOTKEY_EXPORT_KEY", "HOTKEY_EXPORT_KEY"),
+    ("HOTKEY_IMPORT_KEY", "HOTKEY_IMPORT_KEY"),
 ]
 
 # The slider contract between ScrubTuningPatch.kt and flexboard_settings.xml: the Kotlin name of
@@ -120,9 +128,14 @@ EMITTED_CALL = re.compile(
 # Each entry maps a helper to the opcode it emits, which is the part that has to be known rather
 # than inferred: a helper hardcoding invoke-static against a member someone later made non-static
 # is exactly the failure this file exists to catch.
-HELPER_CALLS = {"callAtAppStart": "static"}
+# `emitUndoAutocorrectOnUpFlick(probe = GESTURE_PROBE)` is the second: the emitter writes
+# `invoke-static { }, $probe` for whatever descriptor the diagnostic patch hands it, so the same
+# blind spot applies and the same guard caught it.
+HELPER_CALLS = {"callAtAppStart": "static", "probe": "static"}
 
-HELPER_CALL = re.compile(rf"\b({'|'.join(HELPER_CALLS)})\(\s*([A-Z_][A-Z0-9_]*)\s*\)")
+# Either `helper(CONST)` or `helper(named = CONST)`, since the probe is passed by name.
+HELPER_CALL = re.compile(
+    rf"\b({'|'.join(HELPER_CALLS)})\s*=?\s*\(?\s*([A-Z_][A-Z0-9_]*)\s*\)?")
 
 # A second helper shape: `emitNativeToolbarButtons(builder, listOf(NativeToolbarButton(...)))`.
 # There is no single call-site descriptor to extract, because the button is a data-class spec —
@@ -413,7 +426,22 @@ def _check_hidden_features_count(problems):
         return
     seen = {}
     for said, call in zip(saids, calls):
-        flags = re.findall(r'^\s*"([a-z0-9_]+)",', call, re.M)
+        # Only the positional arguments are forced flags. `isolating = setOf(...)` names a subset of
+        # them again to choose an emission, and counting those as extra flags made the count check
+        # report four flags for a two-flag patch.
+        positional, _, isolating_clause = call.partition('isolating')
+        flags = re.findall(r'^\s*"([a-z0-9_]+)",', positional, re.M)
+        # Any identifier-shaped literal, not just lower-case ones: a typo that changes the case
+        # would otherwise not match the pattern at all and so report nothing.
+        isolated = re.findall(r'"(\w+)"', isolating_clause)
+        # A name here that is not being forced is a typo that silently selects nothing: the flag
+        # keeps the in-place rewrite it was supposed to be moved off.
+        for flag in isolated:
+            if flag not in flags:
+                problems.append(
+                    f"  Hidden Features isolates {flag!r}, which it does not force on — "
+                    f"isolating names a subset of the flags in the same call"
+                )
         claimed = words.get(said)
         if claimed is None:
             problems.append(f"  Hidden Features says {said!r} features, which is not a number word")
@@ -429,6 +457,39 @@ def _check_hidden_features_count(problems):
             if flag in seen:
                 problems.append(f"  {flag} is forced on by two Hidden Features patches")
             seen[flag] = True
+
+
+def _check_admitted_ids(problems):
+    """The admitted id set is exactly what the hotkey emission registers.
+
+    ToolbarIdAdmissionPatch now compares these as sets, but that check runs inside Morphe and there
+    is no Android SDK here, so no patch is ever executed locally. Without a copy in the gate, a
+    rename that preserves the count -- flexboard_hotkey_8 to _9 -- passes every lane and ships a
+    button that registers against an allowed set which never admits it, renders nothing, and says
+    nothing. That is this project's worst silent failure, recorded as such in AGENTS.md.
+    """
+    slots_xml = PATCHES.parent / "resources/values/flexboard_toolbar_slots.xml"
+    hotkeys_kt = PATCHES / "dev/jz6/flexboard/patches/features/toolbar/ToolbarHotkeys.kt"
+    if not slots_xml.exists() or not hotkeys_kt.exists():
+        problems.append("  admitted id check cannot find flexboard_toolbar_slots.xml or ToolbarHotkeys.kt")
+        return
+    kt = hotkeys_kt.read_text()
+    slots = re.search(r'HOTKEY_SLOTS\s*=\s*(\d+)', kt)
+    prefix = re.search(r'HOTKEY_ID_PREFIX\s*=\s*"([^"]+)"', kt)
+    if not slots or not prefix:
+        problems.append("  admitted id check cannot read HOTKEY_SLOTS/HOTKEY_ID_PREFIX")
+        return
+    count, pre = int(slots.group(1)), prefix.group(1)
+    admitted = set(re.findall(r'name="(flexboard_\w+)"', slots_xml.read_text()))
+    expected = {f"{pre}{i}" for i in range(1, count + 1)}
+    missing, extra = expected - admitted, {a for a in admitted if a.startswith(pre)} - expected
+    if missing or extra:
+        problems.append(
+            f"  flexboard_toolbar_slots.xml admits {sorted(admitted & set(admitted))} but the "
+            f"hotkey emission registers {sorted(expected)}"
+            + (f"; missing {sorted(missing)}" if missing else "")
+            + (f"; unregistered {sorted(extra)}" if extra else "")
+        )
 
 
 def _check_stock_package_name(problems):
@@ -487,14 +548,39 @@ def _check_settings_row_mirror(problems):
         return
     mirrored = dict(re.findall(r'\(\s*"([^"]+)"\s*,\s*"([^"]*)"\s*\)', mirror.group(1)))
 
-    for attr, const in (("title", "ENTRY_TITLE"), ("summary", "ENTRY_SUMMARY"), ("key", "ENTRY_KEY")):
-        m = re.search(rf'{const}\s*=\s*"([^"]*)"', kt)
-        if not m:
-            problems.append(f"  {const} not found in SettingsScreenPatch.kt")
+    # Read off the emission rather than from a hand-listed set of constant names. The list was
+    # ("title", "summary", "key") while addFlexboardEntry writes six, so `icon`, `fragment` and
+    # `persistent` were unmirrored -- and a stale fragment or icon is exactly what the docstring
+    # above calls the case that matters, because the replay would prove a row nobody ships.
+    emission = re.search(r'createElement\(PREFERENCE_TAG\)\.apply \{(.*?)\n    \}', kt, re.S)
+    if not emission:
+        problems.append("  the settings row emission could not be located in SettingsScreenPatch.kt")
+        return
+    written = re.findall(r'setAndroidAttribute\("(\w+)",\s*([^)]+)\)', emission.group(1))
+
+    def resolve(token):
+        token = token.strip()
+        if token.startswith('"'):
+            return token.strip('"')
+        for source in PATCHES.rglob("*.kt"):
+            hit = re.search(rf'\b{re.escape(token)}\s*=\s*"([^"]*)"', source.read_text())
+            if hit:
+                return hit.group(1)
+        return None
+
+    if len(written) != len(mirrored):
+        problems.append(
+            f"  the settings row writes {len(written)} attributes but SETTINGS_ROW_ATTRS mirrors "
+            f"{len(mirrored)} — the resource lane is rehearsing a different row"
+        )
+    for attr, token in written:
+        value = resolve(token)
+        if value is None:
+            problems.append(f"  the settings row's {attr} is {token}, which resolves to no constant")
             continue
-        if mirrored.get(attr) != m.group(1):
+        if mirrored.get(attr) != value:
             problems.append(
-                f"  the settings row's {attr} is {m.group(1)!r} in SettingsScreenPatch.kt but "
+                f"  the settings row's {attr} is {value!r} in SettingsScreenPatch.kt but "
                 f"{mirrored.get(attr)!r} in check_patch_resources.py's SETTINGS_ROW_ATTRS — the "
                 f"resource lane is rehearsing a row the patch does not write"
             )
@@ -693,10 +779,28 @@ def _check_screen_contract(problems, kotlin):
     # `flexboard_hotkey_7_text` are produced by code, so they can't all be literal const values —
     # but they must begin with a family prefix an author committed to somewhere.
     families = [v for v in const_values if isinstance(v, str) and v.endswith("_")]
+
+    def in_a_family(key):
+        # A prefix family means "this prefix, an index, and a known suffix" -- the shape code
+        # actually generates -- not "this prefix plus anything". The only family in the tree is
+        # HOTKEY_ID_PREFIX, a *toolbar access-point id* prefix, and a bare startswith let it bless
+        # every preference key sharing those seventeen characters. flexboard_hotkey_copy and
+        # _paste rode in on that for as long as they existed, as constants in neither language, so
+        # renaming one in the XML alone passed every lane and left the row consuming the tap and
+        # doing nothing.
+        for family in families:
+            rest = key[len(family):] if key.startswith(family) else None
+            if rest is None:
+                continue
+            index, _, suffix = rest.partition("_")
+            if index.isdigit() and suffix in FAMILY_SUFFIXES:
+                return True
+        return False
+
     for key in set(keys):
         if key in const_values:
             continue
-        if any(key.startswith(family) for family in families):
+        if in_a_family(key):
             continue
         problems.append(
             f"  flexboard_settings.xml row {key!r} is not the value of any patch constant — "
@@ -882,6 +986,7 @@ def main():
 
     _check_extension_references(problems)
     _check_section_sentinels(problems)
+    _check_admitted_ids(problems)
     _check_stock_package_name(problems)
     _check_hidden_features_count(problems)
     _check_allowed_set_sentinel(problems)

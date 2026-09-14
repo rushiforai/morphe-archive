@@ -7,6 +7,7 @@
 package app.morphe.patches.tiktok.interaction.sensitivewarnings
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.interaction.blockauthor.VideoAuthorInfoParamsFingerprint
@@ -46,7 +47,10 @@ val hideSensitiveWarningsPatch = bytecodePatch(
 
         val method = VideoAuthorInfoParamsFingerprint.method
         val paramsRegister = method.registerOfParameter(VIDEO_ITEM_PARAMS_DESCRIPTOR)
-            ?: error("Could not locate the VideoItemParams parameter on paramSync2StateAccept")
+            ?: throw PatchException(
+                "Skip content warnings: ${method.definingClass}->${method.name} no longer has a " +
+                    "$VIDEO_ITEM_PARAMS_DESCRIPTOR parameter to clear.",
+            )
 
         // /range: a parameter register on a method this size sits well above v15.
         method.addInstruction(

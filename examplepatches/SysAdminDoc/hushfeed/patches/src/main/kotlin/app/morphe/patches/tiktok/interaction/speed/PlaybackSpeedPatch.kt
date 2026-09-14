@@ -17,6 +17,8 @@ import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.cloneMutable
 import app.morphe.util.getReference
+import app.morphe.util.implementationOrPatchException
+import app.morphe.util.singleOrPatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -50,7 +52,7 @@ val playbackSpeedPatch = bytecodePatch(
         )
 
         val controllerSetSpeed = PlayerControllerSetSpeedFingerprint.method
-        val playerManagerSetSpeed = controllerSetSpeed.implementation!!.instructions
+        val playerManagerSetSpeed = controllerSetSpeed.implementationOrPatchException("Playback speed").instructions
             .firstNotNullOfOrNull { instruction ->
                 instruction.getReference<MethodReference>()?.takeIf { reference ->
                     instruction.opcode == Opcode.INVOKE_INTERFACE &&
@@ -71,9 +73,8 @@ val playbackSpeedPatch = bytecodePatch(
                 instruction.getReference<MethodReference>() == playerManagerSetSpeed
             } == 3
         }
-        val transitionReset = transitionResetCandidates.singleOrNull() ?: throw PatchException(
-            "Playback speed: expected one three-branch feed transition reset, " +
-                "found ${transitionResetCandidates.size}.",
+        val transitionReset = transitionResetCandidates.singleOrPatchException(
+            "Playback speed: three-branch feed transition reset",
         )
 
         val transitionCallers = playerControllerClass.methods.filter { method ->
@@ -97,7 +98,8 @@ val playbackSpeedPatch = bytecodePatch(
         }
 
         (listOf(transitionReset) + transitionCallers).forEach { method ->
-            val directCalls = method.implementation!!.instructions.withIndex().mapNotNull { (index, instruction) ->
+            val directCalls = method.implementationOrPatchException("Playback speed").instructions
+                .withIndex().mapNotNull { (index, instruction) ->
                 if (instruction.getReference<MethodReference>() != playerManagerSetSpeed) {
                     return@mapNotNull null
                 }
@@ -128,12 +130,13 @@ val playbackSpeedPatch = bytecodePatch(
 
         val frame = OnRenderFirstFrameBodyFingerprint.method
         // Keep native menu highlighting and its same-speed guard aligned with the player.
-        val stateWrites = selection.implementation!!.instructions.takeWhile {
+        val stateWrites = selection.implementationOrPatchException("Playback speed").instructions.takeWhile {
             !it.opcode.name.startsWith("if-")
         }.filter { it.opcode == Opcode.SPUT || it.opcode == Opcode.SPUT_OBJECT }
             .mapNotNull { it.getReference<FieldReference>() }
             .filter { it.definingClass == selection.definingClass }
-        val currentAwemeField = stateWrites.single { it.type == AWEME }
+        val currentAwemeField = stateWrites.filter { it.type == AWEME }
+            .singleOrPatchException("Playback speed: selected-video state field")
         val speedFields = stateWrites.filter { it.type == "F" }.distinctBy { it.toString() }
         check(speedFields.size == 2) {
             "Playback speed: expected two float fields written before the first branch of " +
@@ -145,13 +148,15 @@ val playbackSpeedPatch = bytecodePatch(
             "Playback speed: the state fields on ${selection.definingClass} are not all public, " +
                 "so the extension cannot read them."
         }
-        val awemeGetter = frame.implementation!!.instructions.mapNotNull {
+        val awemeGetter = frame.implementationOrPatchException("Playback speed").instructions.mapNotNull {
             it.getReference<MethodReference>()
         }.filter {
             it.definingClass == frame.definingClass && it.parameterTypes.isEmpty() && it.returnType == AWEME
-        }.distinctBy { it.toString() }.single()
+        }.distinctBy { it.toString() }
+            .singleOrPatchException("Playback speed: first-frame Aweme getter")
         val extension = mutableClassDefBy(EXTENSION)
-        val original = extension.methods.single { it.name == "onFirstFrame" }
+        val original = extension.methods.filter { it.name == "onFirstFrame" }
+            .singleOrPatchException("Playback speed: extension onFirstFrame bridge")
         val bridge = original.cloneMutable(additionalRegisters = 2)
         extension.methods.remove(original)
         extension.methods.add(bridge)
@@ -176,7 +181,8 @@ val playbackSpeedPatch = bytecodePatch(
         // Resolve the menu's lazy Float-list factory from its own constructor references.
         val menuClass = mutableClassDefBy(PlaybackSpeedMenuFingerprint.method.definingClass)
         val factoryOwners = menuClass.methods.filter { it.name == "<init>" }.flatMap { method ->
-            method.implementation!!.instructions.mapNotNull { it.getReference<MethodReference>() }
+            method.implementationOrPatchException("Playback speed").instructions
+                .mapNotNull { it.getReference<MethodReference>() }
         }.filter {
             it.parameterTypes == listOf("I") && it.returnType == it.definingClass &&
                 it.definingClass.startsWith("Lkotlin/jvm/internal/")
@@ -187,9 +193,9 @@ val playbackSpeedPatch = bytecodePatch(
                 method.implementation?.instructions?.filterIsInstance<NarrowLiteralInstruction>()
                     ?.map { it.narrowLiteral }?.containsAll(expected) == true
         }
-        val factory = factories.singleOrNull() ?: throw PatchException(
-            "Playback speed: expected one menu list factory, found ${factories.size}.")
-        val returns = factory.implementation!!.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_OBJECT }
+        val factory = factories.singleOrPatchException("Playback speed: menu list factory")
+        val returns = factory.implementationOrPatchException("Playback speed").instructions
+            .withIndex().filter { it.value.opcode == Opcode.RETURN_OBJECT }
         check(returns.isNotEmpty()) {
             "Playback speed: the menu list factory returns no object to replace."
         }

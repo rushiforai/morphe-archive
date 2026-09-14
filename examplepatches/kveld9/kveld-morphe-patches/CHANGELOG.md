@@ -1,3 +1,21 @@
+## [1.23.1](https://github.com/kveld9/kveld-morphe-patches/compare/v1.23.0...v1.23.1) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* **tiktok:** add multi-version fallbacks for cold start and fresco memory governor ([4b86116](https://github.com/kveld9/kveld-morphe-patches/commit/4b8611610d8e7a9e19665fbf6b3a3069325342de))
+
+## [1.23.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.22.2...v1.23.0) (2026-09-13)
+
+### ✨ New Features
+
+* **tiktok:** implement universal feed ad blocker patch ([b2b2a45](https://github.com/kveld9/kveld-morphe-patches/commit/b2b2a45353a325128d447cf4384621e6b0faca72)), closes [#23](https://github.com/kveld9/kveld-morphe-patches/issues/23)
+
+## [1.22.2](https://github.com/kveld9/kveld-morphe-patches/compare/v1.22.1...v1.22.2) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* **tiktok:** add v46.x+ fingerprint compatibility with backward fallback ([b3de916](https://github.com/kveld9/kveld-morphe-patches/commit/b3de9162e106f7a6ac77f8793d70434088401bfb))
+
 ## [1.22.1](https://github.com/kveld9/kveld-morphe-patches/compare/v1.22.0...v1.22.1) (2026-09-13)
 
 ### ♻️ Code Refactoring

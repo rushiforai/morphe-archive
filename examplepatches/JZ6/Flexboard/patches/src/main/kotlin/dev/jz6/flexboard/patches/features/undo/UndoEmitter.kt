@@ -17,6 +17,8 @@ import dev.jz6.flexboard.patches.shared.fieldReferenceOrNull
 import dev.jz6.flexboard.patches.shared.invokeRegisterAt
 import dev.jz6.flexboard.patches.shared.invokeRegisterCount
 import dev.jz6.flexboard.patches.shared.opcodeName
+import dev.jz6.flexboard.patches.shared.sole
+import dev.jz6.flexboard.patches.shared.validateScratchRegisters
 
 /**
  * Asserted rather than adapted to. Every register below is read off the anchor instructions, but
@@ -102,13 +104,12 @@ private fun MutableMethod.resolveStockUndo(): StockUndo {
         val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
         reference != null && RECOMMIT_PATTERN.matches(reference.toString())
     }
-    check(anchors.size == 1) {
+    val (recommitIndex, recommitInstruction) = anchors.sole {
         "Expected exactly one `$ABSTRACT_IME->…(L…;Z)V` call in $LATIN_IME->q — the stock undo's " +
-            "re-commit — but found ${anchors.size}. Gboard's own undo no longer re-commits the way " +
+            "re-commit — but found $it. Gboard's own undo no longer re-commits the way " +
             "this patch mirrors, so emitting a call here would be guessing at which method puts " +
             "the text back."
     }
-    val (recommitIndex, recommitInstruction) = anchors.single()
     val recommit = (recommitInstruction as ReferenceInstruction).reference.toString()
     val committableText = RECOMMIT_PATTERN.matchEntire(recommit)!!.groupValues[1]
 
@@ -203,11 +204,10 @@ internal fun MutableMethod.undoOnRightwardScrub() {
     // The finish handler is reached only through a packed-switch, whose keys never appear in the
     // instruction stream, so it is anchored on the one call that is unique to it instead.
     val takeText = instructions.withIndex().filter { (_, it) -> it.callsMethod(SCRUB_STATE_TAKE_TEXT) }
-    check(takeText.size == 1) {
+    val takeTextIndex = takeText.sole {
         "Expected exactly one call to $SCRUB_STATE_TAKE_TEXT in $LATIN_IME->q, found " +
-            "${takeText.size} — SCRUB_DELETE_FINISH can no longer be told apart from its siblings"
-    }
-    val takeTextIndex = takeText.single().index
+            "$it — SCRUB_DELETE_FINISH can no longer be told apart from its siblings"
+    }.index
 
     // The handler's prologue, found by its shape rather than by the field's name:
     //
@@ -228,13 +228,12 @@ internal fun MutableMethod.undoOnRightwardScrub() {
                     instructions[it - 1].opcodeName() == "MOVE_RESULT" &&
                     instructions[it + 1].opcodeName() == "IF_NEZ"
             }
-    check(flagCandidates.size == 1) {
+    val flagIndex = flagCandidates.sole {
         "Expected exactly one `move-result` / `iget-boolean` / `if-nez` run within " +
             "$ANCHOR_SEARCH_WINDOW instructions before $SCRUB_STATE_TAKE_TEXT, found " +
-            "${flagCandidates.size} — the SCRUB_DELETE_FINISH prologue has changed shape, and the " +
+            "$it — the SCRUB_DELETE_FINISH prologue has changed shape, and the " +
             "suppression flag can no longer be told apart from its neighbours by position"
     }
-    val flagIndex = flagCandidates.single()
 
     val flagRead = instructions[flagIndex] as TwoRegisterInstruction
     val flagRegister = flagRead.registerA
@@ -298,11 +297,16 @@ internal fun MutableMethod.undoOnRightwardScrub() {
     }
 
     val (slot, value) = SCRATCH_REGISTERS
-    val claimed = listOf(countRegister, thisRegister, flagRegister, slot, value)
-    check(claimed.distinct().size == claimed.size) {
-        "Register collision in $LATIN_IME->q: count=v$countRegister this=v$thisRegister " +
-            "flag=v$flagRegister scratch=$SCRATCH_REGISTERS"
-    }
+
+    // The shared check rather than a local distinctness test. The hand-rolled version this replaces
+    // caught collisions but not the nibble range, and the emission below includes a `35c` invoke,
+    // whose registers are four bits each — a scratch slot above v15 would assemble and then fail to
+    // verify on a device, which is the one place this project cannot read the error from.
+    validateScratchRegisters(
+        scratch = SCRATCH_REGISTERS,
+        avoid = listOf(countRegister, thisRegister, flagRegister),
+        what = "$LATIN_IME->q",
+    )
 
     // A leftward or empty scrub leaves on the first comparison with nothing touched, which is what
     // keeps Gboard's own path byte-identical in the common case.

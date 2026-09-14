@@ -2,22 +2,20 @@ package app.template.patches.flipkart.sortbyratingscount
 
 import app.morphe.patcher.Fingerprint
 
-// TODO: Flipkart (com.flipkart.android) is a native app — these are
-// PLACEHOLDERS. Confirm with jadx/apktool on your target APK version:
-//
-// 1. If search results render in a WebView, find the WebViewClient
-//    subclass (search smali for 'Landroid/webkit/WebViewClient' implementors,
-//    then its onPageFinished(WebView, String)) and point the fingerprint below
-//    at it. The helper call in SortByRatingsCountPatch.kt then works as-is.
-// 2. If results are native RecyclerViews (most likely), WebView injection
-//    cannot reach them. Instead find the sort comparator / API sort-param
-//    builder (search for strings like 'sort', 'popularity', 'numberOfRatings')
-//    and hook that. Until then, leave this patch disabled.
-
-// Placeholder: replace definingClass/name/strings after APK analysis.
-internal val FlipkartWebViewClientOnPageFinishedFingerprint = Fingerprint(
-    definingClass = "Lcom/flipkart/android/web/WebViewClient;",
-    name = "onPageFinished",
+/**
+ * Hooks the React Native NetworkCaller bridge callback.
+ *
+ * Flipkart 9.13+ is a React Native app — search results are rendered by RN,
+ * not in a WebView.  The JS bundle calls `NetworkCaller.getNetworkResponseAsync()`
+ * which creates a `com.flipkart.reacthelpersdk.modules.network.a` callback that
+ * resolves the Promise with the raw JSON response string.
+ *
+ * We hook `OnSuccess(String)` to intercept the JSON, parse it, sort products
+ * by `ratingCount` descending, and pass the sorted JSON back to JS.
+ */
+internal val NetworkCallerOnSuccessFingerprint = Fingerprint(
+    definingClass = "Lcom/flipkart/reacthelpersdk/modules/network/b;",
+    name = "OnSuccess",
     returnType = "V",
-    parameters = listOf("Landroid/webkit/WebView;", "Ljava/lang/String;"),
+    parameters = listOf("Ljava/lang/String;"),
 )

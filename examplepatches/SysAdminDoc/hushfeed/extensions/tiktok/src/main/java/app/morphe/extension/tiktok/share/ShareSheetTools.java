@@ -8,12 +8,11 @@ package app.morphe.extension.tiktok.share;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.SystemClock;
 import android.view.HapticFeedbackConstants;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 
 import app.morphe.extension.shared.GlobalLayoutHook;
@@ -25,6 +24,8 @@ import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.L10n;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -48,37 +49,47 @@ import java.util.WeakHashMap;
  * Every cell in the three rows carries its label as its content description, which is
  * what the hidden list matches against.
  *
- * The confirm step is a touch listener on the three clickable views of each contact
- * cell. It swallows the tap so TikTok's own click never runs, and only forwards a second
- * tap on the same person within a few seconds by calling {@code performClick} on the view
- * the user touched. Horizontal scrolling of the row still works, because the parent
- * RecyclerView intercepts a drag before it reaches the cell.
+ * The patch binds each recycled contact cell to the model's stable user or conversation id.
+ * TikTok's common click dispatcher asks {@link #allowRecipientClick(View)} before it invokes
+ * the native send callback, so touch, keyboard and accessibility activation all take the same
+ * path and the native callback still runs exactly once after confirmation.
  */
 public final class ShareSheetTools {
     private static final String APP_PACKAGE = "com.zhiliaoapp.musically";
     private static final String CONTACTS_SECTION_ID = "ibc";
     private static final String CONTACTS_LIST_ID = "u3t";
-    private static final String CONTACT_AVATAR_ID = "bku";
-    private static final String CONTACT_NAME_ID = "p78";
     private static final String CHANNELS_LIST_ID = "dqr";
     private static final String ACTIONS_LIST_ID = "a59";
 
     /** How long a first tap stays armed before a second tap is needed again. */
     private static final long ARM_WINDOW_MS = 4000;
 
+    interface ConfirmationSettingReader {
+        boolean enabled();
+    }
+
+    private static final ConfirmationSettingReader DEFAULT_CONFIRMATION_SETTING_READER =
+            () -> Settings.SHARE_CONFIRM_SEND.get();
+    private static ConfirmationSettingReader confirmationSettingReader =
+            DEFAULT_CONFIRMATION_SETTING_READER;
+
     private static final ResourceIdCache RESOURCE_IDS = new ResourceIdCache();
 
     /** Original layout width of each cell this class has shrunk, so it can be restored. */
     private static final WeakHashMap<View, Integer> ORIGINAL_WIDTHS = new WeakHashMap<>();
 
-    private static final ConfirmTouchListener CONFIRM = new ConfirmTouchListener();
+    /** The current model identity for each recycled native contact cell. */
+    private static final WeakHashMap<View, RecipientBinding> RECIPIENTS = new WeakHashMap<>();
 
     private static WeakReference<Activity> activityReference = new WeakReference<>(null);
     private static final GlobalLayoutHook LAYOUT_HOOK = new GlobalLayoutHook();
 
-    private static String armedName;
+    private static String armedRecipientId;
     private static long armedAtMs;
     private static WeakReference<View> armedCell = new WeakReference<>(null);
+    private static Drawable armedPreviousForeground;
+    private static GradientDrawable armedRing;
+    private static int armGeneration;
 
     private ShareSheetTools() {
     }
@@ -128,13 +139,15 @@ public final class ShareSheetTools {
             View contacts = find(activity, CONTACTS_LIST_ID);
             if (contacts == null) {
                 // The sheet is closed. Its cells are gone, so the armed state is stale.
-                if (armedName != null) {
-                    disarm();
-                }
+                disarm();
+                RECIPIENTS.clear();
             }
 
             List<String> hidden = entries(Settings.SHARE_HIDDEN_ITEMS.get());
             boolean confirm = Settings.SHARE_CONFIRM_SEND.get();
+            if (!confirm) {
+                disarm();
+            }
 
             View contactsSection = find(activity, CONTACTS_SECTION_ID);
             boolean hideContacts = Settings.HIDE_SHARE_CONTACTS.get();
@@ -146,9 +159,6 @@ public final class ShareSheetTools {
                 for (int index = 0; index < list.getChildCount(); index++) {
                     View cell = list.getChildAt(index);
                     setCellHidden(cell, matches(hidden, labelOf(cell)));
-                    if (confirm) {
-                        guard(activity, cell);
-                    }
                 }
             }
 
@@ -227,123 +237,213 @@ public final class ShareSheetTools {
 
     // ---- confirm before sending --------------------------------------------------------
 
-    private static void guard(Activity activity, View cell) {
-        if (cell == null) {
-            return;
-        }
-        cell.setOnTouchListener(CONFIRM);
-        View avatar = cell.findViewById(identifier(activity, CONTACT_AVATAR_ID));
-        if (avatar != null) {
-            avatar.setOnTouchListener(CONFIRM);
-        }
-        View name = cell.findViewById(identifier(activity, CONTACT_NAME_ID));
-        if (name != null) {
-            name.setOnTouchListener(CONFIRM);
+    /**
+     * Called from the patched contact adapter each time a holder is bound. The AndroidX holder
+     * stays an Object here because AndroidX is owned by the host and is not part of the extension
+     * compile classpath. Its public {@code itemView} field is the native row the click dispatcher
+     * later supplies.
+     */
+    public static void bindRecipient(Object holder, Object contact) {
+        try {
+            View cell = itemViewOf(holder);
+            if (cell != null) {
+                bindRecipientView(cell, contact);
+            }
+        } catch (Throwable ex) {
+            Logger.printException(() -> "Could not bind a share recipient", ex);
         }
     }
 
     /**
-     * Takes every touch on a contact so TikTok's click listener never sees the first tap.
-     * A clean tap arms that person; a second clean tap on the same person inside the
-     * window forwards the click. A drag is left alone (the row's RecyclerView has already
-     * intercepted it by the time the finger moves far enough).
+     * The one gate in front of TikTok's native recipient callback. Returning false ends the
+     * native dispatcher before its Function0 is invoked; returning true lets that same dispatcher
+     * invoke it. Nothing here synthesizes another click.
      */
-    private static final class ConfirmTouchListener implements View.OnTouchListener {
-        private float downX;
-        private float downY;
-        private boolean moved;
-
-        @Override
-        public boolean onTouch(View view, MotionEvent event) {
-            if (!Settings.SHARE_CONFIRM_SEND.get()) {
-                return false;
-            }
-            switch (event.getActionMasked()) {
-                case MotionEvent.ACTION_DOWN:
-                    downX = event.getX();
-                    downY = event.getY();
-                    moved = false;
-                    return true;
-                case MotionEvent.ACTION_MOVE:
-                    if (!moved) {
-                        int slop = ViewConfiguration.get(view.getContext()).getScaledTouchSlop();
-                        moved = Math.abs(event.getX() - downX) > slop
-                                || Math.abs(event.getY() - downY) > slop;
-                    }
-                    return true;
-                case MotionEvent.ACTION_CANCEL:
-                    moved = true;
-                    return true;
-                case MotionEvent.ACTION_UP:
-                    if (!moved) {
-                        onTap(view);
-                    }
-                    return true;
-                default:
-                    return true;
-            }
-        }
-    }
-
-    static void onTap(View touched) {
+    public static boolean allowRecipientClick(View touched) {
+        final boolean confirmationEnabled;
         try {
-            View cell = cellOf(touched);
-            String name = labelOf(cell);
-            if (name == null) {
-                // Nothing to confirm against, so behave as TikTok would.
-                touched.performClick();
-                return;
+            confirmationEnabled = confirmationSettingReader.enabled();
+        } catch (Throwable ex) {
+            try {
+                disarm();
+            } catch (Throwable cleanupEx) {
+                Logger.printException(() -> "Could not clear unread share confirmation", cleanupEx);
             }
+            Logger.printException(() -> "Could not read share confirmation setting", ex);
+            return false;
+        }
 
-            boolean armed = name.equals(armedName)
-                    && SystemClock.elapsedRealtime() - armedAtMs <= ARM_WINDOW_MS;
+        if (!confirmationEnabled) {
+            try {
+                disarm();
+            } catch (Throwable ex) {
+                Logger.printException(() -> "Could not clear disabled share confirmation", ex);
+            }
+            return true;
+        }
+
+        try {
+            View cell = boundCellOf(touched);
+            RecipientBinding binding = RECIPIENTS.get(cell);
+            String recipientId = binding == null
+                    ? "view:" + System.identityHashCode(cell)
+                    : binding.id;
+            String name = labelOf(cell);
+            long now = SystemClock.uptimeMillis();
+            boolean armed = cell == armedCell.get()
+                    && recipientId.equals(armedRecipientId)
+                    && now - armedAtMs < ARM_WINDOW_MS;
             if (armed) {
                 disarm();
-                Logger.printDebug(() -> "Share confirmed for " + name);
-                if (!touched.performClick() && cell != touched) {
-                    cell.performClick();
-                }
-                return;
+                Logger.printDebug(() -> "Share recipient confirmed");
+                return true;
             }
 
-            arm(cell, name);
+            arm(cell, recipientId, name);
+            return false;
         } catch (Throwable ex) {
             Logger.printException(() -> "Share confirm step failed", ex);
+            // Confirmation failures must consume the activation instead of reaching native send.
+            try {
+                disarm();
+            } catch (Throwable cleanupEx) {
+                Logger.printException(() -> "Could not clear failed share confirmation", cleanupEx);
+            }
+            return false;
         }
     }
 
-    private static void arm(View cell, String name) {
+    static void bindRecipientView(View cell, Object contact) {
+        if (cell == null) {
+            return;
+        }
+        if (armedCell.get() == cell) {
+            disarm();
+        }
+        if (contact == null) {
+            RECIPIENTS.remove(cell);
+            return;
+        }
+        RECIPIENTS.put(cell, new RecipientBinding(stableRecipientId(contact)));
+    }
+
+    private static void arm(View cell, String recipientId, String name) {
         disarm();
-        armedName = name;
-        armedAtMs = SystemClock.elapsedRealtime();
+        armedRecipientId = recipientId;
+        armedAtMs = SystemClock.uptimeMillis();
         armedCell = new WeakReference<>(cell);
+        armedPreviousForeground = cell.getForeground();
 
         float density = cell.getResources().getDisplayMetrics().density;
-        GradientDrawable ring = new GradientDrawable();
-        ring.setShape(GradientDrawable.RECTANGLE);
-        ring.setCornerRadius(12 * density);
-        ring.setColor(Color.TRANSPARENT);
-        ring.setStroke(Math.round(2 * density), Color.rgb(254, 44, 85));
-        cell.setForeground(ring);
+        armedRing = new GradientDrawable();
+        armedRing.setShape(GradientDrawable.RECTANGLE);
+        armedRing.setCornerRadius(12 * density);
+        armedRing.setColor(Color.TRANSPARENT);
+        armedRing.setStroke(Math.max(2, Math.round(2 * density)), Color.rgb(254, 44, 85));
+        cell.setForeground(armedRing);
         cell.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
 
-        Utils.showToastShort(L10n.f("Tap %1$s again to send", name));
+        Utils.showToastShort(name == null
+                ? L10n.t("Tap again to send")
+                : L10n.f("Tap %1$s again to send", name));
 
-        final long stamp = armedAtMs;
+        final int token = armGeneration;
         Utils.runOnMainThreadDelayed(() -> {
-            if (armedAtMs == stamp) {
+            if (armGeneration == token) {
                 disarm();
             }
         }, ARM_WINDOW_MS);
     }
 
     private static void disarm() {
-        armedName = null;
-        armedAtMs = 0;
         View cell = armedCell.get();
+        Drawable ring = armedRing;
+        Drawable previousForeground = armedPreviousForeground;
+        armedRecipientId = null;
+        armedAtMs = 0;
         armedCell = new WeakReference<>(null);
-        if (cell != null) {
-            cell.setForeground(null);
+        armedPreviousForeground = null;
+        armedRing = null;
+        armGeneration++;
+        if (cell != null && cell.getForeground() == ring) {
+            cell.setForeground(previousForeground);
+        }
+    }
+
+    private static View itemViewOf(Object holder) throws ReflectiveOperationException {
+        if (holder == null) {
+            return null;
+        }
+        Class<?> type = holder.getClass();
+        while (type != null) {
+            try {
+                Field field = type.getDeclaredField("itemView");
+                field.setAccessible(true);
+                Object value = field.get(holder);
+                return value instanceof View ? (View) value : null;
+            } catch (NoSuchFieldException ignored) {
+                type = type.getSuperclass();
+            }
+        }
+        return null;
+    }
+
+    private static String stableRecipientId(Object contact) {
+        String conversation = stringMethod(contact, "getConversationId");
+        if (conversation != null) {
+            return "conversation:" + conversation;
+        }
+        String user = stringMethod(contact, "getUid");
+        if (user != null) {
+            return "user:" + user;
+        }
+        // Special action contacts do not identify a person. Object identity is conservative:
+        // it may ask again after a rebuild, but it can never confirm a different model instance.
+        return "model:" + contact.getClass().getName() + ":" + System.identityHashCode(contact);
+    }
+
+    private static String stringMethod(Object target, String name) {
+        try {
+            Method method = target.getClass().getMethod(name);
+            Object value = method.invoke(target);
+            if (value == null) {
+                return null;
+            }
+            String text = value.toString().trim();
+            return text.isEmpty() ? null : text;
+        } catch (ReflectiveOperationException ignored) {
+            return null;
+        }
+    }
+
+    private static View boundCellOf(View view) {
+        View current = view;
+        for (int depth = 0; current != null && depth < 5; depth++) {
+            if (RECIPIENTS.containsKey(current)) {
+                return current;
+            }
+            current = current.getParent() instanceof View ? (View) current.getParent() : null;
+        }
+        return cellOf(view);
+    }
+
+    static void resetForTests() {
+        disarm();
+        RECIPIENTS.clear();
+        confirmationSettingReader = DEFAULT_CONFIRMATION_SETTING_READER;
+    }
+
+    static void setConfirmationSettingReaderForTests(ConfirmationSettingReader reader) {
+        confirmationSettingReader = reader == null
+                ? DEFAULT_CONFIRMATION_SETTING_READER
+                : reader;
+    }
+
+    private static final class RecipientBinding {
+        final String id;
+
+        RecipientBinding(String id) {
+            this.id = id;
         }
     }
 

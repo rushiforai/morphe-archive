@@ -16,6 +16,7 @@ import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.cloneMutable
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
+import app.morphe.util.implementationOrPatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -26,6 +27,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import app.morphe.util.indexOfLiteralCallResult
+import app.morphe.util.singleOrPatchException
 
 private const val EXTENSION = "Lapp/morphe/extension/tiktok/interaction/AutoAdvance;"
 private const val COMPONENT = "Lcom/ss/android/ugc/feed/platform/panel/autoscroll/AutoScrollComponent;"
@@ -89,9 +91,9 @@ private fun BytecodePatchContext.resolveLazyRegistrations(): List<Registration> 
     // component's, and requiring exactly one overall used to be what ruled that out.
     val perMethod = found.groupBy { "${it.owner}->${it.method.name}${it.method.parameterTypes}" }
     val crowded = perMethod.filterValues { it.size > 1 }
-    if (crowded.isNotEmpty()) {
+    crowded.entries.firstOrNull()?.let { (method, registrations) ->
         throw PatchException(
-            "Auto advance: ${crowded.keys.first()} carries ${crowded.values.first().size} lazy " +
+            "Auto advance: $method carries ${registrations.size} lazy " +
                 "auto scroll registrations, so the component they belong to is not clear.",
         )
     }
@@ -148,11 +150,14 @@ val autoAdvancePatch = bytecodePatch(
     execute {
         val completed = Completion.method
         val component = mutableClassDefBy(COMPONENT)
-        val state = completed.implementation!!.instructions.firstNotNullOf { instruction ->
+        val completedInstructions = completed.implementationOrPatchException("Auto advance").instructions
+        val state = completedInstructions.firstNotNullOfOrNull { instruction ->
             instruction.getReference<FieldReference>()?.takeIf {
                 instruction.opcode == Opcode.IGET_OBJECT && it.definingClass == COMPONENT
             }
-        }
+        } ?: throw PatchException(
+            "Auto advance: completion boundary reads no state field from $COMPONENT.",
+        )
         val enumClass = mutableClassDefBy(state.type)
         check(enumClass.superclass == "Ljava/lang/Enum;" &&
             enumClass.fields.any { it.name == "AUTO_SCROLL_STATE_STOP" } &&
@@ -161,20 +166,24 @@ val autoAdvancePatch = bytecodePatch(
             "Auto advance: ${state.type} is not the auto scroll state enum. Expected an enum " +
                 "with AUTO_SCROLL_STATE_STOP and AUTO_SCROLL_STATE_PAUSE."
         }
-        val aweme = completed.implementation!!.instructions.mapNotNull { it.getReference<MethodReference>() }
+        val aweme = completedInstructions.mapNotNull { it.getReference<MethodReference>() }
             .filter { it.parameterTypes.isEmpty() && it.returnType == "Lcom/ss/android/ugc/aweme/feed/model/Aweme;" }
-            .distinctBy { it.toString() }.single()
-        val startCore = component.methods.single {
+            .distinctBy { it.toString() }
+            .singleOrPatchException("Auto advance: completion Aweme getter")
+        val startCore = component.methods.filter {
             AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" &&
                 it.parameterTypes == listOf(COMPONENT, "Z", "Z", "Z", "I")
-        }
-        val start = component.methods.single { method ->
+        }.singleOrPatchException("Auto advance: static component start core")
+        val start = component.methods.filter { method ->
             method.parameterTypes == listOf("Z", "Z") && method.returnType == "V" &&
-                method.implementation!!.instructions.any { it.getReference<MethodReference>()?.toString() == startCore.toString() }
-        }
+                method.implementation?.instructions?.any {
+                    it.getReference<MethodReference>()?.toString() == startCore.toString()
+                } == true
+        }.singleOrPatchException("Auto advance: component start entry")
         val stop = Stop.method
         val registrations = resolveLazyRegistrations()
-        val strategy = registrations.first().strategy
+        val strategy = registrations.firstOrNull()?.strategy
+            ?: throw PatchException("Auto advance: no load strategy remained after registration validation.")
         val strategyEnum = mutableClassDefBy(strategy)
         check(strategyEnum.superclass == "Ljava/lang/Enum;" &&
             strategyEnum.fields.any { it.name == IMMEDIATE }
@@ -184,7 +193,8 @@ val autoAdvancePatch = bytecodePatch(
         }
         val extension = mutableClassDefBy(EXTENSION)
         fun bridge(name: String, registers: Int, code: String) {
-            val original = extension.methods.single { it.name == name }
+            val original = extension.methods.filter { it.name == name }
+                .singleOrPatchException("Auto advance: extension bridge $name")
             val replacement = original.cloneMutable(additionalRegisters = registers)
             extension.methods.remove(original)
             extension.methods.add(replacement)
@@ -227,16 +237,20 @@ val autoAdvancePatch = bytecodePatch(
             mutableClassDefBy(registration.owner).findMutableMethodOf(registration.method)
                 .chooseAutoAdvanceLoadStrategy(registration.strategyIndex, registration.strategy)
         }
-        component.methods.single { it.name == "onViewCreated" && it.parameterTypes == listOf("Landroid/view/View;") }
+        component.methods.filter {
+            it.name == "onViewCreated" && it.parameterTypes == listOf("Landroid/view/View;")
+        }.singleOrPatchException("Auto advance: component onViewCreated(View)")
             .addInstruction(0, "invoke-static/range {p0 .. p1}, $EXTENSION->onView(Ljava/lang/Object;Landroid/view/View;)V")
         for (name in listOf("onResume", "onDestroy")) {
-            component.methods.single { it.name == name && it.parameterTypes.isEmpty() }
+            component.methods.filter { it.name == name && it.parameterTypes.isEmpty() }
+                .singleOrPatchException("Auto advance: component $name()")
                 .addInstruction(0, "invoke-static/range {p0 .. p0}, $EXTENSION->$name(Ljava/lang/Object;)V")
         }
         completed.addInstruction(0,
             "invoke-static/range {p0 .. p1}, $EXTENSION->beforeCompletion(Ljava/lang/Object;Ljava/lang/String;)V")
         val available = Availability.method
-        val returns = available.implementation!!.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN }
+        val returns = available.implementationOrPatchException("Auto advance").instructions
+            .withIndex().filter { it.value.opcode == Opcode.RETURN }
         check(returns.isNotEmpty()) {
             "Auto advance: ${available.name} returns nothing this can answer for."
         }
@@ -251,7 +265,7 @@ val autoAdvancePatch = bytecodePatch(
         // account outside the rollout never sees the entry however the feed gate answers. Both
         // reads go through the same switch.
         val panelAction = PanelAction.method
-        val panelInstructions = panelAction.implementation!!.instructions.toList()
+        val panelInstructions = panelAction.implementationOrPatchException("Auto advance").instructions.toList()
         val panelStringIndex = panelInstructions.indexOfFirst {
             it.opcode == Opcode.CONST_STRING &&
                 it.getReference<StringReference>()?.string == "panel_auto_scroll"
@@ -274,7 +288,7 @@ val autoAdvancePatch = bytecodePatch(
         )
 
         val panelGate = PanelGate.method
-        val panelReturns = panelGate.implementation!!.instructions.withIndex()
+        val panelReturns = panelGate.implementationOrPatchException("Auto advance").instructions.withIndex()
             .filter { it.value.opcode == Opcode.RETURN }
         check(panelReturns.isNotEmpty()) {
             "Auto advance: ${panelGate.name} returns nothing this can answer for."

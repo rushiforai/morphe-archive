@@ -21,6 +21,7 @@ import app.morphe.util.findFreeRegister
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
+import app.morphe.util.implementationOrPatchException
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.numberOfParameterRegisters
 import com.android.tools.smali.dexlib2.Opcode
@@ -59,13 +60,11 @@ private data class OpenDebugTargets(
  */
 private fun BytecodePatchContext.vectorResourceClass(): String {
     val carriers = getAllClassesWithString(VECTOR_RESOURCE_TO_STRING)
-    if (carriers.size != 1) {
-        throw PatchException(
-            "Settings: expected one class carrying \"$VECTOR_RESOURCE_TO_STRING\", found ${carriers.size}.",
-        )
-    }
-    val type = carriers.single().type
-    val hasIntConstructor = carriers.single().methods.any {
+    val carrier = carriers.singleOrNull() ?: throw PatchException(
+        "Settings: expected one class carrying \"$VECTOR_RESOURCE_TO_STRING\", found ${carriers.size}.",
+    )
+    val type = carrier.type
+    val hasIntConstructor = carrier.methods.any {
         it.name == "<init>" && it.parameterTypes.toList() == listOf("I")
     }
     if (!hasIntConstructor) {
@@ -96,13 +95,10 @@ internal fun resolveSettingsIconResourceId(
             ?: return@mapNotNull null
         reference.takeIf { it.parameterTypes.isEmpty() && it.returnType == "I" }
     }
-    if (iconCalls.size != 1) {
-        throw PatchException(
-            "Settings: expected AdWebMoreActionService to make one interface icon call, " +
-                "found ${iconCalls.size}.",
-        )
-    }
-    val iconMethod = iconCalls.single()
+    val iconMethod = iconCalls.singleOrNull() ?: throw PatchException(
+        "Settings: expected AdWebMoreActionService to make one interface icon call, " +
+            "found ${iconCalls.size}.",
+    )
 
     val implementations = keyCarriers.filter { classDef ->
         iconMethod.definingClass in classDef.interfaces && classDef.methods.any { method ->
@@ -151,15 +147,12 @@ internal fun resolveSettingsIconResourceId(
         classDef.type to ids
     }
     val sharedIds = returnedIds.values.reduce(Set<Int>::intersect)
-    if (sharedIds.size != 1) {
-        throw PatchException(
-            "Settings: $AD_BROWSER_SETTINGS_KEY implementations do not identify one shared icon: " +
-                returnedIds.entries.joinToString { (type, ids) ->
-                    "$type=[${ids.joinToString { "0x${it.toUInt().toString(16)}" }}]"
-                } + ".",
-        )
-    }
-    val id = sharedIds.single()
+    val id = sharedIds.singleOrNull() ?: throw PatchException(
+        "Settings: $AD_BROWSER_SETTINGS_KEY implementations do not identify one shared icon: " +
+            returnedIds.entries.joinToString { (type, ids) ->
+                "$type=[${ids.joinToString { "0x${it.toUInt().toString(16)}" }}]"
+            } + ".",
+    )
     if (id ushr 24 != 0x7f) {
         throw PatchException(
             "Settings: $AD_BROWSER_SETTINGS_KEY returned non-app resource 0x${id.toUInt().toString(16)}.",
@@ -235,18 +228,11 @@ val settingsPatch = bytecodePatch(
                 }
             }
 
-            if (composeMethods.isEmpty()) {
-                throw PatchException(
-                    "Enable Open Debug: no OpenDebug row compose found for state $stateClass.",
+            val (composeClassDef, composeMethod) = composeMethods.singleOrNull()
+                ?: throw PatchException(
+                    "Enable Open Debug: expected one OpenDebug row compose for $stateClass, " +
+                        "found ${composeMethods.size}.",
                 )
-            }
-            if (composeMethods.size > 1) {
-                throw PatchException(
-                    "Enable Open Debug: multiple OpenDebug row compose methods found for state $stateClass.",
-                )
-            }
-
-            val (composeClassDef, composeMethod) = composeMethods.single()
             return OpenDebugTargets(
                 stateClass = stateClass,
                 composeMutable = mutableClassDefBy(composeClassDef).findMutableMethodOf(composeMethod),
@@ -278,7 +264,8 @@ val settingsPatch = bytecodePatch(
 
         fun resolveClickWrapperMethod(): MutableMethod {
             var wrapperInvokeName: String? = null
-            val composeInstructions = composeMutable.implementation!!.instructions.toList()
+            val composeInstructions = composeMutable.implementationOrPatchException("Enable Open Debug")
+                .instructions.toList()
             val wrapperClass = composeInstructions.withIndex().firstNotNullOfOrNull { (index, insn) ->
                 if (insn.opcode != Opcode.INVOKE_DIRECT) return@firstNotNullOfOrNull null
                 val instruction = insn as? Instruction35c ?: return@firstNotNullOfOrNull null
@@ -325,12 +312,10 @@ val settingsPatch = bytecodePatch(
                 }
             }
 
-            if (matches.size != 1) {
-                throw PatchException(
-                    "Enable Open Debug: expected one OpenDebug click handler in $wrapperClass, found ${matches.size}.",
-                )
-            }
-            return matches.single()
+            return matches.singleOrNull() ?: throw PatchException(
+                "Enable Open Debug: expected one OpenDebug click handler in $wrapperClass, " +
+                    "found ${matches.size}.",
+            )
         }
 
         fun resolveOpenDebugFunction2Method(): MutableMethod {
@@ -364,12 +349,9 @@ val settingsPatch = bytecodePatch(
                 }
             }
 
-            if (matches.size != 1) {
-                throw PatchException(
-                    "Enable Open Debug: expected one OpenDebug Function2 lambda, found ${matches.size}.",
-                )
-            }
-            return matches.single()
+            return matches.singleOrNull() ?: throw PatchException(
+                "Enable Open Debug: expected one OpenDebug Function2 lambda, found ${matches.size}.",
+            )
         }
 
         fun MutableMethod.openMorpheSettingsAtStart(contextRegister: String) {
@@ -473,11 +455,17 @@ val settingsPatch = bytecodePatch(
         }
 
         AdPersonalizationActivityOnCreateFingerprint.method.apply {
-            val initializeSettingsIndex = implementation!!.instructions.indexOfFirst { it.opcode == Opcode.INVOKE_SUPER } + 1
-            val thisRegister = getInstruction<Instruction35c>(initializeSettingsIndex - 1).registerC
+            val activityImplementation = implementationOrPatchException("Settings")
+            val invokeSuperIndex = indexOfFirstInstructionOrThrow { opcode == Opcode.INVOKE_SUPER }
+            val invokeSuper = getInstruction(invokeSuperIndex) as? Instruction35c
+                ?: throw PatchException(
+                    "Settings: ${definingClass}->${name} uses an unsupported invoke-super form.",
+                )
+            val initializeSettingsIndex = invokeSuperIndex + 1
+            val thisRegister = invokeSuper.registerC
             // The highest local. Counting parameters rather than the registers they occupy
             // put this on top of a wide parameter's upper half on any method holding one.
-            val locals = implementation!!.registerCount - numberOfParameterRegisters
+            val locals = activityImplementation.registerCount - numberOfParameterRegisters
             check(locals >= 1) {
                 "Settings: the ad personalisation activity has no free local register."
             }
@@ -520,7 +508,8 @@ val settingsPatch = bytecodePatch(
         composeMutable.addInstruction(moveResultIndex + 1, "const-string v$titleStringRegister, \"Hushfeed\"")
 
         OpenDebugCellVmDefaultStateFingerprint.methodOrNull?.let { defaultState ->
-            val constructorReference = defaultState.implementation!!.instructions.firstNotNullOfOrNull { instruction ->
+            val constructorReference = defaultState.implementationOrPatchException("Settings")
+                .instructions.firstNotNullOfOrNull { instruction ->
                 if (instruction.opcode != Opcode.INVOKE_DIRECT) return@firstNotNullOfOrNull null
                 val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
                     ?: return@firstNotNullOfOrNull null

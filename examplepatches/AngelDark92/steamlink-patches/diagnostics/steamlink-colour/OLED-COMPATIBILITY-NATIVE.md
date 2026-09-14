@@ -4,6 +4,8 @@ Checked 2026-09-06 against the real decoded `lib/arm64-v8a/libvrlink_scene.so` f
 
 ## Exact inputs
 
+2026-09-11 recheck after the user reported no visible difference: the current production-helper audit again passed 63 variants, 567 transitions and 126 checkbox cases on each exact base below. Report: `build/oled-decoded-audit/e55b0c882efa47098458e92d4fb942e9/result.txt`. RGB10 selected with Low/Standard comparison dithering and `Use 8-bit output when dithering` checked intentionally resolves to sRGB8; unchecked retains RGB10. Off ignores the checkbox. The toggle does not enable dithering or respond to separate external patch selections. This confirms decoded-native adaptation, not the contents of the user's installed APK or a visible headset improvement.
+
 2026-09-09 checkbox follow-up: production helpers passed 63 variants, 567 format/dither transitions, and 126 checkbox cases per base below. `Use 8-bit output when dithering` selects sRGB8 only when checked with Low/Standard; unchecked and Off retain the selected precision. Both shader conversion and format instructions use the resolved precision. Exact diffs, interfaces, NUL boundaries, idempotence, and unchanged source hashes passed. Cached Kotlin/Morphe compilation and all 100 JUnit tests passed; catalogs were regenerated through the production generator with the explicit experimental channel. Gradle remains blocked resolving `app.morphe.patches:1.3.3`. No end-to-end APK patching, installation, decoder/import precision measurement, or headset runtime test was performed.
 
 | Evidence | 2.0.20 / 5001712 | 2.0.22 / 5002322 |

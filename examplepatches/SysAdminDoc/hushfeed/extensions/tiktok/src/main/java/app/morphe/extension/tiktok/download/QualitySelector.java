@@ -77,7 +77,7 @@ public final class QualitySelector {
         Object urls = Reflect.property(address, "getUrlList", "urlList");
         if (!(urls instanceof List<?>)) return false;
         for (Object url : (List<?>) urls) {
-            if (url instanceof String && (((String) url).startsWith("https://") || ((String) url).startsWith("http://"))) return true;
+            if (url instanceof String && MediaTransport.hasAllowedShape((String) url)) return true;
         }
         return false;
     }

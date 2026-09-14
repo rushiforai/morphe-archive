@@ -30,6 +30,7 @@ import dev.jz6.flexboard.patches.shared.ANDROID_CONTEXT
 import dev.jz6.flexboard.patches.shared.Constants.COMPATIBILITY_GBOARD
 import dev.jz6.flexboard.patches.shared.PACKED_INVOKE_REGISTER_LIMIT
 import dev.jz6.flexboard.patches.shared.TypedRegister
+import dev.jz6.flexboard.patches.shared.assertNotReadBeforeWritten
 import dev.jz6.flexboard.patches.shared.assertRegisterCount
 import dev.jz6.flexboard.patches.shared.checkAssignable
 import dev.jz6.flexboard.patches.shared.findInstanceField
@@ -184,6 +185,18 @@ private fun MutableMethod.substituteHoldDelay(context: BytecodePatchContext) {
         "No register below the forwarded engine constructor call to borrow as scratch"
     }
 
+    // This emission had no register validation of any kind, in either language: no distinctness
+    // check, no nibble ceiling, and no preflight anchor. It was correct only because the
+    // register-count assertion above forces the `3rc` encoding, which makes the arguments
+    // consecutive so `startRegister - 1` cannot alias one of them — an argument nobody wrote down
+    // and nothing enforced. The emission below includes a `35c` invoke, so the ceiling is real.
+    validateScratchRegisters(
+        scratch = listOf(scratchRegister),
+        avoid = listOf(contextRegister, configRegister, delayRegister, delayRegister + 1),
+        what = "$SCRUB_MOTION_EVENT_HANDLER-><init> (hold delay)",
+        registerCount = ENGINE_CONSTRUCTOR_REGISTER_COUNT,
+    )
+
     // The key and default are staged in the delay pair itself, which is about to be overwritten on
     // this path and is untouched on the other — so no register outside the pair is disturbed.
     val delayHigh = delayRegister + 1
@@ -278,6 +291,17 @@ private fun MutableMethod.capWordCount(
         listOf(countRegister, thisRegister),
         "$SCRUB_MOTION_EVENT_HANDLER->r",
     )
+    // A register-count assertion does not make a register-allocation analysis binding: R8
+    // reallocates freely within the same frame size, and validateScratchRegisters checks
+    // distinctness, collisions and the nibble ceiling but cannot check liveness. The KDoc above
+    // reasons the three registers are dead from both insertion points onward; this makes a build
+    // that moved them fail here rather than leave the claim unverified.
+    producers.sortedDescending().forEach { producerIndex ->
+        assertNotReadBeforeWritten(
+            instructions.toList(), producerIndex + 1, CLAMP_SCRATCH_REGISTERS,
+            "$SCRUB_MOTION_EVENT_HANDLER->r",
+        )
+    }
 
     // Descending, so inserting at one site cannot shift the index of the other.
     producers.sortedDescending().forEachIndexed { ordinal, producerIndex ->

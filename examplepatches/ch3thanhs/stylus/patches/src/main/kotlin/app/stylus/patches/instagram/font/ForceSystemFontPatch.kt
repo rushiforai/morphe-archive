@@ -59,6 +59,8 @@ val forceSystemFontInstagramPatch = bytecodePatch(
     description = "Renders Instagram UI text using the device system font.",
     default = true,
 ) {
+    category("Font")
+    
     compatibleWith(COMPATIBILITY_INSTAGRAM)
     dependsOn(forceSystemFontInstagramThemePatch)
 

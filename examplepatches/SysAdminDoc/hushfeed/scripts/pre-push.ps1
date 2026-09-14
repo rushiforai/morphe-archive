@@ -100,6 +100,25 @@ try {
     }
 
     $touchesCode = @($paths | Where-Object { $_ -like 'extensions/*' -or $_ -like 'patches/*' }).Count -gt 0
+    $touchesScripts = @($paths | Where-Object { $_ -like 'scripts/*' }).Count -gt 0
+    $injectedRegisterVerifierPaths = @(
+        'scripts/DexDiff.java',
+        'scripts/injected-register-contracts.ps1',
+        'scripts/injected-register-removal-allowlist.txt',
+        'scripts/test-injected-registers.ps1',
+        'scripts/verify-injected-registers.ps1'
+    )
+    $touchesInjectedRegisterVerifier = @($paths | Where-Object {
+        $_ -in $injectedRegisterVerifierPaths
+    }).Count -gt 0
+    $injectedRegisterDevicePaths = @(
+        'scripts/injected-register-device.ps1',
+        'scripts/test-injected-register-device.ps1',
+        'scripts/verify-injected-registers.ps1'
+    )
+    $touchesInjectedRegisterDevice = @($paths | Where-Object {
+        $_ -in $injectedRegisterDevicePaths
+    }).Count -gt 0
     $touchesRelease = @($paths | Where-Object {
         $_ -eq 'patches-bundle.json' -or $_ -eq 'patches-list.json' -or
         $_ -eq 'gradle.properties' -or $_ -eq 'README.md' -or
@@ -109,6 +128,24 @@ try {
         $_ -eq 'gradle/verification-metadata.xml' -or
         $_ -eq 'gradle/wrapper/gradle-wrapper.properties'
     }).Count -gt 0
+
+    if ($touchesScripts) {
+        Write-Step 'scripts changed, running their contract tests'
+        & (Join-Path $Root 'scripts/test-script-contracts.ps1') -Root $Root
+        if ($LASTEXITCODE -ne 0) { throw 'The script contract tests did not pass.' }
+    }
+
+    if ($touchesInjectedRegisterVerifier) {
+        Write-Step 'injected-register verifier changed, running its fixture tests'
+        & (Join-Path $Root 'scripts/test-injected-registers.ps1') -Root $Root
+        if ($LASTEXITCODE -ne 0) { throw 'The injected-register verifier fixture tests did not pass.' }
+    }
+
+    if ($touchesInjectedRegisterDevice) {
+        Write-Step 'injected-register device helper changed, running its cleanup fixtures'
+        & (Join-Path $Root 'scripts/test-injected-register-device.ps1') -Root $Root
+        if ($LASTEXITCODE -ne 0) { throw 'The injected-register device cleanup fixtures did not pass.' }
+    }
 
     if ($touchesCode) {
         Write-Step 'extension or patch sources changed, running the runtime tests and the API level check'
@@ -199,7 +236,7 @@ try {
         }
     }
 
-    if (-not $touchesCode -and -not $touchesRelease) {
+    if (-not $touchesScripts -and -not $touchesCode -and -not $touchesRelease) {
         Write-Step 'no code or published file changed'
     }
     Write-Step 'ok'

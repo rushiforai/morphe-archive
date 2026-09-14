@@ -22,6 +22,7 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import app.morphe.extension.tiktok.settings.L10n;
 
@@ -102,6 +103,9 @@ public final class InboxFilter {
     private static final WeakHashMap<View, Integer> ORIGINAL_HEIGHTS = new WeakHashMap<>();
     private static final WeakHashMap<View, BooleanSetting> SYSTEM_ROWS = new WeakHashMap<>();
 
+    /** Rows recognised as the stories tray, retained until a recycled row changes shape. */
+    private static final WeakHashMap<View, Boolean> STORY_ROWS = new WeakHashMap<>();
+
     /** Native MultiBaseVH binding supplies category identity before localized text is laid out. */
     public static void onRowBound(Object holder, int position, Object model) {
         Object item = app.morphe.extension.tiktok.blockauthor.Reflect.readField(holder, "itemView");
@@ -177,7 +181,10 @@ public final class InboxFilter {
                 return;
             }
 
-            applyHeader(activity);
+            boolean fullFilter = SettingsStatus.inboxFilterEnabled;
+            if (fullFilter) {
+                applyHeader(activity);
+            }
 
             View list = find(activity, LIST_ID);
             if (!(list instanceof ViewGroup)) {
@@ -187,10 +194,16 @@ public final class InboxFilter {
             ViewGroup rows = (ViewGroup) list;
             for (int index = 0; index < rows.getChildCount(); index++) {
                 View row = rows.getChildAt(index);
-                setRowHidden(row, shouldHideRow(activity, row));
+                if (fullFilter) {
+                    setRowHidden(row, shouldHideRow(activity, row));
+                } else {
+                    applyStoriesOnly(activity, row);
+                }
             }
 
-            addClearAllControl(activity);
+            if (fullFilter) {
+                addClearAllControl(activity);
+            }
         } catch (Throwable ex) {
             Logger.printException(() -> "Inbox filter failed", ex);
         }
@@ -200,6 +213,22 @@ public final class InboxFilter {
         setHidden(find(activity, HEADER_ADD_PEOPLE_ID), Settings.HIDE_INBOX_ADD_PEOPLE.get());
         setHidden(find(activity, HEADER_SEARCH_ID), Settings.HIDE_INBOX_SEARCH.get());
         setHidden(find(activity, HEADER_ACTIVITY_STATUS_ID), Settings.HIDE_INBOX_ACTIVITY_STATUS.get());
+    }
+
+    /**
+     * Runs when only the dedicated stories patch is installed. Unknown rows and controls are
+     * never written, while a row previously recognised as the tray is restored if RecyclerView
+     * reuses it for another item.
+     */
+    private static void applyStoriesOnly(Activity activity, View row) {
+        boolean stories = findWithin(activity, row, STORIES_TITLE_ID) != null;
+        boolean wasStories = STORY_ROWS.remove(row) != null;
+        if (stories) {
+            STORY_ROWS.put(row, Boolean.TRUE);
+            setRowHidden(row, Settings.HIDE_INBOX_STORIES.get());
+        } else if (wasStories) {
+            setRowHidden(row, false);
+        }
     }
 
     private static boolean shouldHideRow(Activity activity, View row) {

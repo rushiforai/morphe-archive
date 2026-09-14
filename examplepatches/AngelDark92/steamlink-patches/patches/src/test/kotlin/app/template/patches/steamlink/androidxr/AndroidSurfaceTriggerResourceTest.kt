@@ -15,6 +15,7 @@ class AndroidSurfaceTriggerResourceTest {
         assertFalse(projectionModesConflict("", ANDROID_SURFACE_TRIGGER_MODE))
         assertFalse(projectionModesConflict(ANDROID_SURFACE_TRIGGER_MODE, ANDROID_SURFACE_TRIGGER_MODE))
         listOf(
+            "surface_video_v1",
             "android_surface_fovea_v1",
             "android_surface_underside_projection_v1",
             "android_surface_trigger_dfr_rearm_v1",
@@ -227,6 +228,12 @@ class AndroidSurfaceTriggerResourceTest {
     @Test
     fun `retired projection and permission-matrix resources are absent`() {
         listOf(
+            "libgxr_surface_video.so",
+            "libgxr_surface_video_5001712_0.so",
+            "libgxr_surface_video_5001712_1.so",
+            "libgxr_surface_video_5002322_0.so",
+            "libgxr_surface_video_5002322_1.so",
+            "XR_APILAYER_local_GalaxyXR_surface_video_v1.json",
             "libgxr_asf.so",
             "XR_APILAYER_local_GalaxyXR_android_surface_fovea_v1.json",
             "libgxr_ast_underside.so",
@@ -247,6 +254,27 @@ class AndroidSurfaceTriggerResourceTest {
         ).forEach { resource ->
             assertNull(javaClass.getResourceAsStream("/steamlink/androidxr/$resource"), resource)
         }
+    }
+
+    @Test
+    fun `working trigger removes retired actual-video resources on reapplication`() {
+        val root = java.nio.file.Files.createTempDirectory("retired-surface-video").toFile()
+        try {
+            val lib = File(root, "lib").apply { mkdirs() }
+            val layers = File(root, "layers").apply { mkdirs() }
+            val oldLibrary = File(lib, "libgxr_surface_video.so").apply { writeText("retired") }
+            val oldManifest = File(layers, "XR_APILAYER_local_GalaxyXR_surface_video_v1.json")
+                .apply { writeText("retired") }
+            val unrelated = File(lib, "unrelated.so").apply { writeText("preserved") }
+            val requested = ProjectionModeResources(ANDROID_SURFACE_TRIGGER_MODE,
+                ANDROID_SURFACE_TRIGGER_LIBRARY, ANDROID_SURFACE_TRIGGER_MANIFEST)
+            repeat(2) { installProjectionModeResources(lib, layers, requested, byteArrayOf(1, 2, 3)) }
+            assertFalse(oldLibrary.exists())
+            assertFalse(oldManifest.exists())
+            assertEquals("preserved", unrelated.readText())
+            assertContentEquals(byteArrayOf(1, 2, 3), File(lib, ANDROID_SURFACE_TRIGGER_LIBRARY).readBytes())
+            assertTrue(File(layers, ANDROID_SURFACE_TRIGGER_MANIFEST).isFile)
+        } finally { root.deleteRecursively() }
     }
 
     private fun source(relativePath: String): String = listOf(

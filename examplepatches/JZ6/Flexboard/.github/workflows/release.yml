@@ -20,6 +20,7 @@ name: Release
 # See docs/releasing.md.
 
 on:
+  pull_request:
   push:
     branches: [dev, main]
   workflow_dispatch:
@@ -63,9 +64,29 @@ jobs:
             exit 1
           fi
 
-          if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
-            echo "v$VERSION is already released. Compiling only."
+          # A pull request verifies and never publishes. Without this the version-not-yet-tagged
+          # rule would make a PR from a fork tag and release the repository.
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "Pull request: verifying only."
             echo "release=false" >> "$GITHUB_OUTPUT"
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+            echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+            echo "mpp=patches/build/libs/patches-$VERSION.mpp" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # A tag is pushed *before* the release is published, so "the tag exists" is not the
+          # same as "the release shipped". If publishing failed after tagging, a re-run used to
+          # take this branch, skip publish and verification, pass every source check and finish
+          # green -- a green run reachable by doing nothing, masking the failure it followed.
+          if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null \
+             && gh release view "v$VERSION" --json assets --jq '.assets | length' 2>/dev/null \
+                | grep -qE '^[1-9]'; then
+            echo "v$VERSION is already released with assets. Compiling only."
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          elif git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
+            echo "::warning::v$VERSION is tagged but has no published assets — completing the release."
+            echo "release=true" >> "$GITHUB_OUTPUT"
           else
             echo "v$VERSION is new. This push releases it."
             echo "release=true" >> "$GITHUB_OUTPUT"
@@ -93,20 +114,23 @@ jobs:
         if: steps.decide.outputs.release == 'true'
         run: .github/scripts/check_version.sh "${{ steps.decide.outputs.version }}" "$GITHUB_REF_NAME"
 
-      # A source-level invariant, so it runs on every push rather than only on releases: the
-      # preference keys and defaults are deliberately duplicated across the patches and the
-      # extension DEX, and nothing about changing one alone fails to compile.
-      - name: Check the patch and the extension agree
-        run: .github/scripts/check_shared_constants.py
-
-      # Two faster-than-compile lanes over the patch sources: every obfuscated Gboard class the
-      # Kotlin names must be a preflight anchor, and every emitted smali block must survive the
-      # structural rules Morphe's own parser enforces at patch time (labels resolve, no terminal
-      # label, const widths). Both fail here instead of in a Manager log on a phone.
-      - name: Check dex anchors and emission strings
-        run: |
-          .github/scripts/check_dex_pins.py
-          .github/scripts/check_emission_lint.py
+      # tools/gate is the gate, and running it here is the whole point: the three script lanes
+      # used to be listed again in this file, which is the second hand-maintained list AGENTS.md
+      # says is how a lane goes missing -- and the two had already drifted apart by two lanes and a
+      # compile target. It runs on every push rather than only on releases, because the preference
+      # keys and defaults are deliberately duplicated across the patches and the extension DEX and
+      # nothing about changing one alone fails to compile.
+      #
+      # The dex-dependent lanes report SKIP on a runner with no gboard.apk, which the gate prints
+      # as a paragraph rather than a tick.
+      #
+      # GITHUB_TOKEN is not optional: the compile lane resolves app.morphe.patches from GitHub
+      # Packages, which is a credentialed repository. Leaving it off is what made the first version
+      # of this step fail with "plugin not found" while every other Gradle step here worked.
+      - name: Run the gate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: tools/gate
 
       # What is NOT checked here, so nobody has to rediscover it:
       #

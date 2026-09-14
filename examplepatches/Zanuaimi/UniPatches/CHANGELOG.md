@@ -1,3 +1,31 @@
+## [1.22.1](https://github.com/Zanuaimi/UniPatches/compare/v1.22.0...v1.22.1) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* **ads:** add register safety regression coverage ([d460559](https://github.com/Zanuaimi/UniPatches/commit/d460559cbda99511d0d968144e29527226f84ed4))
+* **ads:** protect MAX reward readiness instrumentation ([978821c](https://github.com/Zanuaimi/UniPatches/commit/978821c9e8e675d92fb73d29fd559c741020a646))
+
+## [1.22.0](https://github.com/Zanuaimi/UniPatches/compare/v1.21.0...v1.22.0) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* **ads:** preserve typed runtime boolean guards ([ece0fe8](https://github.com/Zanuaimi/UniPatches/commit/ece0fe800fe98012726d502b5b9fae5236f282b0))
+
+### ✨ New Features
+
+* **overlay:** release Universal Overlay v2.4.7 ([572c1c8](https://github.com/Zanuaimi/UniPatches/commit/572c1c89640be17589fcd491a2e7b6667621159c))
+
+## [1.21.0](https://github.com/Zanuaimi/UniPatches/compare/v1.20.2...v1.21.0) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* **ads:** add runtime instrumentation regression coverage ([3cdba35](https://github.com/Zanuaimi/UniPatches/commit/3cdba358663fa95ac4fde9265b1d867a851c6742))
+* **ads:** remove strategy coupling and protect runtime startup ([a5455ca](https://github.com/Zanuaimi/UniPatches/commit/a5455ca2049c09354f2331fe1499edeb9e83bf4c))
+
+### ✨ New Features
+
+* **overlay:** release Universal Overlay v2.4.6 ([8c8fdb4](https://github.com/Zanuaimi/UniPatches/commit/8c8fdb48c4bc06498dff39974400a2c26a35acef))
+
 ## [1.20.2](https://github.com/Zanuaimi/UniPatches/compare/v1.20.1...v1.20.2) (2026-09-12)
 
 ### 🐛 Bug Fixes

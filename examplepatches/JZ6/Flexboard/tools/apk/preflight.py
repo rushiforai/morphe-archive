@@ -99,6 +99,13 @@ BINDINGS = {
     # any of them.
     'start_key_holder': 'Lpnu;',          # holds the start keycode the scrub engine compares
     'key_selector': 'Lpmy;',              # the sget-object the start-key read goes through
+    'pointer_tracker': 'Lpvi;',           # per-pointer state; holds a gesture's start and current x/y
+    'key_data': 'Lpnu;',                  # key data; the scrub engine calls the same class start_key_holder
+    'key_data_arg': 'Lpnt;',              # its second ctor argument, passed null here
+    'ime_event': 'Lnur;',                 # the IME event wrapper a key-data becomes
+    'pointer_delegate_iface': 'Lpvj;',    # how the tracker declares its owner
+    'event_sink': 'Lpvo;',                # the interface anything down here raises an IME event through
+    'pointer_delegate': 'Lpvf;',          # owns the pointer trackers; where the flick preference lands
     'flag_box': 'Lnxp;',                  # boxed phenotype flag read by the scrub gate
     'access_point_map': 'Lays;',          # the map the toolbar register call writes into
     'immutable_set': 'Lvxe;',             # the allowed-set the order helper stores
@@ -141,6 +148,9 @@ EXPECTED = {
     'hidden_feature_flags_shared': [
         ('enable_close_proactive_suggestions_access_point', 'enable_auto_fill_pk_fallback_ui'),
     ],
+    'undo_ac_register_count': 16,
+    'undo_ac_slide_up_field': 'c',
+    'undo_ac_scratch': [3, 5, 6, 7, 8],
     'toolbar_capacity_flag': 'config_max_access_points',
     'toolbar_stock_flag_default': -1,
     'toolbar_stock_ceiling': 8,
@@ -322,6 +332,139 @@ def class_access_flags(dl, name):
     return None
 
 
+def literal_of(a):
+    """The `#N` an instruction carries, or None.
+
+    Read off the operand rather than the mnemonic: dis.py prints the arithmetic opcodes as family
+    placeholders. Hex as well as decimal, because `const` and `const/high16` render in hex and a
+    decimal-only pattern silently matches the leading zero of `#0x5`.
+    """
+    m = re.search(r'#(-?0x[0-9a-fA-F]+|-?\d+)', a or '')
+    return int(m.group(1), 0) if m else None
+
+
+def flag_layout(ins, flag):
+    """How a boolean Phenotype flag takes its default, as `flipFlagDefault` decides it.
+
+    Returns None when the flag is not declared here, otherwise a dict of:
+
+      own       -- it writes its own constant between its name and its factory call
+      effective -- the value that constant actually holds, wherever it was written
+      shared    -- another flag reads the same register afterwards without rewriting it
+      isolate   -- forcing this flag on requires the isolating emission
+
+    This is the rule three device failures came from getting wrong, in three different ways:
+    reading "hoisted" as "off", leaving the effective value unresolved, and assuming a flag that
+    owns its constant cannot be sharing it. Owning the constant written *before* you says nothing
+    about who reads it *next*, so both directions are here and `isolate` is the disjunction.
+    """
+    idx = next((i for i, (_pc, n_, a_) in enumerate(ins)
+                if n_.startswith('const-string') and f"'{flag}'" in (a_ or '')), None)
+    if idx is None:
+        return None
+    call = next((j for j in range(idx + 1, min(idx + 9, len(ins)))
+                 if re.search(r'->\w\(Ljava/lang/String;Z\)', ins[j][2] or '')), None)
+    if call is None:
+        return None
+    reg = invoke_regs(ins[call][2])[1]
+
+    own = [j for j in range(idx + 1, call)
+           if ins[j][1].startswith('const') and regs(ins[j][2] or '')[:1] == [reg]]
+    src = own[-1] if own else next(
+        (j for j in range(idx - 1, -1, -1)
+         if ins[j][1].startswith('const') and regs(ins[j][2] or '')[:1] == [reg]), None)
+
+    nxt = next((j for j in range(call + 1, len(ins))
+                if ins[j][1].startswith('const') and regs(ins[j][2] or '')[:1] == [reg]), len(ins))
+    later = [j for j in range(call + 1, nxt) if reg in invoke_regs(ins[j][2] or '')]
+
+    return {
+        'own': bool(own),
+        'effective': literal_of(ins[src][2]) if src is not None else None,
+        'shared': bool(later) or not own,
+        'isolate': bool(later) or not own,
+        'register': reg,
+    }
+
+
+def declared_flag_sets(source):
+    """The flags a patch forces and the subset it isolates, read out of its Kotlin source.
+
+    Parsed rather than restated, so the pin compares the patch against the APK instead of comparing
+    two copies of the same assumption.
+    """
+    call = re.search(r'forceFlagsOn\((.*?)\n\s*\)\n', source, re.S)
+    if not call:
+        return None, None
+    positional, _, isolating = call.group(1).partition('isolating')
+    forced = set(re.findall(r'"([a-z0-9_]+)"', re.sub(r'//[^\n]*', '', positional)))
+    isolated = set(re.findall(r'"([a-z0-9_]+)"', re.sub(r'//[^\n]*', '', isolating)))
+    return forced, isolated
+
+
+def find_string_holder(dl, needle):
+    """The class whose `<clinit>` loads [needle] as a string literal, or None.
+
+    Flags are declared in R8-generated holder classes whose names move between builds, so they are
+    located by the one thing that does not move -- the flag name itself.
+    """
+    for d in dl:
+        for cname, _af, cd in d.classes():
+            for m, _maf, co in d.class_methods(cd):
+                if not co or not m.endswith('-><clinit>()V'):
+                    continue
+                # ddis, not a bare `disasm`. The first version of this named the wrong module and
+                # the except below swallowed the NameError, so the helper returned None for every
+                # flag and six pins failed with no hint why.
+                code = d.code(co)
+                if code is None:
+                    continue
+                ins = ddis.disasm(d, code)
+                for _pc, n_, a_ in ins:
+                    if n_.startswith('const-string') and f"'{needle}'" in (a_ or ''):
+                        return cname
+    return None
+
+
+def class_interfaces(dl, name):
+    """Every interface a class declares, or None when the class is absent.
+
+    `implements` is not decoration when a patch emits a `check-cast`: casting a field typed as the
+    interface down to the implementation is only sound while the implementation still implements it.
+    dexlib's `classes()` discards `interfaces_off`, so read the class_def_item directly.
+    """
+    import struct
+    for d in dl:
+        for i in range(d.cls_n):
+            ci, _af, _su, io, _sf, _ao, _cd, _sv = struct.unpack_from(
+                '<8I', d.b, d.cls_o + 32 * i)
+            if d.type(ci) != name:
+                continue
+            if not io:
+                return []
+            size = struct.unpack_from('<I', d.b, io)[0]
+            return [d.type(struct.unpack_from('<H', d.b, io + 4 + 2 * k)[0])
+                    for k in range(size)]
+    return None
+
+
+def method_access_flags(dl, descriptor):
+    """A method's access flags, or None when it is absent.
+
+    Existence is not the property an emitter depends on. `invoke-static` against a method that
+    stopped being static, or `invoke-interface` against a class, assembles cleanly and fails
+    verification on the device -- where this project cannot read the error.
+    """
+    for d in dl:
+        for cname, _af, cd in d.classes():
+            if not descriptor.startswith(cname + '->'):
+                continue
+            for m, maf, _co in d.class_methods(cd):
+                if m == descriptor:
+                    return maf
+    return None
+
+
 def class_fields(d, cd):
     """(descriptor, is_static) for every field of a class_data_item."""
     if not cd:
@@ -447,8 +590,93 @@ def invoke_regs(arg):
 # Mnemonics whose first register operand is a *source*, not a destination. Everything else that
 # names a register writes the first one, which is what makes `writes_before` usable as a liveness
 # test rather than a guess.
+#
+# `check-cast` belongs here and was missing. It reads its register, verifies the type and leaves the
+# value in place -- it writes nothing. Treating it as a write let liveness *discard* the register,
+# which under-approximates liveness and so over-reports deadness: the one direction that hands an
+# emitter a register still carrying a live value. `Lpvf;->t` alone has three of them on registers
+# this project uses as scratch.
 READS_FIRST_OPERAND = ('if-', 'invoke', 'iput', 'sput', 'aput', 'return', 'throw', 'monitor',
-                       'fill-array', 'packed-switch', 'sparse-switch')
+                       'fill-array', 'packed-switch', 'sparse-switch', 'check-cast')
+
+# Mnemonics whose first register operand is *both* source and destination: `add-int/2addr v0, v1`
+# is `v0 += v1`. Killing v0 without first counting it as a read loses the liveness of every value
+# feeding an accumulator. dis.py prints these as family placeholders (`binop2addr...`), so match on
+# the substring rather than on any one mnemonic.
+READS_AND_WRITES_FIRST_OPERAND = ('2addr',)
+
+# `filled-new-array` reads every register it names and writes none -- its result goes to a following
+# `move-result-object`. It is not caught by the 'fill-array' prefix above, which matches only
+# `fill-array-data`, so it was being treated as a write and killing its own first argument.
+READS_FIRST_OPERAND = READS_FIRST_OPERAND + ('filled-new-array',)
+
+# ---- 64-bit operands -------------------------------------------------------------------------
+#
+# A wide value occupies a register *pair*, r and r+1. Modelling only r loses half of every long and
+# double: `move-result-wide v5` silently clobbers v6, and `cmp-long v11, v4, v11` silently reads v5
+# and v12. Both directions of that error report a register as free when it is not.
+#
+# dis.py renders arithmetic as opcode-hex families (`binop9b`, `unop81`) rather than mnemonics, so
+# these are decoded from the opcode byte, which is exact. Everything else is named.
+WIDE_DEST_NAMES = ('const-wide', 'move-wide', 'move-result-wide', 'iget-wide', 'sget-wide',
+                   'aget-wide')
+WIDE_SRC_NAMES = ('move-wide', 'iput-wide', 'sput-wide', 'aput-wide', 'return-wide', 'cmp-long',
+                  'cmpg-double', 'cmpl-double')
+# neg-long, not-long, neg-double, int-to-long, int-to-double, long-to-double, float-to-long,
+# float-to-double, double-to-long. 0x89 was missed on the first pass and the omission was
+# caught by a real pin: the scrub clamp inserts at a `float-to-double`, which writes the very
+# pair the emission borrows, so leaving it out reported its high half live on entry.
+_UNOP_WIDE_DEST = {0x7d, 0x7e, 0x80, 0x81, 0x83, 0x86, 0x88, 0x89, 0x8b}
+_UNOP_WIDE_SRC = {0x7d, 0x7e, 0x80, 0x84, 0x85, 0x86, 0x8a, 0x8b, 0x8c}
+# long: 0x9b-0xa5 and 0xbb-0xc5.  double: 0xab-0xaf and 0xcb-0xcf.
+_BINOP_WIDE = set(range(0x9b, 0xa6)) | set(range(0xab, 0xb0))
+_BINOP2_WIDE = set(range(0xbb, 0xc6)) | set(range(0xcb, 0xd0))
+# shl/shr/ushr-long take a *narrow* second operand, so their last source is not a pair.
+_SHIFT_LONG = {0xa3, 0xa4, 0xa5, 0xc3, 0xc4, 0xc5}
+
+
+def _family_opcode(mnemonic):
+    """The opcode byte behind a `binop9b`/`unop81`-style family placeholder, or None."""
+    for prefix in ('binop2addr', 'binop', 'unop'):
+        if mnemonic.startswith(prefix):
+            try:
+                return int(mnemonic[len(prefix):], 16)
+            except ValueError:
+                return None
+    return None
+
+
+def wide_pairs(mnemonic, registers):
+    """(extra_sources, extra_destinations) contributed by 64-bit operands.
+
+    Returns the *second* word of every register pair the instruction touches, so a caller can add
+    them to what `regs`/`invoke_regs` already found. Sources and destinations are separated because
+    over-reporting a source is conservative and over-reporting a destination is not.
+    """
+    if not registers:
+        return [], []
+    op = _family_opcode(mnemonic)
+    if op is not None:
+        if op in _UNOP_WIDE_DEST or op in _UNOP_WIDE_SRC:
+            dest = [registers[0] + 1] if op in _UNOP_WIDE_DEST else []
+            src = [registers[1] + 1] if op in _UNOP_WIDE_SRC and len(registers) > 1 else []
+            return src, dest
+        if op in _BINOP_WIDE or op in _BINOP2_WIDE:
+            sources = registers[1:] if op in _BINOP_WIDE else registers
+            if op in _SHIFT_LONG and sources:
+                sources = sources[:-1]
+            return [r + 1 for r in sources], [registers[0] + 1]
+        return [], []
+    dest = [registers[0] + 1] if mnemonic.startswith(WIDE_DEST_NAMES) else []
+    if mnemonic.startswith(WIDE_SRC_NAMES):
+        # `move-wide vA, vB` writes the A pair and reads the B pair. `cmp-long`/`cmp?-double` write
+        # a *narrow* int into vA and read two pairs. The stores read every operand they name.
+        if mnemonic.startswith(('move-wide', 'cmp-long', 'cmpg-double', 'cmpl-double')):
+            sources = registers[1:]
+        else:
+            sources = registers
+        return [r + 1 for r in sources], dest
+    return [], dest
 
 
 def writes_before(ins, reg, after_pc, before_pc):
@@ -471,34 +699,55 @@ def live_free(ins, register_count, at_pc):
     pcs = [i[0] for i in ins]
     index = {p: k for k, p in enumerate(pcs)}
 
+    # A switch's case targets live in a payload this function does not read, so its edges would be
+    # missing entirely and every register the cases read would look dead. Refuse rather than answer:
+    # no call site analyses a switch today, and a wrong answer here is not visible on a device.
+    if any(mnemonic.startswith(('packed-switch', 'sparse-switch')) for _pc, mnemonic, _a in ins):
+        raise ValueError('live_free cannot model a method containing a switch')
+
+    # Every handler entry is a `move-exception`, and an exception can be raised anywhere inside the
+    # try. Edging every instruction to every handler over-approximates -- some of those instructions
+    # are outside any try -- which keeps registers live that might not be, the safe direction.
+    handlers = [k for k, (_pc, mnemonic, _a) in enumerate(ins)
+                if mnemonic.startswith('move-exception')]
+
     def successors(k):
         _, mnemonic, args = ins[k]
         match = re.search(r'-> (\d+)', args)
+        # Only a branch's operand is a target. `fill-array-data` also carries `-> pc`, and matching
+        # it invents an edge to a payload.
+        target = ([index[int(match.group(1))]]
+                  if match and mnemonic.startswith(('goto', 'if-')) else [])
         if mnemonic.startswith('goto'):
-            return [index[int(match.group(1))]] if match else []
-        if mnemonic.startswith(('return', 'throw')):
-            return []
-        out = [index[int(match.group(1))]] if match else []
-        if k + 1 < n:
-            out.append(k + 1)
-        return out
+            out = target
+        elif mnemonic.startswith(('return', 'throw')):
+            out = []
+        else:
+            out = target + ([k + 1] if k + 1 < n else [])
+        return out + handlers
 
     live = [set() for _ in range(n + 1)]
     for _ in range(500):
         changed = False
         for k in range(n - 1, -1, -1):
             _, mnemonic, args = ins[k]
-            r = regs(args)
+            # invoke_regs, not regs: `{v3 .. v12}` is ten registers, and reading it as its two
+            # endpoints declared v4-v11 dead at the instruction that passes them as arguments.
+            r = invoke_regs(args)
             out = set()
             for t in successors(k):
                 out |= live[t]
             if mnemonic.startswith(READS_FIRST_OPERAND):
-                sources, destination = r, None
+                sources, destinations = r, []
+            elif any(w in mnemonic for w in READS_AND_WRITES_FIRST_OPERAND):
+                sources, destinations = r, ([r[0]] if r else [])
             else:
-                sources, destination = r[1:], (r[0] if r else None)
+                sources, destinations = r[1:], ([r[0]] if r else [])
+            wide_sources, wide_destinations = wide_pairs(mnemonic, r)
+            sources = list(sources) + wide_sources
+            destinations = list(destinations) + (wide_destinations if destinations else [])
             new = set(out)
-            if destination is not None:
-                new.discard(destination)
+            new -= set(destinations)
             new |= set(sources)
             if new != live[k]:
                 live[k] = new
@@ -510,6 +759,11 @@ def live_free(ins, register_count, at_pc):
 
 
 # --------------------------------------------------------------------------- checks
+
+# The floor for the check count. Not the exact number: adding a pin should not require editing
+# two places. It exists to catch a *collapse*, which is what an empty dex-derived list causes.
+MINIMUM_CHECKS = 290
+
 
 class Report:
     def __init__(self):
@@ -544,6 +798,19 @@ class Report:
         total = len(self.rows) - skipped
         tail = f', {skipped} skipped' if skipped else ''
         print(f'\n{total - failed}/{total} passed{tail}')
+
+        # A floor on the number of checks, because most of these rows are emitted inside `for`
+        # loops over lists derived from the dex. If one of those lists comes back empty -- a
+        # renamed class, a moved anchor, a regex that stopped matching -- its rows simply do not
+        # appear, and the run still prints N/N passed. That is the concrete mechanism behind
+        # AGENTS.md's "a pin count is a statement about Gboard, not about the build", and the only
+        # defence is to notice that the count fell. Raise it when the real count rises.
+        if len(self.rows) < MINIMUM_CHECKS:
+            print(f'\nFAIL  preflight produced {len(self.rows)} checks, fewer than the '
+                  f'{MINIMUM_CHECKS} it is expected to run. Rows are emitted inside loops over '
+                  f'dex-derived lists; a list that came back empty removes its checks silently '
+                  f'and leaves the total looking clean.')
+            failed += 1
         return failed
 
 
@@ -939,14 +1206,17 @@ def run(dl, apk=None):
                   f'count=v{count_reg} this=v{this_reg} scratch={scratch}')
             check('tuning: scratch fits a 35c invoke', all(r < 16 for r in scratch))
             if ok:
-                convergence = ins[prod[-1] + 1][0]
-                live = set()
-                for pc, n, a in ins:
-                    if pc >= convergence:
-                        live.update(regs(a))
-                check('tuning: scratch is dead from the convergence onward',
-                      not (set(scratch) & live),
-                      f'scratch={scratch} live at/after {convergence}={sorted(live)}')
+                # Both insertion points, by backward liveness over the real control-flow graph.
+                # This replaced a textual "every register mentioned at or after the convergence"
+                # scan that covered only the *last* producer -- and the emission inserts after each
+                # of them. The patch-time copy of this check is deliberately basic-block scoped and
+                # cannot answer for either site; this is the one that actually proves it.
+                for site in prod:
+                    at = ins[site + 1][0]
+                    free = set(live_free(ins, c['registers'], at))
+                    check(f'tuning: scratch is dead at the insertion point after pc {ins[site][0]}',
+                          set(scratch) <= free,
+                          f'scratch={scratch} still live={sorted(set(scratch) - free)}')
 
     # ---- toolbar icon count
     #
@@ -978,9 +1248,11 @@ def run(dl, apk=None):
             default_reg = regs(ins[gi[0]][2])[2]
             src = [i for i in range(gi[0] - 1, -1, -1)
                    if ins[i][1].startswith('const') and regs(ins[i][2])[:1] == [default_reg]]
-            literal = re.search(r'#(-?\d+)', ins[src[0]][2]) if src else None
+            # Hex too: dis.py renders `const` and `const/high16` that way, and a decimal-only
+            # pattern matches the leading 0 of `#0x5` and calls the literal zero.
+            literal = re.search(r'#(-?0x[0-9a-fA-F]+|-?\d+)', ins[src[0]][2]) if src else None
             check("toolbar: Gboard's own starting count is unchanged",
-                  literal is not None and int(literal.group(1)) == E['toolbar_stock_count'],
+                  literal is not None and int(literal.group(1), 0) == E['toolbar_stock_count'],
                   f'got {literal and literal.group(1)}, '
                   f'expected {E["toolbar_stock_count"]}')
 
@@ -1191,12 +1463,6 @@ def run(dl, apk=None):
         def field_of(a):
             """The field descriptor an iget/iput operand text ends with."""
             return a.rsplit(', ', 1)[-1].strip()
-
-        def literal_of(a):
-            """The `#N` an instruction carries, or None. Read off the operand rather than the
-            mnemonic: dis.py prints the arithmetic opcodes as family placeholders."""
-            m = re.search(r'#(-?0x[0-9a-f]+|-?\d+)', a)
-            return int(m.group(1), 0) if m else None
 
         builder = access_point = None
         for _pc, mn, a in ins:
@@ -2046,6 +2312,233 @@ def run(dl, apk=None):
                          if m.startswith(('if-', 'goto', 'packed-switch', 'sparse-switch'))]
                 check(f'flags: {flag} sits in straight-line code', not jumps, str(sorted(set(jumps))))
 
+    # ---- swipe up to undo autocorrect
+    #
+    # The patch inserts a guard before the ActionDef test on the pointer-release path and, on an
+    # upward flick over a key that claims none, dispatches Gboard's own revert-autocorrect event.
+    #
+    # The release path, not the touch handler: BasicMotionEventHandler->g dispatches only on
+    # actions 7, 9 and 10 -- ACTION_HOVER_* -- so an emission there would never see a finger. It
+    # also carries two of these lookups where the release path carries one. Both facts are pinned,
+    # because "patched the plausible-looking method" is the failure this cost a rewrite to find.
+    DISPATCH_EVENT = f"{B['event_sink']}->n({B['ime_event']})V"
+    release = f"{B['pointer_delegate']}->t({B['pointer_tracker']}Landroid/view/MotionEvent;I)V"
+    lookup = (f"{B['pointer_tracker']}->j({B['key_selector']})"
+              'Lcom/google/android/libraries/inputmethod/metadata/ActionDef;')
+
+    c_, ins_ = body(dl, release)
+    if check('undo-ac: the pointer release path exists', ins_ is not None):
+        # R8 renames `t`; it does not rename strings. Gboard's own trace section names this method
+        # in plain text, which makes it the one anchor here that a re-obfuscation cannot move. It is
+        # also the evidence that this is the release path and not something that merely looks like
+        # it -- the reason the first version of this patch went to the wrong method.
+        traced = [a for _pc, n_, a in ins_
+                  if n_.startswith('const-string') and 'handleActionUp' in (a or '')]
+        check('undo-ac: the release path still identifies itself as handleActionUp',
+              len(traced) == 1, str(len(traced)))
+        check('undo-ac: its frame is the one the scratch registers were measured against',
+              c_['registers'] == E['undo_ac_register_count'], str(c_['registers']))
+        hits = [i for i, (_pc, _n, a) in enumerate(ins_) if lookup in (a or '')]
+        if check('undo-ac: one action lookup to anchor on', len(hits) == 1, str(len(hits))):
+            i_ = hits[0]
+            check('undo-ac: the lookup result is moved',
+                  ins_[i_ + 1][1] == 'move-result-object', ins_[i_ + 1][1])
+            adr = re.match(r'\s*v(\d+)', ins_[i_ + 1][2] or '')
+            tests = [(j, ins_[j][0]) for j in range(i_ + 2, min(i_ + 10, len(ins_)))
+                     if ins_[j][1] == 'if-eqz' and adr
+                     and (ins_[j][2] or '').strip().startswith(f'v{adr.group(1)},')]
+            # Two const/4s sit between the move-result and this test. Assuming adjacency is what
+            # pointed the first version of the emitter at the wrong instruction.
+            if check('undo-ac: the ActionDef is tested with if-eqz nearby', len(tests) == 1,
+                     str(len(tests))):
+                at = tests[0][1]
+                free = set(live_free(ins_, c_['registers'], at))
+                want = set(E['undo_ac_scratch'])
+                check('undo-ac: the scratch registers are dead at the insertion point',
+                      want <= free, str(sorted(want - free)))
+
+    # The emission's own "have I already run here" signal. Both swipe-up patches attach to this
+    # method, and the second one distinguishes "already patched" from "Gboard moved" by counting
+    # dispatches. That only works while stock carries none.
+    c_, ins_ = body(dl, release)
+    if ins_ is not None:
+        sinks = [i for i, (_pc, _n, a) in enumerate(ins_) if DISPATCH_EVENT in (a or '')]
+        check('undo-ac: stock dispatches no IME event from the release path',
+              len(sinks) == 0, f'found {len(sinks)}')
+
+    # The hover handler, pinned as the thing this is deliberately *not*. If a build ever moves the
+    # finger path into it, this fails and the choice gets revisited rather than silently inherited.
+    c_, ins_ = body(dl, 'Lcom/google/android/libraries/inputmethod/motioneventhandler/'
+                        'BasicMotionEventHandler;->g(Landroid/view/MotionEvent;)V')
+    if check('undo-ac: the hover handler still exists', ins_ is not None):
+        hover = [i for i, (_pc, _n, a) in enumerate(ins_) if lookup in (a or '')]
+        check('undo-ac: it is still the two-lookup hover path, not the release path',
+              len(hover) == 2, str(len(hover)))
+
+    # SLIDE_UP by name, not by letter. A build that reordered the enum would otherwise leave the
+    # patch comparing against SLIDE_DOWN in silence.
+    c_, ins_ = body(dl, f"{B['key_selector']}-><clinit>()V")
+    if check('undo-ac: the action enum clinit exists', ins_ is not None):
+        named, pending = {}, None
+        for _pc, n_, a_ in ins_:
+            if n_.startswith('const-string'):
+                m_ = re.search(r"'(.*)'", a_ or '')
+                if m_:
+                    pending = m_.group(1)
+            elif n_.startswith('sput-object') and pending and '->' in (a_ or ''):
+                named[a_.split('->')[1].split(':')[0]] = pending
+                pending = None
+        check('undo-ac: SLIDE_UP is still the field the patch spells',
+              named.get(E['undo_ac_slide_up_field']) == 'SLIDE_UP',
+              str(named.get(E['undo_ac_slide_up_field'])))
+
+    # By type, not only by name. In R8 output "some instance field is called d" is close to a
+    # certainty, so a name-only check is nearly vacuous -- and the type is the whole reason these
+    # two fields are the ones the emission walks.
+    sink = find_instance_field(dl, B['pointer_delegate'], 'd')
+    check('undo-ac: the delegate declares its event sink, typed as the interface',
+          sink is not None and sink.endswith(f":{B['event_sink']}"), str(sink))
+    back = find_instance_field(dl, B['pointer_tracker'], 'r')
+    check('undo-ac: the tracker declares its delegate back-reference, typed as the interface',
+          back is not None and back.endswith(f":{B['pointer_delegate_iface']}"), str(back))
+
+    # The emitter hardcodes an invoke kind per call. Existence is not the property it depends on:
+    # invoke-static against a method that stopped being static, or invoke-interface against a
+    # class, both assemble and both fail verification on a device this project cannot read a log
+    # from. ACC_STATIC is 0x8, ACC_INTERFACE 0x200.
+    for desc, want_static in ((f"{B['key_data']}-><init>(IL{B['key_data_arg'][1:]}"
+                               'Ljava/lang/Object;I)V', False),
+                              (f"{B['ime_event']}->d({B['key_data']}){B['ime_event']}", True)):
+        maf = method_access_flags(dl, desc)
+        if check(f'undo-ac: {desc.split("->")[1][:28]} exists', maf is not None):
+            check(f'undo-ac: {desc.split("->")[1][:28]} staticness is what the invoke assumes',
+                  bool(maf & 0x8) == want_static, f'static={bool(maf & 0x8)}')
+
+    caf = class_access_flags(dl, B['event_sink'])
+    check('undo-ac: the event sink is an interface, as invoke-interface requires',
+          caf is not None and bool(caf & 0x200), f'flags={caf}')
+    maf = method_access_flags(dl, DISPATCH_EVENT)
+    check('undo-ac: the dispatch method is a non-static interface method',
+          maf is not None and not (maf & 0x8), f'flags={maf}')
+
+    # The check-cast the dispatch route depends on.
+    ifaces = class_interfaces(dl, B['pointer_delegate'])
+    check('undo-ac: the delegate still implements the interface the tracker field is typed as',
+          ifaces is not None and B['pointer_delegate_iface'] in ifaces,
+          str(ifaces))
+
+    # Pinned on Gboard's own producer rather than on our copy of it. If the stock path stops
+    # dispatching this code, the consumers that make an unarmed swipe a no-op are what changed.
+    c_, ins_ = body(dl, 'Lcom/google/android/apps/inputmethod/libs/edittracker/'
+                        'EditTrackingImeWrapper;->q(Lnur;)Z')
+    if check('undo-ac: the stock backspace revert exists', ins_ is not None):
+        codes = [i for i, (_pc, n_, a_) in enumerate(ins_)
+                 if n_.startswith('const') and re.search(r'#-10045\b', a_ or '')]
+        check('undo-ac: it still dispatches the revert code', len(codes) == 1, str(len(codes)))
+
+    # ---- long-flag holders: the shape that broke dev.6
+    #
+    # A static initialiser is STATIC | CONSTRUCTOR, 0x10008. A Morphe Fingerprint asking for
+    # accessFlags = [STATIC] matches none of them, and dev.6 failed on a device with "Failed to
+    # match the fingerprint" and no indication of which. Both long-flag rewrites now resolve their
+    # holder the way forceFlagsOn always has -- by carrying the flag name, with no access flags in
+    # the query at all -- and this pins the fact that made the fingerprint wrong.
+    for flag in ('ad_activation_type', 'vibration_effect_min_sdk'):
+        owner = find_string_holder(dl, flag)
+        if not check(f'longflag: {flag} has a declaring class', owner is not None, str(owner)):
+            continue
+        maf = method_access_flags(dl, f'{owner}-><clinit>()V')
+        check(f'longflag: {flag} sits in a STATIC|CONSTRUCTOR <clinit>, not a plain static',
+              maf is not None and bool(maf & 0x8) and bool(maf & 0x10000),
+              f'access flags = {hex(maf) if maf is not None else None}')
+        # The resolver refuses ambiguity rather than rewriting a guess, so one holder is required.
+        declaring = [cn for d_ in dl for cn, _af, cd_ in d_.classes()
+                     for m_, _m2, co_ in d_.class_methods(cd_)
+                     if m_.endswith('-><clinit>()V') and co_
+                     and any(n_.startswith('const-string') and f"'{flag}'" in (a_ or '')
+                             for _pc, n_, a_ in ddis.disasm(d_, d_.code(co_)))]
+        check(f'longflag: {flag} is declared in exactly one <clinit>',
+              len(declaring) == 1, str(declaring))
+
+    # ---- rambler: the patch's own flag sets, checked against the dex
+    #
+    # Not a restatement of the patch's assumptions -- the forced and isolated sets are parsed out
+    # of RamblerPatch.kt and every property is re-derived from the APK. Three device failures on
+    # this patch were all the same shape: the Kotlin believed something about the flag layout that
+    # the dex did not agree with, and nothing compared the two.
+    repo = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    ramble_src = os.path.join(
+        repo, 'patches/src/main/kotlin/dev/jz6/flexboard/patches/features/rambler',
+        'RamblerPatch.kt')
+    forced, isolated = (declared_flag_sets(open(ramble_src).read())
+                        if os.path.exists(ramble_src) else (None, None))
+    if check('rambler: the patch declares its flag sets readably', forced is not None):
+        c_, ins_ = body(dl, 'Lmqh;-><clinit>()V')
+        holders = {}
+        for flag in sorted(forced):
+            owner = find_string_holder(dl, flag)
+            _c, hins = body(dl, f'{owner}-><clinit>()V') if owner else (None, None)
+            holders[flag] = flag_layout(hins, flag) if hins else None
+
+        for flag in sorted(forced):
+            layout = holders[flag]
+            if not check(f'rambler: {flag} is locatable in the dex', layout is not None):
+                continue
+            # Forcing a flag Gboard already ships on is refused at patch time; catch it here.
+            check(f'rambler: {flag} is actually off, so forcing it means something',
+                  layout['effective'] == 0, f"effective={layout['effective']}")
+            # The whole point: does the dex agree with the isolating set the patch declares?
+            check(f'rambler: {flag} isolation matches what its constant sharing requires',
+                  layout['isolate'] == (flag in isolated),
+                  f"dex says isolate={layout['isolate']}, patch says {flag in isolated}")
+
+        check('rambler: nothing is isolated that is not forced',
+              isolated <= forced, str(isolated - forced))
+
+    # ---- modern keypress haptics
+    #
+    # Gboard has both vibration paths compiled in and picks between them in Lpho;->k. The primitive
+    # arm is unreachable because a minimum-SDK flag ships as 1024, which is a disabled feature
+    # written as a number. Pinned in full: the fake ceiling, the real floor beside it, and the
+    # hardware check the patch deliberately leaves in place.
+    c_, ins_ = body(dl, 'Lpho;->k(Landroid/os/Vibrator;)Z')
+    if check('haptics: the primitive gate exists', ins_ is not None):
+        sdk = [i for i, (_pc, n_, a_) in enumerate(ins_)
+               if n_.startswith('sget') and 'Build$VERSION;->SDK_INT' in (a_ or '')]
+        check('haptics: it reads SDK_INT twice, for the real floor and the flag',
+              len(sdk) == 2, str(len(sdk)))
+        floor = [literal_of(a_) for _pc, n_, a_ in ins_
+                 if n_.startswith('const') and literal_of(a_) == 30]
+        check('haptics: the hard floor is still API 30, the level the primitive API needs',
+              len(floor) == 1, str(len(floor)))
+        check('haptics: a long flag is compared against it',
+              any('Long' in (a_ or '') for _pc, _n, a_ in ins_) and
+              any(n_.startswith('cmp-long') for _pc, n_, _a in ins_))
+        # areAllEffectsSupported. Left alone by the patch on purpose: it is the device saying no.
+        check('haptics: the hardware capability check is still in the gate',
+              any('Vibrator' in (a_ or '') and n_.startswith('invoke') for _pc, n_, a_ in ins_))
+
+    holder = find_string_holder(dl, 'vibration_effect_min_sdk')
+    if check('haptics: the minimum-SDK flag is declared', holder is not None, str(holder)):
+        c_, ins_ = body(dl, f'{holder}-><clinit>()V')
+        i_ = next((i for i, (_pc, n_, a_) in enumerate(ins_ or [])
+                   if n_.startswith('const-string') and "'vibration_effect_min_sdk'" in (a_ or '')),
+                  None)
+        if check('haptics: its declaration is locatable', i_ is not None):
+            wide = next((j for j in range(i_ + 1, min(i_ + 5, len(ins_)))
+                         if ins_[j][1].startswith('const-wide')), None)
+            if check('haptics: it is declared as a long', wide is not None):
+                check('haptics: it still ships the impossible 1024 the patch replaces',
+                      literal_of(ins_[wide][2]) == 1024, str(literal_of(ins_[wide][2])))
+
+    # Both arms of the vibrate call. If either disappears the patch is switching to something else.
+    c_, ins_ = body(dl, 'Lpho;->f(I)V')
+    if check('haptics: the vibrate call exists', ins_ is not None):
+        check('haptics: it still branches on the primitive gate',
+              any('Lpho;->k(' in (a_ or '') for _pc, _n, a_ in ins_))
+        check('haptics: the strength is scaled for the primitive arm',
+              any(n_.startswith('const') and literal_of(a_) == 0x3c23d70a for _pc, n_, a_ in ins_))
+
     # ---- toolbar capacity
     #
     # Bigger Toolbar rewrites two literals and inserts nothing: the flag's compiled-in default in
@@ -2066,9 +2559,9 @@ def run(dl, apk=None):
             wide = [i for i in range(k + 1, len(ins)) if ins[i][1].startswith('const-wide')]
             if check('toolbar: a wide default follows the flag name', bool(wide)):
                 di = wide[0]
-                lit = re.search(r'#(-?\d+)', ins[di][2] or '')
+                lit = re.search(r'#(-?0x[0-9a-fA-F]+|-?\d+)', ins[di][2] or '')
                 check('toolbar: the flag default is unset',
-                      lit is not None and int(lit.group(1)) == E['toolbar_stock_flag_default'],
+                      lit is not None and int(lit.group(1), 0) == E['toolbar_stock_flag_default'],
                       (ins[di][2] or '').strip())
                 gap = next((i - di - 1 for i in range(di + 1, len(ins))
                             if factory in (ins[i][2] or '')), None)

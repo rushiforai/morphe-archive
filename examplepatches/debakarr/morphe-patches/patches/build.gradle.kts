@@ -3,7 +3,7 @@ group = "app.debakarr.morphe-patches"
 patches {
     about {
         name = "Debakar's Morphe Patches"
-        description = "Sort by number of ratings for Amazon and Flipkart, plus template patches."
+        description = "Sort search results by number of ratings for Amazon and Flipkart."
         source = "https://github.com/debakarr/morphe-patches"
         author = "debakarr"
         contact = "https://github.com/debakarr"

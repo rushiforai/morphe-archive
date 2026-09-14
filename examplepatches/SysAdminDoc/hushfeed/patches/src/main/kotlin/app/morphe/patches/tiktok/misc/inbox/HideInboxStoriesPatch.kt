@@ -14,12 +14,12 @@ import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 
-/** Shares the `hide_inbox_stories` switch with the row hiding in `Hide inbox items`. */
+/** Shares the live `hide_inbox_stories` row filter with `Hide inbox items`. */
 @Suppress("unused")
 val hideInboxStoriesPatch = bytecodePatch(
     name = "Hide inbox stories",
-    description = "Stops the stories tray at the top of the Inbox from being built. Shares " +
-        "its switch with Hide inbox items.",
+    description = "Hides the stories tray at the top of the Inbox and restores it immediately " +
+        "when the switch is turned off. Shares its switch with Hide inbox items.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)
@@ -33,6 +33,6 @@ val hideInboxStoriesPatch = bytecodePatch(
                 "Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableHideInboxStories()V",
         )
 
-        InboxSkylightWidgetEnableFingerprint.method.hideInboxWidget("shouldShowInboxStories")
+        MainActivityOnCreateFingerprint.method.installInboxLayoutFilter()
     }
 }

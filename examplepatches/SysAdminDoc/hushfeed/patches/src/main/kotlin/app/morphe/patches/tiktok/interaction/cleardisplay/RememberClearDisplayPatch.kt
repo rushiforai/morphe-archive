@@ -10,7 +10,9 @@ import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.util.cloneMutable
 import app.morphe.util.getReference
+import app.morphe.util.implementationOrPatchException
 import app.morphe.util.returnEarly
+import app.morphe.util.singleOrPatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
@@ -68,14 +70,17 @@ val rememberClearDisplayPatch = bytecodePatch(
         val eventMethod = OnClearDisplayEventFingerprint.method
         val eventClass = eventMethod.parameters[0].type
         val frameMethod = OnRenderFirstFrameBodyFingerprint.method
-        val awemeGetter = frameMethod.implementation!!.instructions.mapNotNull {
+        val awemeGetter = frameMethod.implementationOrPatchException("Remember clear display")
+            .instructions.mapNotNull {
             it.getReference<MethodReference>()
         }.filter {
             it.definingClass == frameMethod.definingClass && it.parameterTypes.isEmpty() &&
                 it.returnType == "Lcom/ss/android/ugc/aweme/feed/model/Aweme;"
-        }.distinctBy { it.toString() }.single()
+        }.distinctBy { it.toString() }
+            .singleOrPatchException("Remember clear display: first-frame Aweme getter")
         val extension = mutableClassDefBy(EXTENSION)
-        val postOriginal = extension.methods.single { it.name == "postClear" }
+        val postOriginal = extension.methods.filter { it.name == "postClear" }
+            .singleOrPatchException("Remember clear display: extension postClear bridge")
         val post = postOriginal.cloneMutable(additionalRegisters = 5)
         extension.methods.remove(postOriginal)
         extension.methods.add(post)
@@ -89,7 +94,8 @@ val rememberClearDisplayPatch = bytecodePatch(
             invoke-virtual { v0 }, $eventClass->post()Lcom/ss/android/ugc/governance/eventbus/IEvent;
             return-void
         """)
-        val readOriginal = extension.methods.single { it.name == "readCurrentAweme" }
+        val readOriginal = extension.methods.filter { it.name == "readCurrentAweme" }
+            .singleOrPatchException("Remember clear display: extension readCurrentAweme bridge")
         val read = readOriginal.cloneMutable(additionalRegisters = 1)
         extension.methods.remove(readOriginal)
         extension.methods.add(read)

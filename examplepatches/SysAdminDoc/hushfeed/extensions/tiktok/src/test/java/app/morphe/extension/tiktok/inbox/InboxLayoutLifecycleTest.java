@@ -14,6 +14,7 @@ import android.widget.TextView;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.settings.SettingsStatus;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +41,7 @@ public class InboxLayoutLifecycleTest {
 
     @Before public void setUp() {
         Utils.setContext(RuntimeEnvironment.getApplication());
+        SettingsStatus.inboxFilterEnabled = true;
         switches = new BooleanSetting[]{Settings.HIDE_INBOX_SUGGESTED_ACCOUNTS,
                 Settings.HIDE_INBOX_STORIES, Settings.HIDE_INBOX_CONVERSATIONS,
                 Settings.HIDE_INBOX_MESSAGE_REQUESTS, Settings.HIDE_INBOX_NEW_FOLLOWERS,
@@ -62,6 +64,7 @@ public class InboxLayoutLifecycleTest {
         }
         for (BooleanSetting setting : switches) setting.save(false);
         Settings.HIDE_INBOX_CUSTOM_TITLES.save("");
+        SettingsStatus.inboxFilterEnabled = false;
     }
 
     @Test public void movedHeaderKeepsItsControlAndReplacementGetsItsOwnUsableControl() {
@@ -183,6 +186,63 @@ public class InboxLayoutLifecycleTest {
         InboxFilter.onRowBound(new Holder(row), 4, new Object());
         inbox.layout();
         assertRow(row, false);
+    }
+
+    @Test public void storiesOnlyModeLeavesOtherInboxViewsAloneAndRestoresRecycledRows() {
+        SettingsStatus.inboxFilterEnabled = false;
+        Settings.HIDE_INBOX_STORIES.save(true);
+        Inbox inbox = openInbox();
+
+        LinearLayout story = new LinearLayout(inbox.activity);
+        reshape(inbox, story, null, "vpj", "Story account");
+        inbox.rows.addView(story, new LinearLayout.LayoutParams(-1, 72));
+
+        View nativeHidden = new View(inbox.activity);
+        nativeHidden.setVisibility(View.GONE);
+        inbox.rows.addView(nativeHidden, new LinearLayout.LayoutParams(-1, 0));
+
+        LinearLayout suggested = new LinearLayout(inbox.activity);
+        suggested.setOrientation(LinearLayout.HORIZONTAL);
+        addHeading(inbox, suggested, Color.BLACK);
+        inbox.rows.addView(suggested, new LinearLayout.LayoutParams(-1, 64));
+
+        inbox.layout();
+        assertRow(story, true);
+        assertEquals("story-only filtering changed a host-hidden row", View.GONE,
+                nativeHidden.getVisibility());
+        assertEquals(0, nativeHidden.getLayoutParams().height);
+        assertEquals("story-only filtering added another Inbox feature", 1,
+                suggested.getChildCount());
+
+        Settings.HIDE_INBOX_STORIES.save(false);
+        inbox.layout();
+        assertRow(story, false);
+
+        Settings.HIDE_INBOX_STORIES.save(true);
+        inbox.layout();
+        assertRow(story, true);
+        reshape(inbox, story, null, null, "Recycled conversation");
+        inbox.layout();
+        assertRow(story, false);
+
+        reshape(inbox, story, null, "vpj", "Another story account");
+        inbox.layout();
+        assertRow(story, true);
+        inbox.tab.setSelected(false);
+        Settings.HIDE_INBOX_STORIES.save(false);
+        inbox.layout();
+        assertRow(story, true);
+        inbox.tab.setSelected(true);
+        inbox.layout();
+        assertRow(story, false);
+
+        Settings.HIDE_INBOX_STORIES.save(true);
+        Inbox restarted = openInbox();
+        LinearLayout restartedStory = new LinearLayout(restarted.activity);
+        reshape(restarted, restartedStory, null, "vpj", "Story after restart");
+        restarted.rows.addView(restartedStory, new LinearLayout.LayoutParams(-1, 72));
+        restarted.layout();
+        assertRow(restartedStory, true);
     }
 
     @Test public void installingNewActivityDetachesOldLayoutsAndFinishingStopsFiltering() {

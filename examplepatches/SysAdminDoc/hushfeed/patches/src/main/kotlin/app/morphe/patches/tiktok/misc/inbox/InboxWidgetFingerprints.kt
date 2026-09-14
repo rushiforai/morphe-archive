@@ -44,13 +44,6 @@ internal object InboxRecommendUserWidgetEnableFingerprint : Fingerprint(
     parameters = emptyList(),
 )
 
-internal object InboxSkylightWidgetEnableFingerprint : Fingerprint(
-    definingClass = "/InboxSkylightWidgetV2Injector;",
-    name = "enable",
-    returnType = "Z",
-    parameters = emptyList(),
-)
-
 private const val NOTIFICATION_WIDGET_CONTAINER_DESCRIPTOR = "/NotificationWidgetContainer;"
 
 /**

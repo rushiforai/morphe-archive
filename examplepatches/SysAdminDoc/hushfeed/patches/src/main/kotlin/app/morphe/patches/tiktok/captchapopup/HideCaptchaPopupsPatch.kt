@@ -8,7 +8,6 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
-import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
@@ -18,7 +17,6 @@ import app.morphe.patches.tiktok.shared.callThroughLocals
 import app.morphe.patches.tiktok.shared.objectIn
 import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.patches.tiktok.shared.valueIn
-import com.android.tools.smali.dexlib2.AccessFlags
 
 /**
  * Every entry point below is named by a class and a method TikTok wrote. What was written here
@@ -94,17 +92,7 @@ private const val LIVE_DISMISS = "LIZIZ"
  * class is the same class-load failure the name check exists to prevent.
  */
 private fun BytecodePatchContext.dismissCall(type: String, name: String): String {
-    val callback = classDefByOrNull(type)
-        ?: throw PatchException("Hide CAPTCHA popups: $type is not a class in this build.")
-    if (callback.methods.none { it.name == name && it.returnType == "V" && it.parameterTypes.none() }) {
-        throw PatchException("Hide CAPTCHA popups: $type has no $name()V to dismiss the request with.")
-    }
-    val kind = if (AccessFlags.INTERFACE.value and callback.accessFlags != 0) {
-        "invoke-interface"
-    } else {
-        "invoke-virtual"
-    }
-    return "$kind/range {p3 .. p3}, $type->$name()V"
+    return captchaDismissCall(type, name) { classDefByOrNull(it) }
 }
 
 @Suppress("unused")

@@ -9,12 +9,14 @@ package app.morphe.patches.tiktok.misc.inbox
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private object InboxRowBindingFingerprint : Fingerprint(
     returnType = "V",
@@ -31,6 +33,28 @@ internal object MainActivityOnCreateFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Landroid/os/Bundle;"),
 )
+
+/** Both Inbox patches need the live layout observer, but a combined selection injects it once. */
+internal fun MutableMethod.installInboxLayoutFilter() {
+    val alreadyInstalled = implementation!!.instructions.any { instruction ->
+        instruction.getReference<MethodReference>()?.let { reference ->
+            reference.definingClass == EXTENSION_CLASS_DESCRIPTOR &&
+                reference.name == "install" &&
+                reference.parameterTypes.map(CharSequence::toString) ==
+                listOf("Landroid/app/Activity;") &&
+                reference.returnType == "V"
+        } == true
+    }
+    if (alreadyInstalled) return
+
+    // p0 is the activity. Uses invoke-static/range because a parameter register is
+    // usually above v15, which the plain invoke-static cannot encode.
+    addInstruction(
+        0,
+        "invoke-static/range { p0 .. p0 }, " +
+            "$EXTENSION_CLASS_DESCRIPTOR->install(Landroid/app/Activity;)V",
+    )
+}
 
 @Suppress("unused")
 val inboxFilterPatch = bytecodePatch(
@@ -63,13 +87,6 @@ val inboxFilterPatch = bytecodePatch(
                 "Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableInboxFilter()V",
         )
 
-        // p0 is the activity. Uses invoke-static/range because a parameter register is
-        // usually above v15, which the plain invoke-static cannot encode.
-        MainActivityOnCreateFingerprint.method.addInstruction(
-            0,
-            "invoke-static/range { p0 .. p0 }, " +
-                "$EXTENSION_CLASS_DESCRIPTOR->install(Landroid/app/Activity;)V",
-        )
-
+        MainActivityOnCreateFingerprint.method.installInboxLayoutFilter()
     }
 }

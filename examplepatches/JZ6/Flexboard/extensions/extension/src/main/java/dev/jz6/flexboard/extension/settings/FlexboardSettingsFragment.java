@@ -77,6 +77,12 @@ public final class FlexboardSettingsFragment extends CommonPreferenceFragment {
     /** Paired with TRY_KEYBOARD_KEY in SettingsScreenPatch.kt. */
     private static final String TRY_KEYBOARD_KEY = "flexboard_try_keyboard";
 
+    /** Paired with HOTKEY_EXPORT_KEY in SettingsScreenPatch.kt. */
+    private static final String HOTKEY_EXPORT_KEY = "flexboard_hotkey_copy";
+
+    /** Paired with HOTKEY_IMPORT_KEY in SettingsScreenPatch.kt. */
+    private static final String HOTKEY_IMPORT_KEY = "flexboard_hotkey_paste";
+
     private static final String SOURCE_URL = "https://github.com/JZ6/Flexboard";
     private static final String SOURCE_URL_SHORT = "github.com/JZ6/Flexboard";
 
@@ -241,6 +247,20 @@ public final class FlexboardSettingsFragment extends CommonPreferenceFragment {
      */
     @Override
     public boolean aA(androidx.preference.Preference preference) {
+        try {
+            return dispatchRowClick(preference);
+        } catch (Throwable oops) {
+            // The same catcher aB() has, for the same reason, on a path that touches more moved-name
+            // risk than any other in this class. The comment on aB() argued a click handler "sits on
+            // a Gboard stack that could supply one"; it does not -- View.performClick dispatches
+            // straight into here and the framework catches nothing. Gboard is a single process, so
+            // an escape does not close a settings screen, it takes the keyboard down and leaves the
+            // device with no way to type.
+            return true;
+        }
+    }
+
+    private boolean dispatchRowClick(androidx.preference.Preference preference) {
         syncRowIconsOnce();
 
         for (int slot = 1; slot <= Hotkeys.slotCount(); slot++) {
@@ -251,11 +271,11 @@ public final class FlexboardSettingsFragment extends CommonPreferenceFragment {
                 return true;
             }
         }
-        if (isRow(preference, "flexboard_hotkey_copy")) {
+        if (isRow(preference, HOTKEY_EXPORT_KEY)) {
             export(preference);
             return true;
         }
-        if (isRow(preference, "flexboard_hotkey_paste")) {
+        if (isRow(preference, HOTKEY_IMPORT_KEY)) {
             importBlob(preference);
             return true;
         }
@@ -464,11 +484,17 @@ public final class FlexboardSettingsFragment extends CommonPreferenceFragment {
             .setView(column)
             .setNegativeButton("Cancel", null)
             .setPositiveButton("Save", (dlog, which) -> {
-                Hotkeys.setText(ui, slot, field.getText().toString());
-                if (!pending[0].equals(seed)) {
-                    Hotkeys.setIconToken(ui, slot, pending[0]);
+                // Outside editHotkey's try: the dialog callback runs later, on its own stack, and
+                // redrawSlot reaches three obfuscated Preference members.
+                try {
+                    Hotkeys.setText(ui, slot, field.getText().toString());
+                    if (!pending[0].equals(seed)) {
+                        Hotkeys.setIconToken(ui, slot, pending[0]);
+                    }
+                    redrawSlot(ui, slot);
+                } catch (Throwable oops) {
+                    // The preference is stored either way; only the repaint is lost.
                 }
-                redrawSlot(ui, slot);
             })
             .show();
         for (int i = 0; i < items.size(); i++) {

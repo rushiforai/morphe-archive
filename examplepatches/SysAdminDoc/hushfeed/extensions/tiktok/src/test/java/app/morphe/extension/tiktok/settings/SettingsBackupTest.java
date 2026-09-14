@@ -21,6 +21,7 @@ import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -623,6 +624,34 @@ public class SettingsBackupTest {
         assertFalse(new File(app.getFilesDir(), SettingsOperationJournal.FILE_NAME).isFile());
     }
 
+    @Test public void aCleanupFailureDoesNotRelabelAnAppliedJournalAsFailed() throws Exception {
+        var app = Utils.getContext();
+        String before = SettingsBackup.create(false);
+        Settings.REGION_SPOOF.save(true);
+        Settings.MAX_VIDEO_SECONDS.save(73);
+        String after = SettingsBackup.create(false);
+        writeJournal("settings", before, after);
+        File journal = new File(app.getFilesDir(), SettingsOperationJournal.FILE_NAME);
+        File damaged = new File(journal.getPath() + SettingsOperationJournal.DAMAGED_SUFFIX);
+        if (damaged.exists()) assertTrue(damaged.delete());
+        AtomicInteger deletes = new AtomicInteger();
+
+        SettingsOperationJournal.Recovery result = SettingsOperationJournal.initialize(app, file -> {
+            deletes.incrementAndGet();
+            throw new java.io.IOException("forced journal cleanup failure");
+        });
+
+        assertEquals(1, deletes.get());
+        assertEquals(SettingsOperationJournal.Recovery.ALREADY_COMMITTED, result);
+        assertEquals(SettingsOperationJournal.Recovery.ALREADY_COMMITTED,
+                SettingsOperationJournal.consumeRecoveryNotice());
+        assertFalse(journal.isFile());
+        assertTrue(damaged.isFile());
+        assertEquals(SettingsOperationJournal.Recovery.NONE,
+                SettingsOperationJournal.consumeRecoveryNotice());
+        assertTrue(damaged.delete());
+    }
+
     @Test public void interruptedLabJournalRestoresPriorRulesAndKeepsTheUndoCopy() throws Exception {
         var app = Utils.getContext();
         String before = FeatureGateLabStore.exportSettings().toString();
@@ -668,20 +697,65 @@ public class SettingsBackupTest {
         assertTrue(damaged.delete());
     }
 
+    @Test public void eachUnreadableJournalPublishesItsOwnNoticeInOneProcess() throws Exception {
+        var app = Utils.getContext();
+        File journal = new File(app.getFilesDir(), SettingsOperationJournal.FILE_NAME);
+        File damaged = new File(journal.getPath() + SettingsOperationJournal.DAMAGED_SUFFIX);
+        if (damaged.exists()) assertTrue(damaged.delete());
+
+        try (var output = new FileOutputStream(journal)) {
+            output.write(new byte[] {(byte) 0xc3, 0x28});
+        }
+        assertEquals(SettingsOperationJournal.Recovery.MALFORMED,
+                SettingsOperationJournal.initialize(app));
+        assertEquals(SettingsOperationJournal.Recovery.MALFORMED,
+                SettingsOperationJournal.consumeRecoveryNotice());
+
+        try (var output = new FileOutputStream(journal)) {
+            output.write(new byte[] {(byte) 0xe2, 0x28, (byte) 0xa1});
+        }
+        assertEquals(SettingsOperationJournal.Recovery.MALFORMED,
+                SettingsOperationJournal.initialize(app));
+        assertEquals(SettingsOperationJournal.Recovery.MALFORMED,
+                SettingsOperationJournal.consumeRecoveryNotice());
+        assertEquals(SettingsOperationJournal.Recovery.NONE,
+                SettingsOperationJournal.consumeRecoveryNotice());
+        assertFalse(journal.isFile());
+        assertTrue(damaged.isFile());
+        assertTrue(damaged.delete());
+    }
+
     @Test public void aJournalThatCannotBeAppliedIsSetAsideAndTheNextChangeStarts() throws Exception {
         var app = Utils.getContext();
-        // A well formed record whose Lab snapshot names another TikTok, which is what an
-        // install over an older Hushfeed leaves behind when the journal was written by the
-        // version before the retarget. parseSettings refuses it, so it can never be applied.
-        JSONObject foreign = new JSONObject(FeatureGateLabStore.exportSettings().toString());
-        foreign.put("tiktok_version", "0.0.0");
-        writeJournal("lab", foreign.toString(), foreign.toString());
+        Settings.MAX_VIDEO_SECONDS.save(51);
+        String before = SettingsBackup.create(false);
+        Settings.MAX_VIDEO_SECONDS.save(52);
+        String after = SettingsBackup.create(false);
+        Settings.MAX_VIDEO_SECONDS.save(53);
+        writeJournal("settings", before, after);
         File journal = new File(app.getFilesDir(), SettingsOperationJournal.FILE_NAME);
         File damaged = new File(journal.getPath() + SettingsOperationJournal.DAMAGED_SUFFIX);
 
-        SettingsOperationJournal.Recovery result = SettingsOperationJournal.initialize(app);
-        assertTrue("was " + result, result == SettingsOperationJournal.Recovery.MALFORMED
-                || result == SettingsOperationJournal.Recovery.FAILED);
+        var original = Setting.preferences.preferences;
+        var attempts = new java.util.concurrent.atomic.AtomicInteger();
+        var unwritable = failingCommitsWithoutApply(original, () -> true, attempts::incrementAndGet);
+        var field = app.morphe.extension.shared.settings.preference.SharedPrefCategory.class
+                .getDeclaredField("preferences");
+        field.setAccessible(true);
+        field.set(Setting.preferences, unwritable);
+        SettingsOperationJournal.Recovery result;
+        try {
+            result = SettingsOperationJournal.initialize(app);
+        } finally {
+            field.set(Setting.preferences, original);
+        }
+
+        assertEquals(2, attempts.get());
+        assertEquals(SettingsOperationJournal.Recovery.FAILED, result);
+        assertEquals(SettingsOperationJournal.Recovery.FAILED,
+                SettingsOperationJournal.consumeRecoveryNotice());
+        assertEquals(SettingsOperationJournal.Recovery.NONE,
+                SettingsOperationJournal.consumeRecoveryNotice());
         assertFalse(journal.isFile());
         assertTrue(damaged.isFile());
         SettingsOperationJournal.Operation operation = SettingsOperationJournal.acquire(app);

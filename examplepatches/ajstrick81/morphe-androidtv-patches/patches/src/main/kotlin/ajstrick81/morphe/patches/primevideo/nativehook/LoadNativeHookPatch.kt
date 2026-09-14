@@ -46,7 +46,13 @@ val loadNativeHookPatch = bytecodePatch(
     execute {
         // Inject at index 0 of Application.onCreate so JNI_OnLoad runs before
         // any native media pipeline is constructed.
-        ApplicationOnCreateFingerprint.method.addInstructions(
+        //
+        // Optional (issue #120): methodOrNull so a missing anchor (v16 refactor —
+        // ApplicationOnCreateFingerprint no longer resolves) skips rather than
+        // aborting the whole patch. The native hook simply won't load on that build
+        // (a no-op) and the rest of the patch set still applies; on supported
+        // versions this fires as before.
+        ApplicationOnCreateFingerprint.methodOrNull?.addInstructions(
             0,
             """
                 invoke-static {}, Lajstrick81/morphe/extension/primevideo/nativehook/NativeHookLoader;->load()V

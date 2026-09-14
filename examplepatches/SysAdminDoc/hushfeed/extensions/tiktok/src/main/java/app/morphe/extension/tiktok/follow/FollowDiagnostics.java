@@ -26,6 +26,7 @@ import app.morphe.extension.tiktok.settings.Settings;
 
 @SuppressWarnings("unused")
 public final class FollowDiagnostics {
+    private static final String HOOK_FAMILY = "follow diagnostics";
     private static final int MAX_EVENTS_PER_SESSION = 160;
     private static final long READBACK_WINDOW_MS = 30_000L;
     private static final AtomicInteger eventCount = new AtomicInteger();
@@ -1143,7 +1144,8 @@ public final class FollowDiagnostics {
         // has to be noticed whether or not logging is on; an uncached getMethod on each of
         // them, and a superclass walk throwing per level on a build that renamed getPath,
         // was a cost every network call paid for the life of the process.
-        Object value = app.morphe.extension.tiktok.blockauthor.Reflect.invoke(request, "getPath");
+        Object value = app.morphe.extension.tiktok.blockauthor.Reflect.required(
+                request, "getPath", HOOK_FAMILY);
         if (!(value instanceof String)) return null;
 
         return (String) value;

@@ -70,6 +70,14 @@ private object CommentMoreCellBindFingerprint : Fingerprint(
     custom = { method, _ -> method.name == "onBindItemView" },
 )
 
+internal typealias CommentToolsWrite = () -> Unit
+
+/** Resolve every host contract before applying any write the patcher cannot roll back. */
+internal fun applyAfterCommentToolsPreflight(vararg resolve: () -> CommentToolsWrite) {
+    val writes = resolve.map { it() }
+    writes.forEach { it() }
+}
+
 /**
  * Hooks the same two places the comment translation patch does: the comment cell being
  * bound (to attach the block gesture) and the comment list response being handled (to
@@ -90,122 +98,137 @@ val commentToolsPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.tiktok4623())
 
     execute {
-        SettingsStatusLoadFingerprint.method.addInstruction(
-            0,
-            "invoke-static {}, " +
-                "Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableCommentTools()V",
-        )
-
-        // Blocking a commenter goes through the same BlockApi as the block button. Fail
-        // the build rather than ship a gesture that silently does nothing.
-        BlockServiceFingerprint.method
-        // The view installs its like and dislike touch listeners from one parameterless method,
-        // each on a RelativeLayout it keeps. Found by that shape inside the view's own class.
-        val likeAndHate = CommentLikeAndHateBindFingerprint.originalClassDef
-        val installers = likeAndHate.methods.filter {
-            it.returnType == "V" && it.parameterTypes.isEmpty() && it.touchInstalls().isNotEmpty()
-        }
-        if (installers.size != 1) {
-            throw PatchException(
-                "Comment tools: expected one method of ${likeAndHate.type} to install its touch " +
-                    "listeners, found ${installers.size}",
-            )
-        }
-        mutableClassDefBy(likeAndHate.type).findMutableMethodOf(installers.single())
-            .captureDislikeTouchListener { classDefByOrNull(it) }
-        CommentMoreCellBindFingerprint.method.registerReplySearch { classDefByOrNull(it) }
-
-        BaseCommentCellBindFingerprint.method.apply {
-            val instructions = implementation!!.instructions
-            val managerMatch = instructions.withIndex().mapNotNull { (index, instruction) ->
-                val field = instruction.getReference<FieldReference>() ?: return@mapNotNull null
-                if (instruction.opcode != Opcode.IPUT_OBJECT ||
-                    field.type != COMMENT_DESCRIPTOR ||
-                    instruction !is TwoRegisterInstruction
-                ) {
-                    return@mapNotNull null
+        // The patcher keeps writes made by a patch that later fails. Each resolver below returns
+        // a deferred write, so even the last reply/list/register refusal leaves the APK untouched.
+        applyAfterCommentToolsPreflight(
+            {
+                val settingsStatus = SettingsStatusLoadFingerprint.method
+                // Blocking a commenter goes through the same BlockApi as the block button. Fail
+                // the build rather than ship a gesture that silently does nothing.
+                BlockServiceFingerprint.method
+                val write: CommentToolsWrite = {
+                    settingsStatus.addInstruction(
+                        0,
+                        "invoke-static {}, " +
+                            "Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableCommentTools()V",
+                    )
                 }
-
-                // The cell's state holder is written in a burst of iput-objects into the
-                // same register; the comment is one of them. Take the last write of the
-                // burst so the holder is fully initialised when the hook runs.
-                val managerRegister = instruction.registerB
-                var matchingWrites = 0
-                var lastWriteIndex = index
-                val searchEnd = (index + 6).coerceAtMost(instructions.lastIndex)
-                for (candidateIndex in (index + 1)..searchEnd) {
-                    val candidate = instructions[candidateIndex]
-                    val candidateField = candidate.getReference<FieldReference>()
-                    if (candidate.opcode == Opcode.IPUT_OBJECT &&
-                        candidate is TwoRegisterInstruction &&
-                        candidate.registerB == managerRegister &&
-                        candidateField?.definingClass == field.definingClass
+                write
+            },
+            {
+                // The view installs its like and dislike touch listeners from one parameterless
+                // method, each on a RelativeLayout it keeps. Found inside the view's own class.
+                val likeAndHate = CommentLikeAndHateBindFingerprint.originalClassDef
+                val installers = likeAndHate.methods.filter {
+                    it.returnType == "V" && it.parameterTypes.isEmpty() && it.touchInstalls().isNotEmpty()
+                }
+                if (installers.size != 1) {
+                    throw PatchException(
+                        "Comment tools: expected one method of ${likeAndHate.type} to install its " +
+                            "touch listeners, found ${installers.size}",
+                    )
+                }
+                mutableClassDefBy(likeAndHate.type).findMutableMethodOf(installers.single())
+                    .resolveDislikeTouchListener { classDefByOrNull(it) }
+            },
+            {
+                CommentMoreCellBindFingerprint.method.resolveReplySearch { classDefByOrNull(it) }
+            },
+            {
+                val method = BaseCommentCellBindFingerprint.method
+                val instructions = method.implementation!!.instructions
+                val managerMatch = instructions.withIndex().mapNotNull { (index, instruction) ->
+                    val field = instruction.getReference<FieldReference>() ?: return@mapNotNull null
+                    if (instruction.opcode != Opcode.IPUT_OBJECT ||
+                        field.type != COMMENT_DESCRIPTOR ||
+                        instruction !is TwoRegisterInstruction
                     ) {
-                        matchingWrites++
-                        lastWriteIndex = candidateIndex
+                        return@mapNotNull null
                     }
+
+                    // The cell's state holder is written in a burst of iput-objects into the
+                    // same register; the comment is one of them. Take the last write of the
+                    // burst so the holder is fully initialised when the hook runs.
+                    val managerRegister = instruction.registerB
+                    var matchingWrites = 0
+                    var lastWriteIndex = index
+                    val searchEnd = (index + 6).coerceAtMost(instructions.lastIndex)
+                    for (candidateIndex in (index + 1)..searchEnd) {
+                        val candidate = instructions[candidateIndex]
+                        val candidateField = candidate.getReference<FieldReference>()
+                        if (candidate.opcode == Opcode.IPUT_OBJECT &&
+                            candidate is TwoRegisterInstruction &&
+                            candidate.registerB == managerRegister &&
+                            candidateField?.definingClass == field.definingClass
+                        ) {
+                            matchingWrites++
+                            lastWriteIndex = candidateIndex
+                        }
+                    }
+
+                    if (matchingWrites >= 2) lastWriteIndex to managerRegister else null
+                }.lastOrNull() ?: throw PatchException(
+                    "Comment tools: could not locate the initialised comment cell state holder.",
+                )
+                val (managerReadyIndex, managerRegister) = managerMatch
+
+                // Plain invoke-static cannot encode a register above v15 (see the block button
+                // patch); the translation patch relies on this register being low as well.
+                if (managerRegister > 15) {
+                    throw PatchException(
+                        "Comment tools: cell state register v$managerRegister is above v15.",
+                    )
                 }
 
-                if (matchingWrites >= 2) lastWriteIndex to managerRegister else null
-            }.lastOrNull() ?: throw PatchException(
-                "Comment tools: could not locate the initialised comment cell state holder.",
-            )
-            val (managerReadyIndex, managerRegister) = managerMatch
+                // A register nothing is holding here. This injects into the middle of the bind,
+                // where v0 belongs to the host, and it was written over on the strength of being
+                // dead on this one build.
+                val cellRegister = method.getFreeRegisterProvider(
+                    managerReadyIndex + 1,
+                    1,
+                    listOf(managerRegister),
+                ).getFreeRegister4Bit()
+                val write: CommentToolsWrite = {
+                    method.addInstructions(
+                        managerReadyIndex + 1,
+                        """
+                            move-object/from16 v$cellRegister, p0
+                            iget-object v$cellRegister, v$cellRegister, Landroidx/recyclerview/widget/RecyclerView${'$'}ViewHolder;->itemView:Landroid/view/View;
+                            invoke-static {v$cellRegister, v$managerRegister}, $EXTENSION_CLASS_DESCRIPTOR->registerCommentCell(Landroid/view/View;Ljava/lang/Object;)V
+                        """,
+                    )
+                }
+                write
+            },
+            {
+                val method = CommentListLoadedFingerprint.method
+                val responseReadyIndex = method.implementation!!.instructions.withIndex()
+                    .firstOrNull { (_, instruction) ->
+                        instruction.getReference<FieldReference>()?.let { reference ->
+                            reference.definingClass == COMMENT_LIST_DESCRIPTOR &&
+                                reference.name == "lazySplitItemsParseTask"
+                        } == true
+                    }?.index ?: throw PatchException(
+                        "Comment tools: could not locate the loaded comment list response.",
+                    )
 
-            // Plain invoke-static cannot encode a register above v15 (see the block button
-            // patch); the translation patch relies on this register being low as well.
-            if (managerRegister > 15) {
-                throw PatchException(
-                    "Comment tools: cell state register v$managerRegister is above v15.",
+                val responseRegister = (method.implementation!!.instructions.elementAt(responseReadyIndex)
+                    as? TwoRegisterInstruction)?.registerB ?: throw PatchException(
+                    "Comment tools: the loaded comment list is not read from a register.",
                 )
-            }
-
-            // A register nothing is holding here. This injects into the middle of the bind,
-            // where v0 belongs to the host, and it was written over on the strength of being
-            // dead on this one build.
-            val cellRegister = getFreeRegisterProvider(
-                managerReadyIndex + 1,
-                1,
-                listOf(managerRegister),
-            ).getFreeRegister4Bit()
-
-            addInstructions(
-                managerReadyIndex + 1,
-                """
-                    move-object/from16 v$cellRegister, p0
-                    iget-object v$cellRegister, v$cellRegister, Landroidx/recyclerview/widget/RecyclerView${'$'}ViewHolder;->itemView:Landroid/view/View;
-                    invoke-static {v$cellRegister, v$managerRegister}, $EXTENSION_CLASS_DESCRIPTOR->registerCommentCell(Landroid/view/View;Ljava/lang/Object;)V
-                """,
-            )
-        }
-
-        CommentListLoadedFingerprint.method.apply {
-            val responseReadyIndex = implementation!!.instructions.withIndex()
-                .firstOrNull { (_, instruction) ->
-                    instruction.getReference<FieldReference>()?.let { reference ->
-                        reference.definingClass == COMMENT_LIST_DESCRIPTOR &&
-                            reference.name == "lazySplitItemsParseTask"
-                    } == true
-                }?.index ?: throw PatchException(
-                "Comment tools: could not locate the loaded comment list response.",
-            )
-
-            val responseRegister = (implementation!!.instructions.elementAt(responseReadyIndex)
-                as? TwoRegisterInstruction)?.registerB ?: throw PatchException(
-                "Comment tools: the loaded comment list is not read from a register.",
-            )
-
-            addInstructions(
-                responseReadyIndex,
-                callThroughLocals(
+                val bridge = method.callThroughLocals(
                     "Comment tools",
                     "invoke-static",
                     "$EXTENSION_CLASS_DESCRIPTOR->onCommentListLoaded(Ljava/lang/Object;)V",
                     false,
                     objectIn("v$responseRegister"),
-                ),
-            )
-        }
+                )
+                val write: CommentToolsWrite = {
+                    method.addInstructions(responseReadyIndex, bridge)
+                }
+                write
+            },
+        )
     }
 }
 
@@ -271,8 +294,8 @@ private fun MutableMethod.replyModel(classOf: (String) -> ClassDef?): ReplyModel
 
 private val FieldReference.smali get() = "$definingClass->$name:$type"
 
-/** The reply control is a separate holder whose bound model carries its parent comment. */
-internal fun MutableMethod.registerReplySearch(classOf: (String) -> ClassDef?) {
+/** Resolve every reply row insertion without changing the bind method. */
+internal fun MutableMethod.resolveReplySearch(classOf: (String) -> ClassDef?): CommentToolsWrite {
     val native = implementation ?: throw PatchException("Comment tools: reply bind has no body")
     val model = replyModel(classOf)
     val returns = native.instructions.withIndex()
@@ -280,7 +303,7 @@ internal fun MutableMethod.registerReplySearch(classOf: (String) -> ClassDef?) {
     if (returns.isEmpty()) throw PatchException("Comment tools: reply bind has no return")
     val holderRegister = native.registerCount - 2
     val itemRegister = native.registerCount - 1
-    for (index in returns.reversed()) {
+    val insertions = returns.reversed().map { index ->
         val registers = getFreeRegisterProvider(index, 3, listOf(holderRegister, itemRegister))
         val viewRegister = registers.getFreeRegister4Bit()
         val modelRegister = registers.getFreeRegister4Bit()
@@ -288,9 +311,7 @@ internal fun MutableMethod.registerReplySearch(classOf: (String) -> ClassDef?) {
         // The relayout has finished changing the control's native height. Its model owns the
         // parent Comment and computes state4 for a control that must stay collapsed when search
         // clears.
-        addInstructionsAtControlFlowLabel(
-            index,
-            """
+        index to """
                 move-object/from16 v$viewRegister, p0
                 iget-object v$viewRegister, v$viewRegister, Landroidx/recyclerview/widget/RecyclerView${'$'}ViewHolder;->itemView:Landroid/view/View;
                 move-object/from16 v$modelRegister, p1
@@ -300,9 +321,18 @@ internal fun MutableMethod.registerReplySearch(classOf: (String) -> ClassDef?) {
                 iget-object v$modelRegister, v$modelRegister, ${model.data.smali}
                 iget-object v$modelRegister, v$modelRegister, ${model.parent.smali}
                 invoke-static {v$viewRegister, v$modelRegister, v$stateRegister}, Lapp/morphe/extension/tiktok/comment/CommentSearch;->onReplyControlBound(Landroid/view/View;Ljava/lang/Object;I)V
-            """,
-        )
+            """
     }
+    return {
+        for ((index, instructions) in insertions) {
+            addInstructionsAtControlFlowLabel(index, instructions)
+        }
+    }
+}
+
+/** The reply control is a separate holder whose bound model carries its parent comment. */
+internal fun MutableMethod.registerReplySearch(classOf: (String) -> ClassDef?) {
+    resolveReplySearch(classOf).invoke()
 }
 
 /**
@@ -402,7 +432,7 @@ private fun List<Instruction>.writerOf(register: Int, index: Int): Int {
  * `isUserBuried`, and both names are the named model's own. 46.2.3 installs the listener once
  * in one rollout and on every bind in the other; both come through here.
  */
-internal fun MutableMethod.captureDislikeTouchListener(classOf: (String) -> ClassDef?) {
+internal fun MutableMethod.resolveDislikeTouchListener(classOf: (String) -> ClassDef?): CommentToolsWrite {
     val instructions = implementation!!.instructions.toList()
     val dislikes = touchInstalls().filter { install ->
         val body = install.body(classOf) ?: return@filter false
@@ -413,21 +443,24 @@ internal fun MutableMethod.captureDislikeTouchListener(classOf: (String) -> Clas
     }
     val index = dislikes.single().index
     val instruction = instructions[index]
-    val (receiver, count, operands) = when (instruction) {
-        is FiveRegisterInstruction -> Triple(
-            instruction.registerC, instruction.registerCount,
+    val (count, operands) = when (instruction) {
+        is FiveRegisterInstruction -> Pair(
+            instruction.registerCount,
             "{v${instruction.registerC}, v${instruction.registerD}}",
         )
-        is RegisterRangeInstruction -> Triple(
-            instruction.startRegister, instruction.registerCount,
+        is RegisterRangeInstruction -> Pair(
+            instruction.registerCount,
             "{v${instruction.startRegister} .. v${instruction.startRegister + 1}}",
         )
         else -> throw PatchException("Comment tools: unexpected native touch invocation")
     }
     if (count != 2) throw PatchException("Comment tools: native dislike touch receiver changed")
     val range = if (instruction is RegisterRangeInstruction) "/range" else ""
-    replaceInstruction(
-        index,
-        "invoke-static$range $operands, $EXTENSION_CLASS_DESCRIPTOR->setDislikeTouchListener(Landroid/view/View;$TOUCH_LISTENER_DESCRIPTOR)V",
-    )
+    val replacement =
+        "invoke-static$range $operands, $EXTENSION_CLASS_DESCRIPTOR->setDislikeTouchListener(Landroid/view/View;$TOUCH_LISTENER_DESCRIPTOR)V"
+    return { replaceInstruction(index, replacement) }
+}
+
+internal fun MutableMethod.captureDislikeTouchListener(classOf: (String) -> ClassDef?) {
+    resolveDislikeTouchListener(classOf).invoke()
 }

@@ -3,6 +3,7 @@ package app.morphe.patches.tiktok.misc.spoof.region
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
@@ -11,6 +12,8 @@ import app.morphe.patches.tiktok.misc.spoof.sim.simSpoofPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
+import app.morphe.util.implementationOrPatchException
+import app.morphe.util.singleOrPatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -59,29 +62,58 @@ val regionSpoofPatch = bytecodePatch(
                 }
             }
         }
-        check(replacements.values.all { (counts[it] ?: 0) > 0 }) { "Missing locale or timezone calls" }
+        val missingWrappers = replacements.values.filter { (counts[it] ?: 0) == 0 }
+        if (missingWrappers.isNotEmpty()) {
+            throw PatchException(
+                "Region spoof: no native ${missingWrappers.joinToString()} getDefault call was found.",
+            )
+        }
 
-        val hubReference = RegionService.method.implementation!!.instructions.mapNotNull {
+        val hubReference = RegionService.method.implementationOrPatchException("Region spoof")
+            .instructions.mapNotNull {
             it.getReference<MethodReference>()
-        }.single { it.returnType == "Ljava/lang/String;" && it.parameterTypes.isEmpty() }
+        }.filter { it.returnType == "Ljava/lang/String;" && it.parameterTypes.isEmpty() }
+            .singleOrPatchException("Region spoof: RegionService string hub call")
         val hub = mutableClassDefBy(hubReference.definingClass)
         val account = mutableClassDefBy("Lcom/ss/android/ugc/aweme/AccountService;")
-        val store = mutableClassDefBy(account.superclass!!).methods.single {
+        val accountSuperclass = account.superclass
+            ?: throw PatchException("Region spoof: AccountService has no superclass holding the store region.")
+        val store = mutableClassDefBy(accountSuperclass).methods.filter {
             it.name == "getStoreRegionUpperCase" && it.returnType == "Ljava/lang/String;" && it.parameterTypes.isEmpty()
-        }
-        val storeField = store.implementation!!.instructions.filter { it.opcode == Opcode.SGET_OBJECT }
-            .mapNotNull { it.getReference<FieldReference>() }.first { it.type == "Ljava/lang/String;" }
+        }.singleOrPatchException("Region spoof: AccountService store-region getter")
+        // Bytecode order is part of this boundary: the getter reads two static String fields,
+        // and the first is the store-region value shared with the priority hub getter.
+        val storeField = store.implementationOrPatchException("Region spoof").instructions
+            .filter { it.opcode == Opcode.SGET_OBJECT }
+            .mapNotNull { it.getReference<FieldReference>() }
+            .filter { it.type == "Ljava/lang/String;" }
+            .firstOrNull() ?: throw PatchException(
+            "Region spoof: the store-region getter reads no static String field.",
+        )
         val getters = hub.methods.filter {
             AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "Ljava/lang/String;" && it.parameterTypes.isEmpty()
         }
-        check(getters.size == 6) { "Unexpected native region hub shape" }
-        val priority = getters.single { method -> method.implementation!!.instructions.any {
-            it.getReference<FieldReference>()?.toString() == storeField.toString()
-        } }
+        if (getters.size != 6) {
+            throw PatchException(
+                "Region spoof: expected six static String getters in ${hub.type}, found ${getters.size}.",
+            )
+        }
+        val priority = getters.filter { method ->
+            method.implementationOrPatchException("Region spoof").instructions.any {
+                it.getReference<FieldReference>()?.toString() == storeField.toString()
+            }
+        }.singleOrPatchException("Region spoof: priority getter reading $storeField")
         (getters + store).forEach { method ->
             val wrapper = if (method == priority || method == store) "storeCountry" else "country"
-            method.implementation!!.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_OBJECT }
-                .map { it.index to (it.value as OneRegisterInstruction).registerA }.reversed().forEach { (index, register) ->
+            val returns = method.implementationOrPatchException("Region spoof").instructions.withIndex()
+                .filter { it.value.opcode == Opcode.RETURN_OBJECT }
+                .map { it.index to (it.value as OneRegisterInstruction).registerA }
+            if (returns.isEmpty()) {
+                throw PatchException(
+                    "Region spoof: ${method.definingClass}->${method.name} has no String return to wrap.",
+                )
+            }
+            returns.reversed().forEach { (index, register) ->
                     method.addInstructionsAtControlFlowLabel(index, """
                         invoke-static/range { v$register .. v$register }, $EXTENSION->$wrapper(Ljava/lang/String;)Ljava/lang/String;
                         move-result-object v$register

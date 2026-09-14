@@ -1,3 +1,36 @@
+## [1.21.0](https://github.com/hxreborn/morphe-patches/compare/v1.20.4...v1.21.0) (2026-09-13)
+
+### New Features
+
+* **iJiami:** warn when device architecture optimization removes native libraries ([c00bc59](https://github.com/hxreborn/morphe-patches/commit/c00bc59dd2d0c1f4d0a31b0355584d70f15ca045))
+
+## [1.20.4](https://github.com/hxreborn/morphe-patches/compare/v1.20.3...v1.20.4) (2026-09-13)
+
+### Bug Fixes
+
+* **iJiami:** stop patched apps crashing at launch ([a602d48](https://github.com/hxreborn/morphe-patches/commit/a602d48652d9710143fa5f57d15cc9a26d47397b))
+
+## [1.20.3](https://github.com/hxreborn/morphe-patches/compare/v1.20.2...v1.20.3) (2026-09-13)
+
+### Bug Fixes
+
+* **iJiami:** stop patched apps crashing when packer watchdog counter trips ([f81ab5d](https://github.com/hxreborn/morphe-patches/commit/f81ab5dd86482ec30055e3b1552acddadf6eb3c7))
+* **MovieBox - All-In-One:** warn when a title has no signed stream to play ([a06ce46](https://github.com/hxreborn/morphe-patches/commit/a06ce4627abc85e3b9615b6581191f3c8103560c))
+
+## [1.20.2](https://github.com/hxreborn/morphe-patches/compare/v1.20.1...v1.20.2) (2026-09-13)
+
+### Bug Fixes
+
+* **iJiami:** return from watchdog thread entries and trap kill sites for crash reports ([c1d4b94](https://github.com/hxreborn/morphe-patches/commit/c1d4b94423d447a9e8a1e85cc0eafa6cac92287c))
+
+## [1.20.1](https://github.com/hxreborn/morphe-patches/compare/v1.20.0...v1.20.1) (2026-09-13)
+
+### Bug Fixes
+
+* **iJiami:** log component factory, class loader and application stages at launch ([7f9a757](https://github.com/hxreborn/morphe-patches/commit/7f9a757009d5e9eab227fbcc65d7a9cc67782738))
+* **iJiami:** stop packer watchdogs killing patched apps one second after launch ([55eabcb](https://github.com/hxreborn/morphe-patches/commit/55eabcb726467e0c3580df8db9a66a350a2388c3))
+* **MovieBox - All-In-One:** retry the playback hook and warn when it never installs ([c8f09e1](https://github.com/hxreborn/morphe-patches/commit/c8f09e1d32a39454d8a713952d585dd842ad99c7))
+
 ## [1.20.0](https://github.com/hxreborn/morphe-patches/compare/v1.19.1...v1.20.0) (2026-09-12)
 
 ### Bug Fixes

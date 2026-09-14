@@ -6,7 +6,7 @@ body:
     attributes:
       value: |
         > [!IMPORTANT]
-        > Please check the [existing app requests](https://github.com/rushiranpise/morphe-patches/discussions/categories/app-requests) first. If a discussion is already open, upvote it for visibility! :arrow_up:
+        > Please check the [existing app requests](https://github.com/debakarr/morphe-patches/discussions/categories/app-requests) first. If a discussion is already open, upvote it for visibility! :arrow_up:
         <br />
   - type: input
     id: app_name

@@ -15,13 +15,21 @@ function Get-JavaMajorVersion {
     <# Returns the major version of a java, or 0 if it will not run. #>
     param([string]$Java)
 
+    $previousErrorActionPreference = $ErrorActionPreference
     try {
+        # Windows PowerShell promotes a native program's stderr to an ErrorRecord under Stop.
+        # java -version writes its ordinary version banner to stderr, so probe it under Continue
+        # and merge that stream into the captured output.
+        $ErrorActionPreference = 'Continue'
         $global:LASTEXITCODE = 0
         $output = & $Java '-version' 2>&1
+        $exitCode = $LASTEXITCODE
     } catch {
         return 0
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
     }
-    if ($LASTEXITCODE -ne 0) { return 0 }
+    if ($exitCode -ne 0) { return 0 }
     foreach ($line in @($output)) {
         # Both shapes: `openjdk version "21.0.12"` and the older `java version "1.8.0_401"`.
         if ("$line" -match 'version "1\.([0-9]+)') { return [int]$Matches[1] }
@@ -34,7 +42,12 @@ function Resolve-Java {
     param([string]$Explicit, [int]$Minimum = 21)
 
     $candidates = [System.Collections.Generic.List[string]]::new()
-    foreach ($candidate in @($Explicit, $env:HUSHFEED_JAVA)) {
+    $preferredCandidates = @(
+        [pscustomobject]@{ Path = $Explicit; Explicit = $true }
+        [pscustomobject]@{ Path = $env:HUSHFEED_JAVA; Explicit = $false }
+    )
+    foreach ($entry in $preferredCandidates) {
+        $candidate = $entry.Path
         if (-not $candidate) { continue }
         # A JDK directory is what the error message asks for, so take it as one when it is one.
         if (Test-Path -LiteralPath $candidate -PathType Container) {
@@ -47,9 +60,14 @@ function Resolve-Java {
                     break
                 }
             }
-            # A directory with no java in it is still what the caller asked for. Recorded, so
-            # the failure names it rather than quietly running whatever java is on the PATH.
-            if (-not $found) { $candidates.Add((Join-Path $candidate 'bin/java.exe')) }
+            if (-not $found) {
+                if ($entry.Explicit) {
+                    throw "The Java directory passed with -Java contains no bin/java.exe or bin/java: $candidate"
+                }
+                # Preserve environment fallback behavior, but retain the rejected location in
+                # the final diagnostic when no later candidate works.
+                $candidates.Add((Join-Path $candidate 'bin/java.exe'))
+            }
             continue
         }
         $candidates.Add($candidate)

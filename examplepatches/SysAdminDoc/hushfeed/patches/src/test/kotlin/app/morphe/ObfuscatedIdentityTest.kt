@@ -1,6 +1,7 @@
 package app.morphe
 
 import java.io.File
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -11,9 +12,10 @@ import org.junit.Test
  * <p>The ROADMAP's first gate for this was a grep for `LX/xxxx;` class names, and it missed
  * nearly everything of the same kind: method and field names passed as strings (`"LIZ"`,
  * `"LJFF"`), short member names compared by `name ==`, prefixes (`startsWith("LX/")`), merged
- * lambda groups (`LY/...;`) and shortened resource entry names (`o1k`, `a3y`, `kzj`). Each of
- * them is right on 46.2.3 and means something else, or nothing, on the next build, and a patch
- * that applies with one of them in it can do nothing or do the wrong thing without a word.
+ * lambda groups (`LY/...;`), Java binary names (`X.0GSy`) and shortened resource entry names
+ * (`o1k`, `a3y`, `kzj`). Each of them is right on 46.2.3 and means something else, or nothing,
+ * on the next build, and a patch that applies with one of them in it can do nothing or do the
+ * wrong thing without a word.
  *
  * <p>What is here today is recorded in `obfuscated-identities.txt`, one `path|name` per line,
  * so that the list can only shrink: a name that turns up and is not in it fails this test, and
@@ -23,6 +25,17 @@ import org.junit.Test
  * in the commit.
  */
 class ObfuscatedIdentityTest {
+    @Test
+    fun `java binary class names are inventoried as exact tokens`() {
+        assertEquals(
+            setOf("X.0Lze"),
+            identitiesIn("""Class.forName("X.0Lze")""", extensionTree = true),
+        )
+        assertTrue(
+            identitiesIn("""Class.forName("LX.0Lze")""", extensionTree = true).isEmpty(),
+        )
+    }
+
     @Test
     fun `no name one build made up is written down that the record does not already hold`() {
         val found = scan()
@@ -73,6 +86,7 @@ class ObfuscatedIdentityTest {
     private fun identitiesIn(line: String, extensionTree: Boolean): Set<String> {
         val names = mutableSetOf<String>()
         OBFUSCATED_TYPE.findAll(line).forEach { names.add(it.value) }
+        JAVA_BINARY_TYPE.findAll(line).forEach { names.add(it.value) }
         MEMBER_LITERAL.findAll(line).forEach { names.add(it.groupValues[1]) }
         PREFIX_LITERAL.findAll(line).forEach { names.add(it.groupValues[1]) }
         SHORT_MEMBER_COMPARED.findAll(line).forEach { names.add(it.groupValues[1]) }
@@ -86,6 +100,9 @@ class ObfuscatedIdentityTest {
     private companion object {
         /** A class R8 named for one build: `LX/0sIr;`, or a merged lambda group `LY/...;`. */
         val OBFUSCATED_TYPE = Regex("""L[XY]/[0-9A-Za-z_$]+;""")
+
+        /** The Java binary spelling of an R8 class name: `X.0GSy`. */
+        val JAVA_BINARY_TYPE = Regex("""(?<![0-9A-Za-z_$])X\.[0-9A-Za-z]{4}(?![0-9A-Za-z_$])""")
 
         /** A member name of the shape R8 gives TikTok's: `"LIZ"`, `"LJFF"`, `"LLJJIJIIJIL"`. */
         val MEMBER_LITERAL = Regex(""""(L[IJLZF]{1,19})"""")

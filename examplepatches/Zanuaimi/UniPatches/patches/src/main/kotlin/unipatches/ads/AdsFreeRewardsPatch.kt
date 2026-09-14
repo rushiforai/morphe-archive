@@ -70,18 +70,36 @@ private fun guardedInstantReward(instructions: String, originalLabel: String): S
 private fun guardedFakeAvailability(originalLabel: String): String {
     if (!adsFreeRewardsRuntimeGuardEnabled) {
         return """
-            const/4 v0, 0x1
-            return v0
+            ${booleanReturnInstructions(true)}
         """.trimIndent()
     }
     return """
         invoke-static {}, Lunipatch/overlaycore/AdsRuntimePolicy;->shouldFakeRewardAvailability()Z
         move-result v0
         if-eqz v0, :$originalLabel
-        const/4 v0, 0x1
-        return v0
+        ${booleanReturnInstructions(true)}
         :$originalLabel
     """.trimIndent()
+}
+
+private fun addGuardedFakeAvailability(
+    logger: Logger,
+    method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod,
+    label: String,
+): Boolean {
+    val implementation = method.implementation ?: run {
+        logger.warning("Ads Free Rewards: skip availability guard for \${method.definingClass}->\${method.name}: no implementation")
+        return false
+    }
+    if (!hasSafeLocalRegister(implementation.registerCount, method.numberOfParameterRegisters)) {
+        logger.warning(
+            "Ads Free Rewards: skip availability guard for \${method.definingClass}->\${method.name}: " +
+                "one local register is required",
+        )
+        return false
+    }
+    method.addInstructions(0, guardedFakeAvailability(label))
+    return true
 }
 
 /**
@@ -98,7 +116,6 @@ private fun guardedFakeAvailability(originalLabel: String): String {
  */
 internal fun BytecodePatchContext.forceAdAvailability(
     logger: Logger,
-    rewardStrategy: String?,
     runtimePolicy: Boolean = false,
     sdkCoverage: AdsSdkCoverage = AdsSdkCoverage(),
 ): Int {
@@ -122,14 +139,12 @@ internal fun BytecodePatchContext.forceAdAvailability(
             invoke-static {}, Lunipatch/overlaycore/AdsRuntimePolicy;->shouldFakeRewardAvailability()Z
             move-result v0
             if-eqz v0, :unipatch_ads_runtime_availability_original
-            const/4 v0, 0x1
-            return v0
+            ${booleanReturnInstructions(true)}
             :unipatch_ads_runtime_availability_original
             """.trimIndent()
         } else {
             """
-            const/4 v0, 0x1
-            return v0
+            ${booleanReturnInstructions(true)}
             """.trimIndent()
         }
         method.addInstructions(0, instructions)
@@ -137,11 +152,10 @@ internal fun BytecodePatchContext.forceAdAvailability(
         patched++
     }
 
-    val auto = rewardStrategy == "auto"
-    val useUnity = sdkCoverage.unity && (auto || rewardStrategy == "unityAds")
-    val useIronSource = sdkCoverage.ironSource && (auto || rewardStrategy == "ironSource")
-    val useRustore = sdkCoverage.yandex && (auto || rewardStrategy == "rustore")
-    val useHuawei = sdkCoverage.huawei && (auto || rewardStrategy == "huawei")
+    val useUnity = sdkCoverage.unity
+    val useIronSource = sdkCoverage.ironSource
+    val useRustore = sdkCoverage.yandex
+    val useHuawei = sdkCoverage.huawei
 
     if (useUnity) {
         patchIsReady("Unity Ads Advertisement.isReady()", UnityAdsAdvertisementIsReadyFingerprint)
@@ -155,52 +169,59 @@ internal fun BytecodePatchContext.forceAdAvailability(
         patchIsReady("Yandex/MyTarget rewarded mediation isLoaded()", YandexMyTargetRewardedIsLoadedFingerprint)
     }
     if (useHuawei) patchIsReady("Huawei Ads Kit RewardAd.isLoaded()", HuaweiRewardAdIsLoadedFingerprint)
-    if (auto && sdkCoverage.inMobi) patchIsReady("InMobi isReady()", InMobiIsReadyFingerprint)
+    if (sdkCoverage.inMobi) patchIsReady("InMobi isReady()", InMobiIsReadyFingerprint)
     return patched
 }
 
 internal fun BytecodePatchContext.applyAdsFreeRewards(
     logger: Logger,
-    rewardStrategy: String?,
     instantReward: Boolean?,
     sdkCoverage: AdsSdkCoverage,
 ) {
-    val strategy = rewardStrategy
-    val auto = strategy == "auto"
-    val useMax = sdkCoverage.max && (strategy == "auto" || strategy == "max")
-    val useUnityAds = sdkCoverage.unity && (strategy == "auto" || strategy == "unityAds")
-    val useIronSource = sdkCoverage.ironSource && (strategy == "auto" || strategy == "ironSource")
-    val useRustore = sdkCoverage.yandex && (strategy == "auto" || strategy == "rustore")
-    val useHuawei = sdkCoverage.huawei && (strategy == "auto" || strategy == "huawei")
+    val useMax = sdkCoverage.max
+    val useUnityAds = sdkCoverage.unity
+    val useIronSource = sdkCoverage.ironSource
+    val useRustore = sdkCoverage.yandex
+    val useHuawei = sdkCoverage.huawei
 
-    logger.info("Ads Free Rewards: strategy=$strategy instantReward=$instantReward")
+    logger.info(
+        "Ads Free Rewards: automatic SDK detection, instantReward=$instantReward, " +
+            "coverage=max:${sdkCoverage.max},adMob:${sdkCoverage.adMob},unity:${sdkCoverage.unity}," +
+            "ironSource:${sdkCoverage.ironSource},appLovin:${sdkCoverage.appLovin},vungle:${sdkCoverage.vungle}," +
+            "meta:${sdkCoverage.meta},pangle:${sdkCoverage.pangle},huawei:${sdkCoverage.huawei}," +
+            "yandex:${sdkCoverage.yandex},startApp:${sdkCoverage.startApp},moPub:${sdkCoverage.moPub}," +
+            "chartboost:${sdkCoverage.chartboost},inMobi:${sdkCoverage.inMobi},mintegral:${sdkCoverage.mintegral}",
+    )
 
-    val hasMaxUnity = ShowRewardedAdFingerprint.methodOrNull != null &&
+    val hasMaxUnity = sdkCoverage.max && ShowRewardedAdFingerprint.methodOrNull != null &&
         IsRewardedAdReadyFingerprint.methodOrNull != null
-    val hasNativeMax = MaxRewardedAdIsReadyFingerprint.methodOrNull != null &&
+    val hasNativeMax = sdkCoverage.max && MaxRewardedAdIsReadyFingerprint.methodOrNull != null &&
         MaxRewardedAdShowAdFingerprint.methodOrNull != null
-    val hasUnityAds = UnityRewardedAdShowFingerprint.methodOrNull != null
-    val hasUnityAdsV4 = UnityAdsV4Show3ArgFingerprint.methodOrNull != null ||
+    val hasUnityAds = sdkCoverage.unity && UnityRewardedAdShowFingerprint.methodOrNull != null
+    val hasUnityAdsV4 = sdkCoverage.unity && (UnityAdsV4Show3ArgFingerprint.methodOrNull != null ||
         UnityAdsV4Show4ArgFingerprint.methodOrNull != null
-    val hasLevelPlay = LevelPlayRewardedAdIsReadyFingerprint.methodOrNull != null
-    val hasIronSourceUnityBridge = IronSourceUnityRewardedAdIsReadyFingerprint.methodOrNull != null &&
+    )
+    val hasLevelPlay = sdkCoverage.ironSource && LevelPlayRewardedAdIsReadyFingerprint.methodOrNull != null
+    val hasIronSourceUnityBridge = sdkCoverage.ironSource && IronSourceUnityRewardedAdIsReadyFingerprint.methodOrNull != null &&
         IronSourceLevelPlayFullScreenShowAdFingerprint.methodOrNull != null
-    val hasMyTarget = MyTargetBaseInterstitialShowFingerprint.methodOrNull != null
-    val hasYandexUnityRewarded = YandexUnityRewardedWrapperShowFingerprint.methodOrNull != null
-    val hasHuawei = HuaweiRewardAdIsLoadedFingerprint.methodOrNull != null &&
+    val hasMyTarget = sdkCoverage.yandex && MyTargetBaseInterstitialShowFingerprint.methodOrNull != null
+    val hasYandexUnityRewarded = sdkCoverage.yandex && YandexUnityRewardedWrapperShowFingerprint.methodOrNull != null
+    val hasHuawei = sdkCoverage.huawei && HuaweiRewardAdIsLoadedFingerprint.methodOrNull != null &&
         HuaweiRewardAdShowFingerprint.methodOrNull != null
-    val hasAdMob = AdMobRewardedShowFingerprint.methodOrNull != null
+    val hasAdMob = sdkCoverage.adMob && AdMobRewardedShowFingerprint.methodOrNull != null
     val hasInMobi = sdkCoverage.inMobi && (InMobiInterstitialShowFingerprint.methodOrNull != null || InMobiRewardedShowFingerprint.methodOrNull != null)
     val hasInMobiRewarded = sdkCoverage.inMobi && InMobiRewardedShowFingerprint.methodOrNull != null
-    val hasIronSourceAds = IronSourceAdsRewardedShowFingerprint.methodOrNull != null ||
+    val hasIronSourceAds = sdkCoverage.ironSource && (IronSourceAdsRewardedShowFingerprint.methodOrNull != null ||
         IronSourceAdsRewardedShowPreciseFingerprint.methodOrNull != null
-    val hasMads = MadsWrapperShowAdFingerprint.methodOrNull != null &&
+        )
+    val hasMads = sdkCoverage.ironSource && MadsWrapperShowAdFingerprint.methodOrNull != null &&
         MadsRvHandlerOnRewardedFingerprint.methodOrNull != null
 
     logger.info("Ads Free Rewards: detected SDKs  -  MAX Unity=$hasMaxUnity native MAX=$hasNativeMax UnityAds=$hasUnityAds UnityAdsV4=$hasUnityAdsV4 LevelPlay=$hasLevelPlay ironSourceBridge=$hasIronSourceUnityBridge MyTarget=$hasMyTarget Yandex=$hasYandexUnityRewarded Huawei=$hasHuawei AdMob=$hasAdMob InMobi=$hasInMobi InMobiRewarded=$hasInMobiRewarded IronSourceAds=$hasIronSourceAds MADS=$hasMads")
+    logger.info("Ads Free Rewards: StartApp, MoPub, Chartboost, and Mintegral have no safe rewarded fingerprints yet; their reward paths remain unchanged.")
 
     if (!hasMaxUnity && !hasNativeMax && !hasUnityAds && !hasUnityAdsV4 && !hasLevelPlay && !hasIronSourceUnityBridge && !hasMyTarget && !hasYandexUnityRewarded && !hasHuawei && !hasAdMob && !hasInMobiRewarded && !hasIronSourceAds && !hasMads) {
-        logger.warning("Ads Free Rewards: no supported ad SDK found for reward strategy $strategy  -  no changes applied")
+        logger.warning("Ads Free Rewards: no supported ad SDK found  -  no changes applied")
         return
     }
 
@@ -227,7 +248,7 @@ internal fun BytecodePatchContext.applyAdsFreeRewards(
             logger.warning("Ads Free Rewards: Huawei show class not found  -  skipping")
         }
     } else {
-        if (!useHuawei) logger.info("Ads Free Rewards: Huawei strategy disabled by rewardStrategy=$strategy")
+        if (!useHuawei) logger.info("Ads Free Rewards: Huawei SDK coverage disabled")
         else if (!hasHuawei) logger.info("Ads Free Rewards: Huawei SDK not detected  -  skipping")
         else logger.info("Ads Free Rewards: Huawei skipped (instantReward=$instantReward)")
     }
@@ -238,7 +259,7 @@ internal fun BytecodePatchContext.applyAdsFreeRewards(
     }
     applyMaxUnityStrategy(logger, useMax, instantReward)
     applyNativeMaxStrategy(logger, useMax, instantReward)
-    applyInMobiRewardedStrategy(logger, auto && sdkCoverage.inMobi, instantReward)
+    applyInMobiRewardedStrategy(logger, sdkCoverage.inMobi, instantReward)
     applyIronSourceAdsStrategy(logger, useIronSource, instantReward)
     applyIronSourceAdsWrapperStrategy(logger, useIronSource, instantReward)
     applyMadsStrategy(logger, useIronSource, instantReward)
@@ -311,8 +332,8 @@ private fun BytecodePatchContext.applyYandexWrapperStrategy(logger: Logger) {
 }
 
 private fun BytecodePatchContext.applyInMobiRewardedStrategy(logger: Logger, useAutoFallback: Boolean, instantReward: Boolean?) {
-    // This fingerprint belongs to the InMobi adapter used by MAX. Do not modify
-    // it when MAX has been disabled by the selected reward strategy.
+    // This fingerprint belongs to the InMobi adapter used by MAX. Keep it behind
+    // the independent InMobi coverage toggle.
     if (!useAutoFallback || (instantReward != true && !adsFreeRewardsRuntimeGuardEnabled)) return
     // Only patch the explicit rewarded entry point. Falling back to an interstitial method can
     // suppress unrelated startup ads and entangle reward and interstitial control flow.
@@ -349,7 +370,7 @@ private fun BytecodePatchContext.applyIronSourceAdsWrapperStrategy(logger: Logge
     val show = IronSourceAdsRewardedShowPreciseFingerprint.methodOrNull
     if (ready == null || show == null) return
     try {
-        ready.addInstructions(0, guardedFakeAvailability("morphe_isads_ready_original"))
+        addGuardedFakeAvailability(logger, ready, "morphe_isads_ready_original")
         val showClass = IronSourceAdsRewardedShowPreciseFingerprint.classDefOrNull ?: return
         val cloned = show.cloneMutableAndPreserveParameters(showClass)
         cloned.addInstructions(0, guardedInstantReward("""
@@ -439,7 +460,7 @@ private fun BytecodePatchContext.applyMaxUnityStrategy(logger: Logger, useMax: B
     val unityReady = IsRewardedAdReadyFingerprint.methodOrNull
     if (!useMax || unityShow == null || unityReady == null) return false
     logger.info("Ads Free Rewards: MAX Unity Ad wrapper patch succeeded")
-    unityReady.addInstructions(0, guardedFakeAvailability("morphe_max_unity_ready_original"))
+    addGuardedFakeAvailability(logger, unityReady, "morphe_max_unity_ready_original")
     if (instantReward == true || adsFreeRewardsRuntimeGuardEnabled) {
         val showClass = ShowRewardedAdFingerprint.classDefOrNull ?: return true
         val clonedShow = unityShow.cloneMutableAndPreserveParameters(showClass)
@@ -516,7 +537,7 @@ private fun BytecodePatchContext.applyNativeMaxStrategy(logger: Logger, useMax: 
     val nativeShow = MaxRewardedAdShowAdFingerprint.methodOrNull
     if (!useMax || nativeReady == null || nativeShow == null) return
     logger.info("Ads Free Rewards: native MAX patch succeeded")
-    nativeReady.addInstructions(0, guardedFakeAvailability("morphe_native_max_ready_original"))
+    addGuardedFakeAvailability(logger, nativeReady, "morphe_native_max_ready_original")
     if (instantReward == true || adsFreeRewardsRuntimeGuardEnabled) {
         val rc = nativeShow.implementation?.registerCount ?: 0
         if (rc >= 7) {
@@ -609,7 +630,7 @@ private fun BytecodePatchContext.applyAdMobRewardedStrategy(logger: Logger, useA
 private fun BytecodePatchContext.applyLevelPlayStrategy(logger: Logger, useIronSource: Boolean) {
     val levelPlayReady = LevelPlayRewardedAdIsReadyFingerprint.methodOrNull ?: return
     if (!useIronSource) return
-    levelPlayReady.addInstructions(0, guardedFakeAvailability("morphe_levelplay_ready_original"))
+    addGuardedFakeAvailability(logger, levelPlayReady, "morphe_levelplay_ready_original")
     logger.info("Ads Free Rewards: LevelPlay patch succeeded")
 }
 
@@ -618,7 +639,7 @@ private fun BytecodePatchContext.applyIronSourceBridgeStrategy(logger: Logger, u
     val bridgeShow = IronSourceLevelPlayFullScreenShowAdFingerprint.methodOrNull
     if (!useIronSource || bridgeReady == null || bridgeShow == null) return false
     logger.info("Ads Free Rewards: IronSource patch succeeded")
-    bridgeReady.addInstructions(0, guardedFakeAvailability("morphe_ironsource_bridge_ready_original"))
+    addGuardedFakeAvailability(logger, bridgeReady, "morphe_ironsource_bridge_ready_original")
     if (instantReward == true || adsFreeRewardsRuntimeGuardEnabled) {
         bridgeShow.addInstructions(0, guardedInstantReward("""
             iget-object v0, p0, Lcom/ironsource/Ya;->k:Lcom/ironsource/Za;

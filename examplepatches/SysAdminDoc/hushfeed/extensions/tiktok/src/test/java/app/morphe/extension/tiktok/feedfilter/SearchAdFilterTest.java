@@ -20,6 +20,7 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.Settings;
 
 import com.ss.android.ugc.aweme.feed.model.Aweme;
+import com.ss.android.ugc.aweme.feed.model.AwemeRawAd;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -61,7 +62,7 @@ public class SearchAdFilterTest {
         return new Card();
     }
 
-    /** The stub throws for every getter, so a usable video answers all three ad questions. */
+    /** The stub throws for every getter, so a usable video answers all four ad questions. */
     private static Aweme video(boolean advert) {
         return new Aweme() {
             @Override
@@ -72,6 +73,11 @@ public class SearchAdFilterTest {
             @Override
             public boolean isSoftAd() {
                 return false;
+            }
+
+            @Override
+            public AwemeRawAd getAwemeRawAd() {
+                return null;
             }
 
             @Override

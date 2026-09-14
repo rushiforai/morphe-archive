@@ -1,6 +1,9 @@
 /*
  * Forked from:
  * https://gitlab.com/ReVanced/revanced-patches/-/blob/main/patches/src/main/kotlin/app/revanced/patches/tiktok/misc/telemetry/DisableTelemetryPatch.kt
+ * Npth task coverage adapted from kveld9/kveld-morphe-patches at
+ * fcb1768620b8f98a6dd31e801074589ce9a63356 (GPL-3.0):
+ * https://github.com/kveld9/kveld-morphe-patches/tree/fcb1768620b8f98a6dd31e801074589ce9a63356
  */
 package app.morphe.patches.tiktok.misc.telemetry
 
@@ -64,8 +67,8 @@ private fun Method.returnEarlyIfTelemetryDisabled(disabledInstructions: (registe
 val disableTelemetryPatch = bytecodePatch(
     name = "Disable telemetry",
     description = "Adds an App behavior toggle that stops ByteDance AppLog analytics, AppsFlyer " +
-        "attribution, explicit Firebase screen reports and crash reporting. TikTok's own " +
-        "diagnostics go quiet with them. Off by default.",
+        "attribution, explicit Firebase screen reports and TikTok's Npth or MonitorCrash startup " +
+        "reporting. TikTok's own diagnostics go quiet with them. Off by default.",
     default = false,
 ) {
     dependsOn(
@@ -142,5 +145,7 @@ val disableTelemetryPatch = bytecodePatch(
         FirebaseSetCurrentScreenFingerprint.method.returnEarlyIfTelemetryDisabled { "return-void" }
         MonitorCrashReportCustomErrFingerprint.method.returnEarlyIfTelemetryDisabled { "return-void" }
         MonitorCrashReportEventFingerprint.method.returnEarlyIfTelemetryDisabled { "return-void" }
+        NpthCoreInitTaskFingerprint.method.returnEarlyIfTelemetryDisabled { "return-void" }
+        NpthSecondInitTaskFingerprint.method.returnEarlyIfTelemetryDisabled { "return-void" }
     }
 }

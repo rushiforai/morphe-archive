@@ -27,8 +27,10 @@ import app.morphe.extension.shared.settings.StringSetting;
 import app.morphe.extension.tiktok.settings.Settings;
 
 import com.ss.android.ugc.aweme.feed.model.Aweme;
+import com.ss.android.ugc.aweme.feed.model.AwemeRawAd;
 import com.ss.android.ugc.aweme.feed.model.AwemeStatistics;
 import com.ss.android.ugc.aweme.feed.model.FeedItemList;
+import com.ss.android.ugc.aweme.feed.panel.BaseListFragmentPanel;
 import com.ss.android.ugc.aweme.follow.presenter.FollowFeed;
 import com.ss.android.ugc.aweme.follow.presenter.FollowFeedList;
 
@@ -58,6 +60,8 @@ public class DeepFeedFilterBoundaryTest {
         private final long durationMs;
         private final String caption;
         private final AwemeStatistics statistics;
+        private AwemeRawAd rawAd;
+        public String commercialVideoInfo;
 
         Video(String id, boolean ad, long durationMs, String caption) {
             this(id, ad, durationMs, caption, null);
@@ -74,11 +78,49 @@ public class DeepFeedFilterBoundaryTest {
         @Override public String getAid() { return id; }
         @Override public boolean isAd() { return ad; }
         @Override public boolean isSoftAd() { return false; }
+        @Override public AwemeRawAd getAwemeRawAd() { return rawAd; }
         @Override public boolean isWithPromotionalMusic() { return false; }
         public String getDesc() { return caption; }
         public Object getVideo() { return new Duration(durationMs); }
         @Override public AwemeStatistics getStatistics() { return statistics; }
         @Override public String getShareUrl() { return null; }
+
+        Video withRawAd() {
+            rawAd = new AwemeRawAd();
+            return this;
+        }
+
+        Video asPaidPartnership() {
+            commercialVideoInfo = "paid partnership";
+            return this;
+        }
+    }
+
+    public static final class SearchCard {
+        public Aweme aweme;
+        SearchCard(Aweme aweme) { this.aweme = aweme; }
+        public boolean isAdOrContainAd() { return false; }
+    }
+
+    public static final class SearchResult {
+        public List<SearchCard> mItems;
+        SearchResult(SearchCard... items) { mItems = new ArrayList<>(List.of(items)); }
+    }
+
+    public static final class FriendEntry {
+        public Aweme aweme;
+        FriendEntry(Aweme aweme) { this.aweme = aweme; }
+    }
+
+    public static final class FriendsResponse {
+        public List<FriendEntry> friendFeedData;
+        FriendsResponse(FriendEntry... items) {
+            friendFeedData = new ArrayList<>(List.of(items));
+        }
+    }
+
+    public static final class ForYouPanel extends BaseListFragmentPanel {
+        @Override public String getEventType() { return "homepage_hot"; }
     }
 
     public static final class Duration {
@@ -214,6 +256,71 @@ public class DeepFeedFilterBoundaryTest {
         assertNotNull(summary);
         assertTrue(summary, summary.contains("cacheHits=1"));
         assertTrue(summary, summary.contains("scans=1"));
+    }
+
+    @Test
+    public void rawMetadataAdsReachEverySharedDeliveryDelegate() {
+        Settings.REMOVE_ADS.save(true);
+        Video rawAd = new Video("raw-ad", false, 500, "").withRawAd();
+        Video partnership = new Video("partnership", false, 500, "").asPaidPartnership();
+
+        AdsFilter classifier = new AdsFilter();
+        assertTrue(classifier.getFiltered(rawAd));
+        assertFalse(classifier.getFiltered(partnership));
+
+        FeedItemList response = new FeedItemList();
+        response.items = new ArrayList<>(Arrays.asList(rawAd, partnership));
+        FeedItemsFilter.filter(response);
+        assertEquals(List.of(partnership), response.items);
+
+        List<Aweme> inserted = Arrays.asList(
+                new Video("inserted-ad", false, 500, "").withRawAd(),
+                new Video("inserted-organic", false, 500, ""));
+        assertEquals(List.of(inserted.get(1)),
+                FeedItemsFilter.filterLateInsertedAds("auction", inserted));
+
+        List<Aweme> cachedItems = Arrays.asList(
+                new Video("cached-ad", false, 500, "").withRawAd(),
+                new Video("cached-organic", false, 500, ""));
+        FeedItemList cached = new FeedItemList();
+        cached.items = new ArrayList<>(cachedItems);
+        assertSame(cached, FeedItemsFilter.filterCachedFeedList(cached));
+        assertEquals(List.of(cachedItems.get(1)), cached.items);
+
+        List<Aweme> profile = Arrays.asList(
+                new Video("profile-ad", false, 500, "").withRawAd(),
+                new Video("profile-organic", false, 500, ""));
+        assertEquals(List.of(profile.get(1)), FeedItemsFilter.filterProfileAds(profile));
+
+        FollowFeed ordinaryFollow = follow(new Video("follow-organic", false, 500, ""));
+        FollowFeedList following = new FollowFeedList();
+        following.mItems = new ArrayList<>(Arrays.asList(
+                follow(new Video("follow-ad", false, 500, "").withRawAd()),
+                ordinaryFollow));
+        FeedItemsFilter.filterLate(following);
+        assertEquals(List.of(ordinaryFollow), following.mItems);
+
+        SearchCard ordinarySearch = new SearchCard(
+                new Video("search-organic", false, 500, ""));
+        SearchResult search = new SearchResult(
+                new SearchCard(new Video("search-ad", false, 500, "").withRawAd()),
+                ordinarySearch);
+        FeedItemsFilter.filterSearchAds(search);
+        assertEquals(List.of(ordinarySearch), search.mItems);
+
+        FriendEntry ordinaryFriend = new FriendEntry(
+                new Video("friend-organic", false, 500, ""));
+        FriendsResponse friends = new FriendsResponse(
+                new FriendEntry(new Video("friend-ad", false, 500, "").withRawAd()),
+                ordinaryFriend);
+        FeedItemsFilter.filterFriendsFeed(friends);
+        assertEquals(List.of(ordinaryFriend), friends.friendFeedData);
+
+        List<Aweme> nativeInsertion = Arrays.asList(
+                new Video("native-ad", false, 500, "").withRawAd(),
+                new Video("native-organic", false, 500, ""));
+        assertEquals(List.of(nativeInsertion.get(1)), FeedItemsFilter.filterInsertedFeedItems(
+                new ForYouPanel(), 0, "golden_house", nativeInsertion));
     }
 
     @Test

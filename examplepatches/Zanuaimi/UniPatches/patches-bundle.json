@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-12T20:23:14",
-  "description": "## [1.20.2](https://github.com/Zanuaimi/UniPatches/compare/v1.20.1...v1.20.2) (2026-09-12)\n\n### 🐛 Bug Fixes\n\n* **ads:** simplify reward versions and split SDK controls ([405ccd8](https://github.com/Zanuaimi/UniPatches/commit/405ccd8f03dd2fad89d2d4a771e587c39d332188))\n* **overlay:** constrain settings popup width ([e84c20a](https://github.com/Zanuaimi/UniPatches/commit/e84c20a16ebb0caff54fa72375fd7e49f40bdc39))",
-  "download_url": "https://github.com/Zanuaimi/UniPatches/releases/download/v1.20.2/patches-1.20.2.mpp",
+  "created_at": "2026-09-13T16:50:15",
+  "description": "## [1.22.1](https://github.com/Zanuaimi/UniPatches/compare/v1.22.0...v1.22.1) (2026-09-13)\n\n### 🐛 Bug Fixes\n\n* **ads:** add register safety regression coverage ([d460559](https://github.com/Zanuaimi/UniPatches/commit/d460559cbda99511d0d968144e29527226f84ed4))\n* **ads:** protect MAX reward readiness instrumentation ([978821c](https://github.com/Zanuaimi/UniPatches/commit/978821c9e8e675d92fb73d29fd559c741020a646))",
+  "download_url": "https://github.com/Zanuaimi/UniPatches/releases/download/v1.22.1/patches-1.22.1.mpp",
   "signature_download_url": "",
-  "version": "1.20.2"
+  "version": "1.22.1"
 }

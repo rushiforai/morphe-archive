@@ -112,7 +112,12 @@ public class Logger {
         try {
             messageString = message.buildMessageString();
         } catch (Throwable failure) {
-            messageString = "Could not build the log message: " + failure;
+            try {
+                messageString = "Could not build the log message: " + failure;
+            } catch (Throwable ignored) {
+                // Throwable.toString() calls getMessage(), and host throwables can override both.
+                messageString = "Could not build the log message.";
+            }
         }
         try {
             logBuilt(logLevel, category, explicitSource, message, messageString, ex, includeStackTrace, showToast);

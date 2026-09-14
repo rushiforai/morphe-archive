@@ -10,7 +10,10 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import dev.jz6.flexboard.patches.shared.methodsMatching
 import dev.jz6.flexboard.patches.shared.assertRegisterCount
 import dev.jz6.flexboard.patches.shared.opcodeName
+import dev.jz6.flexboard.patches.shared.sole
 import dev.jz6.flexboard.patches.shared.toDescriptor
+import dev.jz6.flexboard.patches.shared.InvokeKind
+import dev.jz6.flexboard.patches.shared.checkInvokeKind
 import dev.jz6.flexboard.patches.shared.validateScratchRegisters
 
 /**
@@ -253,11 +256,10 @@ internal fun BytecodePatchContext.emitHotkeyRefresh(builder: AccessPointBuilder)
     val moduleClass = classDefByOrNull(moduleType)
         ?: error("$moduleType is not in the APK; the toolbar module cannot be hooked")
     val controllerFields = moduleClass.fields.filter { it.type == canvas.controllerType }.toList()
-    check(controllerFields.size == 1) {
+    val controllerField = controllerFields.sole {
         "$moduleType should carry exactly one ${canvas.controllerType} field, found " +
             controllerFields.map { "${it.definingClass}->${it.name}:${it.type}" }
-    }
-    val controllerField = controllerFields.single().let {
+    }.let {
         "${it.definingClass}->${it.name}:${it.type}"
     }
 
@@ -274,6 +276,13 @@ internal fun BytecodePatchContext.emitHotkeyRefresh(builder: AccessPointBuilder)
         scratch = listOf(0, 1, 2, 4),
         avoid = (START_INPUT_REGISTER_COUNT - START_INPUT_ARGUMENT_COUNT until START_INPUT_REGISTER_COUNT).toList(),
         what = startDescriptor,
+        registerCount = START_INPUT_REGISTER_COUNT,
+    )
+
+    // Emitted as invoke-virtual on every keyboard open, and pinned nowhere until now: not its
+    // existence, not its kind, not whether Lnvd; is a class at all.
+    checkInvokeKind(
+        MODULE_CONTEXT, InvokeKind.VIRTUAL, "the module's Context getter the refresh reads",
     )
 
     val returns = start.implementation!!.instructions

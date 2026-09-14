@@ -55,7 +55,11 @@ class CommentReplySearchPatchTest {
         }
         val original = method.implementation!!.instructions.toList()
 
-        method.registerReplySearch(replyClasses(cell, model))
+        val write = method.resolveReplySearch(replyClasses(cell, model))
+        val planned = method.implementation!!.instructions.toList()
+        assertEquals(original.size, planned.size)
+        for (index in original.indices) assertSame(original[index], planned[index])
+        write()
 
         val after = method.implementation!!.instructions.toList()
         assertEquals(30, method.implementation!!.registerCount)
@@ -156,6 +160,58 @@ class CommentReplySearchPatchTest {
         } catch (refused: PatchException) {
             assertTrue(refused.message.orEmpty(), "hold the parent comment, found 2" in refused.message.orEmpty())
         }
+    }
+
+    @Test
+    fun `a late reply model refusal applies none of the earlier writes`() {
+        val cell = "Lcom/ss/android/ugc/aweme/commentv2/commentlist/powercell/CommentMoreItemCell;"
+        val method = bind(cell, "LX/0nlo;", "LX/0lOS;", "Q5")
+        val original = method.implementation!!.instructions.toList()
+        var settingsWrites = 0
+        var dislikeWrites = 0
+
+        try {
+            applyAfterCommentToolsPreflight(
+                { { settingsWrites++ } },
+                { { dislikeWrites++ } },
+                { method.resolveReplySearch(replyClasses(cell, "LX/0nlo;", secondHolder = true)) },
+            )
+            fail("expected a refusal")
+        } catch (refused: PatchException) {
+            assertTrue(refused.message.orEmpty(), "hold the parent comment, found 2" in refused.message.orEmpty())
+        }
+
+        assertEquals(0, settingsWrites)
+        assertEquals(0, dislikeWrites)
+        val after = method.implementation!!.instructions.toList()
+        assertEquals(original.size, after.size)
+        for (index in original.indices) assertSame(original[index], after[index])
+    }
+
+    @Test
+    fun `all five host checks finish before the first deferred write`() {
+        val events = mutableListOf<String>()
+        fun resolver(name: String): () -> CommentToolsWrite = {
+            events += "check $name"
+            val write: CommentToolsWrite = { events += "write $name" }
+            write
+        }
+
+        applyAfterCommentToolsPreflight(
+            resolver("settings"),
+            resolver("dislike"),
+            resolver("reply"),
+            resolver("cell"),
+            resolver("list"),
+        )
+
+        assertEquals(
+            listOf(
+                "check settings", "check dislike", "check reply", "check cell", "check list",
+                "write settings", "write dislike", "write reply", "write cell", "write list",
+            ),
+            events,
+        )
     }
 
     /** A bind shaped like both builds': the item copied, cast to the model, then relaid out. */

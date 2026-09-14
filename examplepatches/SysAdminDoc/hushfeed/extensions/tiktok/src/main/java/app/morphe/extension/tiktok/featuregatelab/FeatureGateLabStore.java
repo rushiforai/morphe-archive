@@ -12,6 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.security.MessageDigest;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,6 +24,7 @@ import java.util.Map;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.SettingsJson;
+import app.morphe.extension.tiktok.settings.L10n;
 
 public final class FeatureGateLabStore {
     public static final String TARGET_VERSION = "46.2.3";
@@ -127,6 +129,11 @@ public final class FeatureGateLabStore {
         String id = idFor(manager, key, type);
         List<String> ids = ruleIds(prefs);
         if (!ids.contains(id)) {
+            if (ids.size() >= MAX_RULES) {
+                String message = ruleLimitMessage(ids.size() + 1);
+                Logger.printInfo(() -> message);
+                return false;
+            }
             ids.add(id);
         }
         String prefix = "rule." + id + ".";
@@ -229,6 +236,47 @@ public final class FeatureGateLabStore {
      */
     public static final int MAX_RULES = 1024;
 
+    /** Refuse an oversized replacement before a journal, undo file or preference editor changes. */
+    static void requireRuleLimit(List<Rule> rules) throws java.io.IOException {
+        if (rules == null) throw new java.io.IOException("Lab rules are missing");
+        if (rules.size() > MAX_RULES) {
+            throw new java.io.IOException(ruleLimitMessage(rules.size()));
+        }
+    }
+
+    static String ruleLimitMessage(int resultingCount) {
+        NumberFormat numbers = NumberFormat.getIntegerInstance(Locale.getDefault());
+        return L10n.f("The Lab keeps at most %1$s rules. This change would make %2$s, so nothing was changed.",
+                numbers.format(MAX_RULES), numbers.format(resultingCount));
+    }
+
+    /** The raw identity count is readable even when the current state is too large to parse. */
+    static int storedRuleCount() {
+        SharedPreferences prefs = prefs();
+        return prefs == null ? 0 : ruleIds(prefs).size();
+    }
+
+    /**
+     * Recovery for a state whose own rule count prevents the ordinary undo snapshot from parsing.
+     * It clears only Feature Gate Lab preferences and observations.
+     */
+    static void clearAllLabDataWithoutParsing() throws java.io.IOException {
+        if (!canWrite()) {
+            throw new java.io.IOException("Feature Gate Lab is writable only from the main process");
+        }
+        SharedPreferences prefs = prefs();
+        if (prefs == null) throw new java.io.IOException("Lab storage unavailable");
+        boolean saved = prefs.edit()
+                .clear()
+                .putString(STORED_TARGET_VERSION_KEY, TARGET_VERSION)
+                .commit();
+        if (!saved) throw new java.io.IOException("Could not clear Lab settings");
+        SettingsManagerObservationRecorder.clear();
+        FeatureGateLabRuntime.clearTriggered();
+        FeatureGateLabRuntime.reloadRules();
+        FeatureGateLabSession.markRestartNeeded();
+    }
+
     /** Decode the entire backup before any setting or rule is changed. */
     public static List<Rule> parseSettings(JSONObject root) throws JSONException {
         if (!Integer.valueOf(1).equals(root.get("schema")) || !TARGET_VERSION.equals(root.optString("tiktok_version"))
@@ -280,6 +328,7 @@ public final class FeatureGateLabStore {
      */
     public static void replaceSettings(List<Rule> rules, boolean master, boolean acknowledged,
             boolean puttingBack) throws java.io.IOException {
+        requireRuleLimit(rules);
         if (!canWrite()) {
             throw new java.io.IOException("Feature Gate Lab is writable only from the main process");
         }

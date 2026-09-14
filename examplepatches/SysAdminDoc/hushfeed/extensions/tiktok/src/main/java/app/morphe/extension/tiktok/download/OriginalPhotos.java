@@ -93,7 +93,9 @@ public final class OriginalPhotos {
             List<String> candidates = new ArrayList<>();
             if (urls instanceof List<?>) {
                 for (Object url : (List<?>) urls) {
-                    if (url instanceof String && ((String) url).startsWith("https://")) candidates.add((String) url);
+                    if (url instanceof String && MediaTransport.hasAllowedShape((String) url)) {
+                        candidates.add((String) url);
+                    }
                 }
             }
             // Never silently save just part of a post whose original sources are missing.
