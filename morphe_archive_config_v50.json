@@ -1753,6 +1753,30 @@
                 "sortOrder": 230,
                 "createdAt": 1789183048894,
                 "updatedAt": 1789183048894
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/ahmedyarub/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 231,
+                "createdAt": 1789443161724,
+                "updatedAt": 1789443161724
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/dhrubonai/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 232,
+                "createdAt": 1789443162115,
+                "updatedAt": 1789443162115
+            },
+            {
+                "name": "PixivPatches",
+                "source": "https://raw.githubusercontent.com/Fripe070/PixivPatches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 233,
+                "createdAt": 1789443162364,
+                "updatedAt": 1789443162364
             }
         ]
     }
