@@ -32,6 +32,14 @@ import app.morphe.extension.tiktok.spoof.sim.SimPresets;
 @SuppressWarnings("deprecation")
 public class SimPresetPreference extends Preference {
     private final List<SimPreset> visiblePresets = new ArrayList<>();
+
+    /**
+     * The status line and the explanation under an empty list, held for the length of one open
+     * dialog. A no-match used to be a disabled row inside the list itself, which left the list
+     * reporting one item and made the explanation look like a result that could not be picked.
+     */
+    private TextView resultCount;
+    private TextView emptyState;
     private final InputTextPreference countryIsoPreference;
     private final InputTextPreference mccMncPreference;
     private final InputTextPreference operatorNamePreference;
@@ -120,6 +128,14 @@ public class SimPresetPreference extends Preference {
                 ViewGroup.LayoutParams.WRAP_CONTENT
         ));
 
+        resultCount = SettingsUi.resultCount(context, "sim_preset_result_count");
+        LinearLayout.LayoutParams resultParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        resultParams.setMargins(0, dpToPx(10), 0, 0);
+        dialogView.addView(resultCount, resultParams);
+
         ListView listView = new ListView(context);
         listView.setBackgroundColor(Color.TRANSPARENT);
         int listPadding = Math.max(1, dpToPx(1));
@@ -143,6 +159,23 @@ public class SimPresetPreference extends Preference {
         listContainer.addView(listView, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
+        ));
+
+        // Over the empty list rather than inside it. Nothing here is selectable, so it takes no
+        // focus and is not a second live region: the count above already announces the change,
+        // and two of them would say the same thing twice.
+        emptyState = SettingsUi.text(context, "", 14, getSummaryTextColor(),
+                android.graphics.Typeface.NORMAL);
+        emptyState.setGravity(Gravity.CENTER);
+        emptyState.setTag("sim_preset_empty_state");
+        emptyState.setFocusable(false);
+        emptyState.setVisibility(View.GONE);
+        int emptyPadding = dpToPx(16);
+        emptyState.setPadding(emptyPadding, emptyPadding, emptyPadding, emptyPadding);
+        listContainer.addView(emptyState, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.CENTER
         ));
         dialogView.addView(listContainer, listParams);
 
@@ -215,7 +248,7 @@ public class SimPresetPreference extends Preference {
 
         if (Settings.SIM_SPOOF.get()) {
             app.morphe.extension.shared.Utils.showToastLong(
-                    app.morphe.extension.tiktok.settings.L10n.t("SIM preset saved. Restart TikTok to apply it."));
+                    app.morphe.extension.tiktok.settings.L10n.t("SIM preset saved. Restart TikTok to apply this."));
         } else {
             app.morphe.extension.shared.Utils.showToastShort(app.morphe.extension.tiktok.settings.L10n.t("SIM preset saved"));
         }
@@ -231,11 +264,19 @@ public class SimPresetPreference extends Preference {
             }
         }
 
-        if (visiblePresets.isEmpty()) {
-            visiblePresets.add(null);
-        }
-
         adapter.notifyDataSetChanged();
+
+        // The count is the one thing that speaks, and only when it changes. The explanation
+        // under it is there to be read, not announced a second time.
+        SettingsUi.setResultCount(resultCount, visiblePresets.size());
+        if (emptyState == null) return;
+        if (visiblePresets.isEmpty()) {
+            emptyState.setText(L10n.t(getContext(), "No matching countries")
+                    + "\n" + L10n.t(getContext(), "Try a country name, or a two-letter code"));
+            emptyState.setVisibility(View.VISIBLE);
+        } else {
+            emptyState.setVisibility(View.GONE);
+        }
     }
 
     private int dpToPx(int dp) {
@@ -277,28 +318,18 @@ public class SimPresetPreference extends Preference {
             View view = super.getView(position, convertView, parent);
             TextView title = view.findViewById(android.R.id.text1);
             TextView summary = view.findViewById(android.R.id.text2);
+            // Every row is a real preset now. A no-match used to put a null in here and render
+            // it as a disabled row, which is a sentence pretending to be a country.
             SimPreset preset = getItem(position);
 
-            if (preset == null) {
-                // A row with a blank second line looks like a result that failed to load.
-                title.setText(L10n.t(getContext(), "No matching countries"));
-                summary.setText(L10n.t(getContext(), "Try a country name, or a two-letter code"));
-                view.setEnabled(false);
-            } else {
-                title.setText(preset.country);
-                summary.setText(preset.getSummary());
-                view.setEnabled(true);
-            }
+            title.setText(preset.country);
+            summary.setText(preset.getSummary());
+            view.setEnabled(true);
 
             view.setBackgroundColor(getDialogBackgroundColor());
             title.setTextColor(getTitleTextColor());
             summary.setTextColor(getSummaryTextColor());
             return view;
-        }
-
-        @Override
-        public boolean isEnabled(int position) {
-            return getItem(position) != null;
         }
     }
 

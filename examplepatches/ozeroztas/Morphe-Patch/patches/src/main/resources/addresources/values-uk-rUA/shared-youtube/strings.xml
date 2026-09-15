@@ -75,7 +75,6 @@ Second \"item\" text"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Підміна відеопотоків</string>
   <string name="morphe_spoof_video_streams_screen_summary">Налаштування підміни клієнта для запобігання проблемам з відтворенням</string>
-  <string name="morphe_spoof_video_streams_title">Підміна відеопотоків</string>
   <string name="morphe_spoof_video_streams_summary">"Виправляє проблеми з відтворенням для більшості користувачів, запитуючи сумісний відеопотік
 
 Якщо ви є користувачем YouTube Premium, це налаштування може не знадобитися"</string>

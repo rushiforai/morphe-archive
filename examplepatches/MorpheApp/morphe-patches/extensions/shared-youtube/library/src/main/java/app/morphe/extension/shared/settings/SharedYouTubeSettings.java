@@ -66,6 +66,7 @@ public class SharedYouTubeSettings extends BaseSettings {
     public static final EnumSetting<BrandingTheme> CUSTOM_BRANDING_ICON = new EnumSetting<>("morphe_custom_branding_icon", CustomBrandingPatch.getDefaultIconStyle(), true);
     public static final EnumSetting<NotificationIconTheme> CUSTOM_BRANDING_NOTIFICATION_ICON = new EnumSetting<>("morphe_custom_branding_notification_icon", NotificationIconTheme.FOLLOW, true);
     public static final IntegerSetting CUSTOM_BRANDING_NAME = new IntegerSetting("morphe_custom_branding_name", CustomBrandingPatch.getDefaultAppNameIndex(), true);
+    public static final StringSetting CUSTOM_BRANDING_ICON_PATCHED = new StringSetting("morphe_custom_branding_icon_patched", "", false, false);
 
     // Miscellaneous
     public static final BooleanSetting DEBUG_PROTOBUFFER = new BooleanSetting("morphe_debug_protobuffer", FALSE, false, "morphe_debug_protobuffer_user_dialog_message", parent(DEBUG));
@@ -111,6 +112,7 @@ public class SharedYouTubeSettings extends BaseSettings {
     public static final BooleanSetting RYD_ESTIMATED_LIKE = new BooleanSetting("morphe_ryd_estimated_like", TRUE, true, parent(RYD_ENABLED));
     public static final BooleanSetting RYD_TOAST_ON_CONNECTION_ERROR = new BooleanSetting("morphe_ryd_toast_on_connection_error", TRUE, parent(RYD_ENABLED));
     public static final StringSetting GMS_CORE_IGNORED_VERSION = new StringSetting("morphe_gms_core_update_dialog_ignored_version", "", false, false);
+    public static final StringSetting GMS_CORE_IGNORED_CONFLICTS = new StringSetting("morphe_gms_core_conflict_dialog_ignored", "", false, false);
 
     // Migration
     private static final BooleanSetting DEPRECATED_EXTERNAL_DOWNLOADER_FLYOUT_BUTTON = new BooleanSetting("morphe_external_downloader_flyout_button", FALSE);

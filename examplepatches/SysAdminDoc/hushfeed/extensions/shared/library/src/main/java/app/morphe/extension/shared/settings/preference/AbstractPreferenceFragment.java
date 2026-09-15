@@ -3,7 +3,9 @@ package app.morphe.extension.shared.settings.preference;
 import static app.morphe.extension.shared.StringRef.str;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Dialog;
+import android.app.Fragment;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -16,6 +18,9 @@ import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 import android.util.Pair;
+import android.view.View;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.widget.Button;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
@@ -34,6 +39,67 @@ import app.morphe.extension.shared.ui.CustomDialog;
 
 @SuppressWarnings("deprecation")
 public abstract class AbstractPreferenceFragment extends PreferenceFragment {
+
+    private static final String INITIALIZATION_ERROR_KEY = "morphe_settings_error_message";
+    private static final String INITIALIZATION_BACK_KEY = "morphe_settings_error_back";
+    private static final String INITIALIZATION_RETRY_KEY = "morphe_settings_error_retry";
+
+    /** A tap acts immediately, and assistive technology should hear the same Button role. */
+    private static final class ErrorActionPreference extends Preference implements ImmediateAction {
+        /** The one the reader is meant to take, so the page can draw it as the way forward. */
+        private final boolean primary;
+        private final ErrorActionStyler styler;
+
+        ErrorActionPreference(Context context, boolean primary, ErrorActionStyler styler) {
+            super(context);
+            this.primary = primary;
+            this.styler = styler;
+        }
+
+        @Override public boolean actsOnTap() {
+            return true;
+        }
+
+        @Override protected void onBindView(View view) {
+            super.onBindView(view);
+            view.setOnClickListener(ignored -> {
+                OnPreferenceClickListener click = getOnPreferenceClickListener();
+                if (click != null) click.onPreferenceClick(this);
+            });
+            view.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+                @Override public void onInitializeAccessibilityNodeInfo(
+                        View host, AccessibilityNodeInfo info) {
+                    super.onInitializeAccessibilityNodeInfo(host, info);
+                    info.setClassName(Button.class.getName());
+                    // The class name alone leaves a screen reader with a button it will not
+                    // offer to press, which on the one screen whose whole purpose is a way out
+                    // is the worst place for it.
+                    info.setEnabled(host.isEnabled());
+                    info.setClickable(true);
+                    if (host.isEnabled()) {
+                        info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
+                    }
+                }
+            });
+            if (styler != null) styler.style(view, primary);
+        }
+    }
+
+    /**
+     * Lets the app decide how the recovery page's two actions look.
+     *
+     * <p>The shared library has no palette of its own, and both actions were drawn identically,
+     * so Try again and Go back read as two rows of a list rather than as a way forward and a way
+     * out.
+     */
+    public interface ErrorActionStyler {
+        void style(View row, boolean primary);
+    }
+
+    /** Overridden by an app that wants its accent on the recovery action. Plain by default. */
+    protected ErrorActionStyler errorActionStyler() {
+        return null;
+    }
 
     /**
      * Indicates that if a preference changes,
@@ -58,53 +124,135 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
     @Nullable
     protected static CharSequence confirmDialogTitle;
 
-    private final SharedPreferences.OnSharedPreferenceChangeListener listener = (sharedPreferences, str) -> {
-        try {
-            if (updatingPreference) {
-                Logger.printDebug(() -> "Ignoring preference change as sync is in progress");
-                return;
-            }
+    private boolean listenerRegistered;
+    private boolean destroyed;
+    private boolean retryScheduled;
 
-            Setting<?> setting = Setting.getSettingFromPath(Objects.requireNonNull(str));
+    private final SharedPreferences.OnSharedPreferenceChangeListener listener = (sharedPreferences, key) ->
+            Utils.runOnMainThreadNowOrLater(() -> onPreferenceChanged(sharedPreferences, key));
+
+    private void onPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (destroyed || !isAdded()) return;
+        if (updatingPreference) {
+            Logger.printDebug(() -> "Ignoring preference change as sync is in progress");
+            return;
+        }
+
+        Setting<?> setting = null;
+        Preference pref = null;
+        try {
+            setting = Setting.getSettingFromPath(Objects.requireNonNull(key));
             if (setting == null) {
                 return;
             }
-            Preference pref = findPreference(str);
+            pref = findPreference(key);
             if (pref == null) {
                 return;
             }
-            Logger.printDebug(() -> "Preference changed: " + setting.key);
+            Logger.printDebug(() -> "Preference changed: " + key);
 
             updatingPreference = true;
-            try {
-                if (!settingImportInProgress) {
-                    // Another live page may own the change. Its persisted value is authoritative;
-                    // reading this page's older control would overwrite it, including removing defaults.
-                    syncPreferenceWithStoredValue(pref, setting, sharedPreferences);
-                }
-
-                if (!settingImportInProgress && !showingUserDialogMessage) {
-                    if (setting.userDialogMessage != null && !prefIsSetToDefault(pref, setting)) {
-                        // Do not change the setting yet, to allow preserving whatever
-                        // list/text value was previously set if it needs to be reverted.
-                        showSettingUserDialogConfirmation(pref, setting);
-                        return;
-                    } else if (setting.rebootApp) {
-                        showRestartDialog(getContext());
-                    }
-                }
-
-                // Apply 'Setting <- Preference', unless importing already updated the Setting.
-                updatePreference(pref, setting, true, settingImportInProgress);
-                // Update any other preference availability that may now be different.
-                updateUIAvailability();
-            } finally {
-                updatingPreference = false;
+            if (!settingImportInProgress) {
+                // Another live page may own the change. Its persisted value is authoritative;
+                // reading this page's older control would overwrite it, including removing defaults.
+                syncPreferenceWithStoredValue(pref, setting, sharedPreferences);
             }
+
+            boolean showRestartAfterUpdate = false;
+            if (!settingImportInProgress && !showingUserDialogMessage) {
+                if (setting.userDialogMessage != null && !prefIsSetToDefault(pref, setting)) {
+                    // Do not change the setting yet, to allow preserving whatever
+                    // list/text value was previously set if it needs to be reverted.
+                    showSettingUserDialogConfirmation(pref, setting);
+                    return;
+                }
+                showRestartAfterUpdate = setting.rebootApp;
+            }
+
+            // Apply 'Setting <- Preference', unless importing already updated the Setting.
+            updatePreference(pref, setting, true, settingImportInProgress);
+            // Update any other preference availability that may now be different.
+            updateUIAvailability();
+            // Report success only after every operation that can still enter recovery succeeded.
+            if (showRestartAfterUpdate) showRestartDialog(getContext());
         } catch (Exception ex) {
-            Logger.printException(() -> "OnSharedPreferenceChangeListener failure", ex);
+            // This path owns a localized outcome below, so logging must not add a second toast.
+            Logger.printInfo(() -> "OnSharedPreferenceChangeListener failure", ex);
+            boolean restored = pref != null && setting != null
+                    && restorePreferenceFromSetting(pref, setting, sharedPreferences);
+            Context context = getActivity();
+            Utils.showToastLong(String.valueOf(restored
+                    ? preferenceChangeRecoveredMessage(context)
+                    : preferenceChangeRecoveryFailedMessage(context)));
+        } finally {
+            updatingPreference = false;
         }
-    };
+    }
+
+    /**
+     * Restores both the visible row and its persisted preference from the typed Setting value.
+     * The listener guard stays raised while a Preference setter writes the saved value back.
+     */
+    private boolean restorePreferenceFromSetting(@NonNull Preference pref,
+                                                 @NonNull Setting<?> setting,
+                                                 @NonNull SharedPreferences preferences) {
+        updatingPreference = true;
+        try {
+            syncSettingWithPreference(pref, setting, true);
+            if (!persistSettingValue(preferences, setting)) return false;
+            updateUIAvailability();
+            return preferenceShowsSettingValue(pref, setting)
+                    && storedPreferenceMatchesSetting(preferences, setting);
+        } catch (Exception restoreFailure) {
+            Logger.printInfo(() -> "Preference recovery failure", restoreFailure);
+            return false;
+        }
+    }
+
+    /** Keeps the Setting contract that default values are represented by an absent preference. */
+    private static boolean persistSettingValue(@NonNull SharedPreferences preferences,
+                                               @NonNull Setting<?> setting) {
+        Object value = setting.get();
+        SharedPreferences.Editor editor = preferences.edit();
+        if (setting.defaultValue.equals(value)) {
+            editor.remove(setting.key);
+        } else if (value instanceof Boolean) {
+            editor.putBoolean(setting.key, (Boolean) value);
+        } else {
+            editor.putString(setting.key, settingStringValue(value));
+        }
+        return editor.commit();
+    }
+
+    /** Lets app-specific Preference classes verify that recovery put the saved value on screen. */
+    protected boolean preferenceShowsSettingValue(@NonNull Preference pref,
+                                                  @NonNull Setting<?> setting) {
+        Object value = setting.get();
+        if (pref instanceof SwitchPreference switchPref) {
+            return value instanceof Boolean && switchPref.isChecked() == (Boolean) value;
+        }
+        String expected = settingStringValue(value);
+        if (pref instanceof EditTextPreference editPreference) {
+            return Objects.equals(expected, editPreference.getText());
+        }
+        if (pref instanceof ListPreference listPreference) {
+            return Objects.equals(expected, listPreference.getValue());
+        }
+        return true;
+    }
+
+    private static boolean storedPreferenceMatchesSetting(@NonNull SharedPreferences preferences,
+                                                          @NonNull Setting<?> setting) {
+        Object expected = setting.get();
+        Object stored = preferences.getAll().get(setting.key);
+        if (stored == null && !preferences.contains(setting.key)) stored = setting.defaultValue;
+        if (expected instanceof Boolean) return Objects.equals(expected, stored);
+        return Objects.equals(settingStringValue(expected), settingStringValue(stored));
+    }
+
+    private static String settingStringValue(Object value) {
+        return value instanceof Enum<?> ? ((Enum<?>) value).name() : String.valueOf(value);
+    }
 
     /**
      * Initialize this instance, and do any custom behavior.
@@ -335,6 +483,30 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
      */
     protected static CharSequence savedMessage;
 
+    protected CharSequence initializationErrorTitle(@Nullable Context context) {
+        return "Settings couldn't open";
+    }
+
+    protected CharSequence initializationErrorSummary(@Nullable Context context) {
+        return "Try again, or go back to TikTok.";
+    }
+
+    protected CharSequence initializationBackLabel(@Nullable Context context) {
+        return "Back";
+    }
+
+    protected CharSequence initializationRetryLabel(@Nullable Context context) {
+        return "Retry";
+    }
+
+    protected CharSequence preferenceChangeRecoveredMessage(@Nullable Context context) {
+        return "The setting couldn't finish updating. Its saved value is shown.";
+    }
+
+    protected CharSequence preferenceChangeRecoveryFailedMessage(@Nullable Context context) {
+        return "Settings couldn't refresh completely. Reopen settings and try again.";
+    }
+
     public static void showRestartDialog(Context context) {
         Utils.verifyOnMainThread();
         // Keep the existing entry point for callers; saving never prompts or restarts the app.
@@ -347,6 +519,11 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        destroyed = false;
+        initializePreferencePage();
+    }
+
+    private void initializePreferencePage() {
         try {
             PreferenceManager preferenceManager = getPreferenceManager();
             preferenceManager.setSharedPreferencesName(Setting.preferences.name);
@@ -358,14 +535,108 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
             updateUIToSettingValues();
 
             preferenceManager.getSharedPreferences().registerOnSharedPreferenceChangeListener(listener);
+            listenerRegistered = true;
         } catch (Exception ex) {
-            Logger.printException(() -> "onCreate() failure", ex);
+            // The error page is the user-facing outcome; keep the diagnostic logger toast quiet.
+            Logger.printInfo(() -> "onCreate() failure", ex);
+            unregisterPreferenceListener();
+            renderInitializationError();
+        }
+    }
+
+    private void renderInitializationError() {
+        Activity activity = getActivity();
+        if (activity == null) {
+            Logger.printException(() -> "Cannot render settings initialization error without an Activity");
+            return;
+        }
+
+        try {
+            PreferenceScreen screen = getPreferenceManager().createPreferenceScreen(activity);
+            setPreferenceScreen(screen);
+
+            Preference message = new Preference(activity);
+            message.setKey(INITIALIZATION_ERROR_KEY);
+            message.setTitle(initializationErrorTitle(activity));
+            message.setSummary(initializationErrorSummary(activity));
+            message.setPersistent(false);
+            message.setSelectable(false);
+            screen.addPreference(message);
+
+            ErrorActionStyler styler = errorActionStyler();
+
+            // Try again leads. It is the one that can actually fix this, and it used to sit
+            // underneath Go back, so the first thing offered to a reader whose settings would
+            // not open was the way out rather than the way through.
+            Preference retry = new ErrorActionPreference(activity, true, styler);
+            retry.setKey(INITIALIZATION_RETRY_KEY);
+            retry.setTitle(initializationRetryLabel(activity));
+            retry.setPersistent(false);
+            retry.setOnPreferenceClickListener(ignored -> {
+                replaceFailedPage();
+                return true;
+            });
+            screen.addPreference(retry);
+
+            Preference back = new ErrorActionPreference(activity, false, styler);
+            back.setKey(INITIALIZATION_BACK_KEY);
+            back.setTitle(initializationBackLabel(activity));
+            back.setPersistent(false);
+            back.setOnPreferenceClickListener(ignored -> {
+                leaveFailedPage();
+                return true;
+            });
+            screen.addPreference(back);
+        } catch (Exception renderFailure) {
+            Logger.printException(() -> "Settings initialization error UI failure", renderFailure);
+        }
+    }
+
+    private void leaveFailedPage() {
+        Activity activity = getActivity();
+        if (activity == null) return;
+        if (activity.getFragmentManager().getBackStackEntryCount() > 0) {
+            activity.getFragmentManager().popBackStack();
+        } else {
+            activity.finish();
+        }
+    }
+
+    /** A new Fragment also rebuilds app-specific adapters and clears every partial subclass field. */
+    private void replaceFailedPage() {
+        if (retryScheduled) return;
+        Activity activity = getActivity();
+        int containerId = getId();
+        if (activity == null || containerId == 0 || containerId == android.view.View.NO_ID) return;
+
+        retryScheduled = true;
+        try {
+            Bundle arguments = getArguments() == null ? null : new Bundle(getArguments());
+            Fragment replacement = Fragment.instantiate(activity, getClass().getName(), arguments);
+            activity.getFragmentManager().beginTransaction()
+                    .replace(containerId, replacement)
+                    .commit();
+        } catch (Exception retryFailure) {
+            retryScheduled = false;
+            Logger.printInfo(() -> "Settings retry failure", retryFailure);
+            initializePreferencePage();
+        }
+    }
+
+    private void unregisterPreferenceListener() {
+        if (!listenerRegistered) return;
+        try {
+            getPreferenceManager().getSharedPreferences()
+                    .unregisterOnSharedPreferenceChangeListener(listener);
+        } finally {
+            listenerRegistered = false;
         }
     }
 
     @Override
     public void onDestroy() {
-        getPreferenceManager().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(listener);
+        destroyed = true;
+        unregisterPreferenceListener();
         super.onDestroy();
     }
 }

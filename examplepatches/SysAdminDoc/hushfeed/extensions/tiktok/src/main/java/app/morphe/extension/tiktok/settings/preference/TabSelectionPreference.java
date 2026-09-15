@@ -107,7 +107,7 @@ public class TabSelectionPreference extends Preference {
             if (builder.length() > 0) {
                 builder.append(", ");
             }
-            builder.append(option.label);
+            builder.append(L10n.t(getContext(), option.label));
         }
 
         if (selectedObserved == observedOptions.size()) {
@@ -298,7 +298,7 @@ public class TabSelectionPreference extends Preference {
         textContainer.setOrientation(LinearLayout.VERTICAL);
 
         TextView label = new TextView(context);
-        label.setText(option.label);
+        label.setText(L10n.t(getContext(), option.label));
         label.setTextColor(getTitleTextColor());
         label.setTextSize(16);
         textContainer.addView(label);
@@ -437,8 +437,13 @@ public class TabSelectionPreference extends Preference {
         super.setTitle(L10n.t(getContext(), title));
     }
 
+    /**
+     * The state line, "Home" or "All loaded tabs", with the restart note after it. Both tab
+     * settings are read at startup, and the row said nothing about that while every switch did.
+     */
     @Override
     public void setSummary(CharSequence summary) {
-        super.setSummary(L10n.t(getContext(), summary));
+        String text = summary == null ? null : summary.toString();
+        super.setSummary(TogglePreference.withRestartNote(getContext(), text, setting));
     }
 }

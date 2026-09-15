@@ -5,7 +5,7 @@ Always confirm against the target app's smali before writing a fingerprint
 (see [hunt targets](reverse-engineering.md#hunt-targets)); adapt register use to the method
 (see [bytecode reference](bytecode-reference.md)).
 
-`scripts/hunt-signals.sh` owns the exact search expressions. The tables below name
+`scripts/hunt_signals.py` owns the exact search expressions. The tables below name
 the signal family only; do not copy expressions from here into scripts.
 
 ## Which billing system? (decision guide)
@@ -33,7 +33,7 @@ Complex license object → injected factory method + redirect
 
 ## Ads (per SDK)
 
-1. Run `scripts/hunt-signals.sh` and work the `ads` bucket it reports.
+1. Run `scripts/hunt_signals.py` and work the `ads` bucket it reports.
 2. Per SDK found, neutralize its `load`/`show`/`initialize` entry points on the SDK's
    well-known (non-obfuscated) classes — e.g. AdMob banner/interstitial/native/rewarded/app-open
    loaders, Unity `initialize`/`isInitialized`/`load`/`show`, Meta `loadAd`/`show`, and so on.
@@ -45,7 +45,7 @@ fingerprints on the former. For feed-style apps, runtime list filtering via an e
 
 ## Protections
 
-| Protection | Signal family (see `hunt-signals.sh`) | Neutralize |
+| Protection | Signal family (see `hunt_signals.py`) | Neutralize |
 | ---------- | -------------------------------------- | ---------- |
 | Root (incl. Firebase root checks, RootBeer, Magisk paths) | root | Force `false` on each check |
 | SSL pinning (OkHttp `CertificatePinner`, custom `TrustManager`) | pinning/trust | `return-void` the `check` methods |
@@ -134,7 +134,7 @@ that `return-void`s on each blocked tag instead of writing N patches.
 | Kotlin Multiplatform | — | Same as native (shared code compiles to DEX) |
 | DEX-loading (plugins) | `DexClassLoader\|loadClass` | Patch the loader or the loaded code |
 
-Start every hunt with `scripts/hunt-signals.sh`, then the manager/billing class names
+Start every hunt with `scripts/hunt_signals.py`, then the manager/billing class names
 (`SubscriptionManager`, `BillingManager`, `PurchaseManager`, `LicenseManager`) and the
 generic gate names (`isPremium|isSubscribed|hasPurchased|isFeatureEnabled|canAccess|isUnlocked|isPro`) —
 they locate the billing neighborhood in any native app.

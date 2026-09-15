@@ -420,12 +420,12 @@ public class FeatureGateLabBoundaryTest {
         assertTrue("the probe must stay under the length check it is not testing",
                 value.length() < 64 * 1024);
 
-        assertEquals("invalid structured value",
-                FeatureGateLabStore.validateValue("OBJECT", value));
+        assertEquals(FeatureGateLabStore.ValidationCode.INVALID_STRUCTURED_VALUE,
+                FeatureGateLabStore.validateValue("OBJECT", value).code);
         // The positive control: an ordinary structured value still goes through.
         assertNull(FeatureGateLabStore.validateValue("OBJECT", "{\"enable\":true}"));
-        assertEquals("select at least one field",
-                FeatureGateLabStore.validateValue("OBJECT", "{}"));
+        assertEquals(FeatureGateLabStore.ValidationCode.SELECT_AT_LEAST_ONE_FIELD,
+                FeatureGateLabStore.validateValue("OBJECT", "{}").code);
     }
 
     @Test

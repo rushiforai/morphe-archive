@@ -405,6 +405,7 @@ Pampubliko ang mga ulat at sinusuri ang mga ito bago idagdag ang isang channel s
   <string name="morphe_vot_screen_title">Pagsasalin ng boses</string>
   <string name="morphe_vot_screen_summary">Basahin nang malakas ang mga caption ng video gamit ang text-to-speech sa iyong device, na naka-synchronize sa pagpapatugtog</string>
   <string name="morphe_vot_enabled_title">Pagsasalin ng boses</string>
+  <string name="morphe_vot_enabled_summary">test</string>
   <string name="morphe_vot_caption_language_title">Wika</string>
   <string name="morphe_vot_translation_service_title">Tagapagbigay ng pagsasalin</string>
   <string name="morphe_vot_original_audio_volume_title">Dami ng orihinal na audio</string>
@@ -514,6 +515,8 @@ Impormasyon: Maaaring hindi gumana sa mga live stream"</string>
   <string name="morphe_queue_add_flyout_menu_summary">Nagdaragdag ng karagdagang flyout item. I-enable ito kung hindi ipinapakita ang \"Idagdag sa queue\".</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_title">Ad whitelist sa flyout menu</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_summary">Nagdaragdag ng flyout item na nagpapahintulot sa mga ad na mag-play sa channel ng video na iyon</string>
+  <!-- "Spoof video streams" must use the same translation as morphe_spoof_video_streams_screen_title -->
+  <string name="morphe_ads_channel_whitelist_flyout_user_dialog_message">Ang feature na ito ay maaaring mangailangan ng paggamit ng PotHelper o pagpapalit ng \"I-spoof ang mga video stream\" sa TV o Android VR sign-in.</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_title">Speed whitelist sa flyout menu</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_summary">Nagdaragdag ng flyout item na palaging nagpe-play sa channel ng video na iyon sa bilis na 1.0x</string>
   <string name="morphe_queue_manager_check_failed_auth">Hindi naka-log in</string>
@@ -603,8 +606,10 @@ Para ayusin ito, i-on ang 'I-spoof ang mga video stream' at baguhin ang 'Default
   <string name="morphe_swipe_text_overlay_size_summary">Ayusin ang laki ng text sa screen (1-30)</string>
   <string name="morphe_swipe_threshold_title">Threshold ng swipe magnitude</string>
   <string name="morphe_swipe_threshold_summary">Itakda ang kinakailangang distansya ng swipe bago ma-trigger ang isang pagsasaayos</string>
-  <string name="morphe_swipe_volume_sensitivity_title">Sensitivity ng swipe volume</string>
-  <string name="morphe_swipe_volume_sensitivity_summary">Ang mas mataas na halaga ay nagpapataas ng pagbabago sa volume sa bawat paggalaw</string>
+  <string name="morphe_swipe_volume_distance_title">Sensitivity ng pag-swipe ng volume</string>
+  <string name="morphe_swipe_volume_distance_summary">Kapag mas mataas ang value, mas maraming swipe ang kailangan para madagdagan ng isang level ang volume</string>
+  <string name="morphe_swipe_volume_steps_title">Mga hakbang ng volume</string>
+  <string name="morphe_swipe_volume_steps_entry_default">Default ng device</string>
   <string name="morphe_swipe_brightness_sensitivity_title">Sensitibidad ng paggalaw ng liwanag</string>
   <string name="morphe_swipe_brightness_sensitivity_summary">Ang mas mataas na halaga ay nangangailangan ng mas maraming paggalaw sa bawat hakbang ng liwanag</string>
   <string name="morphe_swipe_speed_sensitivity_title">Sensitibidad ng paggalaw ng bilis</string>
@@ -911,6 +916,7 @@ Mga Setting → Playback (o Autoplay) → Autoplay ng susunod na video."</string
   <string name="morphe_disable_fullscreen_sliding_down_gesture_title">Huwag paganahin ang kilos ng pag-swipe pababa sa portrait mode</string>
   <string name="morphe_disable_fullscreen_dragged_down_gesture_title">Huwag paganahin ang kilos ng pag-swipe pababa sa landscape mode</string>
   <string name="morphe_disable_fullscreen_zoom_gesture_title">I-disable ang galaw na pinch-to-zoom</string>
+  <string name="morphe_restore_pinch_to_zoom_title">Ibalik ang pinch to zoom</string>
   <!-- layout.player.fullscreen.openVideosFullscreenPatch -->
   <string name="morphe_open_videos_fullscreen_title">Buksan ang mga video sa fullscreen mode</string>
   <string name="morphe_open_videos_fullscreen_entry_1">Nakapatay</string>
@@ -923,6 +929,8 @@ Mga Setting → Playback (o Autoplay) → Autoplay ng susunod na video."</string
   <string name="morphe_fullscreen_video_scale_entry_zoom">Mag-zoom (i-crop upang punan)</string>
   <string name="morphe_fullscreen_video_scale_button_title">Ipakita ang buton ng sukat ng video</string>
   <string name="morphe_fullscreen_video_scale_button_summary">I-tap upang magpalit sa Default, Stretch, at Zoom</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_title">Ipakita lamang sa fullscreen</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_summary">Itago ang video scale button sa portrait player</string>
   <!-- layout.player.buttons.muteVideoButtonPatch -->
   <string name="morphe_mute_video_button_title">Ipakita ang Mute button</string>
   <!-- layout.player.overlay.customPlayerOverlayOpacityPatch -->
@@ -962,6 +970,7 @@ Layout ng automotive
 
 Limitasyon: Kung ang 'Ibalik ang lumang video action bar' ay naka-off, maaaring hindi magamit ang overlay na 'Higit pang mga video'"</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="morphe_spoof_app_version_target_entry_21_11">21.11.48 - Ibalik ang dating pag-uugali ng mga caption</string>
   <string name="morphe_spoof_app_version_target_entry_20_39">20.39.41 - Ibalik ang lumang save sa playlist</string>
   <string name="morphe_spoof_app_version_target_entry_20_28">20.28.41 - I-disable ang mga bold na icon</string>
   <string name="morphe_spoof_app_version_target_entry_20_13">20.13.41 - Ibalik ang pangalan ng channel sa ibaba ng video player</string>
@@ -1022,16 +1031,16 @@ Limitasyon: Kung ang 'Ibalik ang lumang video action bar' ay naka-off, maaaring 
   <string name="morphe_miniplayer_disable_resuming_summary">Hindi pinapagana ang \'Continue watching\' miniplayer, isang tampok ng YouTube Premium na lumalabas sa paglunsad ng app.</string>
   <string name="morphe_miniplayer_screen_title">Miniplayer</string>
   <string name="morphe_miniplayer_screen_summary">I-customize ang hitsura at pag-uugali ng minimize video player</string>
-  <string name="morphe_miniplayer_not_available_summary">Inalis ng YouTube ang lahat ng karagdagang miniplayer. Upang baguhin ang uri ng miniplayer, i-patch ang YouTube 21.28.208 o mas luma.</string>
   <string name="morphe_miniplayer_type_title">Uri ng miniplayer</string>
   <string name="morphe_miniplayer_type_entry_0">Na-disable</string>
   <string name="morphe_miniplayer_type_entry_1">Default</string>
   <string name="morphe_miniplayer_type_entry_2">Minimal</string>
-  <string name="morphe_miniplayer_type_entry_3">Tablet</string>
-  <string name="morphe_miniplayer_type_entry_4">Moderno 1</string>
-  <string name="morphe_miniplayer_type_entry_5">Moderno 2</string>
-  <string name="morphe_miniplayer_type_entry_6">Moderno 3</string>
-  <string name="morphe_miniplayer_type_entry_7">Moderno 4</string>
+  <string name="morphe_miniplayer_type_entry_3">Payak 2</string>
+  <string name="morphe_miniplayer_type_entry_4">Tablet</string>
+  <string name="morphe_miniplayer_type_entry_5">Moderno 1</string>
+  <string name="morphe_miniplayer_type_entry_6">Moderno 2</string>
+  <string name="morphe_miniplayer_type_entry_7">Moderno 3</string>
+  <string name="morphe_miniplayer_type_entry_8">Moderno 4</string>
   <string name="morphe_miniplayer_disable_rounded_corners_title">I-disable ang bilog na sulok</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_title">I-disable ang pag-drag at drop</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_summary">Pinipigilan ang pag-drag ng minimize player sa iba\'t ibang sulok ng screen</string>

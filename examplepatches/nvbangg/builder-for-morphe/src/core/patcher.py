@@ -113,6 +113,8 @@ class PatcherCLI:
             return None
 
         if not (versions := _parse_versions_output(versions_output)):
+            if list_patches_output.strip():
+                return None
             raise PatcherError(f"No patches found for '{pkg_name}'")
         highest = get_highest_ver(versions)
         return (highest, _extract_version_code(versions_output, highest, arch)) if highest else None

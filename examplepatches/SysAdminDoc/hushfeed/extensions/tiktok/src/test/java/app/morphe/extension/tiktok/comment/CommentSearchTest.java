@@ -15,8 +15,10 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import app.morphe.extension.tiktok.SettingsContextRule;
+import app.morphe.extension.tiktok.UiCapture;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
@@ -28,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
 
 /** Which comments a search leaves on screen, and what happens when it is cleared. */
 @RunWith(RobolectricTestRunner.class)
@@ -121,9 +124,9 @@ public class CommentSearchTest {
             assertEquals(120, first.getLayoutParams().height);
 
             // The box went in above the list rather than into it.
-            assertEquals(2, column.getChildCount());
+            assertEquals(3, column.getChildCount());
             EditText box = (EditText) column.getChildAt(0);
-            assertEquals(listView, column.getChildAt(1));
+            assertEquals(listView, column.getChildAt(2));
 
             box.setText("filmed");
             assertEquals(View.VISIBLE, first.getVisibility());
@@ -162,6 +165,202 @@ public class CommentSearchTest {
         }
     }
 
+    @Test
+    @Config(qualifiers = "w480dp-h160dp-night-mdpi")
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void resultStatusShowsManyOneZeroAndClearedWithoutTakingFocus() throws Exception {
+        try (var controller = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            var activity = controller.get();
+            Utils.setContext(activity);
+            Settings.COMMENT_SEARCH.save(true);
+            CommentSearch.setQuery("");
+
+            LinearLayout column = new LinearLayout(activity);
+            column.setOrientation(LinearLayout.VERTICAL);
+            column.setBackgroundColor(0xFF0B0B0F);
+            LinearLayout listView = new LinearLayout(activity);
+            listView.setOrientation(LinearLayout.VERTICAL);
+            column.addView(listView);
+            activity.setContentView(column);
+
+            View first = new View(activity), second = new View(activity), third = new View(activity);
+            for (View row : new View[]{first, second, third}) {
+                row.setLayoutParams(new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, 120));
+                listView.addView(row);
+            }
+            CommentSearch.onCellBound(first,
+                    new Comment("Great recipe", "cook", "Sam"));
+            CommentSearch.onCellBound(second,
+                    new Comment("Another recipe", "baker", "Lee"));
+            CommentSearch.onCellBound(third,
+                    new Comment("Where was this filmed?", "traveller99", "Jo"));
+            shadowOf(Looper.getMainLooper()).idle();
+
+            EditText box = (EditText) column.getChildAt(0);
+            TextView status = column.findViewWithTag("comment_search_status");
+            assertNotNull("the search field has no result status", status);
+            assertEquals("the status is not directly below the field", status, column.getChildAt(1));
+            assertEquals(listView, column.getChildAt(2));
+            assertEquals(View.ACCESSIBILITY_LIVE_REGION_POLITE,
+                    status.getAccessibilityLiveRegion());
+            assertFalse("the result status entered focus order", status.isFocusable());
+            assertEquals(View.GONE, status.getVisibility());
+            assertEquals("", status.getText().toString());
+
+            assertTrue(box.requestFocus());
+            box.setText("recipe");
+            assertEquals("2 results", status.getText().toString());
+            assertEquals(View.VISIBLE, status.getVisibility());
+            assertTrue("the many-result announcement stole search focus", box.hasFocus());
+
+            box.setText("traveller");
+            assertEquals("1 result", status.getText().toString());
+            assertTrue("the one-result announcement stole search focus", box.hasFocus());
+
+            box.setText("nothing-could-match");
+            assertEquals("No matching comments. Try a different word or clear the search.",
+                    status.getText().toString());
+            assertTrue("the empty explanation stole search focus", box.hasFocus());
+            UiCapture.save(column, "comment-search-no-results.png", 480, 160);
+
+            box.setText("");
+            assertEquals("", status.getText().toString());
+            assertEquals(View.GONE, status.getVisibility());
+            assertTrue("clearing the result announcement stole search focus", box.hasFocus());
+        } finally {
+            CommentSearch.setQuery("");
+            Settings.COMMENT_SEARCH.save(false);
+        }
+    }
+
+    @Test public void resultCountTracksScrollingAndRecycledBodyAndReplyRows() {
+        try (var controller = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            var activity = controller.get();
+            Utils.setContext(activity);
+            Settings.COMMENT_SEARCH.save(true);
+            CommentSearch.setQuery("");
+
+            LinearLayout column = new LinearLayout(activity);
+            column.setOrientation(LinearLayout.VERTICAL);
+            LinearLayout listView = new LinearLayout(activity);
+            listView.setOrientation(LinearLayout.VERTICAL);
+            column.addView(listView);
+            activity.setContentView(column);
+
+            View first = new View(activity), recycled = new View(activity), replies = new View(activity);
+            for (View row : new View[]{first, recycled, replies}) {
+                row.setLayoutParams(new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, 120));
+                listView.addView(row);
+            }
+            Comment matching = new Comment("Great recipe", "cook", "Sam");
+            Comment other = new Comment("Where was this filmed?", "traveller99", "Jo");
+            CommentSearch.onCellBound(first, matching);
+            CommentSearch.onCellBound(recycled, other);
+            CommentSearch.onReplyControlBound(replies, matching, 0);
+            shadowOf(Looper.getMainLooper()).idle();
+
+            EditText box = (EditText) column.getChildAt(0);
+            TextView status = column.findViewWithTag("comment_search_status");
+            assertNotNull("the search field has no result status", status);
+            box.setText("recipe");
+            assertEquals("reply controls counted as matching comments",
+                    "1 result", status.getText().toString());
+
+            CommentSearch.onCellBound(recycled,
+                    new Comment("Best recipe here", "reader", "Ari"));
+            shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("2 results", status.getText().toString());
+
+            CommentSearch.onCellBound(first, other);
+            CommentSearch.onReplyControlBound(replies,
+                    new Comment("A third recipe", "third", "Bo"), 0);
+            shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("a recycled reply control changed the comment count",
+                    "1 result", status.getText().toString());
+
+            listView.removeView(recycled);
+            shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("No matching comments. Try a different word or clear the search.",
+                    status.getText().toString());
+
+            listView.addView(recycled);
+            shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("a cached row reattached without a bind was not counted",
+                    "1 result", status.getText().toString());
+
+            CommentSearch.onCellBound(recycled, other);
+            shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("a recycled body row kept its old match",
+                    "No matching comments. Try a different word or clear the search.",
+                    status.getText().toString());
+        } finally {
+            CommentSearch.setQuery("");
+            Settings.COMMENT_SEARCH.save(false);
+        }
+    }
+
+    @Test @Config(qualifiers = "de")
+    public void germanOwnsTheNoMatchExplanation() {
+        assertLocalizedNoMatch(
+                "Keine passenden Kommentare. Versuche es mit einem anderen Wort oder lösche die Suche.");
+    }
+
+    @Test @Config(qualifiers = "in-rID")
+    public void indonesianOwnsTheNoMatchExplanation() {
+        assertLocalizedNoMatch(
+                "Tidak ada komentar yang cocok. Coba kata lain atau hapus pencarian.");
+    }
+
+    @Test @Config(qualifiers = "es")
+    public void spanishOwnsTheNoMatchExplanation() {
+        assertLocalizedNoMatch(
+                "No hay comentarios que coincidan. Prueba otra palabra o borra la búsqueda.");
+    }
+
+    @Test @Config(qualifiers = "pt-rBR")
+    public void brazilianPortugueseOwnsTheNoMatchExplanation() {
+        assertLocalizedNoMatch(
+                "Nenhum comentário encontrado. Tente outra palavra ou limpe a pesquisa.");
+    }
+
+    private static void assertLocalizedNoMatch(String expected) {
+        try (var controller = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            var activity = controller.get();
+            Utils.setContext(activity);
+            Settings.COMMENT_SEARCH.save(true);
+            CommentSearch.setQuery("");
+
+            LinearLayout column = new LinearLayout(activity);
+            column.setOrientation(LinearLayout.VERTICAL);
+            LinearLayout listView = new LinearLayout(activity);
+            listView.setOrientation(LinearLayout.VERTICAL);
+            column.addView(listView);
+            activity.setContentView(column);
+
+            View row = new View(activity);
+            row.setLayoutParams(new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, 120));
+            listView.addView(row);
+            CommentSearch.onCellBound(row,
+                    new Comment("Great recipe", "cook", "Sam"));
+            shadowOf(Looper.getMainLooper()).idle();
+
+            EditText box = column.findViewWithTag(CommentSearch.FIELD_TAG);
+            TextView status = column.findViewWithTag(CommentSearch.STATUS_TAG);
+            assertNotNull(box);
+            assertNotNull(status);
+            box.setText("nothing-could-match");
+            assertEquals(expected, status.getText().toString());
+            assertEquals(View.ACCESSIBILITY_LIVE_REGION_POLITE,
+                    status.getAccessibilityLiveRegion());
+        } finally {
+            CommentSearch.setQuery("");
+            Settings.COMMENT_SEARCH.save(false);
+        }
+    }
+
     @Test public void theBoxWaitsUntilTheRowIsInTheList() {
         try (var controller = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
             var activity = controller.get();
@@ -188,9 +387,9 @@ public class CommentSearchTest {
             // Once the list holds it, the box goes in above the list.
             listView.addView(row);
             shadowOf(Looper.getMainLooper()).idle();
-            assertEquals(2, column.getChildCount());
+            assertEquals(3, column.getChildCount());
             assertTrue(column.getChildAt(0) instanceof EditText);
-            assertEquals(listView, column.getChildAt(1));
+            assertEquals(listView, column.getChildAt(2));
         } finally {
             CommentSearch.setQuery("");
             Settings.COMMENT_SEARCH.save(false);
@@ -224,10 +423,10 @@ public class CommentSearchTest {
             shadowOf(Looper.getMainLooper()).idle();
 
             // Above the wrapper the list sits in, and below whatever was already there.
-            assertEquals(3, column.getChildCount());
+            assertEquals(4, column.getChildCount());
             assertEquals(heading, column.getChildAt(0));
             assertTrue(column.getChildAt(1) instanceof EditText);
-            assertEquals(wrapper, column.getChildAt(2));
+            assertEquals(wrapper, column.getChildAt(3));
         } finally {
             CommentSearch.setQuery("");
             Settings.COMMENT_SEARCH.save(false);
@@ -308,7 +507,7 @@ public class CommentSearchTest {
             listView.addView(row);
             CommentSearch.onCellBound(row, new Comment("Great recipe", "cook", "Sam"));
             shadowOf(Looper.getMainLooper()).idle();
-            assertEquals(2, column.getChildCount());
+            assertEquals(3, column.getChildCount());
             ((EditText) column.getChildAt(0)).setText("recipe");
 
             // The reader closes the comments.
@@ -327,7 +526,7 @@ public class CommentSearchTest {
             second.addView(other);
             CommentSearch.onCellBound(other, new Comment("Nothing alike", "someone", "Someone"));
             shadowOf(Looper.getMainLooper()).idle();
-            assertEquals(2, column.getChildCount());
+            assertEquals(3, column.getChildCount());
             assertTrue(column.getChildAt(0) instanceof EditText);
         } finally {
             CommentSearch.setQuery("");

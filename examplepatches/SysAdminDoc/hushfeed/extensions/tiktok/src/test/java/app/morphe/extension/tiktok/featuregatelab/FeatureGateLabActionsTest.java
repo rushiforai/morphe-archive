@@ -7,6 +7,7 @@ import android.os.Looper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Switch;
+import app.morphe.extension.shared.BackgroundPoolSaturation;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.Settings;
 import java.io.ByteArrayInputStream;
@@ -529,6 +530,72 @@ public class FeatureGateLabActionsTest {
         }
     }
 
+    @Test public void aFullWorkerQueueRejectsALabChangeWithoutLeavingItBusy() throws Exception {
+        try (var owner = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
+            var fragment = attach(owner.get());
+            save("gate", "true", true);
+            var reset = FeatureGateLabFragment.class.getDeclaredMethod("reset", boolean.class);
+            reset.setAccessible(true);
+            var changingField = FeatureGateLabFragment.class.getDeclaredField("CHANGING");
+            changingField.setAccessible(true);
+            var changing = (java.util.concurrent.atomic.AtomicBoolean) changingField.get(null);
+
+            try (BackgroundPoolSaturation saturation = BackgroundPoolSaturation.fill()) {
+                ShadowToast.reset();
+                reset.invoke(fragment, false);
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+                assertEquals("Could not start the Lab change. Try again shortly.",
+                        ShadowToast.getTextOfLatestToast());
+                assertFalse("the Lab remained busy after rejected scheduling", changing.get());
+                assertNotNull("the rejected reset changed Lab storage",
+                        FeatureGateLabStore.rule("abmock", "gate", "BOOLEAN"));
+
+                saturation.release();
+                ShadowToast.reset();
+                reset.invoke(fragment, false);
+                settle();
+                assertNull("the same reset could not be retried",
+                        FeatureGateLabStore.rule("abmock", "gate", "BOOLEAN"));
+                assertFalse(changing.get());
+                // "Restart TikTok to apply this." is the one sentence the whole settings screen
+                // uses now; this message said it a ninth way.
+                assertEquals("Lab overrides reset. Undo last Lab change is in the menu."
+                                + " Restart TikTok to apply this.",
+                        ShadowToast.getTextOfLatestToast());
+            }
+        }
+    }
+
+    @Test public void aRejectedMasterSwitchReturnsToStorageAndRetriesOnTheNextTap()
+            throws Exception {
+        try (var owner = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
+            var fragment = attach(owner.get());
+            Switch master = findSwitch(fragment.getView());
+            assertFalse(FeatureGateLabStore.masterEnabled());
+            assertFalse(master.isChecked());
+
+            try (BackgroundPoolSaturation saturation = BackgroundPoolSaturation.fill()) {
+                ShadowToast.reset();
+                master.performClick();
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+                assertEquals("Could not start the Lab change. Try again shortly.",
+                        ShadowToast.getTextOfLatestToast());
+                assertFalse("the rejected change altered storage",
+                        FeatureGateLabStore.masterEnabled());
+                assertFalse("the rejected switch stayed ahead of storage", master.isChecked());
+
+                saturation.release();
+                master.performClick();
+                settle();
+                assertTrue("the first retry tap was consumed repairing stale UI",
+                        FeatureGateLabStore.masterEnabled());
+                assertTrue(master.isChecked());
+            }
+        }
+    }
+
     @Test public void theMasterSwitchDoesItsStorageOffTheMainThread() throws Exception {
         // Turning overrides on takes the journal lock and does two write-and-verify cycles. On
         // the main thread that is a frozen screen for as long as a settings restore holds that
@@ -587,6 +654,20 @@ public class FeatureGateLabActionsTest {
                     1f, stillActionable.getAlpha(), 0.001f);
             assertTrue(stillActionable.isEnabled());
 
+            // The chosen row has to look chosen. Enable, Disable and Reset act on whatever is in
+            // the selection, so a selection nobody can see is a selection acted on by accident.
+            android.view.View picked = list.getAdapter().getView(0, null, list);
+            assertTrue("the chosen row is not marked as activated",
+                    contains(picked.getBackground().getState(), android.R.attr.state_activated));
+            assertFalse("a row nobody chose is marked as activated",
+                    contains(stillActionable.getBackground().getState(),
+                            android.R.attr.state_activated));
+            // And says so in a shape as well as a colour.
+            assertEquals("the chosen row carries no mark a colour-blind reader can see",
+                    android.view.View.VISIBLE, leadingMark(picked).getVisibility());
+            assertEquals("an unchosen row is marked as chosen",
+                    android.view.View.GONE, leadingMark(stillActionable).getVisibility());
+
             assertTrue(list.performItemClick(null, 1, list.getItemIdAtPosition(1)));
             assertEquals("2 gates selected", selectionCountText(fragment));
             assertTrue(list.performItemClick(null, 1, list.getItemIdAtPosition(1)));
@@ -606,6 +687,16 @@ public class FeatureGateLabActionsTest {
             FeatureGateLabUndo.undo();
             assertTrue(FeatureGateLabStore.rules().isEmpty());
         }
+    }
+
+    private static boolean contains(int[] states, int wanted) {
+        for (int state : states) if (state == wanted) return true;
+        return false;
+    }
+
+    /** The mark at the start of a Lab row, which is the first child whatever the layout. */
+    private static android.view.View leadingMark(android.view.View row) {
+        return ((android.view.ViewGroup) row).getChildAt(0);
     }
 
     private static android.widget.ListView listOf(FeatureGateLabFragment fragment) throws Exception {

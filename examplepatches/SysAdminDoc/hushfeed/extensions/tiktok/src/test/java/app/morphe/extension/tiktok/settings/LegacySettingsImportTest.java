@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.Setting;
+import app.morphe.extension.tiktok.feedfilter.FeedRuleLimits;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,6 +36,28 @@ public class LegacySettingsImportTest {
         assertFalse(Settings.REGION_SPOOF.get());
         assertEquals("keep this", Settings.BLOCKED_SOUND_NAMES.get());
         assertEquals(0, (int) Settings.MAX_VIDEO_SECONDS.get());
+    }
+
+    @Test public void oversizedRuleListsCannotPartiallyApplyALegacyImport() throws Exception {
+        Settings.BLOCKED_CAPTION_WORDS.save("keep caption");
+        Settings.BLOCKED_CREATORS.save("keep creator");
+        Settings.MAX_VIDEO_SECONDS.save(29);
+        StringBuilder tooMany = new StringBuilder();
+        for (int index = 0; index <= FeedRuleLimits.MAX_ENTRIES; index++) {
+            if (index > 0) tooMany.append(',');
+            tooMany.append("item").append(index);
+        }
+        for (String key : new String[]{Settings.BLOCKED_CAPTION_WORDS.key,
+                Settings.BLOCKED_CREATORS.key, Settings.LOCAL_HIDDEN_CREATORS.key}) {
+            String input = new org.json.JSONObject()
+                    .put(Settings.MAX_VIDEO_SECONDS.key, 7)
+                    .put(key, tooMany.toString()).toString();
+            assertFalse(Setting.importFromJSON(null, input));
+            assertEquals("keep caption", Settings.BLOCKED_CAPTION_WORDS.get());
+            assertEquals("keep creator", Settings.BLOCKED_CREATORS.get());
+            assertEquals("", Settings.LOCAL_HIDDEN_CREATORS.get());
+            assertEquals(29, (int) Settings.MAX_VIDEO_SECONDS.get());
+        }
     }
 
     @Test public void numericOverflowFractionsAndTrailingJunkDoNotChangeValues() {

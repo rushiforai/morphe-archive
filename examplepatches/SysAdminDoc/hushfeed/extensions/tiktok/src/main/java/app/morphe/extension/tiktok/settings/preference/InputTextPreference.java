@@ -42,7 +42,8 @@ public class InputTextPreference extends EditTextPreference {
     public InputTextPreference(Context context, String title, String summary, StringSetting setting) {
         super(context);
         setTitle(title);
-        setSummary(summary);
+        // Already translated by withRestartNote, so not looked up a second time.
+        super.setSummary(TogglePreference.withRestartNote(context, summary, setting));
         setKey(setting.key);
         setText(setting.get());
     }
@@ -127,6 +128,7 @@ public class InputTextPreference extends EditTextPreference {
             parent.removeView(editText);
         }
         SettingsUi.styleEditText(editText);
+        SettingsUi.labelEditor(title, editText);
         dialogView.addView(editText, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT

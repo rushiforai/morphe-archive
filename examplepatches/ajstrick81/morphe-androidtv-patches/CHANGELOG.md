@@ -1,3 +1,18 @@
+## [1.37.1](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.37.0...v1.37.1) (2026-09-15)
+
+
+### Bug Fixes
+
+* **netflix:** tighten ADVw fingerprint + add ANCHOR MAP self-detection ([#166](https://github.com/ajstrick81/morphe-androidtv-patches/issues/166)) ([fe11328](https://github.com/ajstrick81/morphe-androidtv-patches/commit/fe1132884538f700cb5b5d67c9541ad48f64462f))
+
+# [1.37.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.36.0...v1.37.0) (2026-09-15)
+
+
+### Features
+
+* **rte:** add RTÉ Player Android TV ad suppression (client VOD IMA) ([d17127a](https://github.com/ajstrick81/morphe-androidtv-patches/commit/d17127ae05b4e577962a0ed5043e285f0a5d0ba9))
+* **rte:** seamless VOD ad suppression — empty the ad-break schedule (#RTE) ([e86b113](https://github.com/ajstrick81/morphe-androidtv-patches/commit/e86b113d9b0bfd675565db88eaf0b10359821a07)), closes [#RTE](https://github.com/ajstrick81/morphe-androidtv-patches/issues/RTE)
+
 # [1.36.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.35.3...v1.36.0) (2026-09-14)
 
 

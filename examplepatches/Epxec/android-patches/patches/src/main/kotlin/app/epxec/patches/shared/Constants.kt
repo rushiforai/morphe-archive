@@ -72,4 +72,43 @@ object Constants {
         )
     )
 
+    val COMPATIBILITY_Daylio = Compatibility(
+        name = "Daylio",
+        packageName = "net.daylio",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0xFF1234,
+        targets = listOf(
+            AppTarget(
+                version = "1.69.2",
+                versionCode = 276
+            )
+        )
+    )
+
+    val COMPATIBILITY_XEQ = Compatibility(
+        name = "XEQ Equalizer",
+        packageName = "com.frack.xeq",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0xFF1234,
+        targets = listOf(
+            AppTarget(
+                version = "38.7.0",
+                versionCode = 437
+            )
+        )
+    )
+
+    val COMPATIBILITY_Wavelet = Compatibility(
+        name = "Wavelet",
+        packageName = "com.pittvandewitt.wavelet",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0xFF1234,
+        targets = listOf(
+            AppTarget(
+                version = "26.05",
+                versionCode = 260508
+            )
+        )
+    )
+
 }

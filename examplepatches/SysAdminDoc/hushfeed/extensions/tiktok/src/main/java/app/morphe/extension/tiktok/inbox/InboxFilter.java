@@ -7,6 +7,7 @@
 package app.morphe.extension.tiktok.inbox;
 
 import android.app.Activity;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -98,6 +99,14 @@ public final class InboxFilter {
 
     /** Clicks and delayed steps run on the main thread and share one dismissal run. */
     private static boolean clearingSuggested;
+
+    /**
+     * The injected Clear all control, so a run that takes about eighteen seconds can say so on
+     * the control the reader pressed rather than only in a toast at the end. Weak because the
+     * control belongs to TikTok's header and dies with the Inbox; a new Inbox installs its own
+     * and replaces this.
+     */
+    private static WeakReference<TextView> clearAllControl;
 
     /** Original row heights, so a hidden row can be restored exactly. */
     private static final WeakHashMap<View, Integer> ORIGINAL_HEIGHTS = new WeakHashMap<>();
@@ -321,6 +330,21 @@ public final class InboxFilter {
     }
 
     /**
+     * The header's own colour when the control is live, and the same colour faded while a run
+     * holds it, so the disabled state is visible as well as announced. Faded rather than taken
+     * from {@code SettingsUi.textDisabled()} for the reason {@link #headerTextColour} exists:
+     * the theme flag answers for the system away from the settings screen, not for the theme
+     * TikTok is actually drawing this header in. 38% is Android's own disabled text alpha.
+     */
+    private static ColorStateList clearAllColours(int enabled) {
+        int faded = (enabled & 0x00FFFFFF)
+                | (Math.round(Color.alpha(enabled) * 0.38f) << 24);
+        return new ColorStateList(
+                new int[][]{new int[]{-android.R.attr.state_enabled}, new int[]{}},
+                new int[]{faded, enabled});
+    }
+
+    /**
      * Puts a Clear all control at the right end of the Suggested accounts heading.
      *
      * Pressing it works through the remove buttons one at a time, which is the same
@@ -344,7 +368,7 @@ public final class InboxFilter {
         TextView clearAll = new TextView(activity);
         clearAll.setId(CLEAR_ALL_VIEW_ID);
         clearAll.setText(L10n.t(activity, "Clear all"));
-        clearAll.setTextColor(headerTextColour(headerGroup));
+        clearAll.setTextColor(clearAllColours(headerTextColour(headerGroup)));
         // Taking the heading's colour makes it readable in either theme, but it also makes it
         // look like a heading. This is a bulk action that dismisses every suggestion, so it has
         // to read as something you can press.
@@ -358,6 +382,18 @@ public final class InboxFilter {
         int padding = Math.round(16 * density);
         clearAll.setPadding(padding, 0, padding, 0);
         clearAll.setOnClickListener(view -> clearAllSuggested(activity));
+        // A press and a focus ring, the same pair every control this bundle draws now carries.
+        // Underlined bold text was the only sign it could be pressed at all.
+        clearAll.setBackground(SettingsUi.overlayAction(activity, SettingsUi.RADIUS_CONTROL));
+        clearAll.setFocusable(true);
+        // It is a TextView because the header styles its own children, so the role has to be
+        // said out loud or a reader is told the word "Clear all" and no way to press it.
+        SettingsUi.markAsButton(clearAll);
+        clearAllControl = new WeakReference<>(clearAll);
+        // Every dismissal relays out the list, and TikTok can rebuild this heading while a run is
+        // going. A control installed onto the new heading would otherwise come up saying "Clear
+        // all", enabled, while a run it silently refuses is still working through the list.
+        setClearAllBusy(clearingSuggested);
 
         // The heading is a horizontal LinearLayout on 46.2.3 (title at x 45 to 457, Learn
         // more at 470 to 501, of 1080), so zero width with weight takes the slack and the
@@ -377,7 +413,29 @@ public final class InboxFilter {
         if (clearingSuggested) return;
         clearingSuggested = true;
         DISMISSED_LABELS.clear();
+        setClearAllBusy(true);
         clearNextSuggested(activity, 0);
+    }
+
+    /**
+     * Sixty accounts paced at 300 ms is about eighteen seconds of nothing happening. The control
+     * says it is working and refuses the pointer while it does, and every terminal path puts it
+     * back so a stopped or failed run can be tried again.
+     */
+    private static void setClearAllBusy(boolean busy) {
+        TextView control = clearAllControl == null ? null : clearAllControl.get();
+        if (control == null) return;
+        control.setEnabled(!busy);
+        control.setText(L10n.t(control.getContext(), busy ? "Clearing" : "Clear all"));
+        if (android.os.Build.VERSION.SDK_INT >= 30) {
+            control.setStateDescription(busy ? L10n.t(control.getContext(), "Clearing") : null);
+            return;
+        }
+        // Below 30 there is no state to set, and the changed label is invisible to a reader
+        // because the content description replaces it. Without this the whole eighteen second
+        // wait is announced as "Clear all suggested accounts, disabled" and nothing else.
+        control.setContentDescription(L10n.t(control.getContext(),
+                busy ? "Clearing suggested accounts" : "Clear all suggested accounts"));
     }
 
     /**
@@ -385,6 +443,10 @@ public final class InboxFilter {
      * once, so TikTok sees the same pacing as a person tapping.
      */
     private static void clearNextSuggested(Activity activity, int cleared) {
+        // What the reader is told if this step throws. It goes up the moment the click returns,
+        // because a throw from the scheduling below it comes after an account really was
+        // dismissed and reporting the count from before the click would be one short.
+        int dismissed = cleared;
         try {
             if (cleared >= MAX_CLEARED_PER_RUN || activity.isFinishing()) {
                 report(cleared);
@@ -402,26 +464,44 @@ public final class InboxFilter {
 
             DISMISSED_LABELS.add(labelOf(button));
             button.performClick();
+            dismissed = cleared + 1;
 
             Utils.runOnMainThreadDelayed(
                     () -> clearNextSuggested(activity, cleared + 1), DISMISS_INTERVAL_MS);
         } catch (Throwable ex) {
-            clearingSuggested = false;
-            DISMISSED_LABELS.clear();
+            // Logged first so the reader's outcome is the message left on screen: with
+            // debugging on, printException puts the stack trace in a toast of its own.
             Logger.printException(() -> "Could not clear suggested accounts", ex);
+            finishRun(failureMessage(dismissed));
         }
     }
 
     private static void report(int cleared) {
+        finishRun(successMessage(cleared));
+    }
+
+    /** Every way a run ends: the control comes back and the outcome is said once. */
+    private static void finishRun(String outcome) {
         clearingSuggested = false;
         DISMISSED_LABELS.clear();
-        if (cleared == 0) {
-            Utils.showToastShort(L10n.t("No suggested accounts to clear"));
-        } else if (cleared == 1) {
-            Utils.showToastShort(L10n.t("Dismissed one suggested account"));
-        } else {
-            Utils.showToastShort(L10n.f("Dismissed %1$s suggested accounts", cleared));
-        }
+        setClearAllBusy(false);
+        Utils.showToastShort(outcome);
+        // A toast is the sighted half. This is the other half, because the control that was
+        // pressed keeps focus and nothing about it changes to say the long run is over.
+        TextView control = clearAllControl == null ? null : clearAllControl.get();
+        if (control != null) control.announceForAccessibility(outcome);
+    }
+
+    private static String successMessage(int cleared) {
+        if (cleared == 0) return L10n.t("No suggested accounts to clear");
+        if (cleared == 1) return L10n.t("Dismissed one suggested account");
+        return L10n.f("Dismissed %1$s suggested accounts", cleared);
+    }
+
+    private static String failureMessage(int cleared) {
+        if (cleared == 0) return L10n.t("Could not clear suggested accounts");
+        if (cleared == 1) return L10n.t("Stopped after dismissing one suggested account");
+        return L10n.f("Stopped after dismissing %1$s suggested accounts", cleared);
     }
 
     /** Depth first search for a remove button whose account has not been dismissed yet. */

@@ -1,7 +1,7 @@
 # Patching with the Morphe CLI
 
 This repo patches from the terminal. The phone **Manager UI is out of scope**
-here — every flow below is the Morphe CLI plus `scripts/repatch.sh`.
+here — every flow below is the Morphe CLI plus `scripts/repatch.py`.
 Upstream GUI docs are linked, not duplicated.
 
 ## Prerequisites
@@ -11,7 +11,7 @@ Toolchain, JAR download, and GitHub Packages credentials:
 only from APKMirror: [toolchain §7](toolchain.md#7-original-apk-source); host paths are
 centralized in [toolchain §6](toolchain.md#6-storage-and-path-conventions). On this
 host, APKMirror downloads are stored in `/mnt/c/Users/zeldrisho/Downloads/`;
-for Zalo 26.08.01 the repatch input is the matching `.apkm` file there.
+use the `.apkm` file matching the target version there.
 
 ## The JAR is the CLI
 
@@ -30,7 +30,7 @@ java -jar "$MORPHE" list-patches --help
 ```
 
 The JAR is kept at `~/.local/share/morphe/morphe-desktop-1.15.0-all.jar` (see
-[toolchain setup](toolchain.md)). `scripts/repatch.sh` works out of the box
+[toolchain setup](toolchain.md)). `scripts/repatch.py` works out of the box
 with zero environment variable configuration:
 it discovers the newest `morphe-desktop-*-all.jar` in
 `~/.local/share/morphe/` (`--jar <path>` overrides discovery for manual
@@ -54,7 +54,7 @@ Morphe CLI use this folder; in the GUI open it via Tools → Open App Data.
 MPP="patches/build/libs/patches-<version>.mpp"
 java -jar "$MORPHE" list-versions --patches "$MPP"
 java -jar "$MORPHE" list-patches --patches "$MPP" --with-packages --with-versions --with-options
-java -jar "$MORPHE" list-patches --patches "$MPP" -f com.instagram.barcelona
+java -jar "$MORPHE" list-patches --patches "$MPP" -f com.example.app
 ```
 
 `-p/--patches` also accepts repeatable bundles and repo/release URLs
@@ -79,57 +79,56 @@ Fast path (first success):
 ```bash
 ./gradlew buildAndroid --no-daemon
 MPP="patches/build/libs/patches-<version>.mpp" \
-  bash scripts/repatch.sh /path/to/threads.apkm /tmp/threads_patched.apk
-adb install -r /tmp/threads_patched.apk
+  python3 scripts/repatch.py /path/to/app.apkm /tmp/app_patched.apk
+adb install -r /tmp/app_patched.apk
 ```
 
 Build first — the `.mpp` lands in `patches/build/libs/`:
 
 ```bash
-./gradlew :patches:test :extensions:threads:testDebugUnitTest :extensions:zalo:testDebugUnitTest buildAndroid --no-daemon
+./gradlew :patches:test buildAndroid --no-daemon
 ```
 
 Full re-patch via the helper (preferred — pins bundle, tmp dir, keystore):
 
 ```bash
 MPP="patches/build/libs/patches-<version>.mpp" \
-  bash scripts/repatch.sh /path/to/threads.apkm /tmp/threads_patched.apk
-adb install -r /tmp/threads_patched.apk
+  python3 scripts/repatch.py /path/to/app.apkm /tmp/app_patched.apk
+adb install -r /tmp/app_patched.apk
 ```
 
-What `repatch.sh` does: picks newest local `.mpp` (or latest GitHub release
+What `repatch.py` does: picks newest local `.mpp` (or latest GitHub release
 via `GITHUB_REPO`), runs `options-create`, applies `APP_NAME` /
 `PACKAGE_NAME` into the options JSON (rename patches only), then `patch -p`
 with `--options-file`, `-o`, `-t`, and `--keystore*`. Optional overrides:
 `APP_NAME PACKAGE_NAME MPP KEYSTORE KEYSTORE_ALIAS KEYSTORE_PASSWORD
 KEYSTORE_ENTRY_PASSWORD VERIFY_SDK GITHUB_REPO` — unset means
-automatic discovery (newest local `.mpp`, standard-dir JAR, data-dir keystore
-with password `Morphe`).
+automatic discovery (newest local `.mpp`, standard-dir JAR, and the repository's
+persistent `Morphe.keystore`; shared data-dir keys are fallback).
 `VERIFY_SDK` is opt-in SDK verification: `1` uses SDK discovery, a path value
 passes `--verify-with-sdk=<path>` (required release-QA step; see
-[QA checklist](qa-checklist.md#re-patch--install)).
+[validation guide](validation.md#re-patch-and-install)).
 
 Raw equivalents when the helper hides what you need:
 
 ```bash
 # Full suite, defaults:
-java -jar "$MORPHE" patch -p "$MPP" -o /tmp/threads_patched.apk /path/to/threads.apkm
+java -jar "$MORPHE" patch -p "$MPP" -o /tmp/app_patched.apk /path/to/app.apkm
 # One patch in isolation (debug one fingerprint without others masking it):
-java -jar "$MORPHE" patch -p "$MPP" --exclusive -e "Hide ads" -o /tmp/threads_one.apk /path/to/threads.apkm
+java -jar "$MORPHE" patch -p "$MPP" --exclusive -e "Hide ads" -o /tmp/app_one.apk /path/to/app.apkm
 # Rename + label via flags instead of env:
 java -jar "$MORPHE" patch -p "$MPP" \
-  -e "Change app name" -OappName="Threads+" \
-  -e "Change package name" -OpackageName="com.example.threads" \
-  -o /tmp/threads_renamed.apk /path/to/threads.apkm
+  -e "Change app name" -OappName="Example+" \
+  -e "Change package name" -OpackageName="com.example.app" \
+  -o /tmp/app_renamed.apk /path/to/app.apkm
 # Risky surface: force + keep going + record what happened:
 java -jar "$MORPHE" patch -p "$MPP" --force --continue-on-error \
-  -r /tmp/patch-result.json -o /tmp/threads_forced.apk /path/to/threads.apkm
+  -r /tmp/patch-result.json -o /tmp/app_forced.apk /path/to/app.apkm
 ```
 
-Threads specifics: package `com.instagram.barcelona`, `ApkFileType.APKS` —
-pass the downloaded `.apkm` bundle, never an extracted `base.apk`. Pinned
-target lives in `shared/Constants.kt` (`TESTED_VERSION_CODE` is source of
-truth, not this file).
+Split-app specifics: pass the downloaded `.apkm` bundle, never an extracted
+`base.apk`. The pinned target and tested version code live in the app
+compatibility constants, not this document.
 
 ## Flags you will actually reach for
 
@@ -155,14 +154,14 @@ truth, not this file).
 java -jar "$MORPHE" patch -p "$MPP" \
   --keystore="<jar-dir>/morphe-data/morphe.keystore" \
   --keystore-entry-alias=Morphe \
-  -o /tmp/out.apk /path/to/threads.apkm
+  -o /tmp/out.apk /path/to/app.apkm
 # Custom store (space-separated form FAILS — use =):
 java -jar "$MORPHE" patch -p "$MPP" \
   --keystore=/path/to/mine.bks --keystore-entry-alias=morphe \
   --keystore-password=... --keystore-entry-password=... \
-  -o /tmp/out.apk /path/to/threads.apkm
+  -o /tmp/out.apk /path/to/app.apkm
 # Diagnose signing without patching noise:
-java -jar "$MORPHE" patch -p "$MPP" --unsigned -o /tmp/unsigned.apk /path/to/threads.apkm
+java -jar "$MORPHE" patch -p "$MPP" --unsigned -o /tmp/unsigned.apk /path/to/app.apkm
 apksigner verify --print-certs /tmp/out.apk
 ```
 
@@ -172,15 +171,17 @@ Defaults: shared BKS `morphe.keystore`, alias `Morphe`, key password
 `Morphe`, store password empty (`<jar-dir>` is the Morphe JAR's
 directory — e.g. `~/.local/share/morphe/` per [toolchain §5](toolchain.md);
 resolution priority `MORPHE_DATA_DIR` → `<jar-dir>/morphe-data/` → `~/morphe/`).
-`scripts/repatch.sh` passes the discovered keystore automatically: `imported.keystore`
-preferred over `morphe.keystore` in the standard data dirs, with
-`--keystore-password=Morphe` unless `KEYSTORE_PASSWORD` is set. The legacy repo
-`./Morphe.keystore` (empty store password) is only a last resort there — run with
-`KEYSTORE_PASSWORD=""` when it is selected. PKCS12/JKS inputs are auto-detected and
+`scripts/repatch.py` uses the repository's persistent `Morphe.keystore` first,
+then falls back to shared data-dir keys. For the repository key it uses an
+empty store password and the `Morphe` entry password by default. Override
+`KEYSTORE`, `KEYSTORE_PASSWORD`, and `KEYSTORE_ENTRY_PASSWORD` for a different
+persistent key. Consecutive builds using the same key have the same signing
+certificate and can use `adb install -r`; switching keys still requires one
+uninstall. PKCS12/JKS inputs are auto-detected and
 converted to a BKS copy (original untouched). The repo's `Morphe.keystore` is
 BKS — plain `keytool` says "unrecognized format" unless loaded with the
 BouncyCastle provider from the Morphe JAR (see
-[lessons learned](lessons-learned.md#signing)). Re-patch updates install over
+[lessons learned](cli.md#signing)). Re-patch updates install over
 the old build **only** when the signing key is unchanged; mismatched certs
 need uninstall first (`adb install -r` fails otherwise).
 
@@ -195,12 +196,12 @@ need uninstall first (`adb install -r` fails otherwise).
   just logcat — no special CLI log subcommand.
 - Post-install link routing (patched app opens its web links; optionally strip
   stock's claim after a rename): `utility install -a /tmp/out.apk --route-links
-  [--disable-stock com.instagram.barcelona]` — needs ADB-authorized device.
+  [--disable-stock com.example.app]` — needs ADB-authorized device.
 
 ## Not here
 
 GUI walkthroughs (Quick/Expert, Icon Studio, source manager), Manager phone
 flows (sources, Your apps, update badges), and general patch authoring live
 upstream or in sibling docs: [toolchain](toolchain.md),
-[patch development](patch-development.md), [QA](qa-checklist.md),
-[lessons learned](lessons-learned.md). This file owns the terminal path only.
+[patch development](patch-development.md), [validation](validation.md),
+[validation](validation.md). This file owns the terminal path only.

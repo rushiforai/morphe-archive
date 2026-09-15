@@ -281,11 +281,7 @@ public class GmsCoreSupportPatch {
     }
 
     private static String getGmsCoreDownload() {
-        //noinspection SwitchStatementWithTooFewBranches
-        return switch (getGmsCoreVendorGroupId()) {
-            case "app.revanced" -> "https://morphe.software/microg";
-            default -> getGmsCoreVendorGroupId() + ".android.gms";
-        };
+        return "https://github.com/fangkampanat/MicroG-RE-BYD/releases";
     }
 
     private static String getGmsCoreVendorGroupId() {

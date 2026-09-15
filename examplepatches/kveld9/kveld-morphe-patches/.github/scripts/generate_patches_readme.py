@@ -37,14 +37,14 @@ with open(json_path, encoding="utf-8") as f:
     data = json.load(f)
 
 
-def pkg_emoji(pkg):
-    """Return a standard package emoji regardless of the package name."""
-    return "📦"
+def pkg_prefix(pkg):
+    """Return an empty prefix for package grouping."""
+    return ""
 
-# Group patches by package; patches with no compatiblePackages are universal.
+# Group patches by app name; patches with no compatiblePackages are universal.
 # JSON structure: compatiblePackages is a list of objects with
 # { packageName, name, targets: [{ version, isExperimental, description }] }
-by_pkg = {}   # packageName -> { name, emoji, patches, targets }
+by_app = {}   # app_name -> { name, prefix, packages, patches, targets }
 universal = {}
 
 for patch in data["patches"]:
@@ -57,22 +57,27 @@ for patch in data["patches"]:
     for pkg_entry in cp:
         pkg  = pkg_entry["packageName"]
         name = pkg_entry.get("name") or pkg  # fall back to package name if no label
-        if pkg not in by_pkg:
-            by_pkg[pkg] = {
-                "name":    name,
-                "emoji":   pkg_emoji(pkg),
-                "patches": {},
-                "targets": pkg_entry.get("targets", []),
+        if name not in by_app:
+            by_app[name] = {
+                "name":     name,
+                "prefix":   pkg_prefix(pkg),
+                "packages": set(),
+                "patches":  {},
+                "targets":  [],
             }
+        by_app[name]["packages"].add(pkg)
+        for t in pkg_entry.get("targets", []):
+            if t not in by_app[name]["targets"]:
+                by_app[name]["targets"].append(t)
         # Deduplicate patches that appear across multiple packages
-        if patch["name"] not in by_pkg[pkg]["patches"]:
-            by_pkg[pkg]["patches"][patch["name"]] = patch
+        if patch["name"] not in by_app[name]["patches"]:
+            by_app[name]["patches"][patch["name"]] = patch
 
 
 def patches_table(patches):
     """Render a sorted markdown table of patches with name, description, and options."""
     rows = [
-        "| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |",
+        "| Patch | Description | Options |",
         "|----------|----------------|-----------|",
     ]
     for p in sorted(patches, key=lambda x: x["name"]):
@@ -90,7 +95,7 @@ def patches_table(patches):
 
 def versions_table(targets):
     """Render a markdown table of supported versions.
-    Experimental versions get a 🧪 prefix.
+    Experimental versions get an (experimental) suffix.
     Versions with a description get it shown in a second row below.
     """
     if not targets:
@@ -101,7 +106,7 @@ def versions_table(targets):
         ver   = t["version"]
         if ver is None:
             continue
-        label = f"🧪&nbsp;{ver}" if t.get("isExperimental") else ver
+        label = f"{ver} (experimental)" if t.get("isExperimental") else ver
         cells.append(label)
 
     if not cells:
@@ -125,10 +130,10 @@ def spoiler(label, count, targets, tbl, expanded=False):
     """
     noun = "patch" if count == 1 else "patches"
     vtbl = versions_table(targets)
-    versions_section = f"**🎯 Supported versions:**\n\n{vtbl}\n\n" if vtbl else ""
+    versions_section = f"**Supported versions:**\n\n{vtbl}\n\n" if vtbl else ""
     tag = "<details open>" if expanded else "<details>"
     return f"""{tag}
-<summary>{label}&nbsp;&nbsp;•&nbsp;&nbsp;{count} {noun}</summary>
+<summary>{label}&nbsp;&nbsp;•&nbsp;&nbsp;<b>{count} {noun}</b></summary>
 <br>
 
 {versions_section}{tbl}
@@ -141,9 +146,10 @@ def build_content(expanded=False):
     lines = []
 
     # One spoiler per app, in the order they appear in the JSON
-    for pkg, entry in by_pkg.items():
+    for app_name, entry in by_app.items():
         patches = list(entry["patches"].values())
-        label   = f"{entry['emoji']} {entry['name']}"
+        prefix = f"{entry['prefix']} " if entry["prefix"] else ""
+        label   = f"{prefix}{entry['name']}"
         lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches), expanded))
         lines.append("")
 
@@ -153,7 +159,7 @@ def build_content(expanded=False):
         noun = "patch" if len(uni_patches) == 1 else "patches"
         tag  = "<details open>" if expanded else "<details>"
         lines.append(f"""{tag}
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;{len(uni_patches)} {noun}</summary>
+<summary>Universal&nbsp;&nbsp;•&nbsp;&nbsp;<b>{len(uni_patches)} {noun}</b></summary>
 <br>
 
 {patches_table(uni_patches)}
@@ -168,7 +174,7 @@ def build_content(expanded=False):
 raw_ver = data["version"]
 # Strip leading "v" if present
 ver   = raw_ver.lstrip("v")
-total = sum(len(e["patches"]) for e in by_pkg.values()) + len(universal)
+total = sum(len(e["patches"]) for e in by_app.values()) + len(universal)
 
 readme = readme_path.read_text(encoding="utf-8")
 
@@ -182,7 +188,7 @@ if not marker_match or END_MARKER not in readme:
     # Fallback: print to stdout so CI can catch the issue
     print(build_content(expanded=False))
     sys.stderr.write(
-        f"⚠️  Markers <!-- PATCHES_START [EXPANDED] --> / {END_MARKER} not found in {readme_path}. "
+        f"[WARN] Markers <!-- PATCHES_START [EXPANDED] --> / {END_MARKER} not found in {readme_path}. "
         "Printed to stdout instead.\n"
     )
     sys.exit(1)
@@ -204,11 +210,12 @@ expanded = (
 generated  = build_content(expanded=expanded)
 
 # Update text callouts in README for Gboard, Brave, and Vivaldi
-for pkg, entry in by_pkg.items():
+for entry in by_app.values():
+    pkgs = entry["packages"]
     targets = entry.get("targets") or []
     if targets and targets[0].get("version"):
         target_ver = targets[0]["version"]
-        if "latin" in pkg:
+        if any("latin" in p for p in pkgs):
             # Gboard current target
             readme = re.sub(
                 r"(\- \*\*Current Target\*\*: `)[^`]+(`)",
@@ -216,7 +223,16 @@ for pkg, entry in by_pkg.items():
                 readme,
                 count=1,
             )
-        elif "vivaldi" in pkg:
+            base_ver = target_ver.split("-")[0]
+            slug_ver = base_ver.replace(".", "-")
+            # Gboard direct download badge button
+            readme = re.sub(
+                r'<a href="https://www\.apkmirror\.com/apk/google-inc/gboard/(?:gboard|gboard-the-google-keyboard)-[^/]+-release/"><img src="https://img\.shields\.io/badge/Download-Gboard_Lite_[^"]+" alt="Download Gboard Lite APK" /></a>',
+                f'<a href="https://www.apkmirror.com/apk/google-inc/gboard/gboard-the-google-keyboard-{slug_ver}-release/"><img src="https://img.shields.io/badge/Download-Gboard_Lite_{base_ver}_(APK_nodpi)-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Download Gboard Lite APK" /></a>',
+                readme,
+                count=1,
+            )
+        elif any("vivaldi" in p for p in pkgs):
             # Vivaldi current target
             readme = re.sub(
                 r"(\- \*\*Current Target\*\*: `Vivaldi\.)[^`]+(_arm64-v8a\.apk`)",
@@ -231,7 +247,7 @@ for pkg, entry in by_pkg.items():
                 readme,
                 count=1,
             )
-        elif "brave" in pkg:
+        elif any("brave" in p for p in pkgs):
             # Brave current target
             readme = re.sub(
                 r"(\- \*\*Current Target\*\*: `)[^`]+(` \(`Bravemonoarm64\.apk`\))",
@@ -243,6 +259,29 @@ for pkg, entry in by_pkg.items():
             readme = re.sub(
                 r'<a href="https://github\.com/brave/brave-browser/releases/download/v[^/]+/Bravemonoarm64\.apk"><img src="https://img\.shields\.io/badge/Download-Bravemonoarm64\.apk_[^"]+" alt="Download Brave APK" /></a>',
                 f'<a href="https://github.com/brave/brave-browser/releases/download/v{target_ver}/Bravemonoarm64.apk"><img src="https://img.shields.io/badge/Download-Bravemonoarm64.apk_(v{target_ver})-FF4500?style=for-the-badge&logo=brave&logoColor=white" alt="Download Brave APK" /></a>',
+                readme,
+                count=1,
+            )
+        elif any("musically" in p for p in pkgs) or any("trill" in p for p in pkgs):
+            # TikTok current target
+            readme = re.sub(
+                r"(### .*?TikTok[^\n]*\n\- \*\*Current Target\*\*: `)[^`]+(`)",
+                rf"\g<1>{target_ver}\g<2>",
+                readme,
+                count=1,
+            )
+            # TikTok Global download badge
+            slug_ver = target_ver.replace(".", "-")
+            readme = re.sub(
+                r'<a href="https://www\.apkmirror\.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/(?:tik-tok-including-musical-ly|tiktok)-[^/]+-release/"><img src="https://img\.shields\.io/badge/Download-TikTok_Global_[^"]+" alt="Download TikTok Global APK" /></a>',
+                f'<a href="https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-{slug_ver}-release/"><img src="https://img.shields.io/badge/Download-TikTok_Global_{target_ver}_(APK_nodpi)-FE2C55?style=for-the-badge&logo=tiktok&logoColor=white" alt="Download TikTok Global APK" /></a>',
+                readme,
+                count=1,
+            )
+            # TikTok Asia download badge
+            readme = re.sub(
+                r'<a href="https://www\.apkmirror\.com/apk/tiktok-pte-ltd/(?:tik-tok-asia|tik-tok)/(?:tik-tok-asia|tiktok)-[^/]+-release/"><img src="https://img\.shields\.io/badge/Download-TikTok_Asia_[^"]+" alt="Download TikTok Asia APK" /></a>',
+                f'<a href="https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok/tiktok-{slug_ver}-2-release/"><img src="https://img.shields.io/badge/Download-TikTok_Asia_{target_ver}_(APK_nodpi)-25F4EE?style=for-the-badge&logo=tiktok&logoColor=white" alt="Download TikTok Asia APK" /></a>',
                 readme,
                 count=1,
             )

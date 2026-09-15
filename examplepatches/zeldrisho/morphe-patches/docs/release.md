@@ -15,7 +15,7 @@ is fine) — nothing parses them; only pushed tags publish.
   `CHANGELOG.md` as you go (per-app `**App:**` bullets, see below).
 - `Check` runs on pull requests targeting `main` and pushes to `main`; `Release` runs only on `v*` tags.
 - When the branch is stable, open a PR manually and merge (no squash) into `main`.
-- Ship from this repo (branch → `main` → tag → release). `scripts/repatch.sh`
+- Ship from this repo (branch → `main` → tag → release). `scripts/repatch.py`
   defaults `GITHUB_REPO` here. Don't split work across sibling patch repos;
   porting patches between repos duplicates fingerprint maintenance with no benefit.
 
@@ -26,13 +26,13 @@ at it or any feature branch that already contains it, appending the
 staging as the final commit once ready for release. Never stage on `main`
 directly (`main` takes PR merges only) or on a stale or divergent branch.
 Work with a clean tree and complete history (not a shallow clone),
-synchronize the branch and release tags first. `prepare-release.sh` refuses
+synchronize the branch and release tags first. `prepare_release.py` refuses
 any HEAD that is not based on current `origin/main`. Stop if synchronization fails:
 
 ```bash
 git fetch origin --tags &&
   git checkout -b release/1.2.0 origin/main &&
-  bash scripts/prepare-release.sh 1.2.0
+  python3 scripts/prepare_release.py 1.2.0
 ```
 
 This pins `gradle.properties` to the version, promotes `## Unreleased` to a
@@ -59,7 +59,7 @@ reachability, version match) is type-agnostic, so annotating with `-a -m`
 is optional.
 
 The tag must be stable semver (`vX.Y.Z`, no prerelease suffix) on the
-post-merge `main` tip containing the staging commit. `prepare-release.sh`
+post-merge `main` tip containing the staging commit. `prepare_release.py`
 refuses dirty trees, a HEAD that is not based on current `origin/main`,
 existing tags, a missing `## Unreleased` section, and an Unreleased section
 with no `*` bullets. Before modifying files it also rejects shallow history,
@@ -84,7 +84,7 @@ Tag synchronization is a caller prerequisite; the script does not fetch tags.
    of failing. `attest-build-provenance` attests the bundle.
 
 The workflow never pushes to `main`: the Manager manifest is staged upfront
-by `prepare-release.sh`, so no bot commit — and no branch-ruleset
+by `prepare_release.py`, so no bot commit — and no branch-ruleset
 status-check conflict — follows a release.
 
 To retry a failed run, use the Actions "Re-run jobs" control or `gh run rerun <run-id>` for the tag's run — re-pushing an existing tag does not start a new run (`push.tags` fires only on a new ref update). Never move a published tag or
@@ -161,9 +161,9 @@ section body, excluding its version heading.
 - Never force-push a release commit; ship a new release instead.
 - Never hand-edit `patches-list.json`, `patches-bundle.json`, `README.md`
   patch list, or the `gradle.properties` version — the release staging owns
-  them (`prepare-release.sh` regenerates and commits all four).
+  them (`prepare_release.py` regenerates and commits all four).
 - In `CHANGELOG.md`, add bullets under `## Unreleased` only — versioned
-  entries are promoted by `prepare-release.sh`, never edited by hand.
+  entries are promoted by `prepare_release.py`, never edited by hand.
 - Keep unrelated pending work out of release staging commits.
 - The Manager serves the `.mpp` from the GitHub release named in
   `patches-bundle.json` — pushing source does nothing until a versioned

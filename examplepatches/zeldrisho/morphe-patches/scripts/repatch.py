@@ -1,0 +1,176 @@
+#!/usr/bin/env python3
+"""Re-patch an APK/APKM with the repository patch set and sign it."""
+
+import argparse
+import json
+import os
+import shutil
+import subprocess
+import tempfile
+import urllib.request
+from urllib.error import URLError
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def die(msg):
+    raise SystemExit("❌ " + msg)
+
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("--jar")
+    p.add_argument("input")
+    p.add_argument("output", nargs="?")
+    a = p.parse_args()
+    inp = Path(a.input)
+    out = Path(a.output or inp.with_name(inp.stem + "_patched.apk"))
+    home = Path.home()
+    jars = sorted(
+        (home / ".local/share/morphe").glob("morphe-desktop-*-all.jar"),
+        key=lambda x: x.stat().st_mtime,
+    )
+    jar = Path(a.jar) if a.jar else (jars[-1] if jars else None)
+    key = os.environ.get("KEYSTORE")
+    if not key and (ROOT / "Morphe.keystore").is_file():
+        key = str(ROOT / "Morphe.keystore")
+    if not key:
+        for x in (
+            home / ".local/share/morphe/morphe-data/imported.keystore",
+            home / ".local/share/morphe/morphe-data/morphe.keystore",
+            home / "morphe/morphe-data/imported.keystore",
+            home / "morphe/morphe-data/morphe.keystore",
+            home / "morphe/imported.keystore",
+            home / "morphe/morphe.keystore",
+        ):
+            if x.is_file():
+                key = str(x)
+                break
+    if not inp.is_file():
+        die(f"input not found: {inp}")
+    if not jar or not jar.is_file():
+        die(
+            "Morphe JAR not found. Download morphe-desktop-*-all.jar to ~/.local/share/morphe/ or pass --jar <path>."
+        )
+    if not key or not Path(key).is_file():
+        die("keystore not found (set KEYSTORE= or import one into morphe-data/)")
+    mpp = os.environ.get("MPP")
+    if not mpp:
+        local = [
+            x
+            for x in (ROOT / "patches/build/libs").glob("patches-*.mpp")
+            if "sources" not in x.name and "javadoc" not in x.name
+        ]
+        mpp = str(max(local, key=lambda x: x.stat().st_mtime)) if local else None
+    with tempfile.TemporaryDirectory() as td:
+        if not mpp:
+            repo = os.environ.get("GITHUB_REPO", "zeldrisho/morphe-patches")
+            print("No local .mpp found. Downloading the latest release bundle...")
+            mpp = str(Path(td) / "patches.mpp")
+            try:
+                with urllib.request.urlopen(
+                    f"https://api.github.com/repos/{repo}/releases/latest",
+                    timeout=30,
+                ) as response:
+                    api = json.load(response)
+                url = next(
+                    x["browser_download_url"]
+                    for x in api["assets"]
+                    if x["name"].endswith(".mpp")
+                )
+                with (
+                    urllib.request.urlopen(url, timeout=30) as response,
+                    open(mpp, "wb") as output,
+                ):
+                    shutil.copyfileobj(response, output)
+            except (OSError, URLError, StopIteration, json.JSONDecodeError) as exc:
+                die(f"failed to download latest patch bundle: {exc}")
+        if not Path(mpp).is_file():
+            die(f"patch bundle not found: {mpp}")
+        opts = Path(td) / "options.json"
+        base = ["java", "-jar", str(jar)]
+        try:
+            subprocess.run(
+                base + ["options-create", "-p", mpp, "-o", str(opts)],
+                check=True,
+                stdout=subprocess.DEVNULL,
+            )
+        except subprocess.CalledProcessError as e:
+            raise SystemExit(e.returncode)
+        data = json.loads(opts.read_text())
+        patches = data[0]["patches"]
+        selected = os.environ.get("PATCHES", "__DEFAULT__")
+        if selected != "__DEFAULT__":
+            aliases = {"Remove AD_ID permission — Zalo": "Remove AD_ID permission"}
+            requested = {
+                aliases.get(x.strip(), x.strip())
+                for x in selected.split(",")
+                if x.strip()
+            }
+            unknown = requested - patches.keys()
+            if unknown:
+                die("unknown patch name(s): " + ", ".join(sorted(unknown)))
+            for name, patch in patches.items():
+                patch["enabled"] = name in requested
+        for env, name, opt in (
+            ("APP_NAME", "Change app name", "appName"),
+            ("PACKAGE_NAME", "Change package name", "packageName"),
+        ):
+            value = os.environ.get(env)
+            if value and name in patches:
+                if selected == "__DEFAULT__":
+                    patches[name]["enabled"] = True
+                if patches[name].get("enabled"):
+                    patches[name].setdefault("options", {})[opt] = value
+        opts.write_text(json.dumps(data, indent=1))
+        ks = [
+            f"--keystore={key}",
+            f"--keystore-entry-alias={os.environ.get('KEYSTORE_ALIAS', 'Morphe')}",
+        ]
+        default_store = "" if str(key) == str(ROOT / "Morphe.keystore") else "Morphe"
+        store = os.environ.get("KEYSTORE_PASSWORD", default_store)
+        entry = os.environ.get(
+            "KEYSTORE_ENTRY_PASSWORD", "Morphe" if default_store == "" else ""
+        )
+        if store:
+            ks.append(f"--keystore-password={store}")
+        if entry:
+            ks.append(f"--keystore-entry-password={entry}")
+        verify = os.environ.get("VERIFY_SDK", "")
+        va = (
+            []
+            if verify in ("", "0", "false", "no")
+            else (
+                ["--verify-with-sdk"]
+                if verify in ("1", "true", "yes")
+                else [f"--verify-with-sdk={verify}"]
+            )
+        )
+        print(f"Patching '{inp}' -> '{out}'")
+        try:
+            subprocess.run(
+                base
+                + [
+                    "patch",
+                    "-p",
+                    mpp,
+                    "--options-file",
+                    str(opts),
+                    *ks,
+                    *va,
+                    "-o",
+                    str(out),
+                    "-t",
+                    str(Path(td) / "patch"),
+                    str(inp),
+                ],
+                check=True,
+            )
+        except subprocess.CalledProcessError as e:
+            raise SystemExit(e.returncode)
+    print(f'\n✅ Patched APK: {out}\nInstall:  adb install -r "{out}"')
+
+
+if __name__ == "__main__":
+    main()

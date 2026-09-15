@@ -48,11 +48,14 @@ dependencies {
 tasks {
     test {
         // Make opt-in local APK validation cache-correct; CI uses synthetic fixtures.
-        val apkPath = providers.environmentVariable("THREADS_TEST_APK").orNull.orEmpty()
-        inputs.property("threadsTestApk", apkPath)
-        if (apkPath.isNotBlank()) {
-            inputs.file(rootProject.file(apkPath)).withPropertyName("threadsTestApkFile")
-            environment("THREADS_TEST_APK", rootProject.file(apkPath).absolutePath)
+        val apkInputs = listOf("THREADS_TEST_APK", "ZALO_TEST_APK")
+        apkInputs.forEach { variable ->
+            val apkPath = providers.environmentVariable(variable).orNull.orEmpty()
+            inputs.property(variable, apkPath)
+            if (apkPath.isNotBlank()) {
+                inputs.file(rootProject.file(apkPath)).withPropertyName("${variable}File")
+                environment(variable, rootProject.file(apkPath).absolutePath)
+            }
         }
     }
 

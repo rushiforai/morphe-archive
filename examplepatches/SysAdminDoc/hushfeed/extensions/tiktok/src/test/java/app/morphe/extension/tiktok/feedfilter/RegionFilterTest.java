@@ -7,6 +7,8 @@
 package app.morphe.extension.tiktok.feedfilter;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -113,5 +115,54 @@ public class RegionFilterTest {
         assertTrue(RegionFilter.countries("  ,  ").isEmpty());
         assertTrue(new LinkedHashSet<>(Arrays.asList("GB", "IE", "US"))
                 .equals(RegionFilter.countries(" gb ,ie\nus ")));
+    }
+
+    @Test
+    public void ukIsTheCodePeopleTypeAndGbIsTheOneVideosCarry() {
+        Settings.REGION_ONLY_FROM.save("UK");
+        RegionFilter filter = new RegionFilter();
+
+        assertTrue("a list of only UK filtered nothing at all", filter.getEnabled());
+        assertFalse("a British video was hidden by a list that names the UK",
+                filter.getFiltered(from("GB")));
+        assertTrue(filter.getFiltered(from("US")));
+    }
+
+    @Test
+    public void anEntryThatIsNotACountryCannotEmptyTheFeed() {
+        // The only-from list is the one place a typo did more than nothing: every video's
+        // country failed to match it, so the feed went blank with nothing on screen saying why.
+        Settings.REGION_ONLY_FROM.save("United Kingdom");
+        RegionFilter filter = new RegionFilter();
+
+        assertFalse("a list of one unrecognised entry still filtered", filter.getEnabled());
+        assertFalse(filter.getFiltered(from("GB")));
+        assertFalse(filter.getFiltered(from("US")));
+
+        // Alongside a real code it is the entry that is dropped, not the list.
+        Settings.REGION_ONLY_FROM.save("GB, United Kingdom");
+        RegionFilter mixed = new RegionFilter();
+        assertTrue(mixed.getEnabled());
+        assertFalse(mixed.getFiltered(from("GB")));
+        assertTrue(mixed.getFiltered(from("US")));
+    }
+
+    @Test
+    public void theRowSaysWhichEntryIsNotACountryBeforeItSavesOne() {
+        assertNull("a list of real codes was refused", RegionFilter.countryProblem("gb, ie\nUS"));
+        assertNull("the UK was refused", RegionFilter.countryProblem("uk"));
+        assertNull(RegionFilter.countryProblem(""));
+        assertNull(RegionFilter.countryProblem(null));
+        assertNull("an empty entry between separators was treated as a typo",
+                RegionFilter.countryProblem("GB,,IE"));
+
+        String problem = RegionFilter.countryProblem("GB, United Kingdom");
+        assertNotNull("a list with words in it was accepted", problem);
+        assertTrue("the message does not name the entry that is wrong: " + problem,
+                problem.contains("United Kingdom"));
+
+        // Two letters that are not a country are the harder case: the shape is right and the
+        // code is not one, which is exactly what a check on length alone would let through.
+        assertNotNull(RegionFilter.countryProblem("XQ"));
     }
 }

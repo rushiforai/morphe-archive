@@ -179,6 +179,7 @@ public class NumberInputPreference extends EditTextPreference {
         editText.setSingleLine(true);
         editText.setSelectAllOnFocus(true);
         SettingsUi.styleEditText(editText);
+        SettingsUi.labelEditor(title, editText);
         dialogView.addView(editText, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT

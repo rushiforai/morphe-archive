@@ -1,0 +1,372 @@
+#!/usr/bin/env python3
+"""
+Generates the patches section of README.md from patches-list.json
+and injects it between <!-- PATCHES_START --> / <!-- PATCHES_END --> markers.
+
+Spoilers are expanded (open by default) if:
+  1. Total patch count <= AUTO_EXPAND_THRESHOLD.
+  2. The README marker explicitly says: <!-- PATCHES_START EXPANDED -->
+
+python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [README.md]
+"""
+
+import json
+import re
+import sys
+import os
+import urllib.request
+from pathlib import Path
+
+
+if len(sys.argv) < 3:
+    print("Usage: generate_patches_readme.py <owner/repo> <branch> [json] [readme]")
+    sys.exit(1)
+
+repo_full   = sys.argv[1]
+branch      = sys.argv[2]
+json_path   = Path(sys.argv[3]) if len(sys.argv) > 3 else Path("patches-list.json")
+readme_path = Path(sys.argv[4]) if len(sys.argv) > 4 else Path("README.md")
+
+
+if "/" not in repo_full:
+    raise ValueError(f"Invalid repo format: {repo_full} (expected owner/repo)")
+
+owner, repo = repo_full.split("/", 1)
+
+
+with open(json_path, encoding="utf-8") as f:
+    data = json.load(f)
+
+
+# Group patches by package; patches with no compatiblePackages are universal.
+# JSON structure: compatiblePackages is a list of objects with
+# { packageName, name, targets: [{ version, isExperimental, description }] }
+by_pkg = {}   # packageName -> { name, patches, targets }
+universal = {}
+
+for patch in data["patches"]:
+    cp = patch.get("compatiblePackages")
+    if not cp:
+        # Deduplicate universal patches by name
+        if patch["name"] not in universal:
+            universal[patch["name"]] = patch
+        continue
+    for pkg_entry in cp:
+        pkg  = pkg_entry["packageName"]
+        name = pkg_entry.get("name") or pkg  # fall back to package name if no label
+        if pkg not in by_pkg:
+            by_pkg[pkg] = {"name": name, "patches": {}, "targets": []}
+        # An app's row is the union of its patches' targets
+        for target in pkg_entry.get("targets") or []:
+            if target not in by_pkg[pkg]["targets"]:
+                by_pkg[pkg]["targets"].append(target)
+        # Deduplicate patches that appear across multiple packages
+        if patch["name"] not in by_pkg[pkg]["patches"]:
+            by_pkg[pkg]["patches"][patch["name"]] = patch
+
+
+def slug(text):
+    """Convert text to a GitHub-compatible anchor slug."""
+    return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", text.lower())).strip("-")
+
+
+PATCHES_SRC  = Path("patches/src/main/kotlin")
+COMPAT_FILE  = PATCHES_SRC / "app/morphe/patches/shared/compat/AppCompatibilities.kt"
+
+
+def build_source_index():
+    """Map (patch name, packageName) -> source file. Patch names repeat across apps,
+    so the compatibility constant is what tells three "Unlock premium" patches apart."""
+    if not PATCHES_SRC.is_dir():
+        return {}
+
+    compat = {}
+    if COMPAT_FILE.is_file():
+        text = COMPAT_FILE.read_text(encoding="utf-8")
+        for const, body in re.findall(r"val (\w+) = Compatibility\((.*?)\n    \)", text, re.DOTALL):
+            pkg = re.search(r'packageName = "([^"]+)"', body)
+            if pkg:
+                compat[const] = pkg.group(1)
+
+    index = {}
+    for path in PATCHES_SRC.rglob("*.kt"):
+        if path == COMPAT_FILE:
+            continue
+        text = path.read_text(encoding="utf-8")
+        names = re.findall(r'^\s{4}name = "([^"]+)"', text, re.MULTILINE)
+        if not names:
+            continue
+        consts = re.findall(r"compatibleWith\(\s*AppCompatibilities\.(\w+)", text)
+        pkgs = [compat.get(c) for c in consts] or [None]
+        for name in names:
+            for pkg in pkgs:
+                index.setdefault((name, pkg), path.as_posix())
+    return index
+
+
+SOURCES = build_source_index()
+
+
+def patch_cell(patch, pkg, pid):
+    source = SOURCES.get((patch["name"], pkg))
+    label = f'[{patch["name"]}]({source})' if source else patch["name"]
+    return f'<a id="{pid}"></a>{label}'
+
+
+def patches_table(patches, app_slug, pkg=None):
+    """Render a sorted markdown table of patches with name, description, and options.
+
+    Each patch name links to its source file and carries an explicit <a id="app-patch">
+    anchor for deep links. The app slug is part of the id because patch names repeat
+    across apps (three "Unlock premium" patches here), and GitHub's heading-derived ids
+    would collide and get -1/-2 suffixes that shift whenever the list changes.
+
+    The Options column is omitted entirely when no patch in the table has options,
+    so it never renders as an empty column that looks broken.
+    """
+    patches = sorted(patches, key=lambda x: x["name"])
+    has_options = any(p.get("options") for p in patches)
+
+    if has_options:
+        rows = ["| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |", "|----------|----------------|-----------|"]
+    else:
+        rows = ["| 💊&nbsp;Patch | 📜&nbsp;Description |", "|----------|----------------|"]
+
+    for p in patches:
+        pid = f"{app_slug}-{slug(p['name'])}"
+        cell = patch_cell(p, pkg, pid)
+        desc = (p.get("description") or "").replace("\n", "<br>")
+        if not has_options:
+            rows.append(f"| {cell} | {desc} |")
+            continue
+        options = p.get("options") or []
+        # Show only option titles as a bullet list
+        parts = [opt.get("title") or opt.get("key") or "" for opt in options]
+        opts_cell = "<br>".join(f"• {t}" for t in parts)
+        rows.append(f"| {cell} | {desc} | {opts_cell} |")
+    return "\n".join(rows)
+
+
+ANY_VERSION = "Any version"
+
+
+def versions_table(targets):
+    """Render a markdown table of supported versions.
+    Experimental versions get an "(experimental)" suffix.
+    Versions with a description get it shown in a second row below.
+    A target with no pinned version reads as "Any version", dropped once a
+    pinned one exists.
+    """
+    columns = []
+    for t in targets:
+        ver = t["version"] or ANY_VERSION
+        label = f"🧪&nbsp;{ver}" if t.get("isExperimental") else ver
+        if label not in [c[0] for c in columns]:
+            columns.append((label, (t.get("description") or "").replace("\n", "<br>")))
+
+    if len(columns) > 1:
+        columns = [c for c in columns if c[0] != ANY_VERSION]
+
+    if not columns:
+        return ""
+
+    rows = [
+        "| " + " | ".join(label for label, _ in columns) + " |",
+        "| " + " | ".join(":---:" for _ in columns) + " |",
+    ]
+    if any(desc for _, desc in columns):
+        rows.append("| " + " | ".join(desc for _, desc in columns) + " |")
+
+    return "\n".join(rows)
+
+
+# Package name -> icon file in .github/assets/icons/. Apps with no entry render
+# without an icon, so adding a new app does not require touching this map.
+ICONS = {
+    "all.in.one.calculator": "allinonecalculator.png",
+    "psyberia.alpinequest.free": "alpinequest.png",
+    "com.spocky.projengmenu": "projectivy.png",
+    "com.myvitale.forus": "forus.png",
+    "com.michaldrabik.showly2": "showly.png",
+    "com.zhiliaoapp.musically": "tiktok.png",
+    "ch.protonmail.android": "protonmail.png",
+    "com.audible.application": "audible.png",
+    "app.symfonik.music.player": "symfonium.png",
+    "ai.perplexity.app.android": "perplexity.png",
+    "com.thetrainline": "trainline.png",
+    "org.readera": "readera.png",
+    "com.kick.mobile": "kick.png",
+    "com.etsy.android": "etsy.png",
+    "com.gamma.scan": "qrscanner.png",
+    "com.cxinventor.file.explorer": "cx.png",
+    "com.streetwriters.notesnook": "notesnook.png",
+    "app.rubberbands.fit": "rubberbands.png",
+    "photo.editor.photoeditor.photoeditorpro": "photoeditorpro.png",
+    "com.community.oneroom": "moviebox.png",
+    "com.gstarmc.android": "dwgfastview.png",
+    "com.mchutov.Quranify": "quranify.png",
+    "com.sry.rateglance": "rateglance.png",
+    "com.risesci.nyx": "risesleep.png",
+    "ipnossoft.rma.free": "bettersleep.png",
+}
+
+
+TIKTOK_REPO = "hxreborn/hxreborn-tiktok-patches"
+TIKTOK_PKG = "com.zhiliaoapp.musically"
+TIKTOK_LIST = f"https://raw.githubusercontent.com/{TIKTOK_REPO}/main/patches-list.json"
+
+
+def sibling_targets(url, pkg):
+    try:
+        with urllib.request.urlopen(url, timeout=10) as response:
+            data = json.load(response)
+    except Exception:
+        return []
+
+    versions = []
+    for patch in data.get("patches", []):
+        compatible = patch.get("compatiblePackages")
+        if isinstance(compatible, dict):
+            found = compatible.get(pkg) or []
+        elif isinstance(compatible, list):
+            found = [
+                t.get("version")
+                for entry in compatible
+                if entry.get("packageName") == pkg
+                for t in entry.get("targets") or []
+            ]
+        else:
+            continue
+
+        for version in found:
+            if version and version not in versions:
+                versions.append(version)
+
+    return [{"version": version} for version in versions]
+
+
+def icon_img(pkg):
+    """Inline <img> for an app, or a generic package emoji when it has no icon.
+    Relative path so it resolves on any branch and in forks."""
+    filename = ICONS.get(pkg)
+    if not filename:
+        return "📦&nbsp;"
+    return f'<img src=".github/assets/icons/{filename}" width="18" align="top">&nbsp;&nbsp;'
+
+
+def spoiler(label, count, targets, tbl, expanded=False, pkg=None):
+    """Wrap a patches table in a <details> spoiler with a versions sub-table.
+    If expanded=True, the spoiler is open by default (for repos with few patches).
+    """
+    noun = "patch" if count == 1 else "patches"
+    vtbl = versions_table(targets)
+    versions_section = f"**🎯 Supported versions:**\n\n{vtbl}\n\n" if vtbl else ""
+    tag = "<details open>" if expanded else "<details>"
+    return f"""{tag}
+<summary>{icon_img(pkg)}{label}&nbsp;&nbsp;•&nbsp;&nbsp;{count} {noun}</summary>
+<br>
+
+{versions_section}{tbl}
+
+</details>"""
+
+
+def build_content(expanded=False):
+    """Build the full generated patches section."""
+    lines = [
+        f"> **[v{ver}](https://github.com/{owner}/{repo}/releases/tag/v{ver})**"
+        f"&nbsp;&nbsp;•&nbsp;&nbsp;`{branch}`&nbsp;&nbsp;•&nbsp;&nbsp;"
+        f"{total} patches total"
+    ]
+
+    # One spoiler per app, in the order they appear in the JSON
+    for pkg, entry in by_pkg.items():
+        patches = list(entry["patches"].values())
+        label   = entry["name"]
+        lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches, slug(label), pkg), expanded, pkg))
+        lines.append("")
+
+    # TikTok ships as its own bundle, so it has no entry in patches-list.json.
+    # Rendered here so the catalog lists it alongside the apps in this bundle.
+    tiktok_versions = versions_table(sibling_targets(TIKTOK_LIST, TIKTOK_PKG))
+    tiktok_section = f"**🎯 Supported versions:**\n\n{tiktok_versions}\n\n" if tiktok_versions else ""
+
+    lines.append(f"""{"<details open>" if expanded else "<details>"}
+<summary>{icon_img(TIKTOK_PKG)}TikTok&nbsp;&nbsp;•&nbsp;&nbsp;separate bundle</summary>
+<br>
+
+{tiktok_section}| 📦&nbsp;Bundle | 📜&nbsp;Description |
+|----------|----------------|
+| [hxreborn-tiktok-patches](https://github.com/{TIKTOK_REPO}) | Not part of this bundle, so it has to be added to Morphe as its own patch source. Forked from [icysymmetra/tiktok-patches-for-morphe](https://github.com/icysymmetra/tiktok-patches-for-morphe). [Add to Morphe](https://morphe.software/add-source?github={TIKTOK_REPO}) |
+
+</details>""")
+    lines.append("")
+
+    # Universal patches (no specific app)
+    if universal:
+        uni_patches = list(universal.values())
+        noun = "patch" if len(uni_patches) == 1 else "patches"
+        tag  = "<details open>" if expanded else "<details>"
+        lines.append(f"""{tag}
+<summary>🌐&nbsp;Universal&nbsp;&nbsp;•&nbsp;&nbsp;{len(uni_patches)} {noun}</summary>
+<br>
+
+{patches_table(uni_patches, "universal")}
+
+</details>""")
+        lines.append("")
+
+    return "\n".join(lines)
+
+
+# Build and inject
+raw_ver = data["version"]
+# Strip leading "v" if present
+ver   = raw_ver.lstrip("v")
+total = sum(len(e["patches"]) for e in by_pkg.values()) + len(universal)
+
+readme = readme_path.read_text(encoding="utf-8")
+
+# Marker pattern, matches both <!-- PATCHES_START --> and <!-- PATCHES_START EXPANDED -->
+START_PATTERN = r"<!-- PATCHES_START(?:\s+EXPANDED)?\s*-->"
+END_MARKER    = "<!-- PATCHES_END -->"
+
+marker_match = re.search(START_PATTERN, readme)
+
+if not marker_match or END_MARKER not in readme:
+    # Fallback: print to stdout so CI can catch the issue
+    print(build_content(expanded=False))
+    sys.stderr.write(
+        f"⚠️  Markers <!-- PATCHES_START [EXPANDED] --> / {END_MARKER} not found in {readme_path}. "
+        "Printed to stdout instead.\n"
+    )
+    sys.exit(1)
+
+actual_start = marker_match.group(0)
+
+# Auto-expand threshold
+AUTO_EXPAND_THRESHOLD = 20
+
+# Spoilers are expanded if:
+# 1. Total patch count is small (≤ AUTO_EXPAND_THRESHOLD)
+#    with only a few patches where collapsing adds no benefit.
+# 2. The README marker explicitly requests it: <!-- PATCHES_START EXPANDED -->
+expanded = (
+    total <= AUTO_EXPAND_THRESHOLD or
+    "EXPANDED" in actual_start
+)
+
+generated  = build_content(expanded=expanded)
+
+# Replace template links if present
+readme = readme.replace("https://morphe.software/add-source?github=xyz-user/xyz-patches", f"https://morphe.software/add-source?github={repo_full}")
+readme = readme.replace("https://github.com/xyz-user/xyz-patches", f"https://github.com/{repo_full}")
+
+new_readme = re.sub(
+    rf"{START_PATTERN}.*?{re.escape(END_MARKER)}",
+    f"{actual_start}\n{generated}\n{END_MARKER}",
+    readme,
+    flags=re.DOTALL,
+)
+readme_path.write_text(new_readme, encoding="utf-8")
+print(f"✅ Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches, expanded={expanded})")

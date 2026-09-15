@@ -24,6 +24,7 @@ import androidx.annotation.Nullable;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.List;
 
 import app.morphe.extension.shared.Logger;
@@ -75,6 +76,12 @@ public class FullscreenVideoScalePatch {
     private static ViewTreeObserver.OnPreDrawListener preDrawListener;
     private static WeakReference<View> preDrawHostRef = new WeakReference<>(null);
     private static boolean preDrawAttached;
+
+    /**
+     * Clip flags disabled while scaled, restored when leaving fullscreen.
+     */
+    @Nullable
+    private static List<SavedClipState> savedClipStates;
 
     static {
         PlayerType.getOnChange().addObserver((PlayerType type) -> {
@@ -223,8 +230,9 @@ public class FullscreenVideoScalePatch {
         view.getLocationOnScreen(loc);
 
         VideoScaleMode mode = Settings.FULLSCREEN_VIDEO_SCALE.get();
+        final float pinch = Math.max(1f, DisableFullscreenGesturesPatch.getPinchScale());
         if (mode == VideoScaleMode.ZOOM) {
-            final float scale = Math.max(displayW / contentW, displayH / contentH);
+            final float scale = Math.max(displayW / contentW, displayH / contentH) * pinch;
             view.setPivotX(contentLeft + contentW / 2f);
             view.setPivotY(contentTop + contentH / 2f);
             view.setScaleX(scale);
@@ -236,10 +244,24 @@ public class FullscreenVideoScalePatch {
             return;
         }
 
+        final float scaleX = (displayW / contentW) * pinch;
+        final float scaleY = (displayH / contentH) * pinch;
+        if (pinch > 1.01f) {
+            view.setPivotX(contentLeft + contentW / 2f);
+            view.setPivotY(contentTop + contentH / 2f);
+            view.setScaleX(scaleX);
+            view.setScaleY(scaleY);
+            final float contentCenterX = loc[0] + contentLeft + contentW / 2f;
+            final float contentCenterY = loc[1] + contentTop + contentH / 2f;
+            view.setTranslationX(displayW / 2f - contentCenterX);
+            view.setTranslationY(displayH / 2f - contentCenterY);
+            return;
+        }
+
         view.setPivotX(contentLeft);
         view.setPivotY(contentTop);
-        view.setScaleX(displayW / contentW);
-        view.setScaleY(displayH / contentH);
+        view.setScaleX(scaleX);
+        view.setScaleY(scaleY);
         view.setTranslationX(-(loc[0] + contentLeft));
         view.setTranslationY(-(loc[1] + contentTop));
     }
@@ -260,9 +282,22 @@ public class FullscreenVideoScalePatch {
         return DEFAULT_VIDEO_ASPECT;
     }
 
+    /**
+     * Snapshot clip flags on the first call so restore can put back YouTube's values
+     * instead of leaving {@code clipChildren=false} on the watch-page ancestors.
+     */
     private static void disableClipping(View view) {
+        List<SavedClipState> saved = savedClipStates;
+        final boolean snapshot = saved == null;
+        if (saved == null) {
+            saved = new ArrayList<>();
+            savedClipStates = saved;
+        }
         View current = view;
         for (int i = 0; i < 16 && current != null; i++) {
+            if (snapshot) {
+                saved.add(new SavedClipState(current));
+            }
             current.setClipToOutline(false);
             if (current instanceof ViewGroup group) {
                 group.setClipChildren(false);
@@ -272,6 +307,17 @@ public class FullscreenVideoScalePatch {
                 break;
             }
             current = parent;
+        }
+    }
+
+    private static void restoreClipping() {
+        List<SavedClipState> saved = savedClipStates;
+        savedClipStates = null;
+        if (saved == null) {
+            return;
+        }
+        for (int i = saved.size() - 1; i >= 0; i--) {
+            saved.get(i).restore();
         }
     }
 
@@ -324,6 +370,7 @@ public class FullscreenVideoScalePatch {
             resetViewTransform(previous);
         }
         scaledViewRef = new WeakReference<>(null);
+        restoreClipping();
     }
 
     private static void resetViewTransform(@Nullable View view) {
@@ -352,6 +399,12 @@ public class FullscreenVideoScalePatch {
         preDrawListener = () -> {
             try {
                 if (!shouldScale() || Settings.FULLSCREEN_VIDEO_SCALE.get() == VideoScaleMode.DEFAULT) {
+                    View target = scaledViewRef.get();
+                    if (target == null) {
+                        target = resolvePlayerView();
+                    }
+                    detachPreDraw();
+                    restoreDefaultTransform(target);
                     return true;
                 }
                 View target = scaledViewRef.get();
@@ -393,14 +446,23 @@ public class FullscreenVideoScalePatch {
         }
     }
 
+    /**
+     * Stretch/Zoom maps the player onto the full window, which is only valid in
+     * true fullscreen.
+     * <p>
+     * Landscape {@link PlayerType#WATCH_WHILE_MAXIMIZED} is the tablet / foldable
+     * inner-screen watch page (player in a pane), not fullscreen. Phone landscape
+     * already reports {@link PlayerType#WATCH_WHILE_FULLSCREEN}.
+     * <p>
+     * {@link PlayerType#WATCH_WHILE_SLIDING_MAXIMIZED_FULLSCREEN} is used for both
+     * enter and exit. Scaling during it would keep the full-window transform while
+     * the player is already shrinking back into the watch page.
+     *
+     * @see <a href="https://github.com/MorpheApp/morphe-patches/issues/2652">#2652</a>
+     */
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private static boolean shouldScale() {
-        PlayerType type = PlayerType.getCurrent();
-        if (type == PlayerType.WATCH_WHILE_FULLSCREEN
-                || type == PlayerType.WATCH_WHILE_SLIDING_MAXIMIZED_FULLSCREEN) {
-            return true;
-        }
-        return type == PlayerType.WATCH_WHILE_MAXIMIZED && Utils.isLandscapeOrientation();
+        return PlayerType.getCurrent() == PlayerType.WATCH_WHILE_FULLSCREEN;
     }
 
     @Nullable
@@ -509,5 +571,38 @@ public class FullscreenVideoScalePatch {
 
     private static boolean isUsableVideoView(@Nullable View view) {
         return view instanceof TextureView || view instanceof SurfaceView;
+    }
+
+    private static final class SavedClipState {
+        final WeakReference<View> viewRef;
+        final boolean clipToOutline;
+        final boolean clipChildren;
+        final boolean clipToPadding;
+        final boolean isGroup;
+
+        SavedClipState(View view) {
+            viewRef = new WeakReference<>(view);
+            clipToOutline = view.getClipToOutline();
+            isGroup = view instanceof ViewGroup;
+            if (view instanceof ViewGroup group) {
+                clipChildren = group.getClipChildren();
+                clipToPadding = group.getClipToPadding();
+            } else {
+                clipChildren = false;
+                clipToPadding = false;
+            }
+        }
+
+        void restore() {
+            View view = viewRef.get();
+            if (view == null) {
+                return;
+            }
+            view.setClipToOutline(clipToOutline);
+            if (isGroup && view instanceof ViewGroup group) {
+                group.setClipChildren(clipChildren);
+                group.setClipToPadding(clipToPadding);
+            }
+        }
     }
 }

@@ -43,7 +43,7 @@ val responseTapPatch = bytecodePatch(
             "$EXTENSION_CLASS->onTransferAlarmCourse(Ljava/lang/String;)V",
         )
 
-        // 5. MyClip entity load: right before IOUtils.toInputStream(xml), pass the XML.
+        // 4. MyClip entity load: right before IOUtils.toInputStream(xml), pass the XML.
         MyClipCourseLoadFingerprint.let {
             val match = it.firstMatch()
             it.method.addInstruction(
@@ -52,19 +52,17 @@ val responseTapPatch = bytecodePatch(
             )
         }
 
-        // 6. Detail use case f(args): "a detail screen is opening" marker (no arguments).
-        DetailOpenFingerprint.method.addInstruction(
-            0,
-            "invoke-static { }, $EXTENSION_CLASS->onDetailOpened()V",
-        )
-
-        // 4. Detail presenter page-selected: at method entry, pass (this, index) so the
-        //    companion learns which course of the last result the user is looking at.
+        // 5. Detail presenter page-selected: right before the shown AioCourse is handed to
+        //    HistorySelectRouteUseCase (the matched call), pass (this, course) so the
+        //    companion can identify the course by its SerializeData.
         DetailCourseSelectedFingerprint.let {
-            val (thisReg, indexReg) = it.method.parameterRegisters(count = 2)
+            val match = it.firstMatch()
+            val thisReg = it.method.parameterRegisters(count = 1).single()
+            val courseReg = match.getInstruction<FiveRegisterInstruction>().registerD
             it.method.addInstruction(
-                0,
-                "invoke-static { v$thisReg, v$indexReg }, $EXTENSION_CLASS->onCourseSelected(Ljava/lang/Object;I)V",
+                match.index,
+                "invoke-static { v$thisReg, v$courseReg }, " +
+                    "$EXTENSION_CLASS->onCourseSelected(Ljava/lang/Object;Ljava/lang/Object;)V",
             )
         }
     }
@@ -73,6 +71,8 @@ val responseTapPatch = bytecodePatch(
 /**
  * Registers of `this` and the first [count]-1 parameters (each assumed single-width), i.e.
  * p0..p(count-1). Dalvik places parameters in the highest registers of the frame.
+ * Only valid while the parameters have not been reassigned (true at method entry and for
+ * `this`, which javac never reuses).
  */
 private fun MutableMethod.parameterRegisters(count: Int): List<Int> {
     val impl = implementation ?: throw PatchException("No implementation for $this")

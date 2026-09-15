@@ -21,8 +21,10 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -37,6 +39,11 @@ final class ArchivedThreadImporter {
     private static final int MAX_RESPONSE_BYTES = 16 * 1024 * 1024;
     private static final Pattern THREAD_URL = Pattern.compile(
             "^https?://([a-z0-9_-]+)\\.([a-z0-9.-]+)/test/read\\.(?:cgi|php)/"
+                    + "([a-zA-Z0-9_-]+)/(\\d{9,10})(?:/.*)?$",
+            Pattern.CASE_INSENSITIVE
+    );
+    private static final Pattern TALK_THREAD_URL = Pattern.compile(
+            "^https?://(?:www\\.)?talk\\.jp/boards/"
                     + "([a-zA-Z0-9_-]+)/(\\d{9,10})(?:/.*)?$",
             Pattern.CASE_INSENSITIVE
     );
@@ -79,8 +86,8 @@ final class ArchivedThreadImporter {
 
         File directory = activity.getExternalFilesDir("2chMate/dat");
         if (directory == null) return false;
-        File datFile = new File(directory, info.board + "_" + info.thread + ".dat");
-        if (datFile.isFile() && datFile.length() > 0) {
+        File datFile = new File(directory, info.cacheBoardId() + "_" + info.thread + ".dat");
+        if (!info.talk && datFile.isFile() && datFile.length() > 0) {
             Log.i(LOG_TAG, "Using existing cached DAT " + datFile.getName()
                     + " (" + datFile.length() + " bytes)");
             // Let ChMate continue normally when the imported DAT is already
@@ -94,25 +101,28 @@ final class ArchivedThreadImporter {
 
         new Thread(() -> {
             try {
+                if (info.talk) {
+                    byte[] dat = fetchTalkDat(info);
+                    if (dat == null) {
+                        Log.i(LOG_TAG, "Talk thread is live; continuing with ChMate network handling: "
+                                + importKey);
+                        reopen(activity, originalUrl, null);
+                        return;
+                    }
+                    publishDat(directory, datFile, info, dat);
+                    Log.i(LOG_TAG, "Imported " + dat.length + " Talk DAT bytes for " + importKey);
+                    reopen(activity, originalUrl, null);
+                    return;
+                }
+                byte[] liveDat = fetchLiveDatIfAvailable(info);
+                if (liveDat != null) {
+                    Log.i(LOG_TAG, "Live DAT is available; continuing with ChMate network handling: "
+                            + importKey);
+                    reopen(activity, browserFallback, null);
+                    return;
+                }
                 byte[] dat = fetchArchivedDat(activity, info);
-                if (!directory.isDirectory() && !directory.mkdirs()) {
-                    throw new IOException("Unable to create ChMate DAT directory");
-                }
-                File temporary = new File(directory, datFile.getName() + ".haiagaru.tmp");
-                try (FileOutputStream output = new FileOutputStream(temporary, false)) {
-                    output.write(dat);
-                    output.getFD().sync();
-                }
-                if (datFile.exists() && !datFile.delete()) {
-                    throw new IOException("Unable to replace existing ChMate DAT");
-                }
-                if (!temporary.renameTo(datFile)) {
-                    throw new IOException("Unable to publish imported ChMate DAT");
-                }
-                File index = new File(directory, info.board + "_" + info.thread + ".idx");
-                if (index.exists() && !index.delete()) {
-                    Log.w(LOG_TAG, "Unable to remove stale index " + index.getName());
-                }
+                publishDat(directory, datFile, info, dat);
                 Log.i(LOG_TAG, "Imported " + dat.length + " DAT bytes for " + importKey);
                 reopen(activity, originalUrl, "過去ログを取得しました");
             } catch (Throwable error) {
@@ -125,15 +135,89 @@ final class ArchivedThreadImporter {
         return true;
     }
 
+    static boolean isTalkThreadUrl(String url) {
+        return TALK_THREAD_URL.matcher(url == null ? "" : url).matches();
+    }
+
+    /** Called by ChMate's background downloader while its native DAT lock is held. */
+    static boolean loadLiveTalkDat(String url, File destination) throws IOException {
+        if (!isTalkThreadUrl(url)) return false;
+        ThreadInfo info = ThreadInfo.parse(url);
+        if (info == null || destination == null || destination.getParentFile() == null) {
+            throw new IOException("Unable to resolve Talk DAT destination");
+        }
+        try {
+            byte[] dat = fetchTalkDat(info);
+            publishDat(destination.getParentFile(), destination, info, dat);
+            Log.i(LOG_TAG, "Loaded live Talk DAT: " + info.board + ":" + info.thread
+                    + " (" + dat.length + " bytes)");
+            return true;
+        } catch (IOException error) {
+            throw error;
+        } catch (Exception error) {
+            throw new IOException("Unable to load Talk thread", error);
+        }
+    }
+
+    private static void publishDat(
+            File directory,
+            File datFile,
+            ThreadInfo info,
+            byte[] dat
+    ) throws IOException {
+        if (!directory.isDirectory() && !directory.mkdirs()) {
+            throw new IOException("Unable to create ChMate DAT directory");
+        }
+        File temporary = new File(directory, datFile.getName() + ".haiagaru.tmp");
+        try (FileOutputStream output = new FileOutputStream(temporary, false)) {
+            output.write(dat);
+            output.getFD().sync();
+        }
+        if (datFile.exists() && !datFile.delete()) {
+            throw new IOException("Unable to replace existing ChMate DAT");
+        }
+        if (!temporary.renameTo(datFile)) {
+            throw new IOException("Unable to publish imported ChMate DAT");
+        }
+        File index = new File(directory, info.cacheBoardId() + "_" + info.thread + ".idx");
+        if (index.exists() && !index.delete()) {
+            Log.w(LOG_TAG, "Unable to remove stale index " + index.getName());
+        }
+    }
+
     private static void reopen(Activity activity, String url, String message) {
         activity.runOnUiThread(() -> {
-            Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
+            if (message != null && !message.isEmpty()) {
+                Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
+            }
             Intent retry = new Intent(activity.getIntent());
             retry.setData(Uri.parse(url));
             retry.putExtra("haiagaru.archive.retry", true);
             activity.startActivity(retry);
             activity.finish();
         });
+    }
+
+    /**
+     * Current 5ch.io threads must follow ChMate's normal network path. The
+     * archive importer is only needed after the live DAT endpoint has failed.
+     */
+    private static byte[] fetchLiveDatIfAvailable(ThreadInfo info) {
+        try {
+            String url = "https://" + info.server + ".5ch.io/"
+                    + encode(info.board) + "/dat/" + encode(info.thread) + ".dat";
+            byte[] response = requestBytes(url);
+            return validateDat(response);
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private static byte[] fetchTalkDat(ThreadInfo info) throws Exception {
+        String url = "https://talk.jp/api/boards/" + encode(info.board)
+                + "/threads/" + encode(info.thread);
+        String body = new String(requestBytes(url), StandardCharsets.UTF_8);
+        return convertTalkJson(info, body);
     }
 
     private static byte[] fetchArchivedDat(Activity activity, ThreadInfo info) throws Exception {
@@ -305,6 +389,59 @@ final class ArchivedThreadImporter {
         return dat.toString().getBytes(MS932);
     }
 
+    private static byte[] convertTalkJson(ThreadInfo info, String body) throws Exception {
+        if (body == null || body.trim().isEmpty()) {
+            throw new IOException("Talk returned an empty response");
+        }
+        JSONObject root = new JSONObject(body);
+        JSONObject data = root.optJSONObject("data");
+        if (data == null) throw new IOException("Talk response did not contain thread data");
+        JSONArray comments = data.optJSONArray("comments");
+        if (comments == null || comments.length() == 0) {
+            throw new IOException("Talk returned no posts");
+        }
+
+        String title = data.optString("title", "");
+        SimpleDateFormat dateFormat = new SimpleDateFormat(
+                "yyyy/MM/dd(E) HH:mm:ss.SSS",
+                Locale.JAPAN
+        );
+        StringBuilder dat = new StringBuilder(comments.length() * 160);
+        for (int index = 0; index < comments.length(); index++) {
+            JSONObject comment = comments.getJSONObject(index);
+            JSONObject writer = comment.optJSONObject("writer");
+            String name = writer == null ? "" : writer.optString("name", "");
+            if (name.isEmpty()) name = "名無しさん";
+            String trip = writer == null ? "" : writer.optString("trip", "");
+            if (!trip.isEmpty() && !"null".equalsIgnoreCase(trip)) {
+                name += " ◆" + trip;
+            }
+            String slip = writer == null ? "" : writer.optString("slip", "");
+            if (!slip.isEmpty() && !"null".equalsIgnoreCase(slip)) {
+                name += " (" + slip + ")";
+            }
+
+            long timestamp = comment.optLong("timestamp", 0L);
+            String date = timestamp > 0L
+                    ? dateFormat.format(new Date(timestamp * 1_000L))
+                    : "";
+            String id = writer == null ? "" : writer.optString("id", "");
+            if (!id.isEmpty() && !"null".equalsIgnoreCase(id)) {
+                date += " ID:" + id;
+            }
+
+            dat.append(sanitizeField(name)).append("<>")
+                    .append("<>")
+                    .append(sanitizeField(date)).append("<>")
+                    .append(datMessage(comment.optString("body", ""))).append("<>");
+            if (index == 0) dat.append(sanitizeField(title));
+            dat.append('\n');
+        }
+        Log.i(LOG_TAG, "Converted " + comments.length() + " Talk posts for "
+                + info.board + ":" + info.thread);
+        return dat.toString().getBytes(MS932);
+    }
+
     private static String request(String url, Charset charset) throws IOException {
         return new String(requestBytes(url), charset);
     }
@@ -432,17 +569,29 @@ final class ArchivedThreadImporter {
         final String server;
         final String board;
         final String thread;
+        final boolean talk;
 
-        ThreadInfo(String server, String board, String thread) {
+        ThreadInfo(String server, String board, String thread, boolean talk) {
             this.server = server;
             this.board = board;
             this.thread = thread;
+            this.talk = talk;
         }
 
         static ThreadInfo parse(String url) {
             Matcher matcher = THREAD_URL.matcher(url == null ? "" : url);
+            if (matcher.matches()) {
+                return new ThreadInfo(matcher.group(1), matcher.group(3), matcher.group(4), false);
+            }
+            matcher = TALK_THREAD_URL.matcher(url == null ? "" : url);
             if (!matcher.matches()) return null;
-            return new ThreadInfo(matcher.group(1), matcher.group(3), matcher.group(4));
+            return new ThreadInfo("talk", matcher.group(1), matcher.group(2), true);
+        }
+
+        String cacheBoardId() {
+            // BBSUrlInfo.BoardID.toString() percent-encodes the separator.
+            // Talk threads therefore use "talk.jp%2F<board>" as the DAT stem.
+            return talk ? "talk.jp%2F" + board : board;
         }
     }
 }

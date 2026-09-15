@@ -24,6 +24,11 @@ import org.json.JSONObject;
 final class FeatureGateLabUndo {
     private static Runnable observationsUndo;
 
+    /** One Undo snapshot shared by a burst of ordered edits from one detail screen. */
+    static final class UndoBaseline {
+        private String settingsJson;
+    }
+
     private FeatureGateLabUndo() {}
 
     static synchronized void resetForTests() {
@@ -50,6 +55,11 @@ final class FeatureGateLabUndo {
 
     static synchronized void saveRule(String manager, String key, String type, String value,
             boolean enabled) throws Exception {
+        saveRule(manager, key, type, value, enabled, null);
+    }
+
+    static synchronized void saveRule(String manager, String key, String type, String value,
+            boolean enabled, UndoBaseline undoBaseline) throws Exception {
         String id = FeatureGateLabStore.idFor(manager, key, type);
         List<FeatureGateLabStore.Rule> next = new ArrayList<>();
         boolean replaced = false;
@@ -69,7 +79,7 @@ final class FeatureGateLabUndo {
                     System.currentTimeMillis()));
         }
         replace(next, FeatureGateLabStore.masterEnabled(),
-                FeatureGateLabStore.warningAcknowledged(), false);
+                FeatureGateLabStore.warningAcknowledged(), false, undoBaseline);
     }
 
     /**
@@ -130,13 +140,18 @@ final class FeatureGateLabUndo {
     }
 
     static synchronized void deleteRule(String manager, String key, String type) throws Exception {
+        deleteRule(manager, key, type, null);
+    }
+
+    static synchronized void deleteRule(String manager, String key, String type,
+            UndoBaseline undoBaseline) throws Exception {
         String id = FeatureGateLabStore.idFor(manager, key, type);
         List<FeatureGateLabStore.Rule> next = new ArrayList<>();
         for (FeatureGateLabStore.Rule rule : FeatureGateLabStore.rules()) {
             if (!rule.id.equals(id)) next.add(rule);
         }
         replace(next, FeatureGateLabStore.masterEnabled(),
-                FeatureGateLabStore.warningAcknowledged(), false);
+                FeatureGateLabStore.warningAcknowledged(), false, undoBaseline);
     }
 
     static synchronized void importRules(FeatureGateLabStore.ImportReview review) throws Exception {
@@ -153,6 +168,12 @@ final class FeatureGateLabUndo {
 
     private static void replace(List<FeatureGateLabStore.Rule> rules, boolean master,
             boolean acknowledged, boolean clearObservations) throws Exception {
+        replace(rules, master, acknowledged, clearObservations, null);
+    }
+
+    private static void replace(List<FeatureGateLabStore.Rule> rules, boolean master,
+            boolean acknowledged, boolean clearObservations, UndoBaseline undoBaseline)
+            throws Exception {
         FeatureGateLabStore.requireRuleLimit(rules);
         SettingsOperationJournal.Operation operation = SettingsOperationJournal.acquire(Utils.getContext());
         boolean closed = false;
@@ -161,9 +182,17 @@ final class FeatureGateLabUndo {
             FeatureGateLabStore.parseSettings(before);
             Runnable observations = clearObservations ? SettingsManagerObservationRecorder.checkpoint() : null;
             AtomicFile file = file();
-            String text = before.toString();
-            writeUndo(file, text);
-            operation.recordLab(text, replacement(rules, master, acknowledged).toString());
+            String beforeText = before.toString();
+            String undoText = beforeText;
+            if (undoBaseline != null) {
+                if (undoBaseline.settingsJson == null) {
+                    undoBaseline.settingsJson = beforeText;
+                }
+                undoText = undoBaseline.settingsJson;
+            }
+            writeUndo(file, undoText);
+            operation.recordLab(
+                    beforeText, replacement(rules, master, acknowledged).toString());
             observationsUndo = observations;
             try {
                 FeatureGateLabStore.replaceSettings(rules, master, acknowledged);

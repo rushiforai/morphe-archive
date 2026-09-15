@@ -21,6 +21,7 @@ private const val ALLOWABLE_ACCOUNT_TYPE_COUNT = 1
 private const val ACCOUNT_PICKER_REGISTER_COUNT = 8
 private const val MICROG_EXTENSION_CLASS =
     "Lcom/zeldrisho/zalo/extension/ZaloMicroGSupport;"
+private const val ZALO_LAUNCHER_CLASS = "Lcom/zing/zalo/ui/ZaloLauncherActivity;"
 
 private const val STOCK_VNG_CERT_HEX =
     "3082019d30820106a00302010202044f178971300d06092a864886f70d010105050030133111300f060355040313087a" +
@@ -58,7 +59,7 @@ val zaloMicroGManifestPatch = resourcePatch {
 }
 
 /** Replace account discovery/add-account with the system picker. */
-private fun replaceWithAccountPicker(method: MutableMethod) {
+internal fun replaceWithAccountPicker(method: MutableMethod) {
     method.ensureRegisters(ACCOUNT_PICKER_REGISTER_COUNT)
     method.clearBody()
     method.addInstructionsWithLabels(
@@ -100,10 +101,11 @@ private fun replaceWithAccountPicker(method: MutableMethod) {
 @Suppress("unused")
 val zaloMicroGSupportPatch = bytecodePatch(
     name = "microG Drive support",
-    description = "Redirects Zalo Google Drive account selection and token binding to " +
-        "microG-RE (app.revanced / app.revanced.android.gms). WARNING: requires the " +
-        "matching microG-RE configuration and only covers Zalo's Drive restore flow.",
-    default = false,
+    description = "Adds Zalo launch/provider checks and redirects Google Drive account " +
+        "selection and token binding to microG-RE (app.revanced / " +
+        "app.revanced.android.gms). Initial photo restore and the complete backup/restore " +
+        "cycle were device-validated on Zalo 26.08.01.",
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_ZALO)
     extendWith("extensions/zalo.mpe")
@@ -113,11 +115,13 @@ val zaloMicroGSupportPatch = bytecodePatch(
         var bindingReplacements = 0
         var accountTypeReplacements = 0
         var accountPickerReplacements = 0
+        var launchChecks = 0
 
         classDefForEach { classDef ->
             val replacement = when (classDef.type) {
                 "Lo9/a;" -> "com.google.android.gms" to MICROG_PACKAGE
                 in accountTypeClasses -> "com.google" to MICROG_ACCOUNT_TYPE
+                ZALO_LAUNCHER_CLASS -> "" to ""
                 else -> return@classDefForEach
             }
 
@@ -128,6 +132,24 @@ val zaloMicroGSupportPatch = bytecodePatch(
                     candidate.name == method.name &&
                         candidate.parameterTypes == method.parameterTypes &&
                         candidate.returnType == method.returnType
+                }
+
+                // Prompt once when the launcher is created, but deliberately ignore the
+                // result: Cancel must leave Zalo usable and picker-level checks remain the
+                // authoritative guard for Drive operations.
+                if (classDef.type == ZALO_LAUNCHER_CLASS &&
+                    method.name == "onCreate" && method.parameterTypes == listOf("Landroid/os/Bundle;")
+                ) {
+                    mutableMethod.ensureRegisters(2)
+                    mutableMethod.addInstructionsWithLabels(
+                        0,
+                        """
+                            move-object/from16 v0, p0
+                            invoke-static { v0 }, $MICROG_EXTENSION_CLASS->checkGmsCore(Landroid/app/Activity;)Z
+                            move-result v0
+                        """.trimIndent(),
+                    )
+                    launchChecks++
                 }
 
                 val isAccountPickerMethod =
@@ -179,6 +201,9 @@ val zaloMicroGSupportPatch = bytecodePatch(
         }
         check(accountPickerReplacements == 2) {
             "Zalo microG support: expected two account-picker replacements, found $accountPickerReplacements"
+        }
+        check(launchChecks == 1) {
+            "Zalo microG support: expected one launcher provider check, found $launchChecks"
         }
     }
 }

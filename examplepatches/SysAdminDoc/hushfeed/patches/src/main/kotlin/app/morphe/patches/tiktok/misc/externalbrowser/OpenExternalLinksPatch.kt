@@ -25,7 +25,7 @@ private const val EXTENSION_CLASS_DESCRIPTOR =
 @Suppress("unused")
 val openExternalLinksPatch = bytecodePatch(
     name = "Open external links directly",
-    description = "Opens profile and story website links in the system browser instead of TikTok's in-app browser. Thanks to lyyako for the original implementation.",
+    description = "Opens profile and story website links in the system browser instead of TikTok's in-app browser.",
     default = true,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

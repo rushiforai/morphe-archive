@@ -40,11 +40,41 @@ public class InboxClearControlTest {
     private ActivityController<Activity> owner;
     private Activity activity;
     private LinearLayout rows;
-    private LinearLayout header;
+    private RecordingHeader header;
     private final List<String> dismissed = new ArrayList<>();
+
+    /**
+     * The suggested accounts heading, plus the one thing a plain LinearLayout cannot report:
+     * what the control announced. {@code announceForAccessibility} builds an announcement event
+     * and hands it to the parent, so the parent is where a test can read it.
+     */
+    private static final class RecordingHeader extends LinearLayout {
+        final List<String> announcements = new ArrayList<>();
+
+        RecordingHeader(android.content.Context context) {
+            super(context);
+        }
+
+        @Override public boolean requestSendAccessibilityEvent(
+                View child, android.view.accessibility.AccessibilityEvent event) {
+            if (event.getEventType()
+                    == android.view.accessibility.AccessibilityEvent.TYPE_ANNOUNCEMENT
+                    && !event.getText().isEmpty()) {
+                announcements.add(event.getText().get(0).toString());
+            }
+            // Not passed on: above this sits the window, which a unit test has no use for.
+            return true;
+        }
+    }
 
     @Before public void setUp() {
         Utils.setContext(RuntimeEnvironment.getApplication());
+        // announceForAccessibility is a no-op with no service listening, which would make every
+        // announcement assertion below pass by reporting nothing.
+        Shadows.shadowOf((android.view.accessibility.AccessibilityManager)
+                        RuntimeEnvironment.getApplication()
+                                .getSystemService(android.content.Context.ACCESSIBILITY_SERVICE))
+                .setEnabled(true);
         SettingsStatus.inboxFilterEnabled = true;
         Settings.HIDE_INBOX_SUGGESTED_ACCOUNTS.save(false);
         Settings.HIDE_INBOX_STORIES.save(false);
@@ -67,6 +97,159 @@ public class InboxClearControlTest {
         SettingsStatus.inboxFilterEnabled = false;
     }
 
+    @Test public void theControlStartsIdleAndReadsAsAnEnabledButton() {
+        TextView clear = clearControl();
+        android.view.accessibility.AccessibilityNodeInfo node = clear.createAccessibilityNodeInfo();
+        assertEquals("android.widget.Button", node.getClassName().toString());
+        assertTrue("a reader was given no way to press it", node.isEnabled());
+        assertTrue(node.isClickable());
+        assertEquals("Clear all suggested accounts", node.getContentDescription().toString());
+        assertEquals(1, node.getActionList().stream()
+                .filter(action -> action.getId()
+                        == android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK)
+                .count());
+        assertIdle(clear, "before any run");
+        assertEquals(List.of(), header.announcements);
+    }
+
+    @Test public void aRunHoldsTheControlUntilItReportsAndThenHandsItBack() {
+        addAccount("A", true);
+        addAccount("B", true);
+        TextView clear = clearControl();
+
+        clear.performClick();
+        assertFalse("the control stayed pressable during an 18 second run", clear.isEnabled());
+        assertEquals("Clearing", clear.getText().toString());
+        assertFalse("the busy control still painted as live",
+                clear.getCurrentTextColor() == Color.WHITE);
+        assertFalse(clear.createAccessibilityNodeInfo().isEnabled());
+        assertEquals("the run announced something before it finished", List.of(),
+                header.announcements);
+
+        advance(300);
+        assertFalse("the control came back mid-run", clear.isEnabled());
+        advance(300);
+
+        assertIdle(clear, "after a completed run");
+        assertEquals("Dismissed 2 suggested accounts", ShadowToast.getTextOfLatestToast());
+        assertEquals(List.of("Dismissed 2 suggested accounts"), header.announcements);
+    }
+
+    @Test
+    @Config(sdk = 30)
+    public void theHeldControlSaysItIsClearingRatherThanOnlyReadingAsDisabled() {
+        addAccount("A", true);
+        TextView clear = clearControl();
+        assertNull("an idle control carried a progress state", clear.getStateDescription());
+
+        clear.performClick();
+        // The content description names the action, so a reader never hears the changed label.
+        // The state is the only place the wait can be said.
+        assertEquals("Clearing", String.valueOf(clear.getStateDescription()));
+        advance(300);
+        assertNull("the progress state outlived the run", clear.getStateDescription());
+        assertEquals(List.of("Dismissed one suggested account"), header.announcements);
+    }
+
+    @Test public void aThrownClickSaysHowManyItGotThroughAndLeavesTheControlUsable() {
+        addAccount("A", true);
+        View failing = addAccount("B", false);
+        failing.setOnClickListener(view -> {
+            throw new IllegalStateException("fixture dismiss failure");
+        });
+        TextView clear = clearControl();
+
+        clear.performClick();
+        advance(300);
+        assertEquals("the first account was not dismissed before the failure",
+                List.of("A"), dismissed);
+        assertIdle(clear, "after a thrown click");
+        assertEquals("Stopped after dismissing one suggested account",
+                ShadowToast.getTextOfLatestToast());
+        assertEquals(List.of("Stopped after dismissing one suggested account"),
+                header.announcements);
+
+        failing.setOnClickListener(view -> dismissed.add("B"));
+        clear.performClick();
+        assertEquals("the failed run left the control locked", List.of("A", "B"), dismissed);
+        advance(300);
+    }
+
+    @Test public void aFailureOnTheFirstAccountReportsThatNothingWasDismissed() {
+        View failing = addAccount("A", false);
+        failing.setOnClickListener(view -> {
+            throw new IllegalStateException("fixture dismiss failure");
+        });
+        TextView clear = clearControl();
+
+        clear.performClick();
+        assertEquals(List.of(), dismissed);
+        assertIdle(clear, "after a run that dismissed nothing");
+        assertEquals("Could not clear suggested accounts", ShadowToast.getTextOfLatestToast());
+        assertEquals(List.of("Could not clear suggested accounts"), header.announcements);
+    }
+
+    @Test public void belowApiThirtyTheDescriptionCarriesTheProgressTheLabelCannot() {
+        // The content description replaces the label for a reader, so changing the label alone
+        // leaves the whole run announced as "Clear all suggested accounts, disabled".
+        addAccount("A", true);
+        TextView clear = clearControl();
+        assertEquals("Clear all suggested accounts",
+                String.valueOf(clear.getContentDescription()));
+
+        clear.performClick();
+        assertEquals("Clearing suggested accounts",
+                String.valueOf(clear.getContentDescription()));
+        assertEquals("Clearing suggested accounts",
+                String.valueOf(clear.createAccessibilityNodeInfo().getContentDescription()));
+
+        advance(300);
+        assertEquals("the busy description outlived the run", "Clear all suggested accounts",
+                String.valueOf(clear.getContentDescription()));
+    }
+
+    @Test public void aHeadingRebuiltMidRunGetsAControlThatSaysTheRunIsStillGoing() {
+        // Every dismissal relays out the list, and the suggested heading is a list item TikTok
+        // can rebuild. A fresh control on a fresh heading used to come up enabled and idle while
+        // the run it silently refuses was still working.
+        addAccount("A", true);
+        addAccount("B", true);
+        clearControl().performClick();
+
+        LinearLayout rebuilt = new LinearLayout(activity);
+        rebuilt.setId(header.getId());
+        TextView title = new TextView(activity);
+        title.setText("Suggested accounts");
+        title.setTextColor(Color.WHITE);
+        rebuilt.addView(title);
+        rows.removeView(header);
+        rows.addView(rebuilt, 0, new LinearLayout.LayoutParams(-1, 48));
+        layout();
+
+        TextView replacement = clearControlIn(rebuilt);
+        assertNotSame("the rebuilt heading kept the old control", clearControl(), replacement);
+        assertFalse("the replacement control came up pressable mid-run", replacement.isEnabled());
+        assertEquals("Clearing", replacement.getText().toString());
+        assertEquals("Clearing suggested accounts",
+                String.valueOf(replacement.getContentDescription()));
+
+        advance(300);
+        advance(300);
+        assertTrue("the replacement control was never handed back", replacement.isEnabled());
+        assertEquals("Clear all", replacement.getText().toString());
+        assertEquals("Dismissed 2 suggested accounts", ShadowToast.getTextOfLatestToast());
+    }
+
+    private void assertIdle(TextView clear, String when) {
+        assertTrue(when + ": the control was left disabled", clear.isEnabled());
+        assertEquals(when + ": the control kept its progress label",
+                "Clear all", clear.getText().toString());
+        assertEquals(when + ": the control was left faded",
+                Color.WHITE, clear.getCurrentTextColor());
+        assertTrue(when + ": a reader was left with a dead control",
+                clear.createAccessibilityNodeInfo().isEnabled());
+    }
+
     @Test public void repeatedTapsKeepOnePacedRunAndReportOnce() {
         addAccount("A", true);
         addAccount("B", true);
@@ -86,6 +269,9 @@ public class InboxClearControlTest {
         advance(300);
         assertEquals(1, ShadowToast.shownToastCount());
         assertEquals("Dismissed 3 suggested accounts", ShadowToast.getTextOfLatestToast());
+        assertEquals("the repeated tap announced a second outcome",
+                List.of("Dismissed 3 suggested accounts"), header.announcements);
+        assertIdle(clear, "after the paced run reported");
 
         addAccount("D", true);
         clear.performClick();
@@ -121,6 +307,8 @@ public class InboxClearControlTest {
         advance(60 * 300);
         assertEquals(60, dismissed.size());
         assertEquals("Dismissed 60 suggested accounts", ShadowToast.getTextOfLatestToast());
+        assertEquals(List.of("Dismissed 60 suggested accounts"), header.announcements);
+        assertIdle(clearControl(), "after the cap ended the run");
         advance(3000);
         assertEquals(60, dismissed.size());
 
@@ -131,11 +319,15 @@ public class InboxClearControlTest {
     @Test public void finishingStopsTheQueuedStepAndReleasesTheNextActivity() {
         addAccount("old A", true);
         addAccount("old B", true);
-        clearControl().performClick();
+        TextView leaving = clearControl();
+        RecordingHeader leavingHeader = header;
+        leaving.performClick();
         activity.finish();
         layout();
         advance(300);
         assertEquals(List.of("old A"), dismissed);
+        assertIdle(leaving, "after the inbox went away mid-run");
+        assertEquals(List.of("Dismissed one suggested account"), leavingHeader.announcements);
         owner.close();
 
         openInbox();
@@ -180,6 +372,8 @@ public class InboxClearControlTest {
         clear.performClick();
         advance(0);
         assertEquals("No suggested accounts to clear", ShadowToast.getTextOfLatestToast());
+        assertEquals(List.of("No suggested accounts to clear"), header.announcements);
+        assertIdle(clear, "after a run with nothing to dismiss");
         addAccount("A", true);
         clear.performClick();
         assertEquals("an empty run kept the control locked", List.of("A"), dismissed);
@@ -199,7 +393,7 @@ public class InboxClearControlTest {
         rows.setId(id("kmx"));
         rows.setOrientation(LinearLayout.VERTICAL);
         root.addView(rows, new LinearLayout.LayoutParams(-1, -1));
-        header = new LinearLayout(activity);
+        header = new RecordingHeader(activity);
         header.setId(id("pgu"));
         header.setOrientation(LinearLayout.HORIZONTAL);
         TextView title = new TextView(activity);
@@ -229,9 +423,20 @@ public class InboxClearControlTest {
     }
 
     private TextView clearControl() {
-        for (int index = 0; index < header.getChildCount(); index++) {
-            View child = header.getChildAt(index);
-            if ("Clear all suggested accounts".contentEquals(String.valueOf(child.getContentDescription()))) {
+        return clearControlIn(header);
+    }
+
+    /**
+     * Either description, because below API 30 the busy state is carried by the description
+     * itself: there is no state description to put it in, and the description is what a reader
+     * is given instead of the label.
+     */
+    private static TextView clearControlIn(LinearLayout suggestedHeader) {
+        for (int index = 0; index < suggestedHeader.getChildCount(); index++) {
+            View child = suggestedHeader.getChildAt(index);
+            String description = String.valueOf(child.getContentDescription());
+            if ("Clear all suggested accounts".equals(description)
+                    || "Clearing suggested accounts".equals(description)) {
                 return (TextView) child;
             }
         }

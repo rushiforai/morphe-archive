@@ -1,7 +1,5 @@
 package app.morphe.extension.tiktok.settings.preference;
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
@@ -27,9 +25,7 @@ final class GateReportExport {
             return false;
         }
         try {
-            ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-            if (clipboard == null) throw new IllegalStateException("Clipboard is unavailable");
-            clipboard.setPrimaryClip(ClipData.newPlainText("Feature gate recording", report));
+            Utils.setClipboard(context, "Feature gate recording", report);
             Utils.showToastShort(L10n.t("Copied feature gate report"));
             return true;
         } catch (RuntimeException error) {

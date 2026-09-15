@@ -72,6 +72,7 @@ Second \"item\" text"</string>
   <!-- interaction.playall.playAllButtonPatch -->
   <!-- interaction.reload.reloadVideoPatch -->
   <!-- interaction.savetowatchlater.saveToWatchLaterPatch -->
+  <!-- "Spoof video streams" must use the same translation as morphe_spoof_video_streams_screen_title -->
   <!-- interaction.livering.openChannelOfLiveAvatarPatch -->
   <!-- interaction.seekbar.disablePreciseSeekingGesturePatch -->
   <!-- interaction.seekbar.liveStreamDVRPatch -->

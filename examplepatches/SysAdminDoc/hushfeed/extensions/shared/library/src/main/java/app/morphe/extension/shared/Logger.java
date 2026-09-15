@@ -51,6 +51,19 @@ public class Logger {
     private static final String LOGGER_CLASS_NAME = Logger.class.getName();
 
     /**
+     * Error toasts already shown in this process, so one broken hook cannot repeat itself.
+     *
+     * <p>An error on a path the feed runs fires once per video. The queue then holds a minute of
+     * identical toasts, each covering the video underneath it, long after the reader has read the
+     * first one. Bounded so a stream of genuinely different failures cannot grow it without end;
+     * every occurrence still reaches the log and the diagnostic report either way.
+     */
+    private static final java.util.Set<String> TOASTED_ERRORS =
+            java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
+
+    private static final int MAX_TOASTED_ERRORS = 24;
+
+    /**
      * @return For outer classes, this returns {@link Class#getSimpleName()}.
      * For static, inner, or anonymous classes, this returns the simple name of the enclosing class.
      * <br>
@@ -185,7 +198,8 @@ public class Logger {
                 break;
         }
 
-        if (showToast) {
+        if (showToast && TOASTED_ERRORS.size() < MAX_TOASTED_ERRORS
+                && TOASTED_ERRORS.add(managerToastString)) {
             Utils.showToastLong(managerToastString);
         }
     }
@@ -196,8 +210,21 @@ public class Logger {
         return Utils.context == null || DEBUG.get();
     }
 
+    /**
+     * Whether a failure inside the bundle is put in front of the reader as a toast.
+     *
+     * <p>Only while diagnostic logging is on. These messages are written for whoever is fixing
+     * the code: they carry the class that failed and the exception's own text, in English, past
+     * every translation this bundle ships. A reader who has not turned diagnostic logging on
+     * cannot act on "PlaybackQuality: Could not read the playback quality model", and on a path
+     * the feed runs they were getting it once per video.
+     *
+     * <p>Nothing is lost by keeping it out of their way. Every one of these still reaches
+     * logcat, the diagnostic buffer and the exported report, which is what the bug report form
+     * asks for, and a hook that stopped binding still says so in Hook status.
+     */
     private static boolean shouldShowErrorToast() {
-        return Utils.context != null && DEBUG_TOAST_ON_ERROR.get();
+        return Utils.context != null && DEBUG.get() && DEBUG_TOAST_ON_ERROR.get();
     }
 
     private static boolean includeStackTrace() {

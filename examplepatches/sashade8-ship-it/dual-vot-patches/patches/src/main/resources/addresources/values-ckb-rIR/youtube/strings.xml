@@ -184,6 +184,7 @@ Second \"item\" text"</string>
   <!-- interaction.playall.playAllButtonPatch -->
   <!-- interaction.reload.reloadVideoPatch -->
   <!-- interaction.savetowatchlater.saveToWatchLaterPatch -->
+  <!-- "Spoof video streams" must use the same translation as morphe_spoof_video_streams_screen_title -->
   <!-- interaction.livering.openChannelOfLiveAvatarPatch -->
   <!-- interaction.seekbar.disablePreciseSeekingGesturePatch -->
   <!-- interaction.seekbar.liveStreamDVRPatch -->
@@ -211,7 +212,6 @@ Second \"item\" text"</string>
   <string name="morphe_swipe_overlay_progress_volume_color_title">شۆڕکەرەوە ڕەنگی دەربەست</string>
   <string name="morphe_swipe_text_overlay_size_title">لێدانی قەبارەی دەقی سەرپۆش</string>
   <string name="morphe_swipe_threshold_title">مارگی ڕەهیشەی شۆڕکەرەوە</string>
-  <string name="morphe_swipe_volume_sensitivity_title">زیانخۆشی دەربەستە دەربەستە</string>
   <string name="morphe_swipe_overlay_style_title">شووشكە ڕووەکەی پێشێل</string>
   <string name="morphe_swipe_overlay_style_entry_1">پاشخۆشە ئاسا</string>
   <string name="morphe_swipe_overlay_style_entry_2">ئاسا (گەفی گەشە - سەرەوە)</string>
@@ -445,11 +445,6 @@ Second \"item\" text"</string>
   <string name="morphe_miniplayer_type_entry_0">نەخراوەتە کار</string>
   <string name="morphe_miniplayer_type_entry_1">ئاسمان</string>
   <string name="morphe_miniplayer_type_entry_2">لاواز</string>
-  <string name="morphe_miniplayer_type_entry_3">تەبلێت</string>
-  <string name="morphe_miniplayer_type_entry_4">ڕۆژھەڵات ١</string>
-  <string name="morphe_miniplayer_type_entry_5">ڕۆژھەڵات ٢</string>
-  <string name="morphe_miniplayer_type_entry_6">ڕۆژھەڵات ٣</string>
-  <string name="morphe_miniplayer_type_entry_7">ڕۆژھەڵات ٤</string>
   <string name="morphe_miniplayer_disable_rounded_corners_title">خۆگرتنەوەی خوارەوەی نەچووە کار</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_title">خۆگرتنەوەی خوارەوەی له‌ھەڵدان</string>
   <string name="morphe_miniplayer_disable_horizontal_drag_title">خۆگرتنەوەی خوارەوەی ڕەڵد بکە</string>

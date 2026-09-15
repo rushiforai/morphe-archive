@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.settings.preference.SharedPrefCategory;
@@ -142,11 +143,64 @@ public class CommentSearchSettingsTest {
             assertNotNull("re-enabling search did not decorate the retained list", enabledBox);
             assertNotSame("the old search field was retained across off/on", originalBox, enabledBox);
             assertEquals("re-enabling search restored an old query", "", enabledText);
-            assertEquals("the cached sheet received duplicate fields", 2, column.getChildCount());
+            assertEquals("the cached sheet received duplicate fields", 3, column.getChildCount());
             assertArrayEquals("the new field did not filter its retained body and reply rows",
                     new int[]{0, 0, 0, 120}, heights(body, replies, nativeReply, matching));
+            TextView enabledStatus = column.findViewWithTag(CommentSearch.STATUS_TAG);
+            assertNotNull(enabledStatus);
+            assertEquals("1 result", enabledStatus.getText().toString());
+            list.removeView(matching);
+            idle();
+            assertEquals("the re-enabled search did not resume row-detach counts",
+                    "No matching comments. Try a different word or clear the search.",
+                    enabledStatus.getText().toString());
+            list.addView(matching);
+            idle();
+            assertEquals("the re-enabled search did not resume row-attach counts",
+                    "1 result", enabledStatus.getText().toString());
             enabledBox.setText("");
             assertArrayEquals(new int[]{196, 64, 0, 120}, heights(body, replies, nativeReply, matching));
+        }
+    }
+
+    @Test public void aCachedListReattachRestoresSearchWithoutAnotherNativeBind() {
+        try (var owner = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            LinearLayout column = new LinearLayout(activity);
+            column.setOrientation(LinearLayout.VERTICAL);
+            LinearLayout list = new LinearLayout(activity);
+            list.setOrientation(LinearLayout.VERTICAL);
+            column.addView(list);
+            activity.setContentView(column);
+            View row = row(list, 120);
+            CommentTools.registerCommentCell(row, new CellState(new Comment("one", "Laika in space")));
+            idle();
+
+            EditText original = box(column);
+            assertNotNull(original);
+            original.setText("laika");
+            TextView originalStatus = column.findViewWithTag(CommentSearch.STATUS_TAG);
+            assertNotNull(originalStatus);
+            assertEquals("1 result", originalStatus.getText().toString());
+
+            column.removeView(list);
+            idle();
+            assertNull("the detached list left its search field behind", box(column));
+            assertNull("the detached list left its result status behind",
+                    column.findViewWithTag(CommentSearch.STATUS_TAG));
+
+            column.addView(list);
+            idle();
+            EditText restored = box(column);
+            assertNotNull("the cached list reattached without its search field", restored);
+            assertNotSame(original, restored);
+            assertEquals("a query from before detach followed the cached list", "",
+                    restored.getText().toString());
+            restored.setText("laika");
+            TextView restoredStatus = column.findViewWithTag(CommentSearch.STATUS_TAG);
+            assertNotNull("the cached list reattached without its result status", restoredStatus);
+            assertEquals("1 result", restoredStatus.getText().toString());
         }
     }
 

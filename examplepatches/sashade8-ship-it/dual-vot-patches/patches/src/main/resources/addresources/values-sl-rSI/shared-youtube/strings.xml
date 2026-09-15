@@ -75,7 +75,6 @@ Preverite, ali je ime paketa pravilno in ali je aplikacija nameščena"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Ponarejanje video pretočnih poti</string>
   <string name="morphe_spoof_video_streams_screen_summary">Konfigurirajte ponarejanje odjemalca, da preprečite težave s predvajanjem</string>
-  <string name="morphe_spoof_video_streams_title">Ponarejanje video pretočnih poti</string>
   <string name="morphe_spoof_video_streams_summary">"Odpravi težave s predvajanjem za večino uporabnikov z zahtevo po združljivem videoposnetku.
 
 Če ste uporabnik YouTube Premium morda te nastavitve ne potrebujete."</string>

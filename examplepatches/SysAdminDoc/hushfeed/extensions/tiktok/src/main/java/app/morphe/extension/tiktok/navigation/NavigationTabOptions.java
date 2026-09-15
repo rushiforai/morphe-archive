@@ -25,12 +25,12 @@ public final class NavigationTabOptions {
             new Option(EXPLORE, "Explore"),
             new Option(FOLLOWING, "Following"),
             new Option(MALL, "Shop"),
-            new Option(NEARBY, "Nearby / Local"),
-            new Option(FRIENDS, "Friends feed tab"),
-            new Option(LIVE, "Live"),
+            new Option(NEARBY, "Nearby"),
+            new Option(FRIENDS, "Friends"),
+            new Option(LIVE, "LIVE"),
             new Option(POPULAR, "Popular"),
-            new Option(STEM, "STEM feed"),
-            new Option(SERIES, "Drama / Series"),
+            new Option(STEM, "STEM"),
+            new Option(SERIES, "Drama and Series"),
     };
 
     private NavigationTabOptions() {

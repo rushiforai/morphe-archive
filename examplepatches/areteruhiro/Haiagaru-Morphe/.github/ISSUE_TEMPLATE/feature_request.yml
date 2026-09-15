@@ -1,41 +1,42 @@
-name: ⭐ Feature request
-description: Create a detailed request for a new feature.
+name: ⭐ 機能要望
+description: 新機能や改善案を提案する
 title: 'feat: '
 labels: ['feature']
 body:
   - type: markdown
     attributes:
       value: |
-        # Morphe Patches feature request
+        # Haiagaru-Morphe 機能要望
 
-        Before creating a new feature request, please keep the following in mind:
+        新しい機能要望を作成する前に、以下を確認してください。
 
-        - We are currently only accept feature requests for YouTube, YT Music, and Reddit.
-        - **Do not submit a duplicate feature request**: Search for existing feature requests, including closed issues, [here](https://github.com/MorpheApp/morphe-patches/issues?q=is%3Aissue).
+        - **重複した機能要望を投稿しないでください**: 既存の issue と closed issue を確認してください。
+        - 不具合やクラッシュの報告は、バグ報告テンプレートを使用してください。
   - type: textarea
     attributes:
-      label: Feature description
+      label: 機能の内容
       description: |
-        - Describe your feature in detail
+        - 希望する機能や改善内容を具体的に記載してください
+    validations:
+      required: true
   - type: textarea
     attributes:
-      label: Motivation
-      description: | 
-        A strong motivation is necessary for a feature request to be considered.
+      label: 動機・用途
+      description: |
+        機能要望を検討するため、必要性や具体的な用途を記載してください。
         
-        - Why should this feature be implemented? 
-        - What is the explicit use case?
-        - What are the benefits?
-        - What makes this feature important?
+        - なぜこの機能が必要ですか？
+        - どのような場面で使いますか？
+        - 実装されると何が改善しますか？
     validations:
       required: true
   - type: checkboxes
     id: acknowledgements
     attributes:
-      label: Acknowledgements
-      description: Your feature request will be closed if you don't follow the checklist below.
+      label: 確認事項
+      description: 以下を満たしていない場合、要望を close することがあります。
       options:
-        - label: I have checked all open and closed feature requests and this is not a duplicate
+        - label: open / closed の issue を確認し、重複ではないことを確認しました。
           required: true
-        - label: This is a feature request for YouTube, YT Music, or Reddit
+        - label: 不具合やクラッシュの報告ではなく、機能要望として投稿しています。
           required: true

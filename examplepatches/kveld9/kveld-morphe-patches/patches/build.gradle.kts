@@ -24,7 +24,9 @@ val patchListGeneratorClasspath = configurations.create("patchListGeneratorClass
 
 dependencies {
     compileOnly(libs.gson)
+    compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
     patchListGeneratorClasspath(libs.gson)
+    patchListGeneratorClasspath("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
 }
 
 tasks {
@@ -35,6 +37,32 @@ tasks {
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")
+    }
+
+    register<JavaExec>("runPatchTest") {
+        description = "Execute Morphe Patcher against target APK"
+
+        dependsOn("buildAndroid")
+
+        maxHeapSize = "8g"
+        classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
+        mainClass.set("util.PatchExecutionTestKt")
+
+        if (project.hasProperty("app")) {
+            systemProperty("targetApp", project.property("app").toString())
+        }
+        if (project.hasProperty("apk")) {
+            systemProperty("targetApk", project.property("apk").toString())
+        }
+        if (project.hasProperty("out")) {
+            systemProperty("outputApk", project.property("out").toString())
+        }
+        if (project.hasProperty("outputApk")) {
+            systemProperty("outputApk", project.property("outputApk").toString())
+        }
+        System.getProperty("targetApp")?.let { systemProperty("targetApp", it) }
+        System.getProperty("targetApk")?.let { systemProperty("targetApk", it) }
+        System.getProperty("outputApk")?.let { systemProperty("outputApk", it) }
     }
 
     jar {

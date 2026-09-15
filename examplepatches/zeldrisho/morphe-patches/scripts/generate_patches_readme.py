@@ -15,7 +15,6 @@ import re
 import sys
 from pathlib import Path
 
-
 if len(sys.argv) < 3:
     print("Usage: generate_patches_readme.py <owner/repo> <branch> [json] [readme]")
     sys.exit(1)
@@ -139,13 +138,15 @@ def spoiler(label, count, targets, tbl, expanded=False):
 def build_content(expanded=False):
     """Build the full generated patches section."""
     lines = [
-        f"> **[v{ver}](https://github.com/{owner}/{repo}/releases/tag/v{ver})**"
-        f"&nbsp;&nbsp;•&nbsp;&nbsp;`{branch}`&nbsp;&nbsp;•&nbsp;&nbsp;"
-        f"{total} patches total"
+        (
+            f"> **[v{ver}](https://github.com/{owner}/{repo}/releases/tag/v{ver})**"
+            f"&nbsp;&nbsp;•&nbsp;&nbsp;`{branch}`&nbsp;&nbsp;•&nbsp;&nbsp;"
+            f"{total} patches total"
+        )
     ]
 
     # One spoiler per app, in the order they appear in the JSON
-    for pkg, entry in by_pkg.items():
+    for entry in by_pkg.values():
         patches = list(entry["patches"].values())
         label = f"{entry['emoji']} {entry['name']}"
         lines.append(

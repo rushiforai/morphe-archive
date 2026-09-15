@@ -6,7 +6,7 @@
  */
 package app.morphe.extension.tiktok.comment;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.settings.Settings;
 
 import org.junit.Before;
@@ -54,10 +55,22 @@ public class CommentMediaFilterTest {
     /** Stands in for CommentItemList. */
     public static class ItemList {
         List<Object> items;
+        public Object pollInfo;
 
         ItemList(List<Object> items) {
             this.items = items;
         }
+    }
+
+    /** A future model that no longer carries TikTok's documented poll member. */
+    public static class ItemListWithoutPoll {
+        List<Object> items = new ArrayList<>();
+    }
+
+    /** A malformed model proves an unwritable member cannot break loading comments. */
+    public static class ItemListWithPrimitivePoll {
+        List<Object> items = new ArrayList<>();
+        public int pollInfo = 1;
     }
 
     private static Comment words(String text) {
@@ -70,15 +83,19 @@ public class CommentMediaFilterTest {
     public void setUp() {
         Utils.setContext(RuntimeEnvironment.getApplication());
         Settings.HIDE_COMMENT_MEDIA.save(false);
+        Settings.HIDE_COMMENT_POLLS.save(false);
         Settings.COMMENT_KEYWORD_FILTER.save(false);
         Settings.COMMENT_BLOCKED_KEYWORDS.save("");
         Settings.COMMENT_BLOCKED_USERS.save("");
         CommentTools.signedInUserIdForTests = null;
+        HookStatus.clear();
     }
 
     @org.junit.After
     public void tearDown() {
         CommentTools.signedInUserIdForTests = null;
+        Settings.HIDE_COMMENT_POLLS.save(false);
+        HookStatus.clear();
     }
 
     @Test
@@ -221,5 +238,60 @@ public class CommentMediaFilterTest {
 
         // Only the picture goes: the keyword filter is off, so its list is not read.
         assertEquals(Collections.singletonList(spam), page.items);
+    }
+
+    @Test
+    public void thePollSwitchClearsPageMetadataBeforeRendering() {
+        Settings.HIDE_COMMENT_POLLS.save(true);
+        Comment kept = words("ordinary comment");
+        ItemList page = new ItemList(new ArrayList<>(Collections.singletonList(kept)));
+        page.pollInfo = new Object();
+
+        CommentTools.onCommentListLoaded(page);
+
+        assertNull(page.pollInfo);
+        assertEquals(Collections.singletonList(kept), page.items);
+        assertTrue(HookStatus.missing("comment polls").isEmpty());
+    }
+
+    @Test
+    public void thePollSwitchOffPreservesPollMetadata() {
+        Object poll = new Object();
+        ItemList page = new ItemList(new ArrayList<>(Collections.singletonList(words("one"))));
+        page.pollInfo = poll;
+
+        CommentTools.onCommentListLoaded(page);
+
+        assertSame(poll, page.pollInfo);
+        assertEquals(1, page.items.size());
+    }
+
+    @Test
+    public void aMissingPollMemberLeavesCommentsLoadingAndReportsTheContract() {
+        Settings.HIDE_COMMENT_POLLS.save(true);
+        ItemListWithoutPoll page = new ItemListWithoutPoll();
+        page.items.add(words("still here"));
+
+        CommentTools.onCommentListLoaded(page);
+
+        assertEquals(1, page.items.size());
+        assertEquals(Collections.singletonList(
+                        "field " + ItemListWithoutPoll.class.getName() + "#pollInfo"),
+                HookStatus.missing("comment polls"));
+    }
+
+    @Test
+    public void malformedPollMetadataCannotBreakCommentLoading() {
+        Settings.HIDE_COMMENT_POLLS.save(true);
+        ItemListWithPrimitivePoll page = new ItemListWithPrimitivePoll();
+        page.items.add(words("still here"));
+
+        CommentTools.onCommentListLoaded(page);
+
+        assertEquals(1, page.items.size());
+        assertEquals(1, page.pollInfo);
+        assertEquals(Collections.singletonList(
+                        "writable field " + ItemListWithPrimitivePoll.class.getName() + "#pollInfo"),
+                HookStatus.missing("comment polls"));
     }
 }

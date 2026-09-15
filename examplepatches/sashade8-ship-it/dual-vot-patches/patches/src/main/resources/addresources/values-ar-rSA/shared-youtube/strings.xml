@@ -75,7 +75,6 @@ Second \"item\" text"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Spoof Video Streams</string>
   <string name="morphe_spoof_video_streams_screen_summary">ضبط خاصية تمويه هوية العميل لمنع مشاكل التشغيل</string>
-  <string name="morphe_spoof_video_streams_title">Spoof Video Streams</string>
   <string name="morphe_spoof_video_streams_summary">"يُصلح مشاكل التشغيل لدى معظم المستخدمين عبر طلب تدفق فيديو متوافق
 
 إذا كنت من مستخدمي YouTube Premium، فقد لا تحتاج إلى هذا الإعداد"</string>

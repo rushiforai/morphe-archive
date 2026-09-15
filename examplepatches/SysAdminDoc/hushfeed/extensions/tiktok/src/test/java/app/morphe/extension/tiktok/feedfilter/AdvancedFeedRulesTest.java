@@ -8,6 +8,8 @@ import com.ss.android.ugc.aweme.feed.model.AwemeStatistics;
 import com.ss.android.ugc.aweme.feed.model.FeedItemList;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -81,6 +83,80 @@ public class AdvancedFeedRulesTest {
         assertTrue(new AdvancedFeedRules.CreatorFilter().getFiltered(item));
         Settings.BLOCKED_CREATORS.save("123");
         assertTrue(new AdvancedFeedRules.CreatorFilter().getFiltered(item));
+    }
+
+    @Test public void aFeedBatchParsesEachChangedRuleStringOnce() {
+        AtomicInteger captionParses = new AtomicInteger();
+        AtomicInteger creatorParses = new AtomicInteger();
+        KeywordRules.setParseTestHookForTests(captionParses::incrementAndGet);
+        AdvancedFeedRules.setCreatorParseTestHookForTests(creatorParses::incrementAndGet);
+        try {
+            Settings.BLOCKED_CAPTION_WORDS.save("cache-caption-a, cache-caption-b");
+            Settings.BLOCKED_CREATORS.save("cache-blocked-a, cache-blocked-b");
+            Settings.LOCAL_HIDDEN_CREATORS.save("cache-local-a, cache-local-b");
+
+            Item[] first = new Item[20];
+            for (int index = 0; index < first.length; index++) {
+                first[index] = new Item("cache-first-" + index, "allowed-" + index, 800);
+                first[index].desc = "ordinary caption " + index;
+            }
+            page(first);
+            assertEquals("caption rules were rebuilt for items in one batch", 1,
+                    captionParses.get());
+            assertEquals("creator lists were rebuilt for items in one batch", 2,
+                    creatorParses.get());
+
+            Settings.BLOCKED_CAPTION_WORDS.save("cache-caption-c");
+            Item captionChange = new Item("cache-caption-change", "allowed-caption", 800);
+            captionChange.desc = "ordinary changed caption";
+            assertFalse(new AdvancedFeedRules.KeywordFilter().getFiltered(captionChange));
+            assertEquals("a changed caption string was not parsed exactly once", 2,
+                    captionParses.get());
+            assertEquals("caption changes rebuilt creator rules", 2, creatorParses.get());
+
+            Settings.LOCAL_HIDDEN_CREATORS.save("cache-local-c");
+            assertFalse(new AdvancedFeedRules.CreatorFilter().getFiltered(
+                    new Item("cache-local-change", "allowed-local", 800)));
+            assertEquals("an unchanged caption string was parsed again", 2,
+                    captionParses.get());
+            assertEquals("a local-list change rebuilt both creator strings", 3,
+                    creatorParses.get());
+
+            Settings.BLOCKED_CREATORS.save("cache-blocked-c");
+            assertFalse(new AdvancedFeedRules.CreatorFilter().getFiltered(
+                    new Item("cache-blocked-change", "allowed-blocked", 800)));
+            assertEquals("a blocked-list change rebuilt both creator strings", 4,
+                    creatorParses.get());
+        } finally {
+            KeywordRules.setParseTestHookForTests(null);
+            AdvancedFeedRules.setCreatorParseTestHookForTests(null);
+        }
+    }
+
+    @Test public void tenThousandCaptionEntriesMeetTheAndroidBatchBudget() {
+        StringBuilder stored = new StringBuilder();
+        for (int index = 0; index < FeedRuleLimits.MAX_ENTRIES; index++) {
+            if (stored.length() > 0) stored.append(", ");
+            stored.append("term").append(index);
+        }
+        Settings.BLOCKED_CAPTION_WORDS.save(stored.toString());
+
+        Item warm = new Item("benchmark-warm", "allowed-warm", 800);
+        warm.desc = "ordinary warm caption";
+        page(warm);
+
+        Item[] batch = new Item[20];
+        for (int index = 0; index < batch.length; index++) {
+            batch[index] = new Item("benchmark-" + index, "allowed-" + index, 800);
+            batch[index].desc = "ordinary benchmark caption " + index;
+        }
+        long started = System.nanoTime();
+        page(batch);
+        long elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started);
+        long androidBatchBudgetMs = 250;
+        assertTrue("a warm 20-item Android feed batch with 10,000 caption rules took "
+                        + elapsedMs + " ms, over the " + androidBatchBudgetMs + " ms budget",
+                elapsedMs <= androidBatchBudgetMs);
     }
     @Test public void nearestQualityFallbackCannotRestoreAHardBlockedCreator() {
         Settings.MAX_VIDEO_SECONDS.save(1);

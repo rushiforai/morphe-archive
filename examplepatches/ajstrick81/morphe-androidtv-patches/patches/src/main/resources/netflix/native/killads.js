@@ -55,25 +55,31 @@ function patchADV(rs){ if(advDone)return; var p=pat(ADV_ANCHOR);
 // `<2char>.map->[].map` shape is safe to write length-preservingly; any other layout -> dump, no write.
 var advwDone=false, advDumped=false;
 function patchADVw(rs){ if(advDone||advwDone)return;
-  // <var>.map(function(  where <var> is the adBreaks source (2 bytes in the minified normaliser)
-  var p=' ?? ?? '+pat('.map(function('); // 2 wildcard bytes (var) then .map(function(
+  // Anchor on the ad-normaliser's DISTINCTIVE callback shape: <var>.map(function(a,b){var
+  // The adverts.adBreaks normaliser is `la.map(function(a,b){var c=ma.normalize(a.locationMs),
+  // e=(0,v.getAdBreakDuration)(a.ads)...` — arity (a,b). The earlier false positive was the
+  // normalizedPrograms getter `.map(function(c){return a.toNormalizedProgram(c)` — arity (c), and it
+  // only matched because the old disambiguator keyed on ".normalize" (also in toNormalizedProgram).
+  // Fix (2026-09-14, from adam8833's #166 dumps): anchor on `.map(function(a,b){var ` (excludes the
+  // (c) getter) AND require a `locationMs`/`getAdBreakDuration` token in the window (ad-break-only).
+  // <var> = the 2 bytes immediately before `.map`.
+  var mp=pat('.map(function(a,b){var ');
   for(var i=0;i<rs.length;i++){var r=rs[i];if(r.size>128*1024*1024)continue;
-    try{var h=Memory.scanSync(r.base,r.size,p);
-      for(var j=0;j<h.length;j++){ var vAddr=h[j].address; // start = the 2 var bytes
+    try{var h=Memory.scanSync(r.base,r.size,mp);
+      for(var j=0;j<h.length;j++){ var mAddr=h[j].address, vAddr=mAddr.sub(2); // 2-char var before .map
         var v0=-1,v1=-1;try{v0=vAddr.readU8();v1=vAddr.add(1).readU8();}catch(e){continue;}
         if(!isAlpha(v0)||!isAlpha(v1))continue;
-        // disambiguate: this must be the adverts normaliser map -> '.normalize' must follow shortly.
-        var fwd=null;try{fwd=vAddr.readCString(90);}catch(e){}
-        if(fwd==null||fwd.indexOf('.normalize')<0)continue;
+        var fwd=null;try{fwd=mAddr.readCString(180);}catch(e){}
+        if(fwd==null||(fwd.indexOf('locationMs')<0&&fwd.indexOf('getAdBreakDuration')<0))continue;
         Memory.protect(vAddr,2,'rw-');vAddr.writeByteArray([0x5b,0x5d]);advwDone=true;
         L('PATCH ADVw: adverts.adBreaks source "'+String.fromCharCode(v0)+String.fromCharCode(v1)+'".map->[].map (empty all ad breaks, rename-tolerant) @'+vAddr);
         return;
       }
     }catch(e){}}
-  // not found the safe 2-char shape -> dump the normaliser region once for precise re-anchor.
-  if(!advDumped){ var mk='.normalize',mp=pat(mk),hit=0;
-    for(var i2=0;i2<rs.length&&hit<3;i2++){var r2=rs[i2];if(r2.size>128*1024*1024)continue;
-      try{var h2=Memory.scanSync(r2.base,r2.size,mp);for(var j2=0;j2<h2.length&&hit<3;j2++){var a2=h2[j2].address,ctx=null;try{ctx=a2.sub(150).readCString(230);}catch(e){}if(ctx==null||ctx.indexOf('.map(function')<0)continue;hit++;advDumped=true;L('ADVw DUMP@'+a2+' ctx='+JSON.stringify(ctx));}}catch(e){}}
+  // not found -> dump the normaliser region once (anchored on the ad-only locationMs) for re-anchor.
+  if(!advDumped){ var mk='locationMs',mkp=pat(mk),hit=0;
+    for(var i2=0;i2<rs.length&&hit<2;i2++){var r2=rs[i2];if(r2.size>128*1024*1024)continue;
+      try{var h2=Memory.scanSync(r2.base,r2.size,mkp);for(var j2=0;j2<h2.length&&hit<2;j2++){var a2=h2[j2].address,ctx=null;try{ctx=a2.sub(180).readCString(260);}catch(e){}if(ctx==null||ctx.indexOf('.map(function')<0)continue;hit++;advDumped=true;L('ADVw DUMP@'+a2+' ctx='+JSON.stringify(ctx));}}catch(e){}}
   }
 }
 // ---------- (DAI) dynamic ad-insertion bypass — belt-and-suspenders alongside ADV ----------
@@ -476,6 +482,16 @@ function observe(){ cyc++;
 L('killads ready (A/A2/ADV/DAI/MASTER ad-kill + B pause, single-shot; ad+resume monitor)');
 setTimeout(apply,5000);
 setTimeout(observe,9000);
+// ANCHOR MAP (drift self-detection) — periodic at-a-glance hook state on its OWN timer, so the summary
+// ALWAYS appears (apply()'s DONE line is gated on the whole loop completing and can be missed on some
+// builds — reported on 1.36.0). Shows which anchors installed and whether MASTER/ADV used the wildcard
+// fallback ('w'). ~8 snapshots over ~2.5 min covers the appboot settle window.
+var _amN=0;
+function anchorMap(){ _amN++;
+  L('ANCHOR MAP: A='+(aDone?1:0)+' A2='+(a2Done?1:0)+' ADV='+(advDone?1:(advwDone?'w':0))+' DAI='+(daiDone?1:0)+' MASTER='+(masterDone?(mwDone?'1w':1):0)+' B='+(bDone?1:0)+' FP='+(FP_ENABLED?(fpDone?1:0):'off')+' GAID='+(GAID_ENABLED?(gaidDone?1:0):'off')+' HH='+(HH_ENABLED?(hhDone?1:0):'off')+' pass='+_amN);
+  if(_amN<8) setTimeout(anchorMap,20000);
+}
+setTimeout(anchorMap,15000);
 L('fastMASTER armed (getAdMetadata early race-win scanner — beat first-title pre/mid-roll)');
 setTimeout(fastMASTER,200);
 L('dumpMASTER armed (recon: dump getAdMetadata body if both exact+wildcard MASTER miss — #166)');

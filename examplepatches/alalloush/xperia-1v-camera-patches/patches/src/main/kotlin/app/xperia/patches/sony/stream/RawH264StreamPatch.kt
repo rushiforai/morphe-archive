@@ -34,7 +34,8 @@ private val hooks = listOf(
  */
 @Suppress("unused")
 val rawH264StreamPatch = bytecodePatch(
-    name = "Raw H.264 stream",
+    name = "[WIP] Raw H.264 stream",
+    default = false,
     description = "Low-latency transport for Live streaming: the encoded H.264 is sent to the PC as a plain " +
             "TCP stream instead of RTMP (~0.2 s glass-to-glass with Standard stabilization). Receive with " +
             "gst-launch-1.0 tcpserversrc port=6970 ! h264parse ! avdec_h264 ! ... Video only.",

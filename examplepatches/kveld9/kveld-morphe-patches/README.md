@@ -27,8 +27,10 @@
 ### ⌨️ Gboard Lite
 - **Current Target**: `18.2.4.969776716-lite_beta-arm64-v8a` (or `armeabi-v7a`)
 - **Architecture**: `arm64-v8a` or `armeabi-v7a` (nodpi APK)
-- **Source**: [APKMirror (Gboard Lite)](https://www.apkmirror.com/apk/google-inc/gboard/)
+- **Package**: `com.google.android.inputmethod.latin`
 - ⚠️ *Fresh install?* Read the [Gboard Offline Dictionary & Glide Typing Setup](docs/gboard-setup.md) before applying background debloat patches.
+
+<a href="https://www.apkmirror.com/apk/google-inc/gboard/gboard-the-google-keyboard-18-2-4-969776716-release/"><img src="https://img.shields.io/badge/Download-Gboard_Lite_18.2.4.969776716_(APK_nodpi)-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Download Gboard Lite APK" /></a>
 
 ### 🦁 Brave Browser
 - **Current Target**: `1.95.101` (`Bravemonoarm64.apk`)
@@ -38,27 +40,29 @@
 <a href="https://github.com/brave/brave-browser/releases/download/v1.95.101/Bravemonoarm64.apk"><img src="https://img.shields.io/badge/Download-Bravemonoarm64.apk_(v1.95.101)-FF4500?style=for-the-badge&logo=brave&logoColor=white" alt="Download Brave APK" /></a>
 
 ### 🔴 Vivaldi Browser
-- **Current Target**: `8.2.4147.58` (APKM bundle)
+- **Current Target**: `8.2.4147.77` (APKM bundle)
 - **Architecture**: `arm64-v8a`
 - **Package**: `com.vivaldi.browser`
 - ⚠️ *APKM Bundle Required*: You **must** download the **BUNDLE (`.apkm`)** variant from APKMirror. The standalone APK option on APKMirror is an unbundled base split lacking browser bytecode and will fail patching.
 
-<a href="https://www.apkmirror.com/apk/vivaldi-technologies/vivaldi-browser-beta/vivaldi-browser-fast-safe-8-2-4147-58-release/"><img src="https://img.shields.io/badge/Download-Vivaldi_8.2.4147.58_(APKM)-EF3939?style=for-the-badge&logo=vivaldi&logoColor=white" alt="Download Vivaldi APKM" /></a>
+<a href="https://www.apkmirror.com/apk/vivaldi-technologies/vivaldi-browser-beta/vivaldi-browser-fast-safe-8-2-4147-77-release/"><img src="https://img.shields.io/badge/Download-Vivaldi_8.2.4147.77_(APKM)-EF3939?style=for-the-badge&logo=vivaldi&logoColor=white" alt="Download Vivaldi APKM" /></a>
 
 ### 🏋️ Hevy - Gym Log Workout Tracker
-- **Current Target**: `3.1.13` (APKM bundle)
+- **Current Target**: `3.1.14` (APKM bundle)
 - **Architecture**: `arm64-v8a`
 - **Package**: `com.hevy`
 - ⚠️ *Google Sign-In Issue?* Read the [Hevy Setup & Authentication Guide](docs/hevy-setup.md) to log in with Email & Password.
 
-<a href="https://www.apkmirror.com/apk/hevy/hevy-gym-log-workout-tracker/hevy-gym-log-workout-tracker-3-1-13-release/"><img src="https://img.shields.io/badge/Download-Hevy_3.1.13_(APKM)-FF4500?style=for-the-badge&logo=target&logoColor=white" alt="Download Hevy APKM" /></a>
+<a href="https://www.apkmirror.com/apk/hevy-gym-workout-tracker/hevy-gym-log-workout-tracker/hevy-gym-log-workout-tracker-3-1-14-release/"><img src="https://img.shields.io/badge/Download-Hevy_3.1.14_(APKM)-FF4500?style=for-the-badge&logo=target&logoColor=white" alt="Download Hevy APKM" /></a>
 
 ### 🎵 TikTok (Global & Asia)
-- **Current Target**: Any version (`com.zhiliaoapp.musically` / `com.ss.android.ugc.trill`)
+- **Current Target**: `46.9.3`
 - **Architecture**: `arm64-v8a` (nodpi APK)
 - **Package**: `com.zhiliaoapp.musically` (Global) & `com.ss.android.ugc.trill` (Asia)
 
-<a href="https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/"><img src="https://img.shields.io/badge/Download-TikTok_(APK_nodpi)-FE2C55?style=for-the-badge&logo=tiktok&logoColor=white" alt="Download TikTok APK" /></a>
+<a href="https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-46-9-3-release/"><img src="https://img.shields.io/badge/Download-TikTok_Global_46.9.3_(APK_nodpi)-FE2C55?style=for-the-badge&logo=tiktok&logoColor=white" alt="Download TikTok Global APK" /></a>
+&nbsp;&nbsp;
+<a href="https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok/tiktok-46-9-3-2-release/"><img src="https://img.shields.io/badge/Download-TikTok_Asia_46.9.3_(APK_nodpi)-25F4EE?style=for-the-badge&logo=tiktok&logoColor=white" alt="Download TikTok Asia APK" /></a>
 
 ---
 
@@ -66,19 +70,20 @@
 
 <!-- PATCHES_START -->
 <details>
-<summary>📦 Gboard Lite&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
+<summary>Gboard Lite&nbsp;&nbsp;•&nbsp;&nbsp;<b>17 patches</b></summary>
 <br>
 
-**🎯 Supported versions:**
+**Supported versions:**
 
 | 18.2.4.969776716-lite_beta-arm64-v8a | 18.2.4.969776716-lite_beta-armeabi-v7a |
 | :---: | :---: |
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+| Patch | Description | Options |
 |----------|----------------|-----------|
 | **Add AMOLED Theme** | Adds a selectable Pure Black AMOLED theme using Gboard's native color_black theme package, without replacing Dark, Light, System Auto, or Dynamic Color. |  |
 | **Allow Modified APK** | Bypasses internal signature check to allow custom APK execution. |  |
 | **Block Telemetry** | Disables background metrics dispatch, event logging, daily pings, and crash reporting. |  |
+| **Clipboard Enhancements** | Extends unpinned clipboard history retention duration, raises the maximum number of displayed unpinned clips, and allows customizing keyboard grid columns. | • Unpinned clip limit<br>• Retention time limit (hours)<br>• Clipboard grid columns |
 | **Clone Gboard** | Changes the package name by appending a dot and custom suffix (defaults to 'clone') to allow installing Gboard alongside the original application. | • Package name suffix |
 | **Disable Diagnostics** | Disables Google's diagnostic and recovery telemetry. |  |
 | **Disable Google Primes** | Neutralizes Google Primes performance profiling, jank monitoring, native crash sidecars, and background telemetry threads. |  |
@@ -96,15 +101,15 @@
 </details>
 
 <details>
-<summary>📦 Brave Private Web Browser, VPN&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
+<summary>Brave Private Web Browser, VPN&nbsp;&nbsp;•&nbsp;&nbsp;<b>9 patches</b></summary>
 <br>
 
-**🎯 Supported versions:**
+**Supported versions:**
 
 | 1.95.101 |
 | :---: |
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+| Patch | Description | Options |
 |----------|----------------|-----------|
 | **Block Brave Telemetry** | Blocks P3A product analytics, Brave Stats usage pings, crash dump uploads, WDP, and Variations seed fetching. |  |
 | **Brave In-Product & Commercial Notification Optimizer** | Eliminates background wakeups and notifications from Chromium tips scheduler (Job ID 105), Brave Rewards onboarding promo, and retention marketing campaigns. |  |
@@ -119,15 +124,15 @@
 </details>
 
 <details>
-<summary>📦 Hevy - Gym Log Workout Tracker&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<summary>Hevy - Gym Log Workout Tracker&nbsp;&nbsp;•&nbsp;&nbsp;<b>4 patches</b></summary>
 <br>
 
-**🎯 Supported versions:**
+**Supported versions:**
 
-| 3.1.13 |
-| :---: |
+| 3.1.14 | 3.1.13 |
+| :---: | :---: |
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+| Patch | Description | Options |
 |----------|----------------|-----------|
 | **Block Hevy Telemetry & Trackers** | Neutralizes Sentry crash reporting, Adjust attribution, Facebook AppEvents, Branch referral tracking, and WearOS background sync. |  |
 | **Hevy Battery Optimization & Background Sync Killer** | Disables background WorkManager alarms, periodic job schedulers, Google Play Billing IPC (~89 MB RAM), and removes largeHeap to force aggressive Garbage Collection. |  |
@@ -137,15 +142,15 @@
 </details>
 
 <details>
-<summary>📦 Vivaldi Browser - Fast & Safe&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
+<summary>Vivaldi Browser - Fast & Safe&nbsp;&nbsp;•&nbsp;&nbsp;<b>12 patches</b></summary>
 <br>
 
-**🎯 Supported versions:**
+**Supported versions:**
 
-| 8.2.4147.58 |
+| 8.2.4147.77 |
 | :---: |
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+| Patch | Description | Options |
 |----------|----------------|-----------|
 | **Block Vivaldi Sync** | Redirects bifrost.vivaldi.com to 0.0.0.0 in libchrome.so to completely disable Vivaldi account synchronization for an air-gapped experience. |  |
 | **Block Vivaldi Telemetry** | Blocks Vivaldi usage statistics, crash reporting, Crashpad endpoints, and DirectMatch suggestions. |  |
@@ -163,18 +168,30 @@
 </details>
 
 <details>
-<summary>📦 TikTok&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
+<summary>TikTok&nbsp;&nbsp;•&nbsp;&nbsp;<b>17 patches</b></summary>
 <br>
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+**Supported versions:**
+
+| 46.9.3 |
+| :---: |
+
+| Patch | Description | Options |
 |----------|----------------|-----------|
-| **Core Asset De-bloat** | Strips embedded Microblink credit card OCR models, C2PA AI content origin verification libraries, and unused non-Latin fonts to save APK space. |  |
-| **Feed Ad Blocker** | Removes sponsored advertisements, brand promotions, soft commercial videos, and promotional audio from the For You and Following feeds. |  |
+| **Clean Share URL** | Strips tracking parameters, user IDs, device fingerprints, and marketing tokens from shared TikTok links. |  |
+| **Core Asset De-bloat** | Strips embedded Microblink credit card OCR models, C2PA AI content origin verification libraries, and redundant non-Latin fonts to save APK space. |  |
+| **Device Privacy Guard** | Neutralizes background clipboard snooping routines and blocks screenshot/recording detection listeners to protect user data from unauthorized tracking and popup modals. |  |
+| **Disable Push Notifications** | Neutralizes background push notification tasks and persistent socket wake locks to eliminate background battery drain. |  |
+| **Feed Ad Blocker** | Removes sponsored advertisements, brand promotions, and promotional audio from the For You and Following feeds. |  |
+| **Feed Live Stream Blocker** | Removes live stream broadcast cards and live recommendations from the For You and Following feeds. |  |
+| **Hide TikTok Shop Anchors** | Removes product showcase badges, shopping cart tags, and TikTok Shop commercial anchors from video posts in the feed. |  |
 | **Instant Launch & Splash Blocker** | Eliminates cold startup delays, real-time splash advertisements, and background TopView preloading (<0.4s launch). |  |
 | **Language Pack Purger** | Strips unselected language string bundles from assets/strings#lang_* to save APK space. | • Languages to keep |
-| **Live Stream Suite Optimizer** | Strips Live link mic SDK (liblink_mic_sdk.so) and live stream interactive minigames, and disables 3D gift particle animation preloading. |  |
-| **Network & Background Traffic Governor** | Throttles aggressive video preloading buffer and disables background push polling alarms to save cellular data and battery. |  |
-| **Runtime Memory Governor** | Optimizes Fresco bitmap memory pool retention and suppresses aggressive animated frame allocations to reduce memory pressure. |  |
+| **Live Stream 3D Gift Optimizer** | Disables Live 3D gift particle effect engine and widget rendering lifecycle to eliminate frame drops during live streams. |  |
+| **Live Stream SDK & Minigame De-bloat** | Strips Live link mic SDK (liblink_mic_sdk.so) and live stream interactive minigames to save APK storage. |  |
+| **Media Usability & Watermark-Free Downloader** | Enables progress seekbar scrubbing on all videos, unblocks the download button on creator-restricted videos, and routes downloads to clean unwatermarked media streams. |  |
+| **Playback Speed Persistence** | Persists selected video playback speed across all feed videos and application restarts. |  |
+| **Resource & Battery Governor** | Throttles background sensor polling (gyroscope/accelerometer 3D ads), prevents aggressive video buffer preloading, and caps Fresco animated image memory retention to conserve battery and RAM. |  |
 | **Studio & Creation De-bloat** | Strips heavy video creation, CapCut-like video editor SDK (libttvesdk_plugin.so), and AR camera face models to save over 22MB. |  |
 | **Unified Telemetry & Tracker Silencer** | Neutralizes ByteDance AppLog user tracking, APM/Npth/Heimdallr crash monitors, AppsFlyer attribution, and Firebase analytics. |  |
 | **Update Prompt Suppressor** | Neutralizes background update polling tasks and device ID check routines to prevent forced update popups. |  |
@@ -182,10 +199,10 @@
 </details>
 
 <details>
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<summary>Universal&nbsp;&nbsp;•&nbsp;&nbsp;<b>4 patches</b></summary>
 <br>
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+| Patch | Description | Options |
 |----------|----------------|-----------|
 | **APK Junk Cleaner** | Strips non-functional build metadata, compiler properties, Kotlin coroutines debug tables, and duplicate license texts from META-INF and APK root. |  |
 | **DPI Resource Slimmer** | Strips unselected screen density resource directories from res/ (e.g. drawable-mdpi, drawable-hdpi, mipmap-xhdpi). Density-independent resources (nodpi, anydpi) and orphan resources are safely preserved. | • DPI densities to keep |
@@ -207,7 +224,8 @@ Comprehensive technical references and setup manuals have been modularized for f
 | 📱 **[Compatibility Guide](docs/compatibility.md)** | CPU architecture policy (ARM64 vs 32-bit ARMv7a) and APK variant rationales (`Bravemonoarm64`, Vivaldi Browser). |
 | ⌨️ **[Gboard Setup & Dictionaries](docs/gboard-setup.md)** | Step-by-step setup for predictive text, offline dictionaries, and Glide Typing on fresh installs. |
 | 🏋️ **[Hevy Setup & Authentication](docs/hevy-setup.md)** | Account authentication notice (Google Sign-In SHA-1 limitation & Email/Password login) and Pro features overview. |
-| ⚙️ **[Patch Configuration & Options](docs/patch-configuration.md)** | Detailed guides, density matrices, and complete locale code tables for `Locale Slimmer` and `DPI Resource Slimmer`. |
+| 🎵 **[TikTok Patch Specifications](docs/tiktok-patches.md)** | Deep technical breakdown of all 17 TikTok patches, bytecode hooks, privacy guards, and media downloaders. |
+| ⚙️ **[Patch Configuration & Options](docs/patch-configuration.md)** | Detailed guides for `Clipboard Enhancements` (retention & layout), `Locale Slimmer`, and `DPI Resource Slimmer`. |
 | 🛡️ **[Architecture & Security Notes](docs/architecture-security.md)** | Explanation of privacy scanner false positives (ML Kit / Play Billing) and native ELF/Dalvik telemetry neutralization. |
 | 🛠️ **[Building & Development](docs/building.md)** | Toolchain prerequisites, Gradle build tasks, test execution, and catalog synchronization. |
 
@@ -219,7 +237,8 @@ Comprehensive technical references and setup manuals have been modularized for f
 | :--- | :--- |
 | <a href="https://github.com/Lxchoooo"><img src="https://github.com/Lxchoooo.png" width="48" height="48" style="border-radius: 50%;" /><br><b>@Lxchoooo</b></a> | 🧪 Daily patch testing, runtime APK validation, and bug diagnostics. |
 | <a href="https://github.com/ll0r3nt3"><img src="https://github.com/ll0r3nt3.png" width="48" height="48" style="border-radius: 50%;" /><br><b>@ll0r3nt3</b></a> | 💡 Proposed DPI Resource Slimmer feature request ([#16](https://github.com/kveld9/kveld-morphe-patches/issues/16)). |
-| <a href="https://github.com/aidenking2102-dotcom"><img src="https://github.com/aidenking2102-dotcom.png" width="48" height="48" style="border-radius: 50%;" /><br><b>@aidenking2102-dotcom</b></a> | 💡 Proposed TikTok Feed Ad Blocker feature request ([#23](https://github.com/kveld9/kveld-morphe-patches/issues/23)). |
+| <a href="https://github.com/aidenking2102-dotcom"><img src="https://github.com/aidenking2102-dotcom.png" width="48" height="48" style="border-radius: 50%;" /><br><b>@aidenking2102-dotcom</b></a> | 💡 Proposed TikTok Feed Ad Blocker ([#23](https://github.com/kveld9/kveld-morphe-patches/issues/23)) and Playback Speed Setter ([#25](https://github.com/kveld9/kveld-morphe-patches/issues/25)) feature requests. |
+| <a href="https://github.com/raxelbyte"><img src="https://github.com/raxelbyte.png" width="48" height="48" style="border-radius: 50%;" /><br><b>@raxelbyte</b></a> | 💡 Proposed Gboard Lite Clipboard Enhancements feature request ([#17](https://github.com/kveld9/kveld-morphe-patches/issues/17)). |
 
 ---
 

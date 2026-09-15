@@ -35,8 +35,11 @@ import org.robolectric.shadows.ShadowToast;
 public class FeatureGatePagesTest {
     @Before public void resetSharedState() throws Exception {
         Utils.setContext(RuntimeEnvironment.getApplication());
+        Utils.awaitBackgroundTasksForTests();
+        FeatureGateDetailFragment.awaitChangesForTests();
         FeatureGateCatalog.awaitForTests();
         Shadows.shadowOf(Looper.getMainLooper()).idle();
+        FeatureGateDetailFragment.setDetailChangeTestHookForTests(null);
         FeatureGateCatalog.resetForTests();
         FeatureGateLabSession.resetForTests();
         FeatureGateLabUndo.resetForTests();
@@ -46,6 +49,68 @@ public class FeatureGatePagesTest {
     @Test public void darkLabSearchAndOverrideEditorWork() throws Exception { exercise("dark"); }
     @Test @Config(qualifiers = "w480dp-h960dp-notnight-mdpi")
     public void lightLabSearchAndOverrideEditorWork() throws Exception { exercise("light"); }
+
+    @Test public void theCustomValueDialogKeepsItsActionHierarchyInTheDark() throws Exception {
+        assertCustomValueActionsAreRanked();
+    }
+
+    @Test @Config(qualifiers = "w480dp-h960dp-notnight-mdpi")
+    public void theCustomValueDialogKeepsItsActionHierarchyInTheLight() throws Exception {
+        assertCustomValueActionsAreRanked();
+    }
+
+    /**
+     * The shared dialog styling ranks the actions, then the Lab's own tree walk used to repaint
+     * every Button with the accent, so Use value and Cancel came out looking equally primary on
+     * a dialog whose whole point is that one of the two is the unverified one.
+     */
+    private static void assertCustomValueActionsAreRanked() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            FeatureGateLabStore.resetAllLabData();
+            FeatureGateLabSession.begin();
+            FeatureGateLabStore.setMasterEnabled(true);
+            var entry = new FeatureGateCatalog.Entry("ranked_gate", "Ranked gate", "abmock",
+                    "INT", true, true, List.of("0", "1"), List.of(), List.of(), "", "",
+                    true, "1", "INT");
+            var cached = FeatureGateCatalog.class.getDeclaredField("cachedSnapshot");
+            cached.setAccessible(true);
+            cached.set(null, new FeatureGateCatalog.Snapshot(
+                    List.of(entry), Map.of(entry.identity(), entry), 0, 0, true));
+
+            FeatureGateDetailFragment detail =
+                    FeatureGateDetailFragment.forEntry("abmock", "ranked_gate", "INT");
+            attach(activity, detail);
+
+            java.lang.reflect.Method showCustom =
+                    FeatureGateDetailFragment.class.getDeclaredMethod("showCustomValue");
+            showCustom.setAccessible(true);
+            showCustom.invoke(detail);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            android.app.AlertDialog dialog =
+                    (android.app.AlertDialog) org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            assertNotNull("the custom value dialog never opened", dialog);
+            android.widget.Button use = dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE);
+            android.widget.Button cancel = dialog.getButton(android.app.AlertDialog.BUTTON_NEGATIVE);
+            assertNotNull(use);
+            assertNotNull(cancel);
+
+            assertEquals("Use value lost the accent", SettingsUi.accent(),
+                    use.getCurrentTextColor());
+            assertEquals("Cancel was promoted to a positive action", SettingsUi.textSecondary(),
+                    cancel.getCurrentTextColor());
+            assertNotEquals("both actions read as equally primary",
+                    use.getCurrentTextColor(), cancel.getCurrentTextColor());
+
+            // The state list has to survive too, or a disabled action stops looking disabled.
+            use.setEnabled(false);
+            assertNotEquals("the positive action kept its live colour while disabled",
+                    SettingsUi.accent(), use.getCurrentTextColor());
+            dialog.dismiss();
+        }
+    }
 
     @Test public void labFiltersExposeActionRolesCountsAndTheFocusedSourceSelection()
             throws Exception {
@@ -341,7 +406,7 @@ public class FeatureGatePagesTest {
             ShadowToast.reset();
             control.performClick();
             // Saving an override goes through the journal now, off this thread and back.
-            Utils.awaitBackgroundTasksForTests();
+            FeatureGateDetailFragment.awaitChangesForTests();
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             assertTrue(FeatureGateLabStore.rule("abmock", entry.key, "INT").enabled);
             assertEquals("Feature gate override saved", ShadowToast.getTextOfLatestToast());
@@ -381,11 +446,87 @@ public class FeatureGatePagesTest {
                 activity.getFragmentManager().executePendingTransactions();
                 assertNull(detail.getActivity());
             }
-            Utils.awaitBackgroundTasksForTests();
+            FeatureGateDetailFragment.awaitChangesForTests();
             Shadows.shadowOf(Looper.getMainLooper()).idle();
 
             assertTrue(FeatureGateLabStore.rule("abmock", entry.key, "INT").enabled);
             assertEquals("Feature gate override saved", ShadowToast.getTextOfLatestToast());
+        }
+    }
+
+    @Test public void rapidDetailChangesStayOrderedAndShareOneUndoPoint() throws Exception {
+        for (boolean firstFails : new boolean[]{false, true, false}) {
+            try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+                Activity activity = owner.get();
+                Utils.setContext(activity);
+                FeatureGateLabStore.resetAllLabData();
+                FeatureGateLabStore.setMasterEnabled(true);
+                var entry = new FeatureGateCatalog.Entry("ordered_gate", "Ordered gate", "abmock",
+                        "INT", true, true, List.of("0", "1", "2"), List.of(), List.of(), "", "",
+                        true, "0", "INT");
+                var cached = FeatureGateCatalog.class.getDeclaredField("cachedSnapshot");
+                cached.setAccessible(true);
+                cached.set(null, new FeatureGateCatalog.Snapshot(
+                        List.of(entry), Map.of(entry.identity(), entry), 0, 0, true));
+                FeatureGateLabUndo.saveRule("abmock", entry.key, entry.type, "0", true);
+
+                FeatureGateDetailFragment detail = FeatureGateDetailFragment.forEntry(
+                        entry.manager, entry.key, entry.type);
+                attach(activity, detail);
+                Spinner values = find(detail.getView(), Spinner.class);
+                assertNotNull(values);
+                var firstStarted = new java.util.concurrent.CountDownLatch(1);
+                var releaseFirst = new java.util.concurrent.CountDownLatch(1);
+                var secondFinished = new java.util.concurrent.CountDownLatch(1);
+                FeatureGateDetailFragment.setDetailChangeTestHookForTests(
+                        new FeatureGateDetailFragment.DetailChangeTestHook() {
+                            @Override public void before(long generation) throws Exception {
+                                if (generation != 1) return;
+                                firstStarted.countDown();
+                                if (!releaseFirst.await(2, java.util.concurrent.TimeUnit.SECONDS)) {
+                                    throw new AssertionError("the delayed save was not released");
+                                }
+                                if (firstFails) throw new java.io.IOException("delayed first save failed");
+                            }
+
+                            @Override public void after(long generation) {
+                                if (generation == 2) secondFinished.countDown();
+                            }
+                        });
+
+                boolean secondOvertookFirst = false;
+                try {
+                    ShadowToast.reset();
+                    values.setSelection(1);
+                    assertTrue("the first save did not reach its delay",
+                            firstStarted.await(2, java.util.concurrent.TimeUnit.SECONDS));
+                    values.setSelection(2);
+                    secondOvertookFirst = secondFinished.await(
+                            300, java.util.concurrent.TimeUnit.MILLISECONDS);
+                } finally {
+                    releaseFirst.countDown();
+                    FeatureGateDetailFragment.awaitChangesForTests();
+                    Shadows.shadowOf(Looper.getMainLooper()).idle();
+                    FeatureGateDetailFragment.setDetailChangeTestHookForTests(null);
+                }
+
+                assertFalse("the second save ran around the delayed first save",
+                        secondOvertookFirst);
+                FeatureGateLabStore.Rule stored = FeatureGateLabStore.rule(
+                        "abmock", entry.key, entry.type);
+                assertNotNull(stored);
+                assertEquals("the last tap did not win in storage", "2", stored.value);
+                var ruleField = FeatureGateDetailFragment.class.getDeclaredField("rule");
+                ruleField.setAccessible(true);
+                assertEquals("a stale callback repainted the detail screen", "2",
+                        ((FeatureGateLabStore.Rule) ruleField.get(detail)).value);
+                assertEquals(2, values.getSelectedItemPosition());
+                assertEquals("Feature gate override saved", ShadowToast.getTextOfLatestToast());
+
+                FeatureGateLabUndo.undo();
+                assertEquals("Undo did not restore the value from before both taps", "0",
+                        FeatureGateLabStore.rule("abmock", entry.key, entry.type).value);
+            }
         }
     }
 
@@ -428,6 +569,218 @@ public class FeatureGatePagesTest {
         }
     }
 
+    @Test @Config(fontScale = 1f)
+    public void structuredEditorsHaveOneUniqueNamedInputAtNormalTextSize() throws Exception {
+        assertStructuredEditorsAreNamed(1f);
+    }
+
+    @Test @Config(fontScale = 2f)
+    public void structuredEditorsHaveOneUniqueNamedInputAtDoubleTextSize() throws Exception {
+        assertStructuredEditorsAreNamed(2f);
+    }
+
+    @Test @Config(fontScale = 1f)
+    public void structuredBooleanFieldsHaveOneNamedSwitchAtNormalTextSize() throws Exception {
+        assertStructuredTogglesAreNamed(1f);
+    }
+
+    @Test @Config(fontScale = 2f)
+    public void structuredBooleanFieldsHaveOneNamedSwitchAtDoubleTextSize() throws Exception {
+        assertStructuredTogglesAreNamed(2f);
+    }
+
+    /**
+     * A generated Boolean field used to leave three labels in traversal for one value: the
+     * readable title, the raw field name, and the raw field name again as the Switch's content
+     * description. The text fields beside it had already been reduced to one named editor.
+     */
+    private static void assertStructuredTogglesAreNamed(float expectedScale) throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            assertEquals(expectedScale,
+                    activity.getResources().getConfiguration().fontScale, 0.01f);
+            FeatureGateLabStore.resetAllLabData();
+            FeatureGateLabSession.begin();
+            FeatureGateLabStore.setMasterEnabled(true);
+            var entry = new FeatureGateCatalog.Entry("boolean_gate", "Boolean gate",
+                    FeatureGateLabStore.MANAGER_SETTINGS_MANAGER, "OBJECT", true, true,
+                    List.of(), List.of(), List.of(), "", "", false, null, null,
+                    StructuredConfigControllerTest.TwoBooleans.class.getName());
+            var cached = FeatureGateCatalog.class.getDeclaredField("cachedSnapshot");
+            cached.setAccessible(true);
+            cached.set(null, new FeatureGateCatalog.Snapshot(
+                    List.of(entry), Map.of(entry.identity(), entry), 0, 0, true));
+
+            FeatureGateDetailFragment detail = FeatureGateDetailFragment.forEntry(
+                    FeatureGateLabStore.MANAGER_SETTINGS_MANAGER, "boolean_gate", "OBJECT");
+            attach(activity, detail);
+            java.util.List<Switch> all = new java.util.ArrayList<>();
+            collectSwitches(detail.getView(), all);
+            // The page carries the gate's own master switch too. A generated field row is a
+            // title, a raw name and the control, in that order, which is what separates them.
+            java.util.List<Switch> toggles = new java.util.ArrayList<>();
+            for (Switch candidate : all) {
+                ViewGroup parent = (ViewGroup) candidate.getParent();
+                if (parent.getChildCount() >= 3
+                        && parent.getChildAt(0) instanceof TextView
+                        && parent.getChildAt(1) instanceof TextView
+                        && parent.getChildAt(2) == candidate) {
+                    toggles.add(candidate);
+                }
+            }
+            assertEquals("the fixture did not build one switch per Boolean field",
+                    2, toggles.size());
+
+            java.util.Set<Integer> ids = new java.util.HashSet<>();
+            java.util.Set<String> names = new java.util.HashSet<>();
+            for (Switch toggle : toggles) {
+                ViewGroup field = (ViewGroup) toggle.getParent();
+                TextView label = (TextView) field.getChildAt(0);
+                TextView technical = (TextView) field.getChildAt(1);
+
+                assertNotEquals("a generated switch has no address for its label",
+                        View.NO_ID, toggle.getId());
+                assertTrue("two generated switches share the same view id", ids.add(toggle.getId()));
+                assertEquals("the field label is not connected to its switch",
+                        toggle.getId(), label.getLabelFor());
+                assertEquals("the field label is a second accessibility stop",
+                        View.IMPORTANT_FOR_ACCESSIBILITY_NO,
+                        label.getImportantForAccessibility());
+                assertEquals("the technical field label is a second accessibility stop",
+                        View.IMPORTANT_FOR_ACCESSIBILITY_NO,
+                        technical.getImportantForAccessibility());
+                assertFalse(label.isFocusable());
+                assertFalse(technical.isFocusable());
+                assertNull("a content description replaced what the switch reports",
+                        toggle.getContentDescription());
+
+                android.view.accessibility.AccessibilityNodeInfo node =
+                        toggle.createAccessibilityNodeInfo();
+                assertEquals("the generated switch stopped announcing itself as a switch",
+                        Switch.class.getName(), node.getClassName());
+                assertNull(node.getContentDescription());
+                String spokenName = String.valueOf(node.getText());
+                assertTrue("the node omits the readable field name",
+                        spokenName.contains(label.getText()));
+                assertTrue("the node omits the exact field identifier or required type",
+                        spokenName.contains(technical.getText()));
+                assertTrue("two generated switches read the same", names.add(spokenName));
+                assertEquals(toggle.isChecked(), node.isChecked());
+                assertTrue(node.isEnabled());
+                assertEquals("the switch lost its click action", 1, node.getActionList().stream()
+                        .filter(action -> action.getId() == android.view.accessibility
+                                .AccessibilityNodeInfo.ACTION_CLICK)
+                        .count());
+
+                // The state has to survive being switched and being disabled, which is where a
+                // content description would have frozen the old value in place.
+                toggle.setChecked(!toggle.isChecked());
+                assertEquals(toggle.isChecked(),
+                        toggle.createAccessibilityNodeInfo().isChecked());
+                toggle.setEnabled(false);
+                android.view.accessibility.AccessibilityNodeInfo disabled =
+                        toggle.createAccessibilityNodeInfo();
+                assertFalse(disabled.isEnabled());
+                assertEquals(spokenName, String.valueOf(disabled.getText()));
+            }
+            assertEquals("the two Boolean fields do not read differently", 2, names.size());
+        }
+    }
+
+    private static void collectSwitches(View view, java.util.List<Switch> found) {
+        if (view instanceof Switch) {
+            found.add((Switch) view);
+        } else if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int index = 0; index < group.getChildCount(); index++) {
+                collectSwitches(group.getChildAt(index), found);
+            }
+        }
+    }
+
+    private static void assertStructuredEditorsAreNamed(float expectedScale) throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            assertEquals(expectedScale,
+                    activity.getResources().getConfiguration().fontScale, 0.01f);
+            FeatureGateLabStore.resetAllLabData();
+            FeatureGateLabSession.begin();
+            FeatureGateLabStore.setMasterEnabled(true);
+            var entry = new FeatureGateCatalog.Entry("object_gate", "Object gate",
+                    FeatureGateLabStore.MANAGER_SETTINGS_MANAGER, "OBJECT", true, true,
+                    List.of(), List.of(), List.of(), "", "", false, null, null,
+                    StructuredConfigControllerTest.Config.class.getName());
+            var cached = FeatureGateCatalog.class.getDeclaredField("cachedSnapshot");
+            cached.setAccessible(true);
+            cached.set(null, new FeatureGateCatalog.Snapshot(
+                    List.of(entry), Map.of(entry.identity(), entry), 0, 0, true));
+
+            FeatureGateDetailFragment detail = FeatureGateDetailFragment.forEntry(
+                    FeatureGateLabStore.MANAGER_SETTINGS_MANAGER, "object_gate", "OBJECT");
+            attach(activity, detail);
+            java.util.List<EditText> inputs = new java.util.ArrayList<>();
+            collect(detail.getView(), inputs);
+            assertTrue("the fixture built no structured text inputs", inputs.size() > 1);
+            java.util.Set<Integer> ids = new java.util.HashSet<>();
+
+            for (EditText input : inputs) {
+                ViewGroup field = (ViewGroup) input.getParent();
+                TextView label = (TextView) field.getChildAt(0);
+                TextView technical = (TextView) field.getChildAt(1);
+                assertNotEquals("a structured input has no address for its label",
+                        View.NO_ID, input.getId());
+                assertTrue("two structured inputs share the same view id", ids.add(input.getId()));
+                assertEquals("the field label is not connected to its input",
+                        input.getId(), label.getLabelFor());
+                assertEquals("the field label is a second accessibility stop",
+                        View.IMPORTANT_FOR_ACCESSIBILITY_NO,
+                        label.getImportantForAccessibility());
+                assertEquals("the technical field label is a second accessibility stop",
+                        View.IMPORTANT_FOR_ACCESSIBILITY_NO,
+                        technical.getImportantForAccessibility());
+                assertFalse(label.isFocusable());
+                assertFalse(technical.isFocusable());
+                assertTrue(input.isFocusable());
+                assertNull("the accessible name replaced the structured value",
+                        input.getContentDescription());
+
+                android.view.accessibility.AccessibilityNodeInfo node =
+                        input.createAccessibilityNodeInfo();
+                String spokenName = String.valueOf(node.getHintText());
+                assertTrue("the node omits the readable field name",
+                        spokenName.contains(label.getText()));
+                assertTrue("the node omits the exact field identifier or required type",
+                        spokenName.contains(technical.getText()));
+                assertEquals(input.getText().toString(), String.valueOf(node.getText()));
+                assertEquals(input.getInputType(), node.getInputType());
+                assertTrue(node.isEditable());
+                assertTrue(node.isEnabled());
+                assertNull(node.getContentDescription());
+
+                input.setEnabled(false);
+                android.view.accessibility.AccessibilityNodeInfo disabled =
+                        input.createAccessibilityNodeInfo();
+                assertFalse(disabled.isEnabled());
+                assertEquals(input.getText().toString(), String.valueOf(disabled.getText()));
+                assertEquals(input.getInputType(), disabled.getInputType());
+                assertEquals(spokenName, String.valueOf(disabled.getHintText()));
+            }
+        }
+    }
+
+    private static void collect(View view, java.util.List<EditText> found) {
+        if (view instanceof EditText) {
+            found.add((EditText) view);
+        } else if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int index = 0; index < group.getChildCount(); index++) {
+                collect(group.getChildAt(index), found);
+            }
+        }
+    }
+
     @Test public void enablingAnArrayOverrideKeepsItsGeneratedValues() throws Exception {
         try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
             FeatureGateDetailFragment detail = arrayDetail(owner.get(), false, null);
@@ -438,7 +791,7 @@ public class FeatureGatePagesTest {
             Switch force = find(detail.getView(), Switch.class);
             assertFalse(force.isChecked());
             force.performClick();
-            Utils.awaitBackgroundTasksForTests();
+            FeatureGateDetailFragment.awaitChangesForTests();
             Shadows.shadowOf(Looper.getMainLooper()).idle();
 
             FeatureGateLabStore.Rule saved = FeatureGateLabStore.rule(
@@ -464,7 +817,7 @@ public class FeatureGatePagesTest {
             assertButtonRole(save);
             ShadowToast.reset();
             save.performClick();
-            Utils.awaitBackgroundTasksForTests();
+            FeatureGateDetailFragment.awaitChangesForTests();
             Shadows.shadowOf(Looper.getMainLooper()).idle();
 
             FeatureGateLabStore.Rule saved = FeatureGateLabStore.rule(

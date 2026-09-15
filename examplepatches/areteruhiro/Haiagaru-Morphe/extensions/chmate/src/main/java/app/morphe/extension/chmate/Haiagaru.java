@@ -3,6 +3,8 @@ package app.morphe.extension.chmate;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Application;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Context;
@@ -34,6 +36,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -68,11 +71,14 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.regex.Pattern;
 
 /** Runtime component of the Haiagaru patch, embedded in ChMate. */
 public final class Haiagaru {
     private static final String LOG_TAG = "Haiagaru";
+    private static final Map<Activity, PopupWindow> SETTINGS_BUTTON_POPUPS =
+            new WeakHashMap<>();
     private static final String PREFS_NAME =
             "io.github.areteruhiro.chmate.haiagaru.ui-config";
     private static final String BUTTON_TAG = "haiagaru.settings.button";
@@ -83,6 +89,11 @@ public final class Haiagaru {
     private static final String DEFAULT_MONAKEY_FILE = "2chapi";
     private static final String DEFAULT_MONAKEY_KEY = "2chapi_monakey";
     private static final String CHMATE_SEARCH_URLS_KEY = "searchUrls1";
+    private static final String CHMATE_ABBREV_SINGLE_ID_KEY = "abbrevSingleId";
+    private static final String CHMATE_COPIPE_NG_KEY = "copipeNg";
+    private static final String CHMATE_COPIPE_NG_AR_KEY = "copipeNgAR";
+    private static final String CHMATE_COPIPE_NG2_KEY = "copipeNg2";
+    private static final String CHMATE_ARASHI_NG_KEY = "arashiNg";
     private static final String ARCHIVE_ROUTE_TEMPLATES_KEY = "archiveRouteTemplates";
     private static final String ARCHIVE_PRESET_MARKER = "【Haiagaru】";
     private static final String ARCHIVE_PRESET_URL =
@@ -113,6 +124,10 @@ public final class Haiagaru {
     );
     private static final Pattern LEGACY_THREAD_READ_PATH = Pattern.compile(
             "^/test/read\\.cgi/([^/]+)/(\\d{9,10})(?:/.*)?$",
+            Pattern.CASE_INSENSITIVE
+    );
+    private static final Pattern ITEST_SERVER_THREAD_READ_PATH = Pattern.compile(
+            "^/([a-z0-9_-]+)/test/read\\.cgi/([^/]+)/(\\d{9,10})(/.*)?$",
             Pattern.CASE_INSENSITIVE
     );
     private static final Pattern LEGACY_THREAD_DAT_PATH = Pattern.compile(
@@ -379,7 +394,10 @@ public final class Haiagaru {
                 Locale.US
         ).format(now);
         StringWriter stackTrace = new StringWriter();
-        error.printStackTrace(new PrintWriter(stackTrace));
+        Throwable reportError = error == null
+                ? new RuntimeException("Unknown uncaught exception")
+                : error;
+        reportError.printStackTrace(new PrintWriter(stackTrace));
 
         String versionName = "unknown";
         long versionCode = -1;
@@ -403,8 +421,13 @@ public final class Haiagaru {
                 + "Device: " + Build.MANUFACTURER + " " + Build.MODEL + "\n"
                 + "Thread: " + thread.getName() + "\n\n"
                 + stackTrace;
-        String fileName = "chmate-crash-" + fileTimestamp + ".txt";
+        writeDownloadLog(context, "chmate-crash-" + fileTimestamp + ".txt", report);
+    }
 
+    /** Writes a UTF-8 report to Downloads/Haiagaru on every supported Android release. */
+    private static void writeDownloadLog(Context context, String fileName, String report)
+            throws IOException {
+        if (context == null) throw new IOException("No context available for Downloads log");
         if (Build.VERSION.SDK_INT >= 29) {
             ContentValues values = new ContentValues();
             values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
@@ -773,7 +796,39 @@ public final class Haiagaru {
 
     public static String rewrite5chUrl(String original) {
         if (original == null || !isChtoioEnabled()) return original;
-        return original.replace("5ch.net", "5ch.io");
+        String rewritten = original.replace("5ch.net", "5ch.io");
+        try {
+            Uri uri = Uri.parse(rewritten);
+            String host = uri.getHost();
+            String path = uri.getPath();
+            if (host == null || path == null
+                    || !host.equalsIgnoreCase("itest.5ch.io")) {
+                return rewritten;
+            }
+
+            java.util.regex.Matcher matcher = ITEST_SERVER_THREAD_READ_PATH.matcher(path);
+            if (!matcher.matches()) return rewritten;
+
+            String suffix = matcher.group(4);
+            StringBuilder normalized = new StringBuilder()
+                    .append("https://")
+                    .append(matcher.group(1))
+                    .append(".5ch.io/test/read.cgi/")
+                    .append(matcher.group(2))
+                    .append('/')
+                    .append(matcher.group(3))
+                    .append(suffix == null || suffix.isEmpty() ? "/" : suffix);
+            if (uri.getEncodedQuery() != null) {
+                normalized.append('?').append(uri.getEncodedQuery());
+            }
+            if (uri.getEncodedFragment() != null) {
+                normalized.append('#').append(uri.getEncodedFragment());
+            }
+            return normalized.toString();
+        } catch (Throwable error) {
+            Log.w(LOG_TAG, "Unable to normalize itest thread URL", error);
+            return rewritten;
+        }
     }
 
     /**
@@ -782,16 +837,39 @@ public final class Haiagaru {
      * a dedicated parser in ChMate. The official kako archive and 2ch.sc mirror
      * remain available through the archived-thread search preset.
      */
+    public static boolean loadLiveTalkDat(String url, File destination) throws IOException {
+        return ArchivedThreadImporter.loadLiveTalkDat(url, destination);
+    }
+
     public static void rewriteLegacyThreadIntent(Activity activity) {
-        if (activity == null || !isChtoioEnabled()) return;
+        if (activity == null) return;
         Intent intent = activity.getIntent();
         if (intent == null || intent.getData() == null) return;
         String original = intent.getData().toString();
-        String rewritten = rewriteLegacyThreadUrl(original);
+        boolean talkThread = ArchivedThreadImporter.isTalkThreadUrl(original);
+        if (talkThread) {
+            try {
+                if ("0.8.10.243 dev".equals(activity.getPackageManager()
+                        .getPackageInfo(activity.getPackageName(), 0).versionName)) {
+                    // 243 fetches inside the native download lock, including refresh.
+                    return;
+                }
+            } catch (android.content.pm.PackageManager.NameNotFoundException ignored) {
+            }
+        }
+        if (!talkThread && !isChtoioEnabled()) return;
+        String rewritten = talkThread ? original : rewriteLegacyThreadUrl(original);
         boolean archiveRetry = intent.getBooleanExtra("haiagaru.archive.retry", false);
-        if (!archiveRetry && isAutomaticDatEnabled(activity) && isArchivedThreadUrl(original)
+        if (archiveRetry) {
+            // The retry marker is valid only for the Activity opened immediately
+            // after publishing a DAT. Do not let ChMate copy it into later intents.
+            intent.removeExtra("haiagaru.archive.retry");
+        }
+        boolean shouldImport = talkThread
+                || (isAutomaticDatEnabled(activity) && isArchivedThreadUrl(original));
+        if (!archiveRetry && shouldImport
                 && ArchivedThreadImporter.importIfNeeded(activity, original, rewritten)) {
-            Log.i(LOG_TAG, "Handling legacy thread through the local DAT cache: " + original);
+            Log.i(LOG_TAG, "Handling thread through the local DAT cache: " + original);
             // ChMate would otherwise continue its regular network load while
             // the importer is fetching the same .io DAT. The importer opens a
             // retry Activity after publishing the local cache.
@@ -821,27 +899,28 @@ public final class Haiagaru {
 
     public static String rewriteLegacyThreadUrl(String original) {
         if (original == null || original.isEmpty() || !isChtoioEnabled()) return original;
+        String normalized = rewrite5chUrl(original);
         try {
-            Uri uri = Uri.parse(original);
+            Uri uri = Uri.parse(normalized);
             String host = uri.getHost();
             String path = uri.getPath();
-            if (host == null || path == null) return original;
+            if (host == null || path == null) return normalized;
             java.util.regex.Matcher matcher = LEGACY_THREAD_READ_PATH.matcher(path);
             if (!matcher.matches()) {
                 matcher = LEGACY_THREAD_DAT_PATH.matcher(path);
             }
-            if (!matcher.matches()) return original;
+            if (!matcher.matches()) return normalized;
 
             String normalizedHost = host.toLowerCase(Locale.ROOT);
             if (!isArchivedThreadCandidate(normalizedHost, matcher.group(2))) {
-                return original;
+                return normalized;
             }
 
             return "https://itest.5ch.io/test/read.cgi/"
                     + matcher.group(1) + "/" + matcher.group(2) + "/";
         } catch (Throwable error) {
             Log.w(LOG_TAG, "Unable to rewrite legacy thread URL", error);
-            return original;
+            return normalized;
         }
     }
 
@@ -1023,11 +1102,11 @@ public final class Haiagaru {
     public static void hideAdView(View view) {
         if (view == null || !shouldHideAds()) return;
 
-        collapseAdView(view);
-        view.post(() -> collapseAdView(view));
-        view.postDelayed(() -> collapseAdView(view), 300);
-        view.postDelayed(() -> collapseAdView(view), 1000);
-        view.postDelayed(() -> collapseAdView(view), 2500);
+        safeCollapseAdView(view);
+        safePostCollapseAdView(view, 0);
+        safePostCollapseAdView(view, 300);
+        safePostCollapseAdView(view, 1000);
+        safePostCollapseAdView(view, 2500);
     }
 
     private static void collapseAdView(View view) {
@@ -1036,6 +1115,26 @@ public final class Haiagaru {
         if (params != null) {
             params.height = 0;
             view.setLayoutParams(params);
+        }
+    }
+
+    private static void safeCollapseAdView(View view) {
+        try {
+            collapseAdView(view);
+        } catch (Throwable error) {
+            Log.w(LOG_TAG, "Unable to collapse ChMate ad view", error);
+        }
+    }
+
+    private static void safePostCollapseAdView(View view, long delayMillis) {
+        try {
+            if (delayMillis <= 0) {
+                view.post(() -> safeCollapseAdView(view));
+            } else {
+                view.postDelayed(() -> safeCollapseAdView(view), delayMillis);
+            }
+        } catch (Throwable error) {
+            Log.w(LOG_TAG, "Unable to schedule ChMate ad view collapse", error);
         }
     }
 
@@ -1112,35 +1211,63 @@ public final class Haiagaru {
     public static void onSettingsResume(Activity activity) {
         if (activity == null) return;
         applicationContext = activity.getApplicationContext();
+        PopupWindow existing = SETTINGS_BUTTON_POPUPS.get(activity);
+        if (existing != null && existing.isShowing()) return;
 
         View decorView = activity.getWindow().getDecorView();
-        if (!(decorView instanceof ViewGroup)) return;
-        ViewGroup overlayHost = (ViewGroup) decorView;
-        if (overlayHost.findViewWithTag(BUTTON_TAG) != null) return;
+        if (decorView == null) return;
 
         Button button = new Button(activity);
         button.setTag(BUTTON_TAG);
         button.setText("Haiagaru");
         button.setAllCaps(false);
+        button.setOnClickListener(view -> view.post(() -> showSettingsDialog(activity)));
 
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+        PopupWindow popup = new PopupWindow(
+                button,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
-                Gravity.TOP | Gravity.END
+                false
         );
-        params.topMargin = statusBarHeight(activity) + dp(activity, 5);
-        params.rightMargin = dp(activity, 10);
-        overlayHost.addView(button, params);
+        popup.setTouchable(true);
+        popup.setOutsideTouchable(false);
+        popup.setClippingEnabled(false);
+        popup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        if (Build.VERSION.SDK_INT >= 21) {
+            popup.setElevation(dp(activity, 16));
+        }
+        SETTINGS_BUTTON_POPUPS.put(activity, popup);
 
-        // Some ChMate generations render their toolbar in a sibling with a
-        // higher Z order. Keep the injected entry above it so it remains both
-        // visible and touchable.
-        button.setElevation(dp(activity, 16));
-        button.bringToFront();
-        overlayHost.requestLayout();
-        overlayHost.invalidate();
+        decorView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View view) {
+            }
 
-        button.setOnClickListener(view -> showSettingsDialog(activity));
+            @Override
+            public void onViewDetachedFromWindow(View view) {
+                PopupWindow stored = SETTINGS_BUTTON_POPUPS.remove(activity);
+                if (stored != null && stored.isShowing()) stored.dismiss();
+            }
+        });
+        decorView.post(() -> {
+            if (activity.isFinishing()
+                    || (Build.VERSION.SDK_INT >= 17 && activity.isDestroyed())) {
+                SETTINGS_BUTTON_POPUPS.remove(activity);
+                return;
+            }
+            if (popup.isShowing()) return;
+            try {
+                popup.showAtLocation(
+                        decorView,
+                        Gravity.TOP | Gravity.END,
+                        dp(activity, 10),
+                        statusBarHeight(activity) + dp(activity, 5)
+                );
+            } catch (Throwable error) {
+                SETTINGS_BUTTON_POPUPS.remove(activity);
+                Log.w(LOG_TAG, "Unable to show Haiagaru settings popup button", error);
+            }
+        });
     }
 
     private static void showSettingsDialog(Activity activity) {
@@ -1214,17 +1341,82 @@ public final class Haiagaru {
                 preferences.getBoolean("automaticDat", true)
         );
 
-        EditText archiveRouteTemplates = addArchiveRouteControl(
-                activity,
-                layout,
-                preferences.getString(
-                        ARCHIVE_ROUTE_TEMPLATES_KEY,
-                        DEFAULT_ARCHIVE_ROUTE_TEMPLATES
-                )
+        final SharedPreferences chMatePreferences =
+                PreferenceManager.getDefaultSharedPreferences(activity);
+
+        boolean legacyPlusSupportedValue = false;
+        Switch abbrevSingleIdValue = null;
+        Switch copipeNg2Value = null;
+        Switch arashiNgValue = null;
+        try {
+            legacyPlusSupportedValue = supportsLegacyChMatePlus(activity);
+            if (legacyPlusSupportedValue) {
+                TextView plusDescription = new TextView(activity);
+                plusDescription.setText(text(
+                        "ChMate+互換機能（191/226/243 dev）\n"
+                                + "アプリに含まれている表示・省略機能をここから切り替えます。",
+                        "ChMate+ compatibility (191/226/243 dev)\n"
+                                + "Toggle the built-in display and abbreviation features here."
+                ));
+                plusDescription.setTextSize(13);
+                layout.addView(plusDescription, rowParams(activity));
+                abbrevSingleIdValue = addSwitch(
+                        layout,
+                        activity,
+                        text("単発ID表示を省略", "Abbreviate single-ID display"),
+                        chMatePreferences.getBoolean(CHMATE_ABBREV_SINGLE_ID_KEY, false)
+                );
+                copipeNg2Value = addSwitch(
+                        layout,
+                        activity,
+                        text("コピペ省略2", "Copy-paste abbreviation 2"),
+                        chMatePreferences.getBoolean(CHMATE_COPIPE_NG2_KEY, false)
+                );
+                arashiNgValue = addSwitch(
+                        layout,
+                        activity,
+                        text("荒らし省略", "Troll abbreviation"),
+                        chMatePreferences.getBoolean(CHMATE_ARASHI_NG_KEY, false)
+                );
+            }
+        } catch (Throwable error) {
+            Log.w(LOG_TAG, "Unable to add ChMate+ compatibility controls", error);
+            legacyPlusSupportedValue = false;
+            abbrevSingleIdValue = null;
+            copipeNg2Value = null;
+            arashiNgValue = null;
+        }
+        final boolean legacyPlusSupported = legacyPlusSupportedValue;
+        final Switch abbrevSingleId = abbrevSingleIdValue;
+        final Switch copipeNg2 = copipeNg2Value;
+        final Switch arashiNg = arashiNgValue;
+
+        EditText archiveRouteTemplatesValue = null;
+        try {
+            archiveRouteTemplatesValue = addArchiveRouteControl(
+                    activity,
+                    layout,
+                    preferences.getString(
+                            ARCHIVE_ROUTE_TEMPLATES_KEY,
+                            DEFAULT_ARCHIVE_ROUTE_TEMPLATES
+                    )
+            );
+        } catch (Throwable error) {
+            Log.w(LOG_TAG, "Unable to add automatic DAT route controls", error);
+        }
+        final EditText archiveRouteTemplates = archiveRouteTemplatesValue;
+        addOptionalSettingsSection(
+                "archived-thread preset",
+                () -> addArchiveSearchPresetControl(activity, layout)
         );
-        addArchiveSearchPresetControl(activity, layout);
-        addPackageMigrationControl(activity, layout);
-        addBoardDuplicateCleanupControl(activity, layout);
+        addOptionalSettingsSection(
+                "package data migration",
+                () -> addPackageMigrationControl(activity, layout)
+        );
+        addOptionalSettingsSection(
+                "duplicate board cleanup",
+                () -> addBoardDuplicateCleanupControl(activity, layout)
+        );
 
         ScrollView scrollView = new ScrollView(activity);
         scrollView.addView(layout);
@@ -1235,6 +1427,49 @@ public final class Haiagaru {
                 .setCancelable(false)
                 .setView(scrollView)
                 .setPositiveButton(text("OK", "OK"), (dialog, which) -> {
+                    boolean legacyPlusChanged = false;
+                    if (legacyPlusSupported) {
+                        SharedPreferences.Editor chMateEditor = chMatePreferences.edit();
+                        if (abbrevSingleId != null) {
+                            boolean checked = abbrevSingleId.isChecked();
+                            legacyPlusChanged |= checked != chMatePreferences.getBoolean(
+                                    CHMATE_ABBREV_SINGLE_ID_KEY,
+                                    false
+                            );
+                            chMateEditor.putBoolean(CHMATE_ABBREV_SINGLE_ID_KEY, checked);
+                        }
+                        if (copipeNg2 != null) {
+                            boolean checked = copipeNg2.isChecked();
+                            legacyPlusChanged |= checked != chMatePreferences.getBoolean(
+                                    CHMATE_COPIPE_NG2_KEY,
+                                    false
+                            );
+                            chMateEditor.putBoolean(CHMATE_COPIPE_NG2_KEY, checked);
+                            if (checked) {
+                                legacyPlusChanged |= !chMatePreferences.getBoolean(
+                                        CHMATE_COPIPE_NG_KEY,
+                                        false
+                                );
+                                chMateEditor.putBoolean(CHMATE_COPIPE_NG_KEY, true);
+                            }
+                        }
+                        if (arashiNg != null) {
+                            boolean checked = arashiNg.isChecked();
+                            legacyPlusChanged |= checked != chMatePreferences.getBoolean(
+                                    CHMATE_ARASHI_NG_KEY,
+                                    false
+                            );
+                            chMateEditor.putBoolean(CHMATE_ARASHI_NG_KEY, checked);
+                            if (checked) {
+                                legacyPlusChanged |= !chMatePreferences.getBoolean(
+                                        CHMATE_COPIPE_NG_AR_KEY,
+                                        false
+                                );
+                                chMateEditor.putBoolean(CHMATE_COPIPE_NG_AR_KEY, true);
+                            }
+                        }
+                        chMateEditor.commit();
+                    }
                     preferences.edit()
                             .putBoolean("hideAd", hideAd.isChecked())
                             .putBoolean("replaceUserAgent", replaceUserAgent.isChecked())
@@ -1246,16 +1481,28 @@ public final class Haiagaru {
                             .putString("adClass", value(adClass).trim())
                             .putBoolean("chtoio", chtoio.isChecked())
                             .putBoolean("automaticDat", automaticDat.isChecked())
-                            .putString(
-                                    ARCHIVE_ROUTE_TEMPLATES_KEY,
-                                    value(archiveRouteTemplates).trim()
-                            )
                             .commit();
+                    if (archiveRouteTemplates != null) {
+                        preferences.edit()
+                                .putString(
+                                        ARCHIVE_ROUTE_TEMPLATES_KEY,
+                                        value(archiveRouteTemplates).trim()
+                                )
+                                .commit();
+                    }
 
                     ConfigSnapshot after = ConfigSnapshot.read(preferences);
-                    if (!before.equals(after)) restart(activity);
+                    if (!before.equals(after) || legacyPlusChanged) restart(activity);
                 })
                 .show();
+    }
+
+    private static void addOptionalSettingsSection(String name, Runnable section) {
+        try {
+            section.run();
+        } catch (Throwable error) {
+            Log.w(LOG_TAG, "Unable to add Haiagaru settings section: " + name, error);
+        }
     }
 
     private static EditText addArchiveRouteControl(
@@ -1493,7 +1740,7 @@ public final class Haiagaru {
                     .getDeclaredMethod("addControl", Activity.class, LinearLayout.class)
                     .invoke(null, activity, layout);
         } catch (ClassNotFoundException ignored) {
-            // The optional package-name patch was not selected.
+            // The optional Shizuku data-migration patch was not selected.
         } catch (ReflectiveOperationException error) {
             Log.e(LOG_TAG, "Unable to add the package-data migration control", error);
         }
@@ -1744,6 +1991,23 @@ public final class Haiagaru {
             return defaultAdClass();
         }
         return savedClass;
+    }
+
+    private static boolean supportsLegacyChMatePlus(Context context) {
+        if (context == null) return false;
+        try {
+            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(
+                    context.getPackageName(),
+                    0
+            );
+            String versionName = packageInfo.versionName;
+            return "0.8.10.191 dev".equals(versionName)
+                    || "0.8.10.226 dev".equals(versionName)
+                    || "0.8.10.243 dev".equals(versionName);
+        } catch (Throwable error) {
+            Log.w(LOG_TAG, "Unable to determine ChMate version for compatibility controls", error);
+            return false;
+        }
     }
 
     private static String defaultAdClass() {

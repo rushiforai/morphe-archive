@@ -52,6 +52,9 @@ jobs:
         # in .pre-commit-config.yaml if a newer pre-commit is required.
         run: uvx pre-commit run --all-files --show-diff-on-failure
 
+      - name: Python script tests
+        run: python3 -m unittest discover -s scripts/tests -v
+
       - name: JVM formatting and static analysis
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

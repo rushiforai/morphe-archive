@@ -180,6 +180,46 @@ public final class Probe extends Instrumentation {
                         refreshShortcuts();
                         Log.i(TAG, "ok refresh-shortcuts asked for");
                         break;
+                    case "comments":
+                        Log.i(TAG, "ok comments\n" + openCommentsReport());
+                        break;
+                    case "doubletap": {
+                        // Two taps on TikTok's own window, timed inside the double-tap window.
+                        // "input tap" twice from adb spawns a process per tap and lands inside or
+                        // outside TikTok's window depending on how busy the phone is, which made
+                        // the same check pass and fail on different runs. Dispatching the events
+                        // on the main thread pins the timing.
+                        float x = Float.parseFloat(required(intent, "x"));
+                        float y = Float.parseFloat(required(intent, "y"));
+                        String gapText = intent.getStringExtra("gap");
+                        long gap = gapText == null ? 90L : Long.parseLong(gapText);
+                        android.app.Activity activity = (android.app.Activity) loader.loadClass(UTILS)
+                                .getMethod("getActivity").invoke(null);
+                        if (activity == null) throw new IllegalStateException("no current activity");
+                        android.view.View decor = activity.getWindow().getDecorView();
+                        tap(decor, x, y);
+                        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                            tap(decor, x, y);
+                            Log.i(TAG, "ok doubletap at " + x + "," + y + " gap=" + gap + "ms on "
+                                    + activity.getClass().getSimpleName());
+                        }, gap);
+                        break;
+                    }
+                    case "report": {
+                        // The diagnostic export, which is the extension's own record of what it
+                        // did. Logcat is not: the release extension is minified and its Log calls
+                        // do not reach the buffer, so this is how a device check reads it. The
+                        // log takes about 4 KB a line, so a long export goes out in pieces.
+                        String text = String.valueOf(loader.loadClass(
+                                "app.morphe.extension.shared.settings.preference.LogBufferManager")
+                                .getMethod("buildExportText").invoke(null));
+                        int pieces = 0;
+                        for (int at = 0; at < text.length(); at += 3000, pieces++) {
+                            Log.i(TAG, "report[" + pieces + "] " + text.substring(at, Math.min(text.length(), at + 3000)));
+                        }
+                        Log.i(TAG, "ok report " + text.length() + " chars in " + pieces + " pieces");
+                        break;
+                    }
                     case "get": {
                         String key = required(intent, "key");
                         Log.i(TAG, "ok get " + key + "=" + valueOf(find(key)));
@@ -198,6 +238,22 @@ public final class Probe extends Instrumentation {
                 }
             } catch (Throwable error) {
                 Log.e(TAG, "failed " + action, error);
+            }
+        }
+
+        /** One press and release at a point, delivered the way the window would get it. */
+        private static void tap(android.view.View decor, float x, float y) {
+            long down = android.os.SystemClock.uptimeMillis();
+            android.view.MotionEvent press = android.view.MotionEvent.obtain(
+                    down, down, android.view.MotionEvent.ACTION_DOWN, x, y, 0);
+            android.view.MotionEvent release = android.view.MotionEvent.obtain(
+                    down, down + 30, android.view.MotionEvent.ACTION_UP, x, y, 0);
+            try {
+                decor.dispatchTouchEvent(press);
+                decor.dispatchTouchEvent(release);
+            } finally {
+                press.recycle();
+                release.recycle();
             }
         }
 
@@ -252,6 +308,70 @@ public final class Probe extends Instrumentation {
             if (refresh == null) throw new IllegalStateException("no refresh on IShortcutService");
             Log.i(TAG, "refresh is " + refresh.getName());
             refresh.invoke(service, "hushfeed-check", true);
+        }
+
+        /**
+         * What the double-tap comments action would do right now, and what it sees.
+         *
+         * <p>The gesture's own path has nothing to say on a phone: a click that lands on a view
+         * whose listener does not open the sheet returns true and logs nothing. This lists every
+         * comment control the extension has registered, whether the one for the current video is
+         * attached, shown and clickable, and then calls the same {@code openComments} the gesture
+         * calls, on the main thread, which is the thread a broadcast receiver runs on.
+         */
+        private String openCommentsReport() throws Exception {
+            Class<?> gestures = loader.loadClass(
+                    "app.morphe.extension.tiktok.interaction.GestureActions");
+            Class<?> author = loader.loadClass(
+                    "app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor");
+            Class<?> reflect = loader.loadClass("app.morphe.extension.tiktok.blockauthor.Reflect");
+            Object aweme = author.getMethod("getAweme").invoke(null);
+            Object aid = reflect.getMethod("string", Object.class, String.class, String.class)
+                    .invoke(null, aweme, "getAid", "aid");
+
+            java.lang.reflect.Field registry = gestures.getDeclaredField("COMMENTS");
+            registry.setAccessible(true);
+            java.util.Map<?, ?> controls = (java.util.Map<?, ?>) registry.get(null);
+            StringBuilder out = new StringBuilder("aweme=" + (aweme == null ? "null" : aweme.getClass().getName())
+                    + " aid=" + aid + " registered=" + controls.size());
+            for (java.util.Map.Entry<?, ?> entry : controls.entrySet()) {
+                Object control = entry.getValue();
+                java.lang.reflect.Field viewField = control.getClass().getDeclaredField("view");
+                java.lang.reflect.Field idField = control.getClass().getDeclaredField("videoId");
+                viewField.setAccessible(true);
+                idField.setAccessible(true);
+                android.view.View view = ((java.lang.ref.WeakReference<android.view.View>)
+                        viewField.get(control)).get();
+                out.append("\n  owner=").append(entry.getKey().getClass().getSimpleName())
+                        .append(" videoId=").append(idField.get(control));
+                if (view == null) {
+                    out.append(" view=collected");
+                    continue;
+                }
+                String resource = "none";
+                try {
+                    if (view.getId() != android.view.View.NO_ID) {
+                        resource = view.getResources().getResourceEntryName(view.getId());
+                    }
+                } catch (Exception ignored) {
+                    resource = String.valueOf(view.getId());
+                }
+                out.append(" view=").append(view.getClass().getSimpleName())
+                        .append(" id=").append(resource)
+                        .append(" attached=").append(view.isAttachedToWindow())
+                        .append(" shown=").append(view.isShown())
+                        .append(" clickable=").append(view.isClickable())
+                        .append(" hasClickListener=").append(view.hasOnClickListeners())
+                        .append(" desc=").append(view.getContentDescription())
+                        .append(" children=").append(view instanceof android.view.ViewGroup
+                                ? ((android.view.ViewGroup) view).getChildCount() : 0);
+            }
+
+            Method open = gestures.getDeclaredMethod("openComments", String.class);
+            open.setAccessible(true);
+            Object result = open.invoke(null, aid);
+            out.append("\n  openComments(").append(aid).append(")=").append(result);
+            return out.toString();
         }
 
         /**

@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.23.1",
+  "version": "1.29.0",
   "patches": [
     {
       "name": "APK Junk Cleaner",
@@ -124,6 +124,13 @@
           "signatures": null,
           "targets": [
             {
+              "version": "3.1.14",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
               "version": "3.1.13",
               "versionCodes": null,
               "isExperimental": false,
@@ -183,7 +190,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "8.2.4147.58",
+              "version": "8.2.4147.77",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -211,7 +218,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "8.2.4147.58",
+              "version": "8.2.4147.77",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -303,6 +310,49 @@
       "options": []
     },
     {
+      "name": "Clean Share URL",
+      "description": "Strips tracking parameters, user IDs, device fingerprints, and marketing tokens from shared TikTok links.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.zhiliaoapp.musically",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Clean Speed Dial Bookmarks",
       "description": "Removes sponsored commercial affiliate bookmarks, hides the 3-dot customize button, and disables phantom touch actions on the blank Start Page.",
       "default": true,
@@ -319,7 +369,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "8.2.4147.58",
+              "version": "8.2.4147.77",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -329,6 +379,67 @@
         }
       ],
       "options": []
+    },
+    {
+      "name": "Clipboard Enhancements",
+      "description": "Extends unpinned clipboard history retention duration, raises the maximum number of displayed unpinned clips, and allows customizing keyboard grid columns.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.google.android.inputmethod.latin",
+          "name": "Gboard Lite",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#4285F4",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "18.2.4.969776716-lite_beta-arm64-v8a",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "18.2.4.969776716-lite_beta-armeabi-v7a",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "unpinnedClipLimit",
+          "title": "Unpinned clip limit",
+          "description": "Maximum number of unpinned clipboard history items to display in the UI (default: 50, range: 5..100).",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "50",
+          "values": null
+        },
+        {
+          "key": "retentionHours",
+          "title": "Retention time limit (hours)",
+          "description": "Number of hours to retain unpinned clips in history before automatic cleanup (e.g. 12, 24 for 1 day, 48 for 2 days, 168 for 7 days. Default: 24).",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "24",
+          "values": null
+        },
+        {
+          "key": "gridColumns",
+          "title": "Clipboard grid columns",
+          "description": "Number of columns in the clipboard keyboard layout (1, 2, or 3. Default: 2).",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "2",
+          "values": null
+        }
+      ]
     },
     {
       "name": "Clone Gboard",
@@ -390,7 +501,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "8.2.4147.58",
+              "version": "8.2.4147.77",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -403,7 +514,7 @@
     },
     {
       "name": "Core Asset De-bloat",
-      "description": "Strips embedded Microblink credit card OCR models, C2PA AI content origin verification libraries, and unused non-Latin fonts to save APK space.",
+      "description": "Strips embedded Microblink credit card OCR models, C2PA AI content origin verification libraries, and redundant non-Latin fonts to save APK space.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [
@@ -416,7 +527,24 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -444,6 +572,49 @@
           "values": null
         }
       ]
+    },
+    {
+      "name": "Device Privacy Guard",
+      "description": "Neutralizes background clipboard snooping routines and blocks screenshot/recording detection listeners to protect user data from unauthorized tracking and popup modals.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.zhiliaoapp.musically",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
     },
     {
       "name": "Disable Background Sync & Periodic Sync",
@@ -486,7 +657,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "8.2.4147.58",
+              "version": "8.2.4147.77",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -529,7 +700,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "8.2.4147.58",
+              "version": "8.2.4147.77",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -555,7 +726,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "8.2.4147.58",
+              "version": "8.2.4147.77",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -655,6 +826,49 @@
             },
             {
               "version": "18.2.4.969776716-lite_beta-armeabi-v7a",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Disable Push Notifications",
+      "description": "Neutralizes background push notification tasks and persistent socket wake locks to eliminate background battery drain.",
+      "default": false,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.zhiliaoapp.musically",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -779,7 +993,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "8.2.4147.58",
+              "version": "8.2.4147.77",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -891,7 +1105,7 @@
     },
     {
       "name": "Feed Ad Blocker",
-      "description": "Removes sponsored advertisements, brand promotions, soft commercial videos, and promotional audio from the For You and Following feeds.",
+      "description": "Removes sponsored advertisements, brand promotions, and promotional audio from the For You and Following feeds.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [
@@ -904,7 +1118,67 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Feed Live Stream Blocker",
+      "description": "Removes live stream broadcast cards and live recommendations from the For You and Following feeds.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.zhiliaoapp.musically",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -998,6 +1272,13 @@
           "signatures": null,
           "targets": [
             {
+              "version": "3.1.14",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
               "version": "3.1.13",
               "versionCodes": null,
               "isExperimental": false,
@@ -1024,7 +1305,57 @@
           "signatures": null,
           "targets": [
             {
+              "version": "3.1.14",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
               "version": "3.1.13",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide TikTok Shop Anchors",
+      "description": "Removes product showcase badges, shopping cart tags, and TikTok Shop commercial anchors from video posts in the feed.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.zhiliaoapp.musically",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -1050,7 +1381,24 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -1076,7 +1424,24 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -1098,12 +1463,10 @@
       ]
     },
     {
-      "name": "Live Stream Suite Optimizer",
-      "description": "Strips Live link mic SDK (liblink_mic_sdk.so) and live stream interactive minigames, and disables 3D gift particle animation preloading.",
+      "name": "Live Stream 3D Gift Optimizer",
+      "description": "Disables Live 3D gift particle effect engine and widget rendering lifecycle to eliminate frame drops during live streams.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "dependencies": [],
       "compatiblePackages": [
         {
           "packageName": "com.zhiliaoapp.musically",
@@ -1114,7 +1477,67 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Live Stream SDK & Minigame De-bloat",
+      "description": "Strips Live link mic SDK (liblink_mic_sdk.so) and live stream interactive minigames to save APK storage.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.zhiliaoapp.musically",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -1157,7 +1580,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "8.2.4147.58",
+              "version": "8.2.4147.77",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -1197,6 +1620,49 @@
       ]
     },
     {
+      "name": "Media Usability & Watermark-Free Downloader",
+      "description": "Enables progress seekbar scrubbing on all videos, unblocks the download button on creator-restricted videos, and routes downloads to clean unwatermarked media streams.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.zhiliaoapp.musically",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Native Bloat Slimmer",
       "description": "Strips unused native companion binaries (Impress Vision AI, WireGuard VPN, and Android XR) to significantly reduce APK size.",
       "default": false,
@@ -1223,8 +1689,16 @@
       "options": []
     },
     {
-      "name": "Network & Background Traffic Governor",
-      "description": "Throttles aggressive video preloading buffer and disables background push polling alarms to save cellular data and battery.",
+      "name": "PNG Asset Optimizer",
+      "description": "Losslessly recompresses PNG assets with maximum zlib compression and strips non-rendering metadata chunks (pHYs, tEXt, tIME) while preserving 9-patch structures and pixel accuracy.",
+      "default": false,
+      "dependencies": [],
+      "compatiblePackages": null,
+      "options": []
+    },
+    {
+      "name": "Playback Speed Persistence",
+      "description": "Persists selected video playback speed across all feed videos and application restarts.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [
@@ -1237,7 +1711,24 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -1249,11 +1740,46 @@
       "options": []
     },
     {
-      "name": "PNG Asset Optimizer",
-      "description": "Losslessly recompresses PNG assets with maximum zlib compression and strips non-rendering metadata chunks (pHYs, tEXt, tIME) while preserving 9-patch structures and pixel accuracy.",
-      "default": false,
+      "name": "Resource & Battery Governor",
+      "description": "Throttles background sensor polling (gyroscope/accelerometer 3D ads), prevents aggressive video buffer preloading, and caps Fresco animated image memory retention to conserve battery and RAM.",
+      "default": true,
       "dependencies": [],
-      "compatiblePackages": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.zhiliaoapp.musically",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
       "options": []
     },
     {
@@ -1304,33 +1830,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "8.2.4147.58",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Runtime Memory Governor",
-      "description": "Optimizes Fresco bitmap memory pool retention and suppresses aggressive animated frame allocations to reduce memory pressure.",
-      "default": true,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.zhiliaoapp.musically",
-          "name": "TikTok",
-          "description": null,
-          "apkFileType": "APK",
-          "appIconColor": "#FE2C55",
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
+              "version": "8.2.4147.77",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -1373,7 +1873,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "8.2.4147.58",
+              "version": "8.2.4147.77",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -1399,7 +1899,24 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -1425,7 +1942,24 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -1450,6 +1984,13 @@
           "appIconColor": "#FF4500",
           "signatures": null,
           "targets": [
+            {
+              "version": "3.1.14",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
             {
               "version": "3.1.13",
               "versionCodes": null,
@@ -1477,7 +2018,24 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -1503,7 +2061,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "8.2.4147.58",
+              "version": "8.2.4147.77",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

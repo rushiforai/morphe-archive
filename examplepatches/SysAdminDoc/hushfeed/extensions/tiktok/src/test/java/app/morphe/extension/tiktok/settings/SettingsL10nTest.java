@@ -43,6 +43,7 @@ import java.util.Set;
 
 import org.junit.Rule;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
@@ -65,6 +66,11 @@ public class SettingsL10nTest {
     private static final Map<String, String> GERMAN = L10nTranslations.of("de");
     private static final Map<String, String> INDONESIAN = L10nTranslations.of("in");
 
+    @Before
+    public void clearStatusBeforeMountingSettings() throws Exception {
+        setEveryStatus(false);
+    }
+
     @After
     public void resetStatus() throws Exception {
         setEveryStatus(false);
@@ -81,9 +87,9 @@ public class SettingsL10nTest {
      * English, because {@code showToastShort(ok ? "a" : "b")} and a call wrapped across two
      * lines both slipped past it.
      *
-     * <p>Feature Gate Lab is left out on purpose. It is a developer tool and its screens are
-     * English by choice, which the row that opens it says. The shared extension module is not
-     * walked either: it is TikTok-independent code, and this table is TikTok's.
+     * <p>The Feature Gate Lab is included now that its runtime states and failures are localized.
+     * The shared extension module is not walked: it is TikTok-independent code, and this table
+     * is TikTok's.
      */
     @Test public void theGeneratedTableIsTheOneInTheTables() throws Exception {
         // Every other check here reads L10nTranslations, which is generated. A value edited in a
@@ -693,14 +699,34 @@ public class SettingsL10nTest {
         Set<String> english = new LinkedHashSet<>(GERMAN.keySet());
         Set<String> shown = collectEverything();
         List<String> missing = new ArrayList<>();
+
+        // A restart-gated row's summary is its own sentence plus the shared restart sentence,
+        // looked up separately and joined afterwards. Both halves still have to be entries, so
+        // the tail is taken off here and checked on its own rather than exempted.
+        assertTrue("the restart sentence itself is not in the table",
+                english.contains(TogglePreference.RESTART_SENTENCE));
+
         for (String text : shown) {
+            // Whole first. Plenty of summaries were written with the restart sentence in them
+            // and are one key including it, so splitting before looking would break those.
+            if (english.contains(text)) continue;
+
+            String body = text;
+            // Both joins. A summary that is a sentence takes the note after a space; one that
+            // is a state line takes it on the line below. Stripping only the first left every
+            // tab row exempted as composed by the newline the note itself had just added.
+            if (body.endsWith(" " + TogglePreference.RESTART_SENTENCE)
+                    || body.endsWith("\n" + TogglePreference.RESTART_SENTENCE)) {
+                body = body.substring(0,
+                        body.length() - TogglePreference.RESTART_SENTENCE.length() - 1);
+            }
             // Text built at runtime from a placeholder, and text spanning lines, are assembled
             // from parts that are entries of their own. Exempting anything merely carrying a
             // digit or a slash let 63 of 619 strings through, including every message with a
             // value in it.
-            boolean composed = text.contains("\n") || text.matches("(?s).*%\\d\\$.*");
-            if (!composed && !isValueRatherThanProse(text) && !english.contains(text)) {
-                missing.add(text);
+            boolean composed = body.contains("\n") || body.matches("(?s).*%\\d\\$.*");
+            if (!composed && !isValueRatherThanProse(body) && !english.contains(body)) {
+                missing.add(body);
             }
         }
         assertEquals("settings text without a translation entry: " + missing, 0, missing.size());
@@ -788,6 +814,164 @@ public class SettingsL10nTest {
         assertTrue("the scan found no L10n calls to read", found > 50);
         assertEquals("strings handed to L10n with no entry in the tsv files: " + missing,
                 0, missing.size());
+    }
+
+    /**
+     * Every word a settings row is built with is a key, read from the source rather than from
+     * the screen.
+     *
+     * <p>The rendered check two tests up cannot see these. A row's summary is built at runtime
+     * from its own wording plus a range line and a current-value line, and the joined text is
+     * exempted there as composed, because the lines below the first are numbers formatted from
+     * keys of their own. So the wording at the top of six Playback rows, and the unit words
+     * beside their numbers, had no entry in any table and reached German, Spanish, Indonesian
+     * and Brazilian phones in English under a translated title, with both gates passing.
+     *
+     * <p>Reading the constructor call instead sidesteps the formatting entirely: the literal
+     * handed to the row is the key, before anything is joined to it.
+     */
+    @Test
+    public void everyWordASettingsRowIsBuiltWithHasAnEntry() throws Exception {
+        java.io.File categories = new java.io.File(
+                "src/main/java/app/morphe/extension/tiktok/settings/preference/categories");
+        if (!categories.isDirectory()) categories = new java.io.File("extensions/tiktok/src/main/java"
+                + "/app/morphe/extension/tiktok/settings/preference/categories");
+        assertTrue("could not find the settings categories", categories.isDirectory());
+
+        java.util.regex.Pattern row = java.util.regex.Pattern.compile(
+                "new\\s+(?:[\\w.]+\\.)?(?:TogglePreference|NumberInputPreference"
+                        + "|ClockHourPreference|InputTextPreference|RangeValuePreference)\\s*\\(");
+        List<String> missing = new ArrayList<>();
+        int rows = 0;
+        java.io.File[] sources = categories.listFiles((dir, name) -> name.endsWith(".java"));
+        assertTrue("no category sources to read", sources != null && sources.length > 5);
+        for (java.io.File file : sources) {
+            String text = new String(java.nio.file.Files.readAllBytes(file.toPath()),
+                    java.nio.charset.StandardCharsets.UTF_8);
+            byte[] kind = classify(text);
+            java.util.regex.Matcher match = row.matcher(text);
+            while (match.find()) {
+                if (kind[match.start()] != CODE) continue;
+                int close = closingBracket(text, kind, match.end() - 1);
+                if (close < 0) continue;
+                rows++;
+                for (String argument : arguments(text, kind, match.end() - 1, close)) {
+                    if (argument.isEmpty() || GERMAN.containsKey(argument)) continue;
+                    missing.add(file.getName() + ": " + argument);
+                }
+            }
+        }
+
+        assertTrue("the scan found too few settings rows to mean anything: " + rows, rows > 100);
+        assertEquals("settings rows built from text with no entry in the tsv files, so it reaches "
+                + "a translated phone in English: " + missing, 0, missing.size());
+    }
+
+    /**
+     * A summary that sends the reader to another switch names that switch, in every language.
+     *
+     * <p>Three of the four translations of the store-region row told the reader to turn on
+     * switches that are on no screen: "SIM-Details überschreiben" where the switch says
+     * "SIM-Angaben überschreiben", "Ganti detail SIM" where it says "Timpa detail SIM". Each
+     * table is right about its own titles and wrong about the titles quoted inside a summary,
+     * which no per-string check can see, because both halves are perfectly good translations.
+     */
+    @Test public void aSummaryThatNamesAnotherRowNamesItByTheTitleThatRowCarries() throws Exception {
+        List<String[]> rows = settingsRowArguments();
+        Set<String> titles = new LinkedHashSet<>();
+        for (String[] row : rows) {
+            // Long enough that finding it inside a sentence means it was quoted on purpose.
+            if (row[0] != null && row[0].length() >= 12) titles.add(row[0]);
+        }
+        assertTrue("the scan found too few row titles to mean anything: " + titles.size(),
+                titles.size() > 40);
+
+        List<String> wrong = new ArrayList<>();
+        int checked = 0;
+        for (String language : L10nTranslations.LANGUAGES) {
+            Map<String, String> table = L10nTranslations.of(language);
+            for (String[] row : rows) {
+                String summary = row[1];
+                if (summary == null) continue;
+                String translatedSummary = table.get(summary);
+                if (translatedSummary == null) continue;
+                for (String title : titles) {
+                    if (title.equals(row[0]) || !summary.contains(title)) continue;
+                    String translatedTitle = table.get(title);
+                    if (translatedTitle == null) continue;
+                    checked++;
+                    if (!translatedSummary.contains(translatedTitle)) {
+                        wrong.add(language + ": a summary sends the reader to \"" + translatedTitle
+                                + "\" but says \"" + translatedSummary + "\"");
+                    }
+                }
+            }
+        }
+
+        assertTrue("no summary quotes another row's title, so this checked nothing", checked > 0);
+        assertEquals("summaries that name a switch by words no switch carries:\n"
+                + String.join("\n", wrong), 0, wrong.size());
+    }
+
+    /** Every settings row the category sources build, as {@code [title, summary]}. */
+    private static List<String[]> settingsRowArguments() throws Exception {
+        java.io.File categories = new java.io.File(
+                "src/main/java/app/morphe/extension/tiktok/settings/preference/categories");
+        if (!categories.isDirectory()) categories = new java.io.File("extensions/tiktok/src/main/java"
+                + "/app/morphe/extension/tiktok/settings/preference/categories");
+        assertTrue("could not find the settings categories", categories.isDirectory());
+
+        java.util.regex.Pattern row = java.util.regex.Pattern.compile(
+                "new\\s+(?:[\\w.]+\\.)?(?:TogglePreference|NumberInputPreference"
+                        + "|ClockHourPreference|InputTextPreference|RangeValuePreference)\\s*\\(");
+        List<String[]> found = new ArrayList<>();
+        java.io.File[] sources = categories.listFiles((dir, name) -> name.endsWith(".java"));
+        assertTrue("no category sources to read", sources != null && sources.length > 5);
+        for (java.io.File file : sources) {
+            String text = new String(java.nio.file.Files.readAllBytes(file.toPath()),
+                    java.nio.charset.StandardCharsets.UTF_8);
+            byte[] kind = classify(text);
+            java.util.regex.Matcher match = row.matcher(text);
+            while (match.find()) {
+                if (kind[match.start()] != CODE) continue;
+                int close = closingBracket(text, kind, match.end() - 1);
+                if (close < 0) continue;
+                List<String> arguments = arguments(text, kind, match.end() - 1, close);
+                found.add(new String[]{
+                        arguments.size() > 0 ? arguments.get(0) : null,
+                        arguments.size() > 1 ? arguments.get(1) : null});
+            }
+        }
+        return found;
+    }
+
+    /**
+     * One entry per argument of a call. Literals with nothing but a plus and whitespace between
+     * them are one string in the source and one key in the table; a new argument starts a new
+     * one. {@link #literalsIn} flattens both into a list, which cannot tell a summary written
+     * across five lines from five separate words.
+     */
+    private static List<String> arguments(String text, byte[] kind, int from, int to) {
+        List<String> found = new ArrayList<>();
+        int previousEnd = -1;
+        for (int at = from; at < to; at++) {
+            if (kind[at] != LITERAL || text.charAt(at) != '"') continue;
+            int end = at + 1;
+            while (end < to && kind[end] == LITERAL) end++;
+            int contentEnd = end > at + 1 && text.charAt(end - 1) == '"' ? end - 1 : end;
+            String piece = unescape(text.substring(at + 1, contentEnd));
+
+            String between = previousEnd < 0 ? null : text.substring(previousEnd, at);
+            if (between != null && between.indexOf('+') >= 0
+                    && between.replace("+", "").trim().isEmpty()) {
+                found.set(found.size() - 1, found.get(found.size() - 1) + piece);
+            } else {
+                found.add(piece);
+            }
+            previousEnd = end;
+            at = end - 1;
+        }
+        return found;
     }
 
     /**
@@ -1430,6 +1614,7 @@ public class SettingsL10nTest {
 
     private Set<String> collectEverything() throws Exception {
         setEveryStatus(true);
+        app.morphe.extension.shared.diagnostics.HookStatus.clear();
         Set<String> strings = new LinkedHashSet<>();
         try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
             var activity = controller.get();

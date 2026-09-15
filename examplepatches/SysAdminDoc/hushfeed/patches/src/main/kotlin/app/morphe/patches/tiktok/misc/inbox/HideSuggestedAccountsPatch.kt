@@ -30,8 +30,7 @@ private const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/inb
 val hideSuggestedAccountsPatch = bytecodePatch(
     name = "Hide suggested accounts",
     description = "Stops the suggested accounts list from being built on the Activity, New " +
-        "followers and Inbox pages. Shares its switch with Hide inbox items. " +
-        "",
+        "followers and Inbox pages. Shares its switch with Hide inbox items.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

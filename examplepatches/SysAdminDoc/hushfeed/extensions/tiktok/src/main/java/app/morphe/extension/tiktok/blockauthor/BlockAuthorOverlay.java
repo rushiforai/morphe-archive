@@ -24,6 +24,7 @@ import android.widget.TextView;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.StringSetting;
 import app.morphe.extension.tiktok.feedfilter.SoundIdentity;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
@@ -42,8 +43,8 @@ import java.lang.ref.WeakReference;
  * root instead of TikTok's own action rail. That keeps it working across builds that
  * reshuffle the player view hierarchy.
  *
- * Long pressing the button enters drag mode so it can be parked anywhere. The position is
- * stored as a fraction of the screen, so it survives rotation and a different device.
+ * Long pressing any control enters drag mode so each one can be parked independently. Positions
+ * are stored as fractions of the screen, so they survive rotation and a different device.
  */
 public final class BlockAuthorOverlay {
     private static final String SOUND_GLYPH = "♪";
@@ -72,8 +73,22 @@ public final class BlockAuthorOverlay {
     /** Guards against a double tap blocking, then unblocking, the same account. */
     private static volatile boolean requestInFlight;
 
+    /**
+     * Ids for the move and reset actions a screen reader gets instead of the pointer drag.
+     *
+     * <p>Above {@code ACTION_TYPE_MASK}, so none of them can be read as one of the platform's
+     * own action bits, and fixed rather than generated because a generated view id falls in the
+     * range the legacy standard actions use.
+     */
+    private static final int ACTION_MOVE_UP = 0x0F0A0001;
+    private static final int ACTION_MOVE_DOWN = 0x0F0A0002;
+    private static final int ACTION_MOVE_LEFT = 0x0F0A0003;
+    private static final int ACTION_MOVE_RIGHT = 0x0F0A0004;
+    private static final int ACTION_RESET_POSITION = 0x0F0A0005;
+
     /** True while the user is dragging the button, which suppresses the click. */
     private static boolean dragging;
+    private static WeakReference<View> pressedControlReference = new WeakReference<>(null);
     private static float dragOffsetX;
     private static float dragOffsetY;
 
@@ -121,7 +136,8 @@ public final class BlockAuthorOverlay {
         View soundButton = soundButtonReference.get();
         if (soundButton != null) {
             // The sound button needs a sound to act on, and a feed filter to act through.
-            boolean soundWanted = visible && Settings.BLOCK_AUTHOR_BUTTON.get() && SettingsStatus.feedFilterEnabled
+            boolean soundWanted = visible && Settings.BLOCK_AUTHOR_BUTTON.get()
+                    && Settings.BLOCK_SOUND_BUTTON.get() && SettingsStatus.feedFilterEnabled
                     && CurrentVideoSound.get() != null && CurrentVideoSound.get().isUsable();
             int soundVisibility = soundWanted ? View.VISIBLE : View.GONE;
             if (soundButton.getVisibility() != soundVisibility) {
@@ -131,6 +147,7 @@ public final class BlockAuthorOverlay {
         View localHide = localHideReference.get();
         if (localHide != null) {
             boolean localWanted = visible && Settings.BLOCK_AUTHOR_BUTTON.get()
+                    && Settings.LOCAL_HIDE_BUTTON.get()
                     && SettingsStatus.feedFilterEnabled;
             int localVisibility = localWanted ? View.VISIBLE : View.GONE;
             if (localHide.getVisibility() != localVisibility) {
@@ -139,12 +156,6 @@ public final class BlockAuthorOverlay {
         }
         View feedback = notInterestedReference.get();
         if (feedback != null) feedback.setVisibility(visible && notInterestedEnabled() ? View.VISIBLE : View.GONE);
-        // Off the feed every button above is GONE, so there is nothing to place. This also keeps
-        // the whole of placeSoundButton off the layout callback on Profile, Inbox and Search.
-        if (!visible) return;
-        if (button.getParent() instanceof ViewGroup) {
-            placeSoundButton(button, (ViewGroup) button.getParent());
-        }
     }
 
     /**
@@ -155,7 +166,9 @@ public final class BlockAuthorOverlay {
         if (activity == null) {
             return;
         }
-        setFeedVisible(FeedVisibility.isOnFeed(activity) && CurrentVideoAuthor.get() != null);
+        setFeedVisible(FeedVisibility.isOnFeed(activity)
+                && !FeedVisibility.isCommentSheetVisible(activity)
+                && CurrentVideoAuthor.get() != null);
     }
 
     private static void attach(VideoAuthor author) {
@@ -206,15 +219,75 @@ public final class BlockAuthorOverlay {
 
             // The root has no measured size until it lays out, so the saved fraction can
             // only be turned into margins once dimensions are known.
-            root.post(() -> applySavedPosition(button, root, size));
+            root.post(() -> applyPositions(root));
 
             installVisibilityListener(root);
             syncVisibility();
 
-            Logger.printDebug(() -> "Block button attached for " + author.label());
+            Logger.printDebug(() -> "Block button attached for " + author.reference());
         } catch (Throwable ex) {
             Logger.printException(() -> "Could not attach the block button", ex);
         }
+    }
+
+    /**
+     * Puts every control where its saved fraction says, and the ones with nothing saved where
+     * they sit relative to the block button. Runs once per attach, after the root has a size.
+     */
+    private static void applyPositions(ViewGroup root) {
+        View button = buttonReference.get();
+        View localHide = localHideReference.get();
+        View soundButton = soundButtonReference.get();
+        View feedback = notInterestedReference.get();
+        if (button == null || localHide == null || soundButton == null || feedback == null) return;
+        // A second attach can swap these references to another activity's controls before this
+        // runs, since it is posted. Positioning those against this root would read the wrong
+        // width and cast layout params off a view that is not a child of it.
+        if (button.getParent() != root) return;
+        if (root.getWidth() == 0 || root.getHeight() == 0) return;
+
+        int size = SettingsUi.dp(root.getContext(), BUTTON_SIZE_DP);
+        int step = size + SettingsUi.dp(root.getContext(), BUTTON_GAP_DP);
+        // The block button first: the other three default to positions relative to wherever it
+        // ended up, so it has to be off its own saved fraction before they are worked out.
+        applySavedPosition(button, root, size, Settings.BLOCK_AUTHOR_BUTTON_POSITION,
+                DEFAULT_X_FRACTION, DEFAULT_Y_FRACTION);
+        for (View view : new View[]{localHide, soundButton, feedback}) {
+            float[] fractions = defaultFractions(view, root, button, size, step);
+            applySavedPosition(view, root, size, positionSetting(view), fractions[0], fractions[1]);
+        }
+    }
+
+    /**
+     * Where one control sits when nothing has been saved for it.
+     *
+     * <p>The block button has a fixed corner of the screen. The other three are placed around
+     * wherever the block button actually is, turning away from the edge it is nearest so a
+     * column of four does not run off the bottom or a pair overlap on the right.
+     */
+    private static float[] defaultFractions(
+            View view, ViewGroup root, View button, int size, int step) {
+        if (view == button) {
+            return new float[]{DEFAULT_X_FRACTION, DEFAULT_Y_FRACTION};
+        }
+
+        FrameLayout.LayoutParams blockPosition = (FrameLayout.LayoutParams) button.getLayoutParams();
+        float blockX = blockPosition.leftMargin + size / 2f;
+        float blockY = blockPosition.topMargin + size / 2f;
+        int maxTop = Math.max(0, root.getHeight() - size);
+        float verticalDirection = maxTop - blockPosition.topMargin >= step * 2 ? 1f : -1f;
+
+        if (view == localHideReference.get()) {
+            return new float[]{blockX / root.getWidth(),
+                    (blockY + step * verticalDirection) / root.getHeight()};
+        }
+        if (view == soundButtonReference.get()) {
+            return new float[]{blockX / root.getWidth(),
+                    (blockY + step * 2f * verticalDirection) / root.getHeight()};
+        }
+        float horizontalDirection = blockPosition.leftMargin >= step ? -1f : 1f;
+        return new float[]{(blockX + step * horizontalDirection) / root.getWidth(),
+                blockY / root.getHeight()};
     }
 
     private static void installVisibilityListener(ViewGroup root) {
@@ -239,6 +312,7 @@ public final class BlockAuthorOverlay {
 
     private static void detach() {
         removeVisibilityListener();
+        resetDragState();
         View button = buttonReference.get();
         if (button != null && button.getParent() instanceof ViewGroup) {
             ((ViewGroup) button.getParent()).removeView(button);
@@ -265,35 +339,29 @@ public final class BlockAuthorOverlay {
     private static View createSoundButton(Activity activity) {
         TextView button = new TextView(activity);
         button.setText(SOUND_GLYPH);
-        button.setTextColor(Color.WHITE);
+        button.setTextColor(SettingsUi.OVERLAY_TEXT);
         button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         button.setGravity(Gravity.CENTER);
         button.setContentDescription(L10n.t(activity, "Block this sound"));
 
-        GradientDrawable background = new GradientDrawable();
-        background.setShape(GradientDrawable.OVAL);
-        background.setColor(Color.argb(140, 0, 0, 0));
-        background.setStroke(SettingsUi.dp(activity, 1), Color.argb(90, 255, 255, 255));
-        button.setBackground(background);
+        button.setBackground(SettingsUi.overlayControl(activity, SettingsUi.RADIUS_OVERLAY));
 
         button.setOnClickListener(view -> onBlockSoundTapped());
+        installDrag(button);
         return button;
     }
 
     private static View createLocalHideButton(Activity activity) {
         TextView button = new TextView(activity);
         button.setText("×");
-        button.setTextColor(Color.WHITE);
+        button.setTextColor(SettingsUi.OVERLAY_TEXT);
         button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 28);
         button.setGravity(Gravity.CENTER);
         button.setContentDescription(L10n.t(activity, "Hide this creator locally"));
 
-        GradientDrawable background = new GradientDrawable();
-        background.setShape(GradientDrawable.OVAL);
-        background.setColor(Color.argb(140, 0, 0, 0));
-        background.setStroke(SettingsUi.dp(activity, 1), Color.argb(90, 255, 255, 255));
-        button.setBackground(background);
+        button.setBackground(SettingsUi.overlayControl(activity, SettingsUi.RADIUS_OVERLAY));
         button.setOnClickListener(view -> onLocalHideTapped());
+        installDrag(button);
         return button;
     }
 
@@ -304,19 +372,15 @@ public final class BlockAuthorOverlay {
     private static View createNotInterestedButton(Activity activity) {
         TextView button = new TextView(activity);
         button.setText("-");
-        button.setTextColor(Color.WHITE);
+        button.setTextColor(SettingsUi.OVERLAY_TEXT);
         button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 28);
         button.setGravity(Gravity.CENTER);
         button.setContentDescription(L10n.t(activity, "Not interested in this video"));
-        // The same round shape and the same scrim as the three it shares the rail with. It was
-        // a rounded rectangle over a darker scrim, which on a column of four reads as a mistake
-        // rather than as a distinction.
-        GradientDrawable background = new GradientDrawable();
-        background.setShape(GradientDrawable.OVAL);
-        background.setColor(Color.argb(140, 0, 0, 0));
-        background.setStroke(SettingsUi.dp(activity, 1), Color.argb(90, 255, 255, 255));
-        button.setBackground(background);
+        // The same shape and the same scrim as the three it shares the rail with. On a column of
+        // four, one control drawn differently reads as a mistake rather than as a distinction.
+        button.setBackground(SettingsUi.overlayControl(activity, SettingsUi.RADIUS_OVERLAY));
         button.setOnClickListener(view -> NotInterested.submit());
+        installDrag(button);
         return button;
     }
 
@@ -337,7 +401,8 @@ public final class BlockAuthorOverlay {
         } else {
             Settings.BLOCKED_SOUND_NAMES.save(SoundIdentity.withEntry(Settings.BLOCKED_SOUND_NAMES.get(), sound.name));
         }
-        Logger.printDebug(() -> "Blocked sound " + sound.label() + (byId ? " by id" : " by name"));
+        // The sound's author is a creator, so the line says how the sound was recorded, not which.
+        Logger.printDebug(() -> "Blocked sound " + (byId ? "by id" : "by name"));
 
         showUndoBanner(L10n.f("Skipping videos with %1$s", sound.label()), () -> {
             if (byId) {
@@ -349,80 +414,59 @@ public final class BlockAuthorOverlay {
         });
     }
 
-    /** Keeps the sound button parked directly under the block button. */
-    private static void placeSoundButton(View blockButton, ViewGroup parent) {
-        View soundButton = soundButtonReference.get();
-        if (soundButton == null || soundButton.getParent() != parent) {
-            return;
-        }
-        ViewGroup.MarginLayoutParams blockParams = (ViewGroup.MarginLayoutParams) blockButton.getLayoutParams();
-        ViewGroup.MarginLayoutParams soundParams = (ViewGroup.MarginLayoutParams) soundButton.getLayoutParams();
-        int size = blockParams.height > 0 ? blockParams.height : blockButton.getHeight();
-        int gap = Math.round(BUTTON_GAP_DP * parent.getResources().getDisplayMetrics().density);
-        int nextTop = blockParams.topMargin + size + gap;
-        View localHide = localHideReference.get();
-        boolean localVisible = localHide != null && localHide.getVisibility() == View.VISIBLE
-                && localHide.getParent() == parent;
-        if (localVisible) {
-            ViewGroup.MarginLayoutParams localParams = (ViewGroup.MarginLayoutParams) localHide.getLayoutParams();
-            setMargins(localHide, localParams, blockParams.leftMargin,
-                    Math.min(nextTop, Math.max(0, parent.getHeight() - size)));
-            nextTop += size + gap;
-        }
-        int top = nextTop;
-        int maxTop = Math.max(0, parent.getHeight() - size);
-        setMargins(soundButton, soundParams, blockParams.leftMargin, Math.min(top, maxTop));
-        View feedback = notInterestedReference.get();
-        if (feedback != null && feedback.getParent() == parent) {
-            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) feedback.getLayoutParams();
-            int left = blockParams.leftMargin - size - gap;
-            if (left < 0) left = blockParams.leftMargin + size + gap;
-            setMargins(feedback, params, Math.max(0, Math.min(left, parent.getWidth() - size)),
-                    blockParams.topMargin);
-        }
-    }
-
-    /**
-     * Writes margins only when they actually move.
-     *
-     * <p>{@link View#setLayoutParams} calls {@code requestLayout()} whatever it is handed, and
-     * this runs from an {@code OnGlobalLayoutListener}, which the framework dispatches after
-     * layout inside the same traversal. So an unconditional call schedules another traversal,
-     * whose layout calls this again, once every frame for as long as the overlay is attached.
-     * {@code InboxFilter.setRowHidden} and {@code ShareSheetTools.setCellHidden} guard their own
-     * layout callbacks the same way.
-     */
-    private static void setMargins(View view, ViewGroup.MarginLayoutParams params, int left, int top) {
-        if (params.leftMargin == left && params.topMargin == top) return;
-        params.leftMargin = left;
-        params.topMargin = top;
-        view.setLayoutParams(params);
-    }
-
     private static View createButton(Activity activity) {
         TextView button = new TextView(activity);
         button.setGravity(Gravity.CENTER);
         button.setContentDescription(L10n.t(activity, "Block this account"));
 
-        GradientDrawable background = new GradientDrawable();
-        background.setShape(GradientDrawable.OVAL);
-        background.setColor(Color.argb(140, 0, 0, 0));
-        background.setStroke(SettingsUi.dp(activity, 1), Color.argb(90, 255, 255, 255));
-
-        // The symbol is drawn over the disc instead of set as text, because the font
+        // The symbol is drawn over the backdrop instead of set as text, because the font
         // TikTok happens to be using may not carry it.
-        Drawable glyph = new BlockGlyphDrawable(Color.WHITE, SettingsUi.dp(activity, 2));
-        button.setBackground(new LayerDrawable(new Drawable[]{background, glyph}));
+        Drawable glyph = new BlockGlyphDrawable(SettingsUi.OVERLAY_TEXT, SettingsUi.dp(activity, 2));
+        button.setBackground(SettingsUi.overlayControl(activity, SettingsUi.RADIUS_OVERLAY, glyph));
 
-        button.setOnClickListener(view -> {
-            // A drag ends with an ACTION_UP that would otherwise read as a click.
-            if (dragging) {
-                return;
+        button.setOnClickListener(view -> onBlockTapped());
+        installDrag(button);
+        return button;
+    }
+
+    /** Gives every feed control the same independent long-press drag behavior. */
+    private static void installDrag(View button) {
+        button.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override public void onInitializeAccessibilityNodeInfo(
+                    View host, android.view.accessibility.AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                info.setClassName(android.widget.Button.class.getName());
+                // Pointer drag has a release event. A standalone accessibility long-click does
+                // not, so do not advertise an action that cannot complete the gesture.
+                info.setLongClickable(false);
+                info.removeAction(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction
+                        .ACTION_LONG_CLICK);
+                // What the refused long-press owed a reader: a way to park the control, and a
+                // way back if it ends up somewhere useless.
+                info.addAction(moveAction(host, ACTION_MOVE_UP, "Move up"));
+                info.addAction(moveAction(host, ACTION_MOVE_DOWN, "Move down"));
+                info.addAction(moveAction(host, ACTION_MOVE_LEFT, "Move left"));
+                info.addAction(moveAction(host, ACTION_MOVE_RIGHT, "Move right"));
+                info.addAction(moveAction(host, ACTION_RESET_POSITION, "Reset position"));
             }
-            onBlockTapped();
-        });
 
+            @Override public boolean performAccessibilityAction(View host, int action,
+                    android.os.Bundle arguments) {
+                if (action == android.view.accessibility.AccessibilityNodeInfo.ACTION_LONG_CLICK) {
+                    return false;
+                }
+                if (action == ACTION_MOVE_UP) return nudge(host, 0, -1);
+                if (action == ACTION_MOVE_DOWN) return nudge(host, 0, 1);
+                if (action == ACTION_MOVE_LEFT) return nudge(host, -1, 0);
+                if (action == ACTION_MOVE_RIGHT) return nudge(host, 1, 0);
+                if (action == ACTION_RESET_POSITION) return resetPosition(host);
+                return super.performAccessibilityAction(host, action, arguments);
+            }
+        });
         button.setOnLongClickListener(view -> {
+            // Accessibility ACTION_LONG_CLICK has no pointer down or release. Entering raw drag
+            // mode from it left every later click stuck behind a gesture that could never finish.
+            if (pressedControlReference.get() != view) return false;
             dragging = true;
             view.setAlpha(0.75f);
             view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
@@ -431,7 +475,57 @@ public final class BlockAuthorOverlay {
         });
 
         button.setOnTouchListener(BlockAuthorOverlay::onButtonTouch);
-        return button;
+    }
+
+    private static android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction moveAction(
+            View host, int id, String label) {
+        return new android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction(
+                id, L10n.t(host.getContext(), label));
+    }
+
+    /**
+     * One step of the control's own width, in the direction the action names. Clamped by
+     * {@link #moveTo}, so an action at an edge is still performed and simply stays put.
+     *
+     * @param stepsX -1 for left, 1 for right, 0 for neither
+     * @param stepsY -1 for up, 1 for down, 0 for neither
+     */
+    private static boolean nudge(View view, int stepsX, int stepsY) {
+        ViewGroup parent = view.getParent() instanceof ViewGroup
+                ? (ViewGroup) view.getParent()
+                : null;
+        if (parent == null || parent.getWidth() == 0 || parent.getHeight() == 0) return false;
+
+        int step = SettingsUi.dp(view.getContext(), BUTTON_SIZE_DP);
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
+        moveTo(view, parent, params.leftMargin + stepsX * step, params.topMargin + stepsY * step);
+        savePosition(view, parent);
+        return true;
+    }
+
+    /**
+     * Gives one control its default position back and moves nothing else.
+     *
+     * <p>Only this control is placed. Re-running the whole positioning pass would look
+     * equivalent and is not: the other three default to positions relative to the block button,
+     * so a pass would drag every control with nothing saved to wherever the block button has
+     * since been moved, from a reset performed on a different control.
+     */
+    private static boolean resetPosition(View view) {
+        ViewGroup parent = view.getParent() instanceof ViewGroup
+                ? (ViewGroup) view.getParent()
+                : null;
+        View button = buttonReference.get();
+        if (parent == null || button == null) return false;
+        if (parent.getWidth() == 0 || parent.getHeight() == 0) return false;
+
+        StringSetting setting = positionSetting(view);
+        setting.resetToDefault();
+        int size = SettingsUi.dp(parent.getContext(), BUTTON_SIZE_DP);
+        int step = size + SettingsUi.dp(parent.getContext(), BUTTON_GAP_DP);
+        float[] fractions = defaultFractions(view, parent, button, size, step);
+        applySavedPosition(view, parent, size, setting, fractions[0], fractions[1]);
+        return true;
     }
 
     /**
@@ -441,8 +535,12 @@ public final class BlockAuthorOverlay {
     private static boolean onButtonTouch(View view, MotionEvent event) {
         if (!dragging) {
             if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                pressedControlReference = new WeakReference<>(view);
                 dragOffsetX = event.getX();
                 dragOffsetY = event.getY();
+            } else if (event.getActionMasked() == MotionEvent.ACTION_UP
+                    || event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
+                pressedControlReference = new WeakReference<>(null);
             }
             return false;
         }
@@ -451,7 +549,7 @@ public final class BlockAuthorOverlay {
                 ? (ViewGroup) view.getParent()
                 : null;
         if (parent == null) {
-            dragging = false;
+            resetDragState();
             return false;
         }
 
@@ -465,15 +563,21 @@ public final class BlockAuthorOverlay {
 
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL: {
-                dragging = false;
-                view.setAlpha(1f);
                 savePosition(view, parent);
+                resetDragState();
                 return true;
             }
 
             default:
                 return true;
         }
+    }
+
+    private static void resetDragState() {
+        View pressed = pressedControlReference.get();
+        if (pressed != null) pressed.setAlpha(1f);
+        dragging = false;
+        pressedControlReference = new WeakReference<>(null);
     }
 
     private static int parentLeft(ViewGroup parent) {
@@ -502,23 +606,33 @@ public final class BlockAuthorOverlay {
         params.leftMargin = Math.round(Math.min(Math.max(left, 0), maxLeft));
         params.topMargin = Math.round(Math.min(Math.max(top, 0), maxTop));
         view.setLayoutParams(params);
-        placeSoundButton(view, parent);
     }
 
-    private static void applySavedPosition(View view, ViewGroup parent, int size) {
+    private static void applySavedPosition(
+            View view,
+            ViewGroup parent,
+            int size,
+            StringSetting setting,
+            float defaultX,
+            float defaultY
+    ) {
         if (parent.getWidth() == 0 || parent.getHeight() == 0) {
             return;
         }
 
-        float[] fractions = loadPositionFractions();
+        float[] fractions = loadPositionFractions(setting, defaultX, defaultY);
         float left = fractions[0] * parent.getWidth() - size / 2f;
         float top = fractions[1] * parent.getHeight() - size / 2f;
         moveTo(view, parent, left, top);
     }
 
     /** @return the stored centre position as {x, y} fractions of the parent. */
-    private static float[] loadPositionFractions() {
-        String stored = Settings.BLOCK_AUTHOR_BUTTON_POSITION.get();
+    private static float[] loadPositionFractions(
+            StringSetting setting,
+            float defaultX,
+            float defaultY
+    ) {
+        String stored = setting.get();
         if (stored != null && !stored.isEmpty()) {
             String[] parts = stored.split(",");
             if (parts.length == 2) {
@@ -533,7 +647,7 @@ public final class BlockAuthorOverlay {
                 }
             }
         }
-        return new float[]{DEFAULT_X_FRACTION, DEFAULT_Y_FRACTION};
+        return new float[]{clampFraction(defaultX), clampFraction(defaultY)};
     }
 
     private static void savePosition(View view, ViewGroup parent) {
@@ -542,11 +656,29 @@ public final class BlockAuthorOverlay {
         }
 
         ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
-        float x = (params.leftMargin + view.getWidth() / 2f) / parent.getWidth();
-        float y = (params.topMargin + view.getHeight() / 2f) / parent.getHeight();
+        // The same fallback moveTo uses. A control with nothing measured reports zero, and the
+        // centre would then be written down half a button off the position it was placed at,
+        // so reading the fraction back would move it.
+        float width = view.getWidth() > 0 ? view.getWidth() : params.width;
+        float height = view.getHeight() > 0 ? view.getHeight() : params.height;
+        float x = (params.leftMargin + width / 2f) / parent.getWidth();
+        float y = (params.topMargin + height / 2f) / parent.getHeight();
 
-        Settings.BLOCK_AUTHOR_BUTTON_POSITION.save(round(x) + "," + round(y));
-        Logger.printDebug(() -> "Block button moved to " + round(x) + "," + round(y));
+        StringSetting setting = positionSetting(view);
+        String position = round(x) + "," + round(y);
+        setting.save(position);
+        Logger.printDebug(() -> String.valueOf(view.getContentDescription()) + " moved to " + position);
+    }
+
+    private static StringSetting positionSetting(View view) {
+        if (view == localHideReference.get()) return Settings.LOCAL_HIDE_BUTTON_POSITION;
+        if (view == soundButtonReference.get()) return Settings.BLOCK_SOUND_BUTTON_POSITION;
+        if (view == notInterestedReference.get()) return Settings.NOT_INTERESTED_BUTTON_POSITION;
+        return Settings.BLOCK_AUTHOR_BUTTON_POSITION;
+    }
+
+    private static float clampFraction(float value) {
+        return Math.min(Math.max(value, 0f), 1f);
     }
 
     private static String round(float value) {
@@ -567,20 +699,20 @@ public final class BlockAuthorOverlay {
         requestInFlight = true;
         setButtonEnabled(false);
 
-        BlockAuthorService.block(author, (result, message) -> {
+        BlockAuthorService.block(author, result -> {
             requestInFlight = false;
             setButtonEnabled(true);
-
-            if (result == BlockAuthorService.Result.CONFIRMED) {
-                showUndo(author);
-            } else if (result == BlockAuthorService.Result.UNCONFIRMED) {
-                Utils.showToastLong(L10n.f("Could not confirm block for %1$s", author.label()));
-            } else {
-                Utils.showToastLong(message == null || message.isEmpty()
-                        ? L10n.f("Could not block %1$s", author.label())
-                        : L10n.f("Could not block %1$s: %2$s", author.label(), message));
-            }
+            reportBlockResult(author, result);
         });
+    }
+
+    static void reportBlockResult(VideoAuthor author, BlockAuthorService.Result result) {
+        if (result == BlockAuthorService.Result.CONFIRMED) {
+            showUndo(author);
+            return;
+        }
+        Utils.showToastLong(BlockAuthorMessages.blockFailure(
+                Utils.getContext(), result, author.label()));
     }
 
     private static void onLocalHideTapped() {
@@ -596,6 +728,11 @@ public final class BlockAuthorOverlay {
                 before, author.stableId());
         if (after.equals(before)) {
             Utils.showToastShort(L10n.t("That creator is already in the list"));
+            return;
+        }
+        String problem = app.morphe.extension.tiktok.feedfilter.FeedRuleLimits.creatorProblem(after);
+        if (problem != null) {
+            Utils.showToastLong(problem);
             return;
         }
         Settings.LOCAL_HIDDEN_CREATORS.save(after);
@@ -620,11 +757,12 @@ public final class BlockAuthorOverlay {
     private static void showUndo(VideoAuthor author) {
         showUndoBanner(L10n.f("Blocked %1$s", author.label()),
                 () -> BlockAuthorService.unblock(author,
-                        (result, message) -> Utils.showToastShort(result == BlockAuthorService.Result.CONFIRMED
-                                ? L10n.f("Unblocked %1$s", author.label())
-                                : result == BlockAuthorService.Result.UNCONFIRMED
-                                ? L10n.f("Could not confirm unblock for %1$s", author.label())
-                                : L10n.f("Could not unblock %1$s", author.label()))));
+                        result -> reportUnblockResult(author, result)));
+    }
+
+    static void reportUnblockResult(VideoAuthor author, BlockAuthorService.Result result) {
+        Utils.showToastShort(BlockAuthorMessages.unblockResult(
+                Utils.getContext(), result, author.label()));
     }
 
     /**
@@ -688,7 +826,7 @@ public final class BlockAuthorOverlay {
 
                 TextView label = new TextView(activity);
                 label.setText(message);
-                label.setTextColor(Color.WHITE);
+                label.setTextColor(SettingsUi.OVERLAY_TEXT);
                 label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
                 banner.addView(label, new LinearLayout.LayoutParams(0, -2, 1f));
 
@@ -733,6 +871,11 @@ public final class BlockAuthorOverlay {
         undo.setMinimumHeight(SettingsUi.dp(activity, 48));
         undo.setMinimumWidth(SettingsUi.dp(activity, 48));
         undo.setGravity(Gravity.CENTER);
+        // The one way back from a block, on a banner that takes itself away after six seconds,
+        // and it gave no sign at all that it had been pressed or that focus had reached it.
+        undo.setBackground(SettingsUi.overlayAction(activity, SettingsUi.RADIUS_OVERLAY));
+        undo.setFocusable(true);
+        SettingsUi.markAsButton(undo);
         undo.setOnClickListener(view -> {
             dismissUndo();
             undoAction.run();
@@ -750,4 +893,3 @@ public final class BlockAuthorOverlay {
     }
 
 }
-

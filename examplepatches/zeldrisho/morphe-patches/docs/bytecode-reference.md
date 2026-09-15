@@ -1,7 +1,7 @@
 # Bytecode reference
 
 Smali reading/writing aid, obfuscation survival rules, and fingerprint debugging.
-Companion docs: [fingerprint guide](fingerprint-guide.md) (writing fingerprints),
+Companion docs: [fingerprint reference](patch-development.md#fingerprints) (writing fingerprints),
 [reverse engineering workflow](reverse-engineering.md) (finding targets).
 
 ## Type descriptors
@@ -57,7 +57,7 @@ return-void
 sget-object v0, Lcom/app/Tier;->PRO:Lcom/app/Tier;
 return-object v0
 # consult an extension, then branch
-invoke-static { }, Lcom/zeldrisho/threads/extension/MyPatch;->isEnabled()Z
+invoke-static { }, Lcom/example/extension/MyPatch;->isEnabled()Z
 move-result v0
 if-eqz v0, :continue
 return-void
@@ -71,7 +71,7 @@ Replace the example extension path with the real class for the app being patched
 
 R8/ProGuard rename app classes, methods, and fields nearly every release — prefer
 stable anchors over those names (see the
-[fingerprint rules](fingerprint-guide.md#rules)):
+[fingerprint rules](patch-development.md#rules)):
 
 | Survives | Why | Fingerprint field |
 | -------- | --- | ----------------- |
@@ -95,9 +95,9 @@ Fallbacks for heavy obfuscation: `"L"` as a parameter type (matches any object),
 data-class output), SDK-call-only filters without strings.
 
 Recover real Kotlin names to *find* targets (never to *match* on, except under the
-version-pinned exception in the [fingerprint rules](fingerprint-guide.md#rules)):
+version-pinned exception in the [fingerprint rules](patch-development.md#rules)):
 builds that retain `@DebugMetadata(c="com.foo.Bar$…")` / `@Metadata(d2={…Lcom/foo/Bar;…})`
-strings can be mapped with `scripts/recover-kotlin-names.sh` (see
+strings can be mapped with `scripts/recover_kotlin_names.py` (see
 [recover Kotlin names](reverse-engineering.md#recover-kotlin-names-for-obfuscated-kotlin-apps)).
 Coverage is best-effort and lower when metadata is stripped or encrypted.
 `jadx --deobf` only invents synthetic names; metadata recovery restores the

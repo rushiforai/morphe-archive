@@ -1,3 +1,9 @@
+## [1.1.0](https://github.com/Sfehhrths/ekispert-morphe-patches/compare/v1.0.1...v1.1.0) (2026-09-14)
+
+### ✨ New Features
+
+* 開いた経路を index ではなく SerializeData で伝える ([9ab917f](https://github.com/Sfehhrths/ekispert-morphe-patches/commit/9ab917fa95f86d4a0fbbae833483f3249fac7f8f))
+
 ## [1.0.1](https://github.com/Sfehhrths/ekispert-morphe-patches/compare/v1.0.0...v1.0.1) (2026-09-10)
 
 ### 🐛 Bug Fixes

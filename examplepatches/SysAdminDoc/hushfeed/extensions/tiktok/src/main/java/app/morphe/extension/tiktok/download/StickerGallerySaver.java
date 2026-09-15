@@ -189,15 +189,29 @@ public final class StickerGallerySaver {
 
         Drawable background = template.getBackground();
         if (background != null && background.getConstantState() != null) {
+            // TikTok's own row background, states and all, so a press on this looks like a press
+            // on the rows beside it.
             button.setBackground(background.getConstantState().newDrawable().mutate());
         } else {
-            button.setBackground(template.getBackground());
+            // A template with no background of its own left this one flat: no press, and nothing
+            // at all for a reader arriving with a keyboard or switch access.
+            button.setBackground(SettingsUi.overlayAction(context, SettingsUi.RADIUS_CONTROL));
         }
 
         button.setEnabled(template.isEnabled());
         button.setClickable(true);
         button.setFocusable(true);
         button.setAlpha(template.getAlpha());
+        // A clickable TextView announces as text, so this was offered to a screen reader as a
+        // label rather than as something to press, and the same helper the settings screen's
+        // hand built actions use now gives it the role, the action and its enabled state.
+        SettingsUi.markAsButton(button);
+        // The template is one of TikTok's own row labels and can be shorter than a finger. The
+        // minimum is a floor, not a height, so a large font scale still grows the button rather
+        // than clipping it.
+        int minimum = SettingsUi.dp(context, 48);
+        button.setMinHeight(Math.max(button.getMinHeight(), minimum));
+        button.setMinWidth(Math.max(button.getMinWidth(), minimum));
         return button;
     }
 
@@ -306,7 +320,8 @@ public final class StickerGallerySaver {
                 MediaBudget.checkDiskSpace(context.getCacheDir(), declaredLength, deadline);
                 try (InputStream input = response.inputStream();
                      OutputStream output = new FileOutputStream(target)) {
-                    MediaFileWriter.copy(input, output, MAX_STICKER_BYTES, deadline);
+                    MediaFileWriter.copy(input, output, MAX_STICKER_BYTES, deadline,
+                            target.getParentFile());
                 }
                 return response.contentType();
             } catch (IOException | RuntimeException error) {

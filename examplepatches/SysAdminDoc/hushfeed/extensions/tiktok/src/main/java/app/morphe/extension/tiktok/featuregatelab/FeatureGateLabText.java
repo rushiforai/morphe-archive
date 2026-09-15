@@ -1,0 +1,225 @@
+/*
+ * Copyright 2026 Hushfeed contributors
+ * https://github.com/SysAdminDoc/hushfeed
+ *
+ * Built on icysymmetra/tiktok-patches-for-morphe (GPL-3.0).
+ */
+package app.morphe.extension.tiktok.featuregatelab;
+
+import android.content.Context;
+
+import app.morphe.extension.tiktok.settings.L10n;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.json.JSONObject;
+
+/** Turns typed Lab outcomes into complete sentences at the UI boundary. */
+final class FeatureGateLabText {
+    enum ValueSource {
+        CURRENT,
+        DEFAULT,
+        RESEARCHED,
+        HISTORICAL,
+        SELECTED
+    }
+
+    private FeatureGateLabText() {
+    }
+
+    static String validation(
+            Context context,
+            FeatureGateLabStore.ValidationFailure failure
+    ) {
+        if (failure == null) return "";
+        switch (failure.code) {
+            case VALUE_MISSING:
+                return L10n.t(context, "This value is required.");
+            case EXPECTED_TRUE_OR_FALSE:
+                return L10n.t(context, "Enter true or false.");
+            case INVALID_NUMBER:
+                return L10n.f(context, "Enter a valid value for %1$s.",
+                        failure.technicalType);
+            case VALUE_MUST_BE_FINITE:
+                return L10n.t(context, "Enter a finite number.");
+            case STRING_TOO_LONG:
+                return L10n.t(context,
+                        "Keep this string to 4,096 characters or fewer.");
+            case STRUCTURED_VALUE_TOO_LARGE:
+                return L10n.t(context,
+                        "Keep this structured value to 64 KB or less.");
+            case SELECT_AT_LEAST_ONE_FIELD:
+                return L10n.t(context, "Select at least one field.");
+            case UNSUPPORTED_TYPE:
+                return L10n.t(context, "This gate type is not supported.");
+            case INVALID_JSON:
+                return L10n.t(context, "Enter valid JSON.");
+            case EXPECTED_JSON_OBJECT_OR_ARRAY:
+                return L10n.t(context, "Enter a JSON object or array.");
+            case INVALID_STRUCTURED_VALUE:
+            default:
+                return L10n.t(context, "Enter a valid structured value.");
+        }
+    }
+
+    static String fieldValidation(
+            Context context,
+            String fieldName,
+            FeatureGateLabStore.ValidationFailure failure
+    ) {
+        return L10n.f(context, "%1$s has an invalid value. %2$s",
+                fieldName, validation(context, failure));
+    }
+
+    static String importRejection(
+            Context context,
+            FeatureGateLabStore.ImportRejection rejection
+    ) {
+        switch (rejection.code) {
+            case INVALID_OBJECT:
+                return L10n.f(context, "Entry %1$d is not an object.",
+                        rejection.entryNumber);
+            case INVALID_FIELD_TYPE:
+                return L10n.f(context,
+                        "Entry %1$d has a field with the wrong data type.",
+                        rejection.entryNumber);
+            case UNKNOWN_KEY:
+                return L10n.f(context, "%1$s is not in this Lab catalog.", rejection.key);
+            case UNSUPPORTED_BOUNDARY:
+                return L10n.f(context,
+                        "%1$s has no supported override boundary in this Lab build.",
+                        rejection.key);
+            case TYPE_MISMATCH:
+                return L10n.f(context,
+                        "%1$s has type %2$s, but the file says %3$s.",
+                        rejection.key, rejection.expectedType, rejection.actualType);
+            case INVALID_VALUE:
+                return L10n.f(context, "%1$s was rejected. %2$s", rejection.key,
+                        validation(context, rejection.validation));
+            case DUPLICATE_RULE:
+            default:
+                return L10n.f(context,
+                        "%1$s appears more than once in this file.", rejection.key);
+        }
+    }
+
+    static String sourceLabel(Context context, FeatureGateCatalog.Entry entry) {
+        String name = sourceName(context, entry.manager);
+        if (entry.registered && entry.loaded) {
+            return L10n.f(context,
+                    "%1$s / generated registry and current cache", name);
+        }
+        if (entry.registered) {
+            return L10n.f(context, "%1$s / generated registry", name);
+        }
+        if (entry.loaded) {
+            return L10n.f(context, "%1$s / current cache only", name);
+        }
+        return L10n.f(context, "%1$s / local catalog", name);
+    }
+
+    private static String sourceName(Context context, String manager) {
+        if (FeatureGateLabStore.MANAGER_PIA_ACTIVITY_CENTER.equals(manager)) {
+            return L10n.t(context, "Activity Center");
+        }
+        if (FeatureGateLabStore.MANAGER_PLAYER_CONFIG.equals(manager)) {
+            return L10n.t(context, "Player Config");
+        }
+        if (FeatureGateLabStore.MANAGER_LIVE.equals(manager)) {
+            return L10n.t(context, "Live Settings");
+        }
+        if (FeatureGateLabStore.MANAGER_VE_CONFIG.equals(manager)) {
+            return L10n.t(context, "Media Config");
+        }
+        if (FeatureGateLabStore.MANAGER_SETTINGS_MANAGER.equals(manager)) {
+            return L10n.t(context, "Structured Config");
+        }
+        if (FeatureGateLabStore.MANAGER_ABMOCK.equals(manager)) {
+            return L10n.t(context, "App AB");
+        }
+        return manager;
+    }
+
+    static String effectiveValue(Context context, FeatureGateCatalog.Entry entry) {
+        if (entry == null) return L10n.t(context, "Unavailable");
+        FeatureGateLabStore.Rule rule = FeatureGateLabStore.rule(
+                entry.manager, entry.key, entry.type);
+        if (FeatureGateLabStore.masterEnabled() && rule != null && rule.enabled) {
+            boolean triggered = FeatureGateLabRuntime.isTriggered(
+                    entry.manager, entry.key, entry.type);
+            if ("OBJECT".equals(entry.type)) {
+                int fields = structuredFieldCount(rule.value);
+                if (fields == 1) {
+                    return L10n.t(context, triggered
+                            ? "1 field overridden"
+                            : "1 field will be overridden when requested");
+                }
+                return L10n.f(context, triggered
+                                ? "%1$d fields overridden"
+                                : "%1$d fields will be overridden when requested",
+                        fields);
+            }
+            return L10n.f(context, triggered
+                            ? "%1$s (override returned)"
+                            : "%1$s (will be returned when requested)",
+                    rule.value);
+        }
+        return entry.loaded
+                ? L10n.f(context, "%1$s (TikTok value)", entry.currentValue)
+                : L10n.t(context, "No current value and no active override");
+    }
+
+    static String optionLabel(
+            Context context,
+            String value,
+            List<ValueSource> sources
+    ) {
+        List<String> labels = new ArrayList<>(sources.size());
+        for (ValueSource source : sources) labels.add(valueSource(context, source));
+        return L10n.f(context, "%1$s (%2$s)", value, join(labels));
+    }
+
+    static String customOptionLabel(Context context, String value) {
+        return L10n.f(context, "%1$s (custom, unverified)", value);
+    }
+
+    static String rawValues(Context context, List<String> values) {
+        return values == null || values.isEmpty()
+                ? L10n.t(context, "None recorded")
+                : join(values);
+    }
+
+    private static String valueSource(Context context, ValueSource source) {
+        switch (source) {
+            case CURRENT:
+                return L10n.t(context, "Current");
+            case DEFAULT:
+                return L10n.t(context, "Default");
+            case RESEARCHED:
+                return L10n.t(context, "Researched");
+            case HISTORICAL:
+                return L10n.t(context, "Historical");
+            case SELECTED:
+            default:
+                return L10n.t(context, "Selected");
+        }
+    }
+
+    private static String join(List<String> values) {
+        StringBuilder result = new StringBuilder();
+        for (String value : values) {
+            if (result.length() > 0) result.append(", ");
+            result.append(value);
+        }
+        return result.toString();
+    }
+
+    private static int structuredFieldCount(String text) {
+        try {
+            return text == null ? 0 : new JSONObject(text).length();
+        } catch (Throwable ignored) {
+            return 0;
+        }
+    }
+}

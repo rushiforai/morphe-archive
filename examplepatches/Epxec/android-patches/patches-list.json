@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.2.0",
+  "version": "1.5.0",
   "patches": [
     {
       "name": "Enable Premium",
@@ -102,6 +102,72 @@
       "options": []
     },
     {
+      "name": "Enable Pro",
+      "description": "Enables Pro features.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.pittvandewitt.wavelet",
+          "name": "Wavelet",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#FF1234",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "26.05",
+              "versionCodes": {
+                "ARM64_V8A": 260508,
+                "ARMEABI_V7A": 260508,
+                "X86_64": 260508,
+                "X86": 260508
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable Pro",
+      "description": "Enable Pro features",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.frack.xeq",
+          "name": "XEQ Equalizer",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#FF1234",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "38.7.0",
+              "versionCodes": {
+                "ARM64_V8A": 437,
+                "ARMEABI_V7A": 437,
+                "X86_64": 437,
+                "X86": 437
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Enable VIP",
       "description": "Enables the VIP features of the app.",
       "default": true,
@@ -157,6 +223,39 @@
                 "ARMEABI_V7A": 200470001,
                 "X86_64": 200470001,
                 "X86": 200470001
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable premium features",
+      "description": "Removed validation on purchases, and forced to acknowledge that user is a premium user",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "net.daylio",
+          "name": "Daylio",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#FF1234",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.69.2",
+              "versionCodes": {
+                "ARM64_V8A": 276,
+                "ARMEABI_V7A": 276,
+                "X86_64": 276,
+                "X86": 276
               },
               "isExperimental": false,
               "minSdk": null,

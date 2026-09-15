@@ -405,6 +405,7 @@ Second \"item\" text"</string>
   <string name="morphe_vot_screen_title">การแปลเสียงบรรยาย</string>
   <string name="morphe_vot_screen_summary">อ่านคำบรรยายวิดีโอออกเสียงด้วยระบบแปลงข้อความเป็นเสียงบนอุปกรณ์ โดยซิงโครไนซ์กับการเล่น</string>
   <string name="morphe_vot_enabled_title">การแปลเสียงบรรยาย</string>
+  <string name="morphe_vot_enabled_summary">แสดงปุ่มซ้อนทับในเครื่องเล่นวิดีโอ แตะเพื่อสลับการแปล แตะค้างเพื่อเปิดการตั้งค่าด่วน</string>
   <string name="morphe_vot_caption_language_title">ภาษา</string>
   <string name="morphe_vot_translation_service_title">ผู้ให้บริการแปล</string>
   <string name="morphe_vot_original_audio_volume_title">ระดับเสียงของเสียงต้นฉบับ</string>
@@ -514,6 +515,8 @@ Second \"item\" text"</string>
   <string name="morphe_queue_add_flyout_menu_summary">เพิ่มรายการฟลายเอาต์เพิ่มเติม เปิดใช้งานนี้หากไม่แสดง \"เพิ่มในคิว\"</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_title">ไวต์ลิสต์โฆษณาในเมนู flyout</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_summary">เพิ่มรายการในเมนู flyout ที่อนุญาตให้โฆษณาเล่นบนช่องของวิดีโอนั้น</string>
+  <!-- "Spoof video streams" must use the same translation as morphe_spoof_video_streams_screen_title -->
+  <string name="morphe_ads_channel_whitelist_flyout_user_dialog_message">คุณสมบัตินี้อาจต้องใช้ PotHelper หรือเปลี่ยน \"Spoof video streams\" เป็นการลงชื่อเข้าใช้แบบทีวีหรือ Android VR</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_title">ไวต์ลิสต์ความเร็วในเมนู flyout</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_summary">เพิ่มรายการในเมนู flyout ที่ให้เล่นวิดีโอของช่องนั้นที่ความเร็ว 1.0x เสมอ</string>
   <string name="morphe_queue_manager_check_failed_auth">ยังไม่ได้เข้าสู่ระบบ</string>
@@ -603,8 +606,10 @@ Second \"item\" text"</string>
   <string name="morphe_swipe_text_overlay_size_summary">ปรับขนาดตัวอักษรบนหน้าจอ (1-30)</string>
   <string name="morphe_swipe_threshold_title">เกณฑ์ขนาดของการปัด</string>
   <string name="morphe_swipe_threshold_summary">ตั้งค่าระยะการปัดที่จำเป็นก่อนที่จะเกิดการปรับ</string>
-  <string name="morphe_swipe_volume_sensitivity_title">ความไวในการปัดปรับระดับเสียง</string>
-  <string name="morphe_swipe_volume_sensitivity_summary">ค่าที่สูงขึ้นจะเพิ่มการเปลี่ยนแปลงระดับเสียงต่อการปัดแต่ละครั้ง</string>
+  <string name="morphe_swipe_volume_distance_title">ความไวในการปัดปรับระดับเสียง</string>
+  <string name="morphe_swipe_volume_distance_summary">ค่าที่สูงขึ้นต้องปัดมากขึ้นต่อขั้นปรับระดับเสียง</string>
+  <string name="morphe_swipe_volume_steps_title">ขั้นระดับเสียง</string>
+  <string name="morphe_swipe_volume_steps_entry_default">ค่าเริ่มต้นของอุปกรณ์</string>
   <string name="morphe_swipe_brightness_sensitivity_title">ความไวในการปัดปรับความสว่าง</string>
   <string name="morphe_swipe_brightness_sensitivity_summary">ค่าที่สูงขึ้นต้องมีการปัดมากขึ้นต่อการปรับความสว่างแต่ละครั้ง</string>
   <string name="morphe_swipe_speed_sensitivity_title">ความไวในการปัดปรับความเร็ว</string>
@@ -913,6 +918,7 @@ Second \"item\" text"</string>
   <string name="morphe_disable_fullscreen_sliding_down_gesture_title">ปิดการใช้งานท่าทางปัดลงในโหมดแนวตั้ง</string>
   <string name="morphe_disable_fullscreen_dragged_down_gesture_title">ปิดการใช้งานท่าทางปัดลงในโหมดแนวนอน</string>
   <string name="morphe_disable_fullscreen_zoom_gesture_title">ปิดใช้งานท่าทางสัมผัสแบบบีบเพื่อซูม</string>
+  <string name="morphe_restore_pinch_to_zoom_title">คืนค่าการบีบเพื่อซูม</string>
   <!-- layout.player.fullscreen.openVideosFullscreenPatch -->
   <string name="morphe_open_videos_fullscreen_title">เปิดวิดีโอในโหมดเต็มหน้าจอ</string>
   <string name="morphe_open_videos_fullscreen_entry_1">ปิดการใช้งานอยู่</string>
@@ -925,6 +931,8 @@ Second \"item\" text"</string>
   <string name="morphe_fullscreen_video_scale_entry_zoom">ซูม (ครอปเพื่อเติมเต็ม)</string>
   <string name="morphe_fullscreen_video_scale_button_title">แสดงปุ่มมาตราส่วนวิดีโอ</string>
   <string name="morphe_fullscreen_video_scale_button_summary">แตะเพื่อสลับค่าเริ่มต้น ยืด และซูม</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_title">แสดงเฉพาะในโหมดเต็มหน้าจอ</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_summary">ซ่อนปุ่มปรับขนาดวิดีโอในเครื่องเล่นแนวตั้ง</string>
   <!-- layout.player.buttons.muteVideoButtonPatch -->
   <string name="morphe_mute_video_button_title">แสดงปุ่มปิดเสียง</string>
   <!-- layout.player.overlay.customPlayerOverlayOpacityPatch -->
@@ -964,6 +972,7 @@ Second \"item\" text"</string>
 
 ข้อจำกัด: หากปิด 'คืนแถบการทำงานของวิดีโอแบบเก่า' การแสดงผล 'วิดีโอเพิ่มเติม' อาจใช้งานไม่ได้"</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="morphe_spoof_app_version_target_entry_21_11">21.11.48 - กู้คืนพฤติกรรมคำบรรยายแบบเดิม</string>
   <string name="morphe_spoof_app_version_target_entry_20_39">20.39.41 - คืนค่าไอคอนเครื่องเล่น Shorts เก่า</string>
   <string name="morphe_spoof_app_version_target_entry_20_28">20.28.41 - ปิดไอคอนตัวหนา</string>
   <string name="morphe_spoof_app_version_target_entry_20_13">20.13.41 - กู้คืนชื่อช่องใต้เครื่องเล่นวิดีโอ</string>
@@ -1024,16 +1033,16 @@ Second \"item\" text"</string>
   <string name="morphe_miniplayer_disable_resuming_summary">ปิดใช้งานเครื่องเล่นขนาดเล็ก \'ดูต่อ\' ซึ่งเป็นคุณสมบัติพิเศษสำหรับ YouTube Premium ที่ปรากฏขึ้นเมื่อเริ่มต้นแอป</string>
   <string name="morphe_miniplayer_screen_title">มินิเพลเยอร์</string>
   <string name="morphe_miniplayer_screen_summary">ปรับแต่งรูปลักษณ์และพฤติกรรมของเครื่องเล่นวิดีโอขนาดเล็ก</string>
-  <string name="morphe_miniplayer_not_available_summary">YouTube ได้ลบมินิเพลเยอร์เพิ่มเติมทั้งหมดออกแล้ว หากต้องการเปลี่ยนประเภทมินิเพลเยอร์ โปรดอัปเดตแพตช์ YouTube เป็นเวอร์ชัน 21.28.208 หรือเก่ากว่า</string>
   <string name="morphe_miniplayer_type_title">ประเภทของเครื่องเล่นย่อขนาด</string>
   <string name="morphe_miniplayer_type_entry_0">ปิดการใช้งานอยู่</string>
   <string name="morphe_miniplayer_type_entry_1">ค่าเริ่มต้น</string>
   <string name="morphe_miniplayer_type_entry_2">น้อยที่สุด</string>
-  <string name="morphe_miniplayer_type_entry_3">แท็บเล็ต</string>
-  <string name="morphe_miniplayer_type_entry_4">ทันสมัย 1</string>
-  <string name="morphe_miniplayer_type_entry_5">ทันสมัย 2</string>
-  <string name="morphe_miniplayer_type_entry_6">ทันสมัย 3</string>
-  <string name="morphe_miniplayer_type_entry_7">ทันสมัย 4</string>
+  <string name="morphe_miniplayer_type_entry_3">มินิมอล 2</string>
+  <string name="morphe_miniplayer_type_entry_4">แท็บเล็ต</string>
+  <string name="morphe_miniplayer_type_entry_5">ทันสมัย 1</string>
+  <string name="morphe_miniplayer_type_entry_6">ทันสมัย 2</string>
+  <string name="morphe_miniplayer_type_entry_7">ทันสมัย 3</string>
+  <string name="morphe_miniplayer_type_entry_8">ทันสมัย 4</string>
   <string name="morphe_miniplayer_disable_rounded_corners_title">ปิดใช้งานมุมโค้งมน</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_title">ปิดใช้งานการลากและวาง</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_summary">ป้องกันไม่ให้ลากเครื่องเล่นขนาดเล็กไปยังมุมต่างๆ ของหน้าจอ</string>

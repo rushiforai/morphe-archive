@@ -19,6 +19,7 @@ import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
+import app.morphe.extension.tiktok.feedfilter.FeedRuleLimits;
 
 import org.junit.Rule;
 import org.junit.After;
@@ -53,6 +54,7 @@ public class InputCheckTest {
             }
         }
         Settings.BLOCKED_CREATORS.save("");
+        Settings.BLOCKED_CAPTION_WORDS.save("");
         Settings.SIMSPOOF_MCCMNC.save(Settings.SIMSPOOF_MCCMNC.defaultValue);
         Settings.EXTERNAL_DOWNLOADER_PACKAGE.save("");
         Settings.MIN_MAX_VIEWS.resetToDefault();
@@ -97,6 +99,49 @@ public class InputCheckTest {
             assertFalse("the dialog stayed open on a value it took", dialog.isShowing());
             assertEquals("news_uk, @someone", Settings.BLOCKED_CREATORS.get());
         });
+    }
+
+    @Test public void oversizedFeedRuleDialogsStayOpenAndKeepStorageUntouched()
+            throws Exception {
+        String tooMany = entryList(FeedRuleLimits.MAX_ENTRIES + 1);
+        onScreen("FEED_FILTER", "blocked_caption_words", field -> {
+            openDialog(field);
+            android.app.AlertDialog dialog = (android.app.AlertDialog) field.getDialog();
+            field.getEditText().setText(tooMany);
+            dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            assertTrue("the caption dialog closed on 10,001 entries", dialog.isShowing());
+            assertEquals("That list has too many entries. Keep it to 10,000 or fewer.",
+                    field.getEditText().getError().toString());
+            assertEquals("", Settings.BLOCKED_CAPTION_WORDS.get());
+        });
+
+        StringBuilder tooLarge = new StringBuilder(FeedRuleLimits.MAX_UTF8_BYTES / 2 + 1);
+        for (int index = 0; index <= FeedRuleLimits.MAX_UTF8_BYTES / 2; index++) {
+            tooLarge.append('é');
+        }
+        onScreen("FEED_FILTER", "blocked_creators", field -> {
+            openDialog(field);
+            android.app.AlertDialog dialog = (android.app.AlertDialog) field.getDialog();
+            field.getEditText().setText(tooLarge);
+            dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            assertTrue("the creator dialog closed on more than 256 KB", dialog.isShowing());
+            assertEquals("That list is too large. Keep it to 256 KB or less.",
+                    field.getEditText().getError().toString());
+            assertEquals("", Settings.BLOCKED_CREATORS.get());
+        });
+    }
+
+    private static String entryList(int count) {
+        StringBuilder value = new StringBuilder(count * 8);
+        for (int index = 0; index < count; index++) {
+            if (index > 0) value.append(',');
+            value.append("item").append(index);
+        }
+        return value.toString();
     }
 
     /** The same for the two-box rows, where retyping meant retyping both numbers. */

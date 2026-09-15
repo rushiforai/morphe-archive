@@ -27,6 +27,7 @@ import android.widget.TextView;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.StringSetting;
 import app.morphe.extension.tiktok.feedfilter.AdvancedFeedRules;
+import app.morphe.extension.tiktok.feedfilter.FeedRuleLimits;
 import app.morphe.extension.tiktok.settings.L10n;
 
 import java.util.ArrayList;
@@ -206,22 +207,45 @@ public class CreatorListPreference extends DialogPreference {
         return editor;
     }
 
+    /**
+     * What is wrong with what is in the add box, or null when it can be added.
+     *
+     * <p>Separate from adding it so the Save button can ask the same question before the dialog
+     * closes. An empty box is not a problem here: Save with nothing typed saves the list as it
+     * stands, which is the ordinary way to leave this editor.
+     */
+    private String typedEntryProblem() {
+        String candidate = addEditText == null ? "" : addEditText.getText().toString().trim();
+        if (candidate.isEmpty()) return null;
+
+        String problem = AdvancedFeedRules.creatorEntryProblem(candidate);
+        if (problem != null) return problem;
+        if (AdvancedFeedRules.hasCreatorEntry(
+                AdvancedFeedRules.joinCreatorEntries(pendingEntries), candidate)) {
+            return L10n.t("That creator is already in the list");
+        }
+        return FeedRuleLimits.creatorProblem(AdvancedFeedRules.addCreatorEntry(
+                AdvancedFeedRules.joinCreatorEntries(pendingEntries), candidate));
+    }
+
+    /** The reason, under the box it is about, where every other editor in the bundle puts it. */
+    private void reportProblem(String problem) {
+        if (addEditText != null) addEditText.setError(problem);
+    }
+
     private void addEntry() {
         String candidate = addEditText == null ? "" : addEditText.getText().toString().trim();
         if (candidate.isEmpty()) {
-            Utils.showToastShort(L10n.t("Enter a creator handle or id"));
+            reportProblem(L10n.t("Enter a creator handle or id"));
             return;
         }
-        String problem = AdvancedFeedRules.creatorEntryProblem(candidate);
+        String problem = typedEntryProblem();
         if (problem != null) {
-            Utils.showToastLong(problem);
-            return;
-        }
-        if (AdvancedFeedRules.hasCreatorEntry(AdvancedFeedRules.joinCreatorEntries(pendingEntries), candidate)) {
-            Utils.showToastShort(L10n.t("That creator is already in the list"));
+            reportProblem(problem);
             return;
         }
         pendingEntries.add(candidate);
+        addEditText.setError(null);
         addEditText.setText("");
         refreshEntryRows();
     }
@@ -328,21 +352,65 @@ public class CreatorListPreference extends DialogPreference {
 
     @Override
     protected void onDialogClosed(boolean positiveResult) {
-        if (positiveResult) {
-            // A handle typed into the box and never added with the button is still what the
-            // reader meant to save. It goes in the way Add would have put it, with the same
-            // checks and the same word about it if it cannot be; before this it was dropped
-            // without a word.
-            String typed = addEditText == null ? "" : addEditText.getText().toString().trim();
-            if (!typed.isEmpty()) addEntry();
-            setValue(AdvancedFeedRules.joinCreatorEntries(pendingEntries));
+        if (!positiveResult) return;
+        // The Save button is intercepted above and never lets a refused list get this far, but
+        // the platform can still close a dialog on its own, and a refusal that reaches here
+        // has to land under the box rather than nowhere.
+        String problem = saveTypedAndList();
+        if (problem != null) reportProblem(problem);
+    }
+
+    /**
+     * Takes the box and the list as they stand, or says what stops it.
+     *
+     * <p>A handle typed into the box and never added with the button is still what the reader
+     * meant to save, so it goes in the way Add would have put it.
+     *
+     * @return the reason nothing was saved, or null when the list was written.
+     */
+    private String saveTypedAndList() {
+        String typed = addEditText == null ? "" : addEditText.getText().toString().trim();
+        if (!typed.isEmpty()) {
+            String problem = typedEntryProblem();
+            if (problem != null) return problem;
+            addEntry();
         }
+        String next = AdvancedFeedRules.joinCreatorEntries(pendingEntries);
+        String problem = FeedRuleLimits.creatorProblem(next);
+        if (problem != null) return problem;
+        setValue(next);
+        return null;
     }
 
     @Override
     protected void showDialog(Bundle state) {
         super.showDialog(state);
         SettingsUi.styleFramedDialog(getDialog());
+        // Save used to let the dialog close and then say what was wrong over whatever was
+        // behind it, with the handle the reader had typed already gone. The same shape the
+        // download path editor was given: the reason goes under the box, the box keeps the
+        // text, and nothing is written until it can be.
+        SettingsUi.keepOpenOnInvalidInput(getDialog(), new SettingsUi.DialogCheck() {
+            @Override public String problem() {
+                String typed = addEditText == null ? "" : addEditText.getText().toString().trim();
+                if (!typed.isEmpty()) {
+                    String problem = typedEntryProblem();
+                    if (problem != null) return problem;
+                }
+                return FeedRuleLimits.creatorProblem(typed.isEmpty()
+                        ? AdvancedFeedRules.joinCreatorEntries(pendingEntries)
+                        : AdvancedFeedRules.addCreatorEntry(
+                                AdvancedFeedRules.joinCreatorEntries(pendingEntries), typed));
+            }
+
+            @Override public void report(String problem) {
+                reportProblem(problem);
+            }
+
+            @Override public boolean accept() {
+                return saveTypedAndList() == null;
+            }
+        });
     }
 
     @Override

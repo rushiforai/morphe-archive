@@ -1,41 +1,39 @@
 # Agent Instructions
 
-## Project Layout
-
-| Path | Purpose |
-| ---- | ------- |
-| `patches/` | Patch + fingerprint sources; builds `patches/build/libs/patches-*.mpp` |
-| `extensions/threads/` | Threads companion extension; builds `extensions/extension.mpe` |
-| `extensions/zalo/` | Zalo companion extension; builds `extensions/zalo.mpe` |
-| `scripts/` | Helper scripts (APK recon, re-patch, release staging, cleanup) |
-| `docs/` | Contributor docs (setup, development, release, QA) |
-| `config/` | Static-analysis config (`detekt/detekt.yml`) |
-| `analysis/` | Gitignored local APK analysis scratch |
+## Toolchain
+- Use the checked-in Gradle wrapper (`./gradlew`) with Java 21; setup and registry credentials: `docs/toolchain.md`.
+- Use `uvx` for Python tools; do not repeat host provisioning during routine builds.
 
 ## Commands
-
 | Task | Command |
 | ---- | ------- |
-| Verify | Follow [canonical verification](docs/development.md#verify) |
-| Test single class | `./gradlew :patches:test --tests "<class>" --no-daemon` (Threads: `:extensions:threads:testDebugUnitTest --tests "<class>"`; Zalo: `:extensions:zalo:testDebugUnitTest --tests "<class>"`) |
-| Build patches bundle | `./gradlew buildAndroid` → `patches/build/libs/patches-*.mpp` |
-| Re-patch + sign an APK | `bash scripts/repatch.sh <app.apkm> [out.apk]` (env overrides: see `docs/cli.md`) |
-| Stage a release | Follow [release staging](docs/release.md#staging-a-release) |
+| Check selected scripts/workflows | `uvx pre-commit run --files <file> --show-diff-on-failure` |
+| Test patch class | `./gradlew :patches:test --tests '<fully.qualified.Class>' --no-daemon` |
+| Test Threads extension class | `./gradlew :extensions:threads:testDebugUnitTest --tests '<fully.qualified.Class>' --no-daemon` |
+| Test Zalo extension class | `./gradlew :extensions:zalo:testDebugUnitTest --tests '<fully.qualified.Class>' --no-daemon` |
+| Build bundle and verify embedded extensions | `./gradlew :patches:verifyBundleExtension --no-daemon` |
+| Full verification | Follow `docs/development.md#verify` |
+| Re-patch and sign | `python3 scripts/repatch.py <app.apkm> [out.apk]` (options: `docs/cli.md`) |
 
 ## Key Conventions
-
-- Branching and publishing: follow the [release process](docs/release.md).
-- Generated-file ownership: follow [release rules](docs/release.md#rules).
-- `CHANGELOG.md`: follow [changelog policy](docs/release.md#changelog-policy) and [release rules](docs/release.md#rules).
-- Risky-patch defaults and warnings: follow [patch authoring rules](docs/patch-development.md#file-layout).
+- Patch sources and adjacent fingerprints live under `patches/src/main/kotlin/com/zeldrisho/patches/`; app-agnostic helpers belong in `shared/`.
+- Keep runtime extensions app-specific: `extensions/threads/` and `extensions/zalo/` are independent modules.
+- Extension artifact or class-descriptor renames must update both Gradle wiring in `patches/build.gradle.kts` and injected bytecode call sites.
+- Follow `docs/patch-development.md#file-layout` for exact compatibility targets, patch descriptions, and risky-patch defaults.
+- Follow `docs/release.md#rules` for generated-file ownership; do not hand-edit release metadata or the generated README patch list.
+- Follow `docs/release.md#changelog-policy` for `CHANGELOG.md`; add only user-visible app changes under `## Unreleased`.
+- Work on branches and follow `docs/release.md` for staging and publishing.
+- Build and unit-test success does not establish real-APK compatibility or device behavior; use `docs/validation.md`.
 
 ## External References
-
 | Need | File |
 | ---- | ---- |
-| Development entry + reading order | `docs/development.md` |
-| Host setup | `docs/toolchain.md` |
-| CLI patching + signing | `docs/cli.md` |
-| Writing patches + fingerprints | `docs/patch-development.md`, `docs/fingerprint-guide.md` |
-| Release process | `docs/release.md` |
-| QA + remaining work | `docs/qa-checklist.md`, `docs/plan.md` |
+| Development entry and verification | `docs/development.md` |
+| Host setup and credentials | `docs/toolchain.md` |
+| Patch authoring and fingerprints | `docs/patch-development.md` |
+| APK analysis and reverse-engineering | `docs/reverse-engineering.md` |
+| Bytecode and smali reference | `docs/bytecode-reference.md` |
+| Bypass patterns and SDK recipes | `docs/bypass-patterns.md` |
+| CLI patching and signing | `docs/cli.md` |
+| Release and generated-file policy | `docs/release.md` |
+| Device validation and project status | `docs/validation.md`, `docs/plan.md` |

@@ -42,6 +42,16 @@ public class DebugPreferenceCategory extends ConditionalPreferenceCategory {
                 BaseSettings.DEBUG
         ));
 
+        // The switch behind the failure messages. It was read, persisted and backed up from the
+        // first release and had no row anywhere, so nobody could turn the messages off without
+        // turning the logging off with them.
+        addPreference(new TogglePreference(
+                context,
+                "Show failures on screen",
+                "While diagnostic logging is on, a message names the part of Hushfeed that failed. Off keeps failures in the report only.",
+                BaseSettings.DEBUG_TOAST_ON_ERROR
+        ));
+
         addPreference(new TogglePreference(
                 context,
                 "Capture crash reports locally",

@@ -112,7 +112,7 @@ public final class SettingsBackupPreference extends Preference
                 : action == IMPORT ? "Restoring your settings"
                 : action == RESET ? "Putting the settings back to their defaults"
                 : "Undoing the last change"));
-        Utils.runOnBackgroundThread(() -> {
+        boolean accepted = Utils.runOnBackgroundThread(() -> {
             boolean labRulesSkipped = false;
             int keptAsTheyWere = 0;
             try {
@@ -182,6 +182,14 @@ public final class SettingsBackupPreference extends Preference
                 });
             }
         });
+        if (!accepted) {
+            if (action != EXPORT) AbstractPreferenceFragment.settingImportInProgress = false;
+            BUSY.set(false);
+            Utils.showToastLong(L10n.t(
+                    "Could not start the settings operation. Try again shortly."));
+            TikTokPreferenceFragment current = owner.get();
+            if (current != null && current.isAdded()) current.refreshBackupSettings();
+        }
     }
 
     static String failureMessage(int action, Exception error) {
@@ -213,6 +221,9 @@ public final class SettingsBackupPreference extends Preference
                         case VALUE:
                             return "That settings backup holds a value Hushfeed cannot read. "
                                     + "Nothing was altered.";
+                        case RULE_LIST:
+                            return "That settings backup contains a feed rule list larger than "
+                                    + "Hushfeed accepts. Nothing was altered.";
                         case LAB_RULES:
                             return "That settings backup holds more Feature Gate Lab rules than "
                                     + "the Lab takes. Nothing was altered.";

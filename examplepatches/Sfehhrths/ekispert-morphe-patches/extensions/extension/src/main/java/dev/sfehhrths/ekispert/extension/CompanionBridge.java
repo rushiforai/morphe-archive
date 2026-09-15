@@ -24,6 +24,8 @@ import java.util.zip.GZIPOutputStream;
  *   EXTRA_BODY_GZIP    byte[]  gzip(UTF-8 body). Route search XML: ~185 KB -> ~12 KB
  *   EXTRA_BODY_LENGTH  int     body length in chars before compression
  *   EXTRA_TIMESTAMP    long    System.currentTimeMillis()
+ *   EXTRA_PRESENTER    String  (KIND_SELECTED_COURSE only) presenter class simple name
+ *   EXTRA_COURSE_KEYS  String[] (KIND_SELECTED_COURSE only) candidate SerializeData values
  * </pre>
  * The companion must declare {@link #PERMISSION} (and hold it) to receive these.
  */
@@ -50,17 +52,17 @@ final class CompanionBridge {
     /** Single-course ResultSet XML the app saved when the user set a transfer alarm. */
     static final String KIND_TRANSFER_ALARM_COURSE = "transfer_alarm_course";
     /**
-     * The user opened / swiped to course #EXTRA_COURSE_INDEX (0-based) in the detail screen.
-     * No body. EXTRA_PRESENTER names the concrete presenter class so the companion can tell a
-     * normal (Dia) or detour search apart from other screens sharing the same presenter.
+     * The user opened / swiped to a course in the detail screen. No body.
+     * EXTRA_COURSE_KEYS (String[]) holds the String field values of the shown {@code AioCourse};
+     * one of them is its {@code SerializeData}, which the companion matches against the
+     * {@code Course/SerializeData} of every ResultSet it has received (route search, course/edit,
+     * MyClip, transfer alarm). EXTRA_PRESENTER names the concrete presenter class (log only).
      */
     static final String KIND_SELECTED_COURSE = "selected_course";
-    static final String EXTRA_COURSE_INDEX = "course_index";
+    static final String EXTRA_COURSE_KEYS = "course_keys";
     static final String EXTRA_PRESENTER = "presenter";
     /** Single-course ResultSet XML of a MyClip (お気に入り) course whose detail is opening. */
     static final String KIND_MYCLIP_COURSE = "myclip_course";
-    /** A detail screen is opening (precedes myclip_course / selected_course). No body. */
-    static final String KIND_DETAIL_OPENED = "detail_opened";
 
     private CompanionBridge() {
     }
@@ -92,19 +94,12 @@ final class CompanionBridge {
         }
     }
 
-    static void sendDetailOpened() {
-        send(new Intent(ACTION)
-                .setPackage(COMPANION_PACKAGE)
-                .putExtra(EXTRA_KIND, KIND_DETAIL_OPENED)
-                .putExtra(EXTRA_TIMESTAMP, System.currentTimeMillis()));
-    }
-
-    static void sendSelectedCourse(String presenterSimpleName, int courseIndex) {
+    static void sendSelectedCourse(String presenterSimpleName, String[] courseKeys) {
         Intent intent = new Intent(ACTION)
                 .setPackage(COMPANION_PACKAGE)
                 .putExtra(EXTRA_KIND, KIND_SELECTED_COURSE)
                 .putExtra(EXTRA_PRESENTER, presenterSimpleName)
-                .putExtra(EXTRA_COURSE_INDEX, courseIndex)
+                .putExtra(EXTRA_COURSE_KEYS, courseKeys)
                 .putExtra(EXTRA_TIMESTAMP, System.currentTimeMillis());
         send(intent);
     }
@@ -144,8 +139,9 @@ final class CompanionBridge {
             String detail;
             if (gz != null) {
                 detail = "chars=" + intent.getIntExtra(EXTRA_BODY_LENGTH, -1) + " gzip=" + gz.length + "B";
-            } else if (intent.hasExtra(EXTRA_COURSE_INDEX)) {
-                detail = "index=" + intent.getIntExtra(EXTRA_COURSE_INDEX, -1)
+            } else if (intent.hasExtra(EXTRA_COURSE_KEYS)) {
+                String[] keys = intent.getStringArrayExtra(EXTRA_COURSE_KEYS);
+                detail = "keys=" + (keys != null ? keys.length : 0)
                         + " presenter=" + intent.getStringExtra(EXTRA_PRESENTER);
             } else {
                 detail = "";

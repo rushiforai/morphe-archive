@@ -251,7 +251,11 @@ public class Utils {
     private static final java.util.concurrent.atomic.AtomicInteger backgroundTasksInFlight =
             new java.util.concurrent.atomic.AtomicInteger();
 
-    public static void runOnBackgroundThread(Runnable task) {
+    /**
+     * @return true when the task was accepted, or false when the bounded worker queue was full.
+     *         Stateful callers must unwind any busy state when this returns false.
+     */
+    public static boolean runOnBackgroundThread(Runnable task) {
         backgroundTasksInFlight.incrementAndGet();
         try {
             backgroundThreadPool.execute(() -> {
@@ -261,9 +265,11 @@ public class Utils {
                     backgroundTasksInFlight.decrementAndGet();
                 }
             });
+            return true;
         } catch (RejectedExecutionException error) {
             backgroundTasksInFlight.decrementAndGet();
             Logger.printException(() -> "Background task queue is full", error);
+            return false;
         }
     }
 
@@ -501,9 +507,14 @@ public class Utils {
     }
 
     public static void setClipboard(CharSequence text) {
-        ClipboardManager clipboard = (ClipboardManager) context
+        setClipboard(context, "Morphe", text);
+    }
+
+    /** Copies a labeled clip through a caller-owned Context with the shared sensitive-data policy. */
+    public static void setClipboard(Context clipboardContext, CharSequence label, CharSequence text) {
+        ClipboardManager clipboard = (ClipboardManager) clipboardContext
                 .getSystemService(Context.CLIPBOARD_SERVICE);
-        ClipData clip = ClipData.newPlainText("Morphe", text);
+        ClipData clip = ClipData.newPlainText(label, text);
         if (Build.VERSION.SDK_INT >= 24) {
             PersistableBundle extras = new PersistableBundle();
             // Use the literal so API 24 through 32 can carry the flag before the constant

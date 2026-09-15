@@ -474,6 +474,7 @@ Info: May not work on live streams"</string>
   <string name="morphe_queue_override_flyout_menu_summary">Lihevîneya Morphe li şûna hejmara YouTube\'yê vekirin</string>
   <string name="morphe_queue_add_flyout_menu_title">Bendeleya rêza flyout-a feed-ê zêde bike</string>
   <string name="morphe_queue_add_flyout_menu_summary">Bendeleya flyout-ê ya zêde zêde dike. Heke \"Zêde bikeye rêzê\" nîşan neyê, vê çalak bike.</string>
+  <!-- "Spoof video streams" must use the same translation as morphe_spoof_video_streams_screen_title -->
   <string name="morphe_queue_manager_check_failed_auth">Tewrê nîşanî dayî ne</string>
   <string name="morphe_queue_manager_check_failed_playlist_id">Îd-a lîsteyê tune ye</string>
   <string name="morphe_queue_manager_check_failed_queue">Lîste vala ye</string>
@@ -551,8 +552,6 @@ Info: May not work on live streams"</string>
   <string name="morphe_swipe_text_overlay_size_summary">Tevahiyê nivîsê li ser ekranê guherîne (1-30)</string>
   <string name="morphe_swipe_threshold_title">Astê sêwirîna germê</string>
   <string name="morphe_swipe_threshold_summary">Mesafeya destgîrkirinê ji bo guhertina pêşniyarî</string>
-  <string name="morphe_swipe_volume_sensitivity_title">Hêwêdayîya germê</string>
-  <string name="morphe_swipe_volume_sensitivity_summary">Nirxên bilindtir guhertoya volume ya her swipe zêde dikin</string>
   <string name="morphe_swipe_brightness_sensitivity_title">Hêsîtîya swipe ya ronahiyê</string>
   <string name="morphe_swipe_brightness_sensitivity_summary">Nirxên bilindtir pêdivî bi swipe zêdetir her gav ronahiyê hewînin</string>
   <string name="morphe_swipe_speed_sensitivity_title">Hêsîtîya swipe ya lezê</string>
@@ -950,16 +949,15 @@ Sînordarî: Ger 'Restore old video action bar' veqetandibe, 'More videos' dîti
   <string name="morphe_miniplayer_disable_resuming_summary">Mînîlîstê \'Devamkirina dîkirinê\' asteng dike, fektorek premîum a YouTube ku di destpêka sepanê de xuya dibe</string>
   <string name="morphe_miniplayer_screen_title">Minileýner</string>
   <string name="morphe_miniplayer_screen_summary">Sazkirina şeffafiyê (0 şeffaf e, 100 neşeffaf e)</string>
-  <string name="morphe_miniplayer_not_available_summary">YouTube hemû miniplayerên zêde ji holê rakir. Ji bo guhertina cureya miniplayer, hingê YouTube 21.28.208 an jî kevntir patch bikin.</string>
   <string name="morphe_miniplayer_type_title">Minileýner</string>
   <string name="morphe_miniplayer_type_entry_0">Vemirandî</string>
   <string name="morphe_miniplayer_type_entry_1">Bixweber</string>
   <string name="morphe_miniplayer_type_entry_2">Kêm</string>
-  <string name="morphe_miniplayer_type_entry_3">Tablet</string>
-  <string name="morphe_miniplayer_type_entry_4">Modern 1</string>
-  <string name="morphe_miniplayer_type_entry_5">Modern 2</string>
-  <string name="morphe_miniplayer_type_entry_6">Modern 3</string>
-  <string name="morphe_miniplayer_type_entry_7">Modern 4</string>
+  <string name="morphe_miniplayer_type_entry_4">Tablet</string>
+  <string name="morphe_miniplayer_type_entry_5">Modern 1</string>
+  <string name="morphe_miniplayer_type_entry_6">Modern 2</string>
+  <string name="morphe_miniplayer_type_entry_7">Modern 3</string>
+  <string name="morphe_miniplayer_type_entry_8">Modern 4</string>
   <string name="morphe_miniplayer_disable_rounded_corners_title">Dûraiya kênarên sivik</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_title">Rewşa çekebûna li ser û paqijkirina</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_summary">Gradientek paşnavê di ekranê de li ser ekranê ya ku bi şûşa rasterast li şûna rengê wekhev vekişîne</string>

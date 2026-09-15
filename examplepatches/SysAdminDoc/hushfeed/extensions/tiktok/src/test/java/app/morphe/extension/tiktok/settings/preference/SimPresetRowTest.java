@@ -238,6 +238,79 @@ public class SimPresetRowTest {
         }
     }
 
+    /**
+     * A query that matches nothing used to put a null in the result list and render it as a
+     * disabled row, so the list reported one item and the explanation read as a country nobody
+     * was allowed to pick.
+     */
+    @Test
+    public void aQueryThatMatchesNothingEmptiesTheListAndExplainsItself() throws Exception {
+        try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
+            SimPresetPreference row = build(controller.get());
+            java.lang.reflect.Method show =
+                    SimPresetPreference.class.getDeclaredMethod("showPresetDialog");
+            show.setAccessible(true);
+            show.invoke(row);
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+
+            android.app.AlertDialog dialog = (android.app.AlertDialog)
+                    org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            assertNotNull("the preset dialog never opened", dialog);
+            android.view.View root = dialog.getWindow().getDecorView();
+            android.widget.ListView list = findView(root, android.widget.ListView.class);
+            android.widget.EditText search = findView(root, android.widget.EditText.class);
+            android.widget.TextView count = root.findViewWithTag("sim_preset_result_count");
+            android.widget.TextView empty = root.findViewWithTag("sim_preset_empty_state");
+            assertNotNull(list);
+            assertNotNull(search);
+            assertNotNull("the dialog has no result status", count);
+            assertNotNull("the dialog has no empty state", empty);
+
+            int all = list.getAdapter().getCount();
+            assertTrue("the fixture listed no presets at all", all > 1);
+            assertEquals(all + " results", count.getText().toString());
+            assertEquals(android.view.View.GONE, empty.getVisibility());
+            assertEquals(android.view.View.ACCESSIBILITY_LIVE_REGION_POLITE,
+                    count.getAccessibilityLiveRegion());
+            assertEquals("the explanation is a second thing that speaks",
+                    android.view.View.ACCESSIBILITY_LIVE_REGION_NONE,
+                    empty.getAccessibilityLiveRegion());
+
+            search.setText("zzzzz-no-such-country");
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+
+            assertEquals("a no-match still offered something to pick",
+                    0, list.getAdapter().getCount());
+            assertEquals("0 results", count.getText().toString());
+            assertEquals(android.view.View.VISIBLE, empty.getVisibility());
+            assertFalse("the explanation can be focused like a result", empty.isFocusable());
+            String explanation = empty.getText().toString();
+            assertTrue(explanation, explanation.contains("No matching countries"));
+            assertTrue(explanation, explanation.contains("two-letter code"));
+
+            search.setText("");
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertEquals("clearing the query did not bring the presets back",
+                    all, list.getAdapter().getCount());
+            assertEquals(all + " results", count.getText().toString());
+            assertEquals(android.view.View.GONE, empty.getVisibility());
+            dialog.dismiss();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends android.view.View> T findView(android.view.View view, Class<T> type) {
+        if (type.isInstance(view)) return (T) view;
+        if (view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) view;
+            for (int index = 0; index < group.getChildCount(); index++) {
+                T found = findView(group.getChildAt(index), type);
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
+
     private static SimPresetPreference build(Context context) {
         return new SimPresetPreference(
                 context,

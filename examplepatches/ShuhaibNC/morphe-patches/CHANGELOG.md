@@ -1,3 +1,15 @@
+## [1.7.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.6.1...v1.7.0) (2026-09-14)
+
+### ✨ New Features
+
+* ffmpeg ([5d6ecb7](https://github.com/ShuhaibNC/morphe-patches/commit/5d6ecb7b3fb4909d268552c391dcdd5bb7b686c0))
+
+## [1.7.0-dev.1](https://github.com/ShuhaibNC/morphe-patches/compare/v1.6.1...v1.7.0-dev.1) (2026-09-14)
+
+### ✨ New Features
+
+* ffmpeg ([5d6ecb7](https://github.com/ShuhaibNC/morphe-patches/commit/5d6ecb7b3fb4909d268552c391dcdd5bb7b686c0))
+
 ## [1.6.1](https://github.com/ShuhaibNC/morphe-patches/compare/v1.6.0...v1.6.1) (2026-09-13)
 
 ### 🐛 Bug Fixes

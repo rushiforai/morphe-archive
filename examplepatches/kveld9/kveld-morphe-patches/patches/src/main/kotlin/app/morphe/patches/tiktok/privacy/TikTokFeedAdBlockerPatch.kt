@@ -7,14 +7,12 @@ import app.morphe.patches.shared.Constants
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
-private const val EXTENSION_FILTER_CLASS = "Lcom/kveld9/morphe/extension/tiktok/TikTokFeedAdFilter;"
-
 val tikTokFeedAdBlockerPatch = bytecodePatch(
     name = "Feed Ad Blocker",
-    description = "Removes sponsored advertisements, brand promotions, soft commercial videos, and promotional audio from the For You and Following feeds.",
+    description = "Removes sponsored advertisements, brand promotions, and promotional audio from the For You and Following feeds.",
     default = true,
 ) {
-    compatibleWith(Constants.COMPATIBILITY_TIKTOK)
+    compatibleWith(Constants.COMPATIBILITY_TIKTOK, Constants.COMPATIBILITY_TIKTOK_ASIA)
     extendWith("extensions/extension.mpe")
 
     execute {
@@ -38,7 +36,7 @@ val tikTokFeedAdBlockerPatch = bytecodePatch(
                 method.addInstructions(
                     returnIndex,
                     """
-                        invoke-static {v$reg}, $EXTENSION_FILTER_CLASS->filterFeedItemList(Ljava/lang/Object;)V
+                        invoke-static {v$reg}, ${Constants.TIKTOK_EXTENSION_FILTER_CLASS}->filterAdsInFeedItemList(Ljava/lang/Object;)V
                     """,
                 )
             }
@@ -67,7 +65,7 @@ val tikTokFeedAdBlockerPatch = bytecodePatch(
                 method.addInstructions(
                     returnIndex,
                     """
-                        invoke-static {v$reg}, $EXTENSION_FILTER_CLASS->filterAwemeList(Ljava/lang/Object;)V
+                        invoke-static {v$reg}, ${Constants.TIKTOK_EXTENSION_FILTER_CLASS}->filterAdsInList(Ljava/lang/Object;)V
                     """,
                 )
             }
@@ -96,7 +94,7 @@ val tikTokFeedAdBlockerPatch = bytecodePatch(
                 method.addInstructions(
                     returnIndex,
                     """
-                        invoke-static {v$reg}, $EXTENSION_FILTER_CLASS->filterFollowFeedList(Ljava/lang/Object;)V
+                        invoke-static {v$reg}, ${Constants.TIKTOK_EXTENSION_FILTER_CLASS}->filterAdsInFollowFeedList(Ljava/lang/Object;)V
                     """,
                 )
             }

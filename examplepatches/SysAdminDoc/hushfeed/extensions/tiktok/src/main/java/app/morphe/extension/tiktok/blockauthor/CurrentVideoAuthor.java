@@ -108,6 +108,9 @@ public final class CurrentVideoAuthor {
         // signal that measures the budget. Switched off, which is the default, it returns on
         // the setting before it looks at anything.
         app.morphe.extension.tiktok.wellbeing.HoldRamp.sync();
+        // Same signal, same switched-off-first shape. The label moves at most once a minute, so
+        // this is only how often it is asked, not how often it changes.
+        app.morphe.extension.tiktok.wellbeing.BudgetCue.sync();
 
         if (awemeId.equals(playingAwemeId)) {
             return;
@@ -154,7 +157,9 @@ public final class CurrentVideoAuthor {
         if (author == null) {
             Logger.printDebug(() -> "Current item has no blockable author");
         } else {
-            Logger.printDebug(() -> "Current video author: " + author.label()
+            // "Current video:" rather than "author:", which the export's credential rule reads
+            // as a name to omit the value of, taking the pseudonym's first word with it.
+            Logger.printDebug(() -> "Current video: " + author.reference()
                     + " aweme=" + author.awemeId);
         }
         BlockAuthorOverlay.onAuthorChanged(author);

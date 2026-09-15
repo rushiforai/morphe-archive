@@ -75,10 +75,9 @@ Pastikan nama paket benar dan aplikasi sudah terpasang"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Palsukan aliran video</string>
   <string name="morphe_spoof_video_streams_screen_summary">Konfigurasikan pemalsuan klien untuk mencegah masalah pemutaran</string>
-  <string name="morphe_spoof_video_streams_title">Palsukan aliran video</string>
   <string name="morphe_spoof_video_streams_summary">"Memperbaiki masalah pemutaran untuk sebagian besar pengguna dengan meminta aliran video yang kompatibel
 
-Jika Anda pengguna YouTube Premium, pengaturan ini mungkin tidak diperlukan"</string>
+Jika Anda pengguna YouTube Premium, setelan ini mungkin tidak diperlukan"</string>
   <string name="morphe_spoof_video_streams_no_clients_toast">Tidak dapat mengambil aliran klien apa pun</string>
   <string name="morphe_spoof_video_streams_user_dialog_message">Mematikan pengaturan ini dapat menyebabkan masalah pemutaran.</string>
   <!-- 'Spoof video streams' must use the same translation as morphe_spoof_video_streams_title.

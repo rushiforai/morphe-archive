@@ -17,6 +17,7 @@ val trackedScreenshots = mapOf(
     "capture-settings.png" to "capture-settings.png",
     "clear-display-captions.png" to "clear-display-captions.png",
     "clear-display-settings.png" to "clear-display-settings.png",
+    "comment-search-no-results.png" to "comment-search-no-results.png",
     "confirmation-control.png" to "confirmation-control.png",
     "download-settings.png" to "download-settings.png",
     "foldable-settings.png" to "foldable-settings.png",
@@ -51,6 +52,7 @@ val trackedScreenshots = mapOf(
     "settings/rtl-large-light.png" to "pages/light/rtl-large.png",
     "settings/rtl-large.png" to "pages/dark/rtl-large.png",
     "settings/search.png" to "pages/dark/search.png",
+    "settings/settings-error.png" to "settings-initialization-error.png",
     "settings/session-reminder.png" to "session-reminder.png",
     "settings/settings.png" to "pages/dark/settings.png",
     "settings/share.png" to "pages/dark/share.png",
@@ -62,6 +64,85 @@ val trackedScreenshots = mapOf(
 /** Read at configuration time so the test task can ask for the capture it is about to copy. */
 val refreshingScreenshots = gradle.startParameter.taskNames.any {
     it == "refreshScreenshots" || it.endsWith(":refreshScreenshots")
+}
+
+// Robolectric 4.16.1 asks for Bouncy Castle 1.81. Every request in this module is rewritten to
+// the reviewed release so related test libraries cannot resolve at mixed versions. No production
+// configuration contains this group, so none of it reaches the MPE payload.
+//
+// Checking the resolved graph afterwards would prove nothing: the rewrite above guarantees the
+// answer, so a "wrong resolved version" branch could never run. What the rewrite hides, and what
+// is worth failing on, is the request underneath it. When Robolectric moves to a version nobody
+// has looked at, this build stops instead of quietly rewriting it away.
+val safeBouncyCastleVersion = libs.versions.bouncycastle.get()
+val reviewedBouncyCastleRequests = setOf("1.81", safeBouncyCastleVersion)
+// Guarded by hand rather than by a synchronized wrapper: in a Kotlin build script `java` is the
+// Java extension, so the java.util package cannot be named here.
+val requestedBouncyCastleVersions = sortedSetOf<String>()
+
+configurations.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.bouncycastle") {
+            requested.version?.let {
+                synchronized(requestedBouncyCastleVersions) { requestedBouncyCastleVersions.add(it) }
+            }
+            useVersion(safeBouncyCastleVersion)
+            because("The Robolectric test graph must use the reviewed security release.")
+        }
+    }
+}
+
+val verifyBouncyCastleTestGraph = tasks.register("verifyBouncyCastleTestGraph") {
+    group = "verification"
+    description = "Checks the unit-test graphs for unreviewed Bouncy Castle requests."
+
+    doLast {
+        // Resolving is what runs the rewrite above, so the requests are collected here rather
+        // than being read from a set that nothing has filled yet.
+        val classpaths = configurations
+            .filter { it.name.endsWith("UnitTestRuntimeClasspath") && it.isCanBeResolved }
+            .sortedBy { it.name }
+        if (classpaths.isEmpty()) {
+            throw GradleException("This module has no unit-test runtime classpath to inspect.")
+        }
+
+        for (classpath in classpaths) {
+            val modules = classpath.incoming.resolutionResult.allComponents
+                .mapNotNull { component ->
+                    component.moduleVersion?.takeIf { it.group == "org.bouncycastle" }
+                }
+                .distinctBy { "${it.group}:${it.name}:${it.version}" }
+                .sortedBy { it.name }
+
+            if (modules.isEmpty()) {
+                throw GradleException("${classpath.name} contains no Bouncy Castle module.")
+            }
+            logger.lifecycle(
+                "Bouncy Castle in ${classpath.name}: " +
+                    modules.joinToString(", ") { "${it.name}:${it.version}" }
+            )
+        }
+
+        val requested = synchronized(requestedBouncyCastleVersions) {
+            requestedBouncyCastleVersions.toSet()
+        }
+        val unreviewed = requested - reviewedBouncyCastleRequests
+        if (unreviewed.isNotEmpty()) {
+            throw GradleException(
+                "The test graph now asks for Bouncy Castle " + unreviewed.sorted().joinToString(", ") +
+                    ", which nobody has reviewed. It is being rewritten to $safeBouncyCastleVersion. " +
+                    "Check the advisory for the requested release, then add it to " +
+                    "reviewedBouncyCastleRequests or move the pin."
+            )
+        }
+    }
+}
+
+// By type rather than by the one name. This module builds unit tests for debug only today, so
+// testDebugUnitTest is the whole of it, but a second unit-test variant would otherwise start a
+// test JVM on a graph nothing had looked at.
+tasks.withType<Test>().configureEach {
+    dependsOn(verifyBouncyCastleTestGraph)
 }
 
 dependencies {

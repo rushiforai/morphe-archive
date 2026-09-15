@@ -128,6 +128,7 @@ public class DownloadPathPreference extends DialogPreference {
         downloadPath.setHint("DCIM/TikTok");
         downloadPath.setText(downloadPathValue);
         SettingsUi.styleEditText(downloadPath);
+        SettingsUi.labelEditor(title, downloadPath);
         pathField = downloadPath;
         downloadPath.addTextChangedListener(new TextWatcher() {
             @Override

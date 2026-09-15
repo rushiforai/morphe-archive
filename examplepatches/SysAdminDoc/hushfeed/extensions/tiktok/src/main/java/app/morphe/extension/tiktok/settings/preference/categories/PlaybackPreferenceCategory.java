@@ -45,7 +45,7 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
             addPreference(new TogglePreference(context, "Advance when a video ends",
                     "Keep automatic advance enabled, and show TikTok's own Auto scroll action in "
                             + "the video panel even if your account never had it. Pauses and open "
-                            + "dialogs still stop scrolling. Restart TikTok to apply this, then use "
+                            + "dialogs still stop scrolling. Restart TikTok to apply this. Then use "
                             + "this switch to turn it off.",
                     Settings.AUTO_ADVANCE));
             addPreference(new NumberInputPreference(context, "Auto-advance session limit",
@@ -120,6 +120,12 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                         + "nothing to lead into. Nothing fades if you have turned animations "
                         + "off.",
                 Settings.SESSION_BUDGET_RAMP));
+        addPreference(new TogglePreference(context, "Show what is left of the budget",
+                "Off by default. Switched on, a small label on the feed shows the minutes or "
+                        + "videos left of today's budget, whichever is closer to running out. It "
+                        + "changes at most once a minute, appears only on the feed, and is never "
+                        + "read out on its own.",
+                Settings.SESSION_BUDGET_CUE));
         addPreference(new ClockHourPreference(context, "Start the day at",
                 "The hour both budgets reset, on a 24 hour clock. Four in the morning by default, "
                         + "because someone still scrolling at one is having last night.",

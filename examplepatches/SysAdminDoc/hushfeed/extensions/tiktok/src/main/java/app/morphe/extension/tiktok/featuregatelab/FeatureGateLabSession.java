@@ -36,7 +36,7 @@ public final class FeatureGateLabSession {
         if (activity == null || !restartNeeded || noticeShown) return;
         noticeShown = true;
         Utils.showToastLong(L10n.t(activity,
-                "Restart TikTok to apply the Feature Gate Lab changes."));
+                "Restart TikTok to apply this."));
     }
 
     public static void showAfterHostExit(Activity host) {

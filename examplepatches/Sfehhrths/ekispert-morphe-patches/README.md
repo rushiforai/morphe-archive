@@ -18,7 +18,7 @@ Morphe Manager が入った端末で上のリンクを開くと、このリポ�
 ## パッチ一覧
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.1](https://github.com/Sfehhrths/ekispert-morphe-patches/releases/tag/v1.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.1.0](https://github.com/Sfehhrths/ekispert-morphe-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
 <details open>
 <summary>📦 駅すぱあと&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -38,18 +38,19 @@ Morphe Manager が入った端末で上のリンクを開くと、このリポ�
 
 ## 何をするパッチか
 
-パッチは公式アプリに 6 箇所の `invoke-static` を挿入し、同梱の extension（Java）を呼び出します。extension は取得した情報を gzip した Broadcast でコンパニオンアプリ（`dev.sfehhrths.ekispertwear`）へ送るだけで、公式アプリの動作は変えません。
+パッチは公式アプリに 5 箇所の `invoke-static` を挿入し、同梱の extension（Java）を呼び出します。extension は取得した情報を gzip した Broadcast でコンパニオンアプリ（`dev.sfehhrths.ekispertwear`）へ送るだけで、公式アプリの動作は変えません。
 
 | フック位置 | 取れるもの | Broadcast の `kind` |
 |---|---|---|
-| `AbsDownloader.d()`（OkHttpClient 生成） | 対象ホストの HTTP 応答本文（経路検索 XML、運行情報 XML、mixway の realtime/trip JSON） | `http_response` |
+| `AbsDownloader.d()`（OkHttpClient 生成） | 対象ホストの HTTP 応答本文（経路検索 XML、前後のダイヤ等の `course/edit` XML、運行情報 XML、mixway の realtime/trip JSON） | `http_response` |
 | `AioApplication.onCreate()` | Application Context（送信に必要） | — |
-| `AbsDISRxSearchResultDetailParentFragmentPresenter.bc(int, boolean)` | 詳細画面で開いた／スワイプした経路の index | `selected_course` |
-| `AbsDISRxSearchResultDetailParentFragmentUseCase.f(args)` | 詳細画面を開いた印 | `detail_opened` |
+| `AbsDISRxSearchResultDetailParentFragmentPresenter.bc(int, boolean)` | 詳細画面で開いた／スワイプした経路の `SerializeData`（`AioCourse` の String フィールド値） | `selected_course` |
 | `SearchRouteMyClipEntity.g()` | My クリップから開いた経路の XML | `myclip_course` |
 | `TransferAlarmCourseDAO.b(...)` | 乗換アラームに登録した経路の XML | `transfer_alarm_course` |
 
 フィンガープリントはクラス名・戻り値型・ライブラリ呼び出しで組んであり、R8 で潰されるメンバ名には依存していません。公式アプリの更新でクラス名が変わらない限り、そのまま当たる想定です。
+
+開いた経路は「何番目か」ではなく `SerializeData`（API が経路ごとに付ける識別子）で伝えます。並び替えタブごとに別の検索応答になることや、「前後のダイヤで検索」で別エンドポイントの応答に切り替わることがあるため、index では経路を特定できません。`AioCourse` の getter 名は難読化されているので、extension はリフレクションで String 型フィールドの値をすべて送り、コンパニオンが受信済みの応答の `Course/SerializeData` と照合します。
 
 Broadcast の中身（extras）は `extensions/extension/.../CompanionBridge.java` を参照してください。送信時に `BroadcastOptions.setShareIdentityEnabled(true)` を付けており、コンパニオン側で送信元パッケージを検証できます。
 
@@ -60,7 +61,7 @@ patches/      Kotlin  Morphe パッチ本体（フィンガープリントと挿
 extensions/   Java    公式アプリに合成されるコード（OkHttp Interceptor、Broadcast 送信）
 ```
 
-- `patches/src/main/kotlin/dev/sfehhrths/ekispert/patches/responsetap/Fingerprints.kt` — 6 フックのフィンガープリント
+- `patches/src/main/kotlin/dev/sfehhrths/ekispert/patches/responsetap/Fingerprints.kt` — 5 フックのフィンガープリント
 - `patches/src/main/kotlin/dev/sfehhrths/ekispert/patches/responsetap/ResponseTapPatch.kt` — 挿入処理
 - `extensions/extension/src/main/java/dev/sfehhrths/ekispert/extension/` — `ResponseTapPatch`（入口）、`ResponseTapInterceptor`、`ResponseSink`、`CompanionBridge`、`ContextHolder`
 
@@ -100,7 +101,7 @@ java -jar morphe-desktop-<version>-all.jar patch \
 adb logcat -s EkispertTap
 ```
 
-起動時に `application context captured` と `ResponseTapInterceptor installed`、経路検索後に `broadcast http_response ...`、詳細画面を開くと `broadcast selected_course index=...` が出ます。
+起動時に `application context captured` と `ResponseTapInterceptor installed`、経路検索後に `broadcast http_response ...`、詳細画面を開くと `broadcast selected_course keys=2 presenter=...` が出ます。
 
 応答本文そのものを logcat に出したいときは `ResponseSink.LOG_FULL_BODY` を `true` にしてビルドし直してください（リリース版では `false`）。
 

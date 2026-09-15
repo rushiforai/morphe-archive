@@ -4,6 +4,17 @@ Release and changelog policy: [docs/release.md](docs/release.md#changelog-policy
 
 ## Unreleased
 
+## [1.3.0](https://github.com/zeldrisho/morphe-patches/compare/v1.2.0...v1.3.0) (2026-09-14)
+
+### ✨ New Features
+* **Zalo - Hide Business Box:** Removes the Business Box entry from the main chat list without filtering ordinary conversations for `26.08.01`.
+* **Zalo - Disable telemetry and crash reporting:** Suppresses Zalo's Room analytics writes, Firebase Crashlytics diagnostics, and native crash-handler registration for `26.08.01`.
+* **Zalo - Keep expired media accessible:** Keeps locally stored large chat media usable after Zalo marks it expired for `26.08.01`; missing local files and server authorization are unchanged.
+* **Zalo - Clone branding:** Optionally changes the app name and package name so a branded Zalo clone can be installed beside stock Zalo for `26.08.01`.
+
+### 🐛 Bug Fixes
+* **Zalo - microG Drive support:** Validated the missing-provider launch prompt and the complete initial OAuth + Google Drive photo-restore flow for `26.08.01` on-device.
+
 ## [1.2.0](https://github.com/zeldrisho/morphe-patches/compare/v1.1.0...v1.2.0) (2026-09-11)
 
 ### ✨ New Features

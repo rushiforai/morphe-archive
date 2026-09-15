@@ -71,8 +71,6 @@ val changeChMatePackageNamePatch = resourcePatch(
     }
 
     dependsOn(bytecodePatch {
-        extendWith("extensions/chmate-shizuku.mpe")
-
         execute {
             val newPackageName = packageNameOption.value!!
             patchPackageNameLengthInputs()
@@ -182,7 +180,25 @@ val changeChMatePackageNamePatch = resourcePatch(
                     }
                 }
             document.documentElement.setAttribute("package", newPackageName)
+        }
+    }
+}
 
+@Suppress("unused")
+val shizukuDataMigrationPatch = resourcePatch(
+    name = "Migrate ChMate data with Shizuku",
+    description = "Optionally copy shared data from the original ChMate package using Shizuku.",
+    default = false,
+) {
+    compatibleWith(chMateCompatibility)
+    dependsOn(changeChMatePackageNamePatch)
+    dependsOn(bytecodePatch {
+        extendWith("extensions/chmate-shizuku.mpe")
+    })
+
+    finalize {
+        document("AndroidManifest.xml").use { document ->
+            val targetPackageName = document.documentElement.getAttribute("package")
             (document.getElementsByTagName("uses-sdk").item(0) as? Element)
                 ?.setAttribute("android:minSdkVersion", "24")
 
@@ -217,7 +233,7 @@ val changeChMatePackageNamePatch = resourcePatch(
                     setAttributeNS(
                         ANDROID_NAMESPACE,
                         "android:authorities",
-                        "$newPackageName.shizuku",
+                        "$targetPackageName.shizuku",
                     )
                     setAttributeNS(ANDROID_NAMESPACE, "android:multiprocess", "false")
                     setAttributeNS(ANDROID_NAMESPACE, "android:enabled", "true")

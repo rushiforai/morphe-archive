@@ -23,9 +23,11 @@ import java.util.List;
  * nothing happens. This row answers that question before someone files a report about a feature
  * that was never running.
  *
- * <p>It speaks for the surfaces that report, which are the comments, the inbox, the share sheet,
- * the feed overlay and the feed models. A patch that reports nothing is not covered by it, so
- * "everything found what it needed" means everything that is watched, not all 68 patches.
+ * <p>It speaks for the surfaces that report: the comments, the inbox, the share sheet, the feed
+ * overlay, the feed models and the families listed in the README's Hook status paragraph. A
+ * patch that reports nothing is not covered by it, so "everything found what it needed" means
+ * everything that is watched, not every patch in the bundle. No count here: the last one this
+ * said was eleven patches out of date.
  */
 @SuppressWarnings("deprecation")
 public class HookStatusPreference extends Preference {

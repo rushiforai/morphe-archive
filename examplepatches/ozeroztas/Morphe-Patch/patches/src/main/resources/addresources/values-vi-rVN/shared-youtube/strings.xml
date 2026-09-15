@@ -75,7 +75,6 @@ Kiểm tra xem tên gói có chính xác không và ứng dụng đã được c
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Giả mạo luồng phát video</string>
   <string name="morphe_spoof_video_streams_screen_summary">Cấu hình giả mạo client nhằm tránh lỗi khi phát</string>
-  <string name="morphe_spoof_video_streams_title">Giả mạo luồng phát video</string>
   <string name="morphe_spoof_video_streams_summary">"Sửa lỗi phát cho hầu hết người dùng bằng cách đổi luồng video tương thích
 
 Nếu bạn đã mua gói Premium, có thể không cần thiết phải bật cài đặt này"</string>

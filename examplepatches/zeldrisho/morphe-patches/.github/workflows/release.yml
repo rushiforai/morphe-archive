@@ -3,7 +3,7 @@ name: Release
 # Stable-only releases. Pushing a version tag on main validates the tag,
 # tests, builds, publishes the GitHub release, and attests the bundle.
 # The Manager manifest (patches-bundle.json) is staged upfront by
-# scripts/prepare-release.sh in the release PR — this workflow never
+# scripts/prepare_release.py in the release PR — this workflow never
 # pushes to main. See docs/release.md#staging-a-release for the
 # staging flow (branch at origin/main, PR, merge, tag post-merge main).
 #
@@ -51,15 +51,15 @@ jobs:
 
           PROP_VERSION="$(grep -E '^version *= *' gradle.properties | sed 's/.*= *//')"
           [[ "$PROP_VERSION" == "$VERSION" ]] \
-            || { echo "::error::gradle.properties version '$PROP_VERSION' != tag version '$VERSION'. Run scripts/prepare-release.sh first."; exit 1; }
+            || { echo "::error::gradle.properties version '$PROP_VERSION' != tag version '$VERSION'. Run scripts/prepare_release.py first."; exit 1; }
 
           LIST_VERSION="$(python3 -c "import json;print(json.load(open('patches-list.json'))['version'])")"
           [[ "$LIST_VERSION" == "$VERSION" ]] \
-            || { echo "::error::patches-list.json version '$LIST_VERSION' != tag version '$VERSION'. Run scripts/prepare-release.sh first."; exit 1; }
+            || { echo "::error::patches-list.json version '$LIST_VERSION' != tag version '$VERSION'. Run scripts/prepare_release.py first."; exit 1; }
 
           BUNDLE_VERSION="$(python3 -c "import json;print(json.load(open('patches-bundle.json'))['version'])")"
           [[ "$BUNDLE_VERSION" == "$VERSION" ]] \
-            || { echo "::error::patches-bundle.json version '$BUNDLE_VERSION' != tag version '$VERSION'. Run scripts/prepare-release.sh first."; exit 1; }
+            || { echo "::error::patches-bundle.json version '$BUNDLE_VERSION' != tag version '$VERSION'. Run scripts/prepare_release.py first."; exit 1; }
 
           # Fail fast on an invalid bare/inline-linked heading or empty notes,
           # before toolchain setup and build/tests. The extractor owns the regex.
@@ -76,6 +76,9 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
+
+      - name: Python script tests
+        run: python3 -m unittest discover -s scripts/tests -v
 
       - name: Test and build bundle
         env:

@@ -1,0 +1,121 @@
+/*
+ * Copyright 2026 Hushfeed contributors
+ * https://github.com/SysAdminDoc/hushfeed
+ */
+package app.morphe.extension.tiktok.feedfilter;
+
+import static org.junit.Assert.*;
+
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.HookStatus;
+import com.ss.android.ugc.aweme.feed.model.Aweme;
+import com.ss.android.ugc.aweme.feed.model.AwemeRawAd;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
+
+/** Structured ad evidence that TikTok keeps outside its existing Boolean and raw-ad fields. */
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = 28)
+public class AdsFilterTest {
+    private final AdsFilter filter = new AdsFilter();
+
+    public static class Video extends Aweme {
+        String anchorsExtras;
+        boolean ad;
+        boolean softAd;
+        boolean promotionalMusic;
+        AwemeRawAd rawAd;
+
+        @Override public boolean isAd() { return ad; }
+        @Override public boolean isSoftAd() { return softAd; }
+        @Override public AwemeRawAd getAwemeRawAd() { return rawAd; }
+        @Override public boolean isWithPromotionalMusic() { return promotionalMusic; }
+        public String getAnchorsExtras() { return anchorsExtras; }
+    }
+
+    /** Simulates a future host model where the required serialized anchor getter moved. */
+    public static class VideoWithoutAnchors extends Aweme {
+        @Override public boolean isAd() { return false; }
+        @Override public boolean isSoftAd() { return false; }
+        @Override public AwemeRawAd getAwemeRawAd() { return null; }
+        @Override public boolean isWithPromotionalMusic() { return false; }
+    }
+
+    @Before public void setUp() {
+        Utils.setContext(RuntimeEnvironment.getApplication());
+        HookStatus.clear();
+    }
+
+    @After public void tearDown() {
+        HookStatus.clear();
+    }
+
+    @Test public void displayTextCommissionDisclosureIsAnAd() {
+        Video video = video("{\"panel_top_disclosure_label\":"
+                + "{\"display_text\":\"Creator earns commission\"}}");
+
+        assertTrue(filter.getFiltered(video));
+        assertTrue(HookStatus.missing("feed ad disclosures").isEmpty());
+    }
+
+    @Test public void truncatableCommissionDisclosureIsAnAdInAnyLanguage() {
+        Video video = video("{\"panel_top_disclosure_label\":"
+                + "{\"display_text\":\"  \","
+                + "\"truncatable_text\":\"El creador recibe una comisión\"}}");
+
+        assertTrue(filter.getFiltered(video));
+    }
+
+    @Test public void ordinaryAnchorMetadataIsKept() {
+        assertFalse(filter.getFiltered(video("{\"product_cnt\":1,\"anchor_type\":4}")));
+    }
+
+    @Test public void aBlankDisclosureIsNotAdEvidence() {
+        assertFalse(filter.getFiltered(video("{\"panel_top_disclosure_label\":"
+                + "{\"display_text\":\" \",\"truncatable_text\":\"\"}}")));
+        assertFalse(filter.getFiltered(video("{\"panel_top_disclosure_label\":{}}")));
+    }
+
+    @Test public void malformedOrWrongTypeDisclosureIsKept() {
+        assertFalse(filter.getFiltered(video("{not-json")));
+        assertFalse(filter.getFiltered(video("{\"panel_top_disclosure_label\":true}")));
+        assertFalse(filter.getFiltered(video("{\"panel_top_disclosure_label\":"
+                + "{\"display_text\":42}}")));
+    }
+
+    @Test public void existingAdSignalsStillFilterWithoutAnchorMetadata() {
+        Video ad = video(null);
+        ad.ad = true;
+        Video softAd = video(null);
+        softAd.softAd = true;
+        Video rawAd = video(null);
+        rawAd.rawAd = new AwemeRawAd();
+        Video promotional = video(null);
+        promotional.promotionalMusic = true;
+
+        assertTrue(filter.getFiltered(ad));
+        assertTrue(filter.getFiltered(softAd));
+        assertTrue(filter.getFiltered(rawAd));
+        assertTrue(filter.getFiltered(promotional));
+    }
+
+    @Test public void missingAnchorGetterFailsOpenAndNamesTheContract() {
+        VideoWithoutAnchors video = new VideoWithoutAnchors();
+
+        assertFalse(filter.getFiltered(video));
+        assertEquals(java.util.Collections.singletonList(
+                        "method " + VideoWithoutAnchors.class.getName() + "#getAnchorsExtras"),
+                HookStatus.missing("feed ad disclosures"));
+    }
+
+    private static Video video(String anchorsExtras) {
+        Video video = new Video();
+        video.anchorsExtras = anchorsExtras;
+        return video;
+    }
+}

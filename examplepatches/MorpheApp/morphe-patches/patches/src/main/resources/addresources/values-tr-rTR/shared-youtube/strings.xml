@@ -75,7 +75,6 @@ Paket adının doğru olduğundan ve uygulamanın yüklü olduğundan emin olun"
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Video akışlarını taklit et</string>
   <string name="morphe_spoof_video_streams_screen_summary">Oynatma sorunlarını önlemek için istemci video akışlarını taklit et</string>
-  <string name="morphe_spoof_video_streams_title">Video akışlarını taklit et</string>
   <string name="morphe_spoof_video_streams_summary">"Çoğu kullanıcı için oynatma sorunlarını uyumlu bir video akışı isteyerek düzeltir
 
 YouTube Premium kullanıcısıysanız, bu ayar gerekli olmayabilir"</string>

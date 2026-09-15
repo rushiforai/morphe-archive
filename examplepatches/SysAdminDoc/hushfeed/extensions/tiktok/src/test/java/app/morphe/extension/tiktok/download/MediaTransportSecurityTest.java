@@ -27,6 +27,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -264,6 +265,59 @@ public class MediaTransportSecurityTest {
         }
     }
 
+    @Test public void aChunkedMediaBodyStopsBeforeUsingTheFreeSpaceFloor() throws Exception {
+        assertUnknownLengthStopsBeforeUsingTheFreeSpaceFloor(null);
+    }
+
+    @Test public void aMalformedMediaLengthStopsBeforeUsingTheFreeSpaceFloor() throws Exception {
+        assertUnknownLengthStopsBeforeUsingTheFreeSpaceFloor("not-a-length");
+    }
+
+    private static void assertUnknownLengthStopsBeforeUsingTheFreeSpaceFloor(String lengthHeader)
+            throws Exception {
+        byte[] body = new byte[2 * 1024 * 1024];
+        System.arraycopy(PNG, 0, body, 0, PNG.length);
+        MediaTransport.Client client = publicClient(url -> new FakeConnection(
+                url, HTTP_OK, null, lengthHeader, body));
+        File realTarget = File.createTempFile("shrinking-media", ".tmp");
+        AtomicInteger spaceReads = new AtomicInteger();
+        AtomicLong freeAtRejection = new AtomicLong(Long.MAX_VALUE);
+        long floor = MediaBudget.MIN_FREE_BYTES + MediaBudget.PUBLISH_OVERHEAD_BYTES;
+        File shrinkingDirectory = new File(realTarget.getParentFile(), "shrinking-volume") {
+            @Override public boolean exists() {
+                return true;
+            }
+
+            @Override public long getUsableSpace() {
+                int read = spaceReads.getAndIncrement();
+                if (read == 0) {
+                    return MediaBudget.UNKNOWN_TRANSFER_RESERVATION_BYTES + floor;
+                }
+                long remaining = floor + MediaBudget.STREAM_SPACE_CHECK_BYTES
+                        - (read == 1 ? 0 : 1);
+                freeAtRejection.set(remaining);
+                return remaining;
+            }
+        };
+        File target = new File(realTarget.getPath()) {
+            @Override public File getParentFile() {
+                return shrinkingDirectory;
+            }
+        };
+        try {
+            assertThrows(IOException.class, () -> RemoteMedia.fetch(
+                    List.of("https://v16.tiktokcdn.com/chunked"), target,
+                    RemoteMedia.Kind.IMAGE, client));
+            assertTrue("the copy never rechecked free space while streaming",
+                    spaceReads.get() >= 3);
+            assertTrue("the copy crossed the 32 MB plus publish reserve",
+                    freeAtRejection.get() >= floor);
+            assertFalse("a refused chunked download left partial media", target.exists());
+        } finally {
+            realTarget.delete();
+        }
+    }
+
     @Test public void aBrokenStickerBodyLeavesNoPartialFile() throws Exception {
         byte[] prefix = java.util.Arrays.copyOf(PNG, 24);
         MediaTransport.Client client = publicClient(url -> new FakeConnection(
@@ -333,18 +387,30 @@ public class MediaTransportSecurityTest {
     private static final class FakeConnection extends HttpURLConnection {
         private final int responseCode;
         private final String location;
+        private final String contentLength;
         private final InputStream input;
         int responseReads;
         boolean disconnected;
 
         FakeConnection(URL url, int responseCode, String location, byte[] body) {
-            this(url, responseCode, location, new ByteArrayInputStream(body));
+            this(url, responseCode, location, null, new ByteArrayInputStream(body));
+        }
+
+        FakeConnection(URL url, int responseCode, String location, String contentLength,
+                byte[] body) {
+            this(url, responseCode, location, contentLength, new ByteArrayInputStream(body));
         }
 
         FakeConnection(URL url, int responseCode, String location, InputStream input) {
+            this(url, responseCode, location, null, input);
+        }
+
+        FakeConnection(URL url, int responseCode, String location, String contentLength,
+                InputStream input) {
             super(url);
             this.responseCode = responseCode;
             this.location = location;
+            this.contentLength = contentLength;
             this.input = input;
         }
 
@@ -355,6 +421,7 @@ public class MediaTransportSecurityTest {
 
         @Override public String getHeaderField(String name) {
             if ("Location".equalsIgnoreCase(name)) return location;
+            if ("Content-Length".equalsIgnoreCase(name)) return contentLength;
             return null;
         }
 

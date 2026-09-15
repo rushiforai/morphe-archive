@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/HelioFloxZ/YouTube-Studio-Patches/compare/v1.2.0...v1.2.1) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* Fixed Constants.kt Errors ([8cd3f47](https://github.com/HelioFloxZ/YouTube-Studio-Patches/commit/8cd3f479d8c995919c095c8231185d63863c741c))
+* fixed GmsCorePatch.kt ([bedb0d4](https://github.com/HelioFloxZ/YouTube-Studio-Patches/commit/bedb0d4443996adfc7e3b3bcd6529c85d5b3f486))
+
 ## [1.2.0](https://github.com/HelioFloxZ/YouTube-Studio-Patches/compare/v1.1.0...v1.2.0) (2026-09-03)
 
 ### 🐛 Bug Fixes

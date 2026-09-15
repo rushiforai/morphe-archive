@@ -24,7 +24,7 @@ import java.util.logging.Logger
 import kotlin.math.roundToInt
 
 private const val RUNTIME_CLASS = OVERLAY_RUNTIME_CLASS
-private const val PRESET_SCHEMA_VERSION = 6
+private const val PRESET_SCHEMA_VERSION = 7
 private const val MAX_CUSTOM_ICON_BYTES = 1024 * 1024
 private const val MAX_TITLE_CHARACTERS = 80
 private const val MAX_DESCRIPTION_CHARACTERS = 500
@@ -66,9 +66,13 @@ private fun OverlayUiPreset.toJson(): JsonObject = JsonObject().apply {
     addProperty("format", "unipatches-universal-overlay-preset")
     addProperty("version", PRESET_SCHEMA_VERSION)
     add("settings", JsonObject().apply {
+        addProperty("title", title)
+        addProperty("description", description)
         addProperty("appendDescription", appendDescription)
         addProperty("appendDescriptionColor", appendDescriptionColor)
         addProperty("descriptionAlignment", descriptionAlignment)
+        addProperty("repositoryText", repositoryText)
+        addProperty("repositoryUrl", repositoryUrl)
         addProperty("backgroundColor", background)
         addProperty("backgroundTransparency", backgroundTransparency)
         addProperty("outlineColor", outline)
@@ -107,6 +111,9 @@ private fun OverlayUiPreset.toJson(): JsonObject = JsonObject().apply {
         addProperty("customIconImageInput", customIconImageInput)
         addProperty("buttonShape", buttonShape)
         addProperty("buttonSize", buttonSize)
+        addProperty("menuWidthLimit", menuWidthLimit)
+        addProperty("menuHeightLimit", menuHeightLimit)
+        addProperty("showExtraPopupHeaders", showExtraPopupHeaders)
         addProperty("buttonOpacity", buttonOpacity)
         addProperty("dragVisibilityDuration", dragVisibilityDuration)
         addProperty("buttonPosition", buttonPosition)
@@ -206,9 +213,15 @@ private fun readPresetFile(source: String, fallback: OverlayUiPreset, logger: Lo
             ?.toIntOrNull(16)
             ?.let { ((it * 100f) / 255f).roundToInt() }
         val imported = fallback.copy(
+            title = text("title", fallback.title) { it.isNotBlank() && it.length <= MAX_TITLE_CHARACTERS },
+            description = text("description", fallback.description) { it.isNotBlank() && it.length <= MAX_DESCRIPTION_CHARACTERS },
             appendDescription = text("appendDescription", fallback.appendDescription) { it.length <= MAX_DESCRIPTION_CHARACTERS },
             appendDescriptionColor = rgbColor("appendDescriptionColor", fallback.appendDescriptionColor),
             descriptionAlignment = choice("descriptionAlignment", fallback.descriptionAlignment, setOf("left", "center", "right")),
+            repositoryText = text("repositoryText", fallback.repositoryText) { it.isNotBlank() && it.length <= MAX_TITLE_CHARACTERS },
+            repositoryUrl = text("repositoryUrl", fallback.repositoryUrl) {
+                it.startsWith("http://") || it.startsWith("https://")
+            },
             background = rgbColor("backgroundColor", fallback.background),
             backgroundTransparency = if (values.has("backgroundTransparency")) {
                 number("backgroundTransparency", fallback.backgroundTransparency, 0..100)
@@ -254,6 +267,9 @@ private fun readPresetFile(source: String, fallback: OverlayUiPreset, logger: Lo
             customIconImageInput = text("customIconImageInput", fallback.customIconImageInput),
             buttonShape = text("buttonShape", fallback.buttonShape) { it in setOf("circle", "squircle", "square") },
             buttonSize = number("buttonSize", fallback.buttonSize, 32..128),
+            menuWidthLimit = number("menuWidthLimit", fallback.menuWidthLimit, 45..90),
+            menuHeightLimit = number("menuHeightLimit", fallback.menuHeightLimit, 45..90),
+            showExtraPopupHeaders = flag("showExtraPopupHeaders", fallback.showExtraPopupHeaders),
             buttonOpacity = number("buttonOpacity", fallback.buttonOpacity, 10..100),
             dragVisibilityDuration = number("dragVisibilityDuration", fallback.dragVisibilityDuration, 1..10),
             buttonPosition = text("buttonPosition", fallback.buttonPosition) { it in setOf("topLeft", "topMiddle", "topRight", "centerLeft", "centerRight", "bottomLeft", "bottomMiddle", "bottomRight") },
@@ -500,12 +516,13 @@ private fun validate(
 
 @Suppress("unused")
 val universalOverlayPatch = bytecodePatch(
-    name = "UniPatches Universal Overlay Patch v2.4.7 (Experimental)",
+    name = "UniPatches Universal Overlay Patch v2.5.3 (Experimental)",
     description = """
         A customizable in-app overlay for Android apps and games. For a quick first build: choose a visual
         preset, select the overlay modules you want, optionally supply an icon image, then patch. Modules
         are excluded and disabled by default. Monitor modules show information, Activity modules control
-        the current Activity, and Hook modules make best-effort changes to app behavior. Text is the
+        the current Activity, Hook modules make best-effort changes to app behavior, System modules
+        control Android capabilities, and Advanced modules provide opt-in diagnostics. Text is the
         default legacy icon; an optional image replaces it completely, while the advanced Multi-parts editor
         supports custom drawn icons, and can be conveniently made in Icon Builder local website in UniPatches repo.
         
@@ -534,10 +551,22 @@ val universalOverlayPatch = bytecodePatch(
         title = "Quick setup > Preset selection",
         default = "custom",
         key = "runtimeOverlaySelectedPreset",
-        description = "Start here. Custom (UniPatches defaults) is the editable red UniPatches look. Other presets apply a complete visual style: Morphe blue, dark, light, ZArchiver-inspired, LuckyPatcher-inspired, or ReVanced-inspired. Presets never change selected modules or your title and repository details.",
+        description = "Start here. Custom (UniPatches defaults) is the editable red UniPatches look. Other presets apply a complete visual style: Morphe blue, dark, light, ZArchiver-inspired, LuckyPatcher-inspired, or ReVanced-inspired. Built-in presets never change selected modules or your title and repository details. Imported Custom presets can include all supported UI settings.",
         values = linkedMapOf("Custom (UniPatches defaults)" to "custom").apply {
             OverlayPresetCatalog.definitions.forEach { put(it.displayName, it.id) }
         },
+    )
+    val menuWidthLimit by intOption(
+        title = "UI settings > Menu size > Width limit (%)",
+        default = 90,
+        key = "runtimeOverlayMenuWidthLimit",
+        description = "Maximum overlay menu and popup width in portrait as a percentage of the available window width. Landscape transposes this with the height limit. Values are clamped to 45% through 90%.",
+    )
+    val menuHeightLimit by intOption(
+        title = "UI settings > Menu size > Height limit (%)",
+        default = 45,
+        key = "runtimeOverlayMenuHeightLimit",
+        description = "Maximum overlay menu and popup height in portrait as a percentage of the available window height. Landscape transposes this with the width limit. Values are clamped to 45% through 90%.",
     )
     val importUiPreset by filePathOption(
         title = "Quick setup > Import / export UI presets > Import UI preset",
@@ -654,6 +683,30 @@ val universalOverlayPatch = bytecodePatch(
         key = "runtimeOverlayIncludeDisableAnimations",
         description = "Risk: broad runtime hook. Include a best-effort animation suppression module only if the app needs it.",
     )
+    val includeDoNotDisturb by booleanOption(
+        title = "Quick setup > Module settings > System > Do Not Disturb",
+        default = false,
+        key = "runtimeOverlayIncludeDoNotDisturb",
+        description = "Include a system module for controlling Do Not Disturb. Android notification-policy access is required before it can change the system state.",
+    )
+    val includeOverlayRuntimeLogs by booleanOption(
+        title = "Quick setup > Module settings > Advanced > Overlay Runtime Logs",
+        default = false,
+        key = "runtimeOverlayIncludeOverlayRuntimeLogs",
+        description = "Include an opt-in, bounded diagnostic buffer containing logs emitted by Universal Overlay and its runtime modules. This does not read system logcat.",
+    )
+    val enableOverlayRuntimeLogsOnLaunch by booleanOption(
+        title = "Quick setup > Settings to modules > Advanced > Enable Overlay Runtime Logs at app launch",
+        default = false,
+        key = "runtimeOverlayEnableOverlayRuntimeLogsOnLaunch",
+        description = "Start Overlay Runtime Logs active when the overlay session begins. The module must also be included above.",
+    )
+    val showExtraPopupHeaders by booleanOption(
+        title = "Quick setup > UI settings > Extra popups > Show headers",
+        default = false,
+        key = "runtimeOverlayShowExtraPopupHeaders",
+        description = "Show title header boxes in settings, logs, confirmation, and module action popups. The main overlay menu title is always shown. LuckyPatcher-inspired preset enables this by default.",
+    )
     val activateStatisticsOnLaunch by booleanOption(
         title = "Quick setup > Settings to modules > Monitor behavior > Activate statistics on launch",
         default = false,
@@ -664,7 +717,7 @@ val universalOverlayPatch = bytecodePatch(
         title = "Quick setup > Settings to modules > General > Show empty-module message",
         default = true,
         key = "runtimeOverlayShowNoModulesWarning",
-        description = "Show a message in the overlay when no Statistic, Activity, Hook, app-specific, or integrated module is selected. Control App Ads modules count only when that patch was also configured and patched successfully.",
+        description = "Show a message in the overlay when no Statistic, Activity, Hook, app-specific, System, Advanced, or integrated module is selected. Control App Ads modules count only when that patch was also configured and patched successfully.",
     )
     val enableMonitorsOnLaunch by booleanOption(
         title = "Quick setup > Settings to modules > Monitor behavior > Enable monitors on launch",
@@ -724,7 +777,7 @@ val universalOverlayPatch = bytecodePatch(
         title = "UI settings > Controls > Foreground color",
         default = "#FF5656",
         key = "runtimeOverlayControlForeground",
-        description = "Foreground color for control contents, such as text, slider progress, and checked checkbox state.",
+        description = "Foreground color for control contents, such as text, slider progress, and checked checkbox state. Unchecked checkbox state uses the configured control background color.",
     )
     val bottomButtonStyle by stringOption(
         title = "UI settings > Bottom buttons > Style",
@@ -793,7 +846,7 @@ val universalOverlayPatch = bytecodePatch(
         description = "Alignment of the overlay menu title.",
         values = linkedMapOf("Left" to "left", "Center" to "center", "Right" to "right"),
     )
-    val titleSeparator by booleanOption(title = "UI settings > Menu title > Separator", default = false, key = "runtimeOverlayTitleSeparator", description = "Show a Text color 1 line below the title.")
+    val titleSeparator by booleanOption(title = "UI settings > Menu title > Outline below title", default = false, key = "runtimeOverlayTitleSeparator", description = "Show a full-width 1dp line below the title using the overlay outline color.")
     val menuCorners by stringOption(title = "UI settings > Menu layout > Corners", default = "rounded", key = "runtimeOverlayMenuCorners", description = "Choose rounded or square menu corners.", values = linkedMapOf("Rounded (default)" to "rounded", "Square" to "square"))
     val menuOutlineAnimation by stringOption(title = "UI settings > Menu outline > Animation", default = "static", key = "runtimeOverlayMenuOutlineAnimation", description = "Choose a static, horizontal, vertical, or rainbow menu outline animation.", values = linkedMapOf("Static (default)" to "static", "Horizontal scrolling gradient" to "gradient", "Vertical gradient" to "vertical", "Rainbow gradient" to "rainbow"))
     val outlineAnimationSpeed by intOption(title = "UI settings > Menu outline > Animation speed", default = 1, key = "runtimeOverlayOutlineAnimationSpeed", description = "Use -10 to 10. Zero stops movement; positive vertical values move upward and negative values move downward.")
@@ -1178,6 +1231,9 @@ val universalOverlayPatch = bytecodePatch(
             customIconImageInput = customIconImageInput.orEmpty().trim(),
             buttonShape = buttonShape.orEmpty().ifBlank { "circle" },
             buttonSize = (buttonSizeDp ?: 56).coerceIn(32, 128),
+            menuWidthLimit = (menuWidthLimit ?: 90).coerceIn(45, 90),
+            menuHeightLimit = (menuHeightLimit ?: 45).coerceIn(45, 90),
+            showExtraPopupHeaders = showExtraPopupHeaders == true,
             buttonOpacity = (buttonOpacity ?: 50).coerceIn(10, 100),
             dragVisibilityDuration = (buttonDragVisibilityDurationSeconds ?: 2).coerceIn(1, 10),
             buttonPosition = buttonPosition.orEmpty().ifBlank { "topRight" },
@@ -1194,7 +1250,7 @@ val universalOverlayPatch = bytecodePatch(
             bottomButtonShape = bottomButtonShape.orEmpty().ifBlank { "square" },
             bottomButtonPadding = bottomButtonPadding == true,
             bottomButtonTextColor = bottomButtonTextColor.orEmpty().ifBlank {
-                menuTextColor1.orEmpty().ifBlank { "#FFFFFF" }
+                menuTextColor1.orEmpty().ifBlank { "#FF5656" }
             },
             bottomButtonBackground1 = bottomButtonBackground1.orEmpty().ifBlank { "#FF5656" },
             bottomButtonBackground2 = bottomButtonBackground2.orEmpty().ifBlank { "#FF5656" },
@@ -1489,6 +1545,13 @@ val universalOverlayPatch = bytecodePatch(
             trailingFields = listOf(
                 iconPartsValue.joinToString("\n"), "", menuTextColor7Value,
                 iconTextFontValue, menuTextFontValue, legacyIconJsonValue,
+                if (includeDoNotDisturb == true) "1" else "0",
+                if (includeOverlayRuntimeLogs == true) "1" else "0",
+                if (enableOverlayRuntimeLogsOnLaunch == true) "1" else "0",
+                if (showExtraPopupHeaders == true || selectedUiPreset.showExtraPopupHeaders
+                    || selectedPreset.orEmpty() == "luckyPatcher") "1" else "0",
+                selectedUiPreset.menuWidthLimit.toString(),
+                selectedUiPreset.menuHeightLimit.toString(),
             ),
         )
 

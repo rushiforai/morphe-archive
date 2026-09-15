@@ -75,7 +75,6 @@ Verifieer dat die pakketnaam korrek is en die app geïnstalleer is"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Verfraai videostrome</string>
   <string name="morphe_spoof_video_streams_screen_summary">Konfigureer kliënt-voorgee om speelprobleme te voorkom</string>
-  <string name="morphe_spoof_video_streams_title">Verfraai videostrome</string>
   <string name="morphe_spoof_video_streams_summary">"Los probleme met video-weergawe vir die meeste gebruikers op deur 'n versoenbare videostroom aan te vra
 
 As jy 'n YouTube Premium-gebruiker is, is hierdie instelling dalk nie vereis nie"</string>

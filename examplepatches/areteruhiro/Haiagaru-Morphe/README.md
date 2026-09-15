@@ -18,6 +18,10 @@ https://github.com/areteruhiro/Haiagaru
 * 5ch.io板が外部板扱いと5ch扱いで重複した場合の内部板一覧一括整理
 * パッケージ名・アプリ名・アイコン・versionCodeの変更
 * Morpheで任意に有効化できるクラッシュログ保存
+* ChMate `0.8.10.191 dev`／`0.8.10.226 dev` のChMate+互換設定
+  * 単発ID表示を省略
+  * コピペ省略2
+  * 荒らし省略
 
 DAT落ちスレ用プリセットは、通常閲覧時ではなく設定画面の更新ボタンを押した時だけ、
 [`presets/chmate-dat-fallen-search-urls.txt`](presets/chmate-dat-fallen-search-urls.txt) を取得します。
@@ -35,22 +39,23 @@ URLでは `{$server}`、`{$bbs}`、`{$key}`、`{$rand}` を使用できます。
 
 ## インストールできない場合
 
-アプリデータを残したまま以前のChMateをアンインストールすると、再インストール時に既存のパッケージとの競合が表示される場合があります。
+ChMate `0.8.10.241`では、アプリデータを残したまま以前のChMateをアンインストールすると、再インストール時に既存のパッケージとの競合が表示される場合があります。
 
 1. ChMateの設定や必要なデータをバックアップします。
 2. 以前のChMateを、アプリデータも含めて完全にアンインストールします。
 3. パッチ済みAPKをインストールします。
 4. 必要に応じて、手順1のバックアップからデータを復元します。
-情報提供: あかまつさん
 
 アプリデータを削除すると、バックアップしていない設定や履歴は失われます。必ずアンインストール前にバックアップを確認してください。
-
-パッケージ名変更版には、Shizukuを利用して旧ChMateの共有データをコピーする補助機能がありますが、chmate本来のバックアップ/復元を推奨しています。
 
 初期状態で有効なパッチ `Change ChMate package name` では、別アプリとしてインストールするための
 パッケージ名に加えて、アプリ名、PNG/WebPアイコン、versionCodeを設定できます。
 アイコン・versionCodeを未指定にした項目は元の値を保持します。
-新Shizuku APIを含むため、このパッチを有効にしたAPKはAndroid 7.0（API 24）以降が必要です。
+
+標準設定ではShizukuを組み込みません。旧ChMateの共有データをShizukuでコピーする場合だけ、
+任意パッチ `Migrate ChMate data with Shizuku` を追加で有効にしてください。
+この任意パッチを有効にしたAPKはAndroid 7.0（API 24）以降が必要です。
+データ移行にはchmate本来のバックアップ/復元を推奨しています。
 
 備考: パッケージ名の変更により予期せぬエラーが発生する可能性がありますが、
 既存のChMateとは別アプリとして扱われるため、インストール時の競合エラーを抑えられます。
@@ -58,27 +63,68 @@ URLでは `{$server}`、`{$bbs}`、`{$key}`、`{$rand}` を使用できます。
 任意パッチ `Save ChMate crash logs` を有効にすると、未処理例外でクラッシュした際に
 `Download/Haiagaru/` へログを保存します。投稿本文、Cookieなどのアプリデータは記録しません。
 
+情報提供: あかまつさん
 
+## URV Manager / Morphe Managerへの追加と更新
 
-## URV Managerへの追加と更新
-
-パッチソースには次のURLを登録してください。
-
-```text
-https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/master/patches-bundle.json
-```
-
-プレリリースを検証する場合のみ、次の `dev` ソースを登録してください。
+現在の公式版（1.2.3）を取得するパッチソースは次のURLです。
 
 ```text
-https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/dev/patches-bundle.json
+https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/refs/heads/master/patches-bundle.json
 ```
 
-パッチ本体のバージョンは `1.2.2` です。同じバージョン内で修正版を配布する場合は、
-URV Managerが更新を検出できるようにJSON上の配布リビジョン（例: `1.2.2-r3`）だけを更新します。
+プレリリース版（1.2.3.r3）を取得するパッチソースは次のURLです。正式版より新しい検証中の変更を含みます。
+
+```text
+https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/refs/heads/master/patches-bundle-pre.json
+```
+
+開発中のパッチ本体のバージョンは `1.2.3.r3` です。同じバージョン内で修正版を配布する場合は、
+URV Manager / Morphe Managerが更新を検出できるようにJSON上の配布リビジョンを更新します。
 更新が表示されない場合は、パッチソース画面から手動で更新を実行してください。
 
 ## 更新履歴
+
+### 1.2.3.r3（プレリリース）
+
+- ChMate `0.8.10.191 dev`／`0.8.10.243 dev` で、Talkの現行スレを開くと `divide by zero` またはDAT落ちになる問題を修正
+- Talk APIのレスをChMateのDATキャッシュへ変換し、署名変更後に不安定になるTalk専用取得処理より先に読み込むように変更
+- TalkのURL、板情報、書き込み処理はChMate本来の経路を維持
+
+### 1.2.3.r2（プレリリース）
+
+- ChMate `0.8.10.226 dev` の設定画面復元時に `o.setImageAssetsFolder.<init>` の署名依存デコイで `divide by zero` が発生する問題を修正
+- 226実機で起動後に `SettingActivity` を開き、同クラッシュが再発しないことを確認
+- 広告View非表示処理で、View復元中の例外がChMate本体のクラッシュへ波及しないように保護
+
+### 1.2.3.r1（プレリリース）
+
+- 1.2.2-r15で検証した変更を、1.2.3系の最初の検証版として再公開
+- Haiagaru設定ボタンが反応せず設定画面を開けない端末への互換処理を収録
+- ChMate+互換設定のチェック状態だけが変わり、実機能が有効にならない問題を修正
+
+### 1.2.3（正式版）
+
+- Android 16を含む一部端末でHaiagaru設定ボタンを押しても設定画面が開かない問題を修正
+- Haiagaru設定からChMate+互換機能を有効にしても、実際の動作へ反映されない問題を修正
+- ChMate 0.8.10.191 devの単一ID省略設定に残っていた有効化判定を補正
+- ChMate 0.8.10.191 dev、0.8.10.226 dev、0.8.10.241、0.8.10.243 devに対応
+
+### 1.2.2-r15（プレリリース）
+
+- `master` / `main` のパッチバンドル混在を解消するため、配布対象を `master` に統一
+- ChMate `0.8.10.191 dev`／`0.8.10.226 dev` のChMate+互換設定で、チェックはONになるが実際の機能が有効にならない問題を修正
+- `コピペ省略2` をONにした場合はChMate本体側の親設定 `copipeNg` もONにするように変更
+- `荒らし省略` をONにした場合はChMate本体側の親設定 `copipeNgAR` もONにするように変更
+- ChMate `0.8.10.191 dev` の `単発ID表示を省略` で、保存済み設定がONのときに追加の有効化ゲートで無効化されないように修正
+
+### 1.2.2-r14（正式版）
+
+- Haiagaru設定ボタンをアプリ内のポップアップ表示へ変更し、Android 16 / Samsung系端末でボタンが表示されても設定画面が開けない問題を修正
+- ChMate+設定、DAT経路、プリセット更新、Shizuku移行、重複板整理の各設定セクションを個別に保護し、追加機能側の失敗で基本設定画面全体が開けなくなる問題を回避
+- 診断用に追加していた設定ボタンのログ保存処理を正式版から削除
+- ChMate `0.8.10.191 dev`／`0.8.10.226 dev` のHaiagaru設定画面にChMate+互換設定を追加
+- DAT取得、URL自動補正、投稿、板整理、パッケージ名・アプリ名・アイコン・versionCode変更機能を維持
 
 ### 1.2.2-r13（正式版）
 
@@ -183,6 +229,23 @@ patches\build\libs\patches-1.2.2.mpp
 
 Morphe Desktopでは `Haiagaru` を有効にして対象APKへ適用します。
 APKは再署名されるため、Play版など署名が異なるChMateとはそのまま上書きできません。
+
+### ChMate+互換機能
+
+191／226／243 devでは、Haiagaru設定から「単発ID表示を省略」「コピペ省略2」
+「荒らし省略」を切り替えられます。設定を保存するとアプリが再起動します。
+191では荒らし・コピペ2の判定処理にも有効化の修正を適用し、各設定がOFFの場合は
+判定処理を登録しません。243は元の判定処理と設定条件を使用します。
+
+191／243の元APKと生成APKに対するバイトコード検査は、
+`scripts/VerifyChMatePlus.java` で実行できます。
+
+```powershell
+java -cp <morphe-desktop-all.jar> scripts/VerifyChMatePlus.java <元191.apk> <生成191.apk> <元243.apk> <生成243.apk>
+```
+
+この検査は191の2箇所の登録制限の除去、設定OFFの分岐の維持、
+243の判定処理の維持を確認します。実際のレスの省略表示は別途実機で確認してください。
 
 ## サポート
 何かあればGitHubのIssueか

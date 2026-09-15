@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-11T07:35:02",
-  "description": "## [1.2.0](https://github.com/Epxec/android-patches/compare/v1.1.0...v1.2.0) (2026-09-11)\n\n### ✨ New Features\n\n* add \"FreeReels\" vip and no-ad download patch ([47b738b](https://github.com/Epxec/android-patches/commit/47b738b3bc7c189015f3c67da93fe458e636e418))",
-  "download_url": "https://github.com/Epxec/android-patches/releases/download/v1.2.0/patches-1.2.0.mpp",
+  "created_at": "2026-09-15T01:45:36",
+  "description": "## [1.5.0](https://github.com/Epxec/android-patches/compare/v1.4.0...v1.5.0) (2026-09-15)\n\n### ✨ New Features\n\n* add \"Wavelet\" pro patch ([937c59a](https://github.com/Epxec/android-patches/commit/937c59a85fd3507f7f8c78bb43e18662e28ebe29))",
+  "download_url": "https://github.com/Epxec/android-patches/releases/download/v1.5.0/patches-1.5.0.mpp",
   "signature_download_url": "",
-  "version": "1.2.0"
+  "version": "1.5.0"
 }

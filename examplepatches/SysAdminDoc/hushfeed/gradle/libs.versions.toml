@@ -19,6 +19,7 @@ smali = "d92701d947"
 annotation = "1.10.0"
 gson = "2.14.0"
 guava = "33.7.1-jre"
+bouncycastle = "1.85.2"
 
 [libraries]
 morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }

@@ -1,3 +1,40 @@
+## [3.23.3](https://github.com/crimera/piko-newx/compare/v3.23.2...v3.23.3) (2026-09-14)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** preserve thread connectors when hiding dividers ([68170cd](https://github.com/crimera/piko/commit/68170cd326aeb1c3c5e39b3fc66468dda5782d73))
+
+## [3.23.2](https://github.com/crimera/piko-newx/compare/v3.23.1...v3.23.2) (2026-09-14)
+
+### 🐛 Bug Fixes
+* **Twitter:** optimize NewX extension runtime hot paths ([9f8a462](https://github.com/crimera/piko/commit/9f8a462a9502fc283ff443a5691887482471bf68))
+* **Twitter:** optimize NewX patch and runtime performance ([5fc1d2f](https://github.com/crimera/piko/commit/5fc1d2fe08ae37c42d1e8c42ee3e35d0f43b3174))
+
+## [3.23.1](https://github.com/crimera/piko-newx/compare/v3.23.0...v3.23.1) (2026-09-14)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** restore Ranked Following scroll position ([26874a4](https://github.com/crimera/piko/commit/26874a446554910f744425074d660b4adfdb1148))
+
+## [3.23.0](https://github.com/crimera/piko-newx/compare/v3.22.0...v3.23.0) (2026-09-14)
+
+### ✨ New Features
+* **Twitter - newx:** add customizable post menu with hidden items filter ([d80e46c](https://github.com/crimera/piko/commit/d80e46c660806edab1fea5412ddffb3b5c8420f0))
+
+### New Patches
+* **Twitter:** NewX: Customize post menu items
+
+## [3.22.0](https://github.com/crimera/piko-newx/compare/v3.21.2...v3.22.0) (2026-09-14)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** eliminate timeline success constructor register corruption and VerifyError ([6049e08](https://github.com/crimera/piko/commit/6049e089f621a7f3700166a9e7122632655dbab5))
+* **Twitter - newx:** make drawer content resolver semantic and deprecate 12.24 ([af4f1e4](https://github.com/crimera/piko/commit/af4f1e433429c44c066f2cdeb580bcfaef7061b9))
+* **Twitter - newx:** resolve runtime verify errors and restore inline download icon in 12.27 ([2c4da85](https://github.com/crimera/piko/commit/2c4da853d752f8ab0f40c0c4a07a43ee1e79fe6d))
+* **Twitter - newx:** port failing patches to 12.27.0-alpha.01 ([dec951d](https://github.com/crimera/piko/commit/dec951d008d8a617d234b374563408ba5d364c75))
+* **Twitter - newx:** custom font patch for 12.27 Compose refactor ([d6efb26](https://github.com/crimera/piko/commit/d6efb26d263000ed9960069dd6fdc93348f12d90))
+* **Twitter - newx:** support 12.27 settings renderer ([ee13d2f](https://github.com/crimera/piko/commit/ee13d2f7526d770ffb0b8b95c72fde3e4cd1a62d))
+
+### ✨ New Features
+* **Twitter - newx:** add 12.25.2-prod.01 to compatibility targets ([228a344](https://github.com/crimera/piko/commit/228a3440f3998f8e299ea0a484d782ed21d5ceb9))
+
 ## [3.21.2](https://github.com/crimera/piko-newx/compare/v3.21.1...v3.21.2) (2026-09-13)
 
 ### 🐛 Bug Fixes

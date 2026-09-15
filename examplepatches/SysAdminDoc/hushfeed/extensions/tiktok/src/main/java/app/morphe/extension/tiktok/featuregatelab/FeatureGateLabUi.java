@@ -168,6 +168,11 @@ final class FeatureGateLabUi {
         return new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
     }
 
+    /** For a child that should be no wider than its own text, such as an empty state's action. */
+    static LinearLayout.LayoutParams wrapWrap() {
+        return new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    }
+
     static LinearLayout.LayoutParams weight() {
         return new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
     }
@@ -203,7 +208,17 @@ final class FeatureGateLabUi {
             radio.setTextColor(SettingsUi.textPrimary());
             radio.setButtonTintList(ColorStateList.valueOf(SettingsUi.accent()));
         } else if (view instanceof Button) {
-            ((Button) view).setTextColor(SettingsUi.accent());
+            // Everything except the dialog's own three actions. styleFramedDialog has already
+            // given the positive one the accent and the other two the secondary colour, and
+            // this walk runs after it: repainting them all one shade put Use value and Cancel
+            // on the same footing, which is the opposite of what a destructive-looking pair of
+            // actions needs. It also replaced their state lists with a flat colour, so a
+            // disabled action stopped looking disabled.
+            int id = view.getId();
+            if (id != android.R.id.button1 && id != android.R.id.button2
+                    && id != android.R.id.button3) {
+                ((Button) view).setTextColor(SettingsUi.accent());
+            }
         } else if (view instanceof TextView) {
             ((TextView) view).setTextColor(SettingsUi.textPrimary());
         }

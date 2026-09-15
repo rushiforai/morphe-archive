@@ -1,3 +1,9 @@
+## [1.3.1](https://github.com/alalloush/xperia-1v-camera-patches/compare/v1.3.0...v1.3.1) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* Mark the streaming patches [WIP] and off by default; document them ([cd96718](https://github.com/alalloush/xperia-1v-camera-patches/commit/cd96718f7ecb013867d6839e1162494ef8429c5a))
+
 ## [1.3.0](https://github.com/alalloush/xperia-1v-camera-patches/compare/v1.2.0...v1.3.0) (2026-09-07)
 
 ### ✨ New Features

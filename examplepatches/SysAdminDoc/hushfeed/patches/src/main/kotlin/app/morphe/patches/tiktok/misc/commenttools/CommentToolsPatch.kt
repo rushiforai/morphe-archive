@@ -88,9 +88,9 @@ internal fun applyAfterCommentToolsPreflight(vararg resolve: () -> CommentToolsW
 val commentToolsPatch = bytecodePatch(
     name = "Comment tools",
     description = "Hides comments that contain chosen words or come from chosen accounts, turns " +
-        "the thumbs down on each comment into a block button, hides comments made of an image " +
-        "or a sticker rather than words, and adds a box above the comments that narrows them " +
-        "by what they say or who said it.",
+        "the thumbs down on each comment into a block button, hides comment media and polls, " +
+        "and adds a box above the comments that narrows them by what they say or " +
+        "who said it.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

@@ -27,6 +27,7 @@ I'm just like you — I enjoy watching TV and movies without being bored and ann
 | 🟢 Paramount+ | `com.cbs.ott` | Working — VOD ads removed (movies + TV shows, pre-roll + mid-roll); pause ads removed; live TV preserved | `v16.17.0` | 8/4/26 |
 | 🟢 Twitch | `tv.twitch.android.app` | Working — **Android TV "Starshot" build only; install exactly `13.0.0.2`** (the phone app is not supported — do not use the phone APK). Removes the on-screen ad-pod overlay/countdown ("Ad · 1 of 3") and blanks stitched (SSAI) ad video on live streams. A brief black gap can remain during a break; a VPN set to Albania is fully ad-free — see notes | `13.0.0.2` | 8/22/26 |
 | 🟢 ESPN | `com.espn.score_center` | Working — **Android TV** only. Live commercial breaks masked with a full-screen slate + audio mute (passthrough SSAI can't be removed, only covered); VOD/scheduled ads suppressed. No DNS required | `6.11.1` | 9/5/26 |
+| 🟢 RTÉ Player | `com.twentyfouri.tvbridge.rte` | Working — **Android TV, VOD only**. Client-side (Google IMA) pre-roll + mid-roll ads removed seamlessly (no ad, no break pause). Live channels keep ads (server-stitched). **Geo-locked to Ireland — use a VPN**; needs a valid RTÉ account | `3.160.3` | 9/14/26 |
 | 🔴 Fox One | **Under Development** | — |
 | 🔴 MLB TV | **Under Development** | — |
 
@@ -273,6 +274,21 @@ All patches follow the same general workflow using **Morphe Manager**:
 | **Clone ESPN** | ⬜ Off (opt-in) | Installs the patched app **alongside** a stock ESPN that can't be uninstalled (common on **Amazon Fire TV** and some TV boxes). Gives it its own package/icon. Leave off if you could uninstall the original first. |
 
 **Live-slate styles (on-device):** while a break is up, press the D-pad to open an on-screen picker and switch between **Video** (your own clips), **Video + Score** (clips + a live-score strip), **Be Right Back (ESPN Ad-Break Overlay)** (an animated broadcast graphic with a live countdown), and **Blank**. Slate media is user-supplied local files placed in the app's external files dir — nothing is bundled. Drop a `slate_off` marker file to disable the live slate without re-patching. See [`slates/espn_overlay/`](slates/espn_overlay/) for the animated overlay assets and setup.
+
+---
+
+### 📺 RTÉ Player
+
+1. Open the **[RTÉ Player (Android TV) listing on APKMirror](https://www.apkmirror.com/apk/rte/rte-player-android-tv/)** and select version **`3.160.3`**
+2. Download the `.apkm` file
+3. Select it in Morphe Manager
+4. Apply the patch
+
+> 🟢 **Working — Android TV, VOD only.** Client-side (Google IMA) **pre-roll and mid-roll** ads are removed **in-app** — content plays straight through where a break would be, with no ad and no pause. No DNS filter needed.
+>
+> ⚠️ **Geo-locked to Ireland.** RTÉ Player only streams from an Irish IP, so you need a **VPN set to Ireland** (and a valid RTÉ account — this only removes ads, it's not an access bypass).
+>
+> ℹ️ **Live channels still show ads.** Live is server-stitched (DAI) into the video itself, which can't be removed client-side without breaking the stream — only on-demand (VOD) is covered. A cosmetic ad-break marker may still appear on the scrubber, but it no longer pauses playback.
 
 ---
 

@@ -51,7 +51,11 @@ val spoofVideoStreamsPatch = spoofVideoStreamsPatch(
                 key = "morphe_spoof_video_streams_screen",
                 sorting = PreferenceScreenPreference.Sorting.UNSORTED,
                 preferences = setOf(
-                    SwitchPreference("morphe_spoof_video_streams", summary = true),
+                    SwitchPreference(
+                        key = "morphe_spoof_video_streams",
+                        titleKey = "morphe_spoof_video_streams_screen_title",
+                        summary = true
+                    ),
                     ListPreference("morphe_spoof_video_streams_client_type"),
                     NonInteractivePreference(
                         key = "morphe_spoof_video_streams_sign_in_android_vr_about",

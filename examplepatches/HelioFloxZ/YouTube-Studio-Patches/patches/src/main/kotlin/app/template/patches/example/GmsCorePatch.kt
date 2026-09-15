@@ -3,7 +3,6 @@ package app.template.patches.example
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.bytecodePatch
@@ -24,7 +23,6 @@ private const val ORIGINAL_PACKAGE_NAME = "com.google.android.apps.youtube.creat
 private const val DEFAULT_PATCHED_PACKAGE_NAME = "app.morphe.android.apps.youtube.creator"
 private const val GMS_CORE_VENDOR_GROUP = "app.revanced"
 private const val GMS_CORE_PACKAGE = "app.revanced.android.gms"
-private const val EXTENSION_CLASS = "Lapp/template/extension/extension/GmsCoreSupportPatch;"
 private var resolvedPackageName = DEFAULT_PATCHED_PACKAGE_NAME
 
 private val GMS_STRING_REPLACEMENTS = mapOf(
@@ -171,18 +169,6 @@ private val YtStudioMainActivityOnCreateFingerprint = Fingerprint(
     parameters = listOf("Landroid/os/Bundle;"),
 )
 
-private val GmsCoreVendorGroupFingerprint = Fingerprint(
-    custom = { method: Method, classDef: ClassDef ->
-        classDef.type == EXTENSION_CLASS && method.name == "getGmsCoreVendorGroupId"
-    },
-)
-
-private val OriginalPackageNameFingerprint = Fingerprint(
-    custom = { method: Method, classDef: ClassDef ->
-        classDef.type == EXTENSION_CLASS && method.name == "getOriginalPackageName"
-    },
-)
-
 private val ServiceCheckFingerprint = Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "V",
@@ -191,17 +177,11 @@ private val ServiceCheckFingerprint = Fingerprint(
 )
 
 private val AccountValidityMonitorCheckFingerprint = Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    definingClass = "Lcom/google/android/libraries/youtube/account/service/AccountsChangedJobIntentService;",
+    name = "a",
     returnType = "V",
     parameters = listOf("Landroid/content/Intent;"),
-    strings = listOf("Account was removed from the device: "),
-)
-
-private val FrictionlessEligibilityFingerprint = Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "V",
-    parameters = listOf("Z"),
-    strings = listOf("Failed to clear local frictionless state when account status changed"),
+    strings = listOf("Account was removed from device"),
 )
 
 @Suppress("unused")
@@ -211,7 +191,6 @@ val ytStudioGmsCoreSupportPatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(YT_STUDIO_COMPATIBILITY)
-    extendWith("extensions/extension.mpe")
 
     dependsOn(
         resourcePatch {
@@ -305,119 +284,12 @@ val ytStudioGmsCoreSupportPatch = bytecodePatch(
         },
     )
 
-    execute {
-        OriginalPackageNameFingerprint.method.addInstructions(
-            0,
-            "const-string v0, \"$ORIGINAL_PACKAGE_NAME\"\nreturn-object v0",
-        )
-
-        GmsCoreVendorGroupFingerprint.method.addInstructions(
-            0,
-            "const-string v0, \"$GMS_CORE_VENDOR_GROUP\"\nreturn-object v0",
-        )
-
-        YtStudioMainActivityOnCreateFingerprint.method.addInstruction(
-            0,
-            "invoke-static/range { p0 .. p0 }, $EXTENSION_CLASS->checkGmsCore(Landroid/app/Activity;)V",
-        )
-
+        execute {
         ServiceCheckFingerprint.method.addInstruction(0, "return-void")
 
-    
-
-        AccountValidityMonitorCheckFingerprint.method.addInstruction(0, "return-void")
-
-        FrictionlessEligibilityFingerprint.method.apply {
-            val instructions = implementation?.instructions
-                ?: throw PatchException("Frictionless eligibility method has no implementation.")
-            val clearSelectedAccountIndex = instructions.indexOfFirst { instruction ->
-                ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.let { ref ->
-                    ref.name == "o" && ref.returnType == "V" && ref.parameterTypes.toList() == listOf("I")
-                } == true
-            }
-            if (clearSelectedAccountIndex < 0) throw PatchException("Could not find selected account clear call.")
-
-            val accountHandlerClass = ((instructions[clearSelectedAccountIndex] as ReferenceInstruction)
-                .reference as MethodReference).definingClass
-
-            replaceInstruction(clearSelectedAccountIndex, "invoke-virtual {p0}, $accountHandlerClass->p()V")
-        }
-
-        fun transform(string: String): String? =
-            GMS_STRING_REPLACEMENTS[string]
-                ?: transformAppPackageString(string)
-                ?: when {
-                    string.startsWith("content://") -> transformContentUri(string)
-                    else -> null
-                }
-
-        getAllClassesWithStrings().forEach { classDef ->
-            if (classDef.type == EXTENSION_CLASS) return@forEach
-
-            val hasMatch = classDef.methods.any { method ->
-                method.implementation?.instructions?.any { instruction ->
-                    val string = ((instruction as? Instruction21c)?.reference as? StringReference)?.string
-                    string != null && transform(string) != null
-                } == true
-            }
-            if (!hasMatch) return@forEach
-
-            val mutableClass by lazy { mutableClassDefBy(classDef) }
-            classDef.methods.forEach { method ->
-                val mutableMethod = mutableClass.methods.firstOrNull {
-                    it.name == method.name &&
-                        it.returnType == method.returnType &&
-                        it.parameterTypes.toList() == method.parameterTypes.toList()
-                } ?: return@forEach
-
-                val replacements = mutableMethod.implementation?.instructions
-                    ?.mapIndexedNotNull { index, instruction ->
-                        val string = ((instruction as? Instruction21c)?.reference as? StringReference)?.string
-                            ?: return@mapIndexedNotNull null
-                        val transformed = transform(string) ?: return@mapIndexedNotNull null
-
-                        index to BuilderInstruction21c(
-                            Opcode.CONST_STRING,
-                            instruction.registerA,
-                            ImmutableStringReference(transformed),
-                        )
-                    }
-                    .orEmpty()
-
-                replacements.forEach { (index, replacement) ->
-                    mutableMethod.replaceInstruction(index, replacement)
-                }
-            }
-        }
+        AccountValidityMonitorCheckFingerprint.method.addInstruction(
+            0,
+            "return-void",
+        )
     }
 }
-
-private fun transformAppPackageString(string: String): String? =
-    when (string) {
-        in APP_PERMISSIONS, in APP_AUTHORITIES -> string.prefixOrReplaceAppPackage()
-        else -> null
-    }
-
-private fun transformContentUri(string: String): String? {
-    val authorityStart = "content://".length
-    val authorityEnd = string.indexOf('/', authorityStart).let { if (it == -1) string.length else it }
-    val authority = string.substring(authorityStart, authorityEnd)
-
-    val replacement = when {
-        authority in APP_AUTHORITIES -> authority.prefixOrReplaceAppPackage()
-        authority == "com.google.android.gms" -> GMS_CORE_PACKAGE
-        authority == "com.google.android.gsf.gservices" -> "app.revanced.android.gsf.gservices"
-        authority == "com.google.settings" -> "app.revanced.settings"
-        authority == "subscribedfeeds" -> "app.revanced.android.gsf.subscribedfeeds"
-        else -> return null
-    }
-
-    return string.replaceRange(authorityStart, authorityEnd, replacement)
-}
-
-private fun String.prefixOrReplaceAppPackage(): String =
-    if (startsWith(ORIGINAL_PACKAGE_NAME)) {
-        replace(ORIGINAL_PACKAGE_NAME, resolvedPackageName)
-    } else {
-        "$resolvedPackageName.$this"
-    }

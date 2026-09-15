@@ -223,4 +223,20 @@ object Constants {
             )
         )
     )
+
+    val FFPMPEG_COMPATIBILITY = Compatibility(
+        name = "FFmpeg Media Encoder",
+        packageName = "com.silentlexx.ffmpeggui",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x00C300,
+        targets = listOf(
+            AppTarget(
+                version = "6.1.3_1",
+                versionCodes = mapOf(
+                    SupportedAbi.ARM64_V8A to 6131,
+                    SupportedAbi.ARMEABI_V7A to 6131
+                )
+            )
+        )
+    )
 }

@@ -31,7 +31,27 @@ class SyncUpstreamTests(unittest.TestCase):
 
         self.assertIn("public static <T extends ImageView> T addButton", source)
         self.assertIn("static float getButtonWidthPercentage", source)
-        self.assertIn("final int effectiveCustomButtons = Math.max(0, buttonControllers.size()", source)
+        self.assertIn(
+            "return isEnabled == null || isEnabled.isButtonCurrentlyEnabled();",
+            source,
+        )
+        self.assertIn(
+            "return (int) buttonControllers.stream().filter("
+            "PlayerOverlayButtonController::isEnabled).count();",
+            source,
+        )
+        self.assertEqual(
+            source.count(
+                "final int effectiveCustomButtons = Math.max(0, "
+                "getNumberOfEnabledButtons()"
+            ),
+            2,
+        )
+        self.assertNotIn(
+            "final int effectiveCustomButtons = Math.max(0, buttonControllers.size()",
+            source,
+        )
+        self.assertIn("final int buttonNumber = getEnabledButtonIndex()", source)
         self.assertIn("chapterTitleContainer.updateMargin(source.getWidth(), effectiveCustomButtons, spacingPercentage)", source)
         self.assertIn("setTextSize(TypedValue.COMPLEX_UNIT_PX, Dim.dp(14))", source)
 

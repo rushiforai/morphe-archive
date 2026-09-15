@@ -43,7 +43,7 @@ object Constants {
     )
 
     const val VIVALDI_PACKAGE_NAME = "com.vivaldi.browser"
-    const val VIVALDI_TARGET_VERSION = "8.2.4147.58"
+    const val VIVALDI_TARGET_VERSION = "8.2.4147.77"
 
     val COMPATIBILITY_VIVALDI = Compatibility(
         name = "Vivaldi Browser - Fast & Safe",
@@ -53,13 +53,13 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = VIVALDI_TARGET_VERSION,
-                description = "Download 8.2.4147.58 (arm64-v8a APKM bundle) from APKMirror"
+                description = "Download 8.2.4147.77 (arm64-v8a APKM bundle) from APKMirror"
             )
         )
     )
 
     const val HEVY_PACKAGE_NAME = "com.hevy"
-    const val HEVY_TARGET_VERSION = "3.1.13"
+    const val HEVY_TARGET_VERSION = "3.1.14"
 
     val COMPATIBILITY_HEVY = Compatibility(
         name = "Hevy - Gym Log Workout Tracker",
@@ -69,6 +69,10 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = HEVY_TARGET_VERSION,
+                description = "Download com.hevy v$HEVY_TARGET_VERSION (APKM bundle) from APKMirror"
+            ),
+            AppTarget(
+                version = "3.1.13",
                 description = "Download com.hevy v3.1.13 (APKM bundle) from APKMirror"
             )
         )
@@ -76,6 +80,7 @@ object Constants {
 
     const val TIKTOK_GLOBAL_PACKAGE_NAME = "com.zhiliaoapp.musically"
     const val TIKTOK_ASIA_PACKAGE_NAME = "com.ss.android.ugc.trill"
+    const val TIKTOK_TARGET_VERSION = "46.9.3"
 
     val COMPATIBILITY_TIKTOK = Compatibility(
         name = "TikTok",
@@ -84,10 +89,27 @@ object Constants {
         appIconColor = 0xFE2C55,
         targets = listOf(
             AppTarget(
-                version = null,
-                description = "Any TikTok version (Global or Asia nodpi APK)"
+                version = TIKTOK_TARGET_VERSION,
+                description = "Download TikTok Global v$TIKTOK_TARGET_VERSION (nodpi APK) from APKMirror"
             )
         )
     )
+
+    val COMPATIBILITY_TIKTOK_ASIA = Compatibility(
+        name = "TikTok",
+        packageName = TIKTOK_ASIA_PACKAGE_NAME,
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0xFE2C55,
+        targets = listOf(
+            AppTarget(
+                version = TIKTOK_TARGET_VERSION,
+                description = "Download TikTok Asia (trill) v$TIKTOK_TARGET_VERSION (nodpi APK) from APKMirror"
+            )
+        )
+    )
+
+    const val TIKTOK_EXTENSION_FILTER_CLASS = "Lcom/kveld9/morphe/extension/tiktok/TikTokFeedAdFilter;"
+    const val TIKTOK_EXTENSION_MEDIA_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokMediaHook;"
+    const val TIKTOK_EXTENSION_SPEED_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokSpeedHook;"
 }
 

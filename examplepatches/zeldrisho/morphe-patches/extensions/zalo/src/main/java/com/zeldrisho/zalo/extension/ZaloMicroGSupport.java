@@ -12,10 +12,17 @@ import android.net.Uri;
 public final class ZaloMicroGSupport {
   private static final String GMS_CORE_PACKAGE = "app.revanced.android.gms";
   private static final String GMS_CORE_DOWNLOAD =
-      "https://github.com/zeldrisho/MicroG-RE/actions/runs/34576709901";
+      "https://github.com/zeldrisho/MicroG-RE/releases/latest";
 
   /** Prevents instantiation of this static runtime helper. */
   private ZaloMicroGSupport() {}
+
+  /** Returns whether a resolved provider package is present and enabled. */
+  static boolean isProviderEnabled(android.content.pm.PackageInfo packageInfo) {
+    return packageInfo != null
+        && packageInfo.applicationInfo != null
+        && packageInfo.applicationInfo.enabled;
+  }
 
   /**
    * Shows an optional installation prompt when MicroG is unavailable.
@@ -27,7 +34,13 @@ public final class ZaloMicroGSupport {
     if (activity == null) return true;
 
     try {
-      activity.getPackageManager().getPackageInfo(GMS_CORE_PACKAGE, PackageManager.GET_ACTIVITIES);
+      PackageManager packageManager = activity.getPackageManager();
+      android.content.pm.PackageInfo packageInfo =
+          packageManager.getPackageInfo(GMS_CORE_PACKAGE, PackageManager.GET_ACTIVITIES);
+      if (!isProviderEnabled(packageInfo)) {
+        showInstallDialog(activity);
+        return false;
+      }
       return true;
     } catch (PackageManager.NameNotFoundException exception) {
       showInstallDialog(activity);

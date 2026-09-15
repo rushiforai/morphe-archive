@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-13T21:01:16",
-  "description": "## [1.23.1](https://github.com/kveld9/kveld-morphe-patches/compare/v1.23.0...v1.23.1) (2026-09-13)\n\n### \ud83d\udc1b Bug Fixes\n\n* **tiktok:** add multi-version fallbacks for cold start and fresco memory governor ([4b86116](https://github.com/kveld9/kveld-morphe-patches/commit/4b8611610d8e7a9e19665fbf6b3a3069325342de))\n",
-  "download_url": "https://github.com/kveld9/kveld-morphe-patches/releases/download/v1.23.1/patches-1.23.1.mpp",
+  "created_at": "2026-09-14T23:21:19",
+  "description": "## [1.27.1](https://github.com/kveld9/kveld-morphe-patches/compare/v1.27.0...v1.27.1) (2026-09-14)\n\n### Bug Fixes\n\n* **tiktok:** correct register indices and speed persistence bounds ([05307bb](https://github.com/kveld9/kveld-morphe-patches/commit/05307bb2de40a4134048553b505c22ff687478a7))\n",
+  "download_url": "https://github.com/kveld9/kveld-morphe-patches/releases/download/v1.27.1/patches-1.27.1.mpp",
   "signature_download_url": "N/A",
-  "version": "v1.23.1"
+  "version": "v1.27.1"
 }

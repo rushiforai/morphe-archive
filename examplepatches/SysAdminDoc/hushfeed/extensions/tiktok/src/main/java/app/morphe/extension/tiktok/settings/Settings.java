@@ -16,12 +16,29 @@ import app.morphe.extension.shared.settings.Setting;
 
 import app.morphe.extension.tiktok.offline.CustomOfflineVideosLimitPatch;
 import app.morphe.extension.shared.settings.StringSetting;
+import app.morphe.extension.tiktok.feedfilter.FeedRuleLimits;
 import app.morphe.extension.tiktok.navigation.BottomNavigationTabOptions;
 import app.morphe.extension.tiktok.navigation.NavigationTabOptions;
 
 import java.util.Collections;
 
 public class Settings extends BaseSettings {
+    /** Backstop for direct writes and both settings-import formats. */
+    private static final class FeedRuleStringSetting extends StringSetting {
+        private final boolean creatorList;
+
+        FeedRuleStringSetting(String key, boolean creatorList) {
+            super(key, "");
+            this.creatorList = creatorList;
+        }
+
+        @Override
+        protected String coerce(String newValue) {
+            return creatorList ? FeedRuleLimits.requireCreators(newValue)
+                    : FeedRuleLimits.requireCaption(newValue);
+        }
+    }
+
     public static final BooleanSetting REGION_SPOOF = new BooleanSetting("region_spoof", FALSE, true);
     public static final BooleanSetting REGION_STORE_SPOOF = new BooleanSetting("region_store_spoof", FALSE, true);
     public static final BooleanSetting FOLDABLE_SPLIT_VIEW = new BooleanSetting("foldable_split_view", FALSE, true);
@@ -95,9 +112,12 @@ public class Settings extends BaseSettings {
             new IntegerSetting("edge_seek_seconds", 5).withRange(0, 60);
     public static final BooleanSetting CONFIRM_FOLLOW = new BooleanSetting("confirm_follow", FALSE);
     public static final BooleanSetting CONFIRM_LIKE = new BooleanSetting("confirm_like", FALSE);
-    public static final StringSetting BLOCKED_CAPTION_WORDS = new StringSetting("blocked_caption_words", "");
-    public static final StringSetting BLOCKED_CREATORS = new StringSetting("blocked_creators", "");
-    public static final StringSetting LOCAL_HIDDEN_CREATORS = new StringSetting("local_hidden_creators", "");
+    public static final StringSetting BLOCKED_CAPTION_WORDS =
+            new FeedRuleStringSetting("blocked_caption_words", false);
+    public static final StringSetting BLOCKED_CREATORS =
+            new FeedRuleStringSetting("blocked_creators", true);
+    public static final StringSetting LOCAL_HIDDEN_CREATORS =
+            new FeedRuleStringSetting("local_hidden_creators", true);
     public static final StringSetting REGION_ONLY_FROM = new StringSetting("region_only_from", "", true);
     public static final StringSetting REGION_NEVER_FROM = new StringSetting("region_never_from", "", true);
     public static final IntegerSetting MAX_VIDEO_SECONDS =
@@ -271,6 +291,13 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SESSION_BUDGET_RAMP = new BooleanSetting(
             "session_budget_ramp", FALSE, true);
     /**
+     * A small label on the feed saying what is left of today's budget. Off by default, and it
+     * has nothing to report unless {@link #SESSION_BUDGET_VIDEOS} or {@link #SESSION_BUDGET_MINUTES}
+     * is set. No restart: it is drawn from the same callback that measures the budget.
+     */
+    public static final BooleanSetting SESSION_BUDGET_CUE = new BooleanSetting(
+            "session_budget_cue", FALSE);
+    /**
      * Minutes of watching between the quiet reminders, or zero for none.
      *
      * <p>The hold only ever fires once the day's budget has gone. This is the earlier check the
@@ -306,8 +333,18 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SHOW_AUTHOR_HANDLE = new BooleanSetting("show_author_handle", FALSE);
     public static final BooleanSetting BLOCK_AUTHOR_BUTTON =
             new BooleanSetting("block_author_button", FALSE, true);
+    public static final BooleanSetting LOCAL_HIDE_BUTTON =
+            new BooleanSetting("local_hide_button", TRUE);
+    public static final BooleanSetting BLOCK_SOUND_BUTTON =
+            new BooleanSetting("block_sound_button", TRUE);
     public static final StringSetting BLOCK_AUTHOR_BUTTON_POSITION =
             new StringSetting("block_author_button_position", "");
+    public static final StringSetting LOCAL_HIDE_BUTTON_POSITION =
+            new StringSetting("local_hide_button_position", "");
+    public static final StringSetting BLOCK_SOUND_BUTTON_POSITION =
+            new StringSetting("block_sound_button_position", "");
+    public static final StringSetting NOT_INTERESTED_BUTTON_POSITION =
+            new StringSetting("not_interested_button_position", "");
     public static final BooleanSetting HIDE_INBOX_STORIES = new BooleanSetting("hide_inbox_stories", FALSE);
     public static final BooleanSetting HIDE_INBOX_NEW_FOLLOWERS = new BooleanSetting("hide_inbox_new_followers", FALSE);
     public static final BooleanSetting HIDE_INBOX_ACTIVITY = new BooleanSetting("hide_inbox_activity", FALSE);
@@ -364,6 +401,7 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting BLOCK_FROM_COMMENT = new BooleanSetting("block_from_comment", TRUE);
     public static final BooleanSetting COMMENT_SEARCH = new BooleanSetting("comment_search", FALSE);
     public static final BooleanSetting HIDE_COMMENT_MEDIA = new BooleanSetting("hide_comment_media", FALSE);
+    public static final BooleanSetting HIDE_COMMENT_POLLS = new BooleanSetting("hide_comment_polls", FALSE);
     public static final BooleanSetting HIDE_COMMENT_EGGS = new BooleanSetting("hide_comment_eggs", TRUE);
     public static final BooleanSetting COMMENT_SORT_CONTROLS = new BooleanSetting("comment_sort_controls", FALSE);
     // Share sheet tools. The confirm step is on by default because it is the point of the patch.

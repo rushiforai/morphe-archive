@@ -68,4 +68,8 @@ Second \"item\" text"</string>
   <string name="morphe_open_links_directly_summary">Omija adresy z przekierowaniami podczas otwierania linków zewnętrznych</string>
   <string name="morphe_open_links_externally_title">Otwieraj linki zewnętrznie</string>
   <string name="morphe_open_links_externally_summary">Otwiera linki w zewnętrznej przeglądarce zamiast we wbudowanej</string>
+  <string name="morphe_app_icon_title">Ikona aplikacji</string>
+  <string name="morphe_app_icon_choose_title">Wybierz ikonę aplikacji</string>
+  <string name="morphe_app_icon_default">Domyślna</string>
+  <string name="morphe_app_icon_unknown">Nieznana</string>
 </resources>

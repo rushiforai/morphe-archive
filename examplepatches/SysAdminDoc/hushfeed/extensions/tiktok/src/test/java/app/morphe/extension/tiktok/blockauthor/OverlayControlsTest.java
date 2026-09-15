@@ -7,12 +7,17 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.tiktok.SettingsContextRule;
+import app.morphe.extension.tiktok.settings.Settings;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.Method;
 import org.junit.Test;
+import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
@@ -23,14 +28,27 @@ import org.robolectric.annotation.GraphicsMode;
 @Config(sdk = 28)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class OverlayControlsTest {
+    @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
+
+    /**
+     * A saved control position outlives its test, and the layout tests here read the defaults.
+     * Without this, whichever position test ran first decided what the others saw.
+     */
+    @org.junit.After public void clearSavedControlPositions() {
+        Settings.BLOCK_AUTHOR_BUTTON_POSITION.resetToDefault();
+        Settings.LOCAL_HIDE_BUTTON_POSITION.resetToDefault();
+        Settings.BLOCK_SOUND_BUTTON_POSITION.resetToDefault();
+        Settings.NOT_INTERESTED_BUTTON_POSITION.resetToDefault();
+    }
+
     @Test public void theInstalledBlockButtonDrawsBothTheRingAndTheSlash() throws Exception {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         Utils.setContext(activity);
         Method factory = BlockAuthorOverlay.class.getDeclaredMethod("createButton", Activity.class);
         factory.setAccessible(true);
         View button = (View) factory.invoke(null, activity);
-        android.graphics.drawable.LayerDrawable layers =
-                (android.graphics.drawable.LayerDrawable) button.getBackground();
+        // The backdrop, the glyph and the focus ring, under the ripple that carries the press.
+        android.graphics.drawable.LayerDrawable layers = contentOf(button.getBackground());
         assertTrue(layers.getDrawable(1) instanceof BlockGlyphDrawable);
         int size = View.MeasureSpec.makeMeasureSpec(100, View.MeasureSpec.EXACTLY);
         button.measure(size, size);
@@ -65,6 +83,10 @@ public class OverlayControlsTest {
             View view = (View) factory.invoke(null, activity);
             assertNotNull(view.getContentDescription());
             assertTrue(view.hasOnClickListeners());
+            assertTrue(view.isLongClickable());
+            AccessibilityNodeInfo node = view.createAccessibilityNodeInfo();
+            assertEquals(android.widget.Button.class.getName(), node.getClassName());
+            node.recycle();
             int size = View.MeasureSpec.makeMeasureSpec(56, View.MeasureSpec.EXACTLY);
             view.measure(size, size);
             view.layout(0, 0, 56, 56);
@@ -82,6 +104,25 @@ public class OverlayControlsTest {
             }
         }
         activity.finish();
+    }
+
+    @Test public void accessibilityLongClickCannotLeaveAControlInPointerDragMode() throws Exception {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        Utils.setContext(activity);
+        Method factory = BlockAuthorOverlay.class.getDeclaredMethod("createButton", Activity.class);
+        factory.setAccessible(true);
+        View button = (View) factory.invoke(null, activity);
+        activity.setContentView(button);
+        java.util.concurrent.atomic.AtomicInteger clicks = new java.util.concurrent.atomic.AtomicInteger();
+        button.setOnClickListener(view -> clicks.incrementAndGet());
+
+        assertFalse(button.performAccessibilityAction(AccessibilityNodeInfo.ACTION_LONG_CLICK, null));
+        java.lang.reflect.Field dragging = BlockAuthorOverlay.class.getDeclaredField("dragging");
+        dragging.setAccessible(true);
+        assertFalse(dragging.getBoolean(null));
+        assertTrue(button.performClick());
+        assertEquals(1, clicks.get());
+        assertFalse(dragging.getBoolean(null));
     }
 
     @Test public void theFeedButtonsAreLaidOutFromTheLeftInEitherDirection() throws Exception {
@@ -126,8 +167,9 @@ public class OverlayControlsTest {
     @Test public void allFourFeedButtonsAreOneSizeAndOneShape() throws Exception {
         // They sit in a column on the feed, where a miss is a like or a follow on somebody's
         // video, and 44dp is under Android's own guidance with no TouchDelegate to make up the
-        // difference. Not interested was also the only rounded rectangle of the four, over a
-        // darker scrim, which on a column of four reads as a mistake rather than a distinction.
+        // difference. The shape half of this used to accept any four discs; it now asks for the
+        // radius from the scale as well, because the four of them, the budget cue and the hold's
+        // release control all draw the same backdrop and had drifted to four radii between them.
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         Utils.setContext(activity);
         Utils.setActivity(activity);
@@ -152,24 +194,21 @@ public class OverlayControlsTest {
             // The block button draws its symbol over the disc rather than setting it as text,
             // because the font TikTok is using may not carry it, so its background is a layer
             // list with the disc underneath.
-            android.graphics.drawable.Drawable background = view.getBackground();
-            if (background instanceof android.graphics.drawable.LayerDrawable) {
-                background = ((android.graphics.drawable.LayerDrawable) background)
-                        .getDrawable(0);
-            }
-            android.graphics.drawable.GradientDrawable disc =
-                    (android.graphics.drawable.GradientDrawable) background;
-            assertEquals(name + " is not the round shape the others are",
-                    android.graphics.drawable.GradientDrawable.OVAL, disc.getShape());
+            android.graphics.drawable.GradientDrawable chip =
+                    (android.graphics.drawable.GradientDrawable) contentOf(view.getBackground())
+                            .getDrawable(0);
+            assertEquals(name + " is not the shape the others are",
+                    android.graphics.drawable.GradientDrawable.RECTANGLE, chip.getShape());
+            assertEquals(name + " is not drawn with the overlay radius the others use",
+                    (float) app.morphe.extension.tiktok.settings.preference.SettingsUi.dp(
+                            activity,
+                            app.morphe.extension.tiktok.settings.preference.SettingsUi
+                                    .RADIUS_OVERLAY),
+                    chip.getCornerRadius(), 0.5f);
         }
     }
 
-    @Test public void placingTheFeedButtonsTwiceOverDoesNotAskForAnotherLayout() throws Exception {
-        // placeSoundButton runs from an OnGlobalLayoutListener, which the framework dispatches
-        // after layout inside the same traversal. setLayoutParams calls requestLayout whatever
-        // it is handed, so writing the same margins back scheduled another traversal, whose
-        // layout called this again: the whole content root measured and laid out every frame for
-        // as long as the overlay was attached, including on screens where every button is GONE.
+    @Test public void movingAndSavingOneFeedButtonDoesNotMoveTheOthers() throws Exception {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         Utils.setContext(activity);
         Utils.setActivity(activity);
@@ -180,25 +219,305 @@ public class OverlayControlsTest {
         attach.invoke(null, new VideoAuthor("1", "sec", "someone", "7712345"));
         org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
 
-        Method place = BlockAuthorOverlay.class.getDeclaredMethod(
-                "placeSoundButton", View.class, android.view.ViewGroup.class);
-        place.setAccessible(true);
-        java.lang.reflect.Field held = BlockAuthorOverlay.class.getDeclaredField("buttonReference");
-        held.setAccessible(true);
-        View button = ((java.lang.ref.WeakReference<View>) held.get(null)).get();
-        assertNotNull("attach never created the block button", button);
-
-        // Settle the tree the way a real traversal would, so the flag under test starts clear.
         int spec = View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY);
-        place.invoke(null, button, root);
         root.measure(spec, spec);
         root.layout(0, 0, 1080, 1080);
-        assertFalse("the tree did not settle, so this proves nothing", root.isLayoutRequested());
+        View block = held("buttonReference");
+        View local = held("localHideReference");
+        View sound = held("soundButtonReference");
+        View feedback = held("notInterestedReference");
+        Method move = BlockAuthorOverlay.class.getDeclaredMethod(
+                "moveTo", View.class, android.view.ViewGroup.class, float.class, float.class);
+        move.setAccessible(true);
+        Method save = BlockAuthorOverlay.class.getDeclaredMethod(
+                "savePosition", View.class, android.view.ViewGroup.class);
+        save.setAccessible(true);
 
-        // Nothing has moved, so this pass must write no margins and ask for no layout.
-        place.invoke(null, button, root);
-        assertFalse("placing the buttons again asked for another layout, which the layout"
-                + " callback would answer by placing them again", root.isLayoutRequested());
+        int blockLeft = ((FrameLayout.LayoutParams) block.getLayoutParams()).leftMargin;
+        int soundLeft = ((FrameLayout.LayoutParams) sound.getLayoutParams()).leftMargin;
+        int feedbackLeft = ((FrameLayout.LayoutParams) feedback.getLayoutParams()).leftMargin;
+        String oldBlock = Settings.BLOCK_AUTHOR_BUTTON_POSITION.get();
+        String oldLocal = Settings.LOCAL_HIDE_BUTTON_POSITION.get();
+        String oldSound = Settings.BLOCK_SOUND_BUTTON_POSITION.get();
+        String oldFeedback = Settings.NOT_INTERESTED_BUTTON_POSITION.get();
+        try {
+            move.invoke(null, local, root, 123f, 456f);
+            save.invoke(null, local, root);
+            FrameLayout.LayoutParams localParams = (FrameLayout.LayoutParams) local.getLayoutParams();
+            assertEquals(123, localParams.leftMargin);
+            assertEquals(456, localParams.topMargin);
+            assertEquals(blockLeft, ((FrameLayout.LayoutParams) block.getLayoutParams()).leftMargin);
+            assertEquals(soundLeft, ((FrameLayout.LayoutParams) sound.getLayoutParams()).leftMargin);
+            assertEquals(feedbackLeft,
+                    ((FrameLayout.LayoutParams) feedback.getLayoutParams()).leftMargin);
+            assertNotEquals(oldLocal, Settings.LOCAL_HIDE_BUTTON_POSITION.get());
+            assertEquals(oldBlock, Settings.BLOCK_AUTHOR_BUTTON_POSITION.get());
+            assertEquals(oldSound, Settings.BLOCK_SOUND_BUTTON_POSITION.get());
+            assertEquals(oldFeedback, Settings.NOT_INTERESTED_BUTTON_POSITION.get());
+        } finally {
+            Settings.BLOCK_AUTHOR_BUTTON_POSITION.save(oldBlock);
+            Settings.LOCAL_HIDE_BUTTON_POSITION.save(oldLocal);
+            Settings.BLOCK_SOUND_BUTTON_POSITION.save(oldSound);
+            Settings.NOT_INTERESTED_BUTTON_POSITION.save(oldFeedback);
+        }
+    }
+
+    @Test public void everyControlOffersTheMoveAndResetActionsThePointerDragCannot() throws Exception {
+        // Pointer long-press parks each control independently. An accessibility long-click has
+        // no release, so it is refused, which left a screen reader with no way to move one at
+        // all.
+        ViewGroup root = attachedRoot();
+        int step = app.morphe.extension.tiktok.settings.preference.SettingsUi
+                .dp(root.getContext(), 48);
+
+        for (String name : CONTROLS) {
+            View view = held(name);
+            AccessibilityNodeInfo node = view.createAccessibilityNodeInfo();
+            java.util.Map<Integer, String> actions = new java.util.HashMap<>();
+            for (AccessibilityNodeInfo.AccessibilityAction action : node.getActionList()) {
+                if (action.getLabel() != null) actions.put(action.getId(), action.getLabel().toString());
+            }
+            assertEquals(name + " is missing a labelled move or reset action",
+                    java.util.Set.of("Move up", "Move down", "Move left", "Move right",
+                            "Reset position"),
+                    new java.util.HashSet<>(actions.values()));
+            assertFalse(name + " still advertises a long-click it refuses", node.isLongClickable());
+            node.recycle();
+        }
+
+        // Each direction, from a control parked where all four have room to move.
+        View sound = held("soundButtonReference");
+        Method move = declared("moveTo", View.class, ViewGroup.class, float.class, float.class);
+        move.invoke(null, sound, root, 500f, 500f);
+
+        assertTrue(sound.performAccessibilityAction(action("ACTION_MOVE_UP"), null));
+        assertEquals(500 - step, topOf(sound));
+        assertTrue(sound.performAccessibilityAction(action("ACTION_MOVE_DOWN"), null));
+        assertEquals(500, topOf(sound));
+        assertTrue(sound.performAccessibilityAction(action("ACTION_MOVE_LEFT"), null));
+        assertEquals(500 - step, leftOf(sound));
+        assertTrue(sound.performAccessibilityAction(action("ACTION_MOVE_RIGHT"), null));
+        assertEquals(500, leftOf(sound));
+    }
+
+    @Test public void aMoveActionSavesOnlyTheControlItWasPerformedOn() throws Exception {
+        ViewGroup root = attachedRoot();
+        View local = held("localHideReference");
+        declared("moveTo", View.class, ViewGroup.class, float.class, float.class)
+                .invoke(null, local, root, 400f, 400f);
+
+        int blockLeft = leftOf(held("buttonReference"));
+        int soundTop = topOf(held("soundButtonReference"));
+        int feedbackLeft = leftOf(held("notInterestedReference"));
+        String block = Settings.BLOCK_AUTHOR_BUTTON_POSITION.get();
+        String sound = Settings.BLOCK_SOUND_BUTTON_POSITION.get();
+        String feedback = Settings.NOT_INTERESTED_BUTTON_POSITION.get();
+
+        assertTrue(local.performAccessibilityAction(action("ACTION_MOVE_LEFT"), null));
+
+        assertEquals(400 - app.morphe.extension.tiktok.settings.preference.SettingsUi
+                .dp(root.getContext(), 48), leftOf(local));
+        assertFalse("the move saved nothing", Settings.LOCAL_HIDE_BUTTON_POSITION.get().isEmpty());
+        assertEquals(block, Settings.BLOCK_AUTHOR_BUTTON_POSITION.get());
+        assertEquals(sound, Settings.BLOCK_SOUND_BUTTON_POSITION.get());
+        assertEquals(feedback, Settings.NOT_INTERESTED_BUTTON_POSITION.get());
+        assertEquals(blockLeft, leftOf(held("buttonReference")));
+        assertEquals(soundTop, topOf(held("soundButtonReference")));
+        assertEquals(feedbackLeft, leftOf(held("notInterestedReference")));
+    }
+
+    @Test public void resetReturnsOneControlToItsDefaultAndLeavesTheRestWhereTheyWere()
+            throws Exception {
+        ViewGroup root = attachedRoot();
+        View local = held("localHideReference");
+        View sound = held("soundButtonReference");
+        int defaultLocalLeft = leftOf(local);
+        int defaultLocalTop = topOf(local);
+
+        Method move = declared("moveTo", View.class, ViewGroup.class, float.class, float.class);
+        Method save = declared("savePosition", View.class, ViewGroup.class);
+        move.invoke(null, local, root, 40f, 40f);
+        save.invoke(null, local, root);
+        move.invoke(null, sound, root, 700f, 700f);
+        save.invoke(null, sound, root);
+        assertNotEquals(defaultLocalLeft, leftOf(local));
+
+        assertTrue(local.performAccessibilityAction(action("ACTION_RESET_POSITION"), null));
+
+        assertEquals("", Settings.LOCAL_HIDE_BUTTON_POSITION.get());
+        assertEquals(defaultLocalLeft, leftOf(local));
+        assertEquals(defaultLocalTop, topOf(local));
+        assertEquals("the reset moved a control it was not performed on", 700, leftOf(sound));
+        assertEquals(700, topOf(sound));
+    }
+
+    @Test public void aMoveActionAtTheEdgeStaysInsideTheScreenAndIsStillPerformed()
+            throws Exception {
+        ViewGroup root = attachedRoot();
+        View feedback = held("notInterestedReference");
+        declared("moveTo", View.class, ViewGroup.class, float.class, float.class)
+                .invoke(null, feedback, root, 0f, 0f);
+
+        assertTrue("an action at the top edge reported failure",
+                feedback.performAccessibilityAction(action("ACTION_MOVE_UP"), null));
+        assertEquals(0, topOf(feedback));
+        assertTrue(feedback.performAccessibilityAction(action("ACTION_MOVE_LEFT"), null));
+        assertEquals(0, leftOf(feedback));
+        // The corner is a position like any other, so it is written down rather than refused.
+        assertFalse("a clamped move saved nothing",
+                Settings.NOT_INTERESTED_BUTTON_POSITION.get().isEmpty());
+
+        int maxLeft = 1080 - app.morphe.extension.tiktok.settings.preference.SettingsUi
+                .dp(root.getContext(), 48);
+        declared("moveTo", View.class, ViewGroup.class, float.class, float.class)
+                .invoke(null, feedback, root, (float) maxLeft, (float) maxLeft);
+        assertTrue(feedback.performAccessibilityAction(action("ACTION_MOVE_DOWN"), null));
+        assertTrue(feedback.performAccessibilityAction(action("ACTION_MOVE_RIGHT"), null));
+        assertEquals("a control was pushed off the bottom", maxLeft, topOf(feedback));
+        assertEquals("a control was pushed off the right", maxLeft, leftOf(feedback));
+    }
+
+    @Test public void aMoveActionNeverEntersPointerDragMode() throws Exception {
+        ViewGroup root = attachedRoot();
+        View block = held("buttonReference");
+        java.lang.reflect.Field dragging = BlockAuthorOverlay.class.getDeclaredField("dragging");
+        dragging.setAccessible(true);
+
+        assertTrue(block.performAccessibilityAction(action("ACTION_MOVE_DOWN"), null));
+        assertFalse("a move action left the control mid-drag", dragging.getBoolean(null));
+        java.util.concurrent.atomic.AtomicInteger clicks =
+                new java.util.concurrent.atomic.AtomicInteger();
+        block.setOnClickListener(view -> clicks.incrementAndGet());
+        assertTrue(block.performClick());
+        assertEquals("the click after a move was swallowed by drag mode", 1, clicks.get());
+    }
+
+    @Test public void detachAndReattachStartOutsidePointerDragMode() throws Exception {
+        ViewGroup root = attachedRoot();
+        View block = held("buttonReference");
+        java.lang.reflect.Field dragging = BlockAuthorOverlay.class.getDeclaredField("dragging");
+        dragging.setAccessible(true);
+
+        // Through the real gesture, or the assertion after detach is about a flag that was
+        // already false and would stay green with the reset taken out.
+        pressDown(block, 10f, 10f);
+        assertTrue("the long press was refused", block.performLongClick());
+        assertTrue("the pointer gesture did not enter drag mode", dragging.getBoolean(null));
+
+        declared("detach").invoke(null);
+        assertFalse("detach left the overlay in drag mode", dragging.getBoolean(null));
+
+        ViewGroup next = attachedRoot();
+        View reattached = held("buttonReference");
+        assertNotSame("the reattach reused the detached control", block, reattached);
+        assertFalse("a reattached overlay started in drag mode", dragging.getBoolean(null));
+        java.util.concurrent.atomic.AtomicInteger clicks =
+                new java.util.concurrent.atomic.AtomicInteger();
+        reattached.setOnClickListener(view -> clicks.incrementAndGet());
+        assertTrue(reattached.performClick());
+        assertEquals("the reattached control's click was swallowed by stale drag state",
+                1, clicks.get());
+        assertNotNull(next);
+    }
+
+    @Test public void resettingOneControlDoesNotDragTheUnsavedOnesToTheBlockButton()
+            throws Exception {
+        // The other three default to positions relative to the block button. Re-running the whole
+        // positioning pass on a reset therefore moved every control with nothing saved to wherever
+        // the block button had since been dragged, from a reset performed on a different control.
+        ViewGroup root = attachedRoot();
+        View block = held("buttonReference");
+        View local = held("localHideReference");
+        View sound = held("soundButtonReference");
+        View feedback = held("notInterestedReference");
+
+        Method move = declared("moveTo", View.class, ViewGroup.class, float.class, float.class);
+        Method save = declared("savePosition", View.class, ViewGroup.class);
+        move.invoke(null, block, root, 0f, 0f);
+        save.invoke(null, block, root);
+        int localLeft = leftOf(local);
+        int localTop = topOf(local);
+        int feedbackLeft = leftOf(feedback);
+
+        assertTrue(sound.performAccessibilityAction(action("ACTION_RESET_POSITION"), null));
+
+        assertEquals("resetting the sound button moved the local hide button",
+                localLeft, leftOf(local));
+        assertEquals(localTop, topOf(local));
+        assertEquals("resetting the sound button moved the Not interested button",
+                feedbackLeft, leftOf(feedback));
+        assertEquals("the reset moved the block button it was not performed on", 0, leftOf(block));
+        assertEquals("", Settings.BLOCK_SOUND_BUTTON_POSITION.get());
+
+        // The sound button's own default: two steps below the block button, which is now at the
+        // top-left corner, so the reset does move the control it was performed on.
+        int size = app.morphe.extension.tiktok.settings.preference.SettingsUi
+                .dp(root.getContext(), 48);
+        int step = size + app.morphe.extension.tiktok.settings.preference.SettingsUi
+                .dp(root.getContext(), 8);
+        assertEquals("the control that was reset did not take its own default", 0, leftOf(sound));
+        assertEquals(2 * step, topOf(sound));
+    }
+
+    /** The pointer half of a long press: the listener refuses a gesture with no press behind it. */
+    private static void pressDown(View view, float x, float y) {
+        android.view.MotionEvent down = android.view.MotionEvent.obtain(
+                0L, 0L, android.view.MotionEvent.ACTION_DOWN, x, y, 0);
+        try {
+            view.dispatchTouchEvent(down);
+        } finally {
+            down.recycle();
+        }
+    }
+
+    private static final String[] CONTROLS = {"buttonReference", "localHideReference",
+            "soundButtonReference", "notInterestedReference"};
+
+    /** The content root with all four controls attached, laid out at a known size. */
+    private static ViewGroup attachedRoot() throws Exception {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        Utils.setContext(activity);
+        Utils.setActivity(activity);
+        ViewGroup root = activity.findViewById(android.R.id.content);
+        declared("attach", VideoAuthor.class)
+                .invoke(null, new VideoAuthor("1", "sec", "someone", "7712345"));
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        int spec = View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY);
+        root.measure(spec, spec);
+        root.layout(0, 0, 1080, 1080);
+        // attach posts the positioning pass before the root has a size, so the defaults these
+        // tests compare against have to be the ones for the size just laid out.
+        declared("applyPositions", ViewGroup.class).invoke(null, root);
+        return root;
+    }
+
+    private static Method declared(String name, Class<?>... parameters) throws Exception {
+        Method method = BlockAuthorOverlay.class.getDeclaredMethod(name, parameters);
+        method.setAccessible(true);
+        return method;
+    }
+
+    private static int action(String constant) throws Exception {
+        java.lang.reflect.Field field = BlockAuthorOverlay.class.getDeclaredField(constant);
+        field.setAccessible(true);
+        return field.getInt(null);
+    }
+
+    private static int leftOf(View view) {
+        return ((FrameLayout.LayoutParams) view.getLayoutParams()).leftMargin;
+    }
+
+    private static int topOf(View view) {
+        return ((FrameLayout.LayoutParams) view.getLayoutParams()).topMargin;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static View held(String fieldName) throws Exception {
+        java.lang.reflect.Field field = BlockAuthorOverlay.class.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        View view = ((java.lang.ref.WeakReference<View>) field.get(null)).get();
+        assertNotNull(fieldName + " was never attached", view);
+        return view;
     }
 
     @Test public void theOverlaysFollowTheActivityTheHostRecreated() {
@@ -242,5 +561,69 @@ public class OverlayControlsTest {
         // And the second banner still goes away on its own time rather than staying forever.
         looper.idleFor(java.time.Duration.ofSeconds(4));
         assertTrue("the banner never went away", root.getChildCount() < withOne);
+    }
+    /**
+     * The part of a control's background that holds the backdrop, any glyph and the focus ring.
+     *
+     * <p>Every control this bundle draws is a RippleDrawable now, so the press is the ripple and
+     * the states live in the layers underneath it. RippleDrawable is itself a LayerDrawable, so
+     * this unwraps exactly one level rather than testing for the type.
+     */
+    private static android.graphics.drawable.LayerDrawable contentOf(
+            android.graphics.drawable.Drawable background) {
+        assertTrue("the control's background is not a ripple, so a press shows nothing: "
+                        + background.getClass().getSimpleName(),
+                background instanceof android.graphics.drawable.RippleDrawable);
+        return (android.graphics.drawable.LayerDrawable)
+                ((android.graphics.drawable.RippleDrawable) background).getDrawable(0);
+    }
+
+    /**
+     * Every control drawn inside TikTok answers a press and shows where the focus is.
+     *
+     * <p>They were flat: the same picture before, during and after a press, and nothing at all
+     * for a reader moving with a keyboard, a d-pad or switch access. The block button was the one
+     * exception and only faded itself to 40 percent while a request was in flight.
+     */
+    @Test public void everyControlDrawnInsideTikTokAnswersAPressAndShowsItsFocus() throws Exception {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().visible().get();
+        Utils.setContext(activity);
+        Settings.BLOCK_AUTHOR_BUTTON.save(true);
+        Settings.LOCAL_HIDE_BUTTON.save(true);
+        Settings.BLOCK_SOUND_BUTTON.save(true);
+        Settings.NOT_INTERESTED_BUTTON.save(true);
+
+        for (String factoryName : new String[]{"createButton", "createSoundButton",
+                "createLocalHideButton", "createNotInterestedButton"}) {
+            Method factory = BlockAuthorOverlay.class.getDeclaredMethod(factoryName, Activity.class);
+            factory.setAccessible(true);
+            View control = (View) factory.invoke(null, activity);
+            android.graphics.drawable.Drawable background = control.getBackground();
+            contentOf(background);
+
+            int resting = renderOf(background, new int[0]);
+            int focused = renderOf(background, new int[]{android.R.attr.state_focused});
+            assertNotEquals(factoryName + " looks the same focused as it does at rest",
+                    resting, focused);
+        }
+    }
+
+    /**
+     * What the background actually paints in the state given, as one number.
+     *
+     * <p>Every pixel rather than a sample: the difference a focus ring makes is a two pixel
+     * stroke at the edge, and which pixel that lands on depends on the radius and the density.
+     */
+    private static int renderOf(android.graphics.drawable.Drawable background, int[] state) {
+        background.setState(state);
+        background.setBounds(0, 0, 48, 48);
+        Bitmap bitmap = Bitmap.createBitmap(48, 48, Bitmap.Config.ARGB_8888);
+        background.draw(new Canvas(bitmap));
+        int hash = 17;
+        for (int x = 0; x < 48; x++) {
+            for (int y = 0; y < 48; y++) hash = hash * 31 + bitmap.getPixel(x, y);
+        }
+        bitmap.recycle();
+        return hash;
     }
 }

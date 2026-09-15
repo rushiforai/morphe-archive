@@ -10,6 +10,7 @@ final class MediaBudget {
     static final long MIN_FREE_BYTES = 32L * 1024 * 1024;
     static final long UNKNOWN_TRANSFER_RESERVATION_BYTES = 64L * 1024 * 1024;
     static final long PUBLISH_OVERHEAD_BYTES = 8L * 1024 * 1024;
+    static final long STREAM_SPACE_CHECK_BYTES = 1024L * 1024;
     static final long JOB_DEADLINE_MS = 2L * 60 * 1000;
     static final int MAX_ATTEMPTS_PER_MIRROR = 2;
     static final long DEFAULT_RETRY_DELAY_MS = 250L;
@@ -73,15 +74,7 @@ final class MediaBudget {
     static void checkDiskSpace(File directory, long transferBytes, Deadline deadline) throws IOException {
         check(deadline);
         checkTransferLength(transferBytes);
-        if (directory == null) return;
-        // A destination that does not exist yet answers zero, which is not "no quota": the
-        // publish step is handed DCIM/TikTok before the first save ever creates it, and that
-        // is exactly the copy the reservation is for. The nearest existing ancestor is on the
-        // same volume and answers for it.
-        File existing = directory;
-        while (existing != null && !existing.exists()) existing = existing.getParentFile();
-        if (existing == null) return;
-        long free = existing.getUsableSpace();
+        long free = usableSpace(directory);
         if (free <= 0) return;
         long estimate = transferBytes < 0
                 ? UNKNOWN_TRANSFER_RESERVATION_BYTES
@@ -90,6 +83,31 @@ final class MediaBudget {
         if (free < required) {
             throw new IOException("Not enough free space for this media");
         }
+    }
+
+    /**
+     * Grants at most one streaming window while preserving the publish and free-space reserve.
+     * The caller must check again before it writes more than {@link #STREAM_SPACE_CHECK_BYTES}.
+     */
+    static void checkStreamingDiskSpace(File directory, Deadline deadline) throws IOException {
+        check(deadline);
+        long free = usableSpace(directory);
+        if (free <= 0) return;
+        long required = STREAM_SPACE_CHECK_BYTES + PUBLISH_OVERHEAD_BYTES + MIN_FREE_BYTES;
+        if (free < required) {
+            throw new IOException("Not enough free space for this media");
+        }
+    }
+
+    private static long usableSpace(File directory) {
+        if (directory == null) return 0;
+        // A destination that does not exist yet answers zero, which is not "no quota": the
+        // publish step is handed DCIM/TikTok before the first save ever creates it, and that
+        // is exactly the copy the reservation is for. The nearest existing ancestor is on the
+        // same volume and answers for it.
+        File existing = directory;
+        while (existing != null && !existing.exists()) existing = existing.getParentFile();
+        return existing == null ? 0 : existing.getUsableSpace();
     }
 
     static boolean isTransientStatus(int status) {

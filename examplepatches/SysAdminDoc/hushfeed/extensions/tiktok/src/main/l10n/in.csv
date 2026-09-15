@@ -1,7 +1,7 @@
 source,target
 %1$s destinations must start with %2$s,Tujuan %1$s harus diawali %2$s
 %1$s isn't installed or doesn't take links,%1$s tidak terpasang atau tidak menerima tautan
-%1$s on,%1$s aktif
+%1$s changed,%1$s diubah
 A creator pattern is taking too long and was switched off: %1$s,"Ada pola kreator yang terlalu lama, jadi dimatikan: %1$s"
 A hidden puzzle may be the cause.,Teka-teki yang disembunyikan bisa jadi penyebabnya.
 "A host to put in place of tiktok.com when you share or copy a link, like vxtiktok.com. Leave it empty to share TikTok's own links. Only TikTok links are changed, and only the host: nothing is sent anywhere new.","Host pengganti tiktok.com saat kamu membagikan atau menyalin tautan, misalnya vxtiktok.com. Kosongkan untuk membagikan tautan TikTok sendiri. Hanya tautan TikTok yang diubah, dan hanya bagian host-nya, tidak ada yang dikirim ke mana pun."
@@ -9,7 +9,7 @@ A settings operation is already running,Sudah ada proses pengaturan yang berjala
 Automatic advance stopped after one video,Lanjut otomatis dihentikan setelah satu video
 Block this commenter,Blokir pengomentar ini
 Blocked,Diblokir
-Completed an interrupted settings change. Restart TikTok to apply it.,Perubahan pengaturan yang terhenti telah diselesaikan. Mulai ulang TikTok untuk menerapkannya.
+Completed an interrupted settings change. Restart TikTok to apply this.,Perubahan pengaturan yang terhenti telah diselesaikan. Mulai ulang TikTok agar berlaku.
 Copy the sound link,Salin tautan suara
 Copy the video link,Salin tautan video
 Current: %1$s,Saat ini: %1$s
@@ -19,7 +19,7 @@ Hide the launcher shortcuts,Sembunyikan pintasan peluncur
 Link copied,Tautan disalin
 No videos remained after Hushfeed applied your feed filters to one batch. Most matches: %1$s.,Tidak ada video tersisa setelah Hushfeed menerapkan filter feed pada satu kelompok. Paling sering cocok: %1$s.
 Not blocked,Tidak diblokir
-Recovered an interrupted settings change. Restart TikTok to apply it.,Perubahan pengaturan yang terhenti telah dipulihkan. Mulai ulang TikTok untuk menerapkannya.
+Recovered an interrupted settings change. Restart TikTok to apply this.,Perubahan pengaturan yang terhenti telah dipulihkan. Mulai ulang TikTok agar berlaku.
 Save media,Simpan media
 A tap on a person in the Send to row only selects them. A second tap on the same person within four seconds sends the video.,Satu ketukan pada orang di baris Kirim ke hanya memilihnya. Ketukan kedua pada orang yang sama dalam empat detik mengirim videonya.
 Add a block button to the video player that blocks the account that posted the current video in one tap. An undo action is shown after each block.,Tambahkan tombol blokir di pemutar video yang memblokir akun pengunggah video ini dalam satu ketukan. Aksi untuk mengurungkan muncul setelah tiap pemblokiran.
@@ -32,7 +32,7 @@ Allow screenshots and Circle to Search,Izinkan tangkapan layar dan Circle to Sea
 Allowed bottom tabs,Tab bawah yang diizinkan
 Already marked as not interested,Sudah ditandai sebagai tidak tertarik
 Also apply these filters to downloaded videos TikTok uses when the feed cannot load enough new items.,Terapkan filter ini juga ke video terunduh yang TikTok pakai saat feed tidak bisa memuat cukup konten baru.
-Also change the region TikTok reports internally. Keeps your interface language. Needs Override SIM details and a restart; your IP address and your account's own rules still apply.,Juga mengubah wilayah yang dilaporkan TikTok secara internal. Bahasa antarmuka tetap. Perlu Timpa detail SIM dan mulai ulang; alamat IP dan aturan akun Anda tetap berlaku.
+Also change the region TikTok reports internally. Keeps your interface language. Needs Override SIM details. Your IP address and your account's own rules still apply.,Juga mengubah wilayah yang dilaporkan TikTok secara internal. Bahasa antarmuka tetap. Perlu Timpa detail SIM. Alamat IP dan aturan akun Anda tetap berlaku.
 Always show publish date,Selalu tampilkan tanggal unggah
 Always show the publish date in video author information. Restart TikTok to apply this.,Selalu tampilkan tanggal publikasi di informasi penulis video. Mulai ulang TikTok agar berlaku.
 "An app's package name, like com.dv.adm. The save button sends the video's link there instead of saving it here. Leave it empty to save here.","Nama paket sebuah aplikasi, misalnya com.dv.adm. Tombol simpan mengirim tautan video ke sana, bukan menyimpannya di sini. Kosongkan untuk menyimpan di sini."
@@ -43,7 +43,7 @@ App behavior,Perilaku aplikasi
 Applies to both video and photo downloads.,Berlaku untuk unduhan video dan foto.
 Arrange your feed and bottom tabs,Atur feed dan tab bawahmu
 Auto-advance session limit,Batas lanjut otomatis per sesi
-"Show TikTok's own sort sheet on every post, with its hot, newest, media and creator options, instead of whichever cut-down row your account was given. Restart TikTok to apply this: it reads the style once per run and remembers it.","Tampilkan lembar pengurutan milik TikTok di setiap publikasi, dengan pilihan populer, terbaru, media dan kreator, bukan baris terpangkas yang didapat akun Anda. Mulai ulang TikTok agar berlaku: aplikasi membaca gayanya sekali per proses dan mengingatnya."
+"Show TikTok's own sort sheet on every post, with its hot, newest, media and creator options, instead of whichever cut-down row your account was given. Restart TikTok to apply this. It reads the style once per run and remembers it.","Tampilkan lembar pengurutan milik TikTok di setiap publikasi, dengan pilihan populer, terbaru, media dan kreator, bukan baris terpangkas yang didapat akun Anda. Mulai ulang TikTok agar berlaku. Aplikasi membaca gayanya sekali per proses dan mengingatnya."
 Sound link copied,Tautan suara disalin
 Tap again to follow,Ketuk lagi untuk mengikuti
 Tap again to like,Ketuk lagi untuk menyukai
@@ -117,15 +117,11 @@ Copy report,Salin laporan
 Could not save settings backup.,Cadangan pengaturan tidak dapat disimpan.
 Could not restore settings.,Pengaturan tidak dapat dipulihkan.
 Could not tell which folder to update. Choose it again.,Tidak diketahui folder mana yang harus diubah. Pilih lagi.
-Could not block %1$s,%1$s tidak bisa diblokir
-Could not block %1$s: %2$s,%1$s tidak bisa diblokir: %2$s
 Could not confirm block for %1$s,Pemblokiran %1$s tidak dapat dikonfirmasi
 Could not confirm unblock for %1$s,Pembukaan blokir %1$s tidak dapat dikonfirmasi
 Could not copy report. Use Save JSON.,Laporan tidak bisa disalin. Pakai Simpan JSON.
 Could not open settings section,Bagian pengaturan tidak bisa dibuka
 Could not read who posted this comment,Tidak bisa membaca siapa yang menulis komentar ini
-Could not unblock %1$s,Blokir %1$s tidak bisa dibuka
-Could not unblock %1$s: %2$s,Blokir %1$s tidak bisa dibuka: %2$s
 Country and network preferences,Preferensi negara dan jaringan
 Country ISO,ISO negara
 Current: %1$s %2$s,Saat ini: %1$s %2$s
@@ -181,6 +177,7 @@ Hide bottom tabs TikTok adds later unless you allow them.,"Sembunyikan tab bawah
 "Hide browsing and LIVE puzzle dialogs. Login, account verification and any puzzle raised over a follow, like, comment or repost stay visible.","Sembunyikan dialog teka-teki saat menjelajah dan saat LIVE. Teka-teki untuk masuk, verifikasi akun, dan yang muncul saat mengikuti, menyukai, berkomentar, atau membagikan ulang tetap terlihat."
 Hide CAPTCHA popups,Sembunyikan popup CAPTCHA
 Hide comment popup ads,Sembunyikan iklan popup di komentar
+Hide comment polls,Sembunyikan jajak pendapat komentar
 Hide comments made of an image or a sticker instead of words.,"Sembunyikan komentar yang berupa gambar atau stiker, bukan kata-kata."
 "Hide comments that contain any of the words below, or that come from the accounts below.","Sembunyikan komentar yang memuat salah satu kata di bawah, atau yang berasal dari akun di bawah."
 Hide controls after each video starts. Tap to restore them.,Sembunyikan kontrol setelah tiap video mulai. Ketuk untuk memunculkannya lagi.
@@ -292,7 +289,7 @@ Includes all diagnostic events.,Termasuk semua peristiwa diagnostik.
 Interface,Tampilan
 Invalid SIM preset,Pratata SIM tidak sah
 Keep a local record of what you have watched and drop those videos from later feed pages.,Simpan catatan tontonanmu di perangkat dan buang video itu dari halaman feed berikutnya.
-"Keep automatic advance enabled, and show TikTok's own Auto scroll action in the video panel even if your account never had it. Pauses and open dialogs still stop scrolling. Restart TikTok to apply this, then use this switch to turn it off.","Biarkan lanjut otomatis tetap aktif dan tampilkan aksi Auto scroll milik TikTok di panel video meski akun Anda tidak pernah punya. Jeda dan dialog terbuka tetap menghentikan guliran. Mulai ulang TikTok agar berlaku, lalu pakai sakelar ini untuk mematikannya."
+"Keep automatic advance enabled, and show TikTok's own Auto scroll action in the video panel even if your account never had it. Pauses and open dialogs still stop scrolling. Restart TikTok to apply this. Then use this switch to turn it off.","Biarkan lanjut otomatis tetap aktif dan tampilkan aksi Auto scroll milik TikTok di panel video meski akun Anda tidak pernah punya. Jeda dan dialog terbuka tetap menghentikan guliran. Mulai ulang TikTok agar berlaku. Lalu pakai sakelar ini untuk mematikannya."
 Keep captions in clear display,Pertahankan keterangan saat tampilan bersih
 Keep the clock and status icons off the screen while TikTok is open. Swipe down from the top to peek at them.,Sembunyikan jam dan ikon status selama TikTok terbuka. Geser dari atas untuk mengintipnya.
 Keep the screen's refresh rate,Pertahankan laju penyegaran layar
@@ -364,8 +361,9 @@ Recorded gate reads (%1$d),Pembacaan gate yang terekam (%1$d)
 Recover the settings saved before the last restore or reset.,Ambil kembali pengaturan yang tersimpan sebelum pemulihan atau penyetelan ulang terakhir.
 Region settings,Pengaturan wilayah
 Remove feed ads,Hapus iklan di feed
+Remove polls from the comments before TikTok shows them.,Hapus jajak pendapat dari komentar sebelum TikTok menampilkannya.
 Remove the actions row from the share sheet.,Hapus baris aksi dari menu bagikan.
-Remove the ads TikTok puts between videos.,Hapus iklan yang TikTok sisipkan di antara video.
+"Remove feed ads, including videos with a creator commission disclosure.","Hapus iklan di feed, termasuk video dengan label komisi kreator."
 Remove the row of friends from the top of the share sheet.,Hapus baris teman dari bagian atas menu bagikan.
 Remove the Share via row.,Hapus baris Bagikan lewat.
 Remove tracking parameters from shared links.,Hapus parameter pelacakan dari tautan yang dibagikan.
@@ -435,7 +433,7 @@ Show TikTok's search entry in the LIVE drawer where supported.,Tampilkan entri p
 Show where a video was posted,Tampilkan asal unggahan video
 SIM country preset,Praset negara SIM
 SIM preset saved,Pratata SIM disimpan
-SIM preset saved. Restart TikTok to apply it.,Pratata SIM disimpan. Mulai ulang TikTok agar berlaku.
+SIM preset saved. Restart TikTok to apply this.,Pratata SIM disimpan. Mulai ulang TikTok agar berlaku.
 Skip blocked sounds,Lewati suara yang diblokir
 Skip content warnings,Lewati peringatan konten
 Skip recorded LIVE broadcasts in the feed.,Lewati rekaman siaran LIVE di feed.
@@ -516,8 +514,8 @@ Undo last restore or reset,Urungkan pemulihan atau reset terakhir
 Use a default playback speed,Pakai kecepatan pemutaran bawaan
 Use non-personalized search,Pakai pencarian nonpersonal
 Use Save JSON for this large report,Pakai Simpan JSON untuk laporan sebesar ini
-Use the selected country and operator values. Restart TikTok to apply this.,Gunakan negara dan nilai operator yang dipilih. Mulai ulang TikTok agar berlaku.
-"Use the split layout on wider screens. Restart TikTok to apply this, or unfold again if the old layout is still there.","Gunakan tata letak terbagi di layar yang lebih lebar. Mulai ulang TikTok agar berlaku, atau buka lipatan lagi jika tata letak lama masih muncul."
+"Use the selected country and operator values. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.","Gunakan negara dan nilai operator yang dipilih. Ini hanya mengubah apa yang dilaporkan SIM: alamat IP, riwayat akun, dan bahasa yang kamu baca tetap sama, dan salah satunya saja sudah cukup bagi TikTok untuk mempertahankan wilayah yang sudah dipilihnya. Mulai ulang TikTok agar berlaku."
+"Use the split layout on wider screens. Restart TikTok to apply this. If the old layout is still there, unfold again.","Gunakan tata letak terbagi di layar yang lebih lebar. Mulai ulang TikTok agar berlaku. Jika tata letak lama masih muncul, buka lipatan lagi."
 "Use TikTok's native hold, slide down, and release gesture to lock 2x speed.","Pakai gestur bawaan TikTok, tahan lalu geser ke bawah dan lepas, untuk mengunci kecepatan 2x."
 Video,Video
 Video (MP4),Video (MP4)
@@ -586,7 +584,6 @@ Custom value (unverified),Nilai khusus (belum diverifikasi)
 Use value,Gunakan nilai
 Using TikTok's value,Memakai nilai TikTok
 Override saved but off,Penggantian tersimpan tapi mati
-"Getter requested, override rejected: %1$s","Getter diminta, penggantian ditolak: %1$s"
 Getter requested,Getter diminta
 Getter not requested yet,Getter belum diminta
 One value per line,Satu nilai per baris
@@ -710,7 +707,7 @@ point,poin
 points,poin
 millisecond,milidetik
 milliseconds,milidetik
-Use the selected country. Restart TikTok to apply this.,Gunakan negara yang dipilih. Mulai ulang TikTok agar berlaku.
+"Use the selected country. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.","Gunakan negara yang dipilih. Ini hanya mengubah apa yang dilaporkan SIM: alamat IP, riwayat akun, dan bahasa yang kamu baca tetap sama, dan salah satunya saja sudah cukup bagi TikTok untuk mempertahankan wilayah yang sudah dipilihnya. Mulai ulang TikTok agar berlaku."
 Remind me every,Ingatkan saya setiap
 Still here. Nothing is waiting.,Masih di sini. Tidak ada yang menunggu.
 "A good place to stop, if you want one.","Tempat yang bagus untuk berhenti, kalau kamu mencarinya."
@@ -810,7 +807,6 @@ Turned off 1 gate of %1$d; the rest do not take a true or false value. Restart T
 Turned off %1$d gates of %2$d; the rest do not take a true or false value. Restart TikTok to apply this.,%1$d dari %2$d gate dimatikan; sisanya tidak menerima nilai true atau false. Mulai ulang TikTok agar berlaku.
 Feature gate override reset,Penggantian gate diatur ulang
 Feature gate override saved,Penggantian gate disimpan
-Invalid field value: %1$s,Nilai bidang tidak valid: %1$s
 Could not save this override.,Penggantian ini tidak bisa disimpan.
 Could not reset this override.,Penggantian ini tidak bisa diatur ulang.
 Feature Gate Lab could not find the settings container,Feature Gate Lab tidak menemukan wadah pengaturan
@@ -831,19 +827,18 @@ This file has more loaded values than the Lab takes at once.,Berkas ini berisi l
 Could not change Lab settings.,Pengaturan Lab tidak bisa diubah.
 None of these gates had an override to reset.,Tidak satu pun gate ini punya penggantian untuk diatur ulang.
 None of these gates takes a true or false value.,Tidak satu pun gate ini menerima nilai true atau false.
-Restart TikTok to apply the Feature Gate Lab changes.,Mulai ulang TikTok agar perubahan Feature Gate Lab berlaku.
-Overrides enabled. Restart TikTok to apply saved values.,Penggantian diaktifkan. Mulai ulang TikTok agar nilai yang tersimpan berlaku.
-Overrides disabled. Restart TikTok to restore native values.,Penggantian dinonaktifkan. Mulai ulang TikTok untuk mengembalikan nilai bawaan.
-Lab overrides reset. Undo last Lab change is in the menu. Restart TikTok.,Penggantian Lab disetel ulang. Batalkan perubahan Lab terakhir ada di menu. Mulai ulang TikTok.
-Lab data reset. Undo last Lab change is in the menu. Restart TikTok.,Data Lab disetel ulang. Batalkan perubahan Lab terakhir ada di menu. Mulai ulang TikTok.
-Restored the previous Lab settings. Restart TikTok.,Pengaturan Lab sebelumnya dipulihkan. Mulai ulang TikTok.
+Overrides enabled. Restart TikTok to apply this.,Penggantian diaktifkan. Mulai ulang TikTok agar berlaku.
+Overrides disabled. Restart TikTok to apply this.,Penggantian dinonaktifkan. Mulai ulang TikTok agar berlaku.
+Lab overrides reset. Undo last Lab change is in the menu. Restart TikTok to apply this.,Penggantian Lab disetel ulang. Batalkan perubahan Lab terakhir ada di menu. Mulai ulang TikTok agar berlaku.
+Lab data reset. Undo last Lab change is in the menu. Restart TikTok to apply this.,Data Lab disetel ulang. Batalkan perubahan Lab terakhir ada di menu. Mulai ulang TikTok agar berlaku.
+Restored the previous Lab settings. Restart TikTok to apply this.,Pengaturan Lab sebelumnya dipulihkan. Mulai ulang TikTok agar berlaku.
 "Nothing new was imported. %1$d already matched, %2$d unavailable, %3$d rejected.","Tidak ada yang baru diimpor. %1$d sudah cocok, %2$d tidak tersedia, %3$d ditolak."
 There is no Lab change to undo.,Tidak ada perubahan Lab yang bisa dibatalkan.
 "The record of an interrupted settings change could not be read, so it was set aside. Check your settings.","Catatan perubahan pengaturan yang terputus tidak bisa dibaca, jadi disisihkan. Periksa pengaturan Anda."
 "An interrupted settings change could not be recovered, so its record was set aside. Check your settings or restore a backup.","Perubahan pengaturan yang terputus tidak bisa dipulihkan, jadi catatannya disisihkan. Periksa pengaturan Anda atau pulihkan cadangan."
 A newer clear replaced that undo. Tap the row again to put it back.,Penghapusan yang lebih baru menggantikan pembatalan itu. Ketuk baris ini lagi untuk mengembalikannya.
 "That creator pattern is too long, so it was not added: %1$s","Pola kreator itu terlalu panjang, jadi tidak ditambahkan: %1$s"
-"Use the preset for the region TikTok reports for your account and its shop too. May affect search. Needs Override SIM details, Match locale and timezone to country, and a restart.","Gunakan preset juga untuk wilayah yang dilaporkan TikTok untuk akun Anda dan tokonya. Bisa memengaruhi pencarian. Perlu Ganti detail SIM, Sesuaikan bahasa dan zona waktu dengan negara, dan mulai ulang."
+Use the preset for the region TikTok reports for your account and its shop too. May affect search. Needs Override SIM details and Match locale and timezone to country.,Gunakan preset juga untuk wilayah yang dilaporkan TikTok untuk akun Anda dan tokonya. Bisa memengaruhi pencarian. Perlu Timpa detail SIM dan Samakan lokal dan zona waktu dengan negara.
 Saved one original photo,Satu foto asli disimpan
 Length and views per like,Durasi dan penayangan per suka
 Stop a long press on Share from opening TikTok's quick share action.,Cegah tekan lama pada Bagikan membuka aksi bagikan cepat TikTok.
@@ -860,6 +855,8 @@ The diagnostic report could not be saved yet. Try again in a moment.,Laporan dia
 A diagnostic report is already being saved.,Laporan diagnostik sedang disimpan.
 Full report saved to %1$s,Laporan lengkap disimpan ke %1$s
 Could not start the report export. Try again shortly.,Ekspor laporan tidak bisa dimulai. Coba lagi sebentar.
+Could not start the Lab change. Try again shortly.,Perubahan Lab tidak bisa dimulai. Coba lagi sebentar.
+Could not start the settings operation. Try again shortly.,Proses pengaturan tidak bisa dimulai. Coba lagi sebentar.
 Copy quick report,Salin laporan singkat
 Save full report,Simpan laporan lengkap
 Diagnostic data cleared. Tap again to put it back.,Data diagnostik dihapus. Ketuk lagi untuk mengembalikannya.
@@ -870,5 +867,124 @@ Loaded values are still being read. Try again in a moment.,Nilai yang dimuat mas
 The selected loaded-values file could not be read. Try again.,Berkas nilai yang dimuat dan dipilih tidak dapat dibaca. Coba lagi.
 Enter a number. The previous value was kept.,Masukkan angka. Nilai sebelumnya dipertahankan.
 There is no diagnostic data to clear.,Tidak ada data diagnostik yang perlu dihapus.
-"Lab data was over its rule limit, so it was cleared without an undo copy. Restart TikTok.","Data Lab melebihi batas aturan, jadi data dihapus tanpa salinan untuk dibatalkan. Mulai ulang TikTok."
+"Lab data was over its rule limit, so it was cleared without an undo copy. Restart TikTok to apply this.","Data Lab melebihi batas aturan, jadi data dihapus tanpa salinan untuk dibatalkan. Mulai ulang TikTok agar berlaku."
 "The Lab keeps at most %1$s rules. This change would make %2$s, so nothing was changed.","Lab menyimpan paling banyak %1$s aturan. Perubahan ini akan membuat jumlahnya %2$s, jadi tidak ada yang diubah."
+Add a separate button that skips this account locally without blocking it.,Tambahkan tombol terpisah yang melewati akun ini secara lokal tanpa memblokirnya.
+Add a separate button that skips videos using the current sound.,Tambahkan tombol terpisah yang melewati video yang menggunakan suara saat ini.
+Show block sound button,Tampilkan tombol blokir suara
+Show local hide button,Tampilkan tombol sembunyikan lokal
+That list is too large. Keep it to 256 KB or less.,Daftar itu terlalu besar. Batasi ukurannya hingga 256 KB atau kurang.
+"That list has too many entries. Keep it to 10,000 or fewer.","Daftar itu memiliki terlalu banyak entri. Batasi hingga 10.000 entri atau kurang."
+That settings backup contains a feed rule list larger than Hushfeed accepts. Nothing was altered.,Cadangan pengaturan itu berisi daftar aturan feed yang lebih besar dari batas Hushfeed. Tidak ada yang diubah.
+%1$d fields overridden,%1$d kolom ditimpa
+%1$d fields will be overridden when requested,%1$d kolom akan ditimpa saat diminta
+%1$s (%2$s),%1$s (%2$s)
+%1$s (TikTok value),%1$s (nilai TikTok)
+"%1$s (custom, unverified)","%1$s (khusus, belum diverifikasi)"
+%1$s (override returned),%1$s (penimpaan dikembalikan)
+%1$s (will be returned when requested),%1$s (akan dikembalikan saat diminta)
+%1$s / current cache only,%1$s / hanya cache saat ini
+%1$s / generated registry,%1$s / registri yang dibuat
+%1$s / generated registry and current cache,%1$s / registri yang dibuat dan cache saat ini
+%1$s / local catalog,%1$s / katalog lokal
+%1$s appears more than once in this file.,%1$s muncul lebih dari sekali dalam file ini.
+%1$s has an invalid value. %2$s,Nilai %1$s tidak valid. %2$s
+%1$s has no supported override boundary in this Lab build.,%1$s tidak memiliki batas penimpaan yang didukung dalam build Lab ini.
+"%1$s has type %2$s, but the file says %3$s.","%1$s bertipe %2$s, tetapi file menyebutkan %3$s."
+%1$s is not in this Lab catalog.,%1$s tidak ada dalam katalog Lab ini.
+%1$s was rejected. %2$s,%1$s ditolak. %2$s
+"%1$s, %2$s, %3$s, %4$s, %5$s","%1$s, %2$s, %3$s, %4$s, %5$s"
+1 field overridden,1 kolom ditimpa
+1 field will be overridden when requested,1 kolom akan ditimpa saat diminta
+A field value could not be read. Check the values and try again.,Nilai kolom tidak dapat dibaca. Periksa nilainya lalu coba lagi.
+Activity Center,Pusat Aktivitas
+Current,Saat ini
+Current %1$s,Saat ini %1$s
+Custom value...,Nilai khusus...
+Default,Bawaan
+Enter a JSON object or array.,Masukkan objek atau larik JSON.
+Enter a finite number.,Masukkan angka terbatas.
+Enter a valid structured value.,Masukkan nilai terstruktur yang valid.
+Enter a valid value for %1$s.,Masukkan nilai %1$s yang valid.
+Enter true or false.,Masukkan true atau false.
+Enter valid JSON.,Masukkan JSON yang valid.
+Entry %1$d has a field with the wrong data type.,Entri %1$d memiliki kolom dengan tipe data yang salah.
+Entry %1$d is not an object.,Entri %1$d bukan objek.
+"Getter requested, but the structured override could not be applied","Getter diminta, tetapi penimpaan terstruktur tidak dapat diterapkan"
+Getter used,Getter digunakan
+Historical,Historis
+"Imported %1$d disabled values. %2$d already matched, %3$d unavailable, %4$d rejected. First rejection: %5$s Undo last Lab change is in the menu.","%1$d nilai nonaktif diimpor. %2$d sudah cocok, %3$d tidak tersedia, %4$d ditolak. Penolakan pertama: %5$s Perubahan Lab terakhir dapat diurungkan dari menu."
+"Keep this string to 4,096 characters or fewer.",Batasi string ini hingga 4.096 karakter atau kurang.
+Keep this structured value to 64 KB or less.,Batasi nilai terstruktur ini hingga 64 KB atau kurang.
+Live Settings,Pengaturan Live
+Media Config,Konfigurasi Media
+No current value,Tidak ada nilai saat ini
+No current value and no active override,Tidak ada nilai saat ini dan tidak ada penimpaan aktif
+"Nothing new was imported. %1$d already matched, %2$d unavailable, %3$d rejected. First rejection: %4$s","Tidak ada hal baru yang diimpor. %1$d sudah cocok, %2$d tidak tersedia, %3$d ditolak. Penolakan pertama: %4$s"
+Override off,Penimpaan nonaktif
+Player Config,Konfigurasi Pemutar
+Researched,Hasil riset
+Returns %1$s,Mengembalikan %1$s
+Saved %1$s,Tersimpan: %1$s
+Select at least one field.,Pilih setidaknya satu kolom.
+Selected,Dipilih
+Structured Config,Konfigurasi Terstruktur
+This gate type is not supported.,Tipe gate ini tidak didukung.
+This value is required.,Nilai ini wajib diisi.
+TikTok rejected the request to block %1$s,TikTok menolak permintaan untuk memblokir %1$s
+TikTok rejected the request to unblock %1$s,TikTok menolak permintaan untuk membuka blokir %1$s
+Unavailable,Tidak tersedia
+Waiting,Menunggu
+No matching comments. Try a different word or clear the search.,Tidak ada komentar yang cocok. Coba kata lain atau hapus pencarian.
+Retry,Coba lagi
+Settings couldn't open,Pengaturan tidak dapat dibuka
+"Try again, or go back to TikTok.","Coba lagi, atau kembali ke TikTok."
+The setting couldn't finish updating. Its saved value is shown.,Pengaturan ini tidak dapat selesai diperbarui. Nilai yang tersimpan ditampilkan.
+Settings couldn't refresh completely. Reopen settings and try again.,Pengaturan tidak dapat dimuat ulang sepenuhnya. Buka kembali pengaturan lalu coba lagi.
+Clearing,Menghapus
+Could not clear suggested accounts,Tidak dapat menghapus akun yang disarankan
+Stopped after dismissing one suggested account,Berhenti setelah menutup satu akun yang disarankan
+Stopped after dismissing %1$s suggested accounts,Berhenti setelah menutup %1$s akun yang disarankan
+Move up,Pindahkan ke atas
+Move down,Pindahkan ke bawah
+Move left,Pindahkan ke kiri
+Move right,Pindahkan ke kanan
+Reset position,Atur ulang posisi
+Clearing suggested accounts,Menghapus akun yang disarankan
+1 min left,Sisa 1 mnt
+%1$s min left,Sisa %1$s mnt
+1 video left,Sisa 1 video
+%1$s videos left,Sisa %1$s video
+Show what is left of the budget,Tampilkan sisa batas harian
+"Off by default. Switched on, a small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out. It changes at most once a minute, appears only on the feed, and is never read out on its own.","Nonaktif secara bawaan. Saat diaktifkan, label kecil di feed menampilkan sisa menit atau video dari batas hari ini, mana yang lebih dekat habis. Label itu berubah paling sering sekali per menit, hanya muncul di feed, dan tidak pernah dibacakan dengan sendirinya."
+Restart TikTok to apply this.,Mulai ulang TikTok agar berlaku.
+No gates match this filter.,Tidak ada gate yang cocok dengan filter ini.
+Version %1$s for TikTok %2$s,Versi %1$s untuk TikTok %2$s
+Show failures on screen,Tampilkan kegagalan di layar
+"While diagnostic logging is on, a message names the part of Hushfeed that failed. Off keeps failures in the report only.","Selama pencatatan diagnostik aktif, sebuah pesan menyebutkan bagian Hushfeed yang gagal. Jika nonaktif, kegagalan hanya tercatat di laporan."
+Could not send the feedback. Try again shortly.,Masukan tidak dapat dikirim. Coba lagi sebentar lagi.
+"%1$s is not a country code, so no video would ever match it. Use two letters, like GB, IE or US.","%1$s bukan kode negara, jadi tidak ada video yang akan cocok. Gunakan dua huruf, seperti GB, IE, atau US."
+"Zero switches this off. Count every video that comes up in the feed, however you got to it, and say so once the count is reached. This is separate from the auto-advance limit above, which only counts videos Hushfeed itself advanced past.","Nol mematikan ini. Menghitung setiap video yang muncul di feed, bagaimanapun kamu sampai ke sana, dan memberi tahu begitu jumlahnya tercapai. Ini terpisah dari batas maju otomatis di atas, yang hanya menghitung video yang dilewati Hushfeed sendiri."
+"Zero switches this off. Count the minutes the player spends running in the feed. Time on messages, a profile or search does not count.","Nol mematikan ini. Menghitung menit saat pemutar berjalan di feed. Waktu di pesan, profil, atau pencarian tidak dihitung."
+"Zero switches this off. A short reminder after that many minutes of watching, and again after the same again. Time on messages, a profile or search does not count, and nothing is shown while the feed is on hold.","Nol mematikan ini. Pengingat singkat setelah sekian menit menonton, lalu lagi setelah selang yang sama. Waktu di pesan, profil, atau pencarian tidak dihitung, dan tidak ada yang muncul selama feed ditahan."
+"Zero shows the notice and leaves the feed alone. Anything else covers the feed for that many minutes once a budget is reached. Messages, profiles and search keep working, and nothing in the feed is thrown away.","Nol menampilkan pemberitahuan dan membiarkan feed apa adanya. Nilai lain menutupi feed selama sekian menit begitu batas tercapai. Pesan, profil, dan pencarian tetap berjalan, dan tidak ada isi feed yang dibuang."
+"The hour both budgets reset, on a 24 hour clock. Four in the morning by default, because someone still scrolling at one is having last night.","Jam saat kedua batas disetel ulang, dalam format 24 jam. Pukul empat pagi secara bawaan, karena orang yang masih menggulir pukul satu sebenarnya masih di malam sebelumnya."
+"Zero leaves the way out of the hold there every time, which is what it has always done. Anything else is how many times a day it works, and once they are gone the hold stays up until the day starts over. Ignored while the budget is locked, which takes the way out away entirely.","Nol membiarkan jalan keluar dari penahanan selalu tersedia, seperti selama ini. Nilai lain adalah berapa kali sehari jalan itu bekerja, dan begitu habis, penahanan tetap berlaku sampai hari berganti. Diabaikan selama batas dikunci, karena itu menghilangkan jalan keluarnya sama sekali."
+video,video
+minute,menit
+minutes,menit
+time,kali
+times,kali
+s,d
+Explore,Jelajahi
+Following,Mengikuti
+Shop,Toko
+Nearby,Terdekat
+Friends,Teman
+LIVE,LIVE
+Popular,Populer
+STEM,STEM
+Drama and Series,Drama dan Serial
+Create,Buat
+Profile,Profil
+Version %1$s,Versi %1$s

@@ -1,0 +1,30 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    commit-message:
+      prefix: "ci(deps)"
+    labels: []
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: npm
+    commit-message:
+      prefix: "ci(deps)"
+    labels: []
+    directory: /
+    schedule:
+      interval: weekly
+    ignore:
+      # version 10.x and later may not generate release notes correctly
+      # https://github.com/conventional-changelog/conventional-changelog/issues/1495
+      - dependency-name: "conventional-changelog-conventionalcommits"
+
+  - package-ecosystem: gradle
+    commit-message:
+      prefix: "ci(deps)"
+    # scan needs the root build.gradle.kts; dependabot aborts without one
+    labels: []
+    directory: /
+    schedule:
+      interval: weekly

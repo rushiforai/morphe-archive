@@ -75,7 +75,6 @@ Second \"item\" text"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Video-Streams spoofen</string>
   <string name="morphe_spoof_video_streams_screen_summary">Client-Streams spoofen, um Wiedergabeprobleme zu vermeiden</string>
-  <string name="morphe_spoof_video_streams_title">Video-Streams spoofen</string>
   <string name="morphe_spoof_video_streams_summary">"Behebt Wiedergabeprobleme für die meisten Nutzer, indem ein kompatibler Videostream angefordert wird.
 
 Als Nutzer von YouTube Premium ist diese Einstellung möglicherweise nicht erforderlich."</string>

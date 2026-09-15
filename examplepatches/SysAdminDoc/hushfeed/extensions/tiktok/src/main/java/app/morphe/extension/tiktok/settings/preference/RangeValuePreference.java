@@ -43,11 +43,14 @@ public class RangeValuePreference extends DialogPreference {
 
     /** The wording the row was given, kept so the current range can be added after it. */
     private final String baseSummary;
+    /** Every range filter needs a restart, and the row has to say so before the range line. */
+    private final StringSetting setting;
 
     public RangeValuePreference(Context context, String title, String summary, StringSetting setting) {
         super(context);
         setTitle(title);
         baseSummary = summary;
+        this.setting = setting;
         setKey(setting.key);
         setValue(setting.get());
         describeRange();
@@ -68,7 +71,8 @@ public class RangeValuePreference extends DialogPreference {
                 ? L10n.f(getContext(), "%1$s and above", CompactCount.format(min))
                 : L10n.f(getContext(), "%1$s to %2$s",
                         CompactCount.format(min), CompactCount.format(max));
-        super.setSummary(L10n.t(getContext(), baseSummary) + "\n" + range);
+        super.setSummary(
+                TogglePreference.withRestartNote(getContext(), baseSummary, setting) + "\n" + range);
     }
 
     public void setValue(String value) {

@@ -405,6 +405,7 @@ Rapporter är offentliga och granskas innan en kanal läggs till i en lista. Bor
   <string name="morphe_vot_screen_title">Voice over-översättning</string>
   <string name="morphe_vot_screen_summary">Läs upp video-textning med hjälp av enhetens text-till-tal, synkroniserat med uppspelning</string>
   <string name="morphe_vot_enabled_title">Voice over-översättning</string>
+  <string name="morphe_vot_enabled_summary">Visar en överlagrad knapp i videospelaren. Tryck för att växla översättning, tryck och håll för snabbinställningar</string>
   <string name="morphe_vot_caption_language_title">Språk</string>
   <string name="morphe_vot_translation_service_title">Översättningsleverantör</string>
   <string name="morphe_vot_original_audio_volume_title">Originalvolym för ljud</string>
@@ -514,6 +515,8 @@ Information: Kanske inte fungerar i livestreamar"</string>
   <string name="morphe_queue_add_flyout_menu_summary">Lägger till ett extra flyout-objekt. Aktivera detta om \"Lägg till i kön\" inte visas</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_title">Annonsvitlista i snabbmenyn</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_summary">Lägger till ett snabbmenyalternativ som låter annonser spelas upp på kanalen för den videon</string>
+  <!-- "Spoof video streams" must use the same translation as morphe_spoof_video_streams_screen_title -->
+  <string name="morphe_ads_channel_whitelist_flyout_user_dialog_message">Den här funktionen kan kräva att du använder PotHelper eller ändrar \"Spoofa videoströmmar\" till TV- eller Android VR-inloggning.</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_title">Hastighetsvitlista i snabbmenyn</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_summary">Lägger till ett snabbmenyalternativ som alltid spelar upp kanalen för den videon med 1,0x hastighet</string>
   <string name="morphe_queue_manager_check_failed_auth">Inte inloggad</string>
@@ -603,8 +606,10 @@ För att åtgärda detta, aktivera 'Spoofa videoströmmar' och ändra 'Standardk
   <string name="morphe_swipe_text_overlay_size_summary">Justera textstorleken på skärmen (1–30)</string>
   <string name="morphe_swipe_threshold_title">Tröskelvärde för svep</string>
   <string name="morphe_swipe_threshold_summary">Ange det avstånd som krävs för att svepgesten ska utlösa en justering</string>
-  <string name="morphe_swipe_volume_sensitivity_title">Svepkänslighet för volymgest</string>
-  <string name="morphe_swipe_volume_sensitivity_summary">Högre värden ökar volymändringen per svep</string>
+  <string name="morphe_swipe_volume_distance_title">Svepkänslighet för volymgest</string>
+  <string name="morphe_swipe_volume_distance_summary">Högre värden kräver fler svepningar per volymsteg</string>
+  <string name="morphe_swipe_volume_steps_title">Volymsteg</string>
+  <string name="morphe_swipe_volume_steps_entry_default">Enhetsstandard</string>
   <string name="morphe_swipe_brightness_sensitivity_title">Svepkänslighet för ljusstyrkegest</string>
   <string name="morphe_swipe_brightness_sensitivity_summary">Högre värden kräver mer svepande per ljusstyrkesteg</string>
   <string name="morphe_swipe_speed_sensitivity_title">Svepkänslighet för hastighetsgest</string>
@@ -913,6 +918,7 @@ Inställningar → Uppspelning (eller Autouppspelning) → Autouppspela nästa v
   <string name="morphe_disable_fullscreen_sliding_down_gesture_title">Inaktivera nedåtsvep i porträttläge</string>
   <string name="morphe_disable_fullscreen_dragged_down_gesture_title">Inaktivera nedåtsvep i landskapsläge</string>
   <string name="morphe_disable_fullscreen_zoom_gesture_title">Inaktivera nyp-zoom-gester</string>
+  <string name="morphe_restore_pinch_to_zoom_title">Återställ nypa för att zooma</string>
   <!-- layout.player.fullscreen.openVideosFullscreenPatch -->
   <string name="morphe_open_videos_fullscreen_title">Öppna videor i helskärmsläge</string>
   <string name="morphe_open_videos_fullscreen_entry_1">Inaktiverad</string>
@@ -925,6 +931,8 @@ Inställningar → Uppspelning (eller Autouppspelning) → Autouppspela nästa v
   <string name="morphe_fullscreen_video_scale_entry_zoom">Zooma (beskär för att fylla)</string>
   <string name="morphe_fullscreen_video_scale_button_title">Visa videons skalningsknapp</string>
   <string name="morphe_fullscreen_video_scale_button_summary">Tryck för att växla mellan Standard, Töj och Zooma</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_title">Visa endast i helskärm</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_summary">Dölj videons skalningsknapp i porträttspelaren</string>
   <!-- layout.player.buttons.muteVideoButtonPatch -->
   <string name="morphe_mute_video_button_title">Visa ljudavstängningsknappen</string>
   <!-- layout.player.overlay.customPlayerOverlayOpacityPatch -->
@@ -964,6 +972,7 @@ Billayout
 
 Begränsning: Om 'Återställ gammalt videoåtgärdsfält' är avstängt kan överlägget 'Fler videor' inte vara tillgängligt"</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="morphe_spoof_app_version_target_entry_21_11">21.11.48 - Återställ det gamla undertextbeteendet</string>
   <string name="morphe_spoof_app_version_target_entry_20_39">20.39.41 – Återställ gamla Spara i spellista</string>
   <string name="morphe_spoof_app_version_target_entry_20_28">20.28.41 – Inaktivera ikoner i fet stil</string>
   <string name="morphe_spoof_app_version_target_entry_20_13">20.13.41 - Återställ kanalnamnet nedanför videospelaren</string>
@@ -1024,16 +1033,16 @@ Begränsning: Om 'Återställ gammalt videoåtgärdsfält' är avstängt kan öv
   <string name="morphe_miniplayer_disable_resuming_summary">Inaktiverar minispelaren \'Fortsätt titta\', en YouTube Premium-funktion som visas vid appstart</string>
   <string name="morphe_miniplayer_screen_title">Minispelare</string>
   <string name="morphe_miniplayer_screen_summary">Anpassa den minimerade videospelarens utseende och beteende</string>
-  <string name="morphe_miniplayer_not_available_summary">YouTube tog bort alla ytterligare minispelare. För att ändra typ av minispelare, patcha YouTube 21.28.208 eller äldre</string>
   <string name="morphe_miniplayer_type_title">Minispelartyp</string>
   <string name="morphe_miniplayer_type_entry_0">Inaktiverad</string>
   <string name="morphe_miniplayer_type_entry_1">Standard</string>
   <string name="morphe_miniplayer_type_entry_2">Minimal</string>
-  <string name="morphe_miniplayer_type_entry_3">Surfplatta</string>
-  <string name="morphe_miniplayer_type_entry_4">Modern 1</string>
-  <string name="morphe_miniplayer_type_entry_5">Modern 2</string>
-  <string name="morphe_miniplayer_type_entry_6">Modern 3</string>
-  <string name="morphe_miniplayer_type_entry_7">Modern 4</string>
+  <string name="morphe_miniplayer_type_entry_3">Minimal 2</string>
+  <string name="morphe_miniplayer_type_entry_4">Surfplatta</string>
+  <string name="morphe_miniplayer_type_entry_5">Modern 1</string>
+  <string name="morphe_miniplayer_type_entry_6">Modern 2</string>
+  <string name="morphe_miniplayer_type_entry_7">Modern 3</string>
+  <string name="morphe_miniplayer_type_entry_8">Modern 4</string>
   <string name="morphe_miniplayer_disable_rounded_corners_title">Inaktivera rundade hörn</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_title">Inaktivera dra och släpp</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_summary">Förhindrar att den minimerade spelaren kan dras till olika hörn av skärmen</string>

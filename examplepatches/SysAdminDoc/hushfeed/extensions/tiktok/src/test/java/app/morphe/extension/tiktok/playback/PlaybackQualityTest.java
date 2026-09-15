@@ -80,18 +80,18 @@ public class PlaybackQualityTest {
         Utils.setContext(RuntimeEnvironment.getApplication());
         String original = new JSONObject(model()).toString();
         Settings.PLAYBACK_QUALITY.save("lowest");
-        JSONObject low = new JSONObject(PlaybackQuality.filterJson(original));
+        JSONObject low = new JSONObject(PlaybackQuality.filterVideoModelJson(original));
         JSONObject dynamic = low.getJSONObject("dynamic_video");
         assertEquals("360p", dynamic.getJSONArray("dynamic_video_list").getJSONObject(0).getString("gear_name"));
         assertEquals("sound", dynamic.getJSONArray("dynamic_audio_list").getJSONObject(0).getString("file_id"));
         Settings.PLAYBACK_QUALITY.save("highest");
-        JSONObject high = new JSONObject(PlaybackQuality.filterJson(original));
+        JSONObject high = new JSONObject(PlaybackQuality.filterVideoModelJson(original));
         assertEquals("1080p", high.getJSONObject("dynamic_video").getJSONArray("dynamic_video_list").getJSONObject(0).getString("gear_name"));
         Settings.PLAYBACK_QUALITY.save("auto");
-        assertSame(original, PlaybackQuality.filterJson(original));
+        assertSame(original, PlaybackQuality.filterVideoModelJson(original));
         Settings.PLAYBACK_QUALITY.save("lowest");
-        assertEquals("invalid", PlaybackQuality.filterJson("invalid"));
-        assertNull(PlaybackQuality.filterJson(null));
+        assertEquals("invalid", PlaybackQuality.filterVideoModelJson("invalid"));
+        assertNull(PlaybackQuality.filterVideoModelJson(null));
     }
 
     @Test public void mobileDataOnlyEverLowersTheQuality() {
@@ -124,12 +124,12 @@ public class PlaybackQualityTest {
 
         // Same stub, same model: only the connection differs.
         Settings.PLAYBACK_QUALITY.save(PlaybackQuality.effectiveMode("highest", "360", false));
-        JSONObject unmetered = new JSONObject(PlaybackQuality.filterJson(original));
+        JSONObject unmetered = new JSONObject(PlaybackQuality.filterVideoModelJson(original));
         assertEquals("1080p", unmetered.getJSONObject("dynamic_video")
                 .getJSONArray("dynamic_video_list").getJSONObject(0).getString("gear_name"));
 
         Settings.PLAYBACK_QUALITY.save(PlaybackQuality.effectiveMode("highest", "360", true));
-        JSONObject metered = new JSONObject(PlaybackQuality.filterJson(original));
+        JSONObject metered = new JSONObject(PlaybackQuality.filterVideoModelJson(original));
         assertEquals("360p", metered.getJSONObject("dynamic_video")
                 .getJSONArray("dynamic_video_list").getJSONObject(0).getString("gear_name"));
     }

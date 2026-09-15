@@ -1,6 +1,7 @@
 package app.morphe.extension.tiktok.wellbeing;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -80,6 +81,19 @@ public class SessionLockOverlayTest {
         android.os.Handler handler = org.robolectric.util.ReflectionHelpers.getStaticField(SessionLockOverlay.class, "MAIN");
         handler.removeCallbacks(tick);
         tick.run();
+        // That last tick asks the budget whether the hold is still on, and asking can queue a
+        // write. It used to be the final statement here, so the write landed after the state had
+        // been reset and the next class in the sandbox inherited a locked day: the feed controls
+        // hide themselves while the budget is spent, so FeedOverlaySettingsTest found every one
+        // of them gone. Everything this class changes is put back after the tick, not before.
+        SessionBudget.awaitWritesForTests();
+        SessionBudget.resetForTests();
+        Settings.SESSION_BUDGET_STATE.resetToDefault();
+        Settings.SESSION_BUDGET_VIDEOS.resetToDefault();
+        Settings.SESSION_BUDGET_MINUTES.resetToDefault();
+        Settings.SESSION_BUDGET_LOCK_MINUTES.resetToDefault();
+        Settings.SESSION_BUDGET_LOCK.resetToDefault();
+        Settings.SESSION_BUDGET_PASSES_PER_DAY.resetToDefault();
     }
 
     @Test public void theHoldStopsAboveTheTabBar() throws Exception {
@@ -375,8 +389,11 @@ public class SessionLockOverlayTest {
             assertEquals("the hold goes up without saying so",
                     SessionBudgetNotice.spentMessage(),
                     String.valueOf(panel.getAccessibilityPaneTitle()));
-            assertEquals("the hold is not announced when it appears",
-                    View.ACCESSIBILITY_LIVE_REGION_POLITE, panel.getAccessibilityLiveRegion());
+            // The pane title is what announces the arrival. The panel itself must not be a live
+            // region: a live region announces for anything that changes anywhere beneath it, and
+            // the countdown under this one changes once a second for the length of the hold.
+            assertEquals("the whole hold is a live region, so every tick re-reads all of it",
+                    View.ACCESSIBILITY_LIVE_REGION_NONE, panel.getAccessibilityLiveRegion());
             assertEquals("the feed behind the hold can still be swiped through",
                     View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS,
                     behind.getImportantForAccessibility());
@@ -394,6 +411,71 @@ public class SessionLockOverlayTest {
             detach.invoke(null);
             assertEquals("the feed was left out of the reading order after the hold ended",
                     before, behind.getImportantForAccessibility());
+        }
+    }
+
+    /** Counts every write to a label, whether or not the words changed. */
+    private static AtomicInteger countWrites(android.widget.TextView view) {
+        AtomicInteger writes = new AtomicInteger();
+        view.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) { }
+            @Override public void onTextChanged(CharSequence s, int a, int b, int c) { }
+            @Override public void afterTextChanged(android.text.Editable s) {
+                writes.incrementAndGet();
+            }
+        });
+        return writes;
+    }
+
+    /**
+     * Two minutes of a hold is two announcements, not a hundred and twenty.
+     *
+     * <p>The panel used to be the live region and its three labels were rewritten on every tick,
+     * so a reader using TalkBack heard the whole hold read out again once a second for as long as
+     * it ran. The countdown is the only thing that changes, so it is the only live region, and
+     * nothing is written unless the words moved.
+     */
+    @Test public void theHoldIsNotReadOutAgainOnEveryTick() throws Exception {
+        Settings.SESSION_BUDGET_VIDEOS.save(1);
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(5);
+        SessionBudget.noteVideo("a");
+        assertTrue(SessionBudget.claimNotice());
+
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            SessionLockOverlay.sync();
+
+            ViewGroup root = activity.findViewById(android.R.id.content);
+            ViewGroup panel = (ViewGroup) root.getChildAt(root.getChildCount() - 1);
+            android.widget.TextView remaining = (android.widget.TextView) panel.getChildAt(1);
+            android.widget.TextView hint = (android.widget.TextView) panel.getChildAt(2);
+            android.widget.TextView release = (android.widget.TextView) panel.getChildAt(3);
+
+            assertEquals("the countdown, the one thing that moves, does not announce itself",
+                    View.ACCESSIBILITY_LIVE_REGION_POLITE, remaining.getAccessibilityLiveRegion());
+            assertEquals("the hint announces itself, and it never changes",
+                    View.ACCESSIBILITY_LIVE_REGION_NONE, hint.getAccessibilityLiveRegion());
+
+            AtomicInteger countdown = countWrites(remaining);
+            AtomicInteger hints = countWrites(hint);
+            AtomicInteger wayOut = countWrites(release);
+
+            String first = remaining.getText().toString();
+            for (int second = 0; second < 120; second++) {
+                now.addAndGet(1_000L);
+                SessionLockOverlay.sync();
+            }
+
+            assertEquals("the hint was rewritten while nothing about it had changed",
+                    0, hints.get());
+            assertEquals("the way out was rewritten while nothing about it had changed",
+                    0, wayOut.get());
+            // Five minutes left, so the label reads 5, then 4 at a minute gone and 3 at two.
+            assertEquals("the countdown was written more often than the minute it shows changed",
+                    2, countdown.get());
+            assertFalse("the countdown never moved, so this proves nothing",
+                    first.equals(remaining.getText().toString()));
         }
     }
 

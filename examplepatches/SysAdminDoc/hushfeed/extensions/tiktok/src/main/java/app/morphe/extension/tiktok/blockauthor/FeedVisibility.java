@@ -35,8 +35,14 @@ public final class FeedVisibility {
     /** Bottom navigation Inbox tab on the same build. */
     private static final String INBOX_TAB_RESOURCE_NAME = "o1l";
 
+    /** Full-screen comment sheet root and its title, stable through 46.2.3, 46.7.3 and 46.8.3. */
+    private static final String COMMENT_SHEET_RESOURCE_NAME = "p_5";
+    private static final String COMMENT_TITLE_RESOURCE_NAME = "vjb";
+
     private static WeakReference<View> homeTabReference = new WeakReference<>(null);
     private static WeakReference<View> inboxTabReference = new WeakReference<>(null);
+    private static WeakReference<View> commentSheetReference = new WeakReference<>(null);
+    private static WeakReference<View> commentTitleReference = new WeakReference<>(null);
 
     /**
      * Names resolved once each. The view lookup below has to run again whenever the cached view
@@ -120,6 +126,21 @@ public final class FeedVisibility {
     }
 
     /**
+     * @return true while TikTok's comment sheet is visibly covering the feed.
+     *
+     * <p>The sheet stays inflated and translated below the screen while another panel is open,
+     * so the root and its title must both be shown. Using both ids also avoids treating an
+     * unrelated layout that happens to reuse one obfuscated id as the comment sheet.
+     */
+    public static boolean isCommentSheetVisible(Activity activity) {
+        View sheet = namedView(activity, COMMENT_SHEET_RESOURCE_NAME, commentSheetReference,
+                reference -> commentSheetReference = reference, "comments sheet");
+        View title = namedView(activity, COMMENT_TITLE_RESOURCE_NAME, commentTitleReference,
+                reference -> commentTitleReference = reference, "comments sheet");
+        return sheet != null && title != null && sheet.isShown() && title.isShown();
+    }
+
+    /**
      * The Home tab itself, for anything that has to draw around the navigation rather than
      * over it. Null when this build does not have the id, which is the same case
      * {@link #isOnFeed} treats as "assume the feed".
@@ -143,6 +164,32 @@ public final class FeedVisibility {
     private static View homeTab(Activity activity) {
         return tab(activity, HOME_TAB_RESOURCE_NAME, homeTabReference,
                 reference -> homeTabReference = reference);
+    }
+
+    private static View namedView(
+            Activity activity,
+            String resourceName,
+            WeakReference<View> cache,
+            Consumer<WeakReference<View>> store,
+            String family
+    ) {
+        View cached = cache.get();
+        if (cached != null && cached.isAttachedToWindow()) return cached;
+        try {
+            int id = IDS.resolve(activity.getResources(), activity.getPackageName(),
+                    resourceName, false);
+            if (id == 0) {
+                HookStatus.missingViewId(family, resourceName);
+                return null;
+            }
+            HookStatus.bound(family, resourceName);
+            View view = activity.findViewById(id);
+            if (view != null) store.accept(new WeakReference<>(view));
+            return view;
+        } catch (Throwable ex) {
+            Logger.printException(() -> "Could not resolve " + family + " view " + resourceName, ex);
+            return null;
+        }
     }
 
     /** Holds the view weakly and re-resolves it once the old one leaves the window. */

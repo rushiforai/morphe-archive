@@ -19,6 +19,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.graphics.drawable.StateListDrawable;
 import android.os.Build;
@@ -64,6 +65,35 @@ public final class SettingsUi {
     public static final @ColorInt int LIGHT_TEXT_DISABLED = Color.argb(255, 140, 140, 140);
 
     public static final int LIGHT_ACCENT = Color.rgb(184, 22, 77);
+
+    /**
+     * The corner radii this bundle draws with. Every rounded surface picks one of these rather
+     * than a number of its own, so a card, a field and a chip on the same screen agree.
+     *
+     * <p>They were not agreeing. The Lab's view tabs were 5, which is not a step at all, and the
+     * feed controls, the budget cue and the hold's release control were 24, a full circle and 12
+     * while sitting on the same video.
+     */
+    public static final int RADIUS_SQUARE = 0;
+    public static final int RADIUS_BADGE = 4;
+    public static final int RADIUS_CONTROL = 6;
+    public static final int RADIUS_FIELD = 8;
+    public static final int RADIUS_CARD = 10;
+    public static final int RADIUS_OVERLAY = 12;
+
+    /**
+     * The scrim behind anything this bundle draws on top of a video, and the hairline around it.
+     *
+     * <p>Five places built this same pair by hand with the same two argb literals, and then
+     * rounded it three different ways, so the four feed controls, the budget cue and the hold's
+     * release control read as three separate add-ons rather than one set. Fixed rather than
+     * themed on purpose: a video is dark whatever the phone's theme says, and away from the
+     * settings screen the shared theme flag answers for the system rather than for the feed.
+     */
+    public static final @ColorInt int OVERLAY_SCRIM = Color.argb(140, 0, 0, 0);
+    public static final @ColorInt int OVERLAY_HAIRLINE = Color.argb(90, 255, 255, 255);
+    /** Text and glyphs on {@link #OVERLAY_SCRIM}: white on it is 12.6:1. */
+    public static final @ColorInt int OVERLAY_TEXT = Color.WHITE;
 
     private SettingsUi() {
     }
@@ -191,10 +221,34 @@ public final class SettingsUi {
         return mask;
     }
 
+    /**
+     * The check mark the dialogs draw, for a surface that has to show a choice without a dialog.
+     *
+     * <p>Drawn rather than typed, like every other glyph on this screen, so it keeps its weight
+     * at any font scale. Returned already checked: a caller that has nothing to mark hides it.
+     */
+    public static Drawable checkMark(Context context) {
+        DialogCheckMarkDrawable mark = new DialogCheckMarkDrawable(context, false);
+        mark.setState(new int[]{android.R.attr.state_checked});
+        return mark;
+    }
+
+    /**
+     * The fill a row takes while it is one of the chosen ones, over {@link #surface}.
+     *
+     * <p>The same accent and the same alpha the ripple uses, so a held selection reads as the
+     * press that made it rather than as a second idea.
+     */
+    public static int activatedFill() {
+        return (accent() & 0x00ffffff) | 0x26000000;
+    }
+
     private static final class GroupRowDrawable extends Drawable {
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final boolean first, last;
         private final float radius, inset;
+        /** Selected, as {@code View.setActivated} sets it. Repainted when it changes. */
+        private boolean activated;
         GroupRowDrawable(Context context, boolean first, boolean last) {
             this.first = first;
             this.last = last;
@@ -211,15 +265,40 @@ public final class SettingsUi {
             paint.setStyle(Paint.Style.FILL);
             paint.setColor(surface());
             canvas.drawRoundRect(frame, radius, radius, paint);
+            if (activated) {
+                // Over the surface rather than instead of it, so the tint is the same one the
+                // ripple leaves behind and the row keeps its own background underneath.
+                paint.setColor(activatedFill());
+                canvas.drawRoundRect(frame, radius, radius, paint);
+            }
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(1);
-            paint.setColor(border());
+            paint.setColor(activated ? accent() : border());
             canvas.drawRoundRect(frame, radius, radius, paint);
             if (!last) {
                 paint.setColor(divider());
                 canvas.drawLine(bounds.left + inset, bottom - 0.5f, bounds.right - inset, bottom - 0.5f, paint);
             }
             canvas.restore();
+        }
+        /**
+         * The row is told it is selected with {@code setActivated}, and a drawable that is not
+         * stateful is never asked. The Lab's selection bar said "2 gates selected" over rows that
+         * looked exactly like the rest, and Enable, Disable and Reset then acted on them.
+         */
+        @Override public boolean isStateful() { return true; }
+        @Override protected boolean onStateChange(int[] stateSet) {
+            boolean next = false;
+            for (int state : stateSet) {
+                if (state == android.R.attr.state_activated) {
+                    next = true;
+                    break;
+                }
+            }
+            if (next == activated) return false;
+            activated = next;
+            invalidateSelf();
+            return true;
         }
         @Override public void setAlpha(int alpha) { paint.setAlpha(alpha); }
         @Override public void setColorFilter(ColorFilter filter) { paint.setColorFilter(filter); }
@@ -242,36 +321,81 @@ public final class SettingsUi {
         return dpValue * context.getResources().getDisplayMetrics().density;
     }
 
+    /*
+     * Two accessors for every colour. The no-argument one reads the shared theme flag and is
+     * what the settings screen wants. The one taking a theme is for a surface that worked out
+     * its own: the comment sheet is drawn in TikTok's theme, which is not always the system's,
+     * so it decides for itself and then asks for the matching value. It used to carry its own
+     * copy of eight of these as hex literals, which is the same palette maintained twice.
+     */
+
     public static @ColorInt int background() {
-        return isDarkMode() ? DARK_BACKGROUND : LIGHT_BACKGROUND;
+        return backgroundOn(isDarkMode());
+    }
+
+    public static @ColorInt int backgroundOn(boolean dark) {
+        return dark ? DARK_BACKGROUND : LIGHT_BACKGROUND;
     }
 
     public static @ColorInt int surface() {
-        return isDarkMode() ? DARK_SURFACE : LIGHT_SURFACE;
+        return surfaceOn(isDarkMode());
+    }
+
+    public static @ColorInt int surfaceOn(boolean dark) {
+        return dark ? DARK_SURFACE : LIGHT_SURFACE;
     }
 
     public static @ColorInt int liftedSurface() {
-        return isDarkMode() ? DARK_SURFACE_LIFTED : LIGHT_SURFACE_LIFTED;
+        return liftedSurfaceOn(isDarkMode());
+    }
+
+    public static @ColorInt int liftedSurfaceOn(boolean dark) {
+        return dark ? DARK_SURFACE_LIFTED : LIGHT_SURFACE_LIFTED;
     }
 
     public static @ColorInt int border() {
-        return isDarkMode() ? DARK_BORDER : LIGHT_BORDER;
+        return borderOn(isDarkMode());
+    }
+
+    public static @ColorInt int borderOn(boolean dark) {
+        return dark ? DARK_BORDER : LIGHT_BORDER;
     }
 
     public static @ColorInt int divider() {
-        return isDarkMode() ? DARK_DIVIDER : LIGHT_DIVIDER;
+        return dividerOn(isDarkMode());
+    }
+
+    public static @ColorInt int dividerOn(boolean dark) {
+        return dark ? DARK_DIVIDER : LIGHT_DIVIDER;
     }
 
     public static @ColorInt int textPrimary() {
-        return isDarkMode() ? DARK_TEXT_PRIMARY : LIGHT_TEXT_PRIMARY;
+        return textPrimaryOn(isDarkMode());
+    }
+
+    public static @ColorInt int textPrimaryOn(boolean dark) {
+        return dark ? DARK_TEXT_PRIMARY : LIGHT_TEXT_PRIMARY;
     }
 
     public static @ColorInt int textSecondary() {
-        return isDarkMode() ? DARK_TEXT_SECONDARY : LIGHT_TEXT_SECONDARY;
+        return textSecondaryOn(isDarkMode());
+    }
+
+    public static @ColorInt int textSecondaryOn(boolean dark) {
+        return dark ? DARK_TEXT_SECONDARY : LIGHT_TEXT_SECONDARY;
     }
 
     public static @ColorInt int textDisabled() {
-        return isDarkMode() ? DARK_TEXT_DISABLED : LIGHT_TEXT_DISABLED;
+        return textDisabledOn(isDarkMode());
+    }
+
+    public static @ColorInt int textDisabledOn(boolean dark) {
+        return dark ? DARK_TEXT_DISABLED : LIGHT_TEXT_DISABLED;
+    }
+
+    /** The accent for a surface that worked out its own theme. */
+    public static @ColorInt int accentOn(boolean dark) {
+        return dark ? ACCENT : LIGHT_ACCENT;
     }
 
     /** Text that repaints itself when its control is enabled or disabled. */
@@ -346,6 +470,19 @@ public final class SettingsUi {
         return result;
     }
 
+    /**
+     * Writes text only when it is not already there.
+     *
+     * <p>{@link TextView#setText} does not compare, so setting the same words again still posts a
+     * content-changed event. On a surface that refreshes on a timer that is a screen reader being
+     * interrupted, once a timer tick, while nothing on screen has moved: the hold panel repeated
+     * its countdown, its release label and its hint once a second for the length of a hold.
+     */
+    public static void setTextIfChanged(TextView view, CharSequence text) {
+        if (view == null || TextUtils.equals(view.getText(), text)) return;
+        view.setText(text);
+    }
+
     /** Updates a result status only when it changed, avoiding duplicate announcements. */
     public static void setResultCount(TextView view, int count) {
         if (view == null) return;
@@ -366,6 +503,76 @@ public final class SettingsUi {
         GradientDrawable drawable = roundedSurface(context, radiusDp, lifted);
         drawable.setStroke(Math.max(1, dp(context, 1)), border());
         return drawable;
+    }
+
+    /**
+     * The backdrop for a control this bundle draws over a video: the shared scrim, the shared
+     * hairline, and one radius from the scale.
+     *
+     * <p>Every caller used to build this by hand, which is how four feed controls ended up as
+     * circles, the budget cue as a 12dp rectangle and the hold's release as a 24dp pill, all on
+     * the same screen and all meant to read as the same thing.
+     */
+    public static GradientDrawable overlayChip(Context context, int radiusDp) {
+        GradientDrawable chip = new GradientDrawable();
+        chip.setShape(GradientDrawable.RECTANGLE);
+        chip.setCornerRadius(dp(context, radiusDp));
+        chip.setColor(OVERLAY_SCRIM);
+        chip.setStroke(Math.max(1, dp(context, 1)), OVERLAY_HAIRLINE);
+        return chip;
+    }
+
+    /**
+     * A control drawn over a video, with the press and focus states the settings rows have.
+     *
+     * <p>Every control this bundle draws inside TikTok looked identical before, during and after
+     * a press, and showed nothing at all to a reader moving with a keyboard, a d-pad or switch
+     * access. The block button was the only one that changed, and only by fading the whole chip
+     * to 40 percent while a request was in flight.
+     *
+     * <p>The ring is a stroke that is only coloured while the control has focus, so one drawable
+     * carries both states and there is no second copy of the chip to keep in step.
+     *
+     * @param glyph drawn over the backdrop, or null. The block button's ring is drawn rather than
+     *              typed, because the font TikTok is using may not carry the character.
+     */
+    public static Drawable overlayControl(Context context, int radiusDp, Drawable glyph) {
+        return overlayControl(context, radiusDp, glyph, overlayChip(context, radiusDp));
+    }
+
+    public static Drawable overlayControl(Context context, int radiusDp) {
+        return overlayControl(context, radiusDp, null);
+    }
+
+    /**
+     * The same press and focus states for a control that sits on TikTok's own surface.
+     *
+     * <p>Undo, Inbox Clear all and Save media are drawn on a sheet the host painted, so they take
+     * no scrim of their own: a backdrop would make them look like something dropped onto the
+     * page rather than part of it.
+     */
+    public static Drawable overlayAction(Context context, int radiusDp) {
+        return overlayControl(context, radiusDp, null, new ColorDrawable(Color.TRANSPARENT));
+    }
+
+    private static Drawable overlayControl(Context context, int radiusDp, Drawable glyph,
+            Drawable backdrop) {
+        GradientDrawable ring = new GradientDrawable();
+        ring.setShape(GradientDrawable.RECTANGLE);
+        ring.setCornerRadius(dp(context, radiusDp));
+        ring.setStroke(Math.max(2, dp(context, 2)), new ColorStateList(
+                new int[][]{new int[]{android.R.attr.state_focused}, new int[0]},
+                new int[]{OVERLAY_TEXT, Color.TRANSPARENT}));
+
+        Drawable content = glyph == null
+                ? new LayerDrawable(new Drawable[]{backdrop, ring})
+                : new LayerDrawable(new Drawable[]{backdrop, glyph, ring});
+
+        GradientDrawable mask = new GradientDrawable();
+        mask.setShape(GradientDrawable.RECTANGLE);
+        mask.setCornerRadius(dp(context, radiusDp));
+        mask.setColor(Color.WHITE);
+        return new RippleDrawable(ColorStateList.valueOf(OVERLAY_HAIRLINE), content, mask);
     }
 
     public static void styleDialog(Dialog dialog) {
@@ -545,13 +752,28 @@ public final class SettingsUi {
         markAsButton(button);
     }
 
-    /** Gives a custom clickable view the platform button role. */
+    /**
+     * Gives a custom clickable view the platform button role, its action and its state.
+     *
+     * <p>The class name alone was not enough. A screen reader decides whether to offer "double
+     * tap to activate" from the node's click action, and whether to say "dimmed" from its
+     * enabled flag, and a hand built TextView hands over neither unless the view is actually
+     * marked clickable. Every action built this way announced as a button that could not be
+     * pressed, and a disabled one announced exactly like an enabled one.
+     */
     public static void markAsButton(View button) {
         button.setAccessibilityDelegate(new View.AccessibilityDelegate() {
             @Override public void onInitializeAccessibilityNodeInfo(
-                    View host, android.view.accessibility.AccessibilityNodeInfo info) {
+                    View host, AccessibilityNodeInfo info) {
                 super.onInitializeAccessibilityNodeInfo(host, info);
                 info.setClassName(android.widget.Button.class.getName());
+                info.setEnabled(host.isEnabled());
+                if (host.isClickable()) {
+                    info.setClickable(true);
+                    if (host.isEnabled()) {
+                        info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
+                    }
+                }
             }
         });
     }
@@ -606,6 +828,44 @@ public final class SettingsUi {
                 },
                 new int[]{border(), accent()}
         ));
+    }
+
+    /**
+     * Connects a visible field label to its editor and makes the editor the one spoken stop.
+     *
+     * <p>A content description on an EditText replaces or competes with what was typed. The
+     * node hint carries the stable field name instead, while the platform text, input type and
+     * enabled state remain separate node properties. The label stays on screen but is removed
+     * from accessibility traversal because the editor now says it itself.
+     */
+    public static void labelEditor(TextView label, EditText editor) {
+        labelEditor(label, editor, label.getText());
+    }
+
+    /** Same contract with a more precise spoken name for generated fields. */
+    public static void labelEditor(TextView label, EditText editor, CharSequence spokenName) {
+        if (editor.getId() == View.NO_ID) editor.setId(View.generateViewId());
+        label.setLabelFor(editor.getId());
+        label.setFocusable(false);
+        label.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        final CharSequence fieldName = spokenName == null ? "" : spokenName.toString();
+        editor.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override public void onInitializeAccessibilityNodeInfo(
+                    View host, AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                EditText input = (EditText) host;
+                // Keep these explicit. Dynamic fields can be disabled after construction, and
+                // their current value and required keyboard must survive that state change.
+                info.setText(input.getText());
+                info.setEditable(true);
+                info.setEnabled(input.isEnabled());
+                info.setInputType(input.getInputType());
+                if (Build.VERSION.SDK_INT >= 26) {
+                    info.setHintText(fieldName);
+                    info.setShowingHintText(input.length() == 0);
+                }
+            }
+        });
     }
 
     public static void styleCheckBox(CompoundButton button) {

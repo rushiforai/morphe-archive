@@ -75,7 +75,6 @@ Second \"item\" text"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">欺骗视频流</string>
   <string name="morphe_spoof_video_streams_screen_summary">配置客户端欺骗以防止播放问题</string>
-  <string name="morphe_spoof_video_streams_title">伪造视频流</string>
   <string name="morphe_spoof_video_streams_summary">"通过请求兼容的视频流来修复大多数用户播放问题。
 
 如果您是YouTube Premium用户，则可能不需要此设置。"</string>

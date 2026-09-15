@@ -405,6 +405,7 @@ Second \"item\" text"</string>
   <string name="morphe_vot_screen_title">ভয়েস ওভার অনুবাদ</string>
   <string name="morphe_vot_screen_summary">ডিভাইসের টেক্সট-টু-স্পিচ ব্যবহার করে প্লেব্যাকের সাথে মিলিয়ে ভিডিও ক্যাপশন পড়ে শোনান</string>
   <string name="morphe_vot_enabled_title">ভয়েস ওভার অনুবাদ</string>
+  <string name="morphe_vot_enabled_summary">ভিডিও প্লেয়ারে একটি ওভারলে বাটন দেখায়। অনুবাদ টগল করতে ট্যাপ করুন, দ্রুত সেটিংসের জন্য ট্যাপ করে ধরে রাখুন</string>
   <string name="morphe_vot_caption_language_title">ভাষা</string>
   <string name="morphe_vot_translation_service_title">অনুবাদ প্রদানকারী</string>
   <string name="morphe_vot_original_audio_volume_title">মূল অডিও ভলিউম</string>
@@ -514,6 +515,8 @@ OpenRouter.ai ওপেন করতে এখানে ট্যাপ কর�
   <string name="morphe_queue_add_flyout_menu_summary">একটি অতিরিক্ত ফ্লাইআউট আইটেম যোগ করে। যদি \"কিউতে যোগ করুন\" দেখানো না হয় তবে এটি সক্ষম করুন।</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_title">ফ্লাইআউট মেনুতে বিজ্ঞাপনের সাদা তালিকা</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_summary">এমন একটি ফ্লাইআউট আইটেম যোগ করে যা সেই ভিডিওর চ্যানেলে বিজ্ঞাপন চালানোর অনুমতি দেয়</string>
+  <!-- "Spoof video streams" must use the same translation as morphe_spoof_video_streams_screen_title -->
+  <string name="morphe_ads_channel_whitelist_flyout_user_dialog_message">এই বৈশিষ্ট্যটির জন্য PotHelper ব্যবহার করা লাগতে পারে অথবা \"ছদ্মবেশী ভিডিও স্ট্রিম\"-কে TV বা Android VR সাইন-ইনে পরিবর্তন করা লাগতে পারে।</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_title">ফ্লাইআউট মেনুতে গতির সাদা তালিকা</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_summary">এমন একটি ফ্লাইআউট আইটেম যোগ করে যা সেই ভিডিওর চ্যানেলটি সবসময় 1.0x গতিতে চালায়</string>
   <string name="morphe_queue_manager_check_failed_auth">লগইন করা হয়নি</string>
@@ -603,8 +606,10 @@ OpenRouter.ai ওপেন করতে এখানে ট্যাপ কর�
   <string name="morphe_swipe_text_overlay_size_summary">ফুলস্ক্রিন মোডে সোয়াইপ করে পরবর্তী বা পূর্ববর্তী ভিডিওতে যান</string>
   <string name="morphe_swipe_threshold_title">সোয়াইপ থ্রেশহোল্ড এর মাত্রা</string>
   <string name="morphe_swipe_threshold_summary">পোর্ট্রেট এবং ফুলস্ক্রিন মোডে কোন অ্যাকশন বাটনগুলি প্রদর্শিত হবে তা নির্বাচন করুন</string>
-  <string name="morphe_swipe_volume_sensitivity_title">ভলিউম সোয়াইপ সংবেদনশীলতা</string>
-  <string name="morphe_swipe_volume_sensitivity_summary">প্রতি সোয়াইপে ভলিউম কতটা পরিবর্তিত হয়</string>
+  <string name="morphe_swipe_volume_distance_title">ভলিউম সোয়াইপ সংবেদনশীলতা</string>
+  <string name="morphe_swipe_volume_distance_summary">উচ্চতর মানগুলির জন্য প্রতি ভলিউম ধাপে আরও বেশি সোয়াইপ করতে হবে</string>
+  <string name="morphe_swipe_volume_steps_title">ভলিউম ধাপ</string>
+  <string name="morphe_swipe_volume_steps_entry_default">ডিভাইস ডিফল্ট</string>
   <string name="morphe_swipe_brightness_sensitivity_title">উজ্জ্বলতা সোয়াইপ সংবেদনশীলতা</string>
   <string name="morphe_swipe_brightness_sensitivity_summary">উজ্জ্বলতা বাড়ানোর জন্য প্রতিটি সোয়াইপে বেশি সোয়াইপ করতে হবে</string>
   <string name="morphe_swipe_speed_sensitivity_title">স্পিড সোয়াইপ সংবেদনশীলতা</string>
@@ -913,6 +918,7 @@ OpenRouter.ai ওপেন করতে এখানে ট্যাপ কর�
   <string name="morphe_disable_fullscreen_sliding_down_gesture_title">পোর্ট্রেট মোডে নিচের দিকে সোয়াইপ জেসচার বন্ধ করুন</string>
   <string name="morphe_disable_fullscreen_dragged_down_gesture_title">ল্যান্ডস্কেপ মোডে নিচের দিকে সোয়াইপ জেসচার বন্ধ করুন</string>
   <string name="morphe_disable_fullscreen_zoom_gesture_title">Disable pinch-to-zoom gesture</string>
+  <string name="morphe_restore_pinch_to_zoom_title">পিঞ্চ টু জুম পুনরুদ্ধার করুন</string>
   <!-- layout.player.fullscreen.openVideosFullscreenPatch -->
   <string name="morphe_open_videos_fullscreen_title">ভিডিওগুলো ফুলস্ক্রিনে চালু করুন</string>
   <string name="morphe_open_videos_fullscreen_entry_1">বন্ধ রাখুন</string>
@@ -925,6 +931,8 @@ OpenRouter.ai ওপেন করতে এখানে ট্যাপ কর�
   <string name="morphe_fullscreen_video_scale_entry_zoom">জুম (ক্রপ করে পূর্ণ করুন)</string>
   <string name="morphe_fullscreen_video_scale_button_title">ভিডিও স্কেল বাটন দেখান</string>
   <string name="morphe_fullscreen_video_scale_button_summary">ডিফল্ট, স্ট্রেচ এবং জুম পরিবর্তন করতে ট্যাপ করুন</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_title">শুধুমাত্র ফুলস্ক্রিনে দেখান</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_summary">পোর্ট্রেট প্লেয়ারে ভিডিও স্কেল বোতামটি লুকান</string>
   <!-- layout.player.buttons.muteVideoButtonPatch -->
   <string name="morphe_mute_video_button_title">Show Mute button</string>
   <!-- layout.player.overlay.customPlayerOverlayOpacityPatch -->
@@ -949,6 +957,7 @@ OpenRouter.ai ওপেন করতে এখানে ট্যাপ কর�
 
 সীমাবদ্ধতা: \"পুরানো ভিডিও অ্যাকশন বার ফিরিয়ে আনুন\" অপশনটি বন্ধ থাকলে, \"আরও ভিডিও\" ওভারলেটি পাওয়া নাও যেতে পারে"</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="morphe_spoof_app_version_target_entry_21_11">21.11.48 - পুরনো ক্যাপশন আচরণ পুনরুদ্ধার করুন</string>
   <string name="morphe_spoof_app_version_target_entry_20_39">20.39.41 - প্লেলিস্টে পুরোনো সেভ করার অপশন ফিরিয়ে আনুন</string>
   <string name="morphe_spoof_app_version_target_entry_20_28">২০.২৮.৪১ - বোল্ড আইকন ডিসএবল</string>
   <string name="morphe_spoof_app_version_target_entry_20_13">20.13.41 - ভিডিও প্লেয়ারের নিচে চ্যানেল নামটি পুনরুদ্ধার করুন।</string>
@@ -1009,16 +1018,15 @@ OpenRouter.ai ওপেন করতে এখানে ট্যাপ কর�
   <string name="morphe_miniplayer_disable_resuming_summary">\'কন্টিনিউ ওয়াচিং\' মিনিপ্লেয়ারকে নিষ্ক্রিয় করে, যা একটি ইউটিউব প্রিমিয়াম বৈশিষ্ট্য যা অ্যাপ চালু করার সময় প্রদর্শিত হয়</string>
   <string name="morphe_miniplayer_screen_title">মিনিপ্লেয়ার</string>
   <string name="morphe_miniplayer_screen_summary">সংক্ষেপিত ভিডিও প্লেয়ারের চেহারা এবং আচরণ কাস্টমাইজ করুন</string>
-  <string name="morphe_miniplayer_not_available_summary">YouTube সমস্ত অতিরিক্ত মিনিপ্লেয়ার সরিয়ে ফেলেছে। মিনিপ্লেয়ারের ধরন পরিবর্তন করতে YouTube 21.28.208 বা তার পুরনো সংস্করণ প্যাচ করুন।</string>
   <string name="morphe_miniplayer_type_title">মিনিপ্লেয়ার ধরণ</string>
   <string name="morphe_miniplayer_type_entry_0">নিষ্ক্রিয় হয়েছে</string>
   <string name="morphe_miniplayer_type_entry_1">পূর্ব-নির্ধারিত</string>
   <string name="morphe_miniplayer_type_entry_2">ন্যূনতম</string>
-  <string name="morphe_miniplayer_type_entry_3">ট্যাবলেট</string>
-  <string name="morphe_miniplayer_type_entry_4">মর্ডান ১</string>
-  <string name="morphe_miniplayer_type_entry_5">মর্ডান ২</string>
-  <string name="morphe_miniplayer_type_entry_6">মর্ডান ৩</string>
-  <string name="morphe_miniplayer_type_entry_7">আধুনিক ৪</string>
+  <string name="morphe_miniplayer_type_entry_4">ট্যাবলেট</string>
+  <string name="morphe_miniplayer_type_entry_5">মর্ডান ১</string>
+  <string name="morphe_miniplayer_type_entry_6">মর্ডান ২</string>
+  <string name="morphe_miniplayer_type_entry_7">মর্ডান ৩</string>
+  <string name="morphe_miniplayer_type_entry_8">আধুনিক ৪</string>
   <string name="morphe_miniplayer_disable_rounded_corners_title">গোলাকার কোণা নিষ্ক্রিয় করুন</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_title">টেনে-ছেড়ে দেওয়া নিষ্ক্রিয় করুন</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_summary">সংক্ষেপিত প্লেয়ারটিকে স্ক্রিনের বিভিন্ন কোণে সরানোর থেকে বিরত করে</string>

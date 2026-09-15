@@ -25,7 +25,8 @@ private object DislikeRequestFactoryFingerprint : Fingerprint(
 @Suppress("unused")
 val notInterestedPatch = bytecodePatch(
     name = "Not interested button",
-    description = "Adds a button beside the block control to tell TikTok you aren't interested in the current video. Off by default.",
+    description = "Adds a movable button that tells TikTok you aren't interested in the current " +
+        "video. It hides while comments are open. Off by default.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch, blockAuthorPatch)

@@ -10,15 +10,24 @@ import app.morphe.extension.tiktok.settings.Settings;
 import com.ss.android.ugc.aweme.feed.model.Aweme;
 import com.ss.android.ugc.aweme.feed.model.AwemeStatistics;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 public final class AdvancedFeedRules {
     private AdvancedFeedRules() {}
+
+    /** Test-only observer for proving the feed path does not rebuild unchanged creator lists. */
+    private static volatile Runnable creatorParseTestHook;
+    private static final CreatorRuleCache BLOCKED_CREATOR_CACHE = new CreatorRuleCache();
+    private static final CreatorRuleCache LOCAL_CREATOR_CACHE = new CreatorRuleCache();
 
     public static final class KeywordFilter implements IFilter {
         public boolean getEnabled() { return !Settings.BLOCKED_CAPTION_WORDS.get().trim().isEmpty(); }
@@ -28,7 +37,7 @@ public final class AdvancedFeedRules {
             // Plain phrases still mean what they always did. The list also takes
             // "a" & "b" and "a" !& "b", which a phrase on its own cannot say.
             return KeywordRules.anyMatches(
-                    KeywordRules.parse(Settings.BLOCKED_CAPTION_WORDS.get()), caption);
+                    KeywordRules.cached(Settings.BLOCKED_CAPTION_WORDS.get()), caption);
         }
     }
 
@@ -43,28 +52,94 @@ public final class AdvancedFeedRules {
             String secUid = Reflect.string(author, "getSecUid", "secUid");
             String handle = Reflect.string(author, "getUniqueId", "uniqueId");
             String nickname = Reflect.string(author, "getNickname", "nickname");
-            for (String list : new String[]{Settings.BLOCKED_CREATORS.get(), Settings.LOCAL_HIDDEN_CREATORS.get()}) {
-                for (String entry : rawTerms(list)) {
-                    if (matchesCreator(entry, uid, secUid, handle, nickname)) return true;
+            String normalizedUid = normalizedCreator(uid);
+            String normalizedSecUid = normalizedCreator(secUid);
+            String normalizedHandle = normalizedCreator(handle);
+            return BLOCKED_CREATOR_CACHE.get(Settings.BLOCKED_CREATORS.get()).matches(
+                    normalizedUid, normalizedSecUid, normalizedHandle, handle, nickname)
+                    || LOCAL_CREATOR_CACHE.get(Settings.LOCAL_HIDDEN_CREATORS.get()).matches(
+                    normalizedUid, normalizedSecUid, normalizedHandle, handle, nickname);
+        }
+    }
+
+    /** One setting's exact-source snapshot. Blocked and local lists own separate instances. */
+    private static final class CreatorRuleCache {
+        private final Object lock = new Object();
+        private volatile CreatorRules current;
+
+        CreatorRules get(String source) {
+            CreatorRules found = current;
+            if (found != null && Objects.equals(found.source, source)) return found;
+            synchronized (lock) {
+                found = current;
+                if (found == null || !Objects.equals(found.source, source)) {
+                    found = parseCreatorRules(source);
+                    current = found;
                 }
+                return found;
+            }
+        }
+
+        void clear() {
+            synchronized (lock) {
+                current = null;
+            }
+        }
+    }
+
+    /** Immutable exact names and patterns for one creator-list string. */
+    private static final class CreatorRules {
+        final String source;
+        final Set<String> exactNames;
+        final List<Pattern> patterns;
+
+        CreatorRules(String source, Set<String> exactNames, List<Pattern> patterns) {
+            this.source = source;
+            this.exactNames = exactNames;
+            this.patterns = patterns;
+        }
+
+        boolean matches(String uid, String secUid, String normalizedHandle,
+                String handle, String nickname) {
+            if ((!uid.isEmpty() && exactNames.contains(uid))
+                    || (!secUid.isEmpty() && exactNames.contains(secUid))
+                    || (!normalizedHandle.isEmpty() && exactNames.contains(normalizedHandle))) {
+                return true;
+            }
+            for (Pattern pattern : patterns) {
+                if (matchesPattern(pattern, handle) || matchesPattern(pattern, nickname)) return true;
             }
             return false;
         }
+    }
 
-        private static boolean matchesCreator(String entry, String uid, String secUid,
-                                              String handle, String nickname) {
+    private static CreatorRules parseCreatorRules(String source) {
+        Runnable hook = creatorParseTestHook;
+        if (hook != null) hook.run();
+        Set<String> exact = new LinkedHashSet<>();
+        List<Pattern> patterns = new ArrayList<>();
+        for (String entry : rawTerms(source)) {
             if (isPattern(entry)) {
                 Pattern pattern = compiled(entry);
-                return pattern != null && (matches(pattern, handle) || matches(pattern, nickname));
+                if (pattern != null) patterns.add(pattern);
+                continue;
             }
-            if (entry.startsWith("@")) entry = entry.substring(1);
-            return !entry.isEmpty() && (entry.equalsIgnoreCase(uid)
-                    || entry.equalsIgnoreCase(secUid) || entry.equalsIgnoreCase(handle));
+            String normalized = normalizedCreator(entry);
+            if (!normalized.isEmpty()) exact.add(normalized);
         }
+        return new CreatorRules(source, Collections.unmodifiableSet(exact),
+                Collections.unmodifiableList(patterns));
+    }
 
-        private static boolean matches(Pattern pattern, String value) {
-            return value != null && matchesWithinBudget(pattern, value);
-        }
+    private static String normalizedCreator(String value) {
+        if (value == null) return "";
+        String normalized = value.trim();
+        if (normalized.startsWith("@")) normalized = normalized.substring(1);
+        return normalized.toLowerCase(Locale.ROOT);
+    }
+
+    private static boolean matchesPattern(Pattern pattern, String value) {
+        return value != null && matchesWithinBudget(pattern, value);
     }
 
     /** Filters posts whose known publication time is older than the user's age limit. */
@@ -195,6 +270,8 @@ public final class AdvancedFeedRules {
     @Nullable
     public static String creatorEntryProblem(String list) {
         if (list == null) return null;
+        String limitProblem = FeedRuleLimits.creatorProblem(list);
+        if (limitProblem != null) return limitProblem;
         for (String entry : rawTerms(list)) {
             if (!isPattern(entry)) continue;
             String source = entry.substring(1, entry.length() - 1);
@@ -404,5 +481,11 @@ public final class AdvancedFeedRules {
             if (pending != null) entries.addAll(pending);
         }
         return entries.toArray(new String[0]);
+    }
+
+    static void setCreatorParseTestHookForTests(Runnable hook) {
+        creatorParseTestHook = hook;
+        BLOCKED_CREATOR_CACHE.clear();
+        LOCAL_CREATOR_CACHE.clear();
     }
 }

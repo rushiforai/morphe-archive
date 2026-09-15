@@ -196,6 +196,19 @@ public class SettingsSearchQueryTest {
         }
     }
 
+    @Test public void theAboutRowIsFoundByItsNameAndByWhatItSays() throws Exception {
+        // The row sits on the master menu, which the index never walked, and had no key besides,
+        // so "hushfeed" and "version" both answered "No matching settings" on a phone whose
+        // About row showed the version. The summary is what carries it, so the summary is the
+        // half that has to match.
+        TikTokPreferenceFragment search = attachSearch();
+
+        assertTrue("the About row is not indexed by its name",
+                search(search, "hushfeed").contains("Hushfeed"));
+        assertTrue("the About row's summary is not searched",
+                search(search, "source code").contains("Hushfeed"));
+    }
+
     @Test public void openingAFoundBackupRowLandsOnDiagnostics() throws Exception {
         TikTokPreferenceFragment search = attachSearch();
         java.lang.reflect.Field field = TikTokPreferenceFragment.class.getDeclaredField("searchIndex");

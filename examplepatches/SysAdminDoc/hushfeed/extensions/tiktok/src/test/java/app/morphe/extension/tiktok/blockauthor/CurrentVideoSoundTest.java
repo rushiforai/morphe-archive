@@ -105,7 +105,8 @@ public class CurrentVideoSoundTest {
             assertEquals("7001", sound.id);
             assertEquals("Night Drive", sound.name);
             assertEquals("Some Artist", sound.author);
-            assertEquals("Night Drive (Some Artist)", sound.label());
+            // Between the isolate pair, so the report can leave the name out. See VideoAuthor.
+            assertEquals("⁨Night Drive (Some Artist)⁩", sound.label());
             assertTrue(sound.isUsable());
         }
     }
@@ -143,17 +144,17 @@ public class CurrentVideoSoundTest {
 
             // A name with no author is the name alone, not "name ()".
             show(new Clip("a", new Music("1", "Just a Name", "")));
-            assertEquals("Just a Name", CurrentVideoSound.get().label());
+            assertEquals("⁨Just a Name⁩", CurrentVideoSound.get().label());
 
             // An id with no name is named by the id, and is still usable: the id is recorded.
             show(new Clip("b", new Music("42", "", null)));
-            assertEquals("sound 42", CurrentVideoSound.get().label());
+            assertEquals("⁨sound 42⁩", CurrentVideoSound.get().label());
             assertTrue(CurrentVideoSound.get().isUsable());
 
             // Neither: there is nothing to record and nothing to match, so the block button
             // has nothing to offer.
             show(new Clip("c", new Music("", "", "")));
-            assertEquals("this sound", CurrentVideoSound.get().label());
+            assertEquals("⁨this sound⁩", CurrentVideoSound.get().label());
             assertFalse(CurrentVideoSound.get().isUsable());
         }
     }

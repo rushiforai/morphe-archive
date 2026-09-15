@@ -445,9 +445,22 @@ public class GestureActionsTest {
 
     public static final class SoundStub {
         private final String id;
-        SoundStub(String id) { this.id = id; }
+        private final ShareInfoStub shareInfo;
+        SoundStub(String id) { this(id, null); }
+        /** A sound TikTok hands a share URL for, which is the case that carries a query. */
+        SoundStub(String id, String shareUrl) {
+            this.id = id;
+            this.shareInfo = shareUrl == null ? null : new ShareInfoStub(shareUrl);
+        }
         public String getId() { return id; }
         public String getMid() { return id; }
+        public ShareInfoStub getShareInfo() { return shareInfo; }
+    }
+
+    public static final class ShareInfoStub {
+        private final String shareUrl;
+        ShareInfoStub(String shareUrl) { this.shareUrl = shareUrl; }
+        public String getShareUrl() { return shareUrl; }
     }
 
     /** Only what soundLink reads: a post whose music entry may or may not be there. */
@@ -455,6 +468,68 @@ public class GestureActionsTest {
         private final SoundStub music;
         PostWithSound(SoundStub music) { this.music = music; }
         public SoundStub getMusic() { return music; }
+    }
+
+    @Test public void copyingASoundLinkStripsTheSharerParametersAndTakesTheCustomDomain() {
+        // The sound's own share URL is a share URL like any other. The video link beside it has
+        // been cleaned since 0.29, and this one was copied exactly as TikTok wrote it, sharer
+        // identifiers and all, onto the clipboard. The synthesized music/x- form the other tests
+        // use never carries a query, so nothing here could see it.
+        try (var controller = Robolectric.buildActivity(android.app.Activity.class).setup()) {
+            var activity = controller.get();
+            Utils.setContext(activity);
+            Settings.EDGE_SEEK.save(false);
+            Settings.LONG_PRESS_ACTION.save("copy_sound_link");
+            BaseSettings.SANITIZE_SHARING_LINKS.save(true);
+            Settings.CUSTOM_SHARE_DOMAIN.save("");
+            BlockAuthorPatch.setCurrentVideoParams(new Params(new Clip("sound-share", null,
+                    new SoundStub("7712345678901234567",
+                            "https://www.tiktok.com/music/x-7712345678901234567"
+                                    + "?u_code=abc&sec_user_id=def&share_iid=ghi&_r=1"))));
+            BlockAuthorPatch.setPlayingAweme("sound-share");
+            ClipboardManager clipboard =
+                    (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+
+            assertTrue(GestureActions.onLongPress(middleOf(activity)));
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            ClipData clip = clipboard.getPrimaryClip();
+            assertEquals("the sharer parameters went onto the clipboard with the sound link",
+                    "https://www.tiktok.com/music/x-7712345678901234567",
+                    String.valueOf(clip.getItemAt(0).getText()));
+            assertEquals(L10n.t("Sound link copied"), ShadowToast.getTextOfLatestToast());
+
+            // The reader's chosen front end belongs on this link too, for the same reason it
+            // belongs on the video link: it is what makes the link show a preview.
+            Settings.CUSTOM_SHARE_DOMAIN.save("vxtiktok.com");
+            clipboard.setPrimaryClip(ClipData.newPlainText("before", "before"));
+            assertTrue(GestureActions.onLongPress(middleOf(activity)));
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertEquals("https://vxtiktok.com/music/x-7712345678901234567",
+                    String.valueOf(clipboard.getPrimaryClip().getItemAt(0).getText()));
+        } finally {
+            Settings.LONG_PRESS_ACTION.resetToDefault();
+            Settings.CUSTOM_SHARE_DOMAIN.resetToDefault();
+            BaseSettings.SANITIZE_SHARING_LINKS.resetToDefault();
+        }
+    }
+
+    @Test public void aCopiedLinkIsMarkedSensitiveLikeEveryOtherClipTheBundleWrites() {
+        // These two actions built their own ClipData and were the only clips in the bundle
+        // without the flag, so a clipboard viewer read them back with no warning.
+        try (var controller = Robolectric.buildActivity(android.app.Activity.class).setup()) {
+            var activity = controller.get();
+            Utils.setContext(activity);
+            assertTrue(GestureActions.copyToClipboard("TikTok sound",
+                    "https://www.tiktok.com/music/x-77"));
+
+            ClipboardManager clipboard =
+                    (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+            android.os.PersistableBundle extras =
+                    clipboard.getPrimaryClip().getDescription().getExtras();
+            assertNotNull("the clip carries no description extras at all", extras);
+            assertTrue("the copied link was not marked sensitive",
+                    extras.getBoolean("android.content.extra.IS_SENSITIVE"));
+        }
     }
 
     @Test public void theSoundLinkIsThePageForThatSound() {

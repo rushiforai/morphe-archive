@@ -196,8 +196,7 @@ val longPressPatch = bytecodePatch(
     description = "Lets a long press on a video keep TikTok's own action, do nothing, open " +
         "the video's comments, save the original sound, or copy the link to the video or its " +
         "sound, and can turn a press on the left or right third of the screen into a jump back " +
-        "or forward. Brings Double-tap controls with it, which supplies the comment control. " +
-        "",
+        "or forward. Brings Double-tap controls with it, which supplies the comment control.",
     default = false,
 ) {
     compatibleWith(*AppCompatibilities.tiktok4623())

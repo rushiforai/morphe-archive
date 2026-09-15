@@ -1,0 +1,22 @@
+[versions]
+morphe-patcher = "1.10.0"
+morphe-patches-library = "1.6.2"
+smali = "d92701d947"
+agp = "9.1.0"
+gson = "2.14.0"
+guava = "33.6.0-jre"
+annotation = "1.9.1"
+androidx-core = "1.15.0"
+
+[libraries]
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }
+morphe-patches-library = { module = "app.morphe:morphe-patches-library", version.ref = "morphe-patches-library" }
+morphe-extensions-library = { module = "app.morphe:morphe-extensions-library", version.ref = "morphe-patches-library" }
+smali = { module = "com.github.MorpheApp.smali:smali", version.ref = "smali" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
+androidx-core = { module = "androidx.core:core", version.ref = "androidx-core" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }

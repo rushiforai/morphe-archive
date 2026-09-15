@@ -75,7 +75,6 @@ I-verify na tama ang pangalan ng pakete at naka-install ang app"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Gayahin ang mga video stream</string>
   <string name="morphe_spoof_video_streams_screen_summary">I-configure ang client spoofing upang maiwasan ang mga isyu sa pag-playback</string>
-  <string name="morphe_spoof_video_streams_title">Gayahin ang mga video stream</string>
   <string name="morphe_spoof_video_streams_summary">"Inaayos ang mga isyu sa pagpapatugtog para sa karamihan ng mga gumagamit sa pamamagitan ng paghingi ng tugmang video stream
 
 Kung ikaw ay isang gumagamit ng YouTube Premium, maaaring hindi na kailanganin ang setting na ito."</string>

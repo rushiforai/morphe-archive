@@ -24,7 +24,7 @@ Second \"item\" text"</string>
   <!-- misc.album.albumMusicVideoPatch -->
   <string name="morphe_music_play_album_songs_title">アルバムを音声のみモードで再生</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title' -->
-  <string name="morphe_music_play_album_songs_summary">アルバムを再生するときに、動画モードに切り替わることなくすべての曲を音声のみモードで再生します。[動画ストリームを偽装] が必要です</string>
+  <string name="morphe_music_play_album_songs_summary">アルバムを再生するときに、動画モードに切り替わることなくすべての曲を音声のみモードで再生します。[動画ストリームを偽装] をオンにする必要があります</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_screen_summary">サードパーティ製のダウンロード アプリで、ミュージック ビデオ、ポッドキャスト、楽曲をダウンロードします</string>
   <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->

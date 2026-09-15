@@ -6,6 +6,7 @@ import android.os.SystemClock;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.download.QualitySelector;
 import app.morphe.extension.tiktok.settings.Settings;
 import java.util.ArrayList;
@@ -13,6 +14,8 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,8 +27,24 @@ public final class PlaybackQuality {
      */
     static final long METERED_CACHE_MS = 5_000L;
 
+    /** The name this reports under on the Hook status row. */
+    static final String FAMILY = "playback quality";
+
+    /** The two getters the patch hooks, named the way the report should read. */
+    static final String VIDEO_MODEL = "Video";
+    static final String VIDEO_MODEL_GETTER = "getVideoModelStr";
+    static final String DASH_MODEL = "VideoUrlModel";
+    static final String DASH_MODEL_GETTER = "getDashVideoModelStr";
+
     private static volatile JsonCache cache;
     private static volatile MeteredState meteredState;
+
+    /**
+     * Getters already described in the log, so an unusable model costs one line and not one per
+     * video. Hook status dedupes the row itself; this holds the log to the same bound.
+     */
+    private static final Set<String> DESCRIBED =
+            Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     private PlaybackQuality() {}
 
@@ -105,30 +124,91 @@ public final class PlaybackQuality {
         return result;
     }
 
-    public static String filterJson(String original) {
+    /** The model string {@code Video.getVideoModelStr} hands back. */
+    public static String filterVideoModelJson(String original) {
+        return filterJson(original, VIDEO_MODEL, VIDEO_MODEL_GETTER);
+    }
+
+    /** The adaptive model string {@code VideoUrlModel.getDashVideoModelStr} hands back. */
+    public static String filterDashVideoModelJson(String original) {
+        return filterJson(original, DASH_MODEL, DASH_MODEL_GETTER);
+    }
+
+    /**
+     * Picks one gear out of an adaptive model, and hands back whatever it was given when it
+     * cannot.
+     *
+     * <p>A getter that returns something this cannot read is not an error to show anyone. Some
+     * builds and some accounts leave the string empty, and a build that renames the model shape
+     * hands back something else again; either way the right answer is the native quality and
+     * silence. It used to parse whatever arrived and report the {@link JSONException} through
+     * {@code Logger.printException}, which put {@code PlaybackQuality: Could not read the
+     * playback quality model} on screen once per video. The place that question belongs is the
+     * Hook status row, which names the getter and says it once.
+     */
+    private static String filterJson(String original, String owner, String getter) {
         String mode = mode();
         if (original == null || "auto".equals(mode)) return original;
         JsonCache previous = cache;
-        if (previous != null && previous.mode.equals(mode) && previous.source.equals(original)) return previous.result;
-        String result = original;
-        try {
-            JSONObject root = new JSONObject(original);
-            JSONObject dynamic = root.optJSONObject("dynamic_video");
-            JSONArray values = dynamic == null ? null : dynamic.optJSONArray("dynamic_video_list");
-            if (values != null && values.length() > 1) {
-                List<Object> variants = new ArrayList<>();
-                for (int i = 0; i < values.length(); i++) variants.add(values.get(i));
-                int selected = select(variants, mode);
-                if (selected >= 0) {
-                    dynamic.put("dynamic_video_list", new JSONArray().put(values.get(selected)));
-                    result = root.toString();
-                }
-            }
-        } catch (JSONException exception) {
-            Logger.printException(() -> "Could not read the playback quality model", exception);
+        // The getter is part of what is cached. Both getters can hand back the same unusable
+        // string, and without this the first one to arrive answers for the second and Hook
+        // status names only one of them.
+        if (previous != null && previous.getter.equals(getter)
+                && previous.mode.equals(mode) && previous.source.equals(original)) {
+            return previous.result;
         }
-        cache = new JsonCache(original, mode, result);
+
+        String result = original;
+        // An empty string is what issue #3 reported: new JSONObject("") throws "End of input at
+        // character 0". A model is a JSON object or it is not one this can pick a gear out of.
+        // Read the first character rather than trimming: a well formed model is the whole
+        // response body and copying it on every video costs more than the check saves.
+        int first = 0;
+        while (first < original.length() && Character.isWhitespace(original.charAt(first))) first++;
+        if (first == original.length() || original.charAt(first) != '{') {
+            unusable(owner, getter, first == original.length()
+                    ? "an empty model" : "a model that is not a JSON object");
+        } else {
+            try {
+                JSONObject root = new JSONObject(original);
+                JSONObject dynamic = root.optJSONObject("dynamic_video");
+                JSONArray values = dynamic == null ? null : dynamic.optJSONArray("dynamic_video_list");
+                if (values != null && values.length() > 1) {
+                    List<Object> variants = new ArrayList<>();
+                    for (int i = 0; i < values.length(); i++) variants.add(values.get(i));
+                    int selected = select(variants, mode);
+                    if (selected >= 0) {
+                        dynamic.put("dynamic_video_list", new JSONArray().put(values.get(selected)));
+                        result = root.toString();
+                    }
+                }
+                // A readable object with one gear, or none, is an ordinary video rather than a
+                // miss: the getter gave what it promised and there was nothing to choose from.
+                HookStatus.bound(FAMILY, owner + '#' + getter);
+            } catch (JSONException exception) {
+                unusable(owner, getter, "a model it could not read");
+            }
+        }
+        cache = new JsonCache(getter, original, mode, result);
         return result;
+    }
+
+    /**
+     * Records a getter whose model no gear can be chosen out of. Hook status carries it to the
+     * Diagnostics row and the exported report; the log line is written once per getter, so a
+     * feed that scrolls all afternoon adds nothing after the first video.
+     */
+    private static void unusable(String owner, String getter, String what) {
+        HookStatus.missingMember(FAMILY, "usable model from", owner, getter);
+        if (!DESCRIBED.add(owner + '#' + getter)) return;
+        Logger.printDebug(() -> owner + '.' + getter + " returned " + what
+                + ", so playback quality leaves it to the app");
+    }
+
+    /** Forgets which getters have been described, so a test can watch the first one again. */
+    static void resetForTests() {
+        DESCRIBED.clear();
+        cache = null;
     }
 
     private static int select(List<?> variants, String mode) {
@@ -185,7 +265,9 @@ public final class PlaybackQuality {
     }
 
     private static final class JsonCache {
-        final String source, mode, result;
-        JsonCache(String source, String mode, String result) { this.source = source; this.mode = mode; this.result = result; }
+        final String getter, source, mode, result;
+        JsonCache(String getter, String source, String mode, String result) {
+            this.getter = getter; this.source = source; this.mode = mode; this.result = result;
+        }
     }
 }

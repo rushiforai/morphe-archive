@@ -29,7 +29,7 @@ A collection of patches that I think would be useful to add, based on features, 
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.1](https://github.com/ShuhaibNC/morphe-patches/releases/tag/v1.6.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
+> **[v1.7.0](https://github.com/ShuhaibNC/morphe-patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
 <details open>
 <summary>📦 apk-signer&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -59,6 +59,21 @@ A collection of patches that I think would be useful to add, based on features, 
 |----------|----------------|-----------|
 | [Disable Tracking](#disable-tracking) | Disable tracking statistics for CandyLink VPN . |  |
 | [Unlock Premium](#unlock-premium) | Premium features are unlocked and ads are disabled. |  |
+
+</details>
+
+<details open>
+<summary>📦 FFmpeg Media Encoder&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 6.1.3_1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Remove Ads of FFmpeg](#remove-ads-of-ffmpeg) | Unlock donator features and removes ads. |  |
 
 </details>
 

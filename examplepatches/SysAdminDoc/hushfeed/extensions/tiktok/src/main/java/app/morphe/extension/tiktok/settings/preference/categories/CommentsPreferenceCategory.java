@@ -62,7 +62,7 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
                     "Full comment sort options",
                     "Show TikTok's own sort sheet on every post, with its hot, newest, media and "
                             + "creator options, instead of whichever cut-down row your account was "
-                            + "given. Restart TikTok to apply this: it reads the style "
+                            + "given. Restart TikTok to apply this. It reads the style "
                             + "once per run and remembers it.",
                     Settings.COMMENT_SORT_CONTROLS
             ));
@@ -107,6 +107,12 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
                     "Hide picture comments",
                     "Hide comments made of an image or a sticker instead of words.",
                     Settings.HIDE_COMMENT_MEDIA
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide comment polls",
+                    "Remove polls from the comments before TikTok shows them.",
+                    Settings.HIDE_COMMENT_POLLS
             ));
             addPreference(new TogglePreference(
                     context,

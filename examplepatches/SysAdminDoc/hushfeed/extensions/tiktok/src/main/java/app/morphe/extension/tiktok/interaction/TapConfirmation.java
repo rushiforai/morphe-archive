@@ -63,7 +63,11 @@ public final class TapConfirmation {
         previousForeground = view.getForeground();
         ring = new GradientDrawable();
         ring.setColor(Color.TRANSPARENT);
-        ring.setCornerRadius(1000);
+        // A radius from the scale rather than the 1000 that was here, which asked for a full
+        // circle and got one that tracked whatever size the host's button happened to be.
+        ring.setCornerRadius(app.morphe.extension.tiktok.settings.preference.SettingsUi.dp(
+                view.getContext(),
+                app.morphe.extension.tiktok.settings.preference.SettingsUi.RADIUS_OVERLAY));
         ring.setStroke(Math.max(2, Math.round(2 * view.getResources().getDisplayMetrics().density)),
                 app.morphe.extension.tiktok.settings.preference.SettingsUi.OVERLAY_ACCENT);
         view.setForeground(ring);

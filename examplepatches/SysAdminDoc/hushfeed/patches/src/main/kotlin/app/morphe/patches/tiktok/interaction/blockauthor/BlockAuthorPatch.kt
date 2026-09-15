@@ -25,8 +25,9 @@ private const val VIDEO_ITEM_PARAMS_DESCRIPTOR =
 @Suppress("unused")
 val blockAuthorPatch = bytecodePatch(
     name = "Block author button",
-    description = "Adds a block button to the video player that blocks the account that posted the " +
-        "current video in one tap, with an undo action.",
+    description = "Adds one-tap controls for blocking the uploader, hiding the uploader locally and " +
+        "blocking the current sound. The local-hide and sound controls have separate switches. " +
+        "Long press any visible control to move it, and all of them hide while comments are open.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

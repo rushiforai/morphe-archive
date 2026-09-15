@@ -75,9 +75,9 @@ adb logcat -s EkispertTap
 | アプリ起動 | `application context captured` | `AioApplication.onCreate()` |
 | 〃 | `ResponseTapInterceptor installed` | `AbsDownloader.d()` |
 | 経路検索 | `broadcast http_response chars=... gzip=...B` | OkHttp Interceptor |
-| 経路を開く | `broadcast detail_opened` | `AbsDISRxSearchResultDetailParentFragmentUseCase.f()` |
-| 〃 | `broadcast selected_course index=0 presenter=DISRxDia...` | `Presenter.bc(int, boolean)` |
-| 詳細でスワイプ | `broadcast selected_course index=1 ...` | 〃 |
+| 経路を開く | `course selected in DISRxDia... keys=2` → `broadcast selected_course keys=2 presenter=DISRxDia...` | `Presenter.bc(int, boolean)` |
+| 詳細でスワイプ | `broadcast selected_course keys=2 ...` | 〃 |
+| 前後のダイヤで検索 | `broadcast http_response ...`（URL が `course/edit`）→ `broadcast selected_course ...` | OkHttp Interceptor → `Presenter.bc` |
 | 乗換アラーム登録 | `broadcast transfer_alarm_course chars=...` | `TransferAlarmCourseDAO.b()` |
 | My クリップから開く | `broadcast myclip_course chars=...` | `SearchRouteMyClipEntity.g()` |
 
@@ -87,7 +87,9 @@ adb logcat -s EkispertTap
 adb logcat -s EkispertWear
 ```
 
-`route search: 8 courses` → `selected course #1 ...` → `data item put wear://.../ekispert/course` と流れれば、ウォッチまで届いています。パッチは当たるのにコンパニオンで `parse failed` が出る場合は、サーバー応答の形式が変わっています（→ [6. 応答形式が変わった場合](#6-応答形式が変わった場合)）。
+`SEARCH: 8 courses` → `selected SEARCH course #1 ...` → `data item put wear://.../ekispert/course` と流れれば、ウォッチまで届いています。パッチは当たるのにコンパニオンで `parse failed` が出る場合は、サーバー応答の形式が変わっています（→ [6. 応答形式が変わった場合](#6-応答形式が変わった場合)）。
+
+`selected course ... not in pool` が出る場合は、`AioCourse` から `SerializeData` が取れていません（`keys=0` なら String 型フィールドが無くなっている、`keys=N` でも外れるならフィールドの中身が変わっている）。jadx で `AioCourse` を開き、`Course.e()`（`<SerializeData>` のテキスト）を保持しているフィールドがどこへ移ったかを確認して、extension の `ResponseTapPatch.stringFieldValues` を合わせます。
 
 ## 4. 対応バージョンを更新してリリースする
 
@@ -123,8 +125,7 @@ Release が作られると `patches-bundle.json` と README のパッチ一覧�
 |---|---|---|
 | `OkHttpClientBuildFingerprint` | `AbsDownloader` の `OkHttpClient` を作るメソッド | クラス名末尾 `/AbsDownloader;`、戻り値 `Lokhttp3/OkHttpClient;`、引数なし、`OkHttpClient$Builder.<init>` 呼び出し |
 | `AioApplicationOnCreateFingerprint` | `AioApplication.onCreate()` | クラス名（Manifest 固定）、メソッド名 `onCreate`、`Application.onCreate` の `invoke-super` |
-| `DetailCourseSelectedFingerprint` | 詳細画面のページ選択（`bc(int, boolean)`） | クラス名末尾 `/AbsDISRxSearchResultDetailParentFragmentPresenter;`、引数 `(I, Z)`、`HistorySelectRouteUseCase.g(AioCourse, long)` の呼び出し |
-| `DetailOpenFingerprint` | 詳細画面の初期状態を作るメソッド `f(args)` | クラス名末尾 `/AbsDISRxSearchResultDetailParentFragmentUseCase;`、戻り値 `...ViewModelInstanceState;`、引数 `...ParentFragmentArguments;` |
+| `DetailCourseSelectedFingerprint` | 詳細画面のページ選択（`bc(int, boolean)`） | クラス名末尾 `/AbsDISRxSearchResultDetailParentFragmentPresenter;`、引数 `(I, Z)`、`HistorySelectRouteUseCase.g(AioCourse, long)` の呼び出し。この呼び出しの第 1 引数レジスタ（`AioCourse`）を extension に渡す |
 | `MyClipCourseLoadFingerprint` | `SearchRouteMyClipEntity` の XML → `AioCourseList` 変換 | クラス名末尾 `/SearchRouteMyClipEntity;`、戻り値 `...AioCourseList;`、`IOUtils.toInputStream(String)` 呼び出し |
 | `TransferAlarmCourseSaveFingerprint` | `TransferAlarmCourseDAO` の保存ヘルパー | クラス名末尾 `/TransferAlarmCourseDAO;`、戻り値 `J`、引数 `(Class, L, String, J, J, L)`、`CompressUtils.a(String)` 呼び出し |
 

@@ -56,7 +56,8 @@ private val rtmpComparisonClasses = listOf(
  */
 @Suppress("unused")
 val rawConnectModePatch = bytecodePatch(
-    name = "Raw stream connect modes",
+    name = "[WIP] Raw stream connect modes",
+    default = false,
     description = "Adds \"PC via USB\" and \"PC via Wi-Fi\" entries to Live streaming's Connect to list for the " +
             "raw H.264 transport. USB needs no settings (adb reverse tcp:6970 tcp:6970 on the PC); Wi-Fi takes " +
             "the PC from the RTMP stream URL field (rtmp://pc-ip).",

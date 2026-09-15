@@ -20,6 +20,7 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceIdCache;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.HookStatus;
+import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.L10n;
 
@@ -337,9 +338,11 @@ public final class ShareSheetTools {
         float density = cell.getResources().getDisplayMetrics().density;
         armedRing = new GradientDrawable();
         armedRing.setShape(GradientDrawable.RECTANGLE);
-        armedRing.setCornerRadius(12 * density);
+        // The same radius and the same red as the ring that arms a Follow or a Like, from the
+        // scale rather than from a number of its own. The two are the same idea on two screens.
+        armedRing.setCornerRadius(SettingsUi.dp(cell.getContext(), SettingsUi.RADIUS_OVERLAY));
         armedRing.setColor(Color.TRANSPARENT);
-        armedRing.setStroke(Math.max(2, Math.round(2 * density)), Color.rgb(254, 44, 85));
+        armedRing.setStroke(Math.max(2, Math.round(2 * density)), SettingsUi.OVERLAY_ACCENT);
         cell.setForeground(armedRing);
         cell.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
 

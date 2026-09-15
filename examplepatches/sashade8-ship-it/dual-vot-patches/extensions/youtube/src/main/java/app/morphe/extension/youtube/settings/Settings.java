@@ -39,6 +39,7 @@ import app.morphe.extension.youtube.patches.ExitFullscreenPatch.FullscreenMode;
 import app.morphe.extension.youtube.patches.FullscreenVideoScalePatch.VideoScaleMode;
 import app.morphe.extension.youtube.patches.LegacyPlayerControlsPatch.RestoreOldPlayerButtonsAvailability;
 import app.morphe.extension.youtube.patches.MiniplayerPatch.MiniplayerAnyModernAvailability;
+import app.morphe.extension.youtube.patches.MiniplayerPatch.MiniplayerDragAndDropAvailability;
 import app.morphe.extension.youtube.patches.MiniplayerPatch.MiniplayerHideOverlayButtonsAvailability;
 import app.morphe.extension.youtube.patches.MiniplayerPatch.MiniplayerHorizontalDragAvailability;
 import app.morphe.extension.youtube.patches.MiniplayerPatch.MiniplayerHorizontalDragPlaybackAvailability;
@@ -64,6 +65,7 @@ import app.morphe.extension.youtube.swipecontrols.SwipeControlsConfigurationProv
 import app.morphe.extension.youtube.swipecontrols.SwipeControlsConfigurationProvider.SwipeActionAvailability;
 import app.morphe.extension.youtube.swipecontrols.SwipeControlsConfigurationProvider.SwipeOverlayStyle;
 import app.morphe.extension.youtube.swipecontrols.SwipeControlsConfigurationProvider.SwipeSpeedStep;
+import app.morphe.extension.youtube.swipecontrols.SwipeControlsConfigurationProvider.SwipeVolumeSteps;
 import app.morphe.extension.youtube.swipecontrols.SwipeControlsConfigurationProvider.SwipeZoneAction;
 import app.morphe.extension.youtube.swipecontrols.SwipeControlsConfigurationProvider.TopSwipeZoneAvailability;
 import app.morphe.extension.youtube.videoplayer.PlayAllButton.PlaylistIDPrefix;
@@ -96,7 +98,7 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting CUSTOM_SPEED_MENU = new BooleanSetting("morphe_custom_speed_menu", TRUE);
     public static final BooleanSetting DISABLE_PLAYBACK_SPEED_MUSIC = new BooleanSetting("morphe_disable_playback_speed_music", FALSE, true);
     public static final StringSetting PLAYBACK_SPEED_CHANNEL_WHITELIST = new StringSetting("morphe_playback_speed_channel_whitelist", "");
-    public static final BooleanSetting PLAYBACK_SPEED_CHANNEL_WHITELIST_FLYOUT_MENU = new BooleanSetting("morphe_playback_speed_channel_whitelist_flyout_menu", TRUE);
+    public static final BooleanSetting PLAYBACK_SPEED_CHANNEL_WHITELIST_FLYOUT_MENU = new BooleanSetting("morphe_playback_speed_channel_whitelist_flyout_menu", FALSE);
     public static final BooleanSetting ENABLE_PLAYBACK_AUDIO_PITCH = new BooleanSetting("morphe_enable_playback_audio_pitch_controls", FALSE, parent(CUSTOM_SPEED_MENU));
     public static final BooleanSetting PLAYBACK_AUDIO_TIME_STRETCHING = new BooleanSetting("morphe_playback_audio_time_stretching", FALSE, parentsAll(CUSTOM_SPEED_MENU, ENABLE_PLAYBACK_AUDIO_PITCH));
     public static final BooleanSetting RESTORE_OLD_SPEED_MENU = new BooleanSetting("morphe_restore_old_speed_menu", FALSE, parent(CUSTOM_SPEED_MENU));
@@ -113,7 +115,7 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting HIDE_SHOPPING_LINKS = new BooleanSetting("morphe_hide_shopping_links", TRUE);
     public static final BooleanSetting HIDE_VIDEO_ADS = new BooleanSetting("morphe_hide_video_ads", TRUE, true);
     public static final StringSetting ADS_CHANNEL_WHITELIST = new StringSetting("morphe_ads_channel_whitelist", "", false, parent(HIDE_VIDEO_ADS));
-    public static final BooleanSetting ADS_CHANNEL_WHITELIST_FLYOUT_MENU = new BooleanSetting("morphe_ads_channel_whitelist_flyout_menu", TRUE, parent(HIDE_VIDEO_ADS));
+    public static final BooleanSetting ADS_CHANNEL_WHITELIST_FLYOUT_MENU = new BooleanSetting("morphe_ads_channel_whitelist_flyout_menu", FALSE, false, "morphe_ads_channel_whitelist_flyout_user_dialog_message", parent(HIDE_VIDEO_ADS));
     public static final BooleanSetting HIDE_YOUTUBE_PREMIUM_PROMOTIONS = new BooleanSetting("morphe_hide_youtube_premium_promotions", TRUE);
 
     // Feed
@@ -123,7 +125,7 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting HIDE_ARTIST_CARDS = new BooleanSetting("morphe_hide_artist_cards", FALSE);
     public static final BooleanSetting HIDE_AUTO_DUBBED_LABEL = new BooleanSetting("morphe_hide_auto_dubbed_label", FALSE);
     public static final BooleanSetting HIDE_COMMUNITY_POSTS = new BooleanSetting("morphe_hide_community_posts", FALSE);
-    public static final BooleanSetting HIDE_COMPACT_BANNER = new BooleanSetting("morphe_hide_compact_banner", TRUE);
+    public static final BooleanSetting HIDE_COMPACT_BANNER = new BooleanSetting("morphe_hide_compact_banner", TRUE, true);
     public static final EnumSetting<ExpandableCardStyle> HIDE_EXPANDABLE_CARD = new EnumSetting<>("morphe_hide_expandable_card", ExpandableCardStyle.HIDE_ALL);
     public static final BooleanSetting HIDE_FEED_FLYOUT_MENU = new BooleanSetting("morphe_hide_feed_flyout_menu", FALSE);
     public static final StringSetting  HIDE_FEED_FLYOUT_MENU_FILTER_STRINGS = new StringSetting("morphe_hide_feed_flyout_menu_filter_strings", "", true, parent(HIDE_FEED_FLYOUT_MENU));
@@ -224,6 +226,7 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting DISABLE_FULLSCREEN_SLIDING_GESTURE = new BooleanSetting("morphe_disable_fullscreen_sliding_down_gesture", FALSE);
     public static final BooleanSetting DISABLE_FULLSCREEN_DRAGGED_DOWN_GESTURE = new BooleanSetting("morphe_disable_fullscreen_dragged_down_gesture", FALSE);
     public static final BooleanSetting DISABLE_FULLSCREEN_ZOOM_GESTURE = new BooleanSetting("morphe_disable_fullscreen_zoom_gesture", FALSE);
+    public static final BooleanSetting RESTORE_PINCH_TO_ZOOM = new BooleanSetting("morphe_restore_pinch_to_zoom", FALSE);
     public static final BooleanSetting DISABLE_ROLLING_NUMBER_ANIMATIONS = new BooleanSetting("morphe_disable_rolling_number_animations", FALSE);
     public static final EnumSetting<FullscreenMode> EXIT_FULLSCREEN = new EnumSetting<>("morphe_exit_fullscreen", FullscreenMode.DISABLED);
     public static final EnumSetting<VideoScaleMode> FULLSCREEN_VIDEO_SCALE = new EnumSetting<>("morphe_fullscreen_video_scale", VideoScaleMode.DEFAULT);
@@ -256,6 +259,7 @@ public class Settings extends SharedYouTubeSettings {
 
     // Overlay buttons
     public static final BooleanSetting FULLSCREEN_VIDEO_SCALE_BUTTON = new BooleanSetting("morphe_fullscreen_video_scale_button", FALSE, true);
+    public static final BooleanSetting FULLSCREEN_VIDEO_SCALE_BUTTON_FULLSCREEN_ONLY = new BooleanSetting("morphe_fullscreen_video_scale_button_fullscreen_only", FALSE, parent(FULLSCREEN_VIDEO_SCALE_BUTTON));
     public static final BooleanSetting COPY_VIDEO_LINK_BUTTON = new BooleanSetting("morphe_copy_video_link_button", FALSE, true);
     public static final BooleanSetting COPY_VIDEO_LINK_WITH_TIMESTAMP_BUTTON = new BooleanSetting("morphe_copy_video_link_with_timestamp_button", TRUE, true, parent(COPY_VIDEO_LINK_BUTTON));
     public static final BooleanSetting HIDE_AUTOPLAY_BUTTON = new BooleanSetting("morphe_hide_autoplay_button", TRUE, true);
@@ -315,7 +319,7 @@ public class Settings extends SharedYouTubeSettings {
     // Miniplayer
     public static final BooleanSetting MINIPLAYER_DISABLE_RESUMING = new BooleanSetting("morphe_miniplayer_disable_resuming", FALSE, true);
     public static final EnumSetting<MiniplayerType> MINIPLAYER_TYPE = new EnumSetting<>("morphe_miniplayer_type", VersionCheckPatch.IS_21_29_OR_GREATER ? MiniplayerType.MODERN_4 : MiniplayerType.DEFAULT, true);
-    public static final BooleanSetting MINIPLAYER_DISABLE_DRAG_AND_DROP = new BooleanSetting("morphe_miniplayer_disable_drag_and_drop", FALSE, true, new MiniplayerAnyModernAvailability());
+    public static final BooleanSetting MINIPLAYER_DISABLE_DRAG_AND_DROP = new BooleanSetting("morphe_miniplayer_disable_drag_and_drop", FALSE, true, new MiniplayerDragAndDropAvailability());
     public static final BooleanSetting MINIPLAYER_DISABLE_HORIZONTAL_DRAG = new BooleanSetting("morphe_miniplayer_disable_horizontal_drag", FALSE, true, new MiniplayerHorizontalDragAvailability());
     public static final BooleanSetting MINIPLAYER_DISABLE_HORIZONTAL_DRAG_PLAYBACK = new BooleanSetting("morphe_miniplayer_disable_horizontal_drag_playback", FALSE, true, new MiniplayerHorizontalDragPlaybackAvailability());
     public static final BooleanSetting MINIPLAYER_DISABLE_HORIZONTAL_REPOSITION = new BooleanSetting("morphe_miniplayer_disable_horizontal_reposition", FALSE, true, new MiniplayerHorizontalRepositioningAvailability());
@@ -585,7 +589,8 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting SWIPE_PRESS_TO_ENGAGE = new BooleanSetting("morphe_swipe_press_to_engage", FALSE, true, new AnySwipeZoneAvailability());
     public static final BooleanSetting SWIPE_HAPTIC_FEEDBACK = new BooleanSetting("morphe_swipe_haptic_feedback", TRUE, true, new AnySwipeZoneAvailability());
     public static final IntegerSetting SWIPE_MAGNITUDE_THRESHOLD = new IntegerSetting("morphe_swipe_threshold", 30, true, new AnySwipeZoneAvailability());
-    public static final IntegerSetting SWIPE_VOLUME_SENSITIVITY = new IntegerSetting("morphe_swipe_volume_sensitivity", 1, true, new SwipeActionAvailability(SwipeZoneAction.VOLUME));
+    public static final IntegerSetting SWIPE_VOLUME_DISTANCE = new IntegerSetting("morphe_swipe_volume_distance", 10, true, new SwipeActionAvailability(SwipeZoneAction.VOLUME));
+    public static final EnumSetting<SwipeVolumeSteps> SWIPE_VOLUME_STEPS = new EnumSetting<>("morphe_swipe_volume_steps", SwipeVolumeSteps.DEVICE_DEFAULT, true, new SwipeActionAvailability(SwipeZoneAction.VOLUME));
     public static final IntegerSetting SWIPE_BRIGHTNESS_SENSITIVITY = new IntegerSetting("morphe_swipe_brightness_sensitivity", 1, true, new SwipeActionAvailability(SwipeZoneAction.BRIGHTNESS));
     public static final IntegerSetting SWIPE_SPEED_SENSITIVITY = new IntegerSetting("morphe_swipe_speed_sensitivity", 10, true, new SwipeActionAvailability(SwipeZoneAction.SPEED));
     public static final EnumSetting<SwipeSpeedStep> SWIPE_SPEED_STEP = new EnumSetting<>("morphe_swipe_speed_step", SwipeSpeedStep.STEP_005, true, new SwipeActionAvailability(SwipeZoneAction.SPEED));
@@ -860,14 +865,22 @@ public class Settings extends SharedYouTubeSettings {
             MINIPLAYER_TYPE.resetToDefault();
         }
 
-        // 21.29+ YT removed all miniplayer types, except modern_4.
-        if (VersionCheckPatch.IS_21_29_OR_GREATER && !MINIPLAYER_TYPE.isSetToDefault()) {
+        // 21.29+ YT removed all miniplayer types, except modern_4 and what is rebuilt on top of it.
+        if (VersionCheckPatch.IS_21_29_OR_GREATER && !MINIPLAYER_TYPE.isSetToDefault()
+                && MINIPLAYER_TYPE.get() != MiniplayerType.MINIMAL_BAR
+                && MINIPLAYER_TYPE.get() != MiniplayerType.MINIMAL_BAR_2
+                && MINIPLAYER_TYPE.get() != MiniplayerType.DISABLED) {
             MINIPLAYER_TYPE.resetToDefault();
         }
 
-        // Force flag off 21.30+ causes many problems including app crashes
+        // 21.30+ causes many problems including app crashes
         if (VersionCheckPatch.IS_21_30_OR_GREATER && !RESTORE_OLD_SETTINGS_MENUS.isSetToDefault()) {
             RESTORE_OLD_SETTINGS_MENUS.resetToDefault();
+        }
+
+        // 21.36+ has many visual glitches and problems with old thin player icons
+        if (VersionCheckPatch.IS_21_36_OR_GREATER && !RESTORE_OLD_PLAYER_BUTTONS.isSetToDefault()) {
+            RESTORE_OLD_PLAYER_BUTTONS.resetToDefault();
         }
 
         // Android XR, Android XR Downgraded, and visionOS 1.03 are not selectable in the settings and are selected by spoof stream patch if needed.
@@ -929,8 +942,8 @@ public class Settings extends SharedYouTubeSettings {
                 0, 100, 1, "%"));
         SeekBarPreference.register(new SeekBarConfig(PLAYER_CONTROL_BUTTONS_BACKGROUND_OPACITY,
                 0, 100, 1, "%"));
-        SeekBarPreference.register(new SeekBarConfig(SWIPE_VOLUME_SENSITIVITY,
-                1, 10, 1, ""));
+        SeekBarPreference.register(new SeekBarConfig(SWIPE_VOLUME_DISTANCE,
+                1, 50, 1, ""));
         SeekBarPreference.register(new SeekBarConfig(SWIPE_BRIGHTNESS_SENSITIVITY,
                 1, 10, 1, ""));
         SeekBarPreference.register(new SeekBarConfig(SWIPE_SPEED_SENSITIVITY,

@@ -1,6 +1,22 @@
 rootProject.name = "gmaps-patches"
 
 pluginManagement {
+    // Plugin 1.3.3 reads these credentials eagerly while applying its settings.
+    // Fail before plugin application with the documented setup instead of its
+    // null-provider IllegalArgumentException. Never use placeholder credentials.
+    val githubUser = providers.gradleProperty("gpr.user")
+        .orElse(providers.environmentVariable("GITHUB_ACTOR"))
+        .orNull
+    val githubToken = providers.gradleProperty("gpr.key")
+        .orElse(providers.environmentVariable("GITHUB_TOKEN"))
+        .orNull
+    if (githubUser.isNullOrBlank() || githubToken.isNullOrBlank()) {
+        throw GradleException(
+            "Morphe requires GitHub Packages credentials. Set gpr.user and gpr.key " +
+                "in GRADLE_USER_HOME/gradle.properties using a classic PAT with read:packages. " +
+                "See docs/build-setup.md. Do not use dummy credentials or --offline as an authentication fix.",
+        )
+    }
     repositories {
         mavenLocal()
         gradlePluginPortal()
@@ -9,8 +25,8 @@ pluginManagement {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/MorpheApp/registry")
             credentials {
-                username = providers.gradleProperty("gpr.user").getOrElse(System.getenv("GITHUB_ACTOR"))
-                password = providers.gradleProperty("gpr.key").getOrElse(System.getenv("GITHUB_TOKEN"))
+                username = githubUser
+                password = githubToken
             }
         }
         // Obtain baksmali/smali from source builds - https://github.com/iBotPeaches/smali

@@ -150,7 +150,9 @@ public final class ShareActionChecklistPreference extends DialogPreference {
 
             TextView identifier = SettingsUi.text(getContext(), entry.key, 12,
                     SettingsUi.textSecondary(), Typeface.NORMAL);
-            identifier.setPadding(SettingsUi.dp(getContext(), 48), 0,
+            // Relative padding: the 48 is the indent that lines this up under the checkbox
+            // label above it, and in an RTL layout that checkbox is on the right.
+            identifier.setPaddingRelative(SettingsUi.dp(getContext(), 48), 0,
                     SettingsUi.dp(getContext(), 8), SettingsUi.dp(getContext(), 8));
             identifier.setTag("share_action_id_" + entry.key);
             rows.addView(identifier, new LinearLayout.LayoutParams(

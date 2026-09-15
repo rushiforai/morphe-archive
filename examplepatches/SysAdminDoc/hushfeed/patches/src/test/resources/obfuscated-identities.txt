@@ -3,6 +3,8 @@
 # a line here that no longer matches, so this list can only shrink. See that test for why.
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/blockauthor/FeedVisibility.java|o1k
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/blockauthor/FeedVisibility.java|o1l
+extensions/tiktok/src/main/java/app/morphe/extension/tiktok/blockauthor/FeedVisibility.java|p_5
+extensions/tiktok/src/main/java/app/morphe/extension/tiktok/blockauthor/FeedVisibility.java|vjb
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/captions/CaptionStyle.java|dfn
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/captions/CaptionStyle.java|dfu
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/cleardisplay/RememberClearDisplayPatch.java|LIZ
@@ -56,6 +58,7 @@ extensions/tiktok/src/main/java/app/morphe/extension/tiktok/follow/FollowDiagnos
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/inbox/InboxFilter.java|bo5
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/inbox/InboxFilter.java|f8t
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/inbox/InboxFilter.java|fnc
+extensions/tiktok/src/main/java/app/morphe/extension/tiktok/inbox/InboxFilter.java|k_f
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/inbox/InboxFilter.java|kmx
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/inbox/InboxFilter.java|kmz
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/inbox/InboxFilter.java|o1l

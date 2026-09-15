@@ -75,7 +75,6 @@ Provjerite je li naziv paketa ispravan i je li aplikacija instalirana"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Falsificiraj video toke</string>
   <string name="morphe_spoof_video_streams_screen_summary">Konfigurirajte spoofing klijenta kako biste spriječili probleme s reprodukcijom</string>
-  <string name="morphe_spoof_video_streams_title">Falsificiraj video toke</string>
   <string name="morphe_spoof_video_streams_summary">"Popravlja probleme s reprodukcijom za većinu korisnika zahtijevanjem kompatibilnog video stream-a
 
 Ako ste korisnik YouTube Premiuma, ova postavka možda nije potrebna"</string>

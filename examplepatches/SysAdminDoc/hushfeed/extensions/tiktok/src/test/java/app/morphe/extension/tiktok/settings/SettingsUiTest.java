@@ -2,6 +2,7 @@ package app.morphe.extension.tiktok.settings;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -289,6 +290,56 @@ public class SettingsUiTest {
             }
         }
         return null;
+    }
+
+    /**
+     * A chosen row looks different from the one beside it, in both themes.
+     *
+     * <p>The row is told it is chosen with {@code setActivated}, and the background it draws
+     * ignored that: the Lab's selection bar said "2 gates selected" over rows that looked exactly
+     * like the rest, and Enable, Disable and Reset then acted on gates nobody could see.
+     */
+    @Test
+    public void aChosenRowIsDrawnDifferentlyFromItsNeighbour() {
+        for (boolean dark : new boolean[]{true, false}) {
+            Utils.setIsDarkModeEnabled(dark);
+            Activity activity = Robolectric.buildActivity(DialogActivity.class).setup().get();
+            Utils.setContext(activity);
+
+            int plain = centreOf(SettingsUi.groupedRow(activity, true, true), false);
+            int chosen = centreOf(SettingsUi.groupedRow(activity, true, true), true);
+
+            assertNotEquals("a chosen row is painted exactly like an unchosen one, dark=" + dark,
+                    plain, chosen);
+            // And it is the accent the press already uses, over the surface it already had.
+            assertEquals("the chosen fill is not the accent the ripple leaves, dark=" + dark,
+                    blend(SettingsUi.activatedFill(), SettingsUi.surface()), chosen);
+        }
+    }
+
+    /** The colour a row's background paints in the middle, with or without the chosen state. */
+    private static int centreOf(Drawable background, boolean activated) {
+        background.setState(activated
+                ? new int[]{android.R.attr.state_activated} : new int[0]);
+        background.setBounds(0, 0, 120, 80);
+        android.graphics.Bitmap bitmap =
+                android.graphics.Bitmap.createBitmap(120, 80, android.graphics.Bitmap.Config.ARGB_8888);
+        background.draw(new android.graphics.Canvas(bitmap));
+        int pixel = bitmap.getPixel(60, 40);
+        bitmap.recycle();
+        return pixel;
+    }
+
+    /** What an alpha colour comes out as over an opaque one, the way the canvas composites it. */
+    private static int blend(int over, int under) {
+        float alpha = android.graphics.Color.alpha(over) / 255f;
+        int red = Math.round(android.graphics.Color.red(over) * alpha
+                + android.graphics.Color.red(under) * (1 - alpha));
+        int green = Math.round(android.graphics.Color.green(over) * alpha
+                + android.graphics.Color.green(under) * (1 - alpha));
+        int blue = Math.round(android.graphics.Color.blue(over) * alpha
+                + android.graphics.Color.blue(under) * (1 - alpha));
+        return android.graphics.Color.argb(255, red, green, blue);
     }
 
     private static void assertRadio(CheckedTextView view, boolean expected) throws Exception {

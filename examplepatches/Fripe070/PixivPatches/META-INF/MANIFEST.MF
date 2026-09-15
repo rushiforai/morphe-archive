@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Name: Pixiv Patches
+Description: Morphe patches for Pixiv Android
+Version: 1.1.0
+Source: https://github.com/Fripe070/PixivPatches
+Author: Fripe070
+Website: https://github.com/Fripe070/PixivPatches
+License: GNU General Public License v3.0
+Patcher-Version: 1.10.0
+Created-By: 25.0.2 (Microsoft)
+

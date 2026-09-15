@@ -29,11 +29,17 @@ public final class CurrentVideoSound {
         return current;
     }
 
+    /**
+     * How the sound is named on screen. Isolated like {@link VideoAuthor#label()}, and for the
+     * same two reasons: the sound's author is a creator, and the toast that names them is
+     * written to the diagnostic buffer.
+     */
     public String label() {
         if (name != null && !name.isEmpty()) {
-            return author != null && !author.isEmpty() ? name + " (" + author + ")" : name;
+            return VideoAuthor.isolate(
+                    author != null && !author.isEmpty() ? name + " (" + author + ")" : name);
         }
-        return id != null ? "sound " + id : "this sound";
+        return VideoAuthor.isolate(id != null ? "sound " + id : "this sound");
     }
 
     /** The block button needs either an id to record or a name to match on. */

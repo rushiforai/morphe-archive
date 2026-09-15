@@ -13,7 +13,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.2.0](https://github.com/Epxec/android-patches/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
+> **[v1.5.0](https://github.com/Epxec/android-patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
 <details open>
 <summary>📦 Decompile&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -60,6 +60,36 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 </details>
 
 <details open>
+<summary>📦 Wavelet&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 26.05 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Enable Pro](#enable-pro) | Enables Pro features. |  |
+
+</details>
+
+<details open>
+<summary>📦 XEQ Equalizer&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 38.7.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Enable Pro](#enable-pro) | Enable Pro features |  |
+
+</details>
+
+<details open>
 <summary>📦 Halo Reels Pro&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -86,6 +116,21 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Enable VIP and no-ads download](#enable-vip-and-no-ads-download) | Let's you watch all episodes without ads and download all episodes without watching ads beforehand. |  |
+
+</details>
+
+<details open>
+<summary>📦 Daylio&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.69.2 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Enable premium features](#enable-premium-features) | Removed validation on purchases, and forced to acknowledge that user is a premium user |  |
 
 </details>
 

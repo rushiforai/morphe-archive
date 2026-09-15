@@ -37,6 +37,14 @@ class ObfuscatedIdentityTest {
     }
 
     @Test
+    fun `short resource names containing underscores are inventoried`() {
+        assertEquals(
+            setOf("p_5"),
+            identitiesIn("RESOURCE_NAME = \"p_5\"", extensionTree = true),
+        )
+    }
+
+    @Test
     fun `no name one build made up is written down that the record does not already hold`() {
         val found = scan()
         val recorded = recorded()
@@ -119,8 +127,8 @@ class ObfuscatedIdentityTest {
         /** A line that looks a view or resource up by name, in the extension. */
         val RESOURCE_LOOKUP = Regex("""_IDS?\b|RESOURCE_NAME|getIdentifier\(|\.resolve\(|IDS\b|viewId\(|idOf\(""")
 
-        /** A two or three letter name on such a line: `"kzj"`, `"fb"`, `"twc"`. */
-        val RESOURCE_NAME = Regex(""""([a-z][a-z0-9]{1,2})"""")
+        /** A two or three character name on such a line: `"kzj"`, `"fb"`, `"p_5"`. */
+        val RESOURCE_NAME = Regex(""""([a-z][a-z0-9_]{1,2})"""")
 
         /**
          * Names that match a shape above and are nobody's invention: framework and interface

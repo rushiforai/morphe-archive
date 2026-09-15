@@ -75,7 +75,6 @@ Verifica che il nome del pacchetto sia corretto e che l'app sia installata"</str
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Falsificazione dei flussi video</string>
   <string name="morphe_spoof_video_streams_screen_summary">Configura un client simulato per prevenire problemi di riproduzione</string>
-  <string name="morphe_spoof_video_streams_title">Utilizza un client simulato per il flusso video</string>
   <string name="morphe_spoof_video_streams_summary">"Risolve i problemi di riproduzione per la maggior parte degli utenti richiedendo uno streaming video compatibile.
 
 Se sei un utente YouTube Premium, questa impostazione potrebbe non essere necessaria."</string>

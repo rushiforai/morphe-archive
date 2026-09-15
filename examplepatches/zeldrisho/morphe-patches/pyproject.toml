@@ -1,0 +1,3 @@
+[tool.ruff.lint]
+# Subprocess calls that intentionally inspect return codes omit check=True.
+ignore = ["PLW1510", "DTZ011"]

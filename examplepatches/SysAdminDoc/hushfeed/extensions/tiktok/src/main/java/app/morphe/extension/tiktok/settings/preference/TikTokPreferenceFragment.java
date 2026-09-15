@@ -221,6 +221,8 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         }
         if (!applySettingToPreference
                 && (setting == Settings.BLOCK_AUTHOR_BUTTON
+                || setting == Settings.LOCAL_HIDE_BUTTON
+                || setting == Settings.BLOCK_SOUND_BUTTON
                 || setting == Settings.NOT_INTERESTED_BUTTON)) {
             BlockAuthorOverlay.refresh();
         }
@@ -251,6 +253,71 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             return defaultValue.equals(((TabSelectionPreference) pref).getValue());
         }
         return super.prefIsSetToDefault(pref, setting);
+    }
+
+    @Override
+    protected boolean preferenceShowsSettingValue(@NonNull Preference pref,
+                                                  @NonNull Setting<?> setting) {
+        String expected = setting.get() instanceof Enum<?>
+                ? ((Enum<?>) setting.get()).name() : String.valueOf(setting.get());
+        if (pref instanceof NumberInputPreference) {
+            return expected.equals(((NumberInputPreference) pref).getValue());
+        }
+        if (pref instanceof CreatorListPreference) {
+            return expected.equals(((CreatorListPreference) pref).getValue());
+        }
+        if (pref instanceof RangeValuePreference) {
+            return expected.equals(((RangeValuePreference) pref).getValue());
+        }
+        if (pref instanceof DownloadPathPreference) {
+            return expected.equals(((DownloadPathPreference) pref).getValue());
+        }
+        if (pref instanceof TabSelectionPreference) {
+            return expected.equals(((TabSelectionPreference) pref).getValue());
+        }
+        return super.preferenceShowsSettingValue(pref, setting);
+    }
+
+    @Override protected CharSequence initializationErrorTitle(Context context) {
+        return L10n.t(context, "Settings couldn't open");
+    }
+
+    @Override protected CharSequence initializationErrorSummary(Context context) {
+        return L10n.t(context, "Try again, or go back to TikTok.");
+    }
+
+    @Override protected CharSequence initializationBackLabel(Context context) {
+        return L10n.t(context, "Back");
+    }
+
+    @Override protected CharSequence initializationRetryLabel(Context context) {
+        return L10n.t(context, "Retry");
+    }
+
+    /**
+     * Draws Retry as the way forward and Back as the way out.
+     *
+     * <p>Both were plain rows in the same weight and colour, so the page that opens when settings
+     * will not load offered two identical looking choices and no sense of which one to take.
+     */
+    @Override protected ErrorActionStyler errorActionStyler() {
+        return (row, primary) -> {
+            android.widget.TextView title = row.findViewById(android.R.id.title);
+            if (title == null) return;
+            title.setTextColor(SettingsUi.enabledTextColors(
+                    primary ? SettingsUi.accent() : SettingsUi.textPrimary()));
+            title.setTypeface(title.getTypeface(),
+                    primary ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+        };
+    }
+
+    @Override protected CharSequence preferenceChangeRecoveredMessage(Context context) {
+        return L10n.t(context, "The setting couldn't finish updating. Its saved value is shown.");
+    }
+
+    @Override protected CharSequence preferenceChangeRecoveryFailedMessage(Context context) {
+        return L10n.t(context,
+                "Settings couldn't refresh completely. Reopen settings and try again.");
     }
 
     @Override
@@ -482,6 +549,8 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             row.setOnPreferenceClickListener(preference -> {
                 if (FEATURE_GATE_LAB_KEY.equals(result.key)) {
                     FeatureGateLabFragment.open(getActivity());
+                } else if (MorpheTikTokAboutPreference.KEY.equals(result.key)) {
+                    Utils.openLink(MorpheTikTokAboutPreference.SOURCE_URL);
                 } else {
                     openSection(result.section, result.key);
                 }
@@ -571,31 +640,6 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         }
     }
 
-    /**
-     * Whether App behavior has anything in it. Every row on that page belongs to a patch, so
-     * with none of them installed the row would open a page with nothing but its heading.
-     */
-    private static boolean hasBehaviorSettings() {
-        return SettingsStatus.foldableSplitViewEnabled
-                || SettingsStatus.sanitizeShareUrlsEnabled
-                || SettingsStatus.externalBrowserEnabled
-                || SettingsStatus.showSeekbarEnabled
-                || SettingsStatus.seekbarThumbnailEnabled
-                || SettingsStatus.stopVideoLoopingEnabled
-                || SettingsStatus.resumeVideoAfterScrollEnabled
-                || SettingsStatus.longPressSpeedLockEnabled
-                || SettingsStatus.disableLongPressQuickShareEnabled
-                || SettingsStatus.disableLongPressRepostEnabled
-                || SettingsStatus.disableTelemetryEnabled
-                || SettingsStatus.ghostModeEnabled
-                || SettingsStatus.blockAuthorEnabled
-                || SettingsStatus.notInterestedEnabled
-                || SettingsStatus.nonPersonalizedSearchEnabled
-                || SettingsStatus.liveSearchEnabled
-                || SettingsStatus.duetStitchEnabled
-                || SettingsStatus.refreshRateEnabled;
-    }
-
     private List<SearchResult> buildSearchIndex(Context context, boolean featureGateLabInstalled) {
         List<SearchResult> results = new ArrayList<>();
         PreferenceScreen scratch = getPreferenceManager().createPreferenceScreen(context);
@@ -629,6 +673,15 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                     L10n.t(context, "Settings")
             ));
         }
+        // The About row sits on the master menu beside the Lab, so it is indexed the same way.
+        // Its summary carries the bundle version, which is what a reporter searches for.
+        results.add(new SearchResult(
+                null,
+                MorpheTikTokAboutPreference.KEY,
+                "Hushfeed",
+                MorpheTikTokAboutPreference.currentSummary(context).toString(),
+                L10n.t(context, "Settings")
+        ));
         return results;
     }
 
@@ -750,12 +803,10 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             addMenu(screen, Section.REGION, SettingsMenuPreference.Icon.REGION);
         }
 
-        // App behavior and Diagnostics keep their own conditions on purpose. The App
-        // behavior page is the fallback every unmatched section falls to, so it is always
-        // buildable and only the row is conditional; the Diagnostics row always shows,
-        // because settings backup and restore live on that page whether or not the
-        // diagnostics patch is in the bundle.
-        if (hasBehaviorSettings()) {
+        // The Diagnostics row always shows, because settings backup and restore live on that
+        // page whether or not the diagnostics patch is in the bundle. App behavior answers for
+        // itself, from the page, so the row and the page cannot drift apart again.
+        if (ExtensionPreferenceCategory.isAvailable()) {
             addMenu(screen, Section.BEHAVIOR, SettingsMenuPreference.Icon.BEHAVIOR);
         }
 

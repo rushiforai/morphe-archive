@@ -75,7 +75,6 @@ Verifiera att paketnamnet är korrekt och att appen har installerats"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Förfalska videostreamar</string>
   <string name="morphe_spoof_video_streams_screen_summary">Konfigurera klientförfalskning för att förhindra uppspelningsproblem</string>
-  <string name="morphe_spoof_video_streams_title">Förfalska videostreamar</string>
   <string name="morphe_spoof_video_streams_summary">"Åtgärdar uppspelningsproblem för de flesta användare genom att begära en kompatibel videostream
 
 Om du är en YouTube Premium-användare kan det hända att den här inställningen inte krävs"</string>

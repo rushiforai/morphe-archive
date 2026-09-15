@@ -75,7 +75,6 @@ Skontrolujte, či je názov balíka správny a či je aplikácia nainštalovaná
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Falšovanie toku videa</string>
   <string name="morphe_spoof_video_streams_screen_summary">Konfigurácia falšovania klienta na zabránenie problémom s prehrávaním</string>
-  <string name="morphe_spoof_video_streams_title">Falšovať tok videa</string>
   <string name="morphe_spoof_video_streams_summary">"Opravy problémov s prehrávaním pre väčšinu používateľov požiadaním o kompatibilný videostream.
 
 Ak ste používateľ YouTube Premium, toto nastavenie nemusí byť potrebné."</string>

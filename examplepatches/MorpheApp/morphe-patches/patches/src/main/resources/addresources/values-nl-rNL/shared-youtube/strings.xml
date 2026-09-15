@@ -75,7 +75,6 @@ Controleer of de pakketnaam correct is en of de app is geïnstalleerd"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Videostreams spoofen</string>
   <string name="morphe_spoof_video_streams_screen_summary">Spoof de client-videostreams om afspeelproblemen te voorkomen</string>
-  <string name="morphe_spoof_video_streams_title">Videostreams vervalsen</string>
   <string name="morphe_spoof_video_streams_summary">"Lost problemen met het afspelen voor de meeste gebruikers op door een compatibele videostream aan te vragen.
 
 Als u een YouTube Premium-gebruiker bent, is deze instelling mogelijk niet vereist."</string>

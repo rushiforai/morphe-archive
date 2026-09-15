@@ -10,6 +10,7 @@ import android.os.Looper;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.View;
+import app.morphe.extension.shared.BackgroundPoolSaturation;
 import app.morphe.extension.shared.Utils;
 import java.util.Map;
 import java.util.Set;
@@ -95,46 +96,28 @@ public class CommentDislikeGestureTest {
         ReflectionHelpers.setStaticField(serviceType, "cachedService", service);
         ReflectionHelpers.setStaticField(serviceType, "cachedBlockMethod",
                 QueueTestBlockService.class.getMethod("block", String.class, String.class, int.class, int.class));
-        java.util.concurrent.ThreadPoolExecutor pool = ReflectionHelpers.getStaticField(Utils.class, "backgroundThreadPool");
-        java.util.concurrent.CountDownLatch release = new java.util.concurrent.CountDownLatch(1);
-        java.util.concurrent.CountDownLatch entered = new java.util.concurrent.CountDownLatch(pool.getMaximumPoolSize());
-        java.util.List<java.util.concurrent.Future<?>> held = new java.util.ArrayList<>();
         try {
-            int jobs = pool.getMaximumPoolSize() + pool.getQueue().remainingCapacity();
-            for (int i = 0; i < jobs; i++) {
-                held.add(Utils.submitOnBackgroundThread(() -> {
-                    entered.countDown();
-                    if (!release.await(5, java.util.concurrent.TimeUnit.SECONDS)) {
-                        throw new AssertionError("test did not release a held worker");
-                    }
-                    return null;
-                }));
-            }
-            assertTrue("the worker pool was never full", entered.await(2, java.util.concurrent.TimeUnit.SECONDS));
-            assertEquals(0, pool.getQueue().remainingCapacity());
-            assertTrue(cell.button.performClick());
-            Shadows.shadowOf(Looper.getMainLooper()).idle();
-            assertTrue("a rejected block left the control silently busy",
-                    String.valueOf(ShadowToast.getTextOfLatestToast()).startsWith("Could not confirm block for "));
-            assertEquals(java.util.List.of(), service.types);
+            try (BackgroundPoolSaturation saturation = BackgroundPoolSaturation.fill()) {
+                assertTrue(cell.button.performClick());
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                assertTrue("a rejected block left the control silently busy",
+                        String.valueOf(ShadowToast.getTextOfLatestToast()).startsWith("Could not confirm block for "));
+                assertEquals(java.util.List.of(), service.types);
 
-            release.countDown();
-            for (var job : held) job.get(5, java.util.concurrent.TimeUnit.SECONDS);
-            Utils.awaitBackgroundTasksForTests();
-            Shadows.shadowOf(Looper.getMainLooper()).idle();
-            assertTrue(cell.button.performClick());
-            Utils.awaitBackgroundTasksForTests();
-            Shadows.shadowOf(Looper.getMainLooper()).idle();
-            assertEquals("the busy guard survived the failed submission", java.util.List.of(1), service.types);
-            assertEquals("Unblock this commenter", cell.button.getContentDescription());
-            assertTrue(cell.button.performClick());
-            Utils.awaitBackgroundTasksForTests();
-            Shadows.shadowOf(Looper.getMainLooper()).idle();
-            assertEquals(java.util.List.of(1, 0), service.types);
-            assertEquals("Block this commenter", cell.button.getContentDescription());
+                saturation.release();
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                assertTrue(cell.button.performClick());
+                Utils.awaitBackgroundTasksForTests();
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                assertEquals("the busy guard survived the failed submission", java.util.List.of(1), service.types);
+                assertEquals("Unblock this commenter", cell.button.getContentDescription());
+                assertTrue(cell.button.performClick());
+                Utils.awaitBackgroundTasksForTests();
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                assertEquals(java.util.List.of(1, 0), service.types);
+                assertEquals("Block this commenter", cell.button.getContentDescription());
+            }
         } finally {
-            release.countDown();
-            for (var job : held) job.get(5, java.util.concurrent.TimeUnit.SECONDS);
             Utils.awaitBackgroundTasksForTests();
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             ReflectionHelpers.setStaticField(serviceType, "cachedService", previousService);

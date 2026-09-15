@@ -92,7 +92,7 @@ Second \"item\" text"</string>
   <string name="morphe_hide_movies_section_title">영화 선반 숨기기</string>
   <!-- 'Notifications' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_notifications_menu_header_title">알림 메뉴 헤더 숨기기</string>
-  <string name="morphe_hide_notifications_menu_header_summary">알림벨 버튼을 탭하면 표시되는 메뉴에서 헤더가 숨겨집니다</string>
+  <string name="morphe_hide_notifications_menu_header_summary">알림벨 버튼을 탭하면 표시되는 메뉴에서 헤더를 숨깁니다</string>
   <!-- 'Notify me' should be translated using the same localized wording YouTube displays for the button.
           This button usually appears in the Subscriptions feed for future live streams or unreleased videos. -->
   <string name="morphe_hide_notify_me_button_title">\'알림 받기\' 버튼 숨기기</string>
@@ -405,6 +405,7 @@ Second \"item\" text"</string>
   <string name="morphe_vot_screen_title">음성 번역</string>
   <string name="morphe_vot_screen_summary">기기의 텍스트 음성 변환(TTS)을 사용하여 재생에 맞춰 동기화된 동영상 자막을 읽어줍니다</string>
   <string name="morphe_vot_enabled_title">음성 번역</string>
+  <string name="morphe_vot_enabled_summary">동영상 플레이어에 오버레이 버튼을 표시합니다. 버튼을 탭하여 번역 기능을 켜거나 끌 수 있고, 길게 탭하면 빠른 설정이 실행됩니다</string>
   <string name="morphe_vot_caption_language_title">언어</string>
   <string name="morphe_vot_translation_service_title">번역 제공자</string>
   <string name="morphe_vot_original_audio_volume_title">원본 오디오 볼륨</string>
@@ -516,6 +517,8 @@ API 키는 절대로 다른 사람과 공유해서는 안 됩니다. API 키에 
   <string name="morphe_queue_add_flyout_menu_summary">추가적인 메뉴 구성요소 항목을 추가합니다. \'현재 재생목록에서 다음 순서로 재생\' 메뉴가 표시되지 않는 경우에 이 옵션을 활성화하세요</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_title">\'광고 화이트리스트\' 메뉴 항목 추가하기</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_summary">해당 동영상의 채널에서 광고가 재생되도록 하는 메뉴 구성요소 항목을 추가합니다</string>
+  <!-- "Spoof video streams" must use the same translation as morphe_spoof_video_streams_screen_title -->
+  <string name="morphe_ads_channel_whitelist_flyout_user_dialog_message">이 기능을 사용하려면, PotHelper를 사용하거나 \'동영상 스트림 속이기\'에서 \'기본 클라이언트\'를 TV 또는 Android VR 로그인으로 변경해야 할 수 있습니다</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_title">\'속도 화이트리스트\' 메뉴 항목 추가하기</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_summary">해당 동영상의 채널을 항상 1.0 배속으로 재생하는 메뉴 구성요소 항목을 추가합니다</string>
   <string name="morphe_queue_manager_check_failed_auth">로그인하지 않았습니다</string>
@@ -557,13 +560,13 @@ API 키는 절대로 다른 사람과 공유해서는 안 됩니다. API 키에 
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
   <string name="morphe_live_stream_dvr_not_available">"'실시간 스트림 DVR 활성화하기'를 사용할 수 없을 수 있습니다
 
-이 문제를 해결하려면, '동영상 스트림 속이기'를 활성화하고 '기본 클라이언트'를 'TV Simply' 또는 'visionOS'로 변경하세요"</string>
+이 문제를 해결하려면, '동영상 스트림 속이기'에서 '기본 클라이언트'를 'TV Simply' 또는 'visionOS'로 변경하세요"</string>
   <string name="morphe_expand_live_stream_dvr_duration_title">실시간 스트림 DVR 탐색 구간 확장하기</string>
   <string name="morphe_expand_live_stream_dvr_duration_summary">실시간 스트림을 최대 7일 전까지 되감아 볼 수 있습니다</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
   <string name="morphe_expand_live_stream_dvr_duration_not_available">"'실시간 스트림 DVR 탐색 구간 확장하기'를 사용할 수 없을 수 있습니다
 
-이 문제를 해결하려면, '동영상 스트림 속이기'를 활성화하고 '기본 클라이언트'를 'TV Simply' 또는 'visionOS'로 변경하세요"</string>
+이 문제를 해결하려면, '동영상 스트림 속이기'에서 '기본 클라이언트'를 'TV Simply' 또는 'visionOS'로 변경하세요"</string>
   <!-- interaction.seekbar.enableSlideToSeekPatch -->
   <string name="morphe_slide_to_seek_title">슬라이드하여 탐색 활성화하기</string>
   <string name="morphe_slide_to_seek_summary">동영상 플레이어를 길게 탭했을 경우에 \'2배속 재생\' 대신 \'슬라이드하여 탐색\'을 사용하도록 설정합니다</string>
@@ -605,8 +608,10 @@ API 키는 절대로 다른 사람과 공유해서는 안 됩니다. API 키에 
   <string name="morphe_swipe_text_overlay_size_summary">화면 텍스트 크기를 설정할 수 있습니다 (1-30)</string>
   <string name="morphe_swipe_threshold_title">스와이프 한계치</string>
   <string name="morphe_swipe_threshold_summary">제스처 인식을 위해 얼마나 스와이프를 해야 할지를 설정할 수 있습니다</string>
-  <string name="morphe_swipe_volume_sensitivity_title">볼륨 스와이프 민감도</string>
-  <string name="morphe_swipe_volume_sensitivity_summary">값이 높을수록 한 번의 스와이프로 변경되는 볼륨 크기가 증가합니다</string>
+  <string name="morphe_swipe_volume_distance_title">볼륨 스와이프 민감도</string>
+  <string name="morphe_swipe_volume_distance_summary">값이 높을수록 볼륨 단계당 더 많은 스와이프가 필요합니다.</string>
+  <string name="morphe_swipe_volume_steps_title">볼륨 단계</string>
+  <string name="morphe_swipe_volume_steps_entry_default">기기 기본값</string>
   <string name="morphe_swipe_brightness_sensitivity_title">밝기 스와이프 민감도</string>
   <string name="morphe_swipe_brightness_sensitivity_summary">값이 높을수록 밝기 단계를 변경하려면 더 많이 스와이프해야 합니다</string>
   <string name="morphe_swipe_speed_sensitivity_title">속도 스와이프 민감도</string>
@@ -915,6 +920,7 @@ API 키는 절대로 다른 사람과 공유해서는 안 됩니다. API 키에 
   <string name="morphe_disable_fullscreen_sliding_down_gesture_title">아래로 스와이프하여 전체 화면 전환 제스처 비활성화하기 (플레이어 하단)</string>
   <string name="morphe_disable_fullscreen_dragged_down_gesture_title">아래로 스와이프하여 전체 화면 종료 제스처 비활성화하기 (전체 화면)</string>
   <string name="morphe_disable_fullscreen_zoom_gesture_title">핀치 투 줌 제스처 비활성화하기</string>
+  <string name="morphe_restore_pinch_to_zoom_title">핀치 투 줌 복원하기</string>
   <!-- layout.player.fullscreen.openVideosFullscreenPatch -->
   <string name="morphe_open_videos_fullscreen_title">전체 화면 모드로 동영상 열기</string>
   <string name="morphe_open_videos_fullscreen_entry_1">사용 안함</string>
@@ -927,6 +933,8 @@ API 키는 절대로 다른 사람과 공유해서는 안 됩니다. API 키에 
   <string name="morphe_fullscreen_video_scale_entry_zoom">확대 (잘라서 채우기)</string>
   <string name="morphe_fullscreen_video_scale_button_title">동영상 크기 조절 버튼 표시하기</string>
   <string name="morphe_fullscreen_video_scale_button_summary">버튼을 탭하여 기본값, 화면 늘리기, 화면 확대 순으로 전환하여 전체 화면 동영상 크기를 조절할 수 있습니다</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_title">전체 화면에서만 표시하기</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_summary">세로 모드 플레이어에서 동영상 크기 조절 버튼을 숨깁니다</string>
   <!-- layout.player.buttons.muteVideoButtonPatch -->
   <string name="morphe_mute_video_button_title">음소거 버튼 표시하기</string>
   <!-- layout.player.overlay.customPlayerOverlayOpacityPatch -->
@@ -966,6 +974,7 @@ API 키는 절대로 다른 사람과 공유해서는 안 됩니다. API 키에 
 
 제한 사항: '이전 동영상 작업 버튼바 복원하기'를 비활성화하면, '동영상 더보기' 오버레이를 사용할 수 없을 수 있습니다"</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="morphe_spoof_app_version_target_entry_21_11">21.11.48 - 이전 자막 동작을 복원합니다</string>
   <string name="morphe_spoof_app_version_target_entry_20_39">20.39.41 - 이전 \'재생목록에 저장\'을 복원합니다</string>
   <string name="morphe_spoof_app_version_target_entry_20_28">20.28.41 - 굵은 아이콘을 비활성화합니다</string>
   <string name="morphe_spoof_app_version_target_entry_20_13">20.13.41 - 동영상 플레이어 아래에서 채널 이름을 복원합니다</string>
@@ -1026,16 +1035,16 @@ API 키는 절대로 다른 사람과 공유해서는 안 됩니다. API 키에 
   <string name="morphe_miniplayer_disable_resuming_summary">앱 시작 시 \'이어서 시청하기\' 미니플레이어가 나타나지 않도록 합니다. 이 기능은 YouTube Premium 기능입니다</string>
   <string name="morphe_miniplayer_screen_title">미니 플레이어</string>
   <string name="morphe_miniplayer_screen_summary">최소화된 동영상 플레이어의 레이아웃 및 동작을 설정할 수 있습니다</string>
-  <string name="morphe_miniplayer_not_available_summary">YouTube에서 모든 추가 미니플레이어가 제거되었습니다. 미니플레이어 유형을 변경하려면 YouTube 21.28.208 이하 버전을 패치해야 합니다</string>
   <string name="morphe_miniplayer_type_title">미니 플레이어 유형</string>
   <string name="morphe_miniplayer_type_entry_0">사용 안함</string>
   <string name="morphe_miniplayer_type_entry_1">기본값</string>
-  <string name="morphe_miniplayer_type_entry_2">최소화</string>
-  <string name="morphe_miniplayer_type_entry_3">태블릿</string>
-  <string name="morphe_miniplayer_type_entry_4">모던 스타일 1</string>
-  <string name="morphe_miniplayer_type_entry_5">모던 스타일 2</string>
-  <string name="morphe_miniplayer_type_entry_6">모던 스타일 3</string>
-  <string name="morphe_miniplayer_type_entry_7">모던 스타일 4</string>
+  <string name="morphe_miniplayer_type_entry_2">최소화 1</string>
+  <string name="morphe_miniplayer_type_entry_3">최소화 2</string>
+  <string name="morphe_miniplayer_type_entry_4">태블릿</string>
+  <string name="morphe_miniplayer_type_entry_5">모던 스타일 1</string>
+  <string name="morphe_miniplayer_type_entry_6">모던 스타일 2</string>
+  <string name="morphe_miniplayer_type_entry_7">모던 스타일 3</string>
+  <string name="morphe_miniplayer_type_entry_8">모던 스타일 4</string>
   <string name="morphe_miniplayer_disable_rounded_corners_title">둥근 모서리 비활성화하기</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_title">드래그 &amp; 드롭 비활성화하기</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_summary">최소화된 플레이어를 화면의 다른 모서리로 드래그하는 것을 방지할 수 있습니다</string>

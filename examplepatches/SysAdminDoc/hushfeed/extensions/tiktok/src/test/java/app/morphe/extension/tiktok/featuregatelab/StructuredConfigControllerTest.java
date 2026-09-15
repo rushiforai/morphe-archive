@@ -163,4 +163,14 @@ public class StructuredConfigControllerTest {
         public int value;
         public String label;
     }
+
+    /**
+     * Two Boolean fields and nothing else, so a test can look at how a generated Switch is named
+     * without a text input beside it answering for the whole screen. Separate from {@link Config}
+     * because adding a field there moves the editor counts other pages assert.
+     */
+    public static final class TwoBooleans {
+        public boolean enabled = true;
+        public boolean verbose = false;
+    }
 }

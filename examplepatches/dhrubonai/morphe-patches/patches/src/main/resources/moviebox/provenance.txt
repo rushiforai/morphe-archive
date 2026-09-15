@@ -1,0 +1,8 @@
+build-tools 37.0.0
+platform android-36
+javac 21.0.12.1
+a2141522eda2c99b8f97440f563556d1056526e93387d872ce37bf7d869d25b6  src/hx/AppPatch.java
+dcc4bd7bac51edd1af5195c2e842672038c0398434c3034489bb19ccf2fdc921  src/hx/DashFile.java
+1d4c75ba7d5e4fe8e2dc99dda0af753f897171692a0dd7f78e03c45e6d894e90  src/hx/DashServer.java
+f19b2dc64e996210ed5033e4f4b9663fd1dc96899d24c8720a475f0ca94b7954  src/hx/Promo.java
+ebd43b82e0f2e4562d2a25755bdc1d0d3afcf9efd8feb80e8a1e88cc888baded  dashhook.dex

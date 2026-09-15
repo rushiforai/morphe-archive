@@ -46,7 +46,8 @@ final class RemoteMedia {
                     if (responseCode != 200) throw new IOException("Media server returned " + responseCode);
                     long expected = contentLength(response.header("Content-Length"));
                     MediaBudget.checkTransferLength(expected);
-                    MediaBudget.checkDiskSpace(target == null ? null : target.getParentFile(), expected);
+                    File targetDirectory = target == null ? null : target.getParentFile();
+                    MediaBudget.checkDiskSpace(targetDirectory, expected, deadline);
                     try (BufferedInputStream input = new BufferedInputStream(response.inputStream())) {
                         input.mark(32);
                         byte[] header = new byte[16];
@@ -58,7 +59,8 @@ final class RemoteMedia {
                         if (extension == null) throw new IOException("Media server returned an unsupported format");
                         long count;
                         try (FileOutputStream output = new FileOutputStream(target)) {
-                            count = MediaFileWriter.copy(input, output, MediaBudget.MAX_TRANSFER_BYTES, deadline);
+                            count = MediaFileWriter.copy(input, output,
+                                    MediaBudget.MAX_TRANSFER_BYTES, deadline, targetDirectory);
                         }
                         if (expected >= 0 && count != expected) throw new IOException("Media download is incomplete");
                         return extension;

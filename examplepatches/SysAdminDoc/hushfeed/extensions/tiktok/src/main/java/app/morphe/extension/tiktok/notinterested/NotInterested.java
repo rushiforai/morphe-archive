@@ -38,7 +38,7 @@ public final class NotInterested {
             return;
         }
         Utils.showToastShort(L10n.t("Sending feedback"));
-        Utils.runOnBackgroundThread(() -> {
+        boolean accepted = Utils.runOnBackgroundThread(() -> {
             boolean success = false;
             try {
                 String requestId = Reflect.string(video, "getRequestId", "requestId");
@@ -59,11 +59,20 @@ public final class NotInterested {
             } finally {
                 IN_FLIGHT.set(false);
             }
-            final boolean accepted = success;
-            Utils.runOnMainThread(() -> Utils.showToastShort(L10n.t(accepted
+            final boolean sent = success;
+            Utils.runOnMainThread(() -> Utils.showToastShort(L10n.t(sent
                     ? "Marked as not interested"
                     : "TikTok didn't accept the feedback. Try again later.")));
         });
+
+        // The worker is what releases IN_FLIGHT, and a refused task has no worker. Without this
+        // the flag stayed set for the life of the process: the reader saw one "Sending feedback"
+        // that never resolved, and every later tap returned at the compareAndSet above with
+        // nothing on screen at all.
+        if (!accepted) {
+            IN_FLIGHT.set(false);
+            Utils.showToastShort(L10n.t("Could not send the feedback. Try again shortly."));
+        }
     }
 
     static boolean succeeded(Object response) throws IllegalAccessException {

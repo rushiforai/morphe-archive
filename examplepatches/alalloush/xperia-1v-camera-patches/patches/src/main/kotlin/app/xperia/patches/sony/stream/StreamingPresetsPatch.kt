@@ -30,9 +30,10 @@ private const val RECORDING_PROFILE = "Ljp/co/sony/mc/camera/recorder/RecordingP
  */
 @Suppress("unused")
 val streamingPresetsPatch = bytecodePatch(
-    name = "Streaming presets",
-    description = "Unlocks 1080p60/120 and 4K30/60 in Live streaming (camera-capability filtered) and sets " +
-            "the streaming encoder bitrate and keyframe interval.",
+    name = "[WIP] Streaming presets",
+    default = false,
+    description = "Work in progress, crashes the app on launch (v1.3.0). Unlocks 1080p60/120 and 4K30/60 in " +
+            "Live streaming (camera-capability filtered) and sets the streaming encoder bitrate and keyframe interval.",
 ) {
     compatibleWith(SONY_CAMERA)
 

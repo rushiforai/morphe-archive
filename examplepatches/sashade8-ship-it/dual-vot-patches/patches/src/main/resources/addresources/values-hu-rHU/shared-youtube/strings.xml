@@ -75,7 +75,6 @@ Ellenőrizze, hogy a csomagnév helyes-e, és az alkalmazás telepítve van-e."<
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Videó streamek hamisítása</string>
   <string name="morphe_spoof_video_streams_screen_summary">A kliens videó streamek hamisítása a lejátszási problémák elkerülése érdekében</string>
-  <string name="morphe_spoof_video_streams_title">Hamis videó stream</string>
   <string name="morphe_spoof_video_streams_summary">"Javítja a lejátszási problémákat a legtöbb felhasználó számára azáltal, hogy kompatibilis videostreamet kér
 
 Ha YouTube Premium-felhasználó vagy, ez a beállítás nem feltétlenül szükséges."</string>

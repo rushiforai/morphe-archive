@@ -19,6 +19,7 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceIdCache;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.blockauthor.BlockAuthorOverlay;
+import app.morphe.extension.tiktok.blockauthor.BlockAuthorMessages;
 import app.morphe.extension.tiktok.blockauthor.BlockAuthorService;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.blockauthor.VideoAuthor;
@@ -40,8 +41,8 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 /**
- * Comment list tools: a keyword filter on loaded comments, and TikTok's thumbs down control
- * on each comment repurposed to block the commenter in one tap.
+ * Comment list tools: keyword, media and poll filters on loaded comment pages, and TikTok's
+ * thumbs down control on each comment repurposed to block the commenter in one tap.
  *
  * Both entry points are called from the same places the comment translation patch hooks:
  * {@code BaseCommentCell} binding a cell, and the comment list response being handled.
@@ -69,6 +70,7 @@ public final class CommentTools {
     }
 
     private static final String APP_PACKAGE = "com.zhiliaoapp.musically";
+    private static final String POLL_HOOK_FAMILY = "comment polls";
     private static final String DISLIKE_BUTTON_ID = "jlk";
 
     /** One log line for a cell with no thumbs down, not a verdict on the build. */
@@ -190,16 +192,25 @@ public final class CommentTools {
 
     /**
      * Called with the {@code CommentItemList} once TikTok has parsed a page of comments,
-     * before they are shown. Matching comments are removed from the list in place.
+     * before they are shown. Matching comments are removed from the list in place, and optional
+     * page-level poll metadata is cleared before TikTok can build its row.
      */
     public static void onCommentListLoaded(Object commentItemList) {
         boolean byWord = Settings.COMMENT_KEYWORD_FILTER.get();
         boolean media = Settings.HIDE_COMMENT_MEDIA.get();
-        if ((!byWord && !media) || commentItemList == null) {
+        boolean polls = Settings.HIDE_COMMENT_POLLS.get();
+        if ((!byWord && !media && !polls) || commentItemList == null) {
             return;
         }
 
         try {
+            if (polls) {
+                clearPoll(commentItemList);
+            }
+            if (!byWord && !media) {
+                return;
+            }
+
             List<app.morphe.extension.tiktok.feedfilter.KeywordRules.Rule> keywords = byWord
                     ? app.morphe.extension.tiktok.feedfilter.KeywordRules.parse(
                             Settings.COMMENT_BLOCKED_KEYWORDS.get())
@@ -225,6 +236,28 @@ public final class CommentTools {
             }
         } catch (Throwable ex) {
             Logger.printException(() -> "Comment filter failed", ex);
+        }
+    }
+
+    /**
+     * A poll is page metadata, separate from the ordinary comment list. TikTok reads it after
+     * this hook to build the poll row, so clearing the model member prevents the row from being
+     * created and leaves the comments themselves untouched.
+     */
+    private static void clearPoll(Object commentItemList) {
+        Class<?> type = commentItemList.getClass();
+        Field pollInfo = Reflect.field(type, "pollInfo");
+        if (pollInfo == null) {
+            HookStatus.missingMember(POLL_HOOK_FAMILY, "field", type.getName(), "pollInfo");
+            return;
+        }
+        try {
+            pollInfo.set(commentItemList, null);
+            HookStatus.bound(POLL_HOOK_FAMILY, type.getName() + "#pollInfo");
+        } catch (Throwable ex) {
+            HookStatus.missingMember(
+                    POLL_HOOK_FAMILY, "writable field", type.getName(), "pollInfo");
+            Logger.printException(() -> "Could not hide the comment poll", ex);
         }
     }
 
@@ -605,16 +638,11 @@ public final class CommentTools {
 
     private static void block(View cell, VideoAuthor author) {
         blockInFlight = true;
-        BlockAuthorService.block(author, (result, message) -> {
+        BlockAuthorService.block(author, result -> {
             blockInFlight = false;
             if (result != BlockAuthorService.Result.CONFIRMED) {
-                if (result == BlockAuthorService.Result.UNCONFIRMED) {
-                    Utils.showToastLong(L10n.f("Could not confirm block for %1$s", author.label()));
-                    return;
-                }
-                Utils.showToastLong(message == null || message.isEmpty()
-                        ? L10n.f("Could not block %1$s", author.label())
-                        : L10n.f("Could not block %1$s: %2$s", author.label(), message));
+                Utils.showToastLong(BlockAuthorMessages.blockFailure(
+                        Utils.getContext(), result, author.label()));
                 return;
             }
 
@@ -627,42 +655,35 @@ public final class CommentTools {
             View root = cell.getRootView();
             BlockAuthorOverlay.showUndoBanner(root instanceof ViewGroup ? (ViewGroup) root : null,
                     L10n.f("Blocked %1$s", author.label()), () -> {
-                        BlockAuthorService.unblock(author, (undoResult, undoMessage) -> {
+                        BlockAuthorService.unblock(author, undoResult -> {
                             if (undoResult == BlockAuthorService.Result.CONFIRMED) {
                                 if (author.uid != null) {
                                     BLOCKED_UIDS.remove(author.uid);
                                 }
                                 applyBlockedEverywhere();
                             }
-                            Utils.showToastShort(undoResult == BlockAuthorService.Result.CONFIRMED
-                                        ? L10n.f("Unblocked %1$s", author.label())
-                                        : undoResult == BlockAuthorService.Result.UNCONFIRMED
-                                        ? L10n.f("Could not confirm unblock for %1$s", author.label())
-                                        : L10n.f("Could not unblock %1$s", author.label()));
-                    });
+                            Utils.showToastShort(BlockAuthorMessages.unblockResult(
+                                    Utils.getContext(), undoResult, author.label()));
+                        });
                     });
         });
     }
 
     private static void unblock(View cell, VideoAuthor author) {
         blockInFlight = true;
-        BlockAuthorService.unblock(author, (result, message) -> {
+        BlockAuthorService.unblock(author, result -> {
             blockInFlight = false;
             if (result != BlockAuthorService.Result.CONFIRMED) {
-                if (result == BlockAuthorService.Result.UNCONFIRMED) {
-                    Utils.showToastLong(L10n.f("Could not confirm unblock for %1$s", author.label()));
-                    return;
-                }
-                Utils.showToastLong(message == null || message.isEmpty()
-                        ? L10n.f("Could not unblock %1$s", author.label())
-                        : L10n.f("Could not unblock %1$s: %2$s", author.label(), message));
+                Utils.showToastLong(BlockAuthorMessages.unblockResult(
+                        Utils.getContext(), result, author.label()));
                 return;
             }
             if (author.uid != null) {
                 BLOCKED_UIDS.remove(author.uid);
             }
             applyBlockedEverywhere();
-            Utils.showToastShort(L10n.f("Unblocked %1$s", author.label()));
+            Utils.showToastShort(BlockAuthorMessages.unblockResult(
+                    Utils.getContext(), result, author.label()));
         });
     }
 

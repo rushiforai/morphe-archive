@@ -78,6 +78,7 @@ private val braveHostsBlockerPatch = rawResourcePatch(
     execute {
         val soFile = get("lib/arm64-v8a/libchrome.so")
         if (!soFile.exists()) {
+            println("[BraveBlockTelemetry] Skipped: lib/arm64-v8a/libchrome.so not found.")
             return@execute
         }
 

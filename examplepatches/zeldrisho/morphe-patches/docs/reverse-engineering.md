@@ -1,7 +1,7 @@
 # Reverse engineering workflow
 
 How to go from an APK file to a working patch in this repo.
-Companion doc: [fingerprint guide](fingerprint-guide.md) (writing the actual fingerprint + patch code).
+Fingerprint authoring is covered in the [patch development](patch-development.md) guide.
 
 ## Pipeline
 
@@ -25,28 +25,27 @@ relative paths from the repo root).
 
 ## Tools
 
-See [toolchain setup](toolchain.md) for the complete inventory and install commands
-for Fedora WSL and macOS, including fish PATH setup and the `uv tool` versus `uvx`
-decision. The Morphe CLI applies `.mpp` bundles; `scripts/repatch.sh` finds
-the Morphe JAR in its standard locations with no setup.
+See [toolchain setup](toolchain.md) for the complete inventory and install
+commands, including fish PATH setup and the `uv tool` versus `uvx` decision.
+The Morphe CLI applies `.mpp` bundles; `scripts/repatch.py` finds the Morphe
+JAR in its standard locations with no setup.
 
-`scripts/apk-recon.sh` wraps the recon step (framework, HTTP/DI/billing
-stack signals via DEX strings, obfuscation estimate, split-aware native libs,
-recommended next step); `scripts/extract-smali.sh` wraps the
+`scripts/apk_recon.py` wraps the recon step (archive metadata, selected
+framework markers, native-library paths, `aapt` metadata, and optional `apkid`
+output); `scripts/extract_smali.py` wraps the
 DEX → smali step (including split `.apkm`/`.xapk` handling);
-`scripts/hunt-signals.sh <decompiled|smali>` counts protection/billing/ads/Ktor/Koin
-signals in one pass before hunting; `scripts/recover-kotlin-names.sh <decompiled>`
+`scripts/hunt_signals.py <decompiled|smali>` counts protection/billing/ads/Ktor/Koin
+signals in one pass before hunting; `scripts/recover_kotlin_names.py <decompiled>`
 rebuilds obfuscated → real Kotlin class names from `@DebugMetadata`/`@Metadata`.
 
 ## Recon
 
 Get the original split bundle only from [APKMirror](https://www.apkmirror.com/).
 Record the download page URL and input SHA-256 alongside versionCode and ABI.
-Run `scripts/apk-recon.sh` (bash; on macOS invoke with Homebrew `bash`, as explained in
-[toolchain setup](toolchain.md#1-python-and-host-tools)):
+Run `scripts/apk_recon.py`:
 
 ```bash
-bash scripts/apk-recon.sh <analysis>/<app>/apk/<app>_<version>.apkm
+python3 scripts/apk_recon.py <analysis>/<app>/apk/<app>_<version>.apkm
 ```
 
 Manual equivalent:
@@ -60,7 +59,7 @@ Manual equivalent:
    `index.android.bundle` = React Native, `libflutter.so`/`libapp.so` = Flutter,
    `assets/www|public/` = Cordova/Capacitor, `libmonodroid.so|assemblies/` = Xamarin/MAUI,
    else native (Compose vs Kotlin distinguished via `androidx.compose` / `kotlin_module`
-   DEX strings — `apk-recon.sh` does all of this automatically).
+   DEX strings — `apk_recon.py` does all of this automatically).
 6. Record native-lib architectures and notable permissions (billing, internet, etc.).
 7. Note HTTP/DI/billing stack signals from the recon report (Retrofit/OkHttp/Ktor/Apollo,
    Hilt/Koin, RevenueCat/Adapty/Play Billing) — they pick the hunt patterns in
@@ -72,7 +71,7 @@ Save as `<analysis>/<app>/notes/recon.md` (rename the APK to `<app>_<version>.<e
 
 ```bash
 jadx -d <analysis>/<app>/decompiled <analysis>/<app>/apk/<app>_<version>.apkm
-bash scripts/extract-smali.sh <analysis>/<app>/apk/<app>_<version>.apkm <analysis>/<app>/smali
+python3 scripts/extract_smali.py <analysis>/<app>/apk/<app>_<version>.apkm <analysis>/<app>/smali
 ```
 
 ### Remote decompilation for large APKs
@@ -81,7 +80,7 @@ Local jadx can OOM on large APKs:
 
 ```bash
 KAGGLE_API_TOKEN=... KAGGLE_KERNEL_ID=user/jadx-apk-decompiler \
-  bash scripts/remote-decompile.sh "<direct-apk-url>" <analysis>/<app>/
+  python3 scripts/remote_decompile.py "<direct-apk-url>" <analysis>/<app>/
 cd <analysis>/<app> && unzip *_decompiled.zip -d decompiled/
 ```
 
@@ -103,10 +102,10 @@ Search in a fixed order — protections first, because an integrity/root check w
 break testing of everything else. Start with a one-pass triage:
 
 ```bash
-bash scripts/hunt-signals.sh <analysis>/<app>/decompiled [--files]
+python3 scripts/hunt_signals.py <analysis>/<app>/decompiled [--files]
 ```
 
-`scripts/hunt-signals.sh` is the canonical pattern list. The buckets below
+`scripts/hunt_signals.py` is the canonical pattern list. The buckets below
 summarize intent only; read the script for exact expressions. When a pattern
 changes, update the script first, then the recipe that motivated the change in
 [bypass patterns](bypass-patterns.md).
@@ -148,40 +147,11 @@ invariants rather than copying framework infrastructure.
    and ordinary messages must survive notification filtering, for example.
    Do not silently import the reference project's broader feature scope.
 5. Distinguish fingerprint match, patch application, app launch, target-path
-   execution, and observed behavior in the [QA record](qa-checklist.md).
+   execution, and observed behavior in the [validation record](validation.md).
    An installed hook or successful build does not prove the feature worked.
 6. Check licensing before copying code; retain required notices for copied
    substantial portions. Remote catalogs, settings, recording, and diagnostics
    infrastructure require separate scope decisions, not automatic adoption.
-
-Reference inspected: the separate `zalo-patch` checkout at commit `deadb56` (MIT).
-Useful entry points, relative to that repository:
-
-- `app/src/main/assets/symbol-schema.json`: versioned symbols and artifact
-  identities. Its 260801903 profile is labeled static-verified; the 260802903
-  profile is labeled device-verified. These are upstream claims, not our QA.
-- `app/src/main/java/com/ez/zalopatch/xposed/features/`: target semantics and
-  surrounding state, especially `BottomTabsFeature.java` and `TelemetryFeature.java`.
-- `app/src/main/java/com/ez/zalopatch/NotificationPromoClassifier.java`:
-  notification preservation rules; its content classifier is not equivalent to
-  our dispatcher-branch filtering.
-- `app/src/main/java/com/ez/zalopatch/FingerprintResolver.java`: evidence and
-  ambiguity checks. It explicitly implements a shadow resolver, not runtime
-  hook selection; its scoring thresholds are not established confidence levels.
-
-This was a source inspection, not a build or device validation. Recheck these
-references if the checkout changes. Keep extracted symbol tables and APK evidence
-in gitignored `analysis/`, not in feature-specific session documents.
-
-### Investigating data-migration patches
-
-External transfer utilities can suggest a user workflow without supplying any
-patch targets. Reference inspected: the separate `zalo-transfer-data` checkout at
-`3672218`, source only; no execution or device validation. Its `app/services.py`
-copies the external `Android/data/com.zing.zalo` tree through ADB and still relies
-on Zalo's own message backup. It does not demonstrate private-database recovery,
-decryption, or a native transfer hook. Do not copy its source-video deletion,
-destination wipe, or unconditional deletion of the recovery archive on failure.
 
 Apply these principles when investigating any app's local-data patch:
 
@@ -193,7 +163,7 @@ Apply these principles when investigating any app's local-data patch:
   before designing a replacement. Verify entry points, prerequisites, callers,
   and restore ordering in smali and on-device; a hidden screen alone does not
   establish a working local export. New UI needs explicit scope approval under
-  the [standing rules](maintenance.md#standing-rules).
+  the [standing rules](development.md#operating-rules).
 - **Separate media from messages.** External-file copies do not establish chat
   recovery or attachment associations. Trace databases, attachment references,
   consistent snapshot handling (including SQLite WAL), and key lifecycle.
@@ -214,7 +184,7 @@ Apply these principles when investigating any app's local-data patch:
   cross-device recovery if claimed, media-to-message associations, incompatible
   accounts/versions, corrupt archives, and interrupted transfers. Archive size,
   successful extraction, and app launch are not restoration proof. Do not change
-  the existing [reinstall order](qa-checklist.md#re-patch--install) based only on
+  the existing [reinstall order](validation.md#re-patch-and-install) based only on
   an external utility's instructions.
 
 Keep app-specific symbols and experimental results in gitignored `analysis/`;
@@ -228,12 +198,12 @@ not; treat recovery coverage as best-effort.) Before tracing call flows, rebuild
 the real names:
 
 ```bash
-bash scripts/recover-kotlin-names.sh <analysis>/<app>/decompiled <analysis>/<app>/mapping
+python3 scripts/recover_kotlin_names.py <analysis>/<app>/decompiled <analysis>/<app>/mapping
 # → mapping.tsv / mapping.json / by_package/
 ```
 
 Use the mapping to *find* classes (never to *match* — fingerprints still anchor on
-SDK calls/strings/opcodes per the [fingerprint guide](fingerprint-guide.md)).
+SDK calls/strings/opcodes per the the fingerprint reference in [patch development](patch-development.md)).
 `jadx --deobf` alone is not equivalent: it invents synthetic names instead of
 recovering the originals.
 
@@ -325,11 +295,11 @@ Never trust jadx output alone — it mis-decompiles obfuscated code. For every c
 4. If Java and smali disagree, **trust smali**.
 5. Write the finding down (`<analysis>/<app>/notes/<topic>.md`) with the smali evidence
    quoted, plus a fingerprint strategy (which stable strings/calls to match on —
-   see the [fingerprint guide](fingerprint-guide.md)). Unverified findings are not ready for patch-writing.
+   see the the fingerprint reference in [patch development](patch-development.md)). Unverified findings are not ready for patch-writing.
 
 ## Write the patch
 
-Covered in the [fingerprint guide](fingerprint-guide.md) and
+Covered in the the fingerprint reference in [patch development](patch-development.md) and
 [patch development](patch-development.md). The handoff from hunting is:
 
 - Fully qualified class + exact smali method signature ([smali verification](#smali-verification-is-mandatory), mandatory).
@@ -350,3 +320,33 @@ Check the patch is registered (`list-patches` in the Morphe CLI against
 (never an extracted `base.apk`), install via `adb install -r`. If a fingerprint fails to
 match, go back to the hunt step and re-verify smali — the app version probably
 moved the code.
+
+
+# Native patching
+
+Guidance for repository patches that modify native libraries inside split APKs.
+
+## Safe workflow
+
+1. Establish a stock control and record the exact version, ABI, input hash, and
+   native-library hash.
+2. Isolate the failure in stages: library loading, constructors, entrypoint,
+   helper calls, and finally the failing predicate.
+3. Preserve registration, TLS, JNI environment setup, cleanup, and normal error
+   paths. Do not replace an entire initializer when only one dispatch is faulty.
+4. Use a version/ABI-gated raw-resource patch with an exact original-byte guard.
+   Fail closed when the library, offset, or surrounding instructions differ.
+5. Test the smallest mutation first, then test it composed with the other
+   patches and on a cold start.
+
+## Diagnostics and release
+
+Diagnostic stubs and NOPs are evidence-gathering tools, not release patches;
+they may remove required initialization and create misleading secondary
+crashes. A release patch should change only the verified instruction and keep
+its original call context intact.
+
+For split APKs, patch the native library in its owning ABI split and verify the
+resulting signed bundle, not just an extracted `base.apk`. Record the patch
+name, guarded byte pattern, ABI, signing result, runtime logs, foreground
+activity, and any remaining QA limitations.

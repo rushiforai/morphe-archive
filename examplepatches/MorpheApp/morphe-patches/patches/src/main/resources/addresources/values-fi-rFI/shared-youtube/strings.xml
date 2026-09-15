@@ -75,7 +75,6 @@ Tarkista, että paketin nimi on oikein ja sovellus on asennettu"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Naamioi videovirrat</string>
   <string name="morphe_spoof_video_streams_screen_summary">Asiakasohjelman videovirtojen naamiointi toisto-ongelmien estämiseksi</string>
-  <string name="morphe_spoof_video_streams_title">Naamioi videovirrat</string>
   <string name="morphe_spoof_video_streams_summary">"Korjaa toistoon liittyviä ongelmia useimmille käyttäjille pyytämällä yhteensopivaa videovirtaa.
 
 Jos olet YouTube Premium -käyttäjä, tämä asetus ei välttämättä ole tarpeen."</string>

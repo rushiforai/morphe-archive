@@ -1,0 +1,52 @@
+name: ⭐ Feature request
+description: Request a new feature or enhancement for an app already supported here.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # hxreborn’s patches feature request
+
+        Before creating a new feature request, please keep the following in mind:
+
+        - 🚨 **Requesting a patch for an app not supported yet? You're in the wrong place**: open an [app request](https://github.com/hxreborn/morphe-patches/issues/new?template=app_request.yml) instead, or upvote the [existing one](https://github.com/hxreborn/morphe-patches/issues?q=is%3Aissue+state%3Aopen+label%3A%22app+request%22+sort%3Areactions-%2B1-desc) with a 👍 reaction.
+        - **Do not submit a duplicate feature request**: Search for existing feature requests [here](https://github.com/hxreborn/morphe-patches/issues?q=is%3Aissue+label%3Aenhancement).
+  - type: input
+    attributes:
+      label: App
+      description: The supported app this feature is for.
+      placeholder: Proton Mail
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Feature description
+      description: |
+        - Describe your feature in detail
+        - Add images, videos, links, examples, references, etc. if possible
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Motivation
+      description: |
+        A strong motivation is necessary for a feature request to be considered.
+
+        - Why should this feature be implemented?
+        - What is the explicit use case?
+        - What are the benefits?
+    validations:
+      required: true
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      description: Your feature request will be closed if you don't follow the checklist below.
+      options:
+        - label: I am not requesting patches for a new app.
+          required: true
+        - label: I have checked all open and closed feature requests and this is not a duplicate.
+          required: true
+        - label: All requested information has been provided properly.
+          required: true

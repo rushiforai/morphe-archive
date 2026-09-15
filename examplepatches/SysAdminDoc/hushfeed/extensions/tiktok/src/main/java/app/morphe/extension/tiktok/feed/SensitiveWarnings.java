@@ -7,6 +7,7 @@
 package app.morphe.extension.tiktok.feed;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.settings.Settings;
 
@@ -42,6 +43,13 @@ public final class SensitiveWarnings {
 
     private static final String MASK_LIST = "videoMaskInfos";
     private static final String SHOW_MASK = "showMask";
+
+    /**
+     * What Hook status calls this. The switch reads on whatever happens here, so without a
+     * line of its own a renamed mask model is indistinguishable from a video TikTok never
+     * flagged: the warning is simply still there and nothing says why.
+     */
+    static final String FAMILY = "sensitive warnings";
 
     private SensitiveWarnings() {
     }
@@ -87,23 +95,34 @@ public final class SensitiveWarnings {
         if (mask == null) {
             return;
         }
+        Field field = findField(mask.getClass(), SHOW_MASK);
+        if (field == null) {
+            HookStatus.missingMember(FAMILY, "field", mask.getClass().getName(), SHOW_MASK);
+            return;
+        }
         try {
-            Field field = findField(mask.getClass(), SHOW_MASK);
-            if (field != null) {
-                field.set(mask, Boolean.FALSE);
-            }
-        } catch (Throwable ignored) {
-            // A build that reshaped the model just keeps its warning.
+            field.set(mask, Boolean.FALSE);
+            HookStatus.bound(FAMILY, mask.getClass().getName() + '#' + SHOW_MASK);
+        } catch (Exception refused) {
+            // Found and would not take the value: the model kept the name and changed the type,
+            // or the field is final. Either way the warning stays, and the row now says so.
+            HookStatus.missingMember(FAMILY, "writable field", mask.getClass().getName(), SHOW_MASK);
+            Logger.printDebug(() -> "Could not turn off " + SHOW_MASK, refused);
         }
     }
 
     private static void clearField(Object target, String name) {
+        Field field = findField(target.getClass(), name);
+        if (field == null) {
+            // Not every build carries all four, and TikTok's own reset skips the ones it has
+            // dropped, so an absent one is ordinary rather than a miss worth reporting.
+            return;
+        }
         try {
-            Field field = findField(target.getClass(), name);
-            if (field != null) {
-                field.set(target, null);
-            }
-        } catch (Throwable ignored) {
+            field.set(target, null);
+        } catch (Exception refused) {
+            HookStatus.missingMember(FAMILY, "writable field", target.getClass().getName(), name);
+            Logger.printDebug(() -> "Could not clear " + name, refused);
         }
     }
 

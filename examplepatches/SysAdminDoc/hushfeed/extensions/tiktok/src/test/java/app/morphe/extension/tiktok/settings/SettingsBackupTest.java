@@ -6,13 +6,17 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.AtomicFile;
+import app.morphe.extension.shared.BackgroundPoolSaturation;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.AppLanguage;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.Setting;
+import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment;
 import app.morphe.extension.tiktok.featuregatelab.FeatureGateLabRuntime;
 import app.morphe.extension.tiktok.featuregatelab.FeatureGateLabStore;
+import app.morphe.extension.tiktok.feedfilter.FeedRuleLimits;
+import app.morphe.extension.tiktok.settings.preference.SettingsBackupPreference;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -183,6 +187,38 @@ public class SettingsBackupTest {
                 + "Nothing was altered.", sentenceFor(many.toString()));
         assertEquals(baseline, SettingsBackup.create(false));
         assertTrue(FeatureGateLabStore.rules().isEmpty());
+    }
+
+    @Test public void oversizedFeedRuleListsAreRejectedBeforeAnyBackupWrite() throws Exception {
+        String baseline = SettingsBackup.create(false);
+        String tooMany = ruleEntries(FeedRuleLimits.MAX_ENTRIES + 1);
+        StringBuilder tooLarge = new StringBuilder(FeedRuleLimits.MAX_UTF8_BYTES / 2 + 1);
+        for (int index = 0; index <= FeedRuleLimits.MAX_UTF8_BYTES / 2; index++) {
+            tooLarge.append('é');
+        }
+        for (String key : new String[]{Settings.BLOCKED_CAPTION_WORDS.key,
+                Settings.BLOCKED_CREATORS.key, Settings.LOCAL_HIDDEN_CREATORS.key}) {
+            for (String invalid : new String[]{tooMany, tooLarge.toString()}) {
+                JSONObject backup = new JSONObject(baseline);
+                backup.getJSONObject("settings").put(key, invalid);
+                assertEquals(key, SettingsBackup.Reason.RULE_LIST,
+                        reasonFor(backup.toString()));
+                assertEquals("That settings backup contains a feed rule list larger than "
+                                + "Hushfeed accepts. Nothing was altered.",
+                        sentenceFor(backup.toString()));
+                assertEquals("a rejected " + key + " value changed storage",
+                        baseline, SettingsBackup.create(false));
+            }
+        }
+    }
+
+    private static String ruleEntries(int count) {
+        StringBuilder value = new StringBuilder(count * 8);
+        for (int index = 0; index < count; index++) {
+            if (index > 0) value.append(',');
+            value.append("item").append(index);
+        }
+        return value.toString();
     }
 
     @Test public void aBackupFromAnotherTikTokVersionRestoresSettingsAndLeavesTheLabAlone() throws Exception {
@@ -958,6 +994,60 @@ public class SettingsBackupTest {
             assertEquals(0, (int) Settings.MAX_VIDEO_SECONDS.get());
             fragment.onActivityResult(7312, android.app.Activity.RESULT_CANCELED, null);
             assertNull(org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog());
+        }
+    }
+
+    @Test public void aFullWorkerQueueRejectsRestoreWithoutLeavingSettingsBusy() throws Exception {
+        try (var owner = Robolectric.buildActivity(
+                app.morphe.extension.tiktok.captions.CaptionToolsTest.CaptionActivity.class)
+                .setup().visible()) {
+            var activity = owner.get();
+            Utils.setContext(activity);
+            Settings.MAX_VIDEO_SECONDS.save(7);
+            byte[] backup = SettingsBackup.create(false).getBytes(StandardCharsets.UTF_8);
+            Settings.MAX_VIDEO_SECONDS.save(73);
+            ByteArrayInputStream input = new ByteArrayInputStream(backup);
+            Uri uri = Uri.parse("content://settings-test/rejected-restore.json");
+            Shadows.shadowOf(activity.getContentResolver()).registerInputStream(uri, input);
+
+            var fragment = new TikTokPreferenceFragment();
+            Bundle arguments = new Bundle();
+            arguments.putString("morphe_settings_section", "DIAGNOSTICS");
+            fragment.setArguments(arguments);
+            activity.getFragmentManager().beginTransaction()
+                    .replace(android.R.id.content, fragment).commit();
+            activity.getFragmentManager().executePendingTransactions();
+
+            var run = SettingsBackupPreference.class.getDeclaredMethod(
+                    "run", TikTokPreferenceFragment.class, int.class, Uri.class);
+            run.setAccessible(true);
+            var busyField = SettingsBackupPreference.class.getDeclaredField("BUSY");
+            busyField.setAccessible(true);
+            var busy = (java.util.concurrent.atomic.AtomicBoolean) busyField.get(null);
+
+            try (BackgroundPoolSaturation saturation = BackgroundPoolSaturation.fill()) {
+                ShadowToast.reset();
+                run.invoke(null, fragment, 7312, uri);
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+                assertEquals("Could not start the settings operation. Try again shortly.",
+                        ShadowToast.getTextOfLatestToast());
+                assertEquals("a rejected restore changed settings", 73,
+                        (int) Settings.MAX_VIDEO_SECONDS.get());
+                assertEquals("a rejected restore opened its input", backup.length, input.available());
+                assertFalse("the import guard remained set",
+                        AbstractPreferenceFragment.settingImportInProgress);
+                assertFalse("the backup control remained busy", busy.get());
+
+                saturation.release();
+                ShadowToast.reset();
+                run.invoke(null, fragment, 7312, uri);
+                waitFor("Settings restored. Restart TikTok to apply all changes.");
+                assertEquals("the same restore could not be retried", 7,
+                        (int) Settings.MAX_VIDEO_SECONDS.get());
+                assertFalse(AbstractPreferenceFragment.settingImportInProgress);
+                assertFalse(busy.get());
+            }
         }
     }
 

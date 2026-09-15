@@ -105,6 +105,10 @@ private data class ChMateProfile(
     val hasLevelPlayBanner: Boolean,
     val homeAdClass: String,
     val homeAdLoadMethod: String?,
+    val legacyPlusDisplayStateClass: String? = null,
+    val legacyPlusDisplayStateMethod: String? = null,
+    val bypassLegacySingleIdEntitlement: Boolean = false,
+    val legacyPlusFilterClass: String? = null,
 )
 
 private enum class ViewModelTrapKind {
@@ -142,6 +146,10 @@ private fun profileFor(versionName: String) = when (versionName) {
         hasLevelPlayBanner = false,
         homeAdClass = "Lo/qheCC;",
         homeAdLoadMethod = null,
+        legacyPlusDisplayStateClass = "Lo/lrb${'$'}RemoteActionCompatParcelizer;",
+        legacyPlusDisplayStateMethod = "d",
+        bypassLegacySingleIdEntitlement = true,
+        legacyPlusFilterClass = "Lo/m9ExternalSyntheticLambda1;",
     )
     "0.8.10.226 dev" -> ChMateProfile(
         providerClass = "Lo/setDither;",
@@ -270,6 +278,8 @@ private val haiagaruBytecodePatch = bytecodePatch {
         // 0.8.10.241 and 0.8.10.243 route lifecycle creation through the Hilt
         // activity base class while 0.8.10.191 keeps it on the concrete activity.
         patchLegacyThreadUrlEntry(profile)
+        patchFinishedLegacyThreadLaunchGuard()
+        patchLegacyPlusFeatureActivation(profile)
         if (packageMetadata.versionName == "0.8.10.243 dev") {
             patchImageSelectionResult()
             patchImageSelectionReflectionTrap()
@@ -393,11 +403,15 @@ private val haiagaruBytecodePatch = bytecodePatch {
         }
 
         when (packageMetadata.versionName) {
-            "0.8.10.191 dev" -> patchLegacy5chIoCompatibility()
+            "0.8.10.191 dev" -> {
+                patchLegacy5chIoCompatibility()
+                patchLegacyTalkDatLoading()
+            }
             "0.8.10.226 dev" -> {
                 patchThreadBannerAdWrapper("Lo/TTVideoLandingPageLink2Activity1;")
                 patchPreIoImageUploadIntegrityTrap("Lo/fWG1;")
                 patchPreIoImageSettingsIntegrityTrap("Lo/setMaintainOriginalImageBounds;")
+                patchPreIoSettingsConstructorIntegrityTrap("Lo/setImageAssetsFolder;")
                 patchBeAttachmentCompatibility("Lo/BouncyCastleSocketAdapterCompanion;")
                 patchPreIoBeRendering(
                     parserClass = "Lo/getMaxLine;",
@@ -408,9 +422,104 @@ private val haiagaruBytecodePatch = bytecodePatch {
                     parseMethodName = "c",
                 )
             }
+            "0.8.10.243 dev" -> {
+                patchSetTextCalls()
+                patchModernTalkDatLoading()
+            }
             else -> patchSetTextCalls()
         }
     }
+}
+
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchModernTalkDatLoading() {
+    // Keep Talk's URL, board identity and posting transport. Its DAT reader is
+    // already the normal MS932 reader. Supply the live response inside the
+    // existing per-thread download lock, before the dynamic Talk auth builder.
+    val loader = mutableClassDefBy("Lo/zzaam;").methods.single { method ->
+        method.name == "a" && method.returnType == "Lo/zzaai\$write;"
+            && method.parameters.map(CharSequence::toString) == listOf(
+                "Ljp/syoboi/a2chMate/client/BBSUrlInfo;", "Z", "Lo/zzbly;"
+            )
+    }
+    val instructions = loader.implementation!!.instructions.toList()
+    val cacheCall = instructions.indexOfFirst {
+        val reference = (it as? ReferenceInstruction)?.reference as? MethodReference
+        reference?.definingClass == "Lo/zzadb;" && reference.returnType == "Ljava/io/File;"
+            && reference.parameterTypes.map(CharSequence::toString) == listOf(
+                "Ljp/syoboi/a2chMate/client/BBSUrlInfo;"
+            )
+    }.takeIf { it >= 0 } ?: error("ChMate 243 thread cache builder was not found")
+    check((instructions[cacheCall + 1] as OneRegisterInstruction).registerA == 5)
+    // v0 holds BBSUrlInfo and v5 the cache File. v1 is overwritten immediately
+    // afterward by the original preference read, and is free at this boundary.
+    loader.addInstructionsWithLabels(cacheCall + 2, """
+        invoke-virtual {v0}, Ljp/syoboi/a2chMate/client/BBSUrlInfo;->H()Ljava/lang/String;
+        move-result-object v1
+        invoke-static {v1, v5}, $EXTENSION->loadLiveTalkDat(Ljava/lang/String;Ljava/io/File;)Z
+        move-result v1
+        if-eqz v1, :haiagaru_normal_download
+        new-instance v1, Lo/zzaai${'$'}write;
+        invoke-direct {v1, v5, v0}, Lo/zzaai${'$'}write;-><init>(Ljava/io/File;Ljp/syoboi/a2chMate/client/BBSUrlInfo;)V
+        return-object v1
+        :haiagaru_normal_download
+        nop
+    """.trimIndent())
+}
+
+/**
+ * ChMate 0.8.10.191 builds every Talk request through a dynamically restored
+ * authentication class. Re-signing makes that class enter its decoy arithmetic
+ * branch before the already-imported DAT can be read. Haiagaru imports the current
+ * Talk API response into ChMate's cache first, so route only this Talk request
+ * branch through the ordinary DAT builder and leave every other network path intact.
+ */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyTalkDatLoading() {
+    val method = mutableClassDefBy("Lo/getLabel;").methods.single { method ->
+        method.name == "b"
+            && method.parameters.size == 4
+            && method.parameters[0].toString() ==
+                "Ljp/syoboi/a2chMate/client/BBSUrlInfo;"
+            && method.parameters[1].toString() == "Z"
+            && method.parameters[2].toString() == "Z"
+    }
+    val instructions = method.implementation?.instructions?.toList()
+        ?: error("ChMate legacy thread loader has no implementation")
+    val cachePathIndex = instructions.indexOfFirst { instruction ->
+        val reference = (instruction as? ReferenceInstruction)?.reference
+            as? MethodReference ?: return@indexOfFirst false
+        reference.returnType == "Ljava/io/File;"
+            && reference.parameterTypes.map(CharSequence::toString) == listOf(
+                "Ljp/syoboi/a2chMate/client/BBSUrlInfo;"
+            )
+    }.takeIf { it >= 0 }
+        ?: error("ChMate legacy Talk cache path builder was not found")
+    // Keep the Talk-specific cache filename computed above, then expose the
+    // loaded thread as a normal MS932 DAT to the remainder of ChMate.  The
+    // type-4 marker is what makes the UI label the thread as DAT落ち and
+    // disables the normal thread actions even when the Talk API is live.
+    method.addInstructionsWithLabels(
+        cachePathIndex + 2,
+        """
+            const/4 v14, 0x1
+            iput v14, p1, Ljp/syoboi/a2chMate/client/BBSUrlInfo;->g:I
+        """.trimIndent(),
+    )
+    val talkBuilderIndex = instructions.indexOfFirst { instruction ->
+        val reference = (instruction as? ReferenceInstruction)?.reference
+            as? MethodReference ?: return@indexOfFirst false
+        reference.returnType == "Ljava/lang/String;"
+            && reference.parameterTypes.map(CharSequence::toString) == listOf(
+                "Landroid/content/Context;",
+                "Z",
+                "Lo/getLabel;",
+            )
+    }.takeIf { it >= 0 }
+        ?: error("ChMate legacy Talk request builder was not found")
+    val branchIndex = (0 until talkBuilderIndex).lastOrNull { index ->
+        instructions[index].opcode == Opcode.IF_EQZ
+    } ?: error("ChMate legacy Talk request branch was not found")
+    val talkFlagRegister = (instructions[branchIndex] as OneRegisterInstruction).registerA
+    method.addInstruction(branchIndex, "const/4 v$talkFlagRegister, 0x0")
 }
 
 @Suppress("unused")
@@ -446,6 +555,58 @@ val haiagaruPatch = resourcePatch(
                 val clone = source.cloneNode(true) as Element
                 clone.setAttribute("android:host", ioHost)
                 source.parentNode.insertBefore(clone, source.nextSibling)
+            }
+
+            // ChMate's legacy itest filter uses `/*./...`, which only accepts a
+            // single character before `/test/read.cgi`. Correct the simple-glob
+            // pattern so server-prefixed URLs such as `/egg/test/read.cgi/...`
+            // resolve to ResListActivity on every supported ChMate generation.
+            val refreshedDataElements = document.getElementsByTagName("data")
+            for (index in 0 until refreshedDataElements.length) {
+                val data = refreshedDataElements.item(index) as? Element ?: continue
+                val host = data.getAttribute("android:host")
+                if (host !in setOf("itest.2ch.net", "itest.5ch.net", "itest.5ch.io")) continue
+                if (data.getAttribute("android:pathPattern") == "/*./test/read.cgi/.*/.*") {
+                    data.setAttribute("android:pathPattern", "/.*/test/read.cgi/.*/.*")
+                }
+            }
+
+            // Newer manifests dropped the dedicated itest host and only keep
+            // the ordinary `*.5ch.io` + `/test/read.cgi` filter. Add the itest
+            // server-prefix form to that same thread filter so Android can
+            // dispatch it before the extension normalizes the URL.
+            val intentFilters = document.getElementsByTagName("intent-filter")
+            for (index in 0 until intentFilters.length) {
+                val intentFilter = intentFilters.item(index) as? Element ?: continue
+                val dataChildren = (0 until intentFilter.childNodes.length)
+                    .mapNotNull { childIndex ->
+                        (intentFilter.childNodes.item(childIndex) as? Element)
+                            ?.takeIf { it.tagName == "data" }
+                    }
+                val hasFiveChIoHost = dataChildren.any { data ->
+                    data.getAttribute("android:host") in setOf("*.5ch.io", "itest.5ch.io")
+                }
+                val handlesThreads = dataChildren.any { data ->
+                    data.getAttribute("android:pathPrefix").startsWith("/test/read.cgi") ||
+                        data.getAttribute("android:pathPattern").contains("test/read.cgi")
+                }
+                if (!hasFiveChIoHost || !handlesThreads) continue
+
+                if (dataChildren.none { it.getAttribute("android:host") == "itest.5ch.io" }) {
+                    val hostData = document.createElement("data")
+                    hostData.setAttribute("android:host", "itest.5ch.io")
+                    intentFilter.appendChild(hostData)
+                }
+                if (dataChildren.none {
+                        it.getAttribute("android:pathPattern") == "/.*/test/read.cgi/.*/.*"
+                    }) {
+                    val pathData = document.createElement("data")
+                    pathData.setAttribute(
+                        "android:pathPattern",
+                        "/.*/test/read.cgi/.*/.*",
+                    )
+                    intentFilter.appendChild(pathData)
+                }
             }
         }
     }
@@ -581,6 +742,50 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchPreIoImageSetting
     constructor.replaceInstruction(defaultDivideIndex, "const/4 v$defaultRegister, 0x0")
 }
 
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchPreIoSettingsConstructorIntegrityTrap(
+    viewModelClass: String,
+) {
+    val constructor = mutableClassDefBy(viewModelClass).methods.single { candidate ->
+        candidate.name == "<init>"
+            && candidate.returnType == "V"
+            && candidate.parameters.isEmpty()
+    }
+    val instructions = constructor.implementation?.instructions
+        ?: error("ChMate pre-io settings constructor has no implementation")
+    val rejectionBranch = instructions.indices.single { index ->
+        if (instructions[index].opcode != Opcode.IF_NE) return@single false
+        val window = instructions.subList(maxOf(0, index - 24), index)
+        window.count { it.opcode == Opcode.AGET_OBJECT } >= 2
+            && window.count { it.opcode == Opcode.CHECK_CAST } >= 2
+            && window.count { it.opcode == Opcode.AGET } >= 2
+            && instructions.subList(index + 1, minOf(index + 14, instructions.size))
+                .any { it.opcode == Opcode.NEW_ARRAY }
+    }
+
+    // The mismatch path is certificate-sensitive dead code. Re-signing can send
+    // the settings ViewModel constructor through a zero-divisor Toast decoy while
+    // the normal path continues with the same state-array shape.
+    constructor.replaceInstruction(rejectionBranch, "nop")
+
+    val coroutineStartIndex = instructions.indices.single { index ->
+        val reference = (instructions[index] as? ReferenceInstruction)?.reference
+            as? MethodReference ?: return@single false
+        reference.definingClass == "Lo/RequestConfigurationTagForChildDirectedTreatment;"
+            && reference.name == "c"
+            && reference.returnType == "Lo/getImageOrientation;"
+    }
+    val defaultMaskDivideIndex = instructions.subList(0, coroutineStartIndex)
+        .indexOfLast { it.opcode == Opcode.DIV_INT }
+        .takeIf { it >= 0 }
+        ?.plus(0)
+        ?: error("ChMate pre-io settings constructor coroutine mask divide was not found")
+    val defaultMaskRegister = (instructions[defaultMaskDivideIndex] as ThreeRegisterInstruction).registerA
+
+    // The value is the synthetic default-argument mask for the coroutine launch;
+    // it is not app state. Keep the ordinary two-null-default mask directly.
+    constructor.replaceInstruction(defaultMaskDivideIndex, "const/4 v$defaultMaskRegister, 0x3")
+}
+
 @Suppress("unused")
 val saveChMateCrashLogsPatch = bytecodePatch(
     name = "Save ChMate crash logs",
@@ -602,6 +807,86 @@ val saveChMateCrashLogsPatch = bytecodePatch(
                 "$EXTENSION->installCrashLogger(Landroid/content/ContentProvider;)V",
         )
     }
+}
+
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyPlusFeatureActivation(
+    profile: ChMateProfile,
+) {
+    if (!profile.bypassLegacySingleIdEntitlement) return
+
+    val classType = profile.legacyPlusDisplayStateClass
+        ?: error("ChMate legacy plus display state class is not configured")
+    val methodName = profile.legacyPlusDisplayStateMethod
+        ?: error("ChMate legacy plus display state method is not configured")
+    mutableClassDefBy(classType).methods.single { candidate ->
+        candidate.name == methodName
+            && candidate.returnType == "V"
+            && candidate.parameters.isEmpty()
+    }.bypassLegacySingleIdEntitlement(classType)
+
+    profile.legacyPlusFilterClass?.let { filterClass ->
+        val method = mutableClassDefBy(filterClass).methods.single {
+            it.name == "c" && it.returnType == "V"
+                && it.parameters.map(CharSequence::toString) == listOf("Z")
+        }
+        val instructions = method.implementation!!.instructions
+        // Both filters have an entitlement branch immediately before their
+        // preference read. Preserve the preference branches and stock detectors.
+        val gates = listOf("b", "A").map { fieldName ->
+            val preferenceIndex = instructions.indices.single { index ->
+                val ref = (instructions[index] as? ReferenceInstruction)?.reference
+                    as? FieldReference
+                instructions[index].opcode == Opcode.SGET_OBJECT
+                    && ref?.definingClass == "Ljp/syoboi/a2chMate/Prefs;"
+                    && ref.name == fieldName && ref.type == "Lo/m1b\$read;"
+            }
+            val gate = preferenceIndex - 1
+            check(gate >= 0 && instructions[gate].opcode == Opcode.IF_EQZ) {
+                "ChMate legacy $fieldName filter entitlement branch was not found"
+            }
+            gate
+        }
+        check(gates.map { (instructions[it] as OneRegisterInstruction).registerA }
+            .distinct().size == 1) { "ChMate legacy filter entitlement registers differ" }
+        gates.forEach { method.replaceInstruction(it, "nop") }
+    }
+}
+
+private fun MutableMethod.bypassLegacySingleIdEntitlement(ownerType: String) {
+    val instructions = implementation?.instructions
+        ?: error("ChMate legacy plus display state method has no implementation")
+    val getBooleanIndex = instructions.indices.firstOrNull { index ->
+        val reference = (instructions[index] as? ReferenceInstruction)?.reference
+            as? MethodReference ?: return@firstOrNull false
+        reference.definingClass == "Landroid/content/SharedPreferences;"
+            && reference.name == "getBoolean"
+            && reference.returnType == "Z"
+            && reference.parameterTypes.map(CharSequence::toString) ==
+            listOf("Ljava/lang/String;", "Z")
+            && instructions.subList(maxOf(0, index - 6), index).any { previous ->
+                ((previous as? ReferenceInstruction)?.reference as? StringReference)?.string ==
+                    "abbrevSingleId"
+            }
+    } ?: error("ChMate legacy abbrevSingleId preference read was not found")
+    val falseBranchIndex = (getBooleanIndex + 1 until minOf(getBooleanIndex + 8, instructions.size))
+        .firstOrNull { index ->
+            val opcode = instructions[index].opcode
+            opcode == Opcode.IF_EQZ || opcode == Opcode.IF_EQ
+        } ?: error("ChMate legacy abbrevSingleId false branch was not found")
+    val enabledStoreIndex = (falseBranchIndex + 1 until instructions.size).firstOrNull { index ->
+        val instruction = instructions[index]
+        val reference = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+            ?: return@firstOrNull false
+        instruction.opcode == Opcode.IPUT_BOOLEAN
+            && reference.definingClass == ownerType
+            && reference.type == "Z"
+    } ?: error("ChMate legacy abbrevSingleId enabled store was not found")
+
+    addInstructionsWithLabels(
+        falseBranchIndex + 1,
+        "goto/32 :haiagaru_legacy_single_id_enabled",
+        ExternalLabel("haiagaru_legacy_single_id_enabled", instructions[enabledStoreIndex]),
+    )
 }
 
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchImageSelectionResult() {
@@ -793,6 +1078,46 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyThreadUrlEn
         0,
         "invoke-static/range { p0 .. p0 }, " +
             "$EXTENSION->rewriteLegacyThreadIntent(Landroid/app/Activity;)V",
+    )
+}
+
+private fun app.morphe.patcher.patch.BytecodePatchContext
+    .patchFinishedLegacyThreadLaunchGuard() {
+    val method = mutableClassDefBy("Ljp/syoboi/a2chMate/activity/ResListActivity;")
+        .methods
+        .single { candidate ->
+            candidate.name == "onCreate"
+                && candidate.returnType == "V"
+                && candidate.parameters.map(CharSequence::toString) ==
+                listOf("Landroid/os/Bundle;")
+        }
+    val instructions = method.implementation?.instructions
+        ?: error("ChMate ResListActivity onCreate has no implementation")
+    val superOnCreateIndex = instructions.indices.firstOrNull { index ->
+        if (instructions[index].opcode != Opcode.INVOKE_SUPER) return@firstOrNull false
+        val reference = (instructions[index] as? ReferenceInstruction)?.reference
+            as? MethodReference ?: return@firstOrNull false
+        reference.name == "onCreate"
+            && reference.returnType == "V"
+            && reference.parameterTypes.map(CharSequence::toString) ==
+            listOf("Landroid/os/Bundle;")
+    } ?: error("ChMate ResListActivity super.onCreate call was not found")
+    val freeRegister = method.findFreeRegister(superOnCreateIndex + 1)
+
+    // Automatic DAT import finishes the first Activity and opens a retry Activity
+    // after publishing its local cache. Some Android versions still continue the
+    // concrete onCreate method after finish(), where ChMate assumes its content
+    // views exist and calls View.getTag() on null. Stop only that finished instance.
+    method.addInstructionsWithLabels(
+        superOnCreateIndex + 1,
+        """
+            invoke-virtual { p0 }, Landroid/app/Activity;->isFinishing()Z
+            move-result v$freeRegister
+            if-eqz v$freeRegister, :haiagaru_continue_reslist_create
+            return-void
+            :haiagaru_continue_reslist_create
+            nop
+        """,
     )
 }
 
@@ -1790,6 +2115,25 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchPreIoDomainCompat
  */
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacy5chIoCompatibility() {
     val urlInfoClass = mutableClassDefBy("Ljp/syoboi/a2chMate/client/BBSUrlInfo;")
+    // ChMate assigns talk.jp the special type-4 transport. On re-signed 191
+    // builds that path enters a dynamically restored arithmetic/auth class and
+    // can report divide-by-zero even for a live thread. Keep the hostname and
+    // Talk cache key intact, but classify the URL as the ordinary MS932 DAT
+    // transport so reads and refreshes use the stable legacy loader.
+    urlInfoClass.methods.single { method ->
+        method.name == "e"
+            && method.returnType == "I"
+            && method.parameters.map(CharSequence::toString) == listOf("Ljava/lang/String;")
+    }.let { method ->
+        val instructions = method.implementation?.instructions?.toList()
+            ?: error("ChMate BBSUrlInfo host classifier has no implementation")
+        val talkType = instructions.indexOfFirst { instruction ->
+            val literal = (instruction as? NarrowLiteralInstruction)?.narrowLiteral
+            instruction.opcode == Opcode.CONST_4 && literal == 4
+        }.takeIf { it >= 0 }
+            ?: error("ChMate talk.jp type marker was not found")
+        method.replaceInstruction(talkType, "const/4 p0, 0x1")
+    }
     val legacyLinkParserType =
         "Ljp/syoboi/utils/NativeUtils\$RemoteActionCompatParcelizer;"
 

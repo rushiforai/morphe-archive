@@ -120,9 +120,10 @@ public final class FeatureGateLabStore {
             return false;
         }
         if ("OBJECT".equals(normalizeType(type))) {
-            String rejected = validateValue(type, value);
+            ValidationFailure rejected = validateValue(type, value);
             if (rejected != null) {
-                Logger.printInfo(() -> "Refused a structured Lab rule for " + key + ": " + rejected);
+                Logger.printInfo(() -> "Refused a structured Lab rule for " + key
+                        + ": " + rejected.code);
                 return false;
             }
         }
@@ -365,46 +366,53 @@ public final class FeatureGateLabStore {
             throw new JSONException("Profile has no rules array");
         }
         List<Rule> accepted = new ArrayList<>();
-        List<String> rejected = new ArrayList<>();
+        List<ImportRejection> rejected = new ArrayList<>();
         java.util.Set<String> acceptedIds = new java.util.HashSet<>();
         for (int i = 0; i < items.length(); i++) {
             JSONObject item = items.optJSONObject(i);
             if (item == null) {
-                rejected.add("Entry " + (i + 1) + ": invalid object");
+                rejected.add(ImportRejection.at(
+                        ImportRejectionCode.INVALID_OBJECT, i + 1));
                 continue;
             }
             if (!(item.opt("manager") instanceof String)
                     || !(item.opt("key") instanceof String)
                     || !(item.opt("type") instanceof String)
                     || !(item.opt("value") instanceof String)) {
-                rejected.add("Entry " + (i + 1) + ": invalid field type");
+                rejected.add(ImportRejection.at(
+                        ImportRejectionCode.INVALID_FIELD_TYPE, i + 1));
                 continue;
             }
             String manager = item.optString("manager", "");
             String key = item.optString("key", "");
-            String type = normalizeType(item.optString("type", ""));
+            String importedType = item.optString("type", "");
+            String type = normalizeType(importedType);
             String value = item.optString("value", "");
             FeatureGateCatalog.Entry entry = catalog.get(manager + "\n" + key);
             if (entry == null) {
-                rejected.add(key + ": unknown key");
+                rejected.add(ImportRejection.forKey(
+                        ImportRejectionCode.UNKNOWN_KEY, i + 1, key));
                 continue;
             }
             if (!entry.userVisible()) {
-                rejected.add(key + ": no supported override boundary in this Lab build");
+                rejected.add(ImportRejection.forKey(
+                        ImportRejectionCode.UNSUPPORTED_BOUNDARY, i + 1, key));
                 continue;
             }
             if (!normalizeType(entry.type).equals(type)) {
-                rejected.add(key + ": type mismatch");
+                rejected.add(ImportRejection.typeMismatch(
+                        i + 1, key, entry.type, importedType));
                 continue;
             }
-            String error = validateValue(type, value);
+            ValidationFailure error = validateValue(type, value);
             if (error != null) {
-                rejected.add(key + ": " + error);
+                rejected.add(ImportRejection.invalidValue(i + 1, key, error));
                 continue;
             }
             String id = idFor(manager, key, type);
             if (!acceptedIds.add(id)) {
-                rejected.add(key + ": duplicate rule");
+                rejected.add(ImportRejection.forKey(
+                        ImportRejectionCode.DUPLICATE_RULE, i + 1, key));
                 continue;
             }
             accepted.add(new Rule(id, manager, key, type, value, false, System.currentTimeMillis()));
@@ -412,16 +420,17 @@ public final class FeatureGateLabStore {
         return new ImportReview(accepted, rejected);
     }
 
-    public static String validateValue(String type, String value) {
+    public static ValidationFailure validateValue(String type, String value) {
         String normalized = normalizeType(type);
         if (value == null) {
-            return "value is missing";
+            return ValidationFailure.of(ValidationCode.VALUE_MISSING, normalized);
         }
         try {
             switch (normalized) {
                 case "BOOLEAN":
                     if (!"true".equalsIgnoreCase(value) && !"false".equalsIgnoreCase(value)) {
-                        return "expected true or false";
+                        return ValidationFailure.of(
+                                ValidationCode.EXPECTED_TRUE_OR_FALSE, normalized);
                     }
                     return null;
                 case "INT":
@@ -432,17 +441,21 @@ public final class FeatureGateLabStore {
                     return null;
                 case "FLOAT": {
                     float parsed = Float.parseFloat(value);
-                    return Float.isFinite(parsed) ? null : "value must be finite";
+                    return Float.isFinite(parsed) ? null : ValidationFailure.of(
+                            ValidationCode.VALUE_MUST_BE_FINITE, normalized);
                 }
                 case "DOUBLE": {
                     double parsed = Double.parseDouble(value);
-                    return Double.isFinite(parsed) ? null : "value must be finite";
+                    return Double.isFinite(parsed) ? null : ValidationFailure.of(
+                            ValidationCode.VALUE_MUST_BE_FINITE, normalized);
                 }
                 case "STRING":
-                    return value.length() <= 4096 ? null : "string exceeds 4096 characters";
+                    return value.length() <= 4096 ? null : ValidationFailure.of(
+                            ValidationCode.STRING_TOO_LONG, normalized);
                 case "OBJECT": {
                     if (value.length() > 64 * 1024) {
-                        return "structured value exceeds 64 KB";
+                        return ValidationFailure.of(
+                                ValidationCode.STRUCTURED_VALUE_TOO_LARGE, normalized);
                     }
                     // Through the bounded reader, not the platform one. This string arrives
                     // inside a backup file, and the document around it being depth-checked says
@@ -451,17 +464,18 @@ public final class FeatureGateLabStore {
                     // an Error and walked past every catch on the restore path.
                     JSONObject object = SettingsJson.parseObject(value, STRUCTURED_VALUE_LIMITS);
                     if (object.length() == 0) {
-                        return "select at least one field";
+                        return ValidationFailure.of(
+                                ValidationCode.SELECT_AT_LEAST_ONE_FIELD, normalized);
                     }
                     return null;
                 }
                 default:
-                    return "unsupported type";
+                    return ValidationFailure.of(ValidationCode.UNSUPPORTED_TYPE, normalized);
             }
         } catch (NumberFormatException exception) {
-            return "invalid " + normalized.toLowerCase(Locale.ROOT) + " value";
+            return ValidationFailure.of(ValidationCode.INVALID_NUMBER, normalized);
         } catch (JSONException | java.io.IOException exception) {
-            return "invalid structured value";
+            return ValidationFailure.of(ValidationCode.INVALID_STRUCTURED_VALUE, normalized);
         }
     }
 
@@ -642,6 +656,114 @@ public final class FeatureGateLabStore {
         }
     }
 
+    public enum ValidationCode {
+        VALUE_MISSING,
+        EXPECTED_TRUE_OR_FALSE,
+        INVALID_NUMBER,
+        VALUE_MUST_BE_FINITE,
+        STRING_TOO_LONG,
+        STRUCTURED_VALUE_TOO_LARGE,
+        SELECT_AT_LEAST_ONE_FIELD,
+        UNSUPPORTED_TYPE,
+        INVALID_STRUCTURED_VALUE,
+        INVALID_JSON,
+        EXPECTED_JSON_OBJECT_OR_ARRAY
+    }
+
+    /** A model-layer refusal with no wording tied to the reader's language. */
+    public static final class ValidationFailure {
+        public final ValidationCode code;
+        public final String technicalType;
+
+        private ValidationFailure(ValidationCode code, String technicalType) {
+            this.code = code;
+            this.technicalType = technicalType == null ? "" : technicalType;
+        }
+
+        static ValidationFailure of(ValidationCode code, String technicalType) {
+            return new ValidationFailure(code, technicalType);
+        }
+    }
+
+    public enum ImportRejectionCode {
+        INVALID_OBJECT,
+        INVALID_FIELD_TYPE,
+        UNKNOWN_KEY,
+        UNSUPPORTED_BOUNDARY,
+        TYPE_MISMATCH,
+        INVALID_VALUE,
+        DUPLICATE_RULE
+    }
+
+    /** One rejected import row, retaining exact technical values but no display sentence. */
+    public static final class ImportRejection {
+        public final ImportRejectionCode code;
+        public final int entryNumber;
+        public final String key;
+        public final String expectedType;
+        public final String actualType;
+        public final ValidationFailure validation;
+
+        private ImportRejection(
+                ImportRejectionCode code,
+                int entryNumber,
+                String key,
+                String expectedType,
+                String actualType,
+                ValidationFailure validation
+        ) {
+            this.code = code;
+            this.entryNumber = entryNumber;
+            this.key = key == null ? "" : key;
+            this.expectedType = expectedType == null ? "" : expectedType;
+            this.actualType = actualType == null ? "" : actualType;
+            this.validation = validation;
+        }
+
+        static ImportRejection at(ImportRejectionCode code, int entryNumber) {
+            return new ImportRejection(code, entryNumber, "", "", "", null);
+        }
+
+        static ImportRejection forKey(
+                ImportRejectionCode code,
+                int entryNumber,
+                String key
+        ) {
+            return new ImportRejection(code, entryNumber, key, "", "", null);
+        }
+
+        static ImportRejection typeMismatch(
+                int entryNumber,
+                String key,
+                String expectedType,
+                String actualType
+        ) {
+            return new ImportRejection(
+                    ImportRejectionCode.TYPE_MISMATCH,
+                    entryNumber,
+                    key,
+                    expectedType,
+                    actualType,
+                    null
+            );
+        }
+
+        static ImportRejection invalidValue(
+                int entryNumber,
+                String key,
+                ValidationFailure validation
+        ) {
+            return new ImportRejection(
+                    ImportRejectionCode.INVALID_VALUE,
+                    entryNumber,
+                    key,
+                    "",
+                    "",
+                    validation
+            );
+        }
+    }
+
     public static final class Rule {
         public final String id;
         public final String manager;
@@ -664,9 +786,9 @@ public final class FeatureGateLabStore {
 
     public static final class ImportReview {
         public final List<Rule> accepted;
-        public final List<String> rejected;
+        public final List<ImportRejection> rejected;
 
-        ImportReview(List<Rule> accepted, List<String> rejected) {
+        ImportReview(List<Rule> accepted, List<ImportRejection> rejected) {
             this.accepted = Collections.unmodifiableList(accepted);
             this.rejected = Collections.unmodifiableList(rejected);
         }

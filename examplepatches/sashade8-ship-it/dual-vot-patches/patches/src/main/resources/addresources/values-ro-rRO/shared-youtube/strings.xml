@@ -75,7 +75,6 @@ Verificați dacă numele pachetului este corect și aplicația este instalată"<
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Falsifică fluxurile video</string>
   <string name="morphe_spoof_video_streams_screen_summary">Configurează falsificarea clientului pentru a preveni problemele de redare</string>
-  <string name="morphe_spoof_video_streams_title">Spoof video stream-uri</string>
   <string name="morphe_spoof_video_streams_summary">"Remediază problemele de redare pentru majoritatea utilizatorilor prin solicitarea unui flux video compatibil
 
 Dacă ești un utilizator YouTube Premium, această setare s-ar putea să nu fie necesară"</string>

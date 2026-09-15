@@ -20,9 +20,36 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
         setTitle("App behavior");
     }
 
-    /** Whether this page has anything on it. The row into it asks the same question. */
+    /**
+     * Whether this page has anything on it. The row into it asks the same question.
+     *
+     * <p>Every row below belongs to a patch, so with none of them in the bundle this page is its
+     * heading and nothing else. The home screen used to ask a copy of this question kept in
+     * {@code TikTokPreferenceFragment}, and the copy fell one flag behind: a bundle carrying
+     * Settings and Hide the launcher shortcuts and nothing else built the switch here and no row
+     * into the page, so the only way to that switch was the settings search. One list, here,
+     * next to the rows it is a list of.
+     */
     public static boolean isAvailable() {
-        return true;
+        return SettingsStatus.foldableSplitViewEnabled
+                || SettingsStatus.sanitizeShareUrlsEnabled
+                || SettingsStatus.externalBrowserEnabled
+                || SettingsStatus.showSeekbarEnabled
+                || SettingsStatus.seekbarThumbnailEnabled
+                || SettingsStatus.stopVideoLoopingEnabled
+                || SettingsStatus.resumeVideoAfterScrollEnabled
+                || SettingsStatus.longPressSpeedLockEnabled
+                || SettingsStatus.disableLongPressQuickShareEnabled
+                || SettingsStatus.disableLongPressRepostEnabled
+                || SettingsStatus.disableTelemetryEnabled
+                || SettingsStatus.ghostModeEnabled
+                || SettingsStatus.blockAuthorEnabled
+                || SettingsStatus.notInterestedEnabled
+                || SettingsStatus.nonPersonalizedSearchEnabled
+                || SettingsStatus.liveSearchEnabled
+                || SettingsStatus.duetStitchEnabled
+                || SettingsStatus.refreshRateEnabled
+                || SettingsStatus.launcherShortcutsEnabled;
     }
 
     @Override
@@ -34,7 +61,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
     public void addPreferences(Context context) {
         if (SettingsStatus.foldableSplitViewEnabled) {
             addPreference(new TogglePreference(context, "Comments beside the video",
-                    "Use the split layout on wider screens. Restart TikTok to apply this, or unfold again if the old layout is still there.", Settings.FOLDABLE_SPLIT_VIEW));
+                    "Use the split layout on wider screens. Restart TikTok to apply this. If the old layout is still there, unfold again.", Settings.FOLDABLE_SPLIT_VIEW));
             addPreference(new app.morphe.extension.tiktok.settings.preference.NumberInputPreference(context,
                     "Split comment minimum width", "Window width needed to enable the layout. Restart TikTok to apply this.",
                     Settings.FOLDABLE_SPLIT_VIEW_MIN_WIDTH_DP, "dp", "dp"));
@@ -146,6 +173,18 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     "Add a block button to the video player that blocks the account that posted the "
                             + "current video in one tap. An undo action is shown after each block.",
                     Settings.BLOCK_AUTHOR_BUTTON
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Show local hide button",
+                    "Add a separate button that skips this account locally without blocking it.",
+                    Settings.LOCAL_HIDE_BUTTON
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Show block sound button",
+                    "Add a separate button that skips videos using the current sound.",
+                    Settings.BLOCK_SOUND_BUTTON
             ));
         }
         if (SettingsStatus.notInterestedEnabled) {

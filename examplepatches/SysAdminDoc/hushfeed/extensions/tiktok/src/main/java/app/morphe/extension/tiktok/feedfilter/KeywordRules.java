@@ -5,8 +5,10 @@
 package app.morphe.extension.tiktok.feedfilter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,6 +29,21 @@ public final class KeywordRules {
     /** Both spellings of the second operator, because people write it either way round. */
     private static final Pattern COMPOSITE =
             Pattern.compile("^\\s*\"([^\"]+)\"\\s*(!?&!?)\\s*\"([^\"]+)\"\\s*$");
+
+    /** Test-only observer for proving the feed path does not rebuild unchanged rules. */
+    private static volatile Runnable parseTestHook;
+    private static final Object CACHE_LOCK = new Object();
+    private static volatile CachedRules cachedRules;
+
+    private static final class CachedRules {
+        final String source;
+        final List<Rule> rules;
+
+        CachedRules(String source, List<Rule> rules) {
+            this.source = source;
+            this.rules = rules;
+        }
+    }
 
     private KeywordRules() {
     }
@@ -98,12 +115,36 @@ public final class KeywordRules {
 
     /** The rules a stored list holds, with anything unfinished left out. */
     public static List<Rule> parse(String stored) {
+        Runnable hook = parseTestHook;
+        if (hook != null) hook.run();
         List<Rule> rules = new ArrayList<>();
         for (String entry : split(stored)) {
             Rule rule = rule(entry);
             if (rule != null) rules.add(rule);
         }
         return rules;
+    }
+
+    /** Immutable feed rules, rebuilt only when the exact stored string changes. */
+    static List<Rule> cached(String stored) {
+        CachedRules found = cachedRules;
+        if (found != null && Objects.equals(found.source, stored)) return found.rules;
+        synchronized (CACHE_LOCK) {
+            found = cachedRules;
+            if (found == null || !Objects.equals(found.source, stored)) {
+                found = new CachedRules(stored,
+                        Collections.unmodifiableList(parse(stored)));
+                cachedRules = found;
+            }
+            return found.rules;
+        }
+    }
+
+    static void setParseTestHookForTests(Runnable hook) {
+        synchronized (CACHE_LOCK) {
+            parseTestHook = hook;
+            cachedRules = null;
+        }
     }
 
     /**
@@ -159,6 +200,8 @@ public final class KeywordRules {
      * a rule and does not finish it would match nothing and say nothing about why.
      */
     public static String problem(String stored) {
+        String limitProblem = FeedRuleLimits.captionProblem(stored);
+        if (limitProblem != null) return limitProblem;
         if (hasUnpairedQuote(stored)) {
             return app.morphe.extension.tiktok.settings.L10n.t(
                     "One of the quote marks in that list has nothing to close it, so the rest of the line reads as one phrase. Add the missing quote or take the stray one out.");

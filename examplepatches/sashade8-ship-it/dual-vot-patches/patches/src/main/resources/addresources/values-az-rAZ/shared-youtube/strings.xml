@@ -75,7 +75,6 @@ Paket adının düzgün olduğunu və tətbiqin quraşdırıldığını yoxla"</
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Video yayımların saxtalaşdır</string>
   <string name="morphe_spoof_video_streams_screen_summary">Oynatma problemlərin önləmək üçün qəbuledici saxtakarlığını tənzimlə</string>
-  <string name="morphe_spoof_video_streams_title">Video yayımların saxtalaşdır</string>
   <string name="morphe_spoof_video_streams_summary">"Uyğun video yayımı istəməklə əksər istifadəçilər üçün oynatma problemlərini düzəldir
 
 YouTube Premium istifadəçisisinizsə, bu tənzimləmə tələb olunmaya bilər"</string>

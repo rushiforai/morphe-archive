@@ -75,7 +75,6 @@ Second \"item\" text"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">זיוף זרמי וידאו</string>
   <string name="morphe_spoof_video_streams_screen_summary">הגדר העלמת זהות לקוח כדי למנוע בעיות בהשמעה</string>
-  <string name="morphe_spoof_video_streams_title">זייף זרמי וידאו</string>
   <string name="morphe_spoof_video_streams_summary">"מתקן בעיות בהשמעה עבור רוב המשתמשים על ידי בקשת זרם וידאו תואם
 
 אם אתה משתמש YouTube Premium, ייתכן שהגדרת אפשרות זו לא תהיה נחוצה"</string>

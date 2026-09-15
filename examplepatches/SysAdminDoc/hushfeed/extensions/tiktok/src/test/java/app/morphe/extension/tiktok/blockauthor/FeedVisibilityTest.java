@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 
 import android.app.Activity;
 import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.TextView;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,6 +16,28 @@ import org.robolectric.annotation.Config;
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE, sdk = 28)
 public class FeedVisibilityTest {
+    @Test public void commentsRequireTheVisibleSheetAndItsTitle() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = controller.get();
+            FrameLayout content = activity.findViewById(android.R.id.content);
+            FrameLayout sheet = new FrameLayout(activity);
+            sheet.setId(0x7f0a1001);
+            TextView title = new TextView(activity);
+            title.setId(0x7f0a1002);
+            sheet.addView(title, new FrameLayout.LayoutParams(200, 80));
+            content.addView(sheet, new FrameLayout.LayoutParams(500, 700));
+            FeedVisibility.resolveForTests(activity.getPackageName(), "p_5", sheet.getId());
+            FeedVisibility.resolveForTests(activity.getPackageName(), "vjb", title.getId());
+
+            assertTrue(FeedVisibility.isCommentSheetVisible(activity));
+            title.setVisibility(View.GONE);
+            assertFalse(FeedVisibility.isCommentSheetVisible(activity));
+            title.setVisibility(View.VISIBLE);
+            sheet.setVisibility(View.GONE);
+            assertFalse(FeedVisibility.isCommentSheetVisible(activity));
+        }
+    }
+
     @Test public void poppedDetailDoesNotLeaveAnOverlayOnTheProfile() {
         try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
             Activity activity = controller.get();

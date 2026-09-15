@@ -248,6 +248,9 @@ public final class PausePlayback {
         catcher.setContentDescription(L10n.t(activity, "Tap to start the feed"));
         catcher.setClickable(true);
         catcher.setFocusable(true);
+        // Its whole job is to be pressed, so it is offered as something to press. Without the
+        // role a reader lands on an unnamed View and is told the label with no way to act on it.
+        app.morphe.extension.tiktok.settings.preference.SettingsUi.markAsButton(catcher);
         catcher.setOnClickListener(view -> {
             removeCatcher();
             unquieten();

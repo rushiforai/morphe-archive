@@ -104,9 +104,13 @@ public class SettingsPagesTest {
             app.morphe.extension.tiktok.settings.preference.categories.InboxPreferenceCategory.class,
             app.morphe.extension.tiktok.settings.preference.categories.SharePreferenceCategory.class,
             app.morphe.extension.tiktok.settings.preference.categories.SimSpoofPreferenceCategory.class,
+            // Left out until 2026-09-14, and it was the one that had drifted: its row asked a
+            // copy of the question kept in the fragment, and the copy was missing the launcher
+            // shortcuts flag. A page this sweep does not walk is a page the drift can hide in.
+            app.morphe.extension.tiktok.settings.preference.categories.ExtensionPreferenceCategory.class,
         };
         String[] titles = {"Feed filter", "Feed navigation", "Interface", "Comments and translation",
-            "Downloads", "Playback", "Inbox", "Share sheet", "Region settings"};
+            "Downloads", "Playback", "Inbox", "Share sheet", "Region settings", "App behavior"};
 
         // What each page builds with nothing in the bundle at all. Those rows are unconditional
         // and show whenever something else opens the page, so they are the floor to compare

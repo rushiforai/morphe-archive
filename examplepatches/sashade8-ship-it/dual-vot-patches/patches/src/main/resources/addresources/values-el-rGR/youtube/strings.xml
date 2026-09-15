@@ -405,6 +405,7 @@ Second \"item\" text"</string>
   <string name="morphe_vot_screen_title">Μετάφραση φωνής</string>
   <string name="morphe_vot_screen_summary">Διαβάστε τις λεζάντες του βίντεο δυνατά χρησιμοποιώντας το text-to-speech της συσκευής, συγχρονισμένα με την αναπαραγωγή</string>
   <string name="morphe_vot_enabled_title">Μετάφραση φωνής</string>
+  <string name="morphe_vot_enabled_summary">Εμφανίζει ένα επικαλυπτόμενο κουμπί στο πρόγραμμα αναπαραγωγής βίντεο. Πατήστε για εναλλαγή μετάφρασης, πατήστε παρατεταμένα για γρήγορες ρυθμίσεις</string>
   <string name="morphe_vot_caption_language_title">Γλώσσα</string>
   <string name="morphe_vot_translation_service_title">Πάροχος μετάφρασης</string>
   <string name="morphe_vot_original_audio_volume_title">Ένταση αρχικού ήχου</string>
@@ -514,6 +515,8 @@ Second \"item\" text"</string>
   <string name="morphe_queue_add_flyout_menu_summary">Προσθέτει ένα επιπλέον στοιχείο αναδυόμενου παραθύρου. Ενεργοποιήστε αυτό εάν δεν εμφανίζεται η \"Προσθήκη στην ουρά\"</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_title">Λίστα επιτρεπόμενων διαφημίσεων στο αναδυόμενο μενού</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_summary">Προσθέτει ένα στοιχείο αναδυόμενου μενού που επιτρέπει την αναπαραγωγή διαφημίσεων στο κανάλι αυτού του βίντεο</string>
+  <!-- "Spoof video streams" must use the same translation as morphe_spoof_video_streams_screen_title -->
+  <string name="morphe_ads_channel_whitelist_flyout_user_dialog_message">Αυτή η δυνατότητα μπορεί να απαιτεί τη χρήση του PotHelper ή την αλλαγή της επιλογής \"Παραποίηση ροών βίντεο\" σε σύνδεση μέσω TV ή Android VR.</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_title">Λίστα επιτρεπόμενων ταχυτήτων στο αναδυόμενο μενού</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_summary">Προσθέτει ένα στοιχείο αναδυόμενου μενού που αναπαράγει πάντα το κανάλι αυτού του βίντεο σε ταχύτητα 1.0x</string>
   <string name="morphe_queue_manager_check_failed_auth">Δεν έχετε συνδεθεί</string>
@@ -603,8 +606,10 @@ Second \"item\" text"</string>
   <string name="morphe_swipe_text_overlay_size_summary">Προσαρμόστε το μέγεθος του κειμένου που εμφανίζεται στην οθόνη (1-30)</string>
   <string name="morphe_swipe_threshold_title">Κατώτατο όριο μεγέθους σάρωσης</string>
   <string name="morphe_swipe_threshold_summary">Ορίστε την απαιτούμενη απόσταση μεταφοράς πριν ενεργοποιηθεί μια ρύθμιση</string>
-  <string name="morphe_swipe_volume_sensitivity_title">Ευαισθησία σάρωσης έντασης ήχου</string>
-  <string name="morphe_swipe_volume_sensitivity_summary">Υψηλότερες τιμές αυξάνουν την αλλαγή της έντασης ήχου ανά σάρωση</string>
+  <string name="morphe_swipe_volume_distance_title">Ευαισθησία σάρωσης έντασης ήχου</string>
+  <string name="morphe_swipe_volume_distance_summary">Οι υψηλότερες τιμές απαιτούν περισσότερο σύρσιμο ανά βήμα έντασης.</string>
+  <string name="morphe_swipe_volume_steps_title">Βήματα έντασης</string>
+  <string name="morphe_swipe_volume_steps_entry_default">Προεπιλογή συσκευής</string>
   <string name="morphe_swipe_brightness_sensitivity_title">Ευαισθησία σάρωσης φωτεινότητας</string>
   <string name="morphe_swipe_brightness_sensitivity_summary">Υψηλότερες τιμές απαιτούν περισσότερες σαρώσεις ανά βήμα φωτεινότητας</string>
   <string name="morphe_swipe_speed_sensitivity_title">Ευαισθησία σάρωσης ταχύτητας</string>
@@ -913,6 +918,7 @@ Second \"item\" text"</string>
   <string name="morphe_disable_fullscreen_sliding_down_gesture_title">Απενεργοποίηση χειρονομίας σάρωσης προς τα κάτω σε κατακόρυφη προβολή</string>
   <string name="morphe_disable_fullscreen_dragged_down_gesture_title">Απενεργοποίηση χειρονομίας σάρωσης προς τα κάτω σε οριζόντια προβολή</string>
   <string name="morphe_disable_fullscreen_zoom_gesture_title">Απενεργοποίηση χειρονομίας ζουμ με τσίμπημα</string>
+  <string name="morphe_restore_pinch_to_zoom_title">Επαναφορά του τσιμπήματος για εστίαση</string>
   <!-- layout.player.fullscreen.openVideosFullscreenPatch -->
   <string name="morphe_open_videos_fullscreen_title">Άνοιγμα βίντεο σε πλήρη οθόνη</string>
   <string name="morphe_open_videos_fullscreen_entry_1">Απενεργοποιημένο</string>
@@ -925,6 +931,8 @@ Second \"item\" text"</string>
   <string name="morphe_fullscreen_video_scale_entry_zoom">Μεγέθυνση (περικοπή για γέμισμα)</string>
   <string name="morphe_fullscreen_video_scale_button_title">Εμφάνιση κουμπιού κλίμακας βίντεο</string>
   <string name="morphe_fullscreen_video_scale_button_summary">Πατήστε για εναλλαγή Προεπιλεγμένο, Τάνυση, και Μεγέθυνση</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_title">Εμφάνιση μόνο σε πλήρη οθόνη</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_summary">Απόκρυψη του κουμπιού αλλαγής μεγέθους βίντεο στο πρόγραμμα αναπαραγωγής σε κατακόρυφη λειτουργία</string>
   <!-- layout.player.buttons.muteVideoButtonPatch -->
   <string name="morphe_mute_video_button_title">Εμφάνιση κουμπιού σίγασης</string>
   <!-- layout.player.overlay.customPlayerOverlayOpacityPatch -->
@@ -949,6 +957,7 @@ Second \"item\" text"</string>
 
 Περιορισμός: Εάν η επιλογή 'Επαναφορά παλαιού γραμμής εργαλείων βίντεο' είναι απενεργοποιημένη, η επικάλυψη 'Περισσότερα βίντεο' ενδέχεται να μην είναι διαθέσιμη"</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="morphe_spoof_app_version_target_entry_21_11">21.11.48 - Επαναφορά παλιάς συμπεριφοράς λεζάντων</string>
   <string name="morphe_spoof_app_version_target_entry_20_39">20.39.41 - Επαναφορά παλιών σωζημάτων σε αναπαραγωγή</string>
   <string name="morphe_spoof_app_version_target_entry_20_28">20.28.41 - Αποκλείσε έντονα εικονίδια</string>
   <string name="morphe_spoof_app_version_target_entry_20_13">20.13.41 - Επαναφορά ονόματος καναλιού κάτω από τον πρόγραμμα αναπαραγωγής βίντεο</string>
@@ -1009,16 +1018,16 @@ Second \"item\" text"</string>
   <string name="morphe_miniplayer_disable_resuming_summary">Απενεργοποιεί το μίνι player \"Συνέχιση παρακολούθησης\", μια λειτουργία YouTube Premium που εμφανίζεται κατά την εκκίνηση της εφαρμογής</string>
   <string name="morphe_miniplayer_screen_title">Ελαχιστοποιημένη οθόνη αναπαραγωγής</string>
   <string name="morphe_miniplayer_screen_summary">Προσαρμόστε την εμφάνιση και τη συμπεριφορά του μικρογραφικού αναπαραγωγέα βίντεο</string>
-  <string name="morphe_miniplayer_not_available_summary">Το YouTube αφαίρεσε όλα τα επιπλέον miniplayers. Για να αλλάξετε τον τύπο miniplayer, κάντε patch στο YouTube 21.28.208 ή παλαιότερο.</string>
   <string name="morphe_miniplayer_type_title">Τύπος ελαχιστοποιημένης οθόνης αναπαραγωγής</string>
   <string name="morphe_miniplayer_type_entry_0">Απενεργοποιημένη</string>
   <string name="morphe_miniplayer_type_entry_1">Προεπιλογή</string>
   <string name="morphe_miniplayer_type_entry_2">Μινιμαλιστική</string>
-  <string name="morphe_miniplayer_type_entry_3">Ταμπλετ</string>
-  <string name="morphe_miniplayer_type_entry_4">Μοντέρνος 1</string>
-  <string name="morphe_miniplayer_type_entry_5">Μοντέρνος 2</string>
-  <string name="morphe_miniplayer_type_entry_6">Μοντέρνος 3</string>
-  <string name="morphe_miniplayer_type_entry_7">Μοντέρνος 4</string>
+  <string name="morphe_miniplayer_type_entry_3">Μίνιμαλ 2</string>
+  <string name="morphe_miniplayer_type_entry_4">Ταμπλετ</string>
+  <string name="morphe_miniplayer_type_entry_5">Μοντέρνος 1</string>
+  <string name="morphe_miniplayer_type_entry_6">Μοντέρνος 2</string>
+  <string name="morphe_miniplayer_type_entry_7">Μοντέρνος 3</string>
+  <string name="morphe_miniplayer_type_entry_8">Μοντέρνος 4</string>
   <string name="morphe_miniplayer_disable_rounded_corners_title">Απενεργοποίηση στρογγυλεμένων γωνιών</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_title">Απενεργοποίηση λειτουργίας μεταφοράς και απόθεσης</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_summary">Αποτρέπει τη μεταφορά του μικρογραφικού αναπαραγωγέα στις διαφορετικές γωνίες της οθόνης</string>

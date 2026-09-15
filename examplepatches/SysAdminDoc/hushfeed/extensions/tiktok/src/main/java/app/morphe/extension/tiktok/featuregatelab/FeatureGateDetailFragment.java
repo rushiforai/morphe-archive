@@ -34,7 +34,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
 
+import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 
@@ -43,6 +48,12 @@ public final class FeatureGateDetailFragment extends Fragment {
     private static final String ARG_MANAGER = "manager";
     private static final String ARG_KEY = "key";
     private static final String ARG_TYPE = "type";
+    private static final ExecutorService DETAIL_CHANGE_EXECUTOR =
+            Executors.newSingleThreadExecutor(runnable -> {
+                Thread thread = new Thread(runnable, "MorpheGateDetail");
+                thread.setDaemon(true);
+                return thread;
+            });
 
     private final app.morphe.extension.tiktok.settings.SystemBackHandler systemBack =
             new app.morphe.extension.tiktok.settings.SystemBackHandler("FeatureGateDetailBackCallback");
@@ -64,6 +75,25 @@ public final class FeatureGateDetailFragment extends Fragment {
     private AlertDialog customValueDialog;
     private boolean suppress;
     private int lastConcreteSelection;
+    private long detailChangeGeneration;
+    private final Object detailChangeState = new Object();
+    private int detailChangesPending;
+    private FeatureGateLabUndo.UndoBaseline detailUndoBaseline;
+
+    interface DetailChangeTestHook {
+        void before(long generation) throws Exception;
+        void after(long generation);
+    }
+
+    private static volatile DetailChangeTestHook detailChangeTestHook;
+
+    static void setDetailChangeTestHookForTests(DetailChangeTestHook hook) {
+        detailChangeTestHook = hook;
+    }
+
+    static void awaitChangesForTests() throws Exception {
+        DETAIL_CHANGE_EXECUTOR.submit(() -> { }).get(5, TimeUnit.SECONDS);
+    }
 
     public static FeatureGateDetailFragment forEntry(String manager, String key, String type) {
         FeatureGateDetailFragment fragment = new FeatureGateDetailFragment();
@@ -97,13 +127,33 @@ public final class FeatureGateDetailFragment extends Fragment {
         if (entry == null) {
             TextView error = FeatureGateLabUi.body(context, L10n.t(context, "This catalog entry is no longer available. Refresh the Lab and try again."));
             error.setGravity(Gravity.CENTER);
-            error.setPadding(
+
+            // The message names the Lab, and the Lab is one screen back, so the way there is
+            // offered rather than described. It was a sentence alone on a blank screen telling
+            // the reader to go somewhere with no way of going.
+            TextView back = FeatureGateLabUi.body(context, L10n.t(context, "Back"));
+            back.setGravity(Gravity.CENTER);
+            back.setPadding(
+                    FeatureGateLabUi.dp(context, 16),
+                    FeatureGateLabUi.dp(context, 12),
+                    FeatureGateLabUi.dp(context, 16),
+                    FeatureGateLabUi.dp(context, 12)
+            );
+            SettingsUi.styleTextAction(back, true);
+            back.setOnClickListener(view -> leaveDetail());
+
+            LinearLayout column = new LinearLayout(context);
+            column.setOrientation(LinearLayout.VERTICAL);
+            column.setGravity(Gravity.CENTER);
+            column.setPadding(
                     FeatureGateLabUi.dp(context, 24),
                     FeatureGateLabUi.dp(context, 24),
                     FeatureGateLabUi.dp(context, 24),
                     FeatureGateLabUi.dp(context, 24)
             );
-            screen.addView(error, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+            column.addView(error, FeatureGateLabUi.matchWrap());
+            column.addView(back, FeatureGateLabUi.wrapWrap());
+            screen.addView(column, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
             return screen;
         }
         rule = FeatureGateLabStore.rule(entry.manager, entry.key, entry.type);
@@ -335,12 +385,15 @@ public final class FeatureGateDetailFragment extends Fragment {
             force.setOnCheckedChangeListener((button, enabled) -> {
                 if (suppress || !FeatureGateLabStore.masterEnabled()) return;
                 String value = rule == null ? objectPatchText() : rule.value;
-                persist(value, enabled);
+                if (value != null) persist(value, enabled);
             });
         }
 
         if (saveObject != null) {
-            saveObject.setOnClickListener(view -> persist(objectPatchText(), force.isChecked()));
+            saveObject.setOnClickListener(view -> {
+                String value = objectPatchText();
+                if (value != null) persist(value, force.isChecked());
+            });
         }
 
         reset.setOnClickListener(view -> resetRule());
@@ -419,17 +472,19 @@ public final class FeatureGateDetailFragment extends Fragment {
     }
 
     private void persist(String value, boolean enabled) {
-        String error = FeatureGateLabStore.validateValue(entry.type, value);
+        FeatureGateLabStore.ValidationFailure error =
+                FeatureGateLabStore.validateValue(entry.type, value);
         if (error != null) {
-            Utils.showToastLong(error);
+            Utils.showToastLong(FeatureGateLabText.validation(getContext(), error));
             return;
         }
         // Saving takes the journal lock and two write-and-verify cycles, the same as the Lab
         // screen's own changes, which have run off the main thread since they were written.
         Object[] saved = new Object[1];
         runDetailChange(
-                () -> {
-                    FeatureGateLabUndo.saveRule(entry.manager, entry.key, entry.type, value, enabled);
+                undoBaseline -> {
+                    FeatureGateLabUndo.saveRule(
+                            entry.manager, entry.key, entry.type, value, enabled, undoBaseline);
                     saved[0] = FeatureGateLabStore.rule(entry.manager, entry.key, entry.type);
                 },
                 () -> {
@@ -443,7 +498,8 @@ public final class FeatureGateDetailFragment extends Fragment {
 
     private void resetRule() {
         runDetailChange(
-                () -> FeatureGateLabUndo.deleteRule(entry.manager, entry.key, entry.type),
+                undoBaseline -> FeatureGateLabUndo.deleteRule(
+                        entry.manager, entry.key, entry.type, undoBaseline),
                 () -> {
                     rule = null;
                     suppress = true;
@@ -463,36 +519,68 @@ public final class FeatureGateDetailFragment extends Fragment {
 
     /** A change that touches storage, so it does not belong on the thread drawing the screen. */
     private interface DetailChange {
-        void run() throws Exception;
+        void run(FeatureGateLabUndo.UndoBaseline undoBaseline) throws Exception;
     }
 
     /**
      * Runs {@code change} off the main thread, then reports completion on the main thread.
      *
-     * <p>{@code onDone} touches the views, so it is skipped when the screen has gone in the
-     * meantime. The notice is independent of those views: the user pressed a button and is owed
-     * an answer even if they have already left.
+     * <p>Only the newest queued change may report or repaint the screen. This keeps an older
+     * success or failure from replacing the state selected by a later tap.
      */
     private void runDetailChange(DetailChange change, Runnable onDone,
                                  String translatedSuccess, String translatedFailurePrefix) {
-        Utils.runOnBackgroundThread(() -> {
-            String failure = null;
-            try {
-                change.run();
-            } catch (Exception error) {
-                failure = translatedFailurePrefix + " " + error.getMessage();
+        final long generation;
+        final FeatureGateLabUndo.UndoBaseline undoBaseline;
+        synchronized (detailChangeState) {
+            generation = ++detailChangeGeneration;
+            if (detailChangesPending++ == 0) {
+                detailUndoBaseline = new FeatureGateLabUndo.UndoBaseline();
             }
-            String notice = failure;
-            new Handler(Looper.getMainLooper()).post(() -> {
-                if (notice != null) {
-                    Utils.showToastLong(notice);
-                    return;
+            undoBaseline = detailUndoBaseline;
+        }
+        try {
+            DETAIL_CHANGE_EXECUTOR.execute(() -> {
+                String failure = null;
+                try {
+                    DetailChangeTestHook hook = detailChangeTestHook;
+                    if (hook != null) hook.before(generation);
+                    change.run(undoBaseline);
+                    if (hook != null) hook.after(generation);
+                } catch (Exception error) {
+                    Logger.printException(() -> "Feature Gate detail change failed", error);
+                    failure = translatedFailurePrefix;
+                } finally {
+                    detailChangeFinished();
                 }
-                Utils.showToastShort(translatedSuccess);
-                if (getActivity() == null || reset == null) return;
-                onDone.run();
+                String notice = failure;
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (generation != detailChangeGeneration) return;
+                    if (notice != null) {
+                        Utils.showToastLong(notice);
+                        return;
+                    }
+                    Utils.showToastShort(translatedSuccess);
+                    if (getActivity() == null || reset == null) return;
+                    onDone.run();
+                });
             });
-        });
+        } catch (RejectedExecutionException error) {
+            detailChangeFinished();
+            Logger.printException(() -> "Could not schedule Feature Gate detail change", error);
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (generation == detailChangeGeneration) {
+                    Utils.showToastLong(translatedFailurePrefix);
+                }
+            });
+        }
+    }
+
+    private void detailChangeFinished() {
+        synchronized (detailChangeState) {
+            detailChangesPending--;
+            if (detailChangesPending == 0) detailUndoBaseline = null;
+        }
     }
 
     private void showCustomValue() {
@@ -516,9 +604,10 @@ public final class FeatureGateDetailFragment extends Fragment {
             FeatureGateLabUi.styleDialog(dialog);
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
                 String value = input.getText().toString();
-                String error = FeatureGateLabStore.validateValue(entry.type, value);
+                FeatureGateLabStore.ValidationFailure error =
+                        FeatureGateLabStore.validateValue(entry.type, value);
                 if (error != null) {
-                    input.setError(error);
+                    input.setError(FeatureGateLabText.validation(getContext(), error));
                     return;
                 }
                 addOrSelectCustomValue(value);
@@ -533,7 +622,11 @@ public final class FeatureGateDetailFragment extends Fragment {
         int index = selectedIndex(options, value);
         if (index >= options.size() || options.get(index).custom || !value.equals(options.get(index).value)) {
             int customIndex = options.size() - 1;
-            options.add(customIndex, new ValueOption(value, value + " (Custom, unverified)", false));
+            options.add(customIndex, new ValueOption(
+                    value,
+                    FeatureGateLabText.customOptionLabel(getContext(), value),
+                    false
+            ));
             applyOptionsAdapter();
             index = customIndex;
         }
@@ -616,7 +709,8 @@ public final class FeatureGateDetailFragment extends Fragment {
         boolean triggered = FeatureGateLabRuntime.isTriggered(entry.manager, entry.key, entry.type);
         String failure = FeatureGateLabRuntime.structuredFailure(entry.manager, entry.key, entry.type);
         status.setText(failure != null
-                ? L10n.f(getContext(), "Getter requested, override rejected: %1$s", failure)
+                ? L10n.t(getContext(),
+                        "Getter requested, but the structured override could not be applied")
                 : L10n.t(getContext(), triggered
                         ? "Getter requested" : "Getter not requested yet"));
         status.setTextColor(triggered ? SettingsUi.accent() : FeatureGateLabUi.warningColor(getActivity()));
@@ -624,22 +718,7 @@ public final class FeatureGateDetailFragment extends Fragment {
     }
 
     private String effectiveValueText() {
-        if (entry == null) return "Unavailable";
-        FeatureGateLabStore.Rule currentRule = FeatureGateLabStore.rule(entry.manager, entry.key, entry.type);
-        if (FeatureGateLabStore.masterEnabled() && currentRule != null && currentRule.enabled) {
-            boolean triggered = FeatureGateLabRuntime.isTriggered(entry.manager, entry.key, entry.type);
-            if ("OBJECT".equals(entry.type)) {
-                int fields = structuredFieldCount(currentRule.value);
-                return fields + " field" + (fields == 1 ? "" : "s")
-                        + (triggered ? " overridden" : " will be overridden when requested");
-            }
-            return currentRule.value + (triggered
-                    ? " (override returned)"
-                    : " (will be returned when requested)");
-        }
-        return entry.loaded
-                ? entry.currentValue + " (TikTok value)"
-                : "No current value; no active override";
+        return FeatureGateLabText.effectiveValue(getContext(), entry);
     }
 
     private void addObjectEditors(LinearLayout root, boolean editable) {
@@ -682,11 +761,29 @@ public final class FeatureGateDetailFragment extends Fragment {
 
             if ("BOOLEAN".equals(kind)) {
                 Switch toggle = new Switch(root.getContext());
-                toggle.setContentDescription(fieldName);
+                toggle.setId(View.generateViewId());
                 toggle.setChecked(value instanceof Boolean
                         ? (Boolean) value
                         : Boolean.parseBoolean(String.valueOf(value)));
                 toggle.setEnabled(editable);
+                // Named the same way the text fields beside it are: the readable title owns the
+                // relationship and both labels leave traversal, so one field is one stop rather
+                // than a title, a raw name and a switch that repeats the raw name back.
+                final CharSequence spokenName = title.getText() + " (" + rawName.getText() + ")";
+                title.setLabelFor(toggle.getId());
+                title.setFocusable(false);
+                title.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+                rawName.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+                toggle.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+                    @Override public void onInitializeAccessibilityNodeInfo(
+                            View host, android.view.accessibility.AccessibilityNodeInfo info) {
+                        super.onInitializeAccessibilityNodeInfo(host, info);
+                        // The name goes in the node's text, not in a content description: a
+                        // description replaces what the Switch reports about itself, and the
+                        // checked state and the class it announces are the point of using one.
+                        info.setText(spokenName);
+                    }
+                });
                 fieldRoot.addView(toggle, new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.WRAP_CONTENT,
                         FeatureGateLabUi.dp(root.getContext(), 48)
@@ -716,6 +813,12 @@ public final class FeatureGateDetailFragment extends Fragment {
                         kind.startsWith("LIST_") || "JSON".equals(kind) ? 96 : 48
                 ));
                 SettingsUi.styleEditText(input);
+                SettingsUi.labelEditor(
+                        title,
+                        input,
+                        title.getText() + " (" + rawName.getText() + ")"
+                );
+                rawName.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
                 fieldRoot.addView(input, FeatureGateLabUi.matchWrap());
                 objectEditors.add(ObjectFieldEditor.input(fieldName, kind, input));
             }
@@ -779,10 +882,15 @@ public final class FeatureGateDetailFragment extends Fragment {
             for (ObjectFieldEditor editor : objectEditors) {
                 result.put(editor.name, editor.value());
             }
-        } catch (Throwable throwable) {
-            Utils.showToastLong(L10n.f(Utils.getContext(), "Invalid field value: %1$s",
-                    String.valueOf(throwable.getMessage())));
-            return "{}";
+        } catch (FieldValueException failure) {
+            Utils.showToastLong(FeatureGateLabText.fieldValidation(
+                    getContext(), failure.fieldName, failure.validation));
+            return null;
+        } catch (Throwable failure) {
+            Logger.printException(() -> "Could not collect Feature Gate field values", failure);
+            Utils.showToastLong(L10n.t(getContext(),
+                    "A field value could not be read. Check the values and try again."));
+            return null;
         }
         return result.toString();
     }
@@ -796,11 +904,6 @@ public final class FeatureGateDetailFragment extends Fragment {
         } catch (Throwable ignored) {
             return null;
         }
-    }
-
-    private static int structuredFieldCount(String text) {
-        JSONObject object = parseObject(text);
-        return object == null ? 0 : object.length();
     }
 
     private static String editorText(Object value, String kind) {
@@ -886,10 +989,14 @@ public final class FeatureGateDetailFragment extends Fragment {
         technicalDetails.setVisibility(View.GONE);
         addInfo(technicalDetails, L10n.t(context, "Manager"), entry.manager);
         addInfo(technicalDetails, L10n.t(context, "Type"), entry.type);
-        addInfo(technicalDetails, L10n.t(context, "Source"), entry.sourceLabel());
-        addInfo(technicalDetails, L10n.t(context, "Generated defaults"), join(entry.defaults));
-        addInfo(technicalDetails, L10n.t(context, "Historical values"), join(entry.historical));
-        addInfo(technicalDetails, L10n.t(context, "Researched values"), join(entry.researched));
+        addInfo(technicalDetails, L10n.t(context, "Source"),
+                FeatureGateLabText.sourceLabel(context, entry));
+        addInfo(technicalDetails, L10n.t(context, "Generated defaults"),
+                FeatureGateLabText.rawValues(context, entry.defaults));
+        addInfo(technicalDetails, L10n.t(context, "Historical values"),
+                FeatureGateLabText.rawValues(context, entry.historical));
+        addInfo(technicalDetails, L10n.t(context, "Researched values"),
+                FeatureGateLabText.rawValues(context, entry.researched));
         addInfo(technicalDetails, L10n.t(context, "Proof"), entry.proof);
         String original = FeatureGateLabRuntime.originalValue(entry.manager, entry.key, entry.type);
         if (original != null) {
@@ -942,24 +1049,42 @@ public final class FeatureGateDetailFragment extends Fragment {
         return valueView;
     }
 
-    private static List<ValueOption> buildOptions(FeatureGateCatalog.Entry entry, FeatureGateLabStore.Rule rule) {
-        LinkedHashMap<String, List<String>> values = new LinkedHashMap<>();
-        if (entry.loaded) addValue(values, entry.currentValue, "Current");
-        for (String value : entry.defaults) addValue(values, value, "Default");
-        for (String value : entry.researched) addValue(values, value, "Researched");
-        for (String value : entry.historical) addValue(values, value, "Historical");
-        if (rule != null) addValue(values, rule.value, "Selected");
+    private List<ValueOption> buildOptions(
+            FeatureGateCatalog.Entry entry,
+            FeatureGateLabStore.Rule rule
+    ) {
+        LinkedHashMap<String, List<FeatureGateLabText.ValueSource>> values =
+                new LinkedHashMap<>();
+        if (entry.loaded) addValue(values, entry.currentValue,
+                FeatureGateLabText.ValueSource.CURRENT);
+        for (String value : entry.defaults) addValue(values, value,
+                FeatureGateLabText.ValueSource.DEFAULT);
+        for (String value : entry.researched) addValue(values, value,
+                FeatureGateLabText.ValueSource.RESEARCHED);
+        for (String value : entry.historical) addValue(values, value,
+                FeatureGateLabText.ValueSource.HISTORICAL);
+        if (rule != null) addValue(values, rule.value,
+                FeatureGateLabText.ValueSource.SELECTED);
         List<ValueOption> result = new ArrayList<>();
-        for (Map.Entry<String, List<String>> item : values.entrySet()) {
-            result.add(new ValueOption(item.getKey(), item.getKey() + " (" + join(item.getValue()) + ")", false));
+        for (Map.Entry<String, List<FeatureGateLabText.ValueSource>> item
+                : values.entrySet()) {
+            result.add(new ValueOption(
+                    item.getKey(),
+                    FeatureGateLabText.optionLabel(getContext(), item.getKey(), item.getValue()),
+                    false
+            ));
         }
-        result.add(new ValueOption(null, "Custom value...", true));
+        result.add(new ValueOption(null, L10n.t(getContext(), "Custom value..."), true));
         return result;
     }
 
-    private static void addValue(Map<String, List<String>> values, String value, String source) {
+    private static void addValue(
+            Map<String, List<FeatureGateLabText.ValueSource>> values,
+            String value,
+            FeatureGateLabText.ValueSource source
+    ) {
         if (value == null || "null".equals(value)) return;
-        List<String> sources = values.get(value);
+        List<FeatureGateLabText.ValueSource> sources = values.get(value);
         if (sources == null) {
             sources = new ArrayList<>();
             values.put(value, sources);
@@ -990,14 +1115,25 @@ public final class FeatureGateDetailFragment extends Fragment {
         return false;
     }
 
-    private static String join(List<String> values) {
-        if (values == null || values.isEmpty()) return "None recorded";
-        StringBuilder result = new StringBuilder();
-        for (String value : values) {
-            if (result.length() > 0) result.append(", ");
-            result.append(value);
+    private static final class FieldValueException extends IllegalArgumentException {
+        final String fieldName;
+        final FeatureGateLabStore.ValidationFailure validation;
+
+        FieldValueException(
+                String fieldName,
+                FeatureGateLabStore.ValidationFailure validation
+        ) {
+            this.fieldName = fieldName;
+            this.validation = validation;
         }
-        return result.toString();
+    }
+
+    private static final class ScalarValueException extends IllegalArgumentException {
+        final FeatureGateLabStore.ValidationFailure validation;
+
+        ScalarValueException(FeatureGateLabStore.ValidationFailure validation) {
+            this.validation = validation;
+        }
     }
 
     private static final class ObjectFieldEditor {
@@ -1022,62 +1158,94 @@ public final class FeatureGateDetailFragment extends Fragment {
         }
 
         Object value() {
-            if (toggle != null) {
-                return toggle.isChecked();
-            }
-            String text = input == null ? "" : input.getText().toString();
-            if (kind.startsWith("LIST_")) {
-                String elementKind = kind.substring("LIST_".length());
-                JSONArray result = new JSONArray();
-                for (String line : text.split("\\r?\\n")) {
-                    String item = line.trim();
-                    if (!item.isEmpty()) {
-                        result.put(scalarValue(elementKind, item));
-                    }
+            try {
+                if (toggle != null) {
+                    return toggle.isChecked();
                 }
-                return result;
-            }
-            if ("JSON".equals(kind)) {
-                String trimmed = text.trim();
-                try {
-                    if (trimmed.startsWith("{")) {
-                        return new JSONObject(trimmed);
+                String text = input == null ? "" : input.getText().toString();
+                if (kind.startsWith("LIST_")) {
+                    String elementKind = kind.substring("LIST_".length());
+                    JSONArray result = new JSONArray();
+                    for (String line : text.split("\\r?\\n")) {
+                        String item = line.trim();
+                        if (!item.isEmpty()) {
+                            result.put(scalarValue(elementKind, item));
+                        }
                     }
-                    if (trimmed.startsWith("[")) {
-                        return new JSONArray(trimmed);
-                    }
-                } catch (Throwable throwable) {
-                    throw new IllegalArgumentException("invalid JSON");
+                    return result;
                 }
-                throw new IllegalArgumentException("expected a JSON object or array");
+                if ("JSON".equals(kind)) {
+                    String trimmed = text.trim();
+                    try {
+                        if (trimmed.startsWith("{")) {
+                            return new JSONObject(trimmed);
+                        }
+                        if (trimmed.startsWith("[")) {
+                            return new JSONArray(trimmed);
+                        }
+                    } catch (Throwable throwable) {
+                        throw problem(FeatureGateLabStore.ValidationCode.INVALID_JSON, kind);
+                    }
+                    throw problem(
+                            FeatureGateLabStore.ValidationCode.EXPECTED_JSON_OBJECT_OR_ARRAY,
+                            kind
+                    );
+                }
+                return scalarValue(kind, text.trim());
+            } catch (ScalarValueException failure) {
+                throw new FieldValueException(name, failure.validation);
             }
-            return scalarValue(kind, text.trim());
         }
 
         private static Object scalarValue(String kind, String text) {
-            switch (kind) {
-                case "BOOLEAN":
-                    if (!"true".equalsIgnoreCase(text) && !"false".equalsIgnoreCase(text)) {
-                        throw new IllegalArgumentException("expected true or false");
+            try {
+                switch (kind) {
+                    case "BOOLEAN":
+                        if (!"true".equalsIgnoreCase(text) && !"false".equalsIgnoreCase(text)) {
+                            throw problem(
+                                    FeatureGateLabStore.ValidationCode.EXPECTED_TRUE_OR_FALSE,
+                                    kind
+                            );
+                        }
+                        return Boolean.valueOf(text);
+                    case "INT":
+                        return Integer.valueOf(text);
+                    case "LONG":
+                        return Long.valueOf(text);
+                    case "FLOAT": {
+                        float value = Float.parseFloat(text);
+                        if (!Float.isFinite(value)) {
+                            throw problem(
+                                    FeatureGateLabStore.ValidationCode.VALUE_MUST_BE_FINITE,
+                                    kind
+                            );
+                        }
+                        return value;
                     }
-                    return Boolean.valueOf(text);
-                case "INT":
-                    return Integer.valueOf(text);
-                case "LONG":
-                    return Long.valueOf(text);
-                case "FLOAT": {
-                    float value = Float.parseFloat(text);
-                    if (!Float.isFinite(value)) throw new IllegalArgumentException("number must be finite");
-                    return value;
+                    case "DOUBLE": {
+                        double value = Double.parseDouble(text);
+                        if (!Double.isFinite(value)) {
+                            throw problem(
+                                    FeatureGateLabStore.ValidationCode.VALUE_MUST_BE_FINITE,
+                                    kind
+                            );
+                        }
+                        return value;
+                    }
+                    default:
+                        return text;
                 }
-                case "DOUBLE": {
-                    double value = Double.parseDouble(text);
-                    if (!Double.isFinite(value)) throw new IllegalArgumentException("number must be finite");
-                    return value;
-                }
-                default:
-                    return text;
+            } catch (NumberFormatException failure) {
+                throw problem(FeatureGateLabStore.ValidationCode.INVALID_NUMBER, kind);
             }
+        }
+
+        private static ScalarValueException problem(
+                FeatureGateLabStore.ValidationCode code,
+                String technicalType
+        ) {
+            return new ScalarValueException(
+                    FeatureGateLabStore.ValidationFailure.of(code, technicalType));
         }
     }
 

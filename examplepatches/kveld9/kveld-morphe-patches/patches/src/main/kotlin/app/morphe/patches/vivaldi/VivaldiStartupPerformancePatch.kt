@@ -2,6 +2,7 @@ package app.morphe.patches.vivaldi
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.opcode
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.Constants
@@ -55,12 +56,13 @@ val vivaldiStartupPerformancePatch = bytecodePatch(
                 opcode(Opcode.IGET_OBJECT),
             ),
         )
-        fp2.method.addInstructions(
+        fp2.method.addInstructionsWithLabels(
             4,
             """
-                if-eqz v2, :safe_continue
+                if-nez v2, :safe_continue
                 return-void
                 :safe_continue
+                nop
             """,
         )
         val c2 = app.morphe.patches.shared.LocaleUtils.cleanClassName(fp2.originalClassDef.type)

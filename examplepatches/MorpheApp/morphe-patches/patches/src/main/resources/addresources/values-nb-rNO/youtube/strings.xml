@@ -405,6 +405,7 @@ Rapporter er offentlige og blir gjennomgått før en kanal legges til en liste. 
   <string name="morphe_vot_screen_title">Taleoversettelse</string>
   <string name="morphe_vot_screen_summary">Les opp tekstingen til videoen ved hjelp av tekst-til-tale på enheten, synkronisert med avspillingen</string>
   <string name="morphe_vot_enabled_title">Taleoversettelse</string>
+  <string name="morphe_vot_enabled_summary">Viser en overlay-knapp i videospilleren. Trykk for å slå oversettelse av/på, trykk og hold for hurtiginnstillinger. Yak</string>
   <string name="morphe_vot_caption_language_title">Språk</string>
   <string name="morphe_vot_translation_service_title">Oversettelsestjeneste</string>
   <string name="morphe_vot_original_audio_volume_title">Original lydstyrke</string>
@@ -514,6 +515,8 @@ Info: Fungerer kanskje ikke på direktesendinger"</string>
   <string name="morphe_queue_add_flyout_menu_summary">Legger til et ekstra flyout-element. Aktiver dette hvis «Legg til i kø» ikke vises</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_title">Annonsehviteliste i flyout-menyen</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_summary">Legger til et flyout-element som lar annonser spille på kanalen til den videoen</string>
+  <!-- "Spoof video streams" must use the same translation as morphe_spoof_video_streams_screen_title -->
+  <string name="morphe_ads_channel_whitelist_flyout_user_dialog_message">Denne funksjonen kan kreve at du bruker PotHelper eller endrer \"Forfalsk videostrømmer\" til TV- eller Android VR-pålogging.</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_title">Hastighetshviteliste i flyout-menyen</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_summary">Legger til et flyout-element som alltid spiller kanalen til den videoen i 1.0x hastighet</string>
   <string name="morphe_queue_manager_check_failed_auth">Ikke logget inn</string>
@@ -603,8 +606,10 @@ For å fikse dette, slå på 'Forfalsk videostrømmer' og endre 'Standardklient'
   <string name="morphe_swipe_text_overlay_size_summary">Juster størrelsen på teksten på skjermen (1-30)</string>
   <string name="morphe_swipe_threshold_title">Sveipmagnitudeterskel</string>
   <string name="morphe_swipe_threshold_summary">Angi den nødvendige svepeavstanden før en justering utløses</string>
-  <string name="morphe_swipe_volume_sensitivity_title">Volumfølsomhet for sveip</string>
-  <string name="morphe_swipe_volume_sensitivity_summary">Høyere verdier øker volumendringen per sveip</string>
+  <string name="morphe_swipe_volume_distance_title">Volum-sveipefølsomhet</string>
+  <string name="morphe_swipe_volume_distance_summary">Høyere verdier krever mer sveiping per volumtrinn</string>
+  <string name="morphe_swipe_volume_steps_title">Volumtrinn</string>
+  <string name="morphe_swipe_volume_steps_entry_default">Enhetsstandard</string>
   <string name="morphe_swipe_brightness_sensitivity_title">Sveipefølsomhet for lysstyrke</string>
   <string name="morphe_swipe_brightness_sensitivity_summary">Høyere verdier krever mer sveiping per lysstyrketrinn</string>
   <string name="morphe_swipe_speed_sensitivity_title">Hastighetssveipefølsomhet</string>
@@ -913,6 +918,7 @@ Innstillinger → Avspilling (eller Autoplay) → Spill av neste video automatis
   <string name="morphe_disable_fullscreen_sliding_down_gesture_title">Deaktiver sveip-ned-gesten i stående modus</string>
   <string name="morphe_disable_fullscreen_dragged_down_gesture_title">Deaktiver sveip-ned-gesten i liggende modus</string>
   <string name="morphe_disable_fullscreen_zoom_gesture_title">Deaktiver klype-zoom-bevegelse</string>
+  <string name="morphe_restore_pinch_to_zoom_title">Gjenopprett klype for å zoome</string>
   <!-- layout.player.fullscreen.openVideosFullscreenPatch -->
   <string name="morphe_open_videos_fullscreen_title">Åpne videoer i fullskjermmodus</string>
   <string name="morphe_open_videos_fullscreen_entry_1">Deaktivert</string>
@@ -925,6 +931,8 @@ Innstillinger → Avspilling (eller Autoplay) → Spill av neste video automatis
   <string name="morphe_fullscreen_video_scale_entry_zoom">Zoom (beskjær for å fylle)</string>
   <string name="morphe_fullscreen_video_scale_button_title">Vis videoskala-knapp</string>
   <string name="morphe_fullscreen_video_scale_button_summary">Trykk for å veksle mellom Standard, Strekk og Zoom</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_title">Vis kun i fullskjerm</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_summary">Skjul videostørrelsesknappen i stående spiller</string>
   <!-- layout.player.buttons.muteVideoButtonPatch -->
   <string name="morphe_mute_video_button_title">Vis dempeknapp</string>
   <!-- layout.player.overlay.customPlayerOverlayOpacityPatch -->
@@ -964,6 +972,7 @@ Bil-layout
 
 Begrensning: Hvis 'Gjenopprett gammel videoaksjonslinje' er slått av, er det mulig at 'Flere videoer'-overlegg ikke er tilgjengelig"</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="morphe_spoof_app_version_target_entry_21_11">21.11.48 - Gjenopprett gammel tekstringsatferd</string>
   <string name="morphe_spoof_app_version_target_entry_20_39">20.39.41 – Gjenopprett gammel lagring til spilleliste</string>
   <string name="morphe_spoof_app_version_target_entry_20_28">20.28.41 – Deaktiver uthevede ikoner</string>
   <string name="morphe_spoof_app_version_target_entry_20_13">20.13.41 - Gjenopprett kanalnavn under videospilleren</string>
@@ -1024,16 +1033,16 @@ Begrensning: Hvis 'Gjenopprett gammel videoaksjonslinje' er slått av, er det mu
   <string name="morphe_miniplayer_disable_resuming_summary">Deaktiverer minispilleren «Fortsett å se på», en YouTube Premium-funksjon som vises ved oppstart av appen</string>
   <string name="morphe_miniplayer_screen_title">Minispiller</string>
   <string name="morphe_miniplayer_screen_summary">Tilpass utseendet og oppførselen til den minimerte videospilleren</string>
-  <string name="morphe_miniplayer_not_available_summary">YouTube fjernet alle ekstra miniplayere. For å endre miniplayer-typen, må du patche YouTube 21.28.208 eller eldre.</string>
   <string name="morphe_miniplayer_type_title">Minispiller type</string>
   <string name="morphe_miniplayer_type_entry_0">Deaktivert</string>
   <string name="morphe_miniplayer_type_entry_1">Standard</string>
   <string name="morphe_miniplayer_type_entry_2">Minimal</string>
-  <string name="morphe_miniplayer_type_entry_3">Nettbrett</string>
-  <string name="morphe_miniplayer_type_entry_4">Moderne 1</string>
-  <string name="morphe_miniplayer_type_entry_5">Moderne 2</string>
-  <string name="morphe_miniplayer_type_entry_6">Moderne 3</string>
-  <string name="morphe_miniplayer_type_entry_7">Moderne 4</string>
+  <string name="morphe_miniplayer_type_entry_3">Minimal 2</string>
+  <string name="morphe_miniplayer_type_entry_4">Nettbrett</string>
+  <string name="morphe_miniplayer_type_entry_5">Moderne 1</string>
+  <string name="morphe_miniplayer_type_entry_6">Moderne 2</string>
+  <string name="morphe_miniplayer_type_entry_7">Moderne 3</string>
+  <string name="morphe_miniplayer_type_entry_8">Moderne 4</string>
   <string name="morphe_miniplayer_disable_rounded_corners_title">Deaktiver avrundede hjørner</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_title">Deaktiver dra og slipp</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_summary">Forhindrer at du drar den minimerte spilleren til forskjellige hjørner av skjermen</string>

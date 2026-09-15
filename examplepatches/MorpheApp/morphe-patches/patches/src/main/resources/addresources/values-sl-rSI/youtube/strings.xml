@@ -405,6 +405,7 @@ Prijave so javne in so pregledane, preden je kanal dodan na seznam. Odstranitev 
   <string name="morphe_vot_screen_title">Prevajanje z glasom</string>
   <string name="morphe_vot_screen_summary">Prebiranje napisov videoposnetka v glas z uporabo pretvorbe besedila v govor v napravi, sinhronizirano s predvajanjem</string>
   <string name="morphe_vot_enabled_title">Prevajanje z glasom</string>
+  <string name="morphe_vot_enabled_summary">Prikaže prekrivni gumb v video predvajalniku. Dotaknite se za preklop prevajanja, dotaknite se in zadržite za hitre nastavitve.},</string>
   <string name="morphe_vot_caption_language_title">Jezik</string>
   <string name="morphe_vot_translation_service_title">Ponudnik prevodov</string>
   <string name="morphe_vot_original_audio_volume_title">Glasnost originalnega zvoka</string>
@@ -514,6 +515,8 @@ Opozorilo: morda ne deluje na prenosih v živo"</string>
   <string name="morphe_queue_add_flyout_menu_summary">Doda dodaten element menija. Omogočite to, če \"Dodaj v čakalno vrsto\" ni prikazano</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_title">Beli seznam oglasov v pojavnem meniju</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_summary">Doda element v pojavni meni, ki omogoča, da se oglasi predvajajo na kanalu tega videoposnetka.</string>
+  <!-- "Spoof video streams" must use the same translation as morphe_spoof_video_streams_screen_title -->
+  <string name="morphe_ads_channel_whitelist_flyout_user_dialog_message">Ta funkcija morda zahteva uporabo PotHelper ali spremembo nastavitve \"Ponarejanje video pretokov\" na TV ali Android VR prijavo.</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_title">Beli seznam hitrosti predvajanja v pojavnem meniju</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_summary">Doda element v pojavni meni, ki omogoča, da se kanal tega videoposnetka vedno predvaja pri hitrosti 1,0x.</string>
   <string name="morphe_queue_manager_check_failed_auth">Ni prijavljen</string>
@@ -603,8 +606,10 @@ Opozorilo: morda ne deluje na prenosih v živo"</string>
   <string name="morphe_swipe_text_overlay_size_summary">Prilagodite velikost besedila na zaslonu (1-30)</string>
   <string name="morphe_swipe_threshold_title">Prag drsenja</string>
   <string name="morphe_swipe_threshold_summary">Nastavite zahtevano razdaljo drsenja, preden se sproži prilagoditev</string>
-  <string name="morphe_swipe_volume_sensitivity_title">Občutljivost drsenja glasnosti</string>
-  <string name="morphe_swipe_volume_sensitivity_summary">Višje vrednosti povečajo spremembo glasnosti na pomik</string>
+  <string name="morphe_swipe_volume_distance_title">Občutljivost potega za glasnost</string>
+  <string name="morphe_swipe_volume_distance_summary">Višje vrednosti zahtevajo več potegov za posamezni korak glasnosti.</string>
+  <string name="morphe_swipe_volume_steps_title">Koraki glasnosti</string>
+  <string name="morphe_swipe_volume_steps_entry_default">Privzeto za napravo</string>
   <string name="morphe_swipe_brightness_sensitivity_title">Občutljivost geste za svetlost</string>
   <string name="morphe_swipe_brightness_sensitivity_summary">Višje vrednosti zahtevajo več pomikov za vsako stopnjo svetlosti</string>
   <string name="morphe_swipe_speed_sensitivity_title">Občutljivost geste za hitrost</string>
@@ -913,6 +918,7 @@ Nastavitve → Predvajanje (ali Samodejno predvajanje) → Samodejno predvajanje
   <string name="morphe_disable_fullscreen_sliding_down_gesture_title">Onemogoči potez navzdol na portretnem zaslonu</string>
   <string name="morphe_disable_fullscreen_dragged_down_gesture_title">Onemogoči potez navzdol na ležečem zaslonu</string>
   <string name="morphe_disable_fullscreen_zoom_gesture_title">Onemogoči potezo za povečavo s ščipanjem</string>
+  <string name="morphe_restore_pinch_to_zoom_title">Obnovi ščipanje za povečavo</string>
   <!-- layout.player.fullscreen.openVideosFullscreenPatch -->
   <string name="morphe_open_videos_fullscreen_title">Odprite videoposnetke v načinu polnega zaslona</string>
   <string name="morphe_open_videos_fullscreen_entry_1">Onemogočeno</string>
@@ -925,6 +931,8 @@ Nastavitve → Predvajanje (ali Samodejno predvajanje) → Samodejno predvajanje
   <string name="morphe_fullscreen_video_scale_entry_zoom">Povečaj (obreži za zapolnitev)</string>
   <string name="morphe_fullscreen_video_scale_button_title">Prikaži gumb za merilo videa</string>
   <string name="morphe_fullscreen_video_scale_button_summary">Tapnite za preklapljanje med Privzeto, Raztegni in Povečaj</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_title">Prikaži samo v celozaslonskem načinu</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_summary">Skrij gumb za spreminjanje velikosti videa v pokončnem predvajalniku</string>
   <!-- layout.player.buttons.muteVideoButtonPatch -->
   <string name="morphe_mute_video_button_title">Prikaži gumb za utišanje</string>
   <!-- layout.player.overlay.customPlayerOverlayOpacityPatch -->
@@ -964,6 +972,7 @@ Postavitev za avtomobile
 
 Omejitev: Če je možnost »Ponastavi staro vrstico za videoposnetke« izklopljena, »Več videoposnetkov« morda ne bo na voljo"</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="morphe_spoof_app_version_target_entry_21_11">21.11.48 - Obnovi staro obnašanje podnapisov</string>
   <string name="morphe_spoof_app_version_target_entry_20_39">20.39.41 - Ponastavi staro shranjevanje v seznam predvajanja</string>
   <string name="morphe_spoof_app_version_target_entry_20_28">20.28.41 - Onemogoči privzete ikone</string>
   <string name="morphe_spoof_app_version_target_entry_20_13">20.13.41 - Povrni ime kanala pod predvajalnikom videa</string>
@@ -1024,16 +1033,16 @@ Omejitev: Če je možnost »Ponastavi staro vrstico za videoposnetke« izkloplje
   <string name="morphe_miniplayer_disable_resuming_summary">Onemogoči mini predvajalnik »Nadaljuj z gledanjem«, funkcijo YouTube Premium, ki se prikaže ob zagonu aplikacije</string>
   <string name="morphe_miniplayer_screen_title">Mini predvajalnik</string>
   <string name="morphe_miniplayer_screen_summary">Prilagodite videz in obnašanje minimiziranega predajalnika videa</string>
-  <string name="morphe_miniplayer_not_available_summary">YouTube je odstranil vse dodatne mini predvajalnike. Če želite spremeniti vrsto mini predvajalnika, potem zakrpajte YouTube 21.28.208 ali starejši.</string>
   <string name="morphe_miniplayer_type_title">Vrsta predvajalnika</string>
   <string name="morphe_miniplayer_type_entry_0">Onemogočen</string>
   <string name="morphe_miniplayer_type_entry_1">Privzeta</string>
   <string name="morphe_miniplayer_type_entry_2">Minimalen</string>
-  <string name="morphe_miniplayer_type_entry_3">Tablični računalnik</string>
-  <string name="morphe_miniplayer_type_entry_4">Moderen 1</string>
-  <string name="morphe_miniplayer_type_entry_5">Moderen 2</string>
-  <string name="morphe_miniplayer_type_entry_6">Moderen 3</string>
-  <string name="morphe_miniplayer_type_entry_7">Moderen 4</string>
+  <string name="morphe_miniplayer_type_entry_3">Minimalna 2</string>
+  <string name="morphe_miniplayer_type_entry_4">Tablica</string>
+  <string name="morphe_miniplayer_type_entry_5">Moderna 1</string>
+  <string name="morphe_miniplayer_type_entry_6">Moderna 2</string>
+  <string name="morphe_miniplayer_type_entry_7">Moderna 3</string>
+  <string name="morphe_miniplayer_type_entry_8">Moderna 4</string>
   <string name="morphe_miniplayer_disable_rounded_corners_title">Onemogočite zaokrožene vogale</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_title">Onemogočite povlečenjem in spuščanjem</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_summary">Preprečuje vlečenje minimiziranega predajalnika v različne kote zaslona</string>

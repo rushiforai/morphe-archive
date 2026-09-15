@@ -18,7 +18,12 @@ public class BaseSettings {
     public static final BooleanSetting CAPTURE_JAVA_CRASHES =
             new BooleanSetting("morphe_capture_java_crashes", FALSE, true);
     public static final BooleanSetting DEBUG_STACKTRACE = new BooleanSetting("morphe_debug_stacktrace", FALSE, parent(DEBUG));
-    public static final BooleanSetting DEBUG_TOAST_ON_ERROR = new BooleanSetting("morphe_debug_toast_on_error", TRUE, "morphe_debug_toast_on_error_user_dialog_message");
+    /**
+     * Whether a failure inside the bundle is also put on screen while {@link #DEBUG} is on.
+     * No confirmation dialog: the message it carried named a string resource this bundle does
+     * not ship, and the row that now exposes the switch would have raised an empty dialog.
+     */
+    public static final BooleanSetting DEBUG_TOAST_ON_ERROR = new BooleanSetting("morphe_debug_toast_on_error", TRUE);
     public static final BooleanSetting SANITIZE_SHARING_LINKS = new BooleanSetting("morphe_sanitize_sharing_links", TRUE);
 
     public static final IntegerSetting CHECK_ENVIRONMENT_WARNINGS_ISSUED = new IntegerSetting("morphe_check_environment_warnings_issued", 0, true, false);

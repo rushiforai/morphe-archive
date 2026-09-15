@@ -75,7 +75,6 @@ Ověřte, zda je název balíčku správný a zda je aplikace nainstalována"</s
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Falšovat video streamy</string>
   <string name="morphe_spoof_video_streams_screen_summary">Konfigurace maskování klienta pro prevenci problémů s přehráváním</string>
-  <string name="morphe_spoof_video_streams_title">Falšovat video streamy</string>
   <string name="morphe_spoof_video_streams_summary">"Opravuje problémy s přehráváním pro většinu uživatelů požadavkem na kompatibilní video stream.
 
 Pokud jste uživatel YouTube Premium, toto nastavení nemusí být potřeba."</string>

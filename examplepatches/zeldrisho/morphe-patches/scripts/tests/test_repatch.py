@@ -2,14 +2,13 @@
 
 import json
 import os
-from pathlib import Path
 import shutil
 import subprocess
 import tempfile
 import unittest
+from pathlib import Path
 
-
-SCRIPT = Path(__file__).resolve().parents[1] / "repatch.sh"
+SCRIPT = Path(__file__).resolve().parents[1] / "repatch.py"
 FAKE_JAVA = r"""#!/usr/bin/env python3
 import json, os, pathlib, sys
 args = sys.argv[1:]
@@ -46,7 +45,7 @@ else:
 
 
 class RepatchTest(unittest.TestCase):
-    """Test suite for the repatch.sh script, covering patch bundle discovery, signing options, and error paths."""
+    """Test suite for the repatch.py script, covering patch bundle discovery, signing options, and error paths."""
 
     def setUp(self):
         """Set up a temporary test environment with a fake java executable and mock project structure."""
@@ -55,7 +54,7 @@ class RepatchTest(unittest.TestCase):
         self.root = Path(self.temp.name)
         scripts = self.root / "scripts"
         scripts.mkdir()
-        self.script = scripts / "repatch.sh"
+        self.script = scripts / "repatch.py"
         shutil.copyfile(SCRIPT, self.script)
         self.libs = self.root / "patches/build/libs"
         self.libs.mkdir(parents=True)
@@ -105,7 +104,7 @@ class RepatchTest(unittest.TestCase):
         self.output = self.root / "output.apk"
 
     def run_helper(self, *cli_args, **overrides):
-        """Run the repatch.sh script with optional CLI args and environment variable overrides.
+        """Run the repatch.py script with optional CLI args and environment variable overrides.
 
         Positional args are passed to the script before the input/output paths.
         An override value of None removes the variable from the environment.
@@ -117,7 +116,13 @@ class RepatchTest(unittest.TestCase):
             else:
                 env[key] = value
         return subprocess.run(
-            ["bash", str(self.script), *cli_args, str(self.input), str(self.output)],
+            [
+                os.environ.get("PYTHON", "python3"),
+                str(self.script),
+                *cli_args,
+                str(self.input),
+                str(self.output),
+            ],
             env=env,
             capture_output=True,
             text=True,

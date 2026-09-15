@@ -85,23 +85,26 @@ public final class LogBufferManager {
     private static final class ClearSnapshot {
         final List<DiagnosticEvent> events;
         final app.morphe.extension.shared.diagnostics.HookStatus.Snapshot hooks;
+        final app.morphe.extension.shared.diagnostics.FeedFilterCounters.Snapshot feedFilter;
         final String javaCrash;
         final String nativeCrash;
 
         ClearSnapshot(
                 List<DiagnosticEvent> events,
                 app.morphe.extension.shared.diagnostics.HookStatus.Snapshot hooks,
+                app.morphe.extension.shared.diagnostics.FeedFilterCounters.Snapshot feedFilter,
                 String javaCrash,
                 String nativeCrash
         ) {
             this.events = events;
             this.hooks = hooks;
+            this.feedFilter = feedFilter;
             this.javaCrash = javaCrash;
             this.nativeCrash = nativeCrash;
         }
 
         boolean isEmpty() {
-            return events.isEmpty() && hooks.isEmpty()
+            return events.isEmpty() && hooks.isEmpty() && feedFilter.isEmpty()
                     && javaCrash.isEmpty() && nativeCrash.isEmpty();
         }
     }
@@ -339,6 +342,13 @@ public final class LogBufferManager {
         if (hooks.length() > 0) {
             report.append("\n[HOOK STATUS]\n").append(hooks).append('\n');
         }
+        // Outside worthReporting for the same reason as the last exit below: a counter that has
+        // only ever counted is not a finding, and a report made non-empty by one would mean
+        // nobody is ever told there is nothing to send.
+        String feedFilter = feedFilterLines(includeAll, selected);
+        if (!feedFilter.isEmpty()) {
+            report.append("\n[FEED FILTER]\n").append(feedFilter).append('\n');
+        }
         // Deliberately not part of worthReporting above. Every process has a last exit, most of
         // them ordinary, so counting it would mean no report was ever empty and "No matching
         // Morphe diagnostics found" would never be said again.
@@ -352,6 +362,27 @@ public final class LogBufferManager {
                     .append(events);
         }
         return report.toString();
+    }
+
+    /**
+     * One line per feed filter route the app has reached, whatever the logging switch says.
+     *
+     * <p>It follows the reader's own choice in "Included diagnostics" like every other section,
+     * under the feed category, and goes through the redactor because the next source name put in
+     * it may not be a literal.
+     */
+    private static String feedFilterLines(boolean includeAll, Set<String> selected) {
+        if (!includeAll && !selected.contains(
+                app.morphe.extension.shared.diagnostics.DiagnosticCategory
+                        .FEED_AND_NAVIGATION.value)) {
+            return "";
+        }
+        StringBuilder lines = new StringBuilder();
+        for (String line : app.morphe.extension.shared.diagnostics.FeedFilterCounters.report()) {
+            if (lines.length() > 0) lines.append('\n');
+            lines.append(DiagnosticRedactor.redact(line));
+        }
+        return lines.toString();
     }
 
     /**
@@ -549,6 +580,7 @@ public final class LogBufferManager {
             ClearSnapshot removed = new ClearSnapshot(
                     new ArrayList<>(logBuffer),
                     app.morphe.extension.shared.diagnostics.HookStatus.snapshotAndClear(),
+                    app.morphe.extension.shared.diagnostics.FeedFilterCounters.snapshotAndClear(),
                     readCrashReport(context),
                     readNpthCrashReport(context)
             );
@@ -583,6 +615,7 @@ public final class LogBufferManager {
                     restoreCrashReportIfMissing(context, NPTH_CRASH_FILE, saved.nativeCrash);
                     restoreLogBufferData(saved.events);
                     app.morphe.extension.shared.diagnostics.HookStatus.restore(saved.hooks);
+                    app.morphe.extension.shared.diagnostics.FeedFilterCounters.restore(saved.feedFilter);
                     lastClear = null;
                     result = UndoResult.RESTORED;
                 } catch (Exception error) {

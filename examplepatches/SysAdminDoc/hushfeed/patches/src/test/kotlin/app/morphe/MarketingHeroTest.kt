@@ -32,6 +32,36 @@ class MarketingHeroTest {
     }
 
     @Test
+    fun `the README keeps the canonical Ko-fi support link`() {
+        val readme = File(root, "README.md").readText()
+
+        assertTrue(
+            "the README must keep the project support link",
+            readme.contains("https://ko-fi.com/X8K126YVER"),
+        )
+    }
+
+    @Test
+    fun `the README keeps a canonical Morphe source link and manual fallback`() {
+        val readme = File(root, "README.md").readText()
+        val canonicalLink = "https://morphe.software/add-source?github=SysAdminDoc%2Fhushfeed"
+        val addSourceLinks = Regex("""https://morphe\.software/add-source\?github=[^)\s]+""")
+            .findAll(readme)
+            .map { it.value }
+            .toList()
+
+        assertTrue("the README must include an add-source link", addSourceLinks.isNotEmpty())
+        assertTrue(
+            "every add-source link must use the encoded repository slug",
+            addSourceLinks.all { it == canonicalLink },
+        )
+        assertTrue(
+            "the README must explain the manual Manager fallback",
+            readme.contains("paste `https://github.com/SysAdminDoc/hushfeed`"),
+        )
+    }
+
+    @Test
     fun `the hero keeps its review size and version-free source`() {
         val hero = ImageIO.read(File(root, "assets/readme-hero.png"))
         assertEquals(1600, hero.width)

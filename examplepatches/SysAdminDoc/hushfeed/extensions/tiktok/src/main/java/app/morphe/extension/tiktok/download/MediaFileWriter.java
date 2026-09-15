@@ -45,7 +45,8 @@ final class MediaFileWriter {
             try {
                 try (InputStream input = new FileInputStream(source); OutputStream output = resolver.openOutputStream(uri, "w")) {
                     if (output == null) throw new IOException("Could not open gallery entry");
-                    copy(input, output);
+                    copy(input, output, MediaBudget.MAX_TRANSFER_BYTES, null,
+                            destinationDirectory);
                 }
                 MediaBudget.check(null);
                 String savedName;
@@ -86,7 +87,7 @@ final class MediaFileWriter {
             if (!directory.isDirectory() && !directory.mkdirs()) throw new IOException("Could not create download folder");
             File target = claim(directory, name);
             try (InputStream input = new FileInputStream(source); OutputStream output = new FileOutputStream(target)) {
-                copy(input, output);
+                copy(input, output, MediaBudget.MAX_TRANSFER_BYTES, null, directory);
             } catch (IOException exception) {
                 if (!target.delete()) exception.addSuppressed(new IOException("Could not remove incomplete download"));
                 throw exception;
@@ -128,8 +129,14 @@ final class MediaFileWriter {
 
     static long copy(InputStream input, OutputStream output, long limit,
             MediaBudget.Deadline deadline) throws IOException {
+        return copy(input, output, limit, deadline, null);
+    }
+
+    static long copy(InputStream input, OutputStream output, long limit,
+            MediaBudget.Deadline deadline, File targetDirectory) throws IOException {
         byte[] buffer = new byte[65536];
         long total = 0;
+        long spaceAllowance = 0;
         int count;
         while (true) {
             MediaBudget.check(deadline);
@@ -139,7 +146,12 @@ final class MediaFileWriter {
             if (total > limit) {
                 throw new IOException("That file is larger than " + (limit >> 20) + " MB");
             }
+            if (targetDirectory != null && spaceAllowance < count) {
+                MediaBudget.checkStreamingDiskSpace(targetDirectory, deadline);
+                spaceAllowance = MediaBudget.STREAM_SPACE_CHECK_BYTES;
+            }
             output.write(buffer, 0, count);
+            if (targetDirectory != null) spaceAllowance -= count;
         }
         if (total == 0) throw new IOException("Download is empty");
         output.flush();

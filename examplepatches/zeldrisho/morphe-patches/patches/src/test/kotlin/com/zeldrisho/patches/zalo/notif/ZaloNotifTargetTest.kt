@@ -134,6 +134,24 @@ class ZaloNotifTargetTest {
         }
     }
 
+    @Test fun transactionalChannelsAreNotFiltered() {
+        with(context()) {
+            for (channel in listOf("ACTIVITY_UPDATES", "USER_INTERACTIONS", "ALERT", "CHAT", "CHAT_GROUP", "CALL")) {
+                val cls = classDef("Lpy/i;", listOf(armMethod(channel)))
+                StoryChannelArm.clearMatch()
+                VideoChannelArm.clearMatch()
+                assertTrue(
+                    StoryChannelArm.matchOrNull(armMethod(channel), cls) == null,
+                    "story filter must not match $channel",
+                )
+                assertTrue(
+                    VideoChannelArm.matchOrNull(armMethod(channel), cls) == null,
+                    "video filter must not match $channel",
+                )
+            }
+        }
+    }
+
     /** Opt-in local DEX validation against the pinned Zalo base APK; skipped in CI. */
     @Test fun matchesPinnedZaloApkWhenProvided() {
         val path = System.getenv("ZALO_TEST_APK")

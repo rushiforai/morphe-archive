@@ -75,7 +75,6 @@ Second \"item\" text"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">ปลอมแปลงสตรีมวิดีโอ</string>
   <string name="morphe_spoof_video_streams_screen_summary">ปลอมแปลงสตรีมวิดีโอของไคลเอนต์เพื่อป้องกันปัญหาการเล่น</string>
-  <string name="morphe_spoof_video_streams_title">ปลอมแปลงสตรีมวิดีโอ</string>
   <string name="morphe_spoof_video_streams_summary">"แก้ไขปัญหาการเล่นวิดีโอสำหรับผู้ใช้ส่วนใหญ่ โดยการขอสตรีมวิดีโอที่เข้ากันได้
 
 หากคุณเป็นผู้ใช้ YouTube Premium การตั้งค่านี้อาจไม่จำเป็น"</string>

@@ -75,7 +75,6 @@ Second \"item\" text"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Подправяне на видео потоци</string>
   <string name="morphe_spoof_video_streams_screen_summary">Подправете клиентските видео потоци, за да предотвратите проблеми с възпроизвеждането</string>
-  <string name="morphe_spoof_video_streams_title">Подправяне на видео потоци</string>
   <string name="morphe_spoof_video_streams_summary">"Отстранява проблеми с възпроизвеждането за повечето потребители, като поиска съвместим видео поток.
 
 Ако сте потребител на YouTube Premium, тази настройка може да не е необходима."</string>

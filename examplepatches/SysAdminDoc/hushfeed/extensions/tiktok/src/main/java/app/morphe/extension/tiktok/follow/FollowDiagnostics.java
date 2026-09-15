@@ -105,7 +105,7 @@ public final class FollowDiagnostics {
             activeCallId.set(id);
             rememberDirectContext(id, "LJ", action, "unknown", uid, secUid, null, null);
             logSettingsSnapshotOnce();
-            Logger.printInfo(() -> "[Morphe TikTok FollowProbe] request"
+            Logger.printDebug(() -> "[Morphe TikTok FollowProbe] request"
                     + " id=" + id
                     + " api=LJ"
                     + " action=" + action
@@ -137,7 +137,7 @@ public final class FollowDiagnostics {
             activeCallId.set(id);
             rememberDirectContext(id, "LJFF", action, String.valueOf(followFrom), uid, secUid, source, enterFrom);
             logSettingsSnapshotOnce();
-            Logger.printInfo(() -> "[Morphe TikTok FollowProbe] request"
+            Logger.printDebug(() -> "[Morphe TikTok FollowProbe] request"
                     + " id=" + id
                     + " api=LJFF"
                     + " action=" + action
@@ -176,7 +176,7 @@ public final class FollowDiagnostics {
             activeCallId.set(id);
             rememberDirectContext(id, "CommonFollowApi", action, String.valueOf(followFrom), uid, secUid, recType, null);
             logSettingsSnapshotOnce();
-            Logger.printInfo(() -> "[Morphe TikTok FollowProbe] request"
+            Logger.printDebug(() -> "[Morphe TikTok FollowProbe] request"
                     + " id=" + id
                     + " api=CommonFollowApi"
                     + " action=" + action
@@ -216,7 +216,7 @@ public final class FollowDiagnostics {
             activeCallId.set(id);
             rememberDirectContext(id, "JediFollowApi", action, String.valueOf(followFrom), uid, secUid, source, enterFrom);
             logSettingsSnapshotOnce();
-            Logger.printInfo(() -> "[Morphe TikTok FollowProbe] request"
+            Logger.printDebug(() -> "[Morphe TikTok FollowProbe] request"
                     + " id=" + id
                     + " api=JediFollowApi"
                     + " action=" + action
@@ -241,7 +241,7 @@ public final class FollowDiagnostics {
         if (id == null || !shouldLog()) return;
 
         try {
-            Logger.printInfo(() -> "[Morphe TikTok FollowProbe] stream"
+            Logger.printDebug(() -> "[Morphe TikTok FollowProbe] stream"
                     + " id=" + id
                     + " class=" + (stream == null ? "null" : stream.getClass().getName()));
         } catch (Exception ex) {
@@ -255,7 +255,7 @@ public final class FollowDiagnostics {
         if (id == null || !shouldLog()) return;
 
         try {
-            Logger.printInfo(() -> "[Morphe TikTok FollowProbe] result"
+            Logger.printDebug(() -> "[Morphe TikTok FollowProbe] result"
                     + " id=" + id
                     + " status=" + describeFollowStatus(followStatus));
         } catch (Exception ex) {
@@ -270,7 +270,7 @@ public final class FollowDiagnostics {
         FollowRequestContext context = rememberNetworkContext(request, path);
         context.payload = describeRequestPayload(request, context);
 
-        Logger.printInfo(() -> "[Morphe TikTok FollowProbe] network request"
+        Logger.printDebug(() -> "[Morphe TikTok FollowProbe] network request"
                 + " " + context.summary()
                 + " path=" + path
                 + " requestClass=" + className(request)
@@ -284,7 +284,7 @@ public final class FollowDiagnostics {
 
         FollowRequestContext context = contextForRequest(request, path);
 
-        Logger.printInfo(() -> "[Morphe TikTok FollowProbe] network response"
+        Logger.printDebug(() -> "[Morphe TikTok FollowProbe] network response"
                 + " " + context.summary()
                 + " path=" + path
                 + " class=" + (response == null ? "null" : response.getClass().getName()));
@@ -296,7 +296,7 @@ public final class FollowDiagnostics {
 
         FollowRequestContext context = contextForRequest(request, path);
 
-            Logger.printInfo(() -> "[Morphe TikTok FollowProbe] network error"
+            Logger.printDebug(() -> "[Morphe TikTok FollowProbe] network error"
                 + " " + context.summary()
                 + " path=" + path
                 + " class=" + (throwable == null ? "null" : throwable.getClass().getName())
@@ -328,7 +328,7 @@ public final class FollowDiagnostics {
             followReadbackWindowUntil = System.currentTimeMillis() + READBACK_WINDOW_MS;
             activeReadbackContext = context;
 
-            Logger.printInfo(() -> "[Morphe TikTok FollowProbe] parsed response"
+            Logger.printDebug(() -> "[Morphe TikTok FollowProbe] parsed response"
                     + " " + context.summary()
                     + " path=" + finalPath
                     + " " + describeParsedResponse(response, context)
@@ -341,7 +341,7 @@ public final class FollowDiagnostics {
         final String finalPath = readbackPath;
         FollowRequestContext context = activeReadbackContext;
 
-        Logger.printInfo(() -> "[Morphe TikTok FollowProbe] readback response"
+        Logger.printDebug(() -> "[Morphe TikTok FollowProbe] readback response"
                 + " afterId=" + (context == null ? "unknown" : context.id)
                 + " target=" + (context == null ? "unknown" : context.summary())
                 + " path=" + finalPath
@@ -354,7 +354,7 @@ public final class FollowDiagnostics {
 
         FollowRequestContext context = contextForRequest(request, path);
 
-        Logger.printInfo(() -> "[Morphe TikTok FollowProbe] parse error"
+        Logger.printDebug(() -> "[Morphe TikTok FollowProbe] parse error"
                 + " " + context.summary()
                 + " path=" + path
                 + " class=" + (throwable == null ? "null" : throwable.getClass().getName())
@@ -463,7 +463,7 @@ public final class FollowDiagnostics {
         if (loggedSettingsSnapshot) return;
         loggedSettingsSnapshot = true;
 
-        Logger.printInfo(() -> "[Morphe TikTok FollowProbe] settings"
+        Logger.printDebug(() -> "[Morphe TikTok FollowProbe] settings"
                 + " simSpoof=" + Settings.SIM_SPOOF.get()
                 + " simIso=" + safeShort(Settings.SIM_SPOOF_ISO.get())
                 + " simMccMnc=" + safeShort(Settings.SIMSPOOF_MCCMNC.get())
@@ -1180,6 +1180,14 @@ public final class FollowDiagnostics {
             return sanitized.substring(0, 48) + "...";
         }
         return sanitized;
+    }
+
+    /**
+     * The same pseudonym for other reports about an account, so a creator blocked from the feed
+     * and a creator followed read as one account across the two families of lines.
+     */
+    public static String pseudonym(String accountId) {
+        return hash(accountId);
     }
 
     /**

@@ -75,7 +75,6 @@ Second \"item\" text"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">वीडियो स्ट्रीम्स को फर्ज़ करें</string>
   <string name="morphe_spoof_video_streams_screen_summary">प्लेबैक समस्याओं को रोकने के लिए क्लाइंट स्पूफिंग को कॉन्फ़िगर करें</string>
-  <string name="morphe_spoof_video_streams_title">वीडियो स्ट्रीम्स को फर्ज़ करें</string>
   <string name="morphe_spoof_video_streams_summary">"अधिकांश उपयोगकर्ताओं के लिए प्लेबैक समस्याओं को ठीक करने के लिए संगत वीडियो स्ट्रीम का अनुरोध करता है।
 
 यदि आप YouTube Premium उपयोगकर्ता हैं, तो यह सेटिंग आवश्यक नहीं हो सकती है।"</string>

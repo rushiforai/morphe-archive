@@ -1,43 +1,46 @@
-name: 🐞 Bug report
-description: Report a bug or an issue.
+name: 🐞 バグ報告
+description: 不具合や問題を報告する
 title: 'bug: '
 labels: ['bug']
 body:
   - type: markdown
     attributes:
       value: |
-        # Morphe Patches bug report
+        # Haiagaru-Morphe バグ報告
 
-        Before creating a new bug report, please keep the following in mind:
+        新しいバグ報告を作成する前に、以下を確認してください。
 
-        - **Do not submit a duplicate bug report**: Search for existing bug reports [here](https://github.com/MorpheApp/morphe-patches/issues?q=is%3Aissue).
+        - **重複したバグ報告を投稿しないでください**: 既存の issue と closed issue を確認してください。
+        - クラッシュが発生する場合は、任意パッチ `Save ChMate crash logs` を有効にして再現し、`Download/Haiagaru/` に保存されたクラッシュログを添付してください。
   - type: textarea
     attributes:
-      label: Bug description
+      label: 不具合の内容
       description: |
-        - List app version patched, and the patches version shown in Settings > About
-        - Add steps to reproduce the bug if possible (Step 1. ... Step 2. ...)
-        - Add images and videos if possible
+        - パッチ適用先のアプリ名とバージョン、使用した Haiagaru-Morphe のバージョンを記載してください
+        - 可能であれば再現手順を記載してください（手順 1. ... 手順 2. ...）
+        - 可能であれば画像や動画を添付してください
     validations:
         required: true
   - type: input
     attributes:
-      label: App version patched
-      description: What app version you are using
+      label: パッチ適用先のアプリとバージョン
+      description: '例: ChMate 0.8.10.xxx dev'
     validations:
       required: true
   - type: textarea
     attributes:
-      label: Error logs
-      description: Exceptions can be captured by running `logcat | grep AndroidRuntime` in a shell.
+      label: エラーログ
+      description: |
+        クラッシュする場合は、任意パッチ `Save ChMate crash logs` を有効にして再現し、`Download/Haiagaru/` に保存されたクラッシュログを添付してください。
+        logcat を使える場合は、`logcat | grep AndroidRuntime` などで取得した例外ログも貼り付けてください。
       render: shell
   - type: checkboxes
     id: acknowledgements
     attributes:
-      label: Acknowledgements
-      description: Your bug report will be closed if you don't follow the checklist below.
+      label: 確認事項
+      description: 以下を満たしていない場合、報告を close することがあります。
       options:
-        - label: I have checked all open and closed bug reports and this is not a duplicate.
+        - label: open / closed の issue を確認し、重複ではないことを確認しました。
           required: true
-        - label: All requested information has been provided properly.
+        - label: 必要な情報を可能な限り記載しました。
           required: true

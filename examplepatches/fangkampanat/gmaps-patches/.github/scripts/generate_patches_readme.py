@@ -100,8 +100,7 @@ def versions_table(targets):
     cells = []
     for target in targets:
         version = target["version"]
-        if version is None:
-            continue
+        version = "Any version" if version is None else version
         label = f"🧪&nbsp;{version}" if target.get("isExperimental") else version
         cells.append(label)
 

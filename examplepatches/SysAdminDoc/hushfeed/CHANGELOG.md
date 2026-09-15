@@ -1,5 +1,110 @@
 ## Unreleased
 
+* The hidden creators editor keeps what you typed and says what is wrong under the box. Type a handle and press Save without pressing Add and the dialog used to close, then a message appeared over whatever was behind it, and the handle was gone. Adding an empty, duplicate or broken entry did the same thing over the open dialog. The reason now sits under the field it is about, the dialog stays open, and nothing is written until it can be.
+
+* One sentence asks you to restart TikTok, not nine. The same screen used to say it four or five different ways, sometimes twice in view of each other, and each wording was its own thing to translate. Every row summary and every single-change message now says "Restart TikTok to apply this." Restoring, resetting or undoing settings, where several moved at once, says "Restart TikTok to apply all changes." Nothing else.
+
+* The section rows on the settings screen say how many settings you have changed, not how many are on. The number was always a count of settings away from their default, and two of them arrive switched on, so turning one of those off read as having turned something on.
+
+* Four patch descriptions in Morphe Manager no longer end in a stray space left behind when a sentence was cut, and two no longer carry a credit line in the text somebody reads while deciding whether to select the patch. The credit is in the README, where it has a link to follow.
+
+* The release gate is now itself tested. The check that holds the README and the published index to the generated patch catalog runs on every push and before every release, and had never once been shown to refuse anything. It is now driven against a copy of the checkout with one fact moved at a time: an index naming another version, a patch count that is not the catalog's in either the index or the README, a README pointing at a Manager too old for the patcher, and a download link that answers nothing.
+
+* Hook status speaks for the sensitive-warning switch. Turning those overlays off means writing one flag on a model TikTok owns, and if that model is renamed the switch still reads on while every warning stays exactly where it was, which looks the same as a video that was never flagged. The row now names the field and the model it looked in.
+
+* The README and the Region page answer the three questions people keep asking. Downloads has always ignored the flag TikTok sets when a creator turns downloading off, and nothing said so. Region settings now says plainly what spoofing cannot change, which is your IP address, your account's history and the language you read in. And a patch run that sits at 24 or 25 percent forever is a memory problem with a known way through it, which the install steps now give.
+
+* The daily budget rows and the feed tab picker are translated. Six Playback descriptions, the unit words beside their numbers and every tab name in both pickers had no entry in any table, so a German, Spanish, Indonesian or Brazilian phone showed them in English under a translated title. Both translation checks were blind to it, because a row's text is joined with its range and current value before anything sees it. The check now reads the wording from the row itself, where nothing has been joined to it yet. The feed tab names also read the same way as their siblings now: Nearby, Friends, LIVE, STEM and Drama and Series.
+
+* The two country lists in the feed filter check what you type, and "UK" now works. Only from these countries took anything at all, and an entry that is not a country code matched no video, so one typo hid the whole feed with nothing on screen saying why. The row names the entry it cannot use before it saves, "UK" is read as the GB the videos carry, and a list saved before this check existed can no longer empty the feed either.
+
+* Copying a sound link now cleans it the way copying a video link already did. TikTok's share URL for a sound carries the parameters that say who sent it, and the long press put it on the clipboard exactly as written, so the identifiers travelled with every shared sound. The link is stripped now and takes the custom share domain like the video link does. Both copied links are also marked sensitive, which they were not: they were the only clips the bundle wrote without that flag.
+
+* The Not interested button no longer goes dead for the rest of the session. It marks itself busy before handing the request to the shared worker pool, and when that pool is full the request is refused and never runs, so nothing ever cleared the busy mark. The reader got one "Sending feedback" that never resolved and then a button that did nothing at all. A refused request now says so and leaves the button ready for the next tap.
+
+* The App behavior page can be opened again on a bundle that carries only the launcher shortcuts patch. The row into that page asked a list of patches kept separately from the page's own, and the two had drifted by one: the shortcut switch was built, and nothing on the home screen led to it, so the settings search was the only way in. The page answers for itself now, and the test that sweeps one patch at a time covers it.
+
+* The text, range and tab rows say when they need a restart, the way the switches already did. Nine of them carry restart-gated settings, the country lists, the five count filters and the two tab pickers, and said nothing about it, so a change that showed no effect looked like a hook that had stopped working. A test now walks every settings page and holds every row whose setting needs a restart to the sentence.
+
+* The About row names the TikTok build as well as the Hushfeed version, and the settings search finds it. The row sat outside the search index with no key, so "version" and "hushfeed" both came back empty on the phones that showed it. Searching either now lands on the row, and the second question on every bug report, which TikTok the bundle was applied to, is answered on the same line.
+
+* Diagnostics has a row for the failure messages. The switch behind them was on from the first release and had no row anywhere, so the only way to stop a message was to turn diagnostic logging off with it. Show failures on screen now sits under the logging switch and decides on its own whether a failure is put in front of you while logging is on. Off keeps failures in the report alone.
+
+* The exported diagnostic report no longer names the creators you block, hide or follow. The block, hide and Not interested paths wrote the creator's display name into the log beside the toast that showed it, and every toast is written to the report as it is shown, so a report attached to a public bug had the names in it. Log lines now carry a pseudonym instead, the same one the follow report uses for the same account, and the name in a toast is marked so the export leaves it out in every language. Handles standing on their own are dropped too. Follow diagnostics phases are debug-level lines now; the refusal itself still reports at once.
+
+* Double tap set to open comments now opens them. It pressed the comment button's click listener, which on the current app is a placeholder that does nothing while the real press is handled as a touch, so the double tap returned true and nothing opened. The press now goes through the comment assem's own icon-press method, the one TikTok's keyboard shortcut uses, with all of TikTok's own checks in front of it. Confirmed on the S22 on 46.2.3: do nothing leaves the like and the video alone, comments opens the sheet with the like untouched, and the default still likes.
+
+
+* The exported diagnostic report now says which feed filter route handled each list, whether or not diagnostic logging is on. Several routes can put a video on a profile page or in the feed, and an advert in a screenshot cannot say which one delivered it, so every ad report so far has needed a second round of questions. Each route now reports the lists it was handed, the videos in them and what it took out. A route that has never run has no line at all, which is the answer that was hardest to get before.
+
+
+* Double-tap controls now reach the feed the app actually uses. Setting it to "do nothing" still liked the video, because the guard sat on the older feed panel and the current one never goes through it: its gesture listener holds the like component and calls it directly. Every route from a double tap to a like was traced on the app itself, and there are four of them, including the landscape player and the Friends tab. All four are guarded now. Two more classes carry the same method and neither can like anything, so they are left alone.
+
+
+* Playback quality stops complaining about a model it cannot read. On some builds and accounts TikTok's video model getter hands back an empty string, and the quality picker parsed it anyway, failed, and put "Could not read the playback quality model" on screen once per video. It now hands back whatever it was given and leaves the quality to the app, which is what it did all along, without the message. The Hook status row names the getter that supplied the unusable model, so a diagnostic report says which one it was instead of the feed saying so repeatedly.
+
+
+* Error messages from inside Hushfeed no longer appear over the feed unless diagnostic logging is on. They carry the name of the class that failed and the exception's own English text, past every translation the bundle ships, and on a path the feed runs one of them fired once per video. They still reach the log, the diagnostic buffer and the exported report, which is what a bug report needs, and the same message now shows at most once per run rather than queueing behind itself.
+
+* A switch that needs TikTok restarted says so. Fifty settings do nothing until the app starts again and only thirty-four of them mentioned it, so sixteen switches moved and nothing happened, with nothing on screen explaining the gap. The sentence comes from the setting itself now, so it is on all fifty and cannot be forgotten on the next one added.
+
+* The four controls Hushfeed draws on the feed, the budget label and the hold's release control now share one backdrop and one corner radius. They were built five separate times from the same two colours and then rounded three different ways, so a column of controls sitting on the same video read as three unrelated add-ons.
+
+* The About row shows which version of Hushfeed is installed. It was only in the exported diagnostic report before, so there was no way to read it off the screen, and searching the settings for "version" found nothing.
+
+* The Feature Gate Lab says which of the search and the filter emptied the list, and offers to clear the search when that is what did it. It used to blame the search either way, because the message was written once when the catalogue loaded. The gate details page's "no longer available" state now offers a way back to the Lab it tells you to refresh.
+
+* When settings will not open, Try again comes first and is drawn in the accent. It was listed under Go back in the same weight and colour, so the first thing offered was the way out.
+
+* Save media on a sticker, the tap that starts the feed after a hold, and both actions on the settings recovery page are offered to a screen reader as buttons rather than as text. Save media also has a 48dp floor now, which it did not when the TikTok row it copies its size from was shorter.
+
+* Four places spaced a row from the physical left edge instead of the start edge, so in a right-to-left layout the gap between a menu icon and its label, the gap before the chevron, the indent under a share action and the inset in the Lab's search row all stayed on the wrong side.
+
+* Comment search takes its eight colours from the same palette as the rest of the settings screen instead of its own copies of them. It still works out the comment sheet's theme itself, because that is not always the system's.
+
+
+* Ghost mode no longer closes the app when a story is opened. The old guard returned early from TikTok's story and profile reporters with a made-up null where the caller expected the lazy request it was about to enqueue or subscribe to, and the caller fell over on it. The same null was handed to the profile page's view model halfway through building the page. The guard now sits at each place a reporter is called and steps over the whole send, so the reporter is never called and the caller carries on with what it was doing. A reporter whose caller only checks for a suspended coroutine completes with nothing instead, and the typing indicator, which returns nothing, keeps its early return. A patch test walks the four caller shapes shared by 46.2.3, 46.7.3 and 46.8.3 with the guard answering both ways, and the patch refuses to apply to any chain it cannot follow to its send rather than guessing.
+
+* New Playback setting, "Show what is left of the budget", off by default. A small label at the top of the feed shows the minutes or videos left of today's budget, whichever is closer to running out. Both budgets were previously only visible at their own edges: a reminder partway through, a notice when the day was spent, a hold if one was set. Between those you were guessing. The label appears only on the feed, goes away under the hold, changes at most once a minute, and is never read out on its own. A screen reader finds it in traversal and hears the value then.
+
+* Reset position on a feed control now moves only that control. It used to re-place every control that had never been moved by hand, which meant resetting one of them could jump two others across the screen if the block button had been dragged since.
+
+* Inbox Clear all says it is working on Android 10 and older too. The control's description is what a screen reader is given instead of its label, so changing the label alone left the whole eighteen second run announced as an ordinary disabled button. A heading TikTok rebuilds mid-run now also comes up saying the run is still going, instead of looking pressable while silently refusing.
+
+* The four feed controls can now be moved with a screen reader. Each one offers Move up, Move down, Move left, Move right and Reset position, in the phone's language. A move shifts that control by its own width and stops at the screen edge, reset puts it back where it started, and neither touches the other three. The pointer long-press drag is unchanged, and an accessibility long-click is still refused because it has no release to end the gesture with.
+
+* Inbox Clear all now shows what it is doing. Clearing up to 60 suggestions takes about eighteen seconds, and the control used to sit there looking pressable the whole time. It now reads as a button to screen readers, fades and refuses presses while a run is going, says "Clearing" as its state, and comes back on every ending: finished, nothing to clear, the 60 cap, the Inbox closing, or a dismissal that failed. A failure says how many accounts it got through before it stopped, and the run can be started again straight away. Every outcome is announced as well as shown.
+
+* Robolectric tests now use Bouncy Castle 1.85.2 instead of 1.81. Every TikTok extension test inspects the resolved dependency graph first, and Gradle's reviewed checksums no longer accept the vulnerable jar.
+
+* Feature Gate Recorder copies now use Android's sensitive clipboard flag while keeping the existing success, large-report and failure messages. Empty reports remain safe to copy, and reports above 60,000 characters still require Save JSON without replacing the clipboard.
+
+* Settings pages now replace partial content with translated Back and Retry actions when loading fails. A failed preference update restores the typed saved value, dependent controls and default-value storage on the main thread, then reports one translated result. Nested recovery callbacks keep the outer update locked, and restart-required settings report success only after the complete update succeeds.
+
+* Comment search now shows a translated result count below the field and explains when nothing matches. The polite status follows scrolling, recycled rows and cached sheet reattachment without moving focus. Turning search back on restores row tracking even when TikTok does not bind the rows again.
+
+* Feature Gate Lab messages now stay in the selected language, including errors and current state text. Block and unblock results do too. Gate keys, raw type spelling, values and creator identifiers remain unchanged.
+
+* Text and number settings, download destination dialogs and Feature Gate object fields now give screen readers one named editor. The spoken node keeps the current value, required keyboard and disabled state without repeating the visible label.
+
+* Caption and creator filters now parse unchanged lists once per stored value instead of once per video. Feed-rule lists accept up to 10,000 entries or 256 KB, and oversized dialog edits or imports stay out of storage with a translated explanation.
+
+* Downloads with a missing or malformed size header now recheck free space while streaming. They stop and remove partial media before reaching the 32 MB floor, with another 8 MB kept for publication.
+
+* Rapid Feature Gate detail edits now save in tap order. Only the newest result can update the screen, and one Undo returns the whole burst to the value that was present before the first tap.
+
+* Settings backup, restore, reset and Feature Gate Lab changes no longer stay locked when the shared worker queue is full. Rejected Lab switches return to their stored position so the next tap retries the change, and a translated message asks you to try again.
+
+* The Add Hushfeed links now use the encoded repository slug. The install steps also include a manual Manager path for browsers that refuse to open other apps. The browser button, source download and Manager 1.29.0 and 1.30.0 flows were exercised on the S22.
+
+* Remove feed ads now catches videos carrying TikTok's Creator earns commission disclosure. It reads the structured anchor label rather than matching visible English text, and malformed or unrelated anchor data stays in the feed.
+
+* Comment tools can now remove TikTok's polls from the comment sheet before they are drawn. A missing or changed poll model leaves comments working and identifies the broken contract in Hook status.
+
+* The block, local-hide, sound and Not interested controls now disappear when TikTok's comment sheet covers the feed. The local-hide and sound buttons have their own switches, and each visible control can be moved and remembered on its own. Enabling local hide after the controls attach keeps it in its own slot instead of covering the sound button.
+
+* Restored the Ko-fi support link removed during the optimizer documentation update. The marketing contract now checks the canonical URL so later README rewrites cannot silently drop it again.
+
 * Eight optional TikTok optimizer patches from Kveld are now built into Hushfeed. The four resource patches validate complete path and SHA-256 profiles before emptying language, creator, LIVE, C2PA or card-scanner assets. The startup, network, Fresco and update patches use exact reviewed method contracts, stay off by default and describe their feature tradeoffs. Disable telemetry also covers TikTok's two Npth startup tasks behind its existing switch. The pre-push preparation check can keep the published 71-patch index intact while this unreleased catalog grows at the same version. Strict publication checks still reject the mismatch.
 
 * Media downloads now validate the original address and every redirect. They allow only public HTTPS destinations with no embedded credentials, stop redirect loops after five hops, recheck DNS before connecting, and remove partial files when a destination or body is refused.

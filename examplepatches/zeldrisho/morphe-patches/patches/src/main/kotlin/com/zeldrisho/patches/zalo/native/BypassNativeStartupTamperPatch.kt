@@ -15,6 +15,7 @@ private val ORIGINAL_CONFIG_CALL = byteArrayOf(0xa9.toByte(), 0x10, 0x00, 0x94.t
 private const val EXIT_CALL_OFFSET = 0x2c4ecL
 private val ORIGINAL_EXIT_CALL = byteArrayOf(0x00, 0x01, 0x3f, 0xd6.toByte())
 private val NOP = byteArrayOf(0x1f, 0x20, 0x03, 0xd5.toByte())
+private const val HEX_RADIX = 16
 
 /**
  * Forces the successful native cryptographic initialization path while
@@ -34,33 +35,29 @@ val bypassZaloNativeStartupTamperPatch = rawResourcePatch(
     compatibleWith(COMPATIBILITY_ZALO)
 
     execute {
-        val library = get(LIBRARY_PATH, true)
-        RandomAccessFile(library, "rw").use { file ->
-            file.seek(INIT_BRANCH_OFFSET)
-            val initBranch = ByteArray(ORIGINAL_INIT_BRANCH.size)
-            file.readFully(initBranch)
-            check(initBranch.contentEquals(ORIGINAL_INIT_BRANCH)) {
-                "Unexpected initialization-branch bytes at 0x${INIT_BRANCH_OFFSET.toString(16)}"
-            }
+        patchNativeLibrary(get(LIBRARY_PATH, true))
+    }
+}
 
-            file.seek(CONFIG_CALL_OFFSET)
-            val configCall = ByteArray(ORIGINAL_CONFIG_CALL.size)
-            file.readFully(configCall)
-            check(configCall.contentEquals(ORIGINAL_CONFIG_CALL)) {
-                "Unexpected config-call bytes at 0x${CONFIG_CALL_OFFSET.toString(16)}"
+/** Validates every pinned site before mutating the native library. */
+internal fun patchNativeLibrary(library: java.io.File) {
+    RandomAccessFile(library, "rw").use { file ->
+        fun readAt(offset: Long, expected: ByteArray, label: String) {
+            file.seek(offset)
+            val actual = ByteArray(expected.size)
+            file.readFully(actual)
+            check(actual.contentEquals(expected)) {
+                "Unexpected $label bytes at 0x${offset.toString(HEX_RADIX)}"
             }
-
-            file.seek(EXIT_CALL_OFFSET)
-            val exitCall = ByteArray(ORIGINAL_EXIT_CALL.size)
-            file.readFully(exitCall)
-            check(exitCall.contentEquals(ORIGINAL_EXIT_CALL)) {
-                "Unexpected JNI exit-call bytes at 0x${EXIT_CALL_OFFSET.toString(16)}"
-            }
-
-            file.seek(INIT_BRANCH_OFFSET)
-            file.write(NOP)
-            file.seek(EXIT_CALL_OFFSET)
-            file.write(NOP)
         }
+
+        readAt(INIT_BRANCH_OFFSET, ORIGINAL_INIT_BRANCH, "initialization-branch")
+        readAt(CONFIG_CALL_OFFSET, ORIGINAL_CONFIG_CALL, "config-call")
+        readAt(EXIT_CALL_OFFSET, ORIGINAL_EXIT_CALL, "JNI exit-call")
+
+        file.seek(INIT_BRANCH_OFFSET)
+        file.write(NOP)
+        file.seek(EXIT_CALL_OFFSET)
+        file.write(NOP)
     }
 }

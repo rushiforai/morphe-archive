@@ -687,24 +687,6 @@ public final class FeatureGateCatalog {
             return actionable && FeatureGateLabStore.supportsOverride(manager, type);
         }
 
-        public String sourceLabel() {
-            String prefix = sourceName() + " / ";
-            if (registered && loaded) return prefix + "generated registry + current cache";
-            if (registered) return prefix + "generated registry";
-            if (loaded) return prefix + "current cache only";
-            return prefix + "local catalog";
-        }
-
-        public String sourceName() {
-            if (FeatureGateLabStore.MANAGER_PIA_ACTIVITY_CENTER.equals(manager)) return "Activity Center";
-            if (FeatureGateLabStore.MANAGER_PLAYER_CONFIG.equals(manager)) return "Player Config";
-            if (FeatureGateLabStore.MANAGER_LIVE.equals(manager)) return "Live Settings";
-            if (FeatureGateLabStore.MANAGER_VE_CONFIG.equals(manager)) return "Media Config";
-            if (FeatureGateLabStore.MANAGER_SETTINGS_MANAGER.equals(manager)) return "Structured Config";
-            if (FeatureGateLabStore.MANAGER_ABMOCK.equals(manager)) return "App AB";
-            return manager;
-        }
-
         public String shortSourceName() {
             if (FeatureGateLabStore.MANAGER_PIA_ACTIVITY_CENTER.equals(manager)) return "PIA";
             if (FeatureGateLabStore.MANAGER_PLAYER_CONFIG.equals(manager)) return "PLAYER";

@@ -75,7 +75,6 @@ Seiceáil go bhfuil an t-ainm pacáiste ceart agus go bhfuil an aip suiteáilte"
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Sruthanna físe bréige</string>
   <string name="morphe_spoof_video_streams_screen_summary">Cumraigh spoofáil cliant chun fadhbanna athsheinm a chosc</string>
-  <string name="morphe_spoof_video_streams_title">Sruthanna físe bréige</string>
   <string name="morphe_spoof_video_streams_summary">"Deisíonn sé fadhbanna athsheinm do fhormhór na n-úsáideoirí trí shruth físe comhoiriúnach a iarraidh
 
 Mura n-úsáideoir YouTube Premium thú, b'fhéidir nach mbeidh an socrú seo ag teastáil"</string>

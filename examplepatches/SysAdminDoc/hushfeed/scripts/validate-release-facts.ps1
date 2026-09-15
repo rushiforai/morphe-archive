@@ -5,7 +5,8 @@
 .DESCRIPTION
     The generated patches-list.json is the local source for the release version, target
     package, target version and patch count. This check makes README.md, patches-bundle.json
-    and the recorded runtime test count agree before a release is published. A guarded
+    and the recorded runtime test count agree before a release is published. It also checks
+    the canonical Morphe add-source link in the README and verifies that its landing page is live. A guarded
     preparation mode lets the source commit reach GitHub while the public index still points
     at the previous working bundle. Published-asset verification remains strict.
 #>
@@ -37,7 +38,10 @@ param(
     # includes a newer source version and an unreleased catalog change held at the current version.
     # The pre-push gate uses this only when the index itself did not change. Asset verification is
     # refused until the index catches up.
-    [switch]$AllowPublishedIndexLag
+    [switch]$AllowPublishedIndexLag,
+    # The release provenance receipt. Defaults to release-receipt-<version>.json in the repo
+    # root; checked when it is there, and required for a release.
+    [string]$Receipt
 )
 
 $ErrorActionPreference = 'Stop'
@@ -50,6 +54,7 @@ if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 
 . (Join-Path $PSScriptRoot 'Resolve-Java.ps1')
 . (Join-Path $PSScriptRoot 'patch-target.ps1')
+. (Join-Path $PSScriptRoot 'release-receipt.ps1')
 
 function Resolve-DesktopCli {
     <#
@@ -98,8 +103,12 @@ function Require-Match {
     }
 }
 
-function Assert-AssetReachable {
-    param([Uri]$Uri)
+function Assert-UrlReachable {
+    param(
+        [Uri]$Uri,
+        [string]$Description,
+        [string]$FailureHint
+    )
     # -SkipHttpErrorCheck is PowerShell 7 only, and the pre-push hook runs whichever shell it
     # found, so a 404 has to be read out of the thrown response instead. That is the answer this
     # check exists for: the index once named a tag that did not exist yet.
@@ -116,15 +125,14 @@ function Assert-AssetReachable {
         if ($failed -and $failed.StatusCode) {
             $status = [int]$failed.StatusCode
         } else {
-            throw ("Could not reach the indexed bundle URL ${Uri}: $($_.Exception.Message). " +
+            throw ("Could not reach the ${Description} ${Uri}: $($_.Exception.Message). " +
                 'If the network is down, push with HUSHFEED_SKIP_PRE_PUSH=1 and run this again later.')
         }
     }
     if ($status -ne 200) {
-        throw ("The indexed bundle URL ${Uri} answered HTTP ${status}. " +
-            'The Manager fetches that address, so the release it names has to exist first.')
+        throw ("The ${Description} ${Uri} answered HTTP ${status}. " + $FailureHint)
     }
-    Write-Host ("[release] indexed URL answers 200: " + $Uri)
+    Write-Host ("[release] ${Description} answers 200: " + $Uri)
 }
 
 $rootPath = (Resolve-Path -LiteralPath $Root).Path
@@ -192,7 +200,7 @@ Require-Match -Text ([string]$bundle.download_url) -Pattern "/v$([regex]::Escape
 # Matching the pattern only proves the index spells the version right. Reaching the address is
 # what catches an index pointed at a tag nobody published, which is how the bundle went missing
 # once already, and the hash comparison further down runs only when this checkout built a bundle.
-# So the URL is fetched on every run, not only on a release.
+# So the asset URL and the README's Morphe landing page are fetched on every run, not only on a release.
 $assetUri = [Uri]$bundle.download_url
 if ($assetUri.Scheme -ne 'https') {
     throw "The published bundle URL must use HTTPS: $($bundle.download_url)"
@@ -209,10 +217,16 @@ if ($segments.Count -lt 2) {
     throw "Could not read an owner and repository out of the indexed bundle URL: $assetUri"
 }
 $slug = $segments[0] + '/' + $segments[1]
+$encodedSlug = [Uri]::EscapeDataString($slug)
+$addSourceUrl = "https://morphe.software/add-source?github=$encodedSlug"
+Require-Match -Text $readme -Pattern ([regex]::Escape($addSourceUrl)) -Description 'README Morphe add-source link'
 if ($SkipUrlCheck) {
-    Write-Host '[release] the indexed URL was not fetched because -SkipUrlCheck was given'
+    Write-Host '[release] the indexed URL and Morphe add-source page were not fetched because -SkipUrlCheck was given'
 } else {
-    Assert-AssetReachable -Uri $assetUri
+    Assert-UrlReachable -Uri $assetUri -Description 'indexed bundle URL' `
+        -FailureHint 'The Manager fetches that address, so the release it names has to exist first.'
+    Assert-UrlReachable -Uri ([Uri]$addSourceUrl) -Description 'Morphe add-source page' `
+        -FailureHint 'The README sends Android users through that page, so it must be available before release.'
 }
 Require-Match -Text $readme -Pattern "\b$patchCount patches\b" -Description 'README patch count'
 Require-Match -Text $readme -Pattern ([regex]::Escape($targetPackage)) -Description 'README package name'
@@ -539,6 +553,82 @@ $managerFloorPattern = "\bMorphe Manager\s+$([regex]::Escape($managerFloor))\s+o
 Require-Match -Text $readme -Pattern $managerFloorPattern -Description 'README Manager floor'
 Write-Host "[release] README requires Morphe Manager $managerFloor or newer for patcher $pinnedPatcher"
 
+function Test-ReleaseReceiptHere {
+    <#
+    .SYNOPSIS
+        Checks the provenance receipt this checkout has, if it has one.
+    .DESCRIPTION
+        A function so both exits run it. It used to sit after the bundle stamp check, which
+        returns early when there is no built bundle, so on a clean checkout or any push that did
+        not build one, none of the receipt was checked at all: exactly the case the early return
+        exists to serve.
+    #>
+    param([string]$BundleForComparison)
+
+    $receiptPath = if ($Receipt) { $Receipt } else {
+        Join-Path $rootPath "release-receipt-$releaseVersion.json"
+    }
+    if (-not (Test-Path -LiteralPath $receiptPath -PathType Leaf)) {
+        if ($VerifyPublishedAsset) {
+            throw ("There is no release provenance receipt at $receiptPath. Run " +
+                "scripts/build-release-receipt.ps1 against the retained fixtures first.")
+        }
+        Write-Host "[release] no receipt at $receiptPath, so its facts are not compared"
+        return
+    }
+
+    # Not $receipt: PowerShell variable names are case-insensitive, so that is the -Receipt
+    # parameter, and it is typed [string]. Assigning the parsed document to it coerces the whole
+    # object to its string form, and every field then reads as empty.
+    $receiptDocument = Read-JsonFile $receiptPath
+    $approvedDelta = Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt')
+
+    # The commit the receipt names, checked against git rather than against the receipt's own
+    # other field. Its timestamp and the bundle stamp both come out of the same document, so on
+    # their own they prove only that the document agrees with itself; a receipt kept from an
+    # earlier release satisfies that and names the wrong commit in the summary line below.
+    $receiptCommit = [string]$receiptDocument.release.commit
+    $actualEpoch = 0L
+    if ($receiptCommit -match '^[0-9a-f]{40}$') {
+        $known = (& git -C $rootPath cat-file -t $receiptCommit 2>$null | Select-Object -First 1)
+        if ("$known".Trim() -ne 'commit') {
+            throw ("The release provenance receipt names commit $receiptCommit, which is not in " +
+                "this repository.")
+        }
+        $epochText = (& git -C $rootPath log -1 --format=%ct $receiptCommit 2>$null |
+            Select-Object -First 1)
+        if ("$epochText".Trim() -match '^\d+$') { $actualEpoch = [long]"$epochText".Trim() }
+    }
+    # Only a release is held to the receipt describing a particular commit, and that commit is
+    # the one the published tag names, not HEAD. A release is built from its source commit and
+    # its index is pushed in a later commit, so on the push this runs for, HEAD is one past the
+    # commit the bundle and the receipt were made from. The tag's commit was resolved from the
+    # remote above, which is the same commit the local bundle's stamp is already held to. On an
+    # ordinary push the receipt legitimately describes the commit it was generated at.
+    $expectedCommit = $null
+    if ($VerifyPublishedAsset) {
+        if ([string]::IsNullOrWhiteSpace($releaseCommit)) {
+            throw ('The published tag was not resolved before the receipt check, so the receipt ' +
+                'cannot be held to the release commit.')
+        }
+        $expectedCommit = $releaseCommit
+    }
+
+    $receiptCheck = Test-ReleaseReceipt -Receipt $receiptDocument -ExpectedVersion $releaseVersion `
+        -ExpectedPatchNames @($patches | ForEach-Object { [string]$_.name }) `
+        -ExpectedPatcherVersion $pinnedPatcher -ExpectedManagerFloor $managerFloor `
+        -BundlePath $BundleForComparison -ApprovedManifestDelta $approvedDelta `
+        -ActualCommitTimestamp $actualEpoch -ExpectedCommit $expectedCommit
+    if (-not $receiptCheck.Valid) {
+        throw "The release provenance receipt does not describe this release: $($receiptCheck.Reason)"
+    }
+    $proved = @($receiptDocument.targets | ForEach-Object { "$($_.source.versionName)" })
+    Write-Host ("[release] the receipt proves $($receiptDocument.release.patchCount) patches on " +
+        ($proved -join ', ') + " from commit " + $receiptCommit.Substring(0, 8) +
+        ", with no unreviewed manifest change")
+}
+
+
 $bundlePath = if ($ArtifactPath) { $ArtifactPath } else {
     Join-Path $rootPath "patches/build/libs/patches-$releaseVersion.mpp"
 }
@@ -553,6 +643,9 @@ if (-not (Test-Path -LiteralPath $bundlePath -PathType Leaf)) {
     }
     Write-Host ("[release] no built bundle at $bundlePath, so its patcher stamp is not compared " +
         "against the catalog pin $pinnedPatcher")
+    # No bundle to compare bytes against, but everything else the receipt says is
+    # still checked.
+    Test-ReleaseReceiptHere
     Write-Host ("[facts] " + $sourceVersion + ": " + $patchCount + " patches for " + $targetPackage + " " + $targetVersion + "; " + $testFacts)
     exit 0
 }
@@ -579,6 +672,8 @@ if ($stampMatch.Groups[1].Value -ne $pinnedPatcher) {
         "Morphe Manager $managerFloor, so the patcher pin or built bundle is now wrong.")
 }
 Write-Host "[release] the bundle stamps patcher $pinnedPatcher, as the catalog pins"
+
+Test-ReleaseReceiptHere -BundleForComparison $(if ($VerifyPublishedAsset) { $bundlePath } else { $null })
 
 Write-Host ("[facts] " + $sourceVersion + ": " + $patchCount + " patches for " + $targetPackage + " " + $targetVersion + "; " + $testFacts)
 

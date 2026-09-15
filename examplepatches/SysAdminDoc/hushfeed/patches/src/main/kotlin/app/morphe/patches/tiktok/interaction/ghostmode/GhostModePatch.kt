@@ -19,8 +19,6 @@ import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.util.numberOfParameterRegisters
 
-private const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/ghostmode/GhostMode;"
-
 /** Reports that a story was seen, opened or interacted with. */
 private object StoryViewReportFingerprint : Fingerprint(
     custom = { method, classDef ->
@@ -47,34 +45,30 @@ private object TypingStatusSenderFingerprint : Fingerprint(
 )
 
 /**
- * Returns from the method before it reports anything, when the extension says to. The
- * return instruction is chosen from the method's own return type rather than assumed, and
- * a method that cannot take the guard is skipped:
+ * Returns from a reporter before it sends anything, when the extension says to.
  *
- * - an abstract method (a Retrofit interface declaration) has nothing to inject into,
- * - a frame with no local registers would have the guard clobber a parameter, and
- * - a wide return would need a register pair.
+ * <p>Only a reporter that returns nothing can take this. One that hands something back is
+ * handing back a lazy `Call`, `Observable` or `Single` that its caller goes on to `enqueue` or
+ * `subscribe`, and the only value this could put there is a null. That null was the crash on
+ * opening a story with Ghost mode on, and the reason other people's profiles showed no
+ * follower counts. Those reporters are suppressed where they are called instead, by stepping
+ * over the whole send: see [skipReportsAtEveryCallSite].
  *
- * @return true when the guard was injected.
+ * @return true when the guard was injected; false for an abstract method, one with no local
+ *         register to hold the answer, or one that returns anything at all.
  */
-private fun MutableMethod.guardWith(extensionMethodName: String): Boolean {
+internal fun MutableMethod.returnBeforeReporting(guard: String): Boolean {
+    if (returnType != "V") return false
     val implementation = implementation ?: return false
     if (implementation.registerCount - numberOfParameterRegisters < 1) return false
-
-    val returnInstruction = when {
-        returnType == "V" -> "return-void"
-        returnType.startsWith("L") || returnType.startsWith("[") -> "const/4 v0, 0x0\n                    return-object v0"
-        returnType == "J" || returnType == "D" -> return false
-        else -> "const/4 v0, 0x0\n                    return v0"
-    }
 
     addInstructionsWithLabels(
         0,
         """
-            invoke-static {}, $EXTENSION_CLASS_DESCRIPTOR->$extensionMethodName()Z
+            invoke-static {}, $GHOST_MODE_EXTENSION->$guard()Z
             move-result v0
             if-eqz v0, :morphe_ghost_mode_off
-            $returnInstruction
+            return-void
             :morphe_ghost_mode_off
             nop
         """,
@@ -111,10 +105,15 @@ val ghostModePatch = bytecodePatch(
             TypingStatusSenderFingerprint to "shouldBlockTypingStatus",
         ).forEach { (fingerprint, guard) ->
             // Retrofit declarations have no body. Every concrete reporting method is mandatory.
-            val methods = fingerprint.matchAll().map { it.method }.filter { it.implementation != null }
-            if (methods.isEmpty() || methods.any { !it.guardWith(guard) }) {
+            val reporters = fingerprint.matchAll().map { it.method }.filter { it.implementation != null }
+            if (reporters.isEmpty()) {
+                throw PatchException("Ghost mode: no concrete reporter for $guard.")
+            }
+            val (silent, lazy) = reporters.partition { it.returnType == "V" }
+            if (silent.any { !it.returnBeforeReporting(guard) }) {
                 throw PatchException("Ghost mode: could not install every $guard hook.")
             }
+            if (lazy.isNotEmpty()) skipReportsAtEveryCallSite(lazy, guard)
         }
     }
 }

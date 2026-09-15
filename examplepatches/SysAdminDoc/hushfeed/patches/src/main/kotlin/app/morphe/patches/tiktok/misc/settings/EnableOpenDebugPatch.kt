@@ -15,7 +15,8 @@ private const val CRASH_CAPTURE_INITIALIZER =
 @Suppress("unused")
 val enableOpenDebugPatch = bytecodePatch(
     name = "Diagnostic tools",
-    description = "Adds optional Morphe diagnostic logging, filtered reports, and local TikTok crash capture.",
+    description = "Adds diagnostic logging, filtered reports and local TikTok crash capture. " +
+        "The switches are under Diagnostics in Hushfeed settings.",
     default = false,
 ) {
     dependsOn(sharedExtensionPatch, settingsPatch)

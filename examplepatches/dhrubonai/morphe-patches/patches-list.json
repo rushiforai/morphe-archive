@@ -1,0 +1,1820 @@
+{
+  "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
+  "version": "1.21.0",
+  "patches": [
+    {
+      "name": "AMOLED dark theme",
+      "description": "Adds a pure black option to the dark theme.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.cxinventor.file.explorer",
+          "name": "Cx File Explorer",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#5167F6",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.7.8",
+              "versionCodes": {
+                "ARM64_V8A": 278,
+                "ARMEABI_V7A": 278,
+                "X86_64": 278,
+                "X86": 278
+              },
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "AMOLED dark theme",
+      "description": "Replaces the dark theme background with pure black. Disables over-the-air updates that would restore the original background.",
+      "default": true,
+      "dependencies": [
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.kick.mobile",
+          "name": "Kick",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#53FC18",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "AMOLED dark theme",
+      "description": "Replaces the dark theme background with pure black.",
+      "default": true,
+      "dependencies": [
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "ai.perplexity.app.android",
+          "name": "Perplexity",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#20808D",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.95.0",
+              "versionCodes": {
+                "ARM64_V8A": 260642,
+                "ARMEABI_V7A": 260642,
+                "X86_64": 260642,
+                "X86": 260642
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "AMOLED dark theme",
+      "description": "Replaces the dark theme background with pure black.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "ch.protonmail.android",
+          "name": "Proton Mail",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#6D4AFF",
+          "signatures": [
+            "dcc9439ec1a6c6a8d0203f3423ee42bcc8b970628e53cb73a0393f398dd5b853"
+          ],
+          "targets": [
+            {
+              "version": "7.11.5",
+              "versionCodes": {
+                "ARM64_V8A": 18317,
+                "ARMEABI_V7A": 18317,
+                "X86_64": 18317,
+                "X86": 18317
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "7.10.4",
+              "versionCodes": {
+                "ARM64_V8A": 17667,
+                "ARMEABI_V7A": 17667,
+                "X86_64": 17667,
+                "X86": 17667
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "AMOLED dark theme",
+      "description": "Replaces the dark theme background with pure black.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.michaldrabik.showly2",
+          "name": "Showly",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#F44336",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.70.0",
+              "versionCodes": {
+                "ARM64_V8A": 840,
+                "ARMEABI_V7A": 840,
+                "X86_64": 840,
+                "X86": 840
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "All-In-One",
+      "description": "Enables video playback and downloads, removes ads and upsell prompts, bypasses the region block, unlocks the hidden Laboratory menu, and adds a Telegram channel popup and a floating support button. Requires Android 10 or later.",
+      "default": true,
+      "dependencies": [
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.community.oneroom",
+          "name": "MovieBox",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#30E66D",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "4.0.02.0828.03",
+              "versionCodes": {
+                "ARM64_V8A": 50020125,
+                "ARMEABI_V7A": 50020125,
+                "X86_64": 50020125,
+                "X86": 50020125
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "4.0.02.0831.03",
+              "versionCodes": {
+                "ARM64_V8A": 50020126,
+                "ARMEABI_V7A": 50020126,
+                "X86_64": 50020126,
+                "X86": 50020126
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "4.0.02.0903.02",
+              "versionCodes": {
+                "ARM64_V8A": 50020128,
+                "ARMEABI_V7A": 50020128,
+                "X86_64": 50020128,
+                "X86": 50020128
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Block telemetry",
+      "description": "Blocks the Umeng, ByteDance and ad network analytics endpoints.",
+      "default": true,
+      "dependencies": [
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.gstarmc.android",
+          "name": "DWG FastView",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#1AACAC",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.19.4",
+              "versionCodes": {
+                "ARM64_V8A": 614,
+                "ARMEABI_V7A": 614,
+                "X86_64": 614,
+                "X86": 614
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "5.19.6",
+              "versionCodes": {
+                "ARM64_V8A": 616,
+                "ARMEABI_V7A": 616,
+                "X86_64": 616,
+                "X86": 616
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "5.20.0",
+              "versionCodes": {
+                "ARM64_V8A": 620,
+                "ARMEABI_V7A": 620,
+                "X86_64": 620,
+                "X86": 620
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "5.21.0",
+              "versionCodes": {
+                "ARM64_V8A": 630,
+                "ARMEABI_V7A": 630,
+                "X86_64": 630,
+                "X86": 630
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Dark theme",
+      "description": "Renders the app's dark theme and adds it to the settings.",
+      "default": true,
+      "dependencies": [
+        "ResourcePatch",
+        "BytecodePatch",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.cxinventor.file.explorer",
+          "name": "Cx File Explorer",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#5167F6",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.7.8",
+              "versionCodes": {
+                "ARM64_V8A": 278,
+                "ARMEABI_V7A": 278,
+                "X86_64": 278,
+                "X86": 278
+              },
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Disable telemetry",
+      "description": "Stops crash and error reports from reaching Sentry.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.risesci.nyx",
+          "name": "RISE Sleep Tracker",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#8E58FF",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "Android V1.78.49",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "Android V1.78.47",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Disable tracking",
+      "description": "Stops installs, sessions and in-app events from reaching AppsFlyer.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.handmark.expressweather",
+          "name": "1Weather",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#089AED",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "13.1.0",
+              "versionCodes": {
+                "ARM64_V8A": 130010,
+                "ARMEABI_V7A": 130010,
+                "X86_64": 130010,
+                "X86": 130010
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "12.9.3",
+              "versionCodes": {
+                "ARM64_V8A": 120093,
+                "ARMEABI_V7A": 120093,
+                "X86_64": 120093,
+                "X86": 120093
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Disable tracking",
+      "description": "Disables analytics and crash reporting.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.spocky.projengmenu",
+          "name": "Projectivy Launcher",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#F08029",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "4.71",
+              "versionCodes": {
+                "ARM64_V8A": 95,
+                "ARMEABI_V7A": 95,
+                "X86_64": 95,
+                "X86": 95
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.70",
+              "versionCodes": {
+                "ARM64_V8A": 92,
+                "ARMEABI_V7A": 92,
+                "X86_64": 92,
+                "X86": 92
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Disable usage tracking",
+      "description": "Stops app usage events from being uploaded. Local usage tracking remains enabled.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.risesci.nyx",
+          "name": "RISE Sleep Tracker",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#8E58FF",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "Android V1.78.49",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "Android V1.78.47",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "GmsCore support",
+      "description": "Signs in through GmsCore instead of Google Play Services. Requires GmsCore to be installed.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "all.in.one.calculator",
+          "name": "All-In-One Calculator",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#455A64",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.4.0",
+              "versionCodes": {
+                "ARM64_V8A": 340,
+                "ARMEABI_V7A": 340,
+                "X86_64": 340,
+                "X86": 340
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide Shorts",
+      "description": "Hides the 1Weather Shorts card from the Today screen.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.handmark.expressweather",
+          "name": "1Weather",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#089AED",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "13.1.0",
+              "versionCodes": {
+                "ARM64_V8A": 130010,
+                "ARMEABI_V7A": 130010,
+                "X86_64": 130010,
+                "X86": 130010
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "12.9.3",
+              "versionCodes": {
+                "ARM64_V8A": 120093,
+                "ARMEABI_V7A": 120093,
+                "X86_64": 120093,
+                "X86": 120093
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide Skyla",
+      "description": "Hides the Skyla AI assistant, its prompts and the Summarize buttons.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.handmark.expressweather",
+          "name": "1Weather",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#089AED",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "13.1.0",
+              "versionCodes": {
+                "ARM64_V8A": 130010,
+                "ARMEABI_V7A": 130010,
+                "X86_64": 130010,
+                "X86": 130010
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "12.9.3",
+              "versionCodes": {
+                "ARM64_V8A": 120093,
+                "ARMEABI_V7A": 120093,
+                "X86_64": 120093,
+                "X86": 120093
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide ads",
+      "description": "Removes promoted listings and the \"with Ads\" label from search results.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.etsy.android",
+          "name": "Etsy",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#F1641E",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "7.90.0",
+              "versionCodes": {
+                "ARM64_V8A": 79000153,
+                "ARMEABI_V7A": 79000153,
+                "X86_64": 79000153,
+                "X86": 79000153
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide ads",
+      "description": "Disables banner, interstitial, and native ads.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.gamma.scan",
+          "name": "QR & Barcode Scanner",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#2196F3",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.2.221",
+              "versionCodes": {
+                "ARM64_V8A": 221,
+                "ARMEABI_V7A": 221,
+                "X86_64": 221,
+                "X86": 221
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide ads",
+      "description": "Adds an option to hide banner, interstitial, app-open and rewarded ads.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "photo.editor.photoeditor.photoeditorpro",
+          "name": "Photo Editor Pro",
+          "description": null,
+          "apkFileType": "APKS_REQUIRED",
+          "appIconColor": "#FA2A80",
+          "signatures": [
+            "868aa1a8470b4214e88a5c9e65a1dbe475a32e1da7a23079ba6e0be0bd50b621"
+          ],
+          "targets": [
+            {
+              "version": "1.791.265",
+              "versionCodes": {
+                "ARM64_V8A": 265100,
+                "ARMEABI_V7A": 265100,
+                "X86_64": 265100,
+                "X86": 265100
+              },
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide ads",
+      "description": "Removes the adverts shown between search results.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.thetrainline",
+          "name": "Trainline",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#00A88F",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "407.0.0.178994",
+              "versionCodes": {
+                "ARM64_V8A": 1278994,
+                "ARMEABI_V7A": 1278994,
+                "X86_64": 1278994,
+                "X86": 1278994
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide membership upselling",
+      "description": "Hides the membership promotion on the Home screen and the free trial bottom sheet.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.audible.application",
+          "name": "Audible",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#F8991C",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "26.30.05",
+              "versionCodes": {
+                "ARM64_V8A": 2090263005,
+                "ARMEABI_V7A": 2090263005,
+                "X86_64": 2090263005,
+                "X86": 2090263005
+              },
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide rating dialog",
+      "description": "Removes the prompt asking for a store review.",
+      "default": true,
+      "dependencies": [
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.gstarmc.android",
+          "name": "DWG FastView",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#1AACAC",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.19.4",
+              "versionCodes": {
+                "ARM64_V8A": 614,
+                "ARMEABI_V7A": 614,
+                "X86_64": 614,
+                "X86": 614
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "5.19.6",
+              "versionCodes": {
+                "ARM64_V8A": 616,
+                "ARMEABI_V7A": 616,
+                "X86_64": 616,
+                "X86": 616
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "5.20.0",
+              "versionCodes": {
+                "ARM64_V8A": 620,
+                "ARMEABI_V7A": 620,
+                "X86_64": 620,
+                "X86": 620
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "5.21.0",
+              "versionCodes": {
+                "ARM64_V8A": 630,
+                "ARMEABI_V7A": 630,
+                "X86_64": 630,
+                "X86": 630
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide upgrade upselling",
+      "description": "Hides the top-bar upgrade button and promotional sidebar rows.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "ch.protonmail.android",
+          "name": "Proton Mail",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#6D4AFF",
+          "signatures": [
+            "dcc9439ec1a6c6a8d0203f3423ee42bcc8b970628e53cb73a0393f398dd5b853"
+          ],
+          "targets": [
+            {
+              "version": "7.11.5",
+              "versionCodes": {
+                "ARM64_V8A": 18317,
+                "ARMEABI_V7A": 18317,
+                "X86_64": 18317,
+                "X86": 18317
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "7.10.4",
+              "versionCodes": {
+                "ARM64_V8A": 17667,
+                "ARMEABI_V7A": 17667,
+                "X86_64": 17667,
+                "X86": 17667
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Inspect AI requests",
+      "description": "Shows the network calls an AI tool makes, such as HTTP requests and Firebase uploads, and keeps a log, so you can watch your photo fly to China or the US.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "photo.editor.photoeditor.photoeditorpro",
+          "name": "Photo Editor Pro",
+          "description": null,
+          "apkFileType": "APKS_REQUIRED",
+          "appIconColor": "#FA2A80",
+          "signatures": [
+            "868aa1a8470b4214e88a5c9e65a1dbe475a32e1da7a23079ba6e0be0bd50b621"
+          ],
+          "targets": [
+            {
+              "version": "1.791.265",
+              "versionCodes": {
+                "ARM64_V8A": 265100,
+                "ARMEABI_V7A": 265100,
+                "X86_64": 265100,
+                "X86": 265100
+              },
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Open Library on launch",
+      "description": "Opens the Library tab instead of Home on launch. Applies only while signed in.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.audible.application",
+          "name": "Audible",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#F8991C",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "26.30.05",
+              "versionCodes": {
+                "ARM64_V8A": 2090263005,
+                "ARMEABI_V7A": 2090263005,
+                "X86_64": 2090263005,
+                "X86": 2090263005
+              },
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove 'Sent from' signature",
+      "description": "Removes the 'Sent from Proton Mail' signature from emails.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "ch.protonmail.android",
+          "name": "Proton Mail",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#6D4AFF",
+          "signatures": [
+            "dcc9439ec1a6c6a8d0203f3423ee42bcc8b970628e53cb73a0393f398dd5b853"
+          ],
+          "targets": [
+            {
+              "version": "7.11.5",
+              "versionCodes": {
+                "ARM64_V8A": 18317,
+                "ARMEABI_V7A": 18317,
+                "X86_64": 18317,
+                "X86": 18317
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "7.10.4",
+              "versionCodes": {
+                "ARM64_V8A": 17667,
+                "ARMEABI_V7A": 17667,
+                "X86_64": 17667,
+                "X86": 17667
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove free accounts limit",
+      "description": "Removes the limit for maximum free accounts logged in.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "ch.protonmail.android",
+          "name": "Proton Mail",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#6D4AFF",
+          "signatures": [
+            "dcc9439ec1a6c6a8d0203f3423ee42bcc8b970628e53cb73a0393f398dd5b853"
+          ],
+          "targets": [
+            {
+              "version": "7.11.5",
+              "versionCodes": {
+                "ARM64_V8A": 18317,
+                "ARMEABI_V7A": 18317,
+                "X86_64": 18317,
+                "X86": 18317
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "7.10.4",
+              "versionCodes": {
+                "ARM64_V8A": 17667,
+                "ARMEABI_V7A": 17667,
+                "X86_64": 17667,
+                "X86": 17667
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove nags",
+      "description": "Removes the rate this app dialog and the promotional dialogs shown on startup.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "org.readera",
+          "name": "ReadEra",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#0061BD",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "26.05.20+2300",
+              "versionCodes": {
+                "ARM64_V8A": 2300,
+                "ARMEABI_V7A": 2300,
+                "X86_64": 2300,
+                "X86": 2300
+              },
+              "isExperimental": false,
+              "minSdk": 16,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Show AI progress",
+      "description": "Reads the current stage off the real network activity instead of the fake progress bar InShot ships.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "photo.editor.photoeditor.photoeditorpro",
+          "name": "Photo Editor Pro",
+          "description": null,
+          "apkFileType": "APKS_REQUIRED",
+          "appIconColor": "#FA2A80",
+          "signatures": [
+            "868aa1a8470b4214e88a5c9e65a1dbe475a32e1da7a23079ba6e0be0bd50b621"
+          ],
+          "targets": [
+            {
+              "version": "1.791.265",
+              "versionCodes": {
+                "ARM64_V8A": 265100,
+                "ARMEABI_V7A": 265100,
+                "X86_64": 265100,
+                "X86": 265100
+              },
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Speed up AI tools",
+      "description": "Shortens the AI tool wait by polling for the result more often and uploading the photo in larger chunks.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "photo.editor.photoeditor.photoeditorpro",
+          "name": "Photo Editor Pro",
+          "description": null,
+          "apkFileType": "APKS_REQUIRED",
+          "appIconColor": "#FA2A80",
+          "signatures": [
+            "868aa1a8470b4214e88a5c9e65a1dbe475a32e1da7a23079ba6e0be0bd50b621"
+          ],
+          "targets": [
+            {
+              "version": "1.791.265",
+              "versionCodes": {
+                "ARM64_V8A": 265100,
+                "ARMEABI_V7A": 265100,
+                "X86_64": 265100,
+                "X86": 265100
+              },
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock custom time picker",
+      "description": "Enables picking a custom date and time when snoozing conversations and scheduling messages.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "ch.protonmail.android",
+          "name": "Proton Mail",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#6D4AFF",
+          "signatures": [
+            "dcc9439ec1a6c6a8d0203f3423ee42bcc8b970628e53cb73a0393f398dd5b853"
+          ],
+          "targets": [
+            {
+              "version": "7.11.5",
+              "versionCodes": {
+                "ARM64_V8A": 18317,
+                "ARMEABI_V7A": 18317,
+                "X86_64": 18317,
+                "X86": 18317
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "7.10.4",
+              "versionCodes": {
+                "ARM64_V8A": 17667,
+                "ARMEABI_V7A": 17667,
+                "X86_64": 17667,
+                "X86": 17667
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock full version",
+      "description": "Unlocks the Off-Road Explorer features gated behind activation.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "psyberia.alpinequest.free",
+          "name": "AlpineQuest",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#0057BD",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.4.0e",
+              "versionCodes": {
+                "ARM64_V8A": 412,
+                "ARMEABI_V7A": 412,
+                "X86_64": 412,
+                "X86": 412
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock premium",
+      "description": "Grants the pro entitlement, which removes the ads and the paywalled tools.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "all.in.one.calculator",
+          "name": "All-In-One Calculator",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#455A64",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.4.0",
+              "versionCodes": {
+                "ARM64_V8A": 340,
+                "ARMEABI_V7A": 340,
+                "X86_64": 340,
+                "X86": 340
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock premium",
+      "description": "Unlocks all premium content and skips the free trial screen.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "ipnossoft.rma.free",
+          "name": "BetterSleep",
+          "description": null,
+          "apkFileType": "APKS_REQUIRED",
+          "appIconColor": "#1D204B",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "26.15",
+              "versionCodes": {
+                "ARM64_V8A": 26799,
+                "ARMEABI_V7A": 26799,
+                "X86_64": 26799,
+                "X86": 26799
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock premium",
+      "description": "Unlocks premium and removes ads.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.cxinventor.file.explorer",
+          "name": "Cx File Explorer",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#5167F6",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.7.8",
+              "versionCodes": {
+                "ARM64_V8A": 278,
+                "ARMEABI_V7A": 278,
+                "X86_64": 278,
+                "X86": 278
+              },
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock premium",
+      "description": "Unlocks all premium features.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.myvitale.forus",
+          "name": "ForusApp",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#0772BA",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.0.15",
+              "versionCodes": {
+                "ARM64_V8A": 96,
+                "ARMEABI_V7A": 96,
+                "X86_64": 96,
+                "X86": 96
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock premium",
+      "description": "Unlocks the paid drawing, annotation and measurement tools, and removes ads.",
+      "default": true,
+      "dependencies": [
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.gstarmc.android",
+          "name": "DWG FastView",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#1AACAC",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.19.4",
+              "versionCodes": {
+                "ARM64_V8A": 614,
+                "ARMEABI_V7A": 614,
+                "X86_64": 614,
+                "X86": 614
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "5.19.6",
+              "versionCodes": {
+                "ARM64_V8A": 616,
+                "ARMEABI_V7A": 616,
+                "X86_64": 616,
+                "X86": 616
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "5.20.0",
+              "versionCodes": {
+                "ARM64_V8A": 620,
+                "ARMEABI_V7A": 620,
+                "X86_64": 620,
+                "X86": 620
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "5.21.0",
+              "versionCodes": {
+                "ARM64_V8A": 630,
+                "ARMEABI_V7A": 630,
+                "X86_64": 630,
+                "X86": 630
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock premium",
+      "description": "Unlocks premium and removes ads.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.handmark.expressweather",
+          "name": "1Weather",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#089AED",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "13.1.0",
+              "versionCodes": {
+                "ARM64_V8A": 130010,
+                "ARMEABI_V7A": 130010,
+                "X86_64": 130010,
+                "X86": 130010
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "12.9.3",
+              "versionCodes": {
+                "ARM64_V8A": 120093,
+                "ARMEABI_V7A": 120093,
+                "X86_64": 120093,
+                "X86": 120093
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock premium",
+      "description": "Adds an option to unlock the pro tools, remove the export watermark and hide the upgrade prompts.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "photo.editor.photoeditor.photoeditorpro",
+          "name": "Photo Editor Pro",
+          "description": null,
+          "apkFileType": "APKS_REQUIRED",
+          "appIconColor": "#FA2A80",
+          "signatures": [
+            "868aa1a8470b4214e88a5c9e65a1dbe475a32e1da7a23079ba6e0be0bd50b621"
+          ],
+          "targets": [
+            {
+              "version": "1.791.265",
+              "versionCodes": {
+                "ARM64_V8A": 265100,
+                "ARMEABI_V7A": 265100,
+                "X86_64": 265100,
+                "X86": 265100
+              },
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock premium",
+      "description": "Unlocks all premium features.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.spocky.projengmenu",
+          "name": "Projectivy Launcher",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#F08029",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "4.71",
+              "versionCodes": {
+                "ARM64_V8A": 95,
+                "ARMEABI_V7A": 95,
+                "X86_64": 95,
+                "X86": 95
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.70",
+              "versionCodes": {
+                "ARM64_V8A": 92,
+                "ARMEABI_V7A": 92,
+                "X86_64": 92,
+                "X86": 92
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock premium",
+      "description": "Unlocks downloading every surah, lyrics and tafsir, Android Auto, background playback controls, and insights.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.mchutov.Quranify",
+          "name": "Quranify",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#141414",
+          "signatures": [
+            "6832f51be89158c630aa9a166c10781f2f68fc3bf1ef1e776e4fa2c218f0010d"
+          ],
+          "targets": [
+            {
+              "version": "2.2.8",
+              "versionCodes": {
+                "ARM64_V8A": 77,
+                "ARMEABI_V7A": 77,
+                "X86_64": 77,
+                "X86": 77
+              },
+              "isExperimental": false,
+              "minSdk": 33,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock premium",
+      "description": "Unlocks all premium features.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.sry.rateglance",
+          "name": "RateGlance",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#0D192C",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.14.8",
+              "versionCodes": {
+                "ARM64_V8A": 278,
+                "ARMEABI_V7A": 278,
+                "X86_64": 278,
+                "X86": 278
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock premium",
+      "description": "Unlocks the energy schedule, habit tools, smart alarm and progress insights. Requires a RISE account.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.risesci.nyx",
+          "name": "RISE Sleep Tracker",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#8E58FF",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "Android V1.78.49",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "Android V1.78.47",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock premium",
+      "description": "Unlocks running and logging workouts, progress tracking and personal records (AI workout generation is not included).",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "app.rubberbands.fit",
+          "name": "Rubber Bands",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#FD8700",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.9",
+              "versionCodes": {
+                "ARM64_V8A": 291,
+                "ARMEABI_V7A": 291,
+                "X86_64": 291,
+                "X86": 291
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock premium",
+      "description": "Unlocks ad removal, light theme, custom images, list view types, quick ratings, and transparent widgets. The News feed is not included.",
+      "default": true,
+      "dependencies": [
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.michaldrabik.showly2",
+          "name": "Showly",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#F44336",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.70.0",
+              "versionCodes": {
+                "ARM64_V8A": 840,
+                "ARMEABI_V7A": 840,
+                "X86_64": 840,
+                "X86": 840
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock premium",
+      "description": "Unlocks all premium features.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "app.symfonik.music.player",
+          "name": "Symfonium",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#E22728",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "14.0.0",
+              "versionCodes": {
+                "ARM64_V8A": 127708,
+                "ARMEABI_V7A": 127708,
+                "X86_64": 127708,
+                "X86": 127708
+              },
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            },
+            {
+              "version": "14.1.0",
+              "versionCodes": {
+                "ARM64_V8A": 127734,
+                "ARMEABI_V7A": 127734,
+                "X86_64": 127734,
+                "X86": 127734
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            },
+            {
+              "version": "15.0.1",
+              "versionCodes": {
+                "ARM64_V8A": 127798,
+                "ARMEABI_V7A": 127798,
+                "X86_64": 127798,
+                "X86": 127798
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            },
+            {
+              "version": "14.0.0 TV",
+              "versionCodes": {
+                "ARM64_V8A": 227708,
+                "ARMEABI_V7A": 227708,
+                "X86_64": 227708,
+                "X86": 227708
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock pro",
+      "description": "Unlocks task lists, callouts, app lock, and the notebook, tag, colour and reminder limits. Requires a signed-in account. The server still enforces storage, attachment size, monographs and SMS 2FA.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.streetwriters.notesnook",
+          "name": "Notesnook",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#008837",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.4.12",
+              "versionCodes": {
+                "ARM64_V8A": 4197422,
+                "ARMEABI_V7A": 4197422,
+                "X86_64": 4197422,
+                "X86": 4197422
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    }
+  ]
+}

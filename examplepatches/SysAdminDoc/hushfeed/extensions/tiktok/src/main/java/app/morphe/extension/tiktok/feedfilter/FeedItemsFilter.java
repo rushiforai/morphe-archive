@@ -1,5 +1,6 @@
 package app.morphe.extension.tiktok.feedfilter;
 
+import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.tiktok.settings.Settings;
@@ -23,6 +24,10 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class FeedItemsFilter {
+    /** Route names for the diagnostic report. The exported counters are read by these. */
+    static final String SEARCH_SOURCE = "SearchMixFeedList";
+    static final String FINAL_INSERT_SOURCE = "FinalInsert:";
+
     private static final AdsFilter ADS_FILTER = new AdsFilter();
     private static final List<IFilter> CONTENT_FILTERS = List.of(
         ADS_FILTER,
@@ -112,6 +117,7 @@ public final class FeedItemsFilter {
             filterCallProbeSummary = new ProbeSummary(System.currentTimeMillis());
         }
         FeedFilterFeedback.resetForTests();
+        FeedFilterCounters.clear();
     }
 
     static int probeSeenListCountForTests() {
@@ -189,12 +195,14 @@ public final class FeedItemsFilter {
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static void filterSearchAds(Object searchResult) {
-        if (searchResult == null || !ADS_FILTER.getEnabled()) return;
+        if (searchResult == null) return;
 
         Object raw = Reflect.readField(searchResult, "mItems");
         if (!(raw instanceof List)) return;
         List items = (List) raw;
         if (items.isEmpty()) return;
+        FeedFilterCounters.sawList(SEARCH_SOURCE, items.size());
+        if (!ADS_FILTER.getEnabled()) return;
 
         ArrayList kept = new ArrayList(items.size());
         for (Object card : items) {
@@ -217,6 +225,11 @@ public final class FeedItemsFilter {
             Logger.printException(() -> "Could not filter the search results", exception);
             return;
         }
+
+        // Counted only once the page has actually been rewritten. The all-ads refusal above and
+        // a failed write both leave the grid alone, and a counter that said otherwise would
+        // point an ad report at a route that removed nothing.
+        FeedFilterCounters.removed(SEARCH_SOURCE, items.size() - kept.size(), "searchAd");
 
         // printInfo is not gated on the debug switch, unlike printDebug, so every search page
         // used to append to the bounded diagnostic buffer and push out the events around a crash.
@@ -307,11 +320,16 @@ public final class FeedItemsFilter {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static List filterAdOnlyAwemeList(String source, List items) {
-        if (items == null || items.isEmpty() || !ADS_FILTER.getEnabled()) return items;
+        if (items == null || items.isEmpty()) return items;
+        // Counted before the enablement check. A route that ran with the ad filter off still
+        // proves the hook is alive, which is the half every ad report so far has been missing.
+        FeedFilterCounters.sawList(source, items.size());
+        if (!ADS_FILTER.getEnabled()) return items;
 
         boolean verbose = BaseSettings.DEBUG.get();
         ArrayList kept = null;
         int removed = 0;
+        String lastReason = null;
         for (int index = 0; index < items.size(); index++) {
             Object container = items.get(index);
             Aweme item = container instanceof Aweme ? (Aweme) container : null;
@@ -326,9 +344,11 @@ public final class FeedItemsFilter {
                 kept.addAll(items.subList(0, index));
             }
             removed++;
+            lastReason = reason;
             logItem(item, reason, verbose);
         }
 
+        FeedFilterCounters.removed(source, removed, lastReason);
         if (kept == null) return items;
         if (verbose && shouldLogBatch()) {
             int initialSize = items.size();
@@ -348,6 +368,7 @@ public final class FeedItemsFilter {
         List items
     ) {
         if (items == null || items.isEmpty()) return items;
+        FeedFilterCounters.sawList(FINAL_INSERT_SOURCE + source, items.size());
         if (panel == null || !"homepage_hot".equals(panel.getEventType())) return items;
 
         List<IFilter> activeContentFilters = getActiveFilters(CONTENT_FILTERS);
@@ -358,6 +379,7 @@ public final class FeedItemsFilter {
             || "middle_insert_when_video_lagging".equals(source);
         ArrayList kept = null;
         int removed = 0;
+        String lastReason = null;
 
         for (int index = 0; index < items.size(); index++) {
             Object container = items.get(index);
@@ -390,9 +412,11 @@ public final class FeedItemsFilter {
                 kept.addAll(items.subList(0, index));
             }
             removed++;
+            lastReason = reason;
             logItem(item, reason, BaseSettings.DEBUG.get());
         }
 
+        FeedFilterCounters.removed(FINAL_INSERT_SOURCE + source, removed, lastReason);
         if (kept == null) return items;
         if (BaseSettings.DEBUG.get()) {
             int removedCount = removed;
@@ -514,6 +538,7 @@ public final class FeedItemsFilter {
         FilterPhase phase
     ) {
         if (list == null) return;
+        FeedFilterCounters.sawList(source, list.size());
 
         List<IFilter> activeContentFilters = getActiveFilters(
             phase == FilterPhase.RESPONSE ? CONTENT_FILTERS : LATE_FOLLOW_FILTERS
@@ -634,6 +659,8 @@ public final class FeedItemsFilter {
             recordProbeScan(listId, removed, System.nanoTime() - startNs);
         }
 
+        FeedFilterCounters.removed(source, removed,
+            reasonCounts.isEmpty() ? null : reasonCounts.keySet().iterator().next());
         FeedFilterFeedback.onBatchResult(initialSize, resultList.size(), reasonCounts, System.currentTimeMillis());
         rememberProcessedList(listId, ListFingerprint.from(resultList, extractor), filterMask);
 

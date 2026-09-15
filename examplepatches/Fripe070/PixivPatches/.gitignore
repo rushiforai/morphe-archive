@@ -1,0 +1,60 @@
+# ==============================================================================
+# Pixiv Morphe Patch Repository .gitignore
+# ==============================================================================
+
+# Gradle & Build Output
+.gradle/
+build/
+**/build/
+!src/**/build/
+*.class
+*.log
+*.dex
+.dex_cache/
+*.flat
+
+# Morphe Bundles & Packages
+*.mpp
+*.mpe
+*.jar
+*.war
+*.zip
+*.tar.gz
+*.aar
+!gradle/wrapper/gradle-wrapper.jar
+
+# Android & APK Artifacts
+*.apk
+*.apks
+*.aab
+apk_decoded/
+decompiled/
+decompiled_res/
+cli_decompiled/
+jadx_out/
+captures/
+
+# IDE & Editor Configurations
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.project
+.classpath
+.settings/
+*.swp
+*~
+
+# Local Secrets & Environment Properties
+local.properties
+.env
+.env.*
+*.keystore
+*.jks
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini

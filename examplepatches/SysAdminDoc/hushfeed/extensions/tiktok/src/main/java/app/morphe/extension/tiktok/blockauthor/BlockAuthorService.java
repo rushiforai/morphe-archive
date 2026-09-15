@@ -76,7 +76,7 @@ public final class BlockAuthorService {
     }
 
     public interface Callback {
-        void onResult(Result result, String message);
+        void onResult(Result result);
     }
 
     /** Blocks {@code author}. Runs on a background thread. */
@@ -93,32 +93,22 @@ public final class BlockAuthorService {
         try {
             Utils.submitOnBackgroundThread(() -> {
                 Result result = Result.UNCONFIRMED;
-                String message = null;
 
                 try {
                     result = execute(author, blockType);
-                    if (result == Result.REJECTED) {
-                        message = "TikTok rejected the request";
-                    } else if (result == Result.UNCONFIRMED) {
-                        message = "TikTok's response could not be confirmed";
-                    }
                 } catch (UnsupportedOperationException ex) {
-                    message = "TikTok's response could not be confirmed";
                     Logger.printInfo(() -> "Block endpoint unavailable: " + ex.getMessage());
                 } catch (Throwable ex) {
-                    message = "Request failed; TikTok's response could not be confirmed";
                     Logger.printException(() -> "Block request failed", ex);
                 }
 
                 final Result finalResult = result;
-                final String finalMessage = message;
-                Utils.runOnMainThread(() -> callback.onResult(finalResult, finalMessage));
+                Utils.runOnMainThread(() -> callback.onResult(finalResult));
                 return null;
             });
         } catch (RejectedExecutionException failure) {
             Logger.printException(() -> "Block request could not be queued", failure);
-            Utils.runOnMainThread(() -> callback.onResult(Result.UNCONFIRMED,
-                    "TikTok's response could not be confirmed"));
+            Utils.runOnMainThread(() -> callback.onResult(Result.UNCONFIRMED));
         }
     }
 
@@ -130,7 +120,7 @@ public final class BlockAuthorService {
         String uid = author.uid == null ? "" : author.uid;
         String secUid = author.secUid == null ? "" : author.secUid;
 
-        Logger.printDebug(() -> "Sending block_type=" + blockType + " for " + author.label());
+        Logger.printDebug(() -> "Sending block_type=" + blockType + " for " + author.reference());
 
         Object call = block.invoke(service, uid, secUid, blockType, SOURCE_UNSPECIFIED);
         if (call == null) {

@@ -75,7 +75,6 @@ Second \"item\" text"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">ভিডিও স্ট্রিম স্পুফ করুন</string>
   <string name="morphe_spoof_video_streams_screen_summary">প্লেব্যাক সংক্রান্ত সমস্যা রোধ করতে ক্লায়েন্টের ভিডিও স্ট্রিমগুলি স্পুফ করুন</string>
-  <string name="morphe_spoof_video_streams_title">ভিডিও স্ট্রিমিং স্পুফ করুন</string>
   <string name="morphe_spoof_video_streams_summary">"বেশিরভাগ ব্যবহারকারীর জন্য প্লেব্যাক সমস্যা সমাধান করে একটি সামঞ্জস্যপূর্ণ ভিডিও স্ট্রিম অনুরোধ করে।
 
 আপনি যদি YouTube Premium ব্যবহারকারী হন, তবে এই সেটিংসের প্রয়োজন নাও হতে পারে।"</string>

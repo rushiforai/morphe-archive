@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.AtomicFile;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.Setting;
+import app.morphe.extension.tiktok.feedfilter.FeedRuleLimits;
 import app.morphe.extension.shared.settings.SettingsJson;
 import app.morphe.extension.tiktok.featuregatelab.FeatureGateLabStore;
 import java.io.ByteArrayOutputStream;
@@ -52,6 +53,8 @@ public final class SettingsBackup {
         SCHEMA,
         INCOMPLETE,
         VALUE,
+        /** A caption or creator list exceeds its persisted byte or entry bound. */
+        RULE_LIST,
         /** More Feature Gate Lab rules than the Lab keeps, which only a hand-edited file has. */
         LAB_RULES,
         UNKNOWN
@@ -451,7 +454,12 @@ public final class SettingsBackup {
         for (Setting<?> setting : Setting.allLoadedSettings()) {
             if (!included(setting)) continue;
             if (values.has(setting.key)) {
-                updates.put(setting, convert(setting.defaultValue, values.get(setting.key), setting.key));
+                Object converted = convert(setting.defaultValue, values.get(setting.key), setting.key);
+                if (feedRuleProblem(setting, converted) != null) {
+                    throw new RejectedBackup(Reason.RULE_LIST,
+                            "Feed rule list exceeds its storage limit");
+                }
+                updates.put(setting, converted);
                 continue;
             }
             // A backup is a set of values to apply, not a picture of the whole app. A file
@@ -474,6 +482,18 @@ public final class SettingsBackup {
         }
         return new Snapshot(updates, FeatureGateLabStore.parseSettings(lab),
                 lab.getBoolean("master"), lab.getBoolean("acknowledged"), true, absent);
+    }
+
+    private static String feedRuleProblem(Setting<?> setting, Object value) {
+        if (!(value instanceof String)) return null;
+        String text = (String) value;
+        if (setting == Settings.BLOCKED_CAPTION_WORDS) {
+            return FeedRuleLimits.captionProblem(text);
+        }
+        if (setting == Settings.BLOCKED_CREATORS || setting == Settings.LOCAL_HIDDEN_CREATORS) {
+            return FeedRuleLimits.creatorProblem(text);
+        }
+        return null;
     }
 
     /**

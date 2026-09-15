@@ -1,3 +1,104 @@
+## [1.27.6](https://github.com/Zanuaimi/UniPatches/compare/v1.27.5...v1.27.6) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* **overlay + ads:** fix morphe patch errors part 6 ([e80a4bc](https://github.com/Zanuaimi/UniPatches/commit/e80a4bcb9cd6e47aa9e309214a66ca147385519e))
+
+## [1.27.5](https://github.com/Zanuaimi/UniPatches/compare/v1.27.4...v1.27.5) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* **overlay + ads:** Fix morphe patch errors part 5 ([04255ed](https://github.com/Zanuaimi/UniPatches/commit/04255ed22119c6d8cbd761a7dacea637d85972d4))
+
+## [1.27.4](https://github.com/Zanuaimi/UniPatches/compare/v1.27.3...v1.27.4) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* **ads + overlay:** fix morphe patch errors part 4 ([4f3a0b9](https://github.com/Zanuaimi/UniPatches/commit/4f3a0b93f00cec37e4da72a5c1a254daa1cfa19d))
+
+## [1.27.3](https://github.com/Zanuaimi/UniPatches/compare/v1.27.2...v1.27.3) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* **overlay + ads :** fix morphe patch errors part 3 ([e6d2bca](https://github.com/Zanuaimi/UniPatches/commit/e6d2bca1469bf66d70dbede801ec09dd6be899c5))
+
+## [1.27.2](https://github.com/Zanuaimi/UniPatches/compare/v1.27.1...v1.27.2) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* **ads + overlay:** fix morphe patch errors for runtime part 2 ([c26e63a](https://github.com/Zanuaimi/UniPatches/commit/c26e63a01f037d6c78634b0ee460868deb043733))
+
+## [1.27.1](https://github.com/Zanuaimi/UniPatches/compare/v1.27.0...v1.27.1) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* **ads + overlay:** Fix missing callback done and return void, which caused morphe patch error because of its absence ([9f34e08](https://github.com/Zanuaimi/UniPatches/commit/9f34e0864719979f05f010a56e0d87b479d7f619))
+
+## [1.27.0](https://github.com/Zanuaimi/UniPatches/compare/v1.26.1...v1.27.0) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* **ads:** verify MAX runtime hook boundaries ([60fab17](https://github.com/Zanuaimi/UniPatches/commit/60fab17c357b2bb3daa23be17d13b74571b58c2d))
+
+### ✨ New Features
+
+* **ads:** add request-scoped MAX reward controls ([6e452ed](https://github.com/Zanuaimi/UniPatches/commit/6e452edddab646dfd1a1db4555259b3e2c46855b))
+* **overlay:** release v2.5.3 ([1df7924](https://github.com/Zanuaimi/UniPatches/commit/1df7924cc876f8a9b6093c1dd0e1ecc11828a254))
+
+## [1.26.1](https://github.com/Zanuaimi/UniPatches/compare/v1.26.0...v1.26.1) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* **overlay:** fix problems with drag, header and overlay menu size ([d3b43ad](https://github.com/Zanuaimi/UniPatches/commit/d3b43ad38c82319c8cfecf585cb5809d3ec55f8b))
+
+## [1.26.0](https://github.com/Zanuaimi/UniPatches/compare/v1.25.0...v1.26.0) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* **overlay:** keep controls inside Activity bounds ([7d6776f](https://github.com/Zanuaimi/UniPatches/commit/7d6776fec4cdd531d632f8b0a663c2af2775e1b1))
+
+### ✨ New Features
+
+* **overlay:** add configurable adaptive menu limits ([a2fe7fe](https://github.com/Zanuaimi/UniPatches/commit/a2fe7fe3cfc812de4bf71276d92d408aac7ee528))
+
+## [1.25.0](https://github.com/Zanuaimi/UniPatches/compare/v1.24.1...v1.25.0) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* **overlay:** add v2.5 regression coverage ([dc5d7fa](https://github.com/Zanuaimi/UniPatches/commit/dc5d7fa8e1525228d94de64442aa86a25be6453a))
+
+### ✨ New Features
+
+* **overlay:** add system and advanced module families ([7c044e2](https://github.com/Zanuaimi/UniPatches/commit/7c044e2b70c249d003ee7fdb66343ab06987d1d2))
+
+## [1.24.1](https://github.com/Zanuaimi/UniPatches/compare/v1.24.0...v1.24.1) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* **ads:** preserve smali descriptors during label isolation ([95b0d4f](https://github.com/Zanuaimi/UniPatches/commit/95b0d4f26d17791101ae3c9df6d29953d2748bba))
+
+## [1.24.0](https://github.com/Zanuaimi/UniPatches/compare/v1.23.0...v1.24.0) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* **ads:** cover runtime guard regressions ([ab89925](https://github.com/Zanuaimi/UniPatches/commit/ab89925779b5967e1c8c1f467b8d332738028959))
+* **ads:** harden runtime reward instrumentation ([ca6d206](https://github.com/Zanuaimi/UniPatches/commit/ca6d206ff9097d38902b9c60653f5997a2640ec2))
+
+### ✨ New Features
+
+* **overlay:** update patch version to v2.4.9 ([0d10c63](https://github.com/Zanuaimi/UniPatches/commit/0d10c635a5a8794870be4bae890ed3b01794ecef))
+
+## [1.23.0](https://github.com/Zanuaimi/UniPatches/compare/v1.22.1...v1.23.0) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* **ads:** add runtime policy regression verification ([a6f5988](https://github.com/Zanuaimi/UniPatches/commit/a6f59880832b35831feba8af84fa33acd03c8f8a))
+* **overlay:** reset runtime policy state between sessions ([050ea21](https://github.com/Zanuaimi/UniPatches/commit/050ea21beaea7bca0959b48d0d11fc26a6a8058d))
+
+### ✨ New Features
+
+* **ads:** rewrite control patch around resolved runtime plans ([aa0294e](https://github.com/Zanuaimi/UniPatches/commit/aa0294ed6805906434e0a17b0a8431bc6863969b))
+
 ## [1.22.1](https://github.com/Zanuaimi/UniPatches/compare/v1.22.0...v1.22.1) (2026-09-13)
 
 ### 🐛 Bug Fixes

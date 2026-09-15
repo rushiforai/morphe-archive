@@ -35,7 +35,7 @@ All modifications made by Morphe, along with their dates, can be found in the Gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.42.0](https://github.com/MorpheApp/morphe-patches/releases/tag/v1.42.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;146 patches total
+> **[v1.43.0](https://github.com/MorpheApp/morphe-patches/releases/tag/v1.43.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;147 patches total
 <details>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;82 patches</summary>
 <br>
@@ -59,7 +59,7 @@ All modifications made by Morphe, along with their dates, can be found in the Gi
 | [Change start page](#change-start-page) | Adds an option to set which page the app opens in instead of the homepage. |  |
 | [Check watch history domain name resolution](#check-watch-history-domain-name-resolution) | Checks if the device DNS server is preventing user watch history from being saved. |  |
 | [Copy video link](#copy-video-link) | Adds options to display buttons in the video player to copy video links. |  |
-| [Custom branding](#custom-branding) | Adds options to change the app icon and app name. Branding cannot be changed for mounted (root) installations. | • App name<br>• Custom icon |
+| [Custom branding](#custom-branding) | Adds options to change the app icon and app name. For mounted (root) installations the branding is applied while patching, because it cannot be changed from the app settings. | • App name<br>• Custom icon<br>• App icon |
 | [Custom player overlay opacity](#custom-player-overlay-opacity) | Adds an option to change the opacity of the video player background when player controls are visible. |  |
 | [Disable DRC audio](#disable-drc-audio) | Adds an option to disable DRC (Dynamic Range Compression) audio. |  |
 | [Disable QUIC protocol](#disable-quic-protocol) | Adds an option to disable QUIC (Quick UDP Internet Connections) network protocol. |  |
@@ -98,7 +98,7 @@ All modifications made by Morphe, along with their dates, can be found in the Gi
 | [Media notification controls](#media-notification-controls) | Adds options to disable the seekbar and previous/next buttons in the media notification and headphone controls. |  |
 | [Miniplayer](#miniplayer) | Adds options to change the in-app minimized player. Patching 21.28.206 and lower has more miniplayer types to choose from. |  |
 | [Mute button](#mute-button) | Adds an option to show a player button that mutes the video audio. |  |
-| [Navigation bar](#navigation-bar) | Adds options to hide and change the bottom navigation bar (such as the Shorts button)  and the upper navigation toolbar. |  |
+| [Navigation bar](#navigation-bar) | Adds options to hide and change the bottom navigation bar (such as the Shorts button) and the upper navigation toolbar. |  |
 | [Network proxy](#network-proxy) | Adds settings to route supported network requests through an HTTP or HTTPS proxy. Including this patch may cause connectivity problems on certain devices |  |
 | [Open Shorts in regular player](#open-shorts-in-regular-player) | Adds options to open Shorts in the regular video player. |  |
 | [Open channel of live avatar](#open-channel-of-live-avatar) | Adds an option to prevent a channel's current live video from opening when tapping its avatar. |  |
@@ -133,12 +133,45 @@ All modifications made by Morphe, along with their dates, can be found in the Gi
 </details>
 
 <details>
+<summary>📦 Reddit&nbsp;&nbsp;•&nbsp;&nbsp;19 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 🧪&nbsp;2026.37.0 | 🧪&nbsp;2026.36.0 | 🧪&nbsp;2026.24.0 | 2026.14.0 | 2026.04.0 |
+| :---: | :---: | :---: | :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [App icon](#app-icon) | Adds an option to select from the Reddit app icons available in the manifest. |  |
+| [Custom branding name for Reddit](#custom-branding-name-for-reddit) | Changes the Reddit app name to the name specified in patch options. | • App name |
+| [Custom font](#custom-font) | Adds an option to replace Reddit Sans / Roboto with a custom TTF or OTF font file at runtime. |  |
+| [Disable modern home](#disable-modern-home) | Adds an option to disable the modern home UI. This patch works with Reddit 2026.24.0 and earlier. |  |
+| [Disable screenshot popup](#disable-screenshot-popup) | Adds an option to disable the popup that appears when taking a screenshot. |  |
+| [Force system font](#force-system-font) | Adds an option that renders Reddit with the device system font instead of Reddit Sans / Roboto. |  |
+| [Hide Ask button](#hide-ask-button) | Adds an option to hide Ask button in the search bar. |  |
+| [Hide Reddit search](#hide-reddit-search) | Permanently hides the Reddit search in the contextual menu. This patch does not work with root mounting |  |
+| [Hide Trending shelves](#hide-trending-shelves) | Adds an option to hide the Trending shelves from feed and search suggestions. |  |
+| [Hide ads](#hide-ads) | Adds options to hide ads. |  |
+| [Hide communities shelf](#hide-communities-shelf) | Adds an option to hide the related or suggested communities shelf in subreddits. |  |
+| [Hide navigation buttons](#hide-navigation-buttons) | Adds options to hide buttons in the navigation bar. |  |
+| [Hide sidebar components](#hide-sidebar-components) | Adds options to hide the sidebar components. |  |
+| [Open links directly](#open-links-directly) | Adds an option to skip over redirection URLs in external links. |  |
+| [Open links externally](#open-links-externally) | Adds an option to always open links in your browser instead of with the in-app-browser. |  |
+| [Remove subreddit dialog](#remove-subreddit-dialog) | Adds options to remove the NSFW community warning and notifications suggestion dialogs by dismissing them automatically. |  |
+| [Sanitize sharing links](#sanitize-sharing-links) | Adds an option to sanitize sharing links by removing tracking query parameters. |  |
+| [Show view count](#show-view-count) | Adds an option to show the view count of Posts. |  |
+| [Spoof signature](#spoof-signature) | Spoofs the signature of the app to fix notification issues. |  |
+
+</details>
+
+<details>
 <summary>📦 YouTube Music&nbsp;&nbsp;•&nbsp;&nbsp;42 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 🧪&nbsp;9.35.54 | 🧪&nbsp;9.34.52 | 🧪&nbsp;9.33.52 | 9.15.51 |
+| 🧪&nbsp;9.36.50 | 🧪&nbsp;9.35.54 | 🧪&nbsp;9.34.52 | 9.15.51 |
 | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -150,7 +183,7 @@ All modifications made by Morphe, along with their dates, can be found in the Gi
 | [Change start page](#change-start-page) | Adds an option to set which page the app opens in instead of the homepage. |  |
 | [Check watch history domain name resolution](#check-watch-history-domain-name-resolution) | Checks if the device DNS server is preventing user watch history from being saved. |  |
 | [Crossfade](#crossfade) | Adds a true dual-player crossfade between consecutive tracks. Requires YouTube Music 9.00 or newer; on older versions the patch is a no-op. |  |
-| [Custom branding](#custom-branding) | Adds options to change the app icon and app name. Branding cannot be changed for mounted (root) installations. | • App name<br>• Custom icon |
+| [Custom branding](#custom-branding) | Adds options to change the app icon and app name. For mounted (root) installations the branding is applied while patching, because it cannot be changed from the app settings. | • App name<br>• Custom icon<br>• App icon |
 | [Disable DRC audio](#disable-drc-audio) | Adds an option to disable DRC (Dynamic Range Compression) audio. |  |
 | [Disable QUIC protocol](#disable-quic-protocol) | Adds an option to disable QUIC (Quick UDP Internet Connections) network protocol. |  |
 | [Disable dislike redirection](#disable-dislike-redirection) | Adds an option to prevent skipping to the next track when the dislike button is pressed. |  |
@@ -185,38 +218,6 @@ All modifications made by Morphe, along with their dates, can be found in the Gi
 | [Spoof video streams](#spoof-video-streams) | Adds options to spoof the client video streams to fix playback. |  |
 | [Theme](#theme) | Adds options for theming, and settings to change the app foreground and background colors. | • Dark theme color |
 | [Third-party lyrics](#third-party-lyrics) | Adds an option to show synced lyrics from LRCLIB or KuGou in the lyrics panel. |  |
-
-</details>
-
-<details>
-<summary>📦 Reddit&nbsp;&nbsp;•&nbsp;&nbsp;18 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 🧪&nbsp;2026.35.0 | 🧪&nbsp;2026.34.0 | 🧪&nbsp;2026.24.0 | 2026.14.0 | 2026.04.0 |
-| :---: | :---: | :---: | :---: | :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Custom branding name for Reddit](#custom-branding-name-for-reddit) | Changes the Reddit app name to the name specified in patch options. | • App name |
-| [Custom font](#custom-font) | Adds an option to replace Reddit Sans / Roboto with a custom TTF or OTF font file at runtime. |  |
-| [Disable modern home](#disable-modern-home) | Adds an option to disable the modern home UI. This patch works with Reddit 2026.24.0 and earlier. |  |
-| [Disable screenshot popup](#disable-screenshot-popup) | Adds an option to disable the popup that appears when taking a screenshot. |  |
-| [Force system font](#force-system-font) | Adds an option that renders Reddit with the device system font instead of Reddit Sans / Roboto. |  |
-| [Hide Ask button](#hide-ask-button) | Adds an option to hide Ask button in the search bar. |  |
-| [Hide Reddit search](#hide-reddit-search) | Permanently hides the Reddit search in the contextual menu. This patch does not work with root mounting |  |
-| [Hide Trending shelves](#hide-trending-shelves) | Adds an option to hide the Trending shelves from feed and search suggestions. |  |
-| [Hide ads](#hide-ads) | Adds options to hide ads. |  |
-| [Hide communities shelf](#hide-communities-shelf) | Adds an option to hide the related or suggested communities shelf in subreddits. |  |
-| [Hide navigation buttons](#hide-navigation-buttons) | Adds options to hide buttons in the navigation bar. |  |
-| [Hide sidebar components](#hide-sidebar-components) | Adds options to hide the sidebar components. |  |
-| [Open links directly](#open-links-directly) | Adds an option to skip over redirection URLs in external links. |  |
-| [Open links externally](#open-links-externally) | Adds an option to always open links in your browser instead of with the in-app-browser. |  |
-| [Remove subreddit dialog](#remove-subreddit-dialog) | Adds options to remove the NSFW community warning and notifications suggestion dialogs by dismissing them automatically. |  |
-| [Sanitize sharing links](#sanitize-sharing-links) | Adds an option to sanitize sharing links by removing tracking query parameters. |  |
-| [Show view count](#show-view-count) | Adds an option to show the view count of Posts. |  |
-| [Spoof signature](#spoof-signature) | Spoofs the signature of the app to fix notification issues. |  |
 
 </details>
 

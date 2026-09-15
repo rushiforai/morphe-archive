@@ -405,6 +405,7 @@ Second \"item\" text"</string>
   <string name="morphe_vot_screen_title">Превод на глас зад кадър</string>
   <string name="morphe_vot_screen_summary">Четете надписите на видеото на глас, използвайки вграден текстов говор, синхронизиран с възпроизвеждането</string>
   <string name="morphe_vot_enabled_title">Превод на глас зад кадър</string>
+  <string name="morphe_vot_enabled_summary">Показва насложен бутон във видеоплейъра. Докоснете, за да превключите превода, докоснете и задръжте за бързи настройки. You can also use докоснете, за да превключите превода, докоснете и задръжете за бързи настройки.</string>
   <string name="morphe_vot_caption_language_title">Език</string>
   <string name="morphe_vot_translation_service_title">Доставчик на превод</string>
   <string name="morphe_vot_original_audio_volume_title">Сила на звука на оригиналния звук</string>
@@ -514,6 +515,8 @@ Second \"item\" text"</string>
   <string name="morphe_queue_add_flyout_menu_summary">Добавя допълнителен елемент в излитащия прозорец. Активирайте това, ако „Добавяне към опашката“ не се показва</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_title">Бял списък за реклами в изскачащото меню</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_summary">Добавя елемент в изскачащото меню, който позволява рекламите да се пускат в канала на това видео</string>
+  <!-- "Spoof video streams" must use the same translation as morphe_spoof_video_streams_screen_title -->
+  <string name="morphe_ads_channel_whitelist_flyout_user_dialog_message">Тази функция може да изисква използването на PotHelper или промяната на „Прикриване на видео потоците“ на TV или Android VR вход.</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_title">Бял списък за скорост в изскачащото меню</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_summary">Добавя елемент в изскачащото меню, който винаги възпроизвежда канала на това видео със скорост 1.0x</string>
   <string name="morphe_queue_manager_check_failed_auth">Невход в системата</string>
@@ -603,8 +606,10 @@ Second \"item\" text"</string>
   <string name="morphe_swipe_text_overlay_size_summary">Скрий бутона „Докладвай“</string>
   <string name="morphe_swipe_threshold_title">Порог за свайп</string>
   <string name="morphe_swipe_threshold_summary">Скрий бутона „Remix“</string>
-  <string name="morphe_swipe_volume_sensitivity_title">Чувствителност на свайп за volum</string>
-  <string name="morphe_swipe_volume_sensitivity_summary">По-високите стойности увеличават промяната в силата на звука при всяко плъзгане.</string>
+  <string name="morphe_swipe_volume_distance_title">Чувствителност на плъзването за силата на звука</string>
+  <string name="morphe_swipe_volume_distance_summary">По-високите стойности изискват повече плъзване за стъпка на силата на звука</string>
+  <string name="morphe_swipe_volume_steps_title">Стъпки на силата на звука</string>
+  <string name="morphe_swipe_volume_steps_entry_default">По подразбиране на устройството</string>
   <string name="morphe_swipe_brightness_sensitivity_title">Чувствителност при плъзгане за яркост</string>
   <string name="morphe_swipe_brightness_sensitivity_summary">По-високите стойности изискват повече плъзгане за всяка стъпка на яркостта.</string>
   <string name="morphe_swipe_speed_sensitivity_title">Чувствителност при плъзгане за скорост</string>
@@ -913,6 +918,7 @@ Second \"item\" text"</string>
   <string name="morphe_disable_fullscreen_sliding_down_gesture_title">Деактивиране на жестовото плъзгане надолу в портретен режим</string>
   <string name="morphe_disable_fullscreen_dragged_down_gesture_title">Деактивиране на жестовото плъзгане надолу в хоризонтален режим</string>
   <string name="morphe_disable_fullscreen_zoom_gesture_title">Деактивиране на жест за мащабиране с щипка</string>
+  <string name="morphe_restore_pinch_to_zoom_title">Възстановяване на прищипване за мащабиране</string>
   <!-- layout.player.fullscreen.openVideosFullscreenPatch -->
   <string name="morphe_open_videos_fullscreen_title">Отваряне на видеа в режим на цял екран</string>
   <string name="morphe_open_videos_fullscreen_entry_1">Забранено</string>
@@ -925,6 +931,8 @@ Second \"item\" text"</string>
   <string name="morphe_fullscreen_video_scale_entry_zoom">Увеличение (изрязване, за да запълни)</string>
   <string name="morphe_fullscreen_video_scale_button_title">Показване на бутона за мащаб на видеото</string>
   <string name="morphe_fullscreen_video_scale_button_summary">Докоснете, за да превключвате между По подразбиране, Разтягане и Увеличение</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_title">Показване само на цял екран</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_summary">Скриване на бутона за мащабиране на видеото в плейъра в портретен режим</string>
   <!-- layout.player.buttons.muteVideoButtonPatch -->
   <string name="morphe_mute_video_button_title">Показване на бутона за заглушаване</string>
   <!-- layout.player.overlay.customPlayerOverlayOpacityPatch -->
@@ -964,6 +972,7 @@ Second \"item\" text"</string>
 
 Ограничение: Ако „Възстановяване на старата лента за действия във видеоклипа“ е изключено, покритието „Още видеоклипове“ може да не е достъпно"</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="morphe_spoof_app_version_target_entry_21_11">21.11.48 - Възстановяване на старото поведение на субтитрите</string>
   <string name="morphe_spoof_app_version_target_entry_20_39">20.39.41 - Възстанови старите запазвания в списъка</string>
   <string name="morphe_spoof_app_version_target_entry_20_28">20.28.41 - Изключване на удебеляване на иконите</string>
   <string name="morphe_spoof_app_version_target_entry_20_13">20.13.41 - Възстановяване на името на канала под плейъра на видео</string>
@@ -1024,16 +1033,16 @@ Second \"item\" text"</string>
   <string name="morphe_miniplayer_disable_resuming_summary">Деактивира мини плейъра „Продължи да гледаш“, функция на YouTube Premium, която се появява при стартиране на приложението</string>
   <string name="morphe_miniplayer_screen_title">Миниплеер</string>
   <string name="morphe_miniplayer_screen_summary">Персонализирайте външния вид и поведението на минимизирания видео плейър</string>
-  <string name="morphe_miniplayer_not_available_summary">YouTube премахна всички допълнителни миниплейъри. За да промените типа на миниплейъра, патнете YouTube 21.28.208 или по-стар.</string>
   <string name="morphe_miniplayer_type_title">Тип на миниплеера</string>
   <string name="morphe_miniplayer_type_entry_0">Изключен</string>
   <string name="morphe_miniplayer_type_entry_1">По подразбиране</string>
   <string name="morphe_miniplayer_type_entry_2">Минимален</string>
-  <string name="morphe_miniplayer_type_entry_3">Таблет</string>
-  <string name="morphe_miniplayer_type_entry_4">Модерен 1</string>
-  <string name="morphe_miniplayer_type_entry_5">Модерен 2</string>
-  <string name="morphe_miniplayer_type_entry_6">Модерен 3</string>
-  <string name="morphe_miniplayer_type_entry_7">Модерен 4</string>
+  <string name="morphe_miniplayer_type_entry_3">Минимален 2</string>
+  <string name="morphe_miniplayer_type_entry_4">Таблет</string>
+  <string name="morphe_miniplayer_type_entry_5">Модерен 1</string>
+  <string name="morphe_miniplayer_type_entry_6">Модерен 2</string>
+  <string name="morphe_miniplayer_type_entry_7">Модерен 3</string>
+  <string name="morphe_miniplayer_type_entry_8">Модерен 4</string>
   <string name="morphe_miniplayer_disable_rounded_corners_title">Изключете округлини ръбове</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_title">Изключете влачене и пускане</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_summary">Предотвратява плъзгането на минимизирания плейър в различни ъгли на екрана</string>

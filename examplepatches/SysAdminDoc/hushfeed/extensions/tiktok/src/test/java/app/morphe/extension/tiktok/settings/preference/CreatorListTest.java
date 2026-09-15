@@ -20,6 +20,10 @@ import android.widget.TextView;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.feedfilter.FeedRuleLimits;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Rule;
@@ -29,6 +33,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowToast;
+import org.robolectric.util.ReflectionHelpers;
 
 /**
  * The editor for locally hidden creators: one row per entry, a search box over them, an add
@@ -178,10 +183,13 @@ public class CreatorListTest {
             assertNotNull(add);
             assertNotNull(addButton);
 
-            // Nothing typed: told so, nothing added.
+            // Nothing typed: told so under the box, nothing added. These three assertions
+            // read the field rather than the toast because the message moved there: a reason
+            // shown over the dialog is a reason beside the thing it is about.
             ShadowToast.reset();
             addButton.performClick();
-            assertEquals("Enter a creator handle or id", ShadowToast.getTextOfLatestToast());
+            assertEquals("Enter a creator handle or id", String.valueOf(add.getError()));
+            assertNull(ShadowToast.getTextOfLatestToast());
             assertEquals(java.util.List.of("alice"), rows(view));
 
             // The same creator with a different case and an @: the feed treats those as one
@@ -189,7 +197,7 @@ public class CreatorListTest {
             ShadowToast.reset();
             add.setText("@Alice");
             addButton.performClick();
-            assertEquals("That creator is already in the list", ShadowToast.getTextOfLatestToast());
+            assertEquals("That creator is already in the list", String.valueOf(add.getError()));
             assertEquals(java.util.List.of("alice"), rows(view));
 
             // A pattern that will not compile is refused here rather than at the next feed
@@ -197,15 +205,15 @@ public class CreatorListTest {
             ShadowToast.reset();
             add.setText("/[/");
             addButton.performClick();
-            assertTrue(String.valueOf(ShadowToast.getTextOfLatestToast()),
-                    ShadowToast.getTextOfLatestToast().contains("/[/"));
+            assertTrue(String.valueOf(add.getError()), add.getError().toString().contains("/[/"));
             assertEquals(java.util.List.of("alice"), rows(view));
 
-            // A good one lands as a row and clears the field.
+            // A good one lands as a row and clears the field, error and all.
             add.setText("  carol  ");
             addButton.performClick();
             assertEquals(java.util.List.of("alice", "carol"), rows(view));
             assertEquals("", add.getText().toString());
+            assertNull("the last refusal is still under a box that is now fine", add.getError());
 
             preference.onDialogClosed(true);
             assertEquals("alice, carol", Settings.LOCAL_HIDDEN_CREATORS.get());
@@ -228,17 +236,26 @@ public class CreatorListTest {
             preference.onDialogClosed(true);
             assertEquals("alice, dave", Settings.LOCAL_HIDDEN_CREATORS.get());
 
-            // One that would be refused by Add is refused here too, out loud, and the rest
-            // is still saved.
+            // One that would be refused by Add is refused here too, and the reason goes under
+            // the box the text is in rather than over whatever was behind the dialog. Nothing
+            // is written, and the handle is still there to fix. The assertion moved from
+            // ShadowToast to getError() because the message moved with it: the old behaviour
+            // was to close first and then say what was wrong, by which point the text was gone.
             ShadowToast.reset();
             preference = open(activity);
             view = preference.onCreateDialogView();
             add = view.findViewWithTag("creator_list_add");
             add.setText("/[/");
             preference.onDialogClosed(true);
-            assertTrue(String.valueOf(ShadowToast.getTextOfLatestToast()),
-                    ShadowToast.getTextOfLatestToast().contains("/[/"));
-            assertEquals("alice, dave", Settings.LOCAL_HIDDEN_CREATORS.get());
+            assertEquals("a refused handle was written anyway",
+                    "alice, dave", Settings.LOCAL_HIDDEN_CREATORS.get());
+            assertNull("the refusal was said over the dialog instead of under the box",
+                    ShadowToast.getTextOfLatestToast());
+            assertNotNull("the box does not say what is wrong with what is in it", add.getError());
+            assertTrue(String.valueOf(add.getError()),
+                    add.getError().toString().contains("/[/"));
+            assertEquals("the handle was taken out of the box the reader typed it into",
+                    "/[/", add.getText().toString());
         }
     }
 
@@ -308,6 +325,44 @@ public class CreatorListTest {
             View view = open(activity).onCreateDialogView();
             assertEquals(java.util.List.of(), rows(view));
             assertEquals("No creators are hidden yet", emptyState(view));
+        }
+    }
+
+    @Test
+    public void addingPastTheCreatorLimitIsRefusedWithoutRenderingTenThousandRows() {
+        try (var owner = Robolectric.buildActivity(
+                app.morphe.extension.tiktok.captions.CaptionToolsTest.CaptionActivity.class)
+                .setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            CreatorListPreference preference = new CreatorListPreference(activity,
+                    "Locally hidden creators", "", Settings.LOCAL_HIDDEN_CREATORS);
+            List<String> pending = new ArrayList<>(FeedRuleLimits.MAX_ENTRIES);
+            for (int index = 0; index < FeedRuleLimits.MAX_ENTRIES; index++) {
+                pending.add("creator" + index);
+            }
+            EditText editor = new EditText(activity);
+            editor.setText("one-too-many");
+            ReflectionHelpers.setField(preference, "pendingEntries", pending);
+            ReflectionHelpers.setField(preference, "addEditText", editor);
+
+            ReflectionHelpers.callInstanceMethod(preference, "addEntry");
+
+            assertEquals(FeedRuleLimits.MAX_ENTRIES, pending.size());
+            assertEquals("one-too-many", editor.getText().toString());
+            assertEquals("That list has too many entries. Keep it to 10,000 or fewer.",
+                    String.valueOf(editor.getError()));
+            assertEquals("", Settings.LOCAL_HIDDEN_CREATORS.get());
+
+            pending.add("forced-over-limit");
+            editor.setText("");
+            ShadowToast.reset();
+            preference.onDialogClosed(true);
+
+            assertEquals("a final dialog save bypassed the list bound", "", preference.getValue());
+            assertEquals("That list has too many entries. Keep it to 10,000 or fewer.",
+                    String.valueOf(editor.getError()));
+            assertEquals("", Settings.LOCAL_HIDDEN_CREATORS.get());
         }
     }
 }

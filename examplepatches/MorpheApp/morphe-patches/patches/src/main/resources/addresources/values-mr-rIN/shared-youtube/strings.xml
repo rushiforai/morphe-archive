@@ -73,7 +73,6 @@ Second \"item\" text"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">व्हिडिओ स्ट्रीम्सचा देखावा करा</string>
   <string name="morphe_spoof_video_streams_screen_summary">प्लेबॅक समस्या टाळण्यासाठी क्लायंट स्पूफिंग कॉन्फिगर करा</string>
-  <string name="morphe_spoof_video_streams_title">व्हिडिओ स्ट्रीम्सचा देखावा करा</string>
   <string name="morphe_spoof_video_streams_summary">"अधिकांश वापरकर्त्यांसाठी प्लेबॅक समस्यांचे निराकरण करण्यासाठी सुसंगत व्हिडिओ स्ट्रीमची विनंती केली जाते.
 
 जर तुम्ही YouTube Premium वापरकर्ता असाल, तर ही सेटिंग आवश्यक नसेल."</string>

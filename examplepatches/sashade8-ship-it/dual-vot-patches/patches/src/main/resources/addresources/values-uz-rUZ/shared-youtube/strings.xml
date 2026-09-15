@@ -75,7 +75,6 @@ Paket nomi to'g'ri ekanligini va ilova o'rnatilganligini tekshiring"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Videotranslyatsiyalarni qalbakilashtirish</string>
   <string name="morphe_spoof_video_streams_screen_summary">Tarmoq so‘rovlarini proksi orqali o‘tkazish uchun mijoz qalbakilashtirishini sozlang</string>
-  <string name="morphe_spoof_video_streams_title">Videotranslyatsiyalarni qalbakilashtirish</string>
   <string name="morphe_spoof_video_streams_summary">"Ko‘p foydalanuvchilar uchun o‘ynatish muammolarini hal qiladi, mos videotranslyatsiyani so‘rab
 
 Agar siz YouTube Premium foydalanuvchisi bo‘lsangiz, ushbu sozlash talab qilinmasligi mumkin"</string>

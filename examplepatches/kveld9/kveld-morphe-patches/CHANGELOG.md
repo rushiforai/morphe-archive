@@ -1,3 +1,83 @@
+## [1.29.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.28.1...v1.29.0) (2026-09-15)
+
+### New Features
+
+* **hevy:** bump target version to 3.1.14 and support APKM in test harness ([470f49a](https://github.com/kveld9/kveld-morphe-patches/commit/470f49a9b101a4859e887d36189754a23f893f77))
+
+## [1.28.1](https://github.com/kveld9/kveld-morphe-patches/compare/v1.28.0...v1.28.1) (2026-09-15)
+
+### Bug Fixes
+
+* **docs:** correct APKMirror download badge URLs for Gboard and TikTok ([8baddef](https://github.com/kveld9/kveld-morphe-patches/commit/8baddeff14f744b82fc0122b8ece5cc737c8bc16))
+
+## [1.28.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.27.2...v1.28.0) (2026-09-15)
+
+### New Features
+
+* **vivaldi:** update target version to 8.2.4147.77 and resolve libchrome offsets ([be8a275](https://github.com/kveld9/kveld-morphe-patches/commit/be8a2750455db88ce3b85033ed2dcc91e9091b34))
+
+## [1.27.2](https://github.com/kveld9/kveld-morphe-patches/compare/v1.27.1...v1.27.2) (2026-09-15)
+
+### Bug Fixes
+
+* **tiktok:** resolve ART SIGSEGV on feed loading and video playback ([06f59be](https://github.com/kveld9/kveld-morphe-patches/commit/06f59be19c7fa8469134473512e5660228136e71)), closes [#31](https://github.com/kveld9/kveld-morphe-patches/issues/31)
+
+## [1.27.1](https://github.com/kveld9/kveld-morphe-patches/compare/v1.27.0...v1.27.1) (2026-09-14)
+
+### Bug Fixes
+
+* **tiktok:** correct register indices and speed persistence bounds ([05307bb](https://github.com/kveld9/kveld-morphe-patches/commit/05307bb2de40a4134048553b505c22ff687478a7))
+
+## [1.27.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.26.1...v1.27.0) (2026-09-14)
+
+### New Features
+
+* **tiktok:** add playback speed persistence patch ([7f65ac3](https://github.com/kveld9/kveld-morphe-patches/commit/7f65ac35991dedb61370d2cd26910af38ee794e8)), closes [#25](https://github.com/kveld9/kveld-morphe-patches/issues/25)
+
+## [1.26.1](https://github.com/kveld9/kveld-morphe-patches/compare/v1.26.0...v1.26.1) (2026-09-14)
+
+### Bug Fixes
+
+* **tiktok:** fix watermark removal and stream redirection ([42fab99](https://github.com/kveld9/kveld-morphe-patches/commit/42fab99d5e6c0ec9000c45c728821e2dc3267b5b))
+
+## [1.26.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.25.2...v1.26.0) (2026-09-14)
+
+### New Features
+
+* **gboard:** add clipboard enhancements patch ([2a13c2e](https://github.com/kveld9/kveld-morphe-patches/commit/2a13c2e5dd5eacdee4f6c19893f3b5b293318129))
+
+## [1.25.2](https://github.com/kveld9/kveld-morphe-patches/compare/v1.25.1...v1.25.2) (2026-09-14)
+
+### Bug Fixes
+
+* **brave:** resolve ArrayIndexOutOfBoundsException in BraveBlockTelemetryPatch ([3888c2b](https://github.com/kveld9/kveld-morphe-patches/commit/3888c2b01ea8e1e353f2e27345ddfea27af84831)), closes [#27](https://github.com/kveld9/kveld-morphe-patches/issues/27)
+
+### Code Refactoring
+
+* strip emojis across codebase and enforce strict prohibition in tooling and governance ([7ccd0b8](https://github.com/kveld9/kveld-morphe-patches/commit/7ccd0b8760532f6bc5c5cf795326fe69681b4b5c))
+
+## [1.25.1](https://github.com/kveld9/kveld-morphe-patches/compare/v1.25.0...v1.25.1) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* **vivaldi:** resolve label index out of bounds in startup performance patch ([4260d59](https://github.com/kveld9/kveld-morphe-patches/commit/4260d594d549a43962dfbd8339b5057668c41eb6))
+
+## [1.25.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.24.0...v1.25.0) (2026-09-14)
+
+### ✨ New Features
+
+* **test:** enforce in-situ morphe patcher verification gate across all targets ([9da9c51](https://github.com/kveld9/kveld-morphe-patches/commit/9da9c51b6589d39d53295fa1ea44119c4ddde02f))
+
+## [1.24.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.23.1...v1.24.0) (2026-09-14)
+
+### ✨ New Features
+
+* **tiktok:** pin target to v46.9.3 and decouple 16 independent patches ([80d30c1](https://github.com/kveld9/kveld-morphe-patches/commit/80d30c1630b757b95e40dea98655d6a01b4675fd))
+
+### ♻️ Code Refactoring
+
+* **patches:** add diagnostic skip logging and migrate label instructions ([cfaad44](https://github.com/kveld9/kveld-morphe-patches/commit/cfaad444e3dc58d2bdd7ee10061804c261ef92b0))
+
 ## [1.23.1](https://github.com/kveld9/kveld-morphe-patches/compare/v1.23.0...v1.23.1) (2026-09-13)
 
 ### 🐛 Bug Fixes

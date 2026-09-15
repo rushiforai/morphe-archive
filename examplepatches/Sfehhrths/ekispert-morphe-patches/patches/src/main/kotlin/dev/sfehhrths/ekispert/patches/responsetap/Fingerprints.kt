@@ -63,13 +63,16 @@ object TransferAlarmCourseSaveFingerprint : Fingerprint(
  * `AbsDISRxSearchResultDetailParentFragmentPresenter.bc(int index, boolean)` — invoked by the
  * detail screen's ViewPager2 page-selected callback for the first course shown and every swipe.
  * Distinguished from `pg(IZ)V` in the same class by its call to
- * `HistorySelectRouteUseCase.g(AioCourse, long)`.
+ * `HistorySelectRouteUseCase.g(AioCourse, long)`. The `AioCourse` register of that call
+ * (registerD) is the course being shown; the patch hands it to the extension right before
+ * the call, so no obfuscated getter has to be named.
  *
  * ```smali
  * .method public bc(IZ)V
  *     .locals 4                      ; p0 = v4 (this), p1 = v5 (index), p2 = v6
  *     ...
  *     invoke-virtual {v0, v1, v2, v3}, L.../HistorySelectRouteUseCase;->g(L.../AioCourse;J)Lio/reactivex/Completable;
+ *                     ^^  v1 = AioCourse
  * ```
  */
 object DetailCourseSelectedFingerprint : Fingerprint(
@@ -107,19 +110,6 @@ object MyClipCourseLoadFingerprint : Fingerprint(
             opcode = Opcode.INVOKE_STATIC,
         ),
     ),
-)
-
-/**
- * `AbsDISRxSearchResultDetailParentFragmentUseCase.f(Arguments)` — builds the detail screen's
- * initial state; runs once per detail screen open (new search result or MyClip), before the
- * MyClip entity is loaded and before the first page-selected callback.
- * Used as a "detail opened" marker so the companion can pair a following `myclip_course`
- * with the `selected_course` that comes after it.
- */
-object DetailOpenFingerprint : Fingerprint(
-    definingClass = "/AbsDISRxSearchResultDetailParentFragmentUseCase;",
-    returnType = "Ljp/co/val/expert/android/aio/architectures/ui/datacontainer/sr/viewmodels/AbsDISRxSearchResultDetailParentFragmentViewModelInstanceState;",
-    parameters = listOf("Ljp/co/val/expert/android/aio/architectures/ui/datacontainer/sr/fragments/AbsDISRxSearchResultDetailParentFragmentArguments;"),
 )
 
 /**

@@ -75,7 +75,6 @@ Second \"item\" text"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">جعل جریان‌های ویدئویی</string>
   <string name="morphe_spoof_video_streams_screen_summary">جعل کلاینت را برای جلوگیری از مشکلات پخش پیکربندی کنید</string>
-  <string name="morphe_spoof_video_streams_title">جعل جریان‌های ویدئویی</string>
   <string name="morphe_spoof_video_streams_summary">"با درخواست یک جریان ویدئویی سازگار، مشکلات پخش را برای بیشتر کاربران برطرف می‌کند
 
 اگر کاربر YouTube Premium هستید، ممکن است به این تنظیم نیاز نداشته باشید"</string>
