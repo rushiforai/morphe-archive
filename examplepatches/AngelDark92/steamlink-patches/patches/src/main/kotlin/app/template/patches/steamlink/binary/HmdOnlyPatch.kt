@@ -7,6 +7,7 @@ import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK
 import app.template.patches.steamlink.util.BinaryPatchHelper.vaddrToFileOffset
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.security.MessageDigest
 
 // Injects an AArch64 trampoline that adds a configurable offset to the HMD pose query time
 // and zeroes the six HMD velocity fields exported to SteamVR.
@@ -25,14 +26,17 @@ private data class VelocityPatch(
 )
 
 private data class HmdLayout(
+    val versionName: String,
     val versionCode: Int,
     val fileSize: Int,
     val hookVaddr: Long,
     val velocityPatches: List<VelocityPatch>,
+    val stockSha256: String? = null,
 )
 
 private val HMD_LAYOUTS = listOf(
     HmdLayout(
+        versionName = "2.0.20",
         versionCode = 5001740,
         fileSize = 2_220_528,
         hookVaddr = 0x00101378L,
@@ -45,6 +49,7 @@ private val HMD_LAYOUTS = listOf(
         ),
     ),
     HmdLayout(
+        versionName = "2.0.20",
         versionCode = 5001712,
         fileSize = 2_221_072,
         hookVaddr = 0x001014E8L,
@@ -57,6 +62,7 @@ private val HMD_LAYOUTS = listOf(
         ),
     ),
     HmdLayout(
+        versionName = "2.0.22",
         versionCode = 5002244,
         fileSize = 2_251_920,
         hookVaddr = 0x000FEAD8L,
@@ -70,6 +76,7 @@ private val HMD_LAYOUTS = listOf(
         ),
     ),
     HmdLayout(
+        versionName = "2.0.22",
         versionCode = 5002313,
         fileSize = 2_276_872,
         hookVaddr = 0x00100B8CL,
@@ -83,6 +90,7 @@ private val HMD_LAYOUTS = listOf(
         ),
     ),
     HmdLayout(
+        versionName = "2.0.22",
         versionCode = 5002318,
         fileSize = 2_277_488,
         hookVaddr = 0x00100B0CL,
@@ -96,6 +104,7 @@ private val HMD_LAYOUTS = listOf(
         ),
     ),
     HmdLayout(
+        versionName = "2.0.22",
         versionCode = 5002322,
         fileSize = 2_283_400,
         hookVaddr = 0x00101154L,
@@ -106,6 +115,24 @@ private val HMD_LAYOUTS = listOf(
             VelocityPatch(0x001013DCL, 40),
             VelocityPatch(0x001013E0L, 44),
             VelocityPatch(0x001013ECL, 48),
+        ),
+    ),
+    // Independently decoded 2.0.23/5002363: GetPose starts at 0x101eb4. The hook
+    // loads X2 after XRQGetTimeNow and before XRQLocateReferenceSpace. These 6
+    // stores write only PackedPose_t velocity fields at X19+28..48.
+    HmdLayout(
+        versionName = "2.0.23",
+        versionCode = 5002363,
+        fileSize = 2_292_008,
+        stockSha256 = "628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0",
+        hookVaddr = 0x00101F1CL,
+        velocityPatches = listOf(
+            VelocityPatch(0x00102190L, 28),
+            VelocityPatch(0x00102194L, 32),
+            VelocityPatch(0x00102198L, 36),
+            VelocityPatch(0x001021A4L, 40),
+            VelocityPatch(0x001021A8L, 44),
+            VelocityPatch(0x001021B4L, 48),
         ),
     ),
 )
@@ -241,6 +268,52 @@ private fun installTrampolineLoad(bytes: ByteArray, cave: TrampolineCave) {
     bytes.writeU64LE(header + 48, cave.mapAlignment)
 }
 
+private fun validateCanonicalTrampolineMapping(bytes: ByteArray, cave: TrampolineCave, trampolineSize: Int) {
+    fun requireMapping(condition: Boolean) {
+        if (!condition) throw PatchException("Invalid canonical Visual Delay trampoline mapping")
+    }
+
+    val phoff = bytes.readU64LE(32)
+    val phesz = bytes.readU16LE(54)
+    val phnum = bytes.readU16LE(56)
+    requireMapping(phoff >= 0 && phoff <= bytes.size.toLong() - phesz.toLong() * phnum)
+    requireMapping(cave.programHeaderOffset >= phoff && cave.programHeaderOffset <= bytes.size - 56)
+    val originalLoads = (0 until phnum).map { phoff.toInt() + it * phesz }.filter {
+        it != cave.programHeaderOffset && bytes.readU32LE(it) == PT_LOAD
+    }
+    requireMapping(originalLoads.isNotEmpty())
+    originalLoads.forEach { header ->
+        val offset = bytes.readU64LE(header + 8)
+        val vaddr = bytes.readU64LE(header + 16)
+        val fileSize = bytes.readU64LE(header + 32)
+        val memorySize = bytes.readU64LE(header + 40)
+        requireMapping(offset >= 0 && fileSize >= 0 && memorySize >= fileSize &&
+            fileSize <= bytes.size && offset <= bytes.size.toLong() - fileSize &&
+            vaddr >= 0 && vaddr <= Long.MAX_VALUE - memorySize)
+    }
+    // Never let a changed injected header define its own expected alignment or VA.
+    val alignment = originalLoads.maxOf { bytes.readU64LE(it + 48) }
+    requireMapping(alignment >= 0x1000 && (alignment and (alignment - 1)) == 0L)
+    val maxLoadEnd = originalLoads.maxOf { bytes.readU64LE(it + 16) + bytes.readU64LE(it + 40) }
+    requireMapping(maxLoadEnd <= Long.MAX_VALUE - (alignment - 1))
+    val mapVaddr = (maxLoadEnd + alignment - 1) and -alignment
+    val mapFileOffset = cave.fileOffset.toLong() and -alignment
+    val caveDelta = cave.fileOffset.toLong() - mapFileOffset
+    val mapSize = caveDelta + trampolineSize
+    requireMapping(mapFileOffset >= 0 && mapSize > 0 && mapSize <= bytes.size &&
+        mapFileOffset <= bytes.size.toLong() - mapSize && mapVaddr <= Long.MAX_VALUE - mapSize)
+    requireMapping(cave.mapAlignment == alignment && cave.mapFileOffset == mapFileOffset &&
+        cave.mapVaddr == mapVaddr && cave.mapSize == mapSize && cave.vaddr == mapVaddr + caveDelta)
+
+    if (cave.alreadyMapped) {
+        val header = cave.programHeaderOffset
+        requireMapping(bytes.readU32LE(header) == PT_LOAD && bytes.readU32LE(header + 4) == (PF_R or PF_X) &&
+            bytes.readU64LE(header + 8) == mapFileOffset && bytes.readU64LE(header + 16) == mapVaddr &&
+            bytes.readU64LE(header + 24) == mapVaddr && bytes.readU64LE(header + 32) == mapSize &&
+            bytes.readU64LE(header + 40) == mapSize && bytes.readU64LE(header + 48) == alignment)
+    }
+}
+
 private fun strWzrX19(byteOffset: Int): ByteArray {
     // STR WZR, [X19, #byteOffset]: zeroes a 32-bit velocity float field at [x19+byteOffset] in PackedPose_t
     val imm12 = byteOffset / 4
@@ -272,11 +345,36 @@ private fun replacementFor(patch: VelocityPatch): ByteArray =
 private fun isPatchedVelocity(word: Int, patch: VelocityPatch): Boolean =
     word == ByteBuffer.wrap(replacementFor(patch)).order(ByteOrder.LITTLE_ENDIAN).int
 
-internal fun patchVisualDelay(bytes: ByteArray, offsetMs: Long): ByteArray {
+internal fun patchVisualDelay(
+    bytes: ByteArray,
+    offsetMs: Long,
+    versionName: String? = null,
+    versionCode: String? = null,
+): ByteArray {
     val mutable = bytes.copyOf()
-    val layout = HMD_LAYOUTS.singleOrNull { it.fileSize == mutable.size } ?: return mutable
+    // Production always supplies the exact pair. Retain the historical size-only
+    // helper contract for older audit fixtures, but never infer the new base.
+    val layout = if (versionName != null || versionCode != null) {
+        HMD_LAYOUTS.singleOrNull {
+            it.versionName == versionName && it.versionCode.toString() == versionCode
+        }
+    } else {
+        HMD_LAYOUTS.singleOrNull { it.fileSize == mutable.size && it.versionCode != 5002363 }
+    } ?: return mutable
+    if (mutable.size != layout.fileSize) {
+        val sha256 = MessageDigest.getInstance("SHA-256").digest(mutable).toHex()
+        throw PatchException(
+            "Unexpected Visual Delay library for ${layout.versionName}/${layout.versionCode}: " +
+                "size=${mutable.size}, sha256=$sha256; expected size=${layout.fileSize}, " +
+                "stockSha256=${layout.stockSha256 ?: "see native compatibility audit"}",
+        )
+    }
+    if (layout.versionCode == 5002363 && offsetMs !in 0L..4000L) {
+        throw PatchException("Visual Delay offset must be within 0..4000 ms")
+    }
 
     val cave = findTrampolineCave(mutable, 20)
+    if (layout.versionCode == 5002363) validateCanonicalTrampolineMapping(mutable, cave, 20)
     val caveOff = cave.fileOffset
     val caveVa = cave.vaddr
     val trampoline = ORIG_HOOK + buildTrampolineBody(offsetMs) +
@@ -293,6 +391,26 @@ internal fun patchVisualDelay(bytes: ByteArray, offsetMs: Long): ByteArray {
         cave.alreadyMapped &&
         velocityWords.indices.all { isPatchedVelocity(velocityWords[it], layout.velocityPatches[it]) }
     if (alreadyPatched) return mutable
+
+    // Only the independently audited 5002363 layout supports changing an already
+    // selected offset. Recognize the complete canonical trampoline plus its ELF
+    // mapping, hook and 6 zero stores before replacing only the timestamp body.
+    if (layout.versionCode == 5002363 && cave.alreadyMapped &&
+        hookActual.contentEquals(patchedHook) &&
+        velocityWords.indices.all { isPatchedVelocity(velocityWords[it], layout.velocityPatches[it]) } &&
+        caveActual.copyOfRange(0, 4).contentEquals(ORIG_HOOK) &&
+        caveActual.copyOfRange(16, 20).contentEquals(buildBranch(caveVa + 16, layout.hookVaddr + 4))
+    ) {
+        val low = (mutable.readU32LE(caveOff + 4) ushr 5) and 0xffff
+        val high = (mutable.readU32LE(caveOff + 8) ushr 5) and 0xffff
+        val previousOffsetNs = low.toLong() or (high.toLong() shl 16)
+        if (previousOffsetNs in 0L..4_000_000_000L && previousOffsetNs % 1_000_000L == 0L &&
+            caveActual.copyOfRange(4, 16).contentEquals(buildTrampolineBody(previousOffsetNs / 1_000_000L))
+        ) {
+            buildTrampolineBody(offsetMs).copyInto(mutable, caveOff + 4)
+            return mutable
+        }
+    }
 
     if (!hookActual.contentEquals(ORIG_HOOK)) {
         throw PatchException(
@@ -360,7 +478,9 @@ val hmdOnlyPatch = rawResourcePatch(
         val bytes = file.readBytes()
         // An unrecognized native layout must not block the rest of an experimental APK patch.
         // Fixed instruction addresses are unsafe to guess, so leave this one mutation untouched.
-        val patched = patchVisualDelay(bytes, offsetMs.value!!.toLong())
+        val patched = patchVisualDelay(
+            bytes, offsetMs.value!!.toLong(), packageMetadata.versionName, packageMetadata.versionCode,
+        )
         if (!patched.contentEquals(bytes)) file.writeBytes(patched)
     }
 }

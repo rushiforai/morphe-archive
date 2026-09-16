@@ -113,17 +113,20 @@ final class StructuredConfigController {
     ) {
         Object source = returnedValue != null ? returnedValue : defaultValue;
         if (requestedClass == null || source == null || !requestedClass.isInstance(source)) {
-            return ApplyResult.failure(returnedValue, "TikTok returned no compatible object");
+            return ApplyResult.failure(returnedValue,
+                    FeatureGateFailure.of(FeatureGateFailure.Reason.NO_OBJECT));
         }
         if (!canCopy(requestedClass)) {
-            return ApplyResult.failure(returnedValue, "Configuration class cannot be copied safely");
+            return ApplyResult.failure(returnedValue,
+                    FeatureGateFailure.of(FeatureGateFailure.Reason.CANNOT_COPY));
         }
 
         try {
             JSONObject patch = parsed(patchText);
             if (requestedClass.isArray()) {
                 if (!patch.has(ROOT_VALUE)) {
-                    return ApplyResult.failure(returnedValue, "No array value selected");
+                    return ApplyResult.failure(returnedValue,
+                            FeatureGateFailure.of(FeatureGateFailure.Reason.NO_LIST_VALUE));
                 }
                 Object forced = coerce(
                         patch.opt(ROOT_VALUE),
@@ -145,21 +148,27 @@ final class StructuredConfigController {
                 }
                 Field field = findField(requestedClass, fieldName);
                 if (field == null || !isEditable(field)) {
-                    return ApplyResult.failure(returnedValue, "Unsupported field: " + fieldName);
+                    return ApplyResult.failure(returnedValue, FeatureGateFailure.of(
+                            FeatureGateFailure.Reason.UNSUPPORTED_FIELD, fieldName));
                 }
                 makeAccessible(field);
                 field.set(copy, coerce(patch.opt(fieldName), field.getType(), field.getGenericType()));
                 applied++;
             }
             if (applied == 0) {
-                return ApplyResult.failure(returnedValue, "No editable fields selected");
+                return ApplyResult.failure(returnedValue,
+                        FeatureGateFailure.of(FeatureGateFailure.Reason.NO_FIELDS));
             }
             return ApplyResult.success(copy, applied);
         } catch (Throwable throwable) {
             return ApplyResult.failure(
                     returnedValue,
-                    throwable.getClass().getSimpleName()
-                            + (throwable.getMessage() == null ? "" : ": " + throwable.getMessage())
+                    FeatureGateFailure.of(
+                            FeatureGateFailure.Reason.THREW,
+                            throwable.getClass().getSimpleName()
+                                    + (throwable.getMessage() == null
+                                            ? "" : ": " + throwable.getMessage())
+                    )
             );
         }
     }
@@ -516,9 +525,10 @@ final class StructuredConfigController {
         final Object value;
         final boolean applied;
         final int fieldCount;
-        final String error;
+        final FeatureGateFailure error;
 
-        private ApplyResult(Object value, boolean applied, int fieldCount, String error) {
+        private ApplyResult(Object value, boolean applied, int fieldCount,
+                FeatureGateFailure error) {
             this.value = value;
             this.applied = applied;
             this.fieldCount = fieldCount;
@@ -529,7 +539,7 @@ final class StructuredConfigController {
             return new ApplyResult(value, true, fieldCount, null);
         }
 
-        static ApplyResult failure(Object original, String error) {
+        static ApplyResult failure(Object original, FeatureGateFailure error) {
             return new ApplyResult(original, false, 0, error);
         }
     }

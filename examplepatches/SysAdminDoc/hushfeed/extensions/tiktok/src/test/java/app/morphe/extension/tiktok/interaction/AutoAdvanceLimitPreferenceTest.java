@@ -334,8 +334,10 @@ public class AutoAdvanceLimitPreferenceTest {
     /**
      * AutoAdvancePatch replaces exactly these four stubs with Tp(), LLJJJIL, V00(false,false)
      * and sq("",false). Keep all lifecycle, preference, completion and notice code unshadowed.
+     * Unshadowed methods call through by default; Robolectric 4.17 removed the attribute that
+     * used to say so.
      */
-    @Implements(value = AutoAdvance.class, isInAndroidSdk = false, callThroughByDefault = true)
+    @Implements(value = AutoAdvance.class, isInAndroidSdk = false)
     public static class NativeBridges {
         @Implementation protected static Object readAweme(Object component) {
             return ((NativeComponent) component).Tp();

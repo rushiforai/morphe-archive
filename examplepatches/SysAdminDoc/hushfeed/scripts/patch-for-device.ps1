@@ -33,6 +33,7 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 . (Join-Path $PSScriptRoot 'patch-target.ps1')
 . (Join-Path $PSScriptRoot 'patch-report.ps1')
+. (Join-Path $PSScriptRoot 'common.ps1')
 $catalogPath = Join-Path $root 'patches-list.json'
 if (-not (Test-Path -LiteralPath $catalogPath -PathType Leaf)) { throw "No patch list found: $catalogPath" }
 try { $catalog = Get-Content -LiteralPath $catalogPath -Raw | ConvertFrom-Json }
@@ -53,7 +54,7 @@ if ([string]::IsNullOrEmpty($keystorePassword)) {
     $keystorePassword = 'sideload'
     Write-Host "[device] $passwordVariable is unset; using the documented local test-key fallback"
 }
-$version = ((Get-Content (Join-Path $root 'gradle.properties')) -match '^version\s*=' | Select-Object -First 1) -replace '^version\s*=\s*', ''
+$version = Get-BundleVersion -Root $root
 $bundle = Join-Path $root "patches\build\libs\patches-$version.mpp"
 if (-not (Test-Path $bundle)) { throw "No bundle at $bundle. Build it first: :patches:generatePatchesList then :patches:buildAndroid, through the governor." }
 $names = $catalog.patches | ForEach-Object { $_.name }

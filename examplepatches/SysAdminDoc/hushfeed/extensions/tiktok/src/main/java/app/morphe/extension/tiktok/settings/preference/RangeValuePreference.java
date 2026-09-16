@@ -291,7 +291,7 @@ public class RangeValuePreference extends DialogPreference {
             }
 
             @Override public void report(String problem) {
-                if (offending != null) offending.setError(problem);
+                SettingsUi.reportFieldError(offending, problem);
             }
 
             @Override public boolean accept() {

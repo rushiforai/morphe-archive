@@ -2,6 +2,7 @@ package app.template.patches.steamlink.androidxr
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.template.patches.shared.Constants.isModernTongueBridgeSteamLinkBuild
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction3rc
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -14,7 +15,7 @@ internal val nativeBatterySettingsPatch = bytecodePatch {
     dependsOn(androidXrBatteryUiExtensionPatch)
 
     execute {
-        if (packageMetadata.versionName != "2.0.22" || packageMetadata.versionCode != "5002322") {
+        if (!isModernTongueBridgeSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) {
             return@execute
         }
 

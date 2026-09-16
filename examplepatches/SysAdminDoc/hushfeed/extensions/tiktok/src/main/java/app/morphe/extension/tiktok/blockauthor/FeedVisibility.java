@@ -7,7 +7,10 @@
 package app.morphe.extension.tiktok.blockauthor;
 
 import android.app.Activity;
+import android.graphics.Rect;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
 
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.Logger;
@@ -27,6 +30,12 @@ import java.util.WeakHashMap;
  * The bottom navigation tabs carry their selected state, so the Home tab being selected
  * is a reliable and cheap signal. Verified against TikTok 46.2.3, where the bottom
  * navigation ids are o1k Home, o1j Friends, o1g Create, o1l Inbox, o1m Profile.
+ *
+ * <p>Selected is not enough on its own. A creator's profile opened from the feed by the name
+ * or the avatar is a page of the same horizontal pager as the feed, and the pager scrolls the
+ * feed's page, bottom navigation and all, one screen width to the left, where the Home tab
+ * stays VISIBLE and selected. So the tab also has to have pixels on screen, which
+ * {@link View#isShown} does not check: it reads visibility flags up the tree and nothing else.
  */
 public final class FeedVisibility {
     /** Bottom navigation Home tab on TikTok 46.2.3. */
@@ -39,10 +48,24 @@ public final class FeedVisibility {
     private static final String COMMENT_SHEET_RESOURCE_NAME = "p_5";
     private static final String COMMENT_TITLE_RESOURCE_NAME = "vjb";
 
+    /**
+     * The story viewer's pager. One id rather than the comment sheet's two: this one is not
+     * obfuscated, so it cannot collide with an unrelated layout that happens to reuse a
+     * shortened name.
+     *
+     * <p>Read off 46.2.3 on 2026-09-15 by comparing what {@code dumpsys activity top} shows in
+     * all three states: 81 ids are visible in the story viewer and in neither the feed nor a
+     * profile, and this is the one that names itself. Not yet checked against 46.7.3 or 46.8.3,
+     * so a build that does not have it reports "story viewer: 0 found, 1 missing" and the chips
+     * behave as they did before this was added.
+     */
+    private static final String STORY_PAGER_RESOURCE_NAME = "vp_story_collection";
+
     private static WeakReference<View> homeTabReference = new WeakReference<>(null);
     private static WeakReference<View> inboxTabReference = new WeakReference<>(null);
     private static WeakReference<View> commentSheetReference = new WeakReference<>(null);
     private static WeakReference<View> commentTitleReference = new WeakReference<>(null);
+    private static WeakReference<View> storyPagerReference = new WeakReference<>(null);
 
     /**
      * Names resolved once each. The view lookup below has to run again whenever the cached view
@@ -121,8 +144,85 @@ public final class FeedVisibility {
         if (homeTab == null) {
             return true;
         }
-        if (homeTab.isShown()) return homeTab.isSelected();
-        return isDetailVisible();
+        if (homeTab.isShown() && !isScrolledAway(homeTab)) return homeTab.isSelected();
+        return isDetailVisible() && !isStoryVisible(activity);
+    }
+
+    /**
+     * @return true while TikTok's story viewer is covering everything else.
+     *
+     * <p>A story opened from a feed avatar is a detail page like any other as far as the hooks
+     * can see: it hides the main content instead of scrolling it, so the Home tab fails
+     * {@link View#isShown}, and it registers a resumed, visible {@code DetailPageFragment}, so
+     * {@link #isDetailVisible} says yes. The chips were drawn over it and acted on the video
+     * underneath, which is not the creator whose story is on screen. The detail-page bargain is
+     * for a video opened from a profile grid or a search result, where the button is worth
+     * keeping; a story is not that.
+     */
+    public static boolean isStoryVisible(Activity activity) {
+        View pager = namedView(activity, STORY_PAGER_RESOURCE_NAME, storyPagerReference,
+                reference -> storyPagerReference = reference, "story viewer");
+        // Shown is not enough here either. A viewer that is dismissed by moving off screen with
+        // its pager attached and VISIBLE would go on answering yes, and every video detail page
+        // opened from a grid or a search would lose the button until it detached.
+        return pager != null && pager.isShown() && !isScrolledAway(pager);
+    }
+
+    /**
+     * Whether the tab is laid out where no pixel of it can reach: scrolled or translated outside
+     * one of its ancestors' boxes.
+     *
+     * <p>On 46.2.3, with a creator's profile opened from the feed covering it, the Home tab
+     * answered shown and selected while its position on screen was -1080,2043: the outer pager
+     * (id {@code viewpager}) had scrolled one screen width and the feed's page was still laid out
+     * beside the profile, flags and all. The three chips stayed drawn over the profile's bio and
+     * grid, live, for the video underneath. Where the tab actually sits is what tells that page
+     * from the feed, and {@link View#isShown} does not look: it reads visibility flags up the
+     * tree and nothing else.
+     *
+     * <p>Not {@link View#getGlobalVisibleRect}, which answers the same question about the window
+     * as well: it clips to the window frame, so a window that has been resized under a laid-out
+     * root, or split screen, would read as "not the feed" while the reader is on it. This walks
+     * TikTok's own layout up to the activity's content view and stops there, which is as far as
+     * the pager that causes this goes.
+     *
+     * <p>A tab with no size yet is not scrolled away, it is not laid out, and the bargain in
+     * {@link #isOnFeed} is that an unknown state answers "the feed": losing the hiding is better
+     * than losing the button. A tab whose ancestor is GONE, which is what the story viewer does
+     * to the main content, fails {@link View#isShown} first and falls to the detail-page
+     * registry as before.
+     */
+    private static boolean isScrolledAway(View tab) {
+        Rect rect = new Rect(0, 0, tab.getWidth(), tab.getHeight());
+        if (rect.isEmpty()) return false;
+        View child = tab;
+        ViewParent parent = tab.getParent();
+        while (parent instanceof View) {
+            View group = (View) parent;
+            rect.offset(child.getLeft() + Math.round(child.getTranslationX()) - group.getScrollX(),
+                    child.getTop() + Math.round(child.getTranslationY()) - group.getScrollY());
+            // Only an ancestor that has laid out and clips its children can hide anything. A
+            // group that draws outside itself is why FLAG_CLIP_CHILDREN exists, and a group
+            // that has not laid out has no box to judge against: taking either as proof the tab
+            // is gone would answer "not the feed" on the feed, which is the answer that costs
+            // the reader the button and lifts the daily hold.
+            //
+            // Laid out, not sized: a group collapsed to nothing has laid out and does hide its
+            // children, which is one of the ways TikTok puts a bar away without GONE, so a size
+            // test would have called that the feed as well.
+            boolean clips = !(group instanceof ViewGroup) || ((ViewGroup) group).getClipChildren();
+            if (clips && group.isLaidOut()
+                    && !rect.intersect(0, 0, group.getWidth(), group.getHeight())) {
+                return true;
+            }
+            // The app's own root. Above it are the decor and the window, whose size is the
+            // system's business: a window resized under a laid-out root, split screen or an
+            // inset would read as "not the feed" while the reader is on it.
+            if (group.getId() == android.R.id.content) return false;
+            child = group;
+            parent = group.getParent();
+        }
+        return false;
     }
 
     /**
@@ -138,6 +238,25 @@ public final class FeedVisibility {
         View title = namedView(activity, COMMENT_TITLE_RESOURCE_NAME, commentTitleReference,
                 reference -> commentTitleReference = reference, "comments sheet");
         return sheet != null && title != null && sheet.isShown() && title.isShown();
+    }
+
+    /**
+     * @return true only when the recommendation feed is certainly what is on screen.
+     *
+     * <p>{@link #isOnFeed} answers "assume the feed" when the Home tab id is unknown, and counts
+     * a detail page opened from a profile grid or a search result. That is the right bargain for
+     * a button the reader has to press, where losing it is worse than seeing it somewhere odd.
+     * It is the wrong one for anything that just sits there: a label the reader cannot dismiss
+     * should be on the feed or absent, so this asks for the Home tab to exist, be on screen and
+     * be selected, and for nothing to be covering it.
+     */
+    public static boolean onRecommendationFeed(Activity activity) {
+        View homeTab = homeTab(activity);
+        if (homeTab == null || !homeTab.isShown() || isScrolledAway(homeTab)
+                || !homeTab.isSelected()) {
+            return false;
+        }
+        return !isCommentSheetVisible(activity);
     }
 
     /**
@@ -228,7 +347,7 @@ public final class FeedVisibility {
     }
 
     /** Stands in for this build's resource table in tests. */
-    static void resolveForTests(String packageName, String name, int id) {
+    public static void resolveForTests(String packageName, String name, int id) {
         IDS.putForTests(packageName, name, id);
     }
 

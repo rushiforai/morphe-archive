@@ -16,11 +16,14 @@ import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.patches.tiktok.shared.requireLocals
+import app.morphe.util.RegisterLiveness
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import app.morphe.util.numberOfParameterRegisters
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -91,30 +94,9 @@ val resumeVideoAfterScrollPatch = bytecodePatch(
                 reference.name == "put" &&
                 reference.parameterTypes.size == 2
         }
-        // The cache, the key and a register to work in all come out of the put itself: it
-        // holds the cache and the key this has to remove, and the value it was given is
-        // spent the moment it returns. Naming them by number was right on 46.2.3 and says
-        // nothing about the next build.
-        val put = progress.getInstruction(cachePutIndex) as? FiveRegisterInstruction
-            ?: throw PatchException(
-                "Resume video after scroll: the progress cache put is not a plain invoke.",
-            )
-        val cacheRegister = put.registerC
-        val keyRegister = put.registerD
-        val scratchRegister = put.registerE
-        check(maxOf(cacheRegister, keyRegister, scratchRegister) <= 15) {
-            "Resume video after scroll: the progress cache put reaches above v15, which the " +
-                "removal cannot name."
-        }
-        // The value is only spent once the put returns if nothing takes the put's own answer,
-        // and a line wedged between a call and its move-result is one the verifier refuses.
+        val (cacheRegister, keyRegister, scratchRegister) =
+            progressClearRegistersAt(progress, cachePutIndex)
         val continueInstruction = progress.getInstruction(cachePutIndex + 1)
-        if (continueInstruction.opcode in MOVE_RESULTS) {
-            throw PatchException(
-                "Resume video after scroll: the progress cache put keeps its answer, so nothing " +
-                    "can go straight after it.",
-            )
-        }
 
         // Where the positions live, read off that same put because every name in it is
         // renamed per build.
@@ -183,4 +165,67 @@ val resumeVideoAfterScrollPatch = bytecodePatch(
             ExternalLabel("continue_progress", continueInstruction),
         )
     }
+}
+
+/** The three registers the progress clear writes through, read off the host's own put. */
+internal data class ProgressClearRegisters(val cache: Int, val key: Int, val flag: Int)
+
+/**
+ * The registers the clear may use at [cachePutIndex] + 1, and every reason it may not.
+ *
+ * <p>The cache, the key and a register to work in all come out of the put itself: it holds the
+ * cache and the key this has to remove, and the value it was given is spent the moment it
+ * returns. Naming them by number was right on 46.2.3 and says nothing about the next build.
+ *
+ * <p>"Spent the moment it returns" was a comment rather than a question put to the method. The
+ * value register is an ordinary host register, and a build that reads it again after the put
+ * would have had the flag written over the top of it, with nothing here to say so and the
+ * damage showing up as wrong playback rather than as a failed patch. `GhostModeCallSites`
+ * asks `RegisterLiveness` for exactly this before it writes its own flag mid-method, and the
+ * working notes say every mid-method write needs the same answer.
+ */
+internal fun progressClearRegistersAt(progress: Method, cachePutIndex: Int): ProgressClearRegisters {
+    // p2 to p5 are the two timestamps only when p0 is the receiver. A static callback of the
+    // same signature would hand the clear the aid and half a timestamp.
+    check(!AccessFlags.STATIC.isSet(progress.accessFlags)) {
+        "Resume video after scroll: the progress callback is static, so p2 to p5 are not the " +
+            "two timestamps the clear is given."
+    }
+
+    val instructions = progress.implementation?.instructions?.toList()
+        ?: throw PatchException("Resume video after scroll: the progress method has no body.")
+    val put = instructions.getOrNull(cachePutIndex) as? FiveRegisterInstruction
+        ?: throw PatchException(
+            "Resume video after scroll: the progress cache put is not a plain invoke.",
+        )
+    val registers = ProgressClearRegisters(put.registerC, put.registerD, put.registerE)
+    check(maxOf(registers.cache, registers.key, registers.flag) <= 15) {
+        "Resume video after scroll: the progress cache put reaches above v15, which the " +
+            "removal cannot name."
+    }
+
+    // The value is only spent once the put returns if nothing takes the put's own answer,
+    // and a line wedged between a call and its move-result is one the verifier refuses.
+    val continueInstruction = instructions.getOrNull(cachePutIndex + 1)
+        ?: throw PatchException(
+            "Resume video after scroll: the progress cache put ends the method, so nothing " +
+                "can go after it.",
+        )
+    if (continueInstruction.opcode in MOVE_RESULTS) {
+        throw PatchException(
+            "Resume video after scroll: the progress cache put keeps its answer, so nothing " +
+                "can go straight after it.",
+        )
+    }
+
+    // Asked of the whole method, branches and handlers included, rather than of the lines that
+    // happen to follow the put.
+    if (registers.flag in RegisterLiveness.of(progress).liveInto(cachePutIndex + 1)) {
+        throw PatchException(
+            "Resume video after scroll: v${registers.flag}, the value handed to the progress " +
+                "cache put, is read again after it, so the clear cannot answer in it.",
+        )
+    }
+
+    return registers
 }

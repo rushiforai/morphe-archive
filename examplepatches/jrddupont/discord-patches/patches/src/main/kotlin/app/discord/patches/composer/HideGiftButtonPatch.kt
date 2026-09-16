@@ -23,9 +23,12 @@ import app.morphe.patcher.patch.resourcePatch
  * Neutering the push (rather than the flag) preserves the stock
  * gift-XOR-thread fallback there.
  *
- * Target analysis (Hermes bytecode v98 in all three builds):
+ * Target analysis (Hermes bytecode v98 in all four builds):
  *
  * RightActions (ChatInputRightActions, flag load @ fn offset 30):
+ * - 344.13 Stable: fn 53139 (offset 31241714, 505 bytes, 107 instrs).
+ *   Flag register is reused as scratch after its single test, so the
+ *   load-then-test still fully determines the gift branch.
  * - 343.12 Stable: fn 52671 (offset 31111162, 505 bytes).
  * - 342.16 Stable: fn 52380 (offset 30994107, 505 bytes).
  * - 341.13 Stable: fn 52020 (offset 30845510, 501 bytes).
@@ -35,6 +38,10 @@ import app.morphe.patcher.patch.resourcePatch
  * - 342.16 Stable: fn 51714, gift push at file offset 30851579.
  * - 341.13 Stable: fn 51354, gift push at file offset 30703459.
  *   (342 and 341 share byte-identical gift-push codegen.)
+ * - 344.13 Stable: NO gift push. The attach-sheet was rebuilt with no
+ *   gift entry (only a dead NITRO_GIFT renderer branch remains in
+ *   fn 89752), so site 2 is skipped there — the bar flag alone hides
+ *   the gift.
  *
  * Each site tries its anchors and applies the one found exactly once;
  * anything else fails loudly so a Discord codegen change can never
@@ -52,7 +59,8 @@ val hideGiftButtonPatch = resourcePatch(
         val bytes = bundle.readBytes().toMutableList()
 
         // Site 1: composer bar — force shouldShowGiftButton load to false.
-        applyOnce(
+        // Returns the matched anchor index so site 2 can tell 344 apart.
+        val barAnchor = applyOnce(
             bytes,
             replacement = b("96 10 96 10 96 10"),
             anchors = listOf(
@@ -62,22 +70,33 @@ val hideGiftButtonPatch = resourcePatch(
                 b("45 10 05 03 EB 12 45 13 05 04 6E 35 37 04 01 13"),
                 // 341.13 RightActions (fn 52020).
                 b("45 10 05 03 36 85 45 13 05 04 83 79 37 04 01 13"),
+                // 344.13 RightActions (fn 53139).
+                b("45 10 05 03 C8 74 45 13 05 04 70 8E 37 04 01 13"),
             ),
             label = "Gift bar flag",
         )
 
         // Site 2: actions row — skip the gift actions.push().
-        applyOnce(
-            bytes,
-            replacement = b("10 0D 0D 96 0D"),
-            anchors = listOf(
-                // 342.16 / 341.13 gift push (identical codegen).
-                b("6E 0D 0F 0C 0D AE 20 44 0F 0C 21 C8 02 0D AA 00"),
-                // 343.12 gift push.
-                b("6E 0D 0F 0C 0D AE 1C 44 0F 0C 24 C8 01 0D AA 00"),
-            ),
-            label = "Gift actions push",
+        // 344.13 has no gift push (sheet rebuilt without a gift entry),
+        // so when site 1 matched the 344 anchor (index 3) and no sheet
+        // anchor hits, there is nothing to neuter. Any other zero-match
+        // case still fails loudly below.
+        val sheetAnchors = listOf(
+            // 342.16 / 341.13 gift push (identical codegen).
+            b("6E 0D 0F 0C 0D AE 20 44 0F 0C 21 C8 02 0D AA 00"),
+            // 343.12 gift push.
+            b("6E 0D 0F 0C 0D AE 1C 44 0F 0C 24 C8 01 0D AA 00"),
         )
+        val sheetHits = sheetAnchors.map { it to findAll(bytes, it) }
+            .filter { (_, hits) -> hits.isNotEmpty() }
+        if (!(sheetHits.isEmpty() && barAnchor == 3)) {
+            applyOnce(
+                bytes,
+                replacement = b("10 0D 0D 96 0D"),
+                anchors = sheetAnchors,
+                label = "Gift actions push",
+            )
+        }
 
         bundle.writeBytes(bytes.toByteArray())
     }
@@ -88,17 +107,19 @@ private fun applyOnce(
     replacement: ByteArray,
     anchors: List<ByteArray>,
     label: String,
-) {
-    val matched = anchors.map { it to findAll(bytes, it) }
-        .filter { (_, hits) -> hits.isNotEmpty() }
-    check(matched.size == 1 && matched[0].second.size == 1) {
-        "$label anchor matched ${matched.sumOf { it.second.size }} " +
+): Int {
+    val matched = anchors.mapIndexed { index, anchor ->
+        Triple(index, anchor, findAll(bytes, anchor))
+    }.filter { (_, _, hits) -> hits.isNotEmpty() }
+    check(matched.size == 1 && matched[0].third.size == 1) {
+        "$label anchor matched ${matched.sumOf { it.third.size }} " +
             "time(s) across ${matched.size} known pattern(s); " +
             "Discord likely changed the bundle - patch needs re-analysis."
     }
 
-    val at = matched[0].second[0]
+    val at = matched[0].third[0]
     replacement.forEachIndexed { i, byte -> bytes[at + i] = byte }
+    return matched[0].first
 }
 
 private fun b(hex: String): ByteArray =

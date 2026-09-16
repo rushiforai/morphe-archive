@@ -1,3 +1,7 @@
+/*
+ * Adapted from:
+ * https://gitlab.com/ReVanced/revanced-patches/-/blob/main/extensions/tiktok/src/main/java/app/revanced/extension/tiktok/settings/preference/categories/ExtensionPreferenceCategory.java
+ */
 package app.morphe.extension.tiktok.settings.preference.categories;
 
 import app.morphe.extension.tiktok.settings.L10n;

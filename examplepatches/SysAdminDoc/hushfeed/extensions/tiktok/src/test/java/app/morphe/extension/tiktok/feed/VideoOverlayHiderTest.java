@@ -224,6 +224,76 @@ public class VideoOverlayHiderTest {
         }
     }
 
+    /**
+     * A hidden button takes its own count with it.
+     *
+     * <p>"Hide like button" hid the heart and left "282" standing under an empty space, half
+     * under the avatar (S22, 2026-09-15), which read as the switch doing nothing and was
+     * reported as exactly that. The other counts are not touched: they belong to buttons
+     * that are still there.
+     */
+    @Test
+    public void aHiddenButtonTakesItsOwnCountWithIt() {
+        String[] rowNames = {"fwu", "ecq", "ht9", "v5x"};
+        String[] textNames = {"fwt", "ecp", "ht8", "v5w"};
+        String[] buttonNames = {"fws", "ehl", "hu9", "v9o"};
+        for (int i = 0; i < rowNames.length; i++) {
+            VideoOverlayHider.resolveForTests(rowNames[i], 0x7f0a0300 + i);
+            VideoOverlayHider.resolveForTests(textNames[i], 0x7f0a0310 + i);
+            VideoOverlayHider.resolveForTests(buttonNames[i], 0x7f0a0320 + i);
+        }
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Utils.setContext(activity);
+            LinearLayout root = new LinearLayout(activity);
+            View[] buttons = new View[buttonNames.length];
+            LinearLayout[] rows = new LinearLayout[rowNames.length];
+            TextView[] counts = new TextView[textNames.length];
+            for (int i = 0; i < rowNames.length; i++) {
+                buttons[i] = new View(activity);
+                buttons[i].setId(0x7f0a0320 + i);
+                root.addView(buttons[i]);
+                rows[i] = new LinearLayout(activity);
+                rows[i].setId(0x7f0a0300 + i);
+                counts[i] = new TextView(activity);
+                counts[i].setId(0x7f0a0310 + i);
+                counts[i].setText(Integer.toString(200 + i));
+                rows[i].addView(counts[i]);
+                root.addView(rows[i]);
+            }
+            activity.setContentView(root);
+
+            Settings.HIDE_RAIL_COUNTS.save(false);
+            Settings.HIDE_RAIL_LIKE.save(true);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals("the like button stayed", View.GONE, buttons[0].getVisibility());
+            assertEquals("the like count stood under an empty space", View.GONE, rows[0].getVisibility());
+            assertEquals("the like count's text stood on its own", View.GONE, counts[0].getVisibility());
+            for (int i = 1; i < rowNames.length; i++) {
+                assertEquals(buttonNames[i] + " went with the like button", View.VISIBLE, buttons[i].getVisibility());
+                assertEquals(rowNames[i] + " went with the like count", View.VISIBLE, rows[i].getVisibility());
+                assertEquals(textNames[i], View.VISIBLE, counts[i].getVisibility());
+            }
+
+            Settings.HIDE_RAIL_LIKE.save(false);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.VISIBLE, buttons[0].getVisibility());
+            assertEquals("the like count did not come back with its button", View.VISIBLE, rows[0].getVisibility());
+            assertEquals(View.VISIBLE, counts[0].getVisibility());
+
+            // The far end of the map as well: share is the sixth button and the fourth count.
+            Settings.HIDE_RAIL_SHARE.save(true);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals("the share count stood under an empty space", View.GONE, rows[3].getVisibility());
+            assertEquals(View.GONE, counts[3].getVisibility());
+            assertEquals("the like count went with the share button", View.VISIBLE, rows[0].getVisibility());
+        } finally {
+            Settings.HIDE_RAIL_LIKE.save(false);
+            Settings.HIDE_RAIL_SHARE.save(false);
+            Settings.HIDE_RAIL_COUNTS.save(false);
+        }
+    }
+
     @Test
     public void countRowsAndTheirInnerTextAnchorsGoWithoutTheButtons() {
         String[] rowNames = {"fwu", "ecq", "ht9", "v5x"};

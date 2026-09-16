@@ -112,22 +112,38 @@ public class InboxClearControlTest {
         assertEquals(List.of(), header.announcements);
     }
 
+    @Test public void theControlAnswersAPressAndCanBeFocused() {
+        TextView clear = clearControl();
+        // A press and a focus ring, the same pair every control this bundle draws now carries.
+        // This header follows TikTok's theme, so the ring and ripple take its own text colour
+        // rather than the white the over-video controls use, which would vanish on a light header.
+        assertTrue("Clear all cannot be reached by a keyboard or d-pad", clear.isFocusable());
+        android.graphics.drawable.Drawable background = clear.getBackground();
+        assertTrue("Clear all has no ripple: " + (background == null ? "null"
+                        : background.getClass().getSimpleName()),
+                background instanceof android.graphics.drawable.RippleDrawable);
+    }
+
     @Test public void aRunHoldsTheControlUntilItReportsAndThenHandsItBack() {
         addAccount("A", true);
         addAccount("B", true);
         TextView clear = clearControl();
 
         clear.performClick();
-        assertFalse("the control stayed pressable during an 18 second run", clear.isEnabled());
-        assertEquals("Clearing", clear.getText().toString());
-        assertFalse("the busy control still painted as live",
-                clear.getCurrentTextColor() == Color.WHITE);
-        assertFalse(clear.createAccessibilityNodeInfo().isEnabled());
+        // Pressable throughout: the tap is how the reader stops it. The hold is said by the
+        // count and shown by the dimming, not by refusing the pointer.
+        assertTrue("the control stopped taking the tap that ends a run", clear.isEnabled());
+        assertEquals("the label does not say how far the run has got",
+                "Clearing, 1 so far", clear.getText().toString());
+        assertTrue("the busy control still painted as idle", clear.getAlpha() < 1f);
+        assertTrue(clear.createAccessibilityNodeInfo().isEnabled());
         assertEquals("the run announced something before it finished", List.of(),
                 header.announcements);
 
         advance(300);
-        assertFalse("the control came back mid-run", clear.isEnabled());
+        assertEquals("the label did not advance with the run",
+                "Clearing, 2 so far", clear.getText().toString());
+        assertTrue("the control was taken away mid-run", clear.isEnabled());
         advance(300);
 
         assertIdle(clear, "after a completed run");
@@ -144,8 +160,8 @@ public class InboxClearControlTest {
 
         clear.performClick();
         // The content description names the action, so a reader never hears the changed label.
-        // The state is the only place the wait can be said.
-        assertEquals("Clearing", String.valueOf(clear.getStateDescription()));
+        // The state is the only place the wait, and how far it has got, can be said.
+        assertEquals("Clearing, 1 so far", String.valueOf(clear.getStateDescription()));
         advance(300);
         assertNull("the progress state outlived the run", clear.getStateDescription());
         assertEquals(List.of("Dismissed one suggested account"), header.announcements);
@@ -198,9 +214,8 @@ public class InboxClearControlTest {
                 String.valueOf(clear.getContentDescription()));
 
         clear.performClick();
-        assertEquals("Clearing suggested accounts",
-                String.valueOf(clear.getContentDescription()));
-        assertEquals("Clearing suggested accounts",
+        assertEquals("Clearing, 1 so far", String.valueOf(clear.getContentDescription()));
+        assertEquals("Clearing, 1 so far",
                 String.valueOf(clear.createAccessibilityNodeInfo().getContentDescription()));
 
         advance(300);
@@ -228,10 +243,13 @@ public class InboxClearControlTest {
 
         TextView replacement = clearControlIn(rebuilt);
         assertNotSame("the rebuilt heading kept the old control", clearControl(), replacement);
-        assertFalse("the replacement control came up pressable mid-run", replacement.isEnabled());
-        assertEquals("Clearing", replacement.getText().toString());
-        assertEquals("Clearing suggested accounts",
-                String.valueOf(replacement.getContentDescription()));
+        assertTrue("the replacement control cannot take the tap that stops the run",
+                replacement.isEnabled());
+        assertEquals("the replacement control lost the count the run is at",
+                "Clearing, 1 so far", replacement.getText().toString());
+        assertEquals("Clearing, 1 so far", String.valueOf(replacement.getContentDescription()));
+        assertTrue("the replacement control came up looking idle mid-run",
+                replacement.getAlpha() < 1f);
 
         advance(300);
         advance(300);
@@ -248,37 +266,49 @@ public class InboxClearControlTest {
                 Color.WHITE, clear.getCurrentTextColor());
         assertTrue(when + ": a reader was left with a dead control",
                 clear.createAccessibilityNodeInfo().isEnabled());
+        assertEquals(when + ": the control was left dimmed", 1f, clear.getAlpha(), 0.001f);
     }
 
-    @Test public void repeatedTapsKeepOnePacedRunAndReportOnce() {
+    /**
+     * A second tap stops the run at its next step and says how far it got, once.
+     *
+     * <p>Sixty accounts at 300 ms is eighteen seconds, and the control used to refuse the
+     * pointer for all of it. The paced step is what honours the stop, so nothing is dismissed
+     * after the tap and the count in the outcome is the count on screen.
+     */
+    @Test public void aSecondTapStopsTheRunAndSaysHowFarItGot() {
         addAccount("A", true);
         addAccount("B", true);
         addAccount("C", true);
         TextView clear = clearControl();
         assertTrue(clear.performClick());
+        assertEquals(List.of("A"), dismissed);
         assertTrue(clear.performClick());
-        assertEquals("a second tap started another dismissal chain", List.of("A"), dismissed);
+        assertEquals("the stop dismissed another account on the spot", List.of("A"), dismissed);
         assertEquals(0, ShadowToast.shownToastCount());
 
         advance(299);
         assertEquals(List.of("A"), dismissed);
         advance(1);
+        assertEquals("the stop was not honoured at the next step", List.of("A"), dismissed);
+        assertEquals(1, ShadowToast.shownToastCount());
+        assertEquals("Stopped after dismissing one suggested account",
+                ShadowToast.getTextOfLatestToast());
+        assertEquals("the stop was announced other than once",
+                List.of("Stopped after dismissing one suggested account"), header.announcements);
+        assertIdle(clear, "after a stopped run");
+
+        // Stopped is not broken: the next tap starts a fresh run over what is left.
+        advance(300);
+        assertEquals("a stopped run went on dismissing", List.of("A"), dismissed);
+        clear.performClick();
         assertEquals(List.of("A", "B"), dismissed);
         advance(300);
         assertEquals(List.of("A", "B", "C"), dismissed);
         advance(300);
-        assertEquals(1, ShadowToast.shownToastCount());
-        assertEquals("Dismissed 3 suggested accounts", ShadowToast.getTextOfLatestToast());
-        assertEquals("the repeated tap announced a second outcome",
-                List.of("Dismissed 3 suggested accounts"), header.announcements);
-        assertIdle(clear, "after the paced run reported");
-
-        addAccount("D", true);
-        clear.performClick();
-        assertEquals("completion did not release the next run", List.of("A", "B", "C", "D"), dismissed);
-        advance(300);
         assertEquals(2, ShadowToast.shownToastCount());
-        assertEquals("Dismissed one suggested account", ShadowToast.getTextOfLatestToast());
+        assertEquals("Dismissed 2 suggested accounts", ShadowToast.getTextOfLatestToast());
+        assertIdle(clear, "after the run that followed a stop");
     }
 
     @Test public void oneButtonCanBeRecycledButAnUnchangedAccountIsNotClickedTwice() {
@@ -435,8 +465,10 @@ public class InboxClearControlTest {
         for (int index = 0; index < suggestedHeader.getChildCount(); index++) {
             View child = suggestedHeader.getChildAt(index);
             String description = String.valueOf(child.getContentDescription());
+            // Idle, busy before the first dismissal, or busy with the count so far.
             if ("Clear all suggested accounts".equals(description)
-                    || "Clearing suggested accounts".equals(description)) {
+                    || "Clearing suggested accounts".equals(description)
+                    || description.startsWith("Clearing")) {
                 return (TextView) child;
             }
         }

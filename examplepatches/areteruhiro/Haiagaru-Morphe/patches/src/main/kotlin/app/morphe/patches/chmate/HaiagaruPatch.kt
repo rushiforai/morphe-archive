@@ -279,6 +279,14 @@ private val haiagaruBytecodePatch = bytecodePatch {
         // activity base class while 0.8.10.191 keeps it on the concrete activity.
         patchLegacyThreadUrlEntry(profile)
         patchFinishedLegacyThreadLaunchGuard()
+        if (packageMetadata.versionName in setOf(
+                "0.8.10.191 dev",
+                "0.8.10.226 dev",
+                "0.8.10.243 dev",
+            )
+        ) {
+            patchLegacyTabletThreadUrlEntry(packageMetadata.versionName)
+        }
         patchLegacyPlusFeatureActivation(profile)
         if (packageMetadata.versionName == "0.8.10.243 dev") {
             patchImageSelectionResult()
@@ -290,6 +298,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
         )
         if (packageMetadata.versionName == "0.8.10.191 dev") {
             patchLegacyFragmentBannerDiscovery()
+            patchLegacyThreadListAd("Lo/m9ExternalSyntheticLambda1;")
             patchLegacyImageUploadTempName()
             patchLegacyImageUploadCall()
         } else {
@@ -406,9 +415,13 @@ private val haiagaruBytecodePatch = bytecodePatch {
             "0.8.10.191 dev" -> {
                 patchLegacy5chIoCompatibility()
                 patchLegacyTalkDatLoading()
+                patchLegacyTalkAuthIntegrity()
             }
             "0.8.10.226 dev" -> {
                 patchThreadBannerAdWrapper("Lo/TTVideoLandingPageLink2Activity1;")
+                patchLegacyThreadListAd("Lo/listener;")
+                patchPreIoTalkDatLoading()
+                patchPreIoTalkPostIntegrity()
                 patchPreIoImageUploadIntegrityTrap("Lo/fWG1;")
                 patchPreIoImageSettingsIntegrityTrap("Lo/setMaintainOriginalImageBounds;")
                 patchPreIoSettingsConstructorIntegrityTrap("Lo/setImageAssetsFolder;")
@@ -467,6 +480,110 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchModernTalkDatLoad
 }
 
 /**
+ * 226 has the same native Talk type-4 URL model as 243, but its downloader uses
+ * the pre-io class layout. Publish the current Talk JSON as a normal DAT as soon
+ * as ChMate resolves the destination file, before its obsolete transport runs.
+ */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchPreIoTalkDatLoading() {
+    val loader = mutableClassDefBy("Lo/OpenJSSEPlatformCompanion;").methods.single { method ->
+        method.name == "c"
+            && method.returnType == "Lo/OpenJSSEPlatformCompanion${'$'}write;"
+            && method.parameters.map(CharSequence::toString) == listOf(
+                "Ljp/syoboi/a2chMate/client/BBSUrlInfo;",
+                "Z",
+                "Lo/KjvkU;",
+            )
+    }
+    val instructions = loader.implementation?.instructions?.toList()
+        ?: error("ChMate 226 thread loader has no implementation")
+    val cacheCall = instructions.indices.single { index ->
+        val reference = (instructions[index] as? ReferenceInstruction)?.reference
+            as? MethodReference ?: return@single false
+        reference.returnType == "Ljava/io/File;"
+            && reference.parameterTypes.map(CharSequence::toString) == listOf(
+                "Ljp/syoboi/a2chMate/client/BBSUrlInfo;",
+            )
+            && instructions.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
+    }
+    val invocation = instructions[cacheCall] as FiveRegisterInstruction
+    val urlInfoRegister = invocation.registerD
+    val cacheFileRegister =
+        (instructions[cacheCall + 1] as OneRegisterInstruction).registerA
+    val scratchRegister = loader.findFreeRegister(cacheCall + 2)
+
+    loader.addInstructionsWithLabels(
+        cacheCall + 2,
+        """
+            invoke-virtual {v$urlInfoRegister}, Ljp/syoboi/a2chMate/client/BBSUrlInfo;->G()Ljava/lang/String;
+            move-result-object v$scratchRegister
+            invoke-static {v$scratchRegister, v$cacheFileRegister}, $EXTENSION->loadLiveTalkDat(Ljava/lang/String;Ljava/io/File;)Z
+            move-result v$scratchRegister
+            if-eqz v$scratchRegister, :haiagaru_226_normal_download
+            new-instance v$scratchRegister, Lo/OpenJSSEPlatformCompanion${'$'}write;
+            invoke-direct {v$scratchRegister, v$cacheFileRegister, v$urlInfoRegister}, Lo/OpenJSSEPlatformCompanion${'$'}write;-><init>(Ljava/io/File;Ljp/syoboi/a2chMate/client/BBSUrlInfo;)V
+            return-object v$scratchRegister
+            :haiagaru_226_normal_download
+            nop
+        """.trimIndent(),
+    )
+}
+
+/**
+ * 226 restores its Talk request builder into an InMemoryDexClassLoader. The
+ * generated poster compares two certificate-derived values and throws null when
+ * they differ after re-signing. Route only that reflected posting call through
+ * the extension so the generated request construction itself remains unchanged.
+ */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchPreIoTalkPostIntegrity() {
+    val networkClass = mutableClassDefBy("Lo/OpenJSSEPlatformCompanion;")
+    val candidates = networkClass.methods.flatMap { method ->
+        val instructions = method.implementation?.instructions ?: return@flatMap emptyList()
+        instructions.mapIndexedNotNull { index, instruction ->
+            val reference = (instruction as? ReferenceInstruction)?.reference
+                as? MethodReference ?: return@mapIndexedNotNull null
+            if (reference.definingClass != "Ljava/lang/reflect/Method;"
+                || reference.name != "invoke"
+                || reference.returnType != "Ljava/lang/Object;"
+                || instructions.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
+                || reference.parameterTypes.map(CharSequence::toString) != listOf(
+                    "Ljava/lang/Object;",
+                    "[Ljava/lang/Object;",
+                )
+            ) {
+                return@mapIndexedNotNull null
+            }
+            val isTalkPost = instructions.subList(maxOf(0, index - 180), index)
+                .any { previous ->
+                    ((previous as? ReferenceInstruction)?.reference as? StringReference)?.string ==
+                        "https://api.talk-platform.com/v1/bbs.cgi"
+                }
+            if (isTalkPost) method to index else null
+        }
+    }
+    check(candidates.size == 1) {
+        "Expected one ChMate 226 Talk posting invocation, found ${candidates.size}"
+    }
+    val (method, index) = candidates.single()
+    when (val invocation = method.implementation!!.instructions[index]) {
+        is FiveRegisterInstruction -> method.replaceInstruction(
+            index,
+            "invoke-static {v${invocation.registerC}, v${invocation.registerD}, " +
+                "v${invocation.registerE}}, $EXTENSION->invokePreIoTalkPoster(" +
+                "Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)" +
+                "Ljava/lang/Object;",
+        )
+        is RegisterRangeInstruction -> method.replaceInstruction(
+            index,
+            "invoke-static/range {v${invocation.startRegister} .. " +
+                "v${invocation.startRegister + 2}}, " +
+                "$EXTENSION->invokePreIoTalkPoster(Ljava/lang/reflect/Method;" +
+                "Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;",
+        )
+        else -> error("ChMate 226 Talk posting invocation registers were not found")
+    }
+}
+
+/**
  * ChMate 0.8.10.191 builds every Talk request through a dynamically restored
  * authentication class. Re-signing makes that class enter its decoy arithmetic
  * branch before the already-imported DAT can be read. Haiagaru imports the current
@@ -493,33 +610,59 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyTalkDatLoad
             )
     }.takeIf { it >= 0 }
         ?: error("ChMate legacy Talk cache path builder was not found")
-    // Keep the Talk-specific cache filename computed above, then expose the
-    // loaded thread as a normal MS932 DAT to the remainder of ChMate.  The
-    // type-4 marker is what makes the UI label the thread as DAT落ち and
-    // disables the normal thread actions even when the Talk API is live.
+    // v0 is the requested BBSUrlInfo and v11 is ChMate's exact DAT cache file.
+    // Import the current Talk JSON response there and return it immediately.
+    // Continuing into 191's normal downloader would request the obsolete
+    // talk.jp/<board>/dat/<thread>.dat endpoint and replace a valid import with
+    // a false DAT落ち result.
     method.addInstructionsWithLabels(
         cachePathIndex + 2,
         """
-            const/4 v14, 0x1
-            iput v14, p1, Ljp/syoboi/a2chMate/client/BBSUrlInfo;->g:I
+            invoke-virtual {v0}, Ljp/syoboi/a2chMate/client/BBSUrlInfo;->o()Ljava/lang/String;
+            move-result-object v14
+            invoke-static {v14, v11}, $EXTENSION->loadLiveTalkDat(Ljava/lang/String;Ljava/io/File;)Z
+            move-result v14
+            if-eqz v14, :haiagaru_normal_download
+            new-instance v14, Lo/getLabel${'$'}IconCompatParcelizer;
+            const/4 v1, 0x0
+            invoke-direct {v14, v11, v1, v0, v1}, Lo/getLabel${'$'}IconCompatParcelizer;-><init>(Ljava/io/File;ILjp/syoboi/a2chMate/client/BBSUrlInfo;I)V
+            return-object v14
+            :haiagaru_normal_download
+            nop
         """.trimIndent(),
     )
-    val talkBuilderIndex = instructions.indexOfFirst { instruction ->
-        val reference = (instruction as? ReferenceInstruction)?.reference
-            as? MethodReference ?: return@indexOfFirst false
-        reference.returnType == "Ljava/lang/String;"
-            && reference.parameterTypes.map(CharSequence::toString) == listOf(
-                "Landroid/content/Context;",
-                "Z",
-                "Lo/getLabel;",
-            )
-    }.takeIf { it >= 0 }
-        ?: error("ChMate legacy Talk request builder was not found")
-    val branchIndex = (0 until talkBuilderIndex).lastOrNull { index ->
-        instructions[index].opcode == Opcode.IF_EQZ
-    } ?: error("ChMate legacy Talk request branch was not found")
-    val talkFlagRegister = (instructions[branchIndex] as OneRegisterInstruction).registerA
-    method.addInstruction(branchIndex, "const/4 v$talkFlagRegister, 0x0")
+}
+
+/**
+ * The 191 Talk client is restored into an InMemoryDexClassLoader. Its generated
+ * request signer compares two certificate-derived integers and enters a deliberate
+ * divide-by-zero branch after Morphe re-signs the APK. Normalize that generated
+ * state immediately after the Talk client instance is constructed, before its
+ * authentication method is invoked.
+ */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyTalkAuthIntegrity() {
+    val method = mutableClassDefBy("Lo/setAdLoadFailureInfo;").methods.single { method ->
+        method.name == "c"
+            && method.returnType == "Ljava/lang/String;"
+            && method.parameters.map(CharSequence::toString) == listOf("Lo/getLabel;")
+    }
+    val instructions = method.implementation?.instructions?.toList()
+        ?: error("ChMate legacy Talk authentication method has no implementation")
+    val newInstanceIndex = instructions.indices.single { index ->
+        val reference = (instructions[index] as? ReferenceInstruction)?.reference
+            as? MethodReference ?: return@single false
+        reference.definingClass == "Ljava/lang/reflect/Constructor;"
+            && reference.name == "newInstance"
+            && reference.returnType == "Ljava/lang/Object;"
+            && instructions.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
+    }
+    val authClientRegister =
+        (instructions[newInstanceIndex + 1] as OneRegisterInstruction).registerA
+    method.addInstruction(
+        newInstanceIndex + 2,
+        "invoke-static {v$authClientRegister}, " +
+            "$EXTENSION->normalizeLegacyTalkAuthIntegrity(Ljava/lang/Object;)V",
+    )
 }
 
 @Suppress("unused")
@@ -1121,6 +1264,40 @@ private fun app.morphe.patcher.patch.BytecodePatchContext
     )
 }
 
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyTabletThreadUrlEntry(
+    versionName: String,
+) {
+    val (methodName, fragmentType) = when (versionName) {
+        "0.8.10.191 dev" -> "Sq_" to "Lo/r8lambdahIGIGCNpKpFqE0lgDli724UCuDM;"
+        "0.8.10.226 dev" -> "d" to "Landroidx/fragment/app/Fragment;"
+        "0.8.10.243 dev" -> "c" to "Landroidx/fragment/app/Fragment;"
+        else -> error("Unsupported tablet thread entry version: $versionName")
+    }
+    val method = mutableClassDefBy("Ljp/syoboi/a2chMate/activity/TabletHomeActivity;")
+        .methods
+        .single { candidate ->
+            candidate.name == methodName
+                && candidate.returnType == "V"
+                && candidate.parameters.map(CharSequence::toString) == listOf(
+                fragmentType,
+                "I",
+                "Landroid/os/Bundle;",
+            )
+        }
+    val freeRegister = method.findFreeRegister(0)
+    method.addInstructionsWithLabels(
+        0,
+        """
+            invoke-static { p0, p3 }, $EXTENSION->rewriteLegacyTabletThreadBundle(Landroid/app/Activity;Landroid/os/Bundle;)Z
+            move-result v$freeRegister
+            if-eqz v$freeRegister, :haiagaru_continue_tablet_thread
+            return-void
+            :haiagaru_continue_tablet_thread
+            nop
+        """,
+    )
+}
+
 /**
  * ChMate initializes both LevelPlay and IronSource Ad Quality while constructing its
  * banner wrapper, before LevelPlayBannerAdView.loadAd() is reached. Guarding loadAd()
@@ -1248,6 +1425,53 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyFragmentBan
             )
         }
     }
+}
+
+/**
+ * ChMate 191 represents the banner between responses as adapter view type 5.
+ * Collapse that returned row while preserving every normal response row.
+ */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyThreadListAd(
+    adapterClass: String,
+) {
+    val method = mutableClassDefBy(adapterClass).methods.single { method ->
+        method.name == "getView"
+            && method.returnType == "Landroid/view/View;"
+            && method.parameters.map(CharSequence::toString) == listOf(
+                "I",
+                "Landroid/view/View;",
+                "Landroid/view/ViewGroup;",
+            )
+    }
+    val instructions = method.implementation?.instructions
+        ?: error("ChMate 191 response adapter has no implementation")
+    val bindIndex = instructions.indices.single { index ->
+        val reference = (instructions[index] as? ReferenceInstruction)?.reference
+            as? MethodReference ?: return@single false
+        val resultTail = instructions.drop(index + 1).take(4).map { it.opcode }
+        reference.returnType == "Landroid/view/View;"
+            && resultTail.firstOrNull() == Opcode.MOVE_RESULT_OBJECT
+            && resultTail.contains(Opcode.RETURN_OBJECT)
+    }
+
+    // Keep p1 as the original adapter position and move the returned row to p2;
+    // the parent argument is no longer needed after the bind call.
+    method.replaceInstruction(bindIndex + 1, "move-result-object p2")
+    val returnIndex = (bindIndex + 2 until minOf(bindIndex + 5, instructions.size))
+        .single { instructions[it].opcode == Opcode.RETURN_OBJECT }
+    if (returnIndex != bindIndex + 2) {
+        // 226 inserts Kotlin's non-null assertion between the bind and return.
+        method.replaceInstruction(
+            bindIndex + 2,
+            "invoke-static {p2, v0}, Lo/fsYhp;->e(Ljava/lang/Object;Ljava/lang/String;)V",
+        )
+    }
+    method.replaceInstruction(returnIndex, "return-object p2")
+    method.addInstruction(
+        returnIndex,
+        "invoke-static {p2, p0, p1}, " +
+            "$EXTENSION->hideLegacyThreadListAd(Landroid/view/View;Landroid/widget/BaseAdapter;I)V",
+    )
 }
 
 private fun MutableMethod.returnProviderStartupDelegate(profile: ChMateProfile) {
@@ -2114,26 +2338,29 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchPreIoDomainCompat
  * and confirmation semantics are adapted.
  */
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacy5chIoCompatibility() {
-    val urlInfoClass = mutableClassDefBy("Ljp/syoboi/a2chMate/client/BBSUrlInfo;")
-    // ChMate assigns talk.jp the special type-4 transport. On re-signed 191
-    // builds that path enters a dynamically restored arithmetic/auth class and
-    // can report divide-by-zero even for a live thread. Keep the hostname and
-    // Talk cache key intact, but classify the URL as the ordinary MS932 DAT
-    // transport so reads and refreshes use the stable legacy loader.
-    urlInfoClass.methods.single { method ->
-        method.name == "e"
-            && method.returnType == "I"
-            && method.parameters.map(CharSequence::toString) == listOf("Ljava/lang/String;")
-    }.let { method ->
-        val instructions = method.implementation?.instructions?.toList()
-            ?: error("ChMate BBSUrlInfo host classifier has no implementation")
-        val talkType = instructions.indexOfFirst { instruction ->
-            val literal = (instruction as? NarrowLiteralInstruction)?.narrowLiteral
-            instruction.opcode == Opcode.CONST_4 && literal == 4
-        }.takeIf { it >= 0 }
-            ?: error("ChMate talk.jp type marker was not found")
-        method.replaceInstruction(talkType, "const/4 p0, 0x1")
+    // The 191 Talk menu adapter converts classic.talk-platform.com entries to
+    // talk.jp/boards/<board>. Its legacy BBSUrlInfo parser only accepts the
+    // root form talk.jp/<board>, so every parsed board is otherwise discarded.
+    val talkMenuAdapter = mutableClassDefBy("Lo/setRequestLatencyMillis;")
+    val talkBoardPrefixSites = talkMenuAdapter.methods.flatMap { method ->
+        method.implementation?.instructions.orEmpty().mapIndexedNotNull { index, instruction ->
+            val value = ((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string
+            val register = (instruction as? OneRegisterInstruction)?.registerA
+            if (value == "https://talk.jp/boards/" && register != null) {
+                Triple(method, index, register)
+            } else {
+                null
+            }
+        }
     }
+    check(talkBoardPrefixSites.size == 1) {
+        "ChMate 191 Talk board URL prefix site was not uniquely identified"
+    }
+    talkBoardPrefixSites.single().let { (method, index, register) ->
+        method.replaceInstruction(index, "const-string v$register, \"https://talk.jp/\"")
+    }
+
+    val urlInfoClass = mutableClassDefBy("Ljp/syoboi/a2chMate/client/BBSUrlInfo;")
     val legacyLinkParserType =
         "Ljp/syoboi/utils/NativeUtils\$RemoteActionCompatParcelizer;"
 

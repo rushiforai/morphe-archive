@@ -25,9 +25,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,8 +45,9 @@ final class ArchivedThreadImporter {
             Pattern.CASE_INSENSITIVE
     );
     private static final Pattern TALK_THREAD_URL = Pattern.compile(
-            "^https?://(?:www\\.)?talk\\.jp/boards/"
-                    + "([a-zA-Z0-9_-]+)/(\\d{9,10})(?:/.*)?$",
+            "^https?://(?:(?:www\\.)?talk\\.jp|(?:classic\\.)?talk-platform\\.com)/"
+                    + "(?:(?:boards|test/read\\.cgi)/)?"
+                    + "([a-zA-Z0-9_-]+)/(?:dat/)?(\\d{9,10})(?:\\.dat)?(?:/.*)?$",
             Pattern.CASE_INSENSITIVE
     );
     private static final Pattern TITLE = Pattern.compile(
@@ -75,6 +78,9 @@ final class ArchivedThreadImporter {
     );
     private static final Set<String> IN_FLIGHT =
             Collections.synchronizedSet(new HashSet<>());
+    private static final long TABLET_FAILURE_SUPPRESSION_MILLIS = 60_000L;
+    private static final Map<String, Long> RECENT_FAILURES =
+            Collections.synchronizedMap(new HashMap<>());
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private ArchivedThreadImporter() {
@@ -87,16 +93,28 @@ final class ArchivedThreadImporter {
         File directory = activity.getExternalFilesDir("2chMate/dat");
         if (directory == null) return false;
         File datFile = new File(directory, info.cacheBoardId() + "_" + info.thread + ".dat");
-        if (!info.talk && datFile.isFile() && datFile.length() > 0) {
+        if (datFile.isFile() && datFile.length() > 0) {
             Log.i(LOG_TAG, "Using existing cached DAT " + datFile.getName()
                     + " (" + datFile.length() + " bytes)");
             // Let ChMate continue normally when the imported DAT is already
             // available. Returning false avoids restarting the Activity and
-            // prevents a second retrieval attempt for .io URLs.
+            // prevents a second retrieval attempt. This is also required for
+            // Talk in tablet mode: the retry marker is not retained when
+            // ResListActivity forwards the request into TabletHomeActivity,
+            // so ignoring an existing Talk DAT would create a reopen loop.
             return false;
         }
 
         String importKey = info.board + ":" + info.thread;
+        if (isTabletActivity(activity) && consumeRecentFailure(importKey)) {
+            // ResListActivity's retry extra is not copied into TabletHomeActivity's
+            // in-process navigation bundle. Without this one-shot guard, a failed
+            // import re-enters the same asynchronous request and displays its
+            // failure toast forever. Consume the guard here so a later user retry
+            // can still start a fresh import normally.
+            Log.i(LOG_TAG, "Skipping repeated tablet import after failure: " + importKey);
+            return false;
+        }
         if (!IN_FLIGHT.add(importKey)) return true;
 
         new Thread(() -> {
@@ -127,6 +145,7 @@ final class ArchivedThreadImporter {
                 reopen(activity, originalUrl, "過去ログを取得しました");
             } catch (Throwable error) {
                 Log.e(LOG_TAG, "Unable to import archived thread " + importKey, error);
+                RECENT_FAILURES.put(importKey, System.currentTimeMillis());
                 reopen(activity, browserFallback, "過去ログを自動取得できませんでした");
             } finally {
                 IN_FLIGHT.remove(importKey);
@@ -135,8 +154,22 @@ final class ArchivedThreadImporter {
         return true;
     }
 
+    private static boolean isTabletActivity(Activity activity) {
+        return activity.getClass().getName().endsWith(".TabletHomeActivity");
+    }
+
+    private static boolean consumeRecentFailure(String importKey) {
+        Long failedAt;
+        synchronized (RECENT_FAILURES) {
+            failedAt = RECENT_FAILURES.remove(importKey);
+        }
+        return failedAt != null
+                && System.currentTimeMillis() - failedAt <= TABLET_FAILURE_SUPPRESSION_MILLIS;
+    }
+
     static boolean isTalkThreadUrl(String url) {
-        return TALK_THREAD_URL.matcher(url == null ? "" : url).matches();
+        ThreadInfo info = ThreadInfo.parse(url);
+        return info != null && info.talk;
     }
 
     /** Called by ChMate's background downloader while its native DAT lock is held. */
@@ -191,6 +224,14 @@ final class ArchivedThreadImporter {
                 Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
             }
             Intent retry = new Intent(activity.getIntent());
+            // TabletHomeActivity normally keeps thread navigation in-process.
+            // Re-enter through ResListActivity after the asynchronous import so
+            // ChMate can rebuild the standard thread bundle and then forward it
+            // back into the tablet panes with the retry marker intact.
+            retry.setClassName(
+                    activity.getPackageName(),
+                    "jp.syoboi.a2chMate.activity.ResListActivity"
+            );
             retry.setData(Uri.parse(url));
             retry.putExtra("haiagaru.archive.retry", true);
             activity.startActivity(retry);
@@ -579,13 +620,13 @@ final class ArchivedThreadImporter {
         }
 
         static ThreadInfo parse(String url) {
-            Matcher matcher = THREAD_URL.matcher(url == null ? "" : url);
+            Matcher matcher = TALK_THREAD_URL.matcher(url == null ? "" : url);
             if (matcher.matches()) {
-                return new ThreadInfo(matcher.group(1), matcher.group(3), matcher.group(4), false);
+                return new ThreadInfo("talk", matcher.group(1), matcher.group(2), true);
             }
-            matcher = TALK_THREAD_URL.matcher(url == null ? "" : url);
+            matcher = THREAD_URL.matcher(url == null ? "" : url);
             if (!matcher.matches()) return null;
-            return new ThreadInfo("talk", matcher.group(1), matcher.group(2), true);
+            return new ThreadInfo(matcher.group(1), matcher.group(3), matcher.group(4), false);
         }
 
         String cacheBoardId() {

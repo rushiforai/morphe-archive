@@ -8,6 +8,7 @@ import android.os.SystemClock;
 import android.view.View;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.settings.Settings;
 
 import java.lang.ref.WeakReference;
@@ -570,6 +571,9 @@ public class CommentBatchTranslatorTest {
                 if (value instanceof Map) ((Map<?, ?>) value).clear();
                 else ((java.util.Collection<?>) value).clear();
             }
+            Field anchors = CommentBatchTranslator.class.getDeclaredField("CELL_ANCHORS");
+            anchors.setAccessible(true);
+            ((Map<?, ?>) anchors.get(null)).clear();
             for (String name : new String[]{"outstandingRequests", "completionsHandledForTests"}) {
                 Field counter = CommentBatchTranslator.class.getDeclaredField(name);
                 counter.setAccessible(true);
@@ -605,6 +609,202 @@ public class CommentBatchTranslatorTest {
         public String getCid() { return cid; }
         public boolean isTranslated() { return translated; }
         public String getCommentLanguage() { return "zh"; }
+    }
+
+    /**
+     * The four places TikTok calls into the translator read a member of an object this code did
+     * not declare. A build that renames one leaves the switch on with nothing behind it, which
+     * is what the Diagnostics row exists to say out loud. Each one is given a host that has lost
+     * the member, and the row has to name it.
+     */
+    @Test public void aHostThatRenamedAMemberIsNamedOnTheDiagnosticsRow() {
+        HookStatus.clear();
+        try {
+            // The cell manager: nothing on it looks like a comment beside a native translator.
+            // Twice, which is what a build without the members does on every bind: one miss is
+            // a cell that arrived before its manager was filled in.
+            CommentBatchTranslator.registerCommentCell(new View(context), new StrangeManager());
+            CommentBatchTranslator.registerCommentCell(new View(context), new StrangeManager());
+            // The loaded list: no items field at all.
+            CommentBatchTranslator.onCommentListLoaded(new ListWithoutItems());
+            // The completion runner: the results field is gone.
+            CommentBatchTranslator.onNativeBatchComplete(
+                    new RunnerWithoutResults(new Comment("aid-renamed", "cid-renamed")));
+
+            List<String> missing = HookStatus.missing("comment translation");
+            assertTrue("the cell manager's shape was not reported: " + missing,
+                    missing.stream().anyMatch(line -> line.contains(StrangeManager.class.getName())
+                            && line.contains("comment and native translator")));
+            assertTrue("the comment list's items field was not reported: " + missing,
+                    missing.stream().anyMatch(line -> line.contains(ListWithoutItems.class.getName())
+                            && line.endsWith("#items")));
+            assertTrue("the runner's results field was not reported: " + missing,
+                    missing.stream().anyMatch(line -> line.contains(RunnerWithoutResults.class.getName())
+                            && line.endsWith("#l0")));
+            assertTrue("the family is missing from the report",
+                    HookStatus.familiesMissingSomething().contains("comment translation"));
+        } finally {
+            HookStatus.clear();
+        }
+    }
+
+    /**
+     * One miss is a race; two running is a build that does not have the members.
+     *
+     * <p>The anchor is found by searching the manager's fields, so a bind that lands before they
+     * are set misses on a host that works, and a miss is never retracted once the row has it.
+     */
+    @Test public void oneStrayCellIsNotEnoughToCallTheBuildBroken() {
+        HookStatus.clear();
+        try {
+            CommentBatchTranslator.registerCommentCell(new View(context), new StrangeManager());
+            assertEquals("one miss was reported as a broken build: "
+                    + HookStatus.missing("comment translation"),
+                    0, HookStatus.missing("comment translation").size());
+
+            CommentBatchTranslator.registerCommentCell(new View(context), new StrangeManager());
+            assertEquals("a second miss on the same class said nothing", 1,
+                    HookStatus.missing("comment translation").size());
+        } finally {
+            HookStatus.clear();
+        }
+    }
+
+    /** A rename that hits one cell type and not another names the one that broke. */
+    @Test public void aClassThatBreaksIsNamedEvenAfterAnotherOneWorked() {
+        HookStatus.clear();
+        try {
+            Anchor working = anchor("aid-mixed", "cid-mixed");
+            CommentBatchTranslator.registerCommentCell(new View(context), working);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            for (int at = 0; at < 2; at++) {
+                CommentBatchTranslator.registerCommentCell(new View(context), new StrangeManager());
+            }
+
+            List<String> missing = HookStatus.missing("comment translation");
+            assertTrue("the broken cell type was hidden by the working one: " + missing,
+                    missing.stream().anyMatch(line -> line.contains(StrangeManager.class.getName())));
+        } finally {
+            HookStatus.clear();
+        }
+    }
+
+    /**
+     * Clearing the diagnostic data starts the row again, and a build that is still broken has to
+     * say so again. The report is suppressed per class, not once per process, so the state that
+     * suppresses it has to notice the clear.
+     */
+    @Test public void aBrokenBuildSaysSoAgainAfterTheRowIsCleared() {
+        HookStatus.clear();
+        try {
+            for (int at = 0; at < 2; at++) {
+                CommentBatchTranslator.registerCommentCell(new View(context), new StrangeManager());
+            }
+            assertEquals(1, HookStatus.missing("comment translation").size());
+
+            HookStatus.snapshotAndClear();
+            assertEquals("the clear did not empty the row", 0,
+                    HookStatus.missing("comment translation").size());
+
+            CommentBatchTranslator.registerCommentCell(new View(context), new StrangeManager());
+            assertEquals("a build that is still broken went quiet after a clear", 1,
+                    HookStatus.missing("comment translation").size());
+        } finally {
+            HookStatus.clear();
+        }
+    }
+
+    /**
+     * A cell that cannot be read after cells have been read is a race, not a broken build.
+     *
+     * <p>The cell anchor is found by searching the manager's fields rather than by name, so one
+     * bind arriving before those fields are set would otherwise mark the family broken for the
+     * session on a host that is working: a miss is never retracted once the row has it.
+     */
+    @Test public void aStrayCellAfterAGoodOneDoesNotMarkTheBuildBroken() {
+        HookStatus.clear();
+        try {
+            Anchor anchor = anchor("aid-race", "cid-race");
+            CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            CommentBatchTranslator.registerCommentCell(new View(context), new StrangeManager());
+
+            assertEquals("a stray cell was reported as a broken build: "
+                    + HookStatus.missing("comment translation"),
+                    0, HookStatus.missing("comment translation").size());
+        } finally {
+            HookStatus.clear();
+        }
+    }
+
+    /** A runner that renamed the task or the list inside it is named, not swallowed. */
+    @Test public void aRenamedTaskOrRequestedListIsNamedToo() {
+        HookStatus.clear();
+        try {
+            CommentBatchTranslator.onNativeBatchComplete(
+                    new RunnerWithoutTask(new Object()));
+            CommentBatchTranslator.onNativeBatchComplete(
+                    new RunnerWithForeignTask(new Object()));
+
+            List<String> missing = HookStatus.missing("comment translation");
+            assertTrue("a renamed task field was not reported: " + missing,
+                    missing.stream().anyMatch(line -> line.endsWith("#l1")));
+            assertTrue("a renamed requested list was not reported: " + missing,
+                    missing.stream().anyMatch(line -> line.endsWith("#LIZ")));
+        } finally {
+            HookStatus.clear();
+        }
+    }
+
+    /** A completion with nothing to read is not evidence that anything was found. */
+    @Test public void aNullRunnerIsNotCountedAsAnAnchorThatBound() {
+        HookStatus.clear();
+        try {
+            CommentBatchTranslator.onNativeBatchComplete(null);
+            String line = HookStatus.report().stream()
+                    .filter(each -> each.contains("comment translation"))
+                    .findFirst().orElse("");
+            assertEquals("a null runner was counted on the row: " + line, "", line);
+        } finally {
+            HookStatus.clear();
+        }
+    }
+
+    /** A build that still has all four says so, and says nothing is missing. */
+    @Test public void aHostThatStillHasItsMembersReportsNothingMissing() {
+        HookStatus.clear();
+        try {
+            Anchor anchor = anchor("aid-bound", "cid-bound");
+            CommentBatchTranslator.onCommentListLoaded(new CommentItemList(anchor.comment));
+            CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            CommentBatchTranslator.onNativeBatchStart(
+                    Arrays.asList(anchor.comment), anchor.context, false);
+            CommentBatchTranslator.onNativeBatchComplete(new Runner(new Object(), anchor.comment));
+
+            assertEquals("a healthy build reported a miss: "
+                    + HookStatus.missing("comment translation"),
+                    0, HookStatus.missing("comment translation").size());
+            // Six named things, not four methods: the completion reads three members of two
+            // objects. The count is asserted exactly so that dropping one report fails here.
+            String line = HookStatus.report().stream()
+                    .filter(each -> each.contains("comment translation"))
+                    .findFirst().orElse("");
+            assertEquals("the row does not count every anchor the four entry points read",
+                    "comment translation: 6 found, 0 missing", line);
+        } finally {
+            HookStatus.clear();
+        }
+    }
+
+    /** A cell manager carrying nothing the translator can work from. */
+    public static final class StrangeManager {
+        public final String label = "no comment here";
+    }
+
+    /** A loaded comment list from a build that renamed the field holding its rows. */
+    public static final class ListWithoutItems {
+        public final List<Comment> rows = new ArrayList<>();
     }
 
     public static final class CommentItemList {
@@ -691,6 +891,30 @@ public class CommentBatchTranslatorTest {
         Runner(Object results, List<Comment> requested) {
             l0 = results;
             l1 = new Task(requested);
+        }
+    }
+
+    /** A host build that renamed the field the task arrives in. */
+    public static final class RunnerWithoutTask {
+        public final Object l0;
+
+        RunnerWithoutTask(Object results) {
+            l0 = results;
+        }
+    }
+
+    /** A task from a build that renamed the list of comments it asked about. */
+    public static final class TaskWithoutRequested {
+        public final List<Comment> rows = new ArrayList<>();
+    }
+
+    /** A runner carrying that task, which is how the rename would arrive. */
+    public static final class RunnerWithForeignTask {
+        public final Object l0;
+        public final TaskWithoutRequested l1 = new TaskWithoutRequested();
+
+        RunnerWithForeignTask(Object results) {
+            l0 = results;
         }
     }
 

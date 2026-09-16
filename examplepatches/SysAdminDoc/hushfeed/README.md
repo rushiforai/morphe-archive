@@ -1,7 +1,7 @@
 ![Hushfeed. Take back your feed with focused controls for filtering, gestures, playback, downloads and privacy.](assets/readme-hero.png)
 
 <p align="center">
-  <a href="CHANGELOG.md"><img alt="version" src="https://img.shields.io/badge/version-0.31.0-6f42c1.svg" /></a>
+  <a href="CHANGELOG.md"><img alt="version" src="https://img.shields.io/badge/version-0.35.0-6f42c1.svg" /></a>
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-GPLv3-blue.svg" /></a>
   <a href="https://www.android.com/"><img alt="platform" src="https://img.shields.io/badge/platform-Android-3ddc84.svg" /></a>
   <a href="https://github.com/MorpheApp/morphe-manager"><img alt="Morphe" src="https://img.shields.io/badge/works%20with-Morphe-00b894.svg" /></a>
@@ -22,7 +22,7 @@
 
 Hushfeed is a [Morphe](https://github.com/MorpheApp/morphe-manager) patch bundle for people who want TikTok to behave differently. It can cut feed clutter, guard risky taps, improve downloads and expose controls TikTok leaves buried or unavailable. Every selected patch is configured from one native settings screen inside the app.
 
-**[Add Hushfeed to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2Fhushfeed)** | [Download the latest bundle](https://github.com/SysAdminDoc/hushfeed/releases/latest) | [Tour the settings](#settings-tour) | [Browse all 79 patches](#patches)
+**[Add Hushfeed to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2Fhushfeed)** | [Download the latest bundle](https://github.com/SysAdminDoc/hushfeed/releases/latest) | [Tour the settings](#settings-tour) | [Browse all 81 patches](#patches)
 
 > [!IMPORTANT]
 > Hushfeed is very active in development, features and bugs are being actively pursued and improved! Hushfeed targets the global TikTok package, `com.zhiliaoapp.musically`, version [46.2.3](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-46-2-3-release/tiktok-46-2-3-android-apk-download/). Use that exact APK when patching. See [Supported target](#supported-target) for the verified build details.
@@ -43,8 +43,8 @@ The block, local hide, sound and Not interested controls, rendered in a local UI
 ## Install
 
 1. Get the TikTok 46.2.3 APK. Google Play only offers the newest build, so take it from [APKMirror](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-46-2-3-release/tiktok-46-2-3-android-apk-download/).
-2. Use Morphe Manager 1.29.0 or newer. Manager refuses a bundle built against a patcher newer than its own, and this one is built against patcher 1.12.0, which Manager 1.29.0 was the first to ship. On anything older the bundle simply will not load.
-3. Add Hushfeed as a source in Morphe Manager. The quickest way is this link on the phone: [Add Hushfeed to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2Fhushfeed). Some in-app browsers block Android from handing a web link to another app. If **Open in Morphe** leaves you in the browser, open Morphe Manager, tap **Sources**, tap **+**, and paste `https://github.com/SysAdminDoc/hushfeed`. You can also download `patches-0.31.0.mpp` from the [latest release](https://github.com/SysAdminDoc/hushfeed/releases/latest) and load it as a local bundle.
+2. Use Morphe Manager 1.30.0 or newer. Manager refuses a bundle built against a patcher newer than its own, and this one is built against patcher 1.13.0, which Manager 1.30.0 was the first to ship. On anything older the bundle simply will not load.
+3. Add Hushfeed as a source in Morphe Manager. The quickest way is this link on the phone: [Add Hushfeed to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2Fhushfeed). Some in-app browsers block Android from handing a web link to another app. If **Open in Morphe** leaves you in the browser, open Morphe Manager, tap **Sources**, tap **+**, and paste `https://github.com/SysAdminDoc/hushfeed`. You can also download `patches-0.35.0.mpp` from the [latest release](https://github.com/SysAdminDoc/hushfeed/releases/latest) and load it as a local bundle.
 4. Pick the patches you want and patch the APK. Keep the manager's existing signing key so TikTok stays logged in across updates. Every patch here fits the manager's 640 MB memory default except AMOLED dark theme, which rewrites TikTok's color resources and needs the limit raised to 768 MB. That 640 is the manager's default and not a measured minimum: the whole set apart from AMOLED fits in 576 MB. If patching stops with an out of memory error, that setting is the one to raise. A run that sits at 24 or 25 percent and never moves is the same problem wearing a different face: cancel it, set the limit to 768 MB and start again, and if that still stalls try 512 MB, which gives the patcher less to hold at once.
 5. Install the patched APK. From 2026-09-30, phones in Brazil, Indonesia, Singapore and Thailand ask for more before they will install an app from a developer Google has not verified. The flow is the same every time: turn on the option in Developer options, confirm the device lock, restart the phone, then wait 24 hours before the install goes through. After that it stays open for 7 days, or indefinitely if you chose that. This is not a one-off. Every Hushfeed release is an update, and an update goes through it again once the window closes. `adb install` from a computer skips the whole thing.
 6. Open TikTok, go to Settings and privacy, and tap Hushfeed. Every patch you selected has its switches there.
@@ -98,6 +98,7 @@ Selected patches activate when TikTok starts. The Settings patch adds the entry 
 | `Feature Gate Lab` | Adds a menu for viewing and overriding supported TikTok feature flags and configuration values. |
 | `Feature Gate Recorder` | Records feature gate reads while you use TikTok and compares them with their previous values. |
 | `Follow diagnostics` | Reads what the server said about a follow. A follow TikTok turns down comes back looking like a success, so this reports the refusal and its reason once per session and, with diagnostic logging on, writes the whole exchange to the report. |
+| `Comment publish diagnostics` | Says in the diagnostic report whether a comment send reached TikTok's publish code, what it had in hand, and whether it returned early or handed the comment to the request. A comment that never posts leaves no other trace. |
 | `Feed filter` | Hides feed ads, including videos with creator commission disclosures, TikTok Shop items, livestreams, LIVE replays, stories, photo posts, paid partnerships, AI labelled videos, verified accounts, series, playlists, the playlist bar, the floating event badge and inserted cards. Videos can also be filtered by your own caption words, creator handles or patterns, sound names, length, the country they were posted from and their view, like, comment, favourite and share counts. Sponsored cards are dropped from the profile video viewer, the search grids and the Friends tab as well as the feed. |
 | `Feed tab navigation` | Controls which loaded top and bottom navigation tabs remain visible, blocks newly added tabs when requested, and can hide the Tako AI bubble. |
 | `Fix Google login` | Restores Google account sign-in after patching. |
@@ -114,9 +115,10 @@ Selected patches activate when TikTok starts. The Settings patch adds the entry 
 | `Hide feed LIVE button` | Adds an option to hide the LIVE button at the top left of video feeds. Shares its switch with the Live entrance option of Hide video overlays, and stops the button before it is built rather than hiding it once it is on screen. |
 | `Hide feed follow button` | Adds an option to hide the + follow button below creator avatars in video feeds. |
 | `Hide feed save button` | Adds an option to hide the save/favourites button from video feeds. |
+| `Keep the Favorites tab` | Keeps the Favorites tab on your profile when TikTok's server puts the account into an experiment that empties it. Two people saw that after patching: the tab was there and the saved videos were not. |
 | `Hide feed search button` | Adds an option to hide the search button at the top right of video feeds. |
 | `Disable telemetry` | Adds an App behavior toggle that stops ByteDance AppLog analytics, AppsFlyer attribution, explicit Firebase screen reports and TikTok's Npth or MonitorCrash startup reporting. TikTok's own diagnostics go quiet with them. Off by default. |
-| `Hide suggested accounts` | Stops the suggested accounts list from being built on the Activity, New followers and Inbox pages. Shares its switch with Hide inbox items. |
+| `Hide suggested accounts` | Stops the suggested accounts list from being built on the Activity, New followers and Inbox pages, and collapses every other People you may like card: the profile header, the Friends tab and the feed. Shares its switch with Hide inbox items. |
 | `Hide inbox stories` | Hides the stories tray at the top of the Inbox and restores it immediately when the switch is turned off. Shares its switch with Hide inbox items. |
 | `Expand activity list` | Adds an option to show the full Activity and New followers lists instead of collapsing them behind a View all button. |
 | `Hide inbox items` | Adds a switch for each row and header control on the Inbox tab, so message requests, TikTok Tako, TikTok Shop, the stories tray and the rest can be hidden individually. |
@@ -227,7 +229,7 @@ Diagnostics includes Back up settings, Restore settings and Reset settings even 
 
 Backups record which settings they contain, so missing entries are rejected. A backup is a set of values to apply rather than a picture of the whole app, so anything it predates is left as you have it and the restore says how many that was. A backup from before the download destinations were split carries the one folder it knew about, and that fills in all three. If saving fails, recovery attempts both preference stores and keeps the undo copy available.
 
-The Hook status row answers a question the patch list cannot. The patcher knows what it wrote into the APK, not whether a hook then found its anchor once TikTok was running, and TikTok renames things every release. When a hook loses its anchor the switch above it still reads on while nothing happens. Tap the row for a line per surface: how many lookups bound, how many did not, and the first thing that went missing. It hears from comments, the inbox, the share sheet, the feed overlay, feed models, playback quality, sensitive warnings, CAPTCHA account state, external browser, sticker saves and story saves. The last four identify missing service calls, the sticker source adapters `LLILLIZIL` or `X.0UD5`, and the story chain `LLJIJIL`, `LLJIJIL`, `LL`, `getAweme`. "Everything found what it needed" means everything Hook status watches rather than every patch in the bundle. The same table goes into the exported diagnostic report, so it travels with a bug report.
+The Hook status row answers a question the patch list cannot. The patcher knows what it wrote into the APK, not whether a hook then found its anchor once TikTok was running, and TikTok renames things every release. When a hook loses its anchor the switch above it still reads on while nothing happens. Tap the row for a line per surface: how many lookups bound, how many did not, and the first thing that went missing. It hears from comments, comment translation, the inbox, the share sheet, the feed overlay, the bottom navigation and the story viewer, feed models, playback quality, sensitive warnings, CAPTCHA account state, external browser, sticker saves and story saves. The last four identify missing service calls, the sticker source adapters `LLILLIZIL` or `X.0UD5`, and the story chain `LLJIJIL`, `LLJIJIL`, `LL`, `getAweme`. "Everything found what it needed" means everything Hook status watches rather than every patch in the bundle. The same table goes into the exported diagnostic report, so it travels with a bug report.
 
 The exported report also carries a feed filter table, and that one counts whether or not diagnostic logging is on. Several different routes can put a video on a profile page or in the feed, and a screenshot of an advert cannot say which one delivered it. The table gives a line per route: how many lists it was handed, how many videos were in them, how many it took out, and the last reason it gave. A route with no line has never run, which is the useful half, because a hook that never fired looks exactly like a filter that decided to keep everything.
 
@@ -264,7 +266,7 @@ Each release ships a provenance receipt beside the `.mpp`, `release-receipt-<ver
 
 `verify-injected-registers.ps1` compares the patched APK with the exact 46.2.3 vendor fixture. The static half rejects an injected instruction outside its method's register count, a removed host method, or a removed DEX file. The optional device half requires the clean and patched Android verifier messages to match by text and count. Each device run removes its uploaded APK and generated ART files, including after a failed command. Reviewed removals must be exact `method` or `dex` entries in `scripts/injected-register-removal-allowlist.txt`; stale entries fail the run.
 
-Gradle dependency verification is checked in at `gradle/verification-metadata.xml`. It records the reviewed release graph with SHA-256 checksums, so a changed cached artifact fails during dependency resolution. Every TikTok extension test also checks that its resolved Bouncy Castle modules use the reviewed 1.85.2 release. `mavenLocal()` is disabled by default, including the repository the Morphe settings plugin adds. Use `-PallowMavenLocal=true` only while developing a local plugin artifact, and leave it off for release builds. The wrapper distribution checksum in `gradle/wrapper/gradle-wrapper.properties` matches Gradle's published 9.7.1 binary.
+Gradle dependency verification is checked in at `gradle/verification-metadata.xml`. It records the reviewed release graph with SHA-256 checksums, so a changed cached artifact fails during dependency resolution. Every Bouncy Castle request in the build is rewritten to the reviewed 1.86 release, and two verification tasks check it: the TikTok extension tests check their own graph, and the patch tests check the build graph the Morphe patcher arrives on. Both read the request underneath the rewrite rather than the version it produced, so an unreviewed release stops the build instead of being quietly replaced. `mavenLocal()` is disabled by default, including the repository the Morphe settings plugin adds. Use `-PallowMavenLocal=true` only while developing a local plugin artifact, and leave it off for release builds. The wrapper distribution checksum in `gradle/wrapper/gradle-wrapper.properties` matches Gradle's published 9.7.1 binary.
 
 To save offscreen screenshots, run `./gradlew :extensions:tiktok:test -PscreenshotDir=<absolute-directory>`. The suite opens every settings section in dark and light themes, saves a value through the native picker, and exercises Lab search and overrides. A German fixture checks larger text at 360 dp width, and a Spanish one checks the same page at twice the text size on a 320 dp screen.
 
@@ -371,7 +373,7 @@ These whole-file SHA-256 values identify the recorded 2026-09-13 runs. ZIP metad
 - `patches/`: Kotlin patch definitions, fingerprints and shared patch utilities.
 - `extensions/`: Java extension code the patches inject into TikTok, with the Robolectric tests beside it.
 - `extensions/tiktok/src/main/l10n/`: the settings translation tables.
-- `scripts/`: `gen-l10n.py` generates translations, `verify-all-patches.ps1` checks every patch against a fixture, `patch-for-device.ps1` builds a signed APK for a named phone, `measure-patch-heap.ps1` checks selected memory limits, and `validate-release-facts.ps1` checks the public version, patch facts, indexed URL and published bundle hash. `test-script-contracts.ps1` covers the shared target reader and guarded replacement step. It also checks that result reports can include declared patch dependencies without hiding a missing or unrelated patch.
+- `scripts/`: `gen-l10n.py` generates translations, `verify-all-patches.ps1` checks every patch against a fixture, `patch-for-device.ps1` builds a signed APK for a named phone, `measure-patch-heap.ps1` checks selected memory limits, and `validate-release-facts.ps1` checks the public version, patch facts, indexed URL and published bundle hash. `common.ps1` holds the helpers the rest of them share: the work-directory path guard, the cleanup that will not delete outside it, the version read and the desktop CLI lookup. `test-script-contracts.ps1` covers all of those, the shared target reader and the guarded replacement step, which files a push runs which gate on, and that a released version keeps its changelog heading. It also checks that result reports can include declared patch dependencies without hiding a missing or unrelated patch.
 - `patches-list.json`: generated patch metadata.
 - `patches-bundle.json`: the Morphe source index for the published bundle.
 
@@ -389,7 +391,9 @@ Hushfeed stands on a lot of other people's work, and the licence asks that this 
 - [@oscski](https://github.com/oscski) for `Disable the long press repost`.
 - The [Morphe](https://github.com/MorpheApp) team for the patcher, the manager and the patches template.
 
-Files that came from another project keep their original notices, and files written here say so in their header.
+Files that came from another project keep their original notices, and files written here say so in their header. A test holds every source file the bundle ships to having one, so a file cannot arrive without saying where it came from.
+
+The notices are also in the app, under Settings, About, Licenses, because Morphe asks that they reach the person using the software and not just the person reading the source.
 
 ## Notes
 
@@ -403,4 +407,4 @@ Files that came from another project keep their original notices, and files writ
 
 ## License
 
-GPLv3, inherited from the projects Hushfeed was built on. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+GPLv3, inherited from the projects Hushfeed was built on. See [LICENSE](LICENSE) and [NOTICE](NOTICE). The same notices are reachable on a patched phone under Settings, About, Licenses.

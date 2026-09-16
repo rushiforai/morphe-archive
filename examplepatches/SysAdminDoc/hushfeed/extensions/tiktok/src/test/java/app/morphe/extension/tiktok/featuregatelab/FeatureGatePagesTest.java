@@ -136,10 +136,16 @@ public class FeatureGatePagesTest {
                 TextView action = lab.getView().findViewWithTag(tag);
                 assertNotNull(tag, action);
                 assertButtonRole(action);
+                // Tabbing through the Lab used to show nothing moving at all: every one of
+                // these was flat, focused or not, in both themes.
+                assertShowsItsFocus(tag, action);
             }
+            assertShowsItsFocus("feature_gate_search_row",
+                    lab.getView().findViewWithTag("feature_gate_search_row"));
 
             View allSources = lab.getView().findViewWithTag("feature_gate_source_0");
             View appAb = lab.getView().findViewWithTag("feature_gate_source_1");
+            assertShowsItsFocus("feature_gate_source_0", allSources);
             assertEquals(android.widget.Button.class.getName(),
                     allSources.createAccessibilityNodeInfo().getClassName());
             assertTrue("the focused source container does not carry the selected state",
@@ -159,6 +165,48 @@ public class FeatureGatePagesTest {
                     .idleFor(java.time.Duration.ofMillis(200));
             assertEquals("0 results", count.getText().toString());
         }
+    }
+
+    /**
+     * The focus that lands on the search field reaches the row drawn around it.
+     *
+     * <p>The focus goes to the {@code EditText}; the row carries the accent border. A group only
+     * merges its children's states when told to, so without that the border never came on. This
+     * asks the real question the render helpers cannot: it moves focus and reads the row's own
+     * drawable state, rather than pushing a state onto the drawable by hand.
+     */
+    @Test public void theSearchRowCarriesTheFocusThatLandsOnItsField() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            FeatureGateLabStore.resetAllLabData();
+            FeatureGateLabSession.begin();
+
+            FeatureGateLabFragment lab = new FeatureGateLabFragment();
+            attach(activity, lab);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            View searchRow = lab.getView().findViewWithTag("feature_gate_search_row");
+            assertNotNull("the search row is gone", searchRow);
+            EditText search = find(searchRow, EditText.class);
+            assertNotNull("the search field is gone", search);
+
+            assertFalse("the row was focused before anything asked it to be",
+                    contains(searchRow.getBackground().getState(),
+                            android.R.attr.state_focused));
+
+            assertTrue("the search field would not take focus", search.requestFocus());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            assertTrue("focus reached the field but not the row drawn around it",
+                    contains(searchRow.getBackground().getState(),
+                            android.R.attr.state_focused));
+        }
+    }
+
+    private static boolean contains(int[] states, int wanted) {
+        for (int state : states) if (state == wanted) return true;
+        return false;
     }
 
     @Test public void darkLabFilterUsesTheSharedSingleChoiceTheme() throws Exception {
@@ -451,6 +499,250 @@ public class FeatureGatePagesTest {
 
             assertTrue(FeatureGateLabStore.rule("abmock", entry.key, "INT").enabled);
             assertEquals("Feature gate override saved", ShadowToast.getTextOfLatestToast());
+        }
+    }
+
+    /**
+     * A save that fails puts the switch back where the store is.
+     *
+     * <p>The toast said it could not save and the switch stayed where the finger left it, so the
+     * page claimed a value nothing held. The Lab's own master switch has always put itself back.
+     */
+    @Test public void aSaveThatFailsPutsTheControlBackOnWhatIsStored() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            FeatureGateLabStore.resetAllLabData();
+            FeatureGateLabStore.setMasterEnabled(true);
+            var entry = new FeatureGateCatalog.Entry("refused_gate", "Refused gate", "abmock",
+                    "BOOLEAN", true, true, List.of(), List.of(), List.of(), "", "",
+                    true, "false", "BOOLEAN");
+            var cached = FeatureGateCatalog.class.getDeclaredField("cachedSnapshot");
+            cached.setAccessible(true);
+            cached.set(null, new FeatureGateCatalog.Snapshot(
+                    List.of(entry), Map.of(entry.identity(), entry), 0, 0, true));
+            FeatureGateLabUndo.saveRule("abmock", entry.key, entry.type, "false", true);
+
+            FeatureGateDetailFragment detail = FeatureGateDetailFragment.forEntry(
+                    entry.manager, entry.key, entry.type);
+            attach(activity, detail);
+            // The result switch, not the override switch above it.
+            Switch forced = fieldOf(detail, "booleanValue", Switch.class);
+            assertNotNull("the detail page has no forced-result switch", forced);
+            assertFalse("the fixture did not start from the stored value", forced.isChecked());
+
+            TextView status = fieldOf(detail, "status", TextView.class);
+            assertNotNull("the detail page has no status line", status);
+            String statusBefore = status.getText().toString();
+            ShadowToast.reset();
+            FeatureGateDetailFragment.setDetailChangeTestHookForTests(
+                    new FeatureGateDetailFragment.DetailChangeTestHook() {
+                        @Override public void before(long generation) throws Exception {
+                            throw new java.io.IOException("storage refused the override");
+                        }
+
+                        @Override public void after(long generation) {
+                        }
+                    });
+            try {
+                forced.setChecked(true);
+                FeatureGateDetailFragment.awaitChangesForTests();
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+            } finally {
+                FeatureGateDetailFragment.setDetailChangeTestHookForTests(null);
+            }
+
+            assertFalse("the switch kept a value the store refused", forced.isChecked());
+            assertEquals("the store took a value it had refused", "false",
+                    FeatureGateLabStore.rule("abmock", entry.key, entry.type).value);
+            assertEquals("the status line moved for a save that did not happen",
+                    statusBefore, status.getText().toString());
+            assertEquals("the reader was not told the save failed", 1, ShadowToast.shownToastCount());
+        }
+    }
+
+    /**
+     * An imported boolean rule arrives with its override off, so one tap has to turn that rule
+     * on rather than force the opposite of what the file said.
+     *
+     * <p>The boolean page had a single switch, Forced result, whose listener always saved with
+     * the override enabled. Open an imported gate whose value is true and the switch shows on,
+     * so the first tap flips it off and writes ("false", true): the reader has to tap twice to
+     * get the file's own value, and what TikTok is handed in between is the opposite of it.
+     */
+    @Test public void anImportedBooleanOverrideTurnsOnWithOneTap() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            FeatureGateLabStore.resetAllLabData();
+            FeatureGateLabStore.setMasterEnabled(true);
+            // Loaded, and TikTok holds false, so the file's true is the value worth forcing.
+            var entry = new FeatureGateCatalog.Entry("imported_gate", "Imported gate", "abmock",
+                    "BOOLEAN", true, true, List.of(), List.of(), List.of(), "", "",
+                    true, "false", "BOOLEAN");
+            var cached = FeatureGateCatalog.class.getDeclaredField("cachedSnapshot");
+            cached.setAccessible(true);
+            cached.set(null, new FeatureGateCatalog.Snapshot(
+                    List.of(entry), Map.of(entry.identity(), entry), 0, 0, true));
+
+            String profile = new org.json.JSONObject()
+                    .put("schema", 1)
+                    .put("target", "TikTok global")
+                    .put("tiktok_version", FeatureGateLabStore.TARGET_VERSION)
+                    .put("rules", new org.json.JSONArray().put(new org.json.JSONObject()
+                            .put("manager", "abmock").put("key", entry.key)
+                            .put("type", "BOOLEAN").put("value", "true")))
+                    .toString();
+            FeatureGateLabStore.ImportReview review = FeatureGateLabStore.reviewProfile(
+                    profile, FeatureGateCatalog.cachedSnapshot().byIdentity);
+            assertEquals("the profile was not accepted", 1, review.accepted.size());
+            FeatureGateLabUndo.importRules(review);
+            var imported = FeatureGateLabStore.rule("abmock", entry.key, "BOOLEAN");
+            assertEquals("the import did not keep the file's value", "true", imported.value);
+            assertFalse("an import is supposed to land with its override off", imported.enabled);
+
+            FeatureGateDetailFragment detail = FeatureGateDetailFragment.forEntry(
+                    entry.manager, entry.key, entry.type);
+            attach(activity, detail);
+            Switch force = fieldOf(detail, "force", Switch.class);
+            Switch forced = fieldOf(detail, "booleanValue", Switch.class);
+            assertNotNull("a boolean page has no override switch", force);
+            assertNotNull("the detail page has no forced-result switch", forced);
+            assertFalse("the override switch does not show the saved rule is off", force.isChecked());
+            assertTrue("the result switch does not show the value the file asked for",
+                    forced.isChecked());
+
+            ShadowToast.reset();
+            force.performClick();
+            FeatureGateDetailFragment.awaitChangesForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            var saved = FeatureGateLabStore.rule("abmock", entry.key, "BOOLEAN");
+            assertTrue("one tap did not turn the imported override on", saved.enabled);
+            assertEquals("one tap forced the opposite of what the file said", "true", saved.value);
+            assertTrue("the result switch moved under a tap that was not on it",
+                    forced.isChecked());
+            TextView status = fieldOf(detail, "status", TextView.class);
+            assertEquals("the status still reads as an override that is off",
+                    "Getter not requested yet", status.getText().toString());
+
+            // And the other half of the two-row shape: choosing a result while the override is
+            // off records the choice without turning anything on, the way the spinner page does.
+            force.performClick();
+            FeatureGateDetailFragment.awaitChangesForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            forced.performClick();
+            FeatureGateDetailFragment.awaitChangesForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            var parked = FeatureGateLabStore.rule("abmock", entry.key, "BOOLEAN");
+            assertEquals("the result switch did not record the choice", "false", parked.value);
+            assertFalse("picking a result turned the override on by itself", parked.enabled);
+        }
+    }
+
+    public static final class Payload {
+        public int count = 1;
+    }
+
+    /**
+     * A refused structured override says why, and what to do about it, under the status.
+     *
+     * <p>The status said "could not be applied" and stopped. The controller knew the reason
+     * (the field that does not exist on this build, the class that cannot be copied, the type
+     * the catalogue disagrees on) and put it in logcat, which nobody holding a phone reads.
+     * The one reason driven through the live path here is the field one, since that is the
+     * reason a reader can act on by editing; the rest are recorded the way the runtime records
+     * them and read back off the page.
+     */
+    @Test public void aRefusedStructuredOverrideSaysWhyUnderTheStatus() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            FeatureGateLabStore.resetAllLabData();
+            FeatureGateLabStore.setMasterEnabled(true);
+            FeatureGateLabRuntime.clearTriggered();
+            var entry = new FeatureGateCatalog.Entry("payload_config", "Payload config",
+                    FeatureGateLabStore.MANAGER_SETTINGS_MANAGER, "OBJECT", true, true,
+                    List.of(), List.of(), List.of(), "", "", true, "{\"count\":1}", "OBJECT",
+                    Payload.class.getName());
+            var cached = FeatureGateCatalog.class.getDeclaredField("cachedSnapshot");
+            cached.setAccessible(true);
+            cached.set(null, new FeatureGateCatalog.Snapshot(
+                    List.of(entry), Map.of(entry.identity(), entry), 0, 0, true));
+            FeatureGateLabStore.saveRule(entry.manager, entry.key, entry.type,
+                    "{\"missing_field\":2}", true);
+
+            // The live path: TikTok asks for the object, the override names a field the class
+            // does not have, and the runtime records the refusal.
+            Object returned = FeatureGateLabRuntime.observeSettingsObject(
+                    entry.key, Payload.class, new Payload(), new Payload());
+            assertTrue("the refused override changed the object anyway",
+                    returned instanceof Payload && ((Payload) returned).count == 1);
+            FeatureGateFailure recorded = FeatureGateLabRuntime.structuredFailure(
+                    entry.manager, entry.key, entry.type);
+            assertNotNull("the runtime recorded no refusal", recorded);
+            assertEquals(FeatureGateFailure.Reason.UNSUPPORTED_FIELD, recorded.reason);
+            assertEquals("missing_field", recorded.detail);
+
+            FeatureGateDetailFragment detail = FeatureGateDetailFragment.forEntry(
+                    entry.manager, entry.key, entry.type);
+            attach(activity, detail);
+            TextView status = fieldOf(detail, "status", TextView.class);
+            TextView reason = (TextView) detail.getView().findViewWithTag(
+                    "feature_gate_status_reason");
+            assertNotNull("the page has no line for the reason", reason);
+            assertEquals("Getter requested, but the structured override could not be applied",
+                    status.getText().toString());
+            assertEquals(View.VISIBLE, reason.getVisibility());
+            assertEquals("Field missing_field can't be changed on this build. Take it out of"
+                    + " the override, or reset the override.", reason.getText().toString());
+            assertEquals("the reason is not painted as a warning",
+                    FeatureGateLabUi.warningColor(activity), reason.getCurrentTextColor());
+
+            // Every other reason the runtime can record, read back through the same line.
+            var failures = FeatureGateLabRuntime.class.getDeclaredField("structuredFailures");
+            failures.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            Map<String, FeatureGateFailure> map = (Map<String, FeatureGateFailure>) failures.get(null);
+            String id = FeatureGateLabStore.idFor(entry.manager, entry.key, entry.type);
+            Map<FeatureGateFailure, String> expected = new java.util.LinkedHashMap<>();
+            expected.put(FeatureGateFailure.of(FeatureGateFailure.Reason.NO_OBJECT),
+                    "TikTok hasn't handed this setting an object to change yet. Open the part"
+                            + " of the app that uses it, then come back.");
+            expected.put(FeatureGateFailure.of(FeatureGateFailure.Reason.CANNOT_COPY),
+                    "This setting's value can't be copied on this build, so it can't be"
+                            + " overridden. Reset the override.");
+            expected.put(FeatureGateFailure.of(FeatureGateFailure.Reason.NO_LIST_VALUE),
+                    "The override doesn't say what list to return. Edit the field values, or"
+                            + " reset the override.");
+            expected.put(FeatureGateFailure.of(FeatureGateFailure.Reason.NO_FIELDS),
+                    "The override changes no fields. Edit the field values, or reset the"
+                            + " override.");
+            expected.put(FeatureGateFailure.of(FeatureGateFailure.Reason.THREW,
+                            "IllegalArgumentException: count"),
+                    "The override couldn't be applied: IllegalArgumentException: count. Edit"
+                            + " the field values, or reset the override.");
+            expected.put(FeatureGateFailure.of(FeatureGateFailure.Reason.NOT_IN_CATALOGUE),
+                    "This key isn't in the local catalog, so its type can't be checked. Reset"
+                            + " the override.");
+            expected.put(FeatureGateFailure.of(FeatureGateFailure.Reason.TYPE_MISMATCH,
+                            "INT", "STRING"),
+                    "The catalog says this key is INT and this override is STRING. Reset the"
+                            + " override and make a new one.");
+            for (var each : expected.entrySet()) {
+                map.put(id, each.getKey());
+                detail.onResume();
+                assertEquals(each.getKey().reason + " is not explained",
+                        each.getValue(), reason.getText().toString());
+                assertEquals(View.VISIBLE, reason.getVisibility());
+            }
+
+            // And once the override goes through, the line goes away rather than staying
+            // as a warning about something that is no longer wrong.
+            map.remove(id);
+            detail.onResume();
+            assertEquals("a stale reason was left on the page", View.GONE, reason.getVisibility());
+            assertEquals("", reason.getText().toString());
         }
     }
 
@@ -916,6 +1208,14 @@ public class FeatureGatePagesTest {
         activity.getFragmentManager().executePendingTransactions();
         Shadows.shadowOf(Looper.getMainLooper()).idle();
     }
+    /** A field of the detail fragment, which builds its controls without ids. */
+    private static <T> T fieldOf(Object owner, String name, Class<T> type) throws Exception {
+        var field = owner.getClass().getDeclaredField(name);
+        field.setAccessible(true);
+        Object value = field.get(owner);
+        return type.isInstance(value) ? type.cast(value) : null;
+    }
+
     private static <T extends View> T find(View view, Class<T> type) {
         if (type.isInstance(view)) return type.cast(view);
         if (view instanceof ViewGroup) {
@@ -926,5 +1226,151 @@ public class FeatureGatePagesTest {
             }
         }
         return null;
+    }
+    /**
+     * A control that shows where the focus is, by what it paints rather than by a flag.
+     *
+     * <p>Rendered at rest and focused and compared pixel for pixel: which pixel a focus ring or
+     * a wash lands on depends on the radius and the density, so a sample would pass a control
+     * that changed nothing the reader can see.
+     */
+    private static void assertShowsItsFocus(String name, View control) {
+        assertNotNull(name, control);
+        android.graphics.drawable.Drawable background = control.getBackground();
+        assertNotNull(name + " has no background at all, so it cannot show a press or a focus",
+                background);
+        assertNotEquals(name + " looks exactly the same focused as it does at rest",
+                renderOf(background, new int[0]),
+                renderOf(background, new int[]{android.R.attr.state_focused}));
+    }
+
+    private static int renderOf(android.graphics.drawable.Drawable background, int[] state) {
+        background.setState(state);
+        background.setBounds(0, 0, 64, 48);
+        android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(
+                64, 48, android.graphics.Bitmap.Config.ARGB_8888);
+        background.draw(new android.graphics.Canvas(bitmap));
+        int hash = 17;
+        for (int x = 0; x < 64; x++) {
+            for (int y = 0; y < 48; y++) hash = hash * 31 + bitmap.getPixel(x, y);
+        }
+        bitmap.recycle();
+        return hash;
+    }
+
+    /**
+     * A structured page says a save is owed, offers a way to drop the edits, and says so when
+     * they are dropped by leaving.
+     *
+     * <p>"Save field values" looked the same before and after typing, and Back popped the page
+     * with every edit gone and nothing said, which is the one editor in the bundle that needs an
+     * explicit save.
+     */
+    @Test public void structuredEditsSayTheyArePendingAndCanBeDiscarded() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            FeatureGateDetailFragment detail = structuredDetail(activity, true);
+            View save = detail.getView().findViewWithTag("feature_gate_save_fields");
+            View discard = detail.getView().findViewWithTag("feature_gate_discard_fields");
+            assertNotNull("the structured page has no save action", save);
+            assertNotNull("the structured page offers no way to drop an edit", discard);
+            java.util.List<EditText> inputs = new java.util.ArrayList<>();
+            collect(detail.getView(), inputs);
+            assertTrue("the fixture built no structured text inputs", inputs.size() > 0);
+            EditText field = inputs.get(0);
+            String opened = field.getText().toString();
+
+            assertFalse("Save is offered before anything was typed", save.isEnabled());
+            assertEquals("Discard is offered before anything was typed",
+                    View.GONE, discard.getVisibility());
+
+            field.setText(opened + "x");
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue("Save is not offered after typing", save.isEnabled());
+            assertEquals(View.VISIBLE, discard.getVisibility());
+            if (android.os.Build.VERSION.SDK_INT >= 30) {
+                assertEquals("Not saved yet", String.valueOf(save.getStateDescription()));
+            }
+
+            // Leaving with an edit pending says so rather than dropping it in silence.
+            ShadowToast.reset();
+            var leave = FeatureGateDetailFragment.class.getDeclaredMethod("leaveDetail");
+            leave.setAccessible(true);
+            leave.invoke(detail);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("Field edits were not saved.", ShadowToast.getTextOfLatestToast());
+
+            // Discard puts the field back and stands the actions down.
+            discard.performClick();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("Discard did not put the field back", opened, field.getText().toString());
+            assertFalse("Save is still offered after a discard", save.isEnabled());
+            assertEquals(View.GONE, discard.getVisibility());
+        }
+    }
+
+    /**
+     * With overrides off the page says so above the controls and offers to turn them on, rather
+     * than leaving a grey caption after the last row and the switch a screen back.
+     */
+    @Test public void theDisabledNoteSitsAboveTheControlsAndTurnsThemOn() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            FeatureGateDetailFragment detail = structuredDetail(activity, false);
+            View note = detail.getView().findViewWithTag("feature_gate_disabled_note");
+            View turnOn = detail.getView().findViewWithTag("feature_gate_enable_overrides");
+            assertNotNull("the page does not say overrides are off", note);
+            assertNotNull("the page offers no way to turn them on", turnOn);
+            assertTrue("the action is not offered as a button",
+                    turnOn.createAccessibilityNodeInfo().getClassName().toString()
+                            .contains("Button"));
+
+            java.util.List<EditText> inputs = new java.util.ArrayList<>();
+            collect(detail.getView(), inputs);
+            assertFalse("the fields are live while overrides are off", inputs.get(0).isEnabled());
+            // Above the controls: the note is drawn before the first field editor.
+            assertTrue("the note sits after the controls it explains",
+                    topOf(note, detail.getView()) < topOf(inputs.get(0), detail.getView()));
+
+            turnOn.performClick();
+            FeatureGateDetailFragment.awaitChangesForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            assertTrue("the overrides were not turned on", FeatureGateLabStore.masterEnabled());
+            assertEquals("the note stayed after its action ran", View.GONE, note.getVisibility());
+            assertTrue("the fields are still greyed", inputs.get(0).isEnabled());
+        }
+    }
+
+    /** A structured detail page on a fixture gate, with overrides on or off. */
+    private static FeatureGateDetailFragment structuredDetail(Activity activity, boolean overrides)
+            throws Exception {
+        FeatureGateLabStore.resetAllLabData();
+        FeatureGateLabSession.begin();
+        FeatureGateLabStore.setMasterEnabled(overrides);
+        var entry = new FeatureGateCatalog.Entry("object_gate", "Object gate",
+                FeatureGateLabStore.MANAGER_SETTINGS_MANAGER, "OBJECT", true, true,
+                List.of(), List.of(), List.of(), "", "", false, null, null,
+                StructuredConfigControllerTest.Config.class.getName());
+        var cached = FeatureGateCatalog.class.getDeclaredField("cachedSnapshot");
+        cached.setAccessible(true);
+        cached.set(null, new FeatureGateCatalog.Snapshot(
+                List.of(entry), Map.of(entry.identity(), entry), 0, 0, true));
+        FeatureGateDetailFragment detail = FeatureGateDetailFragment.forEntry(
+                FeatureGateLabStore.MANAGER_SETTINGS_MANAGER, "object_gate", "OBJECT");
+        attach(activity, detail);
+        return detail;
+    }
+
+    /** A view's top edge in the page's own coordinates. */
+    private static int topOf(View view, View root) {
+        int top = 0;
+        for (View at = view; at != null && at != root; at = at.getParent() instanceof View
+                ? (View) at.getParent() : null) {
+            top += at.getTop();
+        }
+        return top;
     }
 }

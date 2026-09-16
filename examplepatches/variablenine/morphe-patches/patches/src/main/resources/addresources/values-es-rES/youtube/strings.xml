@@ -405,6 +405,7 @@ Los reportes son públicos y se revisan antes de añadir un canal a una lista. L
   <string name="morphe_vot_screen_title">Traducción con voz</string>
   <string name="morphe_vot_screen_summary">Lee en voz alta los subtítulos del vídeo mediante la síntesis de texto a voz del dispositivo, sincronizada con la reproducción</string>
   <string name="morphe_vot_enabled_title">Traducción con voz</string>
+  <string name="morphe_vot_enabled_summary">Muestra un botón superpuesto en el reproductor de vídeo. Púlsalo para activar o desactivar la traducción; mantenlo pulsado para acceder a los ajustes rápidos.</string>
   <string name="morphe_vot_caption_language_title">Idioma</string>
   <string name="morphe_vot_translation_service_title">Proveedor de traducción</string>
   <string name="morphe_vot_original_audio_volume_title">Volumen de audio original</string>
@@ -514,6 +515,8 @@ Información: Puede que no funcione en transmisiones en directo"</string>
   <string name="morphe_queue_add_flyout_menu_summary">Añade un elemento adicional al menú desplegable. Actívalo si no se muestra \'Añadir a la cola\'</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_title">Lista de excepción para anuncios en el menú desplegable</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_summary">Añade un elemento en el menú desplegable que permite los anuncios en el canal de ese vídeo</string>
+  <!-- "Spoof video streams" must use the same translation as morphe_spoof_video_streams_screen_title -->
+  <string name="morphe_ads_channel_whitelist_flyout_user_dialog_message">Esta función puede requerir el uso de PotHelper o cambiar \'Falsificar transmisiones de vídeo\' a TV o Inicio de sesión de Android VR</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_title">Lista de excepción para velocidad en el menú desplegable</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_summary">Añade un elemento en el menú desplegable que reproduce siempre los vídeos de ese canal a velocidad 1.0x</string>
   <string name="morphe_queue_manager_check_failed_auth">No has iniciado sesión</string>
@@ -603,8 +606,10 @@ Para solucionar esto, activa 'Falsificar transmisiones de vídeo' y cambia 'Clie
   <string name="morphe_swipe_text_overlay_size_summary">Ajusta el tamaño del texto en pantalla (de 1 a 30)</string>
   <string name="morphe_swipe_threshold_title">Umbral de magnitud del deslizamiento</string>
   <string name="morphe_swipe_threshold_summary">Establece la distancia de deslizamiento necesaria antes de activar un ajuste</string>
-  <string name="morphe_swipe_volume_sensitivity_title">Sensibilidad del deslizamiento de volumen</string>
-  <string name="morphe_swipe_volume_sensitivity_summary">Cuanto más alto sea el valor, mayor será el cambio de volumen al deslizar</string>
+  <string name="morphe_swipe_volume_distance_title">Sensibilidad del deslizamiento de volumen</string>
+  <string name="morphe_swipe_volume_distance_summary">Los valores más altos requieren más deslizamiento por paso de volumen</string>
+  <string name="morphe_swipe_volume_steps_title">Pasos de volumen</string>
+  <string name="morphe_swipe_volume_steps_entry_default">Predeterminado del dispositivo</string>
   <string name="morphe_swipe_brightness_sensitivity_title">Sensibilidad del deslizamiento de brillo</string>
   <string name="morphe_swipe_brightness_sensitivity_summary">Los valores más altos requieren más deslizamiento por cada nivel de brillo</string>
   <string name="morphe_swipe_speed_sensitivity_title">Sensibilidad del deslizamiento de velocidad</string>
@@ -911,6 +916,7 @@ Configuración → Reproducción (o Reproducción automática) → Reproducción
   <string name="morphe_disable_fullscreen_sliding_down_gesture_title">Desactivar gesto de deslizar hacia abajo en modo vertical</string>
   <string name="morphe_disable_fullscreen_dragged_down_gesture_title">Desactivar gesto de deslizar hacia abajo en modo horizontal</string>
   <string name="morphe_disable_fullscreen_zoom_gesture_title">Desactivar gesto de pellizcar para hacer zoom</string>
+  <string name="morphe_restore_pinch_to_zoom_title">Restaurar pellizcar para hacer zoom</string>
   <!-- layout.player.fullscreen.openVideosFullscreenPatch -->
   <string name="morphe_open_videos_fullscreen_title">Abrir vídeos en modo de pantalla completa</string>
   <string name="morphe_open_videos_fullscreen_entry_1">Desactivado</string>
@@ -923,6 +929,8 @@ Configuración → Reproducción (o Reproducción automática) → Reproducción
   <string name="morphe_fullscreen_video_scale_entry_zoom">Zoom (recortar para rellenar)</string>
   <string name="morphe_fullscreen_video_scale_button_title">Mostrar botón de escala de vídeo</string>
   <string name="morphe_fullscreen_video_scale_button_summary">Pulsa para alternar entre Predeterminado, Estirar y Zoom</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_title">Mostrar solo en pantalla completa</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_summary">Oculta el botón de escala de vídeo en el reproductor vertical</string>
   <!-- layout.player.buttons.muteVideoButtonPatch -->
   <string name="morphe_mute_video_button_title">Mostrar botón Silenciar</string>
   <!-- layout.player.overlay.customPlayerOverlayOpacityPatch -->
@@ -962,6 +970,7 @@ Diseño para automóviles
 
 Limitación: si la opción 'Restaurar antigua barra de acciones de vídeo' está desactivada, es posible que la superposición 'Más vídeos' no esté disponible"</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="morphe_spoof_app_version_target_entry_21_11">21.11.48 - Restaurar comportamiento antiguo de los subtítulos</string>
   <string name="morphe_spoof_app_version_target_entry_20_39">20.39.41 - Restaurar guardado antiguo de lista de reproducción</string>
   <string name="morphe_spoof_app_version_target_entry_20_28">20.28.41 - Desactivar iconos en negrita</string>
   <string name="morphe_spoof_app_version_target_entry_20_13">20.13.41 - Restaurar nombre del canal debajo del reproductor de vídeo</string>
@@ -1022,16 +1031,16 @@ Limitación: si la opción 'Restaurar antigua barra de acciones de vídeo' está
   <string name="morphe_miniplayer_disable_resuming_summary">Desactiva el reproductor en miniatura de \'Seguir viendo\', una función de YouTube Premium que aparece al iniciar la aplicación.</string>
   <string name="morphe_miniplayer_screen_title">Reproductor en miniatura</string>
   <string name="morphe_miniplayer_screen_summary">Personaliza la apariencia y el comportamiento del reproductor de vídeo minimizado</string>
-  <string name="morphe_miniplayer_not_available_summary">YouTube eliminó todos los reproductores en miniatura adicionales. Para cambiar el tipo de reproductor en miniatura, parchea YouTube a la versión 21.28.208 o anterior</string>
   <string name="morphe_miniplayer_type_title">Tipo de reproductor en miniatura</string>
   <string name="morphe_miniplayer_type_entry_0">Desactivado</string>
   <string name="morphe_miniplayer_type_entry_1">Predeterminado</string>
   <string name="morphe_miniplayer_type_entry_2">Mínimo</string>
-  <string name="morphe_miniplayer_type_entry_3">Tablet</string>
-  <string name="morphe_miniplayer_type_entry_4">Moderno 1</string>
-  <string name="morphe_miniplayer_type_entry_5">Moderno 2</string>
-  <string name="morphe_miniplayer_type_entry_6">Moderno 3</string>
-  <string name="morphe_miniplayer_type_entry_7">Moderno 4</string>
+  <string name="morphe_miniplayer_type_entry_3">Mínimo 2</string>
+  <string name="morphe_miniplayer_type_entry_4">Tablet</string>
+  <string name="morphe_miniplayer_type_entry_5">Moderno 1</string>
+  <string name="morphe_miniplayer_type_entry_6">Moderno 2</string>
+  <string name="morphe_miniplayer_type_entry_7">Moderno 3</string>
+  <string name="morphe_miniplayer_type_entry_8">Moderno 4</string>
   <string name="morphe_miniplayer_disable_rounded_corners_title">Desactivar esquinas redondeadas</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_title">Desactivar arrastrar y soltar</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_summary">Evita arrastrar el reproductor minimizado a diferentes esquinas de la pantalla</string>

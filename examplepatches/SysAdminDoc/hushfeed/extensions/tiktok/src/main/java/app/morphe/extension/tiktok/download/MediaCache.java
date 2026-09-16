@@ -1,3 +1,9 @@
+/*
+ * Copyright 2026 Hushfeed contributors
+ * https://github.com/SysAdminDoc/hushfeed
+ *
+ * Built on icysymmetra/tiktok-patches-for-morphe (GPL-3.0).
+ */
 package app.morphe.extension.tiktok.download;
 
 import android.content.ContentResolver;
@@ -29,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.RejectedExecutionException;
 
 /** Owns temporary media files and the pending publications created by this extension. */
@@ -37,6 +44,9 @@ public final class MediaCache {
     static final long STALE_AFTER_MS = 24L * 60 * 60 * 1000;
     private static final String PENDING_FILE_NAME = "pending-uris.tsv";
     private static final String PENDING_INTENT_PREFIX = "intent:";
+    /** What a row is called between the insert and the publish. */
+    static final String TEMPORARY_NAME_PREFIX = "hushfeed-pending-";
+    private static final AtomicInteger TEMPORARY_NAMES = new AtomicInteger();
     private static final Object LOCK = new Object();
     private static final AtomicBoolean RECONCILIATION_STARTED = new AtomicBoolean();
     private static final Set<String> ACTIVE_FILES = Collections.newSetFromMap(
@@ -67,13 +77,21 @@ public final class MediaCache {
         }
     }
 
-    /** Records the insert intent before asking MediaStore for a row, closing the crash window. */
-    static String beginPending(Context context, Uri collection, String displayName) throws IOException {
+    /**
+     * Records the insert intent before asking MediaStore for a row, closing the crash window.
+     *
+     * <p>The folder goes in the token as well as the name. Without it a recovery for
+     * `video.mp4` in Download reaches a pending `video.mp4` in Movies, and the two are
+     * different files that happen to share a name.
+     */
+    static String beginPending(Context context, Uri collection, String displayName, String relativePath)
+            throws IOException {
         if (collection == null || displayName == null || displayName.isEmpty()) {
             throw new IOException("MediaStore publication details are missing");
         }
         String token = PENDING_INTENT_PREFIX + Long.toHexString(System.nanoTime()) + ":"
-                + encode(collection.toString()) + ":" + encode(displayName);
+                + encode(collection.toString()) + ":" + encode(displayName)
+                + ":" + encode(relativePath == null ? "" : relativePath);
         synchronized (LOCK) {
             File directory = directory(context);
             Map<String, Long> records = readPending(directory);
@@ -92,10 +110,23 @@ public final class MediaCache {
     ) throws IOException {
         String displayName = values == null
                 ? null : values.getAsString(MediaStore.MediaColumns.DISPLAY_NAME);
-        String token = beginPending(context, collection, displayName);
+        if (displayName == null || displayName.isEmpty()) {
+            throw new IOException("MediaStore publication details are missing");
+        }
+        String relativePath = values == null
+                ? null : values.getAsString(MediaStore.MediaColumns.RELATIVE_PATH);
+        // The row goes in under a name nothing can collide with, and takes the reader's name at
+        // publish. MediaStore renames an insert that collides, video.mp4 becoming video (1).mp4,
+        // and recovery has only the name the insert asked for to go on, so a crash after a
+        // renamed insert left a row nothing would ever find. A rename at publish is harmless
+        // because the journal is holding the row's URI by then.
+        String temporaryName = temporaryName(displayName);
+        String token = beginPending(context, collection, temporaryName, relativePath);
         Uri uri = null;
         try {
-            uri = resolver.insert(collection, values);
+            ContentValues pending = new ContentValues(values);
+            pending.put(MediaStore.MediaColumns.DISPLAY_NAME, temporaryName);
+            uri = resolver.insert(collection, pending);
             if (uri == null) throw new IOException("MediaStore returned no URI");
             markPending(context, token, uri);
             return uri;
@@ -298,40 +329,92 @@ public final class MediaCache {
         }
     }
 
+    /**
+     * Removes whatever an interrupted insert left behind under a journaled name.
+     *
+     * <p>Every row carrying the name is looked at. A published row is not evidence that our own
+     * insert landed: nothing is published until the download has been written, so a published row
+     * under this name belongs to an earlier save. Returning on the first one, which is what this
+     * did, left the real orphan in the gallery forever whenever a published row happened to be
+     * read first, and the query orders rows however the provider feels like.
+     *
+     * <p>A pending row we can see is our own. From API 29 a pending row is visible only to the
+     * app that owns it, so there is nobody else's to delete.
+     *
+     * @return true when nothing is left to clean: no row matched, or every pending row that did
+     *         was deleted. False keeps the journal entry for the next run.
+     */
     private static boolean reconcilePendingIntent(ContentResolver resolver, String value) {
         PendingIntent intent = decodeIntent(value);
         if (intent == null) return false;
         try (Cursor cursor = resolver.query(intent.collection,
                 new String[]{MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DISPLAY_NAME,
-                        MediaStore.MediaColumns.IS_PENDING},
+                        MediaStore.MediaColumns.IS_PENDING, MediaStore.MediaColumns.RELATIVE_PATH},
                 MediaStore.MediaColumns.DISPLAY_NAME + "=?", new String[]{intent.displayName}, null)) {
             if (cursor == null) return false;
             int idColumn = cursor.getColumnIndex(MediaStore.MediaColumns._ID);
             int nameColumn = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME);
             int pendingColumn = cursor.getColumnIndex(MediaStore.MediaColumns.IS_PENDING);
+            int pathColumn = cursor.getColumnIndex(MediaStore.MediaColumns.RELATIVE_PATH);
             if (idColumn < 0 || nameColumn < 0 || pendingColumn < 0) return false;
-            boolean found = false;
             boolean allDeleted = true;
-            if (!cursor.moveToFirst()) return true;
-            do {
-                if (intent.displayName.equals(cursor.getString(nameColumn))) {
-                    found = true;
-                    if (cursor.getInt(pendingColumn) == 0) return true;
-                    Uri uri = ContentUris.withAppendedId(intent.collection, cursor.getLong(idColumn));
-                    if (resolver.delete(uri, null, null) <= 0) allDeleted = false;
+            while (cursor.moveToNext()) {
+                if (!intent.displayName.equals(cursor.getString(nameColumn))) continue;
+                if (cursor.getInt(pendingColumn) == 0) continue;
+                // A token written before the folder was recorded cannot scope itself, so it
+                // takes every folder. One written since takes only the folder it asked for.
+                if (intent.relativePath != null && pathColumn >= 0
+                        && !samePath(intent.relativePath, cursor.getString(pathColumn))) {
+                    continue;
                 }
-            } while (cursor.moveToNext());
-            return !found || allDeleted;
+                Uri uri = ContentUris.withAppendedId(intent.collection, cursor.getLong(idColumn));
+                if (resolver.delete(uri, null, null) <= 0) allDeleted = false;
+            }
+            return allDeleted;
         } catch (RuntimeException error) {
             Logger.printException(() -> "Could not reconcile pending media insert", error);
             return false;
         }
     }
 
+    /** MediaStore stores a folder with a trailing separator and the callers do not write one. */
+    private static boolean samePath(String wanted, String stored) {
+        return trimSeparators(wanted).equals(trimSeparators(stored));
+    }
+
+    private static String trimSeparators(String path) {
+        if (path == null) return "";
+        int start = 0;
+        int end = path.length();
+        while (start < end && path.charAt(start) == '/') start++;
+        while (end > start && path.charAt(end - 1) == '/') end--;
+        return path.substring(start, end);
+    }
+
+    /**
+     * A name for the insert that no existing file can already hold.
+     *
+     * <p>The extension is kept: MediaStore checks it against the MIME type and will append one
+     * of its own if it disagrees, which would be another rename of the kind this exists to
+     * avoid.
+     */
+    private static String temporaryName(String displayName) {
+        int dot = displayName.lastIndexOf('.');
+        String extension = dot > 0 && dot < displayName.length() - 1 ? displayName.substring(dot) : "";
+        return TEMPORARY_NAME_PREFIX + Long.toHexString(System.nanoTime())
+                + "-" + Integer.toHexString(TEMPORARY_NAMES.incrementAndGet()) + extension;
+    }
+
     private static String encode(String value) {
         return Base64.encodeToString(value.getBytes(StandardCharsets.UTF_8), Base64.URL_SAFE | Base64.NO_WRAP);
     }
 
+    /**
+     * Reads a token back, in either shape.
+     *
+     * <p>A token written before the folder was recorded has three fields and a null folder,
+     * which recovery reads as "every folder". One written since has four.
+     */
     private static PendingIntent decodeIntent(String value) {
         try {
             String encoded = value.substring(PENDING_INTENT_PREFIX.length());
@@ -339,12 +422,23 @@ public final class MediaCache {
             int secondSeparator = firstSeparator < 0 ? -1 : encoded.indexOf(':', firstSeparator + 1);
             if (firstSeparator <= 0 || secondSeparator == firstSeparator + 1
                     || secondSeparator == encoded.length() - 1) return null;
+            int thirdSeparator = encoded.indexOf(':', secondSeparator + 1);
+            int nameEnd = thirdSeparator < 0 ? encoded.length() : thirdSeparator;
+            if (nameEnd == secondSeparator + 1) return null;
             String collection = new String(Base64.decode(
                     encoded.substring(firstSeparator + 1, secondSeparator), Base64.URL_SAFE),
                     StandardCharsets.UTF_8);
-            String displayName = new String(Base64.decode(encoded.substring(secondSeparator + 1), Base64.URL_SAFE),
+            String displayName = new String(Base64.decode(
+                    encoded.substring(secondSeparator + 1, nameEnd), Base64.URL_SAFE),
                     StandardCharsets.UTF_8);
-            return new PendingIntent(Uri.parse(collection), displayName);
+            String relativePath = null;
+            if (thirdSeparator >= 0) {
+                String decoded = new String(Base64.decode(
+                        encoded.substring(thirdSeparator + 1), Base64.URL_SAFE),
+                        StandardCharsets.UTF_8);
+                relativePath = decoded.isEmpty() ? null : decoded;
+            }
+            return new PendingIntent(Uri.parse(collection), displayName, relativePath);
         } catch (RuntimeException error) {
             return null;
         }
@@ -353,10 +447,13 @@ public final class MediaCache {
     private static final class PendingIntent {
         final Uri collection;
         final String displayName;
+        /** Null for a token from before the folder was recorded, and for a save with no folder. */
+        final String relativePath;
 
-        PendingIntent(Uri collection, String displayName) {
+        PendingIntent(Uri collection, String displayName, String relativePath) {
             this.collection = collection;
             this.displayName = displayName;
+            this.relativePath = relativePath;
         }
     }
 }

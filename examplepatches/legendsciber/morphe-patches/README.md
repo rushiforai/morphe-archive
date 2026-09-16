@@ -9,7 +9,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.62.2](https://github.com/legendsciber/morphe-patches/releases/tag/v1.62.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
+> **[v1.66.0](https://github.com/legendsciber/morphe-patches/releases/tag/v1.66.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
 <details open>
 <summary>📦 Block Blast&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -76,7 +76,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 </details>
 
 <details open>
-<summary>📦 Shadow Fight 2&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Shadow Fight 2&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -86,7 +86,8 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [In-App Purchase Bypass](#in-app-purchase-bypass) | Bypasses server-side purchase verification. |  |
+| [SF2 Add Hook Native Lib](#sf2-add-hook-native-lib) | Adds libsf2hook.so to APK for runtime IL2CPP hooking. |  |
+| [SF2 IAP Bypass (Runtime Hook)](#sf2-iap-bypass-runtime-hook) | Hooks IL2CPP currency getters and ProcessPurchase at runtime via native .so for unlimited in-game currency. |  |
 
 </details>
 

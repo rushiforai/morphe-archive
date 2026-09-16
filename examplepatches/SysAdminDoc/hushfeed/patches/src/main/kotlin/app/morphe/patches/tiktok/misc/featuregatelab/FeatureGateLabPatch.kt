@@ -23,6 +23,7 @@ import app.morphe.patches.tiktok.shared.valueIn
 import app.morphe.patches.tiktok.shared.wideIn
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.cloneMutableAndPreserveParameters
+import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -220,7 +221,7 @@ val featureGateLabPatch = bytecodePatch(
         val installed = runtime.methods.singleOrNull {
             it.name == "isInstalled" && it.returnType == "Z" && it.parameterTypes.isEmpty()
         } ?: throw PatchException("Feature Gate Lab runtime marker not found")
-        installed.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
+        installed.returnEarly(true)
     }
 }
 

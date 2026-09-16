@@ -1,3 +1,7 @@
+/*
+ * Adapted from:
+ * https://gitlab.com/ReVanced/revanced-patches/-/blob/main/extensions/tiktok/src/main/java/app/revanced/extension/tiktok/settings/preference/InputTextPreference.java
+ */
 package app.morphe.extension.tiktok.settings.preference;
 
 import app.morphe.extension.tiktok.settings.L10n;
@@ -201,7 +205,7 @@ public class NumberInputPreference extends EditTextPreference {
             }
 
             @Override public void report(String problem) {
-                getEditText().setError(problem);
+                SettingsUi.reportFieldError(getEditText(), problem);
             }
 
             @Override public boolean accept() {

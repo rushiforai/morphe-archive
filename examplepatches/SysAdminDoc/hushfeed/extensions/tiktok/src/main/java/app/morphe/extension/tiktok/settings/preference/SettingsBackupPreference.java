@@ -1,3 +1,9 @@
+/*
+ * Copyright 2026 Hushfeed contributors
+ * https://github.com/SysAdminDoc/hushfeed
+ *
+ * Built on icysymmetra/tiktok-patches-for-morphe (GPL-3.0).
+ */
 package app.morphe.extension.tiktok.settings.preference;
 
 import app.morphe.extension.tiktok.settings.L10n;
@@ -22,6 +28,9 @@ public final class SettingsBackupPreference extends Preference
         implements app.morphe.extension.shared.settings.preference.ImmediateAction {
     private static final int EXPORT = 7311, IMPORT = 7312, RESET = 7313, UNDO = 7314;
     private static final AtomicBoolean BUSY = new AtomicBoolean();
+    /** The four rows on the page right now, so a run can take them all out of reach. */
+    private static final java.util.List<java.lang.ref.WeakReference<SettingsBackupPreference>> ROWS =
+            new java.util.concurrent.CopyOnWriteArrayList<>();
 
     /** Reset and Undo act on the tap. Back up and Restore open a file picker first. */
     @Override public boolean actsOnTap() {
@@ -29,18 +38,25 @@ public final class SettingsBackupPreference extends Preference
     }
 
     private final int rowAction;
+    /** What this row says when nothing is running, so the run can hand it back. */
+    private final String restingSummary;
+    /** The line this row shows while it is the one running, else null. */
+    private String busyLine;
 
     static final String UNDO_SUMMARY = "Recover the settings saved before the last restore or reset.";
 
     private SettingsBackupPreference(TikTokPreferenceFragment fragment, int action, String title, String summary) {
         super(fragment.getActivity());
         this.rowAction = action;
+        this.restingSummary = summary;
         setKey("settings_backup_" + action);
         setTitle(title);
         setSummary(summary);
         refreshUndoAvailability();
         setOnPreferenceClickListener(preference -> {
-            if (BUSY.get()) { Utils.showToastShort(L10n.t("A settings operation is already running")); return true; }
+            // The rows are disabled while a run is going, so this is the race between a tap and
+            // the disable rather than the ordinary second tap it used to refuse out loud.
+            if (BUSY.get()) return true;
             if (action == RESET || action == UNDO) run(fragment, action, null);
             else pickFile(fragment, action);
             return true;
@@ -67,6 +83,35 @@ public final class SettingsBackupPreference extends Preference
                     fragment, (Integer) row[0], (String) row[1], (String) row[2]);
             preference.setOrder(order++);
             screen.addPreference(preference);
+            ROWS.add(new java.lang.ref.WeakReference<>(preference));
+        }
+    }
+
+    /**
+     * Takes the four rows out of reach while one of them runs, and puts the running line on the
+     * row that is acting.
+     *
+     * <p>Called with a zero action and a null line when the run ends, which re-enables them and
+     * gives every row its own summary back. A screen reader hears the row as disabled and reads
+     * the line as its state, which is the treatment Inbox Clear all already had.
+     */
+    static void setRowsBusy(int action, String running) {
+        for (java.lang.ref.WeakReference<SettingsBackupPreference> held : ROWS) {
+            SettingsBackupPreference row = held.get();
+            if (row == null) {
+                ROWS.remove(held);
+                continue;
+            }
+            if (running == null) {
+                row.busyLine = null;
+                row.setEnabled(true);
+                row.refreshUndoAvailability();
+                row.setSummary(row.restingSummary);
+                continue;
+            }
+            row.busyLine = row.rowAction == action ? running : null;
+            row.setEnabled(false);
+            if (row.busyLine != null) row.setSummaryDirect(running);
         }
     }
 
@@ -108,10 +153,15 @@ public final class SettingsBackupPreference extends Preference
         if (action != EXPORT) AbstractPreferenceFragment.settingImportInProgress = true;
         // One line per action. "Updating settings" was said for a restore, a reset and an
         // undo alike, so the one thing on screen did not say which of the three was running.
-        Utils.showToastShort(L10n.t(action == EXPORT ? "Saving settings backup"
+        String running = L10n.t(action == EXPORT ? "Saving settings backup"
                 : action == IMPORT ? "Restoring your settings"
                 : action == RESET ? "Putting the settings back to their defaults"
-                : "Undoing the last change"));
+                : "Undoing the last change");
+        Utils.showToastShort(running);
+        // A restore of a large file or a reset takes long enough to notice, and the rows used
+        // to look exactly as they did before, with a second tap earning a refusal. The acting
+        // row now says what is happening and all four are out of reach until it is done.
+        setRowsBusy(action, running);
         boolean accepted = Utils.runOnBackgroundThread(() -> {
             boolean labRulesSkipped = false;
             int keptAsTheyWere = 0;
@@ -177,6 +227,7 @@ public final class SettingsBackupPreference extends Preference
                 Utils.runOnMainThread(() -> {
                     if (action != EXPORT) AbstractPreferenceFragment.settingImportInProgress = false;
                     BUSY.set(false);
+                    setRowsBusy(0, null);
                     TikTokPreferenceFragment current = owner.get();
                     if (current != null && current.isAdded()) current.refreshBackupSettings();
                 });
@@ -185,6 +236,7 @@ public final class SettingsBackupPreference extends Preference
         if (!accepted) {
             if (action != EXPORT) AbstractPreferenceFragment.settingImportInProgress = false;
             BUSY.set(false);
+            setRowsBusy(0, null);
             Utils.showToastLong(L10n.t(
                     "Could not start the settings operation. Try again shortly."));
             TikTokPreferenceFragment current = owner.get();
@@ -264,7 +316,8 @@ public final class SettingsBackupPreference extends Preference
      * without the page being rebuilt.
      */
     private void refreshUndoAvailability() {
-        if (rowAction != UNDO) return;
+        // Nothing overrides a run in progress: the row is disabled and saying what it is doing.
+        if (busyLine != null || rowAction != UNDO) return;
         boolean available = SettingsBackup.hasUndo(getContext());
         if (isEnabled() != available) setEnabled(available);
         // The one greyed row on the page, and its summary went on offering a recovery. A
@@ -274,6 +327,9 @@ public final class SettingsBackupPreference extends Preference
 
     @Override protected void onBindView(View view) {
         refreshUndoAvailability();
+        if (android.os.Build.VERSION.SDK_INT >= 30 && view != null) {
+            view.setStateDescription(busyLine);
+        }
         super.onBindView(view);
         app.morphe.extension.tiktok.Utils.setTitleAndSummaryColor(view);
     }
@@ -286,5 +342,10 @@ public final class SettingsBackupPreference extends Preference
     @Override
     public void setSummary(CharSequence summary) {
         super.setSummary(L10n.t(getContext(), summary));
+    }
+
+    /** Text that has already been translated, so the lookup above would find nothing. */
+    private void setSummaryDirect(CharSequence summary) {
+        super.setSummary(summary);
     }
 }

@@ -1,3 +1,7 @@
+/*
+ * Copyright 2026 icysymmetra/tiktok-patches-for-morphe contributors
+ * https://github.com/icysymmetra/tiktok-patches-for-morphe
+ */
 package app.morphe.extension.tiktok.settings.preference;
 
 import app.morphe.extension.tiktok.settings.L10n;
@@ -278,8 +282,11 @@ public class TabSelectionPreference extends Preference {
         LinearLayout row = new LinearLayout(context);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setBackgroundColor(getDialogBackgroundColor());
+        row.setBackground(SettingsUi.listRow(context, getDialogBackgroundColor()));
         row.setPadding(dpToPx(10), dpToPx(10), dpToPx(10), dpToPx(10));
+        // A clickable view is only focusable by default from API 26; below that the d-pad
+        // would skip every row and the focus wash above would never show.
+        row.setFocusable(true);
 
         CheckBox checkBox = new CheckBox(context);
         // Tagged so "Select every tab" can tick them where they are, rather than closing the

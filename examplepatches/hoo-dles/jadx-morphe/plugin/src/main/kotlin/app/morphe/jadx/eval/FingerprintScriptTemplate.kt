@@ -17,6 +17,7 @@ object FingerprintScriptCompilationConfiguration :
         defaultImports(
             "app.morphe.patcher.*",
             "app.morphe.patcher.InstructionLocation.*",
+            "app.morphe.patcher.resource.ResourceType",
             "com.android.tools.smali.dexlib2.*"
         )
         jvm {

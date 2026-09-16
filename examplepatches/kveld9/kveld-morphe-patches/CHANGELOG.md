@@ -1,3 +1,15 @@
+## [1.30.1](https://github.com/kveld9/kveld-morphe-patches/compare/v1.30.0...v1.30.1) (2026-09-16)
+
+### Bug Fixes
+
+* **tiktok:** harden feed bloat blocker and follow feed live stream decoupling ([37ce07e](https://github.com/kveld9/kveld-morphe-patches/commit/37ce07e9613957456dfdde1e3d37a6b3ad1b325e))
+
+## [1.30.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.29.0...v1.30.0) (2026-09-15)
+
+### New Features
+
+* **tiktok:** add feed bloat blocker and neutralize screenshot share panel ([2487de2](https://github.com/kveld9/kveld-morphe-patches/commit/2487de2ce66c7b332237461c42add316300e7781))
+
 ## [1.29.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.28.1...v1.29.0) (2026-09-15)
 
 ### New Features

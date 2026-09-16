@@ -75,7 +75,6 @@ Second \"item\" text"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">動画ストリームを偽装</string>
   <string name="morphe_spoof_video_streams_screen_summary">動画の再生が止まる問題を回避するために、偽装するクライアントを設定します</string>
-  <string name="morphe_spoof_video_streams_title">動画ストリームを偽装</string>
   <string name="morphe_spoof_video_streams_summary">"互換性のある動画ストリームを取得することによって、動画の再生が止まる問題を多くの環境で解決します
 
 YouTube Premium を利用している場合、この設定は必要ない場合があります"</string>

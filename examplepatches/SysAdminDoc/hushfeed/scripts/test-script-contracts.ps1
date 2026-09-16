@@ -11,6 +11,7 @@ if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 . (Join-Path $PSScriptRoot 'patch-report.ps1')
 . (Join-Path $PSScriptRoot 'device-install.ps1')
 . (Join-Path $PSScriptRoot 'Resolve-Java.ps1')
+. (Join-Path $PSScriptRoot 'common.ps1')
 
 function Assert-True {
     param([bool]$Condition, [string]$Message)
@@ -348,7 +349,8 @@ try {
             name = 'extensions/tiktok.rve'; sizeBytes = 10; sha256 = ('A' * 64) }) }
         targets   = @([ordered]@{
             source = [ordered]@{ file = 'stock.apk'; package = 'com.example.host'
-                versionName = '46.7.3'; versionCode = '2024607030'; sha256 = ('B' * 64) }
+                versionName = '46.7.3'; versionCode = '2024607030'; sha256 = ('B' * 64)
+                forced = $false }
             patches = @([ordered]@{ name = 'Alpha'; applied = $true; reason = $null },
                         [ordered]@{ name = 'Beta'; applied = $true; reason = $null })
             manifestDelta = [ordered]@{ permissionsAdded = @(); permissionsRemoved = @()
@@ -368,7 +370,7 @@ try {
         param($Receipt, [string[]]$Approved = @())
         return Test-ReleaseReceipt -Receipt $Receipt -ExpectedVersion '9.9.9' `
             -ExpectedPatchNames @('Alpha', 'Beta') -ExpectedPatcherVersion '1.12.0' `
-            -ExpectedManagerFloor '1.29.0' -BundlePath $bundle -ApprovedManifestDelta $Approved
+            -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' -ExpectedPackageVersion '46.7.3' -BundlePath $bundle -ApprovedManifestDelta $Approved
     }
 
     $valid = Test-TestReceipt -Receipt (New-TestReceipt)
@@ -397,6 +399,13 @@ try {
         'a patch that did not apply'            = { param($r) $r.targets[0].patches[1].applied = $false }
         'a receipt with no commit time'         = { param($r) $r.release.commitTimestamp = 0 }
         'a stamp that is not the bundle stamp'  = { param($r) $r.bundle.timestamp = 1700000001000L }
+        'a run against another package'         = { param($r) $r.targets[0].source.package = 'com.example.other' }
+        'a run with no version name'            = { param($r) $r.targets[0].source.versionName = '' }
+        'a receipt that omits the forced flag'  = { param($r) $r.targets[0].source.PSObject.Properties.Remove('forced') }
+        'a forced flag that is not a boolean'   = { param($r) $r.targets[0].source.forced = 'false' }
+        'a declared-version run marked forced'  = { param($r) $r.targets[0].source.forced = $true }
+        'only forced runs past the target'      = { param($r) $r.targets[0].source.versionName = '46.8.3'; $r.targets[0].source.forced = $true }
+        'a newer build patched without -f'      = { param($r) $r.targets[0].source.versionName = '46.8.3' }
     }
     foreach ($description in $mutations.Keys) {
         $result = Test-TestReceipt -Receipt (New-TestReceipt -Mutate $mutations[$description])
@@ -404,12 +413,27 @@ try {
         Assert-True ([bool]$result.Reason) "Receipt validation refused $description without saying why."
     }
 
+    # A receipt built only from forced runs against newer builds has to be refused for that
+    # reason and name the target it is missing, not trip over some other field on the way.
+    $onlyForced = Test-TestReceipt -Receipt (New-TestReceipt -Mutate $mutations['only forced runs past the target'])
+    Assert-True ($onlyForced.Reason -like '*No target*46.7.3*without -f*46.8.3*') `
+        "A forced-only receipt was refused for the wrong reason: $($onlyForced.Reason)"
+    $secondTarget = New-TestReceipt -Mutate {
+        param($r)
+        $newer = $r.targets[0] | ConvertTo-Json -Depth 8 | ConvertFrom-Json
+        $newer.source.versionName = '46.8.3'
+        $newer.source.forced = $true
+        $r.targets = @($r.targets[0], $newer)
+    }
+    $twoTargets = Test-TestReceipt -Receipt $secondTarget
+    Assert-True $twoTargets.Valid "A receipt with the declared target beside a forced run was refused: $($twoTargets.Reason)"
+
     # The bundle the receipt is about, gone. Every fact above is checked against a file, and a
     # missing file is the one case where there is nothing to disagree with, so an unguarded
     # check would read it as agreement and pass the release.
     $absent = Test-ReleaseReceipt -Receipt (New-TestReceipt) -ExpectedVersion '9.9.9' `
         -ExpectedPatchNames @('Alpha', 'Beta') -ExpectedPatcherVersion '1.12.0' `
-        -ExpectedManagerFloor '1.29.0' -BundlePath (Join-Path $allowlistRoot 'not-built.mpp')
+        -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' -ExpectedPackageVersion '46.7.3' -BundlePath (Join-Path $allowlistRoot 'not-built.mpp')
     Assert-True (-not $absent.Valid) 'A receipt was accepted against a bundle that is not there.'
     Assert-True ($absent.Reason -like '*not there*') `
         "The missing bundle was refused for the wrong reason: $($absent.Reason)"
@@ -427,7 +451,7 @@ try {
     }
     $strayResult = Test-ReleaseReceipt -Receipt $strayReceipt -ExpectedVersion '9.9.9' `
         -ExpectedPatchNames @('Alpha', 'Beta') -ExpectedPatcherVersion '1.12.0' `
-        -ExpectedManagerFloor '1.29.0' -BundlePath $strayBundle
+        -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' -ExpectedPackageVersion '46.7.3' -BundlePath $strayBundle
     Assert-True (-not $strayResult.Valid) 'A bundle built from another commit was accepted.'
     Assert-True ($strayResult.Reason -like '*different*commit*') `
         "The stale bundle pin was refused for the wrong reason: $($strayResult.Reason)"
@@ -446,7 +470,7 @@ try {
         }
         $oddResult = Test-ReleaseReceipt -Receipt $oddReceipt -ExpectedVersion '9.9.9' `
             -ExpectedPatchNames @('Alpha', 'Beta') -ExpectedPatcherVersion '1.12.0' `
-            -ExpectedManagerFloor '1.29.0' -BundlePath $odd
+            -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' -ExpectedPackageVersion '46.7.3' -BundlePath $odd
         Assert-True (-not $oddResult.Valid) "Receipt validation accepted $($wrong.Name)."
         Assert-True ($oddResult.Reason -like $wrong.Pattern) `
             "$($wrong.Name) was refused for the wrong reason: $($oddResult.Reason)"
@@ -457,13 +481,13 @@ try {
     # from an earlier release agrees with itself and passes on that pair alone.
     $sameCommit = Test-ReleaseReceipt -Receipt (New-TestReceipt) -ExpectedVersion '9.9.9' `
         -ExpectedPatchNames @('Alpha', 'Beta') -ExpectedPatcherVersion '1.12.0' `
-        -ExpectedManagerFloor '1.29.0' -BundlePath $bundle `
+        -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' -ExpectedPackageVersion '46.7.3' -BundlePath $bundle `
         -ActualCommitTimestamp $commitSeconds
     Assert-True $sameCommit.Valid "A receipt matching git was refused: $($sameCommit.Reason)"
 
     $movedCommit = Test-ReleaseReceipt -Receipt (New-TestReceipt) -ExpectedVersion '9.9.9' `
         -ExpectedPatchNames @('Alpha', 'Beta') -ExpectedPatcherVersion '1.12.0' `
-        -ExpectedManagerFloor '1.29.0' -BundlePath $bundle `
+        -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' -ExpectedPackageVersion '46.7.3' -BundlePath $bundle `
         -ActualCommitTimestamp ($commitSeconds + 60)
     Assert-True (-not $movedCommit.Valid) `
         'A receipt whose commit time git disagrees with was accepted.'
@@ -472,7 +496,7 @@ try {
 
     $otherCommit = Test-ReleaseReceipt -Receipt (New-TestReceipt) -ExpectedVersion '9.9.9' `
         -ExpectedPatchNames @('Alpha', 'Beta') -ExpectedPatcherVersion '1.12.0' `
-        -ExpectedManagerFloor '1.29.0' -BundlePath $bundle `
+        -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' -ExpectedPackageVersion '46.7.3' -BundlePath $bundle `
         -ExpectedCommit ('f' * 40)
     Assert-True (-not $otherCommit.Valid) 'A receipt for another commit was accepted on a release.'
     Assert-True ($otherCommit.Reason -like '*this release is*') `
@@ -524,6 +548,141 @@ try {
     Remove-Item -LiteralPath $allowlistRoot -Recurse -Force -ErrorAction SilentlyContinue
 }
 
+# Which catalog a receipt is judged against. A receipt describes a release that has shipped, so
+# moving the patcher pin afterwards must not turn it into a failure; a release, whose receipt is
+# cut against the catalog it was built from, must still be held to that catalog exactly.
+#
+# Driven against a real two-commit repository, because the whole question is what `git show` says
+# at a commit and a fake cannot answer that.
+#
+# Every git call below goes through Invoke-FixtureGit, and that is not tidiness. On 2026-09-15
+# this block ran from inside the pre-push hook, which is a git child process, so GIT_DIR and
+# GIT_WORK_TREE were in its environment. `git -C <tempdir>` changes the working directory and
+# does not override GIT_DIR, so `init` reused the real repository, `add -A` read the two-file
+# temp tree through it and staged every other tracked file as deleted, and three fixture commits
+# authored by Contracts landed on the branch and were pushed to main, where the tip deleted all
+# 703 files. Clearing the environment is the fix; the assertion after init is what would have
+# stopped it in the second it happened.
+$toolchainRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("hushfeed-toolchain-" + [guid]::NewGuid().ToString('N'))
+
+function Invoke-FixtureGit {
+    <#
+    .SYNOPSIS
+        git against a fixture repository, with no inherited git environment.
+    .DESCRIPTION
+        Removes every GIT_* variable for the length of the call, so the repository git acts on is
+        the one -C names and nothing else. Run from a hook, GIT_DIR alone is enough to point all
+        of this at the real tree.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$Root,
+        [Parameter(Mandatory = $true)][string[]]$Arguments
+    )
+
+    $saved = @{}
+    foreach ($variable in @(Get-ChildItem Env: | Where-Object { $_.Name -like 'GIT_*' })) {
+        $saved[$variable.Name] = $variable.Value
+        Remove-Item -LiteralPath ('Env:\' + $variable.Name) -ErrorAction SilentlyContinue
+    }
+    try {
+        return & git -C $Root @Arguments 2>&1
+    } finally {
+        foreach ($name in $saved.Keys) { Set-Item -LiteralPath ('Env:\' + $name) -Value $saved[$name] }
+    }
+}
+
+try {
+    New-Item -ItemType Directory -Path (Join-Path $toolchainRoot 'gradle') -Force | Out-Null
+    $catalogFile = Join-Path $toolchainRoot 'gradle/libs.versions.toml'
+    Invoke-FixtureGit -Root $toolchainRoot -Arguments @('init', '--quiet') | Out-Null
+
+    # Where git says it will write, asked before anything is written. A fixture that has taken
+    # hold of the real repository fails here instead of committing to it.
+    $fixtureGitDir = "$(Invoke-FixtureGit -Root $toolchainRoot -Arguments @('rev-parse', '--absolute-git-dir') |
+        Select-Object -First 1)".Trim()
+    $expectedGitDir = (Join-Path $toolchainRoot '.git')
+    Assert-True ($fixtureGitDir -and
+        ([IO.Path]::GetFullPath($fixtureGitDir).TrimEnd('\', '/') -ieq [IO.Path]::GetFullPath($expectedGitDir).TrimEnd('\', '/'))) `
+        ("The fixture repository resolved to $fixtureGitDir, not $expectedGitDir. Refusing to " +
+            'write: this is the shape that put three fixture commits on the real branch.')
+
+    Invoke-FixtureGit -Root $toolchainRoot -Arguments @('config', 'user.email', 'contracts@example.invalid') | Out-Null
+    Invoke-FixtureGit -Root $toolchainRoot -Arguments @('config', 'user.name', 'Contracts') | Out-Null
+
+    Set-Content -LiteralPath $catalogFile -Encoding UTF8 -Value @(
+        '[versions]', 'morphe-patcher = "1.12.0"', 'manager-floor = "1.29.0"')
+    Invoke-FixtureGit -Root $toolchainRoot -Arguments @('add', '-A') | Out-Null
+    Invoke-FixtureGit -Root $toolchainRoot -Arguments @('commit', '-m', 'release', '--quiet') | Out-Null
+    $releaseCommitSha = "$(Invoke-FixtureGit -Root $toolchainRoot -Arguments @('rev-parse', 'HEAD') |
+        Select-Object -First 1)".Trim()
+
+    # One file in the fixture, so one file in its first commit. A commit that carries hundreds is
+    # a commit against somebody else's repository.
+    $firstCommitFiles = @(Invoke-FixtureGit -Root $toolchainRoot `
+        -Arguments @('show', '--name-only', '--format=', 'HEAD') | Where-Object { "$_".Trim() })
+    Assert-True ($firstCommitFiles.Count -eq 1 -and "$($firstCommitFiles[0])".Trim() -eq 'gradle/libs.versions.toml') `
+        ("The fixture's first commit touched $($firstCommitFiles.Count) files: " +
+            (($firstCommitFiles | Select-Object -First 5) -join ', '))
+
+    Set-Content -LiteralPath $catalogFile -Encoding UTF8 -Value @(
+        '[versions]', 'morphe-patcher = "1.13.0"', 'manager-floor = "1.30.0"')
+    Invoke-FixtureGit -Root $toolchainRoot -Arguments @('add', '-A') | Out-Null
+    Invoke-FixtureGit -Root $toolchainRoot -Arguments @('commit', '-m', 'move the pin', '--quiet') | Out-Null
+
+    $workingToolchain = Read-CatalogToolchain -Text (Get-Content -LiteralPath $catalogFile -Raw) `
+        -Source 'the working catalog'
+    Assert-True ($workingToolchain.PatcherVersion -eq '1.13.0' -and $workingToolchain.ManagerFloor -eq '1.30.0') `
+        "The working catalog was not read: $($workingToolchain.PatcherVersion), $($workingToolchain.ManagerFloor)"
+
+    # The source push after the pin moved: the receipt's own commit still pinned 1.12.0, so that
+    # is what it answers for, and the push this used to stop now goes through.
+    $atRelease = Resolve-ReceiptToolchain -Root $toolchainRoot -Commit $releaseCommitSha `
+        -WorkingToolchain $workingToolchain
+    Assert-True ($atRelease.Toolchain.PatcherVersion -eq '1.12.0') `
+        "The receipt was not held to the patcher its own commit pinned: $($atRelease.Toolchain.PatcherVersion)"
+    Assert-True ($atRelease.Toolchain.ManagerFloor -eq '1.29.0') `
+        "The receipt was not held to the Manager floor its own commit pinned: $($atRelease.Toolchain.ManagerFloor)"
+    Assert-True ($atRelease.Note -like '*1.12.0*' -and $atRelease.Note -like '*1.13.0*') `
+        "The difference between the two catalogs was not reported: $($atRelease.Note)"
+
+    # The release push: the receipt's commit is the commit being released, so the catalog it is
+    # held to is the working one and the strict comparison is unchanged. Without this case the
+    # one above would pass just as well if the check had been turned off.
+    $head = "$(Invoke-FixtureGit -Root $toolchainRoot -Arguments @('rev-parse', 'HEAD') |
+        Select-Object -First 1)".Trim()
+    $atHead = Resolve-ReceiptToolchain -Root $toolchainRoot -Commit $head -WorkingToolchain $workingToolchain
+    Assert-True ($atHead.Toolchain.PatcherVersion -eq '1.13.0' -and $atHead.Toolchain.ManagerFloor -eq '1.30.0') `
+        "A receipt at the released commit was not held to that commit's catalog: $($atHead.Toolchain.PatcherVersion)"
+    Assert-True ($null -eq $atHead.Note) "An unchanged catalog still reported a difference: $($atHead.Note)"
+
+    # A commit with no catalog in it, and a receipt naming no commit at all. Both fall back to
+    # the working catalog rather than throwing, and the first says so.
+    Invoke-FixtureGit -Root $toolchainRoot -Arguments @('rm', '--quiet', '--', 'gradle/libs.versions.toml') | Out-Null
+    Invoke-FixtureGit -Root $toolchainRoot -Arguments @('commit', '-m', 'no catalog', '--quiet') | Out-Null
+    $bare = "$(Invoke-FixtureGit -Root $toolchainRoot -Arguments @('rev-parse', 'HEAD') |
+        Select-Object -First 1)".Trim()
+    $atBare = Resolve-ReceiptToolchain -Root $toolchainRoot -Commit $bare -WorkingToolchain $workingToolchain
+    Assert-True ($atBare.Toolchain.PatcherVersion -eq '1.13.0') `
+        'A commit with no catalog did not fall back to the working one.'
+    Assert-True ($atBare.Note -like '*no version catalog*') `
+        "The fallback was not reported: $($atBare.Note)"
+
+    $noCommit = Resolve-ReceiptToolchain -Root $toolchainRoot -Commit '' -WorkingToolchain $workingToolchain
+    Assert-True ($noCommit.Toolchain.PatcherVersion -eq '1.13.0' -and $null -eq $noCommit.Note) `
+        'A receipt naming no commit did not fall back quietly to the working catalog.'
+
+    # A catalog that pins nothing usable still stops the run, rather than being read as blank.
+    foreach ($broken in @(
+        @{ Name = 'no patcher pin'; Lines = @('[versions]', 'manager-floor = "1.29.0"') },
+        @{ Name = 'no Manager floor'; Lines = @('[versions]', 'morphe-patcher = "1.12.0"') },
+        @{ Name = 'an unusable Manager floor'; Lines = @('[versions]', 'morphe-patcher = "1.12.0"', 'manager-floor = "latest"') })) {
+        Assert-Throws { Read-CatalogToolchain -Text ($broken.Lines -join "`n") -Source 'the test catalog' } `
+            '*the test catalog*' "A catalog with $($broken.Name) was read without complaint."
+    }
+} finally {
+    Remove-Item -LiteralPath $toolchainRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
+
 Write-Host '[scripts] release receipt schema, manifest reading and validation contracts passed'
 
 # --- validate-release-facts.ps1 -------------------------------------------------------------
@@ -541,7 +700,7 @@ $factsScript = Join-Path $PSScriptRoot 'validate-release-facts.ps1'
 $factsRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("hushfeed-facts-" + [guid]::NewGuid().ToString('N'))
 try {
     New-Item -ItemType Directory -Path $factsRoot -Force | Out-Null
-    foreach ($relative in @('patches-list.json', 'patches-bundle.json', 'gradle.properties', 'README.md')) {
+    foreach ($relative in @('patches-list.json', 'patches-bundle.json', 'gradle.properties', 'README.md', 'CHANGELOG.md')) {
         Copy-Item -LiteralPath (Join-Path $Root $relative) -Destination (Join-Path $factsRoot $relative)
     }
     New-Item -ItemType Directory -Path (Join-Path $factsRoot 'gradle') -Force | Out-Null
@@ -604,11 +763,31 @@ try {
 
     # The Manager floor in the README is what stops somebody being told to use a Manager that
     # refuses the bundle, so it is held to the patcher the catalog pins.
+    #
+    # The floor is read out of the fixture rather than written here. It used to name 1.29.0, and
+    # when the catalog moved to Manager 1.30.0 the replacement below stopped matching: the README
+    # went in unchanged, the check passed as it should have, and this case failed with "No error
+    # was raised" while the gate it covers was working perfectly. A version literal in a test
+    # goes stale on the next bump, and does it silently until something reads the message.
+    $fixtureFloor = ([regex]::Match(
+        (Get-Content -LiteralPath (Join-Path $factsRoot 'gradle/libs.versions.toml') -Raw),
+        '(?m)^\s*manager-floor\s*=\s*"([^"]+)"')).Groups[1].Value
+    Assert-True ($fixtureFloor -match '^\d+\.\d+\.\d+$') `
+        "The fixture catalog does not pin a Manager floor, so this case would prove nothing: $fixtureFloor"
     Set-FactsFile 'README.md' {
-        param($text) $text -replace 'Morphe Manager 1\.29\.0 or newer', 'Morphe Manager 1.20.0 or newer'
+        param($text) $text -replace ('Morphe Manager ' + [regex]::Escape($fixtureFloor) + ' or newer'),
+            'Morphe Manager 1.20.0 or newer'
     }
     Assert-Throws { Invoke-Facts } '*' 'A README naming a Manager older than the patcher needs was accepted.'
     Reset-FactsFile 'README.md'
+
+    # The heading that says this version shipped. Renaming it is what happened on 2026-09-14,
+    # and the file is read by this check and by nothing else.
+    Set-FactsFile 'CHANGELOG.md' {
+        param($text) $text -replace ('(?m)^##\s+' + [regex]::Escape($catalogVersion) + '\b.*$'), '## Unreleased'
+    }
+    Assert-Throws { Invoke-Facts } '*' 'A CHANGELOG with no heading for the built version was accepted.'
+    Reset-FactsFile 'CHANGELOG.md'
 
     # A dead link in the index, answered from this machine so the case needs no network of its
     # own: nothing listens on port 1, so the request is refused before it leaves the host.
@@ -629,6 +808,306 @@ try {
 }
 
 Write-Host '[scripts] release facts contracts passed'
+
+# --- pre-push.ps1 ----------------------------------------------------------------------------
+#
+# Which files make the hook run the release check. The receipt is what the check holds a release
+# to and the allowlist is what it accepts manifest changes from, and a push that moved only one
+# of them ran no release check at all. Driven against a stub root whose validate script records
+# that it was called, so the case proves the routing and not the check.
+
+$prePushScript = Join-Path $PSScriptRoot 'pre-push.ps1'
+$hookRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("hushfeed-hook-" + [guid]::NewGuid().ToString('N'))
+$savedSkip = $env:HUSHFEED_SKIP_PRE_PUSH
+try {
+    $env:HUSHFEED_SKIP_PRE_PUSH = $null
+    New-Item -ItemType Directory -Path (Join-Path $hookRoot 'scripts') -Force | Out-Null
+    $factsMarker = Join-Path $hookRoot 'facts-ran.txt'
+    $contractsMarker = Join-Path $hookRoot 'contracts-ran.txt'
+    Set-Content -LiteralPath (Join-Path $hookRoot 'scripts/validate-release-facts.ps1') -Encoding UTF8 -Value @(
+        'param([string]$Root, [switch]$SkipDescriptionTestCount, [switch]$AllowPublishedIndexLag,',
+        '    [switch]$VerifyPublishedAsset, [string]$ArtifactPath)',
+        "Set-Content -LiteralPath '$factsMarker' -Value `"lag=`$AllowPublishedIndexLag`"",
+        'exit 0')
+    Set-Content -LiteralPath (Join-Path $hookRoot 'scripts/test-script-contracts.ps1') -Encoding UTF8 -Value @(
+        'param([string]$Root)',
+        "Set-Content -LiteralPath '$contractsMarker' -Value 'ran'",
+        'exit 0')
+
+    function Invoke-Hook {
+        param([string[]]$Paths)
+        Remove-Item -LiteralPath $factsMarker, $contractsMarker -Force -ErrorAction SilentlyContinue
+        $global:LASTEXITCODE = 0
+        & $prePushScript -Root $hookRoot -ChangedPaths $Paths 6> $null
+        if ($LASTEXITCODE -ne 0) { throw "pre-push exited $LASTEXITCODE for $($Paths -join ', ')" }
+    }
+
+    # The control: a file no gate reads runs no gate, so a marker below is the routing talking.
+    Invoke-Hook -Paths @('CONTRIBUTING.md')
+    Assert-True (-not (Test-Path -LiteralPath $factsMarker)) `
+        'The release check ran for a push that changed nothing it reads.'
+
+    Invoke-Hook -Paths @('release-receipt-0.31.0.json')
+    Assert-True (Test-Path -LiteralPath $factsMarker) `
+        'A push that changed only the release receipt ran no release check.'
+    Assert-True ((Get-Content -LiteralPath $factsMarker -Raw) -like 'lag=True*') `
+        'A receipt-only push took the strict published-index path.'
+
+    Invoke-Hook -Paths @('scripts/manifest-delta-allowlist.txt')
+    Assert-True (Test-Path -LiteralPath $factsMarker) `
+        'A push that changed only the manifest delta allowlist ran no release check.'
+    Assert-True (Test-Path -LiteralPath $contractsMarker) `
+        'A push that changed the manifest delta allowlist skipped the script contract tests.'
+
+    Invoke-Hook -Paths @('CHANGELOG.md')
+    Assert-True (Test-Path -LiteralPath $factsMarker) `
+        'A push that changed only the CHANGELOG ran no release check.'
+
+    Invoke-Hook -Paths @('patches-bundle.json')
+    Assert-True (Test-Path -LiteralPath $factsMarker) 'An index change ran no release check.'
+    Assert-True ((Get-Content -LiteralPath $factsMarker -Raw) -like 'lag=False*') `
+        'An index change was allowed to lag behind the published release.'
+
+    # The build branch, which runs the Gradle gates that hold the Bouncy Castle graphs to the
+    # reviewed release. Starting a real build from a contract test would be absurd, so the case
+    # reads the first thing that branch does instead: with no GitHub credentials and no gh on
+    # the path, it refuses by name, and nothing else in the hook says that. A push that moved
+    # only a pin used to take the release path and never reach this.
+    $savedPath = $env:PATH
+    $savedActor = $env:GITHUB_ACTOR
+    $savedToken = $env:GITHUB_TOKEN
+    try {
+        $env:PATH = $hookRoot
+        $env:GITHUB_ACTOR = $null
+        $env:GITHUB_TOKEN = $null
+        foreach ($pin in @('gradle/libs.versions.toml', 'gradle/verification-metadata.xml',
+                'settings.gradle.kts', 'build.gradle.kts', 'patches/build.gradle.kts')) {
+            Assert-Throws { & $prePushScript -Root $hookRoot -ChangedPaths @($pin) 6> $null } `
+                '*GITHUB_ACTOR*' "A push that changed $pin did not reach the build gates."
+        }
+        # And the control: a file the build branch has no interest in must not reach it.
+        & $prePushScript -Root $hookRoot -ChangedPaths @('CONTRIBUTING.md') 6> $null
+        Assert-True ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) `
+            'A file no gate reads was routed into the build gates.'
+    } finally {
+        $env:PATH = $savedPath
+        $env:GITHUB_ACTOR = $savedActor
+        $env:GITHUB_TOKEN = $savedToken
+    }
+} finally {
+    $env:HUSHFEED_SKIP_PRE_PUSH = $savedSkip
+    Remove-Item -LiteralPath $hookRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+Write-Host '[scripts] pre-push routing contracts passed'
+
+# --- Test-ChangelogVersions ------------------------------------------------------------------
+#
+# A released version's heading is the only record a reader has that it shipped. On 2026-09-14 a
+# post-release commit renamed "## 0.31.0" to "## Unreleased" and the file then said that release
+# never happened; nothing read this file at all. Both directions are exercised here, and the
+# real CHANGELOG is the control.
+
+$headingShapes = @"
+## 0.32.0
+some text
+## 0.31.0 (2026-09-14)
+more text
+## [0.1.5](https://example.invalid/compare/v0.1.4...v0.1.5) (2026-06-01)
+older text
+"@
+$shapes = @(Get-ChangelogVersions -Text $headingShapes)
+Assert-True (($shapes -join ',') -eq '0.32.0,0.31.0,0.1.5') `
+    "The heading shapes this file uses were not all read: $($shapes -join ',')"
+Assert-True (@(Get-ChangelogVersions -Text "## Unreleased`n## Notes").Count -eq 0) `
+    'A heading that names no version was read as one.'
+
+$previousChangelog = "## 0.31.0`nshipped`n## 0.30.2`nshipped"
+$goodChangelog = "## 0.32.0`nnew`n" + $previousChangelog
+$good = Test-ChangelogVersions -Current $goodChangelog -ExpectedVersion '0.32.0' `
+    -Previous $previousChangelog -PreviousLabel 'tag v0.31.0'
+Assert-True $good.Valid "A CHANGELOG that kept every shipped version was refused: $($good.Reason)"
+
+# The 2026-09-14 defect, exactly: the previous version's heading renamed to Unreleased.
+$renamed = Test-ChangelogVersions -Current ("## 0.32.0`nnew`n## Unreleased`nshipped`n## 0.30.2`nshipped") `
+    -ExpectedVersion '0.32.0' -Previous $previousChangelog -PreviousLabel 'tag v0.31.0'
+Assert-True (-not $renamed.Valid) 'A released version renamed to Unreleased was accepted.'
+Assert-True ($renamed.Reason -like '*0.31.0*tag v0.31.0*') `
+    "The renamed heading was refused for the wrong reason: $($renamed.Reason)"
+
+$dropped = Test-ChangelogVersions -Current "## 0.32.0`nnew`n## 0.31.0`nshipped" `
+    -ExpectedVersion '0.32.0' -Previous $previousChangelog
+Assert-True (-not $dropped.Valid) 'A shipped version deleted from the CHANGELOG was accepted.'
+
+$noHeading = Test-ChangelogVersions -Current $previousChangelog -ExpectedVersion '0.32.0' `
+    -Previous $previousChangelog
+Assert-True (-not $noHeading.Valid) 'A CHANGELOG with no heading for the built version was accepted.'
+Assert-True ($noHeading.Reason -like '*no heading for 0.32.0*') `
+    "The missing heading was refused for the wrong reason: $($noHeading.Reason)"
+
+Assert-True (-not (Test-ChangelogVersions -Current "# Changelog`nnothing here" -ExpectedVersion '0.32.0').Valid) `
+    'A CHANGELOG naming no version at all was accepted.'
+
+# With no earlier file to compare against, the version being built is still required and a
+# CHANGELOG that has it is still accepted. A first release has no tag behind it.
+Assert-True (Test-ChangelogVersions -Current $goodChangelog -ExpectedVersion '0.32.0').Valid `
+    'A checkout with no earlier tag was refused.'
+
+# The control. The real file, held to the real version, must pass: every case above is this
+# same shape with one heading moved.
+$realVersion = Get-BundleVersion -Root $Root
+$realChangelog = Get-Content -LiteralPath (Join-Path $Root 'CHANGELOG.md') -Raw
+$realTag = "$(& git -C $Root describe --tags --abbrev=0 HEAD 2>$null | Select-Object -First 1)".Trim()
+$realPrevious = if ($realTag) { (& git -C $Root show "${realTag}:CHANGELOG.md" 2>$null) -join "`n" } else { '' }
+$realCheck = if ([string]::IsNullOrWhiteSpace($realPrevious)) {
+    Test-ChangelogVersions -Current $realChangelog -ExpectedVersion $realVersion
+} else {
+    Test-ChangelogVersions -Current $realChangelog -ExpectedVersion $realVersion -Previous $realPrevious
+}
+Assert-True $realCheck.Valid "This repository's own CHANGELOG was refused: $($realCheck.Reason)"
+
+Write-Host '[scripts] changelog history contracts passed'
+
+# --- Resolve-D8 ------------------------------------------------------------------------------
+#
+# The build-tools directory is chosen by version number. Sorted as text, 9.0.0 wins over 37.0.0
+# and 100.0.0 loses to it; the installed set happens to be 34 through 37, which is why nobody
+# had seen it pick wrong.
+
+. (Join-Path $PSScriptRoot 'injected-register-contracts.ps1')
+$sdkRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("hushfeed-sdk-" + [guid]::NewGuid().ToString('N'))
+try {
+    $checkout = Join-Path $sdkRoot 'checkout'
+    $sdk = Join-Path $sdkRoot 'sdk'
+    foreach ($version in @('9.0.0', '37.0.0', '100.0.0', 'not-a-version')) {
+        $tools = Join-Path (Join-Path $sdk 'build-tools') $version
+        New-Item -ItemType Directory -Path $tools -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $tools 'd8.bat') -Value '@echo off' -Encoding ASCII
+    }
+    # 38.0.0 is there but carries no d8, so it must not be picked over 37.0.0.
+    New-Item -ItemType Directory -Path (Join-Path (Join-Path $sdk 'build-tools') '38.0.0') -Force | Out-Null
+    New-Item -ItemType Directory -Path $checkout -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $checkout 'local.properties') -Encoding ASCII `
+        -Value ('sdk.dir=' + ($sdk -replace '\\', '\\'))
+
+    $chosen = Resolve-D8 -Root $checkout
+    Assert-True ($chosen -like '*100.0.0*d8.bat') "Resolve-D8 chose $chosen, not the newest build-tools by version."
+
+    Remove-Item -LiteralPath (Join-Path (Join-Path $sdk 'build-tools') '100.0.0') -Recurse -Force
+    $chosen = Resolve-D8 -Root $checkout
+    Assert-True ($chosen -like '*37.0.0*d8.bat') "Resolve-D8 chose $chosen over 37.0.0; 9.0.0 sorts above it as text."
+
+    $explicit = Join-Path (Join-Path (Join-Path $sdk 'build-tools') '9.0.0') 'd8.bat'
+    Assert-True ((Resolve-D8 -Explicit $explicit -Root $checkout) -eq $explicit) `
+        'An explicit d8 path was not honoured.'
+    Assert-Throws { Resolve-D8 -Root (Join-Path $sdkRoot 'nowhere') } '*local.properties*' `
+        'A checkout with no local.properties resolved a d8 from somewhere.'
+} finally {
+    Remove-Item -LiteralPath $sdkRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+Write-Host '[scripts] d8 resolution contracts passed'
+
+# --- common.ps1 ------------------------------------------------------------------------------
+#
+# The helpers four release scripts used to carry copies of. They had already drifted: the
+# cleanup helper recursed unconditionally in one script and only on request in another, and two
+# of the four version reads were missing -LiteralPath, which turns a repository path holding a
+# bracket into a wildcard that matches nothing.
+
+$commonRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("hushfeed-common-" + [guid]::NewGuid().ToString('N'))
+$savedJar = $env:HUSHFEED_DESKTOP_JAR
+$savedWork = $env:HUSHFEED_WORKDIR
+try {
+    New-Item -ItemType Directory -Path $commonRoot -Force | Out-Null
+    $work = Join-Path $commonRoot 'work'
+    New-Item -ItemType Directory -Path $work -Force | Out-Null
+
+    # The path guard, which is what keeps a generated name from reaching outside the directory
+    # the caller owns.
+    $inside = Resolve-WithinRoot -Path (Join-Path $work 'run/output.apk') -Root $work
+    Assert-True ($inside -like "$work*") 'A path inside the work directory was refused.'
+    Assert-Throws { Resolve-WithinRoot -Path (Join-Path $commonRoot 'elsewhere.apk') -Root $work } `
+        '*outside the work directory*' 'A path outside the work directory was accepted.'
+    Assert-Throws { Resolve-WithinRoot -Path (Join-Path $work '..\escape.apk') -Root $work } `
+        '*outside the work directory*' 'A path that climbs out with .. was accepted.'
+    # The prefix trap: a sibling directory whose name starts with the work directory's name.
+    Assert-Throws { Resolve-WithinRoot -Path ($work + '-other\file.apk') -Root $work } `
+        '*outside the work directory*' 'A sibling sharing the name prefix was accepted as inside.'
+
+    # Cleanup, recursive by default, and refusing anything outside the work directory.
+    $tree = Join-Path $work 'run/deep'
+    New-Item -ItemType Directory -Path $tree -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $tree 'leaf.txt') -Value 'x' -Encoding ASCII
+    Remove-GeneratedPath -Path (Join-Path $work 'run') -Root $work
+    Assert-True (-not (Test-Path -LiteralPath (Join-Path $work 'run'))) `
+        'A generated directory tree was left behind by the default cleanup.'
+
+    $single = Join-Path $work 'one.txt'
+    Set-Content -LiteralPath $single -Value 'x' -Encoding ASCII
+    Remove-GeneratedPath -Path $single -Root $work -NoRecurse
+    Assert-True (-not (Test-Path -LiteralPath $single)) 'A single generated file was not removed.'
+
+    $outside = Join-Path $commonRoot 'keep.txt'
+    Set-Content -LiteralPath $outside -Value 'x' -Encoding ASCII
+    Remove-GeneratedPath -Path $outside -Root $work -WarningAction SilentlyContinue
+    Assert-True (Test-Path -LiteralPath $outside) 'Cleanup deleted a path outside the work directory.'
+    # A path that is simply not there is nothing to do, not a failure.
+    Remove-GeneratedPath -Path (Join-Path $work 'never-existed') -Root $work
+
+    # The version read. -LiteralPath is the difference that had already drifted, so the fixture
+    # directory carries the bracket that makes a wildcard read find nothing.
+    $bracketRoot = Join-Path $commonRoot 'repo [1]'
+    New-Item -ItemType Directory -Path $bracketRoot -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $bracketRoot 'gradle.properties') -Encoding ASCII -Value @(
+        'org.gradle.caching = true', 'version = 9.9.9', 'android.useAndroidX = true')
+    Assert-True ((Get-BundleVersion -Root $bracketRoot) -eq '9.9.9') `
+        'The version read failed on a path containing a bracket.'
+    Assert-Throws { Get-BundleVersion -Root (Join-Path $commonRoot 'no-such-repo') } `
+        '*no gradle.properties*' 'A missing gradle.properties was not reported.'
+    Set-Content -LiteralPath (Join-Path $bracketRoot 'gradle.properties') -Value 'name = x' -Encoding ASCII
+    Assert-Throws { Get-BundleVersion -Root $bracketRoot } '*names no version*' `
+        'A gradle.properties with no version was accepted.'
+    Set-Content -LiteralPath (Join-Path $bracketRoot 'gradle.properties') -Value 'version =' -Encoding ASCII
+    Assert-Throws { Get-BundleVersion -Root $bracketRoot } '*empty version*' `
+        'A gradle.properties with an empty version was accepted.'
+
+    # The desktop CLI lookup, which was two functions with different search orders. The jar
+    # ships under its version, so the newest by write time is taken: sorting names as text puts
+    # 1.9.0 above 1.15.0.
+    $env:HUSHFEED_DESKTOP_JAR = $null
+    $env:HUSHFEED_WORKDIR = $null
+    $tools = Join-Path $commonRoot 'repo/build/morphe-tools'
+    New-Item -ItemType Directory -Path $tools -Force | Out-Null
+    $older = Join-Path $tools 'morphe-desktop-1.9.0-all.jar'
+    $newer = Join-Path $tools 'morphe-desktop-1.15.0-all.jar'
+    Set-Content -LiteralPath $older -Value 'old' -Encoding ASCII
+    Set-Content -LiteralPath $newer -Value 'new' -Encoding ASCII
+    (Get-Item -LiteralPath $older).LastWriteTime = (Get-Date).AddDays(-2)
+    (Get-Item -LiteralPath $newer).LastWriteTime = (Get-Date)
+    $repoRoot = Join-Path $commonRoot 'repo'
+    Assert-True ((Resolve-DesktopCli -Root $repoRoot) -eq $newer) `
+        'The desktop CLI lookup did not take the newest jar by write time.'
+
+    Assert-True ($null -eq (Resolve-DesktopCli -Root (Join-Path $commonRoot 'empty'))) `
+        'The lookup invented a jar where there is none.'
+    Assert-Throws { Resolve-DesktopCli -Root (Join-Path $commonRoot 'empty') -Required } `
+        '*No Morphe desktop CLI*' 'A required lookup with nothing to find did not say so.'
+    Assert-Throws { Resolve-DesktopCli -Explicit (Join-Path $commonRoot 'absent.jar') -Root $repoRoot } `
+        '*at the path given*' 'A named jar that is not there was quietly replaced by a search.'
+    Assert-True ((Resolve-DesktopCli -Explicit $older -Root $repoRoot) -eq $older) `
+        'An explicitly named jar was not honoured.'
+
+    $env:HUSHFEED_DESKTOP_JAR = $newer
+    Assert-True ((Resolve-DesktopCli -Root $repoRoot) -eq $newer) `
+        'HUSHFEED_DESKTOP_JAR was not read.'
+} finally {
+    $env:HUSHFEED_DESKTOP_JAR = $savedJar
+    $env:HUSHFEED_WORKDIR = $savedWork
+    Remove-Item -LiteralPath $commonRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+Write-Host '[scripts] shared helper contracts passed'
 
 $global:LASTEXITCODE = 0
 Write-Host '[scripts] report, target, Java and guarded replacement contracts passed'

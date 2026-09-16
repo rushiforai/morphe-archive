@@ -14,6 +14,8 @@
 <p align="center">
   <a href="https://morphe.software/add-source?github=kveld9/kveld-morphe-patches"><img src="https://img.shields.io/badge/Morphe_Manager-Add_Patch_Source-8A2BE2?style=for-the-badge&logo=android&logoColor=white" alt="Add Source to Morphe Manager" /></a>
   &nbsp;&nbsp;
+  <a href="https://t.me/kveldmorphe"><img src="https://img.shields.io/badge/Telegram-Official_Support-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Official Telegram Support Group" /></a>
+  &nbsp;&nbsp;
   <a href="https://github.com/kveld9/kveld-morphe-patches/releases/latest"><img src="https://img.shields.io/badge/Direct_Download-Get_.MPP_Bundle-0070F3?style=for-the-badge&logo=github&logoColor=white" alt="Download Latest Release" /></a>
 </p>
 
@@ -168,7 +170,7 @@
 </details>
 
 <details>
-<summary>TikTok&nbsp;&nbsp;•&nbsp;&nbsp;<b>17 patches</b></summary>
+<summary>TikTok&nbsp;&nbsp;•&nbsp;&nbsp;<b>18 patches</b></summary>
 <br>
 
 **Supported versions:**
@@ -183,6 +185,7 @@
 | **Device Privacy Guard** | Neutralizes background clipboard snooping routines and blocks screenshot/recording detection listeners to protect user data from unauthorized tracking and popup modals. |  |
 | **Disable Push Notifications** | Neutralizes background push notification tasks and persistent socket wake locks to eliminate background battery drain. |  |
 | **Feed Ad Blocker** | Removes sponsored advertisements, brand promotions, and promotional audio from the For You and Following feeds. |  |
+| **Feed Bloat & Distraction Blocker** | Removes non-video clutter from the For You and Following feeds, including suggested friend cards, mini-games, CapCut/template creation prompts, memories ('On This Day'), surveys, mini-drama paywalls, and Lemon8 promo tasks. |  |
 | **Feed Live Stream Blocker** | Removes live stream broadcast cards and live recommendations from the For You and Following feeds. |  |
 | **Hide TikTok Shop Anchors** | Removes product showcase badges, shopping cart tags, and TikTok Shop commercial anchors from video posts in the feed. |  |
 | **Instant Launch & Splash Blocker** | Eliminates cold startup delays, real-time splash advertisements, and background TopView preloading (<0.4s launch). |  |
@@ -228,6 +231,14 @@ Comprehensive technical references and setup manuals have been modularized for f
 | ⚙️ **[Patch Configuration & Options](docs/patch-configuration.md)** | Detailed guides for `Clipboard Enhancements` (retention & layout), `Locale Slimmer`, and `DPI Resource Slimmer`. |
 | 🛡️ **[Architecture & Security Notes](docs/architecture-security.md)** | Explanation of privacy scanner false positives (ML Kit / Play Billing) and native ELF/Dalvik telemetry neutralization. |
 | 🛠️ **[Building & Development](docs/building.md)** | Toolchain prerequisites, Gradle build tasks, test execution, and catalog synchronization. |
+
+---
+
+## 💬 Community & Support
+
+Need assistance, have questions regarding patch configurations, or want to discuss updates? Join the official support group on Telegram:
+
+- 💬 **Official Support Group**: [t.me/kveldmorphe](https://t.me/kveldmorphe)
 
 ---
 

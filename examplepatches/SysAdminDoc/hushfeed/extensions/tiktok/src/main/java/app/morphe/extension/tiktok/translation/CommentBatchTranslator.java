@@ -1,3 +1,7 @@
+/*
+ * Copyright 2026 icysymmetra/tiktok-patches-for-morphe contributors
+ * https://github.com/icysymmetra/tiktok-patches-for-morphe
+ */
 package app.morphe.extension.tiktok.translation;
 
 import android.content.Context;
@@ -8,6 +12,7 @@ import android.os.SystemClock;
 import android.view.View;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.tiktok.settings.Settings;
@@ -18,6 +23,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -96,6 +102,44 @@ public final class CommentBatchTranslator {
     private static volatile boolean nativeTargetLanguageLookedUp;
     private static volatile boolean nativeDoNotTranslateLookedUp;
 
+    /**
+     * The Hook status family for the four places TikTok calls into this.
+     *
+     * <p>Each of them reads a member of an object this code did not declare, and a build that
+     * renames one leaves the switch on with nothing happening behind it, which is the failure
+     * the Diagnostics row exists to name. The readers further in do not report: they walk
+     * whatever they are handed and take what is there, so a member that is absent is an answer
+     * rather than a miss.
+     *
+     * <p>The cell anchor is the one report that comes from a search rather than a named member,
+     * so it is held to a stricter rule: it is reported once, and only while no cell has ever
+     * resolved. A single bind that arrives before the manager's fields are set is a race, not a
+     * broken build, and a miss is never retracted once the row has it.
+     */
+    private static final String FAMILY = "comment translation";
+
+    /**
+     * What each cell manager class has done, so a miss is judged against that class rather than
+     * against the first one that happened to work.
+     *
+     * <p>Kept per class for two reasons. A build that renames the members on one cell type and
+     * not another would otherwise be reported for neither, once any other type resolved. And a
+     * single bind that lands before a manager's fields are set is a race, so a class is only
+     * reported after it has missed twice running, which a renamed member does immediately and a
+     * race never does.
+     */
+    private static final Map<String, AnchorHistory> CELL_ANCHORS = new HashMap<>();
+
+    /** A cap, because the key is a host class name and this must not grow without bound. */
+    private static final int MAX_TRACKED_MANAGERS = 32;
+
+    private static final class AnchorHistory {
+        boolean resolved;
+        int missesRunning;
+        /** The row generation this class was last reported in, or -1. A clear starts a new one. */
+        long reportedGeneration = -1;
+    }
+
     private CommentBatchTranslator() {
     }
 
@@ -106,7 +150,14 @@ public final class CommentBatchTranslator {
 
         try {
             AnchorParts parts = resolveAnchorParts(manager);
-            if (parts == null) return;
+            if (parts == null) {
+                // Nothing on the cell's manager looks like a comment plus a native translator,
+                // so every comment of this kind takes this path and the feature does nothing.
+                noteCellAnchorMiss(manager.getClass().getName());
+                return;
+            }
+            noteCellAnchorResolved(manager.getClass().getName());
+            HookStatus.bound(FAMILY, "cell anchor");
             Object comment = parts.comment;
             Object context = parts.context;
 
@@ -127,6 +178,52 @@ public final class CommentBatchTranslator {
         }
     }
 
+    /**
+     * Remembers that a cell of this manager class could not be read, and reports it once the
+     * class has missed twice running in the current generation of the Diagnostics row.
+     *
+     * <p>Not reported on the first miss: the anchor is found by searching the manager's fields,
+     * so a bind that arrives before they are set misses on a host that works, and a miss is
+     * never retracted once the row has it. Not reported per bind either: this runs for every
+     * comment on a scrolling list, and {@code HookStatus} builds a miss's key before it checks
+     * whether it already has it.
+     */
+    private static void noteCellAnchorMiss(String manager) {
+        boolean report = false;
+        synchronized (CELL_ANCHORS) {
+            AnchorHistory history = CELL_ANCHORS.get(manager);
+            if (history == null) {
+                if (CELL_ANCHORS.size() >= MAX_TRACKED_MANAGERS) return;
+                history = new AnchorHistory();
+                CELL_ANCHORS.put(manager, history);
+            }
+            if (history.resolved) return;
+            history.missesRunning++;
+            long generation = HookStatus.generation();
+            if (history.missesRunning >= 2 && history.reportedGeneration != generation) {
+                history.reportedGeneration = generation;
+                report = true;
+            }
+        }
+        if (report) {
+            HookStatus.missingMember(FAMILY, "field", manager, "comment and native translator");
+        }
+    }
+
+    /** A cell of this manager class was read, so nothing about this class is a host failure. */
+    private static void noteCellAnchorResolved(String manager) {
+        synchronized (CELL_ANCHORS) {
+            AnchorHistory history = CELL_ANCHORS.get(manager);
+            if (history == null) {
+                if (CELL_ANCHORS.size() >= MAX_TRACKED_MANAGERS) return;
+                history = new AnchorHistory();
+                CELL_ANCHORS.put(manager, history);
+            }
+            history.resolved = true;
+            history.missesRunning = 0;
+        }
+    }
+
     public static void onCommentListLoaded(Object commentItemList) {
         if (!Settings.COMMENT_BATCH_TRANSLATION.get()) return;
         if (commentItemList == null) return;
@@ -134,10 +231,13 @@ public final class CommentBatchTranslator {
         try {
             Object itemsObject = readField(commentItemList, "items");
             if (!(itemsObject instanceof List)) {
+                HookStatus.missingMember(FAMILY, "field", commentItemList.getClass().getName(),
+                        "items");
                 Logger.printDebug(() -> "[Morphe CommentBatchTranslator] loaded.batch ignored items="
                         + className(itemsObject));
                 return;
             }
+            HookStatus.bound(FAMILY, "comment list items");
 
             List<?> items = (List<?>) itemsObject;
             ArrayList<Object> comments = new ArrayList<>();
@@ -194,12 +294,21 @@ public final class CommentBatchTranslator {
             }
 
             translateLoadedBatchIfReady(lastManager.get(), false);
+        } catch (NoSuchFieldException ex) {
+            // The list this build hands over carries no items field at all, which is the same
+            // dead end as one holding something other than a list.
+            HookStatus.missingMember(FAMILY, "field", commentItemList.getClass().getName(), "items");
+            Logger.printDebug(() -> "[Morphe CommentBatchTranslator] loaded.batch has no items",
+                    asException(ex));
         } catch (Throwable ex) {
             Logger.printDebug(() -> "[Morphe CommentBatchTranslator] loaded.batch failed", asException(ex));
         }
     }
 
     public static void onNativeBatchStart(Object comments, Object context, boolean forceWithoutAweme) {
+        // Above the debug gate: this is the only sign that the patch's call site still exists,
+        // and a reader reporting a broken build has debug off.
+        HookStatus.bound(FAMILY, "native batch start");
         if (!BaseSettings.DEBUG.get()) return;
 
         Logger.printInfo(() -> "[Morphe CommentBatchTranslator] native.start"
@@ -217,14 +326,34 @@ public final class CommentBatchTranslator {
         
         completionsHandledForTests++;
         if (runner != null && findField(runner.getClass(), "l0") == null) {
+            HookStatus.missingMember(FAMILY, "field", runner.getClass().getName(), "l0");
             // The field holding the results is gone, which is what a host update looks like.
             // Every batch would read as a failure from here on, so the feature stands down for
             // the session instead of asking again three times for every batch on every list.
             disableForSession(runner);
             return;
         }
+        if (runner != null) {
+            HookStatus.bound(FAMILY, "batch results");
+            // The results field is checked above; these two are read quietly further down, and a
+            // build that renames either leaves every batch unmatched with the switch still on.
+            // Asked of the class rather than the value: a field that is present and null is a
+            // moment in a batch's life, a field that is gone is a host update.
+            if (findField(runner.getClass(), "l1") == null) {
+                HookStatus.missingMember(FAMILY, "field", runner.getClass().getName(), "l1");
+            } else {
+                HookStatus.bound(FAMILY, "batch task");
+            }
+        }
         Object results = readFieldQuiet(runner, "l0");
         Object task = readFieldQuiet(runner, "l1");
+        if (task != null) {
+            if (findField(task.getClass(), "LIZ") == null) {
+                HookStatus.missingMember(FAMILY, "field", task.getClass().getName(), "LIZ");
+            } else {
+                HookStatus.bound(FAMILY, "requested comments");
+            }
+        }
         Object requested = readFieldQuiet(task, "LIZ");
         Set<String> requestedCids = commentIds(requested);
         boolean succeeded = results != null && !hasCompletionFailure(runner, task);

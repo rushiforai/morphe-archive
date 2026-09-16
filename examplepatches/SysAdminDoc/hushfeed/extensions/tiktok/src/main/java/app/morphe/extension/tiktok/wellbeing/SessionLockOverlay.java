@@ -54,7 +54,18 @@ public final class SessionLockOverlay {
     private static final int[] ROOT_POSITION = new int[2];
     private static final int[] NAVIGATION_POSITION = new int[2];
     /** What each view behind the panel said about itself before the hold covered it. */
-    private static final java.util.WeakHashMap<View, Integer> previousAccessibilityImportance =
+    /** What a curtained child was, and which panels are over it. */
+    private static final class Curtained {
+        final int previous;
+        final java.util.Set<View> panels = java.util.Collections.newSetFromMap(
+                new java.util.WeakHashMap<>());
+
+        Curtained(int previous) {
+            this.previous = previous;
+        }
+    }
+
+    private static final java.util.WeakHashMap<View, Curtained> previousAccessibilityImportance =
             new java.util.WeakHashMap<>();
     private static WeakReference<TextView> remainingReference = new WeakReference<>(null);
     private static WeakReference<TextView> releaseReference = new WeakReference<>(null);
@@ -168,6 +179,12 @@ public final class SessionLockOverlay {
             overlay.setVisibility(View.VISIBLE);
             if (goingUp) hideBehind(parentOf(overlay), overlay, true);
             if (goingUp) requestQuiet();
+            if (goingUp && before == overlay && Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                // A retained panel shown again after the reader was away on messages or search.
+                // From P the pane title announces the arrival each time; before it, the one
+                // announcement made at attach has already been spent.
+                overlay.announceForAccessibility(SessionBudgetNotice.spentMessage());
+            }
             // Only as the panel goes up. Whether there is an Inbox tab changes when TikTok
             // rebuilds its tab bar, not second by second, and for a reader who has hidden Inbox
             // the answer is a failed lookup every time: asking on every tick would be a walk of
@@ -591,22 +608,34 @@ public final class SessionLockOverlay {
      *
      * <p>The panel covers the feed for anyone looking at it, and covers nothing at all for
      * anyone swiping through it with a screen reader. Each view's own setting is kept so that
-     * putting it back does not hand TikTok a value this project invented.
+     * putting it back does not hand TikTok a value this project invented. Shared with the
+     * catcher {@code PausePlayback} puts up on returning to the app, which is the same shape:
+     * one view over the content root that has to be the only thing on the page.
      */
-    private static void hideBehind(ViewGroup root, View panel, boolean hidden) {
+    public static void hideBehind(ViewGroup root, View panel, boolean hidden) {
         if (root == null) return;
         for (int index = 0; index < root.getChildCount(); index++) {
             View child = root.getChildAt(index);
             if (child == panel) continue;
             if (hidden) {
-                if (!previousAccessibilityImportance.containsKey(child)) {
-                    previousAccessibilityImportance.put(child, child.getImportantForAccessibility());
+                Curtained state = previousAccessibilityImportance.get(child);
+                if (state == null) {
+                    state = new Curtained(child.getImportantForAccessibility());
+                    previousAccessibilityImportance.put(child, state);
                 }
+                // Per panel, not a flag: the hold panel and the tap catcher share this, and
+                // the later one lifting must not hand the feed back while the earlier one is
+                // up. A panel curtaining twice, as the hold does on a relayout, counts once.
+                state.panels.add(panel);
                 child.setImportantForAccessibility(
                         View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
             } else {
-                Integer previous = previousAccessibilityImportance.remove(child);
-                if (previous != null) child.setImportantForAccessibility(previous);
+                Curtained state = previousAccessibilityImportance.get(child);
+                if (state == null) continue;
+                state.panels.remove(panel);
+                if (!state.panels.isEmpty()) continue;
+                previousAccessibilityImportance.remove(child);
+                child.setImportantForAccessibility(state.previous);
             }
         }
     }

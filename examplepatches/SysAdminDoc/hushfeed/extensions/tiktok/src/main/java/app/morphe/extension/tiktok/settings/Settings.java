@@ -39,8 +39,40 @@ public class Settings extends BaseSettings {
         }
     }
 
-    public static final BooleanSetting REGION_SPOOF = new BooleanSetting("region_spoof", FALSE, true);
-    public static final BooleanSetting REGION_STORE_SPOOF = new BooleanSetting("region_store_spoof", FALSE, true);
+    public static final BooleanSetting REGION_SPOOF = new BooleanSetting(
+            "region_spoof",
+            FALSE,
+            true,
+            // Not Setting.parent(SIM_SPOOF): that switch is declared further down this file and
+            // a static initializer cannot read it yet. Naming it inside the methods is the same
+            // dependency, read when it is asked for rather than when this line runs. The order
+            // of the declarations is what a settings backup writes its keys in, so it stays.
+            new Setting.Availability() {
+                @Override public boolean isAvailable() {
+                    return SIM_SPOOF.get();
+                }
+
+                @Override public java.util.List<Setting<?>> getParentSettings() {
+                    return java.util.Collections.singletonList(SIM_SPOOF);
+                }
+            }
+    );
+    public static final BooleanSetting REGION_STORE_SPOOF = new BooleanSetting(
+            "region_store_spoof",
+            FALSE,
+            true,
+            // Both switches, and the nearer one is the one the row names: Match locale is itself
+            // greyed until Override SIM details is on, so a reader is never sent two steps back.
+            new Setting.Availability() {
+                @Override public boolean isAvailable() {
+                    return SIM_SPOOF.get() && REGION_SPOOF.get();
+                }
+
+                @Override public java.util.List<Setting<?>> getParentSettings() {
+                    return java.util.Collections.singletonList(REGION_SPOOF);
+                }
+            }
+    );
     public static final BooleanSetting FOLDABLE_SPLIT_VIEW = new BooleanSetting("foldable_split_view", FALSE, true);
     public static final IntegerSetting FOLDABLE_SPLIT_VIEW_MIN_WIDTH_DP = new IntegerSetting("foldable_split_view_min_width_dp", 600, true).withRange(320, 1600);
     public static final BooleanSetting DOWNLOAD_SUBTITLES = new BooleanSetting("download_subtitles", FALSE);
@@ -389,6 +421,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hide_feed_follow_button", FALSE, true);
     public static final BooleanSetting HIDE_FEED_SAVE_BUTTON =
             new BooleanSetting("hide_feed_save_button", FALSE, true);
+    public static final BooleanSetting KEEP_FAVORITES_TAB =
+            new BooleanSetting("keep_favorites_tab", TRUE, true);
     public static final BooleanSetting HIDE_FEED_SEARCH_BUTTON =
             new BooleanSetting("hide_feed_search_button", FALSE, true);
     public static final BooleanSetting HIDE_VISUAL_SEARCH = new BooleanSetting("hide_visual_search", FALSE);

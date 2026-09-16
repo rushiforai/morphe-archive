@@ -21,9 +21,9 @@ Contributor docs: [development guide](docs/development.md) (start here),
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.0](https://github.com/zeldrisho/morphe-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;15 patches total
+> **[v1.4.0](https://github.com/zeldrisho/morphe-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;16 patches total
 <details open>
-<summary>📦 Zalo&nbsp;&nbsp;•&nbsp;&nbsp;11 patches</summary>
+<summary>📦 Zalo&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -42,6 +42,7 @@ Contributor docs: [development guide](docs/development.md) (start here),
 | Filter promo notifications | Skips Zalo Timeline/Stories and Zalo Video push notifications (like/comment digests, new feeds/stories, video reminders) in the push dispatcher. Message, call, friend-request and birthday notifications are untouched; reaction/activity pushes on other channels may remain. |  |
 | Hide Business Box | Removes Zalo's Business Box service entry from the main chat list without filtering ordinary conversations or user-initiated Official Account chats. |  |
 | Keep expired media accessible | Keeps locally stored large chat media usable after Zalo's client-side expiry window by bypassing the expired/subscription state. It does not restore missing files or bypass server download authorization. |  |
+| Prefer original photo quality | Enables Zalo's existing original-quality photo path. It does not change picker defaults, server upload limits, account restrictions, or video handling. |  |
 | Remove AD_ID permission | Removes the advertising-id (AD_ID) permissions from Zalo so the device advertising id cannot be read for ad tracking. In-app readers fall back to "unknown"; core messaging is unaffected. |  |
 | microG Drive support | Adds Zalo launch/provider checks and redirects Google Drive account selection and token binding to microG-RE (app.revanced / app.revanced.android.gms). Initial photo restore and the complete backup/restore cycle were device-validated on Zalo 26.08.01. |  |
 

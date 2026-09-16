@@ -4,6 +4,15 @@ Release and changelog policy: [docs/release.md](docs/release.md#changelog-policy
 
 ## Unreleased
 
+## [1.4.0](https://github.com/zeldrisho/morphe-patches/compare/v1.3.0...v1.4.0) (2026-09-15)
+
+### ✨ New Features
+* **Zalo - Prefer original photo quality:** Enables Zalo's existing original-quality photo path for `26.08.01`; picker defaults, video handling, server limits, and account restrictions are unchanged.
+
+### 🐛 Bug Fixes
+* **Zalo - Keep expired media accessible:** Fixes patching Zalo `26.08.01` APKMirror bundles by matching the final media-status classifier method correctly.
+* **Zalo - microG Drive support:** Delays the first Drive refresh after account selection so photo backup works without reopening the backup screen.
+
 ## [1.3.0](https://github.com/zeldrisho/morphe-patches/compare/v1.2.0...v1.3.0) (2026-09-14)
 
 ### ✨ New Features

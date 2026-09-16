@@ -1,5 +1,6 @@
 package app.template.patches.steamlink.androidxr
 
+import app.template.patches.shared.Constants.isHighResolutionSteamLinkBuild
 import java.io.File
 import java.security.MessageDigest
 import kotlin.test.Test
@@ -150,6 +151,15 @@ class AndroidSurfaceTriggerResourceTest {
         assertEquals(
             ANDROID_SURFACE_TRIGGER_LIBRARY,
             androidSurfaceTriggerResourceLibraryForBuild("2.0.22", "5001712"),
+        )
+        assertTrue(isHighResolutionSteamLinkBuild("2.0.23", "5002363"))
+        assertFalse(isHighResolutionSteamLinkBuild("2.0.22", "5002363"))
+        assertFalse(isHighResolutionSteamLinkBuild("2.0.23", "5002322"))
+        val modernResource = androidSurfaceTriggerResourceLibraryForBuild("2.0.23", "5002363")
+        assertEquals(ANDROID_SURFACE_TRIGGER_LIBRARY, modernResource)
+        assertContentEquals(
+            projectionModeResource(androidSurfaceTriggerResourceLibraryForBuild("2.0.22", "5002322")),
+            projectionModeResource(modernResource),
         )
     }
 

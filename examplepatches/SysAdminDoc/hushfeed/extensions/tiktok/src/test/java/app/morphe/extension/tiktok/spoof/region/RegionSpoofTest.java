@@ -24,6 +24,9 @@ import org.robolectric.annotation.GraphicsMode;
 @Config(sdk = {23, 28})
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class RegionSpoofTest {
+    /** The newest API in the @Config above, and the only run that publishes a picture. */
+    private static final int PUBLISHED_CAPTURE_SDK = 28;
+
     @Before public void setup() {
         Utils.setContext(RuntimeEnvironment.getApplication());
         Settings.SIM_SPOOF.save(true);
@@ -137,7 +140,14 @@ public class RegionSpoofTest {
             assertNotNull(country.getOnPreferenceChangeListener());
             activity.setPreferenceScreen(screen);
             org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
-            app.morphe.extension.tiktok.UiCapture.save(activity.getWindow().getDecorView(), "region-settings.png");
+            // This class runs at both 23 and 28 and both runs wrote the same file, so which one
+            // ended up published depended on which finished last. At 23 the decor view draws
+            // nothing at all, so half the time the published picture would have been blank.
+            // Published captures come from the newest API this class runs at.
+            if (Build.VERSION.SDK_INT == PUBLISHED_CAPTURE_SDK) {
+                app.morphe.extension.tiktok.UiCapture.save(
+                        activity.getWindow().getDecorView(), "region-settings.png");
+            }
         }
     }
 }

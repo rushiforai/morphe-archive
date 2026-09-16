@@ -1,0 +1,22 @@
+{
+  "name": "Gboard AMOLED Theme Studio",
+  "version": "1.3.0",
+  "package": "com.google.android.inputmethod.latin",
+  "supportedVersion": "Any",
+  "defaultTheme": {
+    "name": "Midnight Red",
+    "background": "#000000",
+    "primary": "#FF0000",
+    "secondary": "#2A0A0A",
+    "tertiary": "#1F0B0B"
+  },
+  "runtimeSafety": {
+    "contextLookup": "ActivityThread.currentApplication()",
+    "avoidsReflectionOnFragment": true,
+    "avoidsDirectAndroidxFragmentInvoke": true,
+    "registrationAnchor": "theme-list adapter construction"
+  },
+  "checks": {
+    "morpheComposites": "scripts/verify_morphe_composites.py"
+  }
+}

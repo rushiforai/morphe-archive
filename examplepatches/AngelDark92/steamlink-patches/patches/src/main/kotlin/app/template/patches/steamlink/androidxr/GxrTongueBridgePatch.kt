@@ -11,6 +11,10 @@ internal const val MODERN_TONGUE_LIBRARY_SIZE_5002322 = 2_283_400
 internal const val MODERN_TONGUE_VADDR_5002322 = 0x140ea4L
 internal const val MODERN_TONGUE_STOCK_SHA256_5002322 =
     "e61baf34dfc4749d92561bab5fee47891d271607a0ce44824ff61c3e6a450c3f"
+internal const val MODERN_TONGUE_LIBRARY_SIZE_5002363 = 2_292_008
+internal const val MODERN_TONGUE_VADDR_5002363 = 0x141c6cL
+internal const val MODERN_TONGUE_STOCK_SHA256_5002363 =
+    "628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0"
 
 // Valve's native Android-XR mapper already translates face expressions 0..62 and preserves
 // standard FB2 TongueOut at slot 68. This final block currently zeros FB2 slots 63..67.
@@ -35,6 +39,36 @@ internal val MODERN_TONGUE_REPLACEMENT_5002322 = byteArrayOf(
     0x1f, 0x15, 0x01, 0xb9.toByte(),          // str wzr, [x8, #0x114] (slot 69)
 )
 
+// The 5002363 XRQGetFaceTracking symbol starts at 0x14151c. Its Android branch
+// still receives the expression array at SP+0x40 (X21), and X8 still points to
+// the FB2 output array at this final block. Both the 24 stock bytes and register
+// contract were checked on this exact ELF; only its independently derived address moves.
+internal val MODERN_TONGUE_ORIGINAL_5002363 = MODERN_TONGUE_ORIGINAL_5002322.copyOf()
+internal val MODERN_TONGUE_REPLACEMENT_5002363 = MODERN_TONGUE_REPLACEMENT_5002322.copyOf()
+
+private data class ModernTongueLayout(
+    val versionName: String,
+    val versionCode: String,
+    val librarySize: Int,
+    val vaddr: Long,
+    val stockSha256: String,
+    val original: ByteArray,
+    val replacement: ByteArray,
+)
+
+private val MODERN_TONGUE_LAYOUTS = listOf(
+    ModernTongueLayout(
+        "2.0.22", "5002322", MODERN_TONGUE_LIBRARY_SIZE_5002322,
+        MODERN_TONGUE_VADDR_5002322, MODERN_TONGUE_STOCK_SHA256_5002322,
+        MODERN_TONGUE_ORIGINAL_5002322, MODERN_TONGUE_REPLACEMENT_5002322,
+    ),
+    ModernTongueLayout(
+        "2.0.23", "5002363", MODERN_TONGUE_LIBRARY_SIZE_5002363,
+        MODERN_TONGUE_VADDR_5002363, MODERN_TONGUE_STOCK_SHA256_5002363,
+        MODERN_TONGUE_ORIGINAL_5002363, MODERN_TONGUE_REPLACEMENT_5002363,
+    ),
+)
+
 private fun ByteArray.sha256(): String =
     MessageDigest.getInstance("SHA-256").digest(this).joinToString("") { "%02x".format(it) }
 
@@ -44,27 +78,30 @@ internal fun patchModernTongueTransport(
     versionCode: String,
 ): ByteArray {
     if (!isModernTongueBridgeSteamLinkBuild(versionName, versionCode)) return bytes.copyOf()
-    if (bytes.size != MODERN_TONGUE_LIBRARY_SIZE_5002322) {
+    val layout = MODERN_TONGUE_LAYOUTS.singleOrNull {
+        it.versionName == versionName && it.versionCode == versionCode
+    } ?: return bytes.copyOf()
+    if (bytes.size != layout.librarySize) {
         throw PatchException(
             "Unexpected libvrlink_scene.so size=${bytes.size}, sha256=${bytes.sha256()} for " +
-                "Steam Link $versionName/$versionCode; expected size=$MODERN_TONGUE_LIBRARY_SIZE_5002322, " +
-                "stockSha256=$MODERN_TONGUE_STOCK_SHA256_5002322",
+                "Steam Link $versionName/$versionCode; expected size=${layout.librarySize}, " +
+                "stockSha256=${layout.stockSha256}",
         )
     }
 
     val offset = vaddrToFileOffset(
         bytes,
-        MODERN_TONGUE_VADDR_5002322,
-        MODERN_TONGUE_ORIGINAL_5002322.size,
+        layout.vaddr,
+        layout.original.size,
     )
-    val current = bytes.copyOfRange(offset, offset + MODERN_TONGUE_ORIGINAL_5002322.size)
+    val current = bytes.copyOfRange(offset, offset + layout.original.size)
     return when {
-        current.contentEquals(MODERN_TONGUE_REPLACEMENT_5002322) -> bytes.copyOf()
-        current.contentEquals(MODERN_TONGUE_ORIGINAL_5002322) ->
-            bytes.copyOf().apply { MODERN_TONGUE_REPLACEMENT_5002322.copyInto(this, offset) }
+        current.contentEquals(layout.replacement) -> bytes.copyOf()
+        current.contentEquals(layout.original) ->
+            bytes.copyOf().apply { layout.replacement.copyInto(this, offset) }
         else -> throw PatchException(
             "Unexpected native face-mapping bytes for Steam Link $versionName/$versionCode " +
-                "at vaddr 0x${MODERN_TONGUE_VADDR_5002322.toString(16)}; " +
+                "at vaddr 0x${layout.vaddr.toString(16)}; " +
                 "librarySha256=${bytes.sha256()}",
         )
     }
@@ -73,7 +110,7 @@ internal fun patchModernTongueTransport(
 @Suppress("unused")
 val gxrModernTongueBridgePatch = rawResourcePatch(
     name = "GXR tongue bridge (version 5002322 and above)",
-    description = "For modern Steam Link builds with Valve's native Android XR face mapping. Currently verified and enabled only for exact build 5002322; newer builds require a separately verified native layout. Preserves Valve's face expressions and standard TongueOut while exposing Galaxy XR tongue out/left/right/up/down to the matching Galaxy XR VRCFT module.",
+    description = "For exact Steam Link 2.0.22/5002322 and 2.0.23/5002363 with Valve's native Android XR face mapping. Each base uses its independently verified native layout. Preserves Valve's face expressions and standard TongueOut while exposing Galaxy XR tongue out/left/right/up/down to the matching Galaxy XR VRCFT module.",
     default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_MODERN_TONGUE_BRIDGE.toTypedArray())

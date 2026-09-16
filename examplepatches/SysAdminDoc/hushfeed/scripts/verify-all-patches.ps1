@@ -8,8 +8,18 @@
     target version and saved APK. A result file can be written from a finally block after a
     failed compile, so a zero failed-patch count is not enough to call the run successful.
 
+    The bundle declares one compatible version, and the CLI refuses any other APK unless it is
+    told to go ahead with -f. -Force does that for a retained newer build: the stock APK's own
+    version is read with aapt2 and the result is held to that instead of the catalog's, so the
+    run answers "which patches still apply on this build" rather than being refused before it
+    starts. The package still has to be the catalog's.
+
 .EXAMPLE
     scripts/verify-all-patches.ps1 -Apk C:\path\to\native-fixture.apk `
+        -DesktopJar C:\path\to\morphe-desktop.jar -WorkDir C:\path\to\scratch
+
+.EXAMPLE
+    scripts/verify-all-patches.ps1 -Apk C:\fixtures\tiktok-46.8.3.apk -Force `
         -DesktopJar C:\path\to\morphe-desktop.jar -WorkDir C:\path\to\scratch
 #>
 [CmdletBinding()]
@@ -19,7 +29,9 @@ param(
     [Parameter(Mandatory = $true)][string]$WorkDir,
     [string]$Bundle,
     [string]$PatchList,
-    [string]$Java
+    [string]$Java,
+    [switch]$Force,
+    [string]$Aapt2
 )
 
 $ErrorActionPreference = 'Stop'
@@ -29,31 +41,10 @@ $Java = Resolve-Java -Explicit $Java
 $root = Split-Path -Parent $PSScriptRoot
 . (Join-Path $PSScriptRoot 'patch-report.ps1')
 . (Join-Path $PSScriptRoot 'patch-target.ps1')
-
-function Resolve-WithinRoot {
-    param([string]$Path, [string]$Root)
-    $candidate = [System.IO.Path]::GetFullPath($Path)
-    $prefix = $Root.TrimEnd('\') + '\'
-    if (-not $candidate.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) {
-        throw "Refusing to use a generated path outside the work directory: $candidate"
-    }
-    return $candidate
-}
-
-function Remove-GeneratedPath {
-    param([string]$Path, [string]$Root, [switch]$Recurse)
-    try {
-        $safe = Resolve-WithinRoot -Path $Path -Root $Root
-        if (-not (Test-Path -LiteralPath $safe)) { return }
-        if ($Recurse) { Remove-Item -LiteralPath $safe -Recurse -Force -ErrorAction Stop }
-        else { Remove-Item -LiteralPath $safe -Force -ErrorAction Stop }
-    } catch {
-        Write-Warning "Could not remove generated path: $($_.Exception.Message)"
-    }
-}
+. (Join-Path $PSScriptRoot 'common.ps1')
 
 if (-not $Bundle) {
-    $version = ((Get-Content (Join-Path $root 'gradle.properties')) -match '^version\s*=' | Select-Object -First 1) -replace '^version\s*=\s*', ''
+    $version = Get-BundleVersion -Root $root
     $Bundle = Join-Path $root "patches/build/libs/patches-$version.mpp"
     if (-not (Test-Path -LiteralPath $Bundle -PathType Leaf)) {
         throw "No bundle for version $version at $Bundle. Run :patches:generatePatchesList then :patches:buildAndroid."
@@ -78,6 +69,29 @@ if ($names.Count -eq 0 -or @($names | Where-Object { [string]::IsNullOrWhiteSpac
 $dependencyNames = @(Get-PatchDependencyNames -PatchList $catalog -RequestedNames $names)
 Write-Host "[verify] $($names.Count) patches from $(Split-Path -Leaf $Bundle)"
 
+# The version the result is held to. The catalog's, unless -Force names a build past it, in
+# which case it is whatever the stock APK says it is, read the same way the receipt reads it.
+$expectedVersion = $expectedTarget.PackageVersion
+$forced = $false
+if ($Force) {
+    . (Join-Path $PSScriptRoot 'release-receipt.ps1')
+    $Aapt2 = Resolve-Aapt2 -Explicit $Aapt2 -Root $root
+    $stock = Get-ApkManifestFacts -Apk $Apk -Aapt2 $Aapt2
+    if ($stock.package -ne $expectedTarget.PackageName) {
+        throw "$(Split-Path -Leaf $Apk) is $($stock.package), not the catalog's target $($expectedTarget.PackageName)."
+    }
+    if ([string]::IsNullOrWhiteSpace($stock.versionName)) {
+        throw "$(Split-Path -Leaf $Apk) carries no versionName, so there is nothing to hold the result to."
+    }
+    $expectedVersion = $stock.versionName
+    $forced = $stock.versionName -ne $expectedTarget.PackageVersion
+    if ($forced) {
+        Write-Host "[verify] forcing the bundle onto $($stock.package) $($stock.versionName); it declares $($expectedTarget.PackageVersion)"
+    } else {
+        Write-Host "[verify] $($stock.package) $($stock.versionName) is the declared target, so nothing is forced"
+    }
+}
+
 New-Item -ItemType Directory -Force -Path $WorkDir | Out-Null
 $workRoot = (Resolve-Path -LiteralPath $WorkDir).Path
 $runId = [guid]::NewGuid().ToString('N')
@@ -89,7 +103,9 @@ $result = Resolve-WithinRoot -Path (Join-Path $workRoot "verify-all-result-$runI
 $enable = @()
 foreach ($name in $names) { $enable += '-e'; $enable += $name }
 $arguments = @('patch', '--exclusive', '--continue-on-error', '--unsigned', '-p', $Bundle,
-    '-o', $out, '-t', $temp, '-r', $result) + $enable + @($Apk)
+    '-o', $out, '-t', $temp, '-r', $result)
+if ($forced) { $arguments += '-f' }
+$arguments = $arguments + $enable + @($Apk)
 $exitCode = 1
 
 try {
@@ -107,7 +123,7 @@ try {
     }
     $validation = Test-PatchingReport -Report $report -ExpectedNames $names `
         -AllowedDependencyNames $dependencyNames -OutputPath $out `
-        -ExpectedPackageName $expectedTarget.PackageName -ExpectedPackageVersion $expectedTarget.PackageVersion
+        -ExpectedPackageName $expectedTarget.PackageName -ExpectedPackageVersion $expectedVersion
     $reportApplied = if ($null -ne $report) { @($report.appliedPatches).Count } else { 0 }
     $reportFailed = if ($null -ne $report) { @($report.failedPatches).Count } else { 0 }
     $target = if ($null -ne $report) { "$($report.packageName) $($report.packageVersion)" } else { 'unknown target' }
@@ -126,7 +142,7 @@ try {
         $exitCode = 0
     }
 } finally {
-    Remove-GeneratedPath -Path $runDir -Root $workRoot -Recurse
+    Remove-GeneratedPath -Path $runDir -Root $workRoot
 }
 
 exit $exitCode

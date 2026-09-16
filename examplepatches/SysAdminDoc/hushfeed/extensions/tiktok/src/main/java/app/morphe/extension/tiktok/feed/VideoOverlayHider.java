@@ -70,6 +70,13 @@ public final class VideoOverlayHider {
     private static final String[] RAIL_COUNT_ROW_IDS = {"fwu", "ecq", "ht9", "v5x"};
     /** The numeric text inside each row, retained by layouts that replace the row wrapper. */
     private static final String[] RAIL_COUNT_TEXT_IDS = {"fwt", "ecp", "ht8", "v5w"};
+    /**
+     * Which button each count belongs to, as an index into {@link #RAIL_BUTTON_IDS}: like,
+     * comment, favourite, share. A count goes with its button. "Hide like button" used to
+     * leave the number standing under an empty space, half under the avatar, which read as
+     * the switch doing nothing, and was reported as exactly that.
+     */
+    private static final int[] RAIL_COUNT_BUTTON_INDEX = {1, 2, 3, 5};
     private static final String[] RAIL_BUTTON_IDS = {"hvo", "fws", "ehl", "hu9", "p2l", "v9o"};
     private static final int TRAVERSAL_TARGET_COUNT = 5 + RAIL_BUTTON_IDS.length
             + RAIL_COUNT_ROW_IDS.length + RAIL_COUNT_TEXT_IDS.length;
@@ -207,13 +214,13 @@ public final class VideoOverlayHider {
                 int countsAt = 5 + RAIL_BUTTON_IDS.length;
                 for (int i = 0; i < RAIL_COUNT_ROW_IDS.length; i++) {
                     ids[countsAt + i] = identifier(activity, APP_PACKAGE, RAIL_COUNT_ROW_IDS[i]);
-                    hidden[countsAt + i] = counts;
+                    hidden[countsAt + i] = counts || rail[RAIL_COUNT_BUTTON_INDEX[i]];
                 }
                 int countTextAt = countsAt + RAIL_COUNT_ROW_IDS.length;
                 for (int i = 0; i < RAIL_COUNT_TEXT_IDS.length; i++) {
                     ids[countTextAt + i] = identifier(
                             activity, APP_PACKAGE, RAIL_COUNT_TEXT_IDS[i]);
-                    hidden[countTextAt + i] = counts;
+                    hidden[countTextAt + i] = counts || rail[RAIL_COUNT_BUTTON_INDEX[i]];
                 }
 
                 List<List<View>> found = TRAVERSAL.found;

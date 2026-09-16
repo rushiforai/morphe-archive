@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
@@ -243,6 +244,22 @@ public class ShareSheetToolsTest {
                 sends.get());
         assertTrue(cell.performClick());
         assertEquals(1, sends.get());
+    }
+
+    @Test public void shareChannelActionsLikeRepostAreNotConfirmed() {
+        // Repost, Copy link, Save and the rest of the share-channel row reach the same native
+        // click gate, but none of them is a bound recipient. With confirmation on, the gate
+        // has to let the first tap through instead of arming the two-step send. Reposting a
+        // video used to show "tap again to send" and only repost on a second tap.
+        Settings.SHARE_CONFIRM_SEND.save(true);
+        FrameLayout repost = new FrameLayout(context);
+        repost.setContentDescription("Repost");
+
+        assertTrue("the first tap on a non-recipient action passes straight through",
+                ShareSheetTools.allowRecipientClick(repost));
+        assertTrue("and it keeps passing through, never arming a confirm",
+                ShareSheetTools.allowRecipientClick(repost));
+        assertNull("a non-recipient action shows no confirm toast", ShadowToast.getLatestToast());
     }
 
     @Test public void nestedClickTargetsResolveTheModelBoundCell() {

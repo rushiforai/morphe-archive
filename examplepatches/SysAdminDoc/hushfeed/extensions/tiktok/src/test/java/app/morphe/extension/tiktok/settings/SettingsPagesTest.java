@@ -590,6 +590,23 @@ public class SettingsPagesTest {
                 assertEquals("a screen reader would read this as text",
                         android.widget.Button.class.getName(),
                         String.valueOf(info.getClassName()));
+
+                // Weight has to follow rank from whatever face the caller built. The hand-built
+                // actions are made bold and then styled, and setTypeface(tf, NORMAL) keeps the
+                // face it is handed, so a secondary action stayed as heavy as a primary one and
+                // went on reading as the action to take.
+                android.widget.TextView built = app.morphe.extension.tiktok.settings.preference
+                        .SettingsUi.text(activity, "Save", 14, 0xFFFFFFFF,
+                                android.graphics.Typeface.BOLD);
+                assertTrue("the fixture did not start from a bold face",
+                        built.getTypeface().isBold());
+                app.morphe.extension.tiktok.settings.preference.SettingsUi
+                        .styleTextAction(built, primary);
+                assertEquals("a " + (primary ? "primary" : "secondary")
+                                + " action is not the weight its rank calls for",
+                        primary, built.getTypeface().isBold());
+                assertFalse("a secondary action was faked bold instead",
+                        !primary && built.getPaint().isFakeBoldText());
             }
         }
     }
@@ -1112,6 +1129,97 @@ assertEquals(View.LAYOUT_DIRECTION_RTL, configuration.getLayoutDirection());
         throw new AssertionError("no row called " + title);
     }
 
+    /**
+     * A restart-gated change pins a row that restarts TikTok, on this page and on the master
+     * menu after Back, and the row is absent on a fresh open.
+     *
+     * <p>Three restart-gated switches gave three identical toasts and then nothing: come back
+     * later and nothing said a restart was still owed, and there was no way to do it although
+     * the app can relaunch itself. Two of the "this does not work" reports on the tracker are
+     * restart-gated switches.
+     */
+    @Test public void aRestartGatedChangePinsARowThatRestartsTikTok() throws Exception {
+        app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment
+                .restartPending.clear();
+        java.util.List<android.content.Context> restarted = new java.util.ArrayList<>();
+        app.morphe.extension.tiktok.settings.preference.RestartPendingPreference
+                .setRestarterForTests(restarted::add);
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            TikTokPreferenceFragment page = attachSection(activity, "BEHAVIOR");
+            String key = app.morphe.extension.tiktok.settings.preference
+                    .RestartPendingPreference.KEY;
+            assertNull("a fresh page owes a restart", page.findPreference(key));
+
+            android.preference.SwitchPreference toggle = (android.preference.SwitchPreference)
+                    page.findPreference(Settings.FOLDABLE_SPLIT_VIEW.key);
+            assertNotNull("the fixture switch is not on this page", toggle);
+            assertTrue("the fixture switch does not need a restart",
+                    Settings.FOLDABLE_SPLIT_VIEW.rebootApp);
+            toggle.setChecked(!toggle.isChecked());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            Preference pinned = page.findPreference(key);
+            assertNotNull("the change did not pin a restart row", pinned);
+            assertEquals("the row is not at the top of the page", -950, pinned.getOrder());
+            // With its full stop: the sentence it replaces sits inside prose on the S22's
+            // App behavior page, and without one it read "Restart pending If the old layout".
+            assertTrue("the toggled row does not say its change is waiting",
+                    String.valueOf(toggle.getSummary()).contains("Restart pending."));
+            assertFalse("the toggled row still carries the generic sentence",
+                    String.valueOf(toggle.getSummary()).contains("Restart TikTok to apply this."));
+
+            View row = pinned.getView(null, null).findViewWithTag("hushfeed_restart_pending_row");
+            assertNotNull("the pinned row draws no button", row);
+            assertEquals("Restart TikTok to apply this change",
+                    ((android.widget.TextView) row).getText().toString());
+            android.view.accessibility.AccessibilityNodeInfo node =
+                    row.createAccessibilityNodeInfo();
+            assertEquals("a screen reader would read the restart as text",
+                    android.widget.Button.class.getName(), String.valueOf(node.getClassName()));
+            assertTrue("the count is not what a screen reader hears",
+                    String.valueOf(node.getText()).contains("this change"));
+
+            // Flipped back: the process already runs the value the store holds, so nothing
+            // is owed, the row goes, and the switch says what it said before.
+            toggle.setChecked(!toggle.isChecked());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertNull("a switch flipped back still owes a restart", page.findPreference(key));
+            assertTrue("the row kept saying its change was waiting",
+                    String.valueOf(toggle.getSummary()).contains("Restart TikTok to apply this."));
+            assertFalse(String.valueOf(toggle.getSummary()).contains("Restart pending."));
+
+            // And on: owed again.
+            toggle.setChecked(!toggle.isChecked());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertNotNull(page.findPreference(key));
+
+            // Back to the master menu: the debt is owed there as well.
+            TikTokPreferenceFragment home = attachHome(activity);
+            Preference onHome = home.findPreference(key);
+            assertNotNull("the master menu does not show the restart owed", onHome);
+
+            // Two changes: the count follows.
+            app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment
+                    .restartPending.add(Settings.REGION_SPOOF.key);
+            home.onResume();
+            View homeRow = home.findPreference(key).getView(null, null)
+                    .findViewWithTag("hushfeed_restart_pending_row");
+            assertEquals("Restart TikTok to apply 2 changes",
+                    ((android.widget.TextView) homeRow).getText().toString());
+
+            assertTrue(homeRow.performClick());
+            assertEquals("the press did not restart TikTok", 1, restarted.size());
+        } finally {
+            app.morphe.extension.tiktok.settings.preference.RestartPendingPreference
+                    .setRestarterForTests(null);
+            app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment
+                    .restartPending.clear();
+            Settings.FOLDABLE_SPLIT_VIEW.resetToDefault();
+        }
+    }
+
     private static TikTokPreferenceFragment attachSection(Activity activity, String section) {
         TikTokPreferenceFragment fragment = new TikTokPreferenceFragment();
         Bundle arguments = new Bundle();
@@ -1366,5 +1474,144 @@ assertEquals(View.LAYOUT_DIRECTION_RTL, configuration.getLayoutDirection());
                     String.valueOf(row.getSummary()).contains("00:00"));
             Settings.SESSION_BUDGET_RESET_HOUR.resetToDefault();
         }
+    }
+
+    /**
+     * Opening Search lands in the field with the keyboard up, the way every native search does.
+     *
+     * <p>The page used to open with the box unfocused and no keyboard, so the reader tapped
+     * it first, and the keyboard's action key was the generic one with autocorrect free to
+     * rewrite a setting's name.
+     */
+    @Test public void openingSearchLandsInTheFieldWithTheKeyboardUp() {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            TikTokPreferenceFragment home = attachHome(activity);
+            Preference search = findPreference(home.getPreferenceScreen(), "Search settings");
+            assertNotNull(search);
+            assertTrue(search.getOnPreferenceClickListener().onPreferenceClick(search));
+            activity.getFragmentManager().executePendingTransactions();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            TikTokPreferenceFragment page = (TikTokPreferenceFragment) activity.getFragmentManager()
+                    .findFragmentById(android.R.id.content);
+            EditText input = (EditText) page.getView().findViewWithTag("settings_search_input");
+            assertNotNull(input);
+            assertTrue("the field is not focused on entry", input.isFocused());
+            org.robolectric.shadows.ShadowInputMethodManager keyboard = Shadows.shadowOf(
+                    (android.view.inputmethod.InputMethodManager) activity.getSystemService(
+                            android.content.Context.INPUT_METHOD_SERVICE));
+            assertTrue("the keyboard was not asked for", keyboard.isSoftInputVisible());
+            assertEquals(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH,
+                    input.getImeOptions() & android.view.inputmethod.EditorInfo.IME_MASK_ACTION);
+            assertTrue("autocorrect can rewrite a setting's name",
+                    (input.getInputType() & android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS) != 0);
+
+            // The search key takes the keyboard down so the results can be read.
+            input.onEditorAction(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);
+            assertFalse("the search key left the keyboard up", keyboard.isSoftInputVisible());
+        }
+    }
+
+    /**
+     * A row greyed by its parent says which switch would turn it on, and takes the reason back
+     * off when it does.
+     *
+     * <p>Four rows grey out when their parent is off and said nothing about it, so the row read
+     * as broken and a screen reader announced only "dimmed". The two Region rows were worse:
+     * they said in prose that they needed another switch and were not wired to it at all, so
+     * either could be switched on while doing nothing.
+     */
+    @Test public void aRowItsParentGreyedSaysWhichSwitchWouldTurnItOn() throws Exception {
+        boolean sim = SettingsStatus.simSpoofEnabled;
+        boolean region = SettingsStatus.regionSpoofEnabled;
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            SettingsStatus.simSpoofEnabled = true;
+            SettingsStatus.regionSpoofEnabled = true;
+            Settings.SIM_SPOOF.save(false);
+            Settings.REGION_SPOOF.save(false);
+
+            TikTokPreferenceFragment page = attachSection(activity, "REGION");
+            Preference dependent = findPreference(page.getPreferenceScreen(),
+                    "Match locale and timezone to country");
+            Preference parent = findPreference(page.getPreferenceScreen(), "Override SIM details");
+            assertNotNull("the Region row is not on the page", dependent);
+            assertNotNull("the SIM row is not on the page", parent);
+
+            assertFalse("a row whose parent is off is not greyed", dependent.isEnabled());
+            String greyed = String.valueOf(dependent.getSummary());
+            assertTrue("the greyed row does not say what would turn it on: " + greyed,
+                    greyed.endsWith("Turn on " + parent.getTitle() + " first."));
+
+            // A second pass while it is still off adds the reason once, not twice.
+            refreshAvailability(page);
+            assertEquals("the reason was appended twice", greyed,
+                    String.valueOf(dependent.getSummary()));
+
+            // Turning the parent on takes the reason off rather than leaving it stacked.
+            Settings.SIM_SPOOF.save(true);
+            refreshAvailability(page);
+            assertTrue("the row stayed greyed after its parent was turned on", dependent.isEnabled());
+            String live = String.valueOf(dependent.getSummary());
+            assertFalse("the reason is still on the row: " + live, live.contains("Turn on "));
+            assertEquals("the row lost more than the reason", greyed,
+                    live + " Turn on " + parent.getTitle() + " first.");
+        } finally {
+            Settings.SIM_SPOOF.resetToDefault();
+            Settings.REGION_SPOOF.resetToDefault();
+            SettingsStatus.simSpoofEnabled = sim;
+            SettingsStatus.regionSpoofEnabled = region;
+        }
+    }
+
+    /** The pass the settings screen makes over every row when it opens. */
+    private static void refreshAvailability(TikTokPreferenceFragment page) throws Exception {
+        java.lang.reflect.Method method = app.morphe.extension.shared.settings.preference
+                .AbstractPreferenceFragment.class.getDeclaredMethod("updateUIToSettingValues");
+        method.setAccessible(true);
+        method.invoke(page);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+    }
+
+    /**
+     * A switch greyed by its parent still shows whether it is on. The track put -state_enabled
+     * first, so a disabled switch never reached the checked entry and looked the same on as
+     * off: a reader could not see what it would come back as.
+     */
+    @Test public void aGreyedSwitchStillShowsWhetherItIsOn() {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            android.widget.Switch control = new android.widget.Switch(activity);
+            app.morphe.extension.tiktok.settings.preference.SettingsUi.styleSwitch(control);
+            android.graphics.drawable.Drawable track = control.getTrackDrawable();
+
+            int offEnabled = trackColour(track, new int[]{android.R.attr.state_enabled});
+            int onEnabled = trackColour(track,
+                    new int[]{android.R.attr.state_enabled, android.R.attr.state_checked});
+            int offDisabled = trackColour(track, new int[]{-android.R.attr.state_enabled});
+            int onDisabled = trackColour(track,
+                    new int[]{-android.R.attr.state_enabled, android.R.attr.state_checked});
+
+            assertNotEquals("on and off look the same while enabled", offEnabled, onEnabled);
+            assertNotEquals("a greyed switch looks the same on as off", offDisabled, onDisabled);
+            assertNotEquals("a greyed switch that is on looks live", onEnabled, onDisabled);
+        }
+    }
+
+    /** What the track paints in the state given, at its centre. */
+    private static int trackColour(android.graphics.drawable.Drawable track, int[] state) {
+        track.setState(state);
+        android.graphics.drawable.Drawable current = track.getCurrent();
+        int width = Math.max(1, current.getIntrinsicWidth());
+        int height = Math.max(1, current.getIntrinsicHeight());
+        android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(
+                width, height, android.graphics.Bitmap.Config.ARGB_8888);
+        current.setBounds(0, 0, width, height);
+        current.draw(new android.graphics.Canvas(bitmap));
+        return bitmap.getPixel(width / 2, height / 2);
     }
 }

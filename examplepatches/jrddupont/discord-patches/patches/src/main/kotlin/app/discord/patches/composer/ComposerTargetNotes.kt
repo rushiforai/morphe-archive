@@ -34,6 +34,13 @@ package app.discord.patches.composer
  * shouldShowGiftButton/onPressAction/onPressExpression + TransitionItem
  * gift child vs EXPRESSION button, no try/catch):
  *
+ * - 344.13 Stable: fn 53139 (offset 31241714, 505 bytes, 107 instrs).
+ *   Flag load @ fn offset 30; the flag register is reused as scratch
+ *   after its single JmpFalse test, so forcing it false still takes the
+ *   stock emoji-only path. The attach-sheet (fn 52451 + child 89748)
+ *   was rebuilt with NO gift entry in 344 — only a dead NITRO_GIFT
+ *   renderer branch in fn 89752 remains — so the sheet push site is
+ *   skipped there (bar flag alone hides the gift).
  * - 343.12 Stable: fn 52671 (offset 31111162, 505 bytes, 107 instrs).
  * - 342.16 Stable: fn 52380 (offset 30994107, 505 bytes, 107 instrs).
  * - 341.13 Stable: fn 52020 (offset 30845510, 501 bytes, 107 instrs).

@@ -67,6 +67,12 @@ public class AutoAdvanceTest {
     }
     @Before public void setup() {
         Utils.setContext(RuntimeEnvironment.getApplication());
+        // The Playback page is captured below, and the speed rows on it are process-wide
+        // settings another class may have left at any value: the capture has to start from
+        // the defaults or it moves with the order the classes ran in.
+        Settings.DEFAULT_SPEED_ENABLED.resetToDefault();
+        Settings.DEFAULT_SPEED.resetToDefault();
+        Settings.CUSTOM_SPEEDS.resetToDefault();
         Settings.AUTO_ADVANCE.save(true);
         Settings.SESSION_BUDGET_VIDEOS.resetToDefault();
         Settings.SESSION_BUDGET_LOCK_MINUTES.resetToDefault();

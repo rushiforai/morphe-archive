@@ -48,6 +48,8 @@ import java.util.List;
  *   adb -s S shell am instrument app.hushfeed.verification/.Probe
  *   adb -s S shell am broadcast -a app.hushfeed.verification.PROBE -p com.zhiliaoapp.musically \
  *       -e action dump
+ *       -e action labrule -e manager abmock -e key favorite_reverse -e type INT -e value 1
+ *       -e action labclear
  *   adb -s S logcat -d | grep HushfeedProbe
  * </pre>
  */
@@ -183,6 +185,9 @@ public final class Probe extends Instrumentation {
                     case "comments":
                         Log.i(TAG, "ok comments\n" + openCommentsReport());
                         break;
+                    case "feed":
+                        Log.i(TAG, "ok feed\n" + feedReport());
+                        break;
                     case "doubletap": {
                         // Two taps on TikTok's own window, timed inside the double-tap window.
                         // "input tap" twice from adb spawns a process per tap and lands inside or
@@ -231,6 +236,33 @@ public final class Probe extends Instrumentation {
                         String before = valueOf(find(key));
                         write(key, value);
                         Log.i(TAG, "ok set " + key + " " + before + " -> " + valueOf(find(key)));
+                        break;
+                    }
+                    case "labrule": {
+                        // A Feature Gate Lab override, written the way the Lab's own detail page
+                        // writes it, with the Lab switched on. Lets a device check force a gate
+                        // without driving the Lab's screens: issue #4 was traced to two favourites
+                        // gates, and this is how the S22 reproduces them.
+                        Class<?> store = loader.loadClass(
+                                "app.morphe.extension.tiktok.featuregatelab.FeatureGateLabStore");
+                        String manager = required(intent, "manager");
+                        String key = required(intent, "key");
+                        String type = required(intent, "type");
+                        String value = required(intent, "value");
+                        boolean enabled = !"false".equals(intent.getStringExtra("enabled"));
+                        Object saved = store.getMethod("saveRule", String.class, String.class,
+                                String.class, String.class, boolean.class)
+                                .invoke(null, manager, key, type, value, enabled);
+                        store.getMethod("setMasterEnabled", boolean.class).invoke(null, true);
+                        Log.i(TAG, "ok labrule " + manager + " " + key + " " + type + "=" + value
+                                + " enabled=" + enabled + " saved=" + saved + " master=on");
+                        break;
+                    }
+                    case "labclear": {
+                        Class<?> store = loader.loadClass(
+                                "app.morphe.extension.tiktok.featuregatelab.FeatureGateLabStore");
+                        store.getMethod("resetAllLabData").invoke(null);
+                        Log.i(TAG, "ok labclear");
                         break;
                     }
                     default:
@@ -371,6 +403,82 @@ public final class Probe extends Instrumentation {
             open.setAccessible(true);
             Object result = open.invoke(null, aid);
             out.append("\n  openComments(").append(aid).append(")=").append(result);
+            return out.toString();
+        }
+
+        /**
+         * What FeedVisibility sees right now: the current activity, its answers, the Home tab's
+         * flags and whether any of it has pixels on screen, and the detail-page registry. The
+         * registry and its entries are read by field type rather than name, since the release
+         * extension is minified and only the hooked entry points keep their names.
+         */
+        private String feedReport() throws Exception {
+            Class<?> visibility = loader.loadClass("app.morphe.extension.tiktok.blockauthor.FeedVisibility");
+            android.app.Activity activity = (android.app.Activity) loader.loadClass(UTILS)
+                    .getMethod("getActivity").invoke(null);
+            StringBuilder out = new StringBuilder();
+            out.append("activity=").append(activity == null ? "null" : activity.getClass().getName());
+            if (activity != null) {
+                out.append("\nisOnFeed=").append(visibility.getMethod("isOnFeed", android.app.Activity.class)
+                        .invoke(null, activity));
+                out.append("\nonRecommendationFeed=").append(visibility
+                        .getMethod("onRecommendationFeed", android.app.Activity.class).invoke(null, activity));
+                out.append("\ncommentSheet=").append(visibility
+                        .getMethod("isCommentSheetVisible", android.app.Activity.class).invoke(null, activity));
+                android.view.View tab = (android.view.View) visibility
+                        .getMethod("homeTabView", android.app.Activity.class).invoke(null, activity);
+                if (tab == null) {
+                    out.append("\nhomeTab=null");
+                } else {
+                    android.graphics.Rect rect = new android.graphics.Rect();
+                    boolean onScreen = tab.getGlobalVisibleRect(rect);
+                    int[] where = new int[2];
+                    tab.getLocationOnScreen(where);
+                    out.append("\nhomeTab shown=").append(tab.isShown())
+                            .append(" selected=").append(tab.isSelected())
+                            .append(" attached=").append(tab.isAttachedToWindow())
+                            .append(" globalVisibleRect=").append(onScreen).append(' ').append(rect.toShortString())
+                            .append(" locationOnScreen=").append(where[0]).append(',').append(where[1]);
+                    android.view.ViewParent parent = tab.getParent();
+                    while (parent instanceof android.view.View) {
+                        android.view.View view = (android.view.View) parent;
+                        if (view.getScrollX() != 0 || view.getTranslationX() != 0f) {
+                            out.append("\n  ancestor ").append(view.getClass().getName())
+                                    .append(" scrollX=").append(view.getScrollX())
+                                    .append(" translationX=").append(view.getTranslationX())
+                                    .append(" left=").append(view.getLeft());
+                        }
+                        parent = view.getParent();
+                    }
+                }
+            }
+            for (java.lang.reflect.Method method : visibility.getDeclaredMethods()) {
+                if (method.getParameterTypes().length == 0 && method.getReturnType() == boolean.class
+                        && java.lang.reflect.Modifier.isStatic(method.getModifiers())) {
+                    method.setAccessible(true);
+                    out.append('\n').append(method.getName()).append("()=").append(method.invoke(null));
+                }
+            }
+            for (java.lang.reflect.Field field : visibility.getDeclaredFields()) {
+                if (!java.util.Map.class.isAssignableFrom(field.getType())) continue;
+                field.setAccessible(true);
+                java.util.Map<?, ?> pages = (java.util.Map<?, ?>) field.get(null);
+                out.append("\nregistry ").append(field.getName()).append(" size=").append(pages.size());
+                for (java.util.Map.Entry<?, ?> entry : pages.entrySet()) {
+                    out.append("\n  page ").append(entry.getKey().getClass().getName());
+                    Object state = entry.getValue();
+                    for (java.lang.reflect.Field part : state.getClass().getDeclaredFields()) {
+                        part.setAccessible(true);
+                        Object value = part.get(state);
+                        if (value instanceof java.lang.ref.Reference) {
+                            Object view = ((java.lang.ref.Reference<?>) value).get();
+                            value = view == null ? "null" : view.getClass().getName() + " shown="
+                                    + ((android.view.View) view).isShown();
+                        }
+                        out.append(' ').append(part.getName()).append('=').append(value);
+                    }
+                }
+            }
             return out.toString();
         }
 

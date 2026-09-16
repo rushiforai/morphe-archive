@@ -33,7 +33,19 @@
 
 ## About
 
-**De-Vanced** is a curated collection of patches that have been migrated from [ReVanced](https://github.com/ReVanced/revanced-patches) to [Morphe](https://morphe.software)—a community-driven, open-source alternative for patching Android apps.
+**De-Vanced** is a curated collection of patches that have been migrated from [ReVanced](https://github.com/ReVanced/revanced-patches) to [Morphe](https://morphe.software)—a community-driven, open-source tool for patching Android apps.
+
+---
+
+## How to use these patches
+
+1. Install Morphe Manager if you have not yet: https://morphe.software
+
+2. [Click here to add De-Vanced patches to Morphe Manager](https://morphe.software/add-source?github=RookieEnough/De-ReVanced)
+
+3. Select the app you want to patch inside Morphe Manager, follow all instructions shown.
+
+---
 
 ### Why De-Vanced?
 
@@ -115,7 +127,7 @@ These patches are designed to work with [Morphe](https://morphe.software). To bu
 
 - **[ReVanced](https://github.com/ReVanced/revanced-patches)** — Original patches (GPL v3)
 - **[Morphe](https://morphe.software)** — Patcher framework and ecosystem
-- **Community contributors** — Migrations, fixes, and improvements
+- **[Community contributors](https://github.com/RookieEnough/De-Vanced/graphs/contributors?all=1)** — Migrations, fixes, and improvements
 
 ---
 

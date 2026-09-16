@@ -328,6 +328,189 @@ function Read-ManifestDeltaAllowlist {
     return @($entries | Sort-Object -Unique -CaseSensitive)
 }
 
+function Get-ChangelogVersions {
+    <#
+    .SYNOPSIS
+        The versions a CHANGELOG names, in the order it names them.
+    .DESCRIPTION
+        Both shapes this file carries: a bare "## 0.32.0", a dated "## 0.14.0 (2026-09-05)", and
+        the linked "## [0.1.5](compare/...) (2026-06-01)" the upstream generator wrote. Anything
+        else under a level-two heading, "Unreleased" among them, is not a version and is ignored
+        here; it is the absence of a version that this exists to notice.
+    #>
+    param([string]$Text)
+
+    $found = New-Object System.Collections.Generic.List[string]
+    foreach ($match in [regex]::Matches($Text, '(?m)^##\s+\[?v?(\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?)')) {
+        $found.Add($match.Groups[1].Value)
+    }
+    # No comma wrap. Every caller writes @(Get-ChangelogVersions ...), and @(,$array) is an
+    # array holding one array: the membership test then finds nothing and the first element
+    # prints as the whole list.
+    return $found.ToArray()
+}
+
+function Test-ChangelogVersions {
+    <#
+    .SYNOPSIS
+        Whether the CHANGELOG still describes every version it described at the last release,
+        and describes the version being released now.
+    .DESCRIPTION
+        A released version's heading is the only record a reader has that it shipped. On
+        2026-09-14 a post-release commit renamed "## 0.31.0" to "## Unreleased", so the file
+        said that release never happened, and nothing noticed until the next release was cut by
+        hand. No gate read this file at all.
+
+        Held against the CHANGELOG as it stood at the last tag rather than against the tag list,
+        so it needs no list of exceptions for versions that never had an entry: whatever was
+        described then has to still be described now. Answers @{ Valid; Reason }.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$Current,
+        [Parameter(Mandatory = $true)][string]$ExpectedVersion,
+        # The same file at the last release tag. Absent on a checkout with no tag yet, in which
+        # case only the version being released is checked.
+        [string]$Previous,
+        [string]$PreviousLabel = 'the last release'
+    )
+
+    function Fail { param([string]$Reason) return [pscustomobject]@{ Valid = $false; Reason = $Reason } }
+
+    $now = @(Get-ChangelogVersions -Text $Current)
+    if ($now.Count -eq 0) { return Fail 'The CHANGELOG names no version at all.' }
+    if ($now -notcontains $ExpectedVersion) {
+        return Fail ("The CHANGELOG has no heading for $ExpectedVersion, the version this " +
+            "checkout builds. It names $($now[0]) first.")
+    }
+
+    if ($PSBoundParameters.ContainsKey('Previous') -and $null -ne $Previous) {
+        $then = @(Get-ChangelogVersions -Text $Previous)
+        $present = [System.Collections.Generic.HashSet[string]]::new(
+            [string[]]$now, [System.StringComparer]::Ordinal)
+        $lost = @($then | Where-Object { -not $present.Contains($_) })
+        if ($lost.Count -gt 0) {
+            return Fail ("The CHANGELOG described " + ($lost -join ', ') + " at $PreviousLabel " +
+                "and does not now. A shipped version cannot stop having an entry.")
+        }
+    }
+
+    return [pscustomobject]@{ Valid = $true; Reason = 'ok' }
+}
+
+function Invoke-RepoGit {
+    <#
+    .SYNOPSIS
+        git against the repository a caller names, with no inherited git environment.
+    .DESCRIPTION
+        `git -C <path>` sets the working directory and does not override GIT_DIR. Every script
+        here runs from the pre-push hook, and a hook is a git child process with GIT_DIR and
+        GIT_WORK_TREE already in its environment, so without this a -Root parameter is a
+        suggestion rather than an instruction: git reads whichever repository the hook came from.
+        On 2026-09-15 that turned a temporary fixture into three commits on the real branch.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$Root,
+        [Parameter(Mandatory = $true)][string[]]$Arguments
+    )
+
+    $saved = @{}
+    foreach ($variable in @(Get-ChildItem Env: | Where-Object { $_.Name -like 'GIT_*' })) {
+        $saved[$variable.Name] = $variable.Value
+        Remove-Item -LiteralPath ('Env:\' + $variable.Name) -ErrorAction SilentlyContinue
+    }
+    try {
+        return & git -C $Root @Arguments 2>$null
+    } finally {
+        foreach ($name in $saved.Keys) { Set-Item -LiteralPath ('Env:\' + $name) -Value $saved[$name] }
+    }
+}
+
+function Read-CatalogToolchain {
+    <#
+    .SYNOPSIS
+        The patcher pin and Manager floor out of a version catalog's text.
+    .DESCRIPTION
+        Takes text rather than a path, so the same reading applies to the catalog in the working
+        tree and to the one at an older commit. Every failure names where the text came from,
+        because "does not pin morphe-patcher" means something different in the working tree than
+        at a commit from a release that shipped months ago.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$Text,
+        [Parameter(Mandatory = $true)][string]$Source
+    )
+
+    $patcherMatch = [regex]::Match($Text, '(?m)^\s*morphe-patcher\s*=\s*"([^"]+)"')
+    if (-not $patcherMatch.Success) { throw "$Source does not pin morphe-patcher." }
+    $floorMatch = [regex]::Match($Text, '(?m)^\s*manager-floor\s*=\s*"([^"]+)"')
+    if (-not $floorMatch.Success) {
+        throw "$Source does not pin manager-floor beside morphe-patcher."
+    }
+    $floor = $floorMatch.Groups[1].Value
+    if ($floor -notmatch '^\d+\.\d+\.\d+$') {
+        throw "$Source has an invalid manager-floor: $floor"
+    }
+    return [pscustomobject]@{
+        PatcherVersion = $patcherMatch.Groups[1].Value
+        ManagerFloor   = $floor
+    }
+}
+
+function Resolve-ReceiptToolchain {
+    <#
+    .SYNOPSIS
+        The toolchain a receipt should be held to: the one its own commit pinned.
+    .DESCRIPTION
+        A receipt describes a release that has already shipped. Moving the patcher pin afterwards
+        does not make it wrong, but holding it to the working catalog said it was: after the pin
+        moved to 1.13.0 while the tree still carried the receipt for the 0.32.0 release, every
+        source push failed with "The receipt was stamped by patcher 1.12.0; the catalog pins
+        1.13.0", with both files correct. Only the checkout that cut the release has a receipt at
+        all, so the gate stopped exactly the machine that had done the work, and the way through
+        was to move the receipt out of the tree, which turns the check off altogether.
+
+        On a release push the receipt's commit is the release commit, so this reads the same
+        catalog the working tree has and nothing is relaxed.
+
+        Answers @{ Toolchain; Note }, where Note is a line worth printing or $null when the
+        answer is simply the working catalog.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$Root,
+        [string]$Commit,
+        [Parameter(Mandatory = $true)]$WorkingToolchain
+    )
+
+    if ($Commit -notmatch '^[0-9a-f]{40}$') {
+        return [pscustomobject]@{ Toolchain = $WorkingToolchain; Note = $null }
+    }
+
+    # Stderr is dropped inside the helper, because git writes "path does not exist in commit"
+    # there and an empty result here has to mean "no catalog at that commit", not "git said
+    # something".
+    $catalogAtCommit = (Invoke-RepoGit -Root $Root -Arguments @('show', "${Commit}:gradle/libs.versions.toml")) -join "`n"
+    $short = $Commit.Substring(0, 8)
+    if ([string]::IsNullOrWhiteSpace($catalogAtCommit)) {
+        return [pscustomobject]@{
+            Toolchain = $WorkingToolchain
+            Note = "commit $short has no version catalog, so the receipt is held to the working one"
+        }
+    }
+
+    $atCommit = Read-CatalogToolchain -Text $catalogAtCommit `
+        -Source "gradle/libs.versions.toml at $short"
+    if ($atCommit.PatcherVersion -eq $WorkingToolchain.PatcherVersion -and
+        $atCommit.ManagerFloor -eq $WorkingToolchain.ManagerFloor) {
+        return [pscustomobject]@{ Toolchain = $atCommit; Note = $null }
+    }
+    return [pscustomobject]@{
+        Toolchain = $atCommit
+        Note = ("the receipt is held to patcher $($atCommit.PatcherVersion) and Manager floor " +
+            "$($atCommit.ManagerFloor), which its own commit $short pinned; the catalog now pins " +
+            "$($WorkingToolchain.PatcherVersion) and $($WorkingToolchain.ManagerFloor)")
+    }
+}
+
 function Test-ReleaseReceipt {
     <#
     .SYNOPSIS
@@ -343,6 +526,11 @@ function Test-ReleaseReceipt {
         [Parameter(Mandatory = $true)][string[]]$ExpectedPatchNames,
         [Parameter(Mandatory = $true)][string]$ExpectedPatcherVersion,
         [Parameter(Mandatory = $true)][string]$ExpectedManagerFloor,
+        # The package and version the catalog declares. Without them a receipt built only from
+        # forced runs against newer builds reads as proof of the release, when nothing in it was
+        # patched the way a user's Manager patches it.
+        [Parameter(Mandatory = $true)][string]$ExpectedPackageName,
+        [Parameter(Mandatory = $true)][string]$ExpectedPackageVersion,
         [string]$BundlePath,
         [string[]]$ApprovedManifestDelta = @(),
         # When the commit the receipt names was made, read out of git by the caller. Without it
@@ -460,11 +648,32 @@ function Test-ReleaseReceipt {
     $expected = [System.Collections.Generic.HashSet[string]]::new(
         [string[]]$ExpectedPatchNames, [System.StringComparer]::Ordinal)
     $produced = New-Object System.Collections.Generic.List[string]
+    $declaredTargetProved = $false
     foreach ($target in $targets) {
         $label = "$($target.source.package) $($target.source.versionName)"
         if ([string]$target.source.sha256 -notmatch '^[0-9A-F]{64}$') {
             return Fail "The receipt records no source APK hash for $label."
         }
+        if ([string]$target.source.package -ne $ExpectedPackageName) {
+            return Fail ("The receipt records a run against $($target.source.package); the " +
+                "catalog targets $ExpectedPackageName.")
+        }
+        if ([string]::IsNullOrWhiteSpace([string]$target.source.versionName)) {
+            return Fail "The receipt records a $ExpectedPackageName run with no version name."
+        }
+        # Whether the CLI was told to ignore the declared version. Recorded as a boolean by the
+        # builder; a receipt that leaves it out cannot say which of its runs were the real one.
+        $forcedProperty = $target.source.PSObject.Properties['forced']
+        if ($null -eq $forcedProperty -or $forcedProperty.Value -isnot [bool]) {
+            return Fail "The receipt does not say whether $label was patched under -f."
+        }
+        $atDeclaredVersion = [string]$target.source.versionName -eq $ExpectedPackageVersion
+        if ($forcedProperty.Value -eq $atDeclaredVersion) {
+            return Fail ("The receipt says $label was " +
+                $(if ($forcedProperty.Value) { 'forced past' } else { 'patched without -f at' }) +
+                " the declared version, but the catalog targets $ExpectedPackageVersion.")
+        }
+        if ($atDeclaredVersion) { $declaredTargetProved = $true }
         $verdicts = @($target.patches)
         if ($verdicts.Count -ne $ExpectedPatchNames.Count) {
             return Fail ("The receipt records $($verdicts.Count) patch verdicts for $label; " +
@@ -486,6 +695,11 @@ function Test-ReleaseReceipt {
         foreach ($entry in ConvertTo-ManifestDeltaEntries -Delta $target.manifestDelta) {
             $produced.Add($entry)
         }
+    }
+    if (-not $declaredTargetProved) {
+        $ran = @($targets | ForEach-Object { [string]$_.source.versionName }) -join ', '
+        return Fail ("No target in the receipt is the declared $ExpectedPackageName " +
+            "$ExpectedPackageVersion patched without -f; it only records $ran.")
     }
 
     # A PowerShell function that returns an empty array hands back nothing, so an allowlist with

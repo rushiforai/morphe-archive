@@ -1,3 +1,7 @@
+/*
+ * Forked from:
+ * https://github.com/ReVanced/revanced-patches/blob/377d4e15016296b45d809697f7f69bce74badd3a/extensions/tiktok/src/main/java/app/revanced/extension/tiktok/cleardisplay/RememberClearDisplayPatch.java
+ */
 package app.morphe.extension.tiktok.cleardisplay;
 
 import android.app.Activity;

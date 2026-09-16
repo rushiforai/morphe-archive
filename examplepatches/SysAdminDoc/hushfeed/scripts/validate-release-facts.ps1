@@ -55,30 +55,7 @@ if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 . (Join-Path $PSScriptRoot 'Resolve-Java.ps1')
 . (Join-Path $PSScriptRoot 'patch-target.ps1')
 . (Join-Path $PSScriptRoot 'release-receipt.ps1')
-
-function Resolve-DesktopCli {
-    <#
-    .SYNOPSIS
-        The Morphe desktop CLI jar, or $null when there is none to be found.
-    .DESCRIPTION
-        Taken in order from -DesktopJar, HUSHFEED_DESKTOP_JAR, HUSHFEED_WORKDIR and the repo's
-        own build/morphe-tools. The jar ships under its version, so the newest by write time is
-        taken rather than one filename that goes stale: sorting those as text puts 1.9.0 above
-        1.15.0.
-    #>
-    param([string]$Explicit, [string]$Root)
-
-    if ($Explicit) { return $Explicit }
-    if ($env:HUSHFEED_DESKTOP_JAR) { return $env:HUSHFEED_DESKTOP_JAR }
-    $searched = @($env:HUSHFEED_WORKDIR, (Join-Path $Root 'build/morphe-tools')) |
-        Where-Object { $_ -and (Test-Path -LiteralPath $_ -PathType Container) }
-    foreach ($directory in $searched) {
-        $found = @(Get-ChildItem -LiteralPath $directory -Filter 'morphe-desktop*.jar' -File `
-            -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending)
-        if ($found.Count -gt 0) { return $found[0].FullName }
-    }
-    return $null
-}
+. (Join-Path $PSScriptRoot 'common.ps1')
 
 function Read-JsonFile {
     param([string]$Path)
@@ -450,7 +427,7 @@ if ($VerifyPublishedAsset) {
             throw "The published release tag v$publishedVersion does not exist on $remoteUrl."
         }
         $releaseCommit = $tagCommitMatch.Groups[1].Value.ToLowerInvariant()
-        $releaseEpoch = (& git -C $rootPath log -1 --format=%ct $releaseCommit 2>$null |
+        $releaseEpoch = (Invoke-RepoGit -Root $rootPath -Arguments @('log', '-1', '--format=%ct', $releaseCommit) |
             Select-Object -First 1)
         $releaseEpoch = "$releaseEpoch".Trim()
         if ($releaseEpoch -notmatch '^\d+$') {
@@ -536,22 +513,61 @@ if (-not (Test-Path -LiteralPath $catalogPath -PathType Leaf)) {
     throw "The version catalog is missing: $catalogPath"
 }
 $catalogText = Get-Content -LiteralPath $catalogPath -Raw
-$catalogMatch = [regex]::Match($catalogText, '(?m)^\s*morphe-patcher\s*=\s*"([^"]+)"')
-if (-not $catalogMatch.Success) {
-    throw 'gradle/libs.versions.toml does not pin morphe-patcher.'
-}
-$pinnedPatcher = $catalogMatch.Groups[1].Value
-$managerFloorMatch = [regex]::Match($catalogText, '(?m)^\s*manager-floor\s*=\s*"([^"]+)"')
-if (-not $managerFloorMatch.Success) {
-    throw 'gradle/libs.versions.toml does not pin manager-floor beside morphe-patcher.'
-}
-$managerFloor = $managerFloorMatch.Groups[1].Value
-if ($managerFloor -notmatch '^\d+\.\d+\.\d+$') {
-    throw "gradle/libs.versions.toml has an invalid manager-floor: $managerFloor"
-}
+$workingToolchain = Read-CatalogToolchain -Text $catalogText -Source 'gradle/libs.versions.toml'
+$pinnedPatcher = $workingToolchain.PatcherVersion
+$managerFloor = $workingToolchain.ManagerFloor
 $managerFloorPattern = "\bMorphe Manager\s+$([regex]::Escape($managerFloor))\s+or newer\b"
 Require-Match -Text $readme -Pattern $managerFloorPattern -Description 'README Manager floor'
 Write-Host "[release] README requires Morphe Manager $managerFloor or newer for patcher $pinnedPatcher"
+
+function Test-ChangelogHere {
+    <#
+    .SYNOPSIS
+        The CHANGELOG still describes what it described at the last tag, and describes this
+        version.
+    .DESCRIPTION
+        Held against the file as it stood at the most recent tag reachable from HEAD, which is
+        read with git. A checkout with no tag, or one where that tag carried no CHANGELOG, is
+        still held to naming the version it builds; there is simply nothing older to compare.
+    #>
+    $path = Join-Path $rootPath 'CHANGELOG.md'
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        throw "There is no CHANGELOG.md at $path, so no release can be described."
+    }
+    $current = Get-Content -LiteralPath $path -Raw
+
+    $previous = $null
+    $label = 'the last release'
+    $tag = (Invoke-RepoGit -Root $rootPath -Arguments @('describe', '--tags', '--abbrev=0', 'HEAD') | Select-Object -First 1)
+    $tag = "$tag".Trim()
+    if ($tag) {
+        # 2>$null on its own leaves the error in $LASTEXITCODE, and a tag from before this file
+        # existed is a legitimate miss rather than a failure, so the text is what decides.
+        $text = (Invoke-RepoGit -Root $rootPath -Arguments @('show', "${tag}:CHANGELOG.md")) -join "`n"
+        if (-not [string]::IsNullOrWhiteSpace($text)) {
+            $previous = $text
+            $label = "tag $tag"
+        }
+    }
+
+    $arguments = @{ Current = $current; ExpectedVersion = $releaseVersion }
+    if ($null -ne $previous) {
+        $arguments['Previous'] = $previous
+        $arguments['PreviousLabel'] = $label
+    }
+    $check = Test-ChangelogVersions @arguments
+    if (-not $check.Valid) { throw "The CHANGELOG does not describe this release: $($check.Reason)" }
+
+    $described = @(Get-ChangelogVersions -Text $current)
+    if ($null -eq $previous) {
+        Write-Host ("[release] the CHANGELOG describes $releaseVersion and " +
+            "$($described.Count) versions in all; there is no earlier tag to compare with")
+    } else {
+        Write-Host ("[release] the CHANGELOG describes $releaseVersion and keeps every version " +
+            "$label described, $($described.Count) in all")
+    }
+}
+Test-ChangelogHere
 
 function Test-ReleaseReceiptHere {
     <#
@@ -590,12 +606,12 @@ function Test-ReleaseReceiptHere {
     $receiptCommit = [string]$receiptDocument.release.commit
     $actualEpoch = 0L
     if ($receiptCommit -match '^[0-9a-f]{40}$') {
-        $known = (& git -C $rootPath cat-file -t $receiptCommit 2>$null | Select-Object -First 1)
+        $known = (Invoke-RepoGit -Root $rootPath -Arguments @('cat-file', '-t', $receiptCommit) | Select-Object -First 1)
         if ("$known".Trim() -ne 'commit') {
             throw ("The release provenance receipt names commit $receiptCommit, which is not in " +
                 "this repository.")
         }
-        $epochText = (& git -C $rootPath log -1 --format=%ct $receiptCommit 2>$null |
+        $epochText = (Invoke-RepoGit -Root $rootPath -Arguments @('log', '-1', '--format=%ct', $receiptCommit) |
             Select-Object -First 1)
         if ("$epochText".Trim() -match '^\d+$') { $actualEpoch = [long]"$epochText".Trim() }
     }
@@ -614,9 +630,24 @@ function Test-ReleaseReceiptHere {
         $expectedCommit = $releaseCommit
     }
 
+    # The toolchain a receipt is held to is the one its own commit pinned, not the one pinned
+    # now. A receipt describes a release that has already shipped; moving the patcher pin
+    # afterwards does not make that receipt wrong, and holding it to the working catalog made
+    # every later source push fail with "The receipt was stamped by patcher 1.12.0; the catalog
+    # pins 1.13.0" on a machine where the receipt and the catalog were each correct. The only
+    # checkout that has a receipt at all is the one that cut the release, so the gate was
+    # stopping exactly the machine that did the work. On a release push the receipt's commit is
+    # the release commit, so this reads the same catalog as before and nothing is relaxed.
+    $resolved = Resolve-ReceiptToolchain -Root $rootPath -Commit $receiptCommit `
+        -WorkingToolchain $workingToolchain
+    $expectedToolchain = $resolved.Toolchain
+    if ($resolved.Note) { Write-Host "[release] $($resolved.Note)" }
+
     $receiptCheck = Test-ReleaseReceipt -Receipt $receiptDocument -ExpectedVersion $releaseVersion `
         -ExpectedPatchNames @($patches | ForEach-Object { [string]$_.name }) `
-        -ExpectedPatcherVersion $pinnedPatcher -ExpectedManagerFloor $managerFloor `
+        -ExpectedPatcherVersion $expectedToolchain.PatcherVersion `
+        -ExpectedManagerFloor $expectedToolchain.ManagerFloor `
+        -ExpectedPackageName $target.PackageName -ExpectedPackageVersion $target.PackageVersion `
         -BundlePath $BundleForComparison -ApprovedManifestDelta $approvedDelta `
         -ActualCommitTimestamp $actualEpoch -ExpectedCommit $expectedCommit
     if (-not $receiptCheck.Valid) {

@@ -1,3 +1,7 @@
+/*
+ * Copyright 2026 icysymmetra/tiktok-patches-for-morphe contributors
+ * https://github.com/icysymmetra/tiktok-patches-for-morphe
+ */
 package app.morphe.patches.tiktok.misc.follow
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions

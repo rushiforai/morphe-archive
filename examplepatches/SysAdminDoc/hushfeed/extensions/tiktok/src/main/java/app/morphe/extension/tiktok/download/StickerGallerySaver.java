@@ -195,7 +195,8 @@ public final class StickerGallerySaver {
         } else {
             // A template with no background of its own left this one flat: no press, and nothing
             // at all for a reader arriving with a keyboard or switch access.
-            button.setBackground(SettingsUi.overlayAction(context, SettingsUi.RADIUS_CONTROL));
+            button.setBackground(SettingsUi.overlayAction(context, SettingsUi.RADIUS_CONTROL,
+                    SettingsUi.textPrimary()));
         }
 
         button.setEnabled(template.isEnabled());
@@ -467,6 +468,9 @@ public final class StickerGallerySaver {
             writer.write(resolver, uri);
             MediaBudget.check(null);
             ContentValues complete = new ContentValues();
+            // The row went in under a placeholder MediaStore could not collide with, so the
+            // publish is where it takes the name the reader asked for.
+            complete.put(MediaStore.MediaColumns.DISPLAY_NAME, displayName);
             complete.put(MediaStore.MediaColumns.IS_PENDING, 0);
             completePending(context, resolver, uri, complete);
             return uri;
@@ -663,6 +667,12 @@ public final class StickerGallerySaver {
             Uri uri,
             ContentValues values
     ) throws IOException {
+        // The row went in under a placeholder, so a publish that does not name the file leaves
+        // one called hushfeed-pending-1a2b3c.webp in the gallery. Nothing here reads the name
+        // back afterwards, so this is where that gets caught.
+        if (values.getAsString(MediaStore.MediaColumns.DISPLAY_NAME) == null) {
+            throw new IOException("Sticker publish did not name the file");
+        }
         if (resolver.update(uri, values, null, null) != 1) {
             throw new IOException("Could not publish sticker");
         }

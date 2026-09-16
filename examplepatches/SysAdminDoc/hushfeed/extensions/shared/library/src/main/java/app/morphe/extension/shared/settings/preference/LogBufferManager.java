@@ -1,3 +1,11 @@
+/*
+ * Forked from MorpheApp/morphe-patches (GPL-3.0), by way of
+ * icysymmetra/tiktok-patches-for-morphe.
+ * https://github.com/MorpheApp/morphe-patches
+ *
+ * Imported carrying no notice of its own. Morphe hard forked ReVanced, so parts of
+ * this file may originate there.
+ */
 package app.morphe.extension.shared.settings.preference;
 
 import android.app.ActivityManager;
@@ -23,7 +31,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Deque;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TimeZone;
@@ -288,6 +298,32 @@ public final class LogBufferManager {
         }
     }
 
+    /**
+     * A section of the exported report supplied from outside this library.
+     *
+     * <p>The Feature Gate Lab lives in the TikTok extension, and this library cannot name it,
+     * so the extension registers what it wants said. A section with no lines is left out.
+     */
+    public interface ReportSection {
+        /** The bracketed heading, without the brackets. */
+        String title();
+
+        /** One line per fact, or an empty list to say nothing. */
+        List<String> lines();
+    }
+
+    private static final List<ReportSection> REPORT_SECTIONS = new CopyOnWriteArrayList<>();
+
+    /** Adds a section after Hook status; a section registered twice is kept once. */
+    public static void registerReportSection(ReportSection section) {
+        if (section == null || REPORT_SECTIONS.contains(section)) return;
+        REPORT_SECTIONS.add(section);
+    }
+
+    static void clearReportSectionsForTests() {
+        REPORT_SECTIONS.clear();
+    }
+
     public static String buildExportText() {
         Set<String> selected = LogExportFilterPreference.parse(BaseSettings.DEBUG_LOG_FILTERS.get());
         boolean includeAll = selected.isEmpty() || selected.contains("all");
@@ -341,6 +377,25 @@ public final class LogBufferManager {
         }
         if (hooks.length() > 0) {
             report.append("\n[HOOK STATUS]\n").append(hooks).append('\n');
+        }
+        // The same choice as Hook status: what the bundle has been told to do is a fact about
+        // the patches, and it is what a report from a phone with an override that changed
+        // nothing has been missing. Not part of worthReporting, for the reason above.
+        if (includeAll || selected.contains(
+                app.morphe.extension.shared.diagnostics.DiagnosticCategory.PATCH_ERRORS.value)) {
+            for (ReportSection section : REPORT_SECTIONS) {
+                List<String> lines;
+                try {
+                    lines = section.lines();
+                } catch (Throwable failure) {
+                    lines = Collections.singletonList("could not be read: " + failure);
+                }
+                if (lines == null || lines.isEmpty()) continue;
+                report.append("\n[").append(section.title()).append("]\n");
+                for (String line : lines) {
+                    report.append(DiagnosticRedactor.redact(line)).append('\n');
+                }
+            }
         }
         // Outside worthReporting for the same reason as the last exit below: a counter that has
         // only ever counted is not a finding, and a report made non-empty by one would mean

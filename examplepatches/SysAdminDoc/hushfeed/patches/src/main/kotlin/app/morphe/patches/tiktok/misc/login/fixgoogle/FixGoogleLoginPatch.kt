@@ -5,8 +5,8 @@
 package app.morphe.patches.tiktok.misc.login.fixgoogle
 
 import app.morphe.patches.shared.compat.AppCompatibilities
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.util.returnEarly
 
 @Suppress("unused")
 val fixGoogleLoginPatch = bytecodePatch(
@@ -17,15 +17,10 @@ val fixGoogleLoginPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.tiktok4623())
 
     execute {
-        listOf(GoogleAuthAvailableFingerprint.method).forEach { method ->
-            method.addInstructions(
-                0,
-                """
-                    const/4 v0, 0x0
-                    return v0
-                """,
-            )
-        }
+        // returnEarly writes the same two instructions and refuses a method whose return type
+        // is not Z first, which the raw smali did not: a build that made this answer a Boolean
+        // object would have taken an integer return and failed verification on the phone.
+        GoogleAuthAvailableFingerprint.method.returnEarly(false)
     }
 }
 

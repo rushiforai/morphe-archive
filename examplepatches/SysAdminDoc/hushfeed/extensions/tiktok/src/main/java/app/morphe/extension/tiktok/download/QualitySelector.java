@@ -1,3 +1,9 @@
+/*
+ * Copyright 2026 Hushfeed contributors
+ * https://github.com/SysAdminDoc/hushfeed
+ *
+ * Built on icysymmetra/tiktok-patches-for-morphe (GPL-3.0).
+ */
 package app.morphe.extension.tiktok.download;
 
 import app.morphe.extension.tiktok.blockauthor.Reflect;
@@ -51,6 +57,13 @@ public final class QualitySelector {
         if (compare == 0) compare = Long.compare(number(candidate, "getBitRate", "bitRate"), number(current, "getBitRate", "bitRate"));
         if (compare == 0) compare = Long.compare(size(candidate), size(current));
         return lowest ? compare < 0 : compare > 0;
+    }
+
+    /** A gear the way a report names it: its gear name and the height it plays at. */
+    public static String describe(Object gear) {
+        String name = Reflect.string(gear, "getGearName", "gearName");
+        int height = height(gear);
+        return (name == null || name.isEmpty() ? "unnamed" : name) + (height > 0 ? " " + height + "p" : "");
     }
 
     private static int height(Object gear) {

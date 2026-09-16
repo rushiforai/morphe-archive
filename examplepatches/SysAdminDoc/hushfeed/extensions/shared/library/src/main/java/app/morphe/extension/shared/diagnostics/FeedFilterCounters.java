@@ -34,6 +34,8 @@ public final class FeedFilterCounters {
         final AtomicLong lists = new AtomicLong();
         final AtomicLong itemsIn = new AtomicLong();
         final AtomicLong removed = new AtomicLong();
+        /** Elements handed over that were not videos at all, so no rule ever saw them. */
+        final AtomicLong unreadable = new AtomicLong();
         volatile String lastReason;
     }
 
@@ -60,7 +62,7 @@ public final class FeedFilterCounters {
 
     private static final class Line {
         final String source;
-        final long lists, itemsIn, removed;
+        final long lists, itemsIn, removed, unreadable;
         final String lastReason;
 
         Line(String source, Counter counter) {
@@ -68,6 +70,7 @@ public final class FeedFilterCounters {
             this.lists = counter.lists.get();
             this.itemsIn = counter.itemsIn.get();
             this.removed = counter.removed.get();
+            this.unreadable = counter.unreadable.get();
             this.lastReason = counter.lastReason;
         }
     }
@@ -84,6 +87,20 @@ public final class FeedFilterCounters {
         if (counter == null) return;
         counter.lists.incrementAndGet();
         if (size > 0) counter.itemsIn.addAndGet(size);
+    }
+
+    /**
+     * Elements this route was handed that it could not read as videos.
+     *
+     * <p>A route that kept everything reads the same whether nothing matched a rule or nothing
+     * was ever tested, and issue #2's export was exactly that: 64 items, 0 removed, two ads
+     * watched. This is the half that separates them.
+     */
+    public static void unreadable(String source, int count) {
+        if (count <= 0) return;
+        Counter counter = counter(source);
+        if (counter == null) return;
+        counter.unreadable.addAndGet(count);
     }
 
     /** What this route took out of the list it was just handed. */
@@ -121,6 +138,8 @@ public final class FeedFilterCounters {
                         .append(": ").append(counter.lists.get()).append(" lists, ")
                         .append(counter.itemsIn.get()).append(" items, ")
                         .append(counter.removed.get()).append(" removed");
+                long unreadable = counter.unreadable.get();
+                if (unreadable > 0) line.append(", ").append(unreadable).append(" not videos");
                 String reason = counter.lastReason;
                 if (reason != null) line.append(". Last reason: ").append(reason);
                 lines.add(line.toString());
@@ -172,6 +191,7 @@ public final class FeedFilterCounters {
                 counter.lists.addAndGet(saved.lists);
                 counter.itemsIn.addAndGet(saved.itemsIn);
                 counter.removed.addAndGet(saved.removed);
+                counter.unreadable.addAndGet(saved.unreadable);
                 if (counter.lastReason == null) counter.lastReason = saved.lastReason;
             }
 

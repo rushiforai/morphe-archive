@@ -1,7 +1,8 @@
 {
-    "version": "v1.43.0-dualvot.8.5.2",
+    "version": "v1.44.0-dev.1-dualvot.8.5.2",
     "patches": [
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -16,12 +17,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -50,8 +51,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -77,6 +78,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -91,12 +93,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -125,8 +127,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -147,6 +149,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -161,12 +164,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -195,8 +198,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -216,6 +219,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APKM",
@@ -270,6 +274,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -320,6 +325,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -334,12 +340,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -368,8 +374,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -388,6 +394,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -438,6 +445,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -452,12 +460,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -486,8 +494,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -507,6 +515,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -521,12 +530,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -555,8 +564,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -575,6 +584,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -589,12 +599,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -623,8 +633,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -644,6 +654,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -658,12 +669,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -692,8 +703,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -716,6 +727,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -775,6 +787,7 @@
             ]
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -789,12 +802,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -823,8 +836,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -852,6 +865,7 @@
             ]
         },
         {
+            "category": null,
             "compatiblePackages": null,
             "default": false,
             "dependencies": [
@@ -878,6 +892,7 @@
             ]
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -921,14 +936,14 @@
             "default": true,
             "dependencies": [
                 "BytecodePatch",
-                "BytecodePatch",
-                "ResourcePatch"
+                "BytecodePatch"
             ],
             "description": "Adds an option to change the miniplayer background color to match the fullscreen player.",
             "name": "Change miniplayer color",
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -979,6 +994,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -993,12 +1009,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -1027,8 +1043,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -1047,6 +1063,76 @@
             "options": []
         },
         {
+            "category": null,
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK_REQUIRED",
+                    "appIconColor": "#FF0033",
+                    "name": "YouTube",
+                    "packageName": "com.google.android.youtube",
+                    "signatures": [
+                        "5aad2bee6db95d17e05a08d7d1e64c10a1511879154483916b6ae6c7fd9cb0c6",
+                        "3d7a1223019aa39d9ea0e3436ab7c0896bfb4fb679f4de5fe7c23f326c8f994a"
+                    ],
+                    "targets": [
+                        {
+                            "isExperimental": true,
+                            "minSdk": 29,
+                            "version": "21.37.42"
+                        },
+                        {
+                            "isExperimental": true,
+                            "minSdk": 29,
+                            "version": "21.36.45"
+                        },
+                        {
+                            "isExperimental": true,
+                            "minSdk": 29,
+                            "version": "21.28.208"
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "version": "21.13.164"
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "version": "21.07.247"
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "version": "20.31.42"
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 26,
+                            "version": "20.21.37"
+                        }
+                    ],
+                    "versions": [
+                        "21.37.42",
+                        "21.36.45",
+                        "21.28.208",
+                        "21.13.164",
+                        "21.07.247",
+                        "20.31.42",
+                        "20.21.37"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [
+                "ResourcePatch",
+                "BytecodePatch"
+            ],
+            "description": "Adds an option to search inside the channel that is currently open instead of searching all of YouTube.",
+            "name": "Channel search",
+            "options": []
+        },
+        {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -1096,6 +1182,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -1110,12 +1197,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -1144,8 +1231,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -1163,6 +1250,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": null,
             "default": false,
             "dependencies": [
@@ -1203,6 +1291,7 @@
             ]
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -1217,12 +1306,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -1251,8 +1340,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -1274,6 +1363,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -1326,6 +1416,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -1370,7 +1461,6 @@
             "dependencies": [
                 "BytecodePatch",
                 "BytecodePatch",
-                "ResourcePatch",
                 "BytecodePatch",
                 "BytecodePatch",
                 "ResourcePatch"
@@ -1417,6 +1507,7 @@
             ]
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -1431,12 +1522,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -1465,8 +1556,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -1478,7 +1569,6 @@
             "default": true,
             "dependencies": [
                 "BytecodePatch",
-                "ResourcePatch",
                 "BytecodePatch",
                 "BytecodePatch",
                 "ResourcePatch"
@@ -1525,6 +1615,7 @@
             ]
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APKM",
@@ -1591,6 +1682,7 @@
             ]
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APKM",
@@ -1645,6 +1737,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -1659,12 +1752,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -1693,8 +1786,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -1706,7 +1799,6 @@
             "default": true,
             "dependencies": [
                 "BytecodePatch",
-                "ResourcePatch",
                 "BytecodePatch"
             ],
             "description": "Adds an option to change the opacity of the video player background when player controls are visible.",
@@ -1714,6 +1806,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -1764,6 +1857,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -1778,12 +1872,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -1812,8 +1906,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -1833,6 +1927,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -1884,6 +1979,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -1898,12 +1994,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -1932,8 +2028,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -1953,6 +2049,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -1967,12 +2064,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -2001,8 +2098,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -2022,6 +2119,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -2036,12 +2134,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -2070,8 +2168,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -2089,6 +2187,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -2103,12 +2202,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -2137,8 +2236,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -2157,6 +2256,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APKM",
@@ -2212,6 +2312,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": null,
             "default": false,
             "dependencies": [
@@ -2222,6 +2323,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -2236,12 +2338,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -2270,8 +2372,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -2290,6 +2392,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -2304,12 +2407,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -2338,8 +2441,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -2351,14 +2454,14 @@
             "default": true,
             "dependencies": [
                 "BytecodePatch",
-                "BytecodePatch",
-                "ResourcePatch"
+                "BytecodePatch"
             ],
             "description": "Adds an option to stop a playlist from automatically advancing to the next video.",
             "name": "Disable playlist autoplay",
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -2409,6 +2512,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -2423,12 +2527,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -2457,8 +2561,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -2477,6 +2581,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -2491,12 +2596,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -2525,8 +2630,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -2545,6 +2650,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APKM",
@@ -2599,6 +2705,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -2613,12 +2720,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -2647,8 +2754,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -2668,6 +2775,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -2682,12 +2790,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -2716,8 +2824,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -2737,6 +2845,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -2751,12 +2860,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -2785,8 +2894,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -2798,14 +2907,14 @@
             "default": true,
             "dependencies": [
                 "BytecodePatch",
-                "BytecodePatch",
-                "ResourcePatch"
+                "BytecodePatch"
             ],
             "description": "Adds options to disable the popups asking to sign into or connect to a TV on the same local network.",
             "name": "Disable sign in to TV popup",
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -2820,12 +2929,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -2854,8 +2963,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -2874,6 +2983,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -2888,12 +2998,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -2922,8 +3032,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -2941,6 +3051,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -2993,6 +3104,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -3007,12 +3119,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -3041,8 +3153,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -3062,6 +3174,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -3113,6 +3226,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -3127,12 +3241,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -3161,8 +3275,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -3183,6 +3297,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -3233,6 +3348,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -3283,6 +3399,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -3334,6 +3451,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -3348,12 +3466,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -3382,8 +3500,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -3404,6 +3522,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -3448,14 +3567,14 @@
             "dependencies": [
                 "BytecodePatch",
                 "BytecodePatch",
-                "BytecodePatch",
-                "ResourcePatch"
+                "BytecodePatch"
             ],
             "description": "Adds an option to always use the original audio track.",
             "name": "Force original audio",
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -3470,12 +3589,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -3504,8 +3623,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -3518,14 +3637,14 @@
             "dependencies": [
                 "BytecodePatch",
                 "BytecodePatch",
-                "BytecodePatch",
-                "ResourcePatch"
+                "BytecodePatch"
             ],
             "description": "Adds an option to always use the original audio track.",
             "name": "Force original audio",
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APKM",
@@ -3580,6 +3699,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -3594,12 +3714,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -3628,8 +3748,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -3654,6 +3774,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -3706,6 +3827,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -3720,12 +3842,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -3754,8 +3876,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -3770,6 +3892,7 @@
                 "ResourcePatch",
                 "BytecodePatch",
                 "BytecodePatch",
+                "BytecodePatch",
                 "BytecodePatch"
             ],
             "description": "Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services.",
@@ -3777,6 +3900,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -3821,14 +3945,14 @@
             "dependencies": [
                 "BytecodePatch",
                 "BytecodePatch",
-                "BytecodePatch",
-                "ResourcePatch"
+                "BytecodePatch"
             ],
             "description": "Adds options to hide fullscreen ads, Premium promotions and video ads.",
             "name": "Hide ads",
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APKM",
@@ -3884,6 +4008,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -3898,12 +4023,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -3932,8 +4057,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -3946,7 +4071,6 @@
             "dependencies": [
                 "ResourcePatch",
                 "BytecodePatch",
-                "ResourcePatch",
                 "BytecodePatch",
                 "BytecodePatch",
                 "BytecodePatch"
@@ -3956,6 +4080,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APKM",
@@ -4012,6 +4137,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -4026,12 +4152,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -4060,8 +4186,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -4073,14 +4199,14 @@
             "default": true,
             "dependencies": [
                 "BytecodePatch",
-                "BytecodePatch",
-                "ResourcePatch"
+                "BytecodePatch"
             ],
             "description": "Adds an option to hide the autoplay preview at the end of videos.",
             "name": "Hide autoplay preview",
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -4124,14 +4250,14 @@
             "default": true,
             "dependencies": [
                 "BytecodePatch",
-                "BytecodePatch",
-                "ResourcePatch"
+                "BytecodePatch"
             ],
             "description": "Adds options to hide the cast, history, notification, and search buttons.",
             "name": "Hide buttons",
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APKM",
@@ -4187,6 +4313,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -4201,12 +4328,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -4235,8 +4362,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -4249,14 +4376,14 @@
             "dependencies": [
                 "BytecodePatch",
                 "ResourcePatch",
-                "BytecodePatch",
-                "ResourcePatch"
+                "BytecodePatch"
             ],
             "description": "Adds an option to hide suggested video cards at the end of videos.",
             "name": "Hide end screen cards",
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -4271,12 +4398,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -4305,8 +4432,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -4324,6 +4451,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -4374,6 +4502,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -4418,14 +4547,14 @@
             "dependencies": [
                 "BytecodePatch",
                 "BytecodePatch",
-                "BytecodePatch",
-                "ResourcePatch"
+                "BytecodePatch"
             ],
             "description": "Adds options to hide individual items from the player and queue flyout menus.",
             "name": "Hide flyout menu components",
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -4440,12 +4569,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -4474,8 +4603,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -4488,14 +4617,14 @@
             "dependencies": [
                 "BytecodePatch",
                 "BytecodePatch",
-                "BytecodePatch",
-                "ResourcePatch"
+                "BytecodePatch"
             ],
             "description": "Adds an option to hide info cards that creators add in the video player.",
             "name": "Hide info cards",
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -4547,6 +4676,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -4561,12 +4691,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -4595,8 +4725,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -4612,7 +4742,6 @@
                 "BytecodePatch",
                 "BytecodePatch",
                 "BytecodePatch",
-                "ResourcePatch",
                 "BytecodePatch",
                 "BytecodePatch",
                 "BytecodePatch",
@@ -4625,6 +4754,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -4677,6 +4807,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APKM",
@@ -4732,6 +4863,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -4746,12 +4878,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -4780,8 +4912,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -4794,7 +4926,6 @@
             "dependencies": [
                 "BytecodePatch",
                 "BytecodePatch",
-                "ResourcePatch",
                 "BytecodePatch",
                 "BytecodePatch",
                 "BytecodePatch",
@@ -4805,6 +4936,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -4819,12 +4951,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -4853,8 +4985,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -4868,7 +5000,6 @@
                 "BytecodePatch",
                 "BytecodePatch",
                 "BytecodePatch",
-                "ResourcePatch",
                 "BytecodePatch"
             ],
             "description": "Adds options to hide the player Cast, Autoplay, Captions, Previous & Next buttons, and to hide or change the opacity of the player control buttons background.",
@@ -4876,6 +5007,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APKM",
@@ -4930,6 +5062,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -4944,12 +5077,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -4978,8 +5111,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -4991,14 +5124,14 @@
             "default": true,
             "dependencies": [
                 "BytecodePatch",
-                "BytecodePatch",
-                "ResourcePatch"
+                "BytecodePatch"
             ],
             "description": "Adds an option to hide the related video overlay shown when swiping up in fullscreen.",
             "name": "Hide related video overlay",
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -5013,12 +5146,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -5047,8 +5180,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -5068,6 +5201,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -5082,12 +5216,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -5116,8 +5250,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -5133,7 +5267,6 @@
                 "BytecodePatch",
                 "BytecodePatch",
                 "BytecodePatch",
-                "ResourcePatch",
                 "BytecodePatch",
                 "BytecodePatch"
             ],
@@ -5161,6 +5294,7 @@
             ]
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APKM",
@@ -5215,6 +5349,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -5229,12 +5364,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -5263,8 +5398,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -5283,6 +5418,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APKM",
@@ -5338,6 +5474,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -5352,12 +5489,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -5386,8 +5523,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -5412,6 +5549,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -5426,12 +5564,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -5460,8 +5598,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -5474,14 +5612,14 @@
             "dependencies": [
                 "BytecodePatch",
                 "BytecodePatch",
-                "BytecodePatch",
-                "ResourcePatch"
+                "BytecodePatch"
             ],
             "description": "Adds an option to loop videos and display loop video button in the video player.",
             "name": "Loop video",
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -5496,12 +5634,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -5530,8 +5668,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -5550,6 +5688,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -5564,12 +5703,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -5598,8 +5737,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -5619,6 +5758,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -5663,7 +5803,6 @@
             "dependencies": [
                 "BytecodePatch",
                 "BytecodePatch",
-                "ResourcePatch",
                 "ResourcePatch"
             ],
             "description": "Adds options to show previous and next track buttons in the miniplayer.",
@@ -5671,6 +5810,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -5685,12 +5825,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -5719,8 +5859,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -5744,6 +5884,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -5786,7 +5927,6 @@
             ],
             "default": true,
             "dependencies": [
-                "ResourcePatch",
                 "BytecodePatch",
                 "BytecodePatch",
                 "ResourcePatch"
@@ -5796,6 +5936,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -5810,12 +5951,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -5844,8 +5985,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -5869,6 +6010,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -5920,6 +6062,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -5934,12 +6077,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -5968,8 +6111,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -5989,6 +6132,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -6003,12 +6147,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -6037,8 +6181,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -6058,6 +6202,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APKM",
@@ -6113,6 +6258,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APKM",
@@ -6168,6 +6314,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -6182,12 +6329,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -6216,8 +6363,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -6233,6 +6380,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -6247,12 +6395,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -6281,8 +6429,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -6298,14 +6446,14 @@
                 "BytecodePatch",
                 "BytecodePatch",
                 "BytecodePatch",
-                "BytecodePatch",
-                "ResourcePatch"
+                "BytecodePatch"
             ],
             "description": "Adds options to open Shorts in the regular video player.",
             "name": "Open Shorts in regular player",
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -6320,12 +6468,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -6354,8 +6502,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -6376,6 +6524,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -6390,12 +6539,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -6424,8 +6573,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -6446,6 +6595,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": null,
             "default": false,
             "dependencies": [],
@@ -6454,6 +6604,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -6468,12 +6619,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -6502,8 +6653,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -6522,6 +6673,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -6574,6 +6726,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -6588,12 +6741,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -6622,8 +6775,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -6645,6 +6798,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -6659,12 +6813,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -6693,8 +6847,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -6714,6 +6868,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -6728,12 +6883,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -6762,8 +6917,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -6783,6 +6938,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -6833,6 +6989,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -6847,12 +7004,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -6881,8 +7038,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -6901,6 +7058,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -6915,12 +7073,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -6949,8 +7107,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -6972,6 +7130,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -6986,12 +7145,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -7020,8 +7179,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -7041,6 +7200,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -7091,6 +7251,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -7143,6 +7304,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -7194,6 +7356,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -7208,12 +7371,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -7242,8 +7405,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -7259,14 +7422,14 @@
                 "BytecodePatch",
                 "BytecodePatch",
                 "BytecodePatch",
-                "BytecodePatch",
-                "ResourcePatch"
+                "BytecodePatch"
             ],
             "description": "Removes restrictions on background playback, including playing kids videos in the background.",
             "name": "Remove background playback restrictions",
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APKM",
@@ -7321,6 +7484,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -7371,6 +7535,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -7385,12 +7550,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -7419,8 +7584,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -7439,6 +7604,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -7491,6 +7657,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -7505,12 +7672,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -7539,8 +7706,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -7563,6 +7730,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -7613,6 +7781,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APKM",
@@ -7667,6 +7836,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -7681,12 +7851,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -7715,8 +7885,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -7735,6 +7905,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -7749,12 +7920,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -7783,8 +7954,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -7809,6 +7980,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -7860,6 +8032,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -7874,12 +8047,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -7908,8 +8081,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -7932,6 +8105,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -7982,6 +8156,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -7996,12 +8171,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -8030,8 +8205,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -8050,6 +8225,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -8064,12 +8240,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -8098,8 +8274,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -8112,7 +8288,6 @@
             "dependencies": [
                 "BytecodePatch",
                 "BytecodePatch",
-                "ResourcePatch",
                 "BytecodePatch"
             ],
             "description": "Adds options to automatically play the next Short.",
@@ -8120,6 +8295,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APKM",
@@ -8175,6 +8351,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -8227,6 +8404,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -8241,12 +8419,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -8275,8 +8453,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -8288,7 +8466,6 @@
             "default": true,
             "dependencies": [
                 "BytecodePatch",
-                "ResourcePatch",
                 "BytecodePatch",
                 "BytecodePatch",
                 "BytecodePatch",
@@ -8301,6 +8478,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -8351,6 +8529,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -8365,12 +8544,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -8399,8 +8578,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -8411,7 +8590,6 @@
             ],
             "default": true,
             "dependencies": [
-                "ResourcePatch",
                 "BytecodePatch",
                 "BytecodePatch",
                 "BytecodePatch",
@@ -8422,6 +8600,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -8436,12 +8615,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -8470,8 +8649,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -8490,6 +8669,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APKM",
@@ -8552,6 +8732,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -8607,6 +8788,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -8621,12 +8803,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -8655,8 +8837,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -8680,6 +8862,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -8694,12 +8877,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -8728,8 +8911,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -8750,6 +8933,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -8794,7 +8978,6 @@
             "dependencies": [
                 "BytecodePatch",
                 "BytecodePatch",
-                "ResourcePatch",
                 "BytecodePatch",
                 "ResourcePatch",
                 "ResourcePatch",
@@ -8832,6 +9015,7 @@
             ]
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -8846,12 +9030,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -8880,8 +9064,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -8894,7 +9078,6 @@
             "dependencies": [
                 "BytecodePatch",
                 "BytecodePatch",
-                "ResourcePatch",
                 "BytecodePatch",
                 "BytecodePatch",
                 "ResourcePatch",
@@ -8956,6 +9139,7 @@
             ]
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -9010,6 +9194,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -9024,12 +9209,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -9058,8 +9243,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -9081,6 +9266,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -9095,12 +9281,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -9129,8 +9315,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -9154,6 +9340,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -9168,12 +9355,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -9202,8 +9389,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",
@@ -9216,7 +9403,6 @@
             "dependencies": [
                 "BytecodePatch",
                 "BytecodePatch",
-                "ResourcePatch",
                 "BytecodePatch",
                 "BytecodePatch"
             ],
@@ -9225,6 +9411,7 @@
             "options": []
         },
         {
+            "category": null,
             "compatiblePackages": [
                 {
                     "apkFileType": "APK_REQUIRED",
@@ -9239,12 +9426,12 @@
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.36.45"
+                            "version": "21.37.42"
                         },
                         {
                             "isExperimental": true,
                             "minSdk": 29,
-                            "version": "21.35.442"
+                            "version": "21.36.45"
                         },
                         {
                             "isExperimental": true,
@@ -9273,8 +9460,8 @@
                         }
                     ],
                     "versions": [
+                        "21.37.42",
                         "21.36.45",
-                        "21.35.442",
                         "21.28.208",
                         "21.13.164",
                         "21.07.247",

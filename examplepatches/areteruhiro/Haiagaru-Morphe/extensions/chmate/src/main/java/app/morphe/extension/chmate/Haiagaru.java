@@ -16,6 +16,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
+import android.os.Bundle;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
@@ -795,8 +796,10 @@ public final class Haiagaru {
     }
 
     public static String rewrite5chUrl(String original) {
-        if (original == null || !isChtoioEnabled()) return original;
-        String rewritten = original.replace("5ch.net", "5ch.io");
+        if (original == null) return null;
+        String rewritten = rewriteLegacyTalkBoardResource(original);
+        if (!isChtoioEnabled()) return rewritten;
+        rewritten = rewritten.replace("5ch.net", "5ch.io");
         try {
             Uri uri = Uri.parse(rewritten);
             String host = uri.getHost();
@@ -832,6 +835,33 @@ public final class Haiagaru {
     }
 
     /**
+     * ChMate can retain pre-web Talk board roots such as {@code talk.jp/operation/}.
+     * The current website serves threads below /boards, while the classic endpoint
+     * remains the 2ch-compatible source for subject.txt and board settings. Rewrite
+     * only those board resources; thread bodies are loaded through the Talk JSON API.
+     */
+    private static String rewriteLegacyTalkBoardResource(String original) {
+        try {
+            Uri uri = Uri.parse(original);
+            String host = uri.getHost();
+            String path = uri.getPath();
+            if (host == null || path == null || !host.equalsIgnoreCase("talk.jp")) {
+                return original;
+            }
+            if (!path.matches("(?i)^/[a-z0-9_-]+/(?:subject\\.txt|setting\\.txt|head\\.txt)$")) {
+                return original;
+            }
+            return uri.buildUpon()
+                    .scheme("https")
+                    .encodedAuthority("classic.talk-platform.com")
+                    .build()
+                    .toString();
+        } catch (Throwable ignored) {
+            return original;
+        }
+    }
+
+    /**
      * Converts a thread URL on an obsolete 2ch/5ch server before ChMate creates
      * BBSUrlInfo. itest is independent of the thread's former server name and has
      * a dedicated parser in ChMate. The official kako archive and 2ch.sc mirror
@@ -839,6 +869,98 @@ public final class Haiagaru {
      */
     public static boolean loadLiveTalkDat(String url, File destination) throws IOException {
         return ArchivedThreadImporter.loadLiveTalkDat(url, destination);
+    }
+
+    /**
+     * ChMate 0.8.10.191 restores its Talk client into a dedicated in-memory DEX.
+     * A certificate-derived comparison in that DEX deliberately divides by zero
+     * when the APK is re-signed. Keep the generated request/authentication code,
+     * but normalize only the two comparison values before it is invoked.
+     */
+    public static void normalizeLegacyTalkAuthIntegrity(Object authClient) {
+        if (authClient == null) return;
+        try {
+            ClassLoader loader = authClient.getClass().getClassLoader();
+            Class<?> stateClass = Class.forName("o.fm", false, loader);
+            Field stateField = stateClass.getDeclaredField("e");
+            stateField.setAccessible(true);
+            Object value = stateField.get(null);
+            if (!(value instanceof Object[])) return;
+            Object[] state = (Object[]) value;
+            if (state.length < 2 || !(state[0] instanceof int[]) || !(state[1] instanceof int[])) {
+                return;
+            }
+            int[] actual = (int[]) state[0];
+            int[] expected = (int[]) state[1];
+            if (actual.length == 0 || expected.length == 0) return;
+            expected[0] = actual[0];
+
+            // The generated method refreshes this state after roughly two seconds.
+            // Hold the normalized state for the duration of the authentication call.
+            Field timestampField = stateClass.getDeclaredField("c");
+            timestampField.setAccessible(true);
+            timestampField.setLong(null, System.currentTimeMillis() + 86_400_000L);
+        } catch (Throwable error) {
+            Log.w(LOG_TAG, "Unable to normalize legacy Talk authentication state", error);
+        }
+    }
+
+    /**
+     * Runs ChMate 226's dynamically restored Talk posting method after repairing
+     * only its certificate-derived comparison cache. The generated class throws
+     * null when the two cached integers differ, which surfaces as an unexplained
+     * NullPointerException after the APK has been re-signed.
+     */
+    public static Object invokePreIoTalkPoster(
+            java.lang.reflect.Method method,
+            Object target,
+            Object[] arguments
+    ) {
+        if (method == null) throw new NullPointerException("method");
+        normalizeGeneratedIntegrityState(target, "o.head", "e", "d");
+        try {
+            return method.invoke(target, arguments);
+        } catch (java.lang.reflect.InvocationTargetException error) {
+            return Haiagaru.<RuntimeException, Object>throwUnchecked(error.getCause());
+        } catch (Throwable error) {
+            return Haiagaru.<RuntimeException, Object>throwUnchecked(error);
+        }
+    }
+
+    private static void normalizeGeneratedIntegrityState(
+            Object owner,
+            String className,
+            String stateFieldName,
+            String timestampFieldName
+    ) {
+        if (owner == null) return;
+        try {
+            ClassLoader loader = owner.getClass().getClassLoader();
+            Class<?> stateClass = Class.forName(className, false, loader);
+            Field stateField = stateClass.getDeclaredField(stateFieldName);
+            stateField.setAccessible(true);
+            Object value = stateField.get(null);
+            if (!(value instanceof Object[])) return;
+            Object[] state = (Object[]) value;
+            if (state.length < 2 || !(state[0] instanceof int[]) || !(state[1] instanceof int[])) {
+                return;
+            }
+            int[] first = (int[]) state[0];
+            int[] second = (int[]) state[1];
+            if (first.length == 0 || second.length == 0) return;
+            second[0] = first[0];
+
+            Field timestampField = stateClass.getDeclaredField(timestampFieldName);
+            timestampField.setAccessible(true);
+            timestampField.setLong(null, System.currentTimeMillis() + 86_400_000L);
+        } catch (Throwable error) {
+            Log.w(LOG_TAG, "Unable to normalize generated Talk integrity state", error);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <E extends Throwable, T> T throwUnchecked(Throwable error) throws E {
+        throw (E) error;
     }
 
     public static void rewriteLegacyThreadIntent(Activity activity) {
@@ -880,6 +1002,37 @@ public final class Haiagaru {
             intent.setData(Uri.parse(rewritten));
             Log.i(LOG_TAG, "Using browser-compatible fallback URL " + rewritten);
         }
+    }
+
+    /**
+     * Applies the legacy-thread recovery path to the in-place tablet navigation
+     * bundle. TabletHomeActivity opens threads without creating ResListActivity,
+     * so its bundle would otherwise retain the obsolete server URL and bypass the
+     * archived-DAT importer entirely.
+     *
+     * @return true when an asynchronous DAT import owns this navigation request
+     */
+    public static boolean rewriteLegacyTabletThreadBundle(Activity activity, Bundle bundle) {
+        if (activity == null || bundle == null) return false;
+        String original = bundle.getString("_data");
+        if (original == null || original.isEmpty()) return false;
+
+        boolean talkThread = ArchivedThreadImporter.isTalkThreadUrl(original);
+        if (!talkThread && !isChtoioEnabled()) return false;
+        String rewritten = talkThread ? original : rewriteLegacyThreadUrl(original);
+        boolean archiveRetry = bundle.getBoolean("haiagaru.archive.retry", false);
+        boolean shouldImport = talkThread
+                || (isAutomaticDatEnabled(activity) && isArchivedThreadUrl(original));
+        if (!archiveRetry && shouldImport
+                && ArchivedThreadImporter.importIfNeeded(activity, original, rewritten)) {
+            Log.i(LOG_TAG, "Handling tablet thread through the local DAT cache: " + original);
+            return true;
+        }
+        if (!original.equals(rewritten)) {
+            bundle.putString("_data", rewritten);
+            Log.i(LOG_TAG, "Using tablet fallback URL " + rewritten);
+        }
+        return false;
     }
 
     private static boolean isArchivedThreadUrl(String value) {
@@ -1107,6 +1260,24 @@ public final class Haiagaru {
         safePostCollapseAdView(view, 300);
         safePostCollapseAdView(view, 1000);
         safePostCollapseAdView(view, 2500);
+    }
+
+    /** Collapses the inline banner row inserted between the first two responses on 191. */
+    public static void hideLegacyThreadListAd(
+            View view,
+            android.widget.BaseAdapter adapter,
+            int position
+    ) {
+        if (view == null || adapter == null || !shouldHideAds()) return;
+        try {
+            // The legacy response adapter reserves its sixth view type exclusively
+            // for the in-thread banner. Normal responses use type 0.
+            if (adapter.getItemViewType(position) == 5) {
+                hideAdView(view);
+            }
+        } catch (Throwable error) {
+            Log.w(LOG_TAG, "Unable to collapse legacy in-thread ad", error);
+        }
     }
 
     private static void collapseAdView(View view) {

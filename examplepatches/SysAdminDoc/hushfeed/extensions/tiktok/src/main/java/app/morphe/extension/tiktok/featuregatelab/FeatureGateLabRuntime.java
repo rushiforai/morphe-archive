@@ -30,7 +30,8 @@ public final class FeatureGateLabRuntime {
     private static final Set<String> triggered = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private static final Map<String, String> firstCallers = new ConcurrentHashMap<>();
     private static final Map<String, String> originalValues = new ConcurrentHashMap<>();
-    private static final Map<String, String> structuredFailures = new ConcurrentHashMap<>();
+    private static final Map<String, FeatureGateFailure> structuredFailures =
+            new ConcurrentHashMap<>();
     // Declared as the class rather than Map: putIfAbsent on the Map interface is an API 24
     // default method D8 cannot backport, and this is read on the host's own gate threads.
     private static final ConcurrentHashMap<String, Object> observedPlayerValues = new ConcurrentHashMap<>();
@@ -83,7 +84,7 @@ public final class FeatureGateLabRuntime {
         return originalValues.get(FeatureGateLabStore.idFor(manager, key, type));
     }
 
-    public static String structuredFailure(String manager, String key, String type) {
+    public static FeatureGateFailure structuredFailure(String manager, String key, String type) {
         return structuredFailures.get(FeatureGateLabStore.idFor(manager, key, type));
     }
 
@@ -686,11 +687,13 @@ public final class FeatureGateLabRuntime {
         }
         String catalogType = catalogTypes.get(key);
         if (catalogType == null) {
-            return refuse(rule, "Not in the catalogue, so the type cannot be checked");
+            return refuse(rule, FeatureGateFailure.of(
+                    FeatureGateFailure.Reason.NOT_IN_CATALOGUE));
         }
         if (!FeatureGateLabStore.normalizeType(catalogType)
                 .equals(FeatureGateLabStore.normalizeType(rule.type))) {
-            return refuse(rule, "Catalogue says " + catalogType + ", this rule is " + rule.type);
+            return refuse(rule, FeatureGateFailure.of(
+                    FeatureGateFailure.Reason.TYPE_MISMATCH, catalogType, rule.type));
         }
         structuredFailures.remove(rule.id);
         return rule;
@@ -704,10 +707,11 @@ public final class FeatureGateLabRuntime {
      * that is about a type disagreeing it finds no rule at all and says the gate is using
      * TikTok's value. The log line is the only place this is visible, which is why it is here.
      */
-    private static FeatureGateLabStore.Rule refuse(FeatureGateLabStore.Rule rule, String reason) {
+    private static FeatureGateLabStore.Rule refuse(FeatureGateLabStore.Rule rule,
+            FeatureGateFailure reason) {
         structuredFailures.put(rule.id, reason);
         Log.i(TAG, "refused manager=" + rule.manager + " key=" + rule.key
-                + " type=" + rule.type + " reason=" + reason);
+                + " type=" + rule.type + " reason=" + reason.text());
         return null;
     }
 

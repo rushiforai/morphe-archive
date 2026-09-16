@@ -11,7 +11,6 @@ A creator pattern is taking too long and was switched off: %1$s	Um padrão de cr
 A good place to stop, if you want one.	Uma boa hora para parar, se você quiser uma.
 A hidden puzzle may be the cause.	Talvez a causa seja um quebra-cabeça escondido.
 A host to put in place of tiktok.com when you share or copy a link, like vxtiktok.com. Leave it empty to share TikTok's own links. Only TikTok links are changed, and only the host: nothing is sent anywhere new.	Um host para colocar no lugar de tiktok.com ao compartilhar ou copiar um link, como vxtiktok.com. Deixe vazio para compartilhar os links do próprio TikTok. Só os links do TikTok mudam, e só o host: nada é enviado para nenhum lugar novo.
-A settings operation is already running	Já existe uma operação de configurações em andamento
 A tap on a person in the Send to row only selects them. A second tap on the same person within four seconds sends the video.	Tocar em alguém na linha Enviar para apenas seleciona a pessoa. Um segundo toque na mesma pessoa dentro de quatro segundos envia o vídeo.
 AI-generated posts	Publicações geradas por IA
 Add	Adicionar
@@ -27,7 +26,7 @@ Allow screenshots and Circle to Search	Permitir capturas de tela e Círculo para
 Allowed bottom tabs	Abas inferiores permitidas
 Already marked as not interested	Já marcado como não tenho interesse
 Also apply these filters to downloaded videos TikTok uses when the feed cannot load enough new items.	Aplicar esses filtros também aos vídeos baixados que o TikTok usa quando o feed não consegue carregar itens novos suficientes.
-Also change the region TikTok reports internally. Keeps your interface language. Needs Override SIM details. Your IP address and your account's own rules still apply.	Também muda a região que o TikTok informa internamente. Mantém o idioma da interface. Precisa de Substituir os dados do SIM. Seu endereço IP e as regras da sua conta continuam valendo.
+Also change the region TikTok reports internally. Keeps your interface language. Your IP address and your account's own rules still apply.	Também muda a região que o TikTok informa internamente. Mantém o idioma da interface. Seu endereço IP e as regras da sua conta continuam valendo.
 Always show publish date	Sempre mostrar a data de publicação
 Always show the publish date in video author information. Restart TikTok to apply this.	Sempre mostrar a data de publicação nas informações do autor do vídeo. Reinicie o TikTok para aplicar.
 An app's package name, like com.dv.adm. The save button sends the video's link there instead of saving it here. Leave it empty to save here.	O nome de pacote de um app, como com.dv.adm. O botão de salvar manda o link do vídeo para lá em vez de salvar aqui. Deixe vazio para salvar aqui.
@@ -79,6 +78,7 @@ Clear all suggested accounts	Limpar todas as contas sugeridas
 Clear buffered events, saved crash reports and the hook status above.	Limpa os eventos em memória, os relatórios de falha salvos e o estado dos ganchos acima.
 Clear diagnostic data	Limpar os dados de diagnóstico
 Clear display delay	Espera para limpar a tela
+Clear preset	Limpar predefinição
 Clear search	Limpar a busca
 Clear the seen video history	Limpar o histórico de vídeos vistos
 Cleared. Tap again to put the record back.	Limpo. Toque de novo para trazer o registro de volta.
@@ -127,8 +127,18 @@ Creators hidden from later feed batches by the player action. Search the list an
 Current: %1$s	Agora: %1$s
 Current: %1$s %2$s	Agora: %1$s %2$s
 Custom SIM details	Dados de SIM personalizados
+Discard edits	Descartar as edições
 Empty the menu that opens when you press and hold TikTok's icon on the home screen. Turning this off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut you pinned yourself stays where you put it.	Esvaziar o menu que abre ao manter pressionado o ícone do TikTok na tela inicial. Ao desativar, o TikTok é solicitado a criá-los novamente. Tocar no ícone continua abrindo o app, e um atalho fixado por você permanece onde foi colocado.
+Field edits were discarded.	As edições dos campos foram descartadas.
+Field edits were not saved.	As edições dos campos não foram salvas.
 Hide the launcher shortcuts	Ocultar os atalhos do inicializador
+Keep the Favorites tab	Manter a aba Favoritos
+Not saved yet	Ainda não salvo
+Nothing on this page changes what TikTok does until they are on.	Nada nesta página muda o que o TikTok faz enquanto elas estiverem desligadas.
+Saved	Salvo
+TikTok's server can put an account into an experiment that empties the Favorites tab on your profile. Keep the tab and its saved videos.	O servidor do TikTok pode colocar uma conta em um experimento que esvazia a aba Favoritos do seu perfil. Mantém a aba e os vídeos salvos nela.
+Turn on %1$s first.	Ative %1$s primeiro.
+Turn on overrides	Ativar as substituições
 Use your own offline videos limit	Usar o seu próprio limite de vídeos offline
 Daily time budget	Limite diário de tempo
 Daily video budget	Limite diário de vídeos
@@ -822,7 +832,6 @@ This file isn't a loaded-values export from the Feature Gate Lab.	Este arquivo n
 These loaded values are for a different TikTok version.	Estes valores carregados são de outra versão do TikTok.
 This file has no loaded values in it.	Este arquivo não contém valores carregados.
 This file has more loaded values than the Lab takes at once.	Este arquivo tem mais valores carregados do que o Lab aceita de uma vez.
-Imported %1$d disabled values. %2$d already matched, %3$d unavailable, %4$d rejected. Undo last Lab change is in the menu.	%1$d valores desligados importados. %2$d já coincidiam, %3$d não estão disponíveis e %4$d foram recusados. Desfazer a última mudança do Lab está no menu.
 Could not change Lab settings.	Não foi possível alterar as configurações do Lab.
 None of these gates had an override to reset.	Nenhum destes gates tinha uma substituição para redefinir.
 None of these gates takes a true or false value.	Nenhum destes gates aceita um valor true ou false.
@@ -837,7 +846,7 @@ The record of an interrupted settings change could not be read, so it was set as
 An interrupted settings change could not be recovered, so its record was set aside. Check your settings or restore a backup.	Uma alteração de configurações interrompida não pôde ser recuperada, então seu registro foi posto de lado. Confira suas configurações ou restaure um backup.
 A newer clear replaced that undo. Tap the row again to put it back.	Uma limpeza mais recente substituiu esse desfazer. Toque na linha de novo para trazer de volta.
 That creator pattern is too long, so it was not added: %1$s	Esse padrão de criador é longo demais, então não foi adicionado: %1$s
-Use the preset for the region TikTok reports for your account and its shop too. May affect search. Needs Override SIM details and Match locale and timezone to country.	Usar a predefinição também para a região que o TikTok informa para a sua conta e a loja dela. Pode afetar a busca. Precisa de Substituir os dados do SIM e Ajustar o idioma e o fuso horário ao país.
+Use the preset for the region TikTok reports for your account and its shop too. May affect search.	Usar a predefinição também para a região que o TikTok informa para a sua conta e a loja dela. Pode afetar a busca.
 Saved one original photo	Uma foto original foi salva
 Length and views per like	Duração e visualizações por curtida
 Stop a long press on Share from opening TikTok's quick share action.	Impedir que segurar Compartilhar abra a ação de compartilhamento rápido do TikTok.
@@ -912,7 +921,6 @@ Entry %1$d is not an object.	A entrada %1$d não é um objeto.
 Getter requested, but the structured override could not be applied	O getter foi solicitado, mas a substituição estruturada não pôde ser aplicada
 Getter used	Getter usado
 Historical	Histórico
-Imported %1$d disabled values. %2$d already matched, %3$d unavailable, %4$d rejected. First rejection: %5$s Undo last Lab change is in the menu.	%1$d valores desativados foram importados. %2$d já correspondiam, %3$d estavam indisponíveis e %4$d foram rejeitados. Primeira rejeição: %5$s A última alteração do Lab pode ser desfeita no menu.
 Keep this string to 4,096 characters or fewer.	Limite esta string a 4.096 caracteres ou menos.
 Keep this structured value to 64 KB or less.	Limite este valor estruturado a 64 KB ou menos.
 Live Settings	Configurações de Live
@@ -987,3 +995,28 @@ Drama and Series	Drama e séries
 Create	Criar
 Profile	Perfil
 Version %1$s	Versão %1$s
+Notices from this project and the ones it is built on	Avisos deste projeto e daqueles em que ele se baseia
+Full license	Licença completa
+Licenses	Licenças
+TikTok hasn't handed this setting an object to change yet. Open the part of the app that uses it, then come back.	O TikTok ainda não entregou a esta configuração um objeto para alterar. Abra a parte do app que a usa e volte aqui.
+This setting's value can't be copied on this build, so it can't be overridden. Reset the override.	O valor desta configuração não pode ser copiado nesta versão, então não dá para substituí-lo. Redefina a substituição.
+The override doesn't say what list to return. Edit the field values, or reset the override.	A substituição não diz qual lista devolver. Edite os valores dos campos ou redefina a substituição.
+Field %1$s can't be changed on this build. Take it out of the override, or reset the override.	O campo %1$s não pode ser alterado nesta versão. Tire-o da substituição ou redefina a substituição.
+The override changes no fields. Edit the field values, or reset the override.	A substituição não altera nenhum campo. Edite os valores dos campos ou redefina a substituição.
+This key isn't in the local catalog, so its type can't be checked. Reset the override.	Esta chave não está no catálogo local, então o tipo dela não pode ser conferido. Redefina a substituição.
+The catalog says this key is %1$s and this override is %2$s. Reset the override and make a new one.	O catálogo diz que esta chave é %1$s e esta substituição é %2$s. Redefina a substituição e crie uma nova.
+The override couldn't be applied: %1$s. Edit the field values, or reset the override.	Não foi possível aplicar a substituição: %1$s. Edite os valores dos campos ou redefina a substituição.
+Restart TikTok to apply %1$d changes	Reinicie o TikTok para aplicar %1$d alterações
+Restart TikTok to apply this change	Reinicie o TikTok para aplicar esta alteração
+Restart pending	Reinício pendente
+Clearing, %1$d so far	Limpando, %1$d até agora
+
+Import finished	Importação concluída
+Imported %1$d values	%1$d valores importados
+%1$d already matched	%1$d já coincidiam
+%1$d unavailable	%1$d indisponíveis
+%1$d rejected	%1$d rejeitados
+First rejection:	Primeira rejeição:
+Done	Concluído
+%1$s. %2$s	%1$s. %2$s
+Imported %1$d values. Undo last Lab change is in the menu.	%1$d valores importados. Desfazer a última alteração do Lab está no menu.

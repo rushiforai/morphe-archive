@@ -99,7 +99,14 @@ try {
         exit 0
     }
 
-    $touchesCode = @($paths | Where-Object { $_ -like 'extensions/*' -or $_ -like 'patches/*' }).Count -gt 0
+    $touchesCode = @($paths | Where-Object {
+        $_ -like 'extensions/*' -or $_ -like 'patches/*' -or
+        # The pins and the reviewed checksums. Two Gradle tasks hold the Bouncy Castle graphs to
+        # the reviewed release, and they only run on the way to a test task; a push that moved
+        # the pin alone ran the release facts check, which knows nothing about them.
+        $_ -eq 'gradle/libs.versions.toml' -or $_ -eq 'gradle/verification-metadata.xml' -or
+        $_ -eq 'settings.gradle.kts' -or $_ -eq 'build.gradle.kts'
+    }).Count -gt 0
     $touchesScripts = @($paths | Where-Object { $_ -like 'scripts/*' }).Count -gt 0
     $injectedRegisterVerifierPaths = @(
         'scripts/DexDiff.java',
@@ -126,7 +133,15 @@ try {
         # only one of these ran no gate at all.
         $_ -eq 'gradle/libs.versions.toml' -or $_ -eq 'settings.gradle.kts' -or
         $_ -eq 'gradle/verification-metadata.xml' -or
-        $_ -eq 'gradle/wrapper/gradle-wrapper.properties'
+        $_ -eq 'gradle/wrapper/gradle-wrapper.properties' -or
+        # The receipt is the file the release check holds a release to, and the allowlist is
+        # what decides which manifest changes it accepts. A push that moved only one of those
+        # ran the script contract tests at most, and never the check that reads them.
+        $_ -like 'release-receipt-*.json' -or
+        $_ -eq 'scripts/manifest-delta-allowlist.txt' -or
+        # A released version's heading is the only record a reader has that it shipped, and one
+        # was renamed away by a post-release commit that no gate read.
+        $_ -eq 'CHANGELOG.md'
     }).Count -gt 0
 
     if ($touchesScripts) {

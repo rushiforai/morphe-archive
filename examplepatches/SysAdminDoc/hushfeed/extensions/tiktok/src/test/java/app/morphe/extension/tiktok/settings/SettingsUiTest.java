@@ -317,6 +317,257 @@ public class SettingsUiTest {
         }
     }
 
+    /**
+     * The chosen mark draws a check, not an empty box.
+     *
+     * <p>An ImageView hands a stateful drawable its own state the moment it is set, and no
+     * ImageView state carries {@code state_checked}, so a mark that listened to its state would
+     * be unchecked before it was ever drawn: the reader who needs the glyph most, a colour-blind
+     * one, would see an outlined empty square by a chosen row.
+     */
+    @Test
+    public void theChosenMarkDrawsACheckWhateverStateItIsGiven() {
+        Utils.setIsDarkModeEnabled(true);
+        Activity activity = Robolectric.buildActivity(DialogActivity.class).setup().get();
+        Utils.setContext(activity);
+
+        android.widget.ImageView holder = new android.widget.ImageView(activity);
+        holder.setImageDrawable(SettingsUi.checkMark(activity));
+        Drawable mark = holder.getDrawable();
+        // The states an ordinary, un-checked ImageView would push onto it.
+        mark.setState(new int[]{android.R.attr.state_enabled});
+        mark.setBounds(0, 0, 48, 48);
+        android.graphics.Bitmap bitmap =
+                android.graphics.Bitmap.createBitmap(48, 48, android.graphics.Bitmap.Config.ARGB_8888);
+        mark.draw(new android.graphics.Canvas(bitmap));
+        // A drawn check fills its box; an empty box is a stroked outline whose middle stays clear.
+        int centre = bitmap.getPixel(24, 24);
+        // A corner of the fill, clear of the white check line that antialiases through the centre.
+        int fill = bitmap.getPixel(18, 30);
+        bitmap.recycle();
+        assertEquals("the chosen mark drew an empty box: its centre is not filled",
+                255, android.graphics.Color.alpha(centre));
+        assertEquals("the chosen mark is filled with something other than the accent",
+                SettingsUi.accent() | 0xff000000, fill | 0xff000000);
+    }
+
+    /**
+     * A text field says whether typing will land in it.
+     *
+     * <p>The underline tint had two states, disabled and everything else, so the field holding
+     * the cursor looked exactly like the one beside it. The Min and Max dialog is where that
+     * shows worst: two accent underlines, one caret.
+     */
+    @Test
+    public void aFieldWithTheCursorInItIsUnderlinedDifferently() {
+        // One activity, then the flag. DialogActivity.onCreate reads the night qualifier and
+        // sets the flag itself, so building inside the loop put the dark theme back every time
+        // and the light pass compared the dark colours with themselves.
+        Activity activity = Robolectric.buildActivity(DialogActivity.class).setup().get();
+        Utils.setContext(activity);
+        for (boolean dark : new boolean[]{true, false}) {
+            Utils.setIsDarkModeEnabled(dark);
+            String theme = dark ? "dark" : "light";
+            assertEquals("the fixture is not in the " + theme + " theme it claims",
+                    dark, SettingsUi.surface() == SettingsUi.DARK_SURFACE);
+
+            EditText field = new EditText(activity);
+            SettingsUi.styleEditText(field);
+            android.content.res.ColorStateList tint = field.getBackgroundTintList();
+            assertNotNull("the field was left without a tint", tint);
+
+            int focused = tint.getColorForState(
+                    new int[]{android.R.attr.state_enabled, android.R.attr.state_focused}, 0);
+            int resting = tint.getColorForState(new int[]{android.R.attr.state_enabled}, 0);
+            int disabled = tint.getColorForState(new int[]{-android.R.attr.state_enabled}, 0);
+            assertEquals("the focused underline is not the accent in " + theme,
+                    SettingsUi.accent(), focused);
+            assertNotEquals("a resting field is underlined like the focused one in " + theme,
+                    focused, resting);
+            assertEquals("a disabled field lost its border colour in " + theme,
+                    SettingsUi.border(), disabled);
+
+            // Different is not enough: the field with the cursor has to be the louder of the
+            // two. The first version used the secondary text colour, which reads stronger
+            // against the surface than the accent does, so the resting field was the loud one.
+            double quiet = contrast(SettingsUi.surface(), resting);
+            double loud = contrast(SettingsUi.surface(), focused);
+            assertTrue("the resting underline is louder than the focused one in " + theme
+                            + ": " + quiet + ":1 against " + loud + ":1", loud > quiet);
+            assertTrue("the two underlines are too close to tell apart in " + theme + ": "
+                            + contrast(focused, resting) + ":1",
+                    contrast(focused, resting) >= 3.0);
+        }
+    }
+
+    /**
+     * A row the keyboard, the d-pad or switch access has landed on wears a ring.
+     *
+     * <p>Every row's only stateful background was the ripple, and a RippleDrawable paints
+     * {@code state_focused} as its own tint at 60% of its opacity: the accent at 15% alpha came
+     * out around 9% over the surface, about 1.3:1, which nobody can see. The ring is the accent
+     * at full strength, inside the card's own corners, on the first row, a middle one and the
+     * last, and on the header's back button. A press still shows the ripple and no ring.
+     */
+    @Test
+    public void aFocusedRowWearsARingTheReaderCanSee() {
+        Utils.setIsDarkModeEnabled(true);
+        Activity activity = Robolectric.buildActivity(DialogActivity.class).setup().get();
+        Utils.setContext(activity);
+
+        int[] focused = {android.R.attr.state_enabled, android.R.attr.state_focused};
+        int[] resting = {android.R.attr.state_enabled};
+        int[] pressed = {android.R.attr.state_enabled, android.R.attr.state_pressed};
+        boolean[][] shapes = {{true, false}, {false, false}, {false, true}};
+        for (boolean[] shape : shapes) {
+            String which = shape[0] ? "first" : shape[1] ? "last" : "middle";
+            assertTrue("a " + which + " row drew no ring while focused",
+                    ringIsDrawn(SettingsUi.groupedRow(activity, shape[0], shape[1]), focused));
+            assertFalse("a " + which + " row drew a ring while resting",
+                    ringIsDrawn(SettingsUi.groupedRow(activity, shape[0], shape[1]), resting));
+            assertFalse("a " + which + " row drew a ring under a press",
+                    ringIsDrawn(SettingsUi.groupedRow(activity, shape[0], shape[1]), pressed));
+        }
+        // A list moves a d-pad by marking a row selected rather than focusing it.
+        assertTrue("a selected row drew no ring",
+                ringIsDrawn(SettingsUi.groupedRow(activity, false, false),
+                        new int[]{android.R.attr.state_enabled, android.R.attr.state_selected}));
+
+        // All four edges, not two. A middle row's card frame runs a radius past the top and the
+        // bottom of its own box, and the canvas is clipped to that box, so a ring drawn on the
+        // frame lost both horizontal strokes and the reader saw a pair of vertical bars. This
+        // also pins the order the row draws in: the Paint is shared, and a ring drawn before the
+        // divider leaves the divider at the ring's width, which then covers the bottom edge.
+        for (boolean[] shape : shapes) {
+            String which = shape[0] ? "first" : shape[1] ? "last" : "middle";
+            boolean[] edges = ringEdges(SettingsUi.groupedRow(activity, shape[0], shape[1]), focused);
+            assertTrue("a focused " + which + " row drew no top edge", edges[0]);
+            assertTrue("a focused " + which + " row drew no bottom edge", edges[1]);
+        }
+
+
+        // The header's back button, wrapped the way the header ships it: the ring is the
+        // ripple's content layer, which is where a mask or a lost state change would hide it.
+        assertTrue("the back button drew no ring while focused",
+                ringIsDrawn(backButtonBackground(activity), focused));
+        assertFalse("the back button drew a ring while resting",
+                ringIsDrawn(backButtonBackground(activity), resting));
+
+        assertTrue("the ring is not readable against the surface it is drawn on: "
+                        + contrast(SettingsUi.accent(), SettingsUi.surface()) + ":1",
+                contrast(SettingsUi.accent(), SettingsUi.surface()) >= 3.0);
+        Utils.setIsDarkModeEnabled(false);
+        assertTrue("the ring is not readable on the light surface: "
+                        + contrast(SettingsUi.accent(), SettingsUi.surface()) + ":1",
+                contrast(SettingsUi.accent(), SettingsUi.surface()) >= 3.0);
+        // Drawn in the light theme too: the accent differs between the two, so a ring that only
+        // painted in the dark one would pass every assertion above.
+        assertTrue("a focused row drew no ring in the light theme",
+                ringIsDrawn(SettingsUi.groupedRow(activity, false, false), focused));
+        assertFalse("a resting row drew a ring in the light theme",
+                ringIsDrawn(SettingsUi.groupedRow(activity, false, false), resting));
+    }
+
+    /** Whether the drawable paints the accent along its edge in the state it is given. */
+    private static boolean ringIsDrawn(Drawable drawable, int[] state) {
+        int size = 120;
+        drawable.setState(state);
+        drawable.setBounds(0, 0, size, size);
+        android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(
+                size, size, android.graphics.Bitmap.Config.ARGB_8888);
+        drawable.draw(new android.graphics.Canvas(bitmap));
+        // Down the left edge, away from the corners, where only a ring can put the accent.
+        int accent = SettingsUi.accent() | 0xff000000;
+        boolean found = false;
+        for (int y = size / 3; y < size * 2 / 3; y++) {
+            for (int x = 0; x < 4; x++) {
+                if ((bitmap.getPixel(x, y) | 0xff000000) == accent) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+        bitmap.recycle();
+        return found;
+    }
+
+    /** The header back button's background, built the way SettingsHeaderPreference builds it. */
+    private static Drawable backButtonBackground(Activity activity) {
+        return new android.graphics.drawable.RippleDrawable(
+                android.content.res.ColorStateList.valueOf(
+                        (SettingsUi.accent() & 0x00ffffff) | 0x26000000),
+                SettingsUi.focusRing(activity, 6),
+                SettingsUi.roundedSurface(activity, 6, false));
+    }
+
+    /** Whether the accent appears along the top and the bottom edge in the given state. */
+    private static boolean[] ringEdges(Drawable drawable, int[] state) {
+        int size = 120;
+        drawable.setState(state);
+        drawable.setBounds(0, 0, size, size);
+        android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(
+                size, size, android.graphics.Bitmap.Config.ARGB_8888);
+        drawable.draw(new android.graphics.Canvas(bitmap));
+        int accent = SettingsUi.accent() | 0xff000000;
+        boolean top = false;
+        boolean bottom = false;
+        for (int x = size / 3; x < size * 2 / 3; x++) {
+            for (int y = 0; y < 4; y++) {
+                if ((bitmap.getPixel(x, y) | 0xff000000) == accent) top = true;
+                if ((bitmap.getPixel(x, size - 1 - y) | 0xff000000) == accent) bottom = true;
+            }
+        }
+        bitmap.recycle();
+        return new boolean[]{top, bottom};
+    }
+
+    /** WCAG contrast between two opaque colours. */
+    private static double contrast(int first, int second) {
+        double one = luminance(first), two = luminance(second);
+        return (Math.max(one, two) + 0.05) / (Math.min(one, two) + 0.05);
+    }
+
+    private static double luminance(int colour) {
+        double[] parts = new double[3];
+        int[] raw = {android.graphics.Color.red(colour), android.graphics.Color.green(colour),
+                android.graphics.Color.blue(colour)};
+        for (int at = 0; at < 3; at++) {
+            double channel = raw[at] / 255.0;
+            parts[at] = channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4);
+        }
+        return 0.2126 * parts[0] + 0.7152 * parts[1] + 0.0722 * parts[2];
+    }
+
+    /**
+     * An action drawn onto one of TikTok's own surfaces takes the ring and ripple in a tone that
+     * shows on that surface.
+     *
+     * <p>The inbox header and the sticker sheet follow the app's theme, so the white ring and
+     * white ripple every over-video control carries vanish on them in the light theme. This
+     * overload paints them in the host's own text colour instead.
+     */
+    @Test
+    public void anActionOnAHostSurfaceRingsInTheToneItIsGiven() {
+        Activity activity = Robolectric.buildActivity(DialogActivity.class).setup().get();
+        Utils.setContext(activity);
+
+        int tone = android.graphics.Color.rgb(12, 12, 12);
+        Drawable background = SettingsUi.overlayAction(activity, SettingsUi.RADIUS_CONTROL, tone);
+        background.setState(new int[]{android.R.attr.state_focused});
+        background.setBounds(0, 0, 64, 64);
+        android.graphics.Bitmap bitmap =
+                android.graphics.Bitmap.createBitmap(64, 64, android.graphics.Bitmap.Config.ARGB_8888);
+        background.draw(new android.graphics.Canvas(bitmap));
+        // The 2dp ring sits on the edge. The middle of the top edge is on it.
+        int ring = bitmap.getPixel(32, 1);
+        bitmap.recycle();
+        assertTrue("the focus ring did not draw at all", android.graphics.Color.alpha(ring) > 0);
+        assertTrue("the focus ring is white where it should carry the host tone",
+                android.graphics.Color.red(ring) < 128
+                        && android.graphics.Color.green(ring) < 128
+                        && android.graphics.Color.blue(ring) < 128);
+    }
+
     /** The colour a row's background paints in the middle, with or without the chosen state. */
     private static int centreOf(Drawable background, boolean activated) {
         background.setState(activated

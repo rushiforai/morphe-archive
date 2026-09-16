@@ -98,6 +98,14 @@ val ghostModePatch = bytecodePatch(
             "invoke-static {}, " +
                 "Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableGhostMode()V",
         )
+        // So the export carries the ghost mode family even on a run where no reporter is
+        // reached. Without it a family that is simply absent says both "this build has no
+        // ghost mode" and "nothing called it", and an export taken while a profile showed no
+        // follower counts could not tell those apart.
+        SettingsStatusLoadFingerprint.method.addInstruction(
+            0,
+            "invoke-static {}, $GHOST_MODE_EXTENSION->installed()V",
+        )
 
         listOf(
             StoryViewReportFingerprint to "shouldBlockStoryView",

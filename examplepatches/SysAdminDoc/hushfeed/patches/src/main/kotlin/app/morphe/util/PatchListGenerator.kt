@@ -97,7 +97,16 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
             // The patch's own name, not its Kotlin class. Every entry used to read
             // "BytecodePatch", which made the only machine-readable dependency record say
             // nothing at all. Internal patches with no name keep the class name.
-            it.dependencies.map { dependency -> dependency.name ?: dependency.javaClass.simpleName },
+            //
+            // Deduplicated and sorted, because this is a set written down as a list. Two patches
+            // reached the same unnamed dependency twice and their rows said "BytecodePatch,
+            // BytecodePatch", which reads as two things and is one, and the order everywhere else
+            // was whatever the traversal happened to produce, so an unrelated edit could move
+            // rows about and make the catalog diff say more than the change did.
+            it.dependencies
+                .map { dependency -> dependency.name ?: dependency.javaClass.simpleName }
+                .distinct()
+                .sorted(),
             it.compatiblePackages?.associate { (packageName, versions) -> packageName to versions },
             it.compatibility.orEmpty().map { c -> c.toJsonCompatibility() },
             it.options.values.map { option ->

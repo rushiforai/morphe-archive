@@ -1,3 +1,9 @@
+## [1.4.4](https://github.com/variablenine/morphe-patches/compare/v1.4.3...v1.4.4) (2026-09-15)
+
+### 🚀 Updated App Support
+
+* Sync upstream Morphe patches v1.43.0 ([5367654](https://github.com/variablenine/morphe-patches/commit/53676542e3168a6e0ff781ed79eb64a2fc971354))
+
 ## [1.4.3](https://github.com/variablenine/morphe-patches/compare/v1.4.2...v1.4.3) (2026-09-10)
 
 ### 🚀 Updated App Support

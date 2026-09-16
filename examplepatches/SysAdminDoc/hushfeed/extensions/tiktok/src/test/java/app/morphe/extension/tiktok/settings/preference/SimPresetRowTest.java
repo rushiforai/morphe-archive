@@ -31,6 +31,7 @@ import org.robolectric.annotation.Config;
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28)
+@org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
 @SuppressWarnings("deprecation")
 public class SimPresetRowTest {
     public static final class TestActivity extends PreferenceActivity {}
@@ -317,5 +318,122 @@ public class SimPresetRowTest {
                 new InputTextPreference(context, "ISO", "", Settings.SIM_SPOOF_ISO),
                 new InputTextPreference(context, "MCC/MNC", "", Settings.SIMSPOOF_MCCMNC),
                 new InputTextPreference(context, "Operator", "", Settings.SIMSPOOF_OP_NAME));
+    }
+    /**
+     * A preset row answers a press and shows when focus reaches it.
+     *
+     * <p>Each row was painted an opaque colour, and a ListView draws its selector underneath the
+     * item, so the one press highlight the row could have had was covered by its own fill.
+     */
+    @Test
+    public void aPresetRowAnswersAPressAndShowsItsFocus() throws Exception {
+        try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
+            SimPresetPreference row = build(controller.get());
+            java.lang.reflect.Method show =
+                    SimPresetPreference.class.getDeclaredMethod("showPresetDialog");
+            show.setAccessible(true);
+            show.invoke(row);
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+
+            android.app.AlertDialog dialog = (android.app.AlertDialog)
+                    org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            android.widget.ListView list = findView(
+                    dialog.getWindow().getDecorView(), android.widget.ListView.class);
+            android.view.View presetRow = list.getAdapter().getView(0, null, list);
+
+            android.graphics.drawable.Drawable background = presetRow.getBackground();
+            assertTrue("a preset row is painted flat, so a press shows nothing: "
+                            + background.getClass().getSimpleName(),
+                    background instanceof android.graphics.drawable.RippleDrawable);
+            assertNotEquals("a preset row looks the same focused as it does at rest",
+                    renderOf(background, new int[0]),
+                    renderOf(background, new int[]{android.R.attr.state_focused}));
+            // A ListView never focuses its rows: the d-pad marks the row it is on as selected and
+            // draws its own selector beneath, where the row's opaque fill hid it. The wash has to
+            // answer the selected state too, or a keyboard reader sees nothing move.
+            assertNotEquals("a preset row shows nothing when the d-pad lands on it",
+                    renderOf(background, new int[0]),
+                    renderOf(background, new int[]{android.R.attr.state_selected}));
+            dialog.dismiss();
+        }
+    }
+
+    /**
+     * The preset the fields already hold is marked and brought into view, and Clear preset takes
+     * the row back to none. The list used to be sixty identical rows with no sign of which one
+     * was on.
+     */
+    @Test
+    public void theChosenPresetIsMarkedAndClearPresetUnpicksIt() throws Exception {
+        app.morphe.extension.tiktok.spoof.sim.SimPreset germany = null;
+        for (app.morphe.extension.tiktok.spoof.sim.SimPreset preset
+                : app.morphe.extension.tiktok.spoof.sim.SimPresets.PRESETS) {
+            if ("Germany".equals(preset.country)) germany = preset;
+        }
+        org.junit.Assert.assertNotNull(germany);
+        try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
+            Settings.SIM_SPOOF_ISO.save(germany.iso);
+            Settings.SIMSPOOF_MCCMNC.save(germany.mccMnc);
+            Settings.SIMSPOOF_OP_NAME.save(germany.operatorName);
+            SimPresetPreference row = build(controller.get());
+            java.lang.reflect.Method show =
+                    SimPresetPreference.class.getDeclaredMethod("showPresetDialog");
+            show.setAccessible(true);
+            show.invoke(row);
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+
+            android.app.AlertDialog dialog = (android.app.AlertDialog)
+                    org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            android.widget.ListView list = findView(
+                    dialog.getWindow().getDecorView(), android.widget.ListView.class);
+            int index = java.util.Arrays.asList(
+                    app.morphe.extension.tiktok.spoof.sim.SimPresets.PRESETS).indexOf(germany);
+            org.junit.Assert.assertEquals("the chosen preset is not marked",
+                    index, list.getCheckedItemPosition());
+            // A ListView in touch mode keeps a requested position for its next layout rather
+            // than as a selection, so the row's place is read after one.
+            list.measure(android.view.View.MeasureSpec.makeMeasureSpec(480, android.view.View.MeasureSpec.EXACTLY),
+                    android.view.View.MeasureSpec.makeMeasureSpec(320, android.view.View.MeasureSpec.EXACTLY));
+            list.layout(0, 0, 480, 320);
+            org.junit.Assert.assertEquals("the chosen preset was not brought into view",
+                    index, list.getFirstVisiblePosition());
+            android.view.View chosen = list.getAdapter().getView(index, null, list);
+            assertTrue("TalkBack is not told the row is selected", chosen.isSelected());
+            android.widget.TextView title = chosen.findViewById(android.R.id.text1);
+            org.junit.Assert.assertNotNull("the row carries no mark",
+                    title.getCompoundDrawablesRelative()[0]);
+            android.view.View other = list.getAdapter().getView(index == 0 ? 1 : 0, null, list);
+            org.junit.Assert.assertFalse(other.isSelected());
+            org.junit.Assert.assertNull(((android.widget.TextView) other.findViewById(
+                    android.R.id.text1)).getCompoundDrawablesRelative()[0]);
+
+            android.view.View clear = dialog.getWindow().getDecorView()
+                    .findViewWithTag("sim_preset_clear");
+            org.junit.Assert.assertNotNull("there is no way back to no preset", clear);
+            clear.performClick();
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            org.junit.Assert.assertFalse(dialog.isShowing());
+            org.junit.Assert.assertEquals("", Settings.SIM_SPOOF_ISO.get());
+            org.junit.Assert.assertEquals("No preset selected", String.valueOf(row.getSummary()));
+        } finally {
+            Settings.SIM_SPOOF_ISO.resetToDefault();
+            Settings.SIMSPOOF_MCCMNC.resetToDefault();
+            Settings.SIMSPOOF_OP_NAME.resetToDefault();
+        }
+    }
+
+    /** What a background actually paints in the state given, every pixel of it, as one number. */
+    private static int renderOf(android.graphics.drawable.Drawable background, int[] state) {
+        background.setState(state);
+        background.setBounds(0, 0, 64, 48);
+        android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(
+                64, 48, android.graphics.Bitmap.Config.ARGB_8888);
+        background.draw(new android.graphics.Canvas(bitmap));
+        int hash = 17;
+        for (int x = 0; x < 64; x++) {
+            for (int y = 0; y < 48; y++) hash = hash * 31 + bitmap.getPixel(x, y);
+        }
+        bitmap.recycle();
+        return hash;
     }
 }

@@ -159,7 +159,7 @@ public class InputTextPreference extends EditTextPreference {
             }
 
             @Override public void report(String problem) {
-                getEditText().setError(problem);
+                SettingsUi.reportFieldError(getEditText(), problem);
             }
 
             @Override public boolean accept() {

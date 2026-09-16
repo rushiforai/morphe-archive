@@ -2,11 +2,14 @@ package app.template.patches.steamlink.identity
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.rawResourcePatch
+import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK
 import app.template.patches.shared.Constants.isLegacyRecommendedSteamLinkBuild
+import app.template.patches.shared.Constants.isModernTongueBridgeSteamLinkBuild
 import app.template.patches.shared.Constants.isNativeXrSteamLinkBuild
 import app.template.patches.steamlink.androidxr.adaptLegacyHmdConfigForBuild
+import app.template.patches.steamlink.androidxr.ensureIdsXml
 import app.template.patches.steamlink.androidxr.xrDeviceConfigBaselinePatch
 
 private fun identityResource(name: String): ByteArray =
@@ -253,7 +256,7 @@ internal fun patchHmdModelIdentity(
     }
 
     if (!exactProductLookup) {
-        // Preserve the verified older-build output exactly; only 5002322 needs product upserts.
+        // Preserve the verified older-build output exactly; modern builds need product upserts.
         val targetKeys = if (Regex("\\\"xrvst2\\\"\\s*:").containsMatchIn(json)) {
             listOf("xrvst2", "xrvst2ue", "unknown")
         } else {
@@ -314,7 +317,7 @@ internal fun patchHmdModelIdentity(
         return entry.replaceRange(quoteStart + 1, stringValue.range.last, model)
     }
 
-    // Native 5002322 selects staticProps by the exact product name, without consulting
+    // Native 5002322 and 5002363 select staticProps by the exact product name, without consulting
     // unknown on a miss. Clone that template for missing products; keep existing product
     // fields and every unrelated byte intact. Validate every target before constructing output.
     val template = withModel(json.substring(unknown), "unknown")
@@ -348,20 +351,33 @@ internal fun resolveDeviceIdentityProfile(profile: String, version: String, vers
         profile
     }
 
+private val nativeIdentityResourceIdsPatch = resourcePatch {
+    execute {
+        // Standalone identity still reaches Morphe's resource processor through its legacy
+        // dependency graph, although those mutations are skipped on this native-XR build.
+        // The stock APK has no ids.xml. Create the required empty document in the decoded
+        // resource context, preserving earlier verified builds and existing ID declarations.
+        if (packageMetadata.versionName != "2.0.23" || packageMetadata.versionCode != "5002363") {
+            return@execute
+        }
+        ensureIdsXml(get("res/values/ids.xml"))
+    }
+}
+
 @Suppress("unused")
 val deviceIdentityPatch = rawResourcePatch(
     name = "Device identity",
     description = "Overrides the HMD identity reported to SteamVR. Recommended selects Meta Quest Pro " +
         "for exact legacy bundle targets through 5002244, including 2.0.20/5001712; otherwise Galaxy XR. The Galaxy profile installs its " +
         "complete transport identity while preserving stock controller/hand routing and extensions. " +
-        "Optional on 2.0.22/5002322; explicit Quest Pro and Pico profiles populate exact Galaxy XR product entries.",
+        "Optional on 2.0.22/5002322 and 2.0.23/5002363; explicit Quest Pro and Pico profiles populate exact Galaxy XR product entries.",
     default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK.toTypedArray())
     // Morphe executes dependencies without checking their compatibility. The legacy foundation is
     // therefore build-aware and becomes a mutation no-op on native builds, while older builds retain the
     // same automatic XR baseline that Device identity historically installed.
-    dependsOn(xrDeviceConfigBaselinePatch)
+    dependsOn(xrDeviceConfigBaselinePatch, nativeIdentityResourceIdsPatch)
 
     val profile by stringOption(
         key = "profile",
@@ -408,8 +424,10 @@ val deviceIdentityPatch = rawResourcePatch(
         val patched = patchHmdModelIdentity(
             original,
             selectedProfile,
-            exactProductLookup = packageMetadata.versionName == "2.0.22" &&
-                packageMetadata.versionCode == "5002322",
+            exactProductLookup = isModernTongueBridgeSteamLinkBuild(
+                packageMetadata.versionName,
+                packageMetadata.versionCode,
+            ),
         )
         if (patched != original) file.writeText(patched)
     }

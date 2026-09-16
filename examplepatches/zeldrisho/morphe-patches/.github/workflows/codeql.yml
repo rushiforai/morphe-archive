@@ -54,6 +54,9 @@ jobs:
       - name: Set up Android SDK
         if: matrix.language == 'java-kotlin'
         uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
+        with:
+          # The legacy `tools` package was removed from the Android repository.
+          packages: platform-tools platforms;android-36 build-tools;36.1.0
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@4bd7200e1f146b1c937cae12d258b50f41a53cf8 # v4.38.0

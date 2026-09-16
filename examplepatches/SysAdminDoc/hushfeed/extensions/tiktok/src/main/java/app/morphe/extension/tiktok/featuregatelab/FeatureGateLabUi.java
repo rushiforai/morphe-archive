@@ -16,12 +16,14 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Button;
 import android.widget.RadioButton;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import java.lang.reflect.Constructor;
@@ -154,6 +156,52 @@ final class FeatureGateLabUi {
             input.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
         view.clearFocus();
+    }
+
+    /**
+     * A row that is the switch: one screen-reader stop with the Switch role, the whole row a
+     * touch target, and the control itself invisible to accessibility so nothing is read twice.
+     *
+     * <p>The Lab's master row and the detail page's three switch rows only toggled on the 44dp
+     * switch, and TalkBack read the title, then the summary, then the switch's copy of the
+     * title. Every switch row in the main settings is one stop that toggles on a tap anywhere;
+     * these four now match it, through this one builder.
+     */
+    static LinearLayout switchRow(Context context, String title, String summary, Switch control) {
+        LinearLayout row = new LinearLayout(context);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(context, 16), dp(context, 14), dp(context, 16), dp(context, 14));
+        row.setBackground(SettingsUi.borderedSurface(context, 10, false));
+        LinearLayout labels = new LinearLayout(context);
+        labels.setOrientation(LinearLayout.VERTICAL);
+        labels.addView(body(context, title), matchWrap());
+        labels.addView(label(context, summary), matchWrap());
+        row.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        // The control draws the state and nothing else: the row answers the tap and the reader.
+        control.setClickable(false);
+        control.setFocusable(false);
+        control.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        row.addView(control, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, dp(context, 48)));
+        row.setClickable(true);
+        row.setFocusable(true);
+        row.setContentDescription(L10n.f(context, "%1$s. %2$s", title, summary));
+        row.setOnClickListener(view -> {
+            if (control.isEnabled()) control.toggle();
+        });
+        row.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override
+            public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                info.setClassName(Switch.class.getName());
+                info.setCheckable(true);
+                info.setChecked(control.isChecked());
+                info.setEnabled(control.isEnabled());
+                info.addAction(AccessibilityNodeInfo.ACTION_CLICK);
+            }
+        });
+        return row;
     }
 
     static TextView label(Context context, String text) {

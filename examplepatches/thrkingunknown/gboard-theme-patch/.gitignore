@@ -1,0 +1,12 @@
+**/build/
+.gradle/
+node_modules/
+.idea/
+*.iml
+local.properties
+gradle.properties.local
+*.apk
+
+# CI-only pinned Morphe build dependencies
+.gradle-deps/
+.gradle-user/

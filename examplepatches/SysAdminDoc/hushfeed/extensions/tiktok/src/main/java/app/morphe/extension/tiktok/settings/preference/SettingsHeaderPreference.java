@@ -115,11 +115,12 @@ public final class SettingsHeaderPreference extends Preference {
         back.setOnClickListener(view -> { if (onBack != null) onBack.run(); });
         back.setFocusable(true);
         // The same accent-at-15%-alpha the grouped rows use. divider() is 1.3:1 against the
-        // dark surface, which is no press feedback at all.
+        // dark surface, which is no press feedback at all. The ring under it is what a reader
+        // moving by keyboard or d-pad sees: the ripple's own focus tint is fainter still.
         back.setBackground(new android.graphics.drawable.RippleDrawable(
                 android.content.res.ColorStateList.valueOf(
                         (SettingsUi.accent() & 0x00ffffff) | 0x26000000),
-                null,
+                SettingsUi.focusRing(context, 6),
                 SettingsUi.roundedSurface(context, 6, false)));
         LinearLayout.LayoutParams backParams = new LinearLayout.LayoutParams(SettingsUi.dp(context, 48), SettingsUi.dp(context, 48));
         // -8 lines the glyph up with the 8dp gutter. Anything more pushes the button's

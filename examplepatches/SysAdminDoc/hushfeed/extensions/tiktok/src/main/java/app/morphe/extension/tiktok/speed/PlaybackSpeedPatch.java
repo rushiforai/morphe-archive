@@ -1,3 +1,7 @@
+/*
+ * Forked from:
+ * https://gitlab.com/ReVanced/revanced-patches/-/blob/main/extensions/tiktok/src/main/java/app/revanced/extension/tiktok/speed/PlaybackSpeedPatch.java
+ */
 package app.morphe.extension.tiktok.speed;
 
 import app.morphe.extension.tiktok.settings.Settings;

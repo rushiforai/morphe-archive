@@ -15,19 +15,21 @@ object DiscordConstants {
             // Stable-only: stables pin by version name (fat multi-arch
             // bundles share one base versionCode each: 342016 and 343012
             // per APKMirror metadata).
+            AppTarget(version = "344.13 - Stable"),
             AppTarget(version = "343.12 - Stable"),
             AppTarget(version = "342.16 - Stable"),
             AppTarget(version = "341.13 - Stable"),
         ),
     )
 
-    // Composer (gift button) targets: same three stables.
+    // Composer (gift button) targets: same four stables.
     val COMPATIBILITY_DISCORD_COMPOSER = Compatibility(
         name = "Discord",
         packageName = "com.discord",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x5865F2,
         targets = listOf(
+            AppTarget(version = "344.13 - Stable"),
             AppTarget(version = "343.12 - Stable"),
             AppTarget(version = "342.16 - Stable"),
             AppTarget(version = "341.13 - Stable"),

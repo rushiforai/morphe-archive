@@ -1,5 +1,5 @@
 {
-    "version": "v1.27.1",
+    "version": "v1.30.0",
     "patches": [
         {
             "compatiblePackages": [
@@ -106,10 +106,15 @@
                     "targets": [
                         {
                             "isExperimental": false,
+                            "version": "3.1.14"
+                        },
+                        {
+                            "isExperimental": false,
                             "version": "3.1.13"
                         }
                     ],
                     "versions": [
+                        "3.1.14",
                         "3.1.13"
                     ]
                 }
@@ -161,11 +166,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.58"
+                            "version": "8.2.4147.77"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.58"
+                        "8.2.4147.77"
                     ]
                 }
             ],
@@ -185,11 +190,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.58"
+                            "version": "8.2.4147.77"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.58"
+                        "8.2.4147.77"
                     ]
                 }
             ],
@@ -324,11 +329,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.58"
+                            "version": "8.2.4147.77"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.58"
+                        "8.2.4147.77"
                     ]
                 }
             ],
@@ -448,11 +453,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.58"
+                            "version": "8.2.4147.77"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.58"
+                        "8.2.4147.77"
                     ]
                 }
             ],
@@ -574,11 +579,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.58"
+                            "version": "8.2.4147.77"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.58"
+                        "8.2.4147.77"
                     ]
                 }
             ],
@@ -613,11 +618,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.58"
+                            "version": "8.2.4147.77"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.58"
+                        "8.2.4147.77"
                     ]
                 }
             ],
@@ -637,11 +642,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.58"
+                            "version": "8.2.4147.77"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.58"
+                        "8.2.4147.77"
                     ]
                 }
             ],
@@ -874,11 +879,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.58"
+                            "version": "8.2.4147.77"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.58"
+                        "8.2.4147.77"
                     ]
                 }
             ],
@@ -1067,6 +1072,45 @@
             ],
             "default": true,
             "dependencies": [],
+            "description": "Removes non-video clutter from the For You and Following feeds, including suggested friend cards, mini-games, CapCut/template creation prompts, memories ('En este día'), surveys, mini-drama paywalls, and Lemon8 promo tasks.",
+            "name": "Feed Bloat & Distraction Blocker",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#FE2C55",
+                    "name": "TikTok",
+                    "packageName": "com.zhiliaoapp.musically",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "46.9.3"
+                        }
+                    ],
+                    "versions": [
+                        "46.9.3"
+                    ]
+                },
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#FE2C55",
+                    "name": "TikTok",
+                    "packageName": "com.ss.android.ugc.trill",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "46.9.3"
+                        }
+                    ],
+                    "versions": [
+                        "46.9.3"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
             "description": "Removes live stream broadcast cards and live recommendations from the For You and Following feeds.",
             "name": "Feed Live Stream Blocker",
             "options": []
@@ -1139,10 +1183,15 @@
                     "targets": [
                         {
                             "isExperimental": false,
+                            "version": "3.1.14"
+                        },
+                        {
+                            "isExperimental": false,
                             "version": "3.1.13"
                         }
                     ],
                     "versions": [
+                        "3.1.14",
                         "3.1.13"
                     ]
                 }
@@ -1165,10 +1214,15 @@
                     "targets": [
                         {
                             "isExperimental": false,
+                            "version": "3.1.14"
+                        },
+                        {
+                            "isExperimental": false,
                             "version": "3.1.13"
                         }
                     ],
                     "versions": [
+                        "3.1.14",
                         "3.1.13"
                     ]
                 }
@@ -1409,11 +1463,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.58"
+                            "version": "8.2.4147.77"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.58"
+                        "8.2.4147.77"
                     ]
                 }
             ],
@@ -1639,11 +1693,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.58"
+                            "version": "8.2.4147.77"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.58"
+                        "8.2.4147.77"
                     ]
                 }
             ],
@@ -1678,11 +1732,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.58"
+                            "version": "8.2.4147.77"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.58"
+                        "8.2.4147.77"
                     ]
                 }
             ],
@@ -1780,10 +1834,15 @@
                     "targets": [
                         {
                             "isExperimental": false,
+                            "version": "3.1.14"
+                        },
+                        {
+                            "isExperimental": false,
                             "version": "3.1.13"
                         }
                     ],
                     "versions": [
+                        "3.1.14",
                         "3.1.13"
                     ]
                 }
@@ -1843,11 +1902,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "8.2.4147.58"
+                            "version": "8.2.4147.77"
                         }
                     ],
                     "versions": [
-                        "8.2.4147.58"
+                        "8.2.4147.77"
                     ]
                 }
             ],

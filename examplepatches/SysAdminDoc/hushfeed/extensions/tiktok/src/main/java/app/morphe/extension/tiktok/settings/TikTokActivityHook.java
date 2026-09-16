@@ -47,6 +47,10 @@ public class TikTokActivityHook {
         SettingsOperationJournal.initialize(base.getApplicationContext());
         SettingsOperationJournal.showRecoveryNotice(base);
         SettingsStatus.load();
+        // The report section that says what the Lab was told to do. Registered beside the
+        // load rather than inside it: the patcher fills load() with the patches' own
+        // registrations and holds its unpatched body empty.
+        app.morphe.extension.tiktok.featuregatelab.FeatureGateLabReport.install();
         SettingsUi.syncDarkMode(base);
 
         LinearLayout linearLayout = new LinearLayout(base);

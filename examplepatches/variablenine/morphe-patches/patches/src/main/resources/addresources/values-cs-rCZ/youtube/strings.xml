@@ -405,6 +405,7 @@ Hlášení jsou veřejná a před přidáním kanálu do seznamu jsou kontrolov�
   <string name="morphe_vot_screen_title">Hlasový překlad</string>
   <string name="morphe_vot_screen_summary">Přečte titulky videa nahlas pomocí text-to-speech v zařízení, synchronizovaně s přehráváním</string>
   <string name="morphe_vot_enabled_title">Hlasový překlad</string>
+  <string name="morphe_vot_enabled_summary">Zobrazuje překryvné tlačítko v přehrávači videa. Klepnutím přepnete překlad, klepnutím a podržením otevřete rychlá nastavení. hidden: true? no hidden false?</string>
   <string name="morphe_vot_caption_language_title">Jazyk</string>
   <string name="morphe_vot_translation_service_title">Poskytovatel překladu</string>
   <string name="morphe_vot_original_audio_volume_title">Hlasitost původního zvuku</string>
@@ -514,6 +515,8 @@ Upozornění: Možná nebude fungovat u živých přenosů"</string>
   <string name="morphe_queue_add_flyout_menu_summary">Přidává další položku rozbalovací nabídky. Povolte to, pokud se nezobrazuje položka \"Přidat do fronty\"</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_title">Seznam povolených pro reklamy v rozbalovací nabídce</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_summary">Přidá položku do rozbalovací nabídky, která umožňuje přehrávání reklam na kanálu tohotvideo.</string>
+  <!-- "Spoof video streams" must use the same translation as morphe_spoof_video_streams_screen_title -->
+  <string name="morphe_ads_channel_whitelist_flyout_user_dialog_message">Tato funkce může vyžadovat použití PotHelperu nebo změnu \"Spoofovat video streamy\" na přihlášení přes TV nebo Android VR.</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_title">Seznam povolených pro rychlost v rozbalovací nabídce</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_summary">Přidá položku do rozbalovací nabídky, která vždy přehrává videa z kanálu tohoto videa rychlostí 1,0x.</string>
   <string name="morphe_queue_manager_check_failed_auth">Není přihlášen</string>
@@ -603,8 +606,10 @@ Chcete-li to opravit, zapněte 'Spoof video streams' a změňte 'Default client'
   <string name="morphe_swipe_text_overlay_size_summary">Upravte velikost textu na obrazovce (1–30)</string>
   <string name="morphe_swipe_threshold_title">Práh vynucení gesta</string>
   <string name="morphe_swipe_threshold_summary">Nastavte požadovanou vzdálenost posouvání před spuštěním úpravy</string>
-  <string name="morphe_swipe_volume_sensitivity_title">Citlivost přejetí hlasitosti</string>
-  <string name="morphe_swipe_volume_sensitivity_summary">Vyšší hodnoty zvyšují změnu hlasitosti na jedno přejetí</string>
+  <string name="morphe_swipe_volume_distance_title">Citlivost přejetí hlasitosti</string>
+  <string name="morphe_swipe_volume_distance_summary">Vyšší hodnoty vyžadují více přejetí na krok hlasitosti</string>
+  <string name="morphe_swipe_volume_steps_title">Kroky hlasitosti</string>
+  <string name="morphe_swipe_volume_steps_entry_default">Výchozí nastavení zařízení</string>
   <string name="morphe_swipe_brightness_sensitivity_title">Citlivost přejetí jasu</string>
   <string name="morphe_swipe_brightness_sensitivity_summary">Vyšší hodnoty vyžadují více přejetí pro každý krok jasu</string>
   <string name="morphe_swipe_speed_sensitivity_title">Citlivost přejetí rychlosti</string>
@@ -911,6 +916,7 @@ Nastavení → Přehrávání (nebo Automatické přehrávání) → Automaticky
   <string name="morphe_disable_fullscreen_sliding_down_gesture_title">Zakázat gesto přejetím dolů na výšku</string>
   <string name="morphe_disable_fullscreen_dragged_down_gesture_title">Zakázat gesto přejetím dolů na šířku</string>
   <string name="morphe_disable_fullscreen_zoom_gesture_title">Zakázat gesto přiblížení prsty</string>
+  <string name="morphe_restore_pinch_to_zoom_title">Obnovit přibližování sevřením</string>
   <!-- layout.player.fullscreen.openVideosFullscreenPatch -->
   <string name="morphe_open_videos_fullscreen_title">Otevřít videa v režimu na celou obrazovku</string>
   <string name="morphe_open_videos_fullscreen_entry_1">Vypnuto</string>
@@ -923,6 +929,8 @@ Nastavení → Přehrávání (nebo Automatické přehrávání) → Automaticky
   <string name="morphe_fullscreen_video_scale_entry_zoom">Přiblížit (vyplnit obrazovku)</string>
   <string name="morphe_fullscreen_video_scale_button_title">Zobrazit tlačítko měřítka videa</string>
   <string name="morphe_fullscreen_video_scale_button_summary">Klepnutím přepínáte mezi Výchozí, Roztáhnout a Přiblížit</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_title">Zobrazit pouze na celé obrazovce</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_summary">Skrýt tlačítko pro změnu měřítka videa v přehrávači na výšku</string>
   <!-- layout.player.buttons.muteVideoButtonPatch -->
   <string name="morphe_mute_video_button_title">Zobrazit tlačítko ztlumení</string>
   <!-- layout.player.overlay.customPlayerOverlayOpacityPatch -->
@@ -961,6 +969,7 @@ Rozhraní pro automobily
 
 Omezení: Pokud je vypnutá možnost 'Obnovit starou lištu akcí videa', překrytí 'Další videa' nemusí být k dispozici"</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="morphe_spoof_app_version_target_entry_21_11">21.11.48 - Obnovit staré chování titulků</string>
   <string name="morphe_spoof_app_version_target_entry_20_39">20.39.41 - Obnoví staré uložení zpět do seznamu přehrávání</string>
   <string name="morphe_spoof_app_version_target_entry_20_28">20.28.41 - Vypnout tučné ikony</string>
   <string name="morphe_spoof_app_version_target_entry_20_13">20.13.41 – Obnovit název kanálu pod přehrávačem videa</string>
@@ -1021,16 +1030,16 @@ Omezení: Pokud je vypnutá možnost 'Obnovit starou lištu akcí videa', překr
   <string name="morphe_miniplayer_disable_resuming_summary">Vypne minipřehrávač \'Pokračovat ve sledování\', funkci YouTube Premium, která se zobrazí při spuštění aplikace</string>
   <string name="morphe_miniplayer_screen_title">Mini přehrávač</string>
   <string name="morphe_miniplayer_screen_summary">Přizpůsobte vzhled a chování minimalizovaného přehrávače videa</string>
-  <string name="morphe_miniplayer_not_available_summary">YouTube odstranil všechny další miniplayery. Pro změnu typu miniplayeru patchujte YouTube 21.28.208 nebo starší.</string>
   <string name="morphe_miniplayer_type_title">Typ mini přehrávače</string>
   <string name="morphe_miniplayer_type_entry_0">Vypnuto</string>
   <string name="morphe_miniplayer_type_entry_1">Výchozí</string>
   <string name="morphe_miniplayer_type_entry_2">Minimální</string>
-  <string name="morphe_miniplayer_type_entry_3">Tablet</string>
-  <string name="morphe_miniplayer_type_entry_4">Moderní 1</string>
-  <string name="morphe_miniplayer_type_entry_5">Moderní 2</string>
-  <string name="morphe_miniplayer_type_entry_6">Moderní 3</string>
-  <string name="morphe_miniplayer_type_entry_7">Moderní 4</string>
+  <string name="morphe_miniplayer_type_entry_3">Minimální 2</string>
+  <string name="morphe_miniplayer_type_entry_4">tablet</string>
+  <string name="morphe_miniplayer_type_entry_5">Moderní 1</string>
+  <string name="morphe_miniplayer_type_entry_6">Moderní 2</string>
+  <string name="morphe_miniplayer_type_entry_7">Moderní 3</string>
+  <string name="morphe_miniplayer_type_entry_8">Moderní 4</string>
   <string name="morphe_miniplayer_disable_rounded_corners_title">Zakázat zaoblené rohy</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_title">Zakázat přetažení</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_summary">Zabraňuje přetahování minimalizovaného přehrávače do různých rohů obrazovky</string>

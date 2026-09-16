@@ -1,6 +1,12 @@
 package app.morphe.extension.tiktok;
 
+import android.content.Context;
+
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.Setting;
+import app.morphe.extension.shared.settings.preference.SharedPrefCategory;
+
+import java.lang.reflect.Field;
 
 import org.junit.rules.ExternalResource;
 import org.robolectric.RuntimeEnvironment;
@@ -28,6 +34,24 @@ public final class SettingsContextRule extends ExternalResource {
     @Override
     protected void before() {
         Utils.setContext(RuntimeEnvironment.getApplication());
+        // Robolectric hands every test method a fresh application and preference cache, but
+        // Setting's store is a static captured when its class first loaded in this sandbox,
+        // which is whichever class ran first. A fragment resolves its own store from the
+        // activity, so after the first class the two are different objects and a value
+        // written through one is invisible through the other: that was the [23] recovery
+        // flake. Point the static one at this test's store.
+        try {
+            Field store = SharedPrefCategory.class.getDeclaredField("preferences");
+            store.setAccessible(true);
+            store.set(Setting.preferences, RuntimeEnvironment.getApplication()
+                    .getSharedPreferences(Setting.preferences.name, Context.MODE_PRIVATE));
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Could not re-point Setting's store", exception);
+        }
+        // The restart debt is process-wide by design, and the test JVM is one process: a
+        // restart-gated toggle in one class would pin the row on every page captured after it.
+        app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment
+                .restartPending.clear();
     }
 
     @Override

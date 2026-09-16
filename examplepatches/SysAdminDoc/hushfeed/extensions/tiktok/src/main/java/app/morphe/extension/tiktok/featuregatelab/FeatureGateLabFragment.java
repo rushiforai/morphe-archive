@@ -225,28 +225,14 @@ public final class FeatureGateLabFragment extends Fragment {
         );
         root.addView(controls, FeatureGateLabUi.matchWrap());
 
-        LinearLayout masterRow = new LinearLayout(context);
-        masterRow.setOrientation(LinearLayout.HORIZONTAL);
-        masterRow.setGravity(Gravity.CENTER_VERTICAL);
-        masterRow.setPadding(FeatureGateLabUi.dp(context, 16), FeatureGateLabUi.dp(context, 12),
-                FeatureGateLabUi.dp(context, 16), FeatureGateLabUi.dp(context, 12));
-        masterRow.setBackground(SettingsUi.borderedSurface(context, 10, false));
-        LinearLayout masterText = new LinearLayout(context);
-        masterText.setOrientation(LinearLayout.VERTICAL);
-        masterText.addView(FeatureGateLabUi.body(context, L10n.t(context, "Enable overrides")),
-                FeatureGateLabUi.matchWrap());
-        masterText.addView(FeatureGateLabUi.label(context,
-                L10n.t(context, "Applies saved rules at supported getters")),
-                FeatureGateLabUi.matchWrap());
-        masterRow.addView(masterText, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         master = new Switch(context);
         master.setChecked(FeatureGateLabStore.masterEnabled());
-        master.setContentDescription(L10n.t(context, "Enable overrides"));
         SettingsUi.styleSwitch(master);
-        masterRow.addView(master, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                FeatureGateLabUi.dp(context, 48)
-        ));
+        // One row, one screen-reader stop: the row is the switch. It used to be two stops that
+        // both read "Enable overrides", and only the 44dp switch answered a tap.
+        LinearLayout masterRow = FeatureGateLabUi.switchRow(context,
+                L10n.t(context, "Enable overrides"),
+                L10n.t(context, "Applies saved rules at supported getters"), master);
         controls.addView(masterRow, FeatureGateLabUi.matchWrap());
 
         TextView warning = FeatureGateLabUi.label(
@@ -262,7 +248,11 @@ public final class FeatureGateLabFragment extends Fragment {
         searchRow.setOrientation(LinearLayout.HORIZONTAL);
         searchRow.setGravity(Gravity.CENTER_VERTICAL);
         searchRow.setPaddingRelative(FeatureGateLabUi.dp(context, 8), 0, 0, 0);
-        searchRow.setBackground(SettingsUi.borderedSurface(context, 6, false));
+        searchRow.setTag("feature_gate_search_row");
+        searchRow.setBackground(SettingsUi.focusableSurface(context, 6, false));
+        // The focus lands on the field inside, never on the row, and a group only carries its
+        // children's states when told to. Without this the accent border above never showed.
+        searchRow.setAddStatesFromChildren(true);
         search = new EditText(context);
         search.setSingleLine(true);
         search.setTextSize(16);
@@ -317,6 +307,11 @@ public final class FeatureGateLabFragment extends Fragment {
             tabContainer.setFocusable(true);
             tabContainer.setTag("feature_gate_source_" + i);
             tabContainer.setContentDescription(L10n.t(context, SOURCE_LABELS[i]));
+            // The whole tab is the target, so the press and the focus belong on the container
+            // rather than on the label inside it. It had neither.
+            tabContainer.setBackground(SettingsUi.pressAndFocusOver(
+                    context, SettingsUi.RADIUS_CONTROL,
+                    new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT)));
             SettingsUi.markAsButton(tabContainer);
             tabContainer.setOnClickListener(view -> onSourceSelected(position));
 
@@ -401,7 +396,7 @@ public final class FeatureGateLabFragment extends Fragment {
                 FeatureGateLabUi.dp(context, 12),
                 0
         );
-        filterButton.setBackground(SettingsUi.borderedSurface(context, 6, false));
+        filterButton.setBackground(SettingsUi.focusableSurface(context, 6, false));
         filterButton.setFocusable(true);
         filterButton.setOnClickListener(view -> showFilterPicker());
         resultRow.addView(filterButton, new LinearLayout.LayoutParams(
@@ -780,9 +775,13 @@ public final class FeatureGateLabFragment extends Fragment {
                 background.setColor(SettingsUi.badgeFill());
                 background.setCornerRadius(
                         FeatureGateLabUi.dp(tab.getContext(), SettingsUi.RADIUS_BADGE));
-                tab.setBackground(background);
+                tab.setBackground(SettingsUi.pressAndFocusOver(
+                        tab.getContext(), SettingsUi.RADIUS_BADGE, background));
             } else {
-                tab.setBackgroundColor(Color.TRANSPARENT);
+                // Repainted on every selection change, so the press and focus states
+                // styleTextAction gave this tab have to be put back with the fill.
+                SettingsUi.styleTextAction(tab, false);
+                tab.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
             }
         }
         for (int i = 0; i < sourceTabLabels.length; i++) {
@@ -866,25 +865,30 @@ public final class FeatureGateLabFragment extends Fragment {
         selectionCount = FeatureGateLabUi.label(context, "");
         selectionBar.addView(selectionCount, FeatureGateLabUi.matchWrap());
 
-        LinearLayout actions = new LinearLayout(context);
-        actions.setOrientation(LinearLayout.HORIZONTAL);
-        actions.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
-        actions.addView(selectionAction(context, L10n.t(context, "Reset"), this::resetSelection));
+        // Four labels do not fit one line at large text, and four German labels do not fit one
+        // at any size, so the row wraps rather than squeezing the last of them to nothing.
+        ViewGroup actions = SettingsUi.actionRow(context);
+        actions.addView(selectionAction(context, L10n.t(context, "Reset"),
+                this::resetSelection, true));
         actions.addView(selectionAction(context, L10n.t(context, "Disable"),
-                () -> forceSelection(false)));
+                () -> forceSelection(false), true));
         actions.addView(selectionAction(context, L10n.t(context, "Enable"),
-                () -> forceSelection(true)));
+                () -> forceSelection(true), true));
+        // Cancel only puts the selection down. It is not one of the three that write.
         actions.addView(selectionAction(context, L10n.t(context, "Cancel"), () -> {
             selection.clear();
             onSelectionChanged();
-        }));
+        }, false));
         selectionBar.addView(actions, FeatureGateLabUi.matchWrap());
         return selectionBar;
     }
 
-    private TextView selectionAction(Context context, String label, Runnable action) {
-        TextView button = FeatureGateLabUi.text(context, label, 14, SettingsUi.accent(), Typeface.BOLD);
-        SettingsUi.styleTextAction(button, true);
+    private TextView selectionAction(Context context, String label, Runnable action,
+            boolean primary) {
+        TextView button = FeatureGateLabUi.text(context, label, 14,
+                primary ? SettingsUi.accent() : SettingsUi.textSecondary(),
+                primary ? Typeface.BOLD : Typeface.NORMAL);
+        SettingsUi.styleTextAction(button, primary);
         button.setMinimumHeight(FeatureGateLabUi.dp(context, 48));
         button.setMinimumWidth(FeatureGateLabUi.dp(context, 48));
         button.setGravity(Gravity.CENTER);
@@ -1207,25 +1211,72 @@ public final class FeatureGateLabFragment extends Fragment {
                 ? null
                 : FeatureGateLabText.importRejection(
                         Utils.getContext(), review.rejected.get(0));
-        String message;
         if (review.accepted.isEmpty()) {
-            message = firstRejection == null
+            // Nothing changed, so one line is enough and the toast stays.
+            String message = firstRejection == null
                     ? L10n.f(Utils.getContext(),
                             "Nothing new was imported. %1$d already matched, %2$d unavailable, %3$d rejected.",
                             same, unavailable, rejected)
                     : L10n.f(Utils.getContext(),
                             "Nothing new was imported. %1$d already matched, %2$d unavailable, %3$d rejected. First rejection: %4$s",
                             same, unavailable, rejected, firstRejection);
-        } else {
-            message = firstRejection == null
-                    ? L10n.f(Utils.getContext(),
-                            "Imported %1$d disabled values. %2$d already matched, %3$d unavailable, %4$d rejected. Undo last Lab change is in the menu.",
-                            review.accepted.size(), same, unavailable, rejected)
-                    : L10n.f(Utils.getContext(),
-                            "Imported %1$d disabled values. %2$d already matched, %3$d unavailable, %4$d rejected. First rejection: %5$s Undo last Lab change is in the menu.",
-                            review.accepted.size(), same, unavailable, rejected, firstRejection);
+            runLabChange(() -> FeatureGateLabUndo.importRules(review), message);
+            return;
         }
-        runLabChange(() -> FeatureGateLabUndo.importRules(review), message);
+        // Five clauses in a toast that lasts 3.5 seconds could not be read, and the rejection
+        // text could not be copied out of it. A dialog holds each count on its own line, keeps
+        // the rejection selectable, and puts Undo beside Done.
+        int accepted = review.accepted.size();
+        int matched = same;
+        int notAvailable = unavailable;
+        runLabChange(() -> FeatureGateLabUndo.importRules(review), null,
+                notice -> showImportResult(accepted, matched, notAvailable, rejected, firstRejection));
+    }
+
+    /** The import's counts as lines a reader can take in, with the first rejection selectable. */
+    static LinearLayout importResultView(Context context, int accepted, int matched, int unavailable,
+                                         int rejected, String firstRejection) {
+        LinearLayout lines = new LinearLayout(context);
+        lines.setOrientation(LinearLayout.VERTICAL);
+        int side = FeatureGateLabUi.dp(context, 20);
+        lines.setPadding(side, FeatureGateLabUi.dp(context, 8), side, 0);
+        lines.addView(FeatureGateLabUi.body(context, L10n.f(context, "Imported %1$d values", accepted)),
+                FeatureGateLabUi.matchWrap());
+        lines.addView(FeatureGateLabUi.label(context, L10n.f(context, "%1$d already matched", matched)),
+                FeatureGateLabUi.matchWrap());
+        lines.addView(FeatureGateLabUi.label(context, L10n.f(context, "%1$d unavailable", unavailable)),
+                FeatureGateLabUi.matchWrap());
+        lines.addView(FeatureGateLabUi.label(context, L10n.f(context, "%1$d rejected", rejected)),
+                FeatureGateLabUi.matchWrap());
+        if (firstRejection != null) {
+            lines.addView(FeatureGateLabUi.label(context, L10n.t(context, "First rejection:")),
+                    FeatureGateLabUi.matchWrap());
+            TextView rejection = FeatureGateLabUi.body(context, firstRejection);
+            rejection.setTextIsSelectable(true);
+            lines.addView(rejection, FeatureGateLabUi.matchWrap());
+        }
+        return lines;
+    }
+
+    private void showImportResult(int accepted, int matched, int unavailable, int rejected,
+                                  String firstRejection) {
+        Activity activity = getActivity();
+        if (activity == null) {
+            // The Lab was closed while the file was being read. There is nothing to hang a
+            // dialog on, so the one line that matters goes out the way every other change is told.
+            Utils.showToastLong(L10n.f(Utils.getContext(),
+                    "Imported %1$d values. Undo last Lab change is in the menu.", accepted));
+            return;
+        }
+        AlertDialog dialog = new AlertDialog.Builder(activity)
+                .setTitle(L10n.t(activity, "Import finished"))
+                .setView(importResultView(activity, accepted, matched, unavailable, rejected, firstRejection))
+                .setPositiveButton(L10n.t(activity, "Done"), null)
+                .setNegativeButton(L10n.t(activity, "Undo"), (ignored, which) -> runLabChange(
+                        FeatureGateLabUndo::undo,
+                        L10n.t(activity, "Restored the previous Lab settings. Restart TikTok to apply this.")))
+                .create();
+        showStyled(dialog);
     }
 
     private ExportPayload buildExportPayload() throws Exception {
@@ -1370,12 +1421,28 @@ public final class FeatureGateLabFragment extends Fragment {
         });
     }
 
+    /** How a finished change tells the reader. The toast is the default; an import opens a dialog. */
+    interface NoticePresenter {
+        void present(String notice);
+    }
+
+    private void runLabChange(LabChange change, String message, NoticePresenter presenter) {
+        runLabChange(() -> {
+            change.run();
+            return message;
+        }, presenter);
+    }
+
     /**
      * @return false when another change was already running, so nothing was started. Callers with
      *         state of their own, such as the gate selection, keep it rather than giving it up
      *         for a change that never ran.
      */
     private boolean runLabChange(ReportingLabChange change) {
+        return runLabChange(change, Utils::showToastLong);
+    }
+
+    private boolean runLabChange(ReportingLabChange change, NoticePresenter presenter) {
         if (!CHANGING.compareAndSet(false, true)) {
             postToast(L10n.t(Utils.getContext(), "A Lab change is already running"));
             return false;
@@ -1383,13 +1450,18 @@ public final class FeatureGateLabFragment extends Fragment {
         boolean accepted = Utils.runOnBackgroundThread(() -> {
             lastChangeThreadForTests = Thread.currentThread().getName();
             String result;
+            // A failure is told the plain way whatever the caller planned for a success: an
+            // import that did not happen has no counts to put in a dialog.
+            NoticePresenter tell = presenter;
             try {
                 result = change.run();
             } catch (Exception error) {
                 Logger.printException(() -> "Lab change failed", error);
                 result = L10n.t(Utils.getContext(), "Could not change Lab settings.");
+                tell = Utils::showToastLong;
             }
             String notice = result;
+            NoticePresenter presenting = tell;
             new Handler(Looper.getMainLooper()).post(() -> {
                 // Released first. The flag is process-wide and nothing else clears it, so a
                 // failure while putting the screen back used to refuse every later Lab change
@@ -1397,7 +1469,8 @@ public final class FeatureGateLabFragment extends Fragment {
                 CHANGING.set(false);
                 syncMasterSwitch();
                 rebuild();
-                Utils.showToastLong(notice);
+                if (notice != null) presenting.present(notice);
+                else presenting.present("");
             });
         });
         if (!accepted) {

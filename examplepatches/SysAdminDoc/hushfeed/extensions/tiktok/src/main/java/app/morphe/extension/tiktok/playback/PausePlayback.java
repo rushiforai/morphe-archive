@@ -53,6 +53,9 @@ public final class PausePlayback {
 
     private static WeakReference<View> sheetReference = new WeakReference<>(null);
     private static WeakReference<View> catcherReference = new WeakReference<>(null);
+    /** Watches the feed go away under the catcher, so the catcher goes with it. */
+    private static android.view.ViewTreeObserver.OnGlobalLayoutListener feedWatcher;
+    private static WeakReference<ViewGroup> watchedRootReference = new WeakReference<>(null);
     private static boolean installed;
 
     /**
@@ -243,14 +246,36 @@ public final class PausePlayback {
             unquieten();
             return;
         }
-        View catcher = new View(activity);
+        String label = L10n.t(activity, "Tap to start the feed");
+        FrameLayout catcher = new FrameLayout(activity);
         catcher.setBackgroundColor(Color.TRANSPARENT);
-        catcher.setContentDescription(L10n.t(activity, "Tap to start the feed"));
+        catcher.setContentDescription(label);
         catcher.setClickable(true);
         catcher.setFocusable(true);
         // Its whole job is to be pressed, so it is offered as something to press. Without the
         // role a reader lands on an unnamed View and is told the label with no way to act on it.
         app.morphe.extension.tiktok.settings.preference.SettingsUi.markAsButton(catcher);
+        // Said once as the catcher arrives, the way a dialog announces itself, rather than only
+        // when a screen reader happens to swipe onto it.
+        if (android.os.Build.VERSION.SDK_INT >= 28) catcher.setAccessibilityPaneTitle(label);
+
+        // The catcher was transparent, so a frozen, silent feed was all anyone saw. The label
+        // says what the stop is and what ends it. The catcher speaks for it, so it is not a
+        // second stop for a screen reader.
+        android.widget.TextView hint = app.morphe.extension.tiktok.settings.preference.SettingsUi
+                .text(activity, label, 14,
+                        app.morphe.extension.tiktok.settings.preference.SettingsUi.OVERLAY_TEXT,
+                        android.graphics.Typeface.BOLD);
+        hint.setBackground(app.morphe.extension.tiktok.settings.preference.SettingsUi.overlayChip(
+                activity, app.morphe.extension.tiktok.settings.preference.SettingsUi.RADIUS_OVERLAY));
+        int side = app.morphe.extension.tiktok.settings.preference.SettingsUi.dp(activity, 16);
+        int ends = app.morphe.extension.tiktok.settings.preference.SettingsUi.dp(activity, 10);
+        hint.setPadding(side, ends, side, ends);
+        hint.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        catcher.addView(hint, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+                android.view.Gravity.CENTER));
+
         catcher.setOnClickListener(view -> {
             removeCatcher();
             unquieten();
@@ -260,6 +285,44 @@ public final class PausePlayback {
         params.bottomMargin = SessionLockOverlay.navigationHeight(activity, root);
         root.addView(catcher, params);
         catcherReference = new WeakReference<>(catcher);
+        // Covers the feed for anyone looking at it, so it covers the feed for anyone swiping
+        // through it with a screen reader as well; otherwise TalkBack walks straight through
+        // to the like and comment buttons underneath.
+        SessionLockOverlay.hideBehind(root, catcher, true);
+        watchTheFeed(activity, root);
+    }
+
+    /**
+     * Takes the catcher down when the feed goes away under it.
+     *
+     * <p>The tab bar is left clear so Profile and Inbox stay one tap away, but the page that
+     * arrives is drawn under the same content root, so the catcher stayed up over it: the first
+     * tap there was eaten, and the sound was held for a feed nobody was looking at. The same
+     * question the chips ask of the tree answers this one.
+     */
+    private static void watchTheFeed(Activity activity, ViewGroup root) {
+        stopWatchingTheFeed();
+        feedWatcher = () -> {
+            if (catcherReference.get() == null) {
+                stopWatchingTheFeed();
+                return;
+            }
+            if (!app.morphe.extension.tiktok.blockauthor.FeedVisibility.isOnFeed(activity)) {
+                removeCatcher();
+                unquieten();
+            }
+        };
+        watchedRootReference = new WeakReference<>(root);
+        root.getViewTreeObserver().addOnGlobalLayoutListener(feedWatcher);
+    }
+
+    private static void stopWatchingTheFeed() {
+        ViewGroup root = watchedRootReference.get();
+        watchedRootReference = new WeakReference<>(null);
+        if (root != null && feedWatcher != null) {
+            root.getViewTreeObserver().removeOnGlobalLayoutListener(feedWatcher);
+        }
+        feedWatcher = null;
     }
 
     /**
@@ -276,11 +339,14 @@ public final class PausePlayback {
     }
 
     private static void removeCatcher() {
+        stopWatchingTheFeed();
         View catcher = catcherReference.get();
         catcherReference = new WeakReference<>(null);
         if (catcher == null) return;
         if (catcher.getParent() instanceof ViewGroup) {
-            ((ViewGroup) catcher.getParent()).removeView(catcher);
+            ViewGroup parent = (ViewGroup) catcher.getParent();
+            SessionLockOverlay.hideBehind(parent, catcher, false);
+            parent.removeView(catcher);
         }
     }
 

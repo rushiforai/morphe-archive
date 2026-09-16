@@ -21,11 +21,23 @@ have not been validated on a headset; historical native-rendering results below 
 
 Morphe Manager 1.7 cannot distinguish builds that share versionName `2.0.22`; build-code
 filtering requires Manager 1.22 or newer with compatibility checks enabled. Expert mode may
-still display incompatible patches by design. Morphe has only a global patch `default` flag, so 4
+still display incompatible patches by design. Morphe has only a global patch `default` flag, so 5
 exact-build dependency bundles own all defaults while the individual patches remain default-off and
 selectable wherever their verified compatibility permits. The legacy foundation bundle covers exact
 builds 5001740 and 5002244. Builds 5002296 and 5002313 have no automatic
 bundle. Appear on top and Change package name remain optional and are never recommended.
+
+### Steam Link 2.0.23 / 5002363
+
+All 7 applicable individual patches and a separate 6-patch recommended bundle support this exact pair. Native targets: OLED shader `0x970a1`; format MOVs `0x10c840`, `0x10c8b0`, `0x10c920`; microphone `0xf44c0`; HMD pose hook `0x101f1c`; tongue block `0x141c6c`. High resolution reuses the verified 3-projection API layer and does not modify Valve renderer bytes. Battery settings hooks stock `SteamLink.onCreate`; optional identity fills exact product entries. Legacy patches, old startup replacements and retired experiments stay excluded. Earlier build addresses and selections remain unchanged.
+
+See the [full 5002363 evidence and validation](diagnostics/steamlink-5002363/README.md), [native targets](diagnostics/steamlink-5002363/native-targets.md), and [Java/config targets](diagnostics/steamlink-5002363/surface-targets.md). Older build-specific details below continue to describe their named bases.
+
+### Steam Link 2.0.23 / 5002363
+
+All 7 applicable individual patches and a separate 6-patch recommended bundle support this exact pair. Native targets: OLED shader `0x970a1`; format MOVs `0x10c840`, `0x10c8b0`, `0x10c920`; microphone `0xf44c0`; HMD pose hook `0x101f1c`; tongue block `0x141c6c`. High resolution reuses the verified 3-projection API layer and does not modify Valve renderer bytes. Battery settings hooks stock `SteamLink.onCreate`; optional identity fills exact product entries. Legacy patches, old startup replacements and retired experiments stay excluded. Earlier build addresses and selections remain unchanged.
+
+See the [full 5002363 evidence and validation](diagnostics/steamlink-5002363/README.md), [native targets](diagnostics/steamlink-5002363/native-targets.md), and [Java/config targets](diagnostics/steamlink-5002363/surface-targets.md). Older build-specific details below continue to describe their named bases.
 
 ### Recommendation bundles
 
@@ -33,6 +45,8 @@ bundle. Appear on top and Change package name remain optional and are never reco
 |---|---|---|
 | `Galaxy XR recommended set (2.0.20/5001712)` | 2.0.20/5001712 | 17-patch legacy set below, including Device identity with Meta Quest Pro spoof |
 | `Galaxy XR recommended set (2.0.22/5002322)` | 2.0.22/5002322 | Only the 6 final patches above |
+| `Galaxy XR recommended set (2.0.23/5002363)` | 2.0.23/5002363 | Same 6 modern patches, independently mapped native addresses; Device identity optional |
+| `Galaxy XR recommended set (2.0.23/5002363)` | 2.0.23/5002363 | Same 6 modern patches, independently mapped native addresses; Device identity optional |
 | `Galaxy XR recommended set (2.0.22/5002318)` | 2.0.22/5002318 | 9-patch set using the full face bridge, Device identity with Galaxy XR identity, and both explicit startup patches |
 | `Galaxy XR legacy foundation (through 2.0.22/5002244)` | 2.0.20/5001740, 2.0.22/5002244 | Same 17-patch legacy set as 5001712, including Meta Quest Pro spoof; unavailable native adaptations remain guarded no-ops |
 

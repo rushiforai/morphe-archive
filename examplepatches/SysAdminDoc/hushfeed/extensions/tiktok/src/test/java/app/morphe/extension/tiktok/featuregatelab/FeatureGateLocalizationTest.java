@@ -2,6 +2,7 @@ package app.morphe.extension.tiktok.featuregatelab;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
@@ -82,6 +83,8 @@ public class FeatureGateLocalizationTest {
                 "10 (Historisch)",
                 "11 (Ausgewählt)",
                 "payload hat einen ungültigen Wert. Gib ein JSON-Objekt oder -Array ein.",
+                "Das Feld raw_missing_field lässt sich in diesem Build nicht ändern. Nimm es"
+                        + " aus der Überschreibung heraus oder setze die Überschreibung zurück.",
                 "Nichts Neues wurde importiert. Bereits identisch: 0. Nicht verfügbar: 0. "
                         + "Abgelehnt: 2. Erste Ablehnung: raw_import_key hat "
                         + "den Typ INT, in der Datei steht string."
@@ -103,6 +106,8 @@ public class FeatureGateLocalizationTest {
                 "10 (Historis)",
                 "11 (Dipilih)",
                 "Nilai payload tidak valid. Masukkan objek atau larik JSON.",
+                "Field raw_missing_field tidak bisa diubah di build ini. Keluarkan dari"
+                        + " penimpaan, atau setel ulang penimpaan.",
                 "Tidak ada hal baru yang diimpor. 0 sudah cocok, 0 tidak tersedia, 2 ditolak. "
                         + "Penolakan pertama: raw_import_key bertipe INT, tetapi file "
                         + "menyebutkan string."
@@ -168,10 +173,14 @@ public class FeatureGateLocalizationTest {
             assertTrue(unloadedText.toString(), unloadedText.contains(expected.localSource));
             assertTrue("the unloaded key changed", unloadedText.contains("raw_unloaded_key"));
 
-            FeatureGateCatalog.Entry structured = entry(
-                    "raw_structured_key", "RAW_TITLE_19", "OBJECT", true, true,
-                    List.of("{\"payload\":{\"count\":1}}"), List.of(), List.of(),
-                    "{\"payload\":{\"count\":1}}", "OBJECT", StructuredConfig.class.getName());
+            // Under the settings manager rather than App AB: that is the manager whose getter
+            // hands the Lab an object to patch, so it is the one whose refusals reach the page.
+            FeatureGateCatalog.Entry structured = new FeatureGateCatalog.Entry(
+                    "raw_structured_key", "RAW_TITLE_19",
+                    FeatureGateLabStore.MANAGER_SETTINGS_MANAGER, "OBJECT", true, true,
+                    List.of("{\"payload\":{\"count\":1}}"), List.of(), List.of(), "",
+                    "RAW_PROOF_22", true, "{\"payload\":{\"count\":1}}", "OBJECT",
+                    StructuredConfig.class.getName());
             cache(structured);
             FeatureGateDetailFragment structuredPage = FeatureGateDetailFragment.forEntry(
                     structured.manager, structured.key, structured.type);
@@ -184,6 +193,28 @@ public class FeatureGateLocalizationTest {
             assertNotNull(save);
             assertTrue(save.performClick());
             assertEquals(expected.invalidStructured, ShadowToast.getTextOfLatestToast());
+
+            // A saved override naming a field the class does not have is refused when TikTok
+            // asks for the object, and the page has to say which field, in this language.
+            FeatureGateLabStore.saveRule(structured.manager, structured.key, structured.type,
+                    "{\"raw_missing_field\":2}", true);
+            FeatureGateLabRuntime.clearTriggered();
+            assertNull("the structured page is not driven by the settings manager",
+                    FeatureGateLabRuntime.structuredFailure(
+                            structured.manager, structured.key, structured.type));
+            FeatureGateLabRuntime.observeSettingsObject(structured.key, StructuredConfig.class,
+                    new StructuredConfig(), new StructuredConfig());
+            FeatureGateFailure refusal = FeatureGateLabRuntime.structuredFailure(
+                    structured.manager, structured.key, structured.type);
+            assertNotNull("the runtime recorded no refusal for the missing field", refusal);
+            structuredPage.onResume();
+            TextView reason = (TextView) structuredPage.getView()
+                    .findViewWithTag("feature_gate_status_reason");
+            assertNotNull(reason);
+            assertEquals(View.VISIBLE, reason.getVisibility());
+            assertEquals(expected.unsupportedField, reason.getText().toString());
+            assertTrue("the raw field name was translated or dropped",
+                    reason.getText().toString().contains("raw_missing_field"));
 
             FeatureGateCatalog.Entry imported = entry(
                     "raw_import_key", "RAW_TITLE_20", "INT", true, true,
@@ -295,6 +326,7 @@ public class FeatureGateLocalizationTest {
         final String historical;
         final String selected;
         final String invalidStructured;
+        final String unsupportedField;
         final String importRejection;
 
         Expected(
@@ -309,6 +341,7 @@ public class FeatureGateLocalizationTest {
                 String historical,
                 String selected,
                 String invalidStructured,
+                String unsupportedField,
                 String importRejection
         ) {
             this.invalidInteger = invalidInteger;
@@ -322,6 +355,7 @@ public class FeatureGateLocalizationTest {
             this.historical = historical;
             this.selected = selected;
             this.invalidStructured = invalidStructured;
+            this.unsupportedField = unsupportedField;
             this.importRejection = importRejection;
         }
     }

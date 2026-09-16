@@ -10,6 +10,10 @@ import app.template.patches.steamlink.androidxr.ANDROID_SURFACE_TRIGGER_BUILD_ID
 import app.template.patches.steamlink.androidxr.ANDROID_SURFACE_TRIGGER_MANIFEST
 import app.template.patches.steamlink.androidxr.MODERN_TONGUE_REPLACEMENT_5002322
 import app.template.patches.steamlink.androidxr.MODERN_TONGUE_VADDR_5002322
+import app.template.patches.steamlink.androidxr.MODERN_TONGUE_VADDR_5002363
+import app.template.patches.steamlink.androidxr.gxrModernTongueBridgePatch
+import app.template.patches.steamlink.androidxr.patchModernTongueTransport
+import app.template.patches.shared.Constants.isModernTongueBridgeSteamLinkBuild
 import app.template.patches.steamlink.androidxr.androidSurfaceTriggerResourceLibraryForBuild
 import app.template.patches.steamlink.androidxr.adaptLegacyHmdConfigForBuild
 import app.template.patches.steamlink.androidxr.ensureIdsXml
@@ -39,13 +43,17 @@ import app.template.patches.steamlink.binary.forceStreamXrGatesPatch
 import app.template.patches.steamlink.binary.hmdOnlyPatch
 import app.template.patches.steamlink.binary.microphoneInputPresetPatch
 import app.template.patches.steamlink.binary.oledCalibrationPatch
+import app.template.patches.steamlink.binary.patchNativeMicrophonePreset
+import app.template.patches.steamlink.binary.patchVisualDelay
 import app.template.patches.steamlink.galaxyXrLegacyFoundationPatch
 import app.template.patches.steamlink.galaxyXrRecommended5001712Patch
 import app.template.patches.steamlink.galaxyXrRecommended5002318Patch
 import app.template.patches.steamlink.galaxyXrRecommended5002322Patch
+import app.template.patches.steamlink.galaxyXrRecommended5002363Patch
 import app.template.patches.steamlink.identity.changePackageNamePatch
 import app.template.patches.steamlink.identity.deviceIdentityPatch
 import app.template.patches.steamlink.identity.patchNativeGalaxyIdentity
+import app.template.patches.steamlink.identity.patchHmdModelIdentity
 import app.template.patches.steamlink.util.BinaryPatchHelper.vaddrToFileOffset
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -69,6 +77,7 @@ private val highResolutionFixtures = listOf(
     HighResolutionFixture("2.0.22", "5002313", 0x1472a8, true),
     HighResolutionFixture("2.0.22", "5002318", 0x147418, false),
     HighResolutionFixture("2.0.22", "5002322", 0x148aac, false),
+    HighResolutionFixture("2.0.23", "5002363", 0x149874, false),
 )
 
 private data class RecommendedBundleFixture(
@@ -95,6 +104,15 @@ private val recommendedBundleFixtures = listOf(
         highResolutionFixtures.single { it.versionCode == "5002322" },
         galaxyXrRecommended5002322Patch,
     ),
+    RecommendedBundleFixture(
+        highResolutionFixtures.single { it.versionCode == "5002363" },
+        galaxyXrRecommended5002363Patch,
+    ),
+)
+
+private val publicPatchesFor5002363: List<Patch<*>> = listOf(
+    deviceIdentityPatch, gxrModernTongueBridgePatch, xrGalaxyXrHighResolutionPatch,
+    microphoneInputPresetPatch, oledCalibrationPatch, unrestrictedBatteryUsagePatch, hmdOnlyPatch,
 )
 
 private val publicPatchesFor5001712: List<Patch<*>> = listOf(
@@ -146,6 +164,9 @@ private fun runIsolatedAudits(fixtureDirectory: String, outputDirectory: String)
     publicPatchesFor5001712.indices.forEach { index ->
         runAuditChild(fixtureDirectory, outputDirectory, "public", index)
     }
+    publicPatchesFor5002363.indices.forEach { index ->
+        runAuditChild(fixtureDirectory, outputDirectory, "public-modern", index)
+    }
     highResolutionFixtures.indices.forEach { index ->
         runAuditChild(fixtureDirectory, outputDirectory, "high-resolution", index)
     }
@@ -180,6 +201,18 @@ private suspend fun runSingleAudit(args: Array<String>) {
     val index = args[3].toInt()
 
     when (args[2]) {
+        "public-modern" -> {
+            val patch = publicPatchesFor5002363[index]
+            val fixture = highResolutionFixtures.single { it.versionCode == "5002363" }
+            val input = fixtureFile(fixtureDirectory, fixture)
+            val caseDirectory = File(outputDirectory, "5002363-public-${requireNotNull(patch.name).safeName()}")
+            val output = File(caseDirectory, "steamlink-5002363-unsigned.apk")
+            configurePublicAuditOptions(patch)
+            executePatch(input, patch, File(caseDirectory, "temporary"), output)
+            verifyModernPublicOutput(input, output, patch, fixture)
+            println("PASS 2.0.23/5002363 public patch: ${patch.name}: $output")
+        }
+
         "public" -> {
             val patch = publicPatchesFor5001712[index]
             val patchName = requireNotNull(patch.name)
@@ -210,10 +243,10 @@ private suspend fun runSingleAudit(args: Array<String>) {
         }
 
         "startup-excluded" -> {
-            val fixture = highResolutionFixtures.single { it.versionCode == "5002322" }
+            val fixture = highResolutionFixtures.single { it.versionCode == if (index == 0) "5002322" else "5002363" }
             val input = fixtureFile(fixtureDirectory, fixture)
-            val caseDirectory = File(outputDirectory, "startup-excluded-5002322")
-            val output = File(caseDirectory, "steamlink-5002322-excluded-startup-unsigned.apk")
+            val caseDirectory = File(outputDirectory, "startup-excluded-${fixture.versionCode}")
+            val output = File(caseDirectory, "steamlink-${fixture.versionCode}-excluded-startup-unsigned.apk")
             val forcedDependencies = rawResourcePatch(name = "Excluded startup guard audit", default = false) {
                 dependsOn(xrLauncherBootstrapPatch, xrStartupPermissionsPatch)
                 // Resource compiler fixture workaround; excluded patch bodies stay unchanged.
@@ -235,7 +268,7 @@ private suspend fun runSingleAudit(args: Array<String>) {
                 check(!manifest.containsEncodedString("android.window.PROPERTY_XR_ACTIVITY_START_MODE"))
                 patched.requireStartupFlags(splash = false, permissions = false)
             } }
-            println("PASS 5002322 excluded startup dependencies remain inert: $output")
+            println("PASS ${fixture.versionCode} excluded startup dependencies remain inert: $output")
         }
 
         "visual-delay" -> {
@@ -392,6 +425,64 @@ private fun verifyPublicPatchOutput(outputApk: File, patch: Patch<*>) {
     }
 }
 
+private fun verifyModernPublicOutput(
+    input: File,
+    output: File,
+    patch: Patch<*>,
+    fixture: HighResolutionFixture,
+) {
+    ZipFile(input).use { original -> ZipFile(output).use { result ->
+        val scenePath = "lib/arm64-v8a/libvrlink_scene.so"
+        val stock = original.requireEntryBytes(scenePath)
+        val scene = result.requireEntryBytes(scenePath)
+        val expectedScene = when (patch) {
+            gxrModernTongueBridgePatch -> patchModernTongueTransport(stock, fixture.versionName, fixture.versionCode)
+            microphoneInputPresetPatch -> patchNativeMicrophonePreset(stock, "voice-recognition", fixture.versionName, fixture.versionCode)
+            hmdOnlyPatch -> patchVisualDelay(stock, 60, fixture.versionName, fixture.versionCode)
+            oledCalibrationPatch -> null // Full matrix/exact diff is checked by OledDecodedCompatibilityAudit.
+            else -> stock
+        }
+        expectedScene?.let { check(scene.contentEquals(it)) { "${patch.name}: unexpected scene bytes" } }
+        if (patch == oledCalibrationPatch) {
+            scene.requireEncodedString("const float DITHER_ENABLE=0.;")
+            scene.requireEncodedString("vec3(1.20)")
+            scene.requireEncodedString("c,1.45)")
+            val shader = app.template.patches.steamlink.binary.findVideoShader(stock)
+            check(stock.indices.all { stock[it] == scene[it] || it in shader until shader + 1087 })
+        }
+        for (name in listOf("hmd_config.json", "controller_config.json", "default.vrsettings", "ui_config.json")) {
+            val path = "assets/config/$name"
+            if (original.getEntry(path) == null) continue
+            val bytes = original.requireEntryBytes(path)
+            val expected = if (patch == deviceIdentityPatch && name == "hmd_config.json") {
+                patchHmdModelIdentity(bytes.decodeToString(), "meta-quest-pro", exactProductLookup = true).encodeToByteArray()
+            } else bytes
+            check(result.requireEntryBytes(path).contentEquals(expected)) { "${patch.name}: changed $path unexpectedly" }
+        }
+        scene.requireBytesAt(fixture.permissionOffset, permissionOriginal)
+        val manifest = result.requireEntryBytes("AndroidManifest.xml")
+        check(!manifest.containsEncodedString("GalaxyXRPermissionActivity"))
+        check(!manifest.containsEncodedString("android.permission.SYSTEM_ALERT_WINDOW"))
+        check(!manifest.containsEncodedString("android.window.PROPERTY_XR_ACTIVITY_START_MODE"))
+        if (patch == unrestrictedBatteryUsagePatch) {
+            verifyNativeStartupBoundary(original, result)
+            manifest.requireEncodedString("android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS")
+        } else {
+            val outputDex = result.dexEntries().map { result.requireEntryBytes(it) }
+            original.dexEntries().forEach { path ->
+                check(outputDex.any { it.contentEquals(original.requireEntryBytes(path)) }) {
+                    "${patch.name}: modified stock DEX $path"
+                }
+            }
+        }
+    } }
+    if (patch == xrGalaxyXrHighResolutionPatch) {
+        verifyHighResolutionOutput(output, fixture)
+        verifyStandaloneHighResolutionBoundary(input, output, fixture)
+    }
+    if (patch == hmdOnlyPatch) verifyVisualDelayOutput(input, output, fixture)
+}
+
 private suspend fun executePatch(
     inputApk: File,
     patch: Patch<*>,
@@ -480,12 +571,12 @@ private fun verifyRecommendedBundleOutput(inputApk: File, outputApk: File, fixtu
         manifest.requireEncodedString("android.permission.HAND_TRACKING")
         manifest.requireEncodedString("android.permission.FACE_TRACKING")
         manifest.requireEncodedString("android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS")
-        if (fixture.versionCode == "5002322") {
+        if (isModernTongueBridgeSteamLinkBuild(fixture.versionName, fixture.versionCode)) {
             check(apk.getEntry("lib/arm64-v8a/libgxr_face_bridge.so") == null) {
                 "5002322: modern tongue recommendation installed the legacy full face bridge"
             }
             scene.requireBytesAt(
-                vaddrToFileOffset(scene, MODERN_TONGUE_VADDR_5002322, MODERN_TONGUE_REPLACEMENT_5002322.size),
+                vaddrToFileOffset(scene, if (fixture.versionCode == "5002363") MODERN_TONGUE_VADDR_5002363 else MODERN_TONGUE_VADDR_5002322, MODERN_TONGUE_REPLACEMENT_5002322.size),
                 MODERN_TONGUE_REPLACEMENT_5002322,
             )
         } else {
@@ -507,7 +598,8 @@ private fun verifyRecommendedBundleOutput(inputApk: File, outputApk: File, fixtu
             "${fixture.versionCode}: 60 ms Visual Delay trampoline not found"
         }
         if (fixture.versionCode == "5002322") scene.requireBytesAt(0xF37E0, "c1008052".hexBytes())
-        if (fixture.versionCode == "5002322") {
+        if (fixture.versionCode == "5002363") scene.requireBytesAt(0xF44C0, "c1008052".hexBytes())
+        if (isModernTongueBridgeSteamLinkBuild(fixture.versionName, fixture.versionCode)) {
             manifest.requireEncodedString("com.valvesoftware.steamlink.SteamLink")
             manifest.requireEncodedString("android.intent.category.LAUNCHER")
             manifest.requireEncodedString("com.oculus.intent.category.2D")
@@ -523,7 +615,7 @@ private fun verifyRecommendedBundleOutput(inputApk: File, outputApk: File, fixtu
             manifest.requireEncodedString("XR_ACTIVITY_START_MODE_FULL_SPACE_UNMANAGED")
             apk.requireStartupFlags(splash = true, permissions = true)
         }
-        if (fixture.versionCode !in setOf("5002318", "5002322")) {
+        if (fixture.versionCode !in setOf("5002318", "5002322", "5002363")) {
             apk.requireEntryBytes("lib/arm64-v8a/libgxr_xr_bridge.so")
             apk.requireEntryBytes("assets/config/ui_config.json")
             val hmdConfig = apk.requireEntryBytes("assets/config/hmd_config.json")

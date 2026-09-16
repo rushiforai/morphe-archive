@@ -4,9 +4,9 @@
  */
 package app.morphe.patches.tiktok.misc.voicecomments
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.returnEarly
 
 /**
  * A gate flip with no settings switch of its own, so selecting the patch is the switch. It ships
@@ -23,19 +23,10 @@ val enableVoiceCommentsPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.tiktok4623())
 
     execute {
-        resolveVoiceCommentPublishGate().apply {
-            // The answer returns at once, so nothing after it reads v0 and a parameter may be
-            // written over; the frame only has to hold a register to write.
-            check(implementation!!.registerCount >= 1) {
-                "Enable voice comments: the publish gate has no register to answer from."
-            }
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0x1
-                    return v0
-                """,
-            )
-        }
+        // The answer returns at once, so nothing after it reads v0 and a parameter may be
+        // written over. returnEarly makes the same two instructions, and carries both checks the
+        // hand-written smali needed: that the gate answers Z, and that its frame has a register
+        // to write into.
+        resolveVoiceCommentPublishGate().returnEarly(true)
     }
 }

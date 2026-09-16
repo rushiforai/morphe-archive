@@ -310,6 +310,15 @@ public class StickerGallerySaverTest {
         assertNotEquals("the fallback colour stayed fixed across themes",
                 dark.getTextColors().getColorForState(new int[]{android.R.attr.state_enabled}, 0),
                 light.getCurrentTextColor());
+
+        // The sticker sheet follows TikTok's theme, so in the light theme the Save button sits on
+        // a light surface where a white ring and ripple would be invisible. The fallback takes a
+        // ripple background keyed on the host text tone. That the ring colour actually shows on a
+        // light surface is proven in SettingsUiTest; here it only has to carry the ripple at all.
+        android.graphics.drawable.Drawable background = light.getBackground();
+        assertTrue("the fallback Save button has no ripple: " + (background == null ? "null"
+                        : background.getClass().getSimpleName()),
+                background instanceof android.graphics.drawable.RippleDrawable);
     }
 
     @Test public void aCleartextStickerMirrorIsNotFetchedFrom() {

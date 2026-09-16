@@ -1,3 +1,9 @@
+/*
+ * Copyright 2026 Hushfeed contributors
+ * https://github.com/SysAdminDoc/hushfeed
+ *
+ * Built on icysymmetra/tiktok-patches-for-morphe (GPL-3.0).
+ */
 package app.morphe.extension.tiktok.captions;
 
 import android.graphics.Color;

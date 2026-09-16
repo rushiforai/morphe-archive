@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.Preference;
 import android.os.Looper;
 import android.util.AtomicFile;
 import app.morphe.extension.shared.BackgroundPoolSaturation;
@@ -1134,5 +1135,84 @@ public class SettingsBackupTest {
                 .suggestedExportName();
         assertTrue("the picker would show " + name,
                 name.matches("hushfeed-settings-\\d{8}-\\d{6}\\.json"));
+    }
+
+    /**
+     * The four rows go out of reach while one of them runs, and the acting row says what it is
+     * doing.
+     *
+     * <p>A restore of a large file or a reset takes long enough to notice, and the rows used to
+     * look exactly as they had a moment earlier: a second tap earned "A settings operation is
+     * already running", which is a refusal where a disabled row with a reason belongs, and a
+     * screen reader was told nothing at all.
+     */
+    @Test public void theBackupRowsSayWhatIsRunningAndCannotBeTappedWhileItDoes() throws Exception {
+        try (var owner = Robolectric.buildActivity(app.morphe.extension.tiktok.captions.CaptionToolsTest.CaptionActivity.class).setup().visible()) {
+            var activity = owner.get();
+            Utils.setContext(activity);
+            var fragment = new TikTokPreferenceFragment();
+            Bundle arguments = new Bundle();
+            arguments.putString("morphe_settings_section", "DIAGNOSTICS");
+            fragment.setArguments(arguments);
+            activity.getFragmentManager().beginTransaction()
+                    .replace(android.R.id.content, fragment).commit();
+            activity.getFragmentManager().executePendingTransactions();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            Preference reset = backupRow(fragment, "Reset settings");
+            Preference export = backupRow(fragment, "Back up settings");
+            assertNotNull(reset);
+            assertNotNull(export);
+            String restingReset = String.valueOf(reset.getSummary());
+            String restingExport = String.valueOf(export.getSummary());
+            assertTrue("the rows start out of reach", reset.isEnabled() && export.isEnabled());
+
+            var setRowsBusy = SettingsBackupPreference.class.getDeclaredMethod(
+                    "setRowsBusy", int.class, String.class);
+            setRowsBusy.setAccessible(true);
+            setRowsBusy.invoke(null, 7313, "Putting the settings back to their defaults");
+
+            assertFalse("the acting row can still be tapped", reset.isEnabled());
+            assertFalse("the other rows can still be tapped", export.isEnabled());
+            assertEquals("the acting row does not say what is happening",
+                    "Putting the settings back to their defaults", String.valueOf(reset.getSummary()));
+            assertEquals("a row that is not acting changed its summary",
+                    restingExport, String.valueOf(export.getSummary()));
+
+            // A tap while the run is going does nothing at all, rather than refusing out loud.
+            var busyField = SettingsBackupPreference.class.getDeclaredField("BUSY");
+            busyField.setAccessible(true);
+            var busy = (java.util.concurrent.atomic.AtomicBoolean) busyField.get(null);
+            busy.set(true);
+            try {
+                ShadowToast.reset();
+                if (reset.getOnPreferenceClickListener() != null) {
+                    reset.getOnPreferenceClickListener().onPreferenceClick(reset);
+                }
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                assertNull("a tap during a run said something", ShadowToast.getTextOfLatestToast());
+                assertEquals("a tap during a run started a second one",
+                        "Putting the settings back to their defaults",
+                        String.valueOf(reset.getSummary()));
+            } finally {
+                busy.set(false);
+            }
+
+            setRowsBusy.invoke(null, 0, null);
+            assertTrue("the rows stayed out of reach after the run", reset.isEnabled());
+            assertTrue(export.isEnabled());
+            assertEquals("the acting row kept its running line", restingReset,
+                    String.valueOf(reset.getSummary()));
+            assertEquals(restingExport, String.valueOf(export.getSummary()));
+        }
+    }
+
+    private static Preference backupRow(TikTokPreferenceFragment fragment, String title) {
+        var screen = fragment.getPreferenceScreen();
+        for (int index = 0; index < screen.getPreferenceCount(); index++) {
+            Preference row = screen.getPreference(index);
+            if (title.equals(String.valueOf(row.getTitle()))) return row;
+        }
+        return null;
     }
 }

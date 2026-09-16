@@ -4,10 +4,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Looper;
 import android.preference.Preference;
@@ -25,11 +27,16 @@ import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.UiCapture;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.After;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.Shadows;
@@ -41,6 +48,7 @@ import org.robolectric.util.ReflectionHelpers;
 
 /** Recovery when Android or an injected settings row throws during synchronization. */
 @RunWith(RobolectricTestRunner.class)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @Config(sdk = {23, 35}, qualifiers = "de-night")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @LooperMode(LooperMode.Mode.PAUSED)
@@ -341,24 +349,52 @@ public class PreferenceFailureRecoveryTest {
             Activity activity = owner.get();
             Utils.setContext(activity);
             HarnessFragment page = attach(activity);
+            // The fragment resolves its store from the activity; the Setting reads a static
+            // captured when its class loaded in this sandbox. Robolectric gives every method a
+            // fresh preference cache, so the two are one object only while the rule re-points
+            // the static one, and a recovery that writes to one and reads the other is the
+            // flake this class used to have.
+            assertSame("Setting and fragment stores differ", Setting.preferences.preferences,
+                    page.getPreferenceManager().getSharedPreferences());
             SwitchPreference toggle = (SwitchPreference) page.findPreference(BaseSettings.DEBUG.key);
             assertNotNull(toggle);
             assertFalse(BaseSettings.DEBUG.get());
 
             HarnessFragment.failOnceAt(stage);
             ShadowToast.reset();
-            toggle.setChecked(true);
-            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            // Every write to the key in order, so a failure says which step dropped the value
+            // rather than only that it is gone by the end.
+            List<String> writes = new ArrayList<>();
+            SharedPreferences.OnSharedPreferenceChangeListener watcher = (preferences, key) -> {
+                if (!BaseSettings.DEBUG.key.equals(key)) return;
+                writes.add(preferences.contains(key)
+                        ? String.valueOf(preferences.getBoolean(key, false)) : "absent");
+            };
+            Setting.preferences.preferences
+                    .registerOnSharedPreferenceChangeListener(watcher);
+            try {
+                toggle.setChecked(true);
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+            } finally {
+                Setting.preferences.preferences
+                        .unregisterOnSharedPreferenceChangeListener(watcher);
+            }
 
             boolean settingValue = BaseSettings.DEBUG.get();
             boolean storedValue = Setting.preferences.preferences.getBoolean(
                     BaseSettings.DEBUG.key, BaseSettings.DEBUG.defaultValue);
-            assertEquals(settingValue, toggle.isChecked());
-            assertEquals(settingValue, storedValue);
-            assertEquals(!BaseSettings.DEBUG.defaultValue.equals(settingValue),
+            String state = state(stage, writes);
+            assertEquals("the row does not show the value the Setting holds. " + state,
+                    settingValue, toggle.isChecked());
+            assertEquals("the saved preference does not hold the value the Setting does. " + state,
+                    settingValue, storedValue);
+            assertEquals("a value that is not the default is not written down, or a value that"
+                            + " is the default was left behind. " + state,
+                    !BaseSettings.DEBUG.defaultValue.equals(settingValue),
                     Setting.preferences.preferences.contains(BaseSettings.DEBUG.key));
-            assertFalse(ReflectionHelpers.getStaticField(
-                    AbstractPreferenceFragment.class, "updatingPreference"));
+            assertFalse("the update guard was left raised. " + state,
+                    ReflectionHelpers.getStaticField(
+                            AbstractPreferenceFragment.class, "updatingPreference"));
             assertTrue("preference recovery did not run on Android's main thread",
                     HarnessFragment.failureWasOnMainThread);
             assertEquals(1, ShadowToast.shownToastCount());
@@ -366,6 +402,22 @@ public class PreferenceFailureRecoveryTest {
                             + "Der gespeicherte Wert wird angezeigt.",
                     String.valueOf(ShadowToast.getTextOfLatestToast()));
         }
+    }
+
+    /** What the recovery path left behind, for a failure that only shows up in a full run. */
+    private static String state(Stage stage, List<String> writes) {
+        return "stage " + stage
+                + ", setting " + BaseSettings.DEBUG.get()
+                + ", stored " + (Setting.preferences.preferences.contains(BaseSettings.DEBUG.key)
+                        ? Setting.preferences.preferences.getBoolean(BaseSettings.DEBUG.key, false)
+                        : "absent")
+                + ", writes " + writes
+                + ", recovery ran on the main thread " + HarnessFragment.failureWasOnMainThread
+                + ", import in progress " + AbstractPreferenceFragment.settingImportInProgress
+                + ", guard " + ReflectionHelpers.getStaticField(
+                        AbstractPreferenceFragment.class, "updatingPreference")
+                + ", toasts " + ShadowToast.shownToastCount()
+                + " (" + ShadowToast.getTextOfLatestToast() + ")";
     }
 
     private static void assertErrorPage(HarnessFragment fragment) {

@@ -36,10 +36,6 @@ val devicePrivacyGuardPatch = bytecodePatch(
             println("[Device Privacy Guard] IMMessageListClipboardServiceImpl note: ${e.message}")
         }
 
-
-
-
-
         // ==========================================
         // 2. SCREENSHOT DETECTION SUPPRESSION
         // ==========================================
@@ -51,6 +47,8 @@ val devicePrivacyGuardPatch = bytecodePatch(
             "Lcom/ss/android/ugc/aweme/legoImpl/task/ScreenShotTask;",
             "Lcom/ss/android/ugc/aweme/legoImpl/task/ScreenShotFeedbackTask;",
             "Lcom/ss/android/ugc/aweme/legoImp/task/ScreenRecordingMonitorInitTask;",
+            "Lcom/ss/android/ugc/aweme/im/sharepanel/impl/screenshotshare/InternalShareScreenshotTask;",
+            "Lcom/ss/android/ugc/aweme/im/sharepanel/impl/screenshotshare/InternalShareScreenshotTaskHolder\$BootFinish;",
         )
         contextTasks.forEach { taskClass ->
             try {
@@ -107,7 +105,6 @@ val devicePrivacyGuardPatch = bytecodePatch(
         } catch (e: Exception) {
             println("[Device Privacy Guard] ScreenShotFeedbackService.safelyShowDialog note: ${e.message}")
         }
-
 
         println("[Device Privacy Guard] Applied $patched device privacy protection hook(s).")
     }

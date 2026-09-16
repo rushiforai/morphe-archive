@@ -4,7 +4,7 @@ import app.template.patches.steamlink.binary.*
 import java.io.File
 import java.security.MessageDigest
 
-/** Read-only exercise of production OLED helpers on 2 hash-pinned decoded libraries.
+/** Read-only exercise of production OLED helpers on hash-pinned decoded libraries.
  * Does not rebuild an APK, run the Morphe DSL, or establish headset format support.
  */
 object OledDecodedCompatibilityAudit {
@@ -17,6 +17,7 @@ object OledDecodedCompatibilityAudit {
         val bases = listOf(
             Base("2.0.20", "5001712", "80b62797c7e26d6b67b0cca00693b076a336bdb48ebc1383a16cccb1616ed495", intArrayOf(0x10a9c4, 0x10aa34)),
             Base("2.0.22", "5002322", "e61baf34dfc4749d92561bab5fee47891d271607a0ce44824ff61c3e6a450c3f", intArrayOf(0x10ba78, 0x10bae8, 0x10bb58)),
+            Base("2.0.23", "5002363", "628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0", intArrayOf(0x10c840, 0x10c8b0, 0x10c920)),
         )
         for (base in bases) {
             val directory = File(root, "decoded-apk-android-steamlinkvr-release-base-${base.version}-${base.code}")

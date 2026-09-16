@@ -1,0 +1,116 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      packages: read
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-latest
+    # semantic-release is configured for main and dev only.
+    if: github.ref_name == 'main' || github.ref_name == 'dev'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v6.0.0
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Suppress Git default-branch advice
+        run: git config --global advice.defaultBranchName false
+
+      - name: Setup Gradle for wrapper bootstrap
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '9.7.1'
+          cache-read-only: false
+
+      - name: Bootstrap pinned Morphe toolchain
+        env:
+          GIT_TERMINAL_PROMPT: '0'
+        run: |
+          set -euo pipefail
+          bash .github/scripts/bootstrap_morphe.sh
+          test -f gradle/wrapper/gradle-wrapper.jar
+          chmod +x gradlew
+          ./gradlew --version
+
+      - name: Verify Morphe Gradle plugin resolution
+        run: |
+          set -euo pipefail
+          ./gradlew help --no-daemon --stacktrace
+
+      - name: Ensure Morphe dev branch exists
+        run: |
+          if git ls-remote --exit-code --heads origin dev >/dev/null 2>&1; then
+            echo "origin/dev already exists"
+          else
+            echo "origin/dev is missing; creating it from the current commit"
+            git push origin HEAD:refs/heads/dev
+          fi
+
+      - name: Verify CI, release, and cache configuration
+        run: python3 .github/scripts/verify_ci_config.py
+
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v6
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Verify the exact public metadata and release asset that Morphe Manager will consume.
+      # This catches broken/partial releases before the workflow is considered successful.
+      - name: Verify published Morphe metadata
+        if: steps.release.outputs.new_release_published == 'true'
+        env:
+          VERSION: ${{ steps.release.outputs.new_release_version }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          META_URL="https://raw.githubusercontent.com/${REPOSITORY}/main/patches-bundle.json"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 2 "$META_URL" -o /tmp/patches-bundle.json
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          version = os.environ['VERSION']
+          bundle = json.loads(Path('/tmp/patches-bundle.json').read_text())
+          expected = f"https://github.com/{os.environ['REPOSITORY']}/releases/download/v{version}/patches-{version}.mpp"
+          assert bundle['version'] == version, (bundle['version'], version)
+          assert bundle['download_url'] == expected, (bundle['download_url'], expected)
+          print(f"Published metadata verified: v{version}")
+          PY
+          DOWNLOAD_URL="https://github.com/${REPOSITORY}/releases/download/v${VERSION}/patches-${VERSION}.mpp"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 2 -o /dev/null "$DOWNLOAD_URL"
+          echo "Published MPP verified: $DOWNLOAD_URL"
+
+      - name: Attest
+        if: steps.release.outputs.new_release_published == 'true'
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-*.mpp
+
+      - name: Verify project compiles
+        if: steps.release.outputs.new_release_published != 'true'
+        run: ./gradlew clean :patches:buildAndroid --no-daemon --build-cache

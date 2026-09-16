@@ -4,6 +4,7 @@ import app.morphe.patcher.patch.rawResourcePatch
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_5001712
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_5002318
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_5002322
+import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_5002363
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_LEGACY_RECOMMENDED
 import app.template.patches.steamlink.androidxr.gxrFacebridgePatch
 import app.template.patches.steamlink.androidxr.gxrModernTongueBridgePatch
@@ -68,6 +69,23 @@ val galaxyXrRecommended5002322Patch = rawResourcePatch(
     default = true,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_5002322.toTypedArray())
+    dependsOn(
+        xrGalaxyXrHighResolutionPatch,
+        gxrModernTongueBridgePatch,
+        microphoneInputPresetPatch,
+        unrestrictedBatteryUsagePatch,
+        hmdOnlyPatch,
+        oledCalibrationPatch,
+    )
+}
+
+@Suppress("unused")
+val galaxyXrRecommended5002363Patch = rawResourcePatch(
+    name = "Galaxy XR recommended set (2.0.23/5002363)",
+    description = "Applies the 6-patch Galaxy XR set for exact Steam Link 2.0.23 build 5002363. Preserves stock startup and permission requests except battery settings; includes the Final balanced OLED profile. Decoded-base validation; headset validation pending.",
+    default = true,
+) {
+    compatibleWith(*COMPATIBILITIES_STEAM_LINK_5002363.toTypedArray())
     dependsOn(
         xrGalaxyXrHighResolutionPatch,
         gxrModernTongueBridgePatch,

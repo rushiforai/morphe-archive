@@ -1,3 +1,9 @@
+/*
+ * Copyright 2026 Hushfeed contributors
+ * https://github.com/SysAdminDoc/hushfeed
+ *
+ * Built on icysymmetra/tiktok-patches-for-morphe (GPL-3.0).
+ */
 package app.morphe.patches.tiktok.interaction.downloads
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels

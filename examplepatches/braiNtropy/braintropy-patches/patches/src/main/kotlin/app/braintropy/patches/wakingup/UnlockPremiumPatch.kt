@@ -10,6 +10,7 @@ val unlockPremiumPatch = bytecodePatch(
     description = "Unlocks all premium content and removes subscription banners.",
     default = true
 ) {
+    category("Unlock")
     compatibleWith(COMPATIBILITY_WAKING_UP)
 
     execute {

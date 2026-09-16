@@ -28,6 +28,44 @@ final class FeatureGateLabText {
     private FeatureGateLabText() {
     }
 
+    /**
+     * Why an override was refused, and what the reader can do about it.
+     *
+     * <p>The status line could only say that it had not been applied. The reason was in logcat,
+     * where nobody holding a phone is going to find it, and there was no next step.
+     */
+    static String structuredFailure(Context context, FeatureGateFailure failure) {
+        if (failure == null) return "";
+        switch (failure.reason) {
+            case NO_OBJECT:
+                return L10n.t(context, "TikTok hasn't handed this setting an object to change"
+                        + " yet. Open the part of the app that uses it, then come back.");
+            case CANNOT_COPY:
+                return L10n.t(context, "This setting's value can't be copied on this build, so"
+                        + " it can't be overridden. Reset the override.");
+            case NO_LIST_VALUE:
+                return L10n.t(context, "The override doesn't say what list to return. Edit the"
+                        + " field values, or reset the override.");
+            case UNSUPPORTED_FIELD:
+                return L10n.f(context, "Field %1$s can't be changed on this build. Take it out"
+                        + " of the override, or reset the override.", failure.detail);
+            case NO_FIELDS:
+                return L10n.t(context, "The override changes no fields. Edit the field values,"
+                        + " or reset the override.");
+            case NOT_IN_CATALOGUE:
+                return L10n.t(context, "This key isn't in the local catalog, so its type can't"
+                        + " be checked. Reset the override.");
+            case TYPE_MISMATCH:
+                return L10n.f(context, "The catalog says this key is %1$s and this override is"
+                                + " %2$s. Reset the override and make a new one.",
+                        failure.detail, failure.other);
+            case THREW:
+            default:
+                return L10n.f(context, "The override couldn't be applied: %1$s. Edit the field"
+                        + " values, or reset the override.", failure.detail);
+        }
+    }
+
     static String validation(
             Context context,
             FeatureGateLabStore.ValidationFailure failure

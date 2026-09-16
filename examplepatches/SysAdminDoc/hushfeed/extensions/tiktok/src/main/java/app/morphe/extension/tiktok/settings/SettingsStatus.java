@@ -83,6 +83,7 @@ public class SettingsStatus {
     public static boolean disableTelemetryEnabled = false;
     public static boolean hideFeedFollowButtonEnabled = false;
     public static boolean hideFeedSaveButtonEnabled = false;
+    public static boolean keepFavoritesTabEnabled = false;
     public static boolean hideFeedLiveButtonEnabled = false;
     public static boolean hideFeedSearchButtonEnabled = false;
     public static boolean showSeekbarEnabled = false;
@@ -122,6 +123,8 @@ public class SettingsStatus {
 
     public static void enableCaptchaPopupSuppression() {
         captchaPopupSuppressionEnabled = true;
+        // Injected where the settings load, so this is where the gate says it is in the build.
+        app.morphe.extension.tiktok.featurecontrols.CaptchaGate.installed();
     }
 
     public static void enablePromotionalBanners() {
@@ -262,6 +265,11 @@ public class SettingsStatus {
 
     public static void enableHideFeedSaveButton() {
         hideFeedSaveButtonEnabled = true;
+    }
+
+    public static void enableKeepFavoritesTab() {
+        keepFavoritesTabEnabled = true;
+        app.morphe.extension.tiktok.favorites.FavoritesTab.installed();
     }
 
     public static void enableHideFeedLiveButton() {

@@ -1,3 +1,21 @@
+## [1.4.2](https://github.com/RookieEnough/De-Vanced/compare/v1.4.1...v1.4.2) (2026-09-15)
+
+### 🐛 Bug Fixes
+
+* **Pixiv:** Update compatibility declaration ([f05037e](https://github.com/RookieEnough/De-Vanced/commit/f05037e17f1c0b57fdf1a08f51855a0afcb3a982))
+
+## [1.4.1](https://github.com/RookieEnough/De-Vanced/compare/v1.4.0...v1.4.1) (2026-09-15)
+
+### 🚀 Updated App Support
+
+* **Google Photos:** Add support for `7.92.0.977185651` ([d9eb14d](https://github.com/RookieEnough/De-Vanced/commit/d9eb14ded12660ef5182b014bdf54b77184a36a4))
+
+## [1.4.1-dev.1](https://github.com/RookieEnough/De-Vanced/compare/v1.4.0...v1.4.1-dev.1) (2026-09-13)
+
+### 🚀 Updated App Support
+
+* **Google Photos:** Add support for `7.92.0.977185651` ([d9eb14d](https://github.com/RookieEnough/De-Vanced/commit/d9eb14ded12660ef5182b014bdf54b77184a36a4))
+
 ## [1.4.0](https://github.com/RookieEnough/De-Vanced/compare/v1.3.4...v1.4.0) (2026-09-11)
 
 ### ✨ New Features

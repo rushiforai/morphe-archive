@@ -30,26 +30,7 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 . (Join-Path $PSScriptRoot 'patch-report.ps1')
 . (Join-Path $PSScriptRoot 'patch-target.ps1')
-
-function Resolve-WithinRoot {
-    param([string]$Path, [string]$Root)
-    $candidate = [System.IO.Path]::GetFullPath($Path)
-    $prefix = $Root.TrimEnd('\') + '\'
-    if (-not $candidate.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) {
-        throw "Refusing to use a generated path outside the work directory: $candidate"
-    }
-    return $candidate
-}
-
-function Remove-GeneratedPath {
-    param([string]$Path, [string]$Root)
-    try {
-        $safe = Resolve-WithinRoot -Path $Path -Root $Root
-        if (Test-Path -LiteralPath $safe) { Remove-Item -LiteralPath $safe -Recurse -Force -ErrorAction Stop }
-    } catch {
-        Write-Warning "Could not remove generated path: $($_.Exception.Message)"
-    }
-}
+. (Join-Path $PSScriptRoot 'common.ps1')
 
 $work = $env:HUSHFEED_WORKDIR
 if (-not $work) { throw 'Set HUSHFEED_WORKDIR to a directory holding morphe-desktop.jar and the fixture APK.' }
@@ -79,7 +60,7 @@ if (-not $apk) {
     throw ('Set HUSHFEED_APK to the TikTok build README.md records under "Supported target". ' +
         'The heap a patch needs depends on the APK, so there is no sensible default.')
 }
-$version = ((Get-Content (Join-Path $root 'gradle.properties')) -match '^version\s*=' | Select-Object -First 1) -replace '^version\s*=\s*', ''
+$version = Get-BundleVersion -Root $root
 $bundle = Get-Item -LiteralPath (Join-Path $root "patches/build/libs/patches-$version.mpp") -ErrorAction SilentlyContinue
 if ($null -eq $bundle) { throw "No bundle for version $version. Run :patches:buildAndroid first." }
 if (-not (Test-Path -LiteralPath $jar -PathType Leaf)) { throw "Desktop CLI jar not found: $jar" }

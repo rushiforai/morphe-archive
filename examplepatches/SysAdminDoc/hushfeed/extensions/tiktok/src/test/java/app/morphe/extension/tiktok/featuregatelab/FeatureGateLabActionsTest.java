@@ -10,10 +10,12 @@ import android.widget.Switch;
 import app.morphe.extension.shared.BackgroundPoolSaturation;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPOutputStream;
@@ -309,11 +311,13 @@ public class FeatureGateLabActionsTest {
             var uri = android.net.Uri.parse("content://lab-test/values.json.gz");
             Shadows.shadowOf(activity.getContentResolver()).registerInputStream(uri, new ByteArrayInputStream(bytes.toByteArray()));
             fragment.onActivityResult(started.requestCode, Activity.RESULT_OK, new Intent().setData(uri));
-            waitFor("Imported 1 disabled values. 1 already matched, 1 unavailable, 2 rejected.");
+            // No prompt before the import; the result comes after it, as a dialog with the
+            // counts on their own lines.
+            waitForImportDialog("Imported 1 values", "1 already matched", "1 unavailable", "2 rejected");
             assertFalse(FeatureGateLabStore.rule("abmock", "gate", "BOOLEAN").enabled);
             assertEquals("true", FeatureGateLabStore.rule("abmock", "gate", "BOOLEAN").value);
             assertEquals(1, FeatureGateLabStore.rules().size());
-            assertNull(ShadowDialog.getLatestDialog());
+            assertFalse("the result dialog was dismissed", ShadowDialog.getLatestDialog().isShowing());
             action(fragment, 6);
             waitFor("Restored the previous Lab settings.");
             assertTrue(FeatureGateLabStore.rules().isEmpty());
@@ -333,7 +337,7 @@ public class FeatureGateLabActionsTest {
             Shadows.shadowOf(activity.getContentResolver()).registerInputStream(uri,
                     new ByteArrayInputStream(root.toString().getBytes(StandardCharsets.UTF_8)));
             fragment.onActivityResult(started.requestCode, Activity.RESULT_OK, new Intent().setData(uri));
-            waitFor("Imported 1 disabled values.");
+            waitForImportDialog("Imported 1 values", "0 rejected");
             assertFalse(FeatureGateLabStore.rule("abmock", "gate", "BOOLEAN").enabled);
             assertEquals("true", FeatureGateLabStore.rule("abmock", "gate", "BOOLEAN").value);
         }
@@ -484,7 +488,9 @@ public class FeatureGateLabActionsTest {
                 release.countDown();
             }
 
-            waitFor("Imported 1 disabled values.");
+            // With the Lab gone there is nothing to hang the dialog on, so the one line goes
+            // out as a toast, with the way back named.
+            waitFor("Imported 1 values. Undo last Lab change is in the menu.");
             assertEquals("true", FeatureGateLabStore.rule(
                     "abmock", "gate", "BOOLEAN").value);
         }
@@ -689,6 +695,102 @@ public class FeatureGateLabActionsTest {
         }
     }
 
+    /**
+     * The selection actions fit the bar they sit in, and Cancel does not read like Enable.
+     *
+     * <p>Four bold labels with 24dp of side padding in a horizontal row that cannot wrap: at 2x
+     * text on a 360dp phone the later ones were squeezed to their 48dp minimum and their words
+     * cut. German does it at ordinary size. Cancel was painted in the accent and bold, the same
+     * as Enable, so the action that undoes the selection looked like the one that writes to
+     * every gate in it.
+     */
+    @Test @Config(qualifiers = "w360dp-h640dp-night-mdpi", fontScale = 2)
+    public void theSelectionActionsFitTheBarAndRankThemselvesInTheDark() throws Exception {
+        assertSelectionActionsFitAndRank();
+    }
+
+    @Test @Config(qualifiers = "w360dp-h640dp-notnight-mdpi", fontScale = 2)
+    public void theSelectionActionsFitTheBarAndRankThemselvesInTheLight() throws Exception {
+        assertSelectionActionsFitAndRank();
+    }
+
+    private void assertSelectionActionsFitAndRank() throws Exception {
+        try (var controller = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
+            var activity = controller.get();
+            var fragment = attach(activity);
+            settle();
+            // Without this the rest measures a bar at ordinary text size and finds, correctly,
+            // that four short English words fit.
+            assertEquals("the font scale did not take",
+                    2f, activity.getResources().getConfiguration().fontScale, 0.01f);
+
+            android.widget.ListView list = listOf(fragment);
+            assertTrue(list.getOnItemLongClickListener()
+                    .onItemLongClick(list, null, 0, list.getItemIdAtPosition(0)));
+            android.view.ViewGroup bar = (android.view.ViewGroup) selectionBar(fragment);
+            assertEquals(android.view.View.VISIBLE, bar.getVisibility());
+
+            int width = FeatureGateLabUi.dp(activity, 360);
+            bar.measure(android.view.View.MeasureSpec.makeMeasureSpec(
+                            width, android.view.View.MeasureSpec.EXACTLY),
+                    android.view.View.MeasureSpec.makeMeasureSpec(
+                            0, android.view.View.MeasureSpec.UNSPECIFIED));
+            bar.layout(0, 0, bar.getMeasuredWidth(), bar.getMeasuredHeight());
+
+            android.view.ViewGroup actions = (android.view.ViewGroup) bar.getChildAt(1);
+            int left = actions.getPaddingLeft();
+            int right = actions.getWidth() - actions.getPaddingRight();
+            assertTrue("the actions row was not laid out", right > left);
+
+            List<android.widget.TextView> laid = new ArrayList<>();
+            for (int index = 0; index < actions.getChildCount(); index++) {
+                laid.add((android.widget.TextView) actions.getChildAt(index));
+            }
+            assertEquals("the bar does not carry the four actions", 4, laid.size());
+
+            for (android.widget.TextView action : laid) {
+                String label = String.valueOf(action.getContentDescription());
+                assertTrue(label + " runs off the start of the bar", action.getLeft() >= left);
+                assertTrue(label + " runs off the end of the bar at " + action.getRight()
+                        + ", past " + right, action.getRight() <= right);
+                // Wide enough for the word, not just for the 48dp box it falls back to.
+                double needed = Math.ceil(android.text.Layout.getDesiredWidth(
+                        action.getText(), action.getPaint()))
+                        + action.getPaddingLeft() + action.getPaddingRight();
+                assertTrue(label + " is " + action.getWidth() + " wide and its label needs "
+                        + needed, action.getWidth() >= needed);
+                assertTrue(label + " has no height", action.getHeight() > 0);
+            }
+
+            // Wrapping onto another line is only a fix if the lines do not sit on each other.
+            for (int i = 0; i < laid.size(); i++) {
+                for (int j = i + 1; j < laid.size(); j++) {
+                    android.view.View a = laid.get(i);
+                    android.view.View b = laid.get(j);
+                    boolean apart = a.getRight() <= b.getLeft() || b.getRight() <= a.getLeft()
+                            || a.getBottom() <= b.getTop() || b.getBottom() <= a.getTop();
+                    assertTrue(a.getContentDescription() + " overlaps " + b.getContentDescription(),
+                            apart);
+                }
+            }
+
+            android.widget.TextView cancel =
+                    (android.widget.TextView) selectionAction(fragment, "Cancel");
+            android.widget.TextView enable =
+                    (android.widget.TextView) selectionAction(fragment, "Enable");
+            assertEquals("Cancel is not painted as the secondary action",
+                    SettingsUi.textSecondary(), cancel.getCurrentTextColor());
+            assertNotEquals("Cancel and Enable are painted alike",
+                    enable.getCurrentTextColor(), cancel.getCurrentTextColor());
+            // setTypeface(tf, NORMAL) keeps whatever typeface it is handed, so a button built
+            // bold and then styled secondary stays bold.
+            assertFalse("Cancel is as heavy as the action that writes to every chosen gate",
+                    cancel.getTypeface() != null && cancel.getTypeface().isBold());
+            assertTrue("Enable lost the weight that marks it as the primary action",
+                    enable.getTypeface() != null && enable.getTypeface().isBold());
+        }
+    }
+
     private static boolean contains(int[] states, int wanted) {
         for (int state : states) if (state == wanted) return true;
         return false;
@@ -748,6 +850,32 @@ public class FeatureGateLabActionsTest {
         assertTrue(menu.getMenu().performIdentifierAction(id, 0));
         menu.dismiss();
     }
+    /** The import result dialog, showing, with each expected line somewhere in its view; then dismissed. */
+    private static void waitForImportDialog(String... lines) throws Exception {
+        FeatureGateLabFragment.awaitFileIoForTests();
+        Utils.awaitBackgroundTasksForTests();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        var dialog = ShadowDialog.getLatestDialog();
+        assertNotNull("Missing import result dialog; last toast: " + ShadowToast.getTextOfLatestToast(), dialog);
+        assertTrue(dialog.isShowing());
+        var texts = new java.util.ArrayList<String>();
+        collectTexts(Shadows.shadowOf((android.app.AlertDialog) dialog).getView(), texts);
+        for (String line : lines) {
+            assertTrue(line + " is not among " + texts, texts.contains(line));
+        }
+        dialog.dismiss();
+    }
+
+    private static void collectTexts(View view, java.util.List<String> into) {
+        if (view instanceof android.widget.TextView) {
+            into.add(((android.widget.TextView) view).getText().toString());
+        }
+        if (view instanceof ViewGroup) {
+            var group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) collectTexts(group.getChildAt(i), into);
+        }
+    }
+
     private static void waitFor(String prefix) throws Exception {
         FeatureGateLabFragment.awaitFileIoForTests();
         Utils.awaitBackgroundTasksForTests();

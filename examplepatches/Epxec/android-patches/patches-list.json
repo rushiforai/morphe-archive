@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "patches": [
     {
       "name": "Enable Premium",
@@ -58,6 +58,39 @@
                 "ARMEABI_V7A": 181,
                 "X86_64": 181,
                 "X86": 181
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable Premium",
+      "description": "For premium patch to work, you need to login using your email and password (not Google)",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "mobi.eup.jpnews",
+          "name": "Todaii Japanese",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#FF1234",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.5.5",
+              "versionCodes": {
+                "ARM64_V8A": 100014427,
+                "ARMEABI_V7A": 100014427,
+                "X86_64": 100014427,
+                "X86": 100014427
               },
               "isExperimental": false,
               "minSdk": null,

@@ -57,9 +57,16 @@ public class FeedFilterCountersTest {
     }
 
     private static AdsFilterTest.Video video(boolean advert) {
-        AdsFilterTest.Video item = new AdsFilterTest.Video();
+        AdsFilterTest.Video item = new LoggableVideo();
         item.ad = advert;
         return item;
+    }
+
+    /** The fixture video with the getters a log line reads, which the bare stub throws on. */
+    public static class LoggableVideo extends AdsFilterTest.Video {
+        @Override public String getAid() { return "v1"; }
+        @Override public com.ss.android.ugc.aweme.feed.model.AwemeStatistics getStatistics() { return null; }
+        @Override public String getShareUrl() { return null; }
     }
 
     private static List<Object> profileList(int organic, int ads) {
@@ -86,6 +93,61 @@ public class FeedFilterCountersTest {
         String line = lineFor("ProfileAwemeList");
         assertEquals("Expected the profile route to be counted, got "
                 + FeedFilterCounters.report(), "ProfileAwemeList: 4 lists, 12 items, 0 removed", line);
+    }
+
+    @Test public void aRouteHandedNothingIsStillCountedAsARun() {
+        // Issue #4's export carried no profile line while the reporter sat on an empty
+        // Favorites tab. A delivery of nothing has to leave a line too, or an empty answer from
+        // the server reads the same as a hook that never fired.
+        FeedItemsFilter.filterProfileAds(new ArrayList<>());
+        FeedItemsFilter.filterProfileAds(null);
+        FeedItemsFilter.filterLateInsertedAds("top_view", new ArrayList<>());
+
+        assertEquals("ProfileAwemeList: 2 lists, 0 items, 0 removed", lineFor("ProfileAwemeList"));
+        assertEquals("FeedInsertion:top_view: 1 lists, 0 items, 0 removed", lineFor("FeedInsertion:top_view"));
+    }
+
+    @Test public void theDetailPagersAdEventHasALineOfItsOwn() {
+        // Issue #2 is an ad seen while paging videos opened from a profile. That pager raises
+        // its own ad event, and while it shared the grid's line nothing in a report could say
+        // whether the pager's route ran at all.
+        FeedItemsFilter.filterProfileAds(profileList(3, 0));
+        FeedItemsFilter.filterProfileDetailAds(profileList(2, 1));
+
+        assertEquals("ProfileAwemeList: 1 lists, 3 items, 0 removed", lineFor("ProfileAwemeList"));
+        String detail = lineFor("ProfileDetailAdEvent");
+        assertTrue(detail, detail.startsWith("ProfileDetailAdEvent: 1 lists, 3 items, 1 removed"));
+    }
+
+    @Test public void anElementThatIsNotAVideoIsCountedAndNamedOnce() {
+        // 64 items, 0 removed, two ads watched: the report could not say whether nothing
+        // matched a rule or nothing was ever tested. On 46.2.3 the lists are videos, so this is
+        // the line a build that changes that would leave.
+        List<Object> mixed = profileList(2, 1);
+        mixed.add("not a video");
+        mixed.add("not a video either");
+        FeedItemsFilter.filterProfileAds(mixed);
+
+        String line = lineFor("ProfileAwemeList");
+        assertTrue(line, line.startsWith("ProfileAwemeList: 1 lists, 5 items, 1 removed, 2 not videos"));
+        String report = LogBufferManager.buildExportText();
+        String named = "ProfileAwemeList was handed java.lang.String, which is not a video";
+        assertTrue(report, report.contains(named));
+        assertEquals("named once per class, not once per item",
+                report.indexOf(named), report.lastIndexOf(named));
+    }
+
+    @Test public void withLoggingOnTheProfileRouteSaysWhatItKept() {
+        BaseSettings.DEBUG.save(true);
+        BaseSettings.DEBUG_LOG_FILTERS.save("all");
+        FeedItemsFilter.filterProfileAds(profileList(2, 1));
+
+        String report = LogBufferManager.buildExportText();
+        // The redactor takes the id out of the export, which is right; the shape is the point.
+        assertTrue(report, report.contains("ProfileAwemeList kept aid=[omitted] ad=false softAd=false rawAd=false"
+                + " promo=false commission=false playCount=-1"));
+        // Two organic videos kept, one line each; the ad is the removed line's business.
+        assertEquals(report, 2, report.split("ProfileAwemeList kept aid=", -1).length - 1);
     }
 
     @Test public void aRouteThatRemovesSomethingSaysSoAndNamesAReason() {

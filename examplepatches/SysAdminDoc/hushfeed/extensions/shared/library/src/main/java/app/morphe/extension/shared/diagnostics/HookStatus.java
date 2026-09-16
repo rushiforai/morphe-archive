@@ -64,6 +64,14 @@ public final class HookStatus {
     // Declared as the class rather than Map: putIfAbsent on the Map interface is an API 24
     // default method, and ConcurrentHashMap has carried its own since API 1.
     private static final ConcurrentHashMap<String, Family> FAMILIES = new ConcurrentHashMap<>();
+    /**
+     * Bumped whenever the row is emptied.
+     *
+     * <p>A caller that reports something once a session, rather than relying on the dedupe here,
+     * has no other way to notice that a diagnostic clear threw its report away: it would stay
+     * quiet and the exported report would call a broken build healthy.
+     */
+    private static volatile long generation;
     /** Families in the order the app first touched them; the map does not keep that. */
     private static final List<String> SEEN = new CopyOnWriteArrayList<>();
 
@@ -273,8 +281,14 @@ public final class HookStatus {
             Snapshot snapshot = snapshotLocked();
             FAMILIES.clear();
             SEEN.clear();
+            generation++;
             return snapshot;
         }
+    }
+
+    /** Which generation of the row this is: it changes every time the row is emptied. */
+    public static long generation() {
+        return generation;
     }
 
     private static Snapshot snapshotLocked() {
@@ -342,6 +356,7 @@ public final class HookStatus {
         synchronized (STATE_LOCK) {
             FAMILIES.clear();
             SEEN.clear();
+            generation++;
         }
     }
 }

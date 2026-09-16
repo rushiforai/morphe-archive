@@ -1,3 +1,9 @@
+/*
+ * Copyright 2026 Hushfeed contributors
+ * https://github.com/SysAdminDoc/hushfeed
+ *
+ * Built on icysymmetra/tiktok-patches-for-morphe (GPL-3.0).
+ */
 package app.morphe.patches.tiktok.interaction.quality
 
 import app.morphe.patcher.Fingerprint
@@ -33,12 +39,13 @@ val playbackQualityPatch = bytecodePatch(
     execute {
         listOf("Video", "VideoUrlModel").forEach { owner ->
             val prefix = if (owner == "Video") "getVideoModel" else "getDashVideoModel"
-            // Each model getter has its own entry point so Hook status can name the one that
-            // handed back a string no gear can be chosen out of. A single shared callback could
-            // only say that some getter did.
+            // Each getter has its own entry point so Hook status can name the one that handed
+            // back a string or a list no gear can be chosen out of. A single shared callback
+            // could only say that some getter did.
             val json = if (owner == "Video") "filterVideoModelJson" else "filterDashVideoModelJson"
+            val gears = if (owner == "Video") "filterVideoGears" else "filterDashGears"
             listOf(
-                Triple("getBitRate", "Ljava/util/List;", "filter"),
+                Triple("getBitRate", "Ljava/util/List;", gears),
                 Triple(prefix + "Str", "Ljava/lang/String;", json),
                 Triple(prefix + "Map", "Ljava/util/Map;", "filterMap"),
             ).plus(if (owner == "Video") listOf(Triple("getVideoModelObject", "Ljava/lang/Object;", "cacheModel")) else emptyList())

@@ -60,6 +60,10 @@ public class BudgetCueTest {
     }
 
     @After public void tearDown() throws Exception {
+        // Robolectric reuses its sandbox classloader across classes, so a seeded tab or
+        // sheet would answer for every later test that asks where the reader is.
+        seedHomeTab(null);
+        seedCommentSheet(null, null);
         BudgetCue.resetForTests();
         SessionBudget.setClockForTests(null);
         SessionBudget.resetForTests();
@@ -110,6 +114,7 @@ public class BudgetCueTest {
         try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
             Activity activity = owner.get();
             Utils.setActivity(activity);
+            standOnTheFeed(activity);
             android.view.ViewGroup root = activity.findViewById(android.R.id.content);
             int before = root.getChildCount();
 
@@ -125,6 +130,7 @@ public class BudgetCueTest {
         Settings.SESSION_BUDGET_MINUTES.save(10);
         try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
             Utils.setActivity(owner.get());
+            standOnTheFeed(owner.get());
             sync();
             assertNotNull("the cue never appeared", BudgetCue.cueForTests());
 
@@ -140,6 +146,7 @@ public class BudgetCueTest {
         try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
             Activity activity = owner.get();
             Utils.setActivity(activity);
+            standOnTheFeed(activity);
 
             sync();
             TextView cue = BudgetCue.cueForTests();
@@ -165,6 +172,7 @@ public class BudgetCueTest {
         Settings.SESSION_BUDGET_MINUTES.save(10);
         try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
             Utils.setActivity(owner.get());
+            standOnTheFeed(owner.get());
             sync();
             TextView cue = BudgetCue.cueForTests();
             assertNotNull(cue);
@@ -193,12 +201,43 @@ public class BudgetCueTest {
         }
     }
 
+    /**
+     * Android 17 replaced the queue behind the main Looper, and the shadow that came before it
+     * answered every question about the new one with an empty queue. The cue never reads the
+     * queue, but it lives on it: the player's callback posts the pass that moves the label, and
+     * nothing else runs it. So the pass is posted here and left alone, and the label is read
+     * before the queue delivers it and again after.
+     */
+    @Test @Config(sdk = 37)
+    public void onAndroidSeventeenThePostedPassStillReachesTheLabel() {
+        Settings.SESSION_BUDGET_CUE.save(true);
+        Settings.SESSION_BUDGET_MINUTES.save(10);
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Utils.setActivity(owner.get());
+            standOnTheFeed(owner.get());
+            sync();
+            TextView cue = BudgetCue.cueForTests();
+            assertNotNull("nothing appeared on the feed", cue);
+            assertEquals("10 min left", cue.getText().toString());
+
+            watch(60_000L);
+            BudgetCue.syncNowForTests();
+            assertEquals("the pass ran before the queue had delivered it",
+                    "10 min left", cue.getText().toString());
+
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("the queue never delivered the pass",
+                    "9 min left", BudgetCue.cueForTests().getText().toString());
+        }
+    }
+
     /** Nothing about it is announced, and nothing about it is in the way. */
     @Test public void theLabelIsSilentUntilARenderReachesIt() {
         Settings.SESSION_BUDGET_CUE.save(true);
         Settings.SESSION_BUDGET_VIDEOS.save(30);
         try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
             Utils.setActivity(owner.get());
+            standOnTheFeed(owner.get());
             sync();
             TextView cue = BudgetCue.cueForTests();
             assertNotNull(cue);
@@ -225,6 +264,7 @@ public class BudgetCueTest {
         Settings.SESSION_BUDGET_LOCK_MINUTES.save(10);
         try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
             Utils.setActivity(owner.get());
+            standOnTheFeed(owner.get());
             sync();
             assertNotNull("the cue never appeared", BudgetCue.cueForTests());
 
@@ -243,6 +283,7 @@ public class BudgetCueTest {
         TextView first;
         try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
             Utils.setActivity(owner.get());
+            standOnTheFeed(owner.get());
             sync();
             first = BudgetCue.cueForTests();
             assertNotNull(first);
@@ -250,6 +291,9 @@ public class BudgetCueTest {
         try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
             Activity second = owner.get();
             Utils.setActivity(second);
+            // The recreated screen has its own tab bar; the old one is detached and is
+            // no longer shown, which is exactly what the cue now asks about.
+            standOnTheFeed(second);
             sync();
             TextView replacement = BudgetCue.cueForTests();
             assertNotNull("the cue did not come back after recreation", replacement);
@@ -266,6 +310,7 @@ public class BudgetCueTest {
         Settings.SESSION_BUDGET_CUE.save(true);
         try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
             Utils.setActivity(owner.get());
+            standOnTheFeed(owner.get());
             sync();
             assertNull("a cue appeared with no budget to report", BudgetCue.cueForTests());
         }
@@ -274,6 +319,41 @@ public class BudgetCueTest {
     private static void sync() {
         BudgetCue.syncNowForTests();
         Shadows.shadowOf(Looper.getMainLooper()).idle();
+    }
+
+    /**
+     * Puts the reader on the recommendation feed: a Home tab that exists, is shown and is
+     * selected. TikTok's tab resource is absent from the test app, so the lookup is seeded the
+     * way the other feed tests seed it.
+     *
+     * <p>The cue used to ask {@link app.morphe.extension.tiktok.blockauthor.FeedVisibility#isOnFeed},
+     * which answers "assume the feed" when it cannot find the tab, so every case here ran the
+     * unknown branch and none of them would have noticed the cue drawing somewhere it should
+     * not.
+     */
+    private static View standOnTheFeed(Activity activity) {
+        android.view.ViewGroup root = activity.findViewById(android.R.id.content);
+        View home = new View(activity);
+        root.addView(home, new android.widget.FrameLayout.LayoutParams(96, 100,
+                android.view.Gravity.BOTTOM));
+        home.setSelected(true);
+        seedHomeTab(home);
+        return home;
+    }
+
+    private static void seedHomeTab(View homeTab) {
+        org.robolectric.util.ReflectionHelpers.setStaticField(
+                app.morphe.extension.tiktok.blockauthor.FeedVisibility.class,
+                "homeTabReference", new java.lang.ref.WeakReference<>(homeTab));
+    }
+
+    private static void seedCommentSheet(View sheet, View title) {
+        org.robolectric.util.ReflectionHelpers.setStaticField(
+                app.morphe.extension.tiktok.blockauthor.FeedVisibility.class,
+                "commentSheetReference", new java.lang.ref.WeakReference<>(sheet));
+        org.robolectric.util.ReflectionHelpers.setStaticField(
+                app.morphe.extension.tiktok.blockauthor.FeedVisibility.class,
+                "commentTitleReference", new java.lang.ref.WeakReference<>(title));
     }
 
     private void watch(long millis) {
@@ -289,5 +369,110 @@ public class BudgetCueTest {
         calendar.clear();
         calendar.set(year, month, day, hour, minute, 0);
         return calendar.getTimeInMillis();
+    }
+    /**
+     * The cue is on the recommendation feed or it is nowhere.
+     *
+     * <p>It asked the same question the block button asks, which answers "assume the feed" for a
+     * build whose Home tab it cannot find and counts a detail page opened from a profile grid or
+     * a search result. That bargain is right for a button the reader has to press and wrong for a
+     * label that just sits there: every one of these used to leave the cue on screen.
+     */
+    @Test public void itIsOnlyOnTheRecommendationFeed() {
+        Settings.SESSION_BUDGET_CUE.save(true);
+        Settings.SESSION_BUDGET_MINUTES.save(10);
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            View home = standOnTheFeed(activity);
+            sync();
+            assertNotNull("the cue never appeared on the feed", BudgetCue.cueForTests());
+
+            // A profile or a search result: the Home tab is still there and no longer chosen.
+            home.setSelected(false);
+            sync();
+            assertNull("the cue stayed on a page that is not the feed", BudgetCue.cueForTests());
+
+            home.setSelected(true);
+            sync();
+            assertNotNull("the cue did not come back with the feed", BudgetCue.cueForTests());
+
+            // A build this one does not know: no tab at all rather than a tab to ask about.
+            seedHomeTab(null);
+            sync();
+            assertNull("the cue drew itself on a build whose feed it cannot recognise",
+                    BudgetCue.cueForTests());
+        }
+    }
+
+    /**
+     * It is gone on a video detail page opened from a profile grid or a search result.
+     *
+     * <p>Those pages leave the Home tab in the tree but off screen and run a resumed detail
+     * fragment over the feed. The looser {@code isOnFeed} the block button uses counts that as
+     * the feed, which is the right bargain for a button worth keeping and the wrong one for a
+     * label that just sits there: it should be on the recommendation feed or absent.
+     */
+    @Test public void itIsGoneOnADetailPageOpenedFromTheFeed() {
+        Settings.SESSION_BUDGET_CUE.save(true);
+        Settings.SESSION_BUDGET_MINUTES.save(10);
+        Object page = new Object();
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+
+            // The Home tab is still in the tree, just no longer on screen: a detached view is
+            // not shown.
+            seedHomeTab(new View(activity));
+
+            // ...and a detail page is up, resumed and visible.
+            android.view.ViewGroup root = activity.findViewById(android.R.id.content);
+            View detailView = new View(activity);
+            root.addView(detailView, new android.widget.FrameLayout.LayoutParams(96, 100));
+            app.morphe.extension.tiktok.blockauthor.FeedVisibility.onDetailView(page, detailView);
+            app.morphe.extension.tiktok.blockauthor.FeedVisibility.onDetailResume(page);
+            app.morphe.extension.tiktok.blockauthor.FeedVisibility.onDetailVisibility(page, true);
+
+            sync();
+            assertNull("the cue drew over a detail page opened from the feed",
+                    BudgetCue.cueForTests());
+        } finally {
+            app.morphe.extension.tiktok.blockauthor.FeedVisibility.onDetailDestroyed(page);
+        }
+    }
+
+    /**
+     * And it goes away with the comment sheet, the way the four feed controls do.
+     *
+     * <p>Opening the comments took the controls away and left the cue sitting over the top of
+     * the sheet, because it is the last child added to the content root and is therefore drawn
+     * above it.
+     */
+    @Test public void itLeavesWhenTheCommentSheetCoversTheFeed() {
+        Settings.SESSION_BUDGET_CUE.save(true);
+        Settings.SESSION_BUDGET_MINUTES.save(10);
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            standOnTheFeed(activity);
+            sync();
+            assertNotNull("the cue never appeared on the feed", BudgetCue.cueForTests());
+
+            android.view.ViewGroup root = activity.findViewById(android.R.id.content);
+            View sheet = new View(activity);
+            View title = new View(activity);
+            root.addView(sheet);
+            root.addView(title);
+            seedCommentSheet(sheet, title);
+            sync();
+            assertNull("the cue drew over the open comment sheet", BudgetCue.cueForTests());
+
+            // Closing the sheet brings it back.
+            sheet.setVisibility(View.GONE);
+            title.setVisibility(View.GONE);
+            sync();
+            assertNotNull("the cue never came back after the comments closed",
+                    BudgetCue.cueForTests());
+        }
     }
 }

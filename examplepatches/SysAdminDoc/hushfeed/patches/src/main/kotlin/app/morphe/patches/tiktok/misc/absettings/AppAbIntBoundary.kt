@@ -64,6 +64,9 @@ internal val APP_AB_SHAPES = listOf(
 /** The int getter's key sits after `this` and two ints, which [APP_AB_INT] holds it to. */
 internal const val APP_AB_INT_KEY_REGISTER = "p3"
 
+/** The boolean getter's key sits after `this` and one int, which [APP_AB_BOOLEAN] holds it to. */
+internal const val APP_AB_BOOLEAN_KEY_REGISTER = "p2"
+
 private val resolved = WeakHashMap<BytecodePatchContext, String>()
 
 /**
@@ -106,13 +109,28 @@ internal fun MutableClass.methodOfShape(shape: MethodShape, what: String): Mutab
 internal fun BytecodePatchContext.hookAppAbIntBoundary(
     extensionDescriptor: String,
     extensionMethod: String,
+) = hookAppAbBoundary(APP_AB_INT, APP_AB_INT_KEY_REGISTER, "I", "App AB int boundary", extensionDescriptor, extensionMethod)
+
+/** As [hookAppAbIntBoundary], for the boolean getter: `(String key, boolean value)` returning boolean. */
+internal fun BytecodePatchContext.hookAppAbBooleanBoundary(
+    extensionDescriptor: String,
+    extensionMethod: String,
+) = hookAppAbBoundary(APP_AB_BOOLEAN, APP_AB_BOOLEAN_KEY_REGISTER, "Z", "App AB boolean boundary", extensionDescriptor, extensionMethod)
+
+private fun BytecodePatchContext.hookAppAbBoundary(
+    shape: MethodShape,
+    keyRegister: String,
+    valueType: String,
+    what: String,
+    extensionDescriptor: String,
+    extensionMethod: String,
 ) {
-    appAbClass().methodOfShape(APP_AB_INT, "App AB int boundary").apply {
+    appAbClass().methodOfShape(shape, what).apply {
         val returns = implementation!!.instructions.withIndex()
             .filter { it.value.opcode == Opcode.RETURN }
             .map { it.index }
         check(returns.isNotEmpty()) {
-            "App AB int boundary: $definingClass->$name has no int return to hook for $extensionMethod."
+            "$what: $definingClass->$name has no $valueType return to hook for $extensionMethod."
         }
         returns.asReversed()
             .forEach { returnIndex ->
@@ -121,10 +139,10 @@ internal fun BytecodePatchContext.hookAppAbIntBoundary(
                 // method with enough locals. Behind a constant, so no search for the literal
                 // finds it.
                 val call = callThroughLocals(
-                    "App AB int boundary",
+                    what,
                     "invoke-static",
-                    "$extensionDescriptor->$extensionMethod(Ljava/lang/String;I)I",
-                    objectIn(APP_AB_INT_KEY_REGISTER),
+                    "$extensionDescriptor->$extensionMethod(Ljava/lang/String;$valueType)$valueType",
+                    objectIn(keyRegister),
                     valueIn("v$register"),
                 )
                 addInstructionsAtControlFlowLabel(returnIndex, "$call\nmove-result v$register")

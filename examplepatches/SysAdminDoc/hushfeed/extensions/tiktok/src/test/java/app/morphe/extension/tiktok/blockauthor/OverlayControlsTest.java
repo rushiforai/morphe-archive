@@ -13,6 +13,7 @@ import android.widget.FrameLayout;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.Method;
@@ -474,7 +475,56 @@ public class OverlayControlsTest {
             "soundButtonReference", "notInterestedReference"};
 
     /** The content root with all four controls attached, laid out at a known size. */
+    /**
+     * Out of the box, no chip sits on TikTok's own rail.
+     *
+     * <p>At 0.91 of the width the column of chips ran straight down the avatar, like, comment
+     * and share column. On 46.2.3 at 1080x2316 the avatar is at 932,1019 to 1057,1144 and the
+     * hide chip was drawn at 915,1017 to 1050,1152, so a tap on the creator's face hid the
+     * creator (S22, 2026-09-15, undone through the editor). A position the reader has dragged
+     * to is theirs and stays where they put it.
+     */
+    @Test public void theDefaultChipsKeepClearOfTikToksOwnRail() throws Exception {
+        Settings.BLOCK_AUTHOR_BUTTON_POSITION.resetToDefault();
+        Settings.LOCAL_HIDE_BUTTON_POSITION.resetToDefault();
+        Settings.BLOCK_SOUND_BUTTON_POSITION.resetToDefault();
+        Settings.NOT_INTERESTED_BUTTON_POSITION.resetToDefault();
+        ViewGroup root = attachedRoot(1080, 2316);
+        // TikTok's rail on 46.2.3 at this size: the avatar as uiautomator reports it, and the
+        // column under it, which the like, comment, favourite, share and sound controls share.
+        android.graphics.Rect avatar = new android.graphics.Rect(932, 1019, 1057, 1144);
+        android.graphics.Rect rail = new android.graphics.Rect(915, 1019, 1080, 2100);
+        for (String name : new String[]{"buttonReference", "localHideReference",
+                "soundButtonReference", "notInterestedReference"}) {
+            View chip = held(name);
+            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) chip.getLayoutParams();
+            android.graphics.Rect box = new android.graphics.Rect(params.leftMargin,
+                    params.topMargin, params.leftMargin + params.width,
+                    params.topMargin + params.height);
+            assertTrue(name + " has no size", params.width > 0 && params.height > 0);
+            assertFalse(name + " at " + box + " covers the creator's avatar " + avatar,
+                    android.graphics.Rect.intersects(box, avatar));
+            assertFalse(name + " at " + box + " sits on TikTok's rail " + rail,
+                    android.graphics.Rect.intersects(box, rail));
+            assertTrue(name + " at " + box + " is off the screen",
+                    box.left >= 0 && box.right <= 1080 && box.top >= 0 && box.bottom <= 2316);
+        }
+
+        // A reader who dragged the block chip onto the old spot keeps it there.
+        Settings.BLOCK_AUTHOR_BUTTON_POSITION.save("0.91,0.40");
+        declared("applyPositions", ViewGroup.class).invoke(null, root);
+        FrameLayout.LayoutParams moved =
+                (FrameLayout.LayoutParams) held("buttonReference").getLayoutParams();
+        assertEquals("a saved position was not honoured over the new default",
+                Math.round(0.91f * 1080 - moved.width / 2f), moved.leftMargin);
+        assertEquals(Math.round(0.40f * 2316 - moved.height / 2f), moved.topMargin);
+    }
+
     private static ViewGroup attachedRoot() throws Exception {
+        return attachedRoot(1080, 1080);
+    }
+
+    private static ViewGroup attachedRoot(int width, int height) throws Exception {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         Utils.setContext(activity);
         Utils.setActivity(activity);
@@ -482,9 +532,9 @@ public class OverlayControlsTest {
         declared("attach", VideoAuthor.class)
                 .invoke(null, new VideoAuthor("1", "sec", "someone", "7712345"));
         org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
-        int spec = View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY);
-        root.measure(spec, spec);
-        root.layout(0, 0, 1080, 1080);
+        root.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY));
+        root.layout(0, 0, width, height);
         // attach posts the positioning pass before the root has a size, so the defaults these
         // tests compare against have to be the ones for the size just laid out.
         declared("applyPositions", ViewGroup.class).invoke(null, root);
@@ -605,7 +655,117 @@ public class OverlayControlsTest {
             int focused = renderOf(background, new int[]{android.R.attr.state_focused});
             assertNotEquals(factoryName + " looks the same focused as it does at rest",
                     resting, focused);
+            // A clickable view is only focusable by default from API 26, and the ring is dead on
+            // a d-pad below that unless it is said outright.
+            assertTrue(factoryName + " cannot be reached by a keyboard or d-pad",
+                    control.isFocusable());
         }
+    }
+
+    /**
+     * The banner is one of the overlay family, and it sits where nothing of TikTok's is.
+     *
+     * <p>It was a 10dp charcoal box with no hairline beside 12dp scrim chips with one, and it
+     * was pinned 96dp up from the bottom of whatever root it was given: over the tab bar and
+     * caption on one phone, and in the comments sheet right on top of the input row.
+     */
+    @Test public void theBannerWearsTheOverlayFamilyAndClearsTheTabBar() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().visible().get();
+        Utils.setContext(activity);
+        Utils.setActivity(activity);
+        ViewGroup root = activity.findViewById(android.R.id.content);
+        // A tab bar the height of a real one across the bottom, the way the hold panel's own
+        // test builds it, and the Home tab put straight into the lookup's cache.
+        FrameLayout bar = new FrameLayout(activity);
+        View homeTab = new View(activity);
+        bar.addView(homeTab);
+        root.addView(bar);
+        layoutAt(root, 480, 960);
+        bar.layout(0, 860, 480, 960);
+        homeTab.layout(0, 0, 96, 100);
+        org.robolectric.util.ReflectionHelpers.setStaticField(FeedVisibility.class,
+                "homeTabReference", new java.lang.ref.WeakReference<>(homeTab));
+
+        // Measured here rather than after a looper idle: the idle runs the window's own layout
+        // pass, which puts the hand-laid bar wherever the window wants it.
+        FrameLayout.LayoutParams params = BlockAuthorOverlay.bannerParams(activity, root);
+        assertEquals("the banner does not clear the tab bar",
+                100 + SettingsUi.dp(activity, 16), params.bottomMargin);
+        assertEquals(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, params.gravity);
+
+        FrameLayout sheet = new FrameLayout(activity);
+        BlockAuthorOverlay.showUndoBanner(sheet, "Blocked someone", () -> { });
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        View banner = sheet.getChildAt(sheet.getChildCount() - 1);
+        android.graphics.drawable.Drawable background = banner.getBackground();
+        assertTrue("the banner is not drawn on the overlay family's chip: "
+                + background.getClass().getSimpleName(),
+                background instanceof android.graphics.drawable.GradientDrawable);
+        android.graphics.drawable.GradientDrawable chip =
+                (android.graphics.drawable.GradientDrawable) background;
+        assertEquals(SettingsUi.dp(activity, SettingsUi.RADIUS_OVERLAY), chip.getCornerRadius(), 0.5f);
+        assertEquals(SettingsUi.OVERLAY_BANNER_SCRIM, chip.getColor().getDefaultColor());
+    }
+
+    @Test public void inASheetTheBannerSitsAboveTheInputRow() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().visible().get();
+        Utils.setContext(activity);
+        // The comments sheet's window: its own root, an input row along the bottom.
+        FrameLayout sheet = new FrameLayout(activity);
+        android.widget.EditText input = new android.widget.EditText(activity);
+        sheet.addView(input);
+        layoutAt(sheet, 480, 960);
+        input.layout(0, 880, 480, 960);
+
+        BlockAuthorOverlay.showUndoBanner(sheet, "Blocked someone", () -> { });
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+
+        View banner = sheet.getChildAt(sheet.getChildCount() - 1);
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) banner.getLayoutParams();
+        assertEquals(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, params.gravity);
+        assertEquals("the banner lands on the input row", 80 + SettingsUi.dp(activity, 16),
+                params.bottomMargin);
+
+        // A sheet with nothing to clear along the bottom gets the banner at its top instead
+        // of 96dp up from wherever its bottom happens to be.
+        FrameLayout bare = new FrameLayout(activity);
+        layoutAt(bare, 480, 960);
+        BlockAuthorOverlay.showUndoBanner(bare, "Blocked someone", () -> { });
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        params = (FrameLayout.LayoutParams) bare.getChildAt(bare.getChildCount() - 1).getLayoutParams();
+        assertEquals(Gravity.TOP | Gravity.CENTER_HORIZONTAL, params.gravity);
+        assertEquals(SettingsUi.dp(activity, 16), params.topMargin);
+    }
+
+    private static void layoutAt(View view, int width, int height) {
+        view.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY));
+        view.layout(0, 0, width, height);
+    }
+
+    /**
+     * The Undo on the block banner answers a press and shows its focus, like the four controls
+     * it undoes. It sits on the banner's own dark surface, so its ring and ripple are the white
+     * the over-video controls use.
+     */
+    @Test public void theUndoBannerAnswersAPressAndShowsItsFocus() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().visible().get();
+        Utils.setContext(activity);
+        FrameLayout root = new FrameLayout(activity);
+        BlockAuthorOverlay.showUndoBanner(root, "Blocked someone", () -> { });
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+
+        ViewGroup banner = (ViewGroup) root.getChildAt(root.getChildCount() - 1);
+        assertNotNull("no banner was drawn", banner);
+        View undo = banner.getChildAt(banner.getChildCount() - 1);
+        assertTrue("Undo is not reachable by a keyboard or d-pad", undo.isFocusable());
+        android.graphics.drawable.Drawable background = undo.getBackground();
+        assertTrue("Undo has no ripple: " + (background == null ? "null"
+                        : background.getClass().getSimpleName()),
+                background instanceof android.graphics.drawable.RippleDrawable);
+        assertNotEquals("Undo looks the same focused as it does at rest",
+                renderOf(background, new int[0]),
+                renderOf(background, new int[]{android.R.attr.state_focused}));
     }
 
     /**

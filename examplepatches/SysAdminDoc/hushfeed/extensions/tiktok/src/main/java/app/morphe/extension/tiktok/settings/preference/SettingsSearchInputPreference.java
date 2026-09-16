@@ -7,11 +7,14 @@ package app.morphe.extension.tiktok.settings.preference;
 
 import android.content.Context;
 import android.preference.Preference;
+import android.text.InputType;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -26,6 +29,8 @@ public final class SettingsSearchInputPreference extends Preference {
     }
 
     private final QueryListener queryListener;
+    /** The page is entered once; a recreation with a query in the box keeps the box. */
+    private boolean focusedOnEntry;
     private EditText editText;
     private TextView clearButton;
     private TextView resultCount;
@@ -62,6 +67,20 @@ public final class SettingsSearchInputPreference extends Preference {
         editText.setMinimumHeight(SettingsUi.dp(context, 48));
         editText.setPadding(0, 0, 0, 0);
         SettingsUi.styleEditText(editText);
+        // Every native search flow lands with the field focused, the keyboard up and the action
+        // key searching. This one made the reader tap the box first, showed a generic action
+        // key, and let autocorrect rewrite a setting's name into another word.
+        editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        editText.setSingleLine(true);
+        editText.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
+        editText.setOnEditorActionListener((view, actionId, event) -> {
+            if (actionId != EditorInfo.IME_ACTION_SEARCH) return false;
+            // The results sit under the keyboard; the search key brings them into view.
+            InputMethodManager manager = (InputMethodManager) view.getContext()
+                    .getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (manager != null) manager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            return true;
+        });
         editText.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) {
             }
@@ -115,6 +134,21 @@ public final class SettingsSearchInputPreference extends Preference {
 
     public String getQuery() {
         return editText == null ? "" : editText.getText().toString();
+    }
+
+    @Override
+    protected void onBindView(View view) {
+        super.onBindView(view);
+        if (focusedOnEntry || editText == null || editText.length() > 0) return;
+        focusedOnEntry = true;
+        // After the list has laid the row out; a request on a view not yet in the window lands
+        // nowhere, and the keyboard needs the focused view to be in the window as well.
+        editText.post(() -> {
+            editText.requestFocus();
+            InputMethodManager manager = (InputMethodManager) editText.getContext()
+                    .getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (manager != null) manager.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
+        });
     }
 
     public void showResultCount(int count) {

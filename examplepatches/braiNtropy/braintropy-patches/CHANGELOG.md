@@ -1,3 +1,27 @@
+## [2.2.0](https://github.com/braiNtropy/braintropy-patches/compare/v2.1.0...v2.2.0) (2026-09-15)
+
+### ✨ New Features
+
+* Add category declarations to patches ([b5790a7](https://github.com/braiNtropy/braintropy-patches/commit/b5790a7bdb0b2bd032e54dab5954780403332e52))
+
+## [2.2.0-dev.1](https://github.com/braiNtropy/braintropy-patches/compare/v2.1.0...v2.2.0-dev.1) (2026-09-15)
+
+### ✨ New Features
+
+* Add category declarations to patches ([b5790a7](https://github.com/braiNtropy/braintropy-patches/commit/b5790a7bdb0b2bd032e54dab5954780403332e52))
+
+## [2.1.0](https://github.com/braiNtropy/braintropy-patches/compare/v2.0.0...v2.1.0) (2026-09-15)
+
+### ✨ New Features
+
+* Add "Unlock Premium" and "Disable OTA updates" patches for Tracearr v2.2.0 ([794b554](https://github.com/braiNtropy/braintropy-patches/commit/794b554df25c69663ecba99f5049ed25fb64f508))
+
+## [2.1.0-dev.1](https://github.com/braiNtropy/braintropy-patches/compare/v2.0.0...v2.1.0-dev.1) (2026-09-15)
+
+### ✨ New Features
+
+* Add "Unlock Premium" and "Disable OTA updates" patches for Tracearr v2.2.0 ([794b554](https://github.com/braiNtropy/braintropy-patches/commit/794b554df25c69663ecba99f5049ed25fb64f508))
+
 ## [2.0.0](https://github.com/braiNtropy/braintropy-patches/compare/v1.1.0...v2.0.0) (2026-08-14)
 
 ### ⚠ BREAKING CHANGES

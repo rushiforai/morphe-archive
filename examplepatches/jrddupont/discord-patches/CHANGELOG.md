@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.3.0
+
+- New support: 344.13 Stable (all three patches). QuestBar gate
+  re-cut with shifted registers (fn 60429, own anchor); gift-bar flag
+  in ChatInputRightActions (fn 53139, own anchor); the attach-sheet no
+  longer has a gift entry in 344, so the sheet-push site is skipped
+  there (bar flag alone hides the gift). Anchor spec extended to 9
+  checks, ALL OK; patch simulation shows exact diffs, no strays.
+  Pin-to-builtin-bundle needs no change (DCDReactNativeHost.
+  getJSBundleFile() still present in 344).
+
 ## v1.2.0
 
 - New patch: Pin app to built-in bundle — forces Discord to always run

@@ -40,11 +40,23 @@ pluginManagement {
 // out when the plugin moves past 2.4.20 on its own; gradle/verification-metadata.xml is what
 // says which version actually resolved. It does not reach :patches:patcherProvidedClasspath,
 // where the patcher's own kotlin-stdlib and kotlin-reflect stay at 2.4.10.
+//
+// The same classpath brings Bouncy Castle 1.79, by way of the patcher's 1.77 pin and the
+// Android build tools' own 1.79 request, and both are inside CVE-2025-8916 (1.44 to 1.79) and
+// CVE-2026-5588 (1.49 to 1.84). :patches and :extensions:tiktok each force their own graphs to
+// the reviewed release, but neither reaches this one: a force on a project configuration cannot
+// touch the classpath the plugins themselves resolve on, and that classpath is where the
+// signing code actually runs. 1.86 is spelled out here rather than read from
+// gradle/libs.versions.toml because the version catalog does not exist yet at this point in the
+// build; the catalog pins the same value and says why it is that one. Move both together.
 buildscript {
     configurations.all {
         resolutionStrategy.eachDependency {
             if (requested.group == "org.jetbrains.kotlin") {
                 useVersion("2.4.20")
+            }
+            if (requested.group == "org.bouncycastle") {
+                useVersion("1.86")
             }
         }
     }

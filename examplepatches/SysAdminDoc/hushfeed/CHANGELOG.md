@@ -1,4 +1,106 @@
-## Unreleased
+## 0.35.0
+
+* A Feature Gate Lab import that accepted something now reports in a dialog: one line per count, the first rejection selectable so it can be copied, and Undo beside Done. It was a five-clause toast that vanished in 3.5 seconds. An import that changed nothing keeps its one-line toast.
+
+* The Feature Gate Lab's switch rows (Enable overrides and the detail page's Override and Forced result rows) are one screen-reader stop each with the Switch role, and the whole row toggles the switch. They used to read twice and only answer a tap on the switch itself.
+
+## 0.34.0
+
+* A new patch, Comment publish diagnostics, on by default. When a comment will not post, the text stays in the box with no toast and nothing in the log, and TikTok's publish code has a dozen ways to return before the request without a word. The diagnostic report now says whether the send reached that code, what it had in hand (the text's length, the attachments, a reply target, the video), and whether it returned early or handed the comment to the request.
+
+* Reposting a video no longer arms the send-confirmation step. With Confirm before sending on, tapping Repost, Copy link or another share-channel action used to show "tap again to send" and act only on a second tap, because the confirmation gate treated every share-sheet button as a person to send to. It now gates only the recipients you can send to.
+
+* The feed filter table in the diagnostic report now says when a profile or insertion route was handed something that is not a video, and with diagnostic logging on the profile routes list every video they kept with its ad markers (ad, soft ad, raw ad, promotion, commission disclosure). A report about an ad that got through a profile page (issue #2) used to carry the counts and nothing about the ad itself.
+
+* The diagnostic report now has a Feature Gate Lab section: whether overrides are on, each rule with its value, and for each one whether TikTok has read that gate since the app started, from where, and what TikTok had before the override. Until now an export from a phone where an override changed nothing could not say whether the override was live at all.
+
+* Editing the fields of a structured gate in the Feature Gate Lab now shows that a save is pending, offers Discard edits beside it, and says so if you leave with edits unsaved. Before, Save looked the same before and after typing and Back dropped everything without a word. When overrides are off, the page says so above the controls instead of after the last one, with a Turn on overrides action that enables them without leaving the page.
+
+* While a settings backup, restore, reset or undo is running, the four rows on the Diagnostics page go out of reach and the one acting says what it is doing. Before, they looked exactly as they had a moment earlier, a second tap earned "A settings operation is already running", and a screen reader was told nothing at all.
+
+* A settings row greyed out by another switch now says which switch would turn it on, and a greyed switch shows whether it is on or off instead of looking the same either way. On the Region page the two rows that only said in prose that they need Override SIM details are now actually wired to it, so they grey out rather than letting you switch on something that does nothing.
+
+* The SIM country preset list now marks the preset that is already chosen and opens scrolled to it, and a Clear preset action takes the row back to no preset. It used to be sixty identical rows with no sign of which one was on, and no way back short of retyping three fields.
+
+* When a settings dialog refuses a value, the focus now moves to the field that was refused and the reason is read out. Before, the dialog stayed open with the reason under the field while focus sat on Save, and a screen reader said nothing at all.
+
+* Search settings now opens with the search box focused and the keyboard up, the way every other search on the phone does, with a Search key that takes the keyboard down again so the results can be read. Autocorrect is off in that box, so it can no longer rewrite a setting's name into another word.
+
+* The "Blocked" banner with Undo now sits above TikTok's tab bar on the feed and above the input row in the comments sheet, instead of a fixed distance up from the bottom of whichever screen it was on, which put it over the tabs on one phone and on top of the comment box in the sheet. It is drawn on the same scrim, hairline and corner radius as the chips beside it.
+
+* New patch, Keep the Favorites tab, on by default. Two people found the Favorites tab on their profile empty after patching (issue #4): the tab was there, the saved videos were not. TikTok's server can put an account into an experiment that skips building that tab's pages, and forcing either of the two gates behind it on the test phone produced the reporters' page exactly. The patch answers those two reads with the values that keep the tab, the diagnostic report says when it did, and the switch is in Settings, Interface if you'd rather see what the server sends.
+
+* AMOLED dark theme now rewrites the theme style values behind the comments sheet and the share sheet, and one more page background colour. Both sheets are painted from style values that never go through the colour table the patch rewrote, which is why they stayed TikTok's grey with the patch on. Only dark values are touched, so the light theme keeps its white sheets. On a TikTok build the patch is forced onto, a sheet style name that build does not have is skipped instead of failing the whole patch.
+
+* The feed filter table in the diagnostic report gives the profile detail pager's ad event a line of its own. It used to share the profile grid's line, so a report about an ad seen while watching videos from a profile (issue #2) couldn't say whether that route ran at all or what it took out.
+
+* The diagnostic report now says which playback quality gear was picked and from what. The gear-list path was silent, so a report from a phone whose model strings come back empty (issue #3) couldn't say whether a gear was chosen and then ignored or never offered at all. Hook status lists the gear list getter, and one line per distinct choice names the mode, the gear it settled on and every gear it had to choose from.
+
+* The diagnostic report's feed filter table now counts a profile list or a late insertion that arrived empty. A report from a phone showing an empty Favorites tab used to carry no profile line at all, which read the same as the hook never running, so it couldn't say whether TikTok asked for the list and got nothing back or never asked.
+
+## 0.33.0
+
+* Hide suggested accounts now covers every "People you may like" card, not only the inbox lists. The profile header, the Friends tab and the feed's account cards each build their own list, so the switch used to leave them all standing. Every one of those cards is collapsed as it is bound, and comes back at its own size when the switch goes off.
+
+* A change that needs a restart now leaves a row pinned to the top of every settings page, "Restart TikTok to apply this change" (or how many), and tapping it restarts TikTok. Before, the only sign was a toast that disappeared, so a switch that hadn't taken effect yet looked broken. The rows still waiting say "Restart pending" in place of the usual sentence, a switch flipped back to where it was owes nothing, and the row goes away once TikTok has been restarted.
+
+* Hiding a rail button now hides its count too. Hide like button used to leave the number standing under an empty space, half under the creator's avatar, which looked like the switch had done nothing. Counts under buttons you keep are untouched.
+
+* Clear all in the inbox's suggested accounts now counts as it goes ("Clearing, 12 so far") and a second tap stops it. It used to read "Clearing" and refuse every press for up to eighteen seconds with nothing to say how many were left. Stopping reports how many it dismissed, and the next tap picks up the rest.
+
+* The diagnostic report now says what the CAPTCHA gate saw. A report of a comment or a follow that went nowhere used to carry no CAPTCHA line at all, so nobody could tell whether Hushfeed had seen the request, whether TikTok raised a puzzle, or whether the gate was in that build. The report now names the gate as installed, logs the first write it sees go out and the first puzzle that reaches it, keeps the reason a puzzle was shown next to the line it already kept for one it hid, and puts all of that back after you clear the diagnostics.
+
+* Coming back to TikTok with "Do not start the feed on returning" on now shows a "Tap to start the feed" label instead of a silent, frozen feed with nothing to say why. TalkBack announces it once and can no longer swipe through it to the like and comment buttons underneath. And if you tap Profile or Inbox instead, the stop goes away on its own: it used to stay up over the new page, eat your first tap there, and keep the sound held for a feed you had left.
+
+* The block, hide and sound chips no longer start out on top of TikTok's own avatar, like and share column. Out of the box they sat right on it, so a tap on the creator's face hid the creator instead of opening the profile. They now sit a finger's width to the left of that column. If you have already dragged them somewhere, they stay where you put them.
+
+* When a structured override in the Feature Gate Lab can't be applied, the page now says why, and what to do about it. Before, the status stopped at "could not be applied" and the reason only went to the log. It now sits under the status as a warning line: the field this build doesn't have, the value that can't be copied, the list the override never named, or the type the catalog disagrees on, each with a next step. Translated into German, Spanish, Indonesian and Brazilian Portuguese alongside the English.
+
+* The actions that appear when you hold a gate in the Feature Gate Lab fit the screen now. Reset, Disable, Enable and Cancel sat in a row that couldn't wrap, so at larger text sizes the last of them were squeezed down to a box too small for the word and the labels were cut. In German they don't fit at ordinary size either. They wrap onto a second line instead. Cancel is also no longer painted like Enable, so the action that just puts the selection down doesn't look like the one that writes to every gate in it.
+
+* A boolean gate in the Feature Gate Lab has its own override switch now. Importing a profile brings its rules in with the overrides off, so a gate the file said should be true opened with the switch showing on, and the first tap turned it off and forced false. Two taps to get what the file asked for, and the wrong value was live in between. Turning an imported override on takes one tap, and the switch that says what to force is no longer the same one that says whether to force it.
+
+* A download that was interrupted at the wrong moment no longer leaves an invisible half-saved entry in your gallery forever. The cleanup that was meant to find those gave up as soon as it saw a finished file of the same name, so anyone who had already saved a video called the same thing kept every leftover. It also could not find a leftover at all when the gallery had renamed it, which is what happens when the name is already taken. Both are fixed, and the filename a save reports back is now the one the file actually got.
+
+* The diagnostic report now says what Ghost mode did. It stops TikTok telling other people you looked at a story or a profile, or that you are typing, and until now an export said nothing about any of that, so a report of missing follower counts could not be told from a page TikTok never asked about. The report names each of the three places it answered and what it answered, and says Ghost mode is in the build even on a run where none of them came up. It still names no creator.
+
+* Settings, About now has a Licenses row. It shows the notices Hushfeed and the projects it was built on ask to be passed along, with the full licence a tap away. They were only ever in the repository before, which is no use to anyone holding a patched phone, and the projects this is built on ask that the notices reach that person too. The settings search finds it.
+
+* **Hushfeed now needs Morphe Manager 1.30.0 or newer.** The bundle is built against patcher 1.13.0, which Manager 1.30.0 was the first stable release to ship, and Manager refuses a bundle built against a patcher newer than its own. On 1.29.0 the bundle will not load at all, so update Manager before the next release.
+
+* The build classpath no longer carries a Bouncy Castle release with known advisories against it. Nothing here reaches the app on your phone, which is signed by your own Manager, but the version used to sign and assemble during a build sat inside two advisories and now does not.
+
+* The block, hide and sound chips no longer sit over a creator's profile opened from the feed. Tapping a name or an avatar slides the profile in beside the feed rather than over it, and the feed's bottom navigation, still laid out a screen width to the left, kept telling Hushfeed the feed was showing. The chips were live there too, so a press blocked the video underneath rather than the creator on screen. They hide while the profile is up and come back when you swipe back to the feed.
+
+* The same controls no longer sit over a story. Tapping an avatar with a ring opens the story viewer, which hides the feed rather than sliding it aside, and the controls stayed on top of it. A press there acted on the video you had been watching, not the person whose story was playing.
+
+* Comment translation now tells the Hook status row what it found. The four places TikTok calls into it read fields of TikTok's own objects, and a release that renames one used to leave the switch on with nothing happening and nothing said. The row names the class and the field instead, and it travels in the exported diagnostic report.
+
+* Settings rows show where the focus is. Moving through the list with a keyboard, a d-pad or switch access left nothing on screen to say which row you were on, because the only thing a row painted was a ripple, and a ripple draws focus at a fraction of its own strength. A focused row now carries an accent ring inside the card's corners, and so does the back button in the header. A press still looks like a press.
+
+* A text field in settings shows which one you are typing into. Every field wore the same accent underline whether or not it had the cursor, which the Min and Max dialog made worst: two accent underlines and one caret to tell them apart. The field with the cursor keeps the accent and the rest sit quieter.
+
+* A Feature Gate Lab override that fails to save no longer leaves the switch showing the value that was refused. The toast said it could not save while the screen carried on claiming the new value; the controls go back to what is actually stored.
+
+## 0.32.0
+
+* Every control Hushfeed draws over the video answers a press and shows where the focus is. The four feed controls, the two actions on the daily hold, Undo, Clear all in the inbox and the sticker Save button used to paint the same thing pressed, focused or at rest, so a keyboard, a d-pad or switch access moved through them with nothing on screen saying so. Each one ripples under a finger now and carries a white ring while it holds focus.
+
+* The settings screen's hand-built actions do the same. The Feature Gate Lab's view tabs, source tabs, Filter, its selection actions and the value picker, the creator editor's actions, the settings search box and the rows in the SIM preset and tab pickers were flat in every state. Tabbing through the Lab shows the focus moving now, a tap on a tab ripples, and the value picker has the frame that says it is a control. The preset and tab rows painted an opaque fill that covered the press highlight the list would have drawn; the fill sits under it now.
+
+* A gate you have chosen in the Feature Gate Lab looks chosen. Selecting rows for an action changed nothing about them, so the count in the action bar was the only sign anything was picked. A chosen row now carries a tinted fill, an accent edge and a check mark at its start.
+
+* The daily hold no longer reads itself out once a second. The whole panel was a live region and three of its lines were rewritten every tick, so TalkBack repeated the hold over the audio for as long as it stood. The panel is announced once when it appears, only the time remaining is live, and nothing is rewritten unless it changed.
+
+* The daily budget label stays on the feed. It asked the loose question the block button asks, which counts a video opened from a profile grid or a search result and says nothing about the comment sheet, so opening the comments took the feed controls away and left the label sitting on top of the sheet. It now shows only when the Home tab is on screen and selected and nothing is covering it.
+
+* The Region rows stop asking for a restart twice. Both summaries carried their own "and a restart" and then the shared restart sentence was added under it. Each says it once.
+
+* The Region summaries name the switches they depend on by the titles those switches actually carry in German, Spanish, Indonesian and Brazilian Portuguese. A German phone told you to turn on "SIM-Details überschreiben" while the row above it was titled "SIM-Angaben überschreiben", and the other three tables had the same drift. A check now holds every summary that names another row to that row's title in every language.
+
+* The Diagnostic tools description in Morphe Manager says Hushfeed rather than the project it was forked from, and says where the switches it adds live: under Diagnostics in Hushfeed settings.
+
+* The README's settings captures were re-taken after the recent changes, and the page that shows a settings failure is captured in English rather than in the language of whichever phone took it last.
 
 * The hidden creators editor keeps what you typed and says what is wrong under the box. Type a handle and press Save without pressing Add and the dialog used to close, then a message appeared over whatever was behind it, and the handle was gone. Adding an empty, duplicate or broken entry did the same thing over the open dialog. The reason now sits under the field it is about, the dialog stays open, and nothing is written until it can be.
 
@@ -34,6 +136,8 @@
 
 * Double tap set to open comments now opens them. It pressed the comment button's click listener, which on the current app is a placeholder that does nothing while the real press is handled as a touch, so the double tap returned true and nothing opened. The press now goes through the comment assem's own icon-press method, the one TikTok's keyboard shortcut uses, with all of TikTok's own checks in front of it. Confirmed on the S22 on 46.2.3: do nothing leaves the like and the video alone, comments opens the sheet with the like untouched, and the default still likes.
 
+
+## 0.31.0
 
 * The exported diagnostic report now says which feed filter route handled each list, whether or not diagnostic logging is on. Several routes can put a video on a profile page or in the feed, and an advert in a screenshot cannot say which one delivered it, so every ad report so far has needed a second round of questions. Each route now reports the lists it was handed, the videos in them and what it took out. A route that has never run has no line at all, which is the answer that was hardest to get before.
 

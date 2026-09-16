@@ -156,7 +156,7 @@ tasks.named("sourcesJar") {
 tasks {
     register<JavaExec>("auditOledDecodedCompatibility") {
         group = "verification"
-        description = "Read-only OLED option audit against hash-pinned decoded 5001712 and 5002322 libraries"
+        description = "Read-only OLED option audit against hash-pinned decoded 5001712, 5002322 and 5002363 libraries"
         dependsOn(classes)
         classpath = sourceSets["main"].runtimeClasspath
         mainClass.set("util.OledDecodedCompatibilityAudit")
@@ -165,7 +165,7 @@ tasks {
 
     register<JavaExec>("auditDecodedSteamLinkPatches") {
         group = "verification"
-        description = "Audit compatible 5001712 patches, high resolution on 6 bases, Visual Delay on 5 bases, and 4 recommendation fixtures"
+        description = "Audit public 5001712/5002363 patches, high resolution on 7 bases, Visual Delay on 6 bases, and 5 recommendation fixtures"
 
         dependsOn(classes)
         classpath = sourceSets["main"].runtimeClasspath
@@ -181,6 +181,15 @@ tasks {
             }.toString()
         }
         args(auditArgs)
+    }
+
+    register<JavaExec>("auditSteamLink2363Native") {
+        group = "verification"
+        description = "Exercise exact 5002363 native helpers, option transitions and patch ordering on decoded bytes"
+        dependsOn(classes)
+        classpath = sourceSets["main"].runtimeClasspath
+        mainClass.set("util.SteamLink2363NativeAudit")
+        args(rootProject.projectDir.absolutePath)
     }
 
     register<JavaExec>("generateVideoOutputAb") {

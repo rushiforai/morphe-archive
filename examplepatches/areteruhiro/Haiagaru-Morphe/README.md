@@ -15,6 +15,8 @@ https://github.com/areteruhiro/Haiagaru
 * 自動DAT取得経路の並べ替えと任意HTTPS経路の追加
 * 自動DAT取得のON/OFF切り替え
 * 古いDAT・過去ログの改行保持と`.io` URL直接起動時の自動DAT取得
+* Talkの現行・旧形式板URLからの板一覧／スレ取得と書き込み互換処理
+* ChMate `0.8.10.191 dev`／`0.8.10.226 dev` のスレ内広告行の非表示
 * 5ch.io板が外部板扱いと5ch扱いで重複した場合の内部板一覧一括整理
 * パッケージ名・アプリ名・アイコン・versionCodeの変更
 * Morpheで任意に有効化できるクラッシュログ保存
@@ -67,23 +69,57 @@ ChMate `0.8.10.241`では、アプリデータを残したまま以前のChMate�
 
 ## URV Manager / Morphe Managerへの追加と更新
 
-現在の公式版（1.2.3）を取得するパッチソースは次のURLです。
+現在の公式版（1.3.0）を取得するパッチソースは次のURLです。
 
 ```text
 https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/refs/heads/master/patches-bundle.json
 ```
 
-プレリリース版（1.2.3.r3）を取得するパッチソースは次のURLです。正式版より新しい検証中の変更を含みます。
+プレリリース版を取得するパッチソースは次のURLです。現在は公式版（1.3.0）と同じ内容です。
 
 ```text
 https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/refs/heads/master/patches-bundle-pre.json
 ```
 
-開発中のパッチ本体のバージョンは `1.2.3.r3` です。同じバージョン内で修正版を配布する場合は、
+現在のパッチ本体のバージョンは `1.3.0` です。同じバージョン内で修正版を配布する場合は、
 URV Manager / Morphe Managerが更新を検出できるようにJSON上の配布リビジョンを更新します。
 更新が表示されない場合は、パッチソース画面から手動で更新を実行してください。
 
 ## 更新履歴
+
+### 1.3.0（正式版）
+
+- ChMate `0.8.10.226 dev`で、Talkの現行スレをTalk APIからDATへ変換して閲覧できるように対応
+- Talk投稿時に動的生成クラスの署名依存比較が不一致となり、`NullPointerException`で失敗する問題を修正
+- ChMate `0.8.10.191 dev`／`0.8.10.226 dev`のタブレットモードで、取得済みTalk DATを再取得し続ける問題を修正
+- タブレットモードで過去ログの自動取得に失敗した際、失敗通知と再取得が無限に繰り返される問題を修正
+- ChMate `0.8.10.191 dev`／`0.8.10.226 dev`の1レス目と2レス目の間に残る広告行を非表示化
+- 運用情報板・裏社会板を含むTalk板URLの補正、既存の自動DAT取得、URL補正、設定、パッケージカスタマイズを収録
+
+### 1.2.4.r1（プレリリース）
+
+- ChMate `0.8.10.191 dev`のタブレット表示で、板一覧からTalkスレを開くとDAT落ち扱いになる問題を修正
+- タブレット内遷移でもTalkスレを判定し、通常表示と同じTalk APIからDATキャッシュを生成する経路へ統一
+- `5ch.net`からの自動DAT取得設定に依存せず、Talkスレは常にTalk専用処理へ渡すように変更
+
+### 1.2.4（プレリリース）
+
+- `1.2.3.r5`のTalk旧形式URL・板一覧・スレ取得修正を収録
+- ChMate `0.8.10.191 dev`／`0.8.10.243 dev`のタブレット二画面表示で、画面内遷移が通常のスレActivityを経由せず自動DAT取得を回避していた問題を修正
+- DAT変換完了後は通常のスレ表示Activityを経由して再表示し、タブレット側にも取得結果を反映
+
+### 1.2.3.r5（プレリリース）
+
+- ChMate `0.8.10.191 dev`で、旧形式のTalk板URLから運用情報板や裏社会板を開くと404になる問題を修正
+- `talk.jp/{板}/subject.txt`などの板情報を2ch互換配信先へ補正
+- `talk.jp/{板}/{スレID}`、`talk.jp/test/read.cgi/{板}/{スレID}`、`talk.jp/boards/{板}/{スレID}`を同じTalk API取得経路で扱うように変更
+- Androidエミュレーター上で運用情報板・裏社会板の一覧表示と、両形式のスレ取得を確認
+
+### 1.2.3.r4（プレリリース）
+
+- ChMate `0.8.10.191 dev`の荒らし省略・コピペ省略2について、設定がONでも判定処理が登録されない内部条件を修正
+- ChMate `0.8.10.243 dev`のHaiagaru設定に、単発ID表示の省略・コピペ省略2・荒らし省略を追加
+- 個別の報告レスが実機で省略されることは未確認
 
 ### 1.2.3.r3（プレリリース）
 
@@ -237,13 +273,6 @@ APKは再署名されるため、Play版など署名が異なるChMateとはそ�
 191では荒らし・コピペ2の判定処理にも有効化の修正を適用し、各設定がOFFの場合は
 判定処理を登録しません。243は元の判定処理と設定条件を使用します。
 
-191／243の元APKと生成APKに対するバイトコード検査は、
-`scripts/VerifyChMatePlus.java` で実行できます。
-
-```powershell
-java -cp <morphe-desktop-all.jar> scripts/VerifyChMatePlus.java <元191.apk> <生成191.apk> <元243.apk> <生成243.apk>
-```
-
 この検査は191の2箇所の登録制限の除去、設定OFFの分岐の維持、
 243の判定処理の維持を確認します。実際のレスの省略表示は別途実機で確認してください。
 
@@ -256,6 +285,9 @@ java -cp <morphe-desktop-all.jar> scripts/VerifyChMatePlus.java <元191.apk> <�
 [Haiagaru サポートチャンネル](https://discord.com/channels/1392057820316303362/1547235153347092572)
 
 ## 寄付
+
+開発の継続を応援していただける場合は、よろしければGitHubのStarだけでもお願いします。励みになります。
+さらにご支援いただける場合は、以下から寄付を受け付けています。
 
 - [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
 - [PayPay](https://qr.paypay.ne.jp/p2p01_RsY3yQavNdvx74da)
@@ -282,6 +314,10 @@ Forked from Binnosoko
 https://github.com/Chipppppppppp/Binnosoko
 
 Contribution <br>
+Haiagaru Contribution<br>
+yujirox 様 <br>
+
+LEINs Contribution<br>
 LEINsに対して寄付/ご購入してくださった皆様
 
 <br>

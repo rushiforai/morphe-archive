@@ -405,6 +405,7 @@ Verslae is openbaar en word nagegaan voordat 'n kanaal by 'n lys gevoeg word. Ve
   <string name="morphe_vot_screen_title">Vertaalde stem over</string>
   <string name="morphe_vot_screen_summary">Lees video-onderskrifte hardop voor met behulp van teks-na-spraak op die toestel, gesinkroniseer met die afspeel</string>
   <string name="morphe_vot_enabled_title">Vertaalde stem oor</string>
+  <string name="morphe_vot_enabled_summary">Wys ’n oorlegknoppie in die videospeler. Raak aan om vertaling aan/af te skakel, raak aan en hou vir vinnige instellings</string>
   <string name="morphe_vot_caption_language_title">Taal</string>
   <string name="morphe_vot_translation_service_title">Dienstverskaffer vir vertaling</string>
   <string name="morphe_vot_original_audio_volume_title">Volume van die oorspronklike klank</string>
@@ -514,6 +515,8 @@ Info: Werk moontlik nie op regstreekse uitsendings nie"</string>
   <string name="morphe_queue_add_flyout_menu_summary">Voeg \'n bykomende flyout-item by. Skakel dit aan as \"Voeg by tou\" nie gewys word nie</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_title">Advertensiewitlys in die glykieslys</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_summary">Voeg \'n glykieslys-item by wat advertensies op die kanaal van daardie video laat speel</string>
+  <!-- "Spoof video streams" must use the same translation as morphe_spoof_video_streams_screen_title -->
+  <string name="morphe_ads_channel_whitelist_flyout_user_dialog_message">Hierdie funksie mag vereis dat PotHelper gebruik word of dat \"Vervals videostrome\" na TV- of Android VR-aanmelding verander word.</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_title">Spoedwitlys in die glykieslys</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_summary">Voeg \'n glykieslys-item by wat altyd die kanaal van daardie video teen 1.0x-spoed speel</string>
   <string name="morphe_queue_manager_check_failed_auth">Nie aangemeld</string>
@@ -603,8 +606,10 @@ Om dit reg te stel, skakel 'Vervals videostrome' aan en verander die 'Verstekkli
   <string name="morphe_swipe_text_overlay_size_summary">Stel die vereiste swipe afstand in voordat \'n aanpassing geaktiveer word</string>
   <string name="morphe_swipe_threshold_title">Swiep magnitude drempel</string>
   <string name="morphe_swipe_threshold_summary">Pas hoe die volume tydens \'n swipe verander</string>
-  <string name="morphe_swipe_volume_sensitivity_title">Volume swiep sensitiwiteit</string>
-  <string name="morphe_swipe_volume_sensitivity_summary">Hoër waardes verhoog die volume verandering per swiep</string>
+  <string name="morphe_swipe_volume_distance_title">Volume-veegsensitiwiteit</string>
+  <string name="morphe_swipe_volume_distance_summary">Hoër waardes vereis meer veegbewegings per volume-stap.</string>
+  <string name="morphe_swipe_volume_steps_title">Volume-stappe</string>
+  <string name="morphe_swipe_volume_steps_entry_default">Toestelstandaard</string>
   <string name="morphe_swipe_brightness_sensitivity_title">Helderheid swiepsensitiwiteit</string>
   <string name="morphe_swipe_brightness_sensitivity_summary">Hoër waardes vereis meer swiep per helderheidsvlak</string>
   <string name="morphe_swipe_speed_sensitivity_title">Spoed swiepsensitiwiteit</string>
@@ -913,6 +918,7 @@ Instellings → Weergawe (of outoplay) → Speel volgende video outomaties"</str
   <string name="morphe_disable_fullscreen_sliding_down_gesture_title">Deaktiveer portret-afglingsgebare</string>
   <string name="morphe_disable_fullscreen_dragged_down_gesture_title">Deaktiveer landskap-afglingsgebare</string>
   <string name="morphe_disable_fullscreen_zoom_gesture_title">Deaktiveer knyp-zoem-gebaar</string>
+  <string name="morphe_restore_pinch_to_zoom_title">Herstel knyp om te zoem</string>
   <!-- layout.player.fullscreen.openVideosFullscreenPatch -->
   <string name="morphe_open_videos_fullscreen_title">Maak video\'s in volledig skermmodus oop</string>
   <string name="morphe_open_videos_fullscreen_entry_1">Deaktiveer</string>
@@ -925,6 +931,8 @@ Instellings → Weergawe (of outoplay) → Speel volgende video outomaties"</str
   <string name="morphe_fullscreen_video_scale_entry_zoom">Zoem (sny om te vul)</string>
   <string name="morphe_fullscreen_video_scale_button_title">Wys videoskaalknoppie</string>
   <string name="morphe_fullscreen_video_scale_button_summary">Tik om deur Standaard, Rek en Zoem te wissel</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_title">Wys slegs in volskerm</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_summary">Versteek die video-skaalknoppie in die portretspeler</string>
   <!-- layout.player.buttons.muteVideoButtonPatch -->
   <string name="morphe_mute_video_button_title">Wys demp-knoppie</string>
   <!-- layout.player.overlay.customPlayerOverlayOpacityPatch -->
@@ -964,6 +972,7 @@ Motoruitleg
 
 Beperking: Indien 'Herstel ou video-aksiebalk' afgeskakel is, mag die 'Meer video's' oorvleueling nie beskikbaar wees nie"</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="morphe_spoof_app_version_target_entry_21_11">21.11.48 - Herstel ou onderskrifgedrag</string>
   <string name="morphe_spoof_app_version_target_entry_20_39">20.39.41 - Herstel ou stoor na snelys</string>
   <string name="morphe_spoof_app_version_target_entry_20_28">20.28.41 - Deaktiveer vet ikone</string>
   <string name="morphe_spoof_app_version_target_entry_20_13">20.13.41 - Herstel kanaalnaam onder videospeler</string>
@@ -1024,16 +1033,16 @@ Beperking: Indien 'Herstel ou video-aksiebalk' afgeskakel is, mag die 'Meer vide
   <string name="morphe_miniplayer_disable_resuming_summary">Deaktiveer die \'Gaan voort om te kyk\' minispeler, \'n YouTube Premium-funksie wat op app-opstart verskyn</string>
   <string name="morphe_miniplayer_screen_title">Mini-speler</string>
   <string name="morphe_miniplayer_screen_summary">Pas die voorkoms en gedrag van die verkleinde videospeler aan</string>
-  <string name="morphe_miniplayer_not_available_summary">YouTube het alle bykomende mini-speelers verwyder. Om die tipe mini-speler te verander, moet jy YouTube 21.28.208 of ouer herstel.</string>
   <string name="morphe_miniplayer_type_title">Mini-speler tipe</string>
   <string name="morphe_miniplayer_type_entry_0">Gedeaktiveer</string>
   <string name="morphe_miniplayer_type_entry_1">Verstek</string>
   <string name="morphe_miniplayer_type_entry_2">Minimaal</string>
-  <string name="morphe_miniplayer_type_entry_3">Tablet</string>
-  <string name="morphe_miniplayer_type_entry_4">Modern 1</string>
-  <string name="morphe_miniplayer_type_entry_5">Modern 2</string>
-  <string name="morphe_miniplayer_type_entry_6">Modern 3</string>
-  <string name="morphe_miniplayer_type_entry_7">Modern 4</string>
+  <string name="morphe_miniplayer_type_entry_3">Minimaal 2</string>
+  <string name="morphe_miniplayer_type_entry_4">tablet</string>
+  <string name="morphe_miniplayer_type_entry_5">Modern 1</string>
+  <string name="morphe_miniplayer_type_entry_6">Modern 2</string>
+  <string name="morphe_miniplayer_type_entry_7">Modern 3</string>
+  <string name="morphe_miniplayer_type_entry_8">Modern 4</string>
   <string name="morphe_miniplayer_disable_rounded_corners_title">Deaktiveer afgeronde hoeke</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_title">Deaktiveer sleep en los</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_summary">Verhoed dat die verkleinde speler na verskillende hoeke van die skerm sleep</string>

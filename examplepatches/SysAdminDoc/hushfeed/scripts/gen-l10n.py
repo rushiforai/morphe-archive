@@ -14,11 +14,23 @@ of patching memory, which is more than Morphe Manager gives by default (measured
 Each language becomes its own method returning a flat {key, value, key, value} array, split
 across several methods so no single one approaches the 64 KB bytecode limit.
 
+Anything it cannot make sense of stops the run with the file and line rather than being dropped
+on the way past: a row with no source text, a key that begins with the comment character, and a
+translation whose placeholders are not the ones its key carries. The placeholder comparison is
+the same one SettingsL10nTest makes of the generated class, brought forward so that running this
+by hand cannot report "wrote N translations" over a table that would fail the build.
+
+The English base it writes is the union of the language tables, so a code string nobody has
+translated yet reaches Weblate only once it is in one of them. What holds every code string to
+a table is SettingsL10nTest.everySettingsStringHasATranslationEntry, which builds the real
+preference rows and demands each rendered string be a key. This script cannot see those rows.
+
 Run from the repository root: python scripts/gen-l10n.py
 """
 import csv
 import io
 import os
+import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -45,6 +57,14 @@ ENGLISH_BASE = "en"
 # "context" and the key here is the English text itself, so there is nothing for it to carry.
 CSV_HEADER = ["source", "target"]
 
+# Both spellings a format string can use, numbered and bare. Matching only "%1$s" let a plain
+# "%s" through, and an invented placeholder with it.
+PLACEHOLDER = re.compile(r"%(?:\d+\$)?[a-zA-Z]")
+
+# What a comment line starts with. A key legitimately beginning with it cannot be told from a
+# comment, so an entry that starts with it is refused rather than guessed at.
+COMMENT = "#"
+
 
 def read(path):
     """One table, from either form. A newline is the two characters \\n in both."""
@@ -56,8 +76,21 @@ def read(path):
 def add(entries, english, translated, path, number):
     english = english.replace("\\n", "\n")
     translated = translated.replace("\\n", "\n")
+    if not english.strip():
+        sys.exit("%s:%d: no source text" % (path, number))
+    if english.startswith(COMMENT):
+        sys.exit("%s:%d: a key cannot begin with %s: it cannot be told from a comment"
+                 % (path, number, COMMENT))
     if english in entries:
         sys.exit("%s:%d: duplicate entry: %s" % (path, number, english))
+    # A dropped, added, renumbered or retyped placeholder, in one comparison. The runtime hands
+    # the same arguments to whichever table is loaded, so a translation that asks for different
+    # ones formats the wrong value or throws on the phone.
+    wanted = PLACEHOLDER.findall(english)
+    given = PLACEHOLDER.findall(translated)
+    if wanted != given:
+        sys.exit("%s:%d: placeholders %s became %s in: %s"
+                 % (path, number, wanted, given, english.replace("\n", "\\n")))
     entries[english] = translated
 
 
@@ -68,7 +101,11 @@ def read_tsv(path):
     with io.open(path, encoding="utf-8-sig") as handle:
         for number, line in enumerate(handle, 1):
             line = line.rstrip("\r\n")
-            if not line or line.startswith("#"):
+            if not line:
+                continue
+            # A comment has no tab. One that does is an entry whose key starts with the comment
+            # character, and add() refuses it by name rather than letting the line disappear.
+            if line.startswith(COMMENT) and "\t" not in line:
                 continue
             if "\t" not in line:
                 sys.exit("%s:%d: no tab" % (path, number))
@@ -93,7 +130,9 @@ def read_csv(path):
             sys.exit("%s:1: the header has to start source,target, not %s"
                      % (path, ",".join(header)))
         for number, row in enumerate(rows, 2):
-            if not row or not row[0] or row[0].startswith("#"):
+            # A blank line between entries is nothing. A row with columns but no source text is
+            # a row that lost its key, which add() reports rather than skipping.
+            if not row:
                 continue
             if len(row) < 2:
                 sys.exit("%s:%d: no target column" % (path, number))

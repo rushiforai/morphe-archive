@@ -187,9 +187,13 @@ public class FeatureGateLabBoundaryTest {
                 FeatureGateLabRuntime.overrideRawAbValue("mistyped_gate", null, false));
         assertFalse(FeatureGateLabRuntime.isTriggered(
                 FeatureGateLabStore.MANAGER_ABMOCK, "mistyped_gate", "STRING"));
-        assertEquals("the refusal was not reported anywhere", "Catalogue says INT, this rule is STRING",
-                FeatureGateLabRuntime.structuredFailure(
-                        FeatureGateLabStore.MANAGER_ABMOCK, "mistyped_gate", "STRING"));
+        FeatureGateFailure mistyped = FeatureGateLabRuntime.structuredFailure(
+                FeatureGateLabStore.MANAGER_ABMOCK, "mistyped_gate", "STRING");
+        assertNotNull("the refusal was not reported anywhere", mistyped);
+        assertEquals("the refusal lost the reason it carried",
+                FeatureGateFailure.Reason.TYPE_MISMATCH, mistyped.reason);
+        assertEquals("the refusal lost the types that disagreed",
+                "Catalogue says INT, this rule is STRING", mistyped.text());
 
         // The positive control: a rule the catalogue agrees with still reaches the host, so the
         // check is refusing the mistyped rule rather than the whole path.
@@ -262,12 +266,11 @@ public class FeatureGateLabBoundaryTest {
                 FeatureGateLabStore.MANAGER_ABMOCK, known.getKey(), wrongType, "true", true);
         assertNull("a rule the catalogue disagrees with was handed to the host",
                 FeatureGateLabRuntime.overrideRawAbValue(known.getKey(), null, false));
-        assertTrue("the refusal did not say the catalogue disagreed: "
-                        + FeatureGateLabRuntime.structuredFailure(
-                                FeatureGateLabStore.MANAGER_ABMOCK, known.getKey(), wrongType),
-                String.valueOf(FeatureGateLabRuntime.structuredFailure(
-                        FeatureGateLabStore.MANAGER_ABMOCK, known.getKey(), wrongType))
-                        .startsWith("Catalogue says "));
+        FeatureGateFailure disagreed = FeatureGateLabRuntime.structuredFailure(
+                FeatureGateLabStore.MANAGER_ABMOCK, known.getKey(), wrongType);
+        assertNotNull("no refusal was recorded at all", disagreed);
+        assertEquals("the refusal did not say the catalogue disagreed: " + disagreed.text(),
+                FeatureGateFailure.Reason.TYPE_MISMATCH, disagreed.reason);
 
         // And a key it has never heard of is refused for the other reason.
         assertNull(FeatureGateLabRuntime.overrideRawAbValue("stranger_gate", null, false));

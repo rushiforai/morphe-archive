@@ -5,8 +5,8 @@
 package app.morphe.patches.tiktok.misc.login.disablerequirement
 
 import app.morphe.patches.shared.compat.AppCompatibilities
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.util.returnEarly
 
 @Suppress("unused")
 val disableLoginRequirementPatch = bytecodePatch(
@@ -21,13 +21,7 @@ val disableLoginRequirementPatch = bytecodePatch(
             MandatoryLoginServiceFingerprint,
             MandatoryLoginService2Fingerprint,
         ).forEach { fp ->
-            fp.method.addInstructions(
-                0,
-                """
-                    const/4 v0, 0x0
-                    return v0
-                """,
-            )
+            fp.method.returnEarly(false)
         }
     }
 }

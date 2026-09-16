@@ -75,7 +75,6 @@ Staðfestu að pakkanafnið er rétt og að forritið er uppsett"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Spofa myndstreymi</string>
   <string name="morphe_spoof_video_streams_screen_summary">Stilltu klientakupunni til að koma í veg fyrir vandamál með spilun</string>
-  <string name="morphe_spoof_video_streams_title">Spofa myndstreymi</string>
   <string name="morphe_spoof_video_streams_summary">"Lagfærir vandamál með spilun fyrir flesta notendur með því að krefjast samhæfra streymis myndbandsins
 
 Ef þú ert YouTube Premium notandi gæti þessi stilling verið óþarf"</string>

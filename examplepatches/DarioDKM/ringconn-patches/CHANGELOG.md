@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.2.6 (2026-09-15)
+
+### Optimierungen
+* **Kalibrierte Baumtiefe & Auflösungsunabhängigkeit:**
+  * Maximale Traversierungstiefe im Flutter-Semantik-Baum auf 50 Ebenen angehoben, damit alle Discover-Root-Container zuverlässig aufgelöst werden.
+  * Dynamische relative Koordinatenberechnung für Statusleiste, Inhaltsbereich und untere Navigationsleiste.
+  * Versionierungssprung zur Erzwingung der Cloud-Aktualisierung im Morphe Manager.
+
+## 1.2.5 (2026-09-15)
+
+### Fixes & Robustheit
+* **Strikte Discover-Root-Erkennung:**
+  * Vollständige semantische Validierung des aktiven Screens (Kopfzeile «Discover», Vorhandensein der unteren Navigationsleiste, Ausschluss von Zurück-Buttons).
+  * Behebt das Fehlverhalten, bei dem die Kachel in Untermenüs (z. B. Workout-Details, Übungs-Picker) oder beim Tab-Wechsel sichtbar blieb.
+* **Latenzfreie Ausblendung:**
+  * Sofortige Ausblendung (`View.GONE`) bei Berührung außerhalb des Discover-Bereichs sowie bei Navigation in Detailansichten.
+  * Korrektur der Statusvariable: Kein unbeabsichtigtes Festhalten des Sichtbarkeits-Flags mehr.
+
 ## 1.2.3 (2026-09-07)
 
 ### Fixes & Optimizations

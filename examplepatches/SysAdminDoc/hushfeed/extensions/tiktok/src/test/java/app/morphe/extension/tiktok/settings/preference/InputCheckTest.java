@@ -101,6 +101,48 @@ public class InputCheckTest {
         });
     }
 
+    /**
+     * A refused value is said to the reader, not only shown. Save was the focused view when the
+     * check ran, and Android reads a field's error only while the field holds focus, so a
+     * TalkBack user heard nothing and was left with a dialog that would not close.
+     */
+    @Test public void aRefusedValueMovesFocusToTheFieldAndSaysWhy() throws Exception {
+        onScreen("FEED_FILTER", "blocked_creators", field -> {
+            openDialog(field);
+            android.app.AlertDialog dialog = (android.app.AlertDialog) field.getDialog();
+            android.widget.EditText editor = field.getEditText();
+            java.util.List<String> heard = new java.util.ArrayList<>();
+            android.view.accessibility.AccessibilityManager manager =
+                    (android.view.accessibility.AccessibilityManager) editor.getContext()
+                            .getSystemService(android.content.Context.ACCESSIBILITY_SERVICE);
+            Shadows.shadowOf(manager).setEnabled(true);
+            ((android.view.ViewGroup) editor.getParent()).setAccessibilityDelegate(
+                    new android.view.View.AccessibilityDelegate() {
+                        @Override public boolean onRequestSendAccessibilityEvent(
+                                android.view.ViewGroup host, android.view.View child,
+                                android.view.accessibility.AccessibilityEvent event) {
+                            if (event.getEventType()
+                                    == android.view.accessibility.AccessibilityEvent.TYPE_ANNOUNCEMENT) {
+                                heard.add(String.valueOf(event.getText()));
+                            }
+                            return false;
+                        }
+                    });
+            dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).requestFocus();
+            editor.setText("/^news_/, /([bad/");
+
+            dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            assertTrue("the dialog closed on a value it refused", dialog.isShowing());
+            String problem = String.valueOf(editor.getError());
+            assertTrue("focus stayed on Save, so the reason under the field is never read",
+                    editor.isFocused());
+            assertEquals("the reason was not announced: " + heard, 1, heard.size());
+            assertTrue(heard.get(0), heard.get(0).contains(problem));
+        });
+    }
+
     @Test public void oversizedFeedRuleDialogsStayOpenAndKeepStorageUntouched()
             throws Exception {
         String tooMany = entryList(FeedRuleLimits.MAX_ENTRIES + 1);

@@ -58,6 +58,10 @@ class PatchCompatibilityMatrixTest {
             recommendedFor("2.0.22", 5002322),
         )
         assertEquals(
+            listOf(galaxyXrRecommended5002363Patch),
+            recommendedFor("2.0.23", 5002363),
+        )
+        assertEquals(
             listOf(galaxyXrRecommended5002318Patch),
             recommendedFor("2.0.22", 5002318),
         )
@@ -76,21 +80,37 @@ class PatchCompatibilityMatrixTest {
         }
         assertTrue(recommendedFor("2.0.22", 5002243).isEmpty())
         assertTrue(recommendedFor("2.0.20", 5002322).isEmpty())
+        listOf("2.0.22" to 5002363, "2.0.23" to 5002322, "2.0.23" to 5002364)
+            .forEach { (version, versionCode) ->
+                assertTrue(recommendedFor(version, versionCode).isEmpty(), "$version/$versionCode")
+            }
     }
 
     @Test
-    fun latest_bundle_contains_only_the_requested_six_patches() {
-        assertEquals(
-            setOf(
-                xrGalaxyXrHighResolutionPatch,
-                gxrModernTongueBridgePatch,
-                microphoneInputPresetPatch,
-                unrestrictedBatteryUsagePatch,
-                hmdOnlyPatch,
-                oledCalibrationPatch,
-            ),
-            galaxyXrRecommended5002322Patch.dependencies.toSet(),
-        )
+    fun modern_bundles_contain_only_the_requested_six_patches() {
+        listOf(galaxyXrRecommended5002322Patch, galaxyXrRecommended5002363Patch).forEach { bundle ->
+            assertEquals(
+                setOf(
+                    xrGalaxyXrHighResolutionPatch,
+                    gxrModernTongueBridgePatch,
+                    microphoneInputPresetPatch,
+                    unrestrictedBatteryUsagePatch,
+                    hmdOnlyPatch,
+                    oledCalibrationPatch,
+                ),
+                bundle.dependencies.toSet(),
+            )
+            assertFalse(deviceIdentityPatch in bundle.dependencyClosure())
+            listOf(
+                forceHmdInitializationGatesPatch,
+                forceLobbyPermissionStateGatePatch,
+                forceStreamXrGatesPatch,
+                xrLauncherBootstrapPatch,
+                xrStartupPermissionsPatch,
+            ).forEach { patch ->
+                assertFalse(patch in bundle.dependencyClosure(), "${bundle.name}: ${patch.name}")
+            }
+        }
         assertTrue(oledCalibrationPatch.supports("2.0.22", 5002322))
         assertEquals("voice-recognition", microphoneInputPresetPatch.options["preset"].default)
         assertEquals(60, hmdOnlyPatch.options["offsetMs"].default)
@@ -111,6 +131,32 @@ class PatchCompatibilityMatrixTest {
         ).forEach { patch ->
             assertFalse(patch in galaxyXrRecommended5002322Patch.dependencyClosure(), patch.name)
         }
+    }
+
+    @Test
+    fun new_native_base_exposes_exactly_seven_individual_patches_and_no_legacy_mutations() {
+        val expected = setOf(
+            xrGalaxyXrHighResolutionPatch,
+            gxrModernTongueBridgePatch,
+            microphoneInputPresetPatch,
+            unrestrictedBatteryUsagePatch,
+            hmdOnlyPatch,
+            oledCalibrationPatch,
+            deviceIdentityPatch,
+        )
+        assertEquals(expected, allIndividualPatches.filter { it.supports("2.0.23", 5002363) }.toSet())
+        assertEquals(expected, allIndividualPatches.filter { it.supports("2.0.22", 5002322) }.toSet())
+        listOf("2.0.22" to 5002363, "2.0.23" to 5002322, "2.0.23" to 5002364)
+            .forEach { (version, versionCode) ->
+                allIndividualPatches.forEach { patch ->
+                    assertFalse(patch.supports(version, versionCode), "${patch.name}: $version/$versionCode")
+                }
+            }
+        val excludedPublicPatches = allIndividualPatches.toSet() - expected
+        assertEquals(14, excludedPublicPatches.size)
+        assertTrue(
+            galaxyXrRecommended5002363Patch.dependencyClosure().intersect(excludedPublicPatches).isEmpty(),
+        )
     }
 
     @Test
@@ -249,6 +295,7 @@ class PatchCompatibilityMatrixTest {
         val recommendedBundles = listOf(
             galaxyXrRecommended5001712Patch,
             galaxyXrRecommended5002322Patch,
+            galaxyXrRecommended5002363Patch,
             galaxyXrRecommended5002318Patch,
             galaxyXrLegacyFoundationPatch,
         )

@@ -27,8 +27,8 @@
     # 2. Erzeuge providerPatch (BytecodePatch: RingConn Health Data Provider)
     new-instance v3, Lapp/morphe/patches/ringconn/RingConnSyncPatchKt$ProviderBytecodeBuilder;
     invoke-direct {v3}, Lapp/morphe/patches/ringconn/RingConnSyncPatchKt$ProviderBytecodeBuilder;-><init>()V
-    const-string v0, "RingConn Health Data Provider (v1.2.4)"
-    const-string v1, "v1.2.4: Aktiviert lokalen SQLite-Zugriff fuer CyclingCoach und Companion-Apps."
+    const-string v0, "RingConn Health Data Provider (v1.2.6)"
+    const-string v1, "v1.2.6: Aktiviert lokalen SQLite-Zugriff fuer CyclingCoach und Companion-Apps."
     const/4 v2, 0x1
     const/4 v4, 0x0
     const/4 v5, 0x0
@@ -51,8 +51,8 @@
     # 4. Erzeuge dashboardPatch (BytecodePatch: Intervals.icu Quick-Sync Kachel)
     new-instance v3, Lapp/morphe/patches/ringconn/RingConnSyncPatchKt$DashboardBytecodeBuilder;
     invoke-direct {v3}, Lapp/morphe/patches/ringconn/RingConnSyncPatchKt$DashboardBytecodeBuilder;-><init>()V
-    const-string v0, "Intervals.icu Quick-Sync Kachel (v1.2.4)"
-    const-string v1, "v1.2.4: Ultra-schlanke RingConn-Kachel im Discover-Tab fuer 1-Klick-Sync zu Intervals.icu (ohne Radsport-Metriken)."
+    const-string v0, "Intervals.icu Quick-Sync Kachel (v1.2.6)"
+    const-string v1, "v1.2.6: Schlanke Kachel exklusiv im Root-Discover-Tab. Wird in Untermenues und anderen Reitern zuverlaessig ausgeblendet."
     const/4 v2, 0x1
     const/4 v4, 0x0
     const/4 v5, 0x0

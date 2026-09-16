@@ -6,6 +6,8 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 
 /** Runtime checks for the optional MicroG provider used by Zalo Drive support. */
 @SuppressWarnings("unused")
@@ -49,6 +51,32 @@ public final class ZaloMicroGSupport {
       // Never turn an optional provider check into a host-app crash.
       return true;
     }
+  }
+
+  /**
+   * Gives Zalo time to persist the AccountManager result before refreshing Drive state.
+   *
+   * <p>The picker callback otherwise starts the first Drive request while Zalo still has its old
+   * account/token state. Re-entering the backup screen works because that lifecycle boundary
+   * performs the same refresh later, so mirror that boundary explicitly here.
+   *
+   * @param view the Zalo Drive view to refresh; {@code null} skips scheduling
+   * @param accountName the selected account name; {@code null} or empty skips scheduling
+   */
+  public static void scheduleAccountRefresh(Object view, String accountName) {
+    if (view == null || accountName == null || accountName.isEmpty()) return;
+
+    new Handler(Looper.getMainLooper())
+        .postDelayed(
+            () -> {
+              try {
+                java.lang.reflect.Method refresh = view.getClass().getMethod("A6", String.class);
+                refresh.invoke(view, accountName);
+              } catch (Throwable ignored) {
+                // A changed/hidden Zalo method must not crash the host app.
+              }
+            },
+            250L);
   }
 
   /** Prompts the user to install MicroG before retrying the provider-dependent operation. */

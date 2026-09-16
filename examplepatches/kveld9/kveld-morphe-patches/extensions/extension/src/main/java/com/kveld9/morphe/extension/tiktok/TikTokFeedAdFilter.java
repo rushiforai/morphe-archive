@@ -34,8 +34,18 @@ public final class TikTokFeedAdFilter {
     private static Method setAnchorsMethod;
     private static Method setAnchorInfoMethod;
 
+    private static Method isFriendsTabFakeAwemeMethod;
+    private static Method getRecommendCardTypeMethod;
+    private static Method getCardInsertInfoMethod;
+    private static Method getCardTypeMethod;
+    private static Field cardTypeField;
+
     private static Method followGetAwemeMethod;
     private static Field followAwemeField;
+    private static Method followGetFeedTypeMethod;
+    private static Field followFeedTypeField;
+    private static Method followGetRoomMethod;
+    private static Field followRoomField;
 
     private static final String SHOP_PROMO_MARKER = "placeholder_product_id";
 
@@ -95,14 +105,43 @@ public final class TikTokFeedAdFilter {
                     }
                 }
             } catch (Throwable ignored) {}
+            try { isFriendsTabFakeAwemeMethod = awemeClass.getMethod("isFriendsTabFakeAweme"); isFriendsTabFakeAwemeMethod.setAccessible(true); } catch (Throwable ignored) {}
+            try { getRecommendCardTypeMethod = awemeClass.getMethod("getRecommendCardType"); getRecommendCardTypeMethod.setAccessible(true); } catch (Throwable ignored) {}
+            try { getCardInsertInfoMethod = awemeClass.getMethod("getCardInsertInfo"); getCardInsertInfoMethod.setAccessible(true); } catch (Throwable ignored) {}
+            try {
+                ClassLoader loader = awemeClass != null ? awemeClass.getClassLoader() : classLoader;
+                Class<?> cardInfoClass = null;
+                try {
+                    cardInfoClass = loader.loadClass("com.ss.android.ugc.aweme.feed.model.cardinsert.CardInsertInfo");
+                } catch (Throwable t) {
+                    if (classLoader != loader) {
+                        cardInfoClass = classLoader.loadClass("com.ss.android.ugc.aweme.feed.model.cardinsert.CardInsertInfo");
+                    }
+                }
+                if (cardInfoClass != null) {
+                    try { getCardTypeMethod = cardInfoClass.getMethod("getCardType"); getCardTypeMethod.setAccessible(true); } catch (Throwable ignored) {}
+                    try { cardTypeField = cardInfoClass.getDeclaredField("cardType"); cardTypeField.setAccessible(true); } catch (Throwable ignored) {}
+                }
+            } catch (Throwable ignored) {}
 
             try {
-                Class<?> followClass = awemeClass.getClassLoader().loadClass("com.ss.android.ugc.aweme.follow.presenter.FollowFeed");
-                try { followGetAwemeMethod = followClass.getMethod("getAweme"); followGetAwemeMethod.setAccessible(true); } catch (Throwable ignored) {}
+                ClassLoader loader = awemeClass != null ? awemeClass.getClassLoader() : classLoader;
+                Class<?> followClass = null;
                 try {
-                    followAwemeField = followClass.getDeclaredField("aweme");
-                    followAwemeField.setAccessible(true);
-                } catch (Throwable ignored) {}
+                    followClass = loader.loadClass("com.ss.android.ugc.aweme.follow.presenter.FollowFeed");
+                } catch (Throwable t) {
+                    if (classLoader != loader) {
+                        followClass = classLoader.loadClass("com.ss.android.ugc.aweme.follow.presenter.FollowFeed");
+                    }
+                }
+                if (followClass != null) {
+                    try { followGetAwemeMethod = followClass.getMethod("getAweme"); followGetAwemeMethod.setAccessible(true); } catch (Throwable ignored) {}
+                    try { followAwemeField = followClass.getDeclaredField("aweme"); followAwemeField.setAccessible(true); } catch (Throwable ignored) {}
+                    try { followGetFeedTypeMethod = followClass.getMethod("getFeedType"); followGetFeedTypeMethod.setAccessible(true); } catch (Throwable ignored) {}
+                    try { followFeedTypeField = followClass.getDeclaredField("feedType"); followFeedTypeField.setAccessible(true); } catch (Throwable ignored) {}
+                    try { followGetRoomMethod = followClass.getMethod("getRoom"); followGetRoomMethod.setAccessible(true); } catch (Throwable ignored) {}
+                    try { followRoomField = followClass.getDeclaredField("room"); followRoomField.setAccessible(true); } catch (Throwable ignored) {}
+                }
             } catch (Throwable ignored) {}
 
             Log.i(TAG, "[Feed Ad Blocker] Engine initialized. Monitoring feed streams for sponsored content.");
@@ -238,6 +277,9 @@ public final class TikTokFeedAdFilter {
 
     private static Object extractAwemeFromFollowItem(Object followItem) {
         if (followItem == null) return null;
+        if (awemeClass != null && awemeClass.isInstance(followItem)) {
+            return followItem;
+        }
         if (followGetAwemeMethod != null) {
             try {
                 Object aweme = followGetAwemeMethod.invoke(followItem);
@@ -471,6 +513,24 @@ public final class TikTokFeedAdFilter {
         } catch (Throwable ignored) {}
     }
 
+    public static boolean isFollowItemLive(Object followItem) {
+        if (followItem == null) return false;
+        if (!initialized) {
+            ensureInitialized(followItem.getClass().getClassLoader());
+        }
+        try {
+            if (followGetRoomMethod != null) {
+                Object room = followGetRoomMethod.invoke(followItem);
+                if (room != null) return true;
+            }
+            if (followRoomField != null) {
+                Object room = followRoomField.get(followItem);
+                if (room != null) return true;
+            }
+        } catch (Throwable ignored) {}
+        return false;
+    }
+
     public static void filterLiveStreamsInFollowFeedList(Object followFeedList) {
         if (followFeedList == null) return;
         try {
@@ -492,7 +552,7 @@ public final class TikTokFeedAdFilter {
                 while (iterator.hasNext()) {
                     Object followItem = iterator.next();
                     Object aweme = extractAwemeFromFollowItem(followItem);
-                    if (isLiveStream(aweme)) {
+                    if (isLiveStream(aweme) || isFollowItemLive(followItem)) {
                         iterator.remove();
                         removed++;
                     }
@@ -502,6 +562,218 @@ public final class TikTokFeedAdFilter {
                 }
             }
         } catch (Throwable ignored) {}
+    }
+
+    // =========================================================================
+    // 4. FEED BLOAT & DISTRACTION BLOCKER (Independent Patch)
+    // =========================================================================
+
+    public static boolean isFeedBloat(Object aweme) {
+        if (aweme == null) return false;
+        if (!initialized) {
+            ensureInitialized(aweme.getClass().getClassLoader());
+        }
+        if (awemeClass != null && !awemeClass.isInstance(aweme)) {
+            return false;
+        }
+        try {
+            // 1. Check Aweme Types:
+            // 4004: RecUser / Suggested Accounts Big Card
+            // 104: Mini-Game Instant Play
+            // 110: Mini-Drama / Series Card
+            // 106: Detail Lynx / In-Feed Promotion Card
+            if (getAwemeTypeMethod != null) {
+                Object type = getAwemeTypeMethod.invoke(aweme);
+                if (type instanceof Integer) {
+                    int awemeType = ((Integer) type).intValue();
+                    if (awemeType == 4004 || awemeType == 104 || awemeType == 110 || awemeType == 106) {
+                        return true;
+                    }
+                }
+            }
+
+            // 2. Friends Tab Fake Aweme Placeholders
+            if (isFriendsTabFakeAwemeMethod != null && Boolean.TRUE.equals(isFriendsTabFakeAwemeMethod.invoke(aweme))) {
+                return true;
+            }
+
+            // 3. Recommendation Card Types (>0 indicates recommendation slot)
+            if (getRecommendCardTypeMethod != null) {
+                Object recType = getRecommendCardTypeMethod.invoke(aweme);
+                if (recType instanceof Integer && ((Integer) recType) > 0) {
+                    return true;
+                }
+            }
+
+            // 4. CardInsertInfo checks:
+            // 49: RecUser / Suggested Accounts Card Insert
+            // 120: Mini-Game Instant Play Card
+            // 127: On This Day (Recuerdos) Creation Card
+            // 84: Creation EOY Card (Recap)
+            // 176: Inspiration Card
+            // 113: AI Remix Card
+            // 2: Effect Recommendation Card
+            // 4, 16: Platform Survey / Feedback Prompts
+            // 188..191: Creation Feed Cards (CapCut / Templates / Camera)
+            if (getCardInsertInfoMethod != null) {
+                Object cardInfo = getCardInsertInfoMethod.invoke(aweme);
+                if (cardInfo != null) {
+                    int cType = -1;
+                    if (getCardTypeMethod != null) {
+                        Object res = getCardTypeMethod.invoke(cardInfo);
+                        if (res instanceof Number) {
+                            cType = ((Number) res).intValue();
+                        }
+                    } else if (cardTypeField != null) {
+                        Object res = cardTypeField.get(cardInfo);
+                        if (res instanceof Number) {
+                            cType = ((Number) res).intValue();
+                        }
+                    }
+                    if (cType == 49 || cType == 120 || cType == 127 || cType == 84 ||
+                        cType == 176 || cType == 113 || cType == 2 || cType == 4 || cType == 16 ||
+                        (cType >= 188 && cType <= 191)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (Throwable ignored) {}
+        return false;
+    }
+
+    public static boolean isSuggestedAccount(Object aweme) {
+        return isFeedBloat(aweme);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void filterFeedBloatInList(Object listObj) {
+        if (!(listObj instanceof List)) return;
+        List<Object> items = (List<Object>) listObj;
+        if (items.isEmpty()) return;
+
+        synchronized (items) {
+            try {
+                if (!initialized) {
+                    for (Object item : items) {
+                        if (item != null) {
+                            ensureInitialized(item.getClass().getClassLoader());
+                            break;
+                        }
+                    }
+                }
+
+                int removed = 0;
+                Iterator<Object> iterator = items.iterator();
+                while (iterator.hasNext()) {
+                    Object item = iterator.next();
+                    if (isFeedBloat(item)) {
+                        iterator.remove();
+                        removed++;
+                    }
+                }
+                if (removed > 0) {
+                    Log.i(TAG, "[Feed Bloat Blocker] Pruned " + removed + " non-video bloat card(s) from feed.");
+                }
+            } catch (Throwable ignored) {}
+        }
+    }
+
+    public static void filterFeedBloatInFeedItemList(Object feedItemList) {
+        if (feedItemList == null) return;
+        try {
+            ensureInitialized(feedItemList.getClass().getClassLoader());
+            List<Object> items = extractFeedItems(feedItemList);
+            if (items != null) {
+                filterFeedBloatInList(items);
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    public static boolean isFollowFeedBloat(Object followItem) {
+        if (followItem == null) return false;
+        if (!initialized) {
+            ensureInitialized(followItem.getClass().getClassLoader());
+        }
+        if (awemeClass != null && awemeClass.isInstance(followItem)) {
+            return isFeedBloat(followItem);
+        }
+        if (isFollowItemLive(followItem)) {
+            // Live streams in Following feed belong to FeedLiveStreamBlockerPatch, not bloat blocker
+            return false;
+        }
+        if (followGetAwemeMethod == null && followAwemeField == null) {
+            return false;
+        }
+        Object aweme = extractAwemeFromFollowItem(followItem);
+        if (aweme == null) {
+            // Non-video, non-live recommendation cards in Following feed (e.g. suggested friends carousels)
+            return true;
+        }
+        if (isFeedBloat(aweme)) {
+            return true;
+        }
+        if (followGetFeedTypeMethod != null || followFeedTypeField != null) {
+            try {
+                int feedType = -1;
+                if (followGetFeedTypeMethod != null) {
+                    Object res = followGetFeedTypeMethod.invoke(followItem);
+                    if (res instanceof Number) feedType = ((Number) res).intValue();
+                } else if (followFeedTypeField != null) {
+                    Object res = followFeedTypeField.get(followItem);
+                    if (res instanceof Number) feedType = ((Number) res).intValue();
+                }
+                // Feed types >= 3 represent user recommendation / friend suggestion carousels
+                if (feedType >= 3) {
+                    return true;
+                }
+            } catch (Throwable ignored) {}
+        }
+        return false;
+    }
+
+    public static void filterFeedBloatInFollowFeedList(Object followFeedList) {
+        if (followFeedList == null) return;
+        try {
+            List<Object> items = extractFollowList(followFeedList);
+            if (items == null || items.isEmpty()) return;
+
+            synchronized (items) {
+                if (!initialized) {
+                    for (Object followItem : items) {
+                        if (followItem != null) {
+                            ensureInitialized(followItem.getClass().getClassLoader());
+                            break;
+                        }
+                    }
+                }
+
+                int removed = 0;
+                Iterator<Object> iterator = items.iterator();
+                while (iterator.hasNext()) {
+                    Object followItem = iterator.next();
+                    if (isFollowFeedBloat(followItem)) {
+                        iterator.remove();
+                        removed++;
+                    }
+                }
+                if (removed > 0) {
+                    Log.i(TAG, "[Feed Bloat Blocker] Pruned " + removed + " non-video bloat card(s) from Following feed.");
+                }
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    // Backward compatibility delegates
+    public static void filterSuggestedAccountsInList(Object listObj) {
+        filterFeedBloatInList(listObj);
+    }
+
+    public static void filterSuggestedAccountsInFeedItemList(Object feedItemList) {
+        filterFeedBloatInFeedItemList(feedItemList);
+    }
+
+    public static void filterSuggestedAccountsInFollowFeedList(Object followFeedList) {
+        filterFeedBloatInFollowFeedList(followFeedList);
     }
 
     // =========================================================================

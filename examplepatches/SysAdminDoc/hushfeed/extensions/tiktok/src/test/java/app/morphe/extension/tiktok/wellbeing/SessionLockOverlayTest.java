@@ -39,6 +39,9 @@ import org.robolectric.annotation.Config;
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE, sdk = 28)
+// Every other class that captures a view declares this; this one did not, and its published
+// capture was a black rectangle. Without it a draw into a bitmap is a no-op that throws nothing.
+@org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
 public class SessionLockOverlayTest {
     private final AtomicLong now = new AtomicLong();
 
@@ -435,6 +438,39 @@ public class SessionLockOverlayTest {
      * it ran. The countdown is the only thing that changes, so it is the only live region, and
      * nothing is written unless the words moved.
      */
+    /**
+     * The two ways out of the hold answer a press and show their focus, like every other control
+     * this bundle draws. They were flat, and unreachable by a d-pad below API 26. The pixel proof
+     * that the shared overlay helper changes on focus lives in OverlayControlsTest; this checks
+     * the hold's own two controls carry that background and can be focused at all.
+     */
+    @Test public void theHoldControlsAnswerAPressAndShowTheirFocus() throws Exception {
+        Settings.SESSION_BUDGET_VIDEOS.save(1);
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(5);
+        SessionBudget.noteVideo("a");
+        assertTrue(SessionBudget.claimNotice());
+
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            SessionLockOverlay.sync();
+
+            ViewGroup root = activity.findViewById(android.R.id.content);
+            ViewGroup panel = (ViewGroup) root.getChildAt(root.getChildCount() - 1);
+            View release = panel.getChildAt(3);
+            View messages = panel.getChildAt(4);
+
+            for (View control : new View[]{release, messages}) {
+                assertTrue("a hold control cannot be reached by a keyboard or d-pad",
+                        control.isFocusable());
+                android.graphics.drawable.Drawable background = control.getBackground();
+                assertTrue("a hold control has no ripple: " + (background == null ? "null"
+                                : background.getClass().getSimpleName()),
+                        background instanceof android.graphics.drawable.RippleDrawable);
+            }
+        }
+    }
+
     @Test public void theHoldIsNotReadOutAgainOnEveryTick() throws Exception {
         Settings.SESSION_BUDGET_VIDEOS.save(1);
         Settings.SESSION_BUDGET_LOCK_MINUTES.save(5);
@@ -583,6 +619,34 @@ public class SessionLockOverlayTest {
             assertTrue("the reminder took the focus", !banner.isFocusable());
 
             layout(root, 480, 960);
+
+            // Measured and laid out here exactly as the capture is about to do it, so what is
+            // asserted below is what will be drawn. Asserting against the parent's earlier pass
+            // proves nothing: a child that has been hidden or sized to nothing keeps its last
+            // measurement until something re-measures it, so a size assertion on stale numbers
+            // passes happily while the picture comes out empty.
+            banner.measure(View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(96, View.MeasureSpec.EXACTLY));
+            banner.layout(0, 0, 480, 96);
+
+            // What the picture is supposed to show, asserted rather than assumed. The capture
+            // used to be taken without anyone checking that the banner had a label, a size or
+            // any text in it, so a blank one looked exactly like a good one.
+            assertTrue("the banner has no content to draw",
+                    ((ViewGroup) banner).getChildCount() > 0);
+            android.widget.TextView label = (android.widget.TextView) ((ViewGroup) banner).getChildAt(0);
+            assertEquals("the words are not in the picture at all",
+                    View.VISIBLE, label.getVisibility());
+            String shown = label.getText().toString();
+            assertTrue("the reminder is not one of the three wordings: " + shown,
+                    shown.equals(SessionBudgetNotice.intervalMessage(0))
+                            || shown.equals(SessionBudgetNotice.intervalMessage(1))
+                            || shown.equals(SessionBudgetNotice.intervalMessage(2)));
+            assertTrue("the banner measured to nothing, so the capture would be empty",
+                    banner.getMeasuredWidth() > 0 && banner.getMeasuredHeight() > 0);
+            assertTrue("the label measured to nothing, so the words would not be in the picture",
+                    label.getMeasuredWidth() > 0 && label.getMeasuredHeight() > 0);
+
             app.morphe.extension.tiktok.UiCapture.save(banner, "session-reminder.png", 480, 96);
 
             // And it takes itself away rather than waiting to be dismissed.
@@ -747,6 +811,44 @@ public class SessionLockOverlayTest {
 
             assertTrue("a hold that survived the process being killed never came back",
                     root.getChildCount() > before);
+        }
+    }
+
+    /**
+     * Android 17 replaced the queue behind the main Looper. The countdown is a runnable that
+     * posts itself back a second ahead, so on a queue that delivered nothing it would run once
+     * and never again, with nothing failing. The tick is started here and left to the queue: a
+     * minute goes by on the budget's clock with nothing calling sync, and only a delivered tick
+     * can move the label.
+     */
+    @Test @Config(sdk = 37)
+    public void onAndroidSeventeenTheTickStillComesRoundOnItsOwn() throws Exception {
+        Settings.SESSION_BUDGET_VIDEOS.save(1);
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(5);
+        SessionBudget.noteVideo("a");
+        assertTrue(SessionBudget.claimNotice());
+
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            var looper = Shadows.shadowOf(android.os.Looper.getMainLooper());
+            SessionLockOverlay.ensureRunning();
+            looper.idle();
+
+            ViewGroup root = activity.findViewById(android.R.id.content);
+            ViewGroup panel = (ViewGroup) root.getChildAt(root.getChildCount() - 1);
+            android.widget.TextView remaining = (android.widget.TextView) panel.getChildAt(1);
+            AtomicInteger countdown = countWrites(remaining);
+            String first = remaining.getText().toString();
+
+            now.addAndGet(60_000L);
+            assertEquals("the countdown moved before a tick was delivered",
+                    first, remaining.getText().toString());
+
+            looper.idleFor(java.time.Duration.ofSeconds(1));
+            assertEquals("the tick did not come round", 1, countdown.get());
+            assertFalse("the countdown never moved, so this proves nothing",
+                    first.equals(remaining.getText().toString()));
         }
     }
 

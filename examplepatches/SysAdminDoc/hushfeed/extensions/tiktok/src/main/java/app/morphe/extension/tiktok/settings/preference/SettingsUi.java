@@ -1,3 +1,7 @@
+/*
+ * Copyright 2026 icysymmetra/tiktok-patches-for-morphe contributors
+ * https://github.com/icysymmetra/tiktok-patches-for-morphe
+ */
 package app.morphe.extension.tiktok.settings.preference;
 
 import static app.morphe.extension.shared.Utils.isDarkModeEnabled;
@@ -12,6 +16,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.RectF;
 import android.graphics.Rect;
@@ -79,6 +84,9 @@ public final class SettingsUi {
     public static final int RADIUS_CONTROL = 6;
     public static final int RADIUS_FIELD = 8;
     public static final int RADIUS_CARD = 10;
+
+    /** The focus ring's stroke, thick enough to read at arm's length on a phone. */
+    private static final int FOCUS_RING_DP = 2;
     public static final int RADIUS_OVERLAY = 12;
 
     /**
@@ -92,6 +100,12 @@ public final class SettingsUi {
      */
     public static final @ColorInt int OVERLAY_SCRIM = Color.argb(140, 0, 0, 0);
     public static final @ColorInt int OVERLAY_HAIRLINE = Color.argb(90, 255, 255, 255);
+    /**
+     * The scrim raised to carry a sentence. A chip holds one glyph and reads through the video
+     * at 55 percent; a banner holds a line of 14sp text and an action, which need the video
+     * mostly gone behind them.
+     */
+    public static final @ColorInt int OVERLAY_BANNER_SCRIM = Color.argb(220, 0, 0, 0);
     /** Text and glyphs on {@link #OVERLAY_SCRIM}: white on it is 12.6:1. */
     public static final @ColorInt int OVERLAY_TEXT = Color.WHITE;
 
@@ -172,6 +186,11 @@ public final class SettingsUi {
     public static void styleSwitch(Switch control) {
         Context context = control.getContext();
         StateListDrawable track = new StateListDrawable();
+        // Checked-and-disabled first, or the -state_enabled entry below answers for it and a
+        // greyed switch looks the same on as off: a reader cannot see what state it will come
+        // back in when the parent is turned on again.
+        track.addState(new int[]{-android.R.attr.state_enabled, android.R.attr.state_checked},
+                switchShape(context, (accent() & 0x00ffffff) | 0x66000000, 44, 26, 6));
         track.addState(new int[]{-android.R.attr.state_enabled}, switchShape(context, border(), 44, 26, 6));
         track.addState(new int[]{android.R.attr.state_checked}, switchShape(context, accent(), 44, 26, 6));
         track.addState(new int[]{}, switchShape(context, isDarkMode() ? Color.rgb(100, 100, 111) : Color.rgb(116, 116, 127), 44, 26, 6));
@@ -198,7 +217,8 @@ public final class SettingsUi {
 
     public static Drawable groupedRow(Context context, boolean first, boolean last) {
         return new RippleDrawable(ColorStateList.valueOf((accent() & 0x00ffffff) | 0x26000000),
-                new GroupRowDrawable(context, first, last), groupRowMask(context, first, last));
+                new GroupRowDrawable(context, first, last),
+                groupRowMask(context, first, last));
     }
 
     /**
@@ -222,15 +242,87 @@ public final class SettingsUi {
     }
 
     /**
+     * The ring a control wears while the focus is on it.
+     *
+     * <p>A ripple is the only thing these surfaces had, and a RippleDrawable paints
+     * {@code state_focused} as its own tint at 60% opacity: the accent at 15% alpha came out at
+     * about 9% over the surface, near enough 1.3:1, which is nothing to look at with a keyboard,
+     * a d-pad or switch access. The ring is the accent at full strength instead.
+     *
+     * <p>Selected as well as focused, for the same reason {@code pressAndFocus} takes both: a
+     * list moves a d-pad by marking a row selected rather than focusing it.
+     *
+     * <p>It draws its own inset rather than being wrapped in one. An {@code InsetDrawable}
+     * reports the inset as padding and a {@code LayerDrawable} nests a layer's inset into its
+     * padding, and a View hands its background's padding to itself: wrapping this cost every
+     * settings row a pixel on each side, which moved twenty-six tracked captures.
+     */
+    public static Drawable focusRing(Context context, int radiusDp) {
+        return new FocusRingDrawable(dp(context, radiusDp), dp(context, FOCUS_RING_DP));
+    }
+
+    /** A rounded stroke in the accent, painted inside its own bounds, while focused. */
+    private static final class FocusRingDrawable extends Drawable {
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final float radius;
+        private final float width;
+        private boolean lit;
+
+        FocusRingDrawable(float radius, float width) {
+            this.radius = radius;
+            this.width = width;
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(width);
+        }
+
+        @Override public void draw(Canvas canvas) {
+            if (!lit) return;
+            Rect bounds = getBounds();
+            float inset = width / 2f;
+            if (bounds.width() <= width || bounds.height() <= width) return;
+            paint.setColor(accent());
+            canvas.drawRoundRect(new RectF(bounds.left + inset, bounds.top + inset,
+                            bounds.right - inset, bounds.bottom - inset),
+                    Math.max(0f, radius - inset), Math.max(0f, radius - inset), paint);
+        }
+
+        @Override public boolean isStateful() { return true; }
+
+        @Override protected boolean onStateChange(int[] stateSet) {
+            boolean next = false;
+            for (int state : stateSet) {
+                if (state == android.R.attr.state_focused || state == android.R.attr.state_selected) {
+                    next = true;
+                    break;
+                }
+            }
+            if (next == lit) return false;
+            lit = next;
+            invalidateSelf();
+            return true;
+        }
+
+        @Override public void setAlpha(int alpha) { paint.setAlpha(alpha); }
+        @Override public void setColorFilter(ColorFilter filter) { paint.setColorFilter(filter); }
+        @Override public int getOpacity() { return PixelFormat.TRANSLUCENT; }
+    }
+
+    /**
      * The check mark the dialogs draw, for a surface that has to show a choice without a dialog.
      *
      * <p>Drawn rather than typed, like every other glyph on this screen, so it keeps its weight
      * at any font scale. Returned already checked: a caller that has nothing to mark hides it.
      */
+    /** The radio the standard single-choice dialogs draw, drawn chosen, for a row with no state of its own. */
+    public static Drawable radioMark(Context context) {
+        return new DialogCheckMarkDrawable(context, true, true);
+    }
+
     public static Drawable checkMark(Context context) {
-        DialogCheckMarkDrawable mark = new DialogCheckMarkDrawable(context, false);
-        mark.setState(new int[]{android.R.attr.state_checked});
-        return mark;
+        // Pinned, not set through a state: an ImageView hands a stateful drawable its own
+        // state the moment it is set, and no ImageView state carries state_checked, so a mark
+        // that listened would be unchecked before it was ever drawn.
+        return new DialogCheckMarkDrawable(context, false, true);
     }
 
     /**
@@ -247,9 +339,13 @@ public final class SettingsUi {
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final boolean first, last;
         private final float radius, inset;
+        private final Context context;
         /** Selected, as {@code View.setActivated} sets it. Repainted when it changes. */
         private boolean activated;
+        /** Focused, or selected the way a list marks the row a d-pad is on. */
+        private boolean focused;
         GroupRowDrawable(Context context, boolean first, boolean last) {
+            this.context = context;
             this.first = first;
             this.last = last;
             radius = dp(context, 10);
@@ -279,6 +375,29 @@ public final class SettingsUi {
                 paint.setColor(divider());
                 canvas.drawLine(bounds.left + inset, bottom - 0.5f, bounds.right - inset, bottom - 0.5f, paint);
             }
+            if (focused) {
+                // Last, and with its own stroke width: this Paint is shared, and a ring drawn
+                // before the divider left the divider at the ring's width, which on a 3x screen
+                // is a six pixel grey bar under every focused row of a card.
+                float width = dp(context, FOCUS_RING_DP);
+                float inset = width / 2f;
+                // Against the row's own box rather than the card frame. A middle row's frame
+                // runs a radius past the top and bottom of the clip, so a ring drawn on it kept
+                // only its two vertical edges and the reader saw a pair of bars, no ring.
+                RectF ring = new RectF(bounds.left + inset, top + inset,
+                        bounds.right - inset, bottom - inset);
+                float outer = Math.max(0f, radius - inset);
+                float head = first ? outer : 0f;
+                float foot = last ? outer : 0f;
+                // Clockwise from the top left, two values per corner: rounded only where the
+                // card is, square where this row meets its neighbour.
+                Path path = new Path();
+                path.addRoundRect(ring, new float[]{head, head, head, head,
+                        foot, foot, foot, foot}, Path.Direction.CW);
+                paint.setStrokeWidth(width);
+                paint.setColor(accent());
+                canvas.drawPath(path, paint);
+            }
             canvas.restore();
         }
         /**
@@ -288,15 +407,17 @@ public final class SettingsUi {
          */
         @Override public boolean isStateful() { return true; }
         @Override protected boolean onStateChange(int[] stateSet) {
-            boolean next = false;
+            boolean nextActivated = false;
+            boolean nextFocused = false;
             for (int state : stateSet) {
-                if (state == android.R.attr.state_activated) {
-                    next = true;
-                    break;
+                if (state == android.R.attr.state_activated) nextActivated = true;
+                if (state == android.R.attr.state_focused || state == android.R.attr.state_selected) {
+                    nextFocused = true;
                 }
             }
-            if (next == activated) return false;
-            activated = next;
+            if (nextActivated == activated && nextFocused == focused) return false;
+            activated = nextActivated;
+            focused = nextFocused;
             invalidateSelf();
             return true;
         }
@@ -523,6 +644,16 @@ public final class SettingsUi {
     }
 
     /**
+     * The backdrop of a banner drawn over a video: the chip's radius and hairline on the
+     * raised scrim, so the Undo banner reads as one family with the controls beside it.
+     */
+    public static GradientDrawable overlayBanner(Context context) {
+        GradientDrawable banner = overlayChip(context, RADIUS_OVERLAY);
+        banner.setColor(OVERLAY_BANNER_SCRIM);
+        return banner;
+    }
+
+    /**
      * A control drawn over a video, with the press and focus states the settings rows have.
      *
      * <p>Every control this bundle draws inside TikTok looked identical before, during and after
@@ -552,17 +683,36 @@ public final class SettingsUi {
      * page rather than part of it.
      */
     public static Drawable overlayAction(Context context, int radiusDp) {
-        return overlayControl(context, radiusDp, null, new ColorDrawable(Color.TRANSPARENT));
+        return overlayControl(context, radiusDp, null, new ColorDrawable(Color.TRANSPARENT),
+                OVERLAY_TEXT, OVERLAY_HAIRLINE);
+    }
+
+    /**
+     * The same press and focus pair in the colour of the surface it sits on.
+     *
+     * <p>For an action drawn onto one of TikTok's own surfaces rather than over the video: the
+     * inbox header and the sticker sheet follow the app's theme, so a white ring and a white
+     * ripple vanish on them in the light theme. The tone is the text colour the host paints
+     * there, which is by definition visible against its background.
+     */
+    public static Drawable overlayAction(Context context, int radiusDp, @ColorInt int tone) {
+        return overlayControl(context, radiusDp, null, new ColorDrawable(Color.TRANSPARENT),
+                tone, (tone & 0x00ffffff) | 0x40000000);
     }
 
     private static Drawable overlayControl(Context context, int radiusDp, Drawable glyph,
             Drawable backdrop) {
+        return overlayControl(context, radiusDp, glyph, backdrop, OVERLAY_TEXT, OVERLAY_HAIRLINE);
+    }
+
+    private static Drawable overlayControl(Context context, int radiusDp, Drawable glyph,
+            Drawable backdrop, @ColorInt int ringColor, @ColorInt int rippleColor) {
         GradientDrawable ring = new GradientDrawable();
         ring.setShape(GradientDrawable.RECTANGLE);
         ring.setCornerRadius(dp(context, radiusDp));
         ring.setStroke(Math.max(2, dp(context, 2)), new ColorStateList(
                 new int[][]{new int[]{android.R.attr.state_focused}, new int[0]},
-                new int[]{OVERLAY_TEXT, Color.TRANSPARENT}));
+                new int[]{ringColor, Color.TRANSPARENT}));
 
         Drawable content = glyph == null
                 ? new LayerDrawable(new Drawable[]{backdrop, ring})
@@ -572,7 +722,7 @@ public final class SettingsUi {
         mask.setShape(GradientDrawable.RECTANGLE);
         mask.setCornerRadius(dp(context, radiusDp));
         mask.setColor(Color.WHITE);
-        return new RippleDrawable(ColorStateList.valueOf(OVERLAY_HAIRLINE), content, mask);
+        return new RippleDrawable(ColorStateList.valueOf(rippleColor), content, mask);
     }
 
     public static void styleDialog(Dialog dialog) {
@@ -745,11 +895,94 @@ public final class SettingsUi {
      */
     public static void styleTextAction(TextView button, boolean primary) {
         button.setTextColor(enabledTextColors(primary ? accent() : textSecondary()));
-        button.setTypeface(button.getTypeface(), primary ? Typeface.BOLD : Typeface.NORMAL);
+        // From the typeface's plain face, not from whatever the button already wears.
+        // setTypeface(tf, NORMAL) takes the else branch and keeps the face it is handed, so a
+        // button built bold and then styled secondary stayed bold and went on reading as the
+        // action to take. The two callers that do want a bold secondary say so afterwards.
+        button.setTypeface(Typeface.create(button.getTypeface(), Typeface.NORMAL),
+                primary ? Typeface.BOLD : Typeface.NORMAL);
         button.setMinimumHeight(dp(button.getContext(), 48));
         button.setMinimumWidth(dp(button.getContext(), 48));
         button.setGravity(android.view.Gravity.CENTER);
+        // Colour, weight, size and the button role, and until now nothing at all to show a press
+        // or say where the focus is. Add, Remove, Save, Cancel, Select every tab, the Lab's tabs
+        // and its four selection actions all went through here and all of them were flat.
+        button.setBackground(pressAndFocus(button.getContext(), RADIUS_CONTROL,
+                new ColorDrawable(Color.TRANSPARENT)));
+        button.setFocusable(true);
         markAsButton(button);
+    }
+
+    /**
+     * A row of text actions that wraps onto another line rather than running off the edge.
+     *
+     * <p>A horizontal {@link android.widget.LinearLayout} hands each child what is left of the
+     * width, so once the labels are wider than the row the later ones are measured at nothing
+     * and squeezed to their minimum with their words cut. That is not a large-text problem
+     * alone: four German labels at ordinary size already overflow a 360dp phone. Lines are laid
+     * out towards the end of the row, which is where a row of actions belongs in either
+     * direction.
+     */
+    public static ViewGroup actionRow(Context context) {
+        return new ActionFlow(context);
+    }
+
+    /**
+     * A bordered surface that answers a press and says when it holds focus.
+     *
+     * <p>For the controls that are a frame rather than a word: the Lab's search row, its filter
+     * button and the detail page's value spinner. The border is the one the resting surface has
+     * and the accent while the control has focus, so the shape does not move under the reader.
+     */
+    public static Drawable focusableSurface(Context context, int radiusDp, boolean lifted) {
+        GradientDrawable surface = roundedSurface(context, radiusDp, lifted);
+        surface.setStroke(Math.max(1, dp(context, 1)), new ColorStateList(
+                new int[][]{new int[]{android.R.attr.state_focused}, new int[0]},
+                new int[]{accent(), border()}));
+        return pressAndFocus(context, radiusDp, surface);
+    }
+
+    /**
+     * The shared press and focus pair: a ripple over the content, and an accent wash while the
+     * control holds focus. One drawable, so the two states cannot be given to one control and
+     * forgotten on the next.
+     */
+    /** The same pair over a fill the caller built, for a control that repaints itself. */
+    public static Drawable pressAndFocusOver(Context context, int radiusDp, Drawable content) {
+        return pressAndFocus(context, radiusDp, content);
+    }
+
+    /**
+     * A row in a hand-built list, with the press and focus the settings rows have.
+     *
+     * <p>The SIM preset list and the tab checklist painted each row an opaque colour, and a
+     * ListView draws its selector underneath the item, so the one press highlight those rows
+     * could have had was hidden by the fill covering it.
+     *
+     * @param fill the row's own colour, painted under the states.
+     */
+    public static Drawable listRow(Context context, @ColorInt int fill) {
+        return pressAndFocus(context, 0, new ColorDrawable(fill));
+    }
+
+    private static Drawable pressAndFocus(Context context, int radiusDp, Drawable content) {
+        GradientDrawable focus = new GradientDrawable();
+        focus.setShape(GradientDrawable.RECTANGLE);
+        focus.setCornerRadius(dp(context, radiusDp));
+        // Selected as well as focused: a ListView never focuses its rows, it marks the one the
+        // d-pad is on as selected and draws its own selector underneath, where an opaque row
+        // fill covers it. The wash is the row's own answer to that.
+        focus.setColor(new ColorStateList(
+                new int[][]{new int[]{android.R.attr.state_focused},
+                        new int[]{android.R.attr.state_selected}, new int[0]},
+                new int[]{activatedFill(), activatedFill(), Color.TRANSPARENT}));
+
+        GradientDrawable mask = new GradientDrawable();
+        mask.setShape(GradientDrawable.RECTANGLE);
+        mask.setCornerRadius(dp(context, radiusDp));
+        mask.setColor(Color.WHITE);
+        return new RippleDrawable(ColorStateList.valueOf(activatedFill()),
+                new LayerDrawable(new Drawable[]{content, focus}), mask);
     }
 
     /**
@@ -818,15 +1051,50 @@ public final class SettingsUi {
         });
     }
 
+    /**
+     * Puts a refused value's reason where the reader will get it: on the field, with the focus
+     * moved there, and said aloud.
+     *
+     * <p>Save was the focused view when the check ran, and Android reads a field's error only
+     * while the field itself holds focus, so a TalkBack user heard nothing and was left with a
+     * dialog that would not close. Every dialog's report goes through here so the three cannot
+     * drift apart again.
+     */
+    public static void reportFieldError(EditText field, String problem) {
+        if (field == null) return;
+        field.setError(problem);
+        field.requestFocus();
+        field.announceForAccessibility(problem);
+    }
+
+    /**
+     * A text field, with an underline that says whether typing will land in it.
+     *
+     * <p>The tint had two states, disabled and everything else, so a field at rest wore the same
+     * accent underline as the one holding the cursor. In the Min and Max dialog that means two
+     * accent underlines and one caret to tell them apart, and the same on the search box and
+     * every other editor on this screen. Focused keeps the accent; at rest the line drops to the
+     * quieter colour, which is still a line, just not a claim to have the keyboard.
+     *
+     * <p>The quieter colour is {@link #border()} rather than {@link #textSecondary()}, measured
+     * rather than chosen: against the surface the secondary text colour reads 8.0:1 in the dark
+     * theme and 7.1:1 in the light one, where the accent reads 6.0:1 and 6.4:1, so a resting
+     * field would have been the more prominent of the two, and the pair would differ by 1.33:1
+     * and 1.10:1, which in the light theme is no difference at all for a reader who cannot
+     * separate the hues. The border colour reads 1.5:1 against the surface and 3.9:1 against the
+     * accent in both themes, which is the order this is for: the field with the cursor is the
+     * loud one.
+     */
     public static void styleEditText(EditText editText) {
         editText.setTextColor(enabledTextColors(textPrimary()));
         editText.setHintTextColor(enabledTextColors(textSecondary()));
         editText.setBackgroundTintList(new ColorStateList(
                 new int[][]{
                         new int[]{-android.R.attr.state_enabled},
+                        new int[]{android.R.attr.state_focused},
                         new int[]{}
                 },
-                new int[]{border(), accent()}
+                new int[]{border(), accent(), border()}
         ));
     }
 
@@ -878,6 +1146,81 @@ public final class SettingsUi {
         button.setButtonTintList(new ColorStateList(states, colors));
     }
 
+    /** Lays its children out in rows, breaking to a new one when the next child will not fit. */
+    private static final class ActionFlow extends ViewGroup {
+        ActionFlow(Context context) {
+            super(context);
+        }
+
+        @Override
+        protected void onMeasure(int widthSpec, int heightSpec) {
+            int available = Math.max(0, MeasureSpec.getSize(widthSpec)
+                    - getPaddingLeft() - getPaddingRight());
+            int childWidthSpec = MeasureSpec.makeMeasureSpec(available, MeasureSpec.AT_MOST);
+            int childHeightSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+            int lineWidth = 0;
+            int lineHeight = 0;
+            int widest = 0;
+            int height = 0;
+            for (int index = 0; index < getChildCount(); index++) {
+                View child = getChildAt(index);
+                if (child.getVisibility() == GONE) continue;
+                measureChild(child, childWidthSpec, childHeightSpec);
+                int width = child.getMeasuredWidth();
+                if (lineWidth > 0 && lineWidth + width > available) {
+                    widest = Math.max(widest, lineWidth);
+                    height += lineHeight;
+                    lineWidth = 0;
+                    lineHeight = 0;
+                }
+                lineWidth += width;
+                lineHeight = Math.max(lineHeight, child.getMeasuredHeight());
+            }
+            widest = Math.max(widest, lineWidth);
+            height += lineHeight;
+            setMeasuredDimension(
+                    resolveSize(widest + getPaddingLeft() + getPaddingRight(), widthSpec),
+                    resolveSize(height + getPaddingTop() + getPaddingBottom(), heightSpec));
+        }
+
+        @Override
+        protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+            int available = Math.max(0, getWidth() - getPaddingLeft() - getPaddingRight());
+            boolean rtl = getLayoutDirection() == LAYOUT_DIRECTION_RTL;
+            int y = getPaddingTop();
+            int index = 0;
+            while (index < getChildCount()) {
+                // Gather the line first: where it starts depends on how wide it turns out.
+                int lineWidth = 0;
+                int lineHeight = 0;
+                int taken = 0;
+                for (int i = index; i < getChildCount(); i++) {
+                    View child = getChildAt(i);
+                    if (child.getVisibility() == GONE) {
+                        taken++;
+                        continue;
+                    }
+                    int width = child.getMeasuredWidth();
+                    if (lineWidth > 0 && lineWidth + width > available) break;
+                    lineWidth += width;
+                    lineHeight = Math.max(lineHeight, child.getMeasuredHeight());
+                    taken++;
+                }
+                if (taken == 0) break;
+                int x = getPaddingLeft() + (rtl ? 0 : available - lineWidth);
+                for (int i = index; i < index + taken; i++) {
+                    View child = getChildAt(i);
+                    if (child.getVisibility() == GONE) continue;
+                    child.layout(x, y, x + child.getMeasuredWidth(),
+                            y + child.getMeasuredHeight());
+                    x += child.getMeasuredWidth();
+                }
+                y += lineHeight;
+                index += taken;
+            }
+        }
+    }
+
     private static final class DialogCheckMarkDrawable extends Drawable {
         private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint stroke = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -885,13 +1228,21 @@ public final class SettingsUi {
         private final float boxSize;
         private final float radius;
         private final boolean radio;
+        /** Drawn checked whatever state it is handed, for a surface with no state to give it. */
+        private final boolean pinned;
         private boolean checked;
 
         DialogCheckMarkDrawable(Context context, boolean radio) {
+            this(context, radio, false);
+        }
+
+        DialogCheckMarkDrawable(Context context, boolean radio, boolean pinnedChecked) {
             intrinsicSize = dp(context, 32);
             boxSize = dp(context, 18);
             radius = dp(context, 2);
             this.radio = radio;
+            this.pinned = pinnedChecked;
+            this.checked = pinnedChecked;
             stroke.setStyle(Paint.Style.STROKE);
             stroke.setStrokeWidth(Math.max(2, dp(context, 2)));
             stroke.setStrokeCap(Paint.Cap.ROUND);
@@ -934,6 +1285,7 @@ public final class SettingsUi {
 
         @Override
         protected boolean onStateChange(int[] stateSet) {
+            if (pinned) return false;
             boolean nextChecked = false;
             for (int state : stateSet) {
                 if (state == android.R.attr.state_checked) {
@@ -951,7 +1303,7 @@ public final class SettingsUi {
 
         @Override
         public boolean isStateful() {
-            return true;
+            return !pinned;
         }
 
         @Override

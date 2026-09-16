@@ -44,7 +44,6 @@ Second \"item\" text"</string>
   <string name="morphe_check_watch_history_domain_name_dialog_ignore">फेर सँ नाहीं देखाउ</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">वीडियो स्ट्रीम स्पूफ करू</string>
-  <string name="morphe_spoof_video_streams_title">वीडियो स्ट्रीम स्पूफ करू</string>
   <string name="morphe_spoof_video_streams_no_clients_toast">क्लाइंट स्ट्रीम प्राप्त कर सकल नाहीं</string>
   <string name="morphe_spoof_video_streams_user_dialog_message">एहि सेटिंग बंद करबा से प्लेबैक समस्या हो सकैत अछि।</string>
   <!-- 'Spoof video streams' must use the same translation as morphe_spoof_video_streams_title.

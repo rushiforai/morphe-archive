@@ -20,11 +20,13 @@ object Constants {
     private val NATIVE_XR_STEAM_LINK_BUILDS = listOf(
         SteamLinkBuild("2.0.22", 5002318),
         SteamLinkBuild("2.0.22", 5002322),
+        SteamLinkBuild("2.0.23", 5002363),
     )
     private val FULL_FACEBRIDGE_STEAM_LINK_BUILDS =
         LEGACY_STEAM_LINK_BUILDS + SteamLinkBuild("2.0.22", 5002318)
     private val MODERN_TONGUE_BRIDGE_STEAM_LINK_BUILDS = listOf(
         SteamLinkBuild("2.0.22", 5002322),
+        SteamLinkBuild("2.0.23", 5002363),
     )
     private val HIGH_RESOLUTION_STEAM_LINK_BUILDS = listOf(
         SteamLinkBuild("2.0.20", 5001712),
@@ -33,6 +35,7 @@ object Constants {
         SteamLinkBuild("2.0.22", 5002313),
         SteamLinkBuild("2.0.22", 5002318),
         SteamLinkBuild("2.0.22", 5002322),
+        SteamLinkBuild("2.0.23", 5002363),
     )
     private val LEGACY_RECOMMENDED_STEAM_LINK_BUILDS = listOf(
         SteamLinkBuild("2.0.20", 5001740),
@@ -90,6 +93,8 @@ object Constants {
         description: String = if (build.versionCode == 5001740) {
             "Static-analysis adaptation for Steam Link ${build.version} build ${build.versionCode}; " +
                 "pristine-APK patching and runtime validation remain pending."
+        } else if (build == SteamLinkBuild("2.0.23", 5002363)) {
+            "Native and APK adaptation for exact Steam Link 2.0.23 build 5002363; headset validation pending."
         } else {
             "Verified Steam Link ${build.version} build ${build.versionCode}."
         },
@@ -114,11 +119,12 @@ object Constants {
         NATIVE_XR_STEAM_LINK_BUILDS.map { build ->
             steamLinkBuildCompatibility(
                 build = build,
-                description = if (build.versionCode == 5002322) {
-                    "Build 5002322 recommends Galaxy XR high-resolution 3-projection fix, GXR tongue bridge, " +
+                description = if (build in MODERN_TONGUE_BRIDGE_STEAM_LINK_BUILDS) {
+                    "Build ${build.versionCode} recommends Galaxy XR high-resolution 3-projection fix, GXR tongue bridge, " +
                         "Microphone input preset (Voice Recognition), Unrestricted battery usage, " +
                         "Visual Delay Fix (60 ms), and OLED color calibration with the Final balanced tested profile. " +
-                        "The retired projection experiments are excluded."
+                        "The retired projection experiments are excluded. " +
+                        if (build.versionCode == 5002363) "Decoded-base adaptation; headset validation pending." else ""
                 } else {
                     "Build ${build.versionCode} recommends its native-Android-XR-safe set: Galaxy XR " +
                         "high-resolution 3-projection fix, Device identity, Microphone input preset, OLED color " +
@@ -131,11 +137,13 @@ object Constants {
     val COMPATIBILITIES_STEAM_LINK =
         COMPATIBILITIES_STEAM_LINK_LEGACY + COMPATIBILITIES_STEAM_LINK_NATIVE_XR
 
-    // Retained for individual patches that are verified only before the latest exact build.
+    // Historical legacy-only scope: adding a newer native base must not re-enable these patches.
     val COMPATIBILITIES_STEAM_LINK_BEFORE_LATEST =
         COMPATIBILITIES_STEAM_LINK.filterNot { compatibility ->
             compatibility.targets.any { target ->
-                target.version == "2.0.22" && target.versionCodes?.values?.contains(5002322) == true
+                MODERN_TONGUE_BRIDGE_STEAM_LINK_BUILDS.any { build ->
+                    target.version == build.version && target.versionCodes?.values?.contains(build.versionCode) == true
+                }
             }
         }
 
@@ -150,7 +158,11 @@ object Constants {
         }
 
     val COMPATIBILITIES_STEAM_LINK_MODERN_TONGUE_BRIDGE =
-        COMPATIBILITIES_STEAM_LINK_5002322
+        MODERN_TONGUE_BRIDGE_STEAM_LINK_BUILDS.map(::steamLinkBuildCompatibility)
+
+    val COMPATIBILITIES_STEAM_LINK_5002363 =
+        NATIVE_XR_STEAM_LINK_BUILDS.filter { it == SteamLinkBuild("2.0.23", 5002363) }
+            .map(::steamLinkBuildCompatibility)
 
     val COMPATIBILITIES_STEAM_LINK_5002318 =
         COMPATIBILITIES_STEAM_LINK_NATIVE_XR.filter { compatibility ->

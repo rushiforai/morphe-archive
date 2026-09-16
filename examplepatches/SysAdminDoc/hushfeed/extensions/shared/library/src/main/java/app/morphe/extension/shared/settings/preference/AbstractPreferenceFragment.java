@@ -1,3 +1,11 @@
+/*
+ * Forked from MorpheApp/morphe-patches (GPL-3.0), by way of
+ * icysymmetra/tiktok-patches-for-morphe.
+ * https://github.com/MorpheApp/morphe-patches
+ *
+ * Imported carrying no notice of its own. Morphe hard forked ReVanced, so parts of
+ * this file may originate there.
+ */
 package app.morphe.extension.shared.settings.preference;
 
 import static app.morphe.extension.shared.StringRef.str;
@@ -27,6 +35,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.Objects;
+import java.util.Set;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Collections;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
@@ -113,6 +126,49 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
     private static boolean updatingPreference;
 
     /**
+     * The keys of settings changed in this process that only take effect after a restart.
+     *
+     * <p>A toast said so once and vanished, and nothing afterwards said a restart was still
+     * owed, so a switch that "did nothing" was reported as broken. Process-wide, and cleared
+     * by the process ending, which is the only thing that clears the debt.
+     */
+    public static final Set<String> restartPending =
+            Collections.synchronizedSet(new LinkedHashSet<>());
+
+    /**
+     * The value each restart-gated setting had when this process last read it: what the app is
+     * actually running with, whatever the store says now.
+     */
+    private static final Map<String, Object> runningValues =
+            Collections.synchronizedMap(new HashMap<>());
+
+    /**
+     * Records a change that waits on a restart, or clears one, then gives the page a chance to
+     * say so.
+     *
+     * <p>A switch flipped on and back off owes nothing: the process already runs the value the
+     * store holds. The value before the first change to a key is the running one, and a later
+     * change that lands back on it takes the key out of the debt.
+     *
+     * @param valueBefore the setting's value before this change was applied.
+     */
+    protected void noteRestartPending(Setting<?> setting, Object valueBefore) {
+        if (setting == null || !setting.rebootApp) return;
+        Object running;
+        synchronized (runningValues) {
+            if (!runningValues.containsKey(setting.key)) runningValues.put(setting.key, valueBefore);
+            running = runningValues.get(setting.key);
+        }
+        if (Objects.equals(running, setting.get())) restartPending.remove(setting.key);
+        else restartPending.add(setting.key);
+        onRestartPendingChanged();
+    }
+
+    /** The page's chance to show that a restart is owed. */
+    protected void onRestartPendingChanged() {
+    }
+
+    /**
      * Used to prevent showing reboot dialog, if user cancels a setting user dialog.
      */
     private static boolean showingUserDialogMessage;
@@ -150,6 +206,8 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
                 return;
             }
             Logger.printDebug(() -> "Preference changed: " + key);
+            // Read before the Setting takes the new value: this is what the process runs with.
+            Object valueBefore = setting.get();
 
             updatingPreference = true;
             if (!settingImportInProgress) {
@@ -174,7 +232,10 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
             // Update any other preference availability that may now be different.
             updateUIAvailability();
             // Report success only after every operation that can still enter recovery succeeded.
-            if (showRestartAfterUpdate) showRestartDialog(getContext());
+            if (showRestartAfterUpdate) {
+                noteRestartPending(setting, valueBefore);
+                showRestartDialog(getContext());
+            }
         } catch (Exception ex) {
             // This path owns a localized outcome below, so logging must not add a second toast.
             Logger.printInfo(() -> "OnSharedPreferenceChangeListener failure", ex);
@@ -301,12 +362,14 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
                 null, // OK button text.
                 () -> {
                     // OK button action. User confirmed, save to the Setting.
+                    Object valueBefore = setting.get();
                     updatePreference(pref, setting, true, false);
 
                     // Update availability of other preferences that may be changed.
                     updateUIAvailability();
 
                     if (setting.rebootApp) {
+                        noteRestartPending(setting, valueBefore);
                         showRestartDialog(context);
                     }
                 },

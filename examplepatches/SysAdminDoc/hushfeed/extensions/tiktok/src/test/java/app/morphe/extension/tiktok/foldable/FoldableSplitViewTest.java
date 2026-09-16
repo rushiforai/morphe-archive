@@ -20,6 +20,15 @@ import org.robolectric.annotation.GraphicsMode;
 @Config(sdk = {28, 30}, qualifiers = "w700dp-h900dp")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class FoldableSplitViewTest {
+    /**
+     * The newest API above, and the only run that publishes a picture.
+     *
+     * <p>Both runs used to write foldable-settings.png, so which one ended up in assets depended
+     * on which finished last. Guarded at the call site rather than by pinning the method to one
+     * API, which would give up the API 28 run of everything else the case asserts.
+     */
+    private static final int PUBLISHED_CAPTURE_SDK = 30;
+
     public static class TestActivity extends android.preference.PreferenceActivity {
         @Override public void onCreate(android.os.Bundle state) {
             setTheme(android.R.style.Theme_Material_NoActionBar);
@@ -91,7 +100,10 @@ public class FoldableSplitViewTest {
             width.setValue("600");
             activity.setPreferenceScreen(screen);
             org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
-            app.morphe.extension.tiktok.UiCapture.save(activity.getWindow().getDecorView(), "foldable-settings.png");
+            if (android.os.Build.VERSION.SDK_INT == PUBLISHED_CAPTURE_SDK) {
+                app.morphe.extension.tiktok.UiCapture.save(
+                        activity.getWindow().getDecorView(), "foldable-settings.png");
+            }
         }
     }
 }

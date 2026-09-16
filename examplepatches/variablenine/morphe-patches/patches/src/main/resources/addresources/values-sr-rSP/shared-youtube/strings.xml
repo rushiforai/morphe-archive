@@ -75,7 +75,6 @@ Second \"item\" text"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Лажирани видео стримови</string>
   <string name="morphe_spoof_video_streams_screen_summary">Конфигуришите лажирање клијента да бисте избегли проблеме са репродукцијом</string>
-  <string name="morphe_spoof_video_streams_title">Лажирани видео стримови</string>
   <string name="morphe_spoof_video_streams_summary">"Решава проблеме са репродукцијом за већину корисника захтевајући компатибилан видео стрим
 
 Ако сте корисник YouTube Premium-а, ова поставка вам можда неће бити потребна."</string>

@@ -1,3 +1,44 @@
+## [1.66.0](https://github.com/legendsciber/morphe-patches/compare/v1.65.0...v1.66.0) (2026-09-15)
+
+### ✨ New Features
+
+* scanner v3 - safe memory read with SIGSEGV handler ([f7f007a](https://github.com/legendsciber/morphe-patches/commit/f7f007a01c2bfa040d24cb3849c15a541d03fc28))
+
+## [1.65.0](https://github.com/legendsciber/morphe-patches/compare/v1.64.0...v1.65.0) (2026-09-15)
+
+### ✨ New Features
+
+* scanner v2 - delayed periodic scan with int32/int64 ([3b9e3ec](https://github.com/legendsciber/morphe-patches/commit/3b9e3ec75a7be761cc411ae21ed4b03a472bbd4d))
+
+## [1.64.0](https://github.com/legendsciber/morphe-patches/compare/v1.63.2...v1.64.0) (2026-09-15)
+
+### ✨ New Features
+
+* add memory scanner .so for offset discovery ([9cc4de9](https://github.com/legendsciber/morphe-patches/commit/9cc4de96082827122869be67e4a043b272450a54))
+
+## [1.63.2](https://github.com/legendsciber/morphe-patches/compare/v1.63.1...v1.63.2) (2026-09-15)
+
+### 🐛 Bug Fixes
+
+* recompile libsf2hook.so with Android NDK (Bionic libc) ([201c542](https://github.com/legendsciber/morphe-patches/commit/201c542837f9cf33a128739edde1d106cd587b8d))
+* use signed byte values in regenerated SoBytes.kt ([fb79850](https://github.com/legendsciber/morphe-patches/commit/fb79850c5eaaaf2f8199916eea077c4d8c9bd3ec))
+
+## [1.63.1](https://github.com/legendsciber/morphe-patches/compare/v1.63.0...v1.63.1) (2026-09-15)
+
+### 🐛 Bug Fixes
+
+* target NekkiUnityPlayerActivity after R8 inlined FCM class ([124d94b](https://github.com/legendsciber/morphe-patches/commit/124d94b286f44cc5a32ed1fc643d23a41414a9c8))
+
+## [1.63.0](https://github.com/legendsciber/morphe-patches/compare/v1.62.2...v1.63.0) (2026-09-15)
+
+### 🐛 Bug Fixes
+
+* use signed byte values in SoBytes.kt for Kotlin compatibility ([b5d9020](https://github.com/legendsciber/morphe-patches/commit/b5d90201914f1feb5ea00f420b71c5cfabc592ea))
+
+### ✨ New Features
+
+* **sf2:** native .so injection for unlimited currency ([fb8b725](https://github.com/legendsciber/morphe-patches/commit/fb8b725a97c10e3718a8811d82cb03b1724920a3))
+
 ## [1.62.2](https://github.com/legendsciber/morphe-patches/compare/v1.62.1...v1.62.2) (2026-09-13)
 
 ### 🐛 Bug Fixes

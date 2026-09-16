@@ -1,3 +1,7 @@
+/*
+ * Forked from:
+ * https://gitlab.com/ReVanced/revanced-patches/-/blob/main/extensions/tiktok/src/main/java/app/revanced/extension/tiktok/feedfilter/FeedItemsFilter.java
+ */
 package app.morphe.extension.tiktok.feedfilter;
 
 import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
@@ -21,6 +25,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class FeedItemsFilter {
@@ -65,6 +71,17 @@ public final class FeedItemsFilter {
     private static final int MAX_NULL_ITEMS_LOGS = 3;
     private static final int MAX_BATCH_LOGS = 10;
     private static final int MAX_ITEM_LOGS = 50;
+    /**
+     * Lines for items a profile or insertion route kept, with logging on. Its own budget, so
+     * a profile of two hundred videos cannot spend the one the removed items draw on. Issue
+     * #2's ads were kept, and the removed-only log could never show what they looked like.
+     */
+    private static final int MAX_KEPT_ITEM_LOGS = 200;
+    private static final AtomicInteger keptItemLogCount = new AtomicInteger();
+    /** Classes already named as not being videos; one line per class, not per item. */
+    private static final Set<String> NOT_VIDEO_CLASSES =
+            Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private static final int MAX_NOT_VIDEO_CLASSES = 16;
     private static final boolean FILTER_CALL_PROBE_ENABLED = true;
     private static final boolean FILTER_CALL_PROBE_STACKS = false;
     private static final boolean FILTER_CALL_PROBE_SUMMARY_ENABLED = true;
@@ -100,6 +117,8 @@ public final class FeedItemsFilter {
 
     /** Clears process-wide probe state between deterministic runtime tests. */
     static void resetDiagnosticsForTests() {
+        keptItemLogCount.set(0);
+        NOT_VIDEO_CLASSES.clear();
         feedItemListNullItemsLogCount.set(0);
         followFeedListNullItemsLogCount.set(0);
         batchLogCount.set(0);
@@ -184,6 +203,15 @@ public final class FeedItemsFilter {
 
     public static List filterProfileAds(List items) {
         return filterAdOnlyAwemeList("ProfileAwemeList", items);
+    }
+
+    /**
+     * The ad event the profile detail pager raises for its own list. It used to share the
+     * profile line, so an ad reported from that pager (issue #2) could not be told from one on
+     * the grid; a line of its own says whether the pager's route ran and what it took out.
+     */
+    public static List filterProfileDetailAds(List items) {
+        return filterAdOnlyAwemeList("ProfileDetailAdEvent", items);
     }
 
     /**
@@ -320,22 +348,31 @@ public final class FeedItemsFilter {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static List filterAdOnlyAwemeList(String source, List items) {
+        // Counted before the enablement check and before the empty check. A route that ran
+        // with the ad filter off still proves the hook is alive, which is the half every ad
+        // report so far has been missing, and a route handed nothing proves the page asked
+        // and got nothing back: issue #4's export had no profile line at all, and until now
+        // that read the same as a hook that never ran.
+        FeedFilterCounters.sawList(source, items == null ? 0 : items.size());
         if (items == null || items.isEmpty()) return items;
-        // Counted before the enablement check. A route that ran with the ad filter off still
-        // proves the hook is alive, which is the half every ad report so far has been missing.
-        FeedFilterCounters.sawList(source, items.size());
         if (!ADS_FILTER.getEnabled()) return items;
 
         boolean verbose = BaseSettings.DEBUG.get();
         ArrayList kept = null;
         int removed = 0;
+        int notVideos = 0;
         String lastReason = null;
         for (int index = 0; index < items.size(); index++) {
             Object container = items.get(index);
             Aweme item = container instanceof Aweme ? (Aweme) container : null;
+            if (item == null) {
+                notVideos++;
+                nameNotVideo(source, container);
+            }
             String reason = item == null ? null : getFilterReason(LATE_FOLLOW_FILTERS, item);
             if (reason == null) {
                 if (kept != null) kept.add(container);
+                if (item != null) logKeptItem(source, item, verbose);
                 continue;
             }
 
@@ -349,6 +386,7 @@ public final class FeedItemsFilter {
         }
 
         FeedFilterCounters.removed(source, removed, lastReason);
+        FeedFilterCounters.unreadable(source, notVideos);
         if (kept == null) return items;
         if (verbose && shouldLogBatch()) {
             int initialSize = items.size();
@@ -367,8 +405,8 @@ public final class FeedItemsFilter {
         String source,
         List items
     ) {
+        FeedFilterCounters.sawList(FINAL_INSERT_SOURCE + source, items == null ? 0 : items.size());
         if (items == null || items.isEmpty()) return items;
-        FeedFilterCounters.sawList(FINAL_INSERT_SOURCE + source, items.size());
         if (panel == null || !"homepage_hot".equals(panel.getEventType())) return items;
 
         List<IFilter> activeContentFilters = getActiveFilters(CONTENT_FILTERS);
@@ -750,16 +788,84 @@ public final class FeedItemsFilter {
         );
     }
 
+    /**
+     * Says, once per class, that a route was handed something that is not a video. On 46.2.3
+     * every profile list is a List of Aweme, so this line is what a build that changes that
+     * would leave in the report, in place of a filter that silently keeps everything.
+     */
+    private static void nameNotVideo(String source, Object container) {
+        String name = container == null ? "null" : container.getClass().getName();
+        if (NOT_VIDEO_CLASSES.size() >= MAX_NOT_VIDEO_CLASSES || !NOT_VIDEO_CLASSES.add(name)) return;
+        Logger.printInfo(() -> "[Morphe TikTok FeedFilter] " + source + " was handed " + name
+                + ", which is not a video, so no rule looked at it");
+    }
+
+    /**
+     * With logging on, what a profile or insertion route kept, one line per item. The removed
+     * items were always logged; the kept ones never were, so an export from a phone showing
+     * an ad in a profile pager carried the counts and nothing about the ad itself.
+     */
+    private static void logKeptItem(String source, Aweme item, boolean verbose) {
+        if (!verbose || keptItemLogCount.getAndIncrement() >= MAX_KEPT_ITEM_LOGS) return;
+        Logger.printInfo(() -> "[Morphe TikTok FeedFilter] " + source + " kept " + describeItem(item));
+    }
+
+    /**
+     * The ad-relevant shape of an item, which is what a kept ad has to be judged by. Each
+     * field is read on its own: a getter the host has renamed, or one a test fixture leaves
+     * out, costs that field and not the line.
+     */
+    private static String describeItem(Aweme item) {
+        return "aid=" + aidOf(item)
+                + " ad=" + flag(item, 0)
+                + " softAd=" + flag(item, 1)
+                + " rawAd=" + flag(item, 2)
+                + " promo=" + flag(item, 3)
+                + " commission=" + flag(item, 4)
+                + " playCount=" + playCountOf(item);
+    }
+
+    private static String aidOf(Aweme item) {
+        try {
+            return String.valueOf(item.getAid());
+        } catch (Throwable failure) {
+            return "?";
+        }
+    }
+
+    private static String flag(Aweme item, int which) {
+        try {
+            switch (which) {
+                case 0: return String.valueOf(item.isAd());
+                case 1: return String.valueOf(item.isSoftAd());
+                case 2: return String.valueOf(item.getAwemeRawAd() != null);
+                case 3: return String.valueOf(item.isWithPromotionalMusic());
+                default: return String.valueOf(AdsFilter.hasCreatorCommissionDisclosure(item));
+            }
+        } catch (Throwable failure) {
+            return "?";
+        }
+    }
+
+    private static String playCountOf(Aweme item) {
+        try {
+            AwemeStatistics statistics = item.getStatistics();
+            return statistics == null ? "-1" : String.valueOf(statistics.getPlayCount());
+        } catch (Throwable failure) {
+            return "?";
+        }
+    }
+
     private static void logItem(Aweme item, String reason, boolean verbose) {
         if (!verbose || reason == null || !shouldLogItem()) return;
 
-        String shareUrl = item.getShareUrl();
-        if (shareUrl != null && shareUrl.length() > 140) {
-            shareUrl = shareUrl.substring(0, 140) + "...";
-        }
-
-        String finalShareUrl = shareUrl;
         Logger.printInfo(() -> {
+            // Inside the message, where the Logger's guard covers a host getter that throws.
+            // Read outside it, one such getter threw out of the filter and into TikTok.
+            String finalShareUrl = item.getShareUrl();
+            if (finalShareUrl != null && finalShareUrl.length() > 140) {
+                finalShareUrl = finalShareUrl.substring(0, 140) + "...";
+            }
             long playCount = -1;
             long likeCount = -1;
 
@@ -777,7 +883,9 @@ public final class FeedItemsFilter {
                 + " aid=" + item.getAid()
                 + " ad=" + item.isAd()
                 + " softAd=" + item.isSoftAd()
+                + " rawAd=" + (item.getAwemeRawAd() != null)
                 + " promo=" + item.isWithPromotionalMusic()
+                + " commission=" + AdsFilter.hasCreatorCommissionDisclosure(item)
                 + " liveEvidence=" + LiveFilter.getLiveEvidence(item)
                 + " story=" + item.getIsTikTokStory()
                 + " image=" + isImage

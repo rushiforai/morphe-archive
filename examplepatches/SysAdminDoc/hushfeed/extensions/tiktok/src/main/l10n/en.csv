@@ -1,12 +1,15 @@
 source,target
+%1$d already matched,%1$d already matched
 %1$d areas were checked and everything they need is here.,%1$d areas were checked and everything they need is here.
 %1$d fields overridden,%1$d fields overridden
 %1$d fields will be overridden when requested,%1$d fields will be overridden when requested
 %1$d gates selected,%1$d gates selected
 %1$d minutes left,%1$d minutes left
+%1$d rejected,%1$d rejected
 %1$d results,%1$d results
 %1$d setting was not in that file and was left as it is.,%1$d setting was not in that file and was left as it is.
 %1$d settings were not in that file and were left as they are.,%1$d settings were not in that file and were left as they are.
+%1$d unavailable,%1$d unavailable
 %1$s (%2$s),%1$s (%2$s)
 %1$s (TikTok value),%1$s (TikTok value)
 "%1$s (custom, unverified)","%1$s (custom, unverified)"
@@ -33,6 +36,7 @@ source,target
 %1$s was rejected. %2$s,%1$s was rejected. %2$s
 "%1$s, %2$s, %3$s, %4$s, %5$s","%1$s, %2$s, %3$s, %4$s, %5$s"
 "%1$s, selected","%1$s, selected"
+%1$s. %2$s,%1$s. %2$s
 "%1$s: %2$d found, %3$d missing","%1$s: %2$d found, %3$d missing"
 "%1$s: %2$d found, %3$d missing, and more it stopped counting","%1$s: %2$d found, %3$d missing, and more it stopped counting"
 "%1$s: %2$d found, %3$d missing, and more it stopped counting. First missing: %4$s","%1$s: %2$d found, %3$d missing, and more it stopped counting. First missing: %4$s"
@@ -51,7 +55,6 @@ A field value could not be read. Check the values and try again.,A field value c
 A hidden puzzle may be the cause.,A hidden puzzle may be the cause.
 "A host to put in place of tiktok.com when you share or copy a link, like vxtiktok.com. Leave it empty to share TikTok's own links. Only TikTok links are changed, and only the host: nothing is sent anywhere new.","A host to put in place of tiktok.com when you share or copy a link, like vxtiktok.com. Leave it empty to share TikTok's own links. Only TikTok links are changed, and only the host: nothing is sent anywhere new."
 A newer clear replaced that undo. Tap the row again to put it back.,A newer clear replaced that undo. Tap the row again to put it back.
-A settings operation is already running,A settings operation is already running
 A tap on a person in the Send to row only selects them. A second tap on the same person within four seconds sends the video.,A tap on a person in the Send to row only selects them. A second tap on the same person within four seconds sends the video.
 AI-generated posts,AI-generated posts
 Account warning: forced client values apply to every account in this app data and cannot bypass server controls.,Account warning: forced client values apply to every account in this app data and cannot bypass server controls.
@@ -77,7 +80,7 @@ Allow screenshots and Circle to Search,Allow screenshots and Circle to Search
 Allowed bottom tabs,Allowed bottom tabs
 Already marked as not interested,Already marked as not interested
 Also apply these filters to downloaded videos TikTok uses when the feed cannot load enough new items.,Also apply these filters to downloaded videos TikTok uses when the feed cannot load enough new items.
-Also change the region TikTok reports internally. Keeps your interface language. Needs Override SIM details. Your IP address and your account's own rules still apply.,Also change the region TikTok reports internally. Keeps your interface language. Needs Override SIM details. Your IP address and your account's own rules still apply.
+Also change the region TikTok reports internally. Keeps your interface language. Your IP address and your account's own rules still apply.,Also change the region TikTok reports internally. Keeps your interface language. Your IP address and your account's own rules still apply.
 Always show publish date,Always show publish date
 Always show the publish date in video author information. Restart TikTok to apply this.,Always show the publish date in video author information. Restart TikTok to apply this.
 "An app's package name, like com.dv.adm. The save button sends the video's link there instead of saving it here. Leave it empty to save here.","An app's package name, like com.dv.adm. The save button sends the video's link there instead of saving it here. Leave it empty to save here."
@@ -136,11 +139,13 @@ Clear all suggested accounts,Clear all suggested accounts
 "Clear buffered events, saved crash reports and the hook status above.","Clear buffered events, saved crash reports and the hook status above."
 Clear diagnostic data,Clear diagnostic data
 Clear display delay,Clear display delay
+Clear preset,Clear preset
 Clear search,Clear search
 Clear the seen video history,Clear the seen video history
 Cleared. Tap again to put the record back.,Cleared. Tap again to put the record back.
 Clearing,Clearing
 Clearing suggested accounts,Clearing suggested accounts
+"Clearing, %1$d so far","Clearing, %1$d so far"
 Close,Close
 "Comma separated account handles or user ids. These accounts are always skipped. An entry between slashes, like /^news_/, is a pattern matched against the handle and the display name.","Comma separated account handles or user ids. These accounts are always skipped. An entry between slashes, like /^news_/, is a pattern matched against the handle and the display name."
 "Comma separated country codes, like GB, IE. Videos posted from anywhere else are hidden. Leave empty for all countries.","Comma separated country codes, like GB, IE. Videos posted from anywhere else are hidden. Leave empty for all countries."
@@ -225,11 +230,13 @@ Disable analytics and tracking,Disable analytics and tracking
 Disable the long press quick share,Disable the long press quick share
 Disable the long press repost,Disable the long press repost
 Disabled,Disabled
+Discard edits,Discard edits
 Dismiss,Dismiss
 Dismissed %1$s suggested accounts,Dismissed %1$s suggested accounts
 Dismissed one suggested account,Dismissed one suggested account
 Do not start the feed on returning,Do not start the feed on returning
 Do nothing,Do nothing
+Done,Done
 Double tap,Double tap
 Download original photos,Download original photos
 Download path updated,Download path updated
@@ -274,6 +281,9 @@ Feature gate override saved,Feature gate override saved
 Feed and navigation,Feed and navigation
 Feed filter,Feed filter
 Feed navigation,Feed navigation
+"Field %1$s can't be changed on this build. Take it out of the override, or reset the override.","Field %1$s can't be changed on this build. Take it out of the override, or reset the override."
+Field edits were discarded.,Field edits were discarded.
+Field edits were not saved.,Field edits were not saved.
 Filter bottom tabs,Filter bottom tabs
 Filter comments by keyword,Filter comments by keyword
 Filter feed tabs,Filter feed tabs
@@ -283,6 +293,7 @@ Filter: %1$s,Filter: %1$s
 "Filters, translation and copy options","Filters, translation and copy options"
 Find a setting by title or description,Find a setting by title or description
 First caller,First caller
+First rejection:,First rejection:
 Fit the video to the screen,Fit the video to the screen
 Follow probe,Follow probe
 Following,Following
@@ -298,6 +309,7 @@ Forget seen videos after,Forget seen videos after
 Forget what has been counted today and end any hold. The budgets themselves are left alone.,Forget what has been counted today and end any hold. The budgets themselves are left alone.
 Friends,Friends
 Full comment sort options,Full comment sort options
+Full license,Full license
 Full report saved to %1$s,Full report saved to %1$s
 GIF,GIF
 Gate data unavailable,Gate data unavailable
@@ -434,9 +446,10 @@ Hushfeed cannot read the creator pattern %1$s,Hushfeed cannot read the creator p
 Hushfeed filtered this batch,Hushfeed filtered this batch
 Hushfeed hid a TikTok puzzle. Turn off Hide CAPTCHA popups if something stops working.,Hushfeed hid a TikTok puzzle. Turn off Hide CAPTCHA popups if something stops working.
 "Ignore the creator's choice so the Duet and Stitch entries appear. Everything else the app checks still applies, and whether the upload is accepted is the server's decision.","Ignore the creator's choice so the Duet and Stitch entries appear. Everything else the app checks still applies, and whether the upload is accepted is the server's decision."
+Import finished,Import finished
 Import loaded values,Import loaded values
-"Imported %1$d disabled values. %2$d already matched, %3$d unavailable, %4$d rejected. First rejection: %5$s Undo last Lab change is in the menu.","Imported %1$d disabled values. %2$d already matched, %3$d unavailable, %4$d rejected. First rejection: %5$s Undo last Lab change is in the menu."
-"Imported %1$d disabled values. %2$d already matched, %3$d unavailable, %4$d rejected. Undo last Lab change is in the menu.","Imported %1$d disabled values. %2$d already matched, %3$d unavailable, %4$d rejected. Undo last Lab change is in the menu."
+Imported %1$d values,Imported %1$d values
+Imported %1$d values. Undo last Lab change is in the menu.,Imported %1$d values. Undo last Lab change is in the menu.
 Inbox,Inbox
 Include diagnostic events,Include diagnostic events
 Included diagnostics,Included diagnostics
@@ -448,6 +461,7 @@ Invalid SIM preset,Invalid SIM preset
 Keep a local record of what you have watched and drop those videos from later feed pages.,Keep a local record of what you have watched and drop those videos from later feed pages.
 "Keep automatic advance enabled, and show TikTok's own Auto scroll action in the video panel even if your account never had it. Pauses and open dialogs still stop scrolling. Restart TikTok to apply this. Then use this switch to turn it off.","Keep automatic advance enabled, and show TikTok's own Auto scroll action in the video panel even if your account never had it. Pauses and open dialogs still stop scrolling. Restart TikTok to apply this. Then use this switch to turn it off."
 Keep captions in clear display,Keep captions in clear display
+Keep the Favorites tab,Keep the Favorites tab
 Keep the clock and status icons off the screen while TikTok is open. Swipe down from the top to peek at them.,Keep the clock and status icons off the screen while TikTok is open. Swipe down from the top to peek at them.
 Keep the screen's refresh rate,Keep the screen's refresh rate
 "Keep this string to 4,096 characters or fewer.","Keep this string to 4,096 characters or fewer."
@@ -466,6 +480,7 @@ Length and views per like,Length and views per like
 Less than a minute left,Less than a minute left
 "Let screenshots, screen recording and Circle to Search work on TikTok again. Restart TikTok to apply this.","Let screenshots, screen recording and Circle to Search work on TikTok again. Restart TikTok to apply this."
 Let the Offline videos menu use your own limit instead of TikTok's fixed one. Restart TikTok to apply this.,Let the Offline videos menu use your own limit instead of TikTok's fixed one. Restart TikTok to apply this.
+Licenses,Licenses
 Link copied,Link copied
 "Links, privacy and player tools","Links, privacy and player tools"
 Live,Live
@@ -537,12 +552,15 @@ Not blocked,Not blocked
 Not interested in this video,Not interested in this video
 Not present in the current cache,Not present in the current cache
 Not requested in this process yet,Not requested in this process yet
+Not saved yet,Not saved yet
 "Nothing has been checked yet, so there is nothing to report.","Nothing has been checked yet, so there is nothing to report."
 "Nothing has been looked up yet. Use the app for a moment, then come back.","Nothing has been looked up yet. Use the app for a moment, then come back."
 Nothing is playing to seek,Nothing is playing to seek
 "Nothing new was imported. %1$d already matched, %2$d unavailable, %3$d rejected.","Nothing new was imported. %1$d already matched, %2$d unavailable, %3$d rejected."
 "Nothing new was imported. %1$d already matched, %2$d unavailable, %3$d rejected. First rejection: %4$s","Nothing new was imported. %1$d already matched, %2$d unavailable, %3$d rejected. First rejection: %4$s"
+Nothing on this page changes what TikTok does until they are on.,Nothing on this page changes what TikTok does until they are on.
 Nothing to undo yet.,Nothing to undo yet.
+Notices from this project and the ones it is built on,Notices from this project and the ones it is built on
 Off,Off
 "Off by default. Switched on, a small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out. It changes at most once a minute, appears only on the feed, and is never read out on its own.","Off by default. Switched on, a small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out. It changes at most once a minute, appears only on the feed, and is never read out on its own."
 "Off by default. Switched on, the feed dims over the last three quarters of a minute of a time budget, most of it in the final half minute, so the hold is somewhere you arrive rather than somewhere you land. Needs a budget in minutes and a hold to arrive at: a budget counted in videos has no time left to follow, and with the hold switched off there is nothing to lead into. Nothing fades if you have turned animations off.","Off by default. Switched on, the feed dims over the last three quarters of a minute of a time budget, most of it in the final half minute, so the hold is somewhere you arrive rather than somewhere you land. Needs a budget in minutes and a hold to arrive at: a budget counted in videos has no time left to follow, and with the hold switched off there is nothing to lead into. Nothing fades if you have turned animations off."
@@ -652,7 +670,10 @@ Reset all overrides,Reset all overrides
 Reset override,Reset override
 Reset position,Reset position
 Reset settings,Reset settings
+Restart TikTok to apply %1$d changes,Restart TikTok to apply %1$d changes
+Restart TikTok to apply this change,Restart TikTok to apply this change
 Restart TikTok to apply this.,Restart TikTok to apply this.
+Restart pending,Restart pending
 Restore defaults immediately. Your current settings are kept for Undo.,Restore defaults immediately. Your current settings are kept for Undo.
 Restore failed. Some settings may still be changed.,Restore failed. Some settings may still be changed.
 Restore failed. Some settings may still be changed. Use Undo to recover.,Restore failed. Some settings may still be changed. Use Undo to recover.
@@ -684,6 +705,7 @@ Save the latest available TikTok crash report for diagnostic export.,Save the la
 Save the original sound,Save the original sound
 Save the sound as well,Save the sound as well
 Save videos without sound,Save videos without sound
+Saved,Saved
 Saved %1$s,Saved %1$s
 Saved %1$s of %2$s photos before the story failed,Saved %1$s of %2$s photos before the story failed
 Saved %1$s original photos,Saved %1$s original photos
@@ -829,6 +851,7 @@ That settings backup is damaged or only partly downloaded. Nothing was altered.,
 That settings change did not go through. Nothing was altered.,That settings change did not go through. Nothing was altered.
 That sticker is in a format Hushfeed cannot read,That sticker is in a format Hushfeed cannot read
 "The Lab keeps at most %1$s rules. This change would make %2$s, so nothing was changed.","The Lab keeps at most %1$s rules. This change would make %2$s, so nothing was changed."
+The catalog says this key is %1$s and this override is %2$s. Reset the override and make a new one.,The catalog says this key is %1$s and this override is %2$s. Reset the override and make a new one.
 The destination contains an invalid folder name,The destination contains an invalid folder name
 The diagnostic report could not be exported.,The diagnostic report could not be exported.
 The diagnostic report could not be saved yet. Try again in a moment.,The diagnostic report could not be saved yet. Try again in a moment.
@@ -843,6 +866,9 @@ The minimum or maximum likes of a video to show.,The minimum or maximum likes of
 The minimum or maximum shares of a video to show.,The minimum or maximum shares of a video to show.
 The minimum or maximum views of a video to show.,The minimum or maximum views of a video to show.
 "The original photos aren't available, so TikTok's own save runs instead","The original photos aren't available, so TikTok's own save runs instead"
+"The override changes no fields. Edit the field values, or reset the override.","The override changes no fields. Edit the field values, or reset the override."
+"The override couldn't be applied: %1$s. Edit the field values, or reset the override.","The override couldn't be applied: %1$s. Edit the field values, or reset the override."
+"The override doesn't say what list to return. Edit the field values, or reset the override.","The override doesn't say what list to return. Edit the field values, or reset the override."
 The profile picture couldn't be saved.,The profile picture couldn't be saved.
 "The record of an interrupted settings change could not be read, so it was set aside. Check your settings.","The record of an interrupted settings change could not be read, so it was set aside. Check your settings."
 The report couldn't be saved. Try again.,The report couldn't be saved. Try again.
@@ -866,11 +892,13 @@ This file has more loaded values than the Lab takes at once.,This file has more 
 This file has no loaded values in it.,This file has no loaded values in it.
 This file isn't a loaded-values export from the Feature Gate Lab.,This file isn't a loaded-values export from the Feature Gate Lab.
 This gate type is not supported.,This gate type is not supported.
+"This key isn't in the local catalog, so its type can't be checked. Reset the override.","This key isn't in the local catalog, so its type can't be checked. Reset the override."
 "This line opens a rule and does not finish it: %1$s. Write two phrases as ""a"" & ""b"" for both, or ""a"" !& ""b"" for the first without the second.","This line opens a rule and does not finish it: %1$s. Write two phrases as ""a"" & ""b"" for both, or ""a"" !& ""b"" for the first without the second."
 "This phone has no file picker, so there is no way to choose a file here.","This phone has no file picker, so there is no way to choose a file here."
 This phone has no folder picker. Type the folder into the row instead.,This phone has no folder picker. Type the folder into the row instead.
 This profile picture isn't available to save,This profile picture isn't available to save
 "This quality isn't available as a complete file, so TikTok's own save runs instead","This quality isn't available as a complete file, so TikTok's own save runs instead"
+"This setting's value can't be copied on this build, so it can't be overridden. Reset the override.","This setting's value can't be copied on this build, so it can't be overridden. Reset the override."
 This story isn't available to save,This story isn't available to save
 This value is required.,This value is required.
 This video has no link to copy,This video has no link to copy
@@ -882,9 +910,11 @@ TikTok cached value,TikTok cached value
 TikTok default,TikTok default
 "TikTok default (2x hold, quick share)","TikTok default (2x hold, quick share)"
 TikTok didn't accept the feedback. Try again later.,TikTok didn't accept the feedback. Try again later.
+"TikTok hasn't handed this setting an object to change yet. Open the part of the app that uses it, then come back.","TikTok hasn't handed this setting an object to change yet. Open the part of the app that uses it, then come back."
 TikTok refused the follow: %1$s,TikTok refused the follow: %1$s
 TikTok rejected the request to block %1$s,TikTok rejected the request to block %1$s
 TikTok rejected the request to unblock %1$s,TikTok rejected the request to unblock %1$s
+TikTok's server can put an account into an experiment that empties the Favorites tab on your profile. Keep the tab and its saved videos.,TikTok's server can put an account into an experiment that empties the Favorites tab on your profile. Keep the tab and its saved videos.
 Times you can open the feed anyway,Times you can open the feed anyway
 "Today has moved on, so there is nothing to put back","Today has moved on, so there is nothing to put back"
 Today is back where it was,Today is back where it was
@@ -906,6 +936,8 @@ Transparent,Transparent
 "Try a country name, or a two-letter code","Try a country name, or a two-letter code"
 Try a different word or clear the search.,Try a different word or clear the search.
 "Try again, or go back to TikTok.","Try again, or go back to TikTok."
+Turn on %1$s first.,Turn on %1$s first.
+Turn on overrides,Turn on overrides
 Turned off %1$d gates of %2$d; the rest do not take a true or false value. Restart TikTok to apply this.,Turned off %1$d gates of %2$d; the rest do not take a true or false value. Restart TikTok to apply this.
 Turned off %1$d gates. Restart TikTok to apply this.,Turned off %1$d gates. Restart TikTok to apply this.
 Turned off 1 gate of %1$d; the rest do not take a true or false value. Restart TikTok to apply this.,Turned off 1 gate of %1$d; the rest do not take a true or false value. Restart TikTok to apply this.
@@ -927,7 +959,7 @@ Use Save JSON for this large report,Use Save JSON for this large report
 "Use TikTok's native hold, slide down, and release gesture to lock 2x speed.","Use TikTok's native hold, slide down, and release gesture to lock 2x speed."
 Use a default playback speed,Use a default playback speed
 Use non-personalized search,Use non-personalized search
-Use the preset for the region TikTok reports for your account and its shop too. May affect search. Needs Override SIM details and Match locale and timezone to country.,Use the preset for the region TikTok reports for your account and its shop too. May affect search. Needs Override SIM details and Match locale and timezone to country.
+Use the preset for the region TikTok reports for your account and its shop too. May affect search.,Use the preset for the region TikTok reports for your account and its shop too. May affect search.
 "Use the selected country and operator values. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.","Use the selected country and operator values. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this."
 "Use the selected country. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.","Use the selected country. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this."
 "Use the split layout on wider screens. Restart TikTok to apply this. If the old layout is still there, unfold again.","Use the split layout on wider screens. Restart TikTok to apply this. If the old layout is still there, unfold again."

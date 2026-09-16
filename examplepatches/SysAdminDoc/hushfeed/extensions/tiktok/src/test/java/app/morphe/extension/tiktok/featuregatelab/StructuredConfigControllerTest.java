@@ -109,8 +109,9 @@ public class StructuredConfigControllerTest {
         assertFalse("a forty deep value was walked all the way down", result.applied);
         // Not just "nested": without the depth guard this fails anyway, with "unsupported nested
         // field child", so a looser assertion would pass against the bug.
-        assertTrue("the refusal does not name the depth limit: " + result.error,
-                result.error != null && result.error.contains("nested more than"));
+        assertTrue("the refusal does not name the depth limit: "
+                        + (result.error == null ? "nothing" : result.error.text()),
+                result.error != null && result.error.text().contains("nested more than"));
     }
 
     @Test public void overflowAndNonFiniteNumbersFailWithoutChangingTheSource() throws Exception {

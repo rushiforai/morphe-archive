@@ -1,3 +1,9 @@
+/*
+ * Copyright 2026 Hushfeed contributors
+ * https://github.com/SysAdminDoc/hushfeed
+ *
+ * Built on icysymmetra/tiktok-patches-for-morphe (GPL-3.0).
+ */
 package app.morphe.util
 
 import app.morphe.patcher.patch.loadPatchesFromJar
@@ -48,10 +54,52 @@ object BundleVerifier {
         require(listed.isNotEmpty() && listed.size == listed.toSet().size) {
             "Patch list is empty or contains duplicate names"
         }
+        requireCanonicalDependencies(metadata)
         require(bundled.size == listed.size && bundled.toSet() == listed.toSet()) {
             "Patch list mismatch: bundle has ${bundled.size}, metadata has ${listed.size}; " +
                 "missing=${listed.toSet() - bundled.toSet()}, extra=${bundled.toSet() - listed.toSet()}"
         }
         println("Verified ${bundle.name}: ${bundled.size} patches and all three non-empty DEX payloads")
+    }
+
+    /**
+     * Every row's dependencies named once and in order.
+     *
+     * A dependency list is a set written down as a list, so a name appearing twice is a catalog
+     * that has lost track of what it is recording: two rows said `["Settings", "BytecodePatch",
+     * "BytecodePatch"]`, which reads as two dependencies and is one. Order matters for a
+     * different reason, that an unsorted list makes an edit to one patch reorder rows it has
+     * nothing to do with.
+     *
+     * The generator deduplicates and sorts. This is what stops a hand-edited or stale catalog
+     * getting past on a day the generator did not run, and it is separate from main so it can be
+     * put in front of a crafted catalog without building a bundle to go with it.
+     */
+    fun requireCanonicalDependencies(metadata: com.google.gson.JsonObject) {
+        val patches = metadata["patches"]
+        require(patches != null && patches.isJsonArray) { "Patch list has no patches array" }
+        patches.asJsonArray.forEachIndexed { index, entry ->
+            require(entry.isJsonObject) { "Patch list row $index is not an object: $entry" }
+            val patch = entry.asJsonObject
+            // A hand-edited catalog is what this exists for, so every shape it could be in has
+            // to come back as a sentence rather than as a cast failure from inside Gson.
+            val name = patch["name"]?.takeIf { it.isJsonPrimitive }?.asString ?: "(unnamed)"
+            val declared = patch["dependencies"] ?: return@forEachIndexed
+            require(declared.isJsonArray) {
+                "Patch \"$name\" declares dependencies that are not a list: $declared"
+            }
+            val dependencies = declared.asJsonArray.map { dependency ->
+                require(dependency.isJsonPrimitive && dependency.asJsonPrimitive.isString) {
+                    "Patch \"$name\" names a dependency that is not a string: $dependency"
+                }
+                dependency.asString
+            }
+            require(dependencies.size == dependencies.toSet().size) {
+                "Patch \"$name\" names a dependency twice: $dependencies"
+            }
+            require(dependencies == dependencies.sorted()) {
+                "Patch \"$name\" lists its dependencies out of order: $dependencies"
+            }
+        }
     }
 }

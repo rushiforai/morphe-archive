@@ -17,14 +17,14 @@ object Constants {
         )
     )
 
-    val COMPATIBILITY_MYOADAPT = Compatibility(
-        name = "MyoAdapt",
-        packageName = "com.myoadapt.app.android",
-        apkFileType = ApkFileType.XAPK,
-        appIconColor = 0x111111,
+    val COMPATIBILITY_TRACEARR = Compatibility(
+        name = "Tracearr",
+        packageName = "com.tracearr.mobile",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x09090B,
         targets = listOf(
             AppTarget(
-                version = "1.5.1"
+                version = "2.2.0"
             )
         )
     )

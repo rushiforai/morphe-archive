@@ -61,6 +61,85 @@ class VisualDelayPatchTest {
         assertContentEquals(input, patchVisualDelay(input, 60))
     }
 
+    @Test
+    fun `5002363 requires exact metadata and rejects unexpected size`() {
+        val stock = syntheticElf(layout5002363)
+        assertContentEquals(stock, patchVisualDelay(stock, 60))
+        assertContentEquals(stock, patchVisualDelay(stock, 60, "2.0.22", "5002363"))
+        assertContentEquals(stock, patchVisualDelay(stock, 60, "2.0.23", "5002322"))
+        assertFailsWith<PatchException> {
+            patchVisualDelay(ByteArray(128), 60, "2.0.23", "5002363")
+        }
+    }
+
+    @Test
+    fun `5002363 timestamp transitions change only canonical trampoline body`() {
+        val stock = syntheticElf(layout5002363)
+        val cave = stock.size - 0x800
+        val offsets = listOf(0L, 1L, 60L, 1000L, 4000L)
+        for (from in offsets) {
+            val patched = patchVisualDelay(stock, from, "2.0.23", "5002363")
+            assertFalse(stock.contentEquals(patched))
+            for (to in offsets) {
+                val transitioned = patchVisualDelay(patched, to, "2.0.23", "5002363")
+                assertContentEquals(
+                    patchVisualDelay(stock, to, "2.0.23", "5002363"), transitioned,
+                    "$from -> $to",
+                )
+                assertContentEquals(patched.copyOfRange(0, cave + 4), transitioned.copyOfRange(0, cave + 4))
+                assertContentEquals(patched.copyOfRange(cave + 16, patched.size), transitioned.copyOfRange(cave + 16, transitioned.size))
+            }
+        }
+    }
+
+    @Test
+    fun `5002363 refuses altered trampoline hook or velocities without mutating input`() {
+        val stock = syntheticElf(layout5002363)
+        val patched = patchVisualDelay(stock, 60, "2.0.23", "5002363")
+        val cave = stock.size - 0x800
+        val corruptOffsets = (0 until 20).map { cave + it } +
+            layout5002363.hookOffset + layout5002363.velocityStores.map { it.first }
+        for (offset in corruptOffsets) {
+            // 0x80 changes an opcode/register or makes an immediate non-canonical/non-millisecond.
+            val malformed = patched.copyOf().apply { this[offset] = (this[offset].toInt() xor 0x80).toByte() }
+            val snapshot = malformed.copyOf()
+            assertFailsWith<PatchException>("offset=$offset") {
+                patchVisualDelay(malformed, 1000, "2.0.23", "5002363")
+            }
+            assertContentEquals(snapshot, malformed)
+        }
+        for (offset in listOf(-1L, 4001L)) assertFailsWith<PatchException> {
+            patchVisualDelay(stock, offset, "2.0.23", "5002363")
+        }
+    }
+
+    @Test
+    fun `5002363 rejects corrupted injected load on reapply and offset transition`() {
+        val patched = patchVisualDelay(syntheticElf(layout5002363), 60, "2.0.23", "5002363")
+        val header = 64 + 2 * 56
+        val malformedHeaders = listOf(
+            patched.copyOf().apply { writeU32LE(header, 0) },
+            patched.copyOf().apply { writeU32LE(header + 4, 4) },
+            patched.copyOf().apply { writeU64LE(header + 8, readU64LE(header + 8) + 4) },
+            patched.copyOf().apply { writeU64LE(header + 16, readU64LE(header + 16) + 4) },
+            patched.copyOf().apply { writeU64LE(header + 24, 0) },
+            patched.copyOf().apply { writeU64LE(header + 32, readU64LE(header + 32) + 4) },
+            patched.copyOf().apply { writeU64LE(header + 32, size.toLong() + 1) },
+            patched.copyOf().apply { writeU64LE(header + 40, 0) },
+            patched.copyOf().apply { writeU64LE(header + 40, readU64LE(header + 40) + 4) },
+            patched.copyOf().apply { writeU64LE(header + 48, 0x1000) },
+        )
+        malformedHeaders.forEachIndexed { index, malformed ->
+            val snapshot = malformed.copyOf()
+            for (offset in listOf(60L, 1000L)) {
+                assertFailsWith<PatchException>("header variant=$index offset=$offset") {
+                    patchVisualDelay(malformed, offset, "2.0.23", "5002363")
+                }
+                assertContentEquals(snapshot, malformed)
+            }
+        }
+    }
+
     private fun syntheticElf(layout: TestLayout) = ByteArray(layout.fileSize).apply {
         writeU32LE(0, 0x464C457F)
         writeU64LE(32, 64)
@@ -168,6 +247,15 @@ class VisualDelayPatchTest {
             val hookOffset: Int,
             val velocityStores: List<Triple<Int, Int, Boolean>>,
             val segmentAlignment: Long = if (versionCode >= 5002244) 0x4000 else 0x1000,
+        )
+
+        val layout5002363 = TestLayout(
+            5002363, 2_292_008, 0x101f1c,
+            listOf(
+                Triple(0x102190, 28, false), Triple(0x102194, 32, false),
+                Triple(0x102198, 36, false), Triple(0x1021a4, 40, false),
+                Triple(0x1021a8, 44, false), Triple(0x1021b4, 48, false),
+            ),
         )
 
         val nativeLayouts = listOf(

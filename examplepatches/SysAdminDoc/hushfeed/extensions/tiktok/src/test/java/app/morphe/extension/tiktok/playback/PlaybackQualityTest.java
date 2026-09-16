@@ -47,16 +47,16 @@ public class PlaybackQualityTest {
         var high = new AdvancedDownloadsTest.Gear("1080p", 400, "https://example.com/high");
         var original = List.of(high, low);
         Settings.PLAYBACK_QUALITY.save("auto");
-        assertSame(original, PlaybackQuality.filter(original));
+        assertSame(original, PlaybackQuality.filterVideoGears(original));
         Object cached = new Object();
         assertSame(cached, PlaybackQuality.cacheModel(cached));
         Settings.PLAYBACK_QUALITY.save("lowest");
-        assertEquals(List.of(low), PlaybackQuality.filter(original));
+        assertEquals(List.of(low), PlaybackQuality.filterVideoGears(original));
         assertNull(PlaybackQuality.cacheModel(cached));
         assertEquals(List.of(high, low), original);
         Settings.PLAYBACK_QUALITY.save("highest");
-        assertEquals(List.of(high), PlaybackQuality.filter(original));
-        assertNull(PlaybackQuality.filter(null));
+        assertEquals(List.of(high), PlaybackQuality.filterVideoGears(original));
+        assertNull(PlaybackQuality.filterVideoGears(null));
     }
 
     @Test public void adaptiveMapKeepsAudioAndLeavesNativeCacheUntouched() {

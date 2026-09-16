@@ -1,3 +1,9 @@
+/*
+ * Copyright 2026 Hushfeed contributors
+ * https://github.com/SysAdminDoc/hushfeed
+ *
+ * Built on icysymmetra/tiktok-patches-for-morphe (GPL-3.0).
+ */
 package app.morphe.extension.tiktok.playback;
 
 import android.content.Context;
@@ -35,6 +41,8 @@ public final class PlaybackQuality {
     static final String VIDEO_MODEL_GETTER = "getVideoModelStr";
     static final String DASH_MODEL = "VideoUrlModel";
     static final String DASH_MODEL_GETTER = "getDashVideoModelStr";
+    /** The gear list getter both owners share, the path a phone with empty models is left with. */
+    static final String GEARS_GETTER = "getBitRate";
 
     private static volatile JsonCache cache;
     private static volatile MeteredState meteredState;
@@ -45,6 +53,10 @@ public final class PlaybackQuality {
      */
     private static final Set<String> DESCRIBED =
             Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+    /** Distinct gear choices already written, so a feed of the same gears costs one line. */
+    private static final Set<String> CHOICES = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private static final int MAX_CHOICES = 32;
 
     private PlaybackQuality() {}
 
@@ -96,9 +108,61 @@ public final class PlaybackQuality {
         return metered;
     }
 
-    public static List<?> filter(List<?> original) {
-        Object selected = QualitySelector.choose(original, mode());
-        return selected == null ? original : new ArrayList<>(Collections.singletonList(selected));
+    /** The gear list {@code Video.getBitRate} hands back. */
+    public static List<?> filterVideoGears(List<?> original) {
+        return filterGears(original, VIDEO_MODEL);
+    }
+
+    /** The gear list {@code VideoUrlModel.getBitRate} hands back. */
+    public static List<?> filterDashGears(List<?> original) {
+        return filterGears(original, DASH_MODEL);
+    }
+
+    /**
+     * Picks one gear out of the list the player chooses from, and says which.
+     *
+     * <p>This is the path issue #3's phone is left with: both model strings come back empty
+     * there, and until now this path said nothing, so an export could not tell a list that was
+     * never handed over from a gear that was chosen and then ignored by the player. A chosen
+     * gear is a bound member of the Hook status family plus one report line per distinct
+     * choice, naming the gear, its height and everything it was picked from. A list with gears
+     * in it and nothing playable among them is a miss, named by its getter. A null or empty
+     * list is an item with no gears at all, a photo post for one, and is left alone like a
+     * model with one gear: on the S22 every feed has some, and a miss for each would leave the
+     * family reading as broken on a build where the path works.
+     */
+    private static List<?> filterGears(List<?> original, String owner) {
+        String mode = mode();
+        if (original == null || original.isEmpty() || "auto".equals(mode)) return original;
+        Object selected = QualitySelector.choose(original, mode);
+        if (selected == null) {
+            HookStatus.missingMember(FAMILY, "playable gear list from", owner, GEARS_GETTER);
+            if (DESCRIBED.add(owner + '#' + GEARS_GETTER)) {
+                Logger.printDebug(() -> owner + '.' + GEARS_GETTER
+                        + " returned gears with no playable address, so playback quality leaves it to the app");
+            }
+            return original;
+        }
+        HookStatus.bound(FAMILY, owner + '#' + GEARS_GETTER);
+        describeChoice(owner, mode, original, selected);
+        return new ArrayList<>(Collections.singletonList(selected));
+    }
+
+    /**
+     * One line per distinct choice: the mode, the gear it settled on and the gears it had.
+     * That is the line the device check reads to prove "lowest" is the smallest offered.
+     */
+    private static void describeChoice(String owner, String mode, List<?> offered, Object selected) {
+        StringBuilder gears = new StringBuilder();
+        for (Object gear : offered) {
+            if (gears.length() > 0) gears.append(", ");
+            gears.append(QualitySelector.describe(gear));
+        }
+        String line = "Playback quality " + mode + " picked " + QualitySelector.describe(selected)
+                + " of " + offered.size() + " gears from " + owner + '#' + GEARS_GETTER + ": " + gears;
+        if (CHOICES.size() >= MAX_CHOICES) CHOICES.clear();
+        if (!CHOICES.add(line)) return;
+        Logger.printInfo(() -> line);
     }
 
     public static Object cacheModel(Object original) {
@@ -208,6 +272,7 @@ public final class PlaybackQuality {
     /** Forgets which getters have been described, so a test can watch the first one again. */
     static void resetForTests() {
         DESCRIBED.clear();
+        CHOICES.clear();
         cache = null;
     }
 

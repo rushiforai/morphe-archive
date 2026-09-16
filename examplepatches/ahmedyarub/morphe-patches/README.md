@@ -15,9 +15,9 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.3](https://github.com/ahmedyarub/morphe-patches/releases/tag/v1.3.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
+> **[v1.5.1](https://github.com/ahmedyarub/morphe-patches/releases/tag/v1.5.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
 <details open>
-<summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;11 patches</summary>
+<summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;15 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -30,14 +30,18 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Bypass signature check](#bypass-signature-check) |  |  |
 | [Disable analytics](#disable-analytics) | Blocks analytics requests sent to Instagram and Facebook servers. |  |
 | [Disable screenshot detection](#disable-screenshot-detection) | Disables screenshot detection in direct messages and stories. |  |
+| [Download media](#download-media) | Adds ability to download posts, reels, stories and highlights |  |
+| [Download voice message](#download-voice-message) | Enables ability to download voice messages |  |
 | [Filter stories](#filter-stories) | Hides categories of stories from the story tray. | • Hide ad stories<br>• Hide suggested stories<br>• Hide highlights |
 | [Hide Instants](#hide-instants) | Hides Instants from DMs page. |  |
 | [Hide Threads profile button](#hide-threads-profile-button) | Hides the Threads button from the profile page action bar (top right of the profile page). |  |
 | [Hide ads](#hide-ads) | Hides ads in the feed. |  |
 | [Hide suggested content](#hide-suggested-content) | Choose the suggested content to hide using the patch options. | • Hide suggested reels<br>• Hide suggested stories<br>• Hide highlights in stories<br>• Hide suggested accounts |
 | [Improve image viewing](#improve-image-viewing) | Requests the maximum resolution images from the server. |  |
+| [Make ephemeral media permanent](#make-ephemeral-media-permanent) | Changes unexpired view once, view twice media to permanent view. |  |
 | [Open links externally](#open-links-externally) | Opens links in the system browser instead of the in-app browser. |  |
 | [Sanitize share links](#sanitize-share-links) | Removes tracking parameters from links shared out of the app. |  |
+| [Save deleted messages](#save-deleted-messages) | Captures incoming DMs locally as they arrive from the server and marks them when the sender deletes them. |  |
 
 </details>
 

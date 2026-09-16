@@ -1,3 +1,7 @@
+/*
+ * Copyright 2026 icysymmetra/tiktok-patches-for-morphe contributors
+ * https://github.com/icysymmetra/tiktok-patches-for-morphe
+ */
 package app.morphe.extension.tiktok.settings.preference;
 
 import app.morphe.extension.tiktok.settings.L10n;
@@ -40,6 +44,7 @@ public class SimPresetPreference extends Preference {
      */
     private TextView resultCount;
     private TextView emptyState;
+    private ListView presetList;
     private final InputTextPreference countryIsoPreference;
     private final InputTextPreference mccMncPreference;
     private final InputTextPreference operatorNamePreference;
@@ -146,6 +151,8 @@ public class SimPresetPreference extends Preference {
         listView.setFooterDividersEnabled(true);
         PresetAdapter adapter = new PresetAdapter(context, visiblePresets);
         listView.setAdapter(adapter);
+        listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+        presetList = listView;
 
         FrameLayout listContainer = new FrameLayout(context);
         listContainer.setBackground(createListBackground());
@@ -181,6 +188,18 @@ public class SimPresetPreference extends Preference {
 
         LinearLayout actions = new LinearLayout(context);
         actions.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        // The way back to no preset. Picking a row applied it and closed the dialog, and there
+        // was nothing here that undid that short of retyping three fields.
+        TextView clearButton = new TextView(context);
+        clearButton.setText(L10n.t(context, "Clear preset"));
+        clearButton.setTextSize(16);
+        SettingsUi.styleTextAction(clearButton, false);
+        clearButton.setTag("sim_preset_clear");
+        clearButton.setPadding(dpToPx(12), dpToPx(8), dpToPx(12), dpToPx(6));
+        actions.addView(clearButton, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
         TextView cancelButton = new TextView(context);
         cancelButton.setText(android.R.string.cancel);
         cancelButton.setTextSize(16);
@@ -200,6 +219,10 @@ public class SimPresetPreference extends Preference {
                 .setView(dialogView)
                 .create();
         cancelButton.setOnClickListener(view -> dialog.dismiss());
+        clearButton.setOnClickListener(view -> {
+            clearPreset();
+            dialog.dismiss();
+        });
 
         listView.setOnItemClickListener((parent, view, position, id) -> {
             SimPreset preset = visiblePresets.get(position);
@@ -264,7 +287,7 @@ public class SimPresetPreference extends Preference {
             }
         }
 
-        adapter.notifyDataSetChanged();
+        markSelected(adapter);
 
         // The count is the one thing that speaks, and only when it changes. The explanation
         // under it is there to be read, not announced a second time.
@@ -277,6 +300,42 @@ public class SimPresetPreference extends Preference {
         } else {
             emptyState.setVisibility(View.GONE);
         }
+    }
+
+    /**
+     * Marks the preset the three fields already hold and brings it into view.
+     *
+     * <p>The list used to be sixty identical rows with no sign of which one was on, and the only
+     * way to tell was to close the dialog and read the row summary.
+     */
+    private void markSelected(PresetAdapter adapter) {
+        SimPreset selected = SimPresets.findSelected(Settings.SIM_SPOOF_ISO.get(),
+                Settings.SIMSPOOF_MCCMNC.get(), Settings.SIMSPOOF_OP_NAME.get());
+        adapter.selected = selected;
+        adapter.notifyDataSetChanged();
+        if (presetList == null) return;
+        int index = selected == null ? -1 : visiblePresets.indexOf(selected);
+        if (index < 0) {
+            presetList.clearChoices();
+            return;
+        }
+        presetList.setItemChecked(index, true);
+        presetList.setSelection(index);
+    }
+
+    /**
+     * Back to no preset: the three settings blank, the three rows showing that, and the row
+     * summary saying so. The settings are written here as well as through the rows, because
+     * a row persists through its preference manager and a row on its own has none.
+     */
+    private void clearPreset() {
+        Settings.SIM_SPOOF_ISO.save("");
+        Settings.SIMSPOOF_MCCMNC.save("");
+        Settings.SIMSPOOF_OP_NAME.save("");
+        countryIsoPreference.setText("");
+        mccMncPreference.setText("");
+        operatorNamePreference.setText("");
+        refreshSummary("", "", "");
     }
 
     private int dpToPx(int dp) {
@@ -308,6 +367,9 @@ public class SimPresetPreference extends Preference {
     }
 
     private static class PresetAdapter extends ArrayAdapter<SimPreset> {
+        /** The preset the fields hold right now, marked on its row; null when they hold none. */
+        SimPreset selected;
+
         PresetAdapter(Context context, List<SimPreset> presets) {
             super(context, android.R.layout.simple_list_item_2, android.R.id.text1, presets);
         }
@@ -326,7 +388,18 @@ public class SimPresetPreference extends Preference {
             summary.setText(preset.getSummary());
             view.setEnabled(true);
 
-            view.setBackgroundColor(getDialogBackgroundColor());
+            // The chosen row wears the radio the standard dialogs draw, and says so to TalkBack.
+            boolean chosen = selected != null && preset == selected;
+            Context context = parent.getContext();
+            view.setSelected(chosen);
+            title.setCompoundDrawablePadding(SettingsUi.dp(context, 8));
+            title.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                    chosen ? SettingsUi.radioMark(context) : null, null, null, null);
+            summary.setPaddingRelative(chosen ? SettingsUi.dp(context, 40) : 0, 0, 0, 0);
+
+            // The fill under the press and the focus. Set flat, it covered the ListView's
+            // own selector, so pressing a preset looked like nothing at all.
+            view.setBackground(SettingsUi.listRow(parent.getContext(), getDialogBackgroundColor()));
             title.setTextColor(getTitleTextColor());
             summary.setTextColor(getSummaryTextColor());
             return view;

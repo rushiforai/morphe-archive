@@ -6,8 +6,12 @@ import app.morphe.patcher.patch.resourcePatch
  * Hides the quest promo banner (QuestBar) by neutering its visibility gate
  * directly in the Hermes bundle.
  *
- * Target analysis (Hermes bytecode v98 in all three builds):
+ * Target analysis (Hermes bytecode v98 in all four builds):
  *
+ * - 344.13 Stable: gate is function 60429 (offset 32664515, 477 bytes,
+ *   frame 79). Same shape as the 342/343 gate (getDeliveredQuest,
+ *   null/userStatus checks, isDismissed, QuestContent.QUEST_BAR_MOBILE)
+ *   with shifted registers, so it gets its own anchor.
  * - 342.16 Stable: gate is function 59152 (frame 251, 387 bytes).
  * - 343.12 Stable: gate is function 59938 (frame 49, 387 bytes).
  * - 341.13 Stable: gate is function 58782 (50 regs, 279 bytes).
@@ -27,8 +31,8 @@ import app.morphe.patcher.patch.resourcePatch
  * edited bundle re-disassembles with this as the ONLY difference across
  * all ~125k functions.
  *
- * 342 and 343 share byte-identical gate codegen; 341 differs, so two
- * anchors cover all three builds. The patch tries each anchor and applies
+ * 342 and 343 share byte-identical gate codegen; 341 and 344 differ, so
+ * three anchors cover all four builds. The patch tries each anchor and applies
  * the one found exactly once; anything else fails loudly so a Discord
  * codegen change can never silently corrupt the bundle.
  */
@@ -46,6 +50,8 @@ val hideQuestBarPatch = resourcePatch(
             b("34 03 00 89 0a 01 3b 0b 03 00 3b 09 03 02 5e 04"),
             // 341.13 gate (fn 58782, offset 32203161).
             b("34 03 00 89 04 01 3b 06 03 01 3b 08 03 02 5e 05"),
+            // 344.13 gate (fn 60429, offset 32664515).
+            b("34 03 00 89 0b 01 3b 0c 03 00 3b 0a 03 02 5e 04"),
         )
 
         val bundle = get("assets/index.android.bundle", true)

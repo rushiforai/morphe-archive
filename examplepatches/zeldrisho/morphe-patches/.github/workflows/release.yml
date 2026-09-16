@@ -14,9 +14,15 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Stable version tag to publish or recover
+        required: true
+        type: string
 
 concurrency:
-  group: release-${{ github.ref_name }}
+  group: release-${{ inputs.tag || github.ref_name }}
   cancel-in-progress: false
 
 permissions:
@@ -34,10 +40,11 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          ref: ${{ inputs.tag || github.ref }}
 
       - name: Validate tag and tree
         env:
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           set -euo pipefail
           [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] \
@@ -46,7 +53,8 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
           git fetch origin main --quiet
-          git merge-base --is-ancestor "$GITHUB_SHA" origin/main \
+          TAG_SHA="$(git rev-list -n1 "$TAG")"
+          git merge-base --is-ancestor "$TAG_SHA" origin/main \
             || { echo "::error::Tag '$TAG' is not on main. Tag the main-branch release commit instead."; exit 1; }
 
           PROP_VERSION="$(grep -E '^version *= *' gradle.properties | sed 's/.*= *//')"
@@ -76,6 +84,9 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
+        with:
+          # The legacy `tools` package was removed from the Android repository.
+          packages: platform-tools platforms;android-36 build-tools;36.1.0
 
       - name: Python script tests
         run: python3 -m unittest discover -s scripts/tests -v
@@ -101,7 +112,7 @@ jobs:
       - name: Create or reuse GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           set -euo pipefail
           if gh release view "$TAG" >/dev/null 2>&1; then
@@ -119,5 +130,5 @@ jobs:
       - name: Attest bundle
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-name: 'Morphe Patches ${{ github.ref_name }}'
+          subject-name: 'Morphe Patches ${{ inputs.tag || github.ref_name }}'
           subject-path: ${{ env.MPP }}

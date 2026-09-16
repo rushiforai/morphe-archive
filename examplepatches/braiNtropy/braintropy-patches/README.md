@@ -9,7 +9,23 @@ This repository contains patches maintained by [braiNtropy](https://github.com/b
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v2.0.0](https://github.com/braiNtropy/braintropy-patches/releases/tag/v2.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v2.2.0](https://github.com/braiNtropy/braintropy-patches/releases/tag/v2.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
+<details open>
+<summary>📦 Tracearr&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.2.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable OTA updates](#disable-ota-updates) | Disables expo-updates: the app no longer contacts the Expo update server (u.expo.dev) on launch and can never download or run over-the-air JavaScript updates published by the developer. |  |
+| [Unlock Premium](#unlock-premium) | Disables the Google Play license check (Pairip) that redirects installs not purchased through the Play Store to the buy page. |  |
+
+</details>
+
 <details open>
 <summary>📦 Waking Up&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>

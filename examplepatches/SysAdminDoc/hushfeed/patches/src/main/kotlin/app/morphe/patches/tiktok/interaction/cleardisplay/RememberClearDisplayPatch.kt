@@ -1,3 +1,7 @@
+/*
+ * Forked from:
+ * https://gitlab.com/ReVanced/revanced-patches/-/blob/main/patches/src/main/kotlin/app/revanced/patches/tiktok/interaction/cleardisplay/RememberClearDisplayPatch.kt
+ */
 package app.morphe.patches.tiktok.interaction.cleardisplay
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction

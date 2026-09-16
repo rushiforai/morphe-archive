@@ -3,6 +3,8 @@ package com.zeldrisho.patches.zalo.media
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.zeldrisho.patches.zalo.shared.Constants.COMPATIBILITY_ZALO
 
 /**
@@ -29,7 +31,10 @@ val keepZaloMediaAccessiblePatch = bytecodePatch(
 
     execute {
         val expiredLoad = MediaExpiryStatus.instructionMatches
-            .single { match -> match.instruction.toString().contains("BIG_FILE_EXPIRED") }
+            .single { match ->
+                val reference = (match.instruction as? ReferenceInstruction)?.reference
+                (reference as? FieldReference)?.name == "BIG_FILE_EXPIRED"
+            }
         val register = (expiredLoad.instruction as OneRegisterInstruction).registerA
         MediaExpiryStatus.method.replaceInstruction(
             expiredLoad.index,

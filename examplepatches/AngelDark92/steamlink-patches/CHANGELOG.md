@@ -1,3 +1,26 @@
+## [1.17.0](https://github.com/AngelDark92/steamlink-patches/compare/v1.16.0...v1.17.0) (2026-09-15)
+
+### 🐛 Bug Fixes
+
+* update README with detailed instructions for downloading Steam Link VR APK using DownQ ([38a6aee](https://github.com/AngelDark92/steamlink-patches/commit/38a6aee236f675340e287abad4a9718f27a81195))
+
+### ✨ New Features
+
+* Merge pull request [#59](https://github.com/AngelDark92/steamlink-patches/issues/59) from AngelDark92/dev ([fb91f8b](https://github.com/AngelDark92/steamlink-patches/commit/fb91f8b81fb92101e0cf158a22d80b5db30aea60))
+* patches now compatible with version 2.0.23-5002363 ([7dc8349](https://github.com/AngelDark92/steamlink-patches/commit/7dc8349bddc90c895dcca7391c5d53667931752f))
+
+## [1.17.0-dev.2](https://github.com/AngelDark92/steamlink-patches/compare/v1.17.0-dev.1...v1.17.0-dev.2) (2026-09-15)
+
+### 🐛 Bug Fixes
+
+* update README with detailed instructions for downloading Steam Link VR APK using DownQ ([38a6aee](https://github.com/AngelDark92/steamlink-patches/commit/38a6aee236f675340e287abad4a9718f27a81195))
+
+## [1.17.0-dev.1](https://github.com/AngelDark92/steamlink-patches/compare/v1.16.0...v1.17.0-dev.1) (2026-09-15)
+
+### ✨ New Features
+
+* patches now compatible with version 2.0.23-5002363 ([7dc8349](https://github.com/AngelDark92/steamlink-patches/commit/7dc8349bddc90c895dcca7391c5d53667931752f))
+
 ## [1.16.0](https://github.com/AngelDark92/steamlink-patches/compare/v1.15.0...v1.16.0) (2026-09-13)
 
 ### 🐛 Bug Fixes

@@ -63,6 +63,12 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     private static final String ARG_SEARCH = "morphe_settings_search";
     private static final String ARG_TARGET_KEY = "morphe_settings_target_key";
     private static TikTokPreferenceFragment activeFragment;
+    /** Pinned to the top of this page while a restart is owed; off the page otherwise. */
+    private RestartPendingPreference restartPending;
+    /** Rows on this page whose sentence was swapped for "Restart pending.", to swap back. */
+    private final java.util.Set<String> pendingSummaries = new java.util.HashSet<>();
+    /** Summaries a parent's reason was appended to, so it can be taken off again. */
+    private final java.util.Map<String, String> reasonSummaries = new java.util.HashMap<>();
     /**
      * Which folder setting the picker was opened for, by key rather than by the preference
      * itself. The picker is a separate activity, so this one is routinely destroyed behind it
@@ -396,6 +402,100 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         } else {
             createSectionMenu(context, preferenceScreen, section);
         }
+        restartPending = new RestartPendingPreference(context);
+        refreshRestartPending();
+    }
+
+    @Override
+    protected void onRestartPendingChanged() {
+        refreshRestartPending();
+    }
+
+    /**
+     * Pins the restart row while a restart is owed and takes it away when nothing is, and lets
+     * the rows that owe it say "Restart pending" in place of the sentence every restart-gated
+     * row carries, so the reader can see which of their changes are still waiting.
+     */
+    /**
+     * A row its parent has greyed says which switch would turn it on.
+     *
+     * <p>Four rows grey out when their parent is off and said nothing about it, so the row read
+     * as broken and a screen reader announced only "dimmed". The parent's own title is read off
+     * its row rather than kept in a second list, because both rows are always on the same page
+     * and a title kept twice is a title that drifts.
+     */
+    @Override
+    protected void updatePreferenceAvailability(Preference pref, Setting<?> setting) {
+        super.updatePreferenceAvailability(pref, setting);
+        Context context = getActivity();
+        if (context == null || pref.getKey() == null) return;
+        String key = pref.getKey();
+        String appended = reasonSummaries.remove(key);
+        if (appended != null) {
+            CharSequence current = pref.getSummary();
+            if (current != null && current.toString().endsWith(appended)) {
+                pref.setSummary(current.toString().substring(0, current.length() - appended.length()));
+            }
+        }
+        if (setting.isAvailable()) return;
+        String parentTitle = null;
+        for (Setting<?> parent : setting.getParentSettings()) {
+            Preference row = findPreference(parent.key);
+            CharSequence title = row == null ? null : row.getTitle();
+            if (title != null && title.length() > 0) {
+                parentTitle = title.toString();
+                break;
+            }
+        }
+        if (parentTitle == null) return;
+        String reason = " " + L10n.f(context, "Turn on %1$s first.", parentTitle);
+        CharSequence summary = pref.getSummary();
+        String body = summary == null ? "" : summary.toString();
+        if (body.endsWith(reason)) return;
+        pref.setSummary(body + reason);
+        reasonSummaries.put(key, reason);
+    }
+
+    private void refreshRestartPending() {
+        PreferenceScreen screen = getPreferenceScreen();
+        Context context = getActivity();
+        if (screen == null || restartPending == null || context == null) return;
+        boolean owed = !restartPendingKeys().isEmpty();
+        boolean shown = screen.findPreference(RestartPendingPreference.KEY) != null;
+        // Only touched while something is owed or shown. removePreference notifies the
+        // hierarchy whether or not the row was there, which rebuilt every page's list once
+        // more at open and moved twenty captures by a switch frame. While owed, the row is
+        // taken out and put back so the list rebinds the count.
+        if (shown) screen.removePreference(restartPending);
+        if (owed) screen.addPreference(restartPending);
+
+        String generic = L10n.t(context, TogglePreference.RESTART_SENTENCE);
+        // The sentence it replaces ends in a full stop and sits inside prose ("... Restart
+        // pending. If the old layout is still there, unfold again."), so this keeps one.
+        String pending = L10n.t(context, "Restart pending") + ".";
+        java.util.List<String> owedKeys = restartPendingKeys();
+        for (String key : owedKeys) {
+            Preference row = findPreference(key);
+            CharSequence summary = row == null ? null : row.getSummary();
+            if (summary == null || !summary.toString().contains(generic)) continue;
+            row.setSummary(summary.toString().replace(generic, pending));
+            pendingSummaries.add(key);
+        }
+        // A switch flipped back owes nothing, so its row says what it said before.
+        for (String key : new java.util.ArrayList<>(pendingSummaries)) {
+            if (owedKeys.contains(key)) continue;
+            pendingSummaries.remove(key);
+            Preference row = findPreference(key);
+            CharSequence summary = row == null ? null : row.getSummary();
+            if (summary == null || !summary.toString().contains(pending)) continue;
+            row.setSummary(summary.toString().replace(pending, generic));
+        }
+    }
+
+    private static java.util.List<String> restartPendingKeys() {
+        synchronized (AbstractPreferenceFragment.restartPending) {
+            return new java.util.ArrayList<>(AbstractPreferenceFragment.restartPending);
+        }
     }
 
     @Override
@@ -549,6 +649,8 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             row.setOnPreferenceClickListener(preference -> {
                 if (FEATURE_GATE_LAB_KEY.equals(result.key)) {
                     FeatureGateLabFragment.open(getActivity());
+                } else if (LicensesPreference.KEY.equals(result.key)) {
+                    LicensesPreference.show(getActivity());
                 } else if (MorpheTikTokAboutPreference.KEY.equals(result.key)) {
                     Utils.openLink(MorpheTikTokAboutPreference.SOURCE_URL);
                 } else {
@@ -680,6 +782,15 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                 MorpheTikTokAboutPreference.KEY,
                 "Hushfeed",
                 MorpheTikTokAboutPreference.currentSummary(context).toString(),
+                L10n.t(context, "Settings")
+        ));
+        // Somebody looking for "licence" or "notice" is looking for exactly one thing, and it
+        // sits on the master menu beside About rather than inside a section.
+        results.add(new SearchResult(
+                null,
+                LicensesPreference.KEY,
+                LicensesPreference.title(context),
+                LicensesPreference.summary(context),
                 L10n.t(context, "Settings")
         ));
         return results;
@@ -834,6 +945,10 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         addMenu(screen, Section.DIAGNOSTICS, SettingsMenuPreference.Icon.DIAGNOSTICS);
 
         screen.addPreference(new MorpheTikTokAboutPreference(context));
+        // Under About, because that is where somebody looks for who wrote this. Morphe's
+        // Section 7b asks that its notice reach the person using the software, and a file in the
+        // repository does not reach them.
+        screen.addPreference(new LicensesPreference(context));
     }
 
     /** The master menu's rows and the section each one opens, for the badge refresh. */
@@ -972,6 +1087,8 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         super.onResume();
         activeFragment = this;
         refreshMenuBadges();
+        // Back from a section onto the master menu: whatever was changed there is owed here.
+        refreshRestartPending();
     }
 
     /**

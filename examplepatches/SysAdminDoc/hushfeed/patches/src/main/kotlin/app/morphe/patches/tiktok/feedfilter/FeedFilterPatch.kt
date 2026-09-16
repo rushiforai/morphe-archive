@@ -773,7 +773,7 @@ private fun MutableMethod.filterProfileDetailAdEvent() {
     addInstructionsAtControlFlowLabel(
         pagerUpdateIndex,
         """
-            invoke-static/range {v$listRegister .. v$listRegister}, $EXTENSION_CLASS_DESCRIPTOR->filterProfileAds(Ljava/util/List;)Ljava/util/List;
+            invoke-static/range {v$listRegister .. v$listRegister}, $EXTENSION_CLASS_DESCRIPTOR->filterProfileDetailAds(Ljava/util/List;)Ljava/util/List;
             move-result-object v$listRegister
         """,
     )

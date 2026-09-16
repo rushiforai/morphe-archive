@@ -32,6 +32,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                 || SettingsStatus.hideFeedSearchButtonEnabled
                 || SettingsStatus.hideFeedFollowButtonEnabled
                 || SettingsStatus.hideFeedSaveButtonEnabled
+                || SettingsStatus.keepFavoritesTabEnabled
                 || SettingsStatus.hideSearchSuggestionsEnabled;
     }
 
@@ -252,6 +253,14 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Hide feed save button",
                     "Hide the save button in the right column.",
                     Settings.HIDE_FEED_SAVE_BUTTON
+            ));
+        }
+        if (SettingsStatus.keepFavoritesTabEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Keep the Favorites tab",
+                    "TikTok's server can put an account into an experiment that empties the Favorites tab on your profile. Keep the tab and its saved videos.",
+                    Settings.KEEP_FAVORITES_TAB
             ));
         }
     }

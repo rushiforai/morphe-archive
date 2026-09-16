@@ -13,8 +13,10 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.preference.LogBufferManager;
 import app.morphe.extension.tiktok.SettingsContextRule;
+import app.morphe.extension.tiktok.download.AdvancedDownloadsTest;
 import app.morphe.extension.tiktok.settings.Settings;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.After;
@@ -129,5 +131,44 @@ public class PlaybackQualityModelTest {
 
         assertNull(ShadowToast.getTextOfLatestToast());
         assertEquals(1, HookStatus.missing(PlaybackQuality.FAMILY).size());
+    }
+
+    @Test public void theGearListPathSaysWhatItPickedAndFromWhat() {
+        // Issue #3's phone hands back an empty string from both model getters, which leaves the
+        // gear list as the only path the picker has there. Until now that path said nothing, so
+        // an export could not tell a list never handed over from a gear chosen and ignored.
+        var low = new AdvancedDownloadsTest.Gear("normal_360_0", 100, "https://example.com/low");
+        var high = new AdvancedDownloadsTest.Gear("normal_1080_0", 400, "https://example.com/high");
+        assertEquals(List.of(low), PlaybackQuality.filterVideoGears(List.of(high, low)));
+        assertEquals(List.of(low), PlaybackQuality.filterVideoGears(List.of(high, low)));
+
+        assertTrue(HookStatus.missing(PlaybackQuality.FAMILY).isEmpty());
+        assertTrue(HookStatus.report().toString(),
+                HookStatus.report().contains("playback quality: 1 found, 0 missing"));
+        // The line is an ordinary event, so it is in the export whenever the reader's filter
+        // takes ordinary events, which the default filter does.
+        BaseSettings.DEBUG_LOG_FILTERS.save("all");
+        String report = LogBufferManager.buildExportText();
+        String line = "Playback quality lowest picked normal_360_0 360p of 2 gears from "
+                + "Video#getBitRate: normal_1080_0 1080p, normal_360_0 360p";
+        assertTrue(report, report.contains(line));
+        // One line per distinct choice, not one per video.
+        assertEquals(report, report.indexOf(line), report.lastIndexOf(line));
+    }
+
+    @Test public void aGearListWithNothingPlayableIsAMissNamedByItsGetter() {
+        List<?> unplayable = List.of(new AdvancedDownloadsTest.Gear("normal_720_0", 200, null));
+        assertSame(unplayable, PlaybackQuality.filterDashGears(unplayable));
+        assertSame(unplayable, PlaybackQuality.filterVideoGears(unplayable));
+        // No gears at all, null or empty, is an ordinary item such as a photo post, not a
+        // broken getter: the S22 feed has some in every session and the family must not read
+        // as broken on a build where the path works.
+        assertNull(PlaybackQuality.filterVideoGears(null));
+        assertTrue(PlaybackQuality.filterVideoGears(new ArrayList<>()).isEmpty());
+
+        List<String> missing = HookStatus.missing(PlaybackQuality.FAMILY);
+        assertEquals(missing.toString(), 2, missing.size());
+        assertTrue(missing.toString(), missing.get(0).contains("playable gear list from VideoUrlModel#getBitRate"));
+        assertTrue(missing.toString(), missing.get(1).contains("playable gear list from Video#getBitRate"));
     }
 }

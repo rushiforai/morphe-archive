@@ -19,6 +19,7 @@ internal const val VIDEO_LIBRARY_SIZE_5002244 = 2_251_920
 internal const val VIDEO_LIBRARY_SIZE_5002313 = 2_276_872
 internal const val VIDEO_LIBRARY_SIZE_5002318 = 2_277_488
 internal const val VIDEO_LIBRARY_SIZE_5002322 = 2_283_400
+internal const val VIDEO_LIBRARY_SIZE_5002363 = 2_292_008
 private const val VIDEO_LIBRARY_SHA256_5001712 =
     "80b62797c7e26d6b67b0cca00693b076a336bdb48ebc1383a16cccb1616ed495"
 private const val VIDEO_LIBRARY_SHA256_5001740 =
@@ -31,6 +32,8 @@ private const val VIDEO_LIBRARY_SHA256_5002318 =
     "3c8d1ce13fd61edff5ce65efe6eedcc8565c89b66bab371550986a5c75407e56"
 private const val VIDEO_LIBRARY_SHA256_5002322 =
     "e61baf34dfc4749d92561bab5fee47891d271607a0ce44824ff61c3e6a450c3f"
+private const val VIDEO_LIBRARY_SHA256_5002363 =
+    "628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0"
 
 private val SRGB8_INSTRUCTION = byteArrayOf(0x69, 0x88.toByte(), 0x91.toByte(), 0x52)
 private val RGB10_A2_INSTRUCTION = byteArrayOf(0x29, 0x0b, 0x90.toByte(), 0x52)
@@ -53,6 +56,7 @@ internal val SWAPCHAIN_FORMAT_OFFSETS_5002244 = intArrayOf(0x10826c, 0x1082dc, 0
 internal val SWAPCHAIN_FORMAT_OFFSETS_5002313 = intArrayOf(0x10b2d4, 0x10b344, 0x10b3b4)
 internal val SWAPCHAIN_FORMAT_OFFSETS_5002318 = intArrayOf(0x10b430, 0x10b4a0, 0x10b510)
 internal val SWAPCHAIN_FORMAT_OFFSETS_5002322 = intArrayOf(0x10ba78, 0x10bae8, 0x10bb58)
+internal val SWAPCHAIN_FORMAT_OFFSETS_5002363 = intArrayOf(0x10c840, 0x10c8b0, 0x10c920)
 
 private data class VideoLibraryLayout(
     val versionName: String,
@@ -104,6 +108,13 @@ private val VIDEO_LIBRARY_LAYOUTS = listOf(
         VIDEO_LIBRARY_SIZE_5002322,
         VIDEO_LIBRARY_SHA256_5002322,
         SWAPCHAIN_FORMAT_OFFSETS_5002322,
+    ),
+    VideoLibraryLayout(
+        "2.0.23",
+        5002363,
+        VIDEO_LIBRARY_SIZE_5002363,
+        VIDEO_LIBRARY_SHA256_5002363,
+        SWAPCHAIN_FORMAT_OFFSETS_5002363,
     ),
 )
 
@@ -324,7 +335,7 @@ internal fun setProjectionSwapchainFormat(
 @Suppress("unused")
 val oledCalibrationPatch = rawResourcePatch(
     name = "OLED color calibration",
-    description = "Calibrates Galaxy XR OLED color and selects a guarded high-precision video output path for Steam Link builds 5001712, 5001740, 5002244, 5002313, 5002318, and 5002322.",
+    description = "Calibrates Galaxy XR OLED color and selects a guarded high-precision video output path for Steam Link builds 5001712, 5001740, 5002244, 5002313, 5002318, 5002322, and 5002363.",
     default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK.toTypedArray())

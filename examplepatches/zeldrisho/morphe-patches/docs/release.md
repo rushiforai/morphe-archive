@@ -5,15 +5,17 @@ recovery live here — other docs link here instead of restating them.
 
 Stable-only releases. Push a version tag on `main` and
 `.github/workflows/release.yml` tests, builds, and publishes the GitHub
-release. Commits can use any style (the commit skill's conventional format
-is fine) — nothing parses them; only pushed tags publish.
+release. The workflow also supports a manual recovery run for an existing tag
+without moving or re-pushing it. Commits can use any style (the commit skill's
+conventional format is fine) — nothing parses them; only pushed tags publish
+automatically.
 
 ## Daily flow
 
 - Work on a branch.
 - Collect user-visible app patch changes under `## Unreleased` in
   `CHANGELOG.md` as you go (per-app `**App:**` bullets, see below).
-- `Check` runs on pull requests targeting `main` and pushes to `main`; `Release` runs only on `v*` tags.
+- `Check` runs on pull requests targeting `main` and pushes to `main`; `Release` runs automatically on `v*` tags and can be manually dispatched with a tag for recovery.
 - When the branch is stable, open a PR manually and merge (no squash) into `main`.
 - Ship from this repo (branch → `main` → tag → release). `scripts/repatch.py`
   defaults `GITHUB_REPO` here. Don't split work across sibling patch repos;
@@ -87,8 +89,7 @@ The workflow never pushes to `main`: the Manager manifest is staged upfront
 by `prepare_release.py`, so no bot commit — and no branch-ruleset
 status-check conflict — follows a release.
 
-To retry a failed run, use the Actions "Re-run jobs" control or `gh run rerun <run-id>` for the tag's run — re-pushing an existing tag does not start a new run (`push.tags` fires only on a new ref update). Never move a published tag or
-replace a published asset — fix forward with a new version instead.
+To retry a failed run, use the Actions "Re-run jobs" control or `gh run rerun <run-id>` for the tag's run. If the workflow itself needs a fix, merge the fix and manually dispatch the updated workflow from `main` with the existing tag, for example `gh workflow run release.yml --ref main -f tag=v1.4.0`. Re-pushing an existing tag does not start a new run (`push.tags` fires only on a new ref update). Never move a published tag or replace a published asset — fix forward with a new version instead.
 
 ## Changelog policy
 

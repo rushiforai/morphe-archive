@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
 import app.morphe.extension.tiktok.settings.Settings;
 
 import org.junit.After;
@@ -218,6 +219,127 @@ public class PausePlaybackTest {
             assertFalse("the tap did not start the feed", PausePlayback.quietenedForTests());
             assertNull("the catcher stayed on the feed", PausePlayback.catcherForTests());
             assertEquals("the catcher was left behind", before, root.getChildCount());
+        }
+    }
+
+    /**
+     * The stop says what it is and what ends it, and it is the only thing on the page.
+     *
+     * <p>The catcher was a transparent view, so coming back to the app looked like a frozen,
+     * silent feed with nothing to say why. And a screen reader could swipe straight through it
+     * to the like and comment buttons underneath, the way it cannot through the hold panel.
+     */
+    @Test public void comingBackSaysWhatToDoAndCurtainsTheFeed() {
+        Settings.NO_RESUME_ON_FOREGROUND.save(true);
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            ViewGroup root = activity.findViewById(android.R.id.content);
+            View feed = new View(activity);
+            root.addView(feed);
+            PausePlayback.setWasAwayForTests(true);
+            PausePlayback.onForeground(activity);
+
+            View catcher = PausePlayback.catcherForTests();
+            assertNotNull(catcher);
+            assertTrue("the catcher has nothing drawn in it", catcher instanceof ViewGroup);
+            android.widget.TextView hint = null;
+            for (int i = 0; i < ((ViewGroup) catcher).getChildCount(); i++) {
+                View child = ((ViewGroup) catcher).getChildAt(i);
+                if (child instanceof android.widget.TextView) hint = (android.widget.TextView) child;
+            }
+            assertNotNull("the catcher shows no label", hint);
+            assertEquals("Tap to start the feed", hint.getText().toString());
+            assertEquals(View.VISIBLE, hint.getVisibility());
+            assertEquals("the label is a second stop for a screen reader",
+                    View.IMPORTANT_FOR_ACCESSIBILITY_NO, hint.getImportantForAccessibility());
+            if (android.os.Build.VERSION.SDK_INT >= 28) {
+                assertEquals("the stop is not announced when it arrives",
+                        "Tap to start the feed", String.valueOf(catcher.getAccessibilityPaneTitle()));
+            }
+            assertEquals("a screen reader can still reach the feed under the catcher",
+                    View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS,
+                    feed.getImportantForAccessibility());
+
+            catcher.performClick();
+            assertNull(PausePlayback.catcherForTests());
+            assertEquals("the feed was left hidden from a screen reader after the tap",
+                    View.IMPORTANT_FOR_ACCESSIBILITY_AUTO, feed.getImportantForAccessibility());
+        }
+    }
+
+    /**
+     * Leaving the feed takes the catcher with it and hands the sound back.
+     *
+     * <p>The tab bar is kept clear so Profile and Inbox are one tap away, but the page that
+     * opens is drawn under the same content root, and the catcher stayed over it: the first
+     * tap there was eaten and the sound was held for a feed nobody was looking at.
+     */
+    @Test public void leavingTheFeedTakesTheCatcherAndHandsBackTheSound() {
+        Settings.NO_RESUME_ON_FOREGROUND.save(true);
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            ViewGroup root = activity.findViewById(android.R.id.content);
+            View homeTab = new View(activity);
+            homeTab.setId(0x7f0a4b89);
+            homeTab.setSelected(true);
+            root.addView(homeTab, new FrameLayout.LayoutParams(60, 40));
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            FeedVisibility.resolveForTests(activity.getPackageName(), "o1k", homeTab.getId());
+            try {
+                PausePlayback.setWasAwayForTests(true);
+                PausePlayback.onForeground(activity);
+                assertNotNull(PausePlayback.catcherForTests());
+                assertTrue(PausePlayback.quietenedForTests());
+
+                // A layout pass on the feed itself changes nothing.
+                root.getViewTreeObserver().dispatchOnGlobalLayout();
+                assertNotNull("a layout on the feed took the catcher down",
+                        PausePlayback.catcherForTests());
+
+                // The reader taps Profile: the Home tab is no longer the selected one.
+                homeTab.setSelected(false);
+                root.getViewTreeObserver().dispatchOnGlobalLayout();
+                assertNull("the catcher stayed up over a page that is not the feed",
+                        PausePlayback.catcherForTests());
+                assertFalse("the sound was held for a feed nobody is looking at",
+                        PausePlayback.quietenedForTests());
+            } finally {
+                FeedVisibility.resolveForTests(activity.getPackageName(), "o1k", 0);
+            }
+        }
+    }
+
+    /**
+     * Two curtains over one root: the later one lifting must not hand the feed back while the
+     * earlier one is still up. The hold panel and the tap catcher share the curtain.
+     */
+    @Test public void aLaterCurtainLiftingLeavesTheEarlierOnesCover() {
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            ViewGroup root = activity.findViewById(android.R.id.content);
+            View feed = new View(activity);
+            View catcher = new View(activity);
+            View panel = new View(activity);
+            root.addView(feed);
+            root.addView(catcher);
+            root.addView(panel);
+
+            app.morphe.extension.tiktok.wellbeing.SessionLockOverlay.hideBehind(root, catcher, true);
+            app.morphe.extension.tiktok.wellbeing.SessionLockOverlay.hideBehind(root, panel, true);
+            assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS,
+                    catcher.getImportantForAccessibility());
+
+            app.morphe.extension.tiktok.wellbeing.SessionLockOverlay.hideBehind(root, panel, false);
+            assertEquals("the hold lifting handed the feed back under the catcher",
+                    View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS,
+                    feed.getImportantForAccessibility());
+            assertEquals("the catcher itself was left curtained",
+                    View.IMPORTANT_FOR_ACCESSIBILITY_AUTO, catcher.getImportantForAccessibility());
+
+            app.morphe.extension.tiktok.wellbeing.SessionLockOverlay.hideBehind(root, catcher, false);
+            assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_AUTO, feed.getImportantForAccessibility());
         }
     }
 

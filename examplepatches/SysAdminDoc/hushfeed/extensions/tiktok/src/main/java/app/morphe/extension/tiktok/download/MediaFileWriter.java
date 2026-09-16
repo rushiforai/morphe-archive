@@ -1,3 +1,9 @@
+/*
+ * Copyright 2026 Hushfeed contributors
+ * https://github.com/SysAdminDoc/hushfeed
+ *
+ * Built on icysymmetra/tiktok-patches-for-morphe (GPL-3.0).
+ */
 package app.morphe.extension.tiktok.download;
 
 import android.content.ContentValues;
@@ -49,15 +55,25 @@ final class MediaFileWriter {
                             destinationDirectory);
                 }
                 MediaBudget.check(null);
+                // The row went in under a name MediaStore could not collide with, so this is
+                // where it takes the one the reader asked for. A rename here is safe: the
+                // journal is holding the row's URI, so an interruption is recoverable whatever
+                // the row ends up called.
+                values.clear();
+                values.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
+                values.put(MediaStore.MediaColumns.IS_PENDING, 0);
+                if (resolver.update(uri, values, null, null) != 1) throw new IOException("Could not publish gallery entry");
+                // Read after the rename, not before it: MediaStore may still have had to make
+                // the reader's name unique, and what is reported has to be what landed.
                 String savedName;
                 try (var cursor = resolver.query(uri, new String[]{MediaStore.MediaColumns.DISPLAY_NAME}, null, null, null)) {
                     if (cursor == null || !cursor.moveToFirst()) throw new IOException("Could not read saved filename");
                     savedName = cursor.getString(0);
                     if (savedName == null || savedName.isEmpty()) throw new IOException("Saved filename is empty");
                 }
-                values.clear();
-                values.put(MediaStore.MediaColumns.IS_PENDING, 0);
-                if (resolver.update(uri, values, null, null) != 1) throw new IOException("Could not publish gallery entry");
+                if (savedName.startsWith(MediaCache.TEMPORARY_NAME_PREFIX)) {
+                    throw new IOException("Gallery entry kept its placeholder name");
+                }
                 try {
                     MediaCache.clearPending(context, uri);
                 } catch (IOException journalError) {

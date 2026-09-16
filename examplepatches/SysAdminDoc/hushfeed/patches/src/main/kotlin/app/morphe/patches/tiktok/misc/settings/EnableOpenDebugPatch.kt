@@ -1,3 +1,11 @@
+/*
+ * Forked from:
+ * https://gitlab.com/ReVanced/revanced-patches/-/blob/main/patches/src/main/kotlin/app/revanced/patches/tiktok/misc/settings/EnableOpenDebugPatch.kt
+ *
+ * TikTok 43.6.2: ReVanced MR !6535. OpenDebug hooks use heavy obfuscation; names differ by APK variant.
+ * State class: many short LX/… UI states reuse obfuscated field names like LLILLL—selection is driven by the
+ * unique Jetpack compose `LIZ` method that calls Context.getString(I) and reads LLILL (OpenDebug row).
+ */
 package app.morphe.patches.tiktok.misc.settings
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction

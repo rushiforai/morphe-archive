@@ -286,9 +286,16 @@ public final class ShareSheetTools {
         try {
             View cell = boundCellOf(touched);
             RecipientBinding binding = RECIPIENTS.get(cell);
-            String recipientId = binding == null
-                    ? "view:" + System.identityHashCode(cell)
-                    : binding.id;
+            if (binding == null) {
+                // Not a recipient we bound. Repost, Copy link, Save and the other
+                // share-channel actions reach this same native dispatcher, and none of them
+                // is a person to confirm before sending to. Let the first tap through
+                // instead of arming a "tap again to send". Reposting a video used to arm
+                // this step and ask for a second tap before it would repost.
+                disarm();
+                return true;
+            }
+            String recipientId = binding.id;
             String name = labelOf(cell);
             long now = SystemClock.uptimeMillis();
             boolean armed = cell == armedCell.get()

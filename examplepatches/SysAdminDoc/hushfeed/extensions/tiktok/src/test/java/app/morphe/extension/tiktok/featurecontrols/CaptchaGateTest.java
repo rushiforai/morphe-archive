@@ -172,6 +172,50 @@ public class CaptchaGateTest {
                 CaptchaGate.showReason(null, "{\"scene\":\"/passport/mobile/check\"}", afterEveryWrite()));
     }
 
+    /**
+     * The export tells three states apart: the gate is in the build, it has seen a write, and
+     * a check has reached it.
+     *
+     * <p>A report of a comment that went nowhere carried no CAPTCHA line at all, so nobody
+     * could say whether Hushfeed had seen the publish request, whether a puzzle had been
+     * raised, or whether the gate was even in that build. A family that is simply absent says
+     * all three.
+     */
+    @Test
+    public void theExportSaysWhetherTheGateSawAWriteAndACheck() {
+        assertFalse("the family is in the export before the settings load",
+                String.join(" ", HookStatus.report()).contains("CAPTCHA account state"));
+
+        app.morphe.extension.tiktok.settings.SettingsStatus.enableCaptchaPopupSuppression();
+        assertTrue(HookStatus.report().toString(), String.join(" ", HookStatus.report())
+                .contains("CAPTCHA account state: 1 found, 0 missing"));
+
+        CaptchaGate.recordRequest(new Request("/aweme/v1/comment/publish/"));
+        CaptchaGate.recordRequest(new Request("/aweme/v1/comment/publish/"));
+        assertTrue("a write the recorder saw is not in the export: " + HookStatus.report(),
+                String.join(" ", HookStatus.report())
+                        .contains("CAPTCHA account state: 2 found, 0 missing"));
+
+        // A read is not a write, so it changes nothing.
+        CaptchaGate.recordRequest(new Request("/aweme/v1/comment/list/"));
+        assertTrue(String.join(" ", HookStatus.report())
+                .contains("CAPTCHA account state: 2 found, 0 missing"));
+
+        assertFalse(CaptchaGate.shouldHide(null, "risk slide", "{\"subtype\":\"slide\"}"));
+        assertTrue("a check that reached the gate is not in the export: " + HookStatus.report(),
+                String.join(" ", HookStatus.report())
+                        .contains("CAPTCHA account state: 3 found, 0 missing"));
+
+        // A diagnostic clear drops every entry. The next write puts the family back, with
+        // itself, or an export taken after a clear would say this build has no gate.
+        HookStatus.clear();
+        assertFalse(String.join(" ", HookStatus.report()).contains("CAPTCHA account state"));
+        CaptchaGate.recordRequest(new Request("/aweme/v1/comment/publish/"));
+        assertTrue("the family did not come back after a clear: " + HookStatus.report(),
+                String.join(" ", HookStatus.report())
+                        .contains("CAPTCHA account state: 2 found, 0 missing"));
+    }
+
     @Test
     public void aRenamedAccountServiceIsVisibleInHookStatus() {
         assertEquals("no account is signed in",

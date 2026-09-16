@@ -33,6 +33,9 @@ private data class NativeMicrophoneLayout(
 private val NATIVE_MICROPHONE_LAYOUTS = mapOf(
     "5002318" to NativeMicrophoneLayout(2_277_488, 0xF3240),
     "5002322" to NativeMicrophoneLayout(2_283_400, 0xF37E0),
+    // SHA-256: 628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0.
+    // Symbol-derived QSVLClientAudioNdk::Init -> AAudioStreamBuilder_setInputPreset.
+    "5002363" to NativeMicrophoneLayout(2_292_008, 0xF44C0),
 )
 
 private fun movW1Immediate(value: Int): ByteArray {
@@ -49,6 +52,28 @@ private fun movW1Immediate(value: Int): ByteArray {
 private fun ByteArray.matchesAt(offset: Int, pattern: ByteArray): Boolean =
     offset >= 0 && offset + pattern.size <= size &&
         pattern.indices.all { this[offset + it] == pattern[it] }
+
+internal fun patchNativeMicrophonePreset(
+    bytes: ByteArray,
+    preset: String,
+    versionName: String,
+    versionCode: String,
+): ByteArray {
+    if (!isNativeXrSteamLinkBuild(versionName, versionCode)) return bytes.copyOf()
+    val selected = SUPPORTED_PRESETS[preset]
+        ?: throw PatchException("Unknown microphone input preset: $preset")
+    val layout = NATIVE_MICROPHONE_LAYOUTS[versionCode]
+        ?: throw PatchException("No verified microphone layout for Steam Link $versionName/$versionCode")
+    if (bytes.size != layout.librarySize) {
+        throw PatchException("Unsupported native microphone library size=${bytes.size}; expected ${layout.librarySize}")
+    }
+    if (!bytes.matchesAt(layout.instructionOffset - INPUT_PRESET_PREFIX.size, INPUT_PRESET_PREFIX) ||
+        SUPPORTED_PRESETS.values.none { bytes.matchesAt(layout.instructionOffset, movW1Immediate(it)) }
+    ) {
+        throw PatchException("Native microphone instruction did not match the verified layout at 0x${layout.instructionOffset.toString(16)}")
+    }
+    return bytes.copyOf().apply { movW1Immediate(selected).copyInto(this, layout.instructionOffset) }
+}
 
 @Suppress("unused")
 val microphoneInputPresetPatch = rawResourcePatch(
@@ -80,31 +105,13 @@ val microphoneInputPresetPatch = rawResourcePatch(
         val matches = mutableListOf<Int>()
 
         if (isNativeXrSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) {
-            val layout = NATIVE_MICROPHONE_LAYOUTS[packageMetadata.versionCode]
-                ?: throw PatchException("No verified microphone layout for Steam Link ${packageMetadata.versionCode}")
-            if (bytes.size != layout.librarySize) {
-                throw PatchException(
-                    "Unsupported native microphone library size=${bytes.size}; expected ${layout.librarySize}",
-                )
-            }
-            val currentIsSupported = SUPPORTED_PRESETS.values.any {
-                bytes.matchesAt(layout.instructionOffset, movW1Immediate(it))
-            }
-            if (!bytes.matchesAt(layout.instructionOffset - INPUT_PRESET_PREFIX.size, INPUT_PRESET_PREFIX) ||
-                !currentIsSupported
-            ) {
-                throw PatchException(
-                    "Native microphone instruction did not match the verified layout at 0x${layout.instructionOffset.toString(16)}",
-                )
-            }
-            val replacement = movW1Immediate(selected)
-            if (!bytes.matchesAt(layout.instructionOffset, replacement)) {
-                val result = bytes.copyOf()
-                replacement.copyInto(result, layout.instructionOffset)
-                file.writeBytes(result)
-            }
+            file.writeBytes(patchNativeMicrophonePreset(bytes, requireNotNull(preset),
+                packageMetadata.versionName, packageMetadata.versionCode))
             return@execute
         }
+
+        // A forced dependency must not run the legacy scanner on a mismatched modern base.
+        if (packageMetadata.versionCode == "5002363" || bytes.size == 2_292_008) return@execute
 
         for (offset in 0..bytes.size - INPUT_PRESET_PREFIX.size - 4) {
             if (!bytes.matchesAt(offset, INPUT_PRESET_PREFIX)) continue

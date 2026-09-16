@@ -7,7 +7,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        minSdk = 23
+        minSdk = 26
     }
 
     compileOptions {
@@ -17,7 +17,10 @@ android {
 }
 
 dependencies {
-    compileOnly(libs.annotation)
+    // Bundled into extensions/shared.mpe, so the classes reach the patched app.
     implementation(libs.morphe.extensions.library)
     implementation(libs.instagram.morphe.extensions.library)
+
+    compileOnly(libs.annotation)
+    compileOnly(libs.appcompat)
 }

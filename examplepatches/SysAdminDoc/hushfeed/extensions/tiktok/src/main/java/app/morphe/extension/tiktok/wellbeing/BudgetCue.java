@@ -140,7 +140,14 @@ public final class BudgetCue {
             }
             // The hold covers the feed and carries its own words. A number underneath it is
             // either invisible or arguing with the panel on top.
-            if (SessionBudget.isLocked() || !FeedVisibility.isOnFeed(activity)) {
+            //
+            // The stricter gate rather than isOnFeed: the cue is a label that just sits there,
+            // so it should be on the recommendation feed or gone. isOnFeed answers "assume the
+            // feed" for a build whose Home tab it cannot find and counts a detail page opened
+            // from a profile grid or a search result, and it says nothing about the comment
+            // sheet, so the cue went on drawing over the top of one while the four feed controls
+            // took themselves away.
+            if (SessionBudget.isLocked() || !FeedVisibility.onRecommendationFeed(activity)) {
                 detach();
                 return;
             }

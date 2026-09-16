@@ -47,7 +47,6 @@ Second \"item\" text"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">گەڕانەوە سەر ڕاستەقینەی ڕاستگۆ</string>
   <string name="morphe_spoof_video_streams_screen_summary">شێوەپێدانی spoofing کلایەنت بۆ ڕێگرتن لە کێشەکانی پەخش کردنەوە</string>
-  <string name="morphe_spoof_video_streams_title">گەڕانەوە سەر ڕاستەقینەی ڕاستگۆ</string>
   <string name="morphe_spoof_video_streams_no_clients_toast">هیچ ڕاستگۆیەکی ئەندازی نەیادەخرێت</string>
   <string name="morphe_spoof_video_streams_user_dialog_message">خەڵادانەوەی ئەم ناسنامەیە دەبێتە هۆی کێشە لە پەرباسەدا.</string>
   <!-- 'Spoof video streams' must use the same translation as morphe_spoof_video_streams_title.

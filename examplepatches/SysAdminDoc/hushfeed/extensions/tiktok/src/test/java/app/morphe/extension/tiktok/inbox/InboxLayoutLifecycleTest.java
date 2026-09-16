@@ -263,6 +263,28 @@ public class InboxLayoutLifecycleTest {
         assertEquals("a finishing activity kept filtering its hierarchy", View.GONE, current.search.getVisibility());
     }
 
+    /**
+     * Android 17 replaced the queue behind the main Looper. Installing the layout observer is
+     * posted, not run, so a queue that delivered nothing would leave the inbox unfiltered with
+     * nothing failing. The install is posted here and left alone: a layout before the queue
+     * delivers it reaches no filter, and the same layout after it does.
+     */
+    @Test @Config(sdk = 37)
+    public void onAndroidSeventeenTheObserverIsStillInstalledThroughTheQueue() {
+        Inbox inbox = new Inbox();
+        inboxes.add(inbox);
+        Settings.HIDE_INBOX_SEARCH.save(true);
+        InboxFilter.install(inbox.activity);
+
+        inbox.layout();
+        assertEquals("the filter ran before the queue had installed it",
+                View.VISIBLE, inbox.search.getVisibility());
+
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        inbox.layout();
+        assertEquals("the queue never delivered the install", View.GONE, inbox.search.getVisibility());
+    }
+
     private Inbox openInbox() {
         Inbox inbox = new Inbox();
         inboxes.add(inbox);

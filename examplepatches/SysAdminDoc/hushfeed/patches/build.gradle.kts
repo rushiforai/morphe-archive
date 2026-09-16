@@ -99,6 +99,115 @@ patches {
     }
 }
 
+// Morphe patcher 1.12.0 asks for Bouncy Castle 1.77 and the Android build tools it brings ask
+// for 1.79, so this module's graph resolved at 1.79: inside CVE-2025-8916 (1.44 to 1.79) and
+// CVE-2026-5588 (1.49 to 1.84). None of it reaches the payload, and the APK a user gets is
+// signed by their own Manager with its own patcher, so this is the build and signing classpath
+// here rather than anything shipped. The repository's rule is that a known-affected component
+// does not stay in a reproducible graph either way. Every request is rewritten to the reviewed
+// release the catalog pins, the same treatment :extensions:tiktok gives its test graph.
+val safeBouncyCastleVersion = libs.versions.bouncycastle.get()
+// What the patcher and the Android build tools are known to ask for. A request for anything
+// else is a version nobody has read the advisories for, and the gate below stops the build on
+// it rather than rewriting it away in silence.
+val reviewedBouncyCastleRequests = setOf("1.77", "1.79", safeBouncyCastleVersion)
+// Guarded by hand rather than with a synchronized collection wrapper: in a Kotlin build script
+// `java` is the Java extension, so the java.util package cannot be named here.
+val requestedBouncyCastleVersions = sortedSetOf<String>()
+
+configurations.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.bouncycastle") {
+            // Recorded before the rewrite, and recorded as a name rather than dropped when the
+            // request carries no version of its own: a request arriving through a platform or
+            // a constraint would otherwise be rewritten and never counted.
+            // Blank as well as null: a declaration with no version reports "" rather than null,
+            // and a plain ?: leaves the failure message with an empty name in it.
+            val asked = requested.version?.takeIf { it.isNotBlank() } ?: "a request with no version of its own"
+            synchronized(requestedBouncyCastleVersions) { requestedBouncyCastleVersions.add(asked) }
+            useVersion(safeBouncyCastleVersion)
+            because("The build classpath must use the reviewed Bouncy Castle release.")
+        }
+    }
+}
+
+val verifyBouncyCastleBuildGraph = tasks.register("verifyBouncyCastleBuildGraph") {
+    group = "verification"
+    description = "Checks this module's resolvable graphs for unreviewed Bouncy Castle requests."
+
+    doLast {
+        // Resolving is what runs the rewrite above, so the requests are collected here rather
+        // than read out of a set nothing has filled yet. Checking the resolved version instead
+        // would prove nothing: the rewrite guarantees that answer, so its failure branch could
+        // never run. The request underneath it is the live fact.
+        // Named rather than "every resolvable configuration": the ones the patcher's graph
+        // actually arrives on. Resolution failures are not caught. A swallowed one is how this
+        // gate first passed while reporting a single module, because dependency verification
+        // was refusing the very artifacts the force had just introduced.
+        val inspected = listOf("patcherProvidedClasspath", "compileClasspath", "runtimeClasspath",
+            "testCompileClasspath", "testRuntimeClasspath")
+        val seen = sortedMapOf<String, String>()
+        val missing = mutableListOf<String>()
+        for (name in inspected) {
+            val configuration = configurations.findByName(name)
+            if (configuration == null || !configuration.isCanBeResolved) {
+                missing += name
+                continue
+            }
+            val modules = configuration.incoming.resolutionResult.allComponents
+                .mapNotNull { it.moduleVersion?.takeIf { module -> module.group == "org.bouncycastle" } }
+            for (module in modules) seen[module.name] = module.version
+        }
+        if (missing.isNotEmpty()) {
+            throw GradleException(
+                "These configurations were not there to inspect: " + missing.joinToString(", ") +
+                    ". The plugin renamed them, so this gate is looking at the wrong graph."
+            )
+        }
+        // Named, not merely non-empty. A module that fails to resolve is absent from
+        // allComponents rather than raising, so a force at a version that does not publish a
+        // module leaves this reporting the ones that did resolve and passing. That is exactly
+        // what 1.85.2 did: it is a bcprov-only release, and bcpkix and bcutil read FAILED in
+        // the dependency report while this gate said the graph was clean.
+        val expected = setOf("bcpkix-jdk18on", "bcprov-jdk18on", "bcutil-jdk18on")
+        val absent = expected - seen.keys
+        if (absent.isNotEmpty()) {
+            throw GradleException(
+                "Bouncy Castle " + absent.sorted().joinToString(", ") + " is not on the build " +
+                    "graph. Either the force names a version that does not publish it, or the " +
+                    "patcher stopped bringing it and this gate is now blind."
+            )
+        }
+        val wrong = seen.filterValues { it != safeBouncyCastleVersion }
+        if (wrong.isNotEmpty()) {
+            throw GradleException(
+                "Bouncy Castle resolved at " + wrong.entries.joinToString(", ") { "${it.key}:${it.value}" } +
+                    " rather than the reviewed $safeBouncyCastleVersion."
+            )
+        }
+        logger.lifecycle(
+            "Bouncy Castle on the build graph: " + seen.entries.joinToString(", ") { "${it.key}:${it.value}" }
+        )
+
+        val requested = synchronized(requestedBouncyCastleVersions) { requestedBouncyCastleVersions.toSet() }
+        val unreviewed = requested - reviewedBouncyCastleRequests
+        if (unreviewed.isNotEmpty()) {
+            throw GradleException(
+                "The build graph now asks for Bouncy Castle " + unreviewed.sorted().joinToString(", ") +
+                    ", which nobody has reviewed. It is being rewritten to $safeBouncyCastleVersion. " +
+                    "Check the advisory for the requested release, then add it to " +
+                    "reviewedBouncyCastleRequests or move the pin."
+            )
+        }
+    }
+}
+
+// By type rather than by the one name, so a second test task cannot start on a graph nothing
+// has looked at. :patches:test is what scripts/pre-push.ps1 runs when a patch source changes.
+tasks.withType<Test>().configureEach {
+    dependsOn(verifyBouncyCastleBuildGraph)
+}
+
 dependencies {
     compileOnly(libs.morphe.patcher)
 
@@ -174,7 +283,14 @@ tasks {
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"
 
-        dependsOn(build)
+        // jar, not build. build runs check, which runs test, and ReadmePatchNamesTest asserts
+        // that the checked-in patches-list.json names exactly the patches the Kotlin sources
+        // declare. Adding or renaming a patch therefore failed the test before the task that
+        // regenerates the list could run, and the only ways through were -x test or editing the
+        // generated JSON by hand. The generator reads build/libs/patches-<version>.mpp, which
+        // jar produces; the test and verifyBundle are still the gate afterwards, which is the
+        // order that can actually pass.
+        dependsOn(jar)
 
         classpath = sourceSets["main"].runtimeClasspath
         mainClass.set("app.morphe.util.PatchListGeneratorKt")

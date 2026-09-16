@@ -48,7 +48,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_search_empty_history_title">搜尋記錄是空的</string>
   <string name="morphe_settings_search_empty_history_summary">若要儲存搜尋記錄，請輸入搜尋查詢並按下 Enter 鍵</string>
   <string name="morphe_settings_search_history_title">顯示設定搜尋記錄</string>
-  <string name="morphe_settings_name_title">Morphe</string>
+  <string name="morphe_settings_name_title">Morphe 設定名稱</string>
   <string name="morphe_settings_name_default_item">預設</string>
   <string name="morphe_settings_name_entry_2">額外設定</string>
   <string name="morphe_settings_name_entry_3">微調</string>
@@ -184,6 +184,12 @@ Second \"item\" text"</string>
 請將 MicroG 更新至最新版本 v%2s。"</string>
   <string name="gms_core_dialog_update_text">更新</string>
   <string name="gms_core_dialog_ignore_text">忽略</string>
+  <string name="gms_core_dialog_conflict_message">"Morphe 不建議使用目前已安裝的 MicroG：
+
+%1s
+
+點擊以解除安裝，然後重新開啟此應用程式並安裝 MicroG RE。"</string>
+  <string name="gms_core_dialog_uninstall_text">解除安裝</string>
   <!-- "Don't kill my app" should be kept in English and not translated -->
   <string name="gms_core_dialog_not_whitelisted_not_allowed_in_background_message">"MicroG 未獲得在後台執行的許可權。
 

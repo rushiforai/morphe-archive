@@ -405,6 +405,7 @@ Second \"item\" text"</string>
   <string name="morphe_vot_screen_title">תרגום דיבוב</string>
   <string name="morphe_vot_screen_summary">קריאת כתוביות הסרטון בקול רם באמצעות טקסט לדיבור מקומי, בסנכרון עם ההפעלה</string>
   <string name="morphe_vot_enabled_title">תרגום דיבוב</string>
+  <string name="morphe_vot_enabled_summary">מציג כפתור צף בנגן הווידאו. הקש כדי להפעיל או לכבות את התרגום, הקש והחזק להגדרות מהירות</string>
   <string name="morphe_vot_caption_language_title">שפה</string>
   <string name="morphe_vot_translation_service_title">ספק תרגום</string>
   <string name="morphe_vot_original_audio_volume_title">עוצמת שמע מקורית</string>
@@ -514,6 +515,8 @@ Second \"item\" text"</string>
   <string name="morphe_queue_add_flyout_menu_summary">מוסיף פריט תפריט מוקפץ נוסף. הפעל זאת אם \'הוסף לתור\' אינו מוצג</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_title">רשימת היתרים למודעות בתפריט נשלף</string>
   <string name="morphe_ads_channel_whitelist_flyout_menu_summary">מוסיף פריט בתפריט נשלף שמאפשר למודעות להתנגן בערוץ של אותו סרטון</string>
+  <!-- "Spoof video streams" must use the same translation as morphe_spoof_video_streams_screen_title -->
+  <string name="morphe_ads_channel_whitelist_flyout_user_dialog_message">תכונה זו עשויה לדרוש שימוש ב-PotHelper או שינוי של \"זיוף הזרמות וידאו\" להתחברות כ-TV או כ-Android VR.</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_title">רשימת היתרים למהירות בתפריט נשלף</string>
   <string name="morphe_playback_speed_channel_whitelist_flyout_menu_summary">מוסיף פריט בתפריט נשלף שתמיד מנגן את הערוץ של אותו סרטון במהירות 1.0x</string>
   <string name="morphe_queue_manager_check_failed_auth">לא מחובר</string>
@@ -603,8 +606,10 @@ Second \"item\" text"</string>
   <string name="morphe_swipe_text_overlay_size_summary">הסתר כפתור \'הורדה\'</string>
   <string name="morphe_swipe_threshold_title">סף גודל החלקה</string>
   <string name="morphe_swipe_threshold_summary">הסתר כפתור \'הייפ\'</string>
-  <string name="morphe_swipe_volume_sensitivity_title">רגישות החלקה בעוצמת הקול</string>
-  <string name="morphe_swipe_volume_sensitivity_summary">ערכים גבוהים יותר מגדילים את שינוי עוצמת הקול בכל החלקה</string>
+  <string name="morphe_swipe_volume_distance_title">רגישות החלקה בעוצמת הקול</string>
+  <string name="morphe_swipe_volume_distance_summary">ערכים גבוהים יותר דורשים יותר החלקות לכל שלב עוצמת קול</string>
+  <string name="morphe_swipe_volume_steps_title">שלבי עוצמת קול</string>
+  <string name="morphe_swipe_volume_steps_entry_default">ברירת מחדל של המכשיר</string>
   <string name="morphe_swipe_brightness_sensitivity_title">רגישות החלקה בבהירות</string>
   <string name="morphe_swipe_brightness_sensitivity_summary">ערכים גבוהים יותר דורשים יותר החלקות לכל שלב בהירות</string>
   <string name="morphe_swipe_speed_sensitivity_title">רגישות החלקה במהירות</string>
@@ -913,6 +918,7 @@ Second \"item\" text"</string>
   <string name="morphe_disable_fullscreen_sliding_down_gesture_title">השבת מחוות החלקה כלפי מטה במצב פורטרט</string>
   <string name="morphe_disable_fullscreen_dragged_down_gesture_title">השבת מחוות החלקה כלפי מטה במצב לנדסקייפ</string>
   <string name="morphe_disable_fullscreen_zoom_gesture_title">השבת מחוות צביטה לזום</string>
+  <string name="morphe_restore_pinch_to_zoom_title">שחזור צביטה כדי להגדיל</string>
   <!-- layout.player.fullscreen.openVideosFullscreenPatch -->
   <string name="morphe_open_videos_fullscreen_title">פתח סרטונים במצב מסך מלא</string>
   <string name="morphe_open_videos_fullscreen_entry_1">מושבת</string>
@@ -925,6 +931,8 @@ Second \"item\" text"</string>
   <string name="morphe_fullscreen_video_scale_entry_zoom">זום (חיתוך למילוי)</string>
   <string name="morphe_fullscreen_video_scale_button_title">הצג כפתור קנה מידה של וידאו</string>
   <string name="morphe_fullscreen_video_scale_button_summary">הקש כדי לעבור בין ברירת מחדל, מתיחה וזום</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_title">הצג רק במסך מלא</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_summary">הסתר את כפתור קנה המידה של הסרטון בנגן במצב לאורך</string>
   <!-- layout.player.buttons.muteVideoButtonPatch -->
   <string name="morphe_mute_video_button_title">הצג כפתור השתקה</string>
   <!-- layout.player.overlay.customPlayerOverlayOpacityPatch -->
@@ -964,6 +972,7 @@ Second \"item\" text"</string>
 
 מגבלה: אם \"שחזר סרגל הפעולות של הווידאו הישן\" כבוי, ייתכן ש-\"עוד סרטונים\" לא יהיה זמין"</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="morphe_spoof_app_version_target_entry_21_11">21.11.48 - שחזור התנהגות הכתוביות הישנה</string>
   <string name="morphe_spoof_app_version_target_entry_20_39">20.39.41 - שחזר שפופרות ישנות לפלייליסט</string>
   <string name="morphe_spoof_app_version_target_entry_20_28">20:28:41 - עכבה סמלים מודגשים</string>
   <string name="morphe_spoof_app_version_target_entry_20_13">20.13.41 - שחזר את שם הערוץ מתחת לנגן הווידאו</string>
@@ -1024,16 +1033,16 @@ Second \"item\" text"</string>
   <string name="morphe_miniplayer_disable_resuming_summary">משבית את הנגן המיני \'המשך לצפות\', תכונה בתשלום של YouTube Premium שמופיעה בעת הפעלת האפליקציה</string>
   <string name="morphe_miniplayer_screen_title">מיני-נגן</string>
   <string name="morphe_miniplayer_screen_summary">התאם אישית את המראה וההתנהגות של נגן הווידאו הממוזער</string>
-  <string name="morphe_miniplayer_not_available_summary">YouTube הסיר את כל המיני-נגנים הנוספים. כדי לשנות את סוג המיני-נגן, יש להטליא את YouTube 21.28.208 או גרסה נמוכה יותר.</string>
   <string name="morphe_miniplayer_type_title">סוג מיני-נגן</string>
   <string name="morphe_miniplayer_type_entry_0">מושבת</string>
   <string name="morphe_miniplayer_type_entry_1">ברירת מחדל</string>
   <string name="morphe_miniplayer_type_entry_2">מינימלי</string>
-  <string name="morphe_miniplayer_type_entry_3">טאבלט</string>
-  <string name="morphe_miniplayer_type_entry_4">מודרני 1</string>
-  <string name="morphe_miniplayer_type_entry_5">מודרני 2</string>
-  <string name="morphe_miniplayer_type_entry_6">מודרני 3</string>
-  <string name="morphe_miniplayer_type_entry_7">מודרני 4</string>
+  <string name="morphe_miniplayer_type_entry_3">מינימלי 2</string>
+  <string name="morphe_miniplayer_type_entry_4">טאבלט</string>
+  <string name="morphe_miniplayer_type_entry_5">מודרני 1</string>
+  <string name="morphe_miniplayer_type_entry_6">מודרני 2</string>
+  <string name="morphe_miniplayer_type_entry_7">מודרני 3</string>
+  <string name="morphe_miniplayer_type_entry_8">מודרני 4</string>
   <string name="morphe_miniplayer_disable_rounded_corners_title">בטל פינות מעוגלות</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_title">בטל גרירה ושחרור</string>
   <string name="morphe_miniplayer_disable_drag_and_drop_summary">מונע גרירת הנגן הממוזער לפינות שונות של המסך</string>

@@ -1,3 +1,15 @@
+## [1.6.0](https://github.com/Epxec/android-patches/compare/v1.5.0...v1.6.0) (2026-09-15)
+
+### ✨ New Features
+
+* Todai premium ([474d5d1](https://github.com/Epxec/android-patches/commit/474d5d1c32e40a75cbe89fb2ed5bc3676611999c))
+
+## [1.6.0-dev.1](https://github.com/Epxec/android-patches/compare/v1.5.0...v1.6.0-dev.1) (2026-09-15)
+
+### ✨ New Features
+
+* Todai premium ([474d5d1](https://github.com/Epxec/android-patches/commit/474d5d1c32e40a75cbe89fb2ed5bc3676611999c))
+
 ## [1.5.0](https://github.com/Epxec/android-patches/compare/v1.4.0...v1.5.0) (2026-09-15)
 
 ### ✨ New Features

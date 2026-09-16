@@ -1,3 +1,7 @@
+/*
+ * Forked from:
+ * https://gitlab.com/ReVanced/revanced-patches/-/blob/main/extensions/tiktok/src/main/java/app/revanced/extension/tiktok/share/ShareUrlSanitizer.java
+ */
 package app.morphe.extension.tiktok.share;
 
 import app.morphe.extension.shared.Logger;

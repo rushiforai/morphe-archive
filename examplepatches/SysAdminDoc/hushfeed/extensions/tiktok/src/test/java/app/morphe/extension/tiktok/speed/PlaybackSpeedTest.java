@@ -26,6 +26,10 @@ public class PlaybackSpeedTest {
     private static Aweme video(String id) { return new Aweme() { @Override public String getAid() { return id; } }; }
     @Before public void setup() {
         Utils.setContext(RuntimeEnvironment.getApplication());
+        // The restart debt is process-wide, and the capture below owes only what this test
+        // changes through the screen, not what an earlier class left behind.
+        app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment
+                .restartPending.clear();
         Settings.DEFAULT_SPEED_ENABLED.save(true);
         Settings.DEFAULT_SPEED.save("1.5");
         Settings.CUSTOM_SPEEDS.save("");

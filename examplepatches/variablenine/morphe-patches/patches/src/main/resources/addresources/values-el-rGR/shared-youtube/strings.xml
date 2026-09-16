@@ -75,7 +75,6 @@ Second \"item\" text"</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Παραποίηση ροών βίντεο</string>
   <string name="morphe_spoof_video_streams_screen_summary">Παραποίηση του προγράμματος ροών βίντεο για την αποφυγή προβλημάτων αναπαραγωγής</string>
-  <string name="morphe_spoof_video_streams_title">Παραποίηση ροών βίντεο</string>
   <string name="morphe_spoof_video_streams_summary">"Επιδιορθώνει προβλήματα αναπαραγωγής για τους περισσότερους χρήστες, ζητώντας μια συμβατή ροή βίντεο
 
 Εάν είστε συνδρομητής του YouTube Premium, αυτή η ρύθμιση ενδέχεται να μην απαιτείται."</string>
