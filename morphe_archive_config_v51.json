@@ -1777,6 +1777,38 @@
                 "sortOrder": 233,
                 "createdAt": 1789443162364,
                 "updatedAt": 1789443162364
+            },
+            {
+                "name": "HelioFloxZ-Patches",
+                "source": "https://raw.githubusercontent.com/HelioFloxZ/HelioFloxZ-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 234,
+                "createdAt": 1789530137060,
+                "updatedAt": 1789530137060
+            },
+            {
+                "name": "Pinterest-patch",
+                "source": "https://raw.githubusercontent.com/Insane96/Pinterest-patch/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 235,
+                "createdAt": 1789530137718,
+                "updatedAt": 1789530137718
+            },
+            {
+                "name": "aniskip-stremio",
+                "source": "https://raw.githubusercontent.com/azksama/aniskip-stremio/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 236,
+                "createdAt": 1789530141952,
+                "updatedAt": 1789530141952
+            },
+            {
+                "name": "gboard-theme-patch",
+                "source": "https://raw.githubusercontent.com/thrkingunknown/gboard-theme-patch/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 237,
+                "createdAt": 1789530147222,
+                "updatedAt": 1789530147222
             }
         ]
     }
