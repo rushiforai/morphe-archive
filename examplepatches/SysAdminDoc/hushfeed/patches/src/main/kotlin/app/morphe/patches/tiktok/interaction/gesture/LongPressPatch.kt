@@ -19,6 +19,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.interaction.blockauthor.blockAuthorPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
 import app.morphe.util.numberOfParameterRegisters
@@ -90,7 +91,8 @@ internal fun MutableMethod.hookCoordinateLongPress() {
         "Long-press controls: unexpected native coordinate callback signature."
     }
     val registers = implementation!!.registerCount
-    check(registers - numberOfParameterRegisters >= 1 && registers <= 16) {
+    requireLocals("Long-press controls", 1)
+    check(registers <= 16) {
         "Long-press controls: native coordinates no longer fit the gesture hook."
     }
     // 0R9T's existing timer supplies local DOWN x in p1. Native p2/y and the event body survive.
@@ -127,7 +129,8 @@ internal fun MutableMethod.preserveConfiguredLongPressFromEdgeSpeedup() {
         "Long-press controls: unexpected native edge-speedup eligibility signature."
     }
     val registers = implementation!!.registerCount
-    check(registers - numberOfParameterRegisters >= 1 && registers <= 16) {
+    requireLocals("Long-press controls", 1)
+    check(registers <= 16) {
         "Long-press controls: edge-speedup coordinates no longer fit the gesture hook."
     }
     // Native NU1 gets local DOWN x in p1. False prevents its earlier 300 ms speedup timer.
@@ -208,9 +211,7 @@ val longPressPatch = bytecodePatch(
 
         FeedLongPressFingerprint.method.apply {
             // v0 is scratch; the check keeps it a local rather than a parameter register.
-            check(implementation!!.registerCount - numberOfParameterRegisters >= 1) {
-                "Long-press controls: onLongPress has no free local register."
-            }
+            requireLocals("Long-press controls", 1)
             addInstructionsWithLabels(
                 0,
                 """

@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-15T06:01:28",
-  "description": "## [1.28.0](https://github.com/Zanuaimi/UniPatches/compare/v1.27.6...v1.28.0) (2026-09-15)\n\n### \ud83d\udc1b Bug Fixes\n\n* **ads:** replace MAX callback smali injection ([f20b00c](https://github.com/Zanuaimi/UniPatches/commit/f20b00c8b13661fac777390b7c67285a28fc4643))\n\n### \u2728 New Features\n\n* **ads:** add safe MAX runtime bridge ([968a4ba](https://github.com/Zanuaimi/UniPatches/commit/968a4baa0b233ff7d72fec79e8ea3fdf46da8a1f))\n",
-  "download_url": "https://github.com/Zanuaimi/UniPatches/releases/download/v1.28.0/patches-1.28.0.mpp",
+  "created_at": "2026-09-16T15:55:00",
+  "description": "## [1.29.0-dev.18](https://github.com/Zanuaimi/UniPatches/compare/v1.29.0-dev.17...v1.29.0-dev.18) (2026-09-16)\n\n### \ud83d\udc1b Bug Fixes\n\n* **inapp:** Harden purchase callback delivery ([2073291](https://github.com/Zanuaimi/UniPatches/commit/207329162fc8239d766d1f902c08f7d0c4156fce))\n* **overlay:** Harden launcher result forwarding ([057afcb](https://github.com/Zanuaimi/UniPatches/commit/057afcbfd0095376f264f468382005e3239fa661))\n* **overlay:** Make runtime lifecycle attachment safe ([43eb7bd](https://github.com/Zanuaimi/UniPatches/commit/43eb7bd38ca596c01912e41b4e735932eae58dc5))\n",
+  "download_url": "https://github.com/Zanuaimi/UniPatches/releases/download/v1.29.0-dev.18/patches-1.29.0-dev.18.mpp",
   "signature_download_url": "N/A",
-  "version": "v1.28.0"
+  "version": "v1.29.0-dev.18"
 }

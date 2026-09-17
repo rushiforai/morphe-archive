@@ -48,7 +48,8 @@ final class SettingsListAdapter extends BaseAdapter implements WrapperListAdapte
     private boolean isBoundary(int position) {
         if (position < 0 || position >= getCount()) return true;
         Object item = getItem(position);
-        return item instanceof SettingsHeaderPreference || item instanceof PreferenceCategory;
+        return item instanceof SettingsHeaderPreference || item instanceof PreferenceCategory
+                || item instanceof SectionHeadingPreference;
     }
 
     @Override public View getView(int position, View convertView, ViewGroup parent) {
@@ -56,7 +57,7 @@ final class SettingsListAdapter extends BaseAdapter implements WrapperListAdapte
         if (isBoundary(position)) return row;
         Preference preference = (Preference) getItem(position);
         SettingsUi.stylePreferenceRow(row);
-        row.setBackground(SettingsUi.groupedRow(row.getContext(), isBoundary(position - 1), isBoundary(position + 1)));
+        SettingsUi.applyGroupedRow(row, isBoundary(position - 1), isBoundary(position + 1));
         if (preference instanceof SettingsMenuPreference) {
             row.setPaddingRelative(SettingsUi.dp(row.getContext(), 18), SettingsUi.dp(row.getContext(), 14),
                     SettingsUi.dp(row.getContext(), 18), SettingsUi.dp(row.getContext(), 14));

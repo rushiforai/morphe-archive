@@ -3,9 +3,12 @@ package app.morphe.extension.tiktok.comment;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Looper;
 import android.view.MotionEvent;
 import android.view.View;
@@ -13,6 +16,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.tiktok.blockauthor.BlockGlyphDrawable;
 import app.morphe.extension.tiktok.settings.Settings;
 import java.lang.ref.WeakReference;
 import java.util.Map;
@@ -89,6 +93,26 @@ public class CommentControlOwnershipTest {
         tap(cell.nativeRow.button);
         assertEquals(3, cell.nativeRow.taps);
         assertEquals(0, ShadowToast.shownToastCount());
+    }
+
+    @Test public void theBlockControlDrawsABlockSymbolAndGivesTikToksIconBack() {
+        // With the switch on, a tap on what still looked exactly like TikTok's thumbs down
+        // blocked an account. The only thing that told a reader otherwise was the tint, which
+        // arrives after the block. The shape says it beforehand now.
+        Cell cell = new Cell();
+        ColorDrawable nativeIcon = new ColorDrawable(Color.GREEN);
+        cell.nativeRow.icon.setImageDrawable(nativeIcon);
+        CommentTools.setDislikeTouchListener(cell.nativeRow.button, cell.nativeRow);
+
+        Settings.BLOCK_FROM_COMMENT.save(true);
+        bind(cell);
+        assertTrue("a control that blocks still looked like a thumbs down",
+                cell.nativeRow.icon.getDrawable() instanceof BlockGlyphDrawable);
+
+        Settings.BLOCK_FROM_COMMENT.save(false);
+        bind(cell);
+        assertSame("TikTok's own icon did not come back with the control",
+                nativeIcon, cell.nativeRow.icon.getDrawable());
     }
 
     @Test public void aNativeRebindRefreshesTheListenerThatWillBeHandedBack() {
@@ -204,6 +228,7 @@ public class CommentControlOwnershipTest {
     private static final class NativeRow extends FrameLayout implements View.OnTouchListener {
         final FrameLayout actionRow;
         final RelativeLayout button;
+        final ImageView icon;
         int taps;
         boolean pressed;
 
@@ -212,7 +237,7 @@ public class CommentControlOwnershipTest {
             actionRow = new FrameLayout(context);
             button = new RelativeLayout(context);
             button.setId(0x7f000101);
-            ImageView icon = new ImageView(context);
+            icon = new ImageView(context);
             icon.setId(0x7f000102);
             button.addView(icon);
             actionRow.addView(button);

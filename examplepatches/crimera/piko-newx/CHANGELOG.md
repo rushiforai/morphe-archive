@@ -1,3 +1,37 @@
+## [3.25.1](https://github.com/crimera/piko-newx/compare/v3.25.0...v3.25.1) (2026-09-16)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** auto-scroll navbar editor ([3ecf15b](https://github.com/crimera/piko/commit/3ecf15b5dca2d5de53c4721d11a8c37c57359af4))
+
+## [3.25.0](https://github.com/crimera/piko-newx/compare/v3.24.2...v3.25.0) (2026-09-16)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** improve navbar editor drag feedback ([ac98563](https://github.com/crimera/piko/commit/ac985637a8d07c42ffb67abdeb2031635b9dc4c6))
+
+### ✨ New Features
+* **Twitter - newx:** overhaul navbar customization ([228171b](https://github.com/crimera/piko/commit/228171b6d9b9a509438009ba93984b60f99e2616))
+
+## [3.24.2](https://github.com/crimera/piko-newx/compare/v3.24.1...v3.24.2) (2026-09-16)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** show selected destination icon ([02f91e5](https://github.com/crimera/piko/commit/02f91e57cf21e45b44c7e2c1dabdbacd9a186604))
+
+## [3.24.1](https://github.com/crimera/piko-newx/compare/v3.24.0...v3.24.1) (2026-09-16)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** reduce navbar patch memory usage ([c36262f](https://github.com/crimera/piko/commit/c36262f1af8dfd29d4833452a1caa58fffd80dab))
+* **Twitter - newx:** make restored splash background theme-aware ([84a4a39](https://github.com/crimera/piko/commit/84a4a3996e4b4b7ff58d0391920195a1cffa44b6))
+* **Twitter - newx:** restore twitter blue app icon & splash colors ([e0b50c2](https://github.com/crimera/piko/commit/e0b50c2826ee5f9d16e01fb8540ad3b1bf95ca4e))
+
+## [3.24.0](https://github.com/crimera/piko-newx/compare/v3.23.3...v3.24.0) (2026-09-16)
+
+### ✨ New Features
+* **Twitter - newx:** add drawer destinations to navbar editor ([d8a1526](https://github.com/crimera/piko/commit/d8a15266fc673fcad19c67532424a33f3ae51846))
+* **Twitter - newx:** add customizable navigation bar ([032513b](https://github.com/crimera/piko/commit/032513bc4e04e565cc047a48749fac9f2c0dd76b))
+
+### New Patches
+* **Twitter:** NewX: Customize navigation bar
+
 ## [3.23.3](https://github.com/crimera/piko-newx/compare/v3.23.2...v3.23.3) (2026-09-14)
 
 ### 🐛 Bug Fixes

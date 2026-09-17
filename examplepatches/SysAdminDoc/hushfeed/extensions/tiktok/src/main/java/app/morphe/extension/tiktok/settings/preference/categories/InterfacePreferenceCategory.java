@@ -9,6 +9,7 @@ import android.preference.PreferenceScreen;
 
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
+import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 import app.morphe.extension.tiktok.settings.preference.ChoicePreference;
 import app.morphe.extension.tiktok.settings.preference.NumberInputPreference;
@@ -44,6 +45,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
     @Override
     public void addPreferences(Context context) {
         if (SettingsStatus.subtitleToolsEnabled) {
+            addPreference(new SectionHeadingPreference(context, "Captions"));
             addPreference(new NumberInputPreference(context, "Caption text size",
                     "Use 0 for TikTok's size, or 12 to 48. Applies to the next caption.", Settings.CAPTION_TEXT_SIZE, "point", "points") {
                 @Override protected int clamp(int value) { return value <= 0 ? 0 : Math.max(12, Math.min(48, value)); }
@@ -53,6 +55,9 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     new String[]{"default", "transparent", "dark", "black"}));
             addPreference(new TogglePreference(context, "Keep captions in clear display",
                     "Show the current spoken caption while the other controls are hidden.", Settings.KEEP_CAPTIONS_CLEAR_DISPLAY));
+        }
+        if (SettingsStatus.screenCaptureEnabled || SettingsStatus.automaticClearDisplayEnabled) {
+            addPreference(new SectionHeadingPreference(context, "Display"));
         }
         if (SettingsStatus.screenCaptureEnabled) {
             addPreference(new TogglePreference(context, "Allow screenshots and Circle to Search",
@@ -64,6 +69,9 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             addPreference(new NumberInputPreference(context, "Clear display delay",
                     "Wait before hiding the controls.", Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY,
                     "millisecond", "milliseconds"));
+        }
+        if (SettingsStatus.doubleTapEnabled || SettingsStatus.longPressEnabled || SettingsStatus.confirmInteractionsEnabled) {
+            addPreference(new SectionHeadingPreference(context, "Gestures"));
         }
         if (SettingsStatus.doubleTapEnabled) {
             addPreference(new ChoicePreference(context, "Double tap", Settings.DOUBLE_TAP_ACTION,
@@ -86,6 +94,21 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
         if (SettingsStatus.confirmInteractionsEnabled) {
             addPreference(new TogglePreference(context, "Confirm before following", "Tap the feed Follow button twice within four seconds.", Settings.CONFIRM_FOLLOW));
             addPreference(new TogglePreference(context, "Confirm before liking", "Tap the like heart twice within four seconds. Removing a like stays immediate.", Settings.CONFIRM_LIKE));
+        }
+        boolean hasFeedControls = SettingsStatus.promotionalBannersEnabled
+                || SettingsStatus.captchaPopupSuppressionEnabled
+                || SettingsStatus.alwaysShowPublishDateEnabled
+                || SettingsStatus.sensitiveWarningsEnabled
+                || SettingsStatus.authorRegionEnabled
+                || SettingsStatus.videoOverlaysEnabled
+                || SettingsStatus.hideSearchSuggestionsEnabled
+                || SettingsStatus.hideFeedLiveButtonEnabled
+                || SettingsStatus.hideFeedSearchButtonEnabled
+                || SettingsStatus.hideFeedFollowButtonEnabled
+                || SettingsStatus.hideFeedSaveButtonEnabled
+                || SettingsStatus.keepFavoritesTabEnabled;
+        if (hasFeedControls) {
+            addPreference(new SectionHeadingPreference(context, "Feed controls"));
         }
         if (SettingsStatus.promotionalBannersEnabled) {
             addPreference(new TogglePreference(
@@ -173,8 +196,8 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             ));
             addPreference(new TogglePreference(
                     context,
-                    "Hide the favorite button",
-                    "Hide the favorite button and its count in the right column.",
+                    "Hide the save button",
+                    "Hide the save button and its count in the right column.",
                     Settings.HIDE_RAIL_FAVOURITE
             ));
             addPreference(new TogglePreference(
@@ -203,6 +226,12 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             ));
             addPreference(new TogglePreference(
                     context,
+                    "Hide the share prompt after a like",
+                    "Stop the bubble that asks you to share a video with friends after you like it.",
+                    Settings.HIDE_SHARE_GUIDE
+            ));
+            addPreference(new TogglePreference(
+                    context,
                     "Hide the status bar",
                     "Keep the clock and status icons off the screen while TikTok is open. "
                             + "Swipe down from the top to peek at them.",
@@ -214,6 +243,9 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Hide the \"Search this image\" prompt TikTok shows over videos when it spots something to shop for.",
                     Settings.HIDE_VISUAL_SEARCH
             ));
+            addPreference(new ChoicePreference(context, "Feed button size", Settings.TOUCH_TARGET_SCALE,
+                    new String[]{"Normal", "Larger (1.25x)", "Large (1.5x)", "Extra large (2x)"},
+                    new String[]{"1", "1.25", "1.5", "2"}));
         }
         if (SettingsStatus.hideSearchSuggestionsEnabled) {
             addPreference(new TogglePreference(

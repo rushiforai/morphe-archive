@@ -183,8 +183,44 @@ public final class SettingsUi {
         }
     }
 
+    /** Keyed tags in the app's id space, which a plain tag and the chevron's string tag leave alone. */
+    private static final int TAG_ROW_PAINT = 0x7f7f4001;
+    private static final int TAG_SWITCH_PAINT = 0x7f7f4002;
+
+    /** What a row was last painted as, kept on the row so a rebind of the same view costs nothing. */
+    private static final class RowPaint {
+        final boolean first, last, dark;
+        RowPaint(boolean first, boolean last, boolean dark) { this.first = first; this.last = last; this.dark = dark; }
+    }
+
+    /**
+     * Paints the row as a member of its group, unless it already is. A list recycles its rows on
+     * every frame of a scroll, and the ripple, the card, its mask and the switch drawables were
+     * rebuilt for each one as it came into view. A row that comes back with the same edges in the
+     * same theme keeps what it has; only a changed edge or a changed theme paints again.
+     */
+    public static void applyGroupedRow(View row, boolean first, boolean last) {
+        boolean dark = isDarkMode();
+        Object painted = row.getTag(TAG_ROW_PAINT);
+        if (painted instanceof RowPaint && row.getBackground() != null) {
+            RowPaint paint = (RowPaint) painted;
+            if (paint.first == first && paint.last == last && paint.dark == dark) return;
+        }
+        row.setBackground(groupedRow(row.getContext(), first, last));
+        row.setTag(TAG_ROW_PAINT, new RowPaint(first, last, dark));
+    }
+
     public static void styleSwitch(Switch control) {
         Context context = control.getContext();
+        // The track and thumb depend on the theme and nothing else, so a switch that already
+        // wears this theme's pair keeps it. Four GradientDrawables and a state list per bind
+        // was the cost of a scroll on a forty-row page.
+        Object painted = control.getTag(TAG_SWITCH_PAINT);
+        if (painted instanceof Boolean && (Boolean) painted == isDarkMode()
+                && control.getTrackDrawable() != null && control.getThumbDrawable() != null) {
+            return;
+        }
+        control.setTag(TAG_SWITCH_PAINT, isDarkMode());
         StateListDrawable track = new StateListDrawable();
         // Checked-and-disabled first, or the -state_enabled entry below answers for it and a
         // greyed switch looks the same on as off: a reader cannot see what state it will come
@@ -611,6 +647,60 @@ public final class SettingsUi {
                 ? L10n.t(view.getContext(), "1 result")
                 : L10n.f(view.getContext(), "%1$d results", count);
         if (!TextUtils.equals(view.getText(), next)) view.setText(next);
+    }
+
+    /**
+     * The X that clears a field, drawn rather than typed.
+     *
+     * <p>It carries its own intrinsic size so a TextView can hang it off the end of a box without
+     * being told how big it is, and it sizes from the density rather than the field, so it stays
+     * a touch target at a large font scale instead of growing with the letters.
+     */
+    public static final class ClearGlyphDrawable extends Drawable {
+        private static final float ARM_FRACTION = 0.26f;
+
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final int size;
+
+        public ClearGlyphDrawable(Context context, @ColorInt int color) {
+            paint.setColor(color);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(strokePx(context, 1.8f));
+            paint.setStrokeCap(Paint.Cap.ROUND);
+            size = dp(context, 22);
+        }
+
+        @Override public int getIntrinsicWidth() {
+            return size;
+        }
+
+        @Override public int getIntrinsicHeight() {
+            return size;
+        }
+
+        @Override public void draw(Canvas canvas) {
+            Rect bounds = getBounds();
+            if (bounds.isEmpty()) return;
+            float centerX = bounds.exactCenterX();
+            float centerY = bounds.exactCenterY();
+            float arm = Math.min(bounds.width(), bounds.height()) * ARM_FRACTION;
+            canvas.drawLine(centerX - arm, centerY - arm, centerX + arm, centerY + arm, paint);
+            canvas.drawLine(centerX - arm, centerY + arm, centerX + arm, centerY - arm, paint);
+        }
+
+        @Override public void setAlpha(int alpha) {
+            paint.setAlpha(alpha);
+            invalidateSelf();
+        }
+
+        @Override public void setColorFilter(ColorFilter colorFilter) {
+            paint.setColorFilter(colorFilter);
+            invalidateSelf();
+        }
+
+        @Override public int getOpacity() {
+            return PixelFormat.TRANSLUCENT;
+        }
     }
 
     public static GradientDrawable roundedSurface(Context context, int radiusDp, boolean lifted) {
@@ -1110,12 +1200,19 @@ public final class SettingsUi {
         labelEditor(label, editor, label.getText());
     }
 
+    /** Hint-only field with no visible label: just the spoken name for screen readers. */
+    public static void labelEditor(EditText editor, CharSequence spokenName) {
+        labelEditor(null, editor, spokenName);
+    }
+
     /** Same contract with a more precise spoken name for generated fields. */
     public static void labelEditor(TextView label, EditText editor, CharSequence spokenName) {
         if (editor.getId() == View.NO_ID) editor.setId(View.generateViewId());
-        label.setLabelFor(editor.getId());
-        label.setFocusable(false);
-        label.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        if (label != null) {
+            label.setLabelFor(editor.getId());
+            label.setFocusable(false);
+            label.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        }
         final CharSequence fieldName = spokenName == null ? "" : spokenName.toString();
         editor.setAccessibilityDelegate(new View.AccessibilityDelegate() {
             @Override public void onInitializeAccessibilityNodeInfo(
@@ -1144,6 +1241,12 @@ public final class SettingsUi {
         };
         int[] colors = new int[]{accent(), textDisabled(), textSecondary()};
         button.setButtonTintList(new ColorStateList(states, colors));
+    }
+
+    public static void styleCheckBoxRow(CompoundButton button) {
+        styleCheckBox(button);
+        button.setTextColor(enabledTextColors(textPrimary()));
+        button.setTextSize(16);
     }
 
     /** Lays its children out in rows, breaking to a new one when the next child will not fit. */

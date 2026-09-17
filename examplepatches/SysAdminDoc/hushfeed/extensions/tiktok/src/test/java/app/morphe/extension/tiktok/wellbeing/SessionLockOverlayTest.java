@@ -278,6 +278,40 @@ public class SessionLockOverlayTest {
         assertNull("a hold nobody set", holdOrNull());
     }
 
+    @Test public void theCountdownStopsWhileTheAppIsAwayAndComesBackWithIt() throws Exception {
+        // A stopped activity is neither finishing nor destroyed, so the tick used to run its
+        // whole body once a second for as long as the hold lasted, up to the reset hour, while
+        // TikTok sat in recents. The app's own foreground callbacks say when to stop and start.
+        Settings.SESSION_BUDGET_VIDEOS.save(1);
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(5);
+        Settings.SESSION_BUDGET_LOCK.save(true);
+        SessionBudget.noteVideo("a");
+        assertTrue(SessionBudget.claimNotice());
+
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Utils.setActivity(owner.get());
+            SessionLockOverlay.onForeground();
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertTrue("a hold on screen has no countdown", ticking());
+
+            SessionLockOverlay.onBackground();
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper())
+                    .idleFor(java.time.Duration.ofSeconds(3));
+            assertFalse("the countdown kept ticking with the app in the background", ticking());
+            assertTrue("the hold was lifted by the app going away", SessionBudget.isLocked());
+
+            SessionLockOverlay.onForeground();
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertTrue("the countdown did not come back with the app", ticking());
+        } finally {
+            SessionLockOverlay.onForeground();
+        }
+    }
+
+    private static boolean ticking() {
+        return org.robolectric.util.ReflectionHelpers.getStaticField(SessionLockOverlay.class, "ticking");
+    }
+
     @Test public void aLockedDayLeavesThePanelWithNoWayOut() throws Exception {
         Settings.SESSION_BUDGET_VIDEOS.save(1);
         Settings.SESSION_BUDGET_LOCK_MINUTES.save(5);

@@ -423,7 +423,8 @@ public final class AdvancedFeedRules {
     /** Last content rule, so fallback candidates have passed every hard block. */
     public static final class QualityFilter implements IFilter {
         public boolean getEnabled() {
-            return Settings.MAX_VIDEO_SECONDS.get() > 0 || Settings.MAX_VIEWS_PER_LIKE.get() > 0;
+            return Settings.MAX_VIDEO_SECONDS.get() > 0 || Settings.MAX_VIEWS_PER_LIKE.get() > 0
+                    || Settings.MAX_VIEWS_PER_COMMENT.get() > 0;
         }
         public boolean getFiltered(Aweme item) { return distance(item) > 0; }
 
@@ -436,14 +437,24 @@ public final class AdvancedFeedRules {
                 if (ms <= 0) ms = positive(Reflect.property(video, "getPilotLength", "pilotLength"));
                 if (ms > 0) distance = Math.max(0, ms / (seconds * 1000.0) - 1);
             }
-            int maximum = Settings.MAX_VIEWS_PER_LIKE.get();
-            AwemeStatistics stats = maximum > 0 ? item.getStatistics() : null;
+            int maxPerLike = Settings.MAX_VIEWS_PER_LIKE.get();
+            int maxPerComment = Settings.MAX_VIEWS_PER_COMMENT.get();
+            AwemeStatistics stats = (maxPerLike > 0 || maxPerComment > 0) ? item.getStatistics() : null;
             if (stats != null) {
-                long views = stats.getPlayCount(), likes = stats.getDiggCount();
-                // Missing/negative counts and zero views carry no engagement signal.
-                if (views > 0 && likes >= 0) {
-                    double ratio = likes == 0 ? Double.MAX_VALUE : views / (double) likes;
-                    distance = Math.max(distance, ratio / maximum - 1);
+                long views = stats.getPlayCount();
+                if (views > 0 && maxPerLike > 0) {
+                    long likes = stats.getDiggCount();
+                    if (likes >= 0) {
+                        double ratio = likes == 0 ? Double.MAX_VALUE : views / (double) likes;
+                        distance = Math.max(distance, ratio / maxPerLike - 1);
+                    }
+                }
+                if (views > 0 && maxPerComment > 0) {
+                    long comments = stats.getCommentCount();
+                    if (comments >= 0) {
+                        double ratio = comments == 0 ? Double.MAX_VALUE : views / (double) comments;
+                        distance = Math.max(distance, ratio / maxPerComment - 1);
+                    }
                 }
             }
             return distance;

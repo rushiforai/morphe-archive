@@ -5,6 +5,7 @@
 package app.morphe.extension.tiktok.share;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.tiktok.settings.Settings;
 
@@ -25,9 +26,22 @@ public final class ShareUrlSanitizer {
 
     private ShareUrlSanitizer() {}
 
-    /** What a shared or copied link becomes: the chosen host first, then the tracking taken off. */
+    /**
+     * What a shared or copied link becomes: the chosen host first, then the tracking taken off.
+     *
+     * <p>The patch replaces the native body with this call and returns, so every share and every
+     * copied link comes through here and nothing catches behind it. A throw would reach TikTok's
+     * share flow as a dead button, so the whole thing is wrapped and a failure hands back the
+     * link it was given. That link still works; it just keeps the tracking it came with.
+     */
     public static String rewriteShareUrl(String url) {
-        return stripAllQueryParams(withCustomDomain(url));
+        try {
+            return stripAllQueryParams(withCustomDomain(url));
+        } catch (Throwable ex) {
+            HookStatus.threw("share links", "rewrite", ex);
+            Logger.printException(() -> LOG_PREFIX + " Could not rewrite a share link", ex);
+            return url;
+        }
     }
 
     /**

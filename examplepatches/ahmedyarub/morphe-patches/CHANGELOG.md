@@ -1,3 +1,25 @@
+## [1.6.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.5.1...v1.6.0) (2026-09-16)
+
+### 🐛 Bug Fixes
+
+* **Instagram:** Hide suggested content on 447 ([b63d97b](https://github.com/ahmedyarub/morphe-patches/commit/b63d97b8fd1d9d8d3cc81637bf6398a61053135c))
+* **Instagram:** Match hidden feed-item keys in the pooled enum on 447 ([243e32f](https://github.com/ahmedyarub/morphe-patches/commit/243e32f1b52e4a149e7280bfd0642971ed3d5970))
+
+### ✨ New Features
+
+* **Instagram:** Declare 447.0.0.55.81 as a supported target ([f543bf9](https://github.com/ahmedyarub/morphe-patches/commit/f543bf93c0124a560a6b7f92d18c1542938a86b9))
+
+## [1.6.0-dev.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.5.1...v1.6.0-dev.1) (2026-09-16)
+
+### 🐛 Bug Fixes
+
+* **Instagram:** Hide suggested content on 447 ([b63d97b](https://github.com/ahmedyarub/morphe-patches/commit/b63d97b8fd1d9d8d3cc81637bf6398a61053135c))
+* **Instagram:** Match hidden feed-item keys in the pooled enum on 447 ([243e32f](https://github.com/ahmedyarub/morphe-patches/commit/243e32f1b52e4a149e7280bfd0642971ed3d5970))
+
+### ✨ New Features
+
+* **Instagram:** Declare 447.0.0.55.81 as a supported target ([f543bf9](https://github.com/ahmedyarub/morphe-patches/commit/f543bf93c0124a560a6b7f92d18c1542938a86b9))
+
 ## [1.5.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.5.0...v1.5.1) (2026-09-15)
 
 ### 🐛 Bug Fixes

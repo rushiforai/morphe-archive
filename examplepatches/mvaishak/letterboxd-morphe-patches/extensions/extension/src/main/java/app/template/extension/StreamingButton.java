@@ -31,6 +31,9 @@ import java.util.regex.Pattern;
  * the film in Stremio or Nuvio (Mod settings' "Streaming app" choice), tinted with the current
  * accent colour. Injected at the top of {@code FilmHeaderFragment.onViewCreated}.
  *
+ * <p>Both take a deep link keyed on the IMDb id. (Plex was offered here once but dropped — it has
+ * no IMDb-to-title deep link; resolving a film needs the user's own Plex server and token.)
+ *
  * <p>Deliberately icon-only and compact: an earlier text-labelled version ("STREMIO" as a full
  * pill, matching trailer_button's width) overflowed that row on real devices — the row's width is
  * fixed by a `ConstraintLayout` guide (not `wrap_content`), so an extra wide sibling squeezed the
@@ -89,8 +92,9 @@ public final class StreamingButton {
                     }
                     if (film == null) return; // still loading — try again next layout pass
 
+                    String app = Prefs.streamingApp();
                     String imdbId = findImdbId(film);
-                    if (imdbId != null) addButton(row, trailer, imdbId);
+                    if (imdbId != null) addButton(row, trailer, imdbId, app);
                     detach(wrapper, self[0]); // film resolved either way — nothing more to wait for
                 }
             };
@@ -148,7 +152,7 @@ public final class StreamingButton {
 
     // --- button --------------------------------------------------------------
 
-    private static void addButton(ViewGroup row, View trailer, final String imdbId) {
+    private static void addButton(ViewGroup row, View trailer, final String imdbId, final String app) {
         try {
             android.content.Context ctx = row.getContext();
             int accent = AccentPresets.previewColor(ctx,
@@ -161,7 +165,6 @@ public final class StreamingButton {
 
             MaterialButton button = new MaterialButton(ctx);
             button.setTag(TAG);
-            String app = Prefs.streamingApp();
             button.setContentDescription("nuvio".equals(app) ? "Open in Nuvio" : "Open in Stremio");
             button.setText(null);
             button.setInsetTop(0);
@@ -197,11 +200,10 @@ public final class StreamingButton {
 
     private static void launch(View v, String imdbId, String app) {
         try {
-            // Confirmed against each app's own deep-link parsing source:
             // - Stremio: stremio:///detail/movie/<imdbId>/<imdbId> (id doubled, its own convention).
             // - Nuvio: nuvio://movie/<imdbId> — its stremio:// filter is for addon installs only
             //   (host must look like a domain), never meta lookups, so Stremio's own URI silently
-            //   no-ops there (opens the app, does nothing with the link).
+            //   no-ops there.
             Uri uri = "nuvio".equals(app)
                     ? Uri.parse("nuvio://movie/" + imdbId)
                     : Uri.parse("stremio:///detail/movie/" + imdbId + "/" + imdbId);

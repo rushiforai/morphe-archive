@@ -58,7 +58,6 @@ private object ShareRecipientBinderFingerprint : Fingerprint(
  * of View click dispatch, so touch, keyboard and accessibility all reach this one boundary.
  */
 private object ShareRecipientClickFingerprint : Fingerprint(
-    parameters = listOf("L", ANDROID_VIEW, "Ljava/lang/String;"),
     returnType = "V",
     custom = { method, _ -> method.isShareRecipientClickDispatcher() },
 )
@@ -132,48 +131,62 @@ internal fun Method.isShareRecipientBinder(): Boolean {
         )
 }
 
+/**
+ * The native recipient click dispatcher in either of the shapes R8 has given it.
+ *
+ * <p>Up to 46.8.3 it is an outlined static body on the listener group, `(group, View, String)V`,
+ * reading the captured component out of an `Object` field and casting it. 46.9.3 keeps it as an
+ * ordinary `(View, String)V` on a listener class of its own whose component field is typed, so
+ * the cast is gone and the body is five instructions instead of six. In both, p0 is the listener,
+ * p1 the view and p2 the string, which is what the hook writes to, and the body is: read the
+ * component, read its Function0, skip if null, invoke it, return.
+ */
 internal fun Method.isShareRecipientClickDispatcher(): Boolean {
-    val expectedFlags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value
-    if (accessFlags and expectedFlags != expectedFlags || returnType != "V" ||
-        parameterTypes.map(CharSequence::toString) !=
-        listOf(definingClass, ANDROID_VIEW, "Ljava/lang/String;")
-    ) {
-        return false
-    }
+    val static = AccessFlags.STATIC.isSet(accessFlags)
+    if (!AccessFlags.PUBLIC.isSet(accessFlags) || returnType != "V") return false
+    val expectedParameters = if (static) listOf(definingClass, ANDROID_VIEW, "Ljava/lang/String;")
+    else listOf(ANDROID_VIEW, "Ljava/lang/String;")
+    if (parameterTypes.map(CharSequence::toString) != expectedParameters) return false
     val implementation = implementation ?: return false
-    if (implementation.registerCount != numberOfParameterRegisters) return false
     val instructions = implementation.instructions.toList()
-    if (instructions.map { it.opcode } != listOf(
-            Opcode.IGET_OBJECT,
-            Opcode.CHECK_CAST,
-            Opcode.IGET_OBJECT,
-            Opcode.IF_EQZ,
-            Opcode.INVOKE_INTERFACE,
-            Opcode.RETURN_VOID,
-        )
-    ) {
-        return false
-    }
+    val cast = instructions.size == 6
+    val expectedOpcodes = if (cast) listOf(
+        Opcode.IGET_OBJECT, Opcode.CHECK_CAST, Opcode.IGET_OBJECT,
+        Opcode.IF_EQZ, Opcode.INVOKE_INTERFACE, Opcode.RETURN_VOID,
+    ) else listOf(
+        Opcode.IGET_OBJECT, Opcode.IGET_OBJECT,
+        Opcode.IF_EQZ, Opcode.INVOKE_INTERFACE, Opcode.RETURN_VOID,
+    )
+    if (instructions.map { it.opcode } != expectedOpcodes) return false
 
     val firstField = (instructions[0] as? ReferenceInstruction)?.reference as? FieldReference
         ?: return false
     val componentRead = instructions[0] as? TwoRegisterInstruction ?: return false
-    val componentCast = instructions[1] as? OneRegisterInstruction ?: return false
-    val castType = (instructions[1] as? ReferenceInstruction)?.reference as? TypeReference
+    val component = componentRead.registerA
+    val componentType: String
+    val callbackAt: Int
+    if (cast) {
+        val componentCast = instructions[1] as? OneRegisterInstruction ?: return false
+        val castType = (instructions[1] as? ReferenceInstruction)?.reference as? TypeReference
+            ?: return false
+        if (firstField.type != "Ljava/lang/Object;" || componentCast.registerA != component) return false
+        componentType = castType.type
+        callbackAt = 2
+    } else {
+        componentType = firstField.type
+        callbackAt = 1
+    }
+    val callbackField = (instructions[callbackAt] as? ReferenceInstruction)?.reference as? FieldReference
         ?: return false
-    val callbackField = (instructions[2] as? ReferenceInstruction)?.reference as? FieldReference
-        ?: return false
-    val callbackRead = instructions[2] as? TwoRegisterInstruction ?: return false
-    val nullGuard = instructions[3] as? OneRegisterInstruction ?: return false
-    val callbackCall = instructions[4] as? FiveRegisterInstruction ?: return false
-    val callback = (instructions[4] as? ReferenceInstruction)?.reference as? MethodReference
+    val callbackRead = instructions[callbackAt] as? TwoRegisterInstruction ?: return false
+    val nullGuard = instructions[callbackAt + 1] as? OneRegisterInstruction ?: return false
+    val callbackCall = instructions[callbackAt + 2] as? FiveRegisterInstruction ?: return false
+    val callback = (instructions[callbackAt + 2] as? ReferenceInstruction)?.reference as? MethodReference
         ?: return false
     val self = implementation.registerCount - numberOfParameterRegisters
-    val component = componentRead.registerA
     val callbackRegister = callbackRead.registerA
     return componentRead.registerB == self && firstField.definingClass == definingClass &&
-        firstField.type == "Ljava/lang/Object;" && componentCast.registerA == component &&
-        callbackRead.registerB == component && callbackField.definingClass == castType.type &&
+        callbackRead.registerB == component && callbackField.definingClass == componentType &&
         callbackField.type == FUNCTION0 && nullGuard.registerA == callbackRegister &&
         callbackCall.registerCount == 1 && callbackCall.registerC == callbackRegister &&
         callback.definingClass == FUNCTION0 && callback.name == "invoke" &&

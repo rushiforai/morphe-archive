@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import app.morphe.extension.shared.settings.preference.LogBufferManager;
 import app.morphe.extension.tiktok.settings.L10n;
 
 final class GateReportExport {
@@ -43,7 +44,7 @@ final class GateReportExport {
 
     static void save(Context context, String report) {
         Context app = context.getApplicationContext();
-        Utils.runOnBackgroundThread(() -> {
+        boolean started = Utils.runOnBackgroundThread(() -> {
             try {
                 Utils.showToastLong(L10n.f("Report saved to %1$s", write(app, report)));
             } catch (IOException | RuntimeException error) {
@@ -51,16 +52,31 @@ final class GateReportExport {
                 Utils.showToastLong(L10n.t("The report couldn't be saved. Try again."));
             }
         });
+        // A full pool refuses the task, and nothing else would have said so: the reader tapped
+        // Save JSON and got neither the saved path nor the failure sentence.
+        if (!started) Utils.showToastShort(L10n.t("Could not start the report export. Try again shortly."));
+    }
+
+    /** The folder under Download the report lands in, spelt the way a file manager shows it. */
+    static final String FOLDER = "Download/Hushfeed";
+
+    /**
+     * A name two reports a second apart can be told apart by, the way the settings backup and the
+     * diagnostics export are named. Epoch milliseconds put a number in the list that nobody could
+     * read a date off.
+     */
+    static String fileName() {
+        return "hushfeed-gate-report-" + LogBufferManager.fileTimestamp() + ".json";
     }
 
     static String write(Context context, String report) throws IOException {
-        String name = "gate-recording-" + System.currentTimeMillis() + ".json";
+        String name = fileName();
         if (Build.VERSION.SDK_INT >= 29) {
             var resolver = context.getContentResolver();
             ContentValues values = new ContentValues();
             values.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
             values.put(MediaStore.MediaColumns.MIME_TYPE, "application/json");
-            values.put(MediaStore.MediaColumns.RELATIVE_PATH, "Download/Morphe");
+            values.put(MediaStore.MediaColumns.RELATIVE_PATH, FOLDER);
             values.put(MediaStore.MediaColumns.IS_PENDING, 1);
             Uri uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
             if (uri == null) throw new IOException("Could not create report");
@@ -73,11 +89,14 @@ final class GateReportExport {
                 try { resolver.delete(uri, null, null); } catch (RuntimeException cleanup) { error.addSuppressed(cleanup); }
                 throw error;
             }
-            return "Downloads/Morphe/" + name;
+            return FOLDER + "/" + name;
         }
         File directory = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
         if (directory == null || (!directory.isDirectory() && !directory.mkdirs())) throw new IOException("Documents unavailable");
-        File file = File.createTempFile("gate-recording-", ".json", directory);
+        File file = new File(directory, name);
+        for (int copy = 2; file.exists(); copy++) {
+            file = new File(directory, name.replace(".json", "-" + copy + ".json"));
+        }
         try { writeText(new FileOutputStream(file), report); }
         catch (IOException | RuntimeException error) {
             if (!file.delete()) error.addSuppressed(new IOException("Could not remove incomplete report"));

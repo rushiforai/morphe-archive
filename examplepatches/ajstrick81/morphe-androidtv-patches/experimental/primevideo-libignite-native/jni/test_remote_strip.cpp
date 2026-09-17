@@ -6,6 +6,7 @@
 //
 // Exits non-zero on any failed assertion.
 #include "remote_strip.h"
+#include "rego_filter.h"
 
 #include <cstdio>
 #include <cstring>
@@ -237,6 +238,67 @@ int main() {
         CHECK(r.trunc_complete_remotes == 0, "trunc-remote-cut: no COMPLETE Remote before cut");
         CHECK(!r.trunc_modified && r.trunc_remote_blanked == 0, "trunc-remote-cut: nothing blanked");
         CHECK(buf == in, "trunc-remote-cut: buffer untouched (partial Remote never blanked)");
+    }
+
+    // ── REGOLITH PATH 2: TRUNCATED pre-roll buffer, salvage media.urls ──────
+    // Real-world repro (tester logcat, id=1000): the getVideoAds response is
+    // copied as a prefix chunk whose top "playlist":[ never closes, but the
+    // ad's media.urls array closes before the cut. The playlist matcher must
+    // report truncation (string-aware: the [CONSUMPTIONID] literal bracket
+    // inside a JSON string must NOT be miscounted as an array element), and
+    // blank_complete_media_urls must empty the complete urls array in place.
+    {
+        std::string in =
+          "{\"description\":{\"adDeliverySessionId\":\"x_PBP_EXPL_y_1\",\"adMarkerId\":\"PRE_ROLL\"},"
+          "\"measurement\":{\"a\":1},"
+          "\"playlist\":[{\"type\":\"Ad\",\"duration\":\"00:00:22.022\","
+          "\"measurement\":{\"impressions\":[\"https://ters/re?consumptionId=[CONSUMPTIONID]\"]},"
+          "\"media\":{\"urls\":["
+          "{\"cdn\":\"fastly\",\"url\":\"https://vod-dash-pv.amazon.fastly-edge.com/x/ww_bom/interstitial/5/122621085/manifest.mpd\"},"
+          "{\"cdn\":\"akamai\",\"url\":\"https://avoddashs3ww-a.akamaihd.net/x/iad_2/interstitial/5/122621085/manifest.mpd\"}"
+          "]},"
+          "\"uiFeatures\":{\"actionable\":{\"metadata\":{\"adParameters\":\"cut";  // truncated mid-body
+        std::string buf = in;
+        size_t n = buf.size();
+        size_t open = buf.find("\"playlist\":[") + 11;
+        CHECK(pvfilter::json_match_bracket(buf.data(), n, open) == (size_t)-1,
+              "rego-trunc: playlist reported truncated (string-aware)");
+        int nb = pvfilter::blank_complete_media_urls(&buf[0], n, open);
+        CHECK(nb == 1, "rego-trunc: exactly one complete media.urls array blanked");
+        CHECK(buf.size() == n, "rego-trunc: length unchanged");
+        CHECK(buf.find("/interstitial/") == std::string::npos, "rego-trunc: interstitial URL gone");
+        CHECK(buf.find("vod-dash-pv") == std::string::npos, "rego-trunc: fastly ad host gone");
+        CHECK(buf.find("avoddashs3ww") == std::string::npos, "rego-trunc: akamai ad host gone");
+        size_t ui = in.find("\"uiFeatures\"");
+        CHECK(buf.compare(ui, std::string::npos, in, ui, std::string::npos) == 0,
+              "rego-trunc: truncated tail (uiFeatures...) untouched");
+    }
+
+    // ── REGOLITH PATH 2: media.urls itself cut mid-body -> blank NOTHING ─────
+    // Black-screen invariant: a urls array with no closing ']' must be untouched.
+    {
+        std::string in =
+          "{\"adDeliverySessionId\":\"z\",\"measurement\":{},\"playlist\":[{\"type\":\"Ad\","
+          "\"media\":{\"urls\":[{\"cdn\":\"fastly\",\"url\":\"https://vod-dash-pv/interstitial/man";  // cut inside urls
+        std::string buf = in;
+        size_t open = buf.find("\"playlist\":[") + 11;
+        int nb = pvfilter::blank_complete_media_urls(&buf[0], buf.size(), open);
+        CHECK(nb == 0, "rego-urls-cut: nothing blanked (urls truncated)");
+        CHECK(buf == in, "rego-urls-cut: buffer byte-for-byte unchanged");
+    }
+
+    // ── REGOLITH PATH 2: multi-ad prefix, two COMPLETE urls arrays -> both ──
+    {
+        std::string in =
+          "{\"measurement\":{},\"playlist\":[{\"type\":\"Ad\",\"media\":{\"urls\":[{\"url\":\"a/interstitial/1.mpd\"}]}},"
+          "{\"type\":\"Ad\",\"media\":{\"urls\":[{\"url\":\"b/interstitial/2.mpd\"}]}},{\"type\":\"Ad\",\"media\":{\"urls\":[\"cut";
+        std::string buf = in;
+        size_t open = buf.find("\"playlist\":[") + 11;
+        int nb = pvfilter::blank_complete_media_urls(&buf[0], buf.size(), open);
+        CHECK(nb == 2, "rego-multi: two complete urls arrays blanked, third (cut) skipped");
+        CHECK(buf.find("/interstitial/1.mpd") == std::string::npos &&
+              buf.find("/interstitial/2.mpd") == std::string::npos, "rego-multi: both ad URLs gone");
+        CHECK(buf.find("\"cut") != std::string::npos, "rego-multi: truncated third urls left intact");
     }
 
     std::printf(g_fail == 0 ? "ALL TESTS PASSED (0 failure(s))\n" : "%d FAILURE(S)\n", g_fail);

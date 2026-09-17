@@ -259,7 +259,10 @@ public class NumberInputPreference extends EditTextPreference {
             Integer.parseInt(typed.trim());
             return null;
         } catch (Exception unreadable) {
-            return L10n.t(getContext(), "Enter a number. The previous value was kept.");
+            // The old message described a flow that no longer exists: Save used to close the
+            // dialog and throw away what was typed. It stays open now and shows this under the
+            // field, so "the previous value was kept" is about something that didn't happen.
+            return L10n.t(getContext(), "Enter a number.");
         }
     }
 

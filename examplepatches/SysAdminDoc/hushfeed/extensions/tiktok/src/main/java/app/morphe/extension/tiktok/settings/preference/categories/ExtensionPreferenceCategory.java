@@ -1,6 +1,7 @@
 /*
  * Forked from:
  * https://github.com/ReVanced/revanced-patches/blob/377d4e15016296b45d809697f7f69bce74badd3a/extensions/tiktok/src/main/java/app/revanced/extension/tiktok/settings/preference/categories/ExtensionPreferenceCategory.java
+ * Mirror, since GitHub blocks the original: https://gitlab.com/ReVanced/revanced-patches/-/blob/main/extensions/tiktok/src/main/java/app/revanced/extension/tiktok/settings/preference/categories/ExtensionPreferenceCategory.java
  */
 
 package app.morphe.extension.tiktok.settings.preference.categories;
@@ -11,6 +12,7 @@ import android.preference.PreferenceScreen;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
+import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 
 @SuppressWarnings("deprecation")
@@ -60,11 +62,15 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
     @Override
     public void addPreferences(Context context) {
         if (SettingsStatus.foldableSplitViewEnabled) {
+            addPreference(new SectionHeadingPreference(context, "Layout"));
             addPreference(new TogglePreference(context, "Comments beside the video",
                     "Use the split layout on wider screens. Restart TikTok to apply this. If the old layout is still there, unfold again.", Settings.FOLDABLE_SPLIT_VIEW));
             addPreference(new app.morphe.extension.tiktok.settings.preference.NumberInputPreference(context,
                     "Split comment minimum width", "Window width needed to enable the layout. Restart TikTok to apply this.",
                     Settings.FOLDABLE_SPLIT_VIEW_MIN_WIDTH_DP, "dp", "dp"));
+        }
+        if (SettingsStatus.sanitizeShareUrlsEnabled || SettingsStatus.externalBrowserEnabled) {
+            addPreference(new SectionHeadingPreference(context, "Links"));
         }
         if (SettingsStatus.sanitizeShareUrlsEnabled) {
             addPreference(new TogglePreference(
@@ -91,6 +97,13 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
             ));
         }
 
+        boolean hasPlayer = SettingsStatus.showSeekbarEnabled || SettingsStatus.seekbarThumbnailEnabled
+                || SettingsStatus.stopVideoLoopingEnabled || SettingsStatus.resumeVideoAfterScrollEnabled
+                || SettingsStatus.longPressSpeedLockEnabled || SettingsStatus.disableLongPressQuickShareEnabled
+                || SettingsStatus.disableLongPressRepostEnabled;
+        if (hasPlayer) {
+            addPreference(new SectionHeadingPreference(context, "Player"));
+        }
         if (SettingsStatus.showSeekbarEnabled) {
             addPreference(new TogglePreference(
                     context,
@@ -147,6 +160,9 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     Settings.DISABLE_LONG_PRESS_REPOST
             ));
         }
+        if (SettingsStatus.ghostModeEnabled || SettingsStatus.disableTelemetryEnabled) {
+            addPreference(new SectionHeadingPreference(context, "Privacy"));
+        }
         if (SettingsStatus.ghostModeEnabled) {
             addPreference(new TogglePreference(
                     context,
@@ -170,7 +186,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(
                     context,
                     "Show block button on videos",
-                    "Add a block button to the video player that blocks the account that posted the "
+                    "Add a block button to the video player that blocks the creator of the "
                             + "current video in one tap. An undo action is shown after each block.",
                     Settings.BLOCK_AUTHOR_BUTTON
             ));

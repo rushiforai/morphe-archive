@@ -38,6 +38,8 @@ public class CaptionToolsTest {
     public static final class Video { public String aid; Video(String id) { aid = id; } }
     @Before public void setup() {
         Utils.setContext(RuntimeEnvironment.getApplication());
+        // Start from a fresh process's state rather than from whatever ran before in this fork.
+        CaptionTools.resetForTests();
         CaptionStyle.resetLookupsForTests();
         Settings.CAPTION_TEXT_SIZE.save(0);
         Settings.CAPTION_BACKGROUND.save("default");
@@ -46,7 +48,7 @@ public class CaptionToolsTest {
     }
     @After public void tearDown() {
         SettingsStatus.subtitleToolsEnabled = false;
-        CaptionTools.onVideoChanged(null);
+        CaptionTools.resetForTests();
     }
     @Test public void bothCaptionRenderersResizeAndRestoreWithoutChangingSourceLayout() {
         TextPaint paint = new TextPaint();

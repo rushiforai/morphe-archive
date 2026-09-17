@@ -98,6 +98,46 @@ public class CommentBatchTranslatorTest {
                 handled + 1, CommentBatchTranslator.completionsHandledForTests());
     }
 
+    @Test public void tenCellsOfOneManagerClassWalkTheNativeMethodsOnce() {
+        // Every cell of a comment sheet used to read every field of its manager and walk the
+        // native manager's declared methods, on the bind thread, three times per cell. The
+        // manager's shape is a property of its class, so the first cell pays and the rest read
+        // three fields.
+        CommentBatchTranslator.registerCommentCell(new View(context), anchor("aid-walk", "cid-walk-0"));
+        int afterFirst = CommentBatchTranslator.nativeMethodWalksForTests;
+        for (int cell = 1; cell < 10; cell++) {
+            CommentBatchTranslator.registerCommentCell(new View(context), anchor("aid-walk", "cid-walk-" + cell));
+        }
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(400));
+
+        assertEquals("later cells of the same class walked the manager's methods again",
+                afterFirst, CommentBatchTranslator.nativeMethodWalksForTests);
+    }
+
+    @Test public void aRunnerThatKeepsItsOwnFieldNamesIsReadByKind() {
+        // 46.9.3 keeps the completion runner as a Runnable of its own, with the results list and
+        // the task under R8's names rather than the l0 and l1 an outlined body gives them. Such a
+        // runner is read by kind: the one List field is the results, the one other reference
+        // field is the task, and nothing is reported missing.
+        Anchor anchor = loadedAnchor("aid-own", "cid-own");
+        CommentBatchTranslator.registerCommentCell(new View(context), anchor);
+        assertEquals("the request never went out", 1, NativeManager.requests);
+        int handled = CommentBatchTranslator.completionsHandledForTests();
+
+        HookStatus.clear();
+        try {
+            CommentBatchTranslator.onNativeBatchComplete(new OwnRunner(new ArrayList<>(), anchor.comment));
+
+            assertEquals(handled + 1, CommentBatchTranslator.completionsHandledForTests());
+            assertTrue("a field read by kind was reported missing: " + HookStatus.missing("comment translation"),
+                    HookStatus.missing("comment translation").isEmpty());
+            assertTrue(HookStatus.report().toString(), HookStatus.report().stream()
+                    .anyMatch(line -> line.startsWith("comment translation:") && line.contains("0 missing")));
+        } finally {
+            HookStatus.clear();
+        }
+    }
+
     @Test public void commentsAlreadyInTheCurrentLanguageAreNotDispatched() {
         android.content.res.Configuration configuration =
                 new android.content.res.Configuration(context.getResources().getConfiguration());
@@ -924,6 +964,17 @@ public class CommentBatchTranslatorTest {
 
         RunnerWithoutResults(Comment comment) {
             l1 = new Task(Arrays.asList(comment));
+        }
+    }
+
+    /** 46.9.3's runner: a Runnable of its own whose two fields carry R8's names, not l0 and l1. */
+    public static final class OwnRunner {
+        public final List<Object> LIZ;
+        public final Task LIZIZ;
+
+        OwnRunner(List<Object> results, Comment comment) {
+            LIZ = results;
+            LIZIZ = new Task(Arrays.asList(comment));
         }
     }
 }

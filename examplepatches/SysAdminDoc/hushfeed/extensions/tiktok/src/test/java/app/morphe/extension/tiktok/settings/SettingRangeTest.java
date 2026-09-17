@@ -34,6 +34,12 @@ public class SettingRangeTest {
         Utils.setContext(RuntimeEnvironment.getApplication());
         // Touching one setting builds them all.
         Settings.REGION_SPOOF.get();
+        // The settings are statics that outlive a test class in Robolectric's sandbox, and a
+        // class that ran before this one may have left a value in memory that its own fresh
+        // store never saw. This asks about declared defaults, not about what an earlier class
+        // did, so every setting is put back first. The legacy import test used to do this by
+        // accident, from its own setup, until it was deleted.
+        for (Setting<?> setting : Setting.allLoadedSettings()) setting.resetToDefault();
     }
 
     @Test public void everySettingStartsAtItsOwnDefault() {

@@ -8,13 +8,17 @@ package app.morphe.extension.tiktok.comment;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.StateListDrawable;
+import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.TypedValue;
+import android.view.MotionEvent;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.view.Gravity;
@@ -33,6 +37,7 @@ import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -56,6 +61,39 @@ public final class CommentSearch {
     private static final Map<View, Boolean> ROW_ATTACH_LISTENERS = new WeakHashMap<>();
     /** The list owns its decoration through its listener; neither map side retains that tree. */
     private static final Map<ViewGroup, WeakReference<SearchField>> DECORATED = new WeakHashMap<>();
+    /**
+     * Every comment a sheet has loaded, by its own id, one record per sheet.
+     *
+     * <p>The count used to be taken from the rows the list had attached, which is the handful on
+     * screen. Scrolling changed it, so a reader watched "3 results" become "5 results" become
+     * "2 results" while nothing was being searched, and the status line is a live region, so a
+     * screen reader read every one of those out. A comment is counted once, when it comes into
+     * view, and scrolling past it again does not count it twice or stop counting it.
+     *
+     * <p>Keyed by the list rather than cleared when the sheet changes. Comments arrive before
+     * anything knows which sheet they belong to, so a clear on the way in threw away the ones
+     * that had just landed. A sheet that goes away takes its record with it.
+     *
+     * <p>It is still only what has come into view. TikTok pages comments and nothing here sees
+     * the ones it has not fetched, which is why the line says so rather than claiming a total.
+     */
+    private static final Map<ViewGroup, LoadedComments> LOADED_COMMENTS = new WeakHashMap<>();
+    /** Enough to count honestly on any sheet a reader will scroll; past it the line says so. */
+    private static final int MAX_LOADED_COMMENTS = 2000;
+
+    /** One sheet's comments and whether it stopped taking them. */
+    private static final class LoadedComments {
+        final LinkedHashMap<String, Object> byId = new LinkedHashMap<>();
+        boolean truncated;
+    }
+
+    /**
+     * The action that clears the box for a screen reader.
+     *
+     * <p>Above {@code ACTION_TYPE_MASK}, so it cannot be read as one of the platform's own
+     * action bits, and fixed rather than generated for the same reason the overlay's are.
+     */
+    private static final int ACTION_CLEAR_SEARCH = 0x0F0B0001;
 
     static final String FIELD_TAG = "comment_search_field";
     static final String STATUS_TAG = "comment_search_status";
@@ -321,8 +359,7 @@ public final class CommentSearch {
         status.setClickable(false);
         status.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
         status.setVisibility(View.GONE);
-        status.setPadding(padding, 0, padding, Math.round(
-                4 * context.getResources().getDisplayMetrics().density));
+        status.setPadding(padding, 0, padding, SettingsUi.dp(context, 4));
         status.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -351,7 +388,9 @@ public final class CommentSearch {
         column.addView(status, insertionIndex + 1);
         // Only once it is really in. Marking the column first would blacklist it for good if
         // anything above threw, and the sheet would never get a box again.
-        SearchField field = new SearchField(column, listView, box, status);
+        SearchField field = new SearchField(column, listView, box, status,
+                new SettingsUi.ClearGlyphDrawable(context, SettingsUi.textSecondaryOn(dark)));
+        field.wireClearControl();
         DECORATED.put(column, new WeakReference<>(field));
 
         // The column can be further up than the sheet and outlive it, so the box leaves with
@@ -364,12 +403,66 @@ public final class CommentSearch {
         private final ViewGroup listView;
         private final EditText box;
         private final TextView status;
+        private final Drawable clearIcon;
 
-        SearchField(LinearLayout column, ViewGroup listView, EditText box, TextView status) {
+        SearchField(LinearLayout column, ViewGroup listView, EditText box, TextView status,
+                Drawable clearIcon) {
             this.column = column;
             this.listView = listView;
             this.box = box;
             this.status = status;
+            this.clearIcon = clearIcon;
+        }
+
+        /**
+         * The X at the end of the box, for a finger and for a screen reader.
+         *
+         * <p>A compound drawable is not a view, so nothing can focus it. The touch listener
+         * gives it to a finger and the action on the box itself gives it to everyone else,
+         * which is the whole control in one node rather than a second stop in the traversal
+         * that reads as another field.
+         */
+        void wireClearControl() {
+            box.setOnTouchListener((view, event) -> {
+                if (event.getActionMasked() != MotionEvent.ACTION_UP) return false;
+                if (!touchedClearControl(event.getX())) return false;
+                clearQuery();
+                return true;
+            });
+            box.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+                @Override public void onInitializeAccessibilityNodeInfo(
+                        View host, AccessibilityNodeInfo info) {
+                    super.onInitializeAccessibilityNodeInfo(host, info);
+                    if (box.length() == 0) return;
+                    info.addAction(new AccessibilityNodeInfo.AccessibilityAction(
+                            ACTION_CLEAR_SEARCH, L10n.t(host.getContext(), "Clear the search")));
+                }
+
+                @Override public boolean performAccessibilityAction(
+                        View host, int action, Bundle arguments) {
+                    if (action == ACTION_CLEAR_SEARCH) {
+                        clearQuery();
+                        return true;
+                    }
+                    return super.performAccessibilityAction(host, action, arguments);
+                }
+            });
+        }
+
+        /** Whether a release landed on the X rather than in the text. */
+        private boolean touchedClearControl(float x) {
+            Drawable clear = box.getCompoundDrawablesRelative()[2];
+            if (clear == null) return false;
+            int reach = clear.getIntrinsicWidth() + box.getCompoundDrawablePadding();
+            return box.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL
+                    ? x <= box.getPaddingStart() + reach
+                    : x >= box.getWidth() - box.getPaddingEnd() - reach;
+        }
+
+        private void clearQuery() {
+            box.setText("");
+            setQuery("");
+            narrowShownRows();
         }
 
         void remove(boolean detaching) {
@@ -390,19 +483,40 @@ public final class CommentSearch {
             }
         }
 
-        void updateResult(String wanted, int count) {
+        void updateResult(String wanted, Matches matches) {
+            showClearControl(!wanted.isEmpty());
             if (wanted.isEmpty()) {
                 clearStatus();
                 return;
             }
             status.setVisibility(View.VISIBLE);
-            if (count == 0) {
-                String next = L10n.t(status.getContext(),
-                        "No matching comments. Try a different word or clear the search.");
-                if (!TextUtils.equals(status.getText(), next)) status.setText(next);
+            Context context = status.getContext();
+            String next;
+            if (matches.found == 0) {
+                // It used to tell the reader to clear the search, with nothing on the screen
+                // that could. The box now carries a clear control, so the sentence points at
+                // something that exists.
+                next = L10n.t(context, "No matching comments. Try a different word, or clear "
+                        + "the search with the X in the box.");
+            } else if (matches.truncated) {
+                next = L10n.f(context, "%1$d results so far, and more not counted", matches.found);
             } else {
-                SettingsUi.setResultCount(status, count);
+                // "So far": TikTok pages comments and this has only seen the ones it loaded.
+                // The old line said "3 results" about the three rows that happened to be on
+                // screen, and changed as the reader scrolled past them.
+                next = matches.found == 1
+                        ? L10n.t(context, "1 result so far")
+                        : L10n.f(context, "%1$d results so far", matches.found);
             }
+            if (!TextUtils.equals(status.getText(), next)) status.setText(next);
+        }
+
+        /** The X inside the box, which only exists while there is something to clear. */
+        private void showClearControl(boolean wanted) {
+            Drawable clear = wanted ? clearIcon : null;
+            Drawable[] current = box.getCompoundDrawablesRelative();
+            if (current[2] == clear) return;
+            box.setCompoundDrawablesRelativeWithIntrinsicBounds(null, null, clear, null);
         }
 
         void clearForSheetChange() {
@@ -444,16 +558,70 @@ public final class CommentSearch {
         if (listView == null) return;
         boolean filtering = enabled();
         String wanted = query;
-        int matchingComments = 0;
         for (int index = 0; index < listView.getChildCount(); index++) {
             View row = listView.getChildAt(index);
             if (!ROW_COMMENTS.containsKey(row)) continue;
-            boolean rowMatches = !filtering || matches(ROW_COMMENTS.get(row), wanted);
+            Object comment = ROW_COMMENTS.get(row);
+            rememberLoadedComment(listView, comment);
+            boolean rowMatches = !filtering || matches(comment, wanted);
             setRowHidden(row, filtering && !rowMatches);
-            if (rowMatches && !COLLAPSED_REPLY_ROWS.containsKey(row)) matchingComments++;
         }
         SearchField field = searchFieldFor(listView);
-        if (field != null) field.updateResult(filtering ? wanted : "", matchingComments);
+        if (field != null) {
+            field.updateResult(filtering ? wanted : "", countLoadedMatches(listView, wanted));
+        }
+    }
+
+    /** Adds a comment to what this sheet has loaded, keyed by its own id so a rebind is free. */
+    private static void rememberLoadedComment(ViewGroup listView, Object comment) {
+        String id = commentId(comment);
+        if (id == null) return;
+        LoadedComments loaded = LOADED_COMMENTS.get(listView);
+        if (loaded == null) {
+            loaded = new LoadedComments();
+            LOADED_COMMENTS.put(listView, loaded);
+        }
+        if (loaded.byId.containsKey(id) || loaded.byId.size() < MAX_LOADED_COMMENTS) {
+            loaded.byId.put(id, comment);
+        } else {
+            loaded.truncated = true;
+        }
+    }
+
+    /**
+     * A comment's own id. Without one it cannot be counted, because the alternative is counting
+     * the same comment again every time the list rebinds a row onto it.
+     */
+    private static String commentId(Object comment) {
+        if (comment == null) return null;
+        String cid = Reflect.string(comment, "getCid", "cid");
+        if (cid != null && !cid.isEmpty()) return cid;
+        // A build that renamed the id. Object identity is the conservative answer: TikTok's
+        // list holds one model per comment, so rebinding a recycled row onto the same comment
+        // finds the same key, and the worst a rebuilt model costs is one comment counted twice.
+        return "model:" + System.identityHashCode(comment);
+    }
+
+    /** How many of the comments loaded on this sheet match, and whether more are uncounted. */
+    private static Matches countLoadedMatches(ViewGroup listView, String wanted) {
+        LoadedComments loaded = LOADED_COMMENTS.get(listView);
+        if (loaded == null) return new Matches(0, false);
+        int found = 0;
+        for (Object comment : loaded.byId.values()) {
+            if (matches(comment, wanted)) found++;
+        }
+        return new Matches(found, loaded.truncated);
+    }
+
+    /** A count and whether it stopped counting, which is a different thing from a total. */
+    static final class Matches {
+        final int found;
+        final boolean truncated;
+
+        Matches(int found, boolean truncated) {
+            this.found = found;
+            this.truncated = truncated;
+        }
     }
 
     private static SearchField searchFieldFor(ViewGroup listView) {

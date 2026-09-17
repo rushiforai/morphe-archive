@@ -46,7 +46,6 @@ import java.lang.ref.WeakReference;
  * are stored as fractions of the screen, so they survive rotation and a different device.
  */
 public final class BlockAuthorOverlay {
-    private static final String SOUND_GLYPH = "♪";
     // 44 clears WCAG 2.5.5 and is under Android's own 48dp guidance, and these four have no
     // TouchDelegate to make up the difference. They sit in a column on the feed, where a
     // miss is a like or a follow on somebody's video.
@@ -344,18 +343,16 @@ public final class BlockAuthorOverlay {
     }
 
     private static View createSoundButton(Activity activity) {
+        // All four controls are drawn the same way now: one OverlayGlyphDrawable at the same
+        // stroke weight and radius fraction, over the same scrim. They were three fonts and one
+        // drawing, and the font TikTok picks is not one any of them can rely on.
         TextView button = new TextView(activity);
-        button.setText(SOUND_GLYPH);
-        button.setTextColor(SettingsUi.OVERLAY_TEXT);
-        button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         button.setGravity(Gravity.CENTER);
         button.setContentDescription(L10n.t(activity, "Block this sound"));
-        // Said outright: a clickable view is only focusable by default from API 26, and the
-        // focus ring below is unreachable on a d-pad before that.
         button.setFocusable(true);
-
-        button.setBackground(SettingsUi.overlayControl(activity, SettingsUi.RADIUS_OVERLAY));
-
+        Drawable glyph = new OverlayGlyphDrawable(OverlayGlyphDrawable.Shape.NOTE,
+                SettingsUi.OVERLAY_TEXT, SettingsUi.dp(activity, 2));
+        button.setBackground(SettingsUi.overlayControl(activity, SettingsUi.RADIUS_OVERLAY, glyph));
         button.setOnClickListener(view -> onBlockSoundTapped());
         installDrag(button);
         return button;
@@ -363,14 +360,12 @@ public final class BlockAuthorOverlay {
 
     private static View createLocalHideButton(Activity activity) {
         TextView button = new TextView(activity);
-        button.setText("×");
-        button.setTextColor(SettingsUi.OVERLAY_TEXT);
-        button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 28);
         button.setGravity(Gravity.CENTER);
         button.setContentDescription(L10n.t(activity, "Hide this creator locally"));
         button.setFocusable(true);
-
-        button.setBackground(SettingsUi.overlayControl(activity, SettingsUi.RADIUS_OVERLAY));
+        Drawable glyph = new OverlayGlyphDrawable(OverlayGlyphDrawable.Shape.CROSS,
+                SettingsUi.OVERLAY_TEXT, SettingsUi.dp(activity, 2));
+        button.setBackground(SettingsUi.overlayControl(activity, SettingsUi.RADIUS_OVERLAY, glyph));
         button.setOnClickListener(view -> onLocalHideTapped());
         installDrag(button);
         return button;
@@ -382,15 +377,12 @@ public final class BlockAuthorOverlay {
 
     private static View createNotInterestedButton(Activity activity) {
         TextView button = new TextView(activity);
-        button.setText("-");
-        button.setTextColor(SettingsUi.OVERLAY_TEXT);
-        button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 28);
         button.setGravity(Gravity.CENTER);
         button.setContentDescription(L10n.t(activity, "Not interested in this video"));
         button.setFocusable(true);
-        // The same shape and the same scrim as the three it shares the rail with. On a column of
-        // four, one control drawn differently reads as a mistake rather than as a distinction.
-        button.setBackground(SettingsUi.overlayControl(activity, SettingsUi.RADIUS_OVERLAY));
+        Drawable glyph = new OverlayGlyphDrawable(OverlayGlyphDrawable.Shape.MINUS,
+                SettingsUi.OVERLAY_TEXT, SettingsUi.dp(activity, 2));
+        button.setBackground(SettingsUi.overlayControl(activity, SettingsUi.RADIUS_OVERLAY, glyph));
         button.setOnClickListener(view -> NotInterested.submit());
         installDrag(button);
         return button;
@@ -429,12 +421,11 @@ public final class BlockAuthorOverlay {
     private static View createButton(Activity activity) {
         TextView button = new TextView(activity);
         button.setGravity(Gravity.CENTER);
-        button.setContentDescription(L10n.t(activity, "Block this account"));
+        button.setContentDescription(L10n.t(activity, "Block this creator"));
         button.setFocusable(true);
 
-        // The symbol is drawn over the backdrop instead of set as text, because the font
-        // TikTok happens to be using may not carry it.
-        Drawable glyph = new BlockGlyphDrawable(SettingsUi.OVERLAY_TEXT, SettingsUi.dp(activity, 2));
+        Drawable glyph = new OverlayGlyphDrawable(OverlayGlyphDrawable.Shape.BLOCK,
+                SettingsUi.OVERLAY_TEXT, SettingsUi.dp(activity, 2));
         button.setBackground(SettingsUi.overlayControl(activity, SettingsUi.RADIUS_OVERLAY, glyph));
 
         button.setOnClickListener(view -> onBlockTapped());
@@ -705,7 +696,7 @@ public final class BlockAuthorOverlay {
 
         VideoAuthor author = CurrentVideoAuthor.get();
         if (author == null || !author.isUsable()) {
-            Utils.showToastShort(L10n.t("No account to block on this video"));
+            Utils.showToastShort(L10n.t("No creator to block on this video"));
             return;
         }
 
@@ -732,7 +723,7 @@ public final class BlockAuthorOverlay {
         VideoAuthor author = CurrentVideoAuthor.get();
         if (author == null || !author.isUsable() || author.stableId() == null
                 || author.stableId().isEmpty()) {
-            Utils.showToastShort(L10n.t("No account to hide on this video"));
+            Utils.showToastShort(L10n.t("No creator to hide on this video"));
             return;
         }
 
@@ -798,7 +789,7 @@ public final class BlockAuthorOverlay {
      * root is a parameter. Falls back to a plain toast when there is nowhere to draw it.
      */
     public static void showUndoBanner(ViewGroup root, String message, Runnable undoAction) {
-        showBanner(root, message, undoAction);
+        showBanner(root, message, undoAction, null);
     }
 
     /**
@@ -809,10 +800,23 @@ public final class BlockAuthorOverlay {
      * which a toast does not.
      */
     public static void showNoticeBanner(ViewGroup root, String message) {
-        showBanner(root, message, null);
+        showBanner(root, message, null, null);
     }
 
-    private static void showBanner(ViewGroup root, String message, Runnable undoAction) {
+    /**
+     * The same banner with an action of your own instead of Undo.
+     *
+     * <p>Undo was the only thing a banner could offer, so anything with a different action had
+     * to be a dialog, and a dialog over the feed stops a scroll dead for something whose only
+     * purpose is to be read.
+     */
+    public static void showActionBanner(ViewGroup root, String message, String actionLabel,
+            Runnable action) {
+        showBanner(root, message, action, actionLabel);
+    }
+
+    private static void showBanner(ViewGroup root, String message, Runnable action,
+            String actionLabel) {
         Utils.runOnMainThread(() -> {
             try {
                 if (root == null) {
@@ -840,7 +844,10 @@ public final class BlockAuthorOverlay {
                 label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
                 banner.addView(label, new LinearLayout.LayoutParams(0, -2, 1f));
 
-                if (undoAction != null) addUndo(activity, banner, undoAction);
+                if (action != null) {
+                    addAction(activity, banner,
+                            actionLabel == null ? L10n.t(activity, "Undo") : actionLabel, action);
+                }
                 // Nothing announced this banner, so a reader using TalkBack never knew there
                 // was a way back at all.
                 banner.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
@@ -942,10 +949,11 @@ public final class BlockAuthorOverlay {
         return top;
     }
 
-    private static void addUndo(Activity activity, LinearLayout banner, Runnable undoAction) {
+    private static void addAction(Activity activity, LinearLayout banner, String label,
+            Runnable action) {
         TextView undo = new TextView(activity);
-        undo.setText(L10n.t(activity, "Undo"));
-        undo.setContentDescription(L10n.t(activity, "Undo"));
+        undo.setText(label);
+        undo.setContentDescription(label);
         undo.setTextColor(SettingsUi.OVERLAY_ACCENT);
         undo.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         // A banner that dismisses itself is the worst place for a small target.
@@ -961,7 +969,7 @@ public final class BlockAuthorOverlay {
         SettingsUi.markAsButton(undo);
         undo.setOnClickListener(view -> {
             dismissUndo();
-            undoAction.run();
+            action.run();
         });
         banner.addView(undo, new LinearLayout.LayoutParams(-2, -2));
     }

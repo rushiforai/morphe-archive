@@ -204,15 +204,15 @@ public final class FeatureGateDetailFragment extends Fragment {
         currentState.setPadding(FeatureGateLabUi.dp(context, 16), 0, FeatureGateLabUi.dp(context, 16), 0);
         currentState.setBackground(SettingsUi.borderedSurface(context, 10, false));
         content.addView(currentState, FeatureGateLabUi.matchWrap());
-        addInfo(currentState, L10n.t(context, "Loaded for this account"),
+        addInfo(currentState, L10n.t(context, "Seen this session"),
                 L10n.t(context, entry.loaded ? "Yes" : "No"));
-        addInfo(currentState, L10n.t(context, "TikTok cached value"), "OBJECT".equals(entry.type)
+        addInfo(currentState, L10n.t(context, "TikTok's own value"), "OBJECT".equals(entry.type)
                 ? L10n.t(context, entry.loaded
                         ? "Structured value observed" : "Not requested in this process yet")
                 : (entry.loaded
                         ? entry.currentValue + " (" + entry.currentType + ")"
-                        : L10n.t(context, "Not present in the current cache")));
-        effectiveValue = addInfo(currentState, L10n.t(context, "Effective getter result"), effectiveValueText());
+                        : L10n.t(context, "Not seen yet")));
+        effectiveValue = addInfo(currentState, L10n.t(context, "What TikTok gets"), effectiveValueText());
         TextView cacheNote = FeatureGateLabUi.label(
                 context,
                 L10n.t(context, "An override changes the value returned by the getter. It does not rewrite TikTok's cached value or prove the named feature changed.")
@@ -879,7 +879,7 @@ public final class FeatureGateDetailFragment extends Fragment {
             return;
         }
         if (!rule.enabled) {
-            status.setText(L10n.t(getContext(), "Override saved but off"));
+            status.setText(L10n.t(getContext(), "Saved, override off"));
             status.setTextColor(SettingsUi.textSecondary());
             showFailureReason(null);
             if (effectiveValue != null) effectiveValue.setText(effectiveValueText());
@@ -890,9 +890,9 @@ public final class FeatureGateDetailFragment extends Fragment {
                 entry.manager, entry.key, entry.type);
         status.setText(failure != null
                 ? L10n.t(getContext(),
-                        "Getter requested, but the structured override could not be applied")
+                        "TikTok read it, but the structured override could not be applied")
                 : L10n.t(getContext(), triggered
-                        ? "Getter requested" : "Getter not requested yet"));
+                        ? "TikTok read it" : "Not read yet"));
         status.setTextColor(triggered ? SettingsUi.accent() : FeatureGateLabUi.warningColor(getActivity()));
         showFailureReason(failure);
         if (effectiveValue != null) effectiveValue.setText(effectiveValueText());

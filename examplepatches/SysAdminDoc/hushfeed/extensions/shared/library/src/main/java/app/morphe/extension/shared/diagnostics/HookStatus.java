@@ -142,7 +142,34 @@ public final class HookStatus {
         record(family, key, kind + " " + owner + "#" + name);
     }
 
+    /**
+     * A hook that found its anchor, ran, and came back out through a catch.
+     *
+     * <p>This is a different failure from a missing view or a renamed member, and it used to
+     * leave no trace at all: the extension logged an exception and returned TikTok's own value,
+     * so the export called the family healthy while the feature silently did nothing. It counts
+     * as a miss because a hook that threw did not do its job, and the first one is named on the
+     * family's line.
+     *
+     * <p>Keyed by the hook rather than by the exception, so a throw on every share sheet records
+     * once and a second hook in the same family still gets its own line.
+     */
+    public static void threw(String family, String name, Throwable failure) {
+        String key = name + " threw";
+        Family entry = FAMILIES.get(family);
+        if (entry != null && (entry.truncated || entry.missed.contains(key))) return;
+        String cause = failure == null ? "an error it could not name" : failure.getClass().getName();
+        record(family, key,
+                "a working '" + name + "' hook (it threw " + cause + ")",
+                "The '" + name + "' hook for " + family + " threw " + cause
+                        + ", so TikTok's own behaviour was left alone");
+    }
+
     private static void record(String family, String key, String detail) {
+        record(family, key, detail, null);
+    }
+
+    private static void record(String family, String key, String detail, String ownMessage) {
         synchronized (STATE_LOCK) {
             Family entry = family(family);
             if (entry.truncated || entry.missed.contains(key)) return;
@@ -156,8 +183,9 @@ public final class HookStatus {
 
         // Never hold STATE_LOCK while Logger enters LogBufferManager. Diagnostic clear takes
         // the buffer lock first and then snapshots this state, so doing both here would deadlock.
-        String message = "no " + detail + " for " + family;
-        Logger.printInfo(() -> "This TikTok build has " + message);
+        String message = ownMessage == null ? "no " + detail + " for " + family : ownMessage;
+        String line = ownMessage == null ? "This TikTok build has " + message : message;
+        Logger.printInfo(() -> line);
         LogBufferManager.appendEvent(DiagnosticCategory.PATCH_ERRORS, "HookStatus", "WARN", message);
     }
 

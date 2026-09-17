@@ -1,19 +1,31 @@
 package app.template.patches.googlephone
 
-import app.morphe.patcher.annotation.Patch
-import app.morphe.patcher.patch.ManifestPatch
-import app.morphe.patcher.patch.annotation.PatchDescription
+import app.morphe.patcher.patch.resourcePatch
+import app.template.patches.shared.Constants.GOOGLE_PHONE_COMPATIBILITY
 
-@Patch(
+@Suppress("unused")
+val removeDialerSupportLibraryPatch = resourcePatch(
     name = "Remove Dialer Support Library",
-    description = "Removes the com.google.android.dialer.support library requirement to allow installation on non-Pixel devices.",
-    target = "com.google.android.dialer"
-)
-class RemoveDialerSupportLibraryPatch : ManifestPatch() {
-    override fun execute(manifest: ManifestContext) {
-        // Find and remove the specific <uses-library> tag from the AndroidManifest.xml
-        manifest.document.select("uses-library[android:name=com.google.android.dialer.support]").forEach { element ->
-            element.remove()
+    description = "Removes the unavailable com.google.android.dialer.support shared-library requirement.",
+    default = true,
+) {
+    compatibleWith(GOOGLE_PHONE_COMPATIBILITY)
+
+    execute {
+        document("AndroidManifest.xml").use { document ->
+            val libraryNodes = document.getElementsByTagName("uses-library")
+
+            for (index in libraryNodes.length - 1 downTo 0) {
+                val node = libraryNodes.item(index)
+
+                val name = node.attributes
+                    ?.getNamedItem("android:name")
+                    ?.nodeValue
+
+                if (name == "com.google.android.dialer.support") {
+                    node.parentNode?.removeChild(node)
+                }
+            }
         }
     }
 }

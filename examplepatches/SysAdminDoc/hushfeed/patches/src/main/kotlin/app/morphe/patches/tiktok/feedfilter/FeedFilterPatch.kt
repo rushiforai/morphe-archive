@@ -17,6 +17,7 @@ import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.patches.tiktok.shared.callThroughLocals
+import app.morphe.patches.tiktok.shared.guardAtEntry
 import app.morphe.patches.tiktok.shared.objectIn
 import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.addInstructionsAtControlFlowLabel
@@ -45,12 +46,14 @@ val feedFilterPatch = bytecodePatch(
     name = "Feed filter",
     description = "Hides feed ads, including videos with creator commission disclosures, TikTok " +
         "Shop items, livestreams, LIVE replays, stories, photo posts, paid partnerships, AI " +
-        "labelled videos, verified accounts, series, playlists, " +
+        "labeled videos, verified accounts, series, playlists, " +
         "the playlist bar, the floating event badge and inserted cards. Videos can also be " +
         "filtered by your own caption words, creator handles or patterns, sound names, length, " +
-        "the country they were posted from and their view, like, comment, favourite and share " +
+        "the country they were posted from and their view, like, comment, favorite and share " +
         "counts. Sponsored cards are dropped from the profile video viewer, the search grids " +
-        "and the Friends tab as well as the feed.",
+        "and the Friends tab as well as the feed, and so are the mid-roll ads TikTok splices " +
+        "into a video pager after the list has loaded. The share prompt that appears after a " +
+        "like can also be hidden.",
     default = true,
 ) {
     dependsOn(settingsPatch, 
@@ -133,6 +136,20 @@ val feedFilterPatch = bytecodePatch(
         ).forEach(MutableMethod::filterProfileAdsAfterNativeTransform)
 
         ProfileDetailAdEventFingerprint.method.filterProfileDetailAdEvent()
+
+        // The mid-roll splice runs after every list above has been filtered and puts an ad in
+        // a video's place in the pager adapter directly, which is how issue #2's ads reached a
+        // profile pager whose list carried nothing but organic videos. The ad is the second
+        // parameter; the guard leaves before the adapter is touched, and the video stays.
+        MidAdReplaceFingerprint.method.guardAtEntry(
+            "Feed filter",
+            "invoke-static {p1}, $EXTENSION_CLASS_DESCRIPTOR->dropMidAd(Lcom/ss/android/ugc/aweme/feed/model/Aweme;)Z",
+            "return-void",
+        )
+        MidAdComponentCreateFingerprint.method.addInstructions(
+            0,
+            "invoke-static {}, $EXTENSION_CLASS_DESCRIPTOR->midAdInstalled()V",
+        )
 
         // The search grids are not Aweme lists, so their cards are filtered on the parsed
         // response instead, before the forty places that read them get a look.
@@ -363,16 +380,52 @@ val feedFilterPatch = bytecodePatch(
         }
 
         TakoAiFeedButtonSetVisibleFingerprint.method.requireLocals("Feed filter", 1)
-        TakoAiFeedButtonSetVisibleFingerprint.method.addInstructions(
-            0,
+        TakoAiFeedButtonSetVisibleFingerprint.method.guardAtEntry(
+            "Feed filter",
+            "invoke-static {}, $TAKO_AI_FILTER_CLASS_DESCRIPTOR->shouldHideFeedButton()Z",
+            "const/4 p1, 0x0",
+        )
+
+        // The "Ask" strip under the caption is a slot component bound per video, and it is not
+        // the floating button the two hooks above cover (issue #6). Asked at the top of its bind:
+        // with the switch on the slot's view is hidden and the bind never fills it.
+        TakoAskBarBindFingerprint.method.guardAtEntry(
+            "Feed filter",
+            "invoke-static {}, $TAKO_AI_FILTER_CLASS_DESCRIPTOR->shouldHideAskBar()Z",
             """
-                invoke-static {}, $TAKO_AI_FILTER_CLASS_DESCRIPTOR->shouldHideFeedButton()Z
-                move-result v0
-                if-eqz v0, :morphe_keep_feed_tako_visible_state
-                const/4 p1, 0x0
-                :morphe_keep_feed_tako_visible_state
-                nop
+                invoke-virtual {p0}, Lcom/bytedance/assem/arch/reused/ReusedUISlotAssem;->getContentView()Landroid/view/View;
+                move-result-object v0
+                invoke-static {v0}, $TAKO_AI_FILTER_CLASS_DESCRIPTOR->hideAskBar(Landroid/view/View;)V
+                return-void
             """,
+        )
+
+        // The trigger component for the same slot. On some accounts TikTok draws the ask bar
+        // through this trigger instead of (or alongside) the slot, so a reporter's phone showed
+        // the bar while the slot hook never fired at all. The trigger's Sp (on 46.2.3; mr, yr,
+        // Kr on later builds) gets a content view and registers a callback that makes it visible.
+        // Returning before any of that runs is enough: nothing fills the strip and nothing makes
+        // it visible. The obfuscated view-getter name changes on every build, so calling it from
+        // the guard would need a name that matches only one; returning early avoids that.
+        TakoAskBarTriggerBindFingerprint.method.guardAtEntry(
+            "Feed filter",
+            "invoke-static {}, $TAKO_AI_FILTER_CLASS_DESCRIPTOR->shouldHideAskBar()Z",
+            "return-void",
+        )
+
+        // The feed-level Tako trigger lives in the tikbot package, separate from the detail-page
+        // one above. A reporter's export showed no detail-page hook firing while the bar still
+        // appeared, because their account draws it through this component instead. The roof
+        // variant covers the same slot from the "roof" layout position. Same guard on all three.
+        TakoFeedTriggerBindFingerprint.method.guardAtEntry(
+            "Feed filter",
+            "invoke-static {}, $TAKO_AI_FILTER_CLASS_DESCRIPTOR->shouldHideAskBar()Z",
+            "return-void",
+        )
+        TakoFeedTriggerRoofBindFingerprint.method.guardAtEntry(
+            "Feed filter",
+            "invoke-static {}, $TAKO_AI_FILTER_CLASS_DESCRIPTOR->shouldHideAskBar()Z",
+            "return-void",
         )
 
         TakoAiFeedButtonBindFingerprint.method.apply {
@@ -389,20 +442,26 @@ val feedFilterPatch = bytecodePatch(
             )
         }
 
+        // The share prompt that pops up after a like, asking the reader to share the video
+        // with friends. Upstream #22. The method name changes on every build (O, J, H, D)
+        // but the string "share_guide" and the parameter shape are stable. Returning early
+        // is enough: nothing about the prompt is shown if the method never runs.
+        ShareGuideFingerprint.method.guardAtEntry(
+            "Feed filter",
+            "invoke-static {}, Lapp/morphe/extension/tiktok/settings/Settings;->shouldHideShareGuide()Z",
+            "return-void",
+        )
+
         // Things TikTok slots into the feed that never arrive as ordinary items, so they
         // are stopped where they are built. Each is optional: a build without the surface
         // simply skips it.
         PlaylistBottomBarAvailableFingerprint.method.requireLocals("Feed filter", 1)
-        PlaylistBottomBarAvailableFingerprint.method.addInstructions(
-            0,
+        PlaylistBottomBarAvailableFingerprint.method.guardAtEntry(
+            "Feed filter",
+            "invoke-static {}, $CARD_FILTERS_CLASS_DESCRIPTOR->shouldHidePlaylistBar()Z",
             """
-                invoke-static {}, $CARD_FILTERS_CLASS_DESCRIPTOR->shouldHidePlaylistBar()Z
-                move-result v0
-                if-eqz v0, :morphe_show_playlist_bar
                 const/4 v0, 0x0
                 return v0
-                :morphe_show_playlist_bar
-                nop
             """,
         )
 
@@ -425,31 +484,23 @@ val feedFilterPatch = bytecodePatch(
         )?.let { insertion ->
             // Null is the app's own "no recommended users to insert" result.
             insertion.requireLocals("Feed filter", 1)
-            insertion.addInstructions(
-                0,
+            insertion.guardAtEntry(
+                "Feed filter",
+                "invoke-static {}, $CARD_FILTERS_CLASS_DESCRIPTOR->shouldHideInsertedCards()Z",
                 """
-                    invoke-static {}, $CARD_FILTERS_CLASS_DESCRIPTOR->shouldHideInsertedCards()Z
-                    move-result v0
-                    if-eqz v0, :morphe_insert_rec_user_card
                     const/4 v0, 0x0
                     return-object v0
-                    :morphe_insert_rec_user_card
-                    nop
                 """,
             )
         }
 
         FeedLynxCardLoadFingerprint.method.requireLocals("Feed filter", 1)
-        FeedLynxCardLoadFingerprint.method.addInstructions(
-            0,
+        FeedLynxCardLoadFingerprint.method.guardAtEntry(
+            "Feed filter",
+            "invoke-static {}, $CARD_FILTERS_CLASS_DESCRIPTOR->shouldHideInsertedCards()Z",
             """
-                invoke-static {}, $CARD_FILTERS_CLASS_DESCRIPTOR->shouldHideInsertedCards()Z
-                move-result v0
-                if-eqz v0, :morphe_load_feed_card
                 const/4 v0, 0x0
                 return v0
-                :morphe_load_feed_card
-                nop
             """,
         )
 
@@ -470,16 +521,10 @@ val feedFilterPatch = bytecodePatch(
         }
 
         SpecActTouchpointAttachFingerprint.method.requireLocals("Feed filter", 1)
-        SpecActTouchpointAttachFingerprint.method.addInstructions(
-            0,
-            """
-                invoke-static {}, $CARD_FILTERS_CLASS_DESCRIPTOR->shouldHideEventBadge()Z
-                move-result v0
-                if-eqz v0, :morphe_attach_event_badge
-                return-void
-                :morphe_attach_event_badge
-                nop
-            """,
+        SpecActTouchpointAttachFingerprint.method.guardAtEntry(
+            "Feed filter",
+            "invoke-static {}, $CARD_FILTERS_CLASS_DESCRIPTOR->shouldHideEventBadge()Z",
+            "return-void",
         )
     }
 }

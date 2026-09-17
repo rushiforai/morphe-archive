@@ -8,12 +8,12 @@
 package app.morphe.extension.tiktok.feedfilter;
 
 import android.app.Activity;
-import android.app.AlertDialog;
+import android.view.ViewGroup;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.tiktok.blockauthor.BlockAuthorOverlay;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.TikTokActivityHook;
-import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -121,14 +121,17 @@ final class FeedFilterFeedback {
         if (summary.length() == 0) summary.append(L10n.t(OTHER_REASON));
         // One batch is the common case the first time this shows, and "to 1 batches" is not a
         // sentence.
+        // "Batch" and "matches" are words from inside the code. What a reader saw was a feed
+        // that stopped giving them anything, and what they need to know is that their own
+        // settings did it and roughly which one.
         if (filteredBatches == 1) {
             return L10n.f(
-                    "No videos remained after Hushfeed applied your feed filters to one batch. Most matches: %1$s.",
+                    "Your filters hid everything TikTok just sent. Most were %1$s.",
                     summary.toString()
             );
         }
         return L10n.f(
-                "No videos remained after Hushfeed applied your feed filters to %1$d batches. Most matches: %2$s.",
+                "Your filters hid everything TikTok sent, %1$d times in a row. Most were %2$s.",
                 filteredBatches,
                 summary.toString()
         );
@@ -147,6 +150,7 @@ final class FeedFilterFeedback {
         if ("SeriesFilter".equals(reason)) return "Series posts";
         if ("PlaylistFilter".equals(reason)) return "Playlist posts";
         if ("InsertedCardFilter".equals(reason)) return "Inserted cards";
+        if ("MidAdFilter".equals(reason)) return "Mid-roll ads";
         if ("SeenVideoFilter".equals(reason)) return "Seen videos";
         if ("KeywordFilter".equals(reason)) return "Blocked caption words";
         if ("CreatorFilter".equals(reason)) return "Hidden creators";
@@ -170,15 +174,18 @@ final class FeedFilterFeedback {
             Utils.showToastLong(message);
             return;
         }
-        AlertDialog dialog = new AlertDialog.Builder(activity)
-                .setTitle(L10n.t(activity, "Hushfeed filtered this batch"))
-                .setMessage(message)
-                .setPositiveButton(L10n.t(activity, "Open feed filter settings"),
-                        (ignored, which) -> TikTokActivityHook.openFeedFilterSettings())
-                .setNegativeButton(L10n.t(activity, "Dismiss"), null)
-                .create();
-        dialog.setOnShowListener(ignored -> SettingsUi.styleStandardAlertDialog(dialog));
-        dialog.show();
+        // This used to be a modal over the feed. Its only action was opening a settings page,
+        // and nothing about it was worth stopping a scroll for: a reader who wants to keep
+        // scrolling had to dismiss a dialog to do it. The banner says the same thing, takes no
+        // focus, announces itself once and takes itself away.
+        ViewGroup root = activity.findViewById(android.R.id.content);
+        if (root == null) {
+            Utils.showToastLong(message);
+            return;
+        }
+        BlockAuthorOverlay.showActionBanner(root, message,
+                L10n.t(activity, "Filter settings"),
+                TikTokActivityHook::openFeedFilterSettings);
     }
 
     private static void resetWindowLocked() {

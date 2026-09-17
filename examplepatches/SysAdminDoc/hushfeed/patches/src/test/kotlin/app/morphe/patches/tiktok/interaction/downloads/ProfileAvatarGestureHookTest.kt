@@ -11,6 +11,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
@@ -45,16 +46,39 @@ class ProfileAvatarGestureHookTest {
         """)
     }
 
-    private fun assertNativeGesture(name: String, registers: Int, nativeBody: String) {
+    @Test
+    fun `own profile hold on a listener class of its own reads the typed assem off this`() {
+        // 46.9.3: no listener group and no cast. The assem sits in a field of its own type on a
+        // class of its own, and p0 is `this` rather than the group instance handed to a static.
+        assertNativeGesture("onClick", 6, """
+            iget-object v0, p0, LX/0NnB;->LL:${avatarOwner}MyProfileAvatarAssem;
+            invoke-virtual { v0 }, ${avatarOwner}ProfileAvatarAssem;->ds()Lcom/ss/android/ugc/aweme/profile/model/User;
+            move-result-object v2
+            return-void
+        """, owner = "LX/0NnB;", static = false, fieldName = "LL", fieldType = "${avatarOwner}MyProfileAvatarAssem;")
+    }
+
+    private fun assertNativeGesture(
+        name: String,
+        registers: Int,
+        nativeBody: String,
+        owner: String = listener,
+        static: Boolean = true,
+        fieldName: String = "l0",
+        fieldType: String = "Ljava/lang/Object;",
+    ) {
+        val parameters = if (static) listOf(owner, "Landroid/view/View;") else listOf("Landroid/view/View;")
         val method = MutableMethod(ImmutableMethod(
-            listener, name,
-            listOf(listener, "Landroid/view/View;").map { ImmutableMethodParameter(it, null, null) },
-            "V", AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value,
+            owner, name,
+            parameters.map { ImmutableMethodParameter(it, null, null) },
+            "V", AccessFlags.PUBLIC.value or (if (static) AccessFlags.STATIC.value else 0) or AccessFlags.FINAL.value,
             null, null, ImmutableMethodImplementation(registers, emptyList(), null, null),
         )).apply { addInstructions(nativeBody) }
         val original = method.implementation!!.instructions.toList()
 
-        method.interceptProfileAvatarLongPress("l0")
+        method.interceptProfileAvatarLongPress(
+            ImmutableField(owner, fieldName, fieldType, AccessFlags.PUBLIC.value, null, null, null),
+        )
 
         val implementation = method.implementation!!
         val instructions = implementation.instructions.toList()
@@ -65,9 +89,9 @@ class ProfileAvatarGestureHookTest {
         assertEquals(0, ownerRead.registerA)
         assertEquals(registers - 2, ownerRead.registerB)
         val field = (instructions[0] as ReferenceInstruction).reference as FieldReference
-        assertEquals(listener, field.definingClass)
-        assertEquals("l0", field.name)
-        assertEquals("Ljava/lang/Object;", field.type)
+        assertEquals(owner, field.definingClass)
+        assertEquals(fieldName, field.name)
+        assertEquals(fieldType, field.type)
         assertEquals(Opcode.INVOKE_STATIC, instructions[1].opcode)
         val call = instructions[1] as FiveRegisterInstruction
         assertEquals(2, call.registerCount)

@@ -8,12 +8,13 @@ package app.morphe.patches.tiktok.misc.inbox
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.shared.guardAtEntry
+import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.getReference
 import app.morphe.util.numberOfParameterRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -85,19 +86,10 @@ val notificationControlsPatch = bytecodePatch(
             ) {
                 "Notification controls: the push handler no longer takes the message in p1."
             }
-            check(implementation!!.registerCount - numberOfParameterRegisters >= 1) {
-                "Notification controls: the push handler has no free local register."
-            }
-            addInstructions(
-                0,
-                """
-                    invoke-static/range { p1 .. p1 }, $EXTENSION->shouldDropPush(Ljava/lang/Object;)Z
-                    move-result v0
-                    if-eqz v0, :morphe_post_notification
-                    return-void
-                    :morphe_post_notification
-                    nop
-                """,
+            guardAtEntry(
+                "getShowStreakButton",
+                "invoke-static/range { p1 .. p1 }, $EXTENSION->shouldDropPush(Ljava/lang/Object;)Z",
+                "return-void",
             )
         }
 
@@ -112,16 +104,12 @@ val notificationControlsPatch = bytecodePatch(
                 check(match.method.implementation!!.registerCount > 1) {
                     "Notification controls: ${fingerprint.name} has no free local register."
                 }
-                match.method.addInstructions(
-                    0,
+                match.method.guardAtEntry(
+                    "getShowStreakButton",
+                    "invoke-static {}, $EXTENSION->hideMessageStreaks()Z",
                     """
-                        invoke-static {}, $EXTENSION->hideMessageStreaks()Z
-                        move-result v0
-                        if-eqz v0, :morphe_keep_streaks
                         const/4 v0, 0x0
                         return v0
-                        :morphe_keep_streaks
-                        nop
                     """,
                 )
             }

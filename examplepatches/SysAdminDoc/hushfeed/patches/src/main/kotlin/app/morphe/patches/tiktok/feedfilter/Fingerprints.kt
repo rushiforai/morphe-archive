@@ -44,10 +44,14 @@ internal object FollowFeedFingerprint : Fingerprint(
     },
 )
 
+/**
+ * No access flags: the patcher compares them exactly, and 46.9.3 marks this getter `public
+ * final` where the three builds before it say `public`. The class, name, return type and empty
+ * parameter list name one method on every retained build, which is all the flags added.
+ */
 internal object FollowFeedListGetItemsFingerprint : Fingerprint(
     definingClass = "Lcom/ss/android/ugc/aweme/follow/presenter/FollowFeedList;",
     name = "getItems",
-    accessFlags = listOf(AccessFlags.PUBLIC),
     returnType = "Ljava/util/List;",
     parameters = emptyList(),
 )
@@ -312,6 +316,40 @@ internal object ProfileDetailAdEventFingerprint : Fingerprint(
     },
 )
 
+private const val MID_AD_COMPONENT_DESCRIPTOR =
+    "Lcom/ss/android/ugc/feed/platform/panel/midad/MidAdComponent;"
+
+/**
+ * The mid-roll ad component's splice. Given the video on screen and an ad, it finds the video
+ * in the pager adapter and puts the ad in its place, logging {@code midroll_ads_show} first.
+ * This is the route issue #2 was about: it runs after every list the other feed hooks see, so
+ * an ad reached the profile pager while the profile list carried 184 videos with 0 removed.
+ *
+ * <p>Static on every retained build, with the same five parameters (the video, the ad, a flag,
+ * the component and the adapter) and the same event string; the log strings beside it are
+ * stripped after 46.2.3, and the method's own name changes on every build, so neither is used.
+ */
+internal object MidAdReplaceFingerprint : Fingerprint(
+    definingClass = MID_AD_COMPONENT_DESCRIPTOR,
+    returnType = "V",
+    strings = listOf("midroll_ads_show"),
+    custom = { method, _ ->
+        AccessFlags.STATIC.isSet(method.accessFlags) &&
+            method.parameterTypes.size == 5 &&
+            method.parameterTypes[0].toString() == AWEME_DESCRIPTOR &&
+            method.parameterTypes[1].toString() == AWEME_DESCRIPTOR &&
+            method.parameterTypes[2].toString() == "Z"
+    },
+)
+
+/** Where the mid-roll ad component comes to life, so the export carries its family on every run. */
+internal object MidAdComponentCreateFingerprint : Fingerprint(
+    definingClass = MID_AD_COMPONENT_DESCRIPTOR,
+    name = "onCreate",
+    returnType = "V",
+    parameters = listOf(),
+)
+
 /**
  * The search page's own result list. It arrives parsed, then this method walks its items to
  * stamp the request id on each, which makes it the one place every result passes through
@@ -398,6 +436,78 @@ internal object TakoAiFeedButtonSetVisibleFingerprint : Fingerprint(
     },
 )
 
+/**
+ * The bind of the Tako "Ask" strip under a video's caption, a bottom slot on the video cell
+ * (issue #6). Named {@code hs} on 46.2.3 and {@code onBind} on the three later builds, so it is
+ * found by what it does: it is the one single-Object method on the class that casts its
+ * argument to the video's item params before reading the video.
+ */
+internal object TakoAskBarBindFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/tako/detail/keyframe/ui/TakoDetailKeyFrameBottomAssemAssem;",
+    returnType = "V",
+    parameters = listOf("Ljava/lang/Object;"),
+    custom = { method, _ ->
+        method.implementation?.instructions?.any { instruction ->
+            instruction.opcode == com.android.tools.smali.dexlib2.Opcode.CHECK_CAST &&
+                instruction.getReference<com.android.tools.smali.dexlib2.iface.reference.TypeReference>()
+                    ?.type == "Lcom/ss/android/ugc/aweme/feed/model/VideoItemParams;"
+        } == true
+    },
+)
+
+/**
+ * The trigger component for the same slot. On some accounts TikTok draws the ask bar through
+ * this trigger instead of (or alongside) the slot component. A reporter's export on 0.39.0
+ * showed the slot hook never firing while the bar still appeared: the trigger was the one
+ * that ran. Its {@code hs} is a bridge into {@code Sp(VideoItemParams)}, which gets the
+ * content view and registers a show callback, so hiding the view at the top of the trigger's
+ * bind covers both paths.
+ *
+ * <p>Matched by its defining class and by the {@code CHECK_CAST} to {@code VideoItemParams}
+ * inside its body, the same way the slot fingerprint works.
+ */
+internal object TakoAskBarTriggerBindFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/tako/detail/keyframe/ui/TakoDetailKeyFrameBottomTrigger;",
+    returnType = "V",
+    parameters = listOf("Lcom/ss/android/ugc/aweme/feed/model/VideoItemParams;"),
+    custom = { method, _ ->
+        // The name changes on every build (Sp, mr, yr, Kr), but it is always the sole
+        // (VideoItemParams)V method that is not the boolean variant (Wp, ur, Dr, Qr). Both
+        // sit on the same class with the same parameter; the return type separates them.
+        !com.android.tools.smali.dexlib2.AccessFlags.ABSTRACT.isSet(method.accessFlags)
+    },
+)
+
+/**
+ * The feed-level Tako trigger, in the tikbot package rather than the detail keyframe package.
+ * A reporter on 0.39.0 still saw the ask bar while the detail-page hook never fired, so the
+ * bar was drawn through a different component entirely. This trigger is the one that binds per
+ * video on the main scrolling feed and registers the callback that makes the ask bar visible.
+ * Same structural pattern as the detail trigger: one {@code (VideoItemParams)V} method, one
+ * {@code (VideoItemParams)Z} method, both with names that change on every build.
+ */
+internal object TakoFeedTriggerBindFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/feed/assem/tikbot/TakoTrigger;",
+    returnType = "V",
+    parameters = listOf("Lcom/ss/android/ugc/aweme/feed/model/VideoItemParams;"),
+    custom = { method, _ ->
+        !com.android.tools.smali.dexlib2.AccessFlags.ABSTRACT.isSet(method.accessFlags)
+    },
+)
+
+/**
+ * The roof variant of the feed-level Tako trigger, which sits above the normal trigger and
+ * covers the same slot from the "roof" layout position. Same (VideoItemParams)V pattern.
+ */
+internal object TakoFeedTriggerRoofBindFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/feed/assem/tikbot/TakoTriggerRoof;",
+    returnType = "V",
+    parameters = listOf("Lcom/ss/android/ugc/aweme/feed/model/VideoItemParams;"),
+    custom = { method, _ ->
+        !com.android.tools.smali.dexlib2.AccessFlags.ABSTRACT.isSet(method.accessFlags)
+    },
+)
+
 internal object FollowFeedPresenterPostProcessFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Lcom/ss/android/ugc/aweme/follow/presenter/FollowFeedList;"),
@@ -474,4 +584,17 @@ internal object FeedLynxCardLoadFingerprint : Fingerprint(
         "L",
     ),
     strings = listOf("feedDynamicComponentLoadSuccess"),
+)
+
+/**
+ * The share guide that pops up after a like, asking the reader to share the video with friends.
+ * Named {@code O} on 46.2.3, {@code J} on 46.7.3, {@code H} on 46.8.3, {@code D} on 46.9.3;
+ * matched by its defining class, parameter shape and the {@code "share_guide"} string it logs.
+ * Upstream #22.
+ */
+internal object ShareGuideFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/feed/panel/FullFeedFragmentPanel;",
+    returnType = "V",
+    parameters = listOf("I", "Lcom/ss/android/ugc/aweme/feed/model/Aweme;", "Ljava/lang/String;"),
+    strings = listOf("share_guide"),
 )

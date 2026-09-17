@@ -32,7 +32,7 @@ public final class NotInterested {
         Object video = CurrentVideoAuthor.getAweme();
         String id = Reflect.string(video, "getAid", "aid");
         if (id == null) {
-            Utils.showToastShort(L10n.t("No video selected"));
+            Utils.showToastShort(L10n.t("No video selected. Open a video first."));
             return;
         }
         if (!IN_FLIGHT.compareAndSet(false, true)) return;

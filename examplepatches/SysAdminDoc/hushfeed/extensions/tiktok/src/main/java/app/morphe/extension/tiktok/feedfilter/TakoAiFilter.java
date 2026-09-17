@@ -7,6 +7,7 @@ package app.morphe.extension.tiktok.feedfilter;
 import android.view.View;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.settings.Settings;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -29,6 +30,32 @@ public final class TakoAiFilter {
 
         view.setVisibility(View.GONE);
         logBoundViewHide();
+    }
+
+    private static final String HOOK_FAMILY = "tako AI";
+    private static final AtomicInteger askBarHideLogCount = new AtomicInteger();
+
+    /**
+     * The "Ask" strip under a video's caption (issue #6), a second Tako surface the floating
+     * button switch never covered. It is a slot component bound per video; asked at the top of
+     * that bind, so the strip is neither filled nor shown.
+     */
+    public static boolean shouldHideAskBar() {
+        boolean enabled = Settings.HIDE_TAKO_AI.get();
+        HookStatus.bound(HOOK_FAMILY, "ask bar " + (enabled ? "hidden" : "left"));
+        return enabled;
+    }
+
+    /** The slot's content view, hidden in place of the bind the guard skipped. */
+    public static void hideAskBar(View view) {
+        if (view == null) return;
+        view.setVisibility(View.GONE);
+        int count = askBarHideLogCount.getAndIncrement();
+        if (count < MAX_LOGS) {
+            Logger.printDebug(() -> "[Morphe TikTok TakoAI] Ask bar hidden");
+        } else if (count == MAX_LOGS) {
+            Logger.printDebug(() -> "[Morphe TikTok TakoAI] Ask bar hidden (further logs suppressed)");
+        }
     }
 
     private static void logFloatingButtonRoute(String source, boolean enabled) {

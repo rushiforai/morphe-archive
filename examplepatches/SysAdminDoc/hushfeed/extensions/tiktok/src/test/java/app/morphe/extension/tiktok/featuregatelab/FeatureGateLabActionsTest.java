@@ -31,7 +31,6 @@ import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
 import org.robolectric.shadows.ShadowDialog;
-import org.robolectric.shadows.ShadowPopupMenu;
 import org.robolectric.shadows.ShadowToast;
 
 @RunWith(RobolectricTestRunner.class)
@@ -844,11 +843,28 @@ public class FeatureGateLabActionsTest {
         Shadows.shadowOf(Looper.getMainLooper()).idle();
         return fragment;
     }
+    /**
+     * The overflow action in position {@code id}, counting from one.
+     *
+     * <p>It was a platform PopupMenu and is a list in the bundle's own dialog surface now, so
+     * this goes through the list. The enabled check is part of the point: Undo used to be
+     * offered whether or not there was anything to undo.
+     */
     private static void action(FeatureGateLabFragment fragment, int id) {
         assertTrue(fragment.getView().findViewWithTag("feature_gate_menu").performClick());
-        var menu = ShadowPopupMenu.getLatestPopupMenu();
-        assertTrue(menu.getMenu().performIdentifierAction(id, 0));
-        menu.dismiss();
+        var menu = (android.app.AlertDialog) ShadowDialog.getLatestDialog();
+        assertNotNull("the overflow did not open", menu);
+        android.widget.ListView list = menu.getListView();
+        assertNotNull("the overflow has no items", list);
+        int position = id - 1;
+        assertTrue("overflow item " + position + " is offered but cannot be taken",
+                list.getAdapter().isEnabled(position));
+        assertTrue(list.performItemClick(list.getAdapter().getView(position, null, list),
+                position, list.getAdapter().getItemId(position)));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        // The overflow is itself a dialog now. Leave no trace of it, or every assertion about
+        // the dialog an action raises would find this one instead.
+        ShadowDialog.reset();
     }
     /** The import result dialog, showing, with each expected line somewhere in its view; then dismissed. */
     private static void waitForImportDialog(String... lines) throws Exception {

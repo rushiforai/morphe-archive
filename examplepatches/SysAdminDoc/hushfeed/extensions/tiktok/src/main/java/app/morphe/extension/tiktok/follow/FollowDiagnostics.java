@@ -39,7 +39,35 @@ public final class FollowDiagnostics {
     // each return consumes its admission even when logging was switched off.
     private static final ThreadLocal<Integer> activeCallId = new ThreadLocal<>();
     private static final Object networkContextLock = new Object();
-    private static final IdentityHashMap<Object, FollowRequestContext> networkContexts = new IdentityHashMap<>();
+    /**
+     * The requests in flight, by identity. A request leaves when its lifecycle ends (parsed
+     * response, parse error or transport error), and one that never gets there is held weakly,
+     * so a request graph with its bodies and buffers is never kept for the process lifetime: the
+     * 160 that used to sit here after 160 events stayed reachable until TikTok was killed.
+     */
+    private static final java.util.HashMap<WeakIdentityKey, FollowRequestContext> networkContexts = new java.util.HashMap<>();
+
+    /** Identity of the request, held weakly, so the map neither confuses two requests nor keeps one alive. */
+    private static final class WeakIdentityKey extends java.lang.ref.WeakReference<Object> {
+        private final int hash;
+
+        WeakIdentityKey(Object referent) {
+            super(referent);
+            hash = System.identityHashCode(referent);
+        }
+
+        @Override public int hashCode() { return hash; }
+
+        @Override public boolean equals(Object other) {
+            if (this == other) return true;
+            if (!(other instanceof WeakIdentityKey)) return false;
+            Object mine = get();
+            return mine != null && mine == ((WeakIdentityKey) other).get();
+        }
+    }
+
+    /** The readback context is worth a readback for one window; after it, a profile fetch is somebody else's. */
+    private static volatile long activeReadbackSetAtMs;
     private static volatile boolean loggedSettingsSnapshot;
     private static volatile long followReadbackWindowUntil;
     private static volatile FollowRequestContext activeReadbackContext;
@@ -306,6 +334,7 @@ public final class FollowDiagnostics {
                 + " class=" + (throwable == null ? "null" : throwable.getClass().getName())
                 + " message=" + safeShort(throwable == null ? null : throwable.getMessage())
                 + " outcome=network_error");
+        forgetRequest(request);
     }
 
     public static void logParsedResponse(Object request, Object response) {
@@ -321,6 +350,9 @@ public final class FollowDiagnostics {
             FollowRequestContext context = logging
                     ? contextForRequest(request, finalPath)
                     : new FollowRequestContext(0, finalPath);
+            // The parsed response is the end of the request's life whether or not it is logged;
+            // the context in hand is a handful of short strings and the request graph goes.
+            forgetRequest(request);
             try {
                 readServerVerdict(response, context);
                 warnAboutRefusedFollowOnce(context);
@@ -330,7 +362,7 @@ public final class FollowDiagnostics {
 
             if (!logging) return;
             followReadbackWindowUntil = System.currentTimeMillis() + READBACK_WINDOW_MS;
-            activeReadbackContext = context;
+            setActiveReadback(context);
 
             Logger.printDebug(() -> "[Morphe TikTok FollowProbe] parsed response"
                     + " " + context.summary()
@@ -343,7 +375,7 @@ public final class FollowDiagnostics {
         String readbackPath = followReadbackPath(request);
         if (readbackPath == null || !reserveNetworkEvent()) return;
         final String finalPath = readbackPath;
-        FollowRequestContext context = activeReadbackContext;
+        FollowRequestContext context = activeReadbackIfFresh();
 
         Logger.printDebug(() -> "[Morphe TikTok FollowProbe] readback response"
                 + " afterId=" + (context == null ? "unknown" : context.id)
@@ -364,6 +396,7 @@ public final class FollowDiagnostics {
                 + " class=" + (throwable == null ? "null" : throwable.getClass().getName())
                 + " message=" + safeShort(throwable == null ? null : throwable.getMessage())
                 + " outcome=parse_error");
+        forgetRequest(request);
     }
 
     private static boolean shouldLog() {
@@ -418,22 +451,61 @@ public final class FollowDiagnostics {
 
     private static FollowRequestContext rememberNetworkContext(Object request, String path) {
         FollowRequestContext context = contextForRequest(request, path);
-        activeReadbackContext = context;
+        setActiveReadback(context);
         return context;
     }
 
     private static FollowRequestContext contextForRequest(Object request, String path) {
         synchronized (networkContextLock) {
-            FollowRequestContext context = request == null ? null : networkContexts.get(request);
+            FollowRequestContext context = request == null ? null : networkContexts.get(new WeakIdentityKey(request));
             if (context == null) {
                 context = new FollowRequestContext(callId.incrementAndGet(), path);
                 context.copyMissingFrom(recentDirectContextIfFresh());
                 if (request != null) {
-                    networkContexts.put(request, context);
+                    purgeCollectedRequestsLocked();
+                    networkContexts.put(new WeakIdentityKey(request), context);
                 }
             }
             return context;
         }
+    }
+
+    /** The request's lifecycle ended: nothing else will ask for its context by the request. */
+    private static void forgetRequest(Object request) {
+        if (request == null) return;
+        synchronized (networkContextLock) {
+            networkContexts.remove(new WeakIdentityKey(request));
+        }
+    }
+
+    /** Keys whose request has been collected can never be looked up again, so they go on the next insert. */
+    private static void purgeCollectedRequestsLocked() {
+        java.util.Iterator<WeakIdentityKey> keys = networkContexts.keySet().iterator();
+        while (keys.hasNext()) {
+            if (keys.next().get() == null) keys.remove();
+        }
+    }
+
+    /** How many requests are held, for the test that proves completed ones are not. */
+    static int heldRequestsForTests() {
+        synchronized (networkContextLock) {
+            return networkContexts.size();
+        }
+    }
+
+    private static void setActiveReadback(FollowRequestContext context) {
+        activeReadbackContext = context;
+        activeReadbackSetAtMs = System.currentTimeMillis();
+    }
+
+    private static FollowRequestContext activeReadbackIfFresh() {
+        FollowRequestContext context = activeReadbackContext;
+        if (context == null) return null;
+        if (System.currentTimeMillis() - activeReadbackSetAtMs > READBACK_WINDOW_MS) {
+            activeReadbackContext = null;
+            return null;
+        }
+        return context;
     }
 
     private static void rememberDirectContext(
@@ -454,7 +526,7 @@ public final class FollowDiagnostics {
         context.source = safeShort(source);
         context.enterFrom = safeShort(enterFrom);
         recentDirectContext = context;
-        activeReadbackContext = context;
+        setActiveReadback(context);
     }
 
     private static FollowRequestContext recentDirectContextIfFresh() {

@@ -39,6 +39,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.SwitchPayload
 import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import java.util.EnumSet
@@ -57,8 +58,8 @@ import java.util.EnumSet
  *
  * @throws IllegalArgumentException If no free registers can be found at the given index.
  *                                  This includes unusual method indexes that read from every register
- *                                  before any registers are wrote to, or if a switch statement is
- *                                  encountered before any free registers are found.
+ *                                  before any registers are wrote to, or if no register survives
+ *                                  every arm of a switch or branch after it.
  */
 fun Method.getFreeRegisterProvider(index: Int, numberOfFreeRegistersNeeded: Int, registersToExclude: List<Int>) =
     FreeRegisterProvider(this, index, numberOfFreeRegistersNeeded, registersToExclude)
@@ -76,8 +77,8 @@ fun Method.getFreeRegisterProvider(index: Int, numberOfFreeRegistersNeeded: Int,
  *
  * @throws IllegalArgumentException If no free registers can be found at the given index.
  *                                  This includes unusual method indexes that read from every register
- *                                  before any registers are wrote to, or if a switch statement is
- *                                  encountered before any free registers are found.
+ *                                  before any registers are wrote to, or if no register survives
+ *                                  every arm of a switch or branch after it.
  */
 fun Method.getFreeRegisterProvider(index: Int, numberOfFreeRegistersNeeded: Int, vararg registersToExclude: Int) =
     FreeRegisterProvider(this, index, numberOfFreeRegistersNeeded, *registersToExclude)
@@ -243,7 +244,7 @@ class FreeRegisterProvider internal constructor(
  * is encountered, then the lowest unused register is returned.
  *
  * This method should work for all situations including inserting at a branch statement,
- * but this may not work if the index is at or just before a switch statement or if the branch
+ * but this may not work if the index is at or just before a branch, or if the branch
  * paths have no common free registers.
  *
  * If you need multiple free registers, then instead use [Method.getFreeRegisterProvider].
@@ -254,8 +255,8 @@ class FreeRegisterProvider internal constructor(
  * @return The lowest register number (usually a 4-bit register) that is free at the given index.
  * @throws IllegalArgumentException If no free registers can be found at the given index.
  *                                  This includes unusual method indexes that read from every register
- *                                  before any registers are wrote to, or if a switch statement is
- *                                  encountered before any free registers are found, or if the index is
+ *                                  before any registers are wrote to, or if no register survives
+ *                                  every arm of a switch or branch after it, or if the index is
  *                                  at/before a branch statement and the method has an unusually high
  *                                  amount of branching where no common free registers exist in both branch paths.
  */
@@ -274,7 +275,7 @@ fun Method.findFreeRegister(
  * is encountered, then the lowest unused register is returned.
  *
  * This method should work for all situations including inserting at a branch statement,
- * but this may not work if the index is at or just before a switch statement or if the branch
+ * but this may not work if the index is at or just before a branch, or if the branch
  * paths have no common free registers.
  *
  * If you need multiple free registers, then instead use [Method.getFreeRegisterProvider].
@@ -285,8 +286,8 @@ fun Method.findFreeRegister(
  * @return The lowest register number (usually a 4-bit register) that is free at the given index.
  * @throws IllegalArgumentException If no free registers can be found at the given index.
  *                                  This includes unusual method indexes that read from every register
- *                                  before any registers are wrote to, or if a switch statement is
- *                                  encountered before any free registers are found, or if the index is
+ *                                  before any registers are wrote to, or if no register survives
+ *                                  every arm of a switch or branch after it, or if the index is
  *                                  at/before a branch statement and the method has an unusually high
  *                                  amount of branching where no common free registers exist in both branch paths.
  */
@@ -316,7 +317,7 @@ private fun Method.findFreeRegisters(
     )
 
     if (freeRegisters.isEmpty()) {
-        // Should only happen if a switch statement is encountered before enough free registers are found.
+        // Should only happen when nothing is free down every path out of the start index.
         throw IllegalArgumentException("Could not find a free register from startIndex: " +
                 "$startIndex excluding: $registersToExclude")
     }
@@ -436,9 +437,42 @@ private fun Method.findFreeRegistersInternal(
         }
 
         if (instruction.isSwitchInstruction) {
-            // For now, do not handle the complexity of a switch statement and handle as a leaf node.
             if (logFreeRegisterSearch) println(" encountered switch index: $i opcode: " + instruction.opcode)
-            return remember(freeRegisters.toList())
+
+            // A switch used to end the search here, and everything after it was given up on.
+            // That is safe, but it hands back only what was proved free before the switch, and
+            // when that is nothing the caller is told the method cannot be patched at all. It is
+            // the same shape as a conditional branch with more than two arms: a register is free
+            // at the switch when it is free down every arm and down the fall-through, so the
+            // answer is the intersection of all of them. R8 turns a chain of string comparisons
+            // into one of these, so a method that is an if-else chain in one TikTok build is a
+            // packed switch in the next and nothing about the patch has changed.
+            val paths = switchPathIndices(instruction, i, offsetArray)
+            if (paths == null) {
+                // A payload this could not read. Fall back to the old leaf-node answer rather
+                // than guess at control flow, so an unreadable switch is no worse than before.
+                if (logFreeRegisterSearch) println(" switch payload unreadable, treating as a leaf")
+                return remember(freeRegisters.toList())
+            }
+
+            val usedRegistersList = usedRegisters.toList()
+            var shared: Set<Int>? = null
+            for (path in paths) {
+                val pathFreeRegisters = findFreeRegistersInternal(
+                    startIndex = path,
+                    numberOfFreeRegistersNeeded = numberOfFreeRegistersNeeded,
+                    currentDepth = currentDepth + 1,
+                    foundFreeRegistersAtIndex = foundFreeRegistersAtIndex,
+                    registersToExclude = usedRegistersList,
+                    offsetArray = offsetArray
+                )
+                if (logFreeRegisterSearch) println(" switch arm $path registers: $pathFreeRegisters")
+                shared = shared?.intersect(pathFreeRegisters.toSet()) ?: pathFreeRegisters.toSet()
+                // Nothing survives every arm, so no later arm can put anything back.
+                if (shared.isEmpty()) break
+            }
+
+            return remember((freeRegisters + (shared ?: emptySet())).toList())
         }
 
         if (instruction.isUnconditionalBranchInstruction) {
@@ -515,6 +549,57 @@ private fun Method.buildInstructionOffsetArray(): IntArray {
 }
 
 /**
+ * Every instruction index control flow can reach from a packed or sparse switch: one per arm of
+ * its payload, plus the fall-through that runs when no key matched.
+ *
+ * <p>Both halves take resolving. The payload is not in [offsetArray], because nothing branches
+ * to a payload except the switch that owns it, so its offset is found by walking code units. The
+ * arm offsets inside the payload are relative to the switch instruction, not to the payload.
+ *
+ * @return The reachable indices, or null if the payload could not be read as one.
+ */
+private fun Method.switchPathIndices(
+    instruction: Instruction,
+    index: Int,
+    offsetArray: IntArray
+): List<Int>? {
+    if (instruction !is OffsetInstruction) return null
+    val switchOffset = offsetArray[index]
+    if (switchOffset < 0) return null
+
+    val payload = instructionAtCodeOffset(switchOffset + instruction.codeOffset) as? SwitchPayload
+        ?: return null
+
+    val paths = LinkedHashSet<Int>()
+    for (element in payload.switchElements) {
+        paths.add(findInstructionIndexByOffset(switchOffset + element.offset, offsetArray))
+    }
+    // The fall-through is a path like any other, and it is the one every key that matched
+    // nothing takes. Leaving it out would call a register free that the default arm writes to.
+    val fallThrough = index + 1
+    if (fallThrough < instructions.count()) paths.add(fallThrough)
+
+    return paths.toList()
+}
+
+/**
+ * The instruction at a code offset, payloads included.
+ *
+ * <p>[findInstructionIndexByOffset] deliberately cannot answer this: its array leaves payloads at
+ * -1 so an ordinary branch can never resolve into one. A switch is the one thing that does.
+ */
+private fun Method.instructionAtCodeOffset(codeOffset: Int): Instruction? {
+    var offset = 0
+    for (i in 0 until instructions.count()) {
+        val instruction = getInstruction(i)
+        if (offset == codeOffset) return instruction
+        if (offset > codeOffset) return null
+        offset += instruction.codeUnits
+    }
+    return null
+}
+
+/**
  * Returns an instruction index for a given branch instruction.
  *
  * @param instruction The branch instruction
@@ -542,9 +627,8 @@ private fun Method.getBranchTargetInstructionIndex(
             // Find the instruction index at this offset.
             findInstructionIndexByOffset(targetOffset, offsetArray)
         }
-        // These need special handling - they jump to payloads
-        // which then have their own target lists.
-        // PACKED_SWITCH, SPARSE_SWITCH -> // TODO?
+        // A switch jumps to a payload that carries its own target list, which is more than one
+        // answer and does not fit here. The switch handler resolves those itself.
         else -> throw IllegalStateException("Unsupported opcode: ${instruction.opcode}")
     }
 }

@@ -1,7 +1,7 @@
 ![Hushfeed. Take back your feed with focused controls for filtering, gestures, playback, downloads and privacy.](assets/readme-hero.png)
 
 <p align="center">
-  <a href="CHANGELOG.md"><img alt="version" src="https://img.shields.io/badge/version-0.35.0-6f42c1.svg" /></a>
+  <a href="CHANGELOG.md"><img alt="version" src="https://img.shields.io/badge/version-0.39.0-6f42c1.svg" /></a>
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-GPLv3-blue.svg" /></a>
   <a href="https://www.android.com/"><img alt="platform" src="https://img.shields.io/badge/platform-Android-3ddc84.svg" /></a>
   <a href="https://github.com/MorpheApp/morphe-manager"><img alt="Morphe" src="https://img.shields.io/badge/works%20with-Morphe-00b894.svg" /></a>
@@ -22,7 +22,7 @@
 
 Hushfeed is a [Morphe](https://github.com/MorpheApp/morphe-manager) patch bundle for people who want TikTok to behave differently. It can cut feed clutter, guard risky taps, improve downloads and expose controls TikTok leaves buried or unavailable. Every selected patch is configured from one native settings screen inside the app.
 
-**[Add Hushfeed to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2Fhushfeed)** | [Download the latest bundle](https://github.com/SysAdminDoc/hushfeed/releases/latest) | [Tour the settings](#settings-tour) | [Browse all 81 patches](#patches)
+**[Add Hushfeed to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2Fhushfeed)** | [Download the latest bundle](https://github.com/SysAdminDoc/hushfeed/releases/latest) | [Tour the settings](#settings-tour) | [Browse all 90 patches](#patches)
 
 > [!IMPORTANT]
 > Hushfeed is very active in development, features and bugs are being actively pursued and improved! Hushfeed targets the global TikTok package, `com.zhiliaoapp.musically`, version [46.2.3](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-46-2-3-release/tiktok-46-2-3-android-apk-download/). Use that exact APK when patching. See [Supported target](#supported-target) for the verified build details.
@@ -44,7 +44,7 @@ The block, local hide, sound and Not interested controls, rendered in a local UI
 
 1. Get the TikTok 46.2.3 APK. Google Play only offers the newest build, so take it from [APKMirror](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-46-2-3-release/tiktok-46-2-3-android-apk-download/).
 2. Use Morphe Manager 1.30.0 or newer. Manager refuses a bundle built against a patcher newer than its own, and this one is built against patcher 1.13.0, which Manager 1.30.0 was the first to ship. On anything older the bundle simply will not load.
-3. Add Hushfeed as a source in Morphe Manager. The quickest way is this link on the phone: [Add Hushfeed to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2Fhushfeed). Some in-app browsers block Android from handing a web link to another app. If **Open in Morphe** leaves you in the browser, open Morphe Manager, tap **Sources**, tap **+**, and paste `https://github.com/SysAdminDoc/hushfeed`. You can also download `patches-0.35.0.mpp` from the [latest release](https://github.com/SysAdminDoc/hushfeed/releases/latest) and load it as a local bundle.
+3. Add Hushfeed as a source in Morphe Manager. The quickest way is this link on the phone: [Add Hushfeed to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2Fhushfeed). Some in-app browsers block Android from handing a web link to another app. If **Open in Morphe** leaves you in the browser, open Morphe Manager, tap **Sources**, tap **+**, and paste `https://github.com/SysAdminDoc/hushfeed`. You can also download `patches-0.39.0.mpp` from the [latest release](https://github.com/SysAdminDoc/hushfeed/releases/latest) and load it as a local bundle.
 4. Pick the patches you want and patch the APK. Keep the manager's existing signing key so TikTok stays logged in across updates. Every patch here fits the manager's 640 MB memory default except AMOLED dark theme, which rewrites TikTok's color resources and needs the limit raised to 768 MB. That 640 is the manager's default and not a measured minimum: the whole set apart from AMOLED fits in 576 MB. If patching stops with an out of memory error, that setting is the one to raise. A run that sits at 24 or 25 percent and never moves is the same problem wearing a different face: cancel it, set the limit to 768 MB and start again, and if that still stalls try 512 MB, which gives the patcher less to hold at once.
 5. Install the patched APK. From 2026-09-30, phones in Brazil, Indonesia, Singapore and Thailand ask for more before they will install an app from a developer Google has not verified. The flow is the same every time: turn on the option in Developer options, confirm the device lock, restart the phone, then wait 24 hours before the install goes through. After that it stays open for 7 days, or indefinitely if you chose that. This is not a one-off. Every Hushfeed release is an update, and an update goes through it again once the window closes. `adb install` from a computer skips the whole thing.
 6. Open TikTok, go to Settings and privacy, and tap Hushfeed. Every patch you selected has its switches there.
@@ -57,87 +57,96 @@ Selected patches activate when TikTok starts. The Settings patch adds the entry 
 
 | Patch | Description |
 |---|---|
-| `Automatic video advance` | Keeps TikTok's automatic advance enabled while preserving its pause, dialog and gesture checks, and shows TikTok's own Auto scroll action in the video panel for accounts outside its rollout. |
-| `Foldable split comment view` | Shows comments beside the video on windows wider than a configurable threshold. Off by default. |
-| `Subtitle tools` | Saves subtitle files beside downloaded videos and adds caption size, background, and clear-display options. |
-| `Playback quality` | Selects the lowest, highest or a target video quality for playback, adaptive streams included. A second choice caps quality on mobile data and only ever lowers it. Download quality has its own setting. |
 | `Advanced downloads` | Adds download quality choices, saves Photo Mode images directly from their source URLs, keeps a video's sound as its own audio file, and saves a profile picture or a story from a long press. |
 | `Allow Duet and Stitch` | Ignores the creator's Duet and Stitch setting so the entries appear for videos that closed them. Everything else the app checks still applies: a photo post, a private video or one with music it may not reuse is still refused, and whether the upload is accepted is the server's decision, not the app's. |
-| `Keep the screen's refresh rate` | Stops TikTok asking the screen to run slower than it can, which it does by asking for the frame rate of the video it is playing. On a 90 or 120 Hz phone that ask takes the whole app down to that rate, scrolling included. A request that is not slower than the screen is left alone. |
-| `Hide the launcher shortcuts` | Empties the menu that opens on pressing and holding TikTok's icon on the home screen. The entries are built while the app runs rather than declared in it, and TikTok only rewrites them when it notices a difference, so this takes away what is already published and answers the handover that would publish more. Turning it off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut pinned to a home screen is left alone. |
-| `Fit the video to the screen` | Puts the whole of a vertical video on screen instead of cropping it to the window. On a 9:16 phone nothing changes, because the video already fills it. On a Fold opened up, a squarer phone or a split view the sides or the ends stop being cut off. |
-| `Notification controls` | Adds a switch for the notification saying somebody new followed you, and one for message streaks, neither of which TikTok lets you turn off. The follower switch drops the notification before Android is asked to post it, so nothing else in the drawer is affected. |
-| `Long-press controls` | Lets a long press on a video keep TikTok's own action, do nothing, open the video's comments, save the original sound, or copy the link to the video or its sound, and can turn a press on the left or right third of the screen into a jump back or forward. Brings Double-tap controls with it, which supplies the comment control. |
-| `Double-tap controls` | Lets double taps do nothing or open the current video's comments. |
-| `Confirm feed interactions` | Adds optional second-tap protection to the feed Follow button and like heart. A red ring marks the armed button. |
-| `AMOLED dark theme` | Replaces TikTok's dark background palette with black or a chosen color. The light theme keeps its colors. Choose this patch to enable it. It is the one patch that rewrites resources, so patching with it on needs the memory limit raised to 768 MB. |
-| `Core Asset De-bloat` | Empties TikTok's bundled C2PA native libraries and Microblink payment-card OCR assets. Content credentials and card scanning may stop. Choose this patch to enable it. |
-| `Instant Launch & Splash Blocker` | Stops TikTok's splash-ad preload tasks and returns false from its reviewed splash and TopView gates. Other startup behavior is left in place. Choose this patch to enable it. |
-| `Language Pack Purger` | Empties unselected TikTok language bundles while always keeping English. Selected language codes are checked before any file changes. Choose this patch to enable it. |
-| `Live Stream Suite Optimizer` | Empties TikTok's link-mic and LIVE match or minigame assets, then skips its gift-effect widget setup. Co-hosting, games and animated gifts may stop. Choose this patch to enable it. |
-| `Network & Background Traffic Governor` | Turns off TikTok's buffer-preload gate and skips its push initialization task. Videos may start buffering later, and TikTok push notifications may stop. Choose this patch to enable it. |
-| `Runtime Memory Governor` | Makes TikTok's reviewed Fresco animated-frame cache lookups return no cached frame. This can increase decoding work or change animation playback. Choose this patch to enable it. |
-| `Studio & Creation De-bloat` | Empties TikTok's reviewed editor, camera-effect and face-model assets. Recording, editing, effects and creator tools may stop working. Choose this patch to enable it. |
-| `Update Prompt Suppressor` | Skips TikTok's background and boot-finished device-ID update-check tasks. This may suppress some in-app update checks. Play Store updates are unaffected. Choose this patch to enable it. |
+| `Allow screenshots and Circle to Search` | Removes secure window flags and disables the Circle to Search block. Off by default; restart after changing. |
 | `Always show publish date` | Always shows the publish date in video author information. |
-| `Not interested button` | Adds a movable button that tells TikTok you aren't interested in the current video. It hides while comments are open. Off by default. |
-| `Block author button` | Adds one-tap controls for blocking the uploader, hiding the uploader locally and blocking the current sound. The local-hide and sound controls have separate switches. Long press any visible control to move it, and all of them hide while comments are open. |
-| `Comment tools` | Hides comments that contain chosen words or come from chosen accounts, turns the thumbs down on each comment into a block button, hides comment media and polls, and adds a box above the comments that narrows them by what they say or who said it. |
+| `AMOLED dark theme` | Replaces TikTok's dark background palette with black or a chosen color. The light theme keeps its colors. It is the one patch that rewrites resources, so patching with it on needs the memory limit raised to 768 MB. |
+| `Automatic video advance` | Keeps TikTok's automatic advance enabled while preserving its pause, dialog and gesture checks, and shows TikTok's own Auto scroll action in the video panel for accounts outside its rollout. |
+| `Block author button` | Adds one-tap controls for blocking the creator, hiding them locally and blocking the current sound. The local-hide and sound controls have separate switches. Long press any visible control to move it, and all of them hide while comments are open. |
+| `Block contact list access` | Stops TikTok from reading your phone contacts. Find Friends and People you may know lose access to your contact list. |
+| `Block installed app scanning` | Stops TikTok from reading the list of apps installed on your phone. TikTok uses this for device fingerprinting and ad targeting. |
+| `Block P2P video relay` | Strips TikTok's peer-to-peer CDN libraries so your phone is not used as a relay node for other people's video traffic. Saves battery and mobile data. |
+| `Camera and microphone indicator` | Shows a small colored dot when TikTok accesses the camera or microphone. Green for camera, orange for microphone. Stays visible until the access ends. |
+| `Comment publish diagnostics` | Says in the diagnostic report whether a comment send reached TikTok's publish code, what it had in hand, and whether it returned early or handed the comment to the request. A comment that never posts leaves no other trace. |
+| `Comment sort controls` | Shows TikTok's own comment sort sheet on every post, with its hot, newest, media and creator options, instead of the cut-down row an account outside the rollout is given. |
+| `Comment tools` | Hides comments that contain chosen words or come from chosen accounts, turns the thumbs down on each comment into a block button that shows the block symbol, makes a web address in a comment tappable, hides comment media and polls, and adds a box above the comments that narrows them by what they say or who said it. |
+| `Confirm feed interactions` | Adds optional second-tap protection to the feed Follow button and like heart. A red ring marks the armed button. |
 | `Copy comments without username` | Copies only the comment text without including the creator's username. |
 | `Custom offline videos limit` | Adds a custom entry to TikTok's offline videos menu with a configurable limit from 1 to 1000 videos. |
+| `Device privacy guard` | Blocks TikTok from reading your clipboard contents and scanning devices on your local network. Clipboard writes (copying links you asked for) are not affected. |
+| `Diagnostic tools` | Adds diagnostic logging, filtered reports and local TikTok crash capture. The switches are under Diagnostics in Hushfeed settings. |
 | `Disable login requirement` | Removes TikTok's mandatory login gate from supported flows. |
+| `Disable screen capture detection` | Prevents TikTok from reacting to screenshots and screen recordings. |
+| `Disable telemetry` | Adds an App behavior toggle that stops ByteDance AppLog analytics, AppsFlyer attribution, explicit Firebase screen reports and TikTok's Npth or MonitorCrash startup reporting. TikTok's own diagnostics go quiet with them. Off by default. |
 | `Disable the long press quick share` | Keeps long-pressing Share from opening TikTok's quick-share interaction. |
 | `Disable the long press repost` | Keeps holding Like from opening TikTok's repost action. |
-| `Disable screen capture detection` | Prevents TikTok from reacting to screenshots and screen recordings. |
-| `Allow screenshots and Circle to Search` | Removes secure window flags and disables the Circle to Search block. Off by default; restart after changing. |
-| `Diagnostic tools` | Adds diagnostic logging, filtered reports and local TikTok crash capture. The switches are under Diagnostics in Hushfeed settings. |
+| `Double-tap controls` | Lets double taps do nothing or open the current video's comments. |
 | `Downloads` | Adds watermark-free downloads, comment sticker saving, configurable folders, and filename templates. It ignores the flag TikTok sets when a creator turns downloading off, so those videos save too. Network fetches accept public HTTPS addresses and follow at most five checked redirects. |
-| `Show LIVE search` | Shows TikTok's search entry in the Live drawer where supported. |
-| `Use non-personalized search` | Uses TikTok's non-personalized search mode instead of its saved account choice. |
-| `Hide search suggestions` | Hides the suggested searches TikTok offers on the search page before you type, and stops the page asking for them. Your own search history is left alone. |
+| `Drop the animated image cache` | Makes TikTok's reviewed Fresco animated-frame cache lookups return no cached frame. This can increase decoding work or change animation playback. |
+| `Enable voice comments` | Turns on TikTok's own voice comment recording and publishing entry points for accounts that do not have them. |
+| `Expand activity list` | Adds an option to show the full Activity and New followers lists instead of collapsing them behind a View all button. |
 | `Feature Gate Lab` | Adds a menu for viewing and overriding supported TikTok feature flags and configuration values. |
 | `Feature Gate Recorder` | Records feature gate reads while you use TikTok and compares them with their previous values. |
-| `Follow diagnostics` | Reads what the server said about a follow. A follow TikTok turns down comes back looking like a success, so this reports the refusal and its reason once per session and, with diagnostic logging on, writes the whole exchange to the report. |
-| `Comment publish diagnostics` | Says in the diagnostic report whether a comment send reached TikTok's publish code, what it had in hand, and whether it returned early or handed the comment to the request. A comment that never posts leaves no other trace. |
-| `Feed filter` | Hides feed ads, including videos with creator commission disclosures, TikTok Shop items, livestreams, LIVE replays, stories, photo posts, paid partnerships, AI labelled videos, verified accounts, series, playlists, the playlist bar, the floating event badge and inserted cards. Videos can also be filtered by your own caption words, creator handles or patterns, sound names, length, the country they were posted from and their view, like, comment, favourite and share counts. Sponsored cards are dropped from the profile video viewer, the search grids and the Friends tab as well as the feed. |
+| `Feed filter` | Hides feed ads, including videos with creator commission disclosures, TikTok Shop items, livestreams, LIVE replays, stories, photo posts, paid partnerships, AI labeled videos, verified accounts, series, playlists, the playlist bar, the floating event badge and inserted cards. Videos can also be filtered by your own caption words, creator handles or patterns, sound names, length, the country they were posted from and their view, like, comment, favorite and share counts. Sponsored cards are dropped from the profile video viewer, the search grids and the Friends tab as well as the feed, and so are the mid-roll ads TikTok splices into a video pager after the list has loaded. The share prompt that appears after a like can also be hidden. |
 | `Feed tab navigation` | Controls which loaded top and bottom navigation tabs remain visible, blocks newly added tabs when requested, and can hide the Tako AI bubble. |
+| `Fit the video to the screen` | Puts the whole of a vertical video on screen instead of cropping it to the window. On a 9:16 phone nothing changes, because the video already fills it. On a Fold opened up, a squarer phone or a split view the sides or the ends stop being cut off. |
 | `Fix Google login` | Restores Google account sign-in after patching. |
-| `Hide already seen videos` | Keeps a local record of the videos you have watched and drops them from later feed pages. The record never leaves the device and can be cleared from settings. |
+| `Foldable split comment view` | Shows comments beside the video on windows wider than a configurable threshold. Off by default. |
+| `Follow diagnostics` | Reads what the server said about a follow. A follow TikTok turns down comes back looking like a success, so this reports the refusal and its reason once per session and, with diagnostic logging on, writes the whole exchange to the report. |
 | `Ghost mode` | Adds an option to stop TikTok reporting that you viewed a story or a profile or that you are typing. Online status is unchanged. |
-| `Hide the risk control CAPTCHA` | Hides TikTok's risk control CAPTCHA dialog, raised by its BdTuring service, which the browsing CAPTCHA patch does not cover. Answers the Hide CAPTCHA popups setting, never touches SMS or two factor verification, and never hides a check the server raised over a follow, like, comment or repost. Off by default. |
-| `Hide comment popup ads` | Stops the brand animation that plays over the comment sheet when a comment matches an advertiser's trigger word or emoji. |
-| `Comment sort controls` | Shows TikTok's own comment sort sheet on every post, with its hot, newest, media and creator options, instead of the cut-down row an account outside the rollout is given. |
-| `Enable voice comments` | Turns on TikTok's own voice comment recording and publishing entry points for accounts that do not have them. |
+| `Hide already seen videos` | Keeps a local record of the videos you have watched and drops them from later feed pages. The record never leaves the device and can be cleared from settings. |
 | `Hide CAPTCHA popups` | Adds a default-off setting to hide browsing and LIVE puzzle dialogs. Login and account verification stay visible, and so does any puzzle the server raised over a follow, like, comment or repost, because hiding one of those makes the action fail with no message. |
-| `Hide floating promotions` | Removes floating promotional badges, coin icons, and timer banners from the Home feed. |
-| `Hide video overlays` | Hides the visual search prompt TikTok lays over videos, the Live entrance in the top left corner, caption and music text, selected action buttons or their counts in the right column, survey cards and the status bar. |
-| `Share sheet tools` | Asks twice before a video is sent to a friend from the share sheet. The check follows the account or conversation instead of the visible name and covers accessibility actions and keyboard input. It can also hide chosen people, share options or the whole Send to row. |
-| `Hide feed LIVE button` | Adds an option to hide the LIVE button at the top left of video feeds. Shares its switch with the Live entrance option of Hide video overlays, and stops the button before it is built rather than hiding it once it is on screen. |
+| `Hide comment popup ads` | Stops the brand animation that plays over the comment sheet when a comment matches an advertiser's trigger word or emoji. |
 | `Hide feed follow button` | Adds an option to hide the + follow button below creator avatars in video feeds. |
-| `Hide feed save button` | Adds an option to hide the save/favourites button from video feeds. |
-| `Keep the Favorites tab` | Keeps the Favorites tab on your profile when TikTok's server puts the account into an experiment that empties it. Two people saw that after patching: the tab was there and the saved videos were not. |
+| `Hide feed LIVE button` | Adds an option to hide the LIVE button at the top left of video feeds. Shares its switch with the Live entrance option of Hide video overlays, and stops the button before it is built rather than hiding it once it is on screen. |
+| `Hide feed save button` | Adds an option to hide the save button from video feeds. |
 | `Hide feed search button` | Adds an option to hide the search button at the top right of video feeds. |
-| `Disable telemetry` | Adds an App behavior toggle that stops ByteDance AppLog analytics, AppsFlyer attribution, explicit Firebase screen reports and TikTok's Npth or MonitorCrash startup reporting. TikTok's own diagnostics go quiet with them. Off by default. |
-| `Hide suggested accounts` | Stops the suggested accounts list from being built on the Activity, New followers and Inbox pages, and collapses every other People you may like card: the profile header, the Friends tab and the feed. Shares its switch with Hide inbox items. |
-| `Hide inbox stories` | Hides the stories tray at the top of the Inbox and restores it immediately when the switch is turned off. Shares its switch with Hide inbox items. |
-| `Expand activity list` | Adds an option to show the full Activity and New followers lists instead of collapsing them behind a View all button. |
+| `Hide floating promotions` | Removes floating promotional badges, coin icons, and timer banners from the Home feed. |
 | `Hide inbox items` | Adds a switch for each row and header control on the Inbox tab, so message requests, TikTok Tako, TikTok Shop, the stories tray and the rest can be hidden individually. |
+| `Hide inbox stories` | Hides the stories tray at the top of the Inbox and restores it immediately when the switch is turned off. Shares its switch with Hide inbox items. |
 | `Hide quick comment reactions` | Hides TikTok's exposed quick emoji row in supported comment inputs. |
+| `Hide search suggestions` | Hides the suggested searches TikTok offers on the search page before you type, and stops the page asking for them. Your own search history is left alone. |
+| `Hide suggested accounts` | Stops the suggested accounts list from being built on the Activity, New followers and Inbox pages, and collapses every other People you may like card: the profile header, the Friends tab and the feed. Shares its switch with Hide inbox items. |
+| `Hide the launcher shortcuts` | Empties the menu that opens on pressing and holding TikTok's icon on the home screen. The entries are built while the app runs rather than declared in it, and TikTok only rewrites them when it notices a difference, so this takes away what is already published and answers the handover that would publish more. Turning it off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut pinned to a home screen is left alone. |
+| `Hide the risk control CAPTCHA` | Hides TikTok's risk control CAPTCHA dialog, raised by its BdTuring service, which the browsing CAPTCHA patch does not cover. Answers the Hide CAPTCHA popups setting, never touches SMS or two factor verification, and never hides a check the server raised over a follow, like, comment or repost. Off by default. |
+| `Hide video overlays` | Hides the visual search prompt TikTok lays over videos, the Live entrance in the top left corner, caption and music text, selected action buttons or their counts in the right column, survey cards and the status bar. |
 | `Hold-and-slide 2x lock` | Enables TikTok's native hold, slide down, and release gesture to lock 2x speed. |
+| `In-app browser privacy guard` | Stops TikTok from injecting JavaScript tracking interfaces into the in-app browser's WebView. Links redirected to the system browser by Open external links directly are not affected. |
+| `Keep the Favorites tab` | Keeps the Favorites tab on your profile when TikTok's server puts the account into an experiment that empties it. Two people saw that after patching: the tab was there and the saved videos were not. |
+| `Keep the screen's refresh rate` | Stops TikTok asking the screen to run slower than it can, which it does by asking for the frame rate of the video it is playing. On a 90 or 120 Hz phone that ask takes the whole app down to that rate, scrolling included. A request that is not slower than the screen is left alone. |
+| `Limit background traffic` | Turns off TikTok's buffer-preload gate and skips its push initialization task. Videos may start buffering later, and TikTok push notifications may stop. |
+| `Location access governor` | Blocks TikTok from reading your real GPS location. Location requests return null. Goes beyond the SIM and region spoof, which changes the locale and timezone but not the coordinates. |
+| `Long-press controls` | Lets a long press on a video keep TikTok's own action, do nothing, open the video's comments, save the original sound, or copy the link to the video or its sound, and can turn a press on the left or right third of the screen into a jump back or forward. Brings Double-tap controls with it, which supplies the comment control. |
+| `Not interested button` | Adds a movable button that tells TikTok you aren't interested in the current video. It hides while comments are open. Off by default. |
+| `Notification controls` | Adds a switch for the notification saying somebody new followed you, and one for message streaks, neither of which TikTok lets you turn off. The follower switch drops the notification before Android is asked to post it, so nothing else in the drawer is affected. |
 | `Open external links directly` | Opens profile and story website links in the system browser instead of TikTok's in-app browser. |
+| `Playback quality` | Selects the lowest, highest or a target video quality for playback, adaptive streams included. A second choice caps quality on mobile data and only ever lowers it. Download quality has its own setting. |
 | `Playback speed` | Remembers playback speed or applies a default to each new video, with custom menu choices up to 3x. |
-| `Remember clear display` | Remembers clear display between videos, or enters it automatically after a chosen delay. |
-| `Resume videos after scrolling` | Continues supported videos from where playback stopped when returning after a scroll. |
 | `Region spoof` | Matches locale, timezone and native region getters to the SIM preset, with a separate experimental store-region switch. |
-| `SIM spoof` | Spoofs SIM country and operator information retrieved by TikTok, with country presets for easier setup. |
+| `Remember clear display` | Remembers clear display between videos, or enters it automatically after a chosen delay. |
+| `Remove content credential and card scanner assets` | Empties TikTok's bundled C2PA and Microblink card-scanning assets, Pitaya AI engine libraries, the live-cast dynamic feature, and runtime monitoring probes. |
+| `Remove creation tools` | Empties TikTok's reviewed editor, camera-effect and face-model assets. Recording, editing, effects and creator tools may stop working. |
+| `Remove LIVE extras` | Empties TikTok's link-mic and LIVE match or minigame assets, then skips its gift-effect widget setup. Co-hosting, games and animated gifts may stop. |
+| `Remove unused language packs` | Empties unselected TikTok language bundles while always keeping English. Selected language codes are checked before any file changes. |
+| `Resource and battery governor` | Blocks TikTok from polling device sensors for fingerprinting and throttles background buffer preloading. Reduces battery drain from motion tracking and prefetch. |
+| `Resume videos after scrolling` | Continues supported videos from where playback stopped when returning after a scroll. |
 | `Sanitize sharing links` | Removes tracking parameters from TikTok links before they are shared, and can put a host of your choosing in place of tiktok.com. |
 | `Settings` | Adds the Hushfeed settings screen to TikTok. |
-| `Skip content warnings` | Adds an option to play videos TikTok has classified without the warning overlay asking to be tapped through first. |
+| `Share sheet tools` | Asks twice before a video is sent to a friend from the share sheet. The check follows the account or conversation instead of the visible name and covers accessibility actions and keyboard input. It can also hide chosen people, share options or the whole Send to row. |
 | `Show author region` | Adds an option to show the country a video was posted from next to the creator's name on the feed. |
-| `Show the progress bar` | Shows TikTok's native video seekbar where it would normally be hidden. |
+| `Show LIVE search` | Shows TikTok's search entry in the Live drawer where supported. |
 | `Show the progress bar thumbnail` | Shows TikTok's video preview thumbnail while dragging the seekbar. |
+| `Show the progress bar` | Shows TikTok's native video seekbar where it would normally be hidden. |
+| `SIM spoof` | Spoofs SIM country and operator information retrieved by TikTok, with country presets for easier setup. |
+| `Skip content warnings` | Adds an option to play videos TikTok has classified without the warning overlay asking to be tapped through first. |
+| `Skip the splash ad` | Stops TikTok's splash-ad preload tasks and returns false from its reviewed splash and TopView gates. Other startup behavior is left in place. |
+| `Skip update checks` | Skips TikTok's background and boot-finished device-ID update-check tasks. This may suppress some in-app update checks. Play Store updates are unaffected. |
+| `Stop on-device AI profiling` | Kills the Pitaya on-device ML inference engine at startup so it cannot build a behavioral profile. The AI asset strip in the core de-bloat patch removes the native libraries; this stops the initialization code that would download replacements. |
 | `Stop video looping` | Stops videos at the end instead of replaying them. |
+| `Subtitle tools` | Saves subtitle files beside downloaded videos and adds caption size, background, and clear-display options. |
 | `Translate comments` | Adds comment translation controls using TikTok's translation system, with selectable language exclusions. |
+| `Use non-personalized search` | Uses TikTok's non-personalized search mode instead of its saved account choice. |
 
 ## Settings tour
 
@@ -321,6 +330,8 @@ The script writes two generated files, neither of them meant to be edited by han
 - Build: version code 2024602030, arm64-v8a and armeabi-v7a, nodpi, minSdk 23
 - SHA-256 of the APK every patch was verified against: `2fbe277a568e0e820cb51b09bcf0c0d788dc4fb070e66025f12d11cd3ec16936`
 
+A patched app inherits TikTok's target SDK, which is 36 today. Android 17 raises that to 37, and the changes that come with it were audited against everything Hushfeed injects: nothing it adds loads code from a file, subclasses Thread, writes a static final field through reflection or keeps audio going without a foreground service, and a connection the platform refuses is reported with its reason rather than retried. Forcing those changes on a running build still needs an Android 17 device, which is why the audit says checked in source and not checked on a phone.
+
 ### Why you have to fetch that APK yourself
 
 Google Play only ever serves the newest build it thinks your device can run, so the copy on your phone is almost certainly not 46.2.3, and there is no way to ask Play for an older one. Take the APK from [APKMirror](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-46-2-3-release/tiktok-46-2-3-android-apk-download/), which serves the exact version, then patch that file rather than the installed app.
@@ -353,16 +364,16 @@ These whole-file SHA-256 values identify the recorded 2026-09-13 runs. ZIP metad
 
 | Kveld root beside Hushfeed defaults | Patched APK SHA-256 |
 | --- | --- |
-| Core Asset De-bloat | `849334dae2ec808ec75c718e382defa93608849d299abf07288c18e7886beb15` |
+| Remove content credential and card scanner assets | `849334dae2ec808ec75c718e382defa93608849d299abf07288c18e7886beb15` |
 | Feed Ad Blocker | `54a70673b12e00519e022e3a2e541f116a62b7b1a952d34e49058833a94c6a4e` |
-| Instant Launch & Splash Blocker | `3f3cf431d3193ae21c828de5c7aa5f4fdfe3223c64eff8954138120161e95d6d` |
-| Language Pack Purger | `5495eb30a61eaf5897d491c70286ff552c2d8f5513b7c908c13e955329687fb1` |
-| Live Stream Suite Optimizer | `c9795096850a8d4ad719511372553bbaf2726714b5bf170007be30849ad5a6b2` |
-| Network & Background Traffic Governor | `cc12a76919de78573789914d8033d40cee064325e334c1db7658e17175473357` |
-| Runtime Memory Governor | `dd78aae02796a33ec510f077c91a7e2a3dc947a17b5bb9288f888679f5a1710d` |
-| Studio & Creation De-bloat | `a0696fc12f49fc900b5eafdffd55992f09d1f0958e0ff5865180979d1eaff711` |
+| Skip the splash ad | `3f3cf431d3193ae21c828de5c7aa5f4fdfe3223c64eff8954138120161e95d6d` |
+| Remove unused language packs | `5495eb30a61eaf5897d491c70286ff552c2d8f5513b7c908c13e955329687fb1` |
+| Remove LIVE extras | `c9795096850a8d4ad719511372553bbaf2726714b5bf170007be30849ad5a6b2` |
+| Limit background traffic | `cc12a76919de78573789914d8033d40cee064325e334c1db7658e17175473357` |
+| Drop the animated image cache | `dd78aae02796a33ec510f077c91a7e2a3dc947a17b5bb9288f888679f5a1710d` |
+| Remove creation tools | `a0696fc12f49fc900b5eafdffd55992f09d1f0958e0ff5865180979d1eaff711` |
 | Unified Telemetry & Tracker Silencer | `a7b92689c1b31a71dee627ea1ff0a84b273995a3f4aa02af212aa7e6c6b477a2` |
-| Update Prompt Suppressor | `56031325e755f9c4523ee4c6330d3515beb0e20a108e21d7026147d025689e9c` |
+| Skip update checks | `56031325e755f9c4523ee4c6330d3515beb0e20a108e21d7026147d025689e9c` |
 
 </details>
 

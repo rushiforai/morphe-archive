@@ -12,6 +12,7 @@ import android.preference.PreferenceScreen;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
+import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 
 @SuppressWarnings("deprecation")
@@ -38,6 +39,7 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
     @Override
     public void addPreferences(Context context) {
         if (SettingsStatus.inboxFilterEnabled) {
+            addPreference(new SectionHeadingPreference(context, "Rows"));
             addPreference(new TogglePreference(
                     context,
                     "Hide new followers",
@@ -122,6 +124,9 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
                 "Hide suggested account rows.",
                 Settings.HIDE_INBOX_SUGGESTED_ACCOUNTS
         ));
+        }
+        if (SettingsStatus.notificationControlsEnabled || SettingsStatus.expandActivityListEnabled) {
+            addPreference(new SectionHeadingPreference(context, "Controls"));
         }
         if (SettingsStatus.notificationControlsEnabled) {
             addPreference(new TogglePreference(

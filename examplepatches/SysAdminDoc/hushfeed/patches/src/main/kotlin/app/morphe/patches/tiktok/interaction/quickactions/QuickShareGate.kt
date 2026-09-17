@@ -11,6 +11,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val IM_SHARE_SERVICE =
@@ -25,21 +26,47 @@ private const val IM_SHARE_SERVICE =
  * group, where following it means decoding a packed switch that is numbered differently on each
  * build.
  *
- * <p>What names it is who asks. `IMShareService` keeps its own name and calls exactly one static
- * `()I` on every one of the three builds, and it is this gate.
+ * <p>What names it is who asks. The method that asks has one body on every retained build: read
+ * the gate, compare it to one, read it again and compare it to two, ask a second `()Z` gate, and
+ * answer. Fourteen instructions, and no other `()Z` in any of the four builds has them. It sat
+ * on `IMShareService` under that name up to 46.8.3 (`LJIIIIZZ`, then `LJIIIZ`); 46.9.3 lets R8
+ * rename the service (`LX/0EhQ;`) and the body is what is left to go on. Where the name still
+ * exists the two have to agree, so a build that kept the class and moved the question is refused
+ * rather than guessed.
  */
+private val GATE_CALLER = listOf(
+    Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.CONST_4, Opcode.CONST_4, Opcode.IF_EQ,
+    Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.CONST_4, Opcode.IF_NE,
+    Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_NEZ, Opcode.CONST_4, Opcode.RETURN,
+)
+
 internal fun BytecodePatchContext.resolveLongPressQuickShareGate(): MutableMethod {
-    val service = classDefByOrNull(IM_SHARE_SERVICE)
-        ?: throw PatchException("Long press quick share: this build has no $IM_SHARE_SERVICE.")
-    val called = service.methods
-        .flatMap { it.implementation?.instructions?.toList() ?: emptyList() }
+    val callers = mutableListOf<Method>()
+    classDefForEach { classDef ->
+        for (method in classDef.methods) {
+            if (method.returnType != "Z" || method.parameterTypes.isNotEmpty()) continue
+            val opcodes = method.implementation?.instructions?.map { it.opcode } ?: continue
+            if (opcodes == GATE_CALLER) callers += method
+        }
+    }
+    val caller = callers.singleOrNull() ?: throw PatchException(
+        "Long press quick share: expected one method with the gate caller's shape, found " +
+            "${callers.size}: " + callers.joinToString { "${it.definingClass}->${it.name}" } + ".",
+    )
+    if (classDefByOrNull(IM_SHARE_SERVICE) != null && caller.definingClass != IM_SHARE_SERVICE) {
+        throw PatchException(
+            "Long press quick share: the gate caller is ${caller.definingClass}->${caller.name} " +
+                "on a build that still has $IM_SHARE_SERVICE.",
+        )
+    }
+    val called = caller.implementation!!.instructions
         .filter { it.opcode == Opcode.INVOKE_STATIC || it.opcode == Opcode.INVOKE_STATIC_RANGE }
         .mapNotNull { it.getReference<MethodReference>() }
         .filter { it.returnType == "I" && it.parameterTypes.isEmpty() }
         .distinctBy { "${it.definingClass}->${it.name}" }
     if (called.size != 1) {
         throw PatchException(
-            "Long press quick share: expected $IM_SHARE_SERVICE to call one static ()I gate, " +
+            "Long press quick share: expected the gate caller to call one static ()I gate, " +
                 "found ${called.size}.",
         )
     }

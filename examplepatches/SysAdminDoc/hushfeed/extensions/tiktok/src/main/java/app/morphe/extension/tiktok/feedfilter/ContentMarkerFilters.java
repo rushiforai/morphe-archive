@@ -16,7 +16,15 @@ import java.util.Collection;
 /**
  * One-predicate feed filters on markers TikTok attaches to a video.
  *
- * Every accessor named here is an unobfuscated getter on {@code Aweme} in TikTok 46.2.3:
+ * <p>The rule every filter here follows: a struct hanging off the video is not a marker. TikTok
+ * attaches {@code PaidContentInfo}, {@code MixStruct} and {@code ModerationAigcInfo} to ordinary
+ * videos with their fields left at defaults, so "the struct is not null" matches almost the whole
+ * feed. Issue #5 is what that looks like from outside: with Hide series on, nine of ten videos in
+ * a For You batch were removed as SeriesFilter and the feed never loaded a thing. Each predicate
+ * reads a value inside the struct that only a real marker sets, and {@code markerSignal} is where
+ * a new one goes.
+ *
+ * <p>Every accessor named here is an unobfuscated getter on {@code Aweme} in TikTok 46.2.3:
  * {@code getAigcInfo}, {@code getModerationAigcInfo}, {@code getBrandContentAccounts},
  * {@code getCommerceVideoAuthInfo}, {@code getCommercialVideoInfo}, {@code isPaidContent},
  * {@code getMPaidContentInfo}, {@code getMixInfo} and {@code getAuthor}. Names inside the
@@ -42,7 +50,10 @@ public final class ContentMarkerFilters {
                     return true;
                 }
             }
-            return Reflect.property(item, "getModerationAigcInfo", "moderationAigcInfo") != null;
+            Object moderation = Reflect.property(item, "getModerationAigcInfo", "moderationAigcInfo");
+            // ModerationAigcInfo rides along on ordinary videos with every field at zero.
+            return nonZero(moderation, "getModerationAigcLabelType", "moderationAigcLabelType")
+                    || nonZero(moderation, "getModerationUserLabelStatus", "moderationUserLabelStatus");
         }
     }
 
@@ -89,7 +100,16 @@ public final class ContentMarkerFilters {
             if (Boolean.TRUE.equals(paid)) {
                 return true;
             }
-            return Reflect.property(item, "getMPaidContentInfo", "mPaidContentInfo") != null;
+            // PaidContentInfo is attached to ordinary recommended videos, so only a collection
+            // behind it makes this a series: an id, a name, an episode number or the intro flag.
+            Object info = Reflect.property(item, "getMPaidContentInfo", "mPaidContentInfo");
+            if (info == null) {
+                return false;
+            }
+            return nonZero(info, "getPaidCollectionId", "paidCollectionId")
+                    || Reflect.string(info, "getCollectionName", "collectionName") != null
+                    || Reflect.string(info, "getEpisodeNumber", "episodeNumber") != null
+                    || Boolean.TRUE.equals(Reflect.property(info, "isPaidCollectionIntro", "isPaidCollectionIntro"));
         }
     }
 
@@ -102,7 +122,13 @@ public final class ContentMarkerFilters {
 
         @Override
         public boolean getFiltered(Aweme item) {
-            return Reflect.property(item, "getMixInfo", "mixInfo") != null;
+            // A MixStruct with no id and no name is not a playlist the video belongs to.
+            Object mix = Reflect.property(item, "getMixInfo", "mixInfo");
+            if (mix == null) {
+                return false;
+            }
+            return Reflect.string(mix, "getMixId", "mixId") != null
+                    || Reflect.string(mix, "getMixName", "mixName") != null;
         }
     }
 
@@ -126,5 +152,18 @@ public final class ContentMarkerFilters {
             return Reflect.string(author, "getCustomVerify", "customVerify") != null
                     || Reflect.string(author, "getEnterpriseVerifyReason", "enterpriseVerifyReason") != null;
         }
+    }
+
+    /**
+     * True when the struct carries a number that a real marker sets and a default-constructed
+     * one leaves at zero. A missing struct, a missing field and a zero all read the same: no
+     * marker. This is the check that presence was standing in for.
+     */
+    static boolean nonZero(Object struct, String getter, String field) {
+        if (struct == null) {
+            return false;
+        }
+        Object value = Reflect.property(struct, getter, field);
+        return value instanceof Number && ((Number) value).longValue() != 0L;
     }
 }

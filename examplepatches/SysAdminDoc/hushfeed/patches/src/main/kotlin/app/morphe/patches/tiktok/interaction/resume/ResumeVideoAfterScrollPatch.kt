@@ -53,9 +53,7 @@ val resumeVideoAfterScrollPatch = bytecodePatch(
         val continueGate = FeedProgressContinueGateFingerprint.method
         // v0 is scratch and the branch falls back into the host's own first instruction, so
         // the register has to be a local rather than one of the parameters.
-        check(continueGate.implementation!!.registerCount - continueGate.numberOfParameterRegisters >= 1) {
-            "Resume videos after scrolling: the continue gate has no free local register."
-        }
+        continueGate.requireLocals("Resume videos after scrolling", 1)
 
         val completed = FeedPlayCompletedFingerprint.method
         // v0 and v1 are written before the host's own first instruction runs.

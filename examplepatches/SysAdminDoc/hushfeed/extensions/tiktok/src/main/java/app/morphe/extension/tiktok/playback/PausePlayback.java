@@ -205,9 +205,11 @@ public final class PausePlayback {
     static void onBackground() {
         wasAway = true;
         letGo();
+        app.morphe.extension.tiktok.wellbeing.SessionLockOverlay.onBackground();
     }
 
     static void onForeground(Activity activity) {
+        app.morphe.extension.tiktok.wellbeing.SessionLockOverlay.onForeground();
         try {
             // The sheet the reader left open is the sheet they are looking at again, but only
             // if this is the screen it belongs to. These callbacks are registered for every

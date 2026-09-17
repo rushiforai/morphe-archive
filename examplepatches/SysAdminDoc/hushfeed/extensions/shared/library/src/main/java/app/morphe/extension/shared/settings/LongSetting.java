@@ -11,8 +11,6 @@ package app.morphe.extension.shared.settings;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.Objects;
 
@@ -50,11 +48,6 @@ public class LongSetting extends Setting<Long> {
     @Override
     protected void load() {
         value = preferences.getLongString(key, defaultValue);
-    }
-
-    @Override
-    protected Long readFromJSON(JSONObject json, String importExportKey) throws JSONException {
-        return json.getLong(importExportKey);
     }
 
     @Override

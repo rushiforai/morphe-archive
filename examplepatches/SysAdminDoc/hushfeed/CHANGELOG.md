@@ -1,4 +1,84 @@
+## 0.40.0
+
+* * The share prompt that pops up after a like can be hidden. With the switch on, the bubble asking you to share a video with friends never appears. Under Interface, off by default. Upstream #22.
+
+* The four feed overlay controls are drawn by one class at one stroke weight. Sound was a Unicode note in whatever font TikTok picked, local hide was a bold ×, and not interested was a thin dash; only the block symbol was drawn. They all draw through `OverlayGlyphDrawable` now, at the same 2dp stroke and the same radius fraction, so they look like one set.
+
+* The remembered speed can be turned off. It was always on, so a reader who wanted TikTok's per-video reset had to drop the whole playback speed patch. With the new switch off, each video starts at 1x and a manual choice from the menu lasts for that video only. Under Playback, on by default.
+
+* "Enter a number. The previous value was kept." is gone: the dialog stays open for a correction now, so no value was kept. Five Playback summaries that opened with "Off by default." lead with what the feature does instead; the switch already says whether it is on.
+
+* A sticker save says where it landed, the same as every other download. It used to say "Sticker saved as MP4" and the reader had to guess the folder. It says the folder now, matching the four other savers.
+
+* The Feature Gate Lab speaks in plain terms. "Getter used", "Loaded", "All actionable", "Applies saved rules at supported getters", "Effective getter result", "TikTok cached value", "Not present in the current cache", "Getter not requested yet" and "Override saved but off" were implementation words that meant nothing to anyone who didn't write the code. The tabs say Seen, All, Overridden; the filter says Not seen; the states say TikTok read it, Not seen yet, Saved, override off; the detail page says What TikTok gets, TikTok's own value, Not read yet; and the master switch says Replace values when TikTok asks for them. The three source-name tables are two: the row badge matches its tab label, and the detail page spells it out.
+
+* Hide Tako AI now covers three additional trigger components. The slot component hooked in 0.39.0 only draws the ask bar on some accounts; on others, TikTok routes through a trigger component in the tikbot package instead, plus a "roof" variant and a detail-page trigger. A reporter's export on 0.39.0 showed the slot hook never firing while the bar was still drawn: the feed-level trigger was the one that ran. All four trigger binds now guard the same way, and the hook status family records whichever path fired.
+
+* Text rows in the settings show their value. The twenty text preferences (Country ISO, Video filename, Blocked caption words and the rest) only showed their description, so the only way to learn what was in one was to open its editor. Each one now carries a "Current:" line underneath, the same as the numeric rows, truncated to roughly sixty characters so a list of blocked words stays one line. An empty field says "Empty", and the value updates after Save, after a backup restore and after Undo.
+
+* Three things in the Feature Gate Lab. The "Unloaded" state label was painted in the disabled color, about 3.7:1 on the dark surface and 3.4:1 on white, under the 4.5:1 floor for 12sp text, on a row that is fully tappable. It uses the secondary color now, and the word carries the meaning instead. Picking a filter used to move the tab and picking a tab used to reset the filter, with nothing on screen saying why either happened; now only the one real contradiction (asking the Loaded tab for unloaded gates) is resolved, and the picker offers only the filters the current tab can answer, so nothing moves. The overflow was a platform PopupMenu in grey next to everything the bundle draws, Undo was offered whether or not there was anything to undo, and the two Resets sat side by side with nothing saying the second also clears the switch, the acknowledgement and the recordings. It is a themed list now, Undo is disabled when there is nothing to undo, and the labels say what they take away.
+
+* Save is reachable in the tab picker at a large text size. The dialog was one column: a title, a two-sentence helper, a list that is never shorter than 220dp, and its own Save and Cancel underneath. At twice the system text size on a short phone that comes to more than the screen, and the panel a custom dialog view sits in clips rather than scrolls, so the actions were what got cut and Save could not be reached at all. Save, Cancel and Select every tab are the platform's own buttons now, which it keeps on screen and shrinks the list for. The SIM preset picker had the same shape and got the same repair, so Clear preset and Cancel stay put too.
+
+* The feed filter notice is a banner over the feed instead of a dialog across it. A scroll used to be stopped dead by a modal whose only action was opening a settings page, and it was written in the code's own words: "No videos remained after Hushfeed applied your feed filters to 3 batches. Most matches: Ads (12)." It now reads "Your filters hid everything TikTok sent, 3 times in a row. Most were Ads (12)", takes no focus, announces itself once, takes itself away after six seconds, and carries a Filter settings action for anyone who wants it. The banner the block controls already used can now carry an action other than Undo, which is what made this possible.
+
+* A web address someone left in a comment can be tapped. TikTok draws comment text as plain text, so the only way to follow a link in a comment was to copy it out by hand, which is what an upstream reader asked for a year ago. The comment text view is found by what it is showing rather than by a resource id, so it is the same answer on any build, and a tap that lands anywhere other than the address still does what it always did: a comment that carries a link does not stop opening the replies. Under Comment tools, on by default, and off in one switch.
+
+* Comment search counts the comments it has seen instead of the rows on screen, and the box has an X that clears it. The count was taken from the rows the list had attached, so scrolling turned "3 results" into "5 results" into "no matching comments" while nobody was searching for anything, and the line is a live region, so a screen reader read out every one of those. A comment is counted once, when it comes into view, and scrolling past it again neither doubles it nor takes it away. The line says "so far", because TikTok pages comments and this has only seen the ones it loaded. The empty state used to tell a reader to clear the search when there was nothing on screen that could; there is now an X at the end of the box, and a screen reader gets a Clear the search action on the field rather than a second stop in the traversal.
+
+* The block control on a comment now looks like one. With Block from comments on, a tap on what was still drawn as TikTok's thumbs down blocked the account, and the only thing that said so was a tint that arrives after the block has already happened. The control draws the block symbol instead, in the same color the icon beside it uses so the row keeps its weight, and TikTok's own icon goes straight back the moment the switch is turned off.
+
+* The register search follows a switch instead of stopping at one. It used to treat a packed or sparse switch as the end of the road and answer with whatever it had proved free before reaching it, which at the top of a method is nothing, so the patch was told there were no free registers and refused to apply. R8 turns a chain of string comparisons into a switch, which means the same method can be an if-else chain in one TikTok build and a switch in the next with nothing about the patch having changed. A switch is now read the way a two-way branch already was: a register is free at the switch only when it is free down every arm and down the fall-through. A payload it cannot read still ends the search where it used to, so an odd one is no worse than before.
+
+* A feed batch that came out empty now says so in the diagnostic export. Hiding livestreams over a page of nothing but livestreams legitimately leaves zero videos, and putting one back would be the switch not working, but from the outside an empty batch and a broken feed look the same: there is nothing to swipe to until TikTok asks for another one. Upstream reported the feed freezing on exactly that swipe. A route's line now carries how many of its batches it handed back empty, so a report about a stuck feed can say whether anything was ever delivered to show.
+
+* A share hook that fails now leaves TikTok's own share sheet alone instead of taking it down. Three of them ran inside the share model's constructor with nothing catching behind them, and the link rewrite replaced a native method outright, so one bad read anywhere in there reached TikTok as a Share button that did nothing, followed by the app stopping. That is what upstream's report looked like from the outside. Each of those boundaries now catches for itself and hands back exactly what TikTok passed in, and a failure that used to be silent shows up in the diagnostic export as a named hook that threw. The confirm step keeps holding a send to a person, but it no longer eats a tap on Repost, Copy link or Save when it cannot tell what it is looking at.
+
+## 0.39.0
+
+* Ads no longer appear while paging through a creator's videos from their profile. TikTok has a mid-roll ad component that waits for the pager to load, then takes the video on screen and an ad, finds the video in the pager and puts the ad in its place. That runs after every list the feed filter reads, which is why issue #2's exports showed a profile list of 184 organic videos with nothing removed while the reporter was looking at an ad: the ad was never in the list. Remove feed ads now refuses that swap, on all four retained builds, and the diagnostic export carries a line for it, so a report can say whether the route ran and what it kept out. The video the ad would have replaced stays where it was.
+
+* Hide Tako AI now covers the "Ask" strip that appears under some videos' captions, the one offering to answer a question about the video. It is drawn by a different component from the floating Tako button the switch already hid, so a reader who turned the switch on still saw it. With the switch on, the strip is hidden before it is filled, and the diagnostic export names it either way.
+
+## 0.38.0
+
+* Hide series no longer empties the feed. TikTok hangs a paid content struct on ordinary recommended videos with its fields left at defaults, and the filter treated the struct being there as the marker, so with the switch on nine of ten videos in a batch were removed and For You never loaded anything. A video counts as a series when it says it is paid content, or when that struct carries a collection behind it: an id, a name, an episode number or the intro flag. Hide playlist videos and Hide AI generated videos had the same fault and got the same repair, so an empty mix or moderation struct is no longer a match. Reported on 0.36.0 with a diagnostic export that named the filter.
+
+## 0.37.0
+
+* The Android 17 audit covers the changes the platform will actually enforce, not just the three on the developer site. A phone running Android 16 already carries eleven compat changes gated at target 37, and three of them could have reached injected code. None does: the payload loads no code from a file, nothing in it subclasses Thread, and a handshake the platform refuses is reported rather than retried, which is the same answer Certificate Transparency gets. Each verdict is held by a test, so a change to any of the three fails the suite instead of a phone.
+
+* Every source notice that cites ReVanced's blocked GitHub repository now carries the GitLab mirror beside it, so a reader following the origin of a file reaches the file rather than a takedown page. The original line stays as the record of which revision the code came from, and a test fetches each mirror once so the next takedown is found by the suite.
+
+* The legacy settings import and export path is gone from the shared library. Nothing but its own test reached it, and it held the last English toasts the translation tables could not cover. Backups go through the settings backup, which still reads the older metra-settings format.
+
+* Inside the patch bundle, thirteen hand-rolled register checks, sixteen hand-written entry guards, two copies of the argument-register helper with different casts, two same-named string helpers with different meanings and four superclass walks are one helper each. Nothing a user sees changes; the next TikTok build that moves a shape is one fix in one file instead of a hunt.
+
+* Auto translate comments no longer walks every field of every comment cell's manager, and the manager's declared methods, three times per cell on the thread that binds the list. The manager's shape is a property of its class, so the first cell of a class pays and the rest read three fields.
+
+* Follow diagnostics lets go of a request when its response is parsed or it fails, instead of holding up to 160 request graphs, bodies and buffers included, until TikTok is killed. A request that never finishes is held weakly, and the readback context expires after its thirty-second window.
+
+## 0.36.0
+
+* The feature gate recorder's report dialog puts Save JSON last with the accent, and Copy report no longer closes the dialog, so the preview stays where it was. A stop with nothing read says so in a sentence instead of showing an empty JSON object, and offers nothing to copy or save. A fresh install's row says no recording has run yet rather than "Last recording: 0 gates", and it has no chevron while a tap starts recording on the spot. Once a report exists, the row offers Start recording or Show last report, so a report closed too soon can be opened again until the next recording.
+
+* Saved gate reports are named by date, like a settings backup, and land in Download/Hushfeed, which is the folder the toast names. They used to be an epoch number under a Morphe folder with a toast naming a Downloads folder the phone doesn't have. When the background pool cannot take the write, Save JSON now says so instead of doing nothing.
+
+* A session hold no longer keeps a once-a-second timer running while TikTok sits in the background. With Lock today's budget on, a hold ran to the reset hour, and the countdown, the layout pass and the budget checks ran every second of it for a screen nobody was looking at. The countdown stops when the app leaves the screen and comes back with it.
+
+* Settings rows keep their drawables when the list rebinds the same view. Scrolling a long page rebuilt the ripple, the card, its mask and a switch's track and thumb for every row that came into view, on every frame.
+
+* A settings backup without a schema number is read as the first schema, and a schema newer than this build reads, or one that is not a number, is refused with the schema reason rather than a generic rejection.
+
+* Every patch applies on TikTok 46.9.3, the build after the three the bundle is checked against. Fourteen patches used to fail there, all for the same reason: 46.9.3's build of TikTok marks methods final and stops merging small lambdas into shared classes, so a getter the patches matched by exact access flags, a lambda they matched by its outlined static shape, a service class they matched by name and a CAPTCHA overload they matched by its parameter list all moved without changing what they do. Feed filter, Hide already seen videos, Hide CAPTCHA popups, Hide the risk control CAPTCHA, Comment sort controls, Comment tools, Advanced downloads, Subtitle tools, Share sheet tools, Translate comments and Disable the long press quick share now find their targets by what the code does rather than by how the compiler shaped it, and the three resource optimizers carry a reviewed profile for the new build. Nothing changes on 46.2.3, 46.7.3 or 46.8.3, which still apply 81 of 81; the declared target stays 46.2.3.
+
+* Playback quality now reaches the player. The setting picked a gear out of the video model's own list and reported it, but TikTok's player builds its models from a different, unfiltered list, so every video still played at whatever quality the player chose. That is what issue #3 saw on a Galaxy A56. The choice is now made at the one door into the player's list, on all four retained builds, and the report names it: a line like "picked lowest_540_1 540p of 5 gears from SimVideoUrlModel#setBitRate" is the player's list, not a bystander's. Checked on a Galaxy S22 with the setting on lowest and then on highest. The hook status row also stops counting a non-adaptive video's empty model as a missing hook, which is what turned "2 missing" into a false alarm, and single-gear lists no longer write a report line each.
+
+* Playback speed and the Feature Gate Lab (and the Feature Gate Recorder with it) apply on TikTok 46.9.3. That build carries the speed menu's list factory twice, two identical copies of one outlined lambda, and a second raw App AB getter next to the first. Both patches used to refuse with "found 2". The speed patch now hooks every identical copy and still refuses when the copies differ, and the Lab holds both raw getters open. Nothing moves on 46.2.3, 46.7.3 or 46.8.3, which carry one of each.
+
 ## 0.35.0
+
+* Hide feed surveys no longer empties the profile's Favorites tab. TikTok gives the Favorites page the same view id as the feed survey card, and the overlay hider took every view with that id anywhere in the window. Feed furniture (the caption, the music block, the action column, the survey card, the rail buttons and their counts) is now hidden only inside a feed cell; the tab strip is unchanged. Found on a Galaxy S25 by restoring the settings one group at a time, and the fix was checked there.
 
 * A Feature Gate Lab import that accepted something now reports in a dialog: one line per count, the first rejection selectable so it can be copied, and Undo beside Done. It was a five-clause toast that vanished in 3.5 seconds. An import that changed nothing keeps its one-line toast.
 
@@ -30,7 +110,7 @@
 
 * New patch, Keep the Favorites tab, on by default. Two people found the Favorites tab on their profile empty after patching (issue #4): the tab was there, the saved videos were not. TikTok's server can put an account into an experiment that skips building that tab's pages, and forcing either of the two gates behind it on the test phone produced the reporters' page exactly. The patch answers those two reads with the values that keep the tab, the diagnostic report says when it did, and the switch is in Settings, Interface if you'd rather see what the server sends.
 
-* AMOLED dark theme now rewrites the theme style values behind the comments sheet and the share sheet, and one more page background colour. Both sheets are painted from style values that never go through the colour table the patch rewrote, which is why they stayed TikTok's grey with the patch on. Only dark values are touched, so the light theme keeps its white sheets. On a TikTok build the patch is forced onto, a sheet style name that build does not have is skipped instead of failing the whole patch.
+* AMOLED dark theme now rewrites the theme style values behind the comments sheet and the share sheet, and one more page background color. Both sheets are painted from style values that never go through the color table the patch rewrote, which is why they stayed TikTok's grey with the patch on. Only dark values are touched, so the light theme keeps its white sheets. On a TikTok build the patch is forced onto, a sheet style name that build does not have is skipped instead of failing the whole patch.
 
 * The feed filter table in the diagnostic report gives the profile detail pager's ad event a line of its own. It used to share the profile grid's line, so a report about an ad seen while watching videos from a profile (issue #2) couldn't say whether that route ran at all or what it took out.
 
@@ -152,19 +232,19 @@
 
 * A switch that needs TikTok restarted says so. Fifty settings do nothing until the app starts again and only thirty-four of them mentioned it, so sixteen switches moved and nothing happened, with nothing on screen explaining the gap. The sentence comes from the setting itself now, so it is on all fifty and cannot be forgotten on the next one added.
 
-* The four controls Hushfeed draws on the feed, the budget label and the hold's release control now share one backdrop and one corner radius. They were built five separate times from the same two colours and then rounded three different ways, so a column of controls sitting on the same video read as three unrelated add-ons.
+* The four controls Hushfeed draws on the feed, the budget label and the hold's release control now share one backdrop and one corner radius. They were built five separate times from the same two colors and then rounded three different ways, so a column of controls sitting on the same video read as three unrelated add-ons.
 
 * The About row shows which version of Hushfeed is installed. It was only in the exported diagnostic report before, so there was no way to read it off the screen, and searching the settings for "version" found nothing.
 
 * The Feature Gate Lab says which of the search and the filter emptied the list, and offers to clear the search when that is what did it. It used to blame the search either way, because the message was written once when the catalogue loaded. The gate details page's "no longer available" state now offers a way back to the Lab it tells you to refresh.
 
-* When settings will not open, Try again comes first and is drawn in the accent. It was listed under Go back in the same weight and colour, so the first thing offered was the way out.
+* When settings will not open, Try again comes first and is drawn in the accent. It was listed under Go back in the same weight and color, so the first thing offered was the way out.
 
 * Save media on a sticker, the tap that starts the feed after a hold, and both actions on the settings recovery page are offered to a screen reader as buttons rather than as text. Save media also has a 48dp floor now, which it did not when the TikTok row it copies its size from was shorter.
 
 * Four places spaced a row from the physical left edge instead of the start edge, so in a right-to-left layout the gap between a menu icon and its label, the gap before the chevron, the indent under a share action and the inset in the Lab's search row all stayed on the wrong side.
 
-* Comment search takes its eight colours from the same palette as the rest of the settings screen instead of its own copies of them. It still works out the comment sheet's theme itself, because that is not always the system's.
+* Comment search takes its eight colors from the same palette as the rest of the settings screen instead of its own copies of them. It still works out the comment sheet's theme itself, because that is not always the system's.
 
 
 * Ghost mode no longer closes the app when a story is opened. The old guard returned early from TikTok's story and profile reporters with a made-up null where the caller expected the lazy request it was about to enqueue or subscribe to, and the caller fell over on it. The same null was handed to the profile page's view model halfway through building the page. The guard now sits at each place a reporter is called and steps over the whole send, so the reporter is never called and the caller carries on with what it was doing. A reporter whose caller only checks for a suspended coroutine completes with nothing instead, and the typing indicator, which returns nothing, keeps its early return. A patch test walks the four caller shapes shared by 46.2.3, 46.7.3 and 46.8.3 with the guard answering both ways, and the patch refuses to apply to any chain it cannot follow to its send rather than guessing.
@@ -233,7 +313,7 @@
 
 ## 0.30.2
 
-* GIF conversion now has separate deadline regressions for its colour-precision, palette and frame-encoding passes. Each check has to stop before the second frame, so losing one cannot hide behind an earlier pass.
+* GIF conversion now has separate deadline regressions for its color-precision, palette and frame-encoding passes. Each check has to stop before the second frame, so losing one cannot hide behind an earlier pass.
 
 * Logger keeps a failed message builder contained even when the thrown object also breaks its own `toString()` or `getMessage()`. The emergency line falls back to fixed text and the original hook can keep running.
 

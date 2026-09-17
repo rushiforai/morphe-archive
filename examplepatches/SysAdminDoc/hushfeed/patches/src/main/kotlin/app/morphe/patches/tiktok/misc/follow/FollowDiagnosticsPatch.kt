@@ -11,6 +11,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.argumentRegister
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
 import app.morphe.util.numberOfParameterRegisters
@@ -20,7 +21,6 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction3rc
-import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
@@ -326,17 +326,3 @@ private fun jediFollowRequestInstructions(instruction: Instruction): String? {
     return null
 }
 
-private fun Instruction.argumentRegister(argumentIndex: Int): Int? =
-    when (this) {
-        is Instruction35c -> when (argumentIndex) {
-            0 -> registerC
-            1 -> registerD
-            2 -> registerE
-            3 -> registerF
-            4 -> registerG
-            else -> null
-        }
-
-        is Instruction3rc -> startRegister + argumentIndex
-        else -> null
-    }

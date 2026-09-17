@@ -92,6 +92,7 @@ public final class ShareActionChecklistPreference extends DialogPreference {
         search.setHint(L10n.t(context, "Search share actions"));
         search.setTag("share_action_search");
         SettingsUi.styleEditText(search);
+        SettingsUi.labelEditor(search, L10n.t(context, "Search share actions"));
         root.addView(search, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
@@ -138,7 +139,7 @@ public final class ShareActionChecklistPreference extends DialogPreference {
             }
             CheckBox check = new CheckBox(getContext());
             check.setText(entry.label);
-            SettingsUi.styleCheckBox(check);
+            SettingsUi.styleCheckBoxRow(check);
             check.setTag("share_action_" + entry.key);
             check.setChecked(selected.contains(entry.key));
             check.setOnCheckedChangeListener((button, checked) -> {

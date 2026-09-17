@@ -9,6 +9,7 @@ package app.morphe.patches.tiktok.interaction.downloads
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.util.extendsClass
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -77,13 +78,5 @@ internal fun BytecodePatchContext.resolveStickerPreviewBind(): MutableMethod {
     return mutableClassDefBy(classDef).findMutableMethodOf(bind)
 }
 
-private fun BytecodePatchContext.extendsLinearLayout(classDef: ClassDef): Boolean {
-    var at = classDef.superclass
-    val seen = mutableSetOf<String>()
-    var depth = 0
-    while (at != null && depth++ < MAX_SUPERCLASS_DEPTH && seen.add(at)) {
-        if (at == LINEAR_LAYOUT) return true
-        at = classDefByOrNull(at)?.superclass
-    }
-    return false
-}
+private fun BytecodePatchContext.extendsLinearLayout(classDef: ClassDef): Boolean =
+    extendsClass(classDef.type, LINEAR_LAYOUT, MAX_SUPERCLASS_DEPTH)

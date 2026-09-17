@@ -176,7 +176,7 @@ public class NumberInputPreferenceTest {
             ShadowToast.reset();
             preference.getEditText().setText("");
             preference.save();
-            assertEquals("Enter a number. The previous value was kept.",
+            assertEquals("Enter a number.",
                     ShadowToast.getTextOfLatestToast());
             assertEquals("Summary\n0 to 600\nCurrent: 45 minutes",
                     preference.getSummary().toString());
@@ -204,7 +204,7 @@ public class NumberInputPreferenceTest {
 
             assertEquals("the dialog closed after refusing the empty value", true,
                     dialog.isShowing());
-            assertEquals("Enter a number. The previous value was kept.",
+            assertEquals("Enter a number.",
                     preference.getEditText().getError().toString());
             assertEquals("Summary\n0 to 600\nCurrent: 30 minutes",
                     preference.getSummary().toString());

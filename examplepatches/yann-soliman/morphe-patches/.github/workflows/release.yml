@@ -133,3 +133,9 @@ jobs:
               echo "Release $tag already absent."
             fi
           done
+
+  personal-dev:
+    name: Publish personal dev source
+    needs: release
+    if: ${{ github.ref_name == 'dev' }}
+    uses: ./.github/workflows/personal-dev.yml

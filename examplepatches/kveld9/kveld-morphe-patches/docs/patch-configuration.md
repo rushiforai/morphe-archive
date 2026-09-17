@@ -186,3 +186,112 @@ The **`Clipboard Enhancements`** patch modernizes Gboard Lite's local clipboard 
 3. **Custom Grid Span (`ClipboardKeyboard->b()I`)**:
    - Overrides the `StaggeredGridLayoutManager` span count to render 1, 2, or 3 columns cleanly across phones, foldables, and tablets.
 
+---
+
+<a id="sim-region-selector"></a>
+## 🎵 TikTok: SIM Region Selector
+
+The **`SIM Region Selector`** patch bypasses geographic content restrictions, regional feed filtering, and country-specific catalog locks by spoofing the SIM and network ISO country codes queried by TikTok.
+
+### Configuration in Morphe Manager
+
+| Option | Key | Type | Default | Range / Format | Description |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Region** | `region` | String | `CH` | 2-letter ISO 3166-1 alpha-2 code | 2-letter ISO country code to spoof for SIM and network country checks. |
+
+### Region Selection Guide & Operational Trade-Offs
+
+When selecting a region code, balance **e-commerce bloat (TikTok Shop / Mall / Live selling)** against **audio licensing and content availability**:
+
+#### 1. Optimal Baseline: `CH` (Switzerland — Default)
+* **Zero E-Commerce Bloat**: TikTok Shop, shopping tabs, and affiliate product showcases are not deployed.
+* **Full Music Catalog**: Complete access to commercial and international audio without local licensing mutes.
+* **No EU Regulatory Overhead**: Being outside the European Union, it avoids recurring Digital Markets Act (DMA) consent dialogs and cookie barriers.
+* **Unrestricted Global Feed**: Clean international feed with full upload and viewing availability.
+* **Critical Distinction**: `CH` is the ISO code for Switzerland (*Confoederatio Helvetica*). Do **not** confuse with `CN` (China).
+
+#### 2. Anglo-American Trends & North American Catalog: `CA`, `AU`, or `US`
+* **`CA` (Canada) / `AU` (Australia)**: Full access to North American and global trending audios with significantly less commercial push and fewer affiliate streams than the US.
+* **`US` (United States)**: Maximum creator and audio catalog, but carries the heaviest native deployment of TikTok Shop, live shopping cards, and commercial anchors.
+  * *Recommendation*: When using `US`, ensure [Hide TikTok Shop & Mall](tiktok-patches.md#9-hide-tiktok-shop--mall-hidetiktokshopanchorspatch) and [Feed Live Stream Blocker](tiktok-patches.md#10-feed-live-stream-blocker-feedlivestreamblockerpatch) are activated.
+
+#### 3. Problematic Regions to Avoid
+
+| Region | Code | Operational Issue / Rationale |
+| :--- | :--- | :--- |
+| **China** | `CN` | **Total Lockout**: Mainland China uses the dedicated *Douyin* client. Spoofing `CN` causes the global TikTok client to fail server authentication and reject feed requests. |
+| **India** | `IN` | **Government Ban**: TikTok services are blocked nationwide; API requests will fail to resolve. |
+| **Russia** | `RU` | **Frozen Feed**: International uploads and global recommendation feeds remain suspended since 2022. |
+| **Japan** | `JP` | **Muted Audios**: Stringent domestic copyright regulations (JASRAC) silence a high percentage of international and commercial tracks. |
+| **Germany** | `DE` | **Audio Licensing Restrictions**: Strict music rights enforcement (GEMA) silences popular audio tracks, alongside EU regulatory consent dialogs. |
+| **Southeast Asia** (`ID`, `TH`, `VN`, `MY`, `PH`) | — | **Heavy Commercial Saturation**: Primary testing ground for live commerce, floating shopping baskets, and affiliate showcases. |
+
+### Supported Region Codes (ISO 3166-1 alpha-2)
+
+The patch accepts any valid **2-letter ISO 3166-1 alpha-2** country code. Inputs are case-insensitive (e.g. `us`, `US`, and `Us` resolve identically).
+
+| Region | ISO Code | Description / Feed Scope |
+| :--- | :--- | :--- |
+| **Switzerland** | `CH` *(Default)* | **Recommended**: Cleanest interface, zero TikTok Shop bloat, full audio catalog, no EU DMA modals |
+| **United States** | `US` | Global catalog, unrestricted English feed, US creator content (pair with Shop & Live debloat patches) |
+| **Canada** | `CA` | Canadian feed & North American audio catalog (less commercial bloat than US) |
+| **Australia** | `AU` | Australian & Oceania feed and trending catalog |
+| **United Kingdom** | `GB` | UK feed & European creator catalog |
+| **Spain** | `ES` | Spanish domestic feed & European audio library |
+| **Mexico** | `MX` | Mexican & North Latin American Spanish feed |
+| **Argentina** | `AR` | Southern Cone Spanish feed |
+| **Brazil** | `BR` | Brazilian Portuguese feed & Latin American trends |
+| **France** | `FR` | French feed & Francophone catalog |
+| **Italy** | `IT` | Italian domestic feed |
+| **South Korea** | `KR` | Korean feed, K-Pop trends, local live streams |
+| **Singapore** | `SG` | Southeast Asian English & regional catalog |
+| **Japan** | `JP` | Japanese localized feed (subject to JASRAC audio restrictions) |
+| **Germany** | `DE` | German feed & Central European catalog (subject to GEMA audio restrictions) |
+
+<details>
+<summary><b>🔍 View comprehensive list of 50+ ISO 3166-1 alpha-2 country codes</b></summary>
+<br>
+
+```text
+AR, AT, AU, BE, BR, CA, CH, CL, CO, CZ, DE, DK, ES, FI, FR, GB, GR, HK, HU, ID,
+IE, IL, IN, IS, IT, JP, KR, MX, MY, NL, NO, NZ, PE, PH, PL, PT, RO, SA, SE, SG,
+TH, TR, TW, UA, US, UY, VN, ZA
+```
+
+</details>
+
+### Technical Architecture
+- Hooks BPEA telephony wrapper methods `LX/067c;->LIZJ` (`getSimCountryIso`) and `LX/067c;->LIZ` (`getNetworkCountryIso`).
+- Safely intercepts queries before they reach the OS `TelephonyManager`, returning the configured region without requiring physical SIM ejection or airplane mode.
+
+---
+
+## 🎵 TikTok: Video Quality Governor
+
+The **`Video Quality Governor`** patch enforces user-configured maximum resolution ceilings (`1080p`, `720p`, `540p`, `480p`, `360p`) across video feeds. While standard TikTok features like "Data Saver" only compress network transfers under cellular conditions without capping hardware decoders, this governor caps the actual rendition ladder (`bitRateList` and `SimBitRate`) parsed by PlayerKit/TTPlayer, reducing hardware MediaCodec load, thermals, GraphicBuffers memory consumption, and frame drops on lower-spec or battery-sensitive devices.
+
+### Configuration in Morphe Manager
+
+| Option | Key | Type | Default | Supported Ceilings | Description |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Maximum Video Resolution** | `maxQuality` | String | `480` | `1080`, `720`, `540`, `480`, `360` | Maximum video playback height in vertical pixels. Discards higher rendition profiles. |
+
+### Supported Resolution Ceilings
+
+| Option String | Resolution Height | Typical Bitrate Band | Target Profile & Resource Rationale |
+| :--- | :--- | :--- | :--- |
+| `1080` | 1080p | ~2500–4000 kbps | **ExtremelyHigh**: Uncapped full-HD playback for high-end devices and unmetered Wi-Fi. |
+| `720` | 720p | ~1200–2000 kbps | **SuperHigh**: High-definition baseline balancing sharp visual fidelity with moderate GPU decoding. |
+| `540` | 540p | ~800–1200 kbps | **H_High**: Balanced midpoint optimizing fluid 60fps feed scrolling without thermal buildup. |
+| `480` *(Default)* | 480p | ~500–800 kbps | **High**: Recommended sweet spot significantly reducing GraphicBuffers RAM allocation and decoding wattage. |
+| `360` | 360p | ~300–500 kbps | **Standard**: Maximum resource and battery conservation; ideal for background listening or weak connections. |
+
+### Technical Architecture
+- **Dalvik Hooking**: Injects hooks into `Aweme.getVideo()` (return object synchronization), `Video.getBitRate()` & `Video.getRawBitRate()` (candidate ladder filtering), and `SimVideoUrlModel.getBitRate()` (PlayerKit engine filtering).
+- **In-Situ Synchronization**: Invokes `TikTokVideoQualityHook.capVideoObject(Video)` and `TikTokVideoQualityHook.filterBitrates(List)`. Discards streams exceeding the cap and prioritizes the highest valid stream within the ceiling.
+- **Fail-Safe Fallback**: If an uploaded video only provides renditions exceeding the ceiling, the governor preserves the lowest available stream rather than black-screening or stalling playback.
+- **Preference Persistence**: User selection is saved to `morphe_tiktok_quality_prefs` SharedPreferences, maintaining state across restarts.
+
+
+
+

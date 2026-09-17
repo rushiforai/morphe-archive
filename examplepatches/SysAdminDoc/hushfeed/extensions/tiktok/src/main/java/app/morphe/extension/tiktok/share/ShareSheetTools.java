@@ -57,6 +57,8 @@ import java.util.WeakHashMap;
  */
 public final class ShareSheetTools {
     private static final String APP_PACKAGE = "com.zhiliaoapp.musically";
+    /** One family for everything that touches the sheet, so an export reads as one surface. */
+    private static final String FAMILY = ShareModelFilter.FAMILY;
     private static final String CONTACTS_SECTION_ID = "ibc";
     private static final String CONTACTS_LIST_ID = "u3t";
     private static final String CHANNELS_LIST_ID = "dqr";
@@ -121,6 +123,7 @@ public final class ShareSheetTools {
                 Logger.printDebug(() -> "Share sheet tools installed");
             }
         } catch (Throwable ex) {
+            HookStatus.threw(FAMILY, "install", ex);
             Logger.printException(() -> "Could not install the share sheet tools", ex);
         }
     }
@@ -166,6 +169,7 @@ public final class ShareSheetTools {
             hideByLabel(find(activity, CHANNELS_LIST_ID), hidden);
             hideByLabel(find(activity, ACTIONS_LIST_ID), hidden);
         } catch (Throwable ex) {
+            HookStatus.threw(FAMILY, "layout pass", ex);
             Logger.printException(() -> "Share sheet tools failed", ex);
         }
     }
@@ -251,6 +255,7 @@ public final class ShareSheetTools {
                 bindRecipientView(cell, contact);
             }
         } catch (Throwable ex) {
+            HookStatus.threw(FAMILY, "recipient bind", ex);
             Logger.printException(() -> "Could not bind a share recipient", ex);
         }
     }
@@ -270,8 +275,13 @@ public final class ShareSheetTools {
             } catch (Throwable cleanupEx) {
                 Logger.printException(() -> "Could not clear unread share confirmation", cleanupEx);
             }
+            HookStatus.threw(FAMILY, "confirm setting", ex);
             Logger.printException(() -> "Could not read share confirmation setting", ex);
-            return false;
+            // Repost, Copy link, Save and the rest of the share channels come through this same
+            // native dispatcher. A setting nobody can read is not a reason to eat their taps,
+            // and a sheet whose every button does nothing is exactly what a broken patch looks
+            // like from the outside. Hold the tap only where it is a person being sent to.
+            return !isBoundRecipient(touched);
         }
 
         if (!confirmationEnabled) {
@@ -310,6 +320,7 @@ public final class ShareSheetTools {
             arm(cell, recipientId, name);
             return false;
         } catch (Throwable ex) {
+            HookStatus.threw(FAMILY, "confirm step", ex);
             Logger.printException(() -> "Share confirm step failed", ex);
             // Confirmation failures must consume the activation instead of reaching native send.
             try {
@@ -317,6 +328,22 @@ public final class ShareSheetTools {
             } catch (Throwable cleanupEx) {
                 Logger.printException(() -> "Could not clear failed share confirmation", cleanupEx);
             }
+            // Same reasoning as the setting read above: a share channel is not a person, so a
+            // failure here leaves it to TikTok rather than making the sheet look broken.
+            return !isBoundRecipient(touched);
+        }
+    }
+
+    /**
+     * Whether this activation is on a cell bound to a person, decided without touching anything
+     * that can throw again. Called from the catch blocks, so it answers false on its own failure:
+     * an unknown cell is treated as a share channel and left to TikTok.
+     */
+    private static boolean isBoundRecipient(View touched) {
+        try {
+            return RECIPIENTS.get(boundCellOf(touched)) != null;
+        } catch (Throwable ex) {
+            Logger.printException(() -> "Could not tell a share recipient from a share action", ex);
             return false;
         }
     }
@@ -492,9 +519,9 @@ public final class ShareSheetTools {
         int id = RESOURCE_IDS.resolve(
                 activity == null ? null : activity.getResources(), APP_PACKAGE, name, false);
         if (id == 0) {
-            HookStatus.missingViewId("share sheet", name);
+            HookStatus.missingViewId(FAMILY, name);
         } else {
-            HookStatus.bound("share sheet", name);
+            HookStatus.bound(FAMILY, name);
         }
         return id;
     }

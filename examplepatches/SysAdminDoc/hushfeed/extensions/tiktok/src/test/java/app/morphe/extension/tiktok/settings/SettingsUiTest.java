@@ -1,6 +1,8 @@
 package app.morphe.extension.tiktok.settings;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -601,5 +603,30 @@ public class SettingsUiTest {
         Field field = drawable.getClass().getDeclaredField("radio");
         field.setAccessible(true);
         assertEquals(expected, field.getBoolean(drawable));
+    }
+
+    @Test public void aRowBoundAgainKeepsItsDrawables() {
+        // A list recycles its rows on every frame of a scroll. The same view bound with the same
+        // edges in the same theme keeps its background and the switch keeps its track and thumb;
+        // a changed edge paints again, since the card's corners are what changed.
+        android.content.Context context = org.robolectric.RuntimeEnvironment.getApplication();
+        Utils.setContext(context);
+        android.widget.FrameLayout row = new android.widget.FrameLayout(context);
+        SettingsUi.applyGroupedRow(row, true, false);
+        android.graphics.drawable.Drawable painted = row.getBackground();
+        assertNotNull(painted);
+        SettingsUi.applyGroupedRow(row, true, false);
+        assertSame("the same edges painted the row again", painted, row.getBackground());
+        SettingsUi.applyGroupedRow(row, true, true);
+        assertNotSame("a changed edge kept the old card", painted, row.getBackground());
+
+        android.widget.Switch control = new android.widget.Switch(context);
+        SettingsUi.styleSwitch(control);
+        android.graphics.drawable.Drawable track = control.getTrackDrawable();
+        android.graphics.drawable.Drawable thumb = control.getThumbDrawable();
+        assertNotNull(track);
+        SettingsUi.styleSwitch(control);
+        assertSame("the switch track was rebuilt on a rebind", track, control.getTrackDrawable());
+        assertSame("the switch thumb was rebuilt on a rebind", thumb, control.getThumbDrawable());
     }
 }

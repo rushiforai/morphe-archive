@@ -13,6 +13,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
+import app.morphe.util.superclassChain
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -92,8 +93,7 @@ internal fun BytecodePatchContext.resolveNativeFocus(): NativeFocus {
     // The callback can sit on a superclass of the field's type: the field is typed as whatever
     // the host declared and R8 is free to have put the implementation further up. Only the class
     // that declares it can be instrumented, so that is the one this walks to.
-    val change = generateSequence(listenerType) { classDefByOrNull(it)?.superclass }
-        .take(MAX_LISTENER_DEPTH)
+    val change = superclassChain(listenerType, MAX_LISTENER_DEPTH)
         .mapNotNull { type ->
             classDefByOrNull(type)?.let { mutableClassDefBy(type) }?.methods?.singleOrNull {
                 it.name == "onAudioFocusChange" && it.returnType == "V" &&

@@ -21,6 +21,7 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.blockauthor.BlockAuthorOverlay;
 import app.morphe.extension.tiktok.blockauthor.BlockAuthorMessages;
 import app.morphe.extension.tiktok.blockauthor.BlockAuthorService;
+import app.morphe.extension.tiktok.blockauthor.BlockGlyphDrawable;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.blockauthor.VideoAuthor;
 import app.morphe.extension.shared.diagnostics.HookStatus;
@@ -103,6 +104,7 @@ public final class CommentTools {
         final CharSequence stateDescription;
         final int iconImportance;
         final android.graphics.ColorFilter iconFilter;
+        final android.graphics.drawable.Drawable iconDrawable;
         final float cellAlpha;
 
         ControlState(View button, View icon, View cell) {
@@ -116,6 +118,7 @@ public final class CommentTools {
             this.iconImportance = icon == null
                     ? View.IMPORTANT_FOR_ACCESSIBILITY_AUTO : icon.getImportantForAccessibility();
             this.iconFilter = icon instanceof ImageView ? ((ImageView) icon).getColorFilter() : null;
+            this.iconDrawable = icon instanceof ImageView ? ((ImageView) icon).getDrawable() : null;
             this.cellAlpha = cell == null ? 1f : cell.getAlpha();
         }
     }
@@ -156,7 +159,8 @@ public final class CommentTools {
             }
             itemView.post(() -> releaseDislike(itemView));
         }
-        if (!block && !CommentSearch.enabled()) {
+        boolean links = Settings.COMMENT_LINKS.get();
+        if (!block && !links && !CommentSearch.enabled()) {
             CommentSearch.onCellBound(itemView, null);
             return;
         }
@@ -169,6 +173,10 @@ public final class CommentTools {
             }
 
             CommentSearch.onCellBound(itemView, comment);
+            // Posted for the same reason the takeover is: the text view is not laid out while
+            // the cell is being bound, and a link cannot be placed on a line that has no
+            // width yet.
+            if (links) itemView.post(() -> CommentLinks.apply(itemView, comment));
             if (!block) {
                 return;
             }
@@ -399,7 +407,13 @@ public final class CommentTools {
             ControlTouchListener listener = existingControl(icon);
             if (listener != null) listener.handBack(icon);
             icon.setImportantForAccessibility(state.iconImportance);
-            if (icon instanceof ImageView) ((ImageView) icon).setColorFilter(state.iconFilter);
+            if (icon instanceof ImageView) {
+                ImageView image = (ImageView) icon;
+                if (image.getDrawable() instanceof BlockGlyphDrawable) {
+                    image.setImageDrawable(state.iconDrawable);
+                }
+                image.setColorFilter(state.iconFilter);
+            }
         }
         View cell = state.cell;
         if (cell != null && cell.getAlpha() != state.cellAlpha) cell.setAlpha(state.cellAlpha);
@@ -581,12 +595,52 @@ public final class CommentTools {
         View icon = cell.findViewById(identifier(cell, DISLIKE_ICON_ID));
         if (icon instanceof ImageView) {
             ImageView image = (ImageView) icon;
+            // A control that blocks an account in one tap looked exactly like TikTok's thumbs
+            // down, so the only thing telling a reader what the tap would do was having read
+            // the setting. The tint said "blocked" once it was too late. While the takeover
+            // holds the control it draws the block symbol instead, and the native drawable
+            // goes back the moment the control is handed over.
+            if (!(image.getDrawable() instanceof BlockGlyphDrawable)) {
+                image.setImageDrawable(new BlockGlyphDrawable(
+                        glyphColour(image.getContext()), SettingsUi.dp(image.getContext(), 2)));
+            }
             if (blocked) {
                 image.setColorFilter(BLOCKED_TINT, PorterDuff.Mode.SRC_IN);
             } else {
                 image.clearColorFilter();
             }
         }
+    }
+
+    /**
+     * What to draw the block symbol in while the account is not blocked.
+     *
+     * <p>The comment sheet follows whatever theme TikTok is in, and there is one colour that is
+     * wrong in both: a fixed one. A glyph painted the accent red at rest would shout on a screen
+     * where nothing has happened yet, and a fixed white one disappears on the light sheet. The
+     * theme's own secondary text colour is the same colour the icon beside it is already drawn
+     * in, so the control keeps the weight it had and only its shape changes. The accent is the
+     * fallback: visible everywhere, and only reached if the theme cannot answer.
+     */
+    private static int glyphColour(android.content.Context context) {
+        try {
+            android.util.TypedValue value = new android.util.TypedValue();
+            if (context.getTheme().resolveAttribute(
+                    android.R.attr.textColorSecondary, value, true)) {
+                if (value.resourceId != 0) {
+                    // The theme overload, which resolves a colour state list to its default and
+                    // is the one that exists at minSdk 23.
+                    return context.getResources().getColor(value.resourceId, context.getTheme());
+                }
+                if (value.type >= android.util.TypedValue.TYPE_FIRST_COLOR_INT
+                        && value.type <= android.util.TypedValue.TYPE_LAST_COLOR_INT) {
+                    return value.data;
+                }
+            }
+        } catch (Throwable ex) {
+            Logger.printException(() -> "Could not read the theme colour for the block symbol", ex);
+        }
+        return BLOCKED_TINT;
     }
 
     private static boolean isBlocked(Object comment) {

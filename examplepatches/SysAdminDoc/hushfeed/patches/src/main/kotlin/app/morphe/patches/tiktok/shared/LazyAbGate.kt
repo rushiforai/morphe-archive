@@ -11,6 +11,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
@@ -68,7 +69,7 @@ private val INTEGER_MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_1
 internal fun BytecodePatchContext.resolveLazyAbGate(
     what: String,
     key: String,
-    gate: (Method) -> Boolean,
+    gate: (Method, ClassDef) -> Boolean,
 ): MutableMethod {
     val (classDef, method) =
         LazyAbGateSearch(::classDefByOrNull).find(what, key, gate, ::classDefForEach)
@@ -85,7 +86,7 @@ internal class LazyAbGateSearch(private val classOf: (String) -> ClassDef?) {
     fun find(
         what: String,
         key: String,
-        gate: (Method) -> Boolean,
+        gate: (Method, ClassDef) -> Boolean,
         classes: ((ClassDef) -> Unit) -> Unit,
     ): Pair<ClassDef, Method> {
         val found = mutableListOf<Pair<ClassDef, List<Method>>>()
@@ -95,7 +96,7 @@ internal class LazyAbGateSearch(private val classOf: (String) -> ClassDef?) {
             // for. Every method of the shape is kept rather than exactly one, so that a class
             // carrying two of them is refused by name below instead of being passed over here
             // as if it read some other key.
-            val methods = classDef.methods.filter(gate)
+            val methods = classDef.methods.filter { gate(it, classDef) }
             if (methods.isEmpty()) return@classes
             val clinit = classDef.methods.firstOrNull {
                 it.name == "<clinit>" && it.implementation != null
@@ -123,7 +124,7 @@ internal class LazyAbGateSearch(private val classOf: (String) -> ClassDef?) {
 
     /** Whether the static initialiser reaches [key], directly or through the lambda it builds. */
     fun readsSettingsKey(clinit: Method, key: String): Boolean {
-        if (clinit.holdsString(key)) return true
+        if (clinit.hasExactString(key)) return true
         val instructions = clinit.implementation?.instructions?.toList() ?: return false
         instructions.forEachIndexed { index, instruction ->
             when (instruction.opcode) {
@@ -136,7 +137,7 @@ internal class LazyAbGateSearch(private val classOf: (String) -> ClassDef?) {
                     val bodies = classOf(built)?.methods?.filter {
                         it.name != "<init>" && it.parameterTypes.none() && it.implementation != null
                     } ?: return@forEachIndexed
-                    if (bodies.any { it.holdsString(key) }) return true
+                    if (bodies.any { it.hasExactString(key) }) return true
                 }
                 Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE -> {
                     val factory = instruction.getReference<MethodReference>()
@@ -147,7 +148,7 @@ internal class LazyAbGateSearch(private val classOf: (String) -> ClassDef?) {
                         ?: return@forEachIndexed
                     val number = constantBefore(instructions, index, argument)
                         ?: return@forEachIndexed
-                    if (groupBodies(factory.definingClass, number).any { it.holdsString(key) }) {
+                    if (groupBodies(factory.definingClass, number).any { it.hasExactString(key) }) {
                         return true
                     }
                 }
@@ -280,6 +281,27 @@ internal fun Method.dispatchTarget(group: ClassDef, number: Int): Method? {
  * shape of `getValue` alone, because the interface it is called on is `kotlin.Lazy` under a name
  * R8 assigns per build; what pins it down is the unwrap of a `Number` straight after.
  */
+/**
+ * Whether the method reads the lazy value itself, or through one static no-argument helper on
+ * its own class that does. 46.9.3 splits the comment sort gate that way: `LIZ(Aweme)Z` asks
+ * `LIZIZ()Z` on the same class and the read moved there with it, while the getter the patch
+ * hooks kept its shape. One level, on the owner only: a helper elsewhere is some other gate.
+ */
+internal fun Method.readsLazyAb(owner: ClassDef): Boolean {
+    if (isLazyAbRead()) return true
+    val helpers = implementation?.instructions
+        ?.mapNotNull { it.getReference<MethodReference>() }
+        ?.filter { it.definingClass == owner.type && it.parameterTypes.none() }
+        ?: return false
+    return helpers.any { helper ->
+        owner.methods.any {
+            it.name == helper.name && it.parameterTypes.none() &&
+                it.returnType == helper.returnType && AccessFlags.STATIC.isSet(it.accessFlags) &&
+                it.isLazyAbRead()
+        }
+    }
+}
+
 internal fun Method.isLazyAbRead(): Boolean {
     val calls = implementation?.instructions
         ?.mapNotNull { it.getReference<MethodReference>() }
@@ -294,7 +316,7 @@ internal fun Method.isLazyAbRead(): Boolean {
 }
 
 /** Whether any string constant of the method is exactly this one. */
-private fun Method.holdsString(value: String) =
+private fun Method.hasExactString(value: String) =
     implementation?.instructions?.any {
         it.getReference<StringReference>()?.string == value
     } == true

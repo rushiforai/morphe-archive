@@ -22,6 +22,7 @@ import app.morphe.util.getReference
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.findInstructionIndicesReversedOrThrow
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -50,10 +51,22 @@ private fun BytecodePatchContext.completionCarriers(): List<MutableMethod> {
             } == true
             if (!carriesAnchor) continue
 
+            // Two shapes carry the anchor. Up to 46.8.3 it is an R8-outlined static `(runner)V`
+            // taking the Runnable it was lifted out of; on 46.9.3 it is that Runnable's own
+            // `run()V`. Either way p0 is the runner the extension reads its two fields off.
             val isStatic = AccessFlags.STATIC.isSet(method.accessFlags)
-            if (!isStatic || method.returnType != "V" || method.parameterTypes.size != 1 ||
-                !method.parameterTypes.single().startsWith("L")
-            ) {
+            val outlined = isStatic && method.parameterTypes.size == 1 &&
+                method.parameterTypes.single().startsWith("L")
+            val own = !isStatic && method.name == "run" && method.parameterTypes.isEmpty()
+            if (method.returnType != "V" || !(outlined || own)) {
+                wrongShape += "${method.definingClass}->${method.name}"
+                continue
+            }
+            // A Runnable of its own is its own runner, so what the extension needs of it is
+            // asked here: exactly two instance reference fields, one of them the results List,
+            // the other the task. That is the shape the extension reads by kind, and a class
+            // that does not have it would be stood down at runtime on the first batch.
+            if (own && !classDef.holdsResultsAndTask()) {
                 wrongShape += "${method.definingClass}->${method.name}"
                 continue
             }
@@ -74,14 +87,26 @@ private fun BytecodePatchContext.completionCarriers(): List<MutableMethod> {
     // field by standing the whole feature down for the session, so hooking a carrier that takes
     // some other object would turn the first comment list into the opposite of this fix.
     // toString because dexlib2 hands back CharSequence, which does not sort or compare.
-    val parameterTypes = carriers.map { it.parameterTypes.single().toString() }.toSet()
-    if (parameterTypes.size != 1) {
+    // Two Runnables of their own may finish two different batch kinds, and each carries its
+    // own runner in `this`; the rule about taking the same thing is for outlined carriers, which
+    // are handed a runner they do not own.
+    val parameterTypes = carriers.filter { it.parameterTypes.isNotEmpty() }
+        .map { it.parameterTypes.single().toString() }.toSet()
+    if (parameterTypes.size > 1) {
         throw PatchException(
             "Translate comments: the batch completion carriers take different things, so one of " +
                 "them is not the batch runner: " + parameterTypes.sorted().joinToString(", ") + ".",
         )
     }
     return carriers
+}
+
+/** Exactly two instance reference fields, one of them a List: the results and the task. */
+private fun ClassDef.holdsResultsAndTask(): Boolean {
+    val references = fields.filter {
+        !AccessFlags.STATIC.isSet(it.accessFlags) && it.type.startsWith("L")
+    }
+    return references.size == 2 && references.count { it.type == "Ljava/util/List;" } == 1
 }
 
 @Suppress("unused")

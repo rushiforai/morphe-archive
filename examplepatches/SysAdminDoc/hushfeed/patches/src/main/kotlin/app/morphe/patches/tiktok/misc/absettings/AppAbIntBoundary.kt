@@ -106,6 +106,26 @@ internal fun MutableClass.methodOfShape(shape: MethodShape, what: String): Mutab
     return matches.single()
 }
 
+/**
+ * Every method of the class with this shape, for a shape that names a door rather than a getter.
+ *
+ * <p>The typed getters each have to be the only one of their kind, because the patches read a
+ * key out of a register the shape does not mention and two of them would be a coin toss. The raw
+ * getter is not like that: its key is p1 and its flag is p2 whichever one the app calls, so a
+ * build that carries two carries two doors into the same thing and both are worth holding open.
+ * 46.9.3 carries `LJIIJJI` and `LJIILIIL`, which differ only in the boolean they hand on; the
+ * three fixtures before it carry `LJIIJJI` alone.
+ *
+ * @throws PatchException when the shape names nothing at all.
+ */
+internal fun MutableClass.methodsOfShape(shape: MethodShape, what: String): List<MutableMethod> {
+    val matches = methods.filter { it.shape() == shape }
+    if (matches.isEmpty()) {
+        throw PatchException("$what: expected a ${shape.returnType}${shape.parameters} on $type, found none.")
+    }
+    return matches
+}
+
 internal fun BytecodePatchContext.hookAppAbIntBoundary(
     extensionDescriptor: String,
     extensionMethod: String,

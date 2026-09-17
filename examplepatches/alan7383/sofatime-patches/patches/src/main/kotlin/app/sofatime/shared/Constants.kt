@@ -22,7 +22,10 @@ object Constants {
             AppTarget(version = "1.3.0"),
             AppTarget(version = "1.3.1"),
             AppTarget(version = "1.3.2"),
-            AppTarget(version = "1.3.3")
+            AppTarget(version = "1.3.3"),
+            AppTarget(version = "1.3.4"),
+            AppTarget(version = "1.3.5"),
+            AppTarget(version = "1.3.6")
         )
     )
 }

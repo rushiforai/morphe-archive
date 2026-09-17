@@ -1,6 +1,7 @@
 /*
  * Forked from:
  * https://github.com/ReVanced/revanced-patches/blob/377d4e15016296b45d809697f7f69bce74badd3a/extensions/tiktok/src/main/java/app/revanced/extension/tiktok/settings/Settings.java
+ * Mirror, since GitHub blocks the original: https://gitlab.com/ReVanced/revanced-patches/-/blob/main/extensions/tiktok/src/main/java/app/revanced/extension/tiktok/settings/Settings.java
  */
 
 package app.morphe.extension.tiktok.settings;
@@ -158,6 +159,8 @@ public class Settings extends BaseSettings {
             new IntegerSetting("max_publication_age_days", 0).withRange(0, 3650);
     public static final IntegerSetting MAX_VIEWS_PER_LIKE =
             new IntegerSetting("max_views_per_like", 0).withRange(0, 1000000);
+    public static final IntegerSetting MAX_VIEWS_PER_COMMENT =
+            new IntegerSetting("max_views_per_comment", 0).withRange(0, 1000000);
     public static final BooleanSetting HIDE_PROMOTIONAL_MUSIC = new BooleanSetting("hide_promotional_music", FALSE);
     public static final BooleanSetting HIDE_LIVE_REPLAYS = new BooleanSetting("hide_live_replays", FALSE);
     public static final BooleanSetting HIDE_SHARE_CHANNELS = new BooleanSetting("hide_share_channels", FALSE);
@@ -267,6 +270,7 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting CLEAR_DISPLAY = new BooleanSetting("clear_display", FALSE);
     public static final BooleanSetting COPY_COMMENTS_WITHOUT_USERNAME = new BooleanSetting("copy_comments_without_username", TRUE);
     public static final FloatSetting REMEMBERED_SPEED = new FloatSetting("remembered_speed_v2", 1.0f);
+    public static final BooleanSetting REMEMBER_SPEED = new BooleanSetting("remember_playback_speed", TRUE);
     public static final BooleanSetting DEFAULT_SPEED_ENABLED = new BooleanSetting("default_speed_enabled", FALSE);
     public static final StringSetting DEFAULT_SPEED = new StringSetting("default_speed", "1.5");
     public static final StringSetting CUSTOM_SPEEDS = new StringSetting("custom_speeds", "", true);
@@ -352,6 +356,7 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_FEED_MUSIC = new BooleanSetting("hide_feed_music", FALSE);
     public static final BooleanSetting HIDE_FEED_ACTION_BAR = new BooleanSetting("hide_feed_action_bar", FALSE);
     public static final BooleanSetting HIDE_FEED_SURVEYS = new BooleanSetting("hide_feed_surveys", FALSE);
+    public static final BooleanSetting HIDE_SHARE_GUIDE = new BooleanSetting("hide_share_guide", FALSE);
     public static final BooleanSetting HIDE_RAIL_FOLLOW = new BooleanSetting("hide_rail_follow", FALSE);
     public static final BooleanSetting HIDE_RAIL_LIKE = new BooleanSetting("hide_rail_like", FALSE);
     public static final BooleanSetting HIDE_RAIL_COMMENTS = new BooleanSetting("hide_rail_comments", FALSE);
@@ -360,6 +365,7 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_RAIL_SHARE = new BooleanSetting("hide_rail_share", FALSE);
     public static final BooleanSetting HIDE_RAIL_COUNTS = new BooleanSetting("hide_rail_counts", FALSE);
     public static final BooleanSetting HIDE_STATUS_BAR = new BooleanSetting("hide_status_bar", FALSE);
+    public static final StringSetting TOUCH_TARGET_SCALE = new StringSetting("touch_target_scale", "1");
     public static final BooleanSetting HIDE_SENSITIVE_WARNINGS = new BooleanSetting("hide_sensitive_warnings", FALSE);
     public static final BooleanSetting SHOW_AUTHOR_REGION = new BooleanSetting("show_author_region", FALSE);
     public static final BooleanSetting SHOW_AUTHOR_HANDLE = new BooleanSetting("show_author_handle", FALSE);
@@ -434,6 +440,7 @@ public class Settings extends BaseSettings {
     public static final StringSetting COMMENT_BLOCKED_USERS = new StringSetting("comment_blocked_users", "");
     public static final BooleanSetting BLOCK_FROM_COMMENT = new BooleanSetting("block_from_comment", TRUE);
     public static final BooleanSetting COMMENT_SEARCH = new BooleanSetting("comment_search", FALSE);
+    public static final BooleanSetting COMMENT_LINKS = new BooleanSetting("comment_links", TRUE);
     public static final BooleanSetting HIDE_COMMENT_MEDIA = new BooleanSetting("hide_comment_media", FALSE);
     public static final BooleanSetting HIDE_COMMENT_POLLS = new BooleanSetting("hide_comment_polls", FALSE);
     public static final BooleanSetting HIDE_COMMENT_EGGS = new BooleanSetting("hide_comment_eggs", TRUE);
@@ -476,5 +483,13 @@ public class Settings extends BaseSettings {
             DOWNLOAD_STICKER_PATH.save(legacyPath);
             DOWNLOAD_PATHS_MIGRATED.save(TRUE);
         }
+    }
+
+    /**
+     * Called from the patched share guide method. Returning true stops the share prompt that
+     * pops up after a like. Upstream #22.
+     */
+    public static boolean shouldHideShareGuide() {
+        return HIDE_SHARE_GUIDE.get();
     }
 }

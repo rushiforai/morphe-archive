@@ -81,21 +81,14 @@ final class OptionCard {
         int size = dp(density, 20);
         GradientDrawable d = new GradientDrawable();
         d.setShape(GradientDrawable.OVAL);
+        View v = new View(ctx);
         if (selected) {
             d.setColor(accent);
-            TextView check = new TextView(ctx);
-            check.setText("✓");
-            check.setGravity(Gravity.CENTER);
-            check.setTextColor(0xFF10120F);
-            check.setTypeface(check.getTypeface(), Typeface.BOLD);
-            check.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f);
-            check.setBackground(d);
-            check.setLayoutParams(new LinearLayout.LayoutParams(size, size));
-            return check;
+            v.setForeground(Glyphs.check(0xFF10120F, density));
+        } else {
+            d.setColor(Color.TRANSPARENT);
+            d.setStroke(dp(density, 1.5f), 0xFF52565C);
         }
-        d.setColor(Color.TRANSPARENT);
-        d.setStroke(dp(density, 1.5f), 0xFF52565C);
-        View v = new View(ctx);
         v.setBackground(d);
         v.setLayoutParams(new LinearLayout.LayoutParams(size, size));
         return v;

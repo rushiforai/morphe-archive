@@ -14,6 +14,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.getReference
 import app.morphe.util.numberOfParameterRegisters
 import com.android.tools.smali.dexlib2.Opcode
@@ -75,9 +76,7 @@ val commentSortControlsPatch = bytecodePatch(
         resolveCommentSortEligibility().apply {
             // v0 is written and then, with the switch off, the original body runs on. It has to
             // be a local: on a frame with none, v0 is the first parameter the body still reads.
-            check(implementation!!.registerCount - numberOfParameterRegisters >= 1) {
-                "Comment sort controls: the eligibility gate has no free local register."
-            }
+            requireLocals("Comment sort controls", 1)
             addInstructionsWithLabels(
                 0,
                 """

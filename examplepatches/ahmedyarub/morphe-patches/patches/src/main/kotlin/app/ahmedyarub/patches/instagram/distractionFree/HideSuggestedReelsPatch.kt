@@ -26,9 +26,13 @@ private val FEED_ITEM_KEYS_TO_BE_HIDDEN = arrayOf(
     "suggested_shops"
 )
 
+// The feed-item-type keys used to sit as literals inside the feed's unsafeParseFromJson. On
+// 447 R8 pooled them into the <clinit> of the obfuscated feed-item-type enum, so match on the
+// full key set alone: only that pool carries all of them together. replaceJsonFieldWithBogus
+// then overwrites each wire name in place, which is safe — the enum's valueOf keys off the enum
+// name, not the wire name, so an unrecognised wire name falls through to the skip path.
 private object FeedItemParseFromJsonFingerprint : Fingerprint(
     strings = listOf(*FEED_ITEM_KEYS_TO_BE_HIDDEN),
-    name = "unsafeParseFromJson"
 )
 
 context(_: BytecodePatchContext)

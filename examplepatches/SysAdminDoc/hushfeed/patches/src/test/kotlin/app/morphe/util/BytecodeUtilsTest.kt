@@ -93,6 +93,24 @@ class BytecodeUtilsTest {
         body.implementation!!.instructions.toList()[index].opcode
 
     @Test
+    fun `an argument register is read off either invoke format and off nothing else`() {
+        val direct = ImmutableInstruction35c(
+            Opcode.INVOKE_STATIC, 3, 4, 5, 6, 0, 0,
+            ImmutableMethodReference("Lfixture/Ext;", "ask", listOf("I", "I", "I"), "Z"),
+        )
+        assertEquals(4, direct.argumentRegister(0))
+        assertEquals(6, direct.argumentRegister(2))
+        assertEquals(null, direct.argumentRegister(3))
+        val range = com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction3rc(
+            Opcode.INVOKE_STATIC_RANGE, 16, 3,
+            ImmutableMethodReference("Lfixture/Ext;", "ask", listOf("I", "I", "I"), "Z"),
+        )
+        assertEquals(16, range.argumentRegister(0))
+        assertEquals(18, range.argumentRegister(2))
+        assertEquals(null, ImmutableInstruction10x(Opcode.RETURN_VOID).argumentRegister(0))
+    }
+
+    @Test
     fun `a double returning method takes a double`() {
         // The check read 'J', so it rejected every method that returns a double and accepted
         // every method that returns a long, which is the opposite of what it is for. Its twin

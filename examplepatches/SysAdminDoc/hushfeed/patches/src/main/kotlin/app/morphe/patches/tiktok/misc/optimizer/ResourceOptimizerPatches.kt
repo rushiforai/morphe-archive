@@ -11,9 +11,36 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import java.util.Locale
 
 @Suppress("unused")
+val p2pRelayBlockerPatch = rawResourcePatch(
+    name = "Block P2P video relay",
+    description = "Strips TikTok's peer-to-peer CDN libraries so your phone is not used as a relay node for other people's video traffic. Saves battery and mobile data.",
+    default = false,
+) {
+    compatibleWith(*AppCompatibilities.tiktok4623())
+
+    execute {
+        val nativeFiles = listOf(
+            "lib/arm64-v8a/libavmdlp2pv2.so",
+            "lib/arm64-v8a/libp2plivevdp.so",
+            "lib/armeabi-v7a/libavmdlp2pv2.so",
+            "lib/armeabi-v7a/libp2plivevdp.so",
+        )
+        val result = stripVerifiedResources(
+            get("."),
+            "P2P Relay Blocker",
+            emptyList(),
+            nativeFiles,
+            p2pRelayProfiles,
+            resolveStandaloneFile = { path -> get(path) },
+        )
+        result.report("P2P Relay Blocker")
+    }
+}
+
+@Suppress("unused")
 val coreAssetDebloatPatch = rawResourcePatch(
-    name = "Core Asset De-bloat",
-    description = "Empties TikTok's bundled C2PA native libraries and Microblink payment-card OCR assets. Content credentials and card scanning may stop. Choose this patch to enable it.",
+    name = "Remove content credential and card scanner assets",
+    description = "Empties TikTok's bundled C2PA and Microblink card-scanning assets, Pitaya AI engine libraries, the live-cast dynamic feature, and runtime monitoring probes.",
     default = false,
 ) {
     compatibleWith(*AppCompatibilities.tiktok4623())
@@ -24,6 +51,28 @@ val coreAssetDebloatPatch = rawResourcePatch(
             "lib/arm64-v8a/libtt_c2pa_sdk_d.so",
             "lib/armeabi-v7a/libtt_c2pa_sdk.so",
             "lib/armeabi-v7a/libtt_c2pa_sdk_d.so",
+            "lib/arm64-v8a/libAndroidPitayaCore.so",
+            "lib/arm64-v8a/libPitayaBdComponent.so",
+            "lib/arm64-v8a/libPitayaTTPPolicy.so",
+            "lib/arm64-v8a/libTTNativeML.so",
+            "lib/arm64-v8a/libclient_ai_impl_df_jni.so",
+            "lib/arm64-v8a/libclient_ai_impl_jni.so",
+            "lib/arm64-v8a/libdex_df_pitaya.so",
+            "lib/armeabi-v7a/libAndroidPitayaCore.so",
+            "lib/armeabi-v7a/libPitayaBdComponent.so",
+            "lib/armeabi-v7a/libPitayaTTPPolicy.so",
+            "lib/armeabi-v7a/libTTNativeML.so",
+            "lib/armeabi-v7a/libclient_ai_impl_df_jni.so",
+            "lib/armeabi-v7a/libclient_ai_impl_jni.so",
+            "lib/armeabi-v7a/libdex_df_pitaya.so",
+            "lib/arm64-v8a/libdex_df_live_cast.so",
+            "lib/armeabi-v7a/libdex_df_live_cast.so",
+            "lib/arm64-v8a/libartlog_monitor.so",
+            "lib/arm64-v8a/libbytemonitor.so",
+            "lib/arm64-v8a/libprofiler.so",
+            "lib/armeabi-v7a/libartlog_monitor.so",
+            "lib/armeabi-v7a/libbytemonitor.so",
+            "lib/armeabi-v7a/libprofiler.so",
         )
         val result = stripVerifiedResources(
             get("."),
@@ -39,8 +88,8 @@ val coreAssetDebloatPatch = rawResourcePatch(
 
 @Suppress("unused")
 val languagePackPurgerPatch = rawResourcePatch(
-    name = "Language Pack Purger",
-    description = "Empties unselected TikTok language bundles while always keeping English. Selected language codes are checked before any file changes. Choose this patch to enable it.",
+    name = "Remove unused language packs",
+    description = "Empties unselected TikTok language bundles while always keeping English. Selected language codes are checked before any file changes.",
     default = false,
 ) {
     compatibleWith(*AppCompatibilities.tiktok4623())
@@ -59,8 +108,8 @@ val languagePackPurgerPatch = rawResourcePatch(
 
 @Suppress("unused")
 val studioCreationDebloatPatch = rawResourcePatch(
-    name = "Studio & Creation De-bloat",
-    description = "Empties TikTok's reviewed editor, camera-effect and face-model assets. Recording, editing, effects and creator tools may stop working. Choose this patch to enable it.",
+    name = "Remove creation tools",
+    description = "Empties TikTok's reviewed editor, camera-effect and face-model assets. Recording, editing, effects and creator tools may stop working.",
     default = false,
 ) {
     compatibleWith(*AppCompatibilities.tiktok4623())
@@ -90,8 +139,8 @@ val studioCreationDebloatPatch = rawResourcePatch(
 
 @Suppress("unused")
 val liveStreamSuiteOptimizerPatch = rawResourcePatch(
-    name = "Live Stream Suite Optimizer",
-    description = "Empties TikTok's link-mic and LIVE match or minigame assets, then skips its gift-effect widget setup. Co-hosting, games and animated gifts may stop. Choose this patch to enable it.",
+    name = "Remove LIVE extras",
+    description = "Empties TikTok's link-mic and LIVE match or minigame assets, then skips its gift-effect widget setup. Co-hosting, games and animated gifts may stop.",
     default = false,
 ) {
     compatibleWith(*AppCompatibilities.tiktok4623())
@@ -144,6 +193,37 @@ private val microblinkFiles = listOf(
     file("assets/microblink/blinkcard/device_list_mb.json", "07b3a400c1246e09de51fc15c57308d5ff0feeb09ae2bbfa3511fdd4afe06aed"),
 )
 
+private val pitayaFiles4623 = listOf(
+    file("lib/arm64-v8a/libAndroidPitayaCore.so", "2b9e14166a240d5613c23749a028efc0cb652ae4866179c5deb020b5388ca606"),
+    file("lib/arm64-v8a/libPitayaBdComponent.so", "ae7cf15f60167939497dabfd2c0149d94d3b2b2ae8045a309287066ffcad4edd"),
+    file("lib/arm64-v8a/libPitayaTTPPolicy.so", "4d6514622e8083074d657d4ed088ba06796185023f0fad77fe38d3dfeff6be08"),
+    file("lib/arm64-v8a/libTTNativeML.so", "8567d7a37ac0d0a45d90893d288c2432466e24773e0ecb100be82ea106cd3ff5"),
+    file("lib/arm64-v8a/libclient_ai_impl_df_jni.so", "237d31094271153e2c1f88427c272c213ac8cb5a106363819f862bb03777f530"),
+    file("lib/arm64-v8a/libclient_ai_impl_jni.so", "6ecc63f593fc3dc5a875322efc6a9ba1bc2a8be0e68084340a0315acd4f901cc"),
+    file("lib/arm64-v8a/libdex_df_pitaya.so", "496e2037cecdaeb31d7262ba656e0856ec79c59f46eb3957becfe4b6ba0ff6fb"),
+    file("lib/armeabi-v7a/libAndroidPitayaCore.so", "dba69e15cd7ad034d76abc946aa2146977f60d623619b8f7dea702295afe6eae"),
+    file("lib/armeabi-v7a/libPitayaBdComponent.so", "509dd74746e6473757abaee5fa5353250b45845df0d6eea94c13af08db6cc1f9"),
+    file("lib/armeabi-v7a/libPitayaTTPPolicy.so", "c43526b61a15fd4edddb4651191a305275b03302fc28c62bd07716ec6a9a54e6"),
+    file("lib/armeabi-v7a/libTTNativeML.so", "1982bf9f4353d4f5d874aaee19744378b63952eb2dbd15b998cc1d1652d2d796"),
+    file("lib/armeabi-v7a/libclient_ai_impl_df_jni.so", "e347553011515ae1ed67e28a3e7bf318eb8a494e80496054b5256bf80ef68fb2"),
+    file("lib/armeabi-v7a/libclient_ai_impl_jni.so", "4fabf2b022a874b221ab239e11d56c79ca59a9ce92e1cf1193892d8a3cd03b32"),
+    file("lib/armeabi-v7a/libdex_df_pitaya.so", "496e2037cecdaeb31d7262ba656e0856ec79c59f46eb3957becfe4b6ba0ff6fb"),
+)
+
+private val monitorFiles4623 = listOf(
+    file("lib/arm64-v8a/libartlog_monitor.so", "a2c72c6fdedc2bb9f1d56f241b40e3505ce33851a9fe4257c9b2ca5cf5eadd73"),
+    file("lib/arm64-v8a/libbytemonitor.so", "685c11b3087fc0cc63f6de3b28f38dfadf773df612495f94a331781cdc0c6387"),
+    file("lib/arm64-v8a/libprofiler.so", "30450091a3fe79d0aefa5c1e0f9fd737b9a2af098577379997b7214cdca50b2c"),
+    file("lib/armeabi-v7a/libartlog_monitor.so", "4ae823d1dbb15f4002e48ed28a740e1c85e37d3e915847b54a62c1aadf6acebb"),
+    file("lib/armeabi-v7a/libbytemonitor.so", "8154866e61eecd254bc1847551bd64b56e7f37ae1b1bcfcd7c845e1c084d8648"),
+    file("lib/armeabi-v7a/libprofiler.so", "bf213289cf9c62916e3839edf385da447a3c1ced77652f8b3d9a1574c214d74e"),
+)
+
+private val liveCastFiles4623 = listOf(
+    file("lib/arm64-v8a/libdex_df_live_cast.so", "3189dad02b2c99caac3511da1ba9e761ab452299bf3fc495867c76cfbde679f2"),
+    file("lib/armeabi-v7a/libdex_df_live_cast.so", "3189dad02b2c99caac3511da1ba9e761ab452299bf3fc495867c76cfbde679f2"),
+)
+
 private val coreAssetProfiles = listOf(
     ResourceProfile(
         "TikTok 46.2.3",
@@ -152,14 +232,7 @@ private val coreAssetProfiles = listOf(
             file("lib/arm64-v8a/libtt_c2pa_sdk_d.so", "a64ce0fb43e7c22e2d95d8bbfcaede522d585c5d51dbae87d24db1359c27a01a"),
             file("lib/armeabi-v7a/libtt_c2pa_sdk.so", "24bc0cbc99cdca42ddd9062ac7deef64abaf3d1206969ef8f461c097ebdaf77c"),
             file("lib/armeabi-v7a/libtt_c2pa_sdk_d.so", "a96af4a99de68503234e3ab658d9702ac436ae1e0650dc5551e4e29a89700b0c"),
-        ),
-    ),
-    ResourceProfile(
-        "TikTok 46.7.3 to 46.8.3",
-        microblinkFiles + listOf(
-            file("lib/arm64-v8a/libtt_c2pa_sdk.so", "e9c5a788ca3b36696bec2a05832d856af0a2510ccbb4d393ccdb9fbaa2aa16ba"),
-            file("lib/arm64-v8a/libtt_c2pa_sdk_d.so", "a64ce0fb43e7c22e2d95d8bbfcaede522d585c5d51dbae87d24db1359c27a01a"),
-        ),
+        ) + pitayaFiles4623 + monitorFiles4623 + liveCastFiles4623,
     ),
 )
 
@@ -190,6 +263,19 @@ private val studioAssetProfiles = listOf(
     ),
     studioProfile("TikTok 46.7.3", "a373335786f26d0da9089a0c470c9b97b2beb6a2b59e4532e9f3dd6fb2ca793b"),
     studioProfile("TikTok 46.8.3", "9dda032818072944eaca3c08cbdf55103ceda0cc9707e7130993c54c204105f4"),
+    // Both ABIs again, like 46.2.3, with one camera library digest shared by the two and every
+    // other file unchanged since 46.2.3. Read off the retained fixture on 2026-09-16.
+    ResourceProfile(
+        "TikTok 46.9.3",
+        studioArm64Files +
+            file("lib/arm64-v8a/libdex_df_camera_biz.so", "82c825d91113b4ad1b9d111717859f6a070e9e0da378ba5a610757906962b595") +
+            listOf(
+                file("lib/armeabi-v7a/libEffectCreatorJni.so", "d3ae58712413c2d1d06dcf508eb7850452f58c93b9befd57867cd029421c9482"),
+                file("lib/armeabi-v7a/libdex_df_camera_biz.so", "82c825d91113b4ad1b9d111717859f6a070e9e0da378ba5a610757906962b595"),
+                file("lib/armeabi-v7a/libeffect_plugin.so", "f89bd50e941392fee2e47d031711fdce3520dae7f3e531da59dd0afbbec9d91c"),
+                file("lib/armeabi-v7a/libttvesdk_plugin.so", "42ab2be66f2b02622f52062fc3ff1b4862f44f0098faecfac3996afe3e7cf1f9"),
+            ),
+    ),
 )
 
 private val liveAssetProfiles = listOf(
@@ -220,6 +306,53 @@ private val liveAssetProfiles = listOf(
             file("lib/arm64-v8a/liblink_mic_sdk.so", "2b4e28569193f720e50679d928278f593bc5fd700acdc2d3b971702b5280a875"),
         ),
     ),
+    // Five files: the fixture carries both ABIs, so the armeabi-v7a link library is back beside
+    // the arm64 one, and the match invitee template is the same bytes as 46.7.3 and 46.8.3.
+    ResourceProfile(
+        "TikTok 46.9.3",
+        listOf(
+            file("assets/native_runtime_server/game/scripts/ttmg-core.js.zip", "897d0f54569ea8c34b31652943f9abd7f89a842357078ea9bc78ca47fa0c8a14"),
+            file("assets/offline/tiktok_live_tt_live_lynx_match_component_container/mainV12/template.js", "d648b3e0ad779a0dde442ca381212661ea97eeddc255dbb92003aab5f4514460"),
+            file("assets/offline/tiktok_live_tt_live_lynx_match_component_container/match_invitee_v3/template.js", "8e84ec297249a771c9c9d56438f6c509d2a0f438c759ee65e212ab14ef7cb3eb"),
+            file("lib/arm64-v8a/liblink_mic_sdk.so", "6b513a5d8b3e53178caabd02da3169f666a08817f367a8e49e807a9b1a37ef88"),
+            file("lib/armeabi-v7a/liblink_mic_sdk.so", "8e899f30d1419e57a4b4dd5d193c66b0e4ffb5ed522b2cfb2a55680ba533347b"),
+        ),
+    ),
+)
+
+private val p2pRelayProfiles = listOf(
+    ResourceProfile(
+        "TikTok 46.2.3",
+        listOf(
+            file("lib/arm64-v8a/libavmdlp2pv2.so", "d2be5f45bbe3c46f47dbb14ec14721da4a1e9de31bcdbe0d43db0611e1d33e9c"),
+            file("lib/arm64-v8a/libp2plivevdp.so", "ed35b032fac7c169860d3f37bc3be1933df9bddc8ac6785413f9608945946337"),
+            file("lib/armeabi-v7a/libavmdlp2pv2.so", "4455cf9ce576de61c04368e869d27abc485fac1e33046e14a87abad7f422a429"),
+            file("lib/armeabi-v7a/libp2plivevdp.so", "dd8a626f8b0efe36a883096923bed56ecb457e9408b26262c844442901dc1d09"),
+        ),
+    ),
+    ResourceProfile(
+        "TikTok 46.7.3",
+        listOf(
+            file("lib/arm64-v8a/libavmdlp2pv2.so", "878315f0a27638ca8d73a7fa4351af4f810353cf08d01f06611640525c084174"),
+            file("lib/arm64-v8a/libp2plivevdp.so", "ed35b032fac7c169860d3f37bc3be1933df9bddc8ac6785413f9608945946337"),
+        ),
+    ),
+    ResourceProfile(
+        "TikTok 46.8.3",
+        listOf(
+            file("lib/arm64-v8a/libavmdlp2pv2.so", "11c6519e2b1dde6872c3a0e70aedd3a019aab6058122e5b81fb4b38091e3d7ae"),
+            file("lib/arm64-v8a/libp2plivevdp.so", "ed35b032fac7c169860d3f37bc3be1933df9bddc8ac6785413f9608945946337"),
+        ),
+    ),
+    ResourceProfile(
+        "TikTok 46.9.3",
+        listOf(
+            file("lib/arm64-v8a/libavmdlp2pv2.so", "7cea29a6fca15cfe6d0f2001b27dc204b3fe534132f447c479ceef828f071d07"),
+            file("lib/arm64-v8a/libp2plivevdp.so", "ed35b032fac7c169860d3f37bc3be1933df9bddc8ac6785413f9608945946337"),
+            file("lib/armeabi-v7a/libavmdlp2pv2.so", "4455cf9ce576de61c04368e869d27abc485fac1e33046e14a87abad7f422a429"),
+            file("lib/armeabi-v7a/libp2plivevdp.so", "dd8a626f8b0efe36a883096923bed56ecb457e9408b26262c844442901dc1d09"),
+        ),
+    ),
 )
 
 private val languageInventory = LanguageInventoryContract(
@@ -234,5 +367,7 @@ private val languageInventory = LanguageInventoryContract(
         "147b0f0f1dba4e5baac4cccc512cc39f1fc2601291828a908825b382b0442e51",
         "4af4860c7f3f27fd9195bc6b2e0e976698861dc3cb82bba6465b06b9da14843c",
         "a42fac1f4d1fa86e0cfbbf3286c4daca12a6172944789a797bb27ac028ad1206",
+        // 46.9.3: the same 64 directories and the same path manifest, new strings.
+        "8bea806dfa98e0f0bf00362acf9f7afd065c77a90541e8a3bbb61b368898bab8",
     ),
 )

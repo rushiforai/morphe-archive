@@ -101,7 +101,7 @@ public class FeedOverlaySettingsTest {
         assertTrue(Settings.NOT_INTERESTED_BUTTON.get());
         assertFalse(Settings.BLOCK_AUTHOR_BUTTON.get());
         assertVisible("Not interested in this video");
-        assertEquals(View.GONE, button("Block this account").getVisibility());
+        assertEquals(View.GONE, button("Block this creator").getVisibility());
         View installed = button("Not interested in this video");
         bind("video-two");
         assertSame("another video by the same creator should retain the control", installed,
@@ -111,13 +111,13 @@ public class FeedOverlaySettingsTest {
     @Test public void blockRowEnablesTheCurrentCreatorWhileFeedbackIsOff() {
         showSettings(false, false);
         bind("video-one");
-        assertNull(button("Block this account"));
+        assertNull(button("Block this creator"));
 
         click(Settings.BLOCK_AUTHOR_BUTTON);
 
         assertTrue(Settings.BLOCK_AUTHOR_BUTTON.get());
         assertFalse(Settings.NOT_INTERESTED_BUTTON.get());
-        assertVisible("Block this account");
+        assertVisible("Block this creator");
         assertEquals(View.GONE, button("Not interested in this video").getVisibility());
     }
 
@@ -159,7 +159,7 @@ public class FeedOverlaySettingsTest {
     @Test public void lastBlockRowOffDetachesTheInstalledControls() {
         showSettings(true, false);
         bind("video-one");
-        assertVisible("Block this account");
+        assertVisible("Block this creator");
 
         click(Settings.BLOCK_AUTHOR_BUTTON);
 
@@ -170,7 +170,7 @@ public class FeedOverlaySettingsTest {
     @Test public void turningOffOneRowKeepsTheOtherControlInstalled() {
         showSettings(true, true);
         bind("video-one");
-        View block = button("Block this account");
+        View block = button("Block this creator");
         View feedback = button("Not interested in this video");
 
         click(Settings.BLOCK_AUTHOR_BUTTON);
@@ -181,25 +181,25 @@ public class FeedOverlaySettingsTest {
         click(Settings.BLOCK_AUTHOR_BUTTON);
         click(Settings.NOT_INTERESTED_BUTTON);
         assertEquals(View.GONE, feedback.getVisibility());
-        assertSame(block, button("Block this account"));
-        assertVisible("Block this account");
+        assertSame(block, button("Block this creator"));
+        assertVisible("Block this creator");
     }
 
     @Test public void theTwoSecondaryBlockControlsCanBeHiddenIndependently() {
         showSettings(true, false);
         bind("video-one");
-        assertVisible("Block this account");
+        assertVisible("Block this creator");
         assertVisible("Hide this creator locally");
         assertVisible("Block this sound");
 
         click(Settings.LOCAL_HIDE_BUTTON);
         assertEquals(View.GONE, button("Hide this creator locally").getVisibility());
-        assertVisible("Block this account");
+        assertVisible("Block this creator");
         assertVisible("Block this sound");
 
         click(Settings.BLOCK_SOUND_BUTTON);
         assertEquals(View.GONE, button("Block this sound").getVisibility());
-        assertVisible("Block this account");
+        assertVisible("Block this creator");
     }
 
     @Test public void enablingLocalHideAfterAttachDoesNotOverlapTheSoundButton() {
@@ -226,7 +226,7 @@ public class FeedOverlaySettingsTest {
             FrameLayout.LayoutParams soundPosition =
                     (FrameLayout.LayoutParams) sound.getLayoutParams();
             FrameLayout.LayoutParams blockPosition =
-                    (FrameLayout.LayoutParams) button("Block this account").getLayoutParams();
+                    (FrameLayout.LayoutParams) button("Block this creator").getLayoutParams();
             assertVisible("Hide this creator locally");
             assertVisible("Block this sound");
             assertEquals(blockPosition.leftMargin, localPosition.leftMargin);
@@ -245,7 +245,7 @@ public class FeedOverlaySettingsTest {
     @Test public void openingCommentsHidesEveryCustomFeedControlUntilTheSheetCloses() {
         showSettings(true, true);
         bind("video-one");
-        for (String description : new String[] {"Block this account", "Hide this creator locally",
+        for (String description : new String[] {"Block this creator", "Hide this creator locally",
                 "Block this sound", "Not interested in this video"}) {
             assertVisible(description);
         }
@@ -262,7 +262,7 @@ public class FeedOverlaySettingsTest {
         layoutRoot(content);
         content.getViewTreeObserver().dispatchOnGlobalLayout();
 
-        for (String description : new String[] {"Block this account", "Hide this creator locally",
+        for (String description : new String[] {"Block this creator", "Hide this creator locally",
                 "Block this sound", "Not interested in this video"}) {
             assertEquals(description + " remained above comments", View.GONE,
                     button(description).getVisibility());
@@ -270,7 +270,7 @@ public class FeedOverlaySettingsTest {
 
         comments.setVisibility(View.GONE);
         content.getViewTreeObserver().dispatchOnGlobalLayout();
-        for (String description : new String[] {"Block this account", "Hide this creator locally",
+        for (String description : new String[] {"Block this creator", "Hide this creator locally",
                 "Block this sound", "Not interested in this video"}) {
             assertVisible(description);
         }
@@ -281,7 +281,7 @@ public class FeedOverlaySettingsTest {
     }
 
     @Test public void blockRowCannotExposeControlsOverARetainedDailyHold() {
-        assertControlStaysBehindHold(Settings.BLOCK_AUTHOR_BUTTON, "Block this account");
+        assertControlStaysBehindHold(Settings.BLOCK_AUTHOR_BUTTON, "Block this creator");
     }
 
     private void assertControlStaysBehindHold(BooleanSetting setting, String description) {
@@ -419,7 +419,7 @@ public class FeedOverlaySettingsTest {
     }
 
     private void assertNoControls() {
-        for (String description : new String[] {"Block this account", "Hide this creator locally",
+        for (String description : new String[] {"Block this creator", "Hide this creator locally",
                 "Block this sound", "Not interested in this video"}) {
             assertNull("the last switch left " + description + " attached", button(description));
         }

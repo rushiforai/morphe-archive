@@ -37,11 +37,11 @@ public class FeatureGateLabSwitchRowTest {
         control.setOnCheckedChangeListener((button, checked) -> flips.incrementAndGet());
 
         LinearLayout row = FeatureGateLabUi.switchRow(context, "Enable overrides",
-                "Applies saved rules at supported getters", control);
+                "Replace values when TikTok asks for them", control);
 
         assertTrue(row.isClickable());
         assertTrue(row.isFocusable());
-        assertEquals("Enable overrides. Applies saved rules at supported getters",
+        assertEquals("Enable overrides. Replace values when TikTok asks for them",
                 row.getContentDescription().toString());
         assertFalse("the switch itself must not be a second target", control.isClickable());
         assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_NO, control.getImportantForAccessibility());

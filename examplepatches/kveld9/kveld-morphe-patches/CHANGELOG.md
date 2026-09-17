@@ -1,3 +1,54 @@
+## [1.35.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.34.0...v1.35.0) (2026-09-17)
+
+### New Features
+
+* **tiktok:** bypass mandatory login and skip first-launch onboarding ([31ed012](https://github.com/kveld9/kveld-morphe-patches/commit/31ed0122fb4c4b81a14e1005b8d5938dc66609f2))
+* **tiktok:** default SIM region selector spoof target to CH ([b44a749](https://github.com/kveld9/kveld-morphe-patches/commit/b44a74951fd89cd4f22e0cf9ab48faa4e4bb7178))
+
+## [1.34.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.33.1...v1.34.0) (2026-09-16)
+
+### New Features
+
+* **tiktok:** bypass FLAG_SECURE and purge invasive permissions ([98c66e4](https://github.com/kveld9/kveld-morphe-patches/commit/98c66e46b557977234ee599c166841c4ef496809))
+* **tiktok:** redirect external links to system browser ([6e5d210](https://github.com/kveld9/kveld-morphe-patches/commit/6e5d210e0537b2e020a2dffc7cf46168908a8bc0))
+* **tiktok:** strip proprietary TTWebView engine and manifest ([56b7c49](https://github.com/kveld9/kveld-morphe-patches/commit/56b7c492dfe9c25488f4715bdf242db3e50a99cb))
+
+## [1.33.1](https://github.com/kveld9/kveld-morphe-patches/compare/v1.33.0...v1.33.1) (2026-09-16)
+
+### Bug Fixes
+
+* **tiktok:** neutralize Tako AI feed action bar triggers and router services ([2e6cd87](https://github.com/kveld9/kveld-morphe-patches/commit/2e6cd87e5622b11064a6fc5afa0e69c8da326cdf))
+
+## [1.33.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.32.0...v1.33.0) (2026-09-16)
+
+### New Features
+
+* **tiktok:** add video quality governor patch with configurable ceilings ([3540b62](https://github.com/kveld9/kveld-morphe-patches/commit/3540b625b7c1ce3a0ca592afd2db260babd14d53))
+
+## [1.32.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.31.2...v1.32.0) (2026-09-16)
+
+### New Features
+
+* **tiktok:** expand client AI governor to neutralize Tako AI and search clutter ([d885f41](https://github.com/kveld9/kveld-morphe-patches/commit/d885f410037a82bb019fab98ff6c5bbfa35c02fa))
+
+## [1.31.2](https://github.com/kveld9/kveld-morphe-patches/compare/v1.31.1...v1.31.2) (2026-09-16)
+
+### Bug Fixes
+
+* **gboard:** clear try blocks to prevent VerifyError in clipboard hooks ([c1a5d22](https://github.com/kveld9/kveld-morphe-patches/commit/c1a5d226f6408d78d27dee667e41d5688f2359d0))
+
+## [1.31.1](https://github.com/kveld9/kveld-morphe-patches/compare/v1.31.0...v1.31.1) (2026-09-16)
+
+### Bug Fixes
+
+* **tiktok:** preserve libbytenn to avoid dlopen failure in native dependencies ([6de816c](https://github.com/kveld9/kveld-morphe-patches/commit/6de816c83a1c60f0f5a1c5e00adce140585900ca))
+
+## [1.31.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.30.1...v1.31.0) (2026-09-16)
+
+### New Features
+
+* **tiktok:** add privacy guards, block floating ad pendants, and harden live stream filtering ([eaba502](https://github.com/kveld9/kveld-morphe-patches/commit/eaba502c52bbc83c9df556b0af2e0a8d1060a1a1)), closes [#33](https://github.com/kveld9/kveld-morphe-patches/issues/33)
+
 ## [1.30.1](https://github.com/kveld9/kveld-morphe-patches/compare/v1.30.0...v1.30.1) (2026-09-16)
 
 ### Bug Fixes

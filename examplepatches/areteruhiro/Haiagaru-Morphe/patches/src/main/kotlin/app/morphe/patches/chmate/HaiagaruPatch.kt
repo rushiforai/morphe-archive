@@ -79,6 +79,39 @@ private object HiltSettingsOnCreateFingerprint : Fingerprint(
     parameters = listOf("Landroid/os/Bundle;")
 )
 
+/** Board-list URL producer used by the Edge live board. */
+private object EdgeSubjectUrlFingerprint : Fingerprint(
+    definingClass = "Ljp/syoboi/a2chMate/client/BBSUrlInfo;",
+    name = "z",
+    returnType = "Ljava/lang/String;",
+    parameters = emptyList(),
+    strings = listOf("/subject.txt")
+)
+
+private object EdgeSubjectUrl191Fingerprint : Fingerprint(
+    definingClass = "Ljp/syoboi/a2chMate/client/BBSUrlInfo;",
+    name = "l",
+    returnType = "Ljava/lang/String;",
+    parameters = emptyList(),
+    strings = listOf("/subject.txt")
+)
+
+private object EdgeSubjectUrl226Fingerprint : Fingerprint(
+    definingClass = "Ljp/syoboi/a2chMate/client/BBSUrlInfo;",
+    name = "B",
+    returnType = "Ljava/lang/String;",
+    parameters = emptyList(),
+    strings = listOf("/subject.txt")
+)
+
+private object EdgeSubjectUrl241Fingerprint : Fingerprint(
+    definingClass = "Ljp/syoboi/a2chMate/client/BBSUrlInfo;",
+    name = "B",
+    returnType = "Ljava/lang/String;",
+    parameters = emptyList(),
+    strings = listOf("/subject.txt")
+)
+
 private data class ChMateProfile(
     val providerClass: String,
     val providerStartupTrapClass: String?,
@@ -441,6 +474,13 @@ private val haiagaruBytecodePatch = bytecodePatch {
             }
             else -> patchSetTextCalls()
         }
+        when (packageMetadata.versionName) {
+            "0.8.10.191 dev" -> EdgeSubjectUrl191Fingerprint.method.rewriteEdgeSubjectUrl()
+            "0.8.10.226 dev" -> EdgeSubjectUrl226Fingerprint.method.rewriteEdgeSubjectUrl()
+            "0.8.10.241" -> EdgeSubjectUrl241Fingerprint.method.rewriteEdgeSubjectUrl()
+            "0.8.10.243 dev" -> EdgeSubjectUrlFingerprint.method.rewriteEdgeSubjectUrl()
+        }
+        patchHttpsTransport()
     }
 }
 
@@ -1772,6 +1812,23 @@ private fun MutableMethod.addBeforeEveryReturn(instruction: String) {
         }
         ?.asReversed()
         ?.forEach { addInstruction(it, instruction) }
+}
+
+/** Rewrites Edge's live-board subject feed before ChMate starts the request. */
+private fun MutableMethod.rewriteEdgeSubjectUrl() {
+    val returns = implementation?.instructions
+        ?.mapIndexedNotNull { index, instruction ->
+            if (instruction.opcode == Opcode.RETURN_OBJECT)
+                index to (instruction as OneRegisterInstruction).registerA else null
+        }
+        .orEmpty()
+    check(returns.isNotEmpty()) { "Edge subject URL return was not found" }
+    returns.asReversed().forEach { (index, register) ->
+        addInstructionsWithLabels(index, """
+            invoke-static/range { v$register .. v$register }, $EXTENSION->rewriteSubjectUrl(Ljava/lang/String;)Ljava/lang/String;
+            move-result-object v$register
+        """)
+    }
 }
 
 /**

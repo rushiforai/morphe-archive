@@ -7,6 +7,7 @@ package app.morphe.extension.tiktok.settings.preference;
 import app.morphe.extension.tiktok.settings.L10n;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.preference.Preference;
@@ -133,9 +134,10 @@ public class TabSelectionPreference extends Preference {
 
         LinearLayout dialogView = new LinearLayout(context);
         dialogView.setOrientation(LinearLayout.VERTICAL);
-        dialogView.setBackground(createDialogBackground());
-        int padding = dpToPx(22);
-        dialogView.setPadding(padding, padding, padding, padding);
+        // No background of its own any more. The card is the window's, so it covers the
+        // platform's button panel as well, which is where the actions now live.
+        int padding = SettingsUi.dp(getContext(), 22);
+        dialogView.setPadding(padding, padding, padding, SettingsUi.dp(getContext(), 8));
 
         TextView title = new TextView(context);
         title.setText(L10n.t(getContext(),
@@ -161,13 +163,13 @@ public class TabSelectionPreference extends Preference {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
-        helperParams.setMargins(0, dpToPx(16), 0, dpToPx(12));
+        helperParams.setMargins(0, SettingsUi.dp(getContext(), 16), 0, SettingsUi.dp(getContext(), 12));
         dialogView.addView(helper, helperParams);
 
         LinearLayout optionsContainer = new LinearLayout(context);
         optionsContainer.setOrientation(LinearLayout.VERTICAL);
         optionsContainer.setBackground(createListBackground());
-        int optionInset = Math.max(1, dpToPx(1));
+        int optionInset = Math.max(1, SettingsUi.dp(getContext(), 1));
         optionsContainer.setPadding(optionInset, optionInset, optionInset, optionInset);
 
         for (OptionRow option : observedOptions) {
@@ -186,54 +188,49 @@ public class TabSelectionPreference extends Preference {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 SettingsUi.dialogListHeight(context, 380)
         );
-        scrollParams.setMargins(0, 0, 0, dpToPx(16));
+        scrollParams.setMargins(0, 0, 0, SettingsUi.dp(getContext(), 16));
         dialogView.addView(scrollView, scrollParams);
 
-        LinearLayout actions = new LinearLayout(context);
-        actions.setGravity(Gravity.CENTER_VERTICAL);
-
-        TextView showAllButton = createActionButton(context,
-                L10n.t(context, "Select every tab"), false);
-        TextView cancelButton = createActionButton(context, L10n.t(context, "Cancel"), false);
-        TextView saveButton = createActionButton(context, L10n.t(context, "Save"), true);
-
-        actions.addView(showAllButton, new LinearLayout.LayoutParams(
-                0,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                1
-        ));
-        actions.addView(cancelButton);
-        actions.addView(saveButton);
-        dialogView.addView(actions, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        ));
-
+        // The actions used to be the last row of this column, under a list that is never
+        // shorter than 220dp. At a large font scale the title, the two-sentence helper and the
+        // list came to more than the screen, and the platform's custom panel clips rather than
+        // scrolls, so Save was the thing that got cut off and there was no way to reach it.
+        // The platform keeps its own button panel on screen and shrinks the custom panel
+        // instead, which is where the creator and share editors already put theirs.
         AlertDialog dialog = new AlertDialog.Builder(context)
                 .setView(dialogView)
+                .setPositiveButton(L10n.t(context, "Save"), null)
+                .setNegativeButton(L10n.t(context, "Cancel"), null)
+                .setNeutralButton(L10n.t(context, "Select every tab"), null)
                 .create();
 
-        // Ticks every row and leaves the dialog open, so it is a way of filling the list in
-        // rather than a second Save. It saved and dismissed, which meant a reader who pressed it
-        // to see what it did lost the selection they had come in with, with no undo.
-        showAllButton.setOnClickListener(view -> {
-            selected.clear();
-            for (OptionRow option : observedOptions) {
-                selected.add(option.key);
-            }
-            refreshRowChecks();
-        });
-        cancelButton.setOnClickListener(view -> dialog.dismiss());
-        saveButton.setOnClickListener(view -> {
-            boolean changed = setValue(serializeEnabledKeys(selected));
-            dialog.dismiss();
-            if (changed && setting.rebootApp) {
-                AbstractPreferenceFragment.showRestartDialog(context);
-            }
-        });
-
         dialog.show();
-        SettingsUi.styleDialog(dialog);
+        SettingsUi.styleFramedDialog(dialog);
+
+        // Wired after show, because a button handed to the builder dismisses the dialog on its
+        // own. Ticking every row is a way of filling the list in rather than a second Save, and
+        // it used to save and dismiss: a reader who pressed it to see what it did lost the
+        // selection they came in with, with no undo.
+        View showAllButton = dialog.getButton(DialogInterface.BUTTON_NEUTRAL);
+        if (showAllButton != null) {
+            showAllButton.setOnClickListener(view -> {
+                selected.clear();
+                for (OptionRow option : observedOptions) {
+                    selected.add(option.key);
+                }
+                refreshRowChecks();
+            });
+        }
+        View saveButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+        if (saveButton != null) {
+            saveButton.setOnClickListener(view -> {
+                boolean changed = setValue(serializeEnabledKeys(selected));
+                dialog.dismiss();
+                if (changed && setting.rebootApp) {
+                    AbstractPreferenceFragment.showRestartDialog(context);
+                }
+            });
+        }
     }
 
     private List<OptionRow> getObservedOptions() {
@@ -283,7 +280,7 @@ public class TabSelectionPreference extends Preference {
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setBackground(SettingsUi.listRow(context, getDialogBackgroundColor()));
-        row.setPadding(dpToPx(10), dpToPx(10), dpToPx(10), dpToPx(10));
+        row.setPadding(SettingsUi.dp(getContext(), 10), SettingsUi.dp(getContext(), 10), SettingsUi.dp(getContext(), 10), SettingsUi.dp(getContext(), 10));
         // A clickable view is only focusable by default from API 26; below that the d-pad
         // would skip every row and the focus wash above would never show.
         row.setFocusable(true);
@@ -368,19 +365,9 @@ public class TabSelectionPreference extends Preference {
         ));
         wrapper.addView(divider, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                Math.max(1, dpToPx(1))
+                Math.max(1, SettingsUi.dp(getContext(), 1))
         ));
         return wrapper;
-    }
-
-    private TextView createActionButton(Context context, String text, boolean primary) {
-        TextView button = new TextView(context);
-        button.setText(text);
-        button.setTextSize(16);
-        button.setGravity(Gravity.CENTER);
-        button.setPadding(dpToPx(12), dpToPx(8), dpToPx(12), dpToPx(6));
-        SettingsUi.styleTextAction(button, primary);
-        return button;
     }
 
     private Set<String> parseEnabledKeys(String value) {
@@ -409,14 +396,6 @@ public class TabSelectionPreference extends Preference {
             this.key = key;
             this.label = label;
         }
-    }
-
-    private int dpToPx(int dp) {
-        return Math.round(dp * getContext().getResources().getDisplayMetrics().density);
-    }
-
-    private GradientDrawable createDialogBackground() {
-        return SettingsUi.borderedSurface(getContext(), 6, true);
     }
 
     private GradientDrawable createListBackground() {

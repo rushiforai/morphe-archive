@@ -88,9 +88,9 @@ internal fun applyAfterCommentToolsPreflight(vararg resolve: () -> CommentToolsW
 val commentToolsPatch = bytecodePatch(
     name = "Comment tools",
     description = "Hides comments that contain chosen words or come from chosen accounts, turns " +
-        "the thumbs down on each comment into a block button, hides comment media and polls, " +
-        "and adds a box above the comments that narrows them by what they say or " +
-        "who said it.",
+        "the thumbs down on each comment into a block button that shows the block symbol, " +
+        "makes a web address in a comment tappable, hides comment media and polls, and " +
+        "adds a box above the comments that narrows them by what they say or who said it.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)
@@ -339,7 +339,8 @@ internal fun MutableMethod.registerReplySearch(classOf: (String) -> ClassDef?) {
  * One `setOnTouchListener` on a RelativeLayout the view keeps, with the merged listener group and
  * the number it was built with.
  */
-private class TouchInstall(val index: Int, val group: String, val number: Int)
+/** One `setOnTouchListener` call: where it is, the listener's class, and the number that picks its body in a merged group, or null for a class of its own. */
+private class TouchInstall(val index: Int, val group: String, val number: Int?)
 
 /**
  * Every touch listener the method installs on a RelativeLayout field of its own class, built
@@ -380,7 +381,12 @@ private fun Method.touchInstalls(): List<TouchInstall> {
         } ?: return@mapNotNull null
         val init = instructions[initIndex]
         val constructor = init.getReference<MethodReference>()!!
-        if (constructor.parameterTypes.lastOrNull()?.toString() != "I") return@mapNotNull null
+        // A merged listener group takes the number that picks its body last. A listener class
+        // of its own, which is what 46.9.3 makes of both of these, takes the view alone and has
+        // nothing to pick with: its own onTouch is the body.
+        if (constructor.parameterTypes.lastOrNull()?.toString() != "I") {
+            return@mapNotNull TouchInstall(index, constructor.definingClass, null)
+        }
         val numberRegister = when (init) {
             is FiveRegisterInstruction -> listOf(init.registerC, init.registerD, init.registerE, init.registerF, init.registerG)[init.registerCount - 1]
             is RegisterRangeInstruction -> init.startRegister + init.registerCount - 1
@@ -398,6 +404,9 @@ private fun TouchInstall.body(classOf: (String) -> ClassDef?): Method? {
         it.name == "onTouch" && it.returnType == "Z" &&
             it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/view/View;", "Landroid/view/MotionEvent;")
     } ?: return null
+    // No number, no group: the class's own onTouch is the body, as long as it is not a group
+    // dispatcher that was somehow built without one.
+    val number = number ?: return if (at.dispatchesOnIndex()) null else at
     repeat(4) {
         val next = at.dispatchTarget(listeners, number) ?: return null
         if (!next.dispatchesOnIndex()) return next

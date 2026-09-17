@@ -17,6 +17,7 @@ import app.morphe.patches.tiktok.interaction.blockauthor.blockAuthorPatch
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.numberOfParameterRegisters
 
 private const val EXTENSION = "Lapp/morphe/extension/tiktok/interaction/GestureActions;"
@@ -75,9 +76,7 @@ val doubleTapPatch = bytecodePatch(
     execute {
         doubleTapRouteMethods.forEach { (owner, name) ->
             doubleTapRoute(owner, name).method.apply {
-                check(implementation!!.registerCount - numberOfParameterRegisters >= 1) {
-                    "Double tap: $owner->$name has no free local register."
-                }
+                requireLocals("Double tap", 1)
                 addInstructionsWithLabels(0, """
                     invoke-static {}, $EXTENSION->onDoubleTap()Z
                     move-result v0

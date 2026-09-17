@@ -1,0 +1,104 @@
+name: Release from tag
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      packages: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/gradle.properties') }}
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      # Upstream Morphe sources are not committed; fetch them from the public GitHub archives so the
+      # build needs no GitHub Packages token.
+      - name: Vendor upstream Morphe sources
+        run: bash tools/vendor-upstream.sh
+
+      - name: Build bundle and release metadata
+        env:
+          GITHUB_ACTOR: ${{ github.repository_owner }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:jar generatePatchesList -PrepoSlug="${{ github.repository }}"
+
+      - name: Validate tag matches gradle.properties version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [ "${{ github.event_name }}" != "push" ]; then
+            echo "Manual run — skipping tag validation."
+            exit 0
+          fi
+          case "$TAG" in
+            v*) ;;
+            *) echo "Release tag must start with 'v'." >&2; exit 1 ;;
+          esac
+          EXPECTED="${TAG#v}"
+          ACTUAL="$(grep -E '^\s*version\s*=' gradle.properties | head -1 | cut -d= -f2 | tr -d ' ')"
+          if [ "$EXPECTED" != "$ACTUAL" ]; then
+            echo "Tag ($EXPECTED) does not match gradle.properties version ($ACTUAL)." >&2
+            exit 1
+          fi
+          echo "Version $ACTUAL validated."
+
+      - name: Add changelog section to release notes
+        run: |
+          VERSION="$(grep -E '^\s*version\s*=' gradle.properties | head -1 | cut -d= -f2 | tr -d ' ')"
+          mkdir -p build
+          # The bundle description (shown by Morphe) is the top section of CHANGELOG.md.
+          awk '/^## \[/{n++} n==1' CHANGELOG.md > build/release-notes.md
+          echo "---- release notes ----"
+          cat build/release-notes.md
+
+      - name: Publish release with bundle
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: build/release-notes.md
+          files: |
+            patches/build/libs/patches-*.mpp
+            patches-list.json
+            patches-bundle.json
+
+      - name: Commit release metadata
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [ "${{ github.event_name }}" != "push" ]; then
+            echo "Manual run — skipping metadata commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-list.json patches-bundle.json CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "No metadata changes."
+          else
+            git commit -m "chore(release): sync patch metadata for ${TAG} [skip ci]"
+            git push origin HEAD:${GITHUB_REF_NAME%/*} 2>/dev/null || git push
+          fi

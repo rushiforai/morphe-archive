@@ -11,8 +11,6 @@ package app.morphe.extension.shared.settings;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.Objects;
 
@@ -95,11 +93,6 @@ public class IntegerSetting extends Setting<Integer> {
         // class's own fields are assigned, so minimum and maximum are still zero and a
         // clamp would turn every value into zero. withRange does it instead.
         value = preferences.getIntegerString(key, defaultValue);
-    }
-
-    @Override
-    protected Integer readFromJSON(JSONObject json, String importExportKey) throws JSONException {
-        return json.getInt(importExportKey);
     }
 
     @Override

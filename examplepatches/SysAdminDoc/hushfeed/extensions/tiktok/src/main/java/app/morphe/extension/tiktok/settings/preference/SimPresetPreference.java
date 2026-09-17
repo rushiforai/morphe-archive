@@ -7,6 +7,7 @@ package app.morphe.extension.tiktok.settings.preference;
 import app.morphe.extension.tiktok.settings.L10n;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
@@ -75,7 +76,7 @@ public class SimPresetPreference extends Preference {
             setSummary(selectedPreset.country + ", " + selectedPreset.operatorName + " ("
                     + selectedPreset.mccMnc + ")");
         } else if (SimPresets.hasEmptyCurrentValues(iso, mccMnc, operatorName)) {
-            setSummary("No preset selected");
+            setSummary("No preset selected. Choose a preset above.");
         } else {
             setSummary("Custom SIM details");
         }
@@ -97,9 +98,10 @@ public class SimPresetPreference extends Preference {
         Context context = getContext();
         LinearLayout dialogView = new LinearLayout(context);
         dialogView.setOrientation(LinearLayout.VERTICAL);
-        dialogView.setBackground(createDialogBackground());
-        int padding = dpToPx(20);
-        dialogView.setPadding(padding, padding, padding, padding);
+        // No background of its own. The card is the window's, so it covers the platform's
+        // button panel as well, which is where the actions now live.
+        int padding = SettingsUi.dp(getContext(), 20);
+        dialogView.setPadding(padding, padding, padding, SettingsUi.dp(getContext(), 8));
 
         TextView title = new TextView(context);
         title.setText(L10n.t(getContext(), "SIM country preset"));
@@ -119,7 +121,7 @@ public class SimPresetPreference extends Preference {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
-        helperParams.setMargins(0, dpToPx(18), 0, dpToPx(8));
+        helperParams.setMargins(0, SettingsUi.dp(getContext(), 18), 0, SettingsUi.dp(getContext(), 8));
         dialogView.addView(helper, helperParams);
 
         EditText search = new EditText(context);
@@ -128,6 +130,7 @@ public class SimPresetPreference extends Preference {
         search.setTextColor(getTitleTextColor());
         search.setHintTextColor(getSummaryTextColor());
         SettingsUi.styleEditText(search);
+        SettingsUi.labelEditor(search, L10n.t(getContext(), "Search countries or operators"));
         dialogView.addView(search, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -138,16 +141,16 @@ public class SimPresetPreference extends Preference {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
-        resultParams.setMargins(0, dpToPx(10), 0, 0);
+        resultParams.setMargins(0, SettingsUi.dp(getContext(), 10), 0, 0);
         dialogView.addView(resultCount, resultParams);
 
         ListView listView = new ListView(context);
         listView.setBackgroundColor(Color.TRANSPARENT);
-        int listPadding = Math.max(1, dpToPx(1));
+        int listPadding = Math.max(1, SettingsUi.dp(getContext(), 1));
         listView.setPadding(listPadding, listPadding, listPadding, listPadding);
         listView.setClipToPadding(false);
         listView.setDivider(new ColorDrawable(getDialogDividerColor()));
-        listView.setDividerHeight(Math.max(1, dpToPx(1)));
+        listView.setDividerHeight(Math.max(1, SettingsUi.dp(getContext(), 1)));
         listView.setFooterDividersEnabled(true);
         PresetAdapter adapter = new PresetAdapter(context, visiblePresets);
         listView.setAdapter(adapter);
@@ -156,13 +159,13 @@ public class SimPresetPreference extends Preference {
 
         FrameLayout listContainer = new FrameLayout(context);
         listContainer.setBackground(createListBackground());
-        int containerInset = Math.max(1, dpToPx(1));
+        int containerInset = Math.max(1, SettingsUi.dp(getContext(), 1));
         listContainer.setPadding(containerInset, containerInset, containerInset, containerInset);
         LinearLayout.LayoutParams listParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 SettingsUi.dialogListHeight(context, 320)
         );
-        listParams.setMargins(0, dpToPx(12), 0, dpToPx(14));
+        listParams.setMargins(0, SettingsUi.dp(getContext(), 12), 0, SettingsUi.dp(getContext(), 14));
         listContainer.addView(listView, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
@@ -177,7 +180,7 @@ public class SimPresetPreference extends Preference {
         emptyState.setTag("sim_preset_empty_state");
         emptyState.setFocusable(false);
         emptyState.setVisibility(View.GONE);
-        int emptyPadding = dpToPx(16);
+        int emptyPadding = SettingsUi.dp(getContext(), 16);
         emptyState.setPadding(emptyPadding, emptyPadding, emptyPadding, emptyPadding);
         listContainer.addView(emptyState, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -186,43 +189,17 @@ public class SimPresetPreference extends Preference {
         ));
         dialogView.addView(listContainer, listParams);
 
-        LinearLayout actions = new LinearLayout(context);
-        actions.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
-        // The way back to no preset. Picking a row applied it and closed the dialog, and there
-        // was nothing here that undid that short of retyping three fields.
-        TextView clearButton = new TextView(context);
-        clearButton.setText(L10n.t(context, "Clear preset"));
-        clearButton.setTextSize(16);
-        SettingsUi.styleTextAction(clearButton, false);
-        clearButton.setTag("sim_preset_clear");
-        clearButton.setPadding(dpToPx(12), dpToPx(8), dpToPx(12), dpToPx(6));
-        actions.addView(clearButton, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        ));
-        TextView cancelButton = new TextView(context);
-        cancelButton.setText(android.R.string.cancel);
-        cancelButton.setTextSize(16);
-        SettingsUi.styleTextAction(cancelButton, false);
-        int buttonHorizontalPadding = dpToPx(12);
-        cancelButton.setPadding(buttonHorizontalPadding, dpToPx(8), buttonHorizontalPadding, dpToPx(6));
-        actions.addView(cancelButton, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        ));
-        dialogView.addView(actions, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        ));
-
+        // The actions are the platform's own. They were the last row of this column, under a
+        // list that is never shorter than 220dp, and the custom panel clips rather than scrolls,
+        // so at a large text size they were what got cut. The platform keeps its button panel on
+        // screen and shrinks the custom panel instead.
         AlertDialog dialog = new AlertDialog.Builder(context)
                 .setView(dialogView)
+                // The way back to no preset. Picking a row applied it and closed the dialog, and
+                // nothing undid that short of retyping three fields.
+                .setNeutralButton(L10n.t(context, "Clear preset"), (ignored, which) -> clearPreset())
+                .setNegativeButton(android.R.string.cancel, null)
                 .create();
-        cancelButton.setOnClickListener(view -> dialog.dismiss());
-        clearButton.setOnClickListener(view -> {
-            clearPreset();
-            dialog.dismiss();
-        });
 
         listView.setOnItemClickListener((parent, view, position, id) -> {
             SimPreset preset = visiblePresets.get(position);
@@ -248,7 +225,9 @@ public class SimPresetPreference extends Preference {
 
         filterPresets("", adapter);
         dialog.show();
-        SettingsUi.styleDialog(dialog);
+        SettingsUi.styleFramedDialog(dialog);
+        View clearButton = dialog.getButton(DialogInterface.BUTTON_NEUTRAL);
+        if (clearButton != null) clearButton.setTag("sim_preset_clear");
     }
 
     private boolean savePreset(SimPreset preset) {
@@ -294,8 +273,7 @@ public class SimPresetPreference extends Preference {
         SettingsUi.setResultCount(resultCount, visiblePresets.size());
         if (emptyState == null) return;
         if (visiblePresets.isEmpty()) {
-            emptyState.setText(L10n.t(getContext(), "No matching countries")
-                    + "\n" + L10n.t(getContext(), "Try a country name, or a two-letter code"));
+            emptyState.setText(L10n.t(getContext(), "No matching countries. Try a country name or a two-letter code."));
             emptyState.setVisibility(View.VISIBLE);
         } else {
             emptyState.setVisibility(View.GONE);
@@ -336,14 +314,6 @@ public class SimPresetPreference extends Preference {
         mccMncPreference.setText("");
         operatorNamePreference.setText("");
         refreshSummary("", "", "");
-    }
-
-    private int dpToPx(int dp) {
-        return Math.round(dp * getContext().getResources().getDisplayMetrics().density);
-    }
-
-    private GradientDrawable createDialogBackground() {
-        return SettingsUi.borderedSurface(getContext(), 6, true);
     }
 
     private GradientDrawable createListBackground() {

@@ -15,14 +15,13 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.util.argumentRegister
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val COMMENT_CLASS_DESCRIPTOR = "Lcom/ss/android/ugc/aweme/comment/model/Comment;"
@@ -197,19 +196,6 @@ private fun MutableMethod.addCommentCopySanitizerInstructions(
     )
 }
 
-private fun Instruction.argumentRegister(argumentIndex: Int): Int? =
-    when (this) {
-        is FiveRegisterInstruction -> when (argumentIndex) {
-            0 -> registerC
-            1 -> registerD
-            2 -> registerE
-            3 -> registerF
-            4 -> registerG
-            else -> null
-        }
-        is RegisterRangeInstruction -> startRegister + argumentIndex
-        else -> null
-    }
 
 private fun MethodReference.isClipDataNewPlainText(): Boolean =
     definingClass == CLIP_DATA_CLASS_DESCRIPTOR &&

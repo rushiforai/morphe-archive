@@ -20,6 +20,6 @@ private const val VOICE_COMMENT_KEY = "audio_comment_publish"
  * key that value reads is a name TikTok wrote, and that is the anchor.
  */
 internal fun BytecodePatchContext.resolveVoiceCommentPublishGate(): MutableMethod =
-    resolveLazyAbGate("Enable voice comments", VOICE_COMMENT_KEY) { method ->
+    resolveLazyAbGate("Enable voice comments", VOICE_COMMENT_KEY) { method, _ ->
         method.returnType == "Z" && method.parameterTypes.none() && method.isLazyAbRead()
     }

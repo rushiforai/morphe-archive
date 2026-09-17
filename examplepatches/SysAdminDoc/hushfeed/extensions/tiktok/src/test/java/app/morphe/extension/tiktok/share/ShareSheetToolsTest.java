@@ -262,6 +262,45 @@ public class ShareSheetToolsTest {
         assertNull("a non-recipient action shows no confirm toast", ShadowToast.getLatestToast());
     }
 
+    @Test public void aBrokenConfirmStepNeverLeavesTheShareChannelsDead() {
+        // Upstream had the Share button do nothing and then TikTok stop. Repost, Copy link and
+        // Save all reach this same native gate, so a failure inside it used to consume their
+        // taps too and the whole sheet looked broken. A failure is allowed to hold a send to a
+        // person. It is not allowed to eat an action that was never a person.
+        Settings.SHARE_CONFIRM_SEND.save(true);
+        FrameLayout repost = new FrameLayout(context);
+        repost.setContentDescription("Repost");
+
+        ShareSheetTools.setConfirmationSettingReaderForTests(() -> {
+            throw new IllegalStateException("simulated setting read failure");
+        });
+        assertTrue("a setting nobody can read must not kill the share channels",
+                ShareSheetTools.allowRecipientClick(repost));
+        ShareSheetTools.setConfirmationSettingReaderForTests(null);
+
+        // Now break the confirm step itself, by arming a row whose foreground cannot be put back.
+        AtomicInteger sends = new AtomicInteger();
+        FailingRestoreRecipient armed = new FailingRestoreRecipient(context);
+        armed.setContentDescription("Alice");
+        armed.setClickable(true);
+        armed.layout(0, 0, 100, 100);
+        armed.setOnClickListener(view -> {
+            if (ShareSheetTools.allowRecipientClick(view)) {
+                sends.incrementAndGet();
+            }
+        });
+        ShareSheetTools.bindRecipient(new TestHolder(armed), new UserRecipient("user-a"));
+        assertTrue(armed.performClick());
+        assertEquals(0, sends.get());
+
+        ShadowToast.reset();
+        armed.failNextForegroundChange();
+        assertTrue("a throw while disarming must not kill the share channels either",
+                ShareSheetTools.allowRecipientClick(repost));
+        assertNull("and the action shows no confirm toast on the way through",
+                ShadowToast.getLatestToast());
+    }
+
     @Test public void nestedClickTargetsResolveTheModelBoundCell() {
         Settings.SHARE_CONFIRM_SEND.save(true);
         FrameLayout cell = new FrameLayout(context);

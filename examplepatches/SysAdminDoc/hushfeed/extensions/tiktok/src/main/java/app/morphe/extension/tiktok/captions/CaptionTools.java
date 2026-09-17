@@ -34,6 +34,24 @@ public final class CaptionTools {
     private static String currentId, cueId, cue = "";
     private static boolean clear;
 
+    /**
+     * Puts every static back to a fresh process's state. {@code onVideoChanged(null)} is not that:
+     * it returns early when the id has not changed, so a null id after a null id clears nothing
+     * and the next test inherits the last one's overlay, listener and cue. Three caption tests
+     * only ever passed because of what ran before them in the same fork.
+     */
+    static void resetForTests() {
+        Utils.runOnMainThreadNowOrLater(() -> {
+            detachOverlay();
+            OWNERS.clear();
+            captionSource = new WeakReference<>(null);
+            currentId = null;
+            cueId = null;
+            cue = "";
+            clear = false;
+        });
+    }
+
     public static void onVideoChanged(String id) {
         Utils.runOnMainThreadNowOrLater(() -> {
             if (Objects.equals(currentId, id)) return;

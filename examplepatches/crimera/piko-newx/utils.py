@@ -5,8 +5,6 @@ import sys
 
 import requests
 
-_scraper = None
-
 
 def github_api_headers() -> dict[str, str]:
     """Return authenticated headers for GitHub API requests when available."""
@@ -20,23 +18,12 @@ def github_api_headers() -> dict[str, str]:
     return headers
 
 
-def get_scraper():
-    global _scraper
-    if _scraper is None:
-        import cloudscraper
-        _scraper = cloudscraper.create_scraper()
-        _scraper.headers.update({
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
-        })
-    return _scraper
-
-
 def panic(message: str):
     print(message, file=sys.stderr)
     exit(1)
 
 
-def download(link, out, headers=None, use_scraper=False):
+def download(link, out, headers=None):
     dir_name = os.path.dirname(out)
     if dir_name:
         os.makedirs(dir_name, exist_ok=True)
@@ -45,13 +32,8 @@ def download(link, out, headers=None, use_scraper=False):
         print(f"{out} already exists skipping download")
         return
 
-    if use_scraper:
-        print(f"Downloading with scraper: {link}")
-
-    session = get_scraper() if use_scraper else requests
-
     # https://www.slingacademy.com/article/python-requests-module-how-to-download-files-from-urls/#Streaming_Large_Files
-    with session.get(link, stream=True, headers=headers) as r:
+    with requests.get(link, stream=True, headers=headers, timeout=30) as r:
         r.raise_for_status()
         with open(out, "wb") as f:
             for chunk in r.iter_content(chunk_size=8192):

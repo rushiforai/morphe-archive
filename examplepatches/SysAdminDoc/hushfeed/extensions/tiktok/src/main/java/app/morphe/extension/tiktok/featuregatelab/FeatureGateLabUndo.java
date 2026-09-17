@@ -218,6 +218,26 @@ final class FeatureGateLabUndo {
         }
     }
 
+    /**
+     * Whether there is anything to undo.
+     *
+     * <p>The menu offered Undo whether or not there was, and the only way to find out was to
+     * press it and be told off. Same answer as the check inside {@link #undo()}, asked before
+     * the item is drawn rather than after it is tapped.
+     */
+    static synchronized boolean canUndo() {
+        try {
+            AtomicFile undoFile = file();
+            return undoFile.getBaseFile().isFile()
+                    || new File(undoFile.getBaseFile().getPath() + ".bak").isFile();
+        } catch (Throwable ex) {
+            Logger.printException(() -> "Could not tell whether there is a Lab change to undo", ex);
+            // A menu item that might work beats one that is wrongly greyed out: the tap still
+            // ends in the same check, which says so properly.
+            return true;
+        }
+    }
+
     static synchronized void undo() throws Exception {
         // Asked before the journal is taken: with nothing to undo the file is simply absent,
         // and the reader was shown the private path of a file that does not exist.

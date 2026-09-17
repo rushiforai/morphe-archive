@@ -1,7 +1,9 @@
 package app.template.extension.settings;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -9,6 +11,12 @@ import android.view.View;
 import android.view.WindowInsets;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Standalone host for {@link ModSettingsView}. Added to the Letterboxd manifest by the "Mod
@@ -75,5 +83,85 @@ public class ModSettingsActivity extends Activity {
 
     private int dp(float value) {
         return Math.round(value * getResources().getDisplayMetrics().density);
+    }
+
+    // --- config export / import -----------------------------------------
+
+    private static final int REQ_EXPORT = 0x4011;
+    private static final int REQ_IMPORT = 0x4012;
+
+    void pickExport() {
+        try {
+            startActivityForResult(new Intent(Intent.ACTION_CREATE_DOCUMENT)
+                    .addCategory(Intent.CATEGORY_OPENABLE)
+                    .setType("application/json")
+                    .putExtra(Intent.EXTRA_TITLE, "letterboxd-mods-config.json"), REQ_EXPORT);
+        } catch (Throwable t) {
+            toast("No file picker available");
+        }
+    }
+
+    void pickImport() {
+        try {
+            // "*/*" not "application/json" — some pickers hide .json files under the strict type.
+            startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT)
+                    .addCategory(Intent.CATEGORY_OPENABLE)
+                    .setType("*/*"), REQ_IMPORT);
+        } catch (Throwable t) {
+            toast("No file picker available");
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
+        Uri uri = data.getData();
+
+        if (requestCode == REQ_EXPORT) {
+            try (OutputStream out = getContentResolver().openOutputStream(uri, "wt")) {
+                if (out == null) throw new Exception("no stream");
+                out.write(ConfigTransfer.export(this).getBytes(StandardCharsets.UTF_8));
+                toast("Settings exported");
+            } catch (Throwable t) {
+                toast("Couldn't write that file");
+            }
+        } else if (requestCode == REQ_IMPORT) {
+            String text;
+            try (InputStream in = getContentResolver().openInputStream(uri)) {
+                if (in == null) throw new Exception("no stream");
+                text = readAll(in);
+            } catch (Throwable t) {
+                toast("Couldn't read that file");
+                return;
+            }
+            int n = ConfigTransfer.importJson(this, text);
+            if (n < 0) {
+                toast("That doesn't look like a Mods config");
+                return;
+            }
+            toast("Imported " + n + " setting" + (n == 1 ? "" : "s"));
+            RestartHelper.promptRestart(this);
+        }
+    }
+
+    private static String readAll(InputStream in) throws Exception {
+        ByteArrayOutputStream buf = new ByteArrayOutputStream();
+        byte[] chunk = new byte[4096];
+        int read;
+        int total = 0;
+        while ((read = in.read(chunk)) != -1) {
+            total += read;
+            if (total > 1_000_000) throw new Exception("file too large"); // a config is a few KB
+            buf.write(chunk, 0, read);
+        }
+        return buf.toString("UTF-8");
+    }
+
+    private void toast(String message) {
+        try {
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        } catch (Throwable ignored) {
+        }
     }
 }

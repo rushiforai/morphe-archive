@@ -17,14 +17,21 @@ import org.robolectric.annotation.Config;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28)
 public class ContentAndSoundFilterTest {
-    private final IFilter[] markers = {new ContentMarkerFilters.AiGeneratedFilter(),
-            new ContentMarkerFilters.PaidPartnershipFilter(), new ContentMarkerFilters.SeriesFilter(),
-            new ContentMarkerFilters.PlaylistFilter(), new ContentMarkerFilters.VerifiedFilter()};
-    private final BooleanSetting[] switches = {Settings.HIDE_AI_GENERATED, Settings.HIDE_PAID_PARTNERSHIP,
-            Settings.HIDE_SERIES, Settings.HIDE_PLAYLIST_VIDEOS, Settings.HIDE_VERIFIED};
+    // Built in setup(), not in a field initializer: a field initializer runs before the first
+    // @Before, so naming a Setting here loads the settings classes with no context behind them.
+    // SharedPrefCategory then throws, and an ExceptionInInitializerError is permanent for the
+    // whole fork, so every later class that touches a setting fails too. This class used to get
+    // away with it only when some other class happened to run first and leave a context set.
+    private IFilter[] markers;
+    private BooleanSetting[] switches;
 
     @Before public void setup() {
         Utils.setContext(RuntimeEnvironment.getApplication());
+        markers = new IFilter[]{new ContentMarkerFilters.AiGeneratedFilter(),
+                new ContentMarkerFilters.PaidPartnershipFilter(), new ContentMarkerFilters.SeriesFilter(),
+                new ContentMarkerFilters.PlaylistFilter(), new ContentMarkerFilters.VerifiedFilter()};
+        switches = new BooleanSetting[]{Settings.HIDE_AI_GENERATED, Settings.HIDE_PAID_PARTNERSHIP,
+                Settings.HIDE_SERIES, Settings.HIDE_PLAYLIST_VIDEOS, Settings.HIDE_VERIFIED};
         for (BooleanSetting setting : switches) setting.save(false);
         Settings.HIDE_BLOCKED_SOUNDS.save(false);
         Settings.BLOCKED_SOUND_IDS.save("");
@@ -50,7 +57,12 @@ public class ContentAndSoundFilterTest {
         item.aigcInfo = new Label(1);
         assertTrue(markers[0].getFiltered(item));
         item.aigcInfo = null;
-        item.moderationAigcInfo = new Object();
+        item.moderationAigcInfo = new Moderation(0, 0);
+        assertFalse("a moderation struct with every field at zero is not an AI label",
+                markers[0].getFiltered(item));
+        item.moderationAigcInfo = new Moderation(2, 0);
+        assertTrue(markers[0].getFiltered(item));
+        item.moderationAigcInfo = new Moderation(0, 1);
         assertTrue(markers[0].getFiltered(item));
     }
 
@@ -76,12 +88,50 @@ public class ContentAndSoundFilterTest {
         assertTrue(markers[2].getFiltered(item));
         assertFalse(markers[3].getFiltered(item));
         item.isPaidContent = false;
-        item.mPaidContentInfo = new Object();
+        item.mPaidContentInfo = new PaidContent(4471L, "Night Shift", "1", false);
         assertTrue(markers[2].getFiltered(item));
         item.mPaidContentInfo = null;
-        item.mixInfo = new Object();
+        item.mixInfo = new Mix("mix-1", null);
         assertFalse(markers[2].getFiltered(item));
         assertTrue(markers[3].getFiltered(item));
+    }
+
+    /**
+     * Issue #5: with Hide series on, nine of ten videos in a For You batch were removed as
+     * SeriesFilter and the feed never loaded. TikTok hangs a PaidContentInfo on ordinary
+     * recommended videos with its fields at defaults, so the struct being there meant nothing.
+     * The same shape was in the playlist and AI filters.
+     */
+    @Test public void anEmptyStructIsNotAMarkerOnAnyOfTheThreeFiltersThatUsedPresence() {
+        Item ordinary = new Item();
+        ordinary.mPaidContentInfo = new PaidContent();
+        ordinary.mixInfo = new Mix(null, null);
+        ordinary.moderationAigcInfo = new Moderation(0, 0);
+        assertFalse("an empty paid content struct removed the whole feed in issue #5",
+                markers[2].getFiltered(ordinary));
+        assertFalse("an empty mix struct is not a playlist", markers[3].getFiltered(ordinary));
+        assertFalse("an empty moderation struct is not an AI label", markers[0].getFiltered(ordinary));
+
+        // Blank is the same as absent: the strings TikTok sends are empty, not null.
+        ordinary.mPaidContentInfo = new PaidContent(0L, "  ", " ", false);
+        ordinary.mixInfo = new Mix("", "   ");
+        assertFalse(markers[2].getFiltered(ordinary));
+        assertFalse(markers[3].getFiltered(ordinary));
+
+        // Each real signal on its own still matches.
+        Item series = new Item();
+        series.mPaidContentInfo = new PaidContent(9182736L, null, null, false);
+        assertTrue("a paid collection id is a series", markers[2].getFiltered(series));
+        series.mPaidContentInfo = new PaidContent(0L, "Night Shift", null, false);
+        assertTrue("a collection name is a series", markers[2].getFiltered(series));
+        series.mPaidContentInfo = new PaidContent(0L, null, "3", false);
+        assertTrue("an episode number is a series", markers[2].getFiltered(series));
+        series.mPaidContentInfo = new PaidContent(0L, null, null, true);
+        assertTrue("a collection intro is a series", markers[2].getFiltered(series));
+
+        Item playlist = new Item();
+        playlist.mixInfo = new Mix(null, "Part 3 of my trip");
+        assertTrue("a named mix is a playlist", markers[3].getFiltered(playlist));
     }
 
     @Test public void verifiedAccountsMatchNumericCustomAndEnterpriseMarkers() {
@@ -182,6 +232,46 @@ public class ContentAndSoundFilterTest {
         Commerce(boolean value) { this.value = value; }
         public boolean isCommerce() { return value; }
     }
+    /** TikTok's PaidContentInfo: attached to ordinary videos with everything at its default. */
+    private static final class PaidContent {
+        long paidCollectionId;
+        String collectionName;
+        String episodeNumber;
+        boolean isPaidCollectionIntro;
+
+        PaidContent() {
+        }
+
+        PaidContent(long paidCollectionId, String collectionName, String episodeNumber, boolean intro) {
+            this.paidCollectionId = paidCollectionId;
+            this.collectionName = collectionName;
+            this.episodeNumber = episodeNumber;
+            this.isPaidCollectionIntro = intro;
+        }
+    }
+
+    /** TikTok's MixStruct, which is only a playlist when it has an identity. */
+    private static final class Mix {
+        String mixId;
+        String mixName;
+
+        Mix(String mixId, String mixName) {
+            this.mixId = mixId;
+            this.mixName = mixName;
+        }
+    }
+
+    /** TikTok's ModerationAigcInfo, whose label types are zero on an unlabelled video. */
+    private static final class Moderation {
+        int moderationAigcLabelType;
+        int moderationUserLabelStatus;
+
+        Moderation(int labelType, int userLabelStatus) {
+            this.moderationAigcLabelType = labelType;
+            this.moderationUserLabelStatus = userLabelStatus;
+        }
+    }
+
     private static final class Author {
         public int verificationType;
         public String customVerify, enterpriseVerifyReason;

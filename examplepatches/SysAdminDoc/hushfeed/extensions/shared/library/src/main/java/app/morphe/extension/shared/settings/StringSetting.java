@@ -11,8 +11,6 @@ package app.morphe.extension.shared.settings;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.Objects;
 
@@ -50,11 +48,6 @@ public class StringSetting extends Setting<String> {
     @Override
     protected void load() {
         value = preferences.getString(key, defaultValue);
-    }
-
-    @Override
-    protected String readFromJSON(JSONObject json, String importExportKey) throws JSONException {
-        return json.getString(importExportKey);
     }
 
     @Override

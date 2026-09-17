@@ -14,6 +14,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.numberOfParameterRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 
@@ -39,9 +40,7 @@ val foldableSplitViewPatch = bytecodePatch(
             check(AccessFlags.STATIC.isSet(method.accessFlags)) {
                 "Split view: ${method.name} is not static, so p0 is not its first argument."
             }
-            check(method.implementation!!.registerCount - method.numberOfParameterRegisters >= 1) {
-                "Split check needs a local register"
-            }
+            method.requireLocals("Split view", 1)
             val call = if (live) "invoke-static/range { p0 .. p1 }, $EXTENSION->shouldForce(Landroid/app/Activity;Landroid/content/res/Configuration;)Z"
                 else "invoke-static {}, $EXTENSION->shouldForceContainer()Z"
             method.addInstructions(0, """

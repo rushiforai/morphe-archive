@@ -1,39 +1,86 @@
 # Settings text, English on the left, German on the right, one entry per line, tab separated.
 # scripts/gen-l10n.py turns this into a table inside L10nTranslations.java.
 # Keep %s and %d placeholders, {tokens} and product names as they are.
-%1$s destinations must start with %2$s	%1$s-Ziele müssen mit %2$s beginnen
-%1$s isn't installed or doesn't take links	%1$s ist nicht installiert oder nimmt keine Links an
+%1$d already matched	%1$d stimmten bereits überein
+%1$d areas were checked and everything they need is here.	%1$d Bereiche wurden geprüft und alles, was sie brauchen, ist vorhanden.
+%1$d fields overridden	%1$d Felder überschrieben
+%1$d fields will be overridden when requested	%1$d Felder werden bei der Abfrage überschrieben
+%1$d gates selected	%1$d Schalter ausgewählt
+%1$d minutes left	Noch %1$d Minuten
+%1$d rejected	%1$d abgelehnt
+%1$d results	%1$d Ergebnisse
+%1$d results so far	%1$d Ergebnisse bisher
+%1$d results so far, and more not counted	%1$d Ergebnisse bisher, weitere nicht gezählt
+%1$d results, filtered to %2$s	%1$d Ergebnisse, gefiltert nach %2$s
+%1$d setting was not in that file and was left as it is.	%1$d Einstellung stand nicht in dieser Datei und bleibt unverändert.
+%1$d settings were not in that file and were left as they are.	%1$d Einstellungen standen nicht in dieser Datei und bleiben unverändert.
+%1$d unavailable	%1$d nicht verfügbar
+%1$s (%2$s)	%1$s (%2$s)
+%1$s (custom, unverified)	%1$s (benutzerdefiniert, ungeprüft)
+%1$s (override returned)	%1$s (Überschreibung zurückgegeben)
+%1$s (TikTok value)	%1$s (TikTok-Wert)
+%1$s (will be returned when requested)	%1$s (wird bei der Abfrage zurückgegeben)
+%1$s / current cache only	%1$s / nur aktueller Cache
+%1$s / generated registry	%1$s / generiertes Register
+%1$s / generated registry and current cache	%1$s / generiertes Register und aktueller Cache
+%1$s / local catalog	%1$s / lokaler Katalog
+%1$s and above	Ab %1$s
+%1$s appears more than once in this file.	%1$s kommt in dieser Datei mehrmals vor.
 %1$s changed	%1$s geändert
+%1$s destinations must start with %2$s	%1$s-Ziele müssen mit %2$s beginnen
+%1$s has an invalid value. %2$s	%1$s hat einen ungültigen Wert. %2$s
+%1$s has no supported override boundary in this Lab build.	%1$s hat in diesem Lab-Build keine unterstützte Überschreibungsgrenze.
+%1$s has type %2$s, but the file says %3$s.	%1$s hat den Typ %2$s, in der Datei steht %3$s.
+%1$s is not a country code, so no video would ever match it. Use two letters, like GB, IE or US.	%1$s ist kein Ländercode, also würde kein Video jemals dazu passen. Nimm zwei Buchstaben, etwa GB, IE oder US.
+%1$s is not in this Lab catalog.	%1$s ist nicht in diesem Lab-Katalog enthalten.
+%1$s isn't installed or doesn't take links	%1$s ist nicht installiert oder nimmt keine Links an
+%1$s left	Noch %1$s
+%1$s min left	Noch %1$s Min.
+%1$s to %2$s	%1$s bis %2$s
+%1$s videos left	Noch %1$s Videos
+%1$s was rejected. %2$s	%1$s wurde abgelehnt. %2$s
+%1$s, %2$s, %3$s, %4$s, %5$s	%1$s, %2$s, %3$s, %4$s, %5$s
+%1$s, selected	%1$s, ausgewählt
+%1$s. %2$s	%1$s. %2$s
+%1$s: %2$d found, %3$d missing	%1$s: %2$d gefunden, %3$d fehlen
+%1$s: %2$d found, %3$d missing, and more it stopped counting	%1$s: %2$d gefunden, %3$d fehlen, und weitere, die nicht mehr gezählt wurden
+%1$s: %2$d found, %3$d missing, and more it stopped counting. First missing: %4$s	%1$s: %2$d gefunden, %3$d fehlen, und weitere, die nicht mehr gezählt wurden. Zuerst fehlte: %4$s
+%1$s: %2$d found, %3$d missing. First missing: %4$s	%1$s: %2$d gefunden, %3$d fehlen. Zuerst fehlte: %4$s
+1 field overridden	1 Feld überschrieben
+1 field will be overridden when requested	1 Feld wird bei der Abfrage überschrieben
+1 gate selected	1 Schalter ausgewählt
+1 min left	Noch 1 Min.
+1 result	1 Ergebnis
+1 result so far	1 Ergebnis bisher
+1 video left	Noch 1 Video
 A creator pattern is taking too long and was switched off: %1$s	Ein Kreator-Muster braucht zu lange und wurde abgeschaltet: %1$s
+A diagnostic report is already being saved.	Ein Diagnosebericht wird gerade gespeichert.
+A field value could not be read. Check the values and try again.	Ein Feldwert konnte nicht gelesen werden. Prüfe die Werte und versuche es erneut.
+A good place to stop, if you want one.	Ein guter Moment zum Aufhören, falls du einen suchst.
 A hidden puzzle may be the cause.	Ein ausgeblendetes Rätsel kann die Ursache sein.
 A host to put in place of tiktok.com when you share or copy a link, like vxtiktok.com. Leave it empty to share TikTok's own links. Only TikTok links are changed, and only the host: nothing is sent anywhere new.	Ein Host, der beim Teilen oder Kopieren an die Stelle von tiktok.com tritt, zum Beispiel vxtiktok.com. Leer lassen, um TikToks eigene Links zu teilen. Geändert werden nur TikTok-Links und nur der Host, es wird nichts irgendwohin geschickt.
-Automatic advance stopped after one video	Automatisches Weiterschalten nach einem Video angehalten
-Block this commenter	Diesen Kommentierenden blockieren
-Blocked	Blockiert
-Clear preset	Voreinstellung löschen
-Completed an interrupted settings change. Restart TikTok to apply this.	Eine unterbrochene Einstellungsänderung wurde abgeschlossen. TikTok neu starten, damit das gilt.
-Copy the sound link	Soundlink kopieren
-Copy the video link	Videolink kopieren
-Current: %1$s	Aktuell: %1$s
-Discard edits	Änderungen verwerfen
-Empty the menu that opens when you press and hold TikTok's icon on the home screen. Turning this off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut you pinned yourself stays where you put it.	Das Menü leeren, das sich beim langen Drücken des TikTok-Symbols auf dem Startbildschirm öffnet. Wird dies ausgeschaltet, wird TikTok gebeten, sie wieder aufzubauen. Ein Tippen auf das Symbol öffnet die App weiterhin, und eine selbst angeheftete Verknüpfung bleibt dort, wo sie abgelegt wurde.
-Field edits were discarded.	Die Feldänderungen wurden verworfen.
-Field edits were not saved.	Die Feldänderungen wurden nicht gespeichert.
-Full comment sort options	Vollständige Sortieroptionen für Kommentare
-Hide the launcher shortcuts	Launcher-Verknüpfungen ausblenden
-Keep the Favorites tab	Favoriten-Tab behalten
-Link copied	Link kopiert
-No videos remained after Hushfeed applied your feed filters to one batch. Most matches: %1$s.	Nach Hushfeeds Feed-Filtern blieb in einem Stapel kein Video übrig. Häufigste Treffer: %1$s.
-Not blocked	Nicht blockiert
-Not saved yet	Noch nicht gespeichert
-Nothing on this page changes what TikTok does until they are on.	Nichts auf dieser Seite ändert etwas an TikTok, solange sie aus sind.
-Recovered an interrupted settings change. Restart TikTok to apply this.	Eine unterbrochene Einstellungsänderung wurde wiederhergestellt. TikTok neu starten, damit das gilt.
-Save media	Medien speichern
+A Lab change is already running	Eine Lab-Änderung läuft bereits
+A newer clear replaced that undo. Tap the row again to put it back.	Ein neueres Löschen hat dieses Rückgängig ersetzt. Erneut auf die Zeile tippen, um es zurückzuholen.
+A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out.	Ein kleines Label im Feed zeigt die verbleibenden Minuten oder Videos des heutigen Budgets.
 A tap on a person in the Send to row only selects them. A second tap on the same person within four seconds sends the video.	Ein Tippen auf eine Person in der Zeile „Senden an“ wählt sie nur aus. Ein zweites Tippen auf dieselbe Person innerhalb von vier Sekunden sendet das Video.
-Add a block button to the video player that blocks the account that posted the current video in one tap. An undo action is shown after each block.	Dem Videoplayer eine Schaltfläche hinzufügen, die das Konto hinter dem aktuellen Video mit einem Tippen blockiert. Nach jeder Blockierung wird eine Rückgängig-Aktion angezeigt.
+A web address someone left in a comment can be tapped instead of copied out by hand. Tapping anywhere else in the comment still does what it did.	Eine Webadresse in einem Kommentar lässt sich antippen, statt sie von Hand herauszukopieren. Ein Tippen an anderer Stelle im Kommentar tut weiterhin das, was es vorher tat.
+Account warning: forced client values apply to every account in this app data and cannot bypass server controls.	Kontowarnung: Erzwungene Werte auf dem Gerät gelten für jedes Konto in diesen App-Daten und umgehen keine Serverregeln.
+Account-sensitive name: forcing this key may affect security, login, compliance, region, payment, or account safety behavior.	Kontosensibler Name: Diesen Schlüssel zu erzwingen kann Sicherheit, Anmeldung, Compliance, Region, Zahlungen oder den Kontoschutz beeinflussen.
+Activity	Aktivität
+Activity Center (PIA)	Activity Center (PIA)
+Add	Hinzufügen
+Add a block button to the video player that blocks the creator of the current video in one tap. An undo action is shown after each block.	Dem Videoplayer eine Schaltfläche hinzufügen, die den Ersteller des aktuellen Videos mit einem Tippen blockiert. Nach jeder Blockierung wird eine Rückgängig-Aktion angezeigt.
 Add a button beside the block control to send feedback about the current video.	Neben der Blockieren-Schaltfläche eine Schaltfläche hinzufügen, um Feedback zum aktuellen Video zu senden.
+Add a separate button that skips this account locally without blocking it.	Eine separate Schaltfläche hinzufügen, die dieses Konto lokal überspringt, ohne es zu blockieren.
+Add a separate button that skips videos using the current sound.	Eine separate Schaltfläche hinzufügen, die Videos mit dem aktuellen Sound überspringt.
+Add hidden creator	Ausgeblendeten Creator hinzufügen
+Ads	Anzeigen
 Advance when a video ends	Weiterschalten, wenn ein Video endet
+Advanced JSON value	Erweiterter JSON-Wert
+AI-generated posts	KI-generierte Beiträge
+All	Alle
 All available languages	Alle verfügbaren Sprachen
+All events	Alle Ereignisse
 All loaded tabs	Alle geladenen Tabs
 Allow Duet and Stitch anyway	Duett und Stitch trotzdem erlauben
 Allow screenshots and Circle to Search	Screenshots und Circle to Search erlauben
@@ -44,30 +91,22 @@ Also change the region TikTok reports internally. Keeps your interface language.
 Always show publish date	Veröffentlichungsdatum immer anzeigen
 Always show the publish date in video author information. Restart TikTok to apply this.	Das Veröffentlichungsdatum immer bei den Angaben zum Video anzeigen. TikTok neu starten, damit das gilt.
 An app's package name, like com.dv.adm. The save button sends the video's link there instead of saving it here. Leave it empty to save here.	Der Paketname einer App, etwa com.dv.adm. Die Speichern-Schaltfläche schickt den Link des Videos dorthin, statt es hier zu speichern. Leer lassen, um hier zu speichern.
+An interrupted settings change could not be recovered, so its record was set aside. Check your settings or restore a backup.	Eine unterbrochene Einstellungsänderung ließ sich nicht wiederherstellen, ihre Aufzeichnung wurde beiseitegelegt. Prüfe deine Einstellungen oder stelle eine Sicherung wieder her.
 An operator code is five or six digits, like 310260	Ein Betreibercode hat fünf oder sechs Ziffern, zum Beispiel 310260
+An override changes the value returned by the getter. It does not rewrite TikTok's cached value or prove the named feature changed.	Eine Überschreibung ändert den Wert, den der Getter zurückgibt. Sie schreibt TikToks zwischengespeicherten Wert nicht um und beweist nicht, dass sich die genannte Funktion geändert hat.
 Animated sticker format	Format animierter Sticker
-Automatic advance stopped after %1$d videos	Automatisches Weiterschalten nach %1$d Videos angehalten
+App AB	App-AB
 App behavior	App-Verhalten
 Applies to both video and photo downloads.	Gilt für Video- und Foto-Downloads.
+Apply	Übernehmen
 Arrange your feed and bottom tabs	Ordne deine Feed-Tabs und unteren Tabs an
-Auto-advance session limit	Limit für automatisches Weiterschalten pro Sitzung
-Saved	Gespeichert
-Show TikTok's own sort sheet on every post, with its hot, newest, media and creator options, instead of whichever cut-down row your account was given. Restart TikTok to apply this. It reads the style once per run and remembers it.	TikToks eigenes Sortiermenü bei jedem Beitrag zeigen, mit Beliebt, Neueste, Medien und Ersteller, statt der gekürzten Zeile, die dein Konto bekommen hat. TikTok neu starten, damit das gilt. Es liest den Stil einmal pro Start und merkt ihn sich.
-Sound link copied	Soundlink kopiert
-Tap again to follow	Noch einmal tippen zum Folgen
-Tap again to like	Noch einmal tippen zum Liken
-That is one minute today	Das ist eine Minute heute
-That is one video today	Das ist ein Video heute
-This video has no link to copy	Dieses Video hat keinen Link zum Kopieren
-This video has no sound of its own	Dieses Video hat keinen eigenen Sound
-TikTok's server can put an account into an experiment that empties the Favorites tab on your profile. Keep the tab and its saved videos.	TikToks Server kann ein Konto in ein Experiment stecken, das den Favoriten-Tab im Profil leert. Behält den Tab und seine gespeicherten Videos.
-Turn on %1$s first.	Zuerst %1$s einschalten.
-Turn on overrides	Überschreibungen einschalten
-Unblock this commenter	Blockierung dieses Kommentierenden aufheben
-Zero means no limit. Counts the videos Hushfeed advanced past for you, not the ones you swiped yourself, and starts again when the feed is rebuilt or you change this number.	Null bedeutet kein Limit. Zählt die Videos, die Hushfeed für dich weitergeschaltet hat, nicht die, die du selbst weggewischt hast, und beginnt neu, wenn der Feed neu aufgebaut wird oder du diese Zahl änderst.
-Auto translate comments	Kommentare automatisch übersetzen
 Audio	Audio
+Auto translate comments	Kommentare automatisch übersetzen
+Auto-advance session limit	Limit für automatisches Weiterschalten pro Sitzung
 Automatic	Automatisch
+Automatic advance	Automatisches Weiterschalten
+Automatic advance stopped after %1$d videos	Automatisches Weiterschalten nach %1$d Videos angehalten
+Automatic advance stopped after one video	Automatisches Weiterschalten nach einem Video angehalten
 Automatic clear display	Automatische freie Ansicht
 Back	Zurück
 Back up settings	Einstellungen sichern
@@ -75,33 +114,48 @@ Backups and troubleshooting	Sicherungen und Fehlerdiagnose
 Black	Schwarz
 Block new bottom tabs	Neue untere Tabs blockieren
 Block new TikTok tabs	Neue TikTok-Tabs blockieren
-Block this account	Dieses Konto blockieren
+Block this commenter	Diesen Kommentierenden blockieren
+Block this creator	Diesen Ersteller blockieren
 Block this sound	Diesen Sound blockieren
+Blocked	Blockiert
 Blocked %1$s	%1$s blockiert
 Blocked caption words	Gesperrte Wörter in Beschreibungen
 Blocked comment words	Gesperrte Wörter in Kommentaren
 Blocked creators	Gesperrte Creator
 Blocked sound ids	Gesperrte Sound-IDs
 Blocked sound names	Gesperrte Sound-Namen
+Blocked sounds	Blockierte Sounds
+Boolean	Boolesch
 Browse	Durchsuchen
 Cancel	Abbrechen
 Caption background	Untertitel-Hintergrund
 Caption text size	Textgröße der Untertitel
+Captions	Untertitel
 Captions, gestures and on-screen controls	Untertitel, Gesten und Bildschirmelemente
 Capture crash reports locally	Absturzberichte lokal speichern
 Choose 1-1000 videos. Values outside this range use the nearest valid limit. Restart TikTok to apply this.	1 bis 1000 Videos wählen. Werte außerhalb dieses Bereichs nehmen die nächste gültige Grenze. TikTok neu starten, damit das gilt.
 Choose a backup file. Your current settings are kept for Undo.	Wähle eine Sicherungsdatei. Deine aktuellen Einstellungen bleiben zum Rückgängigmachen erhalten.
+Choose a preset to fill the SIM details.	Eine Vorlage wählen, um die SIM-Angaben auszufüllen.
+Choose a subfolder under %1$s.	Wähle einen Unterordner in %1$s.
+Choose observed share actions to hide. The stable identifier is shown below each label; unknown saved identifiers stay in the manual list.	Wähle beobachtete Share-Aktionen zum Ausblenden. Die stabile Kennung steht unter jedem Namen; unbekannte gespeicherte Kennungen bleiben in der manuellen Liste.
 Choose what reaches your feed	Wähle aus, was in deinem Feed erscheint
 Choose which loaded TikTok bottom navigation tabs should stay visible.	Wähle, welche geladenen Tabs der unteren TikTok-Navigation sichtbar bleiben.
 Choose which loaded TikTok feed tabs should stay visible.	Wähle, welche geladenen TikTok-Feed-Tabs sichtbar bleiben.
 Choose which rows and controls appear	Wähle sichtbare Zeilen und Bedienelemente
 Clear all	Alle löschen
+Clear all Lab data (overrides, switch, recordings)	Alle Labordaten löschen (Überschreibungen, Schalter, Aufzeichnungen)
 Clear all suggested accounts	Alle vorgeschlagenen Konten löschen
 Clear buffered events, saved crash reports and the hook status above.	Gepufferte Ereignisse, gespeicherte Absturzberichte und den Hook-Status oben löschen.
 Clear diagnostic data	Diagnosedaten löschen
 Clear display delay	Verzögerung der freien Ansicht
+Clear preset	Voreinstellung löschen
+Clear search	Suche löschen
+Clear the search	Suche löschen
 Clear the seen video history	Verlauf gesehener Videos löschen
 Cleared. Tap again to put the record back.	Gelöscht. Tippe erneut, um alles zurückzuholen.
+Clearing	Wird entfernt
+Clearing suggested accounts	Kontovorschläge werden entfernt
+Clearing, %1$d so far	Wird geleert, bisher %1$d
 Close	Schließen
 code %1$s	Code %1$s
 Comma separated account handles or user ids. These accounts are always skipped. An entry between slashes, like /^news_/, is a pattern matched against the handle and the display name.	Kommagetrennte Konto-Namen oder Nutzer-IDs. Diese Konten werden immer übersprungen. Ein Eintrag zwischen Schrägstrichen, etwa /^news_/, ist ein Muster für den @Namen und den Anzeigenamen.
@@ -111,108 +165,210 @@ Comma separated list of any other Inbox row titles to hide, matched exactly. Use
 Comma separated names exactly as the share sheet shows them: friends in the Send to row, share targets such as Facebook, and actions such as Create group or Repost. Stable keys such as copy, save and dislike also work before the sheet opens.	Namen, durch Kommas getrennt, genau so, wie das Teilen-Menü sie zeigt: Freunde in der Zeile „Senden an“, Ziele wie Facebook und Aktionen wie „Gruppe erstellen“ oder „Reposten“. Feste Schlüssel wie copy, save und dislike funktionieren auch, bevor das Menü sich öffnet.
 Comma separated sound ids recorded by the player's sound button. Remove one to unblock it.	Sound-IDs, durch Kommas getrennt, die über die Sound-Taste im Player erfasst wurden. Entferne eine, um sie freizugeben.
 Comma separated usernames or display names whose comments are hidden.	Nutzernamen oder Anzeigenamen, durch Kommas getrennt, deren Kommentare ausgeblendet werden.
+Comma separated words or phrases. Matching captions are skipped. Case does not matter. Two phrases in quotes can be joined: "a" & "b" needs both, "a" !& "b" needs the first without the second.	Wörter oder Wendungen, durch Kommas getrennt. Passende Beschreibungen werden übersprungen. Groß- und Kleinschreibung spielt keine Rolle. Zwei Wendungen in Anführungszeichen lassen sich verbinden: "a" & "b" verlangt beide, "a" !& "b" die erste ohne die zweite.
 Comma separated words to match against a sound's name, like saxophone. Case does not matter.	Wörter, durch Kommas getrennt, die mit dem Namen eines Sounds verglichen werden, zum Beispiel Saxophon. Groß- und Kleinschreibung spielt keine Rolle.
+Comma separated. A comment is hidden if its text contains any of them. Case does not matter. Two phrases in quotes can be joined: "a" & "b" needs both, "a" !& "b" needs the first without the second.	Durch Kommas getrennt. Ein Kommentar wird ausgeblendet, wenn sein Text eines davon enthält. Groß- und Kleinschreibung spielt keine Rolle. Zwei Wendungen in Anführungszeichen lassen sich verbinden: "a" & "b" verlangt beide, "a" !& "b" verlangt die erste ohne die zweite.
 Comment media filename	Dateiname für Kommentar-Medien
 Comments and translation	Kommentare und Übersetzung
 Comments aren't available for this video	Für dieses Video gibt es keine Kommentare
 Comments beside the video	Kommentare neben dem Video
 Compare gate reads with their previous values. Last recording: %1$d gates.	Gate-Zugriffe mit ihren vorherigen Werten vergleichen. Letzte Aufzeichnung: %1$d Gates.
+Completed an interrupted settings change. Restart TikTok to apply this.	Eine unterbrochene Einstellungsänderung wurde abgeschlossen. TikTok neu starten, damit das gilt.
+Config	Konfiguration
+Config (Settings Manager)	Konfiguration (Settings Manager)
 Confirm before following	Vor dem Folgen bestätigen
 Confirm before liking	Vor dem Liken bestätigen
 Confirm before sending to a friend	Vor dem Senden an Freunde bestätigen
 Continue supported videos from where you stopped when you scroll back to them.	Unterstützte Videos dort fortsetzen, wo du aufgehört hast, wenn du zu ihnen zurückscrollst.
+Controls	Steuerung
 Copied feature gate report	Gate-Bericht kopiert
 Copy a quick report or save the full report as a file.	Einen Kurzbericht kopieren oder den vollständigen Bericht als Datei speichern.
 Copy comments without username	Kommentare ohne Nutzernamen kopieren
 Copy only the comment text when using TikTok's copy comment action.	Beim Kopieren eines Kommentars über TikTok nur den Kommentartext übernehmen.
+Copy quick report	Kurzbericht kopieren
 Copy report	Bericht kopieren
-Could not save settings backup.	Sicherung der Einstellungen konnte nicht gespeichert werden.
-Could not restore settings.	Einstellungen konnten nicht wiederhergestellt werden.
-Could not tell which folder to update. Choose it again.	Nicht erkennbar, welcher Ordner geändert werden soll. Bitte erneut auswählen.
+Copy the sound link	Soundlink kopieren
+Copy the video link	Videolink kopieren
+Could not change Lab settings.	Die Lab-Einstellungen ließen sich nicht ändern.
+Could not clear suggested accounts	Kontovorschläge konnten nicht entfernt werden
 Could not confirm block for %1$s	Die Blockierung von %1$s konnte nicht bestätigt werden
 Could not confirm unblock for %1$s	Die Aufhebung der Blockierung von %1$s konnte nicht bestätigt werden
 Could not copy report. Use Save JSON.	Bericht konnte nicht kopiert werden. Nutze „JSON speichern“.
+Could not open settings search	Einstellungsuche konnte nicht geöffnet werden
 Could not open settings section	Einstellungsbereich konnte nicht geöffnet werden
+Could not open the export file picker	Die Dateiauswahl zum Exportieren ließ sich nicht öffnen
+Could not open the import file picker	Die Dateiauswahl zum Importieren ließ sich nicht öffnen
+Could not put back the diagnostic data. Try again.	Die Diagnosedaten konnten nicht wiederhergestellt werden. Versuche es erneut.
+Could not put back the seen video history. Try again.	Der Verlauf gesehener Videos konnte nicht zurückgeholt werden. Versuche es erneut.
 Could not read who posted this comment	Konnte nicht lesen, wer diesen Kommentar geschrieben hat
+Could not reset this override.	Diese Überschreibung konnte nicht zurückgesetzt werden.
+Could not restore settings.	Einstellungen konnten nicht wiederhergestellt werden.
+Could not save settings backup.	Sicherung der Einstellungen konnte nicht gespeichert werden.
+Could not save this override.	Diese Überschreibung konnte nicht gespeichert werden.
+Could not send the feedback. Try again shortly.	Die Rückmeldung konnte nicht gesendet werden. Versuche es gleich noch einmal.
+Could not start the Lab change. Try again shortly.	Die Lab-Änderung konnte nicht gestartet werden. Versuche es gleich noch einmal.
+Could not start the report export. Try again shortly.	Der Export des Berichts ließ sich nicht starten. Versuche es gleich noch einmal.
+Could not start the settings operation. Try again shortly.	Die Einstellungsaktion konnte nicht gestartet werden. Versuche es gleich noch einmal.
+Could not tell which folder to update. Choose it again.	Nicht erkennbar, welcher Ordner geändert werden soll. Bitte erneut auswählen.
 Country and network preferences	Land und Netzwerkeinstellungen
 Country ISO	Länder-ISO
+Create	Erstellen
+Creator handle or id	Creator-Handle oder ID
+Creators hidden from later feed batches by the player action. Search the list and remove one entry at a time.	Mit der Player-Aktion lokal ausgeblendete Creator aus späteren Feed-Ladungen ausblenden. Durchsuche die Liste und entferne einzelne Einträge.
+Current	Aktuell
+Current %1$s	Aktuell %1$s
+Current cache unavailable: %1$s	Aktueller Cache nicht verfügbar: %1$s
+Current state	Aktueller Zustand
+Current: %1$s	Aktuell: %1$s
 Current: %1$s %2$s	Aktuell: %1$s %2$s
-Use your own offline videos limit	Eigene Grenze für Offline-Videos verwenden
+Custom %1$s value (unverified)	Eigener %1$s-Wert (ungeprüft)
 Custom SIM details	Eigene SIM-Angaben
+Custom value (unverified)	Eigener Wert (ungeprüft)
+Custom value...	Benutzerdefinierter Wert...
+Daily budget	Tagesbudget
+Daily time budget	Tägliches Zeitbudget
+Daily video budget	Tägliches Videobudget
 Dark	Dunkel
 day	Tag
 days	Tage
 Days to remember a video. Zero removes the age limit. History keeps at most 10,000 videos.	Tage, die ein Video gemerkt wird. Null hebt die Altersgrenze auf. Der Verlauf behält höchstens 10.000 Videos.
+Days. Zero keeps every age. Posts without a usable timestamp, including future posts, stay visible.	Tage. Null lässt jedes Alter zu. Beiträge ohne brauchbaren Zeitstempel, auch zukünftige, bleiben sichtbar.
+Default	Standard
 Default playback speed	Standard-Wiedergabegeschwindigkeit
 Delete the local record of the videos you have watched.	Die lokale Aufzeichnung der Videos löschen, die du gesehen hast.
 Device language, then original	Gerätesprache, dann Original
+Diagnostic data cleared. Tap again to put it back.	Diagnosedaten gelöscht. Tippe erneut, um sie wiederherzustellen.
+Diagnostic data put back.	Diagnosedaten wiederhergestellt.
+Diagnostic report copied to the clipboard.	Diagnosebericht in die Zwischenablage kopiert.
 Diagnostics	Diagnose
+Disable	Ausschalten
 Disable analytics and tracking	Analyse und Tracking abschalten
 Disable the long press quick share	Schnelles Teilen per langem Drücken abschalten
 Disable the long press repost	Repost per langem Drücken abschalten
+Disabled	Ausgeschaltet
+Discard edits	Änderungen verwerfen
 Dismissed %1$s suggested accounts	%1$s Kontovorschläge entfernt
 Dismissed one suggested account	Ein Kontovorschlag entfernt
+Display	Anzeige
+Do not start the feed on returning	Feed beim Zurückkommen nicht starten
 Do nothing	Nichts tun
+Done	Fertig
 Double tap	Doppeltippen
 Download original photos	Originalfotos herunterladen
 Download path updated	Speicherort aktualisiert
 Downloads	Downloads
+dp	dp
 Drag to move, release to place	Zum Verschieben ziehen, zum Ablegen loslassen
+Drama and Series	Drama und Serien
 Drop the notification saying somebody new followed you before it reaches the drawer. Every other notification is left alone, and the follower still appears in the Inbox.	Die Benachrichtigung, dass dir jemand Neues folgt, verwerfen, bevor sie in der Leiste landet. Alle anderen Benachrichtigungen bleiben unberührt, und der Follower erscheint weiterhin im Posteingang.
+Each area, how many of the things it looks for are in this build and how many are not.	Jeder Bereich, wie viel von dem, was er sucht, in diesem Build steckt und wie viel nicht.
+Empty	Leer
+Empty the menu that opens when you press and hold TikTok's icon on the home screen. Turning this off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut you pinned yourself stays where you put it.	Das Menü leeren, das sich beim langen Drücken des TikTok-Symbols auf dem Startbildschirm öffnet. Wird dies ausgeschaltet, wird TikTok gebeten, sie wieder aufzubauen. Ein Tippen auf das Symbol öffnet die App weiterhin, und eine selbst angeheftete Verknüpfung bleibt dort, wo sie abgelegt wurde.
+Enable	Einschalten
 Enable diagnostic logging	Diagnoseprotokoll einschalten
 Enable hold-and-slide 2x lock	2x-Sperre per Halten und Wischen
+Enable overrides	Überschreibungen aktivieren
+Enabled	Eingeschaltet
+Enter a creator handle or id	Gib einen Creator-Handle oder eine ID ein
+Enter a finite number.	Gib eine endliche Zahl ein.
+Enter a JSON object or array.	Gib ein JSON-Objekt oder -Array ein.
+Enter a number	Gib eine Zahl ein
+Enter a number.	Gib eine Zahl ein.
+Enter a valid structured value.	Gib einen gültigen strukturierten Wert ein.
 Enter a valid two-letter country code	Gib einen gültigen Ländercode aus zwei Buchstaben ein
+Enter a valid value for %1$s.	Gib einen gültigen Wert für %1$s ein.
+Enter a whole number, or one like 20K, 1.5M or 2B	Gib eine ganze Zahl ein, oder eine wie 20K, 1.5M oder 2B
+Enter true or false.	Gib true oder false ein.
 Enter up to 8 comma-separated speeds from 0.5 to 3	Bis zu 8 durch Kommas getrennte Geschwindigkeiten von 0.5 bis 3 eingeben
+Enter valid JSON.	Gib gültiges JSON ein.
+Entry %1$d has a field with the wrong data type.	Eintrag %1$d enthält ein Feld mit dem falschen Datentyp.
+Entry %1$d is not an object.	Eintrag %1$d ist kein Objekt.
+Errors	Fehler
 Expand activity list	Aktivitätsliste ausklappen
+Explore	Entdecken
 Export diagnostic report	Diagnosebericht exportieren
+Export loaded values	Geladene Werte exportieren
+Exported %1$d loaded values	%1$d geladene Werte exportiert
+Exported 1 loaded value	1 geladener Wert exportiert
+Fade the feed out before the hold	Feed vor dem Anhalten ausblenden
 Feature Gate Lab	Feature Gate Lab
+Feature Gate Lab could not find the settings container	Das Feature Gate Lab hat den Einstellungsbereich nicht gefunden
+Feature gate override reset	Überschreibung des Schalters zurückgesetzt
+Feature gate override saved	Überschreibung des Schalters gespeichert
+Feed and navigation	Feed und Navigation
+Feed controls	Feed-Steuerung
+Feed elements	Feed-Elemente
 Feed filter	Feed-Filter
 Feed navigation	Feed-Navigation
+Field %1$s can't be changed on this build. Take it out of the override, or reset the override.	Das Feld %1$s lässt sich in diesem Build nicht ändern. Nimm es aus der Überschreibung heraus oder setze die Überschreibung zurück.
+Field edits were discarded.	Die Feldänderungen wurden verworfen.
+Field edits were not saved.	Die Feldänderungen wurden nicht gespeichert.
 Filter bottom tabs	Untere Tabs filtern
 Filter comments by keyword	Kommentare nach Stichwort filtern
 Filter feed tabs	Feed-Tabs filtern
 Filter offline fallback videos	Offline-Ersatzvideos filtern
+Filter settings	Filtereinstellungen
+Filter the list	Liste filtern
+Filter: %1$s	Filter: %1$s
 Filters, translation and copy options	Filter, Übersetzung und Kopieroptionen
+Find a setting by title or description	Einstellung nach Titel oder Beschreibung finden
+First caller	Erster Aufrufer
+First rejection:	Erste Ablehnung:
 Fit the video to the screen	Video an den Bildschirm anpassen
-This phone has no folder picker. Type the folder into the row instead.	Dieses Telefon hat keine Ordnerauswahl. Den Ordner stattdessen in die Zeile eintippen.
+Follow probe	Folgen-Prüfung
+Following	Gefolgt
+For com.deniscerri.ytdl only. Ask YTDLnis for audio or video when the save button hands it a link.	Nur für com.deniscerri.ytdl. Beim Übergeben eines Links kann die Speichertaste YTDLnis um Audio oder Video bitten.
+For com.deniscerri.ytdl only. Hide its download card and start the handoff in the background.	Nur für com.deniscerri.ytdl. Die Downloadkarte wird ausgeblendet und die Übergabe im Hintergrund gestartet.
 For You	Für dich
+Forced %1$d gates of %2$d; the rest do not take a true or false value. Restart TikTok to apply this.	%1$d von %2$d Schaltern erzwungen; die übrigen nehmen kein true oder false. TikTok neu starten, damit das gilt.
+Forced %1$d gates. Restart TikTok to apply this.	%1$d Schalter erzwungen. TikTok neu starten, damit das gilt.
+Forced 1 gate of %1$d; the rest do not take a true or false value. Restart TikTok to apply this.	1 von %1$d Schaltern erzwungen; die übrigen nehmen kein true oder false. TikTok neu starten, damit das gilt.
+Forced 1 gate. Restart TikTok to apply this.	1 Schalter erzwungen. TikTok neu starten, damit das gilt.
+Forced result	Erzwungenes Ergebnis
 Forget seen videos after	Gesehene Videos vergessen nach
+Forget what has been counted today and end any hold. The budgets themselves are left alone.	Vergessen, was heute gezählt wurde, und jede Sperre beenden. Die Budgets selbst bleiben unverändert.
+Friends	Freunde
+Full comment sort options	Vollständige Sortieroptionen für Kommentare
+Full license	Vollständige Lizenz
+Full report saved to %1$s	Vollständiger Bericht gespeichert unter %1$s
+Gate data unavailable	Schalterdaten nicht verfügbar
+Gate details	Schalterdetails
+Generated defaults	Erzeugte Standardwerte
+Gestures	Gesten
 Ghost mode	Geistermodus
 GIF	GIF
+Hidden %1$s locally	%1$s lokal ausgeblendet
 Hidden commenters	Ausgeblendete Kommentierende
+Hidden creators	Ausgeblendete Creator
+Hide	Ausblenden
 Hide activity	Aktivität ausblenden
 Hide activity status	Aktivitätsstatus ausblenden
-Hide the add people icon	Symbol Personen hinzufügen ausblenden
 Hide AI generated videos	KI-generierte Videos ausblenden
 Hide archive	Archiv ausblenden
 Hide bottom tabs TikTok adds later unless you allow them.	Untere Tabs ausblenden, die TikTok später hinzufügt, sofern du sie nicht erlaubst.
 Hide browsing and LIVE puzzle dialogs. Login, account verification and any puzzle raised over a follow, like, comment or repost stay visible.	Rätsel-Dialoge beim Stöbern und in LIVE ausblenden. Anmeldung, Kontobestätigung und jedes Rätsel, das bei Folgen, Liken, Kommentieren oder Reposten kommt, bleiben sichtbar.
 Hide CAPTCHA popups	CAPTCHA-Popups ausblenden
-Hide comment popup ads	Werbe-Popups in Kommentaren ausblenden
 Hide comment polls	Kommentarumfragen ausblenden
+Hide comment popup ads	Werbe-Popups in Kommentaren ausblenden
 Hide comments made of an image or a sticker instead of words.	Kommentare ausblenden, die aus einem Bild oder Sticker statt aus Worten bestehen.
 Hide comments that contain any of the words below, or that come from the accounts below.	Kommentare ausblenden, die eines der Wörter unten enthalten oder von den Konten unten stammen.
 Hide controls after each video starts. Tap to restore them.	Bedienelemente nach dem Start jedes Videos ausblenden. Tippe, um sie wieder einzublenden.
 Hide conversations	Unterhaltungen ausblenden
 Hide every direct message conversation. Leaves the Inbox empty apart from whatever else is still switched on.	Jede Direktnachrichten-Unterhaltung ausblenden. Der Posteingang bleibt leer, abgesehen von allem, was sonst noch eingeschaltet ist.
-Hide the follow button on the feed	Folgen-Knopf im Feed ausblenden
 Hide feed save button	Speichern-Schaltfläche im Feed ausblenden
 Hide feed search button	Suchschaltfläche im Feed ausblenden
 Hide floating promotion badges, coins, and timer banners on the homepage.	Schwebende Werbe-Abzeichen, Münzen und Timer-Banner auf der Startseite ausblenden.
 Hide floating promotions	Schwebende Werbeaktionen ausblenden
-Hide photo posts	Fotobeiträge ausblenden
-Hide the photo posts from the feed.	Die Fotobeiträge aus dem Feed ausblenden.
 Hide inserted cards	Eingeschobene Karten ausblenden
-Hide the LIVE button	LIVE-Knopf ausblenden
 Hide LIVE replays	LIVE-Wiederholungen ausblenden
 Hide LIVE videos	LIVE-Videos ausblenden
-Hide the LIVE videos from the feed.	Die LIVE-Videos aus dem Feed ausblenden.
 Hide message requests	Nachrichtenanfragen ausblenden
 Hide message streaks	Nachrichten-Serien ausblenden
 Hide new follower notifications	Follower-Hinweise ausblenden
 Hide new followers	Neue Follower ausblenden
 Hide paid partnerships	Bezahlte Partnerschaften ausblenden
 Hide people and options by name	Personen und Optionen nach Name ausblenden
+Hide photo posts	Fotobeiträge ausblenden
 Hide picture comments	Bild-Kommentare ausblenden
 Hide playlist videos	Playlist-Videos ausblenden
 Hide promotional music	Werbemusik ausblenden
@@ -224,16 +380,15 @@ Hide Series	Serien ausblenden
 Hide sharing apps	Apps zum Teilen ausblenden
 Hide stories tray	Story-Leiste ausblenden
 Hide story	Storys ausblenden
-Hide the stories from the feed.	Die Stories aus dem Feed ausblenden.
 Hide suggested account rows.	Zeilen mit vorgeschlagenen Konten ausblenden.
 Hide suggested accounts	Vorgeschlagene Konten ausblenden
 Hide surveys	Umfragen ausblenden
 Hide tabs TikTok adds later unless you allow them.	Tabs ausblenden, die TikTok später hinzufügt, sofern du sie nicht erlaubst.
 Hide Tako AI	Tako AI ausblenden
 Hide the "Search this image" prompt TikTok shows over videos when it spots something to shop for.	Den Hinweis „Dieses Bild suchen“ ausblenden, den TikTok über Videos zeigt, wenn es etwas zum Kaufen erkennt.
-Hide the right column	Rechte Spalte ausblenden
 Hide the Activity row of likes and comments on your posts.	Die Zeile „Aktivität“ mit Likes und Kommentaren zu deinen Beiträgen ausblenden.
 Hide the activity status control in the Inbox header.	Das Element für den Aktivitätsstatus in der Kopfzeile des Posteingangs ausblenden.
+Hide the add people icon	Symbol Personen hinzufügen ausblenden
 Hide the add people icon in the Inbox header.	Das Symbol zum Hinzufügen von Personen in der Kopfzeile des Posteingangs ausblenden.
 Hide the Archive row.	Die Zeile „Archiv“ ausblenden.
 Hide the arrow and its count in the right column.	Pfeil und Zähler in der rechten Spalte ausblenden.
@@ -244,36 +399,45 @@ Hide the counts on the right column	Zahlen in der rechten Spalte ausblenden
 Hide the creator's picture and the plus button at the top of the right column. Hide the follow button on the feed hides the plus button on its own.	Das Bild des Erstellers und den Plus-Knopf oben in der rechten Spalte ausblenden. Folgen-Knopf im Feed ausblenden blendet nur den Plus-Knopf aus.
 Hide the description under the creator's name on the feed.	Die Beschreibung unter dem Namen des Creators im Feed ausblenden.
 Hide the event badge	Event-Abzeichen ausblenden
-Hide the favorite button	Favoriten-Knopf ausblenden
-Hide the favorite button and its count in the right column.	Den Favoriten-Knopf und seine Zahl in der rechten Spalte ausblenden.
 Hide the floating promotional badge over the feed.	Das schwebende Werbe-Abzeichen über dem Feed ausblenden.
+Hide the follow button on the feed	Folgen-Knopf im Feed ausblenden
 Hide the friend recommendation card and the other cards TikTok slots between videos.	Die Freundesvorschlagskarte und die anderen Karten ausblenden, die TikTok zwischen Videos einschiebt.
 Hide the heart and its count in the right column.	Herz und Zähler in der rechten Spalte ausblenden.
+Hide the launcher shortcuts	Launcher-Verknüpfungen ausblenden
 Hide the like button	Like-Button ausblenden
+Hide the LIVE button	LIVE-Knopf ausblenden
 Hide the LIVE button in the top left corner of the feed.	Den LIVE-Knopf in der linken oberen Ecke des Feeds ausblenden.
+Hide the LIVE videos from the feed.	Die LIVE-Videos aus dem Feed ausblenden.
 Hide the Message requests row.	Die Zeile „Nachrichtenanfragen“ ausblenden.
 Hide the music disc	Musikplatte ausblenden
 Hide the music line	Musikzeile ausblenden
 Hide the New followers row.	Die Zeile „Neue Follower“ ausblenden.
 Hide the numbers under the like, comment, favorite and share buttons. The buttons stay.	Die Zahlen unter den Knöpfen für Gefällt mir, Kommentare, Favoriten und Teilen ausblenden. Die Knöpfe bleiben.
+Hide the photo posts from the feed.	Die Fotobeiträge aus dem Feed ausblenden.
 Hide the playlist bar	Playlist-Leiste ausblenden
 Hide the playlist bar along the bottom of videos that belong to a series.	Die Playlist-Leiste am unteren Rand von Videos ausblenden, die zu einer Serie gehören.
 Hide the plus button under the creator's picture in the right column. Hide the avatar and follow button hides the picture with it.	Den Plus-Knopf unter dem Bild des Erstellers in der rechten Spalte ausblenden. Bild und Folgen-Button ausblenden nimmt das Bild mit.
 Hide the question cards TikTok slides over a video near its end.	Die Fragekarten ausblenden, die TikTok gegen Ende eines Videos einblendet.
+Hide the right column	Rechte Spalte ausblenden
 Hide the row of story avatars across the top of the Inbox.	Die Reihe der Story-Avatare oben im Posteingang ausblenden.
-Hide the save button in the right column.	Den Speichern-Knopf in der rechten Spalte ausblenden.
+Hide the save button	Den Speichern-Knopf ausblenden
+Hide the save button and its count in the right column.	Den Speichern-Knopf und seine Zahl in der rechten Spalte ausblenden.
+Hide the save button in the right column.	Den Speichern-Knopf ausblenden in der rechten Spalte.
 Hide the search button in the top right corner of the feed.	Die Suchschaltfläche oben rechts im Feed ausblenden.
 Hide the search icon in the Inbox header.	Das Suchsymbol in der Kopfzeile des Posteingangs ausblenden.
 Hide the searches TikTok offers before you type. Your own search history stays.	Die Suchen ausblenden, die TikTok anbietet, bevor du tippst. Dein eigener Suchverlauf bleibt.
 Hide the Send to row	Zeile „Senden an“ ausblenden
 Hide the share button	Teilen-Button ausblenden
+Hide the share prompt after a like	Die Teilen-Aufforderung nach einem Like ausblenden
 Hide the speech bubble and its count in the right column.	Sprechblase und Zähler in der rechten Spalte ausblenden.
 Hide the spinning music cover and the track name beside the caption.	Das drehende Musik-Cover und den Titelnamen neben der Beschreibung ausblenden.
 Hide the spinning record at the bottom of the right column.	Drehende Platte unten in der rechten Spalte ausblenden.
 Hide the status bar	Statusleiste ausblenden
+Hide the stories from the feed.	Die Stories aus dem Feed ausblenden.
 Hide the Tako AI feed bubble above the profile button.	Die Tako-AI-Blase im Feed über der Profil-Schaltfläche ausblenden.
 Hide the TikTok Tako assistant conversation.	Die Unterhaltung mit dem TikTok-Tako-Assistenten ausblenden.
 Hide the whole column on the right, from the avatar down to the music disc.	Die ganze rechte Spalte ausblenden, vom Avatar bis zur Musikscheibe.
+Hide this creator locally	Diesen Creator lokal ausblenden
 Hide TikTok Shop	TikTok Shop ausblenden
 Hide TikTok Shop posts from the feed.	TikTok-Shop-Beiträge aus dem Feed ausblenden.
 Hide TikTok Shop updates and coupon messages.	TikTok-Shop-Updates und Gutschein-Nachrichten ausblenden.
@@ -290,61 +454,167 @@ Hide videos with a lot of views and few likes. Lower numbers are stricter, zero 
 Hide videos you have already seen	Bereits gesehene Videos ausblenden
 Hide visual search prompt	Bildersuche-Hinweis ausblenden
 Highest	Höchste
+Historical	Historisch
+Historical values	Frühere Werte
+Hold the feed after the budget	Feed nach dem Budget anhalten
 Home	Startseite
+Hook status	Funktionsprüfung
 How far each edge press moves the video.	Wie weit ein Druck am Rand das Video bewegt.
 Hushfeed cannot read the creator pattern %1$s	Hushfeed kann das Creator-Muster %1$s nicht lesen
 Hushfeed hid a TikTok puzzle. Turn off Hide CAPTCHA popups if something stops working.	Hushfeed hat ein TikTok-Rätsel ausgeblendet. Schalte „CAPTCHA-Popups ausblenden“ aus, wenn etwas nicht mehr funktioniert.
 Ignore the creator's choice so the Duet and Stitch entries appear. Everything else the app checks still applies, and whether the upload is accepted is the server's decision.	Die Wahl der erstellenden Person übergehen, damit die Einträge Duett und Stitch erscheinen. Alle übrigen Prüfungen der App gelten weiterhin, und ob der Upload angenommen wird, entscheidet der Server.
+Import finished	Import abgeschlossen
+Import loaded values	Geladene Werte importieren
+Imported %1$d values	%1$d Werte importiert
+Imported %1$d values. Undo last Lab change is in the menu.	%1$d Werte importiert. Letzte Lab-Änderung rückgängig machen steht im Menü.
 Inbox	Posteingang
+Include diagnostic events	Diagnoseereignisse einschließen
 Included diagnostics	Enthaltene Diagnosedaten
 Includes all diagnostic events.	Enthält alle Diagnoseereignisse.
+Includes these events: %1$s	Enthält diese Ereignisse: %1$s
+Inserted cards	Eingefügte Karten
 Interface	Oberfläche
 Invalid SIM preset	Ungültige SIM-Vorlage
 Keep a local record of what you have watched and drop those videos from later feed pages.	Lokal festhalten, was du gesehen hast, und diese Videos aus späteren Feed-Seiten entfernen.
 Keep automatic advance enabled, and show TikTok's own Auto scroll action in the video panel even if your account never had it. Pauses and open dialogs still stop scrolling. Restart TikTok to apply this. Then use this switch to turn it off.	Den automatischen Weiterlauf aktiviert lassen und TikToks eigene Aktion Auto-Scrollen im Videomenü zeigen, auch wenn dein Konto sie nie hatte. Pausen und offene Dialoge stoppen das Scrollen weiterhin. TikTok neu starten, damit das gilt. Danach mit diesem Schalter wieder ausschalten.
 Keep captions in clear display	Untertitel in der freien Ansicht behalten
 Keep the clock and status icons off the screen while TikTok is open. Swipe down from the top to peek at them.	Uhr und Statussymbole ausblenden, solange TikTok geöffnet ist. Wische von oben nach unten, um sie kurz zu sehen.
+Keep the Favorites tab	Favoriten-Tab behalten
 Keep the screen's refresh rate	Bildwiederholrate des Bildschirms behalten
+Keep the speed you chose for the next video. Off, each new video starts at 1x and a manual choice lasts for that video only.	Behalte die gewählte Geschwindigkeit für das nächste Video. Aus, startet jedes neue Video mit 1x und eine manuelle Wahl gilt nur für dieses Video.
+Keep this string to 4,096 characters or fewer.	Begrenze diese Zeichenfolge auf höchstens 4.096 Zeichen.
+Keep this structured value to 64 KB or less.	Begrenze diesen strukturierten Wert auf höchstens 64 KB.
+Kept to %1$s, the nearest value this row allows	Auf %1$s gesetzt, den nächsten Wert, den diese Zeile zulässt
+Kinds of post	Beitragsarten
+Lab data reset. Undo last Lab change is in the menu. Restart TikTok to apply this.	Lab-Daten zurückgesetzt. Letzte Lab-Änderung rückgängig machen steht im Menü. TikTok neu starten, damit das gilt.
+Lab data was over its rule limit, so it was cleared without an undo copy. Restart TikTok to apply this.	Die Lab-Daten überschritten das Regellimit und wurden daher ohne Rückgängig-Kopie gelöscht. TikTok neu starten, damit das gilt.
+Lab overrides reset. Undo last Lab change is in the menu. Restart TikTok to apply this.	Lab-Überschreibungen zurückgesetzt. Letzte Lab-Änderung rückgängig machen steht im Menü. TikTok neu starten, damit das gilt.
+Last original value	Letzter Originalwert
+Layout	Layout
 Leave maximum empty to keep it unlimited.	Lass das Maximum leer, damit es unbegrenzt bleibt.
 Leave the sound out of the saved video. Save the sound as well still writes the .m4a beside it if you want both.	Den Ton aus dem gespeicherten Video weglassen. Ton ebenfalls speichern schreibt die .m4a weiterhin daneben, wenn du beides willst.
+Length and views per like	Länge und Aufrufe pro Like
+Less than a minute left	Weniger als eine Minute übrig
 Let screenshots, screen recording and Circle to Search work on TikTok again. Restart TikTok to apply this.	Screenshots, Bildschirmaufnahme und Circle to Search auf TikTok wieder zulassen. TikTok neu starten, damit das gilt.
 Let the Offline videos menu use your own limit instead of TikTok's fixed one. Restart TikTok to apply this.	Das Menü Offline-Videos deine eigene Grenze statt TikToks fester verwenden lassen. TikTok neu starten, damit das gilt.
+Licenses	Lizenzen
+Limits	Grenzen
+Link copied	Link kopiert
+Links	Links
+Links in comments open	Links in Kommentaren lassen sich öffnen
 Links, privacy and player tools	Links, Datenschutz und Wiedergabewerkzeuge
+Lists	Listen
+Live	LIVE
+LIVE	LIVE
+LIVE replays	LIVE-Wiederholungen
+Live Settings	Live-Einstellungen
+LIVE videos	LIVE-Videos
+Loaded current values. Loading all known gates...	Aktuelle Werte geladen. Alle bekannten Schalter werden geladen ...
+Loaded values are still being read. Try again in a moment.	Die geladenen Werte werden noch gelesen. Versuche es gleich noch einmal.
+Loaded-value file export failed	Der Export der geladenen Werte ist fehlgeschlagen
+Loaded-value file export failed; cleanup also failed	Der Export der geladenen Werte ist fehlgeschlagen; auch das Aufräumen ist fehlgeschlagen
+Loaded-value file is invalid or too large	Die Datei mit den geladenen Werten ist ungültig oder zu groß
+Loading gates...	Schalter werden geladen ...
+Loading local catalog and current TikTok cache...	Lokaler Katalog und aktueller TikTok-Cache werden geladen ...
+Locally hidden creators	Lokal ausgeblendete Creator
+Lock today's budget	Heutiges Budget sperren
 Long press	Langes Drücken
 Lowest	Niedrigste
 Make TikTok yours.	Mach TikTok zu deinem TikTok.
+Manager	Manager
 Marked as not interested	Als „Kein Interesse“ markiert
 Match locale and timezone to country	Sprache und Zeitzone an das Land anpassen
 Maximum	Maximum
+Maximum post age	Höchstalter von Beiträgen
 Maximum video length	Maximale Videolänge
 Maximum views per like	Maximale Aufrufe pro Like
 Media	Medien
+Media Config (VE)	Medienkonfiguration (VE)
+Messages, profiles and search still work.	Nachrichten, Profile und die Suche funktionieren weiterhin.
+millisecond	Millisekunde
+milliseconds	Millisekunden
 Min/Max comments	Min/Max Kommentare
 Min/Max favorites	Min./Max. Favoriten
 Min/Max likes	Min./Max. Likes
 Min/Max shares	Min./Max. geteilt
 Min/Max views	Min./Max. Aufrufe
 Minimum	Minimum
+minute	Minute
+minutes	Minuten
+More options	Weitere Optionen
+Move down	Nach unten verschieben
+Move left	Nach links verschieben
+Move right	Nach rechts verschieben
+Move up	Nach oben verschieben
 ms	ms
+Mutes the video behind the comment sheet while you read. Sound comes back when the sheet closes.	Schaltet das Video hinter dem Kommentarfeld stumm, während du liest. Der Ton kommt zurück, wenn das Feld geschlossen wird.
+Nearby	In der Nähe
 Never from these countries	Nie aus diesen Ländern
-No account to block on this video	Bei diesem Video gibt es kein Konto zum Blockieren
+No	Nein
+No creator to block on this video	Kein Ersteller zum Blockieren bei diesem Video
+No creator to hide on this video	Kein Ersteller zum Ausblenden bei diesem Video
+No creators are hidden yet. Hide one from a video, or add a handle above.	Noch keine Ersteller ausgeblendet. Einen im Video ausblenden oder oben einen Handle eingeben.
+No current value	Kein aktueller Wert
+No current value and no active override	Kein aktueller Wert und keine aktive Überschreibung
+No gate data is available. Refresh values from the menu to try again.	Es sind keine Schalterdaten verfügbar. Werte über das Menü aktualisieren und es erneut versuchen.
+No gate reads were recorded. Use a TikTok feature while recording.	Es wurden keine Gate-Zugriffe aufgezeichnet. Nutze während der Aufzeichnung eine TikTok-Funktion.
+No gates match this filter.	Keine Schalter passen zu diesem Filter.
+No gates match this search and filter.	Keine Schalter passen zu dieser Suche und diesem Filter.
+No hidden creators match this search. Clear the search to see them all.	Keine ausgeblendeten Ersteller passen zu dieser Suche. Suche leeren, um alle zu sehen.
 No limit	Keine Grenze
-No matching countries	Keine passenden Länder
-No preset selected	Keine Vorgabe gewählt
+No matching comments. Try a different word, or clear the search with the X in the box.	Keine passenden Kommentare. Versuche es mit einem anderen Wort oder lösche die Suche mit dem X im Feld.
+No matching countries. Try a country name or a two-letter code.	Keine passenden Laender. Versuche einen Laendernamen oder einen Zwei-Buchstaben-Code.
+No matching diagnostics found.	Keine passenden Diagnosedaten gefunden.
+No matching settings	Keine passenden Einstellungen
+No preset selected. Choose a preset above.	Kein Preset ausgewaehlt. Waehle oben ein Preset.
+No recording yet. Start one, use a feature, then return here.	Noch keine Aufzeichnung. Starte eine, nutze eine Funktion und komm dann hierher zurück.
+No share actions have been observed yet	Noch keine Share-Aktionen beobachtet
+No share actions match this search	Keine Share-Aktionen passen zu dieser Suche
 No sound to block on this video	Bei diesem Video gibt es keinen Sound zum Blockieren
-Not interested in this video	Kein Interesse an diesem Video
 No suggested accounts to clear	Es gibt keine Kontovorschläge zum Entfernen
-No video selected	Kein Video ausgewählt
-Show the Not interested button	Knopf Kein Interesse anzeigen
+No video selected. Open a video first.	Kein Video ausgewaehlt. Oeffne zuerst ein Video.
+None of these gates had an override to reset.	Keiner dieser Schalter hatte eine Überschreibung zum Zurücksetzen.
+None of these gates takes a true or false value.	Keiner dieser Schalter nimmt einen true- oder false-Wert.
+None recorded	Nichts aufgezeichnet
+Not blocked	Nicht blockiert
+Not interested in this video	Kein Interesse an diesem Video
+Not read yet	Noch nicht gelesen
+Not requested in this process yet	In diesem Prozess noch nicht angefordert
+Not saved yet	Noch nicht gespeichert
+Not seen	Nicht gesehen
+Not seen yet	Noch nicht gesehen
+Nothing has been checked yet, so there is nothing to report.	Es wurde noch nichts geprüft, also gibt es nichts zu berichten.
+Nothing has been looked up yet. Use the app for a moment, then come back.	Bisher wurde nichts nachgeschlagen. Nutze die App einen Moment und komm dann zurück.
 Nothing is playing to seek	Es läuft gerade nichts zum Springen
+Nothing new was imported. %1$d already matched, %2$d unavailable, %3$d rejected.	Nichts Neues importiert. %1$d stimmten bereits überein, %2$d sind nicht verfügbar, %3$d wurden abgelehnt.
+Nothing new was imported. %1$d already matched, %2$d unavailable, %3$d rejected. First rejection: %4$s	Nichts Neues wurde importiert. Bereits identisch: %1$d. Nicht verfügbar: %2$d. Abgelehnt: %3$d. Erste Ablehnung: %4$s
+Nothing on this page changes what TikTok does until they are on.	Nichts auf dieser Seite ändert etwas an TikTok, solange sie aus sind.
+Nothing to undo yet.	Noch nichts rückgängig zu machen.
+Notices from this project and the ones it is built on	Hinweise aus diesem Projekt und aus den Projekten, auf denen es aufbaut
+Off	Aus
+Off forces false; on forces true. Reset returns control to TikTok	Aus erzwingt false, an erzwingt true. Zurücksetzen gibt TikTok die Kontrolle zurück
 Offline videos limit	Limit für Offline-Videos
+Older overrides were kept disabled. Review their values before enabling them on TikTok %1$s.	Ältere Überschreibungen bleiben abgeschaltet. Prüfen Sie ihre Werte, bevor Sie sie unter TikTok %1$s einschalten.
 On mobile data	Bei mobilen Daten
+Once today's budget runs out, the hold stays and cannot be dismissed. The budget settings are locked until the day starts over. Turn this off any time before the budget runs out.	Sobald das heutige Budget aufgebraucht ist, bleibt die Sperre bestehen. Die Budgeteinstellungen sind bis zum nächsten Tag gesperrt. Schalte dies jederzeit vor Ablauf des Budgets aus.
+One area was checked and everything it needs is here.	Ein Bereich wurde geprüft und alles, was er braucht, ist vorhanden.
+One minute left	Noch eine Minute
+One of the quote marks in that list has nothing to close it, so the rest of the line reads as one phrase. Add the missing quote or take the stray one out.	Eines der Anführungszeichen in dieser Liste wird nicht geschlossen, deshalb liest sich der Rest der Zeile als eine einzige Wendung. Ergänzen Sie das fehlende Anführungszeichen oder entfernen Sie das überzählige.
+One value per line	Ein Wert pro Zeile
+Only bottom tabs TikTok has loaded on this device are shown here. This does not force unavailable tabs to appear.	Hier stehen nur die unteren Tabs, die TikTok auf diesem Gerät geladen hat. Nicht verfügbare Tabs erscheinen dadurch nicht.
 Only enable when recording logs to report an issue. Leaving it on for too long can make TikTok feel laggy and may lead to crashes.	Nur einschalten, wenn du Protokolle für eine Fehlermeldung aufzeichnest. Bleibt es zu lange an, kann TikTok träge wirken und abstürzen.
+Only fields that can be type-checked and applied to a copied configuration object are shown.	Es werden nur Felder gezeigt, deren Typ geprüft und die auf eine kopierte Konfiguration angewendet werden können.
 Only from these countries	Nur aus diesen Ländern
 Only internal storage folders are supported	Nur Ordner im internen Speicher werden unterstützt
+Only tabs TikTok has loaded on this device are shown here. This does not force unavailable tabs to appear.	Hier stehen nur die Tabs, die TikTok auf diesem Gerät geladen hat. Nicht verfügbare Tabs erscheinen dadurch nicht.
+Open a share sheet once, then return here to choose its actions.	Öffne einmal ein Share-Menü und kehre dann zurück, um seine Aktionen auszuwählen.
 Open comments	Kommentare öffnen
 Open external links directly	Externe Links direkt öffnen
+Open messages	Nachrichten öffnen
 Open profile and story website links in your system browser instead of TikTok's in-app browser.	Website-Links aus Profilen und Storys im Systembrowser öffnen statt in TikToks In-App-Browser.
+Open the feed anyway	Feed trotzdem öffnen
+Open the feed anyway, %1$d left today	Feed trotzdem öffnen, heute noch %1$d Mal
+Open the feed anyway, the last time today	Feed trotzdem öffnen, heute zum letzten Mal
 Open the profile again and try once more	Öffne das Profil erneut und versuche es noch einmal
 Open the story again and try once more	Öffne die Story erneut und versuche es noch einmal
 Open TikTok home feed to detect loaded tabs.	Öffne den TikTok-Startfeed, damit geladene Tabs erkannt werden.
@@ -353,56 +623,124 @@ Operator MCC/MNC	Netzbetreiber MCC/MNC
 Operator name	Name des Netzbetreibers
 or	oder
 Original language	Originalsprache
+Other	Sonstiges
+Other feed filters	Andere Feed-Filter
+Overridden	Überschrieben
+Override	Überschreibung
+Override set, not read yet	Überschreibung gesetzt, noch nicht gelesen
 Override SIM details	SIM-Angaben überschreiben
 Override store region (experimental)	Store-Region überschreiben (experimentell)
+Override this configuration	Diese Konfiguration überschreiben
+Override this gate	Diesen Schalter überschreiben
+Overrides are disabled in the Feature Gate Lab.	Überschreibungen sind im Feature Gate Lab abgeschaltet.
+Overrides disabled. Restart TikTok to apply this.	Überschreibungen deaktiviert. TikTok neu starten, damit das gilt.
+Overrides enabled. Restart TikTok to apply this.	Überschreibungen aktiviert. TikTok neu starten, damit das gilt.
+Paid partnerships	Bezahlte Partnerschaften
 People, shortcuts and sending controls	Kontakte, Verknüpfungen und Versandoptionen
 Photo	Foto
+Photo and image posts	Foto- und Bildbeiträge
 Photo destination	Speicherort für Fotos
 Photo filename	Dateiname für Fotos
 Play videos TikTok has classified without the overlay asking to be tapped through first.	Von TikTok eingestufte Videos abspielen, ohne dass erst eine Warnung weggetippt werden muss.
 Playback	Wiedergabe
+Player	Wiedergabe
+Player Config	Player-Konfiguration
+Playlist posts	Playlist-Beiträge
+point	Punkt
+points	Punkte
+Popular	Beliebt
 Press and hold a profile picture to save the full size original to your photo destination.	Ein Profilbild gedrückt halten, um das Original in voller Größe im Fotoordner zu speichern.
 Press and hold a story to save it. Stories have no save button of their own, and holding one is how TikTok pauses it, so this takes that gesture over.	Eine Story gedrückt halten, um sie zu speichern. Stories haben keinen eigenen Speicher-Button, und Halten pausiert bei TikTok, also übernimmt das diese Geste.
 Press and hold the left or right third of the screen to jump back or forward. The middle third keeps the Long press action.	Halte das linke oder rechte Drittel des Bildschirms gedrückt, um zurück oder vorwärts zu springen. Im mittleren Drittel gilt weiterhin die Aktion für langes Drücken.
+Preview shortened. Save JSON includes the full report.	Vorschau gekürzt. JSON speichern enthält den vollständigen Bericht.
+Privacy	Datenschutz
+Profile	Profil
 Profile picture saved to %1$s	Profilbild gespeichert unter %1$s
+Promotional music	Werbemusik
+Proof	Beleg
+Publication age	Beitragsalter
 Put a box above the comments that narrows them to the ones matching what you type, by what they say or who said it. Clearing the box brings the rest back.	Ein Feld über den Kommentaren, das auf die passenden eingrenzt, nach Inhalt oder nach der Person. Feld leeren bringt die übrigen zurück.
+Putting the settings back to their defaults	Einstellungen werden auf die Standardwerte zurückgesetzt
+Quality	Qualität
 Quality, files, subtitles and hand-off	Qualität, Dateien, Untertitel und Weitergabe
 Quality, speed and automatic advance	Qualität, Tempo und automatischer Wechsel
+Quieten the feed while comments are open	Feed stummschalten, solange Kommentare offen sind
 Recorded gate reads (%1$d)	Aufgezeichnete Gate-Zugriffe (%1$d)
 Recording gate reads. Use a feature, then return here to stop.	Gate-Zugriffe werden aufgezeichnet. Nutze eine Funktion und komm zum Beenden zurück.
 Recover the settings saved before the last restore or reset.	Die vor der letzten Wiederherstellung oder Zurücksetzung gespeicherten Einstellungen zurückholen.
+Recovered an interrupted settings change. Restart TikTok to apply this.	Eine unterbrochene Einstellungsänderung wurde wiederhergestellt. TikTok neu starten, damit das gilt.
+Refresh values	Werte aktualisieren
+Refreshing current TikTok cache...	Aktueller TikTok-Cache wird aktualisiert ...
+Region rules	Regionsregeln
 Region settings	Regionseinstellungen
+Remember the last speed	Letzte Geschwindigkeit merken
+Remind me every	Erinnere mich alle
+Remove	Entfernen
+Remove %1$s	%1$s entfernen
+Remove all overrides	Alle Überschreibungen entfernen
 Remove feed ads	Werbung im Feed entfernen
+Remove feed ads, including videos with a creator commission disclosure.	Feed-Werbung entfernen, einschließlich Videos mit einer Provisionskennzeichnung für Creator.
 Remove polls from the comments before TikTok shows them.	Umfragen aus den Kommentaren entfernen, bevor TikTok sie anzeigt.
 Remove the actions row from the share sheet.	Die Aktionszeile aus dem Teilen-Menü entfernen.
-Remove feed ads, including videos with a creator commission disclosure.	Feed-Werbung entfernen, einschließlich Videos mit einer Provisionskennzeichnung für Creator.
 Remove the row of friends from the top of the share sheet.	Die Freundesreihe oben im Teilen-Menü entfernen.
 Remove the Share via row.	Die Zeile „Teilen über“ entfernen.
 Remove tracking parameters from shared links.	Tracking-Parameter aus geteilten Links entfernen.
 Remove watermark	Wasserzeichen entfernen
+Removed %1$s	%1$s entfernt
+Replace values when TikTok asks for them	Werte ersetzen, wenn TikTok sie abfragt
 Report saved to %1$s	Bericht gespeichert unter %1$s
+Required	Erforderlich
+Researched	Recherchiert
+Researched values	Recherchierte Werte
+Reset	Zurücksetzen
+Reset %1$d gates of %2$d. Restart TikTok to apply this.	%1$d von %2$d Schaltern zurückgesetzt. TikTok neu starten, damit das gilt.
+Reset %1$d gates. Restart TikTok to apply this.	%1$d Schalter zurückgesetzt. TikTok neu starten, damit das gilt.
+Reset 1 gate of %1$d. Restart TikTok to apply this.	1 von %1$d Schaltern zurückgesetzt. TikTok neu starten, damit das gilt.
+Reset 1 gate. Restart TikTok to apply this.	1 Schalter zurückgesetzt. TikTok neu starten, damit das gilt.
+Reset override	Überschreibung zurücksetzen
+Reset position	Position zurücksetzen
 Reset settings	Einstellungen zurücksetzen
+Restart pending	Neustart ausstehend
+Restart TikTok to apply %1$d changes	TikTok neu starten, um %1$d Änderungen anzuwenden
+Restart TikTok to apply this change	TikTok neu starten, um diese Änderung anzuwenden
+Restart TikTok to apply this.	TikTok neu starten, damit das gilt.
+Restore defaults immediately. Your current settings are kept for Undo.	Standardwerte sofort wiederherstellen. Deine aktuellen Einstellungen bleiben zum Rückgängigmachen erhalten.
 Restore failed. Some settings may still be changed.	Wiederherstellung fehlgeschlagen. Einige Einstellungen können noch geändert sein.
 Restore failed. Some settings may still be changed. Use Undo to recover.	Wiederherstellung fehlgeschlagen. Einige Einstellungen können noch geändert sein. Nutze „Rückgängig“, um sie wiederherzustellen.
-Restore defaults immediately. Your current settings are kept for Undo.	Standardwerte sofort wiederherstellen. Deine aktuellen Einstellungen bleiben zum Rückgängigmachen erhalten.
 Restore settings	Einstellungen wiederherstellen
+Restored the previous Lab settings. Restart TikTok to apply this.	Die vorherigen Lab-Einstellungen sind wiederhergestellt. TikTok neu starten, damit das gilt.
+Restoring your settings	Einstellungen werden wiederhergestellt
 Resume videos after scrolling	Videos nach dem Scrollen fortsetzen
+Retry	Erneut versuchen
+Return a copied object with the selected fields changed	Ein kopiertes Objekt mit den geänderten Feldern zurückgeben
 Return after using a TikTok feature to see every gate read during the recording.	Komm nach dem Verwenden einer TikTok-Funktion zurück, um jeden Gate-Zugriff während der Aufzeichnung zu sehen.
+Returns %1$s	Gibt %1$s zurück
+Rows	Zeilen
+s	s
 Sanitize sharing links	Teilen-Links bereinigen
 Save	Speichern
 Save a profile picture on a long press	Profilbild per langem Druck speichern
 Save a story on a long press	Story per langem Druck speichern
 Save every photo in the post directly from its source URL, without rendering it again.	Jedes Foto des Beitrags direkt von seiner Quell-URL speichern, ohne es neu zu rendern.
+Save field values	Feldwerte speichern
+Save full report	Vollständigen Bericht speichern
 Save JSON	JSON speichern
+Save media	Medien speichern
 Save patch settings and Feature Gate Lab rules to a JSON file.	Patch-Einstellungen und Feature-Gate-Lab-Regeln in einer JSON-Datei speichern.
 Save SRT files with the video. Paired saves use Movies on Android 11+, Download on Android 10, and your video folder on older versions.	SRT-Dateien zusammen mit dem Video speichern. Gemeinsame Speicherungen nutzen Movies ab Android 11, Download auf Android 10 und deinen Videoordner auf älteren Versionen.
 Save subtitles beside videos	Untertitel neben Videos speichern
 Save the latest available TikTok crash report for diagnostic export.	Den neuesten verfügbaren TikTok-Absturzbericht für den Diagnose-Export speichern.
+Save the original sound	Originalsound speichern
 Save the sound as well	Ton ebenfalls speichern
 Save videos without sound	Videos ohne Ton speichern
+Saved	Gespeichert
+Saved %1$s	Gespeichert: %1$s
 Saved %1$s of %2$s photos before the story failed	%1$s von %2$s Fotos gespeichert, dann ist die Story fehlgeschlagen
 Saved %1$s original photos	%1$s Originalfotos gespeichert
 Saved %1$s photos. The rest failed, so try again.	%1$s Fotos gespeichert. Der Rest hat nicht geklappt, versuche es noch einmal.
+Saved one original photo	Ein Originalfoto gespeichert
+Saved, override off	Gespeichert, Überschreibung aus
+Saved. Restart TikTok to apply this.	Gespeichert. TikTok neu starten, damit das gilt.
 Saving %1$s original photos	%1$s Originalfotos werden gespeichert
 Saving settings backup	Einstellungssicherung wird gespeichert
 Saving sticker	Sticker wird gespeichert
@@ -410,39 +748,69 @@ Saving the selected video quality	Die gewählte Videoqualität wird gespeichert
 Saving the selected video quality without sound	Die gewählte Videoqualität wird ohne Ton gespeichert
 Saving the story	Story wird gespeichert
 Saving video and subtitles to %1$s	Video und Untertitel werden in %1$s gespeichert
+Search a title, description or category.	Titel, Beschreibung oder Kategorie durchsuchen.
 Search and override gate flags	Gate-Flags suchen und überschreiben
+Search countries or operators	Nach Ländern oder Anbietern suchen
+Search hidden creators	Ausgeblendete Creator durchsuchen
+Search settings	Einstellungen durchsuchen
+Search share actions	Share-Aktionen durchsuchen
 Search the comments	Kommentare durchsuchen
 Search these comments	Diese Kommentare durchsuchen
+Search translated titles and descriptions, then open the original setting.	Übersetzte Titel und Beschreibungen durchsuchen und dann die ursprüngliche Einstellung öffnen.
 Search without personalization, whatever your account is set to.	Ohne Personalisierung suchen, unabhängig davon, was dein Konto eingestellt hat.
-Seconds. Zero keeps every length. If a whole batch would be filtered out, the video closest to your limit is kept so the feed is not empty.	Sekunden. Null behält jede Länge. Würde ein ganzer Schwung wegfallen, bleibt das Video, das deinem Limit am nächsten kommt, damit der Feed nicht leer ist.
+Search words or key	Nach Wörtern oder Schlüssel suchen
 second	Sekunde
 seconds	Sekunden
+Seconds. Zero keeps every length. If a whole batch would be filtered out, the video closest to your limit is kept so the feed is not empty.	Sekunden. Null behält jede Länge. Würde ein ganzer Schwung wegfallen, bleibt das Video, das deinem Limit am nächsten kommt, damit der Feed nicht leer ist.
 Seek by	Sprungweite
 Seek from the edges	Von den Rändern springen
+Seen	Gesehen
+Seen this session	In dieser Sitzung gesehen
 Seen video history cleared. Tap again to put it back.	Verlauf gesehener Videos gelöscht. Tippe erneut, um ihn zurückzuholen.
 Seen video history put back	Verlauf gesehener Videos zurückgeholt
-Could not put back the seen video history. Try again.	Der Verlauf gesehener Videos konnte nicht zurückgeholt werden. Versuche es erneut.
+Seen videos	Bereits gesehene Videos
+Select at least one field.	Wähle mindestens ein Feld aus.
+Select every tab	Jeden Tab auswählen
+Selected	Ausgewählt
 Send links to another app	Links an eine andere App senden
 Sending feedback	Rückmeldung wird gesendet
+Series posts	Serienbeiträge
 Settings	Einstellungen
+Settings are back to their defaults. Restart TikTok to apply all changes.	Die Einstellungen stehen wieder auf den Standardwerten. TikTok neu starten, um alle Änderungen zu übernehmen.
 Settings backup saved	Einstellungssicherung gespeichert
+Settings couldn't open	Die Einstellungen konnten nicht geöffnet werden
+Settings couldn't refresh completely. Reopen settings and try again.	Die Einstellungen konnten nicht vollständig aktualisiert werden. Öffne die Einstellungen erneut und versuche es noch einmal.
 Settings restored. Restart TikTok to apply all changes.	Einstellungen wiederhergestellt. TikTok neu starten, um alle Änderungen zu übernehmen.
+Settings restored. The Feature Gate Lab rules were for another TikTok version and were left out. Restart TikTok to apply all changes.	Einstellungen wiederhergestellt. Die Regeln des Feature Gate Labs galten für eine andere TikTok-Version und wurden ausgelassen. TikTok neu starten, um alle Änderungen zu übernehmen.
+Share action checklist	Checkliste der Share-Aktionen
 Share links through another host	Links über einen anderen Host teilen
 Share sheet	Teilen-Menü
+Shop	Shop
+Shop posts	Shop-Beiträge
+Show	Anzeigen
 Show @username beside a video instead of the display name the creator chose.	Zeigt @Benutzername neben einem Video statt des Anzeigenamens, den die Person gewählt hat.
 Show a video preview thumbnail while dragging the progress bar.	Beim Ziehen des Fortschrittsbalkens ein Vorschaubild des Videos zeigen.
 Show block button on videos	Blockieren-Schaltfläche auf Videos anzeigen
+Show block sound button	Schaltfläche zum Blockieren des Sounds anzeigen
+Show failures on screen	Fehler auf dem Bildschirm anzeigen
+Show gates	Schalter anzeigen
+Show last report	Letzten Bericht anzeigen
 Show LIVE search	LIVE-Suche anzeigen
-Show the progress bar	Fortschrittsbalken anzeigen
-Show the progress bar thumbnail	Vorschaubild im Fortschrittsbalken anzeigen
+Show local hide button	Schaltfläche zum lokalen Ausblenden anzeigen
 Show the country a video was posted from next to the creator's name.	Das Land, aus dem ein Video veröffentlicht wurde, neben dem Namen des Creators anzeigen.
 Show the current spoken caption while the other controls are hidden.	Den aktuell gesprochenen Untertitel anzeigen, während die anderen Bedienelemente ausgeblendet sind.
 Show the handle instead of the name	@Namen statt Anzeigenamen zeigen
+Show the Not interested button	Knopf Kein Interesse anzeigen
+Show the progress bar	Fortschrittsbalken anzeigen
+Show the progress bar thumbnail	Vorschaubild im Fortschrittsbalken anzeigen
 Show the whole Activity and New followers lists instead of stopping at a View all button.	Die vollständigen Listen „Aktivität“ und „Neue Follower“ anzeigen, statt bei einer Schaltfläche „Alle anzeigen“ zu enden.
 Show the whole video instead of cropping it to the window. Nothing changes on a tall phone, where it already fits. On a folding phone opened up, a squarer screen or a split view the sides or the ends stop being cut off.	Das ganze Video zeigen, statt es auf das Fenster zuzuschneiden. Auf einem hohen Telefon ändert sich nichts, dort passt es bereits. Auf einem aufgeklappten Falttelefon, einem quadratischeren Bildschirm oder im geteilten Bildschirm werden die Seiten oder die Enden nicht mehr abgeschnitten.
 Show TikTok's own progress bar on videos where it is normally hidden.	TikToks eigene Fortschrittsleiste bei Videos zeigen, wo sie sonst versteckt ist.
+Show TikTok's own sort sheet on every post, with its hot, newest, media and creator options, instead of whichever cut-down row your account was given. Restart TikTok to apply this. It reads the style once per run and remembers it.	TikToks eigenes Sortiermenü bei jedem Beitrag zeigen, mit Beliebt, Neueste, Medien und Ersteller, statt der gekürzten Zeile, die dein Konto bekommen hat. TikTok neu starten, damit das gilt. Es liest den Stil einmal pro Start und merkt ihn sich.
 Show TikTok's search entry in the LIVE drawer where supported.	TikToks Sucheinstieg im LIVE-Bereich zeigen, wo es geht.
+Show what is left of the budget	Restliches Budget anzeigen
 Show where a video was posted	Herkunftsland anzeigen
+Showing %1$s again	%1$s wieder anzeigen
 SIM country preset	SIM-Ländervorgabe
 SIM preset saved	SIM-Vorlage gespeichert
 SIM preset saved. Restart TikTok to apply this.	SIM-Vorlage gespeichert. TikTok neu starten, damit das gilt.
@@ -452,84 +820,204 @@ Skip recorded LIVE broadcasts in the feed.	Aufgezeichnete LIVE-Übertragungen im
 Skip videos marked as using promotional music.	Videos überspringen, die als Werbemusik gekennzeichnet sind.
 Skip videos that use a sound blocked with the player's sound button, or named below.	Videos überspringen, deren Sound über die Sound-Taste im Player gesperrt wurde oder unten aufgeführt ist.
 Skipping videos with %1$s	Videos mit %1$s werden übersprungen
+Something is missing from %1$s. Tap for the whole report.	Bei %1$s fehlt etwas. Tippe für den vollständigen Bericht.
+Sound link copied	Soundlink kopiert
 Sound saved to %1$s	Sound gespeichert unter %1$s
+Sounds	Sounds
+Source	Quelle
 Source code and releases	Quellcode und Versionen
-view per like	Aufruf pro Like
-views per like	Aufrufe pro Like
+Speed	Geschwindigkeit
 Speed menu choices	Auswahl im Geschwindigkeitsmenü
 Split comment minimum width	Mindestbreite für geteilte Kommentare
 Start each new video at your default. A manual choice lasts until the video changes.	Jedes neue Video mit deinem Standard starten. Eine manuelle Auswahl gilt, bis das Video wechselt.
 Start feature gate recording	Feature-Gate-Aufzeichnung starten
+Start recording	Aufzeichnung starten
+Start the day at	Tag beginnt um
+Start today over	Heute neu beginnen
+STEM	STEM
 Sticker	Sticker
 Sticker destination	Speicherort für Sticker
-Sticker saved as %1$s	Sticker als %1$s gespeichert
+Sticker saved to %1$s	Sticker gespeichert in %1$s
+Still here. Nothing is waiting.	Immer noch hier. Es wartet nichts.
 Still reading the record. Tap again in a moment.	Der Verlauf wird noch gelesen. Tippe gleich noch einmal.
 Still saving the last one	Das letzte wird noch gespeichert
+Stop a long press on Like from opening TikTok's repost action.	Verhindern, dass langes Drücken auf Gefällt mir TikToks Reposten öffnet.
+Stop a long press on Share from opening TikTok's quick share action.	Verhindern, dass langes Drücken auf Teilen TikToks Schnellteilen öffnet.
 Stop ByteDance AppLog events, AppsFlyer attribution, explicit Firebase screen reports and crash reporting from being sent. TikTok's own diagnostics go quiet with them.	ByteDance-AppLog-Ereignisse, AppsFlyer-Attribution, explizite Firebase-Bildschirmberichte und Absturzmeldungen nicht mehr senden. TikToks eigene Diagnose verstummt damit ebenfalls.
 Stop feature gate recording	Feature-Gate-Aufzeichnung beenden
 Stop the brand animation that plays over the comments when what someone typed matches an advertiser's trigger.	Stoppt die Markenanimation über den Kommentaren, wenn das Getippte zu einem Werbe-Auslöser passt.
+Stop the bubble that asks you to share a video with friends after you like it.	Stoppt die Blase, die dich auffordert, ein Video nach dem Liken mit Freunden zu teilen.
 Stop TikTok asking the screen to run at the frame rate of the video it is playing. On a 90 or 120 Hz phone that ask slows the whole app down to the video's rate, scrolling included.	Verhindert, dass TikTok den Bildschirm auf die Bildrate des laufenden Videos herunterregelt. Auf einem 90 oder 120 Hz Telefon bremst diese Anfrage die ganze App auf die Rate des Videos aus, das Scrollen eingeschlossen.
 Stop TikTok reporting that you viewed a story or a profile, or that you are typing. Online status is unchanged. It cannot undo what the server has already recorded.	Verhindert, dass TikTok meldet, dass du eine Story oder ein Profil angesehen hast oder gerade tippst. Der Online-Status bleibt unverändert. Was der Server bereits erfasst hat, lässt sich damit nicht rückgängig machen.
 Stop video looping	Videoschleife beenden
 Stop videos at the end instead of replaying them.	Videos am Ende anhalten, statt sie zu wiederholen.
-Storage permission is needed to save a story	Zum Speichern einer Story wird die Speicherberechtigung gebraucht
+Stopped after dismissing %1$s suggested accounts	Nach %1$s entfernten Kontovorschlägen gestoppt
+Stopped after dismissing one suggested account	Nach einem entfernten Kontovorschlag gestoppt
 Storage permission is needed to save a profile picture	Zum Speichern eines Profilbilds wird die Speicherberechtigung gebraucht
+Storage permission is needed to save a sound	Zum Speichern eines Sounds wird die Speicherberechtigung gebraucht
+Storage permission is needed to save a story	Zum Speichern einer Story wird die Speicherberechtigung gebraucht
+Stories	Storys
 Story saved to %1$s	Story gespeichert unter %1$s
+Structured value observed	Strukturierter Wert beobachtet
 Subtitle language	Untertitelsprache
+Tabs TikTok has loaded	Tabs, die TikTok geladen hat
 Take away the streak button in a chat and the reminder message that goes with it.	Entfernt die Serien-Schaltfläche in einem Chat und die zugehörige Erinnerung.
 Tap %1$s again to send	Zum Senden noch einmal auf %1$s tippen
+Tap again to follow	Noch einmal tippen zum Folgen
+Tap again to like	Noch einmal tippen zum Liken
 Tap again to send	Zum Senden noch einmal tippen
 Tap the feed Follow button twice within four seconds.	Tippe die Folgen-Schaltfläche im Feed innerhalb von vier Sekunden zweimal an.
 Tap the like heart twice within four seconds. Removing a like stays immediate.	Tippe das Like-Herz innerhalb von vier Sekunden zweimal an. Das Entfernen eines Likes bleibt sofort.
+Tap to start the feed	Zum Starten des Feeds tippen
+Technical details	Technische Details
+That backup was written by a newer Hushfeed than this one. Nothing was altered.	Diese Sicherung stammt aus einem neueren Hushfeed als diesem. Es wurde nichts geändert.
+That creator is already in the list	Dieser Creator ist bereits in der Liste
+That creator pattern is too long to use, so it was skipped: %1$s	Dieses Kreator-Muster ist zu lang und wurde übersprungen: %1$s
+That creator pattern is too long, so it was not added: %1$s	Dieses Kreator-Muster ist zu lang und wurde nicht hinzugefügt: %1$s
+That file is not readable text, so it may have been damaged in transit. Nothing was altered.	Diese Datei ist kein lesbarer Text und wurde womöglich bei der Übertragung beschädigt. Es wurde nichts geändert.
+That file is too large to be a settings backup. Nothing was altered.	Diese Datei ist zu groß für eine Einstellungssicherung. Es wurde nichts geändert.
+That is %1$d minutes today	Das sind %1$d Minuten heute
+That is %1$d videos today	Das sind %1$d Videos heute
+That is not a Hushfeed settings backup. Nothing was altered.	Das ist keine Hushfeed-Einstellungssicherung. Es wurde nichts geändert.
 That is not an app name. Try something like com.example.downloader, or leave the box empty to keep saving in TikTok.	Das ist kein App-Name. Versuche etwas wie com.example.downloader, oder lass das Feld leer, damit weiter in TikTok gespeichert wird.
+That is one minute today	Das ist eine Minute heute
+That is one video today	Das ist ein Video heute
+That list has too many entries. Keep it to 10,000 or fewer.	Diese Liste enthält zu viele Einträge. Begrenze sie auf höchstens 10.000.
+That list is too large. Keep it to 256 KB or less.	Diese Liste ist zu groß. Begrenze sie auf höchstens 256 KB.
+That settings backup contains a feed rule list larger than Hushfeed accepts. Nothing was altered.	Diese Einstellungssicherung enthält eine Feed-Regelliste, die größer ist, als Hushfeed zulässt. Es wurde nichts geändert.
+That settings backup holds a value Hushfeed cannot read. Nothing was altered.	Diese Einstellungssicherung enthält einen Wert, den Hushfeed nicht lesen kann. Es wurde nichts geändert.
+That settings backup holds more Feature Gate Lab rules than the Lab takes. Nothing was altered.	Diese Einstellungssicherung enthält mehr Feature-Gate-Lab-Regeln, als das Lab annimmt. Es wurde nichts geändert.
+That settings backup is damaged or only partly downloaded. Nothing was altered.	Diese Einstellungssicherung ist beschädigt oder nur teilweise heruntergeladen. Es wurde nichts geändert.
+That settings backup is incomplete, so it may have been cut short. Nothing was altered.	Diese Einstellungssicherung ist unvollständig und wurde womöglich abgeschnitten. Es wurde nichts geändert.
 That settings change did not go through. Nothing was altered.	Diese Änderung hat nicht geklappt. Es wurde nichts geändert.
-The settings backup was rejected. Nothing was altered.	Die Einstellungssicherung wurde abgelehnt. Es wurde nichts geändert.
 That sticker is in a format Hushfeed cannot read	Dieser Sticker liegt in einem Format vor, das Hushfeed nicht lesen kann
+The catalog says this key is %1$s and this override is %2$s. Reset the override and make a new one.	Der Katalog nennt für diesen Schlüssel %1$s, diese Überschreibung ist %2$s. Setze die Überschreibung zurück und leg eine neue an.
 The destination contains an invalid folder name	Im Zielpfad steht ein unzulässiger Ordnername
-This phone has no file picker, so there is no way to choose a file here.	Dieses Telefon hat keine Dateiauswahl, hier lässt sich also keine Datei wählen.
+The diagnostic report could not be exported.	Der Diagnosebericht ließ sich nicht exportieren.
+The diagnostic report could not be saved yet. Try again in a moment.	Der Diagnosebericht ließ sich noch nicht speichern. Versuche es gleich noch einmal.
+The feed dims over the last three quarters of a minute before the hold, so you arrive at it rather than land on it. Needs a time budget and a hold to arrive at.	Der Feed dunkelt in den letzten drei Viertelminuten vor der Sperre ab, damit man dort ankommt statt darauf zu landen. Braucht ein Zeitbudget und eine Sperre.
+The feed does not end. This is a fine time to leave it.	Der Feed hört nicht auf. Jetzt ist ein guter Zeitpunkt zu gehen.
+The feed is open again	Der Feed ist wieder offen
+The feed waits for one tap before it starts playing again when you come back to the app. Messages, profiles and search are still one tap away.	Der Feed wartet auf ein Tippen, bevor er wieder abspielt, wenn du zur App zurückkehrst. Nachrichten, Profile und Suche bleiben einen Tipp entfernt.
+The hour both budgets reset, on a 24 hour clock. Four in the morning by default, because someone still scrolling at one is having last night.	Die Stunde, zu der beide Limits zurückgesetzt werden, im 24-Stunden-Format. Standardmäßig vier Uhr morgens, denn wer um eins noch scrollt, hat immer noch gestern Abend.
+The Lab keeps at most %1$s rules. This change would make %2$s, so nothing was changed.	Das Lab speichert höchstens %1$s Regeln. Diese Änderung würde %2$s ergeben, daher wurde nichts geändert.
+The last change is undone. Restart TikTok to apply all changes.	Die letzte Änderung ist rückgängig gemacht. TikTok neu starten, um alle Änderungen zu übernehmen.
+The last change is undone. The Feature Gate Lab rules were for another TikTok version and were left out. Restart TikTok to apply all changes.	Die letzte Änderung ist rückgängig gemacht. Die Regeln des Feature Gate Labs galten für eine andere TikTok-Version und wurden ausgelassen. TikTok neu starten, um alle Änderungen zu übernehmen.
 The minimum or maximum comments on a video to show.	Mindest- oder Höchstzahl an Kommentaren, damit ein Video gezeigt wird.
 The minimum or maximum favorites of a video to show.	Das Minimum oder Maximum an Favoriten, das ein Video haben muss, um gezeigt zu werden.
 The minimum or maximum likes of a video to show.	Die Mindest- oder Höchstzahl an Likes, damit ein Video gezeigt wird.
 The minimum or maximum shares of a video to show.	Die Mindest- oder Höchstzahl, wie oft ein Video geteilt wurde, damit es gezeigt wird.
 The minimum or maximum views of a video to show.	Die Mindest- oder Höchstzahl an Aufrufen, damit ein Video gezeigt wird.
 The original photos aren't available, so TikTok's own save runs instead	Die Originalfotos sind nicht verfügbar, also speichert TikTok selbst
+The override changes no fields. Edit the field values, or reset the override.	Die Überschreibung ändert keine Felder. Bearbeite die Feldwerte oder setze die Überschreibung zurück.
+The override couldn't be applied: %1$s. Edit the field values, or reset the override.	Die Überschreibung konnte nicht angewendet werden: %1$s. Bearbeite die Feldwerte oder setze die Überschreibung zurück.
+The override doesn't say what list to return. Edit the field values, or reset the override.	Die Überschreibung gibt nicht an, welche Liste zurückgegeben werden soll. Bearbeite die Feldwerte oder setze die Überschreibung zurück.
 The profile picture couldn't be saved.	Das Profilbild konnte nicht gespeichert werden.
+The record of an interrupted settings change could not be read, so it was set aside. Check your settings.	Die Aufzeichnung einer unterbrochenen Einstellungsänderung ließ sich nicht lesen und wurde beiseitegelegt. Prüfe deine Einstellungen.
 The report couldn't be saved. Try again.	Der Bericht konnte nicht gespeichert werden. Versuch es noch einmal.
+The selected loaded-values file could not be read. Try again.	Die ausgewählte Datei mit geladenen Werten konnte nicht gelesen werden. Versuche es erneut.
+The setting couldn't finish updating. Its saved value is shown.	Die Einstellung konnte nicht vollständig aktualisiert werden. Der gespeicherte Wert wird angezeigt.
+The settings backup was rejected. Nothing was altered.	Die Einstellungssicherung wurde abgelehnt. Es wurde nichts geändert.
+The smallest value is above the largest	Der kleinste Wert liegt über dem größten
 The sound couldn't be saved. Try again.	Der Ton konnte nicht gespeichert werden. Versuch es noch einmal.
 The sticker couldn't be saved. Try again.	Der Sticker konnte nicht gespeichert werden. Versuch es noch einmal.
 The story couldn't be saved.	Die Story konnte nicht gespeichert werden.
-The thumbs down on each comment blocks the account that posted it instead of disliking. The comment dims, an undo banner follows, and a second tap unblocks.	Der Daumen runter an jedem Kommentar blockiert das Konto dahinter, statt zu disliken. Der Kommentar wird blasser, ein Banner bietet den Weg zurück, und ein zweiter Tipp hebt die Blockierung auf.
+The thumbs down on each comment blocks the commenter instead of disliking. The comment dims, an undo banner follows, and a second tap unblocks.	Der Daumen runter bei jedem Kommentar blockiert den Kommentator statt zu disliken. Der Kommentar wird gedimmt, ein Rückgängig-Banner folgt, und ein zweites Tippen entsperrt.
 The video couldn't be saved. Try again, or choose Automatic.	Das Video konnte nicht gespeichert werden. Versuche es noch einmal oder wähle Automatisch.
-Too many media saves are already running. Try again shortly.	Es laufen bereits zu viele Medienspeicherungen. Versuche es gleich noch einmal.
+There is no diagnostic data to clear.	Es gibt keine Diagnosedaten zum Löschen.
+There is no diagnostic data to put back.	Es gibt keine Diagnosedaten zum Wiederherstellen.
+There is no Lab change to undo.	Es gibt keine Lab-Änderung, die sich rückgängig machen ließe.
 There was nothing to put back	Es gab nichts zurückzuholen
+These loaded values are for a different TikTok version.	Diese geladenen Werte gehören zu einer anderen TikTok-Version.
+This catalog entry is no longer available. Refresh the Lab and try again.	Dieser Katalogeintrag ist nicht mehr verfügbar. Das Labor aktualisieren und es erneut versuchen.
+This configuration has no fields that can be copied and changed safely on this build.	Diese Konfiguration hat keine Felder, die sich in diesem Build gefahrlos kopieren und ändern lassen.
+This file has more loaded values than the Lab takes at once.	Diese Datei enthält mehr geladene Werte, als das Lab auf einmal annimmt.
+This file has no loaded values in it.	Diese Datei enthält keine geladenen Werte.
+This file isn't a loaded-values export from the Feature Gate Lab.	Diese Datei ist kein Export geladener Werte aus dem Feature Gate Lab.
+This gate type is not supported.	Dieser Gate-Typ wird nicht unterstützt.
+This key isn't in the local catalog, so its type can't be checked. Reset the override.	Dieser Schlüssel steht nicht im lokalen Katalog, deshalb lässt sich sein Typ nicht prüfen. Setze die Überschreibung zurück.
+This line opens a rule and does not finish it: %1$s. Write two phrases as "a" & "b" for both, or "a" !& "b" for the first without the second.	Diese Zeile beginnt eine Regel und beendet sie nicht: %1$s. Schreiben Sie zwei Wendungen als "a" & "b" für beide oder als "a" !& "b" für die erste ohne die zweite.
+This phone has no file picker, so there is no way to choose a file here.	Dieses Telefon hat keine Dateiauswahl, hier lässt sich also keine Datei wählen.
+This phone has no folder picker. Type the folder into the row instead.	Dieses Telefon hat keine Ordnerauswahl. Den Ordner stattdessen in die Zeile eintippen.
 This profile picture isn't available to save	Dieses Profilbild lässt sich nicht speichern
 This quality isn't available as a complete file, so TikTok's own save runs instead	Diese Qualität gibt es nicht als vollständige Datei, also speichert TikTok selbst
+This setting's value can't be copied on this build, so it can't be overridden. Reset the override.	Der Wert dieser Einstellung lässt sich in diesem Build nicht kopieren und deshalb nicht überschreiben. Setze die Überschreibung zurück.
 This story isn't available to save	Diese Story lässt sich nicht speichern
+This value is required.	Dieser Wert ist erforderlich.
+This video has no link to copy	Dieses Video hat keinen Link zum Kopieren
 This video has no link to send, so TikTok's own save runs instead	Dieses Video hat keinen Link zum Senden, also speichert TikTok selbst
+This video has no original sound to save	Dieses Video hat keinen Originalsound zum Speichern
+This video has no sound of its own	Dieses Video hat keinen eigenen Sound
 Thumbs down blocks the commenter	Daumen runter blockiert den Kommentierenden
 TikTok default	TikTok-Standard
 TikTok default (2x hold, quick share)	TikTok-Standard (2x halten, schnelles Teilen)
 TikTok didn't accept the feedback. Try again later.	TikTok hat die Rückmeldung nicht angenommen. Versuche es später noch einmal.
+TikTok hasn't handed this setting an object to change yet. Open the part of the app that uses it, then come back.	TikTok hat dieser Einstellung noch kein Objekt zum Ändern übergeben. Öffne den Teil der App, der sie verwendet, und komm dann zurück.
+TikTok read it	TikTok hat ihn gelesen
+TikTok read it, but the structured override could not be applied	TikTok hat ihn gelesen, aber die strukturierte Überschreibung konnte nicht angewendet werden
 TikTok refused the follow: %1$s	TikTok hat das Folgen abgelehnt: %1$s
+TikTok rejected the request to block %1$s	TikTok hat die Anfrage zum Blockieren von %1$s abgelehnt
+TikTok rejected the request to unblock %1$s	TikTok hat die Anfrage zum Entblocken von %1$s abgelehnt
+TikTok's own value	TikToks eigener Wert
+TikTok's server can put an account into an experiment that empties the Favorites tab on your profile. Keep the tab and its saved videos.	TikToks Server kann ein Konto in ein Experiment stecken, das den Favoriten-Tab im Profil leert. Behält den Tab und seine gespeicherten Videos.
+time	Mal
+times	Mal
+Times you can open the feed anyway	Wie oft du den Feed trotzdem öffnen kannst
+Today has moved on, so there is nothing to put back	Der Tag ist weitergezogen, es gibt nichts zurückzuholen
+Today is back where it was	Der heutige Tag ist wieder wie zuvor
+Today started over. Tap again to put the counts back.	Heute wurde neu gestartet. Zum Zurücksetzen der Zähler erneut tippen.
+Today starts again	Heute beginnt neu
+Today's budget is locked. The day starts over at %1$s.	Das heutige Budget ist gesperrt. Der Tag beginnt um %1$s von vorn.
+Today's budget is locked. The feed opens again at %1$s. Messages, profiles and search still work.	Das heutige Budget ist gesperrt. Der Feed öffnet wieder um %1$s. Nachrichten, Profile und Suche funktionieren weiterhin.
+Today's budget is locked. This can be changed again at %1$s.	Das heutige Budget ist gesperrt. Änderungen sind wieder ab %1$s möglich.
+Today: %1$d minute	Heute: %1$d Minute
+Today: %1$d minutes	Heute: %1$d Minuten
+Today: %1$d video	Heute: %1$d Video
+Today: %1$d videos	Heute: %1$d Videos
 Tokens: {creator}, {date}, {video_id}, {index}. {index} numbers the photos of a slideshow you save with Download original photos; anything saved through TikTok's own button is numbered by the folder instead. The file extension is kept automatically.	Platzhalter: {creator}, {date}, {video_id}, {index}. {index} nummeriert die Fotos einer Bilderfolge, die du mit Originalfotos herunterladen speicherst; alles über TikToks eigenen Knopf nummeriert stattdessen der Ordner. Die Dateiendung bleibt automatisch erhalten.
 Tokens: {creator}, {date}, {video_id}. The file extension is kept automatically.	Platzhalter: {creator}, {date}, {video_id}. Die Dateiendung bleibt automatisch erhalten.
 Tokens: {date}, {media_id}. Works for image and video stickers.	Platzhalter: {date}, {media_id}. Gilt für Bild- und Video-Sticker.
+Too many media saves are already running. Try again shortly.	Es laufen bereits zu viele Medienspeicherungen. Versuche es gleich noch einmal.
 Translate comments as they load, using TikTok's own translator.	Kommentare beim Laden übersetzen, mit TikToks eigenem Übersetzer.
 Transparent	Transparent
-Try a country name, or a two-letter code	Versuche einen Ländernamen oder ein Kürzel aus zwei Buchstaben
+Try a different word or clear the search.	Versuche ein anderes Wort oder lösche die Suche.
+Try again, or go back to TikTok.	Versuche es erneut oder kehre zu TikTok zurück.
+Turn on %1$s first.	Zuerst %1$s einschalten.
+Turn on overrides	Überschreibungen einschalten
+Turned off %1$d gates of %2$d; the rest do not take a true or false value. Restart TikTok to apply this.	%1$d von %2$d Schaltern ausgeschaltet; die übrigen nehmen kein true oder false. TikTok neu starten, damit das gilt.
+Turned off %1$d gates. Restart TikTok to apply this.	%1$d Schalter ausgeschaltet. TikTok neu starten, damit das gilt.
+Turned off 1 gate of %1$d; the rest do not take a true or false value. Restart TikTok to apply this.	1 von %1$d Schaltern ausgeschaltet; die übrigen nehmen kein true oder false. TikTok neu starten, damit das gilt.
+Turned off 1 gate. Restart TikTok to apply this.	1 Schalter ausgeschaltet. TikTok neu starten, damit das gilt.
 Two letters, like us, gb or jp.	Zwei Buchstaben, etwa us, gb oder jp.
+Type	Typ
+Type to search settings	Tippe, um Einstellungen zu durchsuchen
+Unavailable	Nicht verfügbar
+Unblock this commenter	Blockierung dieses Kommentierenden aufheben
 Unblocked %1$s	%1$s entblockt
 Undo	Rückgängig
+Undo last Lab change	Letzte Lab-Änderung rückgängig machen
 Undo last restore or reset	Letzte Wiederherstellung oder Zurücksetzung rückgängig machen
+Undoing the last change	Die letzte Änderung wird rückgängig gemacht
 Up to 8 speeds from 0.5 to 3, separated by commas. Example: 0.5, 1, 1.5, 2, 2.5, 3. Leave empty for TikTok's list. Restart TikTok to apply this.	Bis zu 8 Geschwindigkeiten von 0.5 bis 3, durch Kommas getrennt. Beispiel: 0.5, 1, 1.5, 2, 2.5, 3. Leer lassen für TikToks Liste. TikTok neu starten, damit das gilt.
 Use 0 for TikTok's size, or 12 to 48. Applies to the next caption.	0 für TikToks Größe, sonst 12 bis 48. Gilt ab dem nächsten Untertitel.
 Use a default playback speed	Standardgeschwindigkeit verwenden
 Use non-personalized search	Nicht personalisierte Suche verwenden
 Use Save JSON for this large report	Nutze für diesen großen Bericht „JSON speichern“
+Use the preset for the region TikTok reports for your account and its shop too. May affect search.	Die Vorlage auch für die Region verwenden, die TikTok für dein Konto und seinen Shop meldet. Kann die Suche beeinflussen.
 Use the selected country and operator values. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.	Das gewählte Land und die Anbieterwerte verwenden. Das ändert nur, was die SIM meldet: deine IP-Adresse, der Verlauf deines Kontos und die Sprache, in der du liest, bleiben gleich, und eines davon reicht TikTok schon, um bei der bisherigen Region zu bleiben. TikTok neu starten, damit das gilt.
+Use the selected country. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.	Das gewählte Land verwenden. Das ändert nur, was die SIM meldet: deine IP-Adresse, der Verlauf deines Kontos und die Sprache, in der du liest, bleiben gleich, und eines davon reicht TikTok schon, um bei der bisherigen Region zu bleiben. TikTok neu starten, damit das gilt.
 Use the split layout on wider screens. Restart TikTok to apply this. If the old layout is still there, unfold again.	Auf breiteren Bildschirmen das geteilte Layout verwenden. TikTok neu starten, damit das gilt. Ist das alte Layout noch da, klapp erneut auf.
 Use TikTok's native hold, slide down, and release gesture to lock 2x speed.	TikToks eigene Geste „Halten, nach unten wischen, loslassen“ verwenden, um die 2x-Geschwindigkeit zu fixieren.
+Use value	Wert verwenden
+Use your own offline videos limit	Eigene Grenze für Offline-Videos verwenden
+Using TikTok's value	TikToks Wert wird verwendet
+Value	Wert
+Value to return	Zurückgegebener Wert
+Verified creators	Verifizierte Creator
+Version %1$s	Version %1$s
+Version %1$s for TikTok %2$s	Version %1$s für TikTok %2$s
 Video	Video
+video	Video
 Video (MP4)	Video (MP4)
 Video destination	Speicherort für Videos
 Video download quality	Qualität für Video-Downloads
@@ -539,487 +1027,26 @@ Video saved	Video gespeichert
 Video saved in %1$s, but only %2$s of %3$s subtitles came with it	Video in %1$s gespeichert, aber nur %2$s von %3$s Untertiteln sind mitgekommen
 Video saved with %1$s subtitles in %2$s	Video mit %1$s Untertiteln in %2$s gespeichert
 videos	Videos
+view per like	Aufruf pro Like
+views per like	Aufrufe pro Like
 Wait before hiding the controls.	Wartezeit, bevor die Bedienelemente ausgeblendet werden.
 WebP, exactly as TikTok sent it	WebP, genau so wie TikTok es geschickt hat
-YTDLnis download type	YTDLnis-Downloadtyp
-For com.deniscerri.ytdl only. Ask YTDLnis for audio or video when the save button hands it a link.	Nur für com.deniscerri.ytdl. Beim Übergeben eines Links kann die Speichertaste YTDLnis um Audio oder Video bitten.
-YTDLnis background mode	YTDLnis-Hintergrundmodus
-For com.deniscerri.ytdl only. Hide its download card and start the handoff in the background.	Nur für com.deniscerri.ytdl. Die Downloadkarte wird ausgeblendet und die Übergabe im Hintergrund gestartet.
+What TikTok gets	Was TikTok erhält
+When TikTok requests this key, return the selected value below	Wenn TikTok diesen Schlüssel abfragt, den unten gewählten Wert zurückgeben
+While diagnostic logging is on, a message names the part of Hushfeed that failed. Off keeps failures in the report only.	Solange die Diagnoseprotokollierung läuft, nennt eine Meldung den Teil von Hushfeed, der fehlgeschlagen ist. Aus behält Fehler nur im Bericht.
 Window width needed to enable the layout. Restart TikTok to apply this.	Fensterbreite, ab der das Layout gilt. TikTok neu starten, damit das gilt.
 Write the video's sound beside it as an .m4a. Android 10 and later file audio separately, so it lands in Music under the same folder name as your videos.	Den Ton des Videos daneben als .m4a speichern. Ab Android 10 wird Audio getrennt abgelegt, also landet die Datei unter Music im Ordner mit dem Namen deines Videoordners.
+Yes	Ja
 YOUR EXPERIENCE	DEIN ERLEBNIS
+Your filters hid everything TikTok just sent. Most were %1$s.	Deine Filter haben alles ausgeblendet, was TikTok gerade geschickt hat. Das meiste war %1$s.
+Your filters hid everything TikTok sent, %1$d times in a row. Most were %2$s.	Deine Filter haben %1$d Mal hintereinander alles ausgeblendet, was TikTok geschickt hat. Das meiste war %2$s.
 Your operator's name, like T-Mobile.	Der Name deines Anbieters, etwa T-Mobile.
 Your operator's numeric code, like 310260.	Der Zahlencode deines Anbieters, etwa 310260.
-Clear search	Suche löschen
-Could not open settings search	Einstellungsuche konnte nicht geöffnet werden
-Find a setting by title or description	Einstellung nach Titel oder Beschreibung finden
-No matching settings	Keine passenden Einstellungen
-Search a title, description or category.	Titel, Beschreibung oder Kategorie durchsuchen.
-Search settings	Einstellungen durchsuchen
-%1$s: %2$d found, %3$d missing	%1$s: %2$d gefunden, %3$d fehlen
-%1$s: %2$d found, %3$d missing, and more it stopped counting	%1$s: %2$d gefunden, %3$d fehlen, und weitere, die nicht mehr gezählt wurden
-%1$s: %2$d found, %3$d missing. First missing: %4$s	%1$s: %2$d gefunden, %3$d fehlen. Zuerst fehlte: %4$s
-%1$s: %2$d found, %3$d missing, and more it stopped counting. First missing: %4$s	%1$s: %2$d gefunden, %3$d fehlen, und weitere, die nicht mehr gezählt wurden. Zuerst fehlte: %4$s
-Include diagnostic events	Diagnoseereignisse einschließen
-Apply	Übernehmen
-All events	Alle Ereignisse
-Follow probe	Folgen-Prüfung
-Feed and navigation	Feed und Navigation
-Errors	Fehler
-Other	Sonstiges
-Saved. Restart TikTok to apply this.	Gespeichert. TikTok neu starten, damit das gilt.
-Includes these events: %1$s	Enthält diese Ereignisse: %1$s
-Gate details	Schalterdetails
-This catalog entry is no longer available. Refresh the Lab and try again.	Dieser Katalogeintrag ist nicht mehr verfügbar. Das Labor aktualisieren und es erneut versuchen.
-An override changes the value returned by the getter. It does not rewrite TikTok's cached value or prove the named feature changed.	Eine Überschreibung ändert den Wert, den der Getter zurückgibt. Sie schreibt TikToks zwischengespeicherten Wert nicht um und beweist nicht, dass sich die genannte Funktion geändert hat.
-Account-sensitive name: forcing this key may affect security, login, compliance, region, payment, or account safety behavior.	Kontosensibler Name: Diesen Schlüssel zu erzwingen kann Sicherheit, Anmeldung, Compliance, Region, Zahlungen oder den Kontoschutz beeinflussen.
-Save field values	Feldwerte speichern
-Reset override	Überschreibung zurücksetzen
-Overrides are disabled in the Feature Gate Lab.	Überschreibungen sind im Feature Gate Lab abgeschaltet.
-This configuration has no fields that can be copied and changed safely on this build.	Diese Konfiguration hat keine Felder, die sich in diesem Build gefahrlos kopieren und ändern lassen.
-Only fields that can be type-checked and applied to a copied configuration object are shown.	Es werden nur Felder gezeigt, deren Typ geprüft und die auf eine kopierte Konfiguration angewendet werden können.
-Technical details	Technische Details
-None recorded	Nichts aufgezeichnet
-Account warning: forced client values apply to every account in this app data and cannot bypass server controls.	Kontowarnung: Erzwungene Werte auf dem Gerät gelten für jedes Konto in diesen App-Daten und umgehen keine Serverregeln.
-Loading gates...	Schalter werden geladen ...
-Restoring your settings	Einstellungen werden wiederhergestellt
-Putting the settings back to their defaults	Einstellungen werden auf die Standardwerte zurückgesetzt
-Undoing the last change	Die letzte Änderung wird rückgängig gemacht
-Settings are back to their defaults. Restart TikTok to apply all changes.	Die Einstellungen stehen wieder auf den Standardwerten. TikTok neu starten, um alle Änderungen zu übernehmen.
-The last change is undone. Restart TikTok to apply all changes.	Die letzte Änderung ist rückgängig gemacht. TikTok neu starten, um alle Änderungen zu übernehmen.
-Value to return	Zurückgegebener Wert
-Enable overrides	Überschreibungen aktivieren
-Applies saved rules at supported getters	Wendet gespeicherte Regeln an unterstützten Gettern an
-%1$s, selected	%1$s, ausgewählt
-Custom %1$s value (unverified)	Eigener %1$s-Wert (ungeprüft)
-Custom value (unverified)	Eigener Wert (ungeprüft)
-Use value	Wert verwenden
-Using TikTok's value	TikToks Wert wird verwendet
-Override saved but off	Überschreibung gespeichert, aber aus
-Getter requested	Getter abgefragt
-Getter not requested yet	Getter noch nicht abgefragt
-One value per line	Ein Wert pro Zeile
-Advanced JSON value	Erweiterter JSON-Wert
-Value	Wert
-Show	Anzeigen
-Hide	Ausblenden
-Search words or key	Nach Wörtern oder Schlüssel suchen
-Loading local catalog and current TikTok cache...	Lokaler Katalog und aktueller TikTok-Cache werden geladen ...
-No gates match this search and filter.	Keine Schalter passen zu dieser Suche und diesem Filter.
-Refreshing current TikTok cache...	Aktueller TikTok-Cache wird aktualisiert ...
-Loaded current values. Loading all known gates...	Aktuelle Werte geladen. Alle bekannten Schalter werden geladen ...
-Current cache unavailable: %1$s	Aktueller Cache nicht verfügbar: %1$s
-Gate data unavailable	Schalterdaten nicht verfügbar
-No gate data is available. Refresh values from the menu to try again.	Es sind keine Schalterdaten verfügbar. Werte über das Menü aktualisieren und es erneut versuchen.
-Filter: %1$s	Filter: %1$s
-Show gates	Schalter anzeigen
-1 gate selected	1 Schalter ausgewählt
-%1$d gates selected	%1$d Schalter ausgewählt
-1 result	1 Ergebnis
-%1$d results	%1$d Ergebnisse
-Loaded	Geladen
-All actionable	Alle änderbaren
-Overrides	Überschreibungen
-App AB	App-AB
-Config	Konfiguration
-Player	Wiedergabe
-Live	LIVE
-Activity	Aktivität
-Preview shortened. Save JSON includes the full report.	Vorschau gekürzt. JSON speichern enthält den vollständigen Bericht.
-Choose a preset to fill the SIM details.	Eine Vorlage wählen, um die SIM-Angaben auszufüllen.
-Search countries or operators	Nach Ländern oder Anbietern suchen
-Only bottom tabs TikTok has loaded on this device are shown here. This does not force unavailable tabs to appear.	Hier stehen nur die unteren Tabs, die TikTok auf diesem Gerät geladen hat. Nicht verfügbare Tabs erscheinen dadurch nicht.
-Only tabs TikTok has loaded on this device are shown here. This does not force unavailable tabs to appear.	Hier stehen nur die Tabs, die TikTok auf diesem Gerät geladen hat. Nicht verfügbare Tabs erscheinen dadurch nicht.
-Required	Erforderlich
-Search translated titles and descriptions, then open the original setting.	Übersetzte Titel und Beschreibungen durchsuchen und dann die ursprüngliche Einstellung öffnen.
-Try a different word or clear the search.	Versuche ein anderes Wort oder lösche die Suche.
-Type to search settings	Tippe, um Einstellungen zu durchsuchen
-Add	Hinzufügen
-Add hidden creator	Ausgeblendeten Creator hinzufügen
-Creator handle or id	Creator-Handle oder ID
-Creators hidden from later feed batches by the player action. Search the list and remove one entry at a time.	Mit der Player-Aktion lokal ausgeblendete Creator aus späteren Feed-Ladungen ausblenden. Durchsuche die Liste und entferne einzelne Einträge.
-Enter a creator handle or id	Gib einen Creator-Handle oder eine ID ein
-Enter a number	Gib eine Zahl ein
-Filter the list	Liste filtern
-Hidden %1$s locally	%1$s lokal ausgeblendet
-Hide this creator locally	Diesen Creator lokal ausblenden
-Locally hidden creators	Lokal ausgeblendete Creator
-No account to hide on this video	Auf diesem Video wurde kein ausblendbares Konto gefunden
-No creators are hidden yet	Noch keine Creator ausgeblendet
-No hidden creators match this search	Keine ausgeblendeten Creator passen zu dieser Suche
-Remove	Entfernen
-Remove %1$s	%1$s entfernen
-Removed %1$s	%1$s entfernt
-Search hidden creators	Ausgeblendete Creator durchsuchen
-Showing %1$s again	%1$s wieder anzeigen
-That creator is already in the list	Dieser Creator ist bereits in der Liste
-Days. Zero keeps every age. Posts without a usable timestamp, including future posts, stay visible.	Tage. Null lässt jedes Alter zu. Beiträge ohne brauchbaren Zeitstempel, auch zukünftige, bleiben sichtbar.
-Maximum post age	Höchstalter von Beiträgen
-Ads	Anzeigen
-LIVE videos	LIVE-Videos
-Stories	Storys
-Photo and image posts	Foto- und Bildbeiträge
-Shop posts	Shop-Beiträge
-Blocked sounds	Blockierte Sounds
-Paid partnerships	Bezahlte Partnerschaften
-AI-generated posts	KI-generierte Beiträge
-Verified creators	Verifizierte Creator
-Series posts	Serienbeiträge
-Playlist posts	Playlist-Beiträge
-Inserted cards	Eingefügte Karten
-Seen videos	Bereits gesehene Videos
-Hidden creators	Ausgeblendete Creator
-Promotional music	Werbemusik
-LIVE replays	LIVE-Wiederholungen
-Region rules	Regionsregeln
-Publication age	Beitragsalter
-Other feed filters	Andere Feed-Filter
-Hushfeed filtered this batch	Hushfeed hat diese Ladung gefiltert
-No videos remained after Hushfeed applied your feed filters to %1$d batches. Most matches: %2$s.	Keine Videos blieben übrig, nachdem Hushfeed deine Feed-Filter auf %1$d Ladungen angewendet hatte. Am häufigsten: %2$s.
-Open feed filter settings	Feed-Filter öffnen
-Dismiss	Schließen
-Share action checklist	Checkliste der Share-Aktionen
-Choose observed share actions to hide. The stable identifier is shown below each label; unknown saved identifiers stay in the manual list.	Wähle beobachtete Share-Aktionen zum Ausblenden. Die stabile Kennung steht unter jedem Namen; unbekannte gespeicherte Kennungen bleiben in der manuellen Liste.
-Search share actions	Share-Aktionen durchsuchen
-No share actions have been observed yet	Noch keine Share-Aktionen beobachtet
-Open a share sheet once, then return here to choose its actions.	Öffne einmal ein Share-Menü und kehre dann zurück, um seine Aktionen auszuwählen.
-No share actions match this search	Keine Share-Aktionen passen zu dieser Suche
-Hook status	Funktionsprüfung
-Nothing has been looked up yet. Use the app for a moment, then come back.	Bisher wurde nichts nachgeschlagen. Nutze die App einen Moment und komm dann zurück.
-%1$d areas were checked and everything they need is here.	%1$d Bereiche wurden geprüft und alles, was sie brauchen, ist vorhanden.
-Nothing has been checked yet, so there is nothing to report.	Es wurde noch nichts geprüft, also gibt es nichts zu berichten.
-Daily video budget	Tägliches Videobudget
-Daily time budget	Tägliches Zeitbudget
-Hold the feed after the budget	Feed nach dem Budget anhalten
-Quieten the feed while comments are open	Feed stummschalten, solange Kommentare offen sind
-Off by default. The video behind the comment sheet keeps playing, with sound, while you read. Switched on, Hushfeed asks for the sound the moment a sheet opens and hands it back when it closes, which is how one app tells another to stop.	Standardmäßig aus. Das Video hinter den Kommentaren läuft mit Ton weiter, während du liest. Eingeschaltet fordert Hushfeed den Ton an, sobald die Kommentare aufgehen, und gibt ihn beim Schließen zurück. So sagt eine App einer anderen, dass sie aufhören soll.
-Do not start the feed on returning	Feed beim Zurückkommen nicht starten
-Off by default. TikTok plays again by itself every time you come back to the app. Switched on, the feed waits for one tap first. The tab bar is left alone, so messages, a profile and search are still one tap away.	Standardmäßig aus. TikTok spielt bei jeder Rückkehr von selbst weiter. Eingeschaltet wartet der Feed erst auf einen Tipp. Die Tab-Leiste bleibt frei, damit Nachrichten, ein Profil und die Suche einen Tipp entfernt bleiben.
-Tap to start the feed	Zum Starten des Feeds tippen
-Fade the feed out before the hold	Feed vor dem Anhalten ausblenden
-Off by default. Switched on, the feed dims over the last three quarters of a minute of a time budget, most of it in the final half minute, so the hold is somewhere you arrive rather than somewhere you land. Needs a budget in minutes and a hold to arrive at: a budget counted in videos has no time left to follow, and with the hold switched off there is nothing to lead into. Nothing fades if you have turned animations off.	Standardmäßig aus. Eingeschaltet wird der Feed über die letzten drei Viertelminuten eines Zeitbudgets dunkler, das meiste davon in der letzten halben Minute, damit das Anhalten kein Sprung ist. Braucht ein Budget in Minuten und ein Anhalten, auf das es zuläuft: ein Budget in Videos hat keine verbleibende Zeit, und ohne Anhalten gibt es nichts, worauf es zuläuft. Es wird nichts ausgeblendet, wenn Animationen abgeschaltet sind.
-Start the day at	Tag beginnt um
-That is %1$d videos today	Das sind %1$d Videos heute
-The feed is open again	Der Feed ist wieder offen
-Less than a minute left	Weniger als eine Minute übrig
-%1$d minutes left	Noch %1$d Minuten
-%1$s left	Noch %1$s
-Messages, profiles and search still work.	Nachrichten, Profile und die Suche funktionieren weiterhin.
-One area was checked and everything it needs is here.	Ein Bereich wurde geprüft und alles, was er braucht, ist vorhanden.
-Something is missing from %1$s. Tap for the whole report.	Bei %1$s fehlt etwas. Tippe für den vollständigen Bericht.
-Each area, how many of the things it looks for are in this build and how many are not.	Jeder Bereich, wie viel von dem, was er sucht, in diesem Build steckt und wie viel nicht.
-%1$s and above	Ab %1$s
-%1$s to %2$s	%1$s bis %2$s
-Enter a whole number, or one like 20K, 1.5M or 2B	Gib eine ganze Zahl ein, oder eine wie 20K, 1.5M oder 2B
-The smallest value is above the largest	Der kleinste Wert liegt über dem größten
-That is %1$d minutes today	Das sind %1$d Minuten heute
-One minute left	Noch eine Minute
-Open the feed anyway	Feed trotzdem öffnen
-point	Punkt
-points	Punkte
-millisecond	Millisekunde
-milliseconds	Millisekunden
-Use the selected country. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.	Das gewählte Land verwenden. Das ändert nur, was die SIM meldet: deine IP-Adresse, der Verlauf deines Kontos und die Sprache, in der du liest, bleiben gleich, und eines davon reicht TikTok schon, um bei der bisherigen Region zu bleiben. TikTok neu starten, damit das gilt.
-Remind me every	Erinnere mich alle
-Still here. Nothing is waiting.	Immer noch hier. Es wartet nichts.
-A good place to stop, if you want one.	Ein guter Moment zum Aufhören, falls du einen suchst.
-The feed does not end. This is a fine time to leave it.	Der Feed hört nicht auf. Jetzt ist ein guter Zeitpunkt zu gehen.
-Today: %1$d video	Heute: %1$d Video
-Today: %1$d videos	Heute: %1$d Videos
-Today: %1$d minute	Heute: %1$d Minute
-Today: %1$d minutes	Heute: %1$d Minuten
-Open messages	Nachrichten öffnen
-Open the feed anyway, the last time today	Feed trotzdem öffnen, heute zum letzten Mal
-Open the feed anyway, %1$d left today	Feed trotzdem öffnen, heute noch %1$d Mal
-Times you can open the feed anyway	Wie oft du den Feed trotzdem öffnen kannst
-Start today over	Heute neu beginnen
-Forget what has been counted today and end any hold. The budgets themselves are left alone.	Vergessen, was heute gezählt wurde, und jede Sperre beenden. Die Budgets selbst bleiben unverändert.
-Today starts again	Heute beginnt neu
-Save the original sound	Originalsound speichern
-This video has no original sound to save	Dieses Video hat keinen Originalsound zum Speichern
-Storage permission is needed to save a sound	Zum Speichern eines Sounds wird die Speicherberechtigung gebraucht
-Settings restored. The Feature Gate Lab rules were for another TikTok version and were left out. Restart TikTok to apply all changes.	Einstellungen wiederhergestellt. Die Regeln des Feature Gate Labs galten für eine andere TikTok-Version und wurden ausgelassen. TikTok neu starten, um alle Änderungen zu übernehmen.
-The last change is undone. The Feature Gate Lab rules were for another TikTok version and were left out. Restart TikTok to apply all changes.	Die letzte Änderung ist rückgängig gemacht. Die Regeln des Feature Gate Labs galten für eine andere TikTok-Version und wurden ausgelassen. TikTok neu starten, um alle Änderungen zu übernehmen.
-That settings backup is damaged or only partly downloaded. Nothing was altered.	Diese Einstellungssicherung ist beschädigt oder nur teilweise heruntergeladen. Es wurde nichts geändert.
-That file is too large to be a settings backup. Nothing was altered.	Diese Datei ist zu groß für eine Einstellungssicherung. Es wurde nichts geändert.
-That file is not readable text, so it may have been damaged in transit. Nothing was altered.	Diese Datei ist kein lesbarer Text und wurde womöglich bei der Übertragung beschädigt. Es wurde nichts geändert.
-That is not a Hushfeed settings backup. Nothing was altered.	Das ist keine Hushfeed-Einstellungssicherung. Es wurde nichts geändert.
-That backup was written by a newer Hushfeed than this one. Nothing was altered.	Diese Sicherung stammt aus einem neueren Hushfeed als diesem. Es wurde nichts geändert.
-That settings backup is incomplete, so it may have been cut short. Nothing was altered.	Diese Einstellungssicherung ist unvollständig und wurde womöglich abgeschnitten. Es wurde nichts geändert.
-That settings backup holds a value Hushfeed cannot read. Nothing was altered.	Diese Einstellungssicherung enthält einen Wert, den Hushfeed nicht lesen kann. Es wurde nichts geändert.
-That settings backup holds more Feature Gate Lab rules than the Lab takes. Nothing was altered.	Diese Einstellungssicherung enthält mehr Feature-Gate-Lab-Regeln, als das Lab annimmt. Es wurde nichts geändert.
-Lock today's budget	Heutiges Budget sperren
-Off by default. Switched on, the hold that starts when today's budget runs out has no way out, and the budgets, the reset hour and this switch cannot be changed again until the day starts over. Switch it off any time before the budget runs out.	Standardmäßig aus. Eingeschaltet hat die Sperre, die beim Aufbrauchen des heutigen Budgets beginnt, keinen Ausweg, und die Budgets, die Rücksetzstunde und dieser Schalter lassen sich bis zum Tagesbeginn nicht mehr ändern. Vor dem Aufbrauchen des Budgets kann er jederzeit ausgeschaltet werden.
-Today's budget is locked. This can be changed again at %1$s.	Das heutige Budget ist gesperrt. Änderungen sind wieder ab %1$s möglich.
-Today started over. Tap again to put the counts back.	Heute wurde neu gestartet. Zum Zurücksetzen der Zähler erneut tippen.
-Today's budget is locked. The day starts over at %1$s.	Das heutige Budget ist gesperrt. Der Tag beginnt um %1$s von vorn.
-Today's budget is locked. The feed opens again at %1$s. Messages, profiles and search still work.	Das heutige Budget ist gesperrt. Der Feed öffnet wieder um %1$s. Nachrichten, Profile und Suche funktionieren weiterhin.
-Today is back where it was	Der heutige Tag ist wieder wie zuvor
-Today has moved on, so there is nothing to put back	Der Tag ist weitergezogen, es gibt nichts zurückzuholen
-Comma separated words or phrases. Matching captions are skipped. Case does not matter. Two phrases in quotes can be joined: "a" & "b" needs both, "a" !& "b" needs the first without the second.	Wörter oder Wendungen, durch Kommas getrennt. Passende Beschreibungen werden übersprungen. Groß- und Kleinschreibung spielt keine Rolle. Zwei Wendungen in Anführungszeichen lassen sich verbinden: "a" & "b" verlangt beide, "a" !& "b" die erste ohne die zweite.
-Comma separated. A comment is hidden if its text contains any of them. Case does not matter. Two phrases in quotes can be joined: "a" & "b" needs both, "a" !& "b" needs the first without the second.	Durch Kommas getrennt. Ein Kommentar wird ausgeblendet, wenn sein Text eines davon enthält. Groß- und Kleinschreibung spielt keine Rolle. Zwei Wendungen in Anführungszeichen lassen sich verbinden: "a" & "b" verlangt beide, "a" !& "b" verlangt die erste ohne die zweite.
-This line opens a rule and does not finish it: %1$s. Write two phrases as "a" & "b" for both, or "a" !& "b" for the first without the second.	Diese Zeile beginnt eine Regel und beendet sie nicht: %1$s. Schreiben Sie zwei Wendungen als "a" & "b" für beide oder als "a" !& "b" für die erste ohne die zweite.
-One of the quote marks in that list has nothing to close it, so the rest of the line reads as one phrase. Add the missing quote or take the stray one out.	Eines der Anführungszeichen in dieser Liste wird nicht geschlossen, deshalb liest sich der Rest der Zeile als eine einzige Wendung. Ergänzen Sie das fehlende Anführungszeichen oder entfernen Sie das überzählige.
-%1$d setting was not in that file and was left as it is.	%1$d Einstellung stand nicht in dieser Datei und bleibt unverändert.
-%1$d settings were not in that file and were left as they are.	%1$d Einstellungen standen nicht in dieser Datei und bleiben unverändert.
-Choose a subfolder under %1$s.	Wähle einen Unterordner in %1$s.
-Off	Aus
-Kept to %1$s, the nearest value this row allows	Auf %1$s gesetzt, den nächsten Wert, den diese Zeile zulässt
-Current state	Aktueller Zustand
-Loaded for this account	Für dieses Konto geladen
-Yes	Ja
-No	Nein
-TikTok cached value	Von TikTok zwischengespeicherter Wert
-Structured value observed	Strukturierter Wert beobachtet
-Not requested in this process yet	In diesem Prozess noch nicht angefordert
-Not present in the current cache	Nicht im aktuellen Zwischenspeicher
-Effective getter result	Tatsächliches Ergebnis des Getters
-Override	Überschreibung
-Override this configuration	Diese Konfiguration überschreiben
-Return a copied object with the selected fields changed	Ein kopiertes Objekt mit den geänderten Feldern zurückgeben
-Forced result	Erzwungenes Ergebnis
-Off forces false; on forces true. Reset returns control to TikTok	Aus erzwingt false, an erzwingt true. Zurücksetzen gibt TikTok die Kontrolle zurück
-Override this gate	Diesen Schalter überschreiben
-When TikTok requests this key, return the selected value below	Wenn TikTok diesen Schlüssel abfragt, den unten gewählten Wert zurückgeben
-Manager	Manager
-Type	Typ
-Source	Quelle
-Generated defaults	Erzeugte Standardwerte
-Historical values	Frühere Werte
-Researched values	Recherchierte Werte
-Proof	Beleg
-Last original value	Letzter Originalwert
-First caller	Erster Aufrufer
-Reset	Zurücksetzen
-Disable	Ausschalten
-Enable	Einschalten
-More options	Weitere Optionen
-Refresh values	Werte aktualisieren
-Export loaded values	Geladene Werte exportieren
-Import loaded values	Geladene Werte importieren
-Reset all overrides	Alle Überschreibungen zurücksetzen
-Reset all Lab data	Alle Labordaten zurücksetzen
-Undo last Lab change	Letzte Lab-Änderung rückgängig machen
-All	Alle
-Boolean	Boolesch
-Enabled	Eingeschaltet
-Disabled	Ausgeschaltet
-Unloaded	Nicht geladen
-Reset 1 gate. Restart TikTok to apply this.	1 Schalter zurückgesetzt. TikTok neu starten, damit das gilt.
-Reset %1$d gates. Restart TikTok to apply this.	%1$d Schalter zurückgesetzt. TikTok neu starten, damit das gilt.
-Reset 1 gate of %1$d. Restart TikTok to apply this.	1 von %1$d Schaltern zurückgesetzt. TikTok neu starten, damit das gilt.
-Reset %1$d gates of %2$d. Restart TikTok to apply this.	%1$d von %2$d Schaltern zurückgesetzt. TikTok neu starten, damit das gilt.
-Forced 1 gate. Restart TikTok to apply this.	1 Schalter erzwungen. TikTok neu starten, damit das gilt.
-Forced %1$d gates. Restart TikTok to apply this.	%1$d Schalter erzwungen. TikTok neu starten, damit das gilt.
-Forced 1 gate of %1$d; the rest do not take a true or false value. Restart TikTok to apply this.	1 von %1$d Schaltern erzwungen; die übrigen nehmen kein true oder false. TikTok neu starten, damit das gilt.
-Forced %1$d gates of %2$d; the rest do not take a true or false value. Restart TikTok to apply this.	%1$d von %2$d Schaltern erzwungen; die übrigen nehmen kein true oder false. TikTok neu starten, damit das gilt.
-Turned off 1 gate. Restart TikTok to apply this.	1 Schalter ausgeschaltet. TikTok neu starten, damit das gilt.
-Turned off %1$d gates. Restart TikTok to apply this.	%1$d Schalter ausgeschaltet. TikTok neu starten, damit das gilt.
-Turned off 1 gate of %1$d; the rest do not take a true or false value. Restart TikTok to apply this.	1 von %1$d Schaltern ausgeschaltet; die übrigen nehmen kein true oder false. TikTok neu starten, damit das gilt.
-Turned off %1$d gates of %2$d; the rest do not take a true or false value. Restart TikTok to apply this.	%1$d von %2$d Schaltern ausgeschaltet; die übrigen nehmen kein true oder false. TikTok neu starten, damit das gilt.
-Feature gate override reset	Überschreibung des Schalters zurückgesetzt
-Feature gate override saved	Überschreibung des Schalters gespeichert
-Could not save this override.	Diese Überschreibung konnte nicht gespeichert werden.
-Could not reset this override.	Diese Überschreibung konnte nicht zurückgesetzt werden.
-Feature Gate Lab could not find the settings container	Das Feature Gate Lab hat den Einstellungsbereich nicht gefunden
-Older overrides were kept disabled. Review their values before enabling them on TikTok %1$s.	Ältere Überschreibungen bleiben abgeschaltet. Prüfen Sie ihre Werte, bevor Sie sie unter TikTok %1$s einschalten.
-A Lab change is already running	Eine Lab-Änderung läuft bereits
-Could not open the export file picker	Die Dateiauswahl zum Exportieren ließ sich nicht öffnen
-Could not open the import file picker	Die Dateiauswahl zum Importieren ließ sich nicht öffnen
-Exported 1 loaded value	1 geladener Wert exportiert
-Exported %1$d loaded values	%1$d geladene Werte exportiert
-Loaded-value file export failed	Der Export der geladenen Werte ist fehlgeschlagen
-Loaded-value file export failed; cleanup also failed	Der Export der geladenen Werte ist fehlgeschlagen; auch das Aufräumen ist fehlgeschlagen
-Loaded-value file is invalid or too large	Die Datei mit den geladenen Werten ist ungültig oder zu groß
-This file isn't a loaded-values export from the Feature Gate Lab.	Diese Datei ist kein Export geladener Werte aus dem Feature Gate Lab.
-These loaded values are for a different TikTok version.	Diese geladenen Werte gehören zu einer anderen TikTok-Version.
-This file has no loaded values in it.	Diese Datei enthält keine geladenen Werte.
-This file has more loaded values than the Lab takes at once.	Diese Datei enthält mehr geladene Werte, als das Lab auf einmal annimmt.
-Could not change Lab settings.	Die Lab-Einstellungen ließen sich nicht ändern.
-None of these gates had an override to reset.	Keiner dieser Schalter hatte eine Überschreibung zum Zurücksetzen.
-None of these gates takes a true or false value.	Keiner dieser Schalter nimmt einen true- oder false-Wert.
-Overrides enabled. Restart TikTok to apply this.	Überschreibungen aktiviert. TikTok neu starten, damit das gilt.
-Overrides disabled. Restart TikTok to apply this.	Überschreibungen deaktiviert. TikTok neu starten, damit das gilt.
-Lab overrides reset. Undo last Lab change is in the menu. Restart TikTok to apply this.	Lab-Überschreibungen zurückgesetzt. Letzte Lab-Änderung rückgängig machen steht im Menü. TikTok neu starten, damit das gilt.
-Lab data reset. Undo last Lab change is in the menu. Restart TikTok to apply this.	Lab-Daten zurückgesetzt. Letzte Lab-Änderung rückgängig machen steht im Menü. TikTok neu starten, damit das gilt.
-Restored the previous Lab settings. Restart TikTok to apply this.	Die vorherigen Lab-Einstellungen sind wiederhergestellt. TikTok neu starten, damit das gilt.
-Nothing new was imported. %1$d already matched, %2$d unavailable, %3$d rejected.	Nichts Neues importiert. %1$d stimmten bereits überein, %2$d sind nicht verfügbar, %3$d wurden abgelehnt.
-There is no Lab change to undo.	Es gibt keine Lab-Änderung, die sich rückgängig machen ließe.
-The record of an interrupted settings change could not be read, so it was set aside. Check your settings.	Die Aufzeichnung einer unterbrochenen Einstellungsänderung ließ sich nicht lesen und wurde beiseitegelegt. Prüfe deine Einstellungen.
-An interrupted settings change could not be recovered, so its record was set aside. Check your settings or restore a backup.	Eine unterbrochene Einstellungsänderung ließ sich nicht wiederherstellen, ihre Aufzeichnung wurde beiseitegelegt. Prüfe deine Einstellungen oder stelle eine Sicherung wieder her.
-A newer clear replaced that undo. Tap the row again to put it back.	Ein neueres Löschen hat dieses Rückgängig ersetzt. Erneut auf die Zeile tippen, um es zurückzuholen.
-That creator pattern is too long, so it was not added: %1$s	Dieses Kreator-Muster ist zu lang und wurde nicht hinzugefügt: %1$s
-Use the preset for the region TikTok reports for your account and its shop too. May affect search.	Die Vorlage auch für die Region verwenden, die TikTok für dein Konto und seinen Shop meldet. Kann die Suche beeinflussen.
-Saved one original photo	Ein Originalfoto gespeichert
-Length and views per like	Länge und Aufrufe pro Like
-Stop a long press on Share from opening TikTok's quick share action.	Verhindern, dass langes Drücken auf Teilen TikToks Schnellteilen öffnet.
-Stop a long press on Like from opening TikTok's repost action.	Verhindern, dass langes Drücken auf Gefällt mir TikToks Reposten öffnet.
-dp	dp
-Select every tab	Jeden Tab auswählen
-Tabs TikTok has loaded	Tabs, die TikTok geladen hat
-That creator pattern is too long to use, so it was skipped: %1$s	Dieses Kreator-Muster ist zu lang und wurde übersprungen: %1$s
-Nothing to undo yet.	Noch nichts rückgängig zu machen.
-No matching diagnostics found.	Keine passenden Diagnosedaten gefunden.
-Diagnostic report copied to the clipboard.	Diagnosebericht in die Zwischenablage kopiert.
-The diagnostic report could not be exported.	Der Diagnosebericht ließ sich nicht exportieren.
-The diagnostic report could not be saved yet. Try again in a moment.	Der Diagnosebericht ließ sich noch nicht speichern. Versuche es gleich noch einmal.
-A diagnostic report is already being saved.	Ein Diagnosebericht wird gerade gespeichert.
-Full report saved to %1$s	Vollständiger Bericht gespeichert unter %1$s
-Could not start the report export. Try again shortly.	Der Export des Berichts ließ sich nicht starten. Versuche es gleich noch einmal.
-Could not start the Lab change. Try again shortly.	Die Lab-Änderung konnte nicht gestartet werden. Versuche es gleich noch einmal.
-Could not start the settings operation. Try again shortly.	Die Einstellungsaktion konnte nicht gestartet werden. Versuche es gleich noch einmal.
-Copy quick report	Kurzbericht kopieren
-Save full report	Vollständigen Bericht speichern
-Diagnostic data cleared. Tap again to put it back.	Diagnosedaten gelöscht. Tippe erneut, um sie wiederherzustellen.
-Diagnostic data put back.	Diagnosedaten wiederhergestellt.
-There is no diagnostic data to put back.	Es gibt keine Diagnosedaten zum Wiederherstellen.
-Could not put back the diagnostic data. Try again.	Die Diagnosedaten konnten nicht wiederhergestellt werden. Versuche es erneut.
-Loaded values are still being read. Try again in a moment.	Die geladenen Werte werden noch gelesen. Versuche es gleich noch einmal.
-The selected loaded-values file could not be read. Try again.	Die ausgewählte Datei mit geladenen Werten konnte nicht gelesen werden. Versuche es erneut.
-Enter a number. The previous value was kept.	Gib eine Zahl ein. Der vorherige Wert wurde beibehalten.
-There is no diagnostic data to clear.	Es gibt keine Diagnosedaten zum Löschen.
-Lab data was over its rule limit, so it was cleared without an undo copy. Restart TikTok to apply this.	Die Lab-Daten überschritten das Regellimit und wurden daher ohne Rückgängig-Kopie gelöscht. TikTok neu starten, damit das gilt.
-The Lab keeps at most %1$s rules. This change would make %2$s, so nothing was changed.	Das Lab speichert höchstens %1$s Regeln. Diese Änderung würde %2$s ergeben, daher wurde nichts geändert.
-Add a separate button that skips this account locally without blocking it.	Eine separate Schaltfläche hinzufügen, die dieses Konto lokal überspringt, ohne es zu blockieren.
-Add a separate button that skips videos using the current sound.	Eine separate Schaltfläche hinzufügen, die Videos mit dem aktuellen Sound überspringt.
-Show block sound button	Schaltfläche zum Blockieren des Sounds anzeigen
-Show local hide button	Schaltfläche zum lokalen Ausblenden anzeigen
-That list is too large. Keep it to 256 KB or less.	Diese Liste ist zu groß. Begrenze sie auf höchstens 256 KB.
-That list has too many entries. Keep it to 10,000 or fewer.	Diese Liste enthält zu viele Einträge. Begrenze sie auf höchstens 10.000.
-That settings backup contains a feed rule list larger than Hushfeed accepts. Nothing was altered.	Diese Einstellungssicherung enthält eine Feed-Regelliste, die größer ist, als Hushfeed zulässt. Es wurde nichts geändert.
-%1$d fields overridden	%1$d Felder überschrieben
-%1$d fields will be overridden when requested	%1$d Felder werden bei der Abfrage überschrieben
-%1$s (%2$s)	%1$s (%2$s)
-%1$s (TikTok value)	%1$s (TikTok-Wert)
-%1$s (custom, unverified)	%1$s (benutzerdefiniert, ungeprüft)
-%1$s (override returned)	%1$s (Überschreibung zurückgegeben)
-%1$s (will be returned when requested)	%1$s (wird bei der Abfrage zurückgegeben)
-%1$s / current cache only	%1$s / nur aktueller Cache
-%1$s / generated registry	%1$s / generiertes Register
-%1$s / generated registry and current cache	%1$s / generiertes Register und aktueller Cache
-%1$s / local catalog	%1$s / lokaler Katalog
-%1$s appears more than once in this file.	%1$s kommt in dieser Datei mehrmals vor.
-%1$s has an invalid value. %2$s	%1$s hat einen ungültigen Wert. %2$s
-%1$s has no supported override boundary in this Lab build.	%1$s hat in diesem Lab-Build keine unterstützte Überschreibungsgrenze.
-%1$s has type %2$s, but the file says %3$s.	%1$s hat den Typ %2$s, in der Datei steht %3$s.
-%1$s is not in this Lab catalog.	%1$s ist nicht in diesem Lab-Katalog enthalten.
-%1$s was rejected. %2$s	%1$s wurde abgelehnt. %2$s
-%1$s, %2$s, %3$s, %4$s, %5$s	%1$s, %2$s, %3$s, %4$s, %5$s
-1 field overridden	1 Feld überschrieben
-1 field will be overridden when requested	1 Feld wird bei der Abfrage überschrieben
-A field value could not be read. Check the values and try again.	Ein Feldwert konnte nicht gelesen werden. Prüfe die Werte und versuche es erneut.
-Activity Center	Aktivitätscenter
-Current	Aktuell
-Current %1$s	Aktuell %1$s
-Custom value...	Benutzerdefinierter Wert...
-Default	Standard
-Enter a JSON object or array.	Gib ein JSON-Objekt oder -Array ein.
-Enter a finite number.	Gib eine endliche Zahl ein.
-Enter a valid structured value.	Gib einen gültigen strukturierten Wert ein.
-Enter a valid value for %1$s.	Gib einen gültigen Wert für %1$s ein.
-Enter true or false.	Gib true oder false ein.
-Enter valid JSON.	Gib gültiges JSON ein.
-Entry %1$d has a field with the wrong data type.	Eintrag %1$d enthält ein Feld mit dem falschen Datentyp.
-Entry %1$d is not an object.	Eintrag %1$d ist kein Objekt.
-Getter requested, but the structured override could not be applied	Getter abgefragt, aber die strukturierte Überschreibung konnte nicht angewendet werden
-Getter used	Getter verwendet
-Historical	Historisch
-Keep this string to 4,096 characters or fewer.	Begrenze diese Zeichenfolge auf höchstens 4.096 Zeichen.
-Keep this structured value to 64 KB or less.	Begrenze diesen strukturierten Wert auf höchstens 64 KB.
-Live Settings	Live-Einstellungen
-Media Config	Medienkonfiguration
-No current value	Kein aktueller Wert
-No current value and no active override	Kein aktueller Wert und keine aktive Überschreibung
-Nothing new was imported. %1$d already matched, %2$d unavailable, %3$d rejected. First rejection: %4$s	Nichts Neues wurde importiert. Bereits identisch: %1$d. Nicht verfügbar: %2$d. Abgelehnt: %3$d. Erste Ablehnung: %4$s
-Override off	Überschreibung aus
-Player Config	Player-Konfiguration
-Researched	Recherchiert
-Returns %1$s	Gibt %1$s zurück
-Saved %1$s	Gespeichert: %1$s
-Select at least one field.	Wähle mindestens ein Feld aus.
-Selected	Ausgewählt
-Structured Config	Strukturierte Konfiguration
-This gate type is not supported.	Dieser Gate-Typ wird nicht unterstützt.
-This value is required.	Dieser Wert ist erforderlich.
-TikTok rejected the request to block %1$s	TikTok hat die Anfrage zum Blockieren von %1$s abgelehnt
-TikTok rejected the request to unblock %1$s	TikTok hat die Anfrage zum Entblocken von %1$s abgelehnt
-Unavailable	Nicht verfügbar
-Waiting	Wartet
-No matching comments. Try a different word or clear the search.	Keine passenden Kommentare. Versuche es mit einem anderen Wort oder lösche die Suche.
-Retry	Erneut versuchen
-Settings couldn't open	Die Einstellungen konnten nicht geöffnet werden
-Try again, or go back to TikTok.	Versuche es erneut oder kehre zu TikTok zurück.
-The setting couldn't finish updating. Its saved value is shown.	Die Einstellung konnte nicht vollständig aktualisiert werden. Der gespeicherte Wert wird angezeigt.
-Settings couldn't refresh completely. Reopen settings and try again.	Die Einstellungen konnten nicht vollständig aktualisiert werden. Öffne die Einstellungen erneut und versuche es noch einmal.
-Clearing	Wird entfernt
-Could not clear suggested accounts	Kontovorschläge konnten nicht entfernt werden
-Stopped after dismissing one suggested account	Nach einem entfernten Kontovorschlag gestoppt
-Stopped after dismissing %1$s suggested accounts	Nach %1$s entfernten Kontovorschlägen gestoppt
-Move up	Nach oben verschieben
-Move down	Nach unten verschieben
-Move left	Nach links verschieben
-Move right	Nach rechts verschieben
-Reset position	Position zurücksetzen
-Clearing suggested accounts	Kontovorschläge werden entfernt
-1 min left	Noch 1 Min.
-%1$s min left	Noch %1$s Min.
-1 video left	Noch 1 Video
-%1$s videos left	Noch %1$s Videos
-Show what is left of the budget	Restliches Budget anzeigen
-Off by default. Switched on, a small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out. It changes at most once a minute, appears only on the feed, and is never read out on its own.	Standardmäßig aus. Eingeschaltet zeigt ein kleines Feld im Feed die verbleibenden Minuten oder Videos des heutigen Budgets an, je nachdem, was zuerst aufgebraucht ist. Es ändert sich höchstens einmal pro Minute, erscheint nur im Feed und wird nie von allein vorgelesen.
-Restart TikTok to apply this.	TikTok neu starten, damit das gilt.
-No gates match this filter.	Keine Schalter passen zu diesem Filter.
-Version %1$s for TikTok %2$s	Version %1$s für TikTok %2$s
-Show failures on screen	Fehler auf dem Bildschirm anzeigen
-While diagnostic logging is on, a message names the part of Hushfeed that failed. Off keeps failures in the report only.	Solange die Diagnoseprotokollierung läuft, nennt eine Meldung den Teil von Hushfeed, der fehlgeschlagen ist. Aus behält Fehler nur im Bericht.
-Could not send the feedback. Try again shortly.	Die Rückmeldung konnte nicht gesendet werden. Versuche es gleich noch einmal.
-%1$s is not a country code, so no video would ever match it. Use two letters, like GB, IE or US.	%1$s ist kein Ländercode, also würde kein Video jemals dazu passen. Nimm zwei Buchstaben, etwa GB, IE oder US.
+YTDLnis background mode	YTDLnis-Hintergrundmodus
+YTDLnis download type	YTDLnis-Downloadtyp
+Zero leaves the way out of the hold there every time, which is what it has always done. Anything else is how many times a day it works, and once they are gone the hold stays up until the day starts over. Ignored while the budget is locked, which takes the way out away entirely.	Null lässt den Ausweg aus der Pause jedes Mal stehen, so wie bisher. Alles andere ist die Anzahl der Male pro Tag, die er funktioniert, und wenn sie aufgebraucht sind, bleibt die Pause bestehen, bis der Tag neu beginnt. Wird ignoriert, solange das Limit gesperrt ist, denn das nimmt den Ausweg ganz weg.
+Zero means no limit. Counts the videos Hushfeed advanced past for you, not the ones you swiped yourself, and starts again when the feed is rebuilt or you change this number.	Null bedeutet kein Limit. Zählt die Videos, die Hushfeed für dich weitergeschaltet hat, nicht die, die du selbst weggewischt hast, und beginnt neu, wenn der Feed neu aufgebaut wird oder du diese Zahl änderst.
+Zero shows the notice and leaves the feed alone. Anything else covers the feed for that many minutes once a budget is reached. Messages, profiles and search keep working, and nothing in the feed is thrown away.	Null zeigt den Hinweis und lässt den Feed in Ruhe. Alles andere legt sich für so viele Minuten über den Feed, sobald ein Limit erreicht ist. Nachrichten, Profile und Suche funktionieren weiter, und nichts im Feed geht verloren.
+Zero switches this off. A short reminder after that many minutes of watching, and again after the same again. Time on messages, a profile or search does not count, and nothing is shown while the feed is on hold.	Null schaltet das aus. Eine kurze Erinnerung nach so vielen Minuten Zuschauen und danach jeweils wieder. Zeit in Nachrichten, auf einem Profil oder in der Suche zählt nicht, und während der Feed pausiert ist, wird nichts angezeigt.
 Zero switches this off. Count every video that comes up in the feed, however you got to it, and say so once the count is reached. This is separate from the auto-advance limit above, which only counts videos Hushfeed itself advanced past.	Null schaltet das aus. Zählt jedes Video, das im Feed auftaucht, egal wie du dort gelandet bist, und sagt Bescheid, sobald die Zahl erreicht ist. Das ist unabhängig vom Limit für automatisches Weiterblättern darüber, das nur Videos zählt, die Hushfeed selbst weitergeschaltet hat.
 Zero switches this off. Count the minutes the player spends running in the feed. Time on messages, a profile or search does not count.	Null schaltet das aus. Zählt die Minuten, die der Player im Feed läuft. Zeit in Nachrichten, auf einem Profil oder in der Suche zählt nicht.
-Zero switches this off. A short reminder after that many minutes of watching, and again after the same again. Time on messages, a profile or search does not count, and nothing is shown while the feed is on hold.	Null schaltet das aus. Eine kurze Erinnerung nach so vielen Minuten Zuschauen und danach jeweils wieder. Zeit in Nachrichten, auf einem Profil oder in der Suche zählt nicht, und während der Feed pausiert ist, wird nichts angezeigt.
-Zero shows the notice and leaves the feed alone. Anything else covers the feed for that many minutes once a budget is reached. Messages, profiles and search keep working, and nothing in the feed is thrown away.	Null zeigt den Hinweis und lässt den Feed in Ruhe. Alles andere legt sich für so viele Minuten über den Feed, sobald ein Limit erreicht ist. Nachrichten, Profile und Suche funktionieren weiter, und nichts im Feed geht verloren.
-The hour both budgets reset, on a 24 hour clock. Four in the morning by default, because someone still scrolling at one is having last night.	Die Stunde, zu der beide Limits zurückgesetzt werden, im 24-Stunden-Format. Standardmäßig vier Uhr morgens, denn wer um eins noch scrollt, hat immer noch gestern Abend.
-Zero leaves the way out of the hold there every time, which is what it has always done. Anything else is how many times a day it works, and once they are gone the hold stays up until the day starts over. Ignored while the budget is locked, which takes the way out away entirely.	Null lässt den Ausweg aus der Pause jedes Mal stehen, so wie bisher. Alles andere ist die Anzahl der Male pro Tag, die er funktioniert, und wenn sie aufgebraucht sind, bleibt die Pause bestehen, bis der Tag neu beginnt. Wird ignoriert, solange das Limit gesperrt ist, denn das nimmt den Ausweg ganz weg.
-video	Video
-minute	Minute
-minutes	Minuten
-time	Mal
-times	Mal
-s	s
-Explore	Entdecken
-Following	Gefolgt
-Shop	Shop
-Nearby	In der Nähe
-Friends	Freunde
-LIVE	LIVE
-Popular	Beliebt
-STEM	STEM
-Drama and Series	Drama und Serien
-Create	Erstellen
-Profile	Profil
-Version %1$s	Version %1$s
-Notices from this project and the ones it is built on	Hinweise aus diesem Projekt und aus den Projekten, auf denen es aufbaut
-Full license	Vollständige Lizenz
-Licenses	Lizenzen
-TikTok hasn't handed this setting an object to change yet. Open the part of the app that uses it, then come back.	TikTok hat dieser Einstellung noch kein Objekt zum Ändern übergeben. Öffne den Teil der App, der sie verwendet, und komm dann zurück.
-This setting's value can't be copied on this build, so it can't be overridden. Reset the override.	Der Wert dieser Einstellung lässt sich in diesem Build nicht kopieren und deshalb nicht überschreiben. Setze die Überschreibung zurück.
-The override doesn't say what list to return. Edit the field values, or reset the override.	Die Überschreibung gibt nicht an, welche Liste zurückgegeben werden soll. Bearbeite die Feldwerte oder setze die Überschreibung zurück.
-Field %1$s can't be changed on this build. Take it out of the override, or reset the override.	Das Feld %1$s lässt sich in diesem Build nicht ändern. Nimm es aus der Überschreibung heraus oder setze die Überschreibung zurück.
-The override changes no fields. Edit the field values, or reset the override.	Die Überschreibung ändert keine Felder. Bearbeite die Feldwerte oder setze die Überschreibung zurück.
-This key isn't in the local catalog, so its type can't be checked. Reset the override.	Dieser Schlüssel steht nicht im lokalen Katalog, deshalb lässt sich sein Typ nicht prüfen. Setze die Überschreibung zurück.
-The catalog says this key is %1$s and this override is %2$s. Reset the override and make a new one.	Der Katalog nennt für diesen Schlüssel %1$s, diese Überschreibung ist %2$s. Setze die Überschreibung zurück und leg eine neue an.
-The override couldn't be applied: %1$s. Edit the field values, or reset the override.	Die Überschreibung konnte nicht angewendet werden: %1$s. Bearbeite die Feldwerte oder setze die Überschreibung zurück.
-Restart TikTok to apply %1$d changes	TikTok neu starten, um %1$d Änderungen anzuwenden
-Restart TikTok to apply this change	TikTok neu starten, um diese Änderung anzuwenden
-Restart pending	Neustart ausstehend
-Clearing, %1$d so far	Wird geleert, bisher %1$d
-
-Import finished	Import abgeschlossen
-Imported %1$d values	%1$d Werte importiert
-%1$d already matched	%1$d stimmten bereits überein
-%1$d unavailable	%1$d nicht verfügbar
-%1$d rejected	%1$d abgelehnt
-First rejection:	Erste Ablehnung:
-Done	Fertig
-%1$s. %2$s	%1$s. %2$s
-Imported %1$d values. Undo last Lab change is in the menu.	%1$d Werte importiert. Letzte Lab-Änderung rückgängig machen steht im Menü.

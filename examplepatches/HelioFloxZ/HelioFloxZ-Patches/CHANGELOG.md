@@ -1,3 +1,20 @@
+## [1.5.0](https://github.com/HelioFloxZ/HelioFloxZ-Patches/compare/v1.4.0...v1.5.0) (2026-09-16)
+
+### 🐛 Bug Fixes
+
+* fixed CallRecordingPatch.kt ([c796b51](https://github.com/HelioFloxZ/HelioFloxZ-Patches/commit/c796b5159bff556e1b93dcc71d2ecc7ac2175af4))
+* fixed compiler detecting old code in Fingerprints.kt ([14adca5](https://github.com/HelioFloxZ/HelioFloxZ-Patches/commit/14adca5d2790628f3ba5aa09fd77bd0a1bd258ee))
+* Fixed Issues in CallRecordingPatch.kt ([6f33e00](https://github.com/HelioFloxZ/HelioFloxZ-Patches/commit/6f33e00942f6e1a0c7ddddab2959fa814f5327eb))
+* Fixed not supported codes in Fingerprints.kt ([cf9a5dc](https://github.com/HelioFloxZ/HelioFloxZ-Patches/commit/cf9a5dc8d1c0ceac6c00800697a4d25535041d04))
+* fixed package location in CallRecordingPatch.kt ([42b35c8](https://github.com/HelioFloxZ/HelioFloxZ-Patches/commit/42b35c8f939a63f70f533c3868737018d4cbe79c))
+* Fixed Using Old method in RemoveLibraryPatch.kt ([3fedcd4](https://github.com/HelioFloxZ/HelioFloxZ-Patches/commit/3fedcd4684e97dccb6448aa67ba7646db2116dad))
+
+### ✨ New Features
+
+* Added Call Recording ([e428cf5](https://github.com/HelioFloxZ/HelioFloxZ-Patches/commit/e428cf543cba32b87d34731b1e1556033b0ad006))
+* Added Fingerprints.kt ([6d0e76f](https://github.com/HelioFloxZ/HelioFloxZ-Patches/commit/6d0e76fa401f2aa95fdf27e6dbf8e3d974a1061d))
+* Added RemoveLibraryPatch.kt ([8262e01](https://github.com/HelioFloxZ/HelioFloxZ-Patches/commit/8262e01205d3fae6e931c741e77f6825eaeccc8d))
+
 ## [1.4.0](https://github.com/HelioFloxZ/YouTube-Studio-Patches/compare/v1.3.0...v1.4.0) (2026-09-15)
 
 ### ✨ New Features

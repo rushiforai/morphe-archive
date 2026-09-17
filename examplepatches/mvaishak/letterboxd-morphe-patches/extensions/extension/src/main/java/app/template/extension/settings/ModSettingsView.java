@@ -1,8 +1,10 @@
 package app.template.extension.settings;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -48,6 +50,9 @@ final class ModSettingsView extends ScrollView {
     private TextView confettiColorValue;
     private View streamingAppRow;
     private TextView streamingAppValue;
+    private TextView navItemsValue;
+    private TextView launchTabValue;
+    private TextView homeTabsValue;
 
     ModSettingsView(Context context) {
         super(context);
@@ -117,13 +122,57 @@ final class ModSettingsView extends ScrollView {
                     }));
         }
 
+        header("Bottom navigation");
+        column.addView(choiceRow("Shown items", "Which destinations the bottom bar shows",
+                navSummary(),
+                new Runnable() {
+                    @Override public void run() {
+                        new NavItemsDialog(ctx, accent, new NavItemsDialog.OnDone() {
+                            @Override public void onDone() {
+                                if (navItemsValue != null) navItemsValue.setText(navSummary());
+                                if (launchTabValue != null) launchTabValue.setText(launchTabSummary());
+                                RestartHelper.promptRestart(ctx);
+                            }
+                        }).show();
+                    }
+                }));
+        column.addView(choiceRow("Launch tab", "Which tab the app opens on",
+                launchTabSummary(),
+                new Runnable() {
+                    @Override public void run() {
+                        new LaunchTabDialog(ctx, Prefs.getString(Prefs.KEY_LAUNCH_TAB, "last"), accent,
+                                new LaunchTabDialog.OnPick() {
+                                    @Override public void onPick(String value) {
+                                        Prefs.putString(Prefs.KEY_LAUNCH_TAB, value);
+                                        if (launchTabValue != null) launchTabValue.setText(launchTabSummary());
+                                        RestartHelper.promptRestart(ctx);
+                                    }
+                                }).show();
+                    }
+                }));
+
         header("Home");
+        column.addView(choiceRow("Home tabs", "Which section tabs the home screen shows, and their order",
+                homeTabsSummary(),
+                new Runnable() {
+                    @Override public void run() {
+                        new HomeTabsDialog(ctx, accent, new HomeTabsDialog.OnDone() {
+                            @Override public void onDone() {
+                                if (homeTabsValue != null) homeTabsValue.setText(homeTabsSummary());
+                                RestartHelper.promptRestart(ctx);
+                            }
+                        }).show();
+                    }
+                }));
         column.addView(toggleRow("Hide Video Store",
                 "Remove the Video Store promo row from the Films tab",
                 Prefs.KEY_HIDE_VIDEO_STORE, false, true));
         column.addView(toggleRow("Hide Where to Watch",
                 "Remove the \"Where to watch\" section from a film's page",
                 Prefs.KEY_HIDE_WHERE_TO_WATCH, false, false));
+        column.addView(toggleRow("Runtime as 1h 47m",
+                "Show a film's runtime in hours and minutes instead of \"107 mins\"",
+                Prefs.KEY_RUNTIME_HHMM, true, false));
 
         header("Streaming");
         final PillToggle openInPlayer = new PillToggle(ctx);
@@ -227,6 +276,59 @@ final class ModSettingsView extends ScrollView {
                 refreshRevealRows();
             }
         });
+
+        header("Backup");
+        column.addView(actionRow("Export settings",
+                "Save your mod config to a file to share or keep",
+                new Runnable() {
+                    @Override public void run() {
+                        if (ctx instanceof ModSettingsActivity) ((ModSettingsActivity) ctx).pickExport();
+                    }
+                }));
+        column.addView(actionRow("Import settings",
+                "Load a config file. Merges over your current settings",
+                new Runnable() {
+                    @Override public void run() {
+                        if (ctx instanceof ModSettingsActivity) ((ModSettingsActivity) ctx).pickImport();
+                    }
+                }));
+
+        header("About");
+        column.addView(linkRow("Source and releases",
+                "github.com/mvaishak/letterboxd-morphe-patches",
+                "https://github.com/mvaishak/letterboxd-morphe-patches"));
+    }
+
+    private View actionRow(String title, String subtitle, final Runnable onClick) {
+        LinearLayout row = rowBase();
+        row.addView(titleBlock(title, subtitle), textLp());
+        row.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { onClick.run(); }
+        });
+        return row;
+    }
+
+    private View linkRow(String title, String subtitle, final String url) {
+        LinearLayout row = rowBase();
+        row.addView(titleBlock(title, subtitle), textLp());
+
+        TextView open = new TextView(ctx);
+        open.setText("↗");
+        open.setTextColor(accent);
+        open.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f);
+        open.setGravity(Gravity.CENTER_VERTICAL);
+        row.addView(open);
+
+        row.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                try {
+                    ctx.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                } catch (Throwable ignored) {
+                }
+            }
+        });
+        return row;
     }
 
     // --- rows -----------------------------------------------------------
@@ -289,6 +391,9 @@ final class ModSettingsView extends ScrollView {
         else if (title.equals("Reveal animation")) animationValue = v;
         else if (title.equals("Confetti color")) confettiColorValue = v;
         else if (title.equals("Streaming app")) streamingAppValue = v;
+        else if (title.equals("Shown items")) navItemsValue = v;
+        else if (title.equals("Launch tab")) launchTabValue = v;
+        else if (title.equals("Home tabs")) homeTabsValue = v;
 
         row.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) { onClick.run(); }
@@ -430,6 +535,41 @@ final class ModSettingsView extends ScrollView {
         lp.rightMargin = dp(14);
         lp.gravity = Gravity.CENTER_VERTICAL;
         return lp;
+    }
+
+    private static String navSummary() {
+        StringBuilder sb = new StringBuilder();
+        for (String key : NavItems.enabled()) {
+            for (int i = 0; i < NavItems.KEYS.length; i++) {
+                if (NavItems.KEYS[i].equals(key)) {
+                    if (sb.length() > 0) sb.append(", ");
+                    sb.append(NavItems.LABELS[i]);
+                }
+            }
+        }
+        return sb.toString();
+    }
+
+    private static String homeTabsSummary() {
+        StringBuilder sb = new StringBuilder();
+        for (String key : HomeTabs.order()) {
+            for (int i = 0; i < HomeTabs.KEYS.length; i++) {
+                if (HomeTabs.KEYS[i].equals(key)) {
+                    if (sb.length() > 0) sb.append(", ");
+                    sb.append(HomeTabs.LABELS[i]);
+                }
+            }
+        }
+        return sb.toString();
+    }
+
+    private static String launchTabSummary() {
+        String v = Prefs.getString(Prefs.KEY_LAUNCH_TAB, "last");
+        if ("last".equals(v)) return "Last used";
+        for (int i = 0; i < NavItems.KEYS.length; i++) {
+            if (NavItems.KEYS[i].equals(v)) return NavItems.LABELS[i];
+        }
+        return "Last used";
     }
 
     private static String labelFor(String[] labels, String[] values, String value) {

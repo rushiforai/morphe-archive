@@ -13,7 +13,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.0](https://github.com/Epxec/android-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+> **[v1.8.0](https://github.com/Epxec/android-patches/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
 <details open>
 <summary>📦 Decompile&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -71,6 +71,36 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Enable Premium](#enable-premium) | Enables the premium features of the app. |  |
+
+</details>
+
+<details open>
+<summary>📦 Wallet&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 9.3.10 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Enable Premium](#enable-premium) | Enables Premium features except Bank Sync, Group Sharing, Facebook and Google login. |  |
+
+</details>
+
+<details open>
+<summary>📦 Vaulty&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 26.09.09 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Enable Pro](#enable-pro) | Enable Pro features. |  |
 
 </details>
 

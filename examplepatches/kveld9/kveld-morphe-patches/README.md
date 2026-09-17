@@ -170,7 +170,7 @@
 </details>
 
 <details>
-<summary>TikTok&nbsp;&nbsp;•&nbsp;&nbsp;<b>18 patches</b></summary>
+<summary>TikTok&nbsp;&nbsp;•&nbsp;&nbsp;<b>25 patches</b></summary>
 <br>
 
 **Supported versions:**
@@ -180,24 +180,31 @@
 
 | Patch | Description | Options |
 |----------|----------------|-----------|
+| **Bypass Mandatory Login** | Neutralizes mandatory login walls, dynamic regional forced login gates, and guest browsing restrictions. |  |
 | **Clean Share URL** | Strips tracking parameters, user IDs, device fingerprints, and marketing tokens from shared TikTok links. |  |
-| **Core Asset De-bloat** | Strips embedded Microblink credit card OCR models, C2PA AI content origin verification libraries, and redundant non-Latin fonts to save APK space. |  |
-| **Device Privacy Guard** | Neutralizes background clipboard snooping routines and blocks screenshot/recording detection listeners to protect user data from unauthorized tracking and popup modals. |  |
+| **Client-Side AI & Behavioral Profiling Governor** | Neutralizes on-device machine learning inference (Pitaya), Tako AI chatbot entry points and icons, and AI smart search suggestion clutter. |  |
+| **Core Asset De-bloat** | Strips embedded Microblink/FinTech card scanner models, Pitaya AI & ByteNN LLM engines, C2PA origin verification, DLNA cast scanners, and redundant non-Latin fonts to save APK space. |  |
+| **Device Privacy Guard** | Neutralizes background clipboard snooping routines, local network scanning permissions, and screenshot/recording detection and telemetry listeners to protect user data. |  |
 | **Disable Push Notifications** | Neutralizes background push notification tasks and persistent socket wake locks to eliminate background battery drain. |  |
 | **Feed Ad Blocker** | Removes sponsored advertisements, brand promotions, and promotional audio from the For You and Following feeds. |  |
-| **Feed Bloat & Distraction Blocker** | Removes non-video clutter from the For You and Following feeds, including suggested friend cards, mini-games, CapCut/template creation prompts, memories ('On This Day'), surveys, mini-drama paywalls, and Lemon8 promo tasks. |  |
+| **Feed Bloat & Distraction Blocker** | Removes non-video clutter and floating ad widgets from the For You and Following feeds, including Touchpoint Rewards pendants, floating ad stickers, suggested friend cards, mini-games, CapCut/template creation prompts, memories ('On This Day'), surveys, and mini-drama paywalls. |  |
 | **Feed Live Stream Blocker** | Removes live stream broadcast cards and live recommendations from the For You and Following feeds. |  |
-| **Hide TikTok Shop Anchors** | Removes product showcase badges, shopping cart tags, and TikTok Shop commercial anchors from video posts in the feed. |  |
+| **Hide TikTok Shop & Mall** | Removes product showcase badges, shopping cart tags, and the TikTok Shop / Mall tab from navigation bars and video posts. |  |
+| **In-App Browser Privacy Guard** | Redirects external and third-party web links to the default system browser and neutralizes inline JavaScript tracking, DOM monitoring, and AJAX hooking in residual in-app WebViews. |  |
 | **Instant Launch & Splash Blocker** | Eliminates cold startup delays, real-time splash advertisements, and background TopView preloading (<0.4s launch). |  |
 | **Language Pack Purger** | Strips unselected language string bundles from assets/strings#lang_* to save APK space. | • Languages to keep |
 | **Live Stream 3D Gift Optimizer** | Disables Live 3D gift particle effect engine and widget rendering lifecycle to eliminate frame drops during live streams. |  |
-| **Live Stream SDK & Minigame De-bloat** | Strips Live link mic SDK (liblink_mic_sdk.so) and live stream interactive minigames to save APK storage. |  |
+| **Live Stream SDK & Minigame De-bloat** | Strips Live link mic SDK (liblink_mic_sdk.so), Lyrax RTC broadcasting engines (liblyrax.so), and live stream interactive minigames to reduce APK size and memory footprint. |  |
 | **Media Usability & Watermark-Free Downloader** | Enables progress seekbar scrubbing on all videos, unblocks the download button on creator-restricted videos, and routes downloads to clean unwatermarked media streams. |  |
+| **P2P Video Relay & Mesh CDN Blocker** | Strips background Peer-to-Peer CDN distribution binaries (libavmdlp2pv2.so and libp2plivevdp.so) to prevent battery drain, background data upload, and mesh relay. |  |
 | **Playback Speed Persistence** | Persists selected video playback speed across all feed videos and application restarts. |  |
 | **Resource & Battery Governor** | Throttles background sensor polling (gyroscope/accelerometer 3D ads), prevents aggressive video buffer preloading, and caps Fresco animated image memory retention to conserve battery and RAM. |  |
-| **Studio & Creation De-bloat** | Strips heavy video creation, CapCut-like video editor SDK (libttvesdk_plugin.so), and AR camera face models to save over 22MB. |  |
+| **SIM Region Selector** | Spoofs the detected SIM and network country ISO code to bypass regional feed restrictions and catalog blocks. | • Spoofed Region ISO Code |
+| **Skip First-Launch Onboarding** | Bypasses the entire first-run introduction funnel (interest pickers, swipe tutorials, language prompts, and consent sheets) directly to the feed. |  |
+| **Studio & Creation De-bloat** | Strips heavy video creation plugins, CapCut NLE editor SDKs, effect plugins, and AR camera face models to significantly reduce APK size. |  |
 | **Unified Telemetry & Tracker Silencer** | Neutralizes ByteDance AppLog user tracking, APM/Npth/Heimdallr crash monitors, AppsFlyer attribution, and Firebase analytics. |  |
 | **Update Prompt Suppressor** | Neutralizes background update polling tasks and device ID check routines to prevent forced update popups. |  |
+| **Video Quality Governor** | Caps maximum video playback resolution (1080p, 720p, 540p, 480p, 360p) to reduce GPU/MediaCodec load, lower memory retention, and prevent playback buffering. | • Maximum Video Resolution |
 
 </details>
 
@@ -227,8 +234,8 @@ Comprehensive technical references and setup manuals have been modularized for f
 | 📱 **[Compatibility Guide](docs/compatibility.md)** | CPU architecture policy (ARM64 vs 32-bit ARMv7a) and APK variant rationales (`Bravemonoarm64`, Vivaldi Browser). |
 | ⌨️ **[Gboard Setup & Dictionaries](docs/gboard-setup.md)** | Step-by-step setup for predictive text, offline dictionaries, and Glide Typing on fresh installs. |
 | 🏋️ **[Hevy Setup & Authentication](docs/hevy-setup.md)** | Account authentication notice (Google Sign-In SHA-1 limitation & Email/Password login) and Pro features overview. |
-| 🎵 **[TikTok Patch Specifications](docs/tiktok-patches.md)** | Deep technical breakdown of all 17 TikTok patches, bytecode hooks, privacy guards, and media downloaders. |
-| ⚙️ **[Patch Configuration & Options](docs/patch-configuration.md)** | Detailed guides for `Clipboard Enhancements` (retention & layout), `Locale Slimmer`, and `DPI Resource Slimmer`. |
+| 🎵 **[TikTok Patch Specifications](docs/tiktok-patches.md)** | Deep technical breakdown of all 25 TikTok patches, bytecode hooks, privacy guards, and media downloaders. |
+| ⚙️ **[Patch Configuration & Options](docs/patch-configuration.md)** | Detailed guides for `Clipboard Enhancements`, `SIM Region Selector`, `Locale Slimmer`, and `DPI Resource Slimmer`. |
 | 🛡️ **[Architecture & Security Notes](docs/architecture-security.md)** | Explanation of privacy scanner false positives (ML Kit / Play Billing) and native ELF/Dalvik telemetry neutralization. |
 | 🛠️ **[Building & Development](docs/building.md)** | Toolchain prerequisites, Gradle build tasks, test execution, and catalog synchronization. |
 
@@ -248,7 +255,7 @@ Need assistance, have questions regarding patch configurations, or want to discu
 | :--- | :--- |
 | <a href="https://github.com/Lxchoooo"><img src="https://github.com/Lxchoooo.png" width="48" height="48" style="border-radius: 50%;" /><br><b>@Lxchoooo</b></a> | 🧪 Daily patch testing, runtime APK validation, and bug diagnostics. |
 | <a href="https://github.com/ll0r3nt3"><img src="https://github.com/ll0r3nt3.png" width="48" height="48" style="border-radius: 50%;" /><br><b>@ll0r3nt3</b></a> | 💡 Proposed DPI Resource Slimmer feature request ([#16](https://github.com/kveld9/kveld-morphe-patches/issues/16)). |
-| <a href="https://github.com/aidenking2102-dotcom"><img src="https://github.com/aidenking2102-dotcom.png" width="48" height="48" style="border-radius: 50%;" /><br><b>@aidenking2102-dotcom</b></a> | 💡 Proposed TikTok Feed Ad Blocker ([#23](https://github.com/kveld9/kveld-morphe-patches/issues/23)) and Playback Speed Setter ([#25](https://github.com/kveld9/kveld-morphe-patches/issues/25)) feature requests. |
+| <a href="https://github.com/aidenking2102-dotcom"><img src="https://github.com/aidenking2102-dotcom.png" width="48" height="48" style="border-radius: 50%;" /><br><b>@aidenking2102-dotcom</b></a> | 💡 Proposed TikTok Feed Ad Blocker ([#23](https://github.com/kveld9/kveld-morphe-patches/issues/23)), Playback Speed Setter ([#25](https://github.com/kveld9/kveld-morphe-patches/issues/25)), and Floating Ad Pendant / Sticker Blocker ([#33](https://github.com/kveld9/kveld-morphe-patches/issues/33)) feature requests. |
 | <a href="https://github.com/raxelbyte"><img src="https://github.com/raxelbyte.png" width="48" height="48" style="border-radius: 50%;" /><br><b>@raxelbyte</b></a> | 💡 Proposed Gboard Lite Clipboard Enhancements feature request ([#17](https://github.com/kveld9/kveld-morphe-patches/issues/17)). |
 
 ---

@@ -1,25 +1,23 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "patches": [
     {
-      "name": "GmsCore support",
-      "description": "Adds MicroG support metadata for YouTube Studio.",
+      "name": "Call recording support",
+      "description": "Prepares the existing Google Phone call-recording implementation for customization.",
       "default": true,
-      "dependencies": [
-        "ResourcePatch"
-      ],
+      "dependencies": [],
       "compatiblePackages": [
         {
-          "packageName": "com.google.android.apps.youtube.creator",
-          "name": "YouTube Studio",
+          "packageName": "com.google.android.dialer",
+          "name": "Google Phone",
           "description": null,
           "apkFileType": "APK",
-          "appIconColor": "#FF0000",
+          "appIconColor": "#4285F4",
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "236.0.969488611-downloadable",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -31,21 +29,21 @@
       "options": []
     },
     {
-      "name": "Virtual Master support",
-      "description": "Virtual Master patch collection.",
+      "name": "Remove Dialer Support Library",
+      "description": "Removes the unavailable com.google.android.dialer.support shared-library requirement.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [
         {
-          "packageName": "com.clone.android.dual.space",
-          "name": "Virtual Master",
+          "packageName": "com.google.android.dialer",
+          "name": "Google Phone",
           "description": null,
           "apkFileType": "APK",
-          "appIconColor": "#FF0000",
+          "appIconColor": "#4285F4",
           "signatures": null,
           "targets": [
             {
-              "version": "3.2.71",
+              "version": "236.0.969488611-downloadable",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

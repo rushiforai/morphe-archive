@@ -66,7 +66,7 @@ public class SimPresetRowTest {
             SimPresetPreference row = build(controller.get());
 
             row.refreshSummary("", "", "");
-            assertEquals("No preset selected", row.getSummary().toString());
+            assertEquals("No preset selected. Choose a preset above.", row.getSummary().toString());
 
             row.refreshSummary("us", "310260", "Not a real operator");
             assertEquals("Custom SIM details", row.getSummary().toString());
@@ -414,7 +414,7 @@ public class SimPresetRowTest {
             org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
             org.junit.Assert.assertFalse(dialog.isShowing());
             org.junit.Assert.assertEquals("", Settings.SIM_SPOOF_ISO.get());
-            org.junit.Assert.assertEquals("No preset selected", String.valueOf(row.getSummary()));
+            org.junit.Assert.assertEquals("No preset selected. Choose a preset above.", String.valueOf(row.getSummary()));
         } finally {
             Settings.SIM_SPOOF_ISO.resetToDefault();
             Settings.SIMSPOOF_MCCMNC.resetToDefault();

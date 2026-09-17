@@ -123,6 +123,7 @@ public class CreatorListPreference extends DialogPreference {
 
         searchEditText = editor(context, L10n.t(context, "Filter the list"));
         searchEditText.setTag("creator_list_search");
+        SettingsUi.labelEditor(searchLabel, searchEditText);
         searchEditText.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
             @Override public void onTextChanged(CharSequence text, int start, int before, int count) {
@@ -141,6 +142,7 @@ public class CreatorListPreference extends DialogPreference {
         addRow.setGravity(Gravity.CENTER_VERTICAL);
         addEditText = editor(context, L10n.t(context, "Creator handle or id"));
         addEditText.setTag("creator_list_add");
+        SettingsUi.labelEditor(addEditText, L10n.t(context, "Creator handle or id"));
         addRow.addView(addEditText, new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         // Flat, like the Cancel and Save two rows below it. styleActionButton sets the colour
@@ -265,8 +267,8 @@ public class CreatorListPreference extends DialogPreference {
         SettingsUi.setResultCount(resultCount, visible);
         if (visible == 0) {
             emptyState.setText(pendingEntries.isEmpty()
-                    ? L10n.t(getContext(), "No creators are hidden yet")
-                    : L10n.t(getContext(), "No hidden creators match this search"));
+                    ? L10n.t(getContext(), "No creators are hidden yet. Hide one from a video, or add a handle above.")
+                    : L10n.t(getContext(), "No hidden creators match this search. Clear the search to see them all."));
             emptyState.setVisibility(View.VISIBLE);
             entriesContainer.addView(emptyState, new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,

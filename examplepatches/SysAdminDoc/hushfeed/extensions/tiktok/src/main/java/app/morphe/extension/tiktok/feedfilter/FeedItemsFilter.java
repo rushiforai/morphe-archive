@@ -5,6 +5,7 @@
 package app.morphe.extension.tiktok.feedfilter;
 
 import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.tiktok.settings.Settings;
@@ -212,6 +213,46 @@ public final class FeedItemsFilter {
      */
     public static List filterProfileDetailAds(List items) {
         return filterAdOnlyAwemeList("ProfileDetailAdEvent", items);
+    }
+
+    /** The counter line for the mid-roll splice, so an export names the route. */
+    static final String MID_AD_SOURCE = "MidAdInsert";
+    private static final String MID_AD_HOOK_FAMILY = "mid-roll ads";
+    private static final String MID_AD_REASON = "MidAdFilter";
+
+    /**
+     * Called where the mid-roll ad component is created, so the family is in the export on a
+     * run where no ad was ever due. Without it a missing family says both "not patched" and
+     * "never fired", and issue #2 spent six releases unable to tell those apart.
+     */
+    public static void midAdInstalled() {
+        HookStatus.bound(MID_AD_HOOK_FAMILY, "installed");
+    }
+
+    /**
+     * The route issue #2 was about. TikTok's mid-roll ad component takes the video on screen
+     * and an ad, finds the video in the pager adapter and puts the ad in its place, after every
+     * list the other hooks filter has already gone by. That is how an ad reached the eighth
+     * and the fifteenth video of a profile while the profile list itself carried 184 videos
+     * with 0 removed and every marker false: the ad was never in that list.
+     *
+     * <p>Answers true when the splice should not happen. Everything the component splices in
+     * is an ad by construction (its own show event is {@code midroll_ads_show}), so the markers
+     * are logged for the record rather than consulted, and the video the ad would have
+     * replaced stays where it was.
+     */
+    public static boolean dropMidAd(Aweme ad) {
+        HookStatus.bound(MID_AD_HOOK_FAMILY, "splice");
+        FeedFilterCounters.sawList(MID_AD_SOURCE, ad == null ? 0 : 1);
+        if (ad == null) return false;
+        boolean verbose = BaseSettings.DEBUG.get();
+        if (!ADS_FILTER.getEnabled()) {
+            logKeptItem(MID_AD_SOURCE, ad, verbose);
+            return false;
+        }
+        FeedFilterCounters.removed(MID_AD_SOURCE, 1, MID_AD_REASON);
+        logItem(ad, MID_AD_REASON, verbose);
+        return true;
     }
 
     /**
@@ -658,6 +699,18 @@ public final class FeedItemsFilter {
         if (rangeKept.isEmpty() && qualityFallback != null) rangeKept.add(qualityFallback);
         List kept = rangeKept;
         int removed = initialSize - kept.size();
+
+        // A batch filtered down to nothing is legitimate. Hide livestreams over a LIVE-only
+        // page really does leave zero videos, and putting one back would be the switch not
+        // working. What it is not is invisible: from the outside it looks like the feed has
+        // stopped, and upstream reported exactly that after a livestream was hidden. Counted
+        // so an export can say whether a stalled feed was ever handed anything to show.
+        if (initialSize > 0 && kept.isEmpty()) {
+            FeedFilterCounters.emptied(source);
+            Logger.printInfo(() -> "[Morphe TikTok FeedFilter] " + source
+                + " kept nothing out of " + initialSize + "; the feed has nothing to advance to"
+                + " until TikTok asks for another batch");
+        }
 
         List resultList = list;
         if (removed > 0) {

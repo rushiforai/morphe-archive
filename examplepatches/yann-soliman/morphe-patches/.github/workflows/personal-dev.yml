@@ -1,0 +1,67 @@
+name: Personal dev bundle
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: read
+
+concurrency:
+  group: personal-dev-bundle
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build personal bundle from dev
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          chmod +x gradlew build-local.sh tools/*.sh
+          bash tools/build-personal-bundle.sh "$RUNNER_TEMP/personal-dev-build"
+      - name: Publish importable bundle and source manifest
+        run: |
+          set -euo pipefail
+          OUTPUT="$RUNNER_TEMP/personal-dev-build"
+          DIST="$RUNNER_TEMP/personal-dev-dist"
+          VERSION="$(jq -r .version patches-bundle.json)"
+          SOURCE_SHA="$(git rev-parse HEAD)"
+          DOWNLOAD_URL="https://raw.githubusercontent.com/$GITHUB_REPOSITORY/refs/heads/personal-dev-dist/patches-personal.mpp"
+          jq -n --arg version "$VERSION" --arg url "$DOWNLOAD_URL" \
+            --arg sha "$SOURCE_SHA" --arg created "$(date -u +%Y-%m-%dT%H:%M:%S)" \
+            '{version:$version,created_at:$created,description:("Personal dev bundle from " + $sha),download_url:$url,signature_download_url:""}' \
+            > "$OUTPUT/patches-bundle.json"
+          jq --arg version "$VERSION" '.version=$version' "$OUTPUT/patches-list.json" > "$OUTPUT/list.tmp"
+          mv "$OUTPUT/list.tmp" "$OUTPUT/patches-list.json"
+          printf '%s\n' "$SOURCE_SHA" > "$OUTPUT/source-commit.txt"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin
+          if git show-ref --verify --quiet refs/remotes/origin/personal-dev-dist; then
+            git worktree add --detach "$DIST" origin/personal-dev-dist
+          else
+            git worktree add --detach "$DIST" HEAD
+            git -C "$DIST" switch --orphan personal-dev-dist
+          fi
+          cp "$OUTPUT/patches-personal.mpp" "$OUTPUT/patches-list.json" \
+            "$OUTPUT/patches-bundle.json" "$OUTPUT/source-commit.txt" "$DIST/"
+          git -C "$DIST" add -f patches-personal.mpp patches-list.json patches-bundle.json source-commit.txt
+          if ! git -C "$DIST" diff --cached --quiet; then
+            git -C "$DIST" commit -m "chore: personal dev bundle $VERSION [skip ci]"
+            git -C "$DIST" push origin HEAD:refs/heads/personal-dev-dist
+          fi
+          echo "Personal dev bundle: $DOWNLOAD_URL" >> "$GITHUB_STEP_SUMMARY"

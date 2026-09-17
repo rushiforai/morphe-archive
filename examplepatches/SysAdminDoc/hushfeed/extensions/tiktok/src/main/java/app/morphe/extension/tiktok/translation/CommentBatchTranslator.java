@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class CommentBatchTranslator {
     private static final long STALE_ENTRY_MS = 15_000L;
@@ -325,7 +326,9 @@ public final class CommentBatchTranslator {
         if (!Settings.COMMENT_BATCH_TRANSLATION.get() && outstandingRequests == 0) return;
         
         completionsHandledForTests++;
-        if (runner != null && findField(runner.getClass(), "l0") == null) {
+        Field resultsField = runner == null ? null : runnerField(runner.getClass(), "l0", true);
+        Field taskField = runner == null ? null : runnerField(runner.getClass(), "l1", false);
+        if (runner != null && resultsField == null) {
             HookStatus.missingMember(FAMILY, "field", runner.getClass().getName(), "l0");
             // The field holding the results is gone, which is what a host update looks like.
             // Every batch would read as a failure from here on, so the feature stands down for
@@ -339,14 +342,14 @@ public final class CommentBatchTranslator {
             // build that renames either leaves every batch unmatched with the switch still on.
             // Asked of the class rather than the value: a field that is present and null is a
             // moment in a batch's life, a field that is gone is a host update.
-            if (findField(runner.getClass(), "l1") == null) {
+            if (taskField == null) {
                 HookStatus.missingMember(FAMILY, "field", runner.getClass().getName(), "l1");
             } else {
                 HookStatus.bound(FAMILY, "batch task");
             }
         }
-        Object results = readFieldQuiet(runner, "l0");
-        Object task = readFieldQuiet(runner, "l1");
+        Object results = readFieldQuiet(runner, resultsField);
+        Object task = readFieldQuiet(runner, taskField);
         if (task != null) {
             if (findField(task.getClass(), "LIZ") == null) {
                 HookStatus.missingMember(FAMILY, "field", task.getClass().getName(), "LIZ");
@@ -456,7 +459,33 @@ public final class CommentBatchTranslator {
         }
     }
 
+    /**
+     * The native batch method per (manager class, context class), the pairs that have none
+     * included. Both answers are properties of the two classes, and a comment sheet asks the
+     * same question for every cell it binds: forty cells used to walk the manager's declared
+     * methods a hundred and twenty times on the thread that binds the list.
+     */
+    private static final ConcurrentHashMap<String, ResolvedMethod> NATIVE_BATCH_METHODS = new ConcurrentHashMap<>();
+
+    /** How many times the declared methods were actually walked; a test binds ten cells and expects one. */
+    static int nativeMethodWalksForTests;
+
+    private static final class ResolvedMethod {
+        final Method method;
+        ResolvedMethod(Method method) { this.method = method; }
+    }
+
     private static Method findNativeBatchMethod(Class<?> managerClass, Class<?> contextClass) {
+        String key = managerClass.getName() + '|' + contextClass.getName();
+        ResolvedMethod cached = NATIVE_BATCH_METHODS.get(key);
+        if (cached != null) return cached.method;
+        Method found = walkForNativeBatchMethod(managerClass, contextClass);
+        NATIVE_BATCH_METHODS.put(key, new ResolvedMethod(found));
+        return found;
+    }
+
+    private static Method walkForNativeBatchMethod(Class<?> managerClass, Class<?> contextClass) {
+        nativeMethodWalksForTests++;
         Class<?> current = managerClass;
         while (current != null) {
             for (Method method : current.getDeclaredMethods()) {
@@ -1001,25 +1030,64 @@ public final class CommentBatchTranslator {
         return null;
     }
 
+    /**
+     * Which fields of a cell manager class held the comment, the native manager and the context
+     * the last time the full walk found them. The next cell of that class is three field reads
+     * and two cached class questions; the walk runs again only if one of the three is empty or
+     * no longer answers, which is how a class that carries two candidates and switches between
+     * them is still found.
+     */
+    private static final ConcurrentHashMap<Class<?>, AnchorShape> ANCHOR_SHAPES = new ConcurrentHashMap<>();
+
+    private static final class AnchorShape {
+        final Field comment;
+        final Field context;
+        final Field nativeManager;
+        AnchorShape(Field comment, Field context, Field nativeManager) {
+            this.comment = comment;
+            this.context = context;
+            this.nativeManager = nativeManager;
+        }
+    }
+
     private static AnchorParts resolveAnchorParts(Object anchor) {
         if (anchor == null) return null;
 
         try {
-            ArrayList<Object> values = readInstanceFieldValues(anchor);
-            Object comment = null;
-            for (Object value : values) {
-                if (value != null && hasNoArgMethod(value.getClass(), "getCid")) {
-                    comment = value;
+            AnchorShape shape = ANCHOR_SHAPES.get(anchor.getClass());
+            if (shape != null) {
+                Object comment = shape.comment.get(anchor);
+                Object context = shape.context.get(anchor);
+                Object nativeManager = shape.nativeManager.get(anchor);
+                if (comment != null && context != null && nativeManager != null
+                        && hasNoArgMethod(comment.getClass(), "getCid")
+                        && findNativeBatchMethod(nativeManager.getClass(), context.getClass()) != null) {
+                    return new AnchorParts(comment, context, nativeManager);
+                }
+            }
+
+            ArrayList<Field> fields = new ArrayList<>();
+            ArrayList<Object> values = new ArrayList<>();
+            readInstanceFields(anchor, fields, values);
+            int commentAt = -1;
+            for (int i = 0; i < values.size(); i++) {
+                if (hasNoArgMethod(values.get(i).getClass(), "getCid")) {
+                    commentAt = i;
                     break;
                 }
             }
-            if (comment == null) return null;
+            if (commentAt < 0) return null;
+            Object comment = values.get(commentAt);
 
-            for (Object nativeManager : values) {
-                if (nativeManager == null || nativeManager == comment) continue;
-                for (Object context : values) {
-                    if (context == null || context == comment || context == nativeManager) continue;
+            for (int m = 0; m < values.size(); m++) {
+                Object nativeManager = values.get(m);
+                if (nativeManager == comment) continue;
+                for (int c = 0; c < values.size(); c++) {
+                    Object context = values.get(c);
+                    if (context == comment || context == nativeManager) continue;
                     if (findNativeBatchMethod(nativeManager.getClass(), context.getClass()) != null) {
+                        ANCHOR_SHAPES.put(anchor.getClass(),
+                                new AnchorShape(fields.get(commentAt), fields.get(c), fields.get(m)));
                         return new AnchorParts(comment, context, nativeManager);
                     }
                 }
@@ -1030,19 +1098,22 @@ public final class CommentBatchTranslator {
         return null;
     }
 
-    private static ArrayList<Object> readInstanceFieldValues(Object instance) throws IllegalAccessException {
-        ArrayList<Object> values = new ArrayList<>();
+    /** Every non-null instance field of the object, superclasses included, with the field that held each value. */
+    private static void readInstanceFields(Object instance, ArrayList<Field> fields, ArrayList<Object> values)
+            throws IllegalAccessException {
         Class<?> current = instance.getClass();
         while (current != null) {
             for (Field field : current.getDeclaredFields()) {
                 if (Modifier.isStatic(field.getModifiers())) continue;
                 field.setAccessible(true);
                 Object value = field.get(instance);
-                if (value != null) values.add(value);
+                if (value != null) {
+                    fields.add(field);
+                    values.add(value);
+                }
             }
             current = current.getSuperclass();
         }
-        return values;
     }
 
     private static boolean hasNoArgMethod(Class<?> type, String name) {
@@ -1059,6 +1130,44 @@ public final class CommentBatchTranslator {
         if (field == null) throw new NoSuchFieldException(name);
         field.setAccessible(true);
         return field.get(instance);
+    }
+
+    /**
+     * The runner's field under the name R8's outlining gave it up to 46.8.3 (`l0` the results,
+     * `l1` the task), or, on a build that keeps the runner as a Runnable of its own, the one
+     * field of that kind: 46.9.3's carries `LIZ:List` and `LIZIZ:task`. The fallback is taken
+     * only when the class holds exactly two instance reference fields with exactly one of them a
+     * List, so a runner that merely lost a name is still reported as missing rather than guessed.
+     */
+    private static Field runnerField(Class<?> type, String outlinedName, boolean list) {
+        Field named = findField(type, outlinedName);
+        if (named != null) return named;
+        List<Field> references = new ArrayList<>();
+        for (Class<?> current = type; current != null && current != Object.class; current = current.getSuperclass()) {
+            for (Field field : current.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers()) || field.getType().isPrimitive()) continue;
+                references.add(field);
+            }
+        }
+        if (references.size() != 2) return null;
+        Field lists = null;
+        Field other = null;
+        for (Field field : references) {
+            if (List.class.isAssignableFrom(field.getType())) lists = lists == null ? field : null;
+            else other = other == null ? field : null;
+        }
+        if (lists == null || other == null) return null;
+        return list ? lists : other;
+    }
+
+    private static Object readFieldQuiet(Object instance, Field field) {
+        if (instance == null || field == null) return null;
+        try {
+            field.setAccessible(true);
+            return field.get(instance);
+        } catch (Throwable ignored) {
+            return null;
+        }
     }
 
     private static Object readFieldQuiet(Object instance, String name) {

@@ -1,3 +1,10 @@
+## [1.37.2](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.37.1...v1.37.2) (2026-09-16)
+
+
+### Bug Fixes
+
+* **primevideo:** salvage media.urls from truncated regolith pre-roll ([eb49a0c](https://github.com/ajstrick81/morphe-androidtv-patches/commit/eb49a0c4cf868774dea907875960753ecd38e8a9)), closes [#14](https://github.com/ajstrick81/morphe-androidtv-patches/issues/14)
+
 ## [1.37.1](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.37.0...v1.37.1) (2026-09-15)
 
 

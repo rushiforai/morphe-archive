@@ -90,6 +90,14 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
             ));
             addPreference(new TogglePreference(
                     context,
+                    "Links in comments open",
+                    "A web address someone left in a comment can be tapped instead of copied "
+                            + "out by hand. Tapping anywhere else in the comment still does what "
+                            + "it did.",
+                    Settings.COMMENT_LINKS
+            ));
+            addPreference(new TogglePreference(
+                    context,
                     "Filter comments by keyword",
                     "Hide comments that contain any of the words below, or that come from the accounts below.",
                     Settings.COMMENT_KEYWORD_FILTER
@@ -121,7 +129,7 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(
                     context,
                     "Thumbs down blocks the commenter",
-                    "The thumbs down on each comment blocks the account that posted it instead of "
+                    "The thumbs down on each comment blocks the commenter instead of "
                             + "disliking. The comment dims, an undo banner follows, and a second tap "
                             + "unblocks.",
                     Settings.BLOCK_FROM_COMMENT

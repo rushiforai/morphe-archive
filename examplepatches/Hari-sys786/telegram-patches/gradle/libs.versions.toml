@@ -1,0 +1,6 @@
+[versions]
+morphe-patcher = "1.8.0"
+# Tracked to match morphe-patcher 1.11.0's own smali pin (jitpack source build).
+smali = "d856bad65f"
+
+[libraries]

@@ -1,0 +1,27 @@
+Telegram Patches (Morphe)
+Copyright (C) 2026
+
+This patch bundle is a Morphe port of the Telegram smali patcher `tgpatcher.py`
+and its Delete Account module, which are distributed under the GNU General Public
+License v3 and are the work of:
+
+  * Abhi (@AbhiTheModder)  - original tgpatcher.py (patches 1-18) and credits
+  * @Zylern_OP, @rezaAa1177 - patch credits
+  * Nekogram                - patch credits
+  * Cherrygram              - Delete Account dialog design (ported to smali)
+
+Additional patches built for this port:
+  * Raise max account count (UserConfig.getMaxAccountCount -> 999)
+  * Increase upload speed (FileUploadOperation.startUploadRequest throughput cap)
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+Telegram is a trademark of Telegram FZ-LLC. This project is not affiliated with,
+endorsed by, or sponsored by Telegram. The bundle only patches a copy of the APK
+that the user supplies.

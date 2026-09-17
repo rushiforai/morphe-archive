@@ -119,7 +119,7 @@ public class CreatorListTest {
 
     /** The text of the empty state when it is showing, or null when rows are. */
     private static String emptyState(View view) {
-        for (String text : new String[]{"No creators are hidden yet", "No hidden creators match this search"}) {
+        for (String text : new String[]{"No creators are hidden yet. Hide one from a video, or add a handle above.", "No hidden creators match this search. Clear the search to see them all."}) {
             if (visibleText(view, text)) return text;
         }
         return null;
@@ -279,7 +279,7 @@ public class CreatorListTest {
             search.setText("zed");
             assertEquals(java.util.List.of(), rows(view));
             assertEquals("0 results", resultCount(view).getText().toString());
-            assertEquals("No hidden creators match this search", emptyState(view));
+            assertEquals("No hidden creators match this search. Clear the search to see them all.", emptyState(view));
 
             search.setText("");
             assertEquals(java.util.List.of("alice", "bob", "bobby"), rows(view));
@@ -324,7 +324,7 @@ public class CreatorListTest {
 
             View view = open(activity).onCreateDialogView();
             assertEquals(java.util.List.of(), rows(view));
-            assertEquals("No creators are hidden yet", emptyState(view));
+            assertEquals("No creators are hidden yet. Hide one from a video, or add a handle above.", emptyState(view));
         }
     }
 

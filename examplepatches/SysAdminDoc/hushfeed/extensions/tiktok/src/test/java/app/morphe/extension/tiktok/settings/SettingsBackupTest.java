@@ -259,6 +259,17 @@ public class SettingsBackupTest {
 
         assertEquals(SettingsBackup.Reason.FORMAT, reasonFor(wrongFormat.toString()));
         assertEquals(SettingsBackup.Reason.SCHEMA, reasonFor(wrongSchema.toString()));
+        // Newer than this build reads, and not a number at all, are both the schema's refusal.
+        assertEquals(SettingsBackup.Reason.SCHEMA,
+                reasonFor(new JSONObject(baseline).put("schema", SettingsBackup.SCHEMA + 1).toString()));
+        assertEquals(SettingsBackup.Reason.SCHEMA,
+                reasonFor(new JSONObject(baseline).put("schema", "1").toString()));
+        assertEquals(SettingsBackup.Reason.SCHEMA,
+                reasonFor(new JSONObject(baseline).put("schema", 0).toString()));
+        // A file from before the key existed is the first schema, not a damaged one.
+        JSONObject noSchema = new JSONObject(baseline);
+        noSchema.remove("schema");
+        SettingsBackup.restore(Utils.getContext(), noSchema.toString(), true);
         assertEquals(SettingsBackup.Reason.INCOMPLETE, reasonFor(shortKeys.toString()));
         assertEquals(SettingsBackup.Reason.VALUE, reasonFor(badValue.toString()));
 

@@ -11,8 +11,6 @@ package app.morphe.extension.shared.settings;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.Objects;
 
@@ -50,11 +48,6 @@ public class FloatSetting extends Setting<Float> {
     @Override
     protected void load() {
         value = preferences.getFloatString(key, defaultValue);
-    }
-
-    @Override
-    protected Float readFromJSON(JSONObject json, String importExportKey) throws JSONException {
-        return (float) json.getDouble(importExportKey);
     }
 
     @Override

@@ -15,6 +15,7 @@ import app.morphe.patches.tiktok.misc.absettings.APP_AB_RAW
 import app.morphe.patches.tiktok.misc.absettings.MethodShape
 import app.morphe.patches.tiktok.misc.absettings.appAbClass
 import app.morphe.patches.tiktok.misc.absettings.methodOfShape
+import app.morphe.patches.tiktok.misc.absettings.methodsOfShape
 import app.morphe.patches.tiktok.misc.absettings.shape
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.patches.tiktok.shared.callThroughLocals
@@ -132,8 +133,11 @@ val featureGateLabPatch = bytecodePatch(
             method.patchBoundary(boundary)
         }
 
-        appAbClass().methodOfShape(APP_AB_RAW, "Feature Gate Lab raw App AB boundary")
-            .patchRawAbBoundary()
+        // Every one of them, not the one. The raw getter's key is p1 and its flag is p2
+        // whichever door the app came through, so a build that carries two carries two doors
+        // into the same thing and the Lab has to hold both open. 46.9.3 is the first that does.
+        appAbClass().methodsOfShape(APP_AB_RAW, "Feature Gate Lab raw App AB boundary")
+            .forEach { it.patchRawAbBoundary() }
 
         val settingsManager = mutableClassDefBy(ABMOCK_SETTINGS_MANAGER_DESCRIPTOR)
         // By shape, like the table above: these were `LJII` and `LJIIIIZZ`, which are R8's names

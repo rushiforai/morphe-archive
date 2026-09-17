@@ -2,10 +2,10 @@ group = "software.santodan.patches"
 
 patches {
     about {
-        name = "SantoDan Patches"
-        description = "Independent Morphe patches for Pillo and Peafowl"
+        name = "Santodan Patches"
+        description = "Independent Morphe patches for Reddit, Pillo, and Peafowl"
         source = "https://github.com/Santodan/santodan-patches"
-        author = "SantoDan"
+        author = "Santodan"
         contact = "https://github.com/Santodan"
         website = "https://morphe.software/add-source?github=Santodan/santodan-patches"
         license = "GPLv3"
@@ -35,6 +35,20 @@ tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
 }
 
 tasks {
+    register<JavaExec>("verifyRedditContentFilter") {
+        dependsOn("testClasses")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyRedditContentFilter")
+        args(fileTree("../../.inspect-reddit") { include("classes*.dex") }.files.sorted().map { it.absolutePath })
+    }
+
+    register<JavaExec>("verifyRedditGuestMode") {
+        dependsOn("testClasses")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyRedditGuestMode")
+        args(fileTree("../../.inspect-reddit") { include("classes*.dex") }.files.sorted().map { it.absolutePath })
+    }
+
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"
 

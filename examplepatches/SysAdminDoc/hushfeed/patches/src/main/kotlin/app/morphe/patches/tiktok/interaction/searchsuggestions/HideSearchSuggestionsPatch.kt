@@ -9,7 +9,6 @@ package app.morphe.patches.tiktok.interaction.searchsuggestions
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
@@ -20,6 +19,7 @@ import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.patches.tiktok.shared.callThroughLocals
+import app.morphe.patches.tiktok.shared.guardAtEntry
 import app.morphe.patches.tiktok.shared.objectIn
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.getReference
@@ -233,15 +233,9 @@ private fun MutableMethod.guard(returnInstruction: String) {
     if (implementation!!.registerCount - numberOfParameterRegisters < 1) {
         throw PatchException("Hide search suggestions: $name has no free local register.")
     }
-    addInstructionsWithLabels(
-        0,
-        """
-            invoke-static {}, $EXTENSION->shouldHide()Z
-            move-result v0
-            if-eqz v0, :morphe_keep_suggestions
-            $returnInstruction
-            :morphe_keep_suggestions
-            nop
-        """,
+    guardAtEntry(
+        "enable",
+        "invoke-static {}, $EXTENSION->shouldHide()Z",
+        "$returnInstruction",
     )
 }

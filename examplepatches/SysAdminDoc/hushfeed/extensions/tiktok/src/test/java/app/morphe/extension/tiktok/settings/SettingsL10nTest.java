@@ -1090,7 +1090,7 @@ public class SettingsL10nTest {
                 for (int index = 0; index < arguments.size(); index++) {
                     // A derived helper shows one of its parameters and passes the rest along.
                     // Reading every literal in its brackets would flag the type name in
-                    // addInfo(root, "TikTok cached value", "OBJECT".equals(entry.type) ? ...).
+                    // addInfo(root, "TikTok's own value", "OBJECT".equals(entry.type) ? ...).
                     if (helper != null && !helpers.contains(helper + "#" + index)) continue;
                     for (String literal : literalsIn(text, outside,
                             arguments.get(index)[0], arguments.get(index)[1])) {

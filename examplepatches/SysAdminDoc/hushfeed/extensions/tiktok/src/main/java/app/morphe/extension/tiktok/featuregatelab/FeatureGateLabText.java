@@ -159,7 +159,7 @@ final class FeatureGateLabText {
 
     private static String sourceName(Context context, String manager) {
         if (FeatureGateLabStore.MANAGER_PIA_ACTIVITY_CENTER.equals(manager)) {
-            return L10n.t(context, "Activity Center");
+            return L10n.t(context, "Activity Center (PIA)");
         }
         if (FeatureGateLabStore.MANAGER_PLAYER_CONFIG.equals(manager)) {
             return L10n.t(context, "Player Config");
@@ -168,10 +168,10 @@ final class FeatureGateLabText {
             return L10n.t(context, "Live Settings");
         }
         if (FeatureGateLabStore.MANAGER_VE_CONFIG.equals(manager)) {
-            return L10n.t(context, "Media Config");
+            return L10n.t(context, "Media Config (VE)");
         }
         if (FeatureGateLabStore.MANAGER_SETTINGS_MANAGER.equals(manager)) {
-            return L10n.t(context, "Structured Config");
+            return L10n.t(context, "Config (Settings Manager)");
         }
         if (FeatureGateLabStore.MANAGER_ABMOCK.equals(manager)) {
             return L10n.t(context, "App AB");

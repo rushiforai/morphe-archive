@@ -61,6 +61,22 @@ val playbackQualityPatch = bytecodePatch(
                 }
             }
         }
+        // The player never reads those getters. All four converters that build the player kit's
+        // SimVideo and SimVideoUrlModel copy getRawBitRate, the list left whole below for downloads
+        // and native DASH reconstruction, and the player's bitrate selectors choose out of what
+        // the setter stored. So the gear picked above was reported and never played (issue #3).
+        // The setter is the one door into the player's list whichever converter came through it,
+        // and it carries this name and shape on all four retained builds.
+        mapOf("SimVideo" to "filterPlayerVideoGears", "SimVideoUrlModel" to "filterPlayerUrlModelGears")
+            .forEach { (owner, callback) ->
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/playerkit/simapicommon/model/$owner;",
+                    name = "setBitRate", parameters = listOf("Ljava/util/List;"), returnType = "V",
+                ).method.addInstructions(0, """
+                    invoke-static/range { p1 .. p1 }, $EXTENSION->$callback(Ljava/util/List;)Ljava/util/List;
+                    move-result-object p1
+                """)
+            }
         // Keep raw gears intact so the native JSON/map cache and downloads retain every variant.
         Fingerprint(
             definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Video;", name = "setVideoModelObject",

@@ -106,6 +106,33 @@ class ShareRecipientHooksTest {
             .isShareRecipientClickDispatcher())
     }
 
+    @Test
+    fun `a dispatcher of its own is gated the same way with the view and string where they are`() {
+        // 46.9.3 keeps the dispatcher as an ordinary (View, String)V on a listener class whose
+        // component field is typed, so there is no cast and the body is five instructions. p0 is
+        // this, p1 the view and p2 the string, so the hook lands on v2 and borrows v3.
+        val method = ownClickDispatcher(typedComponent = true)
+        assertTrue(method.isShareRecipientClickDispatcher())
+        val original = method.implementation!!.instructions.toList()
+
+        method.interceptShareRecipientClick()
+
+        val code = method.implementation!!.instructions.toList()
+        assertEquals(original.size + 4, code.size)
+        assertMethod(code[0], tools, "allowRecipientClick", listOf("Landroid/view/View;"), "Z")
+        assertEquals(2, (code[0] as FiveRegisterInstruction).registerC)
+        assertEquals(3, (code[1] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.IF_NEZ, code[2].opcode)
+        original.forEachIndexed { index, instruction -> assertSame(instruction, code[index + 4]) }
+    }
+
+    @Test
+    fun `a dispatcher of its own still has to read its callback off the component it holds`() {
+        // Without the cast the component's type comes from the field, so a field typed Object
+        // whose callback is read off some other class is not the dispatcher.
+        assertFalse(ownClickDispatcher(typedComponent = false).isShareRecipientClickDispatcher())
+    }
+
     private fun recipientBinder(includeUid: Boolean): MutableMethod {
         val uid = if (includeUid) {
             """
@@ -160,6 +187,26 @@ class ShareRecipientHooksTest {
                 if-eqz v0, :done
                 invoke-interface { v0 }, $function0->invoke()Ljava/lang/Object;
                 $extra
+                :done
+                return-void
+            """,
+        )
+    }
+
+    private fun ownClickDispatcher(typedComponent: Boolean): MutableMethod {
+        val owner = "Lfixture/OwnClickDispatcher;"
+        val fieldType = if (typedComponent) "Lfixture/RecipientComponent;" else "Ljava/lang/Object;"
+        return mutableMethod(
+            owner,
+            "LIZ",
+            listOf("Landroid/view/View;", "Ljava/lang/String;"),
+            4,
+            AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
+            """
+                iget-object v0, p0, $owner->LIZ:$fieldType
+                iget-object v0, v0, Lfixture/RecipientComponent;->LJFF:$function0
+                if-eqz v0, :done
+                invoke-interface { v0 }, $function0->invoke()Ljava/lang/Object;
                 :done
                 return-void
             """,

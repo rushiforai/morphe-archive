@@ -17,6 +17,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.getReference
 import app.morphe.util.numberOfParameterRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -143,9 +144,7 @@ val videoFitPatch = bytecodePatch(
 
         // The story cell writes the result's own fields, from inside the result's own class.
         val registers = story.implementation!!.registerCount
-        check(registers - story.numberOfParameterRegisters >= 1) {
-            "Fit video to the screen: saveResultInner has no free local register."
-        }
+        story.requireLocals("Fit video to the screen", 1)
         // The field writes and the offset calls name p0 in forms that reach v15 and no further.
         // A frame that puts p0 past it would assemble into nothing readable.
         check(registers <= 16) {

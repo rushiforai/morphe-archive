@@ -322,7 +322,7 @@ public class FeatureGatePagesTest {
             assertTrue("the row is not in the state the item describes: "
                             + shown.stream().map(label -> label.getText().toString())
                             .collect(java.util.stream.Collectors.joining(" | ")),
-                    shown.stream().anyMatch(label -> "Override off".contentEquals(label.getText()))
+                    shown.stream().anyMatch(label -> "Saved, override off".contentEquals(label.getText()))
                             && shown.stream().anyMatch(label ->
                             label.getText().toString().startsWith("Saved ")));
             for (TextView label : shown) {
@@ -624,7 +624,7 @@ public class FeatureGatePagesTest {
                     forced.isChecked());
             TextView status = fieldOf(detail, "status", TextView.class);
             assertEquals("the status still reads as an override that is off",
-                    "Getter not requested yet", status.getText().toString());
+                    "Not read yet", status.getText().toString());
 
             // And the other half of the two-row shape: choosing a result while the override is
             // off records the choice without turning anything on, the way the spinner page does.
@@ -691,7 +691,7 @@ public class FeatureGatePagesTest {
             TextView reason = (TextView) detail.getView().findViewWithTag(
                     "feature_gate_status_reason");
             assertNotNull("the page has no line for the reason", reason);
-            assertEquals("Getter requested, but the structured override could not be applied",
+            assertEquals("TikTok read it, but the structured override could not be applied",
                     status.getText().toString());
             assertEquals(View.VISIBLE, reason.getVisibility());
             assertEquals("Field missing_field can't be changed on this build. Take it out of"

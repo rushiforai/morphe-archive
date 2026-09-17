@@ -1,6 +1,7 @@
 /*
  * Forked from:
  * https://github.com/ReVanced/revanced-patches/blob/377d4e15016296b45d809697f7f69bce74badd3a/extensions/tiktok/src/main/java/app/revanced/extension/tiktok/settings/preference/InputTextPreference.java
+ * Mirror, since GitHub blocks the original: https://gitlab.com/ReVanced/revanced-patches/-/blob/main/extensions/tiktok/src/main/java/app/revanced/extension/tiktok/settings/preference/InputTextPreference.java
  */
 
 package app.morphe.extension.tiktok.settings.preference;
@@ -39,13 +40,50 @@ public class InputTextPreference extends EditTextPreference {
     @Nullable
     private Check check;
 
+    /** The description, kept so the summary can be rebuilt when the value changes. */
+    private final String baseSummary;
+
+    /** How many characters of a value to show before truncating. */
+    private static final int VALUE_DISPLAY_LIMIT = 60;
+
     public InputTextPreference(Context context, String title, String summary, StringSetting setting) {
         super(context);
         setTitle(title);
         // Already translated by withRestartNote, so not looked up a second time.
-        super.setSummary(TogglePreference.withRestartNote(context, summary, setting));
+        baseSummary = TogglePreference.withRestartNote(context, summary, setting);
         setKey(setting.key);
         setText(setting.get());
+        rebuildSummary();
+    }
+
+    /**
+     * Puts the description and a trailing value line together.
+     *
+     * <p>The twenty text rows on the settings pages used to show only their description: the
+     * only way to learn what was in them was to open the editor. A "Current: Empty" or
+     * "Current: us" line underneath is the same thing the numeric rows already carry. A long
+     * value (a list of blocked words, say) is cut to roughly sixty characters so it stays on
+     * one line and the row stays a row rather than a paragraph.
+     */
+    private void rebuildSummary() {
+        String value = getText();
+        String shown;
+        if (value == null || value.trim().isEmpty()) {
+            shown = L10n.t(getContext(), "Empty");
+        } else if (value.length() > VALUE_DISPLAY_LIMIT) {
+            shown = value.substring(0, VALUE_DISPLAY_LIMIT).trim() + "…";
+        } else {
+            shown = value;
+        }
+        super.setSummary(baseSummary + "\n" + L10n.f(getContext(), "Current: %1$s", shown));
+    }
+
+    @Override
+    public void setText(String text) {
+        super.setText(text);
+        // baseSummary is null during the super constructor's first setText call, before the
+        // field is assigned. The constructor calls rebuildSummary afterwards.
+        if (baseSummary != null) rebuildSummary();
     }
 
     /**
@@ -98,10 +136,13 @@ public class InputTextPreference extends EditTextPreference {
                 ViewGroup.LayoutParams.WRAP_CONTENT
         ));
 
-        if (getSummary() != null && getSummary().length() > 0) {
+        // The dialog shows only the description, not the "Current:" line that the row carries.
+        // The editor below already shows the value, and repeating it above it would be two of
+        // the same thing on one surface.
+        if (baseSummary != null && !baseSummary.isEmpty()) {
             TextView summary = SettingsUi.text(
                     context,
-                    getSummary().toString(),
+                    baseSummary,
                     14,
                     SettingsUi.textSecondary(),
                     android.graphics.Typeface.NORMAL

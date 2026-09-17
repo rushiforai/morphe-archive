@@ -50,7 +50,7 @@ public class OverlayControlsTest {
         View button = (View) factory.invoke(null, activity);
         // The backdrop, the glyph and the focus ring, under the ripple that carries the press.
         android.graphics.drawable.LayerDrawable layers = contentOf(button.getBackground());
-        assertTrue(layers.getDrawable(1) instanceof BlockGlyphDrawable);
+        assertTrue(layers.getDrawable(1) instanceof OverlayGlyphDrawable);
         int size = View.MeasureSpec.makeMeasureSpec(100, View.MeasureSpec.EXACTLY);
         button.measure(size, size);
         button.layout(0, 0, 100, 100);

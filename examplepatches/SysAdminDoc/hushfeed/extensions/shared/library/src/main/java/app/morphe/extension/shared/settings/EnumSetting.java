@@ -11,8 +11,6 @@ package app.morphe.extension.shared.settings;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.Locale;
 import java.util.Objects;
@@ -59,24 +57,6 @@ public class EnumSetting<T extends Enum<?>> extends Setting<T> {
     @Override
     protected void load() {
         value = preferences.getEnum(key, defaultValue);
-    }
-
-    @Override
-    protected T readFromJSON(JSONObject json, String importExportKey) throws JSONException {
-        String enumName = json.getString(importExportKey);
-        try {
-            return getEnumFromString(enumName);
-        } catch (IllegalArgumentException ex) {
-            // Info level to allow removing enum values in the future without showing any user errors.
-            Logger.printInfo(() -> "Using default, and ignoring unknown enum value: "  + enumName, ex);
-            return defaultValue;
-        }
-    }
-
-    @Override
-    protected void writeToJSON(JSONObject json, String importExportKey) throws JSONException {
-        // Use lowercase to keep the output less ugly.
-        json.put(importExportKey, value.name().toLowerCase(Locale.ENGLISH));
     }
 
     /**

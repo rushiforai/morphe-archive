@@ -36,6 +36,8 @@ public final class FeedFilterCounters {
         final AtomicLong removed = new AtomicLong();
         /** Elements handed over that were not videos at all, so no rule ever saw them. */
         final AtomicLong unreadable = new AtomicLong();
+        /** Lists this route handed back with nothing left in them. */
+        final AtomicLong emptied = new AtomicLong();
         volatile String lastReason;
     }
 
@@ -62,7 +64,7 @@ public final class FeedFilterCounters {
 
     private static final class Line {
         final String source;
-        final long lists, itemsIn, removed, unreadable;
+        final long lists, itemsIn, removed, unreadable, emptied;
         final String lastReason;
 
         Line(String source, Counter counter) {
@@ -71,6 +73,7 @@ public final class FeedFilterCounters {
             this.itemsIn = counter.itemsIn.get();
             this.removed = counter.removed.get();
             this.unreadable = counter.unreadable.get();
+            this.emptied = counter.emptied.get();
             this.lastReason = counter.lastReason;
         }
     }
@@ -101,6 +104,21 @@ public final class FeedFilterCounters {
         Counter counter = counter(source);
         if (counter == null) return;
         counter.unreadable.addAndGet(count);
+    }
+
+    /**
+     * A list this route handed back with nothing left in it.
+     *
+     * <p>A batch filtered down to zero is not the same as a batch nothing matched, and from the
+     * outside it does not look like filtering at all: the pager has nothing to advance to, and
+     * whether TikTok asks for more is TikTok's decision. Upstream reported the feed freezing on
+     * the swipe after a livestream was hidden, and an export that counts only removals cannot
+     * tell that story from a healthy one. This is the line that can.
+     */
+    public static void emptied(String source) {
+        Counter counter = counter(source);
+        if (counter == null) return;
+        counter.emptied.incrementAndGet();
     }
 
     /** What this route took out of the list it was just handed. */
@@ -140,6 +158,8 @@ public final class FeedFilterCounters {
                         .append(counter.removed.get()).append(" removed");
                 long unreadable = counter.unreadable.get();
                 if (unreadable > 0) line.append(", ").append(unreadable).append(" not videos");
+                long emptied = counter.emptied.get();
+                if (emptied > 0) line.append(", ").append(emptied).append(" left empty");
                 String reason = counter.lastReason;
                 if (reason != null) line.append(". Last reason: ").append(reason);
                 lines.add(line.toString());
@@ -192,6 +212,7 @@ public final class FeedFilterCounters {
                 counter.itemsIn.addAndGet(saved.itemsIn);
                 counter.removed.addAndGet(saved.removed);
                 counter.unreadable.addAndGet(saved.unreadable);
+                counter.emptied.addAndGet(saved.emptied);
                 if (counter.lastReason == null) counter.lastReason = saved.lastReason;
             }
 

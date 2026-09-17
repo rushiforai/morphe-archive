@@ -16,6 +16,9 @@ Ajouter cette source n'applique pas tous les patches : vous choisissez ceux à u
 
 | Application | Patch | Fonction |
 | --- | --- | --- |
+| Leboncoin 100.124.1–100.125.0 | **Leboncoin: remove ads** | Utilise le mode sans publicité intégré pour supprimer bannières, publicités natives et interstitiels. |
+| METEO CONSULT 1.1.4 | **Meteo Consult: remove ads and subscription prompts** | Supprime les publicités et les sollicitations automatiques d'abonnement, y compris en fin de prévisions. |
+| METEO CONSULT 1.1.4 | **Meteo Consult: disable video autoplay** | Ouvre les vidéos météo en pause et conserve la lecture manuelle. |
 | Keepcool 1.8.21 | **Keepcool: allow plus in email** | Autorise les adresses contenant un `+` avant le `@` sans modifier l'adresse envoyée au serveur. |
 | Keepcool 1.8.21 | **Keepcool: booking availability dots** | Affiche une pastille verte sur les dates ayant au moins un créneau avec une place disponible. |
 

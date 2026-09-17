@@ -1,33 +1,7 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.66.0",
+  "version": "1.19.0",
   "patches": [
-    {
-      "name": "Ad Removal",
-      "description": "Removes all ads (banner, interstitial, rewarded).",
-      "default": true,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.block.juggle",
-          "name": "Block Blast",
-          "description": null,
-          "apkFileType": "XAPK",
-          "appIconColor": "#1A237E",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "10.4.5",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
     {
       "name": "Bypass Google Play Install Check",
       "description": "App always behaves as if installed from Google Play, bypassing the install source check.",
@@ -44,6 +18,32 @@
           "targets": [
             {
               "version": "5.4.58",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Clumsy Ninja License Bypass",
+      "description": "Bypasses Google Play license verification at startup.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.naturalmotion.clumsyninja",
+          "name": "Clumsy Ninja",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FF6F00",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.33.5",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -211,75 +211,23 @@
       "options": []
     },
     {
-      "name": "Premium (Subscription Simulation)",
-      "description": "Simulates an active subscription to unlock premium features.",
+      "name": "RB4 Premium & Skin Unlock",
+      "description": "Unlocks premium, removes ads and unlocks all ball skins.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [
         {
-          "packageName": "com.block.juggle",
-          "name": "Block Blast",
+          "packageName": "com.FDGEntertainment.redball4.gp",
+          "name": "Red Ball 4",
           "description": null,
-          "apkFileType": "XAPK",
-          "appIconColor": "#1A237E",
+          "apkFileType": "APK",
+          "appIconColor": "#CC0000",
           "signatures": null,
           "targets": [
             {
-              "version": "10.4.5",
+              "version": "1.17.03",
               "versionCodes": null,
               "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "SF2 Add Hook Native Lib",
-      "description": "Adds libsf2hook.so to APK for runtime IL2CPP hooking.",
-      "default": true,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.nekki.shadowfight",
-          "name": "Shadow Fight 2",
-          "description": null,
-          "apkFileType": "APKM",
-          "appIconColor": "#1A1A1A",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "2.46.0",
-              "versionCodes": null,
-              "isExperimental": true,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "SF2 IAP Bypass (Runtime Hook)",
-      "description": "Hooks IL2CPP currency getters and ProcessPurchase at runtime via native .so for unlimited in-game currency.",
-      "default": true,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.nekki.shadowfight",
-          "name": "Shadow Fight 2",
-          "description": null,
-          "apkFileType": "APKM",
-          "appIconColor": "#1A1A1A",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "2.46.0",
-              "versionCodes": null,
-              "isExperimental": true,
               "minSdk": null,
               "description": null
             }

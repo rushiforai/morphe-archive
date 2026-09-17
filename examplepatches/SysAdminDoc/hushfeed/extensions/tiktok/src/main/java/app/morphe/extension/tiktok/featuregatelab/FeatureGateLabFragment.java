@@ -24,7 +24,6 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.Gravity;
-import android.view.ContextThemeWrapper;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,7 +35,6 @@ import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.PopupMenu;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -70,8 +68,8 @@ import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 
 @SuppressWarnings({"deprecation", "SetTextI18n"})
 public final class FeatureGateLabFragment extends Fragment {
-    private static final String[] VIEW_LABELS = {"Loaded", "All actionable", "Overrides"};
-    private static final String[] FILTER_LABELS = {"All", "Boolean", "Enabled", "Disabled", "Unloaded"};
+    private static final String[] VIEW_LABELS = {"Seen", "All", "Overridden"};
+    private static final String[] FILTER_LABELS = {"All", "Boolean", "Enabled", "Disabled", "Not seen"};
 
     /**
      * The five filter choices in the reader's language.
@@ -135,7 +133,6 @@ public final class FeatureGateLabFragment extends Fragment {
     private FeatureGateCatalog.Snapshot snapshot;
     private GateAdapter adapter;
     private TextView count;
-    private TextView loading;
     private TextView empty;
     private TextView emptyAction;
     private EditText search;
@@ -232,7 +229,7 @@ public final class FeatureGateLabFragment extends Fragment {
         // both read "Enable overrides", and only the 44dp switch answered a tap.
         LinearLayout masterRow = FeatureGateLabUi.switchRow(context,
                 L10n.t(context, "Enable overrides"),
-                L10n.t(context, "Applies saved rules at supported getters"), master);
+                L10n.t(context, "Replace values when TikTok asks for them"), master);
         controls.addView(masterRow, FeatureGateLabUi.matchWrap());
 
         TextView warning = FeatureGateLabUi.label(
@@ -405,10 +402,6 @@ public final class FeatureGateLabFragment extends Fragment {
         ));
         controls.addView(resultRow, FeatureGateLabUi.matchWrap());
 
-        loading = FeatureGateLabUi.label(context,
-                L10n.t(context, "Loading local catalog and current TikTok cache..."));
-        controls.addView(loading, FeatureGateLabUi.matchWrap());
-
         FrameLayout listContainer = new FrameLayout(context);
         list = new ListView(context);
         list.setDivider(null);
@@ -478,9 +471,12 @@ public final class FeatureGateLabFragment extends Fragment {
                 ViewGroup.LayoutParams.MATCH_PARENT
         ));
         list.setEmptyView(emptyColumn);
+        LinearLayout selectionOverlay = buildSelectionBar(context);
+        FrameLayout.LayoutParams barParams = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        barParams.gravity = Gravity.BOTTOM;
+        listContainer.addView(selectionOverlay, barParams);
         root.addView(listContainer, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
-
-        root.addView(buildSelectionBar(context), FeatureGateLabUi.matchWrap());
 
         master.setOnCheckedChangeListener((button, checked) -> onMasterChanged(checked));
         search.addTextChangedListener(new SimpleTextWatcher(() -> {
@@ -543,7 +539,6 @@ public final class FeatureGateLabFragment extends Fragment {
         }
         adapter = null;
         count = null;
-        loading = null;
         empty = null;
         emptyAction = null;
         search = null;
@@ -604,8 +599,7 @@ public final class FeatureGateLabFragment extends Fragment {
     }
 
     private void load(boolean refresh) {
-        loading.setVisibility(View.VISIBLE);
-        loading.setText(L10n.t(getContext(), refresh
+        count.setText(L10n.t(getContext(), refresh
                 ? "Refreshing current TikTok cache..."
                 : "Loading local catalog and current TikTok cache..."));
         FeatureGateCatalog.loadAsync(refresh, new FeatureGateCatalog.Callback() {
@@ -613,11 +607,8 @@ public final class FeatureGateLabFragment extends Fragment {
             public void onLoaded(FeatureGateCatalog.Snapshot loaded) {
                 if (!isAdded() || getView() == null) return;
                 snapshot = loaded;
-                if (loaded.catalogComplete) {
-                    loading.setVisibility(View.GONE);
-                } else {
-                    loading.setVisibility(View.VISIBLE);
-                    loading.setText(L10n.t(getContext(),
+                if (!loaded.catalogComplete) {
+                    count.setText(L10n.t(getContext(),
                             "Loaded current values. Loading all known gates..."));
                 }
                 // The message is chosen in rebuild now, from whether a search or only the
@@ -629,7 +620,7 @@ public final class FeatureGateLabFragment extends Fragment {
             @Override
             public void onError(String message) {
                 if (!isAdded() || getView() == null) return;
-                loading.setText(
+                count.setText(
                         L10n.f(getContext(), "Current cache unavailable: %1$s", message));
                 FeatureGateCatalog.Snapshot cached = FeatureGateCatalog.cachedSnapshot();
                 if (cached != null) {
@@ -682,7 +673,16 @@ public final class FeatureGateLabFragment extends Fragment {
             });
         }
 
-        SettingsUi.setResultCount(count, visible.size());
+        // Which filter produced this count. The picker's own label is off screen while the
+        // list is being read, and a count on its own gives no way of telling a short list from
+        // a narrow filter.
+        if (selectedFilter == FILTER_ALL) {
+            SettingsUi.setResultCount(count, visible.size());
+        } else {
+            SettingsUi.setTextIfChanged(count, L10n.f(getContext(),
+                    "%1$d results, filtered to %2$s",
+                    visible.size(), filterLabels(getContext())[selectedFilter]));
+        }
         updateEmptyState(query);
         adapter.notifyDataSetChanged();
         if (restoreListPosition && list != null) {
@@ -739,19 +739,31 @@ public final class FeatureGateLabFragment extends Fragment {
 
     private void onViewSelected(int position) {
         selectedView = position;
-        if (selectedView == 0 && selectedFilter == FILTER_UNLOADED) selectedFilter = FILTER_ALL;
-        if (selectedView != 0 && selectedFilter >= FILTER_BOOLEAN
-                && selectedFilter <= FILTER_DISABLED) selectedFilter = FILTER_ALL;
+        // The tab used to rewrite the filter and the filter used to rewrite the tab, so
+        // choosing "Boolean" moved the reader to a different tab and tapping "Overrides" put
+        // the filter quietly back to All, with nothing on screen saying why either happened.
+        // Only one pairing is really a contradiction, and this is the one place it is settled.
+        if (!filterAppliesToView(selectedFilter, selectedView)) selectedFilter = FILTER_ALL;
         updateControls();
         rebuild();
     }
 
     private void onFilterSelected(int position) {
         selectedFilter = position;
-        if (selectedFilter >= FILTER_BOOLEAN && selectedFilter <= FILTER_DISABLED) selectedView = 0;
-        if (selectedFilter == FILTER_UNLOADED) selectedView = 1;
         updateControls();
         rebuild();
+    }
+
+    /**
+     * Whether a filter can mean anything on a tab.
+     *
+     * <p>Only one pairing cannot: the Loaded tab has already dropped every gate TikTok has not
+     * read, so asking it for the unread ones can only come back empty. Everything else is a
+     * real question, including a boolean filter on the Overrides tab, which asks which of your
+     * overrides are on a boolean gate TikTok has read.
+     */
+    private static boolean filterAppliesToView(int filter, int view) {
+        return !(view == 0 && filter == FILTER_UNLOADED);
     }
 
     private void onSourceSelected(int position) {
@@ -802,10 +814,23 @@ public final class FeatureGateLabFragment extends Fragment {
     }
 
     private void showFilterPicker() {
+        // Only the filters this tab can answer, so nothing on the list silently moves the tab
+        // out from under the reader when it is chosen.
+        String[] allLabels = filterLabels(getContext());
+        List<String> offeredLabels = new ArrayList<>();
+        final int[] offeredFilters = new int[allLabels.length];
+        int checked = 0;
+        for (int filter = 0; filter < allLabels.length; filter++) {
+            if (!filterAppliesToView(filter, selectedView)) continue;
+            offeredFilters[offeredLabels.size()] = filter;
+            if (filter == selectedFilter) checked = offeredLabels.size();
+            offeredLabels.add(allLabels[filter]);
+        }
         AlertDialog dialog = new AlertDialog.Builder(getActivity())
                 .setTitle(L10n.t(getContext(), "Show gates"))
-                .setSingleChoiceItems(filterLabels(getContext()), selectedFilter, (choiceDialog, which) -> {
-                    onFilterSelected(which);
+                .setSingleChoiceItems(offeredLabels.toArray(new String[0]), checked,
+                        (choiceDialog, which) -> {
+                    onFilterSelected(offeredFilters[which]);
                     choiceDialog.dismiss();
                 })
                 .setNegativeButton(L10n.t(getContext(), "Cancel"), null)
@@ -901,8 +926,16 @@ public final class FeatureGateLabFragment extends Fragment {
 
     /** Shows or hides the bar and repaints the rows, which draw their own chosen state. */
     private void onSelectionChanged() {
+        boolean barVisible = !selection.isEmpty();
         if (selectionBar != null) {
-            selectionBar.setVisibility(selection.isEmpty() ? View.GONE : View.VISIBLE);
+            selectionBar.setVisibility(barVisible ? View.VISIBLE : View.GONE);
+        }
+        if (list != null) {
+            int bottomPad = barVisible && selectionBar != null
+                    ? FeatureGateLabUi.dp(list.getContext(), 80)
+                    : FeatureGateLabUi.dp(list.getContext(), 24);
+            list.setPadding(list.getPaddingLeft(), list.getPaddingTop(),
+                    list.getPaddingRight(), bottomPad);
         }
         if (selectionCount != null) {
             selectionCount.setText(selection.size() == 1
@@ -996,47 +1029,71 @@ public final class FeatureGateLabFragment extends Fragment {
                 .commit();
     }
 
+    /**
+     * The Lab's overflow.
+     *
+     * <p>It was a platform PopupMenu on the platform's own Material theme, a grey sheet
+     * next to everything else the bundle draws, and there is no way to give a popup a background
+     * of ours: that goes through a style resource and the payload carries no resources at all.
+     * A list in the bundle's own dialog surface themes correctly in both modes and, unlike a
+     * popup menu, can show an action that is there but cannot be taken.
+     *
+     * <p>Undo used to be offered whether or not there was anything to undo, and the only way to
+     * find out was to press it and be told off.
+     */
     private void showOverflow() {
-        View anchor = getView() == null ? null : getView().findViewWithTag("feature_gate_menu");
-        if (anchor == null) return;
-        int popupTheme = SettingsUi.isDarkMode()
-                ? android.R.style.Theme_Material
-                : android.R.style.Theme_Material_Light;
-        PopupMenu menu = new PopupMenu(
-                new ContextThemeWrapper(getActivity(), popupTheme),
-                anchor
-        );
-        menu.getMenu().add(0, 1, 0, L10n.t(getContext(), "Refresh values"));
-        menu.getMenu().add(0, 2, 1, L10n.t(getContext(), "Export loaded values"));
-        menu.getMenu().add(0, 3, 2, L10n.t(getContext(), "Import loaded values"));
-        menu.getMenu().add(0, 4, 3, L10n.t(getContext(), "Reset all overrides"));
-        menu.getMenu().add(0, 5, 4, L10n.t(getContext(), "Reset all Lab data"));
-        menu.getMenu().add(0, 6, 5, L10n.t(getContext(), "Undo last Lab change"));
-        menu.setOnMenuItemClickListener(item -> {
-            switch (item.getItemId()) {
-                case 1:
-                    load(true);
-                    return true;
-                case 2:
-                    exportLoadedValues();
-                    return true;
-                case 3:
-                    chooseLoadedValuesFile();
-                    return true;
-                case 4:
-                    reset(false);
-                    return true;
-                case 5:
-                    reset(true);
-                    return true;
-                case 6:
-                    runLabChange(FeatureGateLabUndo::undo,
-                            L10n.t(getContext(), "Restored the previous Lab settings. Restart TikTok to apply this."));
-                    return true;
-                default:
-                    return false;
+        if (getActivity() == null) return;
+        boolean canUndo = FeatureGateLabUndo.canUndo();
+        String[] labels = {
+                L10n.t(getContext(), "Refresh values"),
+                L10n.t(getContext(), "Export loaded values"),
+                L10n.t(getContext(), "Import loaded values"),
+                // Neither said what it took away, and the second one takes a good deal more
+                // than overrides: the master switch, the acknowledgement and the recordings.
+                L10n.t(getContext(), "Remove all overrides"),
+                L10n.t(getContext(), "Clear all Lab data (overrides, switch, recordings)"),
+                L10n.t(getContext(), "Undo last Lab change"),
+        };
+        final int undoItem = labels.length - 1;
+
+        android.widget.ArrayAdapter<String> items = new android.widget.ArrayAdapter<String>(
+                getActivity(), android.R.layout.simple_list_item_1, labels) {
+            @Override public boolean areAllItemsEnabled() {
+                return canUndo;
             }
-        });
+
+            @Override public boolean isEnabled(int position) {
+                return canUndo || position != undoItem;
+            }
+
+            @Override public View getView(int position, View convertView, ViewGroup parent) {
+                View view = super.getView(position, convertView, parent);
+                TextView label = (TextView) view.findViewById(android.R.id.text1);
+                boolean enabled = isEnabled(position);
+                label.setTextColor(enabled
+                        ? SettingsUi.textPrimary() : SettingsUi.textDisabled());
+                label.setEnabled(enabled);
+                view.setEnabled(enabled);
+                return view;
+            }
+        };
+
+        AlertDialog menu = new AlertDialog.Builder(getActivity())
+                .setAdapter(items, (dialog, which) -> {
+                    switch (which) {
+                        case 0: load(true); break;
+                        case 1: exportLoadedValues(); break;
+                        case 2: chooseLoadedValuesFile(); break;
+                        case 3: reset(false); break;
+                        case 4: reset(true); break;
+                        default:
+                            runLabChange(FeatureGateLabUndo::undo, L10n.t(getContext(),
+                                    "Restored the previous Lab settings. Restart TikTok to apply this."));
+                            break;
+                    }
+                })
+                .create();
+        menu.setOnShowListener(ignored -> SettingsUi.styleStandardAlertDialog(menu));
         menu.show();
     }
 
@@ -1731,7 +1788,7 @@ public final class FeatureGateLabFragment extends Fragment {
             }
             holder.value.setText(shownValue);
             holder.value.setVisibility(entry.loaded || rule != null ? View.VISIBLE : View.GONE);
-            convertView.setBackground(SettingsUi.groupedRow(context, position == 0, position == entries.size() - 1));
+            SettingsUi.applyGroupedRow(convertView, position == 0, position == entries.size() - 1);
             // A chosen row is drawn as chosen, and says so to a screen reader further down: a
             // selection you cannot see is a selection you act on by accident.
             boolean chosen = selection.containsKey(entry.identity());
@@ -1744,17 +1801,22 @@ public final class FeatureGateLabFragment extends Fragment {
             String state;
             int stateColor;
             if (rule != null && rule.enabled && FeatureGateLabRuntime.isTriggered(entry.manager, entry.key, entry.type)) {
-                state = L10n.t(getContext(), "Getter used");
+                state = L10n.t(getContext(), "TikTok read it");
                 stateColor = SettingsUi.accent();
             } else if (rule != null && rule.enabled) {
-                state = L10n.t(getContext(), "Waiting");
+                state = L10n.t(getContext(), "Override set, not read yet");
                 stateColor = FeatureGateLabUi.warningColor(context);
             } else if (rule != null) {
-                state = L10n.t(getContext(), "Override off");
+                state = L10n.t(getContext(), "Saved, override off");
                 stateColor = SettingsUi.textSecondary();
             } else {
-                state = L10n.t(getContext(), entry.loaded ? "Loaded" : "Unloaded");
-                stateColor = entry.loaded ? SettingsUi.textSecondary() : SettingsUi.textDisabled();
+                state = L10n.t(getContext(), entry.loaded ? "Seen this session" : "Not seen yet");
+                // Both in the secondary colour. A gate TikTok has not read yet was painted in
+                // the disabled colour, which is about 3.7:1 on the dark surface and 3.4:1 on
+                // white, under the 4.5:1 floor for 12sp text, and the row it sits on is fully
+                // tappable, so "disabled" was the wrong thing to say as well as unreadable.
+                // The word carries the meaning; the disabled colour stays for disabled controls.
+                stateColor = SettingsUi.textSecondary();
             }
             holder.state.setText(state);
             holder.state.setTextColor(stateColor);

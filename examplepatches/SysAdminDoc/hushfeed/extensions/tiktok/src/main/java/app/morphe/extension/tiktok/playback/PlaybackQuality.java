@@ -43,6 +43,20 @@ public final class PlaybackQuality {
     static final String DASH_MODEL_GETTER = "getDashVideoModelStr";
     /** The gear list getter both owners share, the path a phone with empty models is left with. */
     static final String GEARS_GETTER = "getBitRate";
+    /**
+     * The player kit's own models and the one setter every route into them goes through.
+     *
+     * <p>The player never reads {@code Video.getBitRate}. All four converters that build a
+     * {@code SimVideo} or {@code SimVideoUrlModel} copy {@code getRawBitRate}, the list the
+     * patch leaves whole for downloads and native DASH reconstruction, and the player's bitrate
+     * selectors then choose out of what the setter stored. So a gear picked out of the aweme
+     * model's getter was reported in the export and never played, which is what issue #3
+     * described. Filtering what reaches the setter filters what the player chooses from, and
+     * nothing else.
+     */
+    static final String PLAYER_VIDEO = "SimVideo";
+    static final String PLAYER_URL_MODEL = "SimVideoUrlModel";
+    static final String PLAYER_SETTER = "setBitRate";
 
     private static volatile JsonCache cache;
     private static volatile MeteredState meteredState;
@@ -110,12 +124,22 @@ public final class PlaybackQuality {
 
     /** The gear list {@code Video.getBitRate} hands back. */
     public static List<?> filterVideoGears(List<?> original) {
-        return filterGears(original, VIDEO_MODEL);
+        return filterGears(original, VIDEO_MODEL, GEARS_GETTER);
     }
 
     /** The gear list {@code VideoUrlModel.getBitRate} hands back. */
     public static List<?> filterDashGears(List<?> original) {
-        return filterGears(original, DASH_MODEL);
+        return filterGears(original, DASH_MODEL, GEARS_GETTER);
+    }
+
+    /** The gear list handed to {@code SimVideo.setBitRate}, which the player carries. */
+    public static List<?> filterPlayerVideoGears(List<?> original) {
+        return filterGears(original, PLAYER_VIDEO, PLAYER_SETTER);
+    }
+
+    /** The gear list handed to {@code SimVideoUrlModel.setBitRate}, which the player chooses from. */
+    public static List<?> filterPlayerUrlModelGears(List<?> original) {
+        return filterGears(original, PLAYER_URL_MODEL, PLAYER_SETTER);
     }
 
     /**
@@ -131,20 +155,24 @@ public final class PlaybackQuality {
      * model with one gear: on the S22 every feed has some, and a miss for each would leave the
      * family reading as broken on a build where the path works.
      */
-    private static List<?> filterGears(List<?> original, String owner) {
+    private static List<?> filterGears(List<?> original, String owner, String member) {
         String mode = mode();
         if (original == null || original.isEmpty() || "auto".equals(mode)) return original;
         Object selected = QualitySelector.choose(original, mode);
         if (selected == null) {
-            HookStatus.missingMember(FAMILY, "playable gear list from", owner, GEARS_GETTER);
-            if (DESCRIBED.add(owner + '#' + GEARS_GETTER)) {
-                Logger.printDebug(() -> owner + '.' + GEARS_GETTER
+            HookStatus.missingMember(FAMILY, "playable gear list from", owner, member);
+            if (DESCRIBED.add(owner + '#' + member)) {
+                Logger.printDebug(() -> owner + '.' + member
                         + " returned gears with no playable address, so playback quality leaves it to the app");
             }
             return original;
         }
-        HookStatus.bound(FAMILY, owner + '#' + GEARS_GETTER);
-        describeChoice(owner, mode, original, selected);
+        HookStatus.bound(FAMILY, owner + '#' + member);
+        // One gear is nothing to choose from. The list goes back as it came and no line is
+        // written, or a feed of single-gear items pushes the choices that matter out of the
+        // export, which is what the first export with gear lines in it looked like.
+        if (original.size() == 1) return original;
+        describeChoice(owner, member, mode, original, selected);
         return new ArrayList<>(Collections.singletonList(selected));
     }
 
@@ -152,14 +180,14 @@ public final class PlaybackQuality {
      * One line per distinct choice: the mode, the gear it settled on and the gears it had.
      * That is the line the device check reads to prove "lowest" is the smallest offered.
      */
-    private static void describeChoice(String owner, String mode, List<?> offered, Object selected) {
+    private static void describeChoice(String owner, String member, String mode, List<?> offered, Object selected) {
         StringBuilder gears = new StringBuilder();
         for (Object gear : offered) {
             if (gears.length() > 0) gears.append(", ");
             gears.append(QualitySelector.describe(gear));
         }
         String line = "Playback quality " + mode + " picked " + QualitySelector.describe(selected)
-                + " of " + offered.size() + " gears from " + owner + '#' + GEARS_GETTER + ": " + gears;
+                + " of " + offered.size() + " gears from " + owner + '#' + member + ": " + gears;
         if (CHOICES.size() >= MAX_CHOICES) CHOICES.clear();
         if (!CHOICES.add(line)) return;
         Logger.printInfo(() -> line);
@@ -229,9 +257,18 @@ public final class PlaybackQuality {
         // response body and copying it on every video costs more than the check saves.
         int first = 0;
         while (first < original.length() && Character.isWhitespace(original.charAt(first))) first++;
-        if (first == original.length() || original.charAt(first) != '{') {
-            unusable(owner, getter, first == original.length()
-                    ? "an empty model" : "a model that is not a JSON object");
+        if (first == original.length()) {
+            // An empty model is an ordinary video, not a miss. Video.getVideoModelStr hands its
+            // stored string back only when hasDashBitrate() is true and builds nothing
+            // otherwise, so every non-adaptive item on every retained build arrives here as "",
+            // and the picker's work for that item is done on the gear list. Counting it as a
+            // miss made the reporter's "2 found, 2 missing" read as a broken build.
+            if (DESCRIBED.add(owner + '#' + getter + " empty")) {
+                Logger.printDebug(() -> owner + '.' + getter
+                        + " returned an empty model, so playback quality reads the gear list for that video");
+            }
+        } else if (original.charAt(first) != '{') {
+            unusable(owner, getter, "a model that is not a JSON object");
         } else {
             try {
                 JSONObject root = new JSONObject(original);

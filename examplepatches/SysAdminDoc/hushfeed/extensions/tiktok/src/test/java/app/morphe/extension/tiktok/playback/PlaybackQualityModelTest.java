@@ -101,13 +101,51 @@ public class PlaybackQualityModelTest {
     }
 
     @Test public void eachModelGetterAnswersForItself() {
-        PlaybackQuality.filterVideoModelJson("");
-        PlaybackQuality.filterDashVideoModelJson("");
+        PlaybackQuality.filterVideoModelJson("[]");
+        PlaybackQuality.filterDashVideoModelJson("[]");
 
         List<String> missing = HookStatus.missing(PlaybackQuality.FAMILY);
         assertEquals("Expected both getters, got " + missing, 2, missing.size());
         assertTrue(missing.toString(), missing.get(0).contains(PlaybackQuality.VIDEO_MODEL_GETTER));
         assertTrue(missing.toString(), missing.get(1).contains(PlaybackQuality.DASH_MODEL_GETTER));
+    }
+
+    @Test public void anEmptyModelIsAnOrdinaryVideoAndNotAMiss() {
+        // Video.getVideoModelStr hands its stored string back only for an adaptive item and
+        // builds nothing otherwise, so "" is what every non-adaptive video says on every
+        // retained build. The reporter's phone said it for every video and the row read
+        // "2 missing", which is a statement about a broken build, and the build was not.
+        for (String empty : List.of("", "   ")) {
+            assertSame(empty, PlaybackQuality.filterVideoModelJson(empty));
+            assertSame(empty, PlaybackQuality.filterDashVideoModelJson(empty));
+        }
+
+        assertEquals(List.of(), HookStatus.missing(PlaybackQuality.FAMILY));
+        assertFalse(HookStatus.anyMissing());
+        // Nothing was chosen either, so the family has nothing to say yet.
+        assertEquals(HookStatus.report().toString(), List.of(), HookStatus.report());
+    }
+
+    @Test public void thePlayerSetterIsTheChoiceTheExportCanCallPlayed() {
+        // The player kit's models are built out of getRawBitRate by four converters, so the
+        // aweme getter's choice above was reported and never played. The setter is where the
+        // player's own list is decided, and the line names it so a reader can tell the two apart.
+        var low = new AdvancedDownloadsTest.Gear("normal_360_0", 100, "https://example.com/low");
+        var high = new AdvancedDownloadsTest.Gear("normal_1080_0", 400, "https://example.com/high");
+        assertEquals(List.of(low), PlaybackQuality.filterPlayerUrlModelGears(List.of(high, low)));
+        assertEquals(List.of(low), PlaybackQuality.filterPlayerVideoGears(List.of(high, low)));
+        // One gear is nothing to choose from: the same list goes back and no line is written.
+        List<?> single = List.of(high);
+        assertSame(single, PlaybackQuality.filterPlayerUrlModelGears(single));
+
+        assertTrue(HookStatus.missing(PlaybackQuality.FAMILY).isEmpty());
+        assertTrue(HookStatus.report().toString(),
+                HookStatus.report().contains("playback quality: 2 found, 0 missing"));
+        BaseSettings.DEBUG_LOG_FILTERS.save("all");
+        String report = LogBufferManager.buildExportText();
+        assertTrue(report, report.contains("of 2 gears from SimVideoUrlModel#setBitRate: normal_1080_0 1080p, normal_360_0 360p"));
+        assertTrue(report, report.contains("of 2 gears from SimVideo#setBitRate: "));
+        assertFalse(report, report.contains("of 1 gears"));
     }
 
     @Test public void anOrdinaryVideoWithNoAdaptiveGearsIsNotAMiss() {

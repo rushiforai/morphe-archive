@@ -72,14 +72,26 @@ public final class SessionLockOverlay {
     private static WeakReference<TextView> hintReference = new WeakReference<>(null);
     private static WeakReference<TextView> messagesReference = new WeakReference<>(null);
     private static volatile boolean ticking;
+    /**
+     * Whether the app is on screen. A stopped activity whose decor is still attached is not
+     * finishing and not destroyed, so nothing in {@link #sync()} could tell the reader had gone
+     * to another app, and a hold that runs to the reset hour kept a once-a-second main-thread
+     * timer going for the whole of it while TikTok sat in recents.
+     */
+    private static volatile boolean foreground = true;
 
     /**
-     * Runs only while a hold is running. A repeating timer that outlives the hold would be a
-     * second-by-second wake-up for a feature nobody switched on.
+     * Runs only while a hold is running and the app is on screen. A repeating timer that
+     * outlives the hold, or the app being looked at, would be a second-by-second wake-up for
+     * nobody.
      */
     private static final Runnable TICK = new Runnable() {
         @Override
         public void run() {
+            if (!foreground) {
+                ticking = false;
+                return;
+            }
             sync();
             if (!SessionBudget.isLocked()) {
                 ticking = false;
@@ -118,6 +130,17 @@ public final class SessionLockOverlay {
     };
 
     private SessionLockOverlay() {
+    }
+
+    /** The app left the screen: the countdown stops on its next tick and the panel stays as it is. */
+    public static void onBackground() {
+        foreground = false;
+    }
+
+    /** The app is back: a hold still running gets its countdown back. */
+    public static void onForeground() {
+        foreground = true;
+        ensureRunning();
     }
 
     /**

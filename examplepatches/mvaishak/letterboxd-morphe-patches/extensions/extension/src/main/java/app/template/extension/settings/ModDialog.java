@@ -21,13 +21,13 @@ final class ModDialog {
 
     private ModDialog() {}
 
-    static void show(Context ctx, String title, String message,
+    static void show(Context ctx, String title, CharSequence message,
                      String positiveText, final Runnable onPositive,
                      String negativeText, final Runnable onNegative) {
         show(ctx, title, message, positiveText, onPositive, negativeText, onNegative, null);
     }
 
-    static void show(Context ctx, String title, String message,
+    static void show(Context ctx, String title, CharSequence message,
                      String positiveText, final Runnable onPositive,
                      String negativeText, final Runnable onNegative,
                      final Runnable onDismiss) {
@@ -65,6 +65,8 @@ final class ModDialog {
             body.setTextColor(0xFFC7C7C7);
             body.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14.5f);
             body.setLineSpacing(Math.round(3 * d), 1f);
+            body.setLinkTextColor(accent);
+            body.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
             ScrollView scroll = new ScrollView(ctx);
             scroll.addView(body);
             LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(

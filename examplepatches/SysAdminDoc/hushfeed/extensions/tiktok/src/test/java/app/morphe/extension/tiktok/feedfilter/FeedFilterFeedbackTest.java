@@ -43,7 +43,9 @@ public class FeedFilterFeedbackTest {
         assertNull(FeedFilterFeedback.recordBatch(4, 0, reasons, START + 2));
         String notice = FeedFilterFeedback.recordBatch(4, 0, reasons, START + 3);
         assertNotNull(notice);
-        assertTrue(notice.contains("3 batches"));
+        // "Batch" is a word from inside the code, so the notice counts in the reader's terms.
+        assertTrue(notice, notice.contains("3 times in a row"));
+        assertFalse("the notice still speaks in batches", notice.contains("batch"));
     }
 
     @Test public void aPartiallyKeptBatchResetsTheRepeatedEmptyWindow() {

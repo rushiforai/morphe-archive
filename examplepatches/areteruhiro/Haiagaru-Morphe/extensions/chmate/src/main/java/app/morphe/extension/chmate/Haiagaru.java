@@ -355,6 +355,7 @@ public final class Haiagaru {
         applicationContext = appContext;
         runtimePackageName = appContext.getPackageName();
         migrateRestoredPackageReferences(appContext);
+        HttpsTransport.setEnabled(preferences(appContext).getBoolean("forceHttps", false));
     }
 
     /** Installs the optional crash logger before ChMate's startup provider does any work. */
@@ -832,6 +833,13 @@ public final class Haiagaru {
             Log.w(LOG_TAG, "Unable to normalize itest thread URL", error);
             return rewritten;
         }
+    }
+
+    /** Redirects Edge's subject list to the metadata feed that includes reporter IDs. */
+    public static String rewriteSubjectUrl(String original) {
+        SharedPreferences preferences = preferencesOrNull();
+        return EdgeSubjectUrl.rewrite(original,
+                preferences == null || preferences.getBoolean("edgeReporterId", true));
     }
 
     /**
@@ -1505,6 +1513,25 @@ public final class Haiagaru {
                 "chtoio",
                 preferences.getBoolean("chtoio", true)
         );
+        Switch edgeReporterId = addSwitch(
+                layout,
+                activity,
+                text("エッヂのスレタイ末尾に記者IDを表示", "Show Edge reporter IDs in thread titles"),
+                preferences.getBoolean("edgeReporterId", true)
+        );
+        Switch forceHttps = addSwitch(
+                layout,
+                activity,
+                text("HTTP通信をHTTPSへ切り替える（画像を含む）", "Upgrade HTTP to HTTPS (including images)"),
+                preferences.getBoolean("forceHttps", false)
+        );
+        TextView httpsDescription = new TextView(activity);
+        httpsDescription.setText(text(
+                "HTTPS非対応の接続先は読み込めなくなります。その場合はOFFにしてください。",
+                "Servers without HTTPS will fail to load. Turn this off if needed."
+        ));
+        httpsDescription.setTextSize(13);
+        layout.addView(httpsDescription, rowParams(activity));
         Switch automaticDat = addSwitch(
                 layout,
                 activity,
@@ -1651,6 +1678,8 @@ public final class Haiagaru {
                             .putString("prefMonaKeyName", value(monaKeyName))
                             .putString("adClass", value(adClass).trim())
                             .putBoolean("chtoio", chtoio.isChecked())
+                            .putBoolean("edgeReporterId", edgeReporterId.isChecked())
+                            .putBoolean("forceHttps", forceHttps.isChecked())
                             .putBoolean("automaticDat", automaticDat.isChecked())
                             .commit();
                     if (archiveRouteTemplates != null) {
@@ -2292,6 +2321,8 @@ public final class Haiagaru {
         final String monaKeyName;
         final String adClass;
         final boolean chtoio;
+        final boolean edgeReporterId;
+        final boolean forceHttps;
         final boolean automaticDat;
         final String archiveRouteTemplates;
 
@@ -2305,6 +2336,8 @@ public final class Haiagaru {
                 String monaKeyName,
                 String adClass,
                 boolean chtoio,
+                boolean edgeReporterId,
+                boolean forceHttps,
                 boolean automaticDat,
                 String archiveRouteTemplates
         ) {
@@ -2317,6 +2350,8 @@ public final class Haiagaru {
             this.monaKeyName = monaKeyName;
             this.adClass = adClass;
             this.chtoio = chtoio;
+            this.edgeReporterId = edgeReporterId;
+            this.forceHttps = forceHttps;
             this.automaticDat = automaticDat;
             this.archiveRouteTemplates = archiveRouteTemplates;
         }
@@ -2332,6 +2367,8 @@ public final class Haiagaru {
                     preferences.getString("prefMonaKeyName", DEFAULT_MONAKEY_KEY),
                     configuredAdClass(preferences),
                     preferences.getBoolean("chtoio", true),
+                    preferences.getBoolean("edgeReporterId", true),
+                    preferences.getBoolean("forceHttps", false),
                     preferences.getBoolean("automaticDat", true),
                     preferences.getString(
                             ARCHIVE_ROUTE_TEMPLATES_KEY,
@@ -2348,6 +2385,8 @@ public final class Haiagaru {
                     && replaceUserAgent == value.replaceUserAgent
                     && removeMonaKey == value.removeMonaKey
                     && chtoio == value.chtoio
+                    && edgeReporterId == value.edgeReporterId
+                    && forceHttps == value.forceHttps
                     && automaticDat == value.automaticDat
                     && equal(userAgent, value.userAgent)
                     && equal(cookieClass, value.cookieClass)

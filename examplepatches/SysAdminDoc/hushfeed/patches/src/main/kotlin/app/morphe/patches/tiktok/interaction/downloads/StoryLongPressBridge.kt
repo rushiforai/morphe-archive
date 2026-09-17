@@ -12,6 +12,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.util.extendsClass
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -70,15 +71,8 @@ internal fun BytecodePatchContext.resolveStoryLongPressTimer(): MutableMethod {
 }
 
 /** Whether the class reaches `android.view.View` through what it extends. */
-private fun BytecodePatchContext.extendsAndroidView(classDef: ClassDef): Boolean {
-    var at = classDef.superclass
-    val seen = mutableSetOf<String>()
-    while (at != null && seen.add(at)) {
-        if (at == ANDROID_VIEW) return true
-        at = classDefByOrNull(at)?.superclass
-    }
-    return false
-}
+private fun BytecodePatchContext.extendsAndroidView(classDef: ClassDef): Boolean =
+    extendsClass(classDef.type, ANDROID_VIEW)
 
 internal fun MutableMethod.interceptStoryLongPress() {
     check(parameterTypes.none() && returnType == "V" &&

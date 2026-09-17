@@ -18,6 +18,7 @@ import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.cloneMutable
 import app.morphe.util.getReference
 import app.morphe.util.implementationOrPatchException
+import app.morphe.util.sameBodiedOrPatchException
 import app.morphe.util.singleOrPatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -193,18 +194,25 @@ val playbackSpeedPatch = bytecodePatch(
                 method.implementation?.instructions?.filterIsInstance<NarrowLiteralInstruction>()
                     ?.map { it.narrowLiteral }?.containsAll(expected) == true
         }
-        val factory = factories.singleOrPatchException("Playback speed: menu list factory")
-        val returns = factory.implementationOrPatchException("Playback speed").instructions
-            .withIndex().filter { it.value.opcode == Opcode.RETURN_OBJECT }
-        check(returns.isNotEmpty()) {
-            "Playback speed: the menu list factory returns no object to replace."
-        }
-        returns.asReversed().forEach { (index, instruction) ->
-            val register = (instruction as OneRegisterInstruction).registerA
-            factory.addInstructionsAtControlFlowLabel(index, """
-                invoke-static/range {v$register .. v$register}, $EXTENSION->menuSpeeds(Ljava/lang/Object;)Ljava/lang/Object;
-                move-result-object v$register
-            """)
+        // 46.9.3 carries this body twice on one lambda class, invoke$328 and invoke$851, with
+        // identical instructions: R8 outlined the same lambda once per call site. Both hand back
+        // the same speed list and the menu reaches one of them, so refusing on the count would
+        // have taken the patch down over a duplicate of itself. Two bodies that are not the same
+        // body are a different matter and still refuse, because then this would be guessing
+        // which one the menu means.
+        factories.sameBodiedOrPatchException("Playback speed: menu list factory").forEach { factory ->
+            val returns = factory.implementationOrPatchException("Playback speed").instructions
+                .withIndex().filter { it.value.opcode == Opcode.RETURN_OBJECT }
+            check(returns.isNotEmpty()) {
+                "Playback speed: the menu list factory returns no object to replace."
+            }
+            returns.asReversed().forEach { (index, instruction) ->
+                val register = (instruction as OneRegisterInstruction).registerA
+                factory.addInstructionsAtControlFlowLabel(index, """
+                    invoke-static/range {v$register .. v$register}, $EXTENSION->menuSpeeds(Ljava/lang/Object;)Ljava/lang/Object;
+                    move-result-object v$register
+                """)
+            }
         }
         SettingsStatusLoadFingerprint.method.addInstruction(0,
             "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enablePlaybackSpeed()V")

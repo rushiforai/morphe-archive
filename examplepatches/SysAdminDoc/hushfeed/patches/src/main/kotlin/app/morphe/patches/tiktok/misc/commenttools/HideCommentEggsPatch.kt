@@ -8,13 +8,13 @@ package app.morphe.patches.tiktok.misc.commenttools
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.shared.guardAtEntry
 import app.morphe.util.numberOfParameterRegisters
 
 private const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/comment/CommentTools;"
@@ -58,16 +58,10 @@ val hideCommentEggsPatch = bytecodePatch(
                 )
             }
 
-            addInstructions(
-                0,
-                """
-                    invoke-static {}, $EXTENSION_CLASS_DESCRIPTOR->shouldHideCommentEgg()Z
-                    move-result v0
-                    if-eqz v0, :morphe_show_comment_egg
-                    return-void
-                    :morphe_show_comment_egg
-                    nop
-                """,
+            guardAtEntry(
+                "Hide comment popup ads",
+                "invoke-static {}, $EXTENSION_CLASS_DESCRIPTOR->shouldHideCommentEgg()Z",
+                "return-void",
             )
         }
     }

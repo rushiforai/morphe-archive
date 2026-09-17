@@ -4,6 +4,7 @@
  */
 package app.morphe.patches.tiktok.shared
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.util.numberOfParameterRegisters
@@ -152,6 +153,32 @@ internal fun MutableMethod.requireLocals(patch: String, count: Int) {
                 "writes $count. The write would land on a parameter.",
         )
     }
+}
+
+/** Labels for the guard below, unique across one patching run so two guards in one method cannot clash. */
+private var guardLabels = 0
+
+/**
+ * Puts a question in front of the method. [call] is an invoke that answers `Z`; when it answers
+ * true the method leaves through [returnSmali], one or more instructions ending in a return,
+ * and when it answers false the host's own first instruction runs as it always did. The answer
+ * lands in v0, so the frame needs a local, which is checked here before anything is assembled.
+ * Nineteen patches used to write these six lines out by hand, forty times.
+ */
+internal fun MutableMethod.guardAtEntry(patch: String, call: String, returnSmali: String) {
+    requireLocals(patch, 1)
+    val through = "morphe_guard_through_${guardLabels++}"
+    addInstructionsWithLabels(
+        0,
+        """
+            $call
+            move-result v0
+            if-eqz v0, :$through
+            ${returnSmali.trim()}
+            :$through
+            nop
+        """,
+    )
 }
 
 /**

@@ -687,14 +687,19 @@ public final class FeatureGateCatalog {
             return actionable && FeatureGateLabStore.supportsOverride(manager, type);
         }
 
+        /**
+         * The same label the source tab carries, so the row badge matches the tab it sorts
+         * into. It was three different names (tab, badge, detail page); now it is two: the
+         * badge is the tab label and the detail page spells it out.
+         */
         public String shortSourceName() {
-            if (FeatureGateLabStore.MANAGER_PIA_ACTIVITY_CENTER.equals(manager)) return "PIA";
-            if (FeatureGateLabStore.MANAGER_PLAYER_CONFIG.equals(manager)) return "PLAYER";
-            if (FeatureGateLabStore.MANAGER_LIVE.equals(manager)) return "LIVE";
-            if (FeatureGateLabStore.MANAGER_VE_CONFIG.equals(manager)) return "VE";
-            if (FeatureGateLabStore.MANAGER_SETTINGS_MANAGER.equals(manager)) return "CONFIG";
-            if (FeatureGateLabStore.MANAGER_ABMOCK.equals(manager)) return "AB";
-            return manager.toUpperCase(Locale.ROOT);
+            if (FeatureGateLabStore.MANAGER_PIA_ACTIVITY_CENTER.equals(manager)) return "Activity";
+            if (FeatureGateLabStore.MANAGER_PLAYER_CONFIG.equals(manager)) return "Player";
+            if (FeatureGateLabStore.MANAGER_LIVE.equals(manager)) return "Live";
+            if (FeatureGateLabStore.MANAGER_VE_CONFIG.equals(manager)) return "Media";
+            if (FeatureGateLabStore.MANAGER_SETTINGS_MANAGER.equals(manager)) return "Config";
+            if (FeatureGateLabStore.MANAGER_ABMOCK.equals(manager)) return "App AB";
+            return manager;
         }
 
     }

@@ -169,7 +169,7 @@ class LazyAbGateTest {
         }
         val classDef = classDef(gateClass, clinit, first, second)
         val search = LazyAbGateSearch { null }
-        val gate = { method: Method -> method.returnType == "Z" && method.isLazyAbRead() }
+        val gate = { method: Method, _: ClassDef -> method.returnType == "Z" && method.isLazyAbRead() }
 
         val refused = runCatching {
             search.find("What", "a_settings_key", gate) { it(classDef) }
@@ -180,7 +180,7 @@ class LazyAbGateTest {
 
         // With one of them told apart by the gate, the class is found and it is that method.
         val (found, method) =
-            search.find("What", "a_settings_key", { it.name == "LIZIZ" && gate(it) }) { it(classDef) }
+            search.find("What", "a_settings_key", { m, c -> m.name == "LIZIZ" && gate(m, c) }) { it(classDef) }
         assertEquals(gateClass, found.type)
         assertEquals("LIZIZ", method.name)
 
@@ -255,7 +255,7 @@ class LazyAbGateTest {
         )
         val groupDef = group(decoyDispatcher, body("invoke\$7", key))
         val search = LazyAbGateSearch { type -> if (type == group) groupDef else null }
-        val gate = { method: Method -> method.returnType == "Z" && method.isLazyAbRead() }
+        val gate = { method: Method, _: ClassDef -> method.returnType == "Z" && method.isLazyAbRead() }
 
         val (foundClass, foundMethod) = search.find("What", key, gate) { accept ->
             accept(realClass)
@@ -367,6 +367,33 @@ class LazyAbGateTest {
                 """,
             )
         }
+    }
+
+    @Test
+    fun `a gate that asks a static helper on its own class for the read is still the gate`() {
+        // 46.9.3 splits the comment sort gate: LIZ(Aweme)Z asks LIZIZ()Z on the same class and
+        // the lazy read lives there. The read is followed one level, on the owner only: the
+        // same call made from some other class is that class's business, not this gate.
+        val owner = "LX/0Ey4;"
+        val aweme = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;"
+        val helper = lazyRead(unwraps = true, owner = owner, name = "LIZIZ")
+        val asksHelper = """
+            invoke-static {}, $owner->LIZIZ()Z
+            move-result v0
+            return v0
+        """
+        val gate = method("LIZ", listOf(aweme), "Z", 2, owner = owner).apply {
+            addInstructionsWithLabels(0, asksHelper)
+        }
+        val elsewhere = method("LIZ", listOf(aweme), "Z", 2, owner = "LX/0Ey6;").apply {
+            addInstructionsWithLabels(0, asksHelper)
+        }
+        val holder = classDef(owner, helper, gate)
+
+        assertFalse(gate.isLazyAbRead())
+        assertTrue(gate.readsLazyAb(holder))
+        assertTrue(helper.readsLazyAb(holder))
+        assertFalse(elsewhere.readsLazyAb(classDef("LX/0Ey6;", elsewhere)))
     }
 
     private fun body(name: String, key: String = "a_settings_key") =

@@ -7,7 +7,7 @@ package app.morphe.patches.tiktok.misc.commentsort
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.patches.tiktok.shared.isLazyAbRead
+import app.morphe.patches.tiktok.shared.readsLazyAb
 import app.morphe.patches.tiktok.shared.resolveLazyAbGate
 
 /** The setting the comment sort menu is shaped by, which both anchors below rest on. */
@@ -24,10 +24,19 @@ internal const val COMMENT_SORT_STYLE_KEY = "comment_sort_opt_style"
  * more, this would bind to whichever came first rather than fail. The eligibility anchor below
  * refuses a second candidate by name instead.
  */
+/**
+ * At most one object parameter. The lambda that reads the key was an R8-outlined static body
+ * taking its captured receiver up to 46.8.3 and is a zero-parameter instance `invoke()` on
+ * 46.9.3; the patch follows the key's register and reads no parameter, so either shape will do.
+ * The other carrier of the key on every build is a `()V` settings registrar, which the return
+ * type keeps out.
+ */
 internal object CommentSortOptionStyleFingerprint : Fingerprint(
     returnType = "L",
-    parameters = listOf("L"),
     strings = listOf(COMMENT_SORT_STYLE_KEY),
+    custom = { method, _ ->
+        method.parameterTypes.size <= 1 && method.parameterTypes.all { it.startsWith("L") }
+    },
 )
 
 /**
@@ -39,9 +48,9 @@ internal object CommentSortOptionStyleFingerprint : Fingerprint(
  * anchored on. That key is TikTok's own name and is on all three builds.
  */
 internal fun BytecodePatchContext.resolveCommentSortEligibility(): MutableMethod =
-    resolveLazyAbGate("Comment sort controls", COMMENT_SORT_STYLE_KEY) { method ->
+    resolveLazyAbGate("Comment sort controls", COMMENT_SORT_STYLE_KEY) { method, owner ->
         method.returnType == "Z" &&
             method.parameterTypes.map(CharSequence::toString) ==
             listOf("Lcom/ss/android/ugc/aweme/feed/model/Aweme;") &&
-            method.isLazyAbRead()
+            method.readsLazyAb(owner)
     }

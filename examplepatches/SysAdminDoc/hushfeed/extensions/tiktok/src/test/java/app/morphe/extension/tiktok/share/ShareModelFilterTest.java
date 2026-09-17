@@ -1,6 +1,7 @@
 package app.morphe.extension.tiktok.share;
 
 import static org.junit.Assert.*;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.settings.Settings;
 import java.util.Arrays;
@@ -32,6 +33,7 @@ public class ShareModelFilterTest {
         Settings.HIDE_SHARE_ACTIONS.save(false);
         Settings.HIDE_SHARE_CONTACTS.save(false);
         Settings.SHARE_ACTION_CATALOG.save("");
+        HookStatus.clear();
     }
     @Test public void filtersBeforeRenderingWithoutChangingTheBuilderOrUnknownItems() {
         Object copy = new Item("copy"), save = new Item("save"), unknown = new Object();
@@ -52,6 +54,36 @@ public class ShareModelFilterTest {
         Settings.HIDE_SHARE_CONTACTS.save(true);
         assertFalse(ShareModelFilter.contacts(true));
         assertFalse(ShareModelFilter.contacts(false));
+    }
+
+    /** A list that behaves the way TikTok's own model does not, to prove the boundary holds. */
+    static final class HostileList extends java.util.AbstractList<Object> {
+        @Override public Object get(int index) { throw new IllegalStateException("hostile"); }
+        @Override public int size() { throw new IllegalStateException("hostile"); }
+        @Override public boolean isEmpty() { throw new IllegalStateException("hostile"); }
+        @Override public java.util.Iterator<Object> iterator() {
+            throw new IllegalStateException("hostile");
+        }
+    }
+
+    @Test public void aFilterThatThrowsHandsTikTokItsOwnRowsBackAndSaysSo() {
+        // These three run inside the share model's constructor. Anything that escapes takes the
+        // sheet with it, which upstream saw as a Share button that did nothing and then a crash.
+        HookStatus.clear();
+        Settings.SHARE_HIDDEN_ITEMS.save("copy");
+        List<?> hostile = new HostileList();
+
+        assertSame("a failed channels filter leaves TikTok's own row alone",
+                hostile, ShareModelFilter.channels(hostile));
+        assertSame("a failed actions filter leaves TikTok's own row alone",
+                hostile, ShareModelFilter.actions(hostile));
+
+        List<String> missing = HookStatus.missing(ShareModelFilter.FAMILY);
+        assertEquals("the catalogue and both filters are each named once", 3, missing.size());
+        assertTrue(missing.toString(), missing.get(0).contains("'channels'"));
+        assertTrue(missing.toString(), missing.get(0).contains("IllegalStateException"));
+        assertTrue(HookStatus.report().toString(),
+                HookStatus.report().get(0).startsWith(ShareModelFilter.FAMILY + ": 0 found, 3 missing"));
     }
 
     @Test public void actionModelsAreRememberedWithReadableLabelsAndStableKeys() {

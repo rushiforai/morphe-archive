@@ -3,6 +3,7 @@ package app.morphe.extension.tiktok.comment;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import static org.robolectric.Shadows.shadowOf;
@@ -210,17 +211,17 @@ public class CommentSearchTest {
 
             assertTrue(box.requestFocus());
             box.setText("recipe");
-            assertEquals("2 results", status.getText().toString());
+            assertEquals("2 results so far", status.getText().toString());
             assertEquals(View.VISIBLE, status.getVisibility());
             assertTrue("the many-result announcement stole search focus", box.hasFocus());
 
             box.setText("traveller");
-            assertEquals("1 result", status.getText().toString());
+            assertEquals("1 result so far", status.getText().toString());
             assertTrue("the one-result announcement stole search focus", box.hasFocus());
 
             box.setText("nothing-could-match");
-            assertEquals("No matching comments. Try a different word or clear the search.",
-                    status.getText().toString());
+            assertEquals("No matching comments. Try a different word, or clear the search "
+                    + "with the X in the box.", status.getText().toString());
             assertTrue("the empty explanation stole search focus", box.hasFocus());
             UiCapture.save(column, "comment-search-no-results.png", 480, 160);
 
@@ -234,7 +235,12 @@ public class CommentSearchTest {
         }
     }
 
-    @Test public void resultCountTracksScrollingAndRecycledBodyAndReplyRows() {
+    @Test public void theCountHoldsStillWhileTheReaderScrolls() {
+        // It used to be a count of the rows the list had attached, so scrolling turned "1
+        // result" into "2 results" into "no matching comments" while nothing was being
+        // searched, and the status line is a live region, so a screen reader read out each of
+        // those. It counts the comments the sheet has loaded instead: one per comment, added
+        // when it loads, and scrolling past it again neither doubles it nor takes it away.
         try (var controller = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
             var activity = controller.get();
             Utils.setContext(activity);
@@ -265,64 +271,125 @@ public class CommentSearchTest {
             TextView status = column.findViewWithTag("comment_search_status");
             assertNotNull("the search field has no result status", status);
             box.setText("recipe");
-            assertEquals("reply controls counted as matching comments",
-                    "1 result", status.getText().toString());
+            assertEquals("a reply control counted as another matching comment",
+                    "1 result so far", status.getText().toString());
 
-            CommentSearch.onCellBound(recycled,
-                    new Comment("Best recipe here", "reader", "Ari"));
+            // A second comment loads. That is a real new match and the count moves.
+            Comment second = new Comment("Best recipe here", "reader", "Ari");
+            CommentSearch.onCellBound(recycled, second);
             shadowOf(Looper.getMainLooper()).idle();
-            assertEquals("2 results", status.getText().toString());
+            assertEquals("2 results so far", status.getText().toString());
 
+            // Now nothing new loads: rows are recycled onto comments already counted and one
+            // scrolls off the list entirely. None of that is a change to what matched.
             CommentSearch.onCellBound(first, other);
-            CommentSearch.onReplyControlBound(replies,
-                    new Comment("A third recipe", "third", "Bo"), 0);
+            CommentSearch.onReplyControlBound(replies, second, 0);
             shadowOf(Looper.getMainLooper()).idle();
-            assertEquals("a recycled reply control changed the comment count",
-                    "1 result", status.getText().toString());
+            assertEquals("a recycled row changed the count", "2 results so far",
+                    status.getText().toString());
 
             listView.removeView(recycled);
             shadowOf(Looper.getMainLooper()).idle();
-            assertEquals("No matching comments. Try a different word or clear the search.",
-                    status.getText().toString());
+            assertEquals("scrolling a matching comment off screen uncounted it",
+                    "2 results so far", status.getText().toString());
 
             listView.addView(recycled);
+            CommentSearch.onCellBound(recycled, matching);
             shadowOf(Looper.getMainLooper()).idle();
-            assertEquals("a cached row reattached without a bind was not counted",
-                    "1 result", status.getText().toString());
-
-            CommentSearch.onCellBound(recycled, other);
-            shadowOf(Looper.getMainLooper()).idle();
-            assertEquals("a recycled body row kept its old match",
-                    "No matching comments. Try a different word or clear the search.",
+            assertEquals("scrolling back counted a comment twice", "2 results so far",
                     status.getText().toString());
+
+            box.setText("nothing-could-match");
+            assertEquals("No matching comments. Try a different word, or clear the search "
+                    + "with the X in the box.", status.getText().toString());
         } finally {
             CommentSearch.setQuery("");
             Settings.COMMENT_SEARCH.save(false);
         }
     }
 
+    @Test public void theXInTheBoxClearsTheSearchForAFingerAndForAScreenReader() {
+        // The empty state told the reader to clear the search and there was nothing on screen
+        // that could. A compound drawable is not a view, so the action on the box itself is
+        // what a screen reader gets, and it only exists while there is something to clear.
+        try (var controller = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            var activity = controller.get();
+            Utils.setContext(activity);
+            Settings.COMMENT_SEARCH.save(true);
+            CommentSearch.setQuery("");
+
+            LinearLayout column = new LinearLayout(activity);
+            column.setOrientation(LinearLayout.VERTICAL);
+            LinearLayout listView = new LinearLayout(activity);
+            listView.setOrientation(LinearLayout.VERTICAL);
+            column.addView(listView);
+            activity.setContentView(column);
+
+            View row = new View(activity);
+            row.setLayoutParams(new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, 120));
+            listView.addView(row);
+            CommentSearch.onCellBound(row, new Comment("Great recipe", "cook", "Sam"));
+            shadowOf(Looper.getMainLooper()).idle();
+
+            EditText box = column.findViewWithTag(CommentSearch.FIELD_TAG);
+            assertNotNull(box);
+            assertNull("an empty box offered something to clear",
+                    box.getCompoundDrawablesRelative()[2]);
+            assertFalse("an empty box offered a clear action", hasClearAction(box));
+
+            box.setText("recipe");
+            assertNotNull("nothing in the box could clear it",
+                    box.getCompoundDrawablesRelative()[2]);
+            assertTrue("a screen reader was offered no way to clear the search",
+                    hasClearAction(box));
+
+            assertTrue(box.performAccessibilityAction(0x0F0B0001, null));
+            assertEquals("", box.getText().toString());
+            assertEquals("", CommentSearch.query());
+            assertNull("the cleared box kept its clear control",
+                    box.getCompoundDrawablesRelative()[2]);
+            assertEquals("the row stayed collapsed after the search was cleared",
+                    View.VISIBLE, row.getVisibility());
+        } finally {
+            CommentSearch.setQuery("");
+            Settings.COMMENT_SEARCH.save(false);
+        }
+    }
+
+    private static boolean hasClearAction(View view) {
+        android.view.accessibility.AccessibilityNodeInfo info =
+                android.view.accessibility.AccessibilityNodeInfo.obtain();
+        view.onInitializeAccessibilityNodeInfo(info);
+        for (android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction action
+                : info.getActionList()) {
+            if (action.getId() == 0x0F0B0001) return true;
+        }
+        return false;
+    }
+
     @Test @Config(qualifiers = "de")
     public void germanOwnsTheNoMatchExplanation() {
-        assertLocalizedNoMatch(
-                "Keine passenden Kommentare. Versuche es mit einem anderen Wort oder lösche die Suche.");
+        assertLocalizedNoMatch("Keine passenden Kommentare. Versuche es mit einem anderen Wort "
+                + "oder lösche die Suche mit dem X im Feld.");
     }
 
     @Test @Config(qualifiers = "in-rID")
     public void indonesianOwnsTheNoMatchExplanation() {
-        assertLocalizedNoMatch(
-                "Tidak ada komentar yang cocok. Coba kata lain atau hapus pencarian.");
+        assertLocalizedNoMatch("Tidak ada komentar yang cocok. Coba kata lain atau hapus "
+                + "pencarian dengan X di kotak.");
     }
 
     @Test @Config(qualifiers = "es")
     public void spanishOwnsTheNoMatchExplanation() {
-        assertLocalizedNoMatch(
-                "No hay comentarios que coincidan. Prueba otra palabra o borra la búsqueda.");
+        assertLocalizedNoMatch("No hay comentarios que coincidan. Prueba otra palabra o borra "
+                + "la búsqueda con la X del campo.");
     }
 
     @Test @Config(qualifiers = "pt-rBR")
     public void brazilianPortugueseOwnsTheNoMatchExplanation() {
-        assertLocalizedNoMatch(
-                "Nenhum comentário encontrado. Tente outra palavra ou limpe a pesquisa.");
+        assertLocalizedNoMatch("Nenhum comentário encontrado. Tente outra palavra ou limpe a "
+                + "pesquisa com o X no campo.");
     }
 
     private static void assertLocalizedNoMatch(String expected) {

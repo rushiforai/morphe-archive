@@ -36,6 +36,28 @@ import org.junit.Test;
  * counts are asserted exactly: a new write or a new address fails here, with the reason the old
  * ones were judged safe printed beside it.
  *
+ * <p>The S22's own compat list, read on 2026-09-15, carries eleven changes gated at target 37 and
+ * names neither the static final change nor the background audio one: those are enforced by the
+ * runtime and the audio framework rather than through platform_compat. Three of the eleven could
+ * reach this bundle and have their verdicts below, each held by a check: {@code
+ * THROW_ERROR_FOR_WRITABLE_DCL} (no dex, jar or native library is loaded by the payload; its
+ * classes arrive inside TikTok's own installed APK, which is not writable, and Morphe Manager's
+ * loading of the bundle happens in Manager's process under Manager's target), {@code
+ * OVERRIDDEN_THREAD_START_METHOD} (no class in the payload extends Thread; every thread is a
+ * plain Thread handed a Runnable), and {@code ENABLE_DEFAULT_ENCRYPTED_CLIENT_HELLO} (a refused
+ * handshake is an SSLHandshakeException, which the transport does not retry and RemoteMedia
+ * names, the same answer as Certificate Transparency; the check for that one is
+ * {@code MediaBudgetTest.aRefusedHandshakeIsNotRetried}, beside the transport it is about,
+ * because this class reads source text and must not load payload classes into the fork it
+ * shares with the Robolectric tests). The other eight are NSD, deprecated
+ * RenderScript, deprecated data builder constructors, non-thread-local network matching, the
+ * MediaStore trash and unreliable-volume changes, and Wear wallpaper scaling; the payload calls
+ * none of those APIs. The device half of the audit, forcing the changes on with
+ * {@code am compat enable}, needs an Android 17 runtime this desk does not have. Android 16
+ * refuses ("the change's targetSdk threshold (36) is above the platform sdk"), and an
+ * android-37.0 emulator image boots and then loops on a surfaceflinger abort that takes
+ * system_server with it, so nothing can be installed there. Roadmap_Blocked.md carries both.
+ *
  * <p>Not covered here, because source text cannot show it: what the three patches that emit
  * {@code sput} write into. All three take their field from an instruction already in TikTok's own
  * method and two of them refuse to patch unless the host writes that field itself, which is what
@@ -182,6 +204,39 @@ public class AndroidTargetChangesGuardTest {
                         + "network security config opt-out would have nowhere to be opted out. "
                         + "Verdicts on the reviewed ones: " + REVIEWED_ADDRESSES,
                 new TreeSet<>(REVIEWED_ADDRESSES.keySet()), new TreeSet<>(found));
+    }
+
+    @Test
+    public void noPayloadClassSubclassesThreadOrOverridesStart() throws IOException {
+        // OVERRIDDEN_THREAD_START_METHOD changes what a Thread subclass that overrides start()
+        // gets from the runtime. Every thread in the payload is a plain Thread given a Runnable,
+        // so there is no subclass, named or anonymous, whose start() could be the overridden one.
+        // (Static start(...) helpers on ordinary classes are not what the change is about.)
+        Pattern subclass = Pattern.compile("\\bextends\\s+Thread\\b|\\bnew\\s+Thread\\s*\\([^)]*\\)\\s*\\{");
+        List<String> subclasses = new ArrayList<>();
+        for (Path source : payloadSources()) {
+            if (subclass.matcher(withoutComments(read(source))).find()) {
+                subclasses.add(relativeName(source));
+            }
+        }
+        assertEquals("a Thread subclass, or a start() override, reached the payload and needs a "
+                + "verdict against OVERRIDDEN_THREAD_START_METHOD", new ArrayList<String>(), subclasses);
+    }
+
+    @Test
+    public void nothingInThePayloadLoadsCodeFromAPath() throws IOException {
+        // THROW_ERROR_FOR_WRITABLE_DCL makes loading a dex, jar or native library out of a
+        // writable location an error. The payload loads nothing: its classes are in the APK.
+        Pattern loader = Pattern.compile(
+                "\\b(DexClassLoader|PathClassLoader|InMemoryDexClassLoader|DelegateLastClassLoader|"
+                        + "dalvik\\.system\\.DexFile|System\\.load(Library)?|Runtime\\.getRuntime\\(\\)\\.load)\\b");
+        List<String> loaders = new ArrayList<>();
+        for (Path source : payloadSources()) {
+            Matcher found = loader.matcher(withoutComments(read(source)));
+            while (found.find()) loaders.add(relativeName(source) + ": " + found.group());
+        }
+        assertEquals("the payload started loading code, which needs a verdict against "
+                + "THROW_ERROR_FOR_WRITABLE_DCL", new ArrayList<String>(), loaders);
     }
 
     /** Files.readString is not on the Android bootclasspath this module compiles against. */

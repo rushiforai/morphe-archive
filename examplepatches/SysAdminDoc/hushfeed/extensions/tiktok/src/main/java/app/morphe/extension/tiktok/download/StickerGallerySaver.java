@@ -1301,7 +1301,13 @@ public final class StickerGallerySaver {
         }
 
         static SaveResult success(String path, String uri, String format) {
-            return new SaveResult(true, L10n.f("Sticker saved as %1$s", format),
+            // The four other savers say "saved to DCIM/TikTok/..."; this said "saved as MP4"
+            // and kept the path for the debug log. The folder is what a reader needs, not the
+            // format, because the format is obvious from the file and the folder is not.
+            String folder = path;
+            int slash = folder.lastIndexOf('/');
+            if (slash > 0) folder = folder.substring(0, slash);
+            return new SaveResult(true, L10n.f("Sticker saved to %1$s", folder),
                     path + " (" + uri + ")");
         }
 

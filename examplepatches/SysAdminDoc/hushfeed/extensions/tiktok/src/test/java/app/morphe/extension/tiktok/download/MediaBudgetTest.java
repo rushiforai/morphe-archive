@@ -1,6 +1,7 @@
 package app.morphe.extension.tiktok.download;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -9,7 +10,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.net.SocketTimeoutException;
+import javax.net.ssl.SSLHandshakeException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -26,6 +29,25 @@ public class MediaBudgetTest {
     @Test public void socketTimeoutsRetry() {
         SocketTimeoutException timeout = new SocketTimeoutException("read timed out");
         assertTrue(MediaBudget.isRetryableTransport(timeout));
+    }
+
+    /**
+     * Android 17's {@code ENABLE_DEFAULT_ENCRYPTED_CLIENT_HELLO}, and the Certificate
+     * Transparency change beside it, both arrive as a handshake the platform refused. Retrying
+     * one would hammer a host that is going to refuse every time, so the transport retries a
+     * timeout and a refused connection and nothing else, and names what it got. This is the
+     * device-independent half of that verdict; {@code AndroidTargetChangesGuardTest} carries the
+     * rest of the target 37 audit.
+     */
+    @Test public void aRefusedHandshakeIsNotRetried() {
+        assertFalse(MediaBudget.isRetryableTransport(
+                new SSLHandshakeException("Certificate Transparency or ECH refused")));
+        assertFalse(MediaBudget.isRetryableTransport(
+                new IOException("wrapped", new SSLHandshakeException("refused"))));
+        assertTrue(MediaBudget.isRetryableTransport(
+                new IOException("wrapped", new SocketTimeoutException("slow"))));
+        assertTrue(MediaBudget.isRetryableTransport(
+                new IOException("wrapped", new ConnectException("refused connection"))));
     }
 
     @Test public void nestedMediaOperationsReuseTheRunningJobDeadline() {

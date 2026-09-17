@@ -10,13 +10,10 @@ package app.morphe.extension.shared.settings;
 
 import static app.morphe.extension.shared.StringRef.str;
 
-import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,8 +24,6 @@ import java.util.Map;
 import java.util.Objects;
 
 import app.morphe.extension.shared.Logger;
-import app.morphe.extension.shared.ResourceType;
-import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.StringRef;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.preference.SharedPrefCategory;
@@ -123,30 +118,6 @@ public abstract class Setting<T> {
                 return Collections.unmodifiableList(Arrays.asList(parents));
             }
         };
-    }
-
-    /**
-     * Callback for importing/exporting settings.
-     */
-    public interface ImportExportCallback {
-        /**
-         * Called after all settings have been imported.
-         */
-        void settingsImported(@Nullable Context context);
-
-        /**
-         * Called after all settings have been exported.
-         */
-        void settingsExported(@Nullable Context context);
-    }
-
-    private static final List<ImportExportCallback> importExportCallbacks = new ArrayList<>();
-
-    /**
-     * Adds a callback for {@link #importFromJSON(Context, String)} and {@link #exportToJson(Context)}.
-     */
-    public static void addImportExportCallback(ImportExportCallback callback) {
-        importExportCallbacks.add(Objects.requireNonNull(callback));
     }
 
     /**
@@ -491,149 +462,5 @@ public abstract class Setting<T> {
     }
 
     // region Import / export
-
-    /**
-     * If a setting path has this prefix, then remove it before importing/exporting.
-     */
-    private static final String OPTIONAL_MORPHE_SETTINGS_PREFIX = "morphe_";
-
-    /**
-     * The path, minus any 'morphe' prefix to keep JSON concise.
-     */
-    private String getImportExportKey() {
-        if (key.startsWith(OPTIONAL_MORPHE_SETTINGS_PREFIX)) {
-            return key.substring(OPTIONAL_MORPHE_SETTINGS_PREFIX.length());
-        }
-        return key;
-    }
-
-    /**
-     * @param importExportKey The JSON key. The JSONObject parameter will contain data for this key.
-     * @return the value stored using the import/export key.  Do not set any values in this method.
-     */
-    protected abstract T readFromJSON(JSONObject json, String importExportKey) throws JSONException;
-
-    /**
-     * Saves this instance to JSON.
-     * <p>
-     * To keep the JSON simple and readable,
-     * subclasses should not write out any embedded types (such as JSON Array or Dictionaries).
-     * <p>
-     * If this instance is not a type supported natively by JSON (ie: it's not a String/Integer/Float/Long),
-     * then subclasses can override this method and write out a String value representing the value.
-     */
-    protected void writeToJSON(JSONObject json, String importExportKey) throws JSONException {
-        json.put(importExportKey, value);
-    }
-
-    public static String exportToJson(@Nullable Context alertDialogContext) {
-        try {
-            JSONObject json = new JSONObject();
-            for (Setting<?> setting : allLoadedSettingsSorted()) {
-                String importExportKey = setting.getImportExportKey();
-                if (json.has(importExportKey)) {
-                    throw new IllegalArgumentException("duplicate key found: " + importExportKey);
-                }
-
-                final boolean exportDefaultValues = false; // Enable to see what all settings look like in the UI.
-                //noinspection ConstantValue
-                if (setting.includeWithImportExport && (!setting.isSetToDefault() || exportDefaultValues)) {
-                    setting.writeToJSON(json, importExportKey);
-                }
-            }
-
-            for (ImportExportCallback callback : importExportCallbacks) {
-                callback.settingsExported(alertDialogContext);
-            }
-
-            if (json.length() == 0) {
-                return "";
-            }
-
-            String export = json.toString(0);
-
-            // Remove the outer JSON braces to make the output more compact,
-            // and leave less chance of the user forgetting to copy it
-            return export.substring(2, export.length() - 2);
-        } catch (JSONException e) {
-            Logger.printException(() -> "Export failure", e); // should never happen
-            return "";
-        }
-    }
-
-    /**
-     * @return if any settings that require a reboot were changed.
-     */
-    public static boolean importFromJSON(Context alertDialogContext, String settingsJsonString) {
-        try {
-            if (settingsJsonString == null) throw new JSONException("Settings text is missing");
-            String text = settingsJsonString;
-            if (!text.trim().startsWith("{")) text = '{' + text + '}'; // Legacy exports omit braces.
-            JSONObject json = SettingsJson.parseObject(text);
-
-            boolean rebootSettingChanged = false;
-            int numberOfSettingsImported = 0;
-            Map<Setting<?>, Object> updates = new HashMap<>();
-            //noinspection rawtypes
-            for (Setting setting : SETTINGS) {
-                if (!setting.includeWithImportExport) continue;
-                String key = setting.getImportExportKey();
-                if (json.has(key)) {
-                    Object raw = json.get(key), fallback = setting.defaultValue;
-                    if ((fallback instanceof Boolean && !(raw instanceof Boolean))
-                            || ((fallback instanceof String || fallback instanceof Enum) && !(raw instanceof String))
-                            || (fallback instanceof Number && !(raw instanceof Number))) {
-                        throw new JSONException("Invalid value for " + key);
-                    }
-                    Object value = setting.readFromJSON(json, key);
-                    if ((value instanceof Integer || value instanceof Long)
-                            && new java.math.BigDecimal(raw.toString()).compareTo(new java.math.BigDecimal(value.toString())) != 0) {
-                        throw new JSONException("Invalid whole number for " + key);
-                    }
-                    if (value instanceof Float && !Float.isFinite((Float) value)) throw new JSONException("Invalid number for " + key);
-                    if (!setting.get().equals(value)) {
-                        rebootSettingChanged |= setting.rebootApp;
-                        updates.put(setting, value);
-                    }
-                    numberOfSettingsImported++;
-                } else if (!setting.isSetToDefault()) {
-                    Logger.printDebug(() -> "Resetting to default: " + setting);
-                    rebootSettingChanged |= setting.rebootApp;
-                    updates.put(setting, setting.defaultValue);
-                }
-            }
-            saveAll(updates);
-
-            for (ImportExportCallback callback : importExportCallbacks) {
-                callback.settingsImported(alertDialogContext);
-            }
-
-            // Check if patch resource strings are available.
-            String resetKey = "morphe_settings_import_reset";
-            // Use a delay, otherwise the toast can move about on screen from the dismissing dialog.
-            if (ResourceUtils.getIdentifier(ResourceType.STRING, resetKey) != 0) {
-                final int numberOfSettingsImportedFinal = numberOfSettingsImported;
-                Utils.runOnMainThreadDelayed(() -> Utils.showToastLong(numberOfSettingsImportedFinal == 0
-                                ? str(resetKey)
-                                : str("morphe_settings_import_success", numberOfSettingsImportedFinal)),
-                        150);
-            }
-
-            return rebootSettingChanged;
-        } catch (JSONException | IllegalArgumentException ex) {
-            String failureKey = "morphe_settings_import_failure_parse";
-            String toastFormat = ResourceUtils.getIdentifier(ResourceType.STRING, failureKey) != 0
-                    ? str(failureKey)
-                    : "Import failed: %s";
-            Utils.showToastLong(String.format(toastFormat, ex.getMessage()));
-            Logger.printInfo(() -> "", ex);
-        } catch (Exception ex) {
-            Utils.showToastLong("Import failed: " + ex.getMessage());
-            Logger.printException(() -> "Import failure: " + ex.getMessage(), ex); // Should never happen.
-        }
-        return false;
-    }
-
-    // End import / export
 
 }

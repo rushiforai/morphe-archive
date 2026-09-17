@@ -1,6 +1,7 @@
 /*
  * Forked from:
  * https://github.com/ReVanced/revanced-patches/blob/377d4e15016296b45d809697f7f69bce74badd3a/extensions/tiktok/src/main/java/app/revanced/extension/tiktok/settings/preference/categories/FeedFilterPreferenceCategory.java
+ * Mirror, since GitHub blocks the original: https://gitlab.com/ReVanced/revanced-patches/-/blob/main/extensions/tiktok/src/main/java/app/revanced/extension/tiktok/settings/preference/categories/FeedFilterPreferenceCategory.java
  */
 
 package app.morphe.extension.tiktok.settings.preference.categories;
@@ -15,6 +16,7 @@ import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
 import app.morphe.extension.tiktok.settings.preference.ClearSeenVideoHistoryPreference;
 import app.morphe.extension.tiktok.settings.preference.NumberInputPreference;
 import app.morphe.extension.tiktok.settings.preference.CreatorListPreference;
+import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 import app.morphe.extension.tiktok.feedfilter.AdvancedFeedRules;
 
@@ -46,6 +48,7 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
     }
 
     private void addFeedFilterRules(Context context) {
+        addPreference(new SectionHeadingPreference(context, "Lists"));
         addPreference(new InputTextPreference(context, "Blocked caption words",
                 "Comma separated words or phrases. Matching captions are skipped. Case does not matter. Two phrases in quotes can be joined: \"a\" & \"b\" needs both, \"a\" !& \"b\" needs the first without the second.",
                 Settings.BLOCKED_CAPTION_WORDS)
@@ -63,11 +66,14 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         addPreference(new CreatorListPreference(context, "Locally hidden creators",
                 "Creators hidden from later feed batches by the player action. Search the list and remove one entry at a time.",
                 Settings.LOCAL_HIDDEN_CREATORS));
+        addPreference(new SectionHeadingPreference(context, "Limits"));
         addPreference(new NumberInputPreference(context, "Maximum video length", "Seconds. Zero keeps every length. If a whole batch would be filtered out, the video closest to your limit is kept so the feed is not empty.", Settings.MAX_VIDEO_SECONDS, "second", "seconds").zeroMeansOff());
         addPreference(new NumberInputPreference(context, "Maximum post age",
                 "Days. Zero keeps every age. Posts without a usable timestamp, including future posts, stay visible.",
                 Settings.MAX_PUBLICATION_AGE_DAYS, "day", "days").zeroMeansOff());
         addPreference(new NumberInputPreference(context, "Maximum views per like", "Hide videos with a lot of views and few likes. Lower numbers are stricter, zero turns the rule off, and one video is kept back if a whole batch would go.", Settings.MAX_VIEWS_PER_LIKE, "view per like", "views per like").zeroMeansOff());
+        addPreference(new NumberInputPreference(context, "Maximum views per comment", "Hide videos with a lot of views and few comments. Works the same way as views per like. Zero turns it off.", Settings.MAX_VIEWS_PER_COMMENT, "view per comment", "views per comment").zeroMeansOff());
+        addPreference(new SectionHeadingPreference(context, "Kinds of post"));
         addPreference(new TogglePreference(context, "Hide promotional music", "Skip videos marked as using promotional music.", Settings.HIDE_PROMOTIONAL_MUSIC));
         addPreference(new TogglePreference(context, "Hide LIVE replays", "Skip recorded LIVE broadcasts in the feed.", Settings.HIDE_LIVE_REPLAYS));
         addPreference(new TogglePreference(
@@ -151,6 +157,7 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
                 "Hide videos posted as part of a playlist.",
                 Settings.HIDE_PLAYLIST_VIDEOS
         ));
+        addPreference(new SectionHeadingPreference(context, "Sounds"));
         addPreference(new TogglePreference(
                 context,
                 "Skip blocked sounds",
@@ -169,6 +176,7 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
                 "Comma separated sound ids recorded by the player's sound button. Remove one to unblock it.",
                 Settings.BLOCKED_SOUND_IDS
         ));
+        addPreference(new SectionHeadingPreference(context, "Feed elements"));
         addPreference(new TogglePreference(
                 context,
                 "Hide the playlist bar",
@@ -196,6 +204,7 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
     }
 
     private void addSeenVideoRules(Context context) {
+        addPreference(new SectionHeadingPreference(context, "Seen videos"));
         addPreference(new TogglePreference(
                 context,
                 "Hide videos you have already seen",

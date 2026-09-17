@@ -93,6 +93,77 @@ public class VideoOverlayHiderTest {
     }
 
     @Test
+    public void feedFurnitureOutsideAFeedCellIsLeftAlone() {
+        // The profile's Favorites page is a LinearLayout carrying id/ezp, the survey card's
+        // id, and Hide feed surveys took the whole tab with it. Furniture is only hidden
+        // under a feed cell root now.
+        // Ids apart from every other fixture in this class: the id cache is static, and a
+        // view matching two targets is hidden by one and put back by the other.
+        int surveyId = 0x7f0a0a11;
+        int cellId = 0x7f0a0a12;
+        int captionId = 0x7f0a0a13;
+        VideoOverlayHider.resolveForTests("ezp", surveyId);
+        VideoOverlayHider.resolveForTests("desc", captionId);
+        VideoOverlayHider.resolveForTests("long_press_layout", cellId);
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Utils.setContext(activity);
+            LinearLayout root = new LinearLayout(activity);
+            FrameLayout cell = new FrameLayout(activity);
+            cell.setId(cellId);
+            View survey = new View(activity);
+            survey.setId(surveyId);
+            View caption = new View(activity);
+            caption.setId(captionId);
+            cell.addView(survey);
+            cell.addView(caption);
+            FrameLayout profile = new FrameLayout(activity);
+            LinearLayout favoritesPage = new LinearLayout(activity);
+            favoritesPage.setId(surveyId);
+            profile.addView(favoritesPage);
+            root.addView(cell);
+            root.addView(profile);
+            activity.setContentView(root);
+
+            Settings.HIDE_FEED_SURVEYS.save(true);
+            Settings.HIDE_FEED_CAPTION.save(true);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.GONE, survey.getVisibility());
+            assertEquals(View.GONE, caption.getVisibility());
+            assertEquals("the Favorites page shares the survey card's id and has to stay",
+                    View.VISIBLE, favoritesPage.getVisibility());
+        } finally {
+            Settings.HIDE_FEED_SURVEYS.save(false);
+            Settings.HIDE_FEED_CAPTION.save(false);
+            VideoOverlayHider.resolveForTests("long_press_layout", 0);
+        }
+    }
+
+    @Test
+    public void withoutACellRootTheWalkTakesTheWholeWindowAsBefore() {
+        // A build that renames the cell root must not turn every hide switch off; the walk
+        // falls back to the whole window and the hook status names the miss.
+        int surveyId = 0x7f0a0a21;
+        VideoOverlayHider.resolveForTests("ezp", surveyId);
+        VideoOverlayHider.resolveForTests("long_press_layout", 0);
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Utils.setContext(activity);
+            LinearLayout root = new LinearLayout(activity);
+            View survey = new View(activity);
+            survey.setId(surveyId);
+            root.addView(survey);
+            activity.setContentView(root);
+
+            Settings.HIDE_FEED_SURVEYS.save(true);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.GONE, survey.getVisibility());
+        } finally {
+            Settings.HIDE_FEED_SURVEYS.save(false);
+        }
+    }
+
+    @Test
     public void aPassHidesEveryCellsCaptionAndColumnAndPutsThemBack() {
         // The feed keeps the previous and next cells inflated beside the one on screen,
         // each with its own caption and action column under the same ids.

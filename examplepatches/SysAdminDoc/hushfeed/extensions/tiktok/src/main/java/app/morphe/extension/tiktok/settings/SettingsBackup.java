@@ -34,6 +34,8 @@ public final class SettingsBackup {
     public static final int MAX_BYTES = 2 * 1024 * 1024;
     /** The format tag written today, and the one backups made before the rename carry. */
     public static final String FORMAT = "hushfeed-settings";
+    /** The newest backup shape this build reads; a file declaring more is refused, absent means 1. */
+    static final int SCHEMA = 1;
     public static final String LEGACY_FORMAT = "metra-settings";
     private SettingsBackup() {}
 
@@ -134,7 +136,7 @@ public final class SettingsBackup {
         }
         JSONObject lab = FeatureGateLabStore.exportSettings();
         if (defaults) lab.put("rules", new JSONArray()).put("master", false).put("acknowledged", false);
-        String text = new JSONObject().put("format", FORMAT).put("schema", 1)
+        String text = new JSONObject().put("format", FORMAT).put("schema", SCHEMA)
                 .put("target", FeatureGateLabStore.TARGET_VERSION).put("settings", values)
                 .put("setting_keys", keys)
                 .put("lab", lab).toString(2);
@@ -434,8 +436,14 @@ public final class SettingsBackup {
         if (!(FORMAT.equals(format) || LEGACY_FORMAT.equals(format))) {
             throw new RejectedBackup(Reason.FORMAT, "Not a Hushfeed settings backup");
         }
-        if (!Integer.valueOf(1).equals(root.get("schema"))) {
-            throw new RejectedBackup(Reason.SCHEMA, "Unsupported settings backup schema");
+        // Absent is the first schema: a file written before the key existed still reads. Newer
+        // is refused by both numbers, since applying a shape this build never saw field by field
+        // would land half a backup with no message. Not a number is not a schema at all.
+        Object declared = root.opt("schema");
+        int schema = declared == null ? 1 : declared instanceof Number ? ((Number) declared).intValue() : -1;
+        if (schema < 1 || schema > SCHEMA) {
+            throw new RejectedBackup(Reason.SCHEMA, "Settings backup schema " + declared
+                    + " is not one this build reads (it reads up to " + SCHEMA + ")");
         }
         // The target belongs to the Lab rules, which name gates in one TikTok build. It used to
         // refuse the whole file, so the day this project retargets, every backup anyone holds

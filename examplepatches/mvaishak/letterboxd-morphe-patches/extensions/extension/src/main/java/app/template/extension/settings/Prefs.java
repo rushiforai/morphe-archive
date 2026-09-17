@@ -26,8 +26,14 @@ public final class Prefs {
     // "Hide Video Store on home" — bundled into "Mod settings" itself, not its own patch.
     public static final String KEY_HIDE_VIDEO_STORE = "hide_video_store";
 
+    // "Home tabs" — CSV of visible home section keys in order (films,reviews,lists,journal).
+    public static final String KEY_HOME_TABS = "home_tabs";
+
     // "Hide Where to Watch"
     public static final String KEY_HIDE_WHERE_TO_WATCH = "hide_where_to_watch";
+
+    // "Runtime as 1h 47m" on the film page
+    public static final String KEY_RUNTIME_HHMM = "runtime_hhmm";
 
     // "Open in player"
     public static final String KEY_OPEN_IN_PLAYER = "open_in_player";
@@ -38,6 +44,10 @@ public final class Prefs {
 
     // Bottom nav selected style: stock | nopill | white | accent | accentPill
     public static final String KEY_NAV_INDICATOR = "nav_indicator";
+
+    // "Bottom navigation" — which destinations to show (CSV of nav item keys) and which to open on.
+    public static final String KEY_NAV_ITEMS = "nav_items";
+    public static final String KEY_LAUNCH_TAB = "launch_tab"; // last | popular | search | activity | watchlist | profile
 
     // "Mod theme"
     public static final String KEY_THEME_SURFACE = "theme_surface"; // stock | oled

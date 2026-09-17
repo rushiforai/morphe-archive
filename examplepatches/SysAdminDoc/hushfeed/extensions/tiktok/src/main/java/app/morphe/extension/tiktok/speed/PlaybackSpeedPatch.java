@@ -82,6 +82,14 @@ public final class PlaybackSpeedPatch {
             return;
         }
 
+        // With the switch off, a new video starts at 1x (TikTok's default) and a choice made
+        // from the menu applies to that video only. Upstream #168 asked for this: the remembered
+        // speed always applied, and dropping the patch was the only way to get per-video reset.
+        if (!Settings.REMEMBER_SPEED.get()) {
+            rememberedSpeed = 1.0f;
+            return;
+        }
+
         rememberedSpeed = speed;
         try {
             Settings.REMEMBERED_SPEED.save(speed);
@@ -109,6 +117,7 @@ public final class PlaybackSpeedPatch {
                     return 1.5f;
                 }
             }
+            if (!Settings.REMEMBER_SPEED.get()) return 1.0f;
             float persisted = Settings.REMEMBERED_SPEED.get();
             return isValidSpeed(persisted) ? persisted : rememberedSpeed;
         } catch (Throwable ignored) {

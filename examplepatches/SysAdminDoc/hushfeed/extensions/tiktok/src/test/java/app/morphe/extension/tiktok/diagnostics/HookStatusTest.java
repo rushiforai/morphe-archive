@@ -85,6 +85,40 @@ public class HookStatusTest {
         assertEquals(List.of("feed models", "comments"), HookStatus.familiesMissingSomething());
     }
 
+    @Test public void aHookThatThrewIsAMissAndNamesWhatItThrew() {
+        // A hook that found its anchor, ran, and came out through a catch used to leave nothing
+        // behind: the export called the surface healthy while the feature did nothing at all.
+        HookStatus.bound("share sheet", "dqr");
+        HookStatus.threw("share sheet", "channels", new IllegalStateException("hostile"));
+
+        assertTrue(HookStatus.anyMissing());
+        assertEquals(
+                List.of("share sheet: 1 found, 1 missing. First missing: a working 'channels' "
+                        + "hook (it threw java.lang.IllegalStateException)"),
+                HookStatus.report());
+    }
+
+    @Test public void aHookThatThrowsOnEveryPassIsCountedOnceAndDoesNotHideAnother() {
+        // The share model is rebuilt every time the sheet opens, so a throw that counted per
+        // pass would fill the family's cap in a few minutes and push out real misses.
+        for (int pass = 0; pass < 5; pass++) {
+            HookStatus.threw("share sheet", "channels", new IllegalStateException("hostile"));
+        }
+        HookStatus.threw("share sheet", "actions", new NullPointerException());
+        HookStatus.threw("share sheet", "actions", null);
+
+        assertEquals(2, HookStatus.missing("share sheet").size());
+        assertTrue(HookStatus.missing("share sheet").get(1).contains("'actions'"));
+        assertTrue(HookStatus.missing("share sheet").get(1).contains("NullPointerException"));
+    }
+
+    @Test public void aHookWithNoNameableCauseStillReportsSomething() {
+        HookStatus.threw("share links", "rewrite", null);
+
+        assertEquals(List.of("share links: 0 found, 1 missing. First missing: a working "
+                + "'rewrite' hook (it threw an error it could not name)"), HookStatus.report());
+    }
+
     @Test public void aSurfaceNobodyHasTouchedIsNotCalledBroken() {
         // A hook that has not run yet has not failed, so an empty registry reports nothing at
         // all rather than a wall of surfaces sitting at zero.

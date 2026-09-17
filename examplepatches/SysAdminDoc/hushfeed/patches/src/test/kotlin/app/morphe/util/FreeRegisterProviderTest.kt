@@ -14,6 +14,10 @@ import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstructio
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21s
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21t
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction31t
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutablePackedSwitchPayload
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableSparseSwitchPayload
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableSwitchElement
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -118,6 +122,70 @@ class FreeRegisterProviderTest {
         val registers = wide.getFreeRegisterProvider(0, 2)
         assertEquals(0, registers.getFreeRegister4Bit())
         assertEquals(1, registers.getFreeRegister4Bit())
+    }
+
+    @Test
+    fun `a packed switch is followed instead of ending the search`() {
+        // A switch used to be a leaf node: the search stopped there and answered with whatever
+        // it had proved free beforehand, which at the top of a method is nothing, so the caller
+        // was told there were no free registers and the patch failed to apply. R8 turns a chain
+        // of string comparisons into one of these, so the same method is an if-else chain in one
+        // TikTok build and a packed switch in the next.
+        //
+        //   0  packed-switch v0, +7      offset 0, three code units
+        //   1  const/4 v1, 0             offset 3, the fall-through
+        //   2  return-void               offset 4
+        //   3  move v3, v1               offset 5, the one arm
+        //   4  return-void               offset 6
+        //   5  payload                   offset 7
+        val switched = method(
+            4,
+            ImmutableInstruction31t(Opcode.PACKED_SWITCH, 0, 7),
+            ImmutableInstruction11n(Opcode.CONST_4, 1, 0),
+            ImmutableInstruction10x(Opcode.RETURN_VOID),
+            ImmutableInstruction12x(Opcode.MOVE, 3, 1),
+            ImmutableInstruction10x(Opcode.RETURN_VOID),
+            ImmutablePackedSwitchPayload(listOf(ImmutableSwitchElement(0, 5))),
+        )
+
+        // v1 is free down the fall-through and read by the arm, so it survives only one of the
+        // two paths. An answer that named it would be a union, and a union is not an answer.
+        val registers = switched.getFreeRegisterProvider(0, 2)
+        assertEquals(2, registers.getFreeRegister4Bit())
+        assertEquals(3, registers.getFreeRegister4Bit())
+        assertEquals(2, switched.findFreeRegister(0))
+    }
+
+    @Test
+    fun `a sparse switch intersects every arm and the fall-through`() {
+        //   0  sparse-switch v0, +9      offset 0, three code units
+        //   1  const/4 v1, 0             offset 3, the fall-through
+        //   2  return-void               offset 4
+        //   3  const/4 v1, 0             offset 5, first arm
+        //   4  return-void               offset 6
+        //   5  const/4 v2, 0             offset 7, second arm
+        //   6  return-void               offset 8
+        //   7  payload                   offset 9
+        val switched = method(
+            4,
+            ImmutableInstruction31t(Opcode.SPARSE_SWITCH, 0, 9),
+            ImmutableInstruction11n(Opcode.CONST_4, 1, 0),
+            ImmutableInstruction10x(Opcode.RETURN_VOID),
+            ImmutableInstruction11n(Opcode.CONST_4, 1, 0),
+            ImmutableInstruction10x(Opcode.RETURN_VOID),
+            ImmutableInstruction11n(Opcode.CONST_4, 2, 0),
+            ImmutableInstruction10x(Opcode.RETURN_VOID),
+            ImmutableSparseSwitchPayload(
+                listOf(ImmutableSwitchElement(10, 5), ImmutableSwitchElement(20, 7)),
+            ),
+        )
+
+        // Each path writes one register and returns, so every register above v0 is free on all
+        // three and all three are offered.
+        val registers = switched.getFreeRegisterProvider(0, 3)
+        assertEquals(1, registers.getFreeRegister4Bit())
+        assertEquals(2, registers.getFreeRegister4Bit())
+        assertEquals(3, registers.getFreeRegister4Bit())
     }
 
     @Test

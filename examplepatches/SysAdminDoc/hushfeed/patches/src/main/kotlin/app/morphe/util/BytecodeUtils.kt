@@ -73,6 +73,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -395,6 +396,45 @@ fun Method.containsLiteralInstruction(literal: Double) = indexOfFirstLiteralInst
  * @param targetClass the class to start traversing the class hierarchy from.
  * @param callback function that is called for every class in the hierarchy.
  */
+/**
+ * The register an invoke hands its [argumentIndex]th argument in, for either invoke format, or
+ * null when the instruction is not an invoke or has no such argument. `this` counts as argument 0
+ * on an instance call.
+ */
+fun Instruction.argumentRegister(argumentIndex: Int): Int? =
+    when (this) {
+        // Bounded by the count the invoke declares: the unused slots of a 35c read as v0, and
+        // the two private copies this replaces handed that back as if it were an argument.
+        is FiveRegisterInstruction -> if (argumentIndex >= registerCount) null else when (argumentIndex) {
+            0 -> registerC
+            1 -> registerD
+            2 -> registerE
+            3 -> registerF
+            4 -> registerG
+            else -> null
+        }
+        is RegisterRangeInstruction -> if (argumentIndex >= registerCount) null else startRegister + argumentIndex
+        else -> null
+    }
+
+/**
+ * The class and its superclasses, nearest first, as far as this context can resolve them and no
+ * further than [maxDepth] steps. A cycle, which a damaged dex can carry, ends the walk.
+ */
+fun BytecodePatchContext.superclassChain(type: String, maxDepth: Int = 20): Sequence<String> = sequence {
+    val seen = mutableSetOf<String>()
+    var at: String? = type
+    var depth = 0
+    while (at != null && depth++ < maxDepth && seen.add(at)) {
+        yield(at)
+        at = classDefByOrNull(at)?.superclass
+    }
+}
+
+/** Whether [type] is [target] or extends it within [maxDepth] superclasses. */
+fun BytecodePatchContext.extendsClass(type: String, target: String, maxDepth: Int = 20): Boolean =
+    superclassChain(type, maxDepth).any { it == target }
+
 fun BytecodePatchContext.traverseClassHierarchy(targetClass: MutableClass, callback: MutableClass.() -> Unit) {
     callback(targetClass)
 

@@ -345,9 +345,9 @@ public class FollowDiagnosticsTest {
                     new ParsedResponse("{\"status_code\":0}"));
         }
         assertEquals(160, FollowDiagnostics.eventCountForTests());
-        java.lang.reflect.Field contexts = FollowDiagnostics.class.getDeclaredField("networkContexts");
-        contexts.setAccessible(true);
-        assertEquals(160, ((java.util.Map<?, ?>) contexts.get(null)).size());
+        // A parsed response ends the request's life, so none of the 240 is held: the 160 that
+        // used to stay here kept their bodies and buffers reachable until TikTok was killed.
+        assertEquals(0, FollowDiagnostics.heldRequestsForTests());
         assertEquals(0, ShadowToast.shownToastCount());
 
         FollowDiagnostics.logParsedResponse(
@@ -356,7 +356,39 @@ public class FollowDiagnosticsTest {
         Shadows.shadowOf(Looper.getMainLooper()).idle();
         assertTrue(ShadowToast.getTextOfLatestToast().contains("Try again later."));
         assertEquals(160, FollowDiagnostics.eventCountForTests());
-        assertEquals(160, ((java.util.Map<?, ?>) contexts.get(null)).size());
+        assertEquals(0, FollowDiagnostics.heldRequestsForTests());
+    }
+
+    @Test
+    public void everyWayARequestEndsLetsGoOfIt() throws Exception {
+        BaseSettings.DEBUG.save(true);
+        Object parsed = new CaptchaGateRequest("/aweme/v1/commit/follow/user/");
+        Object parseFailed = new CaptchaGateRequest("/aweme/v1/commit/follow/user/");
+        Object transportFailed = new CaptchaGateRequest("/aweme/v1/commit/follow/user/");
+        Object abandoned = new CaptchaGateRequest("/aweme/v1/commit/follow/user/");
+        FollowDiagnostics.logNetworkRequest(parsed);
+        FollowDiagnostics.logNetworkRequest(parseFailed);
+        FollowDiagnostics.logNetworkRequest(transportFailed);
+        FollowDiagnostics.logNetworkRequest(abandoned);
+        assertEquals(4, FollowDiagnostics.heldRequestsForTests());
+
+        FollowDiagnostics.logNetworkResponse(parsed, new Object());
+        assertEquals("a response is not the end of a request", 4, FollowDiagnostics.heldRequestsForTests());
+        FollowDiagnostics.logParsedResponse(parsed, new ParsedResponse("{\"status_code\":0}"));
+        FollowDiagnostics.logParseThrowable(parseFailed, new RuntimeException("bad json"));
+        FollowDiagnostics.logNetworkThrowable(transportFailed, new java.io.IOException("reset"));
+        assertEquals("only the request that never ended is still held", 1, FollowDiagnostics.heldRequestsForTests());
+
+        // Two requests in flight keep their own ids and are told apart by identity, not equality.
+        Object first = new CaptchaGateRequest("/aweme/v1/commit/follow/user/");
+        Object second = new CaptchaGateRequest("/aweme/v1/commit/follow/user/");
+        FollowDiagnostics.logNetworkRequest(first);
+        FollowDiagnostics.logNetworkRequest(second);
+        assertEquals(3, FollowDiagnostics.heldRequestsForTests());
+        FollowDiagnostics.logParsedResponse(first, new ParsedResponse("{\"status_code\":0}"));
+        assertEquals(2, FollowDiagnostics.heldRequestsForTests());
+        FollowDiagnostics.logParsedResponse(second, new ParsedResponse("{\"status_code\":0}"));
+        assertEquals(1, FollowDiagnostics.heldRequestsForTests());
     }
 
     public static final class CaptchaGateRequest {

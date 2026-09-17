@@ -27,6 +27,7 @@
 
 #include "got_hook.h"
 #include "remote_strip.h"
+#include "rego_filter.h"
 
 #define TAG "PVNativeHook"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,  TAG, __VA_ARGS__)
@@ -70,6 +71,7 @@ std::atomic<uint64_t> g_max_n{0};
 // docs/AUTONOMOUS_APP_TESTING.md). Autotest ORACLE_RE matches "PVKILL"/"PVOBS".
 std::atomic<uint64_t> g_pvkill_movie{0};  // Remote ad items blanked (movies, PATH 1)
 std::atomic<uint64_t> g_pvkill_tv{0};     // ad entries emptied (TV regolith, PATH 2)
+std::atomic<uint64_t> g_rego_trunc_salvaged{0};  // truncated-preroll buffers whose media.urls we blanked
 
 // Per-entry-point counters — tells us which copy door carries the PRS buffer.
 std::atomic<uint64_t> g_n_memcpy{0};
@@ -153,24 +155,8 @@ inline size_t find_bytes(const char* buf, size_t n, const char* needle) {
 #if PV_EMPTY_REGOLITH
 std::atomic<uint64_t> g_rego_emptied{0};
 std::atomic<uint64_t> g_rego_seen{0};
-// JSON-aware matching-bracket finder: index of the ']'/'}' closing `open`, or
-// (size_t)-1 if unclosed within [open,n). String/escape aware.
-size_t json_match_bracket(const char* buf, size_t n, size_t open) {
-    int depth = 0; bool in_str = false, esc = false;
-    for (size_t i = open; i < n; ++i) {
-        char c = buf[i];
-        if (in_str) {
-            if (esc) esc = false;
-            else if (c == '\\') esc = true;
-            else if (c == '"') in_str = false;
-            continue;
-        }
-        if (c == '"') { in_str = true; }
-        else if (c == '[' || c == '{') { ++depth; }
-        else if (c == ']' || c == '}') { if (--depth == 0) return i; }
-    }
-    return static_cast<size_t>(-1);
-}
+// json_match_bracket() lives in rego_filter.h (pvfilter::) so the same code the
+// hook runs is exercised by test_remote_strip.cpp — no test/ship drift.
 void maybe_empty_regolith(void* vbuf, size_t n) {
     if (vbuf == nullptr || n < 128 || n > kMaxScanLen) return;
     if (is_decompress_chunk(n)) return;
@@ -182,8 +168,24 @@ void maybe_empty_regolith(void* vbuf, size_t n) {
     if (find_bytes(buf, n, "intraTitlePlaylist")   != static_cast<size_t>(-1)) return;  // exclude PRS
     g_rego_seen.fetch_add(1, std::memory_order_relaxed);
     size_t open = pl + 11;                                // index of '[' in "\"playlist\":["
-    size_t close = json_match_bracket(buf, n, open);
-    if (close == static_cast<size_t>(-1)) return;         // truncated array — leave untouched
+    size_t close = pvfilter::json_match_bracket(buf, n, open);
+    if (close == static_cast<size_t>(-1)) {
+        // Truncated playlist: the closing ']' isn't in this chunk, so the
+        // whole-array empty below can't run. Rather than leak the ad, blank
+        // every COMPLETE media.urls array before the cut — the interstitial
+        // .mpd URLs the player fetches to start the pre-roll — same-length and
+        // string-safe, never touching the truncated trailing element.
+        int nb = pvfilter::blank_complete_media_urls(buf, n, open);
+        if (nb > 0) {
+            uint64_t c = g_rego_trunc_salvaged.fetch_add(1, std::memory_order_relaxed);
+            g_pvkill_tv.fetch_add(static_cast<uint64_t>(nb), std::memory_order_relaxed);
+            if (c < 40)
+                LOGI("[rego] TRUNCATED playlist: blanked %d complete media.urls "
+                     "array(s) before cut n=%zu", nb, n);
+            LOGI("PVKILL path=tv-trunc urls=%d n=%zu", nb, n);   // self-stamp (oracle)
+        }
+        return;                                           // truncated tail left untouched
+    }
     if (close <= open + 1) return;                        // already empty
     int ads = 1; int depth = 0; bool in_str = false, esc = false;
     for (size_t i = open; i < close; ++i) {
@@ -372,7 +374,7 @@ void* worker_thread(void*) {
         sleep(5);
         LOGI("[hb] skipchunk=%llu malloc=%llu | cpy=%llu mov=%llu cpy_chk=%llu mov_chk=%llu | "
              "total=%llu in_gate=%llu max_n=%llu marker=%llu complete=%llu "
-             "trunc=%llu trunc_rem=%llu modified=%llu blanked=%llu",
+             "trunc=%llu trunc_rem=%llu modified=%llu blanked=%llu rego_trunc_salv=%llu",
              (unsigned long long)g_skipped_chunk.load(std::memory_order_relaxed),
              (unsigned long long)g_malloc_calls.load(std::memory_order_relaxed),
              (unsigned long long)g_n_memcpy.load(std::memory_order_relaxed),
@@ -387,11 +389,13 @@ void* worker_thread(void*) {
              (unsigned long long)g_truncated.load(std::memory_order_relaxed),
              (unsigned long long)g_trunc_remotes.load(std::memory_order_relaxed),
              (unsigned long long)g_modified.load(std::memory_order_relaxed),
-             (unsigned long long)g_remote_blanked.load(std::memory_order_relaxed));
+             (unsigned long long)g_remote_blanked.load(std::memory_order_relaxed),
+             (unsigned long long)g_rego_trunc_salvaged.load(std::memory_order_relaxed));
         // Self-stamp summary (oracle): total ads removed since load, both paths.
-        LOGI("PVOBS movieBlanked=%llu tvEmptied=%llu",
+        LOGI("PVOBS movieBlanked=%llu tvEmptied=%llu tvTruncSalvaged=%llu",
              (unsigned long long)g_pvkill_movie.load(std::memory_order_relaxed),
-             (unsigned long long)g_pvkill_tv.load(std::memory_order_relaxed));
+             (unsigned long long)g_pvkill_tv.load(std::memory_order_relaxed),
+             (unsigned long long)g_rego_trunc_salvaged.load(std::memory_order_relaxed));
     }
     return nullptr;
 }

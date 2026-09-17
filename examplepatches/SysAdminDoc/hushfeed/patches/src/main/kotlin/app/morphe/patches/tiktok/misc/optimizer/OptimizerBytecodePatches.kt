@@ -15,8 +15,8 @@ import com.android.tools.smali.dexlib2.AccessFlags
 
 @Suppress("unused")
 val instantLaunchSplashBlockerPatch = bytecodePatch(
-    name = "Instant Launch & Splash Blocker",
-    description = "Stops TikTok's splash-ad preload tasks and returns false from its reviewed splash and TopView gates. Other startup behavior is left in place. Choose this patch to enable it.",
+    name = "Skip the splash ad",
+    description = "Stops TikTok's splash-ad preload tasks and returns false from its reviewed splash and TopView gates. Other startup behavior is left in place.",
     default = false,
 ) {
     compatibleWith(*AppCompatibilities.tiktok4623())
@@ -75,8 +75,8 @@ val instantLaunchSplashBlockerPatch = bytecodePatch(
 
 @Suppress("unused")
 val networkTrafficGovernorPatch = bytecodePatch(
-    name = "Network & Background Traffic Governor",
-    description = "Turns off TikTok's buffer-preload gate and skips its push initialization task. Videos may start buffering later, and TikTok push notifications may stop. Choose this patch to enable it.",
+    name = "Limit background traffic",
+    description = "Turns off TikTok's buffer-preload gate and skips its push initialization task. Videos may start buffering later, and TikTok push notifications may stop.",
     default = false,
 ) {
     compatibleWith(*AppCompatibilities.tiktok4623())
@@ -92,8 +92,8 @@ val networkTrafficGovernorPatch = bytecodePatch(
 
 @Suppress("unused")
 val runtimeMemoryGovernorPatch = bytecodePatch(
-    name = "Runtime Memory Governor",
-    description = "Makes TikTok's reviewed Fresco animated-frame cache lookups return no cached frame. This can increase decoding work or change animation playback. Choose this patch to enable it.",
+    name = "Drop the animated image cache",
+    description = "Makes TikTok's reviewed Fresco animated-frame cache lookups return no cached frame. This can increase decoding work or change animation playback.",
     default = false,
 ) {
     compatibleWith(*AppCompatibilities.tiktok4623())
@@ -139,8 +139,8 @@ val runtimeMemoryGovernorPatch = bytecodePatch(
 
 @Suppress("unused")
 val updatePromptSuppressorPatch = bytecodePatch(
-    name = "Update Prompt Suppressor",
-    description = "Skips TikTok's background and boot-finished device-ID update-check tasks. This may suppress some in-app update checks. Play Store updates are unaffected. Choose this patch to enable it.",
+    name = "Skip update checks",
+    description = "Skips TikTok's background and boot-finished device-ID update-check tasks. This may suppress some in-app update checks. Play Store updates are unaffected.",
     default = false,
 ) {
     compatibleWith(*AppCompatibilities.tiktok4623())

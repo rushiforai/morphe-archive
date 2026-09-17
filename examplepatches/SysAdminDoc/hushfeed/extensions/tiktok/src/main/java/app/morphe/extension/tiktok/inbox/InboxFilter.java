@@ -383,9 +383,8 @@ public final class InboxFilter {
         clearAll.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         clearAll.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
         clearAll.setContentDescription(L10n.t(activity, "Clear all suggested accounts"));
-        clearAll.setMinimumHeight(Math.round(48 * activity.getResources().getDisplayMetrics().density));
-        float density = activity.getResources().getDisplayMetrics().density;
-        int padding = Math.round(16 * density);
+        clearAll.setMinimumHeight(SettingsUi.dp(activity, 48));
+        int padding = SettingsUi.dp(activity, 16);
         clearAll.setPadding(padding, 0, padding, 0);
         clearAll.setOnClickListener(view -> clearAllSuggested(activity));
         // A press and a focus ring, the same pair every control this bundle draws now carries.

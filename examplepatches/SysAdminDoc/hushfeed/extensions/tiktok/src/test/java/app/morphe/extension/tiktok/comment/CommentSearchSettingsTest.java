@@ -148,16 +148,21 @@ public class CommentSearchSettingsTest {
                     new int[]{0, 0, 0, 120}, heights(body, replies, nativeReply, matching));
             TextView enabledStatus = column.findViewWithTag(CommentSearch.STATUS_TAG);
             assertNotNull(enabledStatus);
-            assertEquals("1 result", enabledStatus.getText().toString());
+            assertEquals("1 result so far", enabledStatus.getText().toString());
+            // The attach and detach listeners have to come back with the setting, because they
+            // are what puts a row scrolled back into view into the right state. What they are
+            // not is the count: a comment scrolling off screen is not a comment that stopped
+            // matching, and the line used to say it was.
             list.removeView(matching);
             idle();
-            assertEquals("the re-enabled search did not resume row-detach counts",
-                    "No matching comments. Try a different word or clear the search.",
-                    enabledStatus.getText().toString());
+            assertEquals("a comment scrolled off screen was uncounted",
+                    "1 result so far", enabledStatus.getText().toString());
             list.addView(matching);
             idle();
-            assertEquals("the re-enabled search did not resume row-attach counts",
-                    "1 result", enabledStatus.getText().toString());
+            assertEquals("a comment scrolled back was counted twice",
+                    "1 result so far", enabledStatus.getText().toString());
+            assertArrayEquals("the re-enabled search did not resume row-attach filtering",
+                    new int[]{0, 0, 0, 120}, heights(body, replies, nativeReply, matching));
             enabledBox.setText("");
             assertArrayEquals(new int[]{196, 64, 0, 120}, heights(body, replies, nativeReply, matching));
         }
@@ -182,7 +187,7 @@ public class CommentSearchSettingsTest {
             original.setText("laika");
             TextView originalStatus = column.findViewWithTag(CommentSearch.STATUS_TAG);
             assertNotNull(originalStatus);
-            assertEquals("1 result", originalStatus.getText().toString());
+            assertEquals("1 result so far", originalStatus.getText().toString());
 
             column.removeView(list);
             idle();
@@ -200,7 +205,7 @@ public class CommentSearchSettingsTest {
             restored.setText("laika");
             TextView restoredStatus = column.findViewWithTag(CommentSearch.STATUS_TAG);
             assertNotNull("the cached list reattached without its result status", restoredStatus);
-            assertEquals("1 result", restoredStatus.getText().toString());
+            assertEquals("1 result so far", restoredStatus.getText().toString());
         }
     }
 
