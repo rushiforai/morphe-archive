@@ -1,9 +1,11 @@
 6ixfalls/revanced-patches
 ARHCOS/arhcos-patches
+Akash-Sriram/De-Vanced
 Alastor-Kaneki/Morphe-Patches
 AlecBlance/android-patches
 AlexNaga/android-patches
 Almewty/my-morphe-patches
+Amitaisela/travian-morphe-patches
 AmpleReVanced/revanced-patches
 AngelDark92/steamlink-patches
 Apostolique/apos-morphe-patches
@@ -25,6 +27,7 @@ Fripe070/PixivPatches
 GoldRift/morphe-patches
 Graywizard888/Enhancify
 HSlightsteel/slight-patches
+Hari-sys786/telegram-patches
 HelioFloxZ/HelioFloxZ-Patches
 HelioFloxZ/YouTube-Studio-Patches
 HellveticaStandard/HellveticaPatches

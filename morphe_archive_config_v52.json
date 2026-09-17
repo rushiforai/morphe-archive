@@ -1809,6 +1809,30 @@
                 "sortOrder": 237,
                 "createdAt": 1789530147222,
                 "updatedAt": 1789530147222
+            },
+            {
+                "name": "De-Vanced",
+                "source": "https://raw.githubusercontent.com/Akash-Sriram/De-Vanced/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 238,
+                "createdAt": 1789616089098,
+                "updatedAt": 1789616089098
+            },
+            {
+                "name": "travian-morphe-patches",
+                "source": "https://raw.githubusercontent.com/Amitaisela/travian-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 239,
+                "createdAt": 1789616089167,
+                "updatedAt": 1789616089167
+            },
+            {
+                "name": "telegram-patches",
+                "source": "https://raw.githubusercontent.com/Hari-sys786/telegram-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 240,
+                "createdAt": 1789616089295,
+                "updatedAt": 1789616089295
             }
         ]
     }
