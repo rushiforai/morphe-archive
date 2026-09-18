@@ -1833,6 +1833,30 @@
                 "sortOrder": 240,
                 "createdAt": 1789616089295,
                 "updatedAt": 1789616089295
+            },
+            {
+                "name": "channel-blacklist-patch",
+                "source": "https://raw.githubusercontent.com/0-BlackSpectrum-0/channel-blacklist-patch/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 241,
+                "createdAt": 1789701783427,
+                "updatedAt": 1789701783427
+            },
+            {
+                "name": "cbc-patches",
+                "source": "https://raw.githubusercontent.com/LimeLimes/cbc-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 242,
+                "createdAt": 1789701792491,
+                "updatedAt": 1789701792491
+            },
+            {
+                "name": "D-moniakPatches",
+                "source": "https://raw.githubusercontent.com/SatanMerde/D-moniakPatches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 243,
+                "createdAt": 1789701796030,
+                "updatedAt": 1789701796030
             }
         ]
     }
