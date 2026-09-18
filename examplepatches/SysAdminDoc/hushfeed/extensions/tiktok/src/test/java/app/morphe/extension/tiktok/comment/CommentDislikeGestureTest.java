@@ -101,7 +101,7 @@ public class CommentDislikeGestureTest {
                 assertTrue(cell.button.performClick());
                 Shadows.shadowOf(Looper.getMainLooper()).idle();
                 assertTrue("a rejected block left the control silently busy",
-                        String.valueOf(ShadowToast.getTextOfLatestToast()).startsWith("Could not confirm block for "));
+                        String.valueOf(ShadowToast.getTextOfLatestToast()).startsWith("Blocked "));
                 assertEquals(java.util.List.of(), service.types);
 
                 saturation.release();
@@ -335,7 +335,7 @@ public class CommentDislikeGestureTest {
         touch.onTouch(first, event(MotionEvent.ACTION_UP, 5, 5));
 
         assertEquals("The tap did not reach its own comment",
-                HapticFeedbackConstants.LONG_PRESS, hapticOn(first));
+                HapticFeedbackConstants.KEYBOARD_TAP, hapticOn(first));
         assertEquals("The tap reached the other comment", -1, hapticOn(second));
     }
 
@@ -352,7 +352,7 @@ public class CommentDislikeGestureTest {
         touch.onTouch(first, event(MotionEvent.ACTION_UP, 5, 5));
 
         assertEquals("The release did not reach the row it landed on",
-                HapticFeedbackConstants.LONG_PRESS, hapticOn(first));
+                HapticFeedbackConstants.KEYBOARD_TAP, hapticOn(first));
         assertEquals("The release reached the row that was pressed later", -1, hapticOn(second));
     }
 
@@ -385,7 +385,7 @@ public class CommentDislikeGestureTest {
 
         assertTrue("the control was never given a click listener", button.performClick());
         assertEquals("activating the control did not reach the comment it belongs to",
-                HapticFeedbackConstants.LONG_PRESS, hapticOn(cell));
+                HapticFeedbackConstants.KEYBOARD_TAP, hapticOn(cell));
         assertEquals("a screen reader would read the same control twice",
                 View.IMPORTANT_FOR_ACCESSIBILITY_NO, icon.getImportantForAccessibility());
     }

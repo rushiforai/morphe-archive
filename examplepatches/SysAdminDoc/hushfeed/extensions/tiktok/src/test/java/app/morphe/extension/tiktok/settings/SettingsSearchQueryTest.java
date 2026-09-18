@@ -187,13 +187,18 @@ public class SettingsSearchQueryTest {
                 {"undo", "Undo last restore or reset"},
                 {"hook", "Hook status"},
                 {"diagnostic", "Export diagnostic report"},
-                {"seen", "Clear the seen video history"},
         };
         for (String[] pair : wanted) {
             java.util.List<String> titles = search(search, pair[0]);
             assertTrue("searching \"" + pair[0] + "\" did not find \"" + pair[1] + "\", it found "
                     + titles, titles.contains(pair[1]));
         }
+        // The seen video row's title changes with its undo state, so check either one.
+        java.util.List<String> seenTitles = search(search, "seen");
+        assertTrue("searching \"seen\" did not find the seen videos row, it found "
+                + seenTitles,
+                seenTitles.contains("Clear seen videos")
+                        || seenTitles.contains("Undo clearing seen videos"));
     }
 
     @Test public void theAboutRowIsFoundByItsNameAndByWhatItSays() throws Exception {
@@ -206,7 +211,7 @@ public class SettingsSearchQueryTest {
         assertTrue("the About row is not indexed by its name",
                 search(search, "hushfeed").contains("Hushfeed"));
         assertTrue("the About row's summary is not searched",
-                search(search, "source code").contains("Hushfeed"));
+                search(search, "github").contains("Hushfeed"));
     }
 
     @Test public void openingAFoundBackupRowLandsOnDiagnostics() throws Exception {
@@ -225,7 +230,7 @@ public class SettingsSearchQueryTest {
         assertNotNull("the Restore settings row is not in the index at all", found);
         java.lang.reflect.Field section = found.getClass().getDeclaredField("section");
         section.setAccessible(true);
-        assertEquals("opening it would not land on Diagnostics",
-                "DIAGNOSTICS", ((Enum<?>) section.get(found)).name());
+        assertEquals("opening it would not land on Backup and restore",
+                "BACKUP", ((Enum<?>) section.get(found)).name());
     }
 }

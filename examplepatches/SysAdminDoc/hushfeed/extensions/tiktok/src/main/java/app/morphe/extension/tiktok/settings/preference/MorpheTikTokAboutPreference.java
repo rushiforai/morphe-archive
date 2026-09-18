@@ -11,7 +11,8 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.L10n;
 
 @SuppressWarnings("deprecation")
-public final class MorpheTikTokAboutPreference extends Preference {
+public final class MorpheTikTokAboutPreference extends Preference
+        implements app.morphe.extension.shared.settings.preference.ImmediateAction {
     /**
      * A key so the settings search can index this row: a keyed row with no Setting behind it is
      * skipped by the settings framework, so nothing tries to persist it. Without one, searching
@@ -54,8 +55,13 @@ public final class MorpheTikTokAboutPreference extends Preference {
      * <p>Empty during tests and in an unpatched build, where the stamp has not been written. The
      * row falls back to what it always said rather than showing an empty version.
      */
+    @Override
+    public boolean actsOnTap() {
+        return true;
+    }
+
     static CharSequence summaryFor(Context context, String bundleVersion, String appVersion) {
-        String source = L10n.t(context, "Source code and releases");
+        String source = L10n.t(context, "Opens github.com in your browser");
         if (bundleVersion == null || bundleVersion.isEmpty()) return source;
         // "Unknown" is the literal English word Utils hands back when the package manager
         // refuses, and splicing it into an otherwise translated sentence reads worse than

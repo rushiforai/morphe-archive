@@ -293,7 +293,7 @@ public final class FeedVisibility {
             String family
     ) {
         View cached = cache.get();
-        if (cached != null && cached.isAttachedToWindow()) return cached;
+        if (cached != null && belongsTo(cached, activity)) return cached;
         try {
             int id = IDS.resolve(activity.getResources(), activity.getPackageName(),
                     resourceName, false);
@@ -319,7 +319,7 @@ public final class FeedVisibility {
             Consumer<WeakReference<View>> store
     ) {
         View cached = cache.get();
-        if (cached != null && cached.isAttachedToWindow()) {
+        if (cached != null && belongsTo(cached, activity)) {
             return cached;
         }
 
@@ -344,6 +344,17 @@ public final class FeedVisibility {
             Logger.printException(() -> "Could not resolve the " + resourceName + " tab", ex);
             return null;
         }
+    }
+
+    /**
+     * A cached view answers only for the window it is in. Being attached is not enough: a tab
+     * from an earlier window of the same name stays attached until that window is torn down,
+     * and until the weak reference clears it would report that window's selection for the new
+     * one. In the test suite that made the caption overlay's feed check depend on when garbage
+     * collection ran.
+     */
+    private static boolean belongsTo(View view, Activity activity) {
+        return view.isAttachedToWindow() && view.getRootView() == activity.getWindow().getDecorView();
     }
 
     /** Stands in for this build's resource table in tests. */

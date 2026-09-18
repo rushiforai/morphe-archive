@@ -319,8 +319,8 @@ public final class SessionLockOverlay {
         LinearLayout panel = new LinearLayout(activity);
         panel.setOrientation(LinearLayout.VERTICAL);
         panel.setGravity(Gravity.CENTER);
-        // The same shade the ramp finishes on, taken from there rather than written twice, so
-        // the last frame before the hold and the first frame of it cannot drift apart.
+        int sidePad = SettingsUi.dp(activity, 24);
+        panel.setPadding(sidePad, sidePad, sidePad, sidePad);
         panel.setBackgroundColor(Color.argb(HoldRamp.FULL_ALPHA, 0, 0, 0));
         // Swallows every touch, so the feed underneath stops scrolling without being emptied.
         panel.setClickable(true);
@@ -374,15 +374,7 @@ public final class SessionLockOverlay {
         TextView release = new TextView(activity);
         release.setText(L10n.t(activity, "Open the feed anyway"));
         release.setContentDescription(L10n.t(activity, "Open the feed anyway"));
-        // A TextView with a click listener is read as text. It is the only way out of the hold,
-        // so it has to be offered as something to press.
-        release.setAccessibilityDelegate(new View.AccessibilityDelegate() {
-            @Override public void onInitializeAccessibilityNodeInfo(
-                    View host, android.view.accessibility.AccessibilityNodeInfo info) {
-                super.onInitializeAccessibilityNodeInfo(host, info);
-                info.setClassName(android.widget.Button.class.getName());
-            }
-        });
+        SettingsUi.markAsButton(release);
         release.setTextColor(SettingsUi.OVERLAY_TEXT);
         release.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
         release.setGravity(Gravity.CENTER);
@@ -420,13 +412,7 @@ public final class SessionLockOverlay {
         TextView messages = new TextView(activity);
         messages.setText(L10n.t(activity, "Open messages"));
         messages.setContentDescription(L10n.t(activity, "Open messages"));
-        messages.setAccessibilityDelegate(new View.AccessibilityDelegate() {
-            @Override public void onInitializeAccessibilityNodeInfo(
-                    View host, android.view.accessibility.AccessibilityNodeInfo info) {
-                super.onInitializeAccessibilityNodeInfo(host, info);
-                info.setClassName(android.widget.Button.class.getName());
-            }
-        });
+        SettingsUi.markAsButton(messages);
         messages.setTextColor(Color.argb(200, 255, 255, 255));
         messages.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
         messages.setGravity(Gravity.CENTER);

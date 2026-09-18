@@ -1,12 +1,50 @@
 ## 0.40.0
 
-* * The share prompt that pops up after a like can be hidden. With the switch on, the bubble asking you to share a video with friends never appears. Under Interface, off by default. Upstream #22.
+* The settings menu is four groups instead of one list. Your feed holds Feed filter, Feed tabs and Feed screen. Watching and sharing holds Playback, Screen time, Comments, Downloads, Share sheet and Inbox. Privacy and system holds Privacy, Region, App, the Feature Gate Lab, Diagnostics and Backup and restore, and About sits on its own at the end. The "YOUR EXPERIENCE" label over a single card of fourteen rows is gone. Five pages have shorter names: Interface is Feed screen, Feed navigation is Feed tabs, Comments and translation is Comments, Region settings is Region, and App behavior is App.
+
+* Screen time is its own page. The daily video and time budgets, the reminder, the hold and its fade, the budget label, the lock, the day's start and the passes all sat at the bottom of Playback under a "Daily budget" heading. They have a page of their own now, with "Do not start the feed on returning" under a Focus heading at the top of it.
+
+* Backup and restore is its own page. Back up, Restore, Reset and Undo used to be the tail of Diagnostics, so anyone who patched without the diagnostics patch found them on a page named for something they didn't have. The Feature gate recorder row moved the other way, off the menu and into Diagnostics, where it stops being the one row without an icon.
+
+* The Feed screen page is laid out by where things sit. Right column first, with one checklist row over the six hides and the counts (its second line says what is hidden, "Hidden: Like, Share", instead of seven rows each saying "Hide the ... button"), then Video info, Around the video, Popups, Captions, Screen, Clear display and Gestures. The three long-press rows that lived under Player on the App page sit beside the Long press row now, and the playlist bar, event badge and inserted cards rows moved here from Feed filter, since they hide things drawn around a video rather than videos.
+
+* Feed filter reads in the order people ask: Kinds of post with Remove feed ads first, Limits, Creators and sounds, Words and countries, Seen videos, then one Advanced switch. The four player buttons (block, local hide, block sound, Not interested) moved here from the App page, next to the lists they add to.
+
+* The App page keeps what is about the app: Layout, Player, Search (with Hide search suggestions), Profile (Keep the Favorites tab) and System. Downloads has Files, Video, Photos and stickers, Long press, Subtitles, Hand-off and Offline videos headings, and Comments has Reading, Hiding and Blocking.
+
+* Every menu icon is its own picture. Feed screen and App shared the sliders glyph; Feed screen draws the feed now, a screen with the right column down its edge, Screen time is a clock and Backup and restore is a box with an arrow rising out of it. The App page has Search and System headings so its last four rows stop reading as part of Player.
+
+* A Privacy page. Everything that decides what TikTok learns sits in one place now. Disable analytics and tracking and Ghost mode moved there from App behavior, the three link rows came with them, and each of the device-access patches below has a switch of its own. Before this the seven device patches had no row anywhere, so there was no way to see they were installed and no way to turn one off short of patching again.
+
+* Seven patches that stand between TikTok and the phone: Block contact list access, Block installed app scanning, Location access governor, Device privacy guard for clipboard reads, Resource and battery governor for the motion sensors, In-app browser privacy guard, and the Camera and microphone indicator. All but the browser guard are on as soon as the patch is chosen. The browser guard stays off until you turn it on, because TikTok's own web pages are built on the bridge it cuts, the shop checkout and the CAPTCHA page among them.
+
+* Three of those patches said more than they did, and two did nothing at all. The contact blocker matched the plain call form only, and a five-argument ContentResolver.query is always the ranged form, so it intercepted zero call sites and applied anyway. The installed-app blocker watched getInstalledPackages, which TikTok 46.2.3 never calls. The app list is read through the launcher enumeration, which is what it watches now, and a check for one named app is left alone so opening another app still works. The device privacy guard claimed to block local network scanning and the battery governor claimed to throttle preloading. Neither did, and both descriptions now say what the code does. Every one of these patches reads both call forms now and refuses to apply when it finds nothing to intercept.
+
+* The camera and microphone indicator draws the dot it promised. A green dot sits in the top corner while TikTok has the camera open and an orange one while it records sound, both when both, on whichever screen is in front. It follows Camera.open, camera2's openCamera and AudioRecord.startRecording, and goes when the camera is released or the recorder stops. The first version wrote a log line and nothing else.
+
+* Block P2P video relay strips TikTok's peer-to-peer CDN libraries so the phone isn't used as a relay for other people's video. Stop on-device AI profiling returns early from the Pitaya inference engine's start. Remove content credential and card scanner assets now also empties six Pitaya model libraries per ABI, the LIVE casting feature and the ART log monitor probe. It leaves libbytemonitor, libprofiler and libAndroidPitayaCore alone: other libraries in the APK link against those, and an emptied one fails their load. The first cut emptied libbytemonitor too, which libbytebench needs, which the whole video editor needs, so the Create tab killed the app until the S22 showed it.
+
+* Maximum views per comment joins Maximum views per like under Feed filter, for hiding videos with a lot of views and few comments.
+
+* The six right column switches (hide the like, comment, favorite, share, avatar and music buttons) work again on 46.2.3. Since 0.35.0 they looked for the video cell under the long-press layer, which on this build sits beside the column rather than above it, so the walk found no buttons and hid nothing. It starts from the cell's own root now, which holds both.
+
+* Feed button size makes the right column's icons a quarter larger for anyone who finds them small. Under Feed screen. The first cut offered 1.5x and 2x as well and scaled the whole button, and on the phone that did nothing: TikTok animates those buttons itself and writes its own scale back on every frame. The setting scales the icon inside each button now, from the icon's base so it grows upward, and puts the size back before each frame TikTok draws. Past 1.25x an icon runs into the next button, so the two larger sizes are gone, and a stored 1.5x or 2x reads as 1.25x.
+
+* A feed check asked from a new window no longer takes its answer from a Home tab that belongs to an older one. Anything drawn only on the recommendation feed could otherwise show up, or stay away, on the wrong screen for as long as the old window lingered.
+
+* The share prompt that pops up after a like can be hidden. With the switch on, the bubble asking you to share a video with friends never appears. Under Feed screen, off by default. Upstream #22.
 
 * The four feed overlay controls are drawn by one class at one stroke weight. Sound was a Unicode note in whatever font TikTok picked, local hide was a bold ×, and not interested was a thin dash; only the block symbol was drawn. They all draw through `OverlayGlyphDrawable` now, at the same 2dp stroke and the same radius fraction, so they look like one set.
 
 * The remembered speed can be turned off. It was always on, so a reader who wanted TikTok's per-video reset had to drop the whole playback speed patch. With the new switch off, each video starts at 1x and a manual choice from the menu lasts for that video only. Under Playback, on by default.
 
 * "Enter a number. The previous value was kept." is gone: the dialog stays open for a correction now, so no value was kept. Five Playback summaries that opened with "Off by default." lead with what the feature does instead; the switch already says whether it is on.
+
+* The asset strips patch the newer TikTok builds again. Remove content credential and card scanner assets knew one reviewed set of files, 46.2.3's, and 46.7.3 and 46.8.3 ship 23 of those 33 paths while 46.9.3 ships different bytes behind 15 of them; Block P2P video relay carried a hash from the wrong build for one 46.9.3 library. A forced patch on any of those builds refused both. Each build has its own reviewed set now, read off the real files, and a test holds every set of every strip against every fixture on the machine before a release is built.
+
+* Holding Like does nothing with Disable the long press repost on. It kept the repost panel away, but it told TikTok the hold was not handled, so Android treated the release as a tap and a hold liked the video: on the S22 the heart went red and the count rose by one. The hold is consumed now.
+
+* "Save the sound as well" saves the sound. Every attempt ended in "The sound couldn't be saved. Try again." and the export said "Download contains no media samples". TikTok's AAC tracks open with an edit list that puts the encoder's priming frames before zero, so the extractor hands the first frames back at a negative time (the S22's files start at -161 ms), and the copy loop read the very first one as the end of the track. A track's lead-in is now taken off every stamp, and when a picture and a sound are put together they move by the same amount, so nothing drifts. Found on the S22 on 2026-09-17.
 
 * A sticker save says where it landed, the same as every other download. It used to say "Sticker saved as MP4" and the reader had to guess the folder. It says the folder now, matching the four other savers.
 
@@ -25,6 +63,8 @@
 * A web address someone left in a comment can be tapped. TikTok draws comment text as plain text, so the only way to follow a link in a comment was to copy it out by hand, which is what an upstream reader asked for a year ago. The comment text view is found by what it is showing rather than by a resource id, so it is the same answer on any build, and a tap that lands anywhere other than the address still does what it always did: a comment that carries a link does not stop opening the replies. Under Comment tools, on by default, and off in one switch.
 
 * Comment search counts the comments it has seen instead of the rows on screen, and the box has an X that clears it. The count was taken from the rows the list had attached, so scrolling turned "3 results" into "5 results" into "no matching comments" while nobody was searching for anything, and the line is a live region, so a screen reader read out every one of those. A comment is counted once, when it comes into view, and scrolling past it again neither doubles it nor takes it away. The line says "so far", because TikTok pages comments and this has only seen the ones it loaded. The empty state used to tell a reader to clear the search when there was nothing on screen that could; there is now an X at the end of the box, and a screen reader gets a Clear the search action on the field rather than a second stop in the traversal.
+
+* Hide quick comment reactions hides the row above the comment box. The switch only reached the quick comment strip TikTok draws on some videos, so the emoji clusters in the comment sheet stayed put with it on, which the S22 showed. The comment keyboard adds that row through a trigger rather than a visibility write, and the switch now answers the trigger before its own checks run, so the row is gone whether or not the keyboard is up. TikTok builds that slot tree once per session, so the switch takes effect after a restart and its row says so.
 
 * The block control on a comment now looks like one. With Block from comments on, a tap on what was still drawn as TikTok's thumbs down blocked the account, and the only thing that said so was a tint that arrives after the block has already happened. The control draws the block symbol instead, in the same color the icon beside it uses so the row keeps its weight, and TikTok's own icon goes straight back the moment the switch is turned off.
 
@@ -603,7 +643,7 @@
 
 * The comment image watermark keeps the position TikTok gave it. The patch read its own on/off answer into the register holding the watermark's x coordinate, then wrote a zero back before drawing. That is the same picture on this build, because TikTok moves the canvas first and draws at nothing but zero, and it would have pinned the watermark to the left edge on a build that draws anywhere else. The switch has a register of its own now.
 
-* The patched app carries less code. Twenty classes inherited from ReVanced were compiled into the shared payload of every build and nothing in this project called any of them, including a colour picker, a second settings backup, a network helper and an environment nag screen that had been switched off and left in place. They are gone. Nothing reachable changes.
+* The patched app carries less code. Twenty classes inherited from ReVanced were compiled into the shared payload of every build and nothing in this project called any of them, including a color picker, a second settings backup, a network helper and an environment nag screen that had been switched off and left in place. They are gone. Nothing reachable changes.
 
 * The two caption settings say so when a TikTok build drops them. Caption text size and the strip behind the captions found their views by a number baked into this project, which the next TikTok build is free to reassign, and both settings would then have done nothing while the Hook status row reported everything fine. They are looked up by name now, the way every other lookup here is, and a build without those names is reported under "captions" in the diagnostics.
 
@@ -649,7 +689,7 @@
 
 * Comment translation stops rebuilding one of TikTok's own services over and over. Working out which language you read in, and which languages you asked not to be translated, meant building that service and looking for the right method. The answer was only remembered when the method was found, so on a build that does not have one it was built again for every comment in view, while holding the lock that TikTok needs to hand a finished batch back. It is asked once now, and once is enough either way.
 
-* Every row in a settings dialog list keeps Hushfeed's check mark. The list was restyled once, just after it opened, so any row you had to scroll to reach had never been touched and came up with Android's own check mark on the wrong side and TikTok's text colour. The eight row "Included diagnostics" picker scrolls on a small screen and on every screen at large text. Rows are styled as they appear now.
+* Every row in a settings dialog list keeps Hushfeed's check mark. The list was restyled once, just after it opened, so any row you had to scroll to reach had never been touched and came up with Android's own check mark on the wrong side and TikTok's text color. The eight row "Included diagnostics" picker scrolls on a small screen and on every screen at large text. Rows are styled as they appear now.
 
 * The patches keep applying when TikTok's own methods grow. A call Hushfeed injects can only name sixteen registers, and a method with enough locals pushes its arguments past that, which fails the patch with an error that says nothing about registers. Thirty five injections were written the short way and would have broken on the first TikTok build that crossed the line. They now use the long form only where they have to, so nothing about the current build changes, and a frame that cannot be patched at all says so in those words.
 
@@ -683,7 +723,7 @@
 
 * A new switch turns the daily budget from advice into a commitment. Leave "Lock today's budget" off and nothing changes. Turn it on, and when today's budget runs out the hold has no "Open the feed anyway", "Start today over" is refused, and the budgets, the reset hour and the switch itself cannot be edited again until the day starts over at your chosen hour. You can turn it off freely any time before the budget runs out, and turning it on after the budget has already gone locks the rest of that day too. The lock lets go on its own when the day turns, and only then: moving the phone to another timezone does not end it early. It survives the app being killed, and messages, profiles and search keep working the whole time.
 
-* The settings screen no longer draws its first row under the status bar and its last under the navigation bar. TikTok targets a recent enough Android that every window is edge to edge whether the app asks for it or not, and the two calls that used to colour the bars stopped doing anything at the same time. The screen now measures the bars and the display cutout and moves its content clear of both, with its own background reaching behind them.
+* The settings screen no longer draws its first row under the status bar and its last under the navigation bar. TikTok targets a recent enough Android that every window is edge to edge whether the app asks for it or not, and the two calls that used to color the bars stopped doing anything at the same time. The screen now measures the bars and the display cutout and moves its content clear of both, with its own background reaching behind them.
 
 * Comment translation stops hammering TikTok when a batch fails. A comment list binds its cells many times a second, and every one of those binds asked for the same failed batch again, with an exception logged each time. It now waits two seconds, then eight, then thirty, and after a fourth failure leaves that batch alone until the comment list loads again. A batch the service is working through a few comments at a time is not counted as failing.
 
@@ -754,7 +794,7 @@
 
 * Two patches that could be selected on their own put their switches somewhere nobody could reach them. Hide comment popup ads built a switch on a page that never appeared, and the offline videos limit sat below an early return belonging to the Downloads patch, so selecting it alone gave a page without it. Every settings page now keeps each patch's rows behind that patch's own flag.
 
-* Clear all in the inbox is readable in both themes. It was picking its colour from a flag the settings screen sets, which away from that screen answers for the system theme rather than TikTok's own, so it could draw dark red on a dark sheet.
+* Clear all in the inbox is readable in both themes. It was picking its color from a flag the settings screen sets, which away from that screen answers for the system theme rather than TikTok's own, so it could draw dark red on a dark sheet.
 
 * The feature gate report says more precisely what it replaces, instead of implying every value is redacted.
 
@@ -996,7 +1036,7 @@
 
 ## 0.17.0 (2026-09-06)
 
-* Review pass over the sticker formats and the profile picture save. The profile hook was reading the user through the very method it had been added to, so every profile open burned a stack and swallowed the overflow. It reads the field now. The long press is only taken when the feature is on, so TikTok's own is left alone otherwise, and a picture is refused rather than saved when the handle on screen belongs to somebody else. A sticker with more colours than a palette can hold no longer counts every one of them: 64 frames of noise went from running out of memory to under a second.
+* Review pass over the sticker formats and the profile picture save. The profile hook was reading the user through the very method it had been added to, so every profile open burned a stack and swallowed the overflow. It reads the field now. The long press is only taken when the feature is on, so TikTok's own is left alone otherwise, and a picture is refused rather than saved when the handle on screen belongs to somebody else. A sticker with more colors than a palette can hold no longer counts every one of them: 64 frames of noise went from running out of memory to under a second.
 
 * Press and hold a profile picture to save it. TikTok never puts the full size avatar on screen, so the file comes from the profile the app loaded rather than from what is drawn, which means you get the original rather than a display crop. It lands in your photo destination, named after the account.
 
@@ -1160,7 +1200,7 @@
 
 * **feed:** four upstream patches for the feed toolbar: hide the LIVE button, the search button, the follow plus under the avatar, and the save button. The LIVE one shares the existing Live entrance switch and stops the button before it is built
 
-* **build:** move to Morphe patcher 1.12.0 and patches plugin 1.3.4, which is what Morphe Manager 1.29 ships. Typed patch options, sliders and colour pickers are available to patches from here on
+* **build:** move to Morphe patcher 1.12.0 and patches plugin 1.3.4, which is what Morphe Manager 1.29 ships. Typed patch options, sliders and color pickers are available to patches from here on
 * **feed:** a Hide already seen videos patch. Watched video ids go into a local database and are dropped from later feed pages, with a retention setting and a clear button. Nothing leaves the device
 * **feed:** switches for the playlist bar, the floating event badge and the cards TikTok inserts between videos, plus the countdown lock on short drama adverts, which now releases when ads are being removed
 * **captcha:** a second CAPTCHA patch for TikTok's risk control dialog, answering the existing switch. Off by default, it never touches SMS or two factor verification, and it logs every suppression

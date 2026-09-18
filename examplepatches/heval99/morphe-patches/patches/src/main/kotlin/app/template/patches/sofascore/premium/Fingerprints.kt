@@ -2,27 +2,16 @@ package app.template.patches.sofascore.premium
 
 import app.morphe.patcher.Fingerprint
 
-// AI insights subscription check
-object AiInsightsEnabledFingerprint : Fingerprint(
-    custom = { method, classDef -> method.name.contains("aiInsights", ignoreCase = true) || method.name.contains("aiAnalysis", ignoreCase = true) }
+// The premium entitlement is a single boxed Boolean, persisted on the session account
+// (UserAccount) and on the server profile (ProfileData). Both classes are not obfuscated
+// and every premium gate in the app (AI insights, subscription screens, upsell checks)
+// reads one of these two getters, so forcing them covers the whole client surface.
+object UserAccountHasPremiumFingerprint : Fingerprint(
+    definingClass = "Lcom/sofascore/local_persistance/UserAccount;",
+    name = "getHasPremium",
 )
 
-// Remove ads subscription check
-object RemoveAdsSubscriptionFingerprint : Fingerprint(
-    custom = { method, classDef -> method.name.contains("removeAds", ignoreCase = true) || method.name.contains("RemoveAds", ignoreCase = true) }
-)
-
-// Premium token validation
-object PremiumTokenValidFingerprint : Fingerprint(
-    custom = { method, classDef -> classDef.type.contains("PremiumToken") && method.name.contains("isValid", ignoreCase = true) }
-)
-
-// Generic isPremium feature gate
-object IsPremiumFeatureFingerprint : Fingerprint(
-    custom = { method, classDef -> method.name == "isPremium" || method.name == "hasPremiumFeature" }
-)
-
-// Error code premium required check
-object PremiumRequiredErrorFingerprint : Fingerprint(
-    custom = { method, classDef -> method.name.contains("PREMIUM_ACCOUNT_REQUIRED", ignoreCase = true) || method.name.contains("PremiumRequired", ignoreCase = true) }
+object ProfileDataHasPremiumFingerprint : Fingerprint(
+    definingClass = "Lcom/sofascore/model/profile/ProfileData;",
+    name = "getHasPremium",
 )

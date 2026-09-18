@@ -137,10 +137,13 @@ public final class GestureActions {
             // The same treatment a shared link gets: TikTok's own link carries the parameters
             // that say who sent it, and the clipboard is somewhere else that goes.
             String clean = link == null ? null : ShareUrlSanitizer.rewriteShareUrl(link);
-            String said = copyToClipboard("TikTok link", clean)
-                    ? L10n.t("Link copied")
-                    : L10n.t("This video has no link to copy");
-            Utils.showToastShort(said);
+            if (copyToClipboard("TikTok link", clean)) {
+                if (android.os.Build.VERSION.SDK_INT < 33) {
+                    Utils.showToastShort(L10n.t("Link copied"));
+                }
+            } else {
+                Utils.showToastShort(L10n.t("This video has no link to copy"));
+            }
             return true;
         }
         if ("copy_sound_link".equals(action)) {
@@ -150,10 +153,13 @@ public final class GestureActions {
             // id has never had a query on it.
             String sound = soundLink(CurrentVideoAuthor.getAweme());
             String clean = sound == null ? null : ShareUrlSanitizer.rewriteShareUrl(sound);
-            String said = copyToClipboard("TikTok sound", clean)
-                    ? L10n.t("Sound link copied")
-                    : L10n.t("This video has no sound of its own");
-            Utils.showToastShort(said);
+            if (copyToClipboard("TikTok sound", clean)) {
+                if (android.os.Build.VERSION.SDK_INT < 33) {
+                    Utils.showToastShort(L10n.t("Sound link copied"));
+                }
+            } else {
+                Utils.showToastShort(L10n.t("This video has no sound of its own"));
+            }
             return true;
         }
         if ("original_sound".equals(action)) {

@@ -4,6 +4,13 @@ Smali reading/writing aid, obfuscation survival rules, and fingerprint debugging
 Companion docs: [fingerprint reference](patch-development.md#fingerprints) (writing fingerprints),
 [reverse engineering workflow](reverse-engineering.md) (finding targets).
 
+The [Android bytecode specification](https://source.android.com/docs/core/runtime/dalvik-bytecode)
+is authoritative for opcode semantics, instruction formats, and register limits.
+Third-party smali cheat sheets and opcode tables may contain transcription or
+operand-order errors; use them only as navigation aids and verify injected code
+with the assembler/build step. Do not add diagnostic snippets that log passwords,
+keys, tokens, or plaintext cryptographic data.
+
 ## Type descriptors
 
 | Smali | Java |

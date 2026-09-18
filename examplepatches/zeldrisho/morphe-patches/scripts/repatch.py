@@ -19,6 +19,7 @@ def die(msg):
 
 
 def main():
+    """Patch the requested APK or APKM and sign the resulting APK."""
     p = argparse.ArgumentParser()
     p.add_argument("--jar")
     p.add_argument("input")
@@ -102,7 +103,9 @@ def main():
         patches = data[0]["patches"]
         selected = os.environ.get("PATCHES", "__DEFAULT__")
         if selected != "__DEFAULT__":
-            aliases = {"Remove AD_ID permission — Zalo": "Remove AD_ID permission"}
+            aliases = {
+                "Remove AD_ID permission — Zalo": "Remove AD_ID permission",
+            }
             requested = {
                 aliases.get(x.strip(), x.strip())
                 for x in selected.split(",")
@@ -113,16 +116,21 @@ def main():
                 die("unknown patch name(s): " + ", ".join(sorted(unknown)))
             for name, patch in patches.items():
                 patch["enabled"] = name in requested
-        for env, name, opt in (
-            ("APP_NAME", "Change app name", "appName"),
-            ("PACKAGE_NAME", "Change package name", "packageName"),
+        for env, names, opt in (
+            ("APP_NAME", ("Change app name", "Change Zalo app name"), "appName"),
+            (
+                "PACKAGE_NAME",
+                ("Change package name", "Change Zalo package name"),
+                "packageName",
+            ),
         ):
             value = os.environ.get(env)
-            if value and name in patches:
-                if selected == "__DEFAULT__":
-                    patches[name]["enabled"] = True
-                if patches[name].get("enabled"):
-                    patches[name].setdefault("options", {})[opt] = value
+            for name in names:
+                if value and name in patches:
+                    if selected == "__DEFAULT__":
+                        patches[name]["enabled"] = True
+                    if patches[name].get("enabled"):
+                        patches[name].setdefault("options", {})[opt] = value
         opts.write_text(json.dumps(data, indent=1))
         ks = [
             f"--keystore={key}",

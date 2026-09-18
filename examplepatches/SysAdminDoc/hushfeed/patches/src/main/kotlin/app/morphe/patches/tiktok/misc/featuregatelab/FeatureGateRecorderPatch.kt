@@ -15,7 +15,7 @@ import app.morphe.patches.tiktok.misc.settings.settingsPatch
 @Suppress("unused")
 val featureGateRecorderPatch = bytecodePatch(
     name = "Feature Gate Recorder",
-    description = "Records feature gate reads while you use TikTok and compares them with their previous values.",
+    description = "Records feature gate reads while you use TikTok and compares them with their previous values. Switch: Hushfeed settings > Diagnostics.",
     default = false,
 ) {
     dependsOn(settingsPatch, featureGateLabPatch)

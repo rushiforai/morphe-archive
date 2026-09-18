@@ -158,7 +158,7 @@ public class CreatorListPreference extends DialogPreference {
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
-        addButtonParams.setMargins(SettingsUi.dp(context, 8), 0, 0, 0);
+        addButtonParams.setMarginStart(SettingsUi.dp(context, 8));
         addRow.addView(addButton, addButtonParams);
         dialogView.addView(addRow);
 
@@ -250,6 +250,7 @@ public class CreatorListPreference extends DialogPreference {
         addEditText.setError(null);
         addEditText.setText("");
         refreshEntryRows();
+        Utils.showToastShort(L10n.f(getContext(), "Added %1$s", candidate));
     }
 
     private void refreshEntryRows() {
@@ -283,9 +284,9 @@ public class CreatorListPreference extends DialogPreference {
         Context context = getContext();
         LinearLayout row = new LinearLayout(context);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(SettingsUi.dp(context, 12), SettingsUi.dp(context, 3),
+        row.setPaddingRelative(SettingsUi.dp(context, 12), SettingsUi.dp(context, 3),
                 SettingsUi.dp(context, 4), SettingsUi.dp(context, 3));
-        row.setBackground(SettingsUi.borderedSurface(context, 8, true));
+        row.setBackground(SettingsUi.borderedSurface(context, SettingsUi.RADIUS_FIELD, true));
         TextView label = SettingsUi.text(context, entry, 15, SettingsUi.textPrimary(), Typeface.NORMAL);
         label.setTextIsSelectable(true);
         label.setContentDescription(entry);
@@ -349,7 +350,7 @@ public class CreatorListPreference extends DialogPreference {
     protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
         builder.setPositiveButton(L10n.t(getContext(), "Save"), (dialog, which)
                 -> this.onClick(dialog, DialogInterface.BUTTON_POSITIVE));
-        builder.setNegativeButton(android.R.string.cancel, null);
+        builder.setNegativeButton(L10n.t(getContext(), "Cancel"), null);
     }
 
     @Override

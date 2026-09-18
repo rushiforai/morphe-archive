@@ -62,11 +62,11 @@ public class BlockAuthorLocalizationTest {
     public void germanOwnsEveryBlockAndUnblockResult() {
         verify(new Expected(
                 NAME + " blockiert",
-                "TikTok hat die Anfrage zum Blockieren von " + NAME + " abgelehnt",
-                "Die Blockierung von " + NAME + " konnte nicht bestätigt werden",
+                "TikTok hat die Anfrage zum Blockieren von " + NAME + " abgelehnt.",
+                "Die Blockierung von " + NAME + " konnte nicht bestätigt werden.",
                 NAME + " entblockt",
-                "TikTok hat die Anfrage zum Entblocken von " + NAME + " abgelehnt",
-                "Die Aufhebung der Blockierung von " + NAME + " konnte nicht bestätigt werden"
+                "TikTok hat die Anfrage zum Entblocken von " + NAME + " abgelehnt.",
+                "Die Aufhebung der Blockierung von " + NAME + " konnte nicht bestätigt werden."
         ));
     }
 
@@ -74,11 +74,11 @@ public class BlockAuthorLocalizationTest {
     public void indonesianOwnsEveryBlockAndUnblockResult() {
         verify(new Expected(
                 NAME + " diblokir",
-                "TikTok menolak permintaan untuk memblokir " + NAME,
-                "Pemblokiran " + NAME + " tidak dapat dikonfirmasi",
+                "TikTok menolak permintaan untuk memblokir " + NAME + ".",
+                "Pemblokiran " + NAME + " tidak dapat dikonfirmasi.",
                 NAME + " dibuka blokirnya",
-                "TikTok menolak permintaan untuk membuka blokir " + NAME,
-                "Pembukaan blokir " + NAME + " tidak dapat dikonfirmasi"
+                "TikTok menolak permintaan untuk membuka blokir " + NAME + ".",
+                "Pembukaan blokir " + NAME + " tidak dapat dikonfirmasi."
         ));
     }
 

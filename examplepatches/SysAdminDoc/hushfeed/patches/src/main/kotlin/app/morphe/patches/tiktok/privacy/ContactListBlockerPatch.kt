@@ -4,55 +4,51 @@
  */
 package app.morphe.patches.tiktok.privacy
 
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
+import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
-import app.morphe.util.findMutableMethodOf
-import app.morphe.util.getReference
-import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.ClassDef
-import com.android.tools.smali.dexlib2.iface.Method
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val EXTENSION = "Lapp/morphe/extension/tiktok/privacy/ContactListBlocker;"
-private data class ContactSite(val owner: ClassDef, val method: Method, val index: Int, val replacement: String)
+private const val RESOLVER = "Landroid/content/ContentResolver;"
 
 @Suppress("unused")
 val contactListBlockerPatch = bytecodePatch(
     name = "Block contact list access",
-    description = "Stops TikTok from reading your phone contacts. Find Friends and People you may know lose access to your contact list.",
+    description = "Answers TikTok's reads of your phone contacts with an empty list. Find Friends and People you may know lose access to your contact list. Switch: Hushfeed settings > Privacy.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4623())
 
     execute {
-        val contactTargets = setOf(
-            "Landroid/content/ContentResolver;->query(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;)Landroid/database/Cursor;",
+        SettingsStatusLoadFingerprint.method.addInstruction(
+            0,
+            "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableContactListBlocker()V",
         )
-        val sites = mutableListOf<ContactSite>()
-        classDefForEach { owner ->
-            if (owner.type.startsWith("Lapp/morphe/extension/")) return@classDefForEach
-            owner.methods.forEach { method ->
-                method.implementation?.instructions?.forEachIndexed { index, instruction ->
-                    val ref = instruction.getReference<MethodReference>()?.toString() ?: return@forEachIndexed
-                    if (ref !in contactTargets) return@forEachIndexed
-                    if (instruction.opcode != Opcode.INVOKE_VIRTUAL) return@forEachIndexed
-                    val invoke = instruction as FiveRegisterInstruction
-                    sites += ContactSite(
-                        owner, method, index,
-                        "invoke-static { v${invoke.registerC}, v${invoke.registerD}, v${invoke.registerE}, v${invoke.registerF}, v${invoke.registerG} }, " +
-                            "$EXTENSION->interceptQuery(Landroid/content/ContentResolver;Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)Landroid/database/Cursor;",
-                    )
-                }
-            }
+
+        // Every ContentResolver.query overload TikTok reaches. The five-parameter form needs six
+        // registers, so it is always the /range form, which the first version of this patch
+        // never matched: it applied, intercepted nothing, and said it blocked contacts.
+        val replacements = mapOf(
+            "$RESOLVER->query(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;)Landroid/database/Cursor;" to
+                "$EXTENSION->interceptQuery($RESOLVER" +
+                "Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;)Landroid/database/Cursor;",
+            "$RESOLVER->query(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/database/Cursor;" to
+                "$EXTENSION->interceptQuery($RESOLVER" +
+                "Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/database/Cursor;",
+            "$RESOLVER->query(Landroid/net/Uri;[Ljava/lang/String;Landroid/os/Bundle;Landroid/os/CancellationSignal;)Landroid/database/Cursor;" to
+                "$EXTENSION->interceptQuery($RESOLVER" +
+                "Landroid/net/Uri;[Ljava/lang/String;Landroid/os/Bundle;Landroid/os/CancellationSignal;)Landroid/database/Cursor;",
+        )
+        val sites = invokeSitesOf(replacements.keys)
+        if (sites.isEmpty()) {
+            throw PatchException("Block contact list access: no ContentResolver.query call site was found.")
         }
-        sites.forEach { site ->
-            mutableClassDefBy(site.owner).findMutableMethodOf(site.method).replaceInstruction(site.index, site.replacement)
-        }
+        replaceSites(sites, replacements)
         println("[Contact list blocker] Intercepted ${sites.size} ContentResolver.query sites.")
     }
 }

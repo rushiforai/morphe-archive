@@ -50,12 +50,7 @@ public final class SettingsSearchInputPreference extends Preference {
         root.setOrientation(LinearLayout.VERTICAL);
         LinearLayout row = new LinearLayout(context);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(
-                SettingsUi.dp(context, 18),
-                SettingsUi.dp(context, 8),
-                SettingsUi.dp(context, 18),
-                SettingsUi.dp(context, 8)
-        );
+        row.setPadding(0, SettingsUi.dp(context, 8), 0, SettingsUi.dp(context, 8));
 
         editText = new EditText(context);
         editText.setTag("settings_search_input");
@@ -115,12 +110,7 @@ public final class SettingsSearchInputPreference extends Preference {
         root.addView(row, new LinearLayout.LayoutParams(-1, -2));
 
         resultCount = SettingsUi.resultCount(context, "settings_search_result_count");
-        resultCount.setPadding(
-                SettingsUi.dp(context, 18),
-                0,
-                SettingsUi.dp(context, 18),
-                SettingsUi.dp(context, 6)
-        );
+        resultCount.setPadding(0, 0, 0, SettingsUi.dp(context, 6));
         root.addView(resultCount, new LinearLayout.LayoutParams(-1, -2));
         updateResultCount();
         return root;
@@ -134,6 +124,13 @@ public final class SettingsSearchInputPreference extends Preference {
 
     public String getQuery() {
         return editText == null ? "" : editText.getText().toString();
+    }
+
+    public void setQuery(String query) {
+        if (editText != null && query != null && !query.isEmpty()) {
+            editText.setText(query);
+            editText.setSelection(query.length());
+        }
     }
 
     @Override

@@ -285,9 +285,7 @@ public final class CommentSearch {
      * comment sheet is the visible version of that.
      */
     private static boolean isDarkSheet(Context context) {
-        int night = context.getResources().getConfiguration().uiMode
-                & Configuration.UI_MODE_NIGHT_MASK;
-        return night == Configuration.UI_MODE_NIGHT_YES;
+        return SettingsUi.isDarkContext(context);
     }
 
     /**

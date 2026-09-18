@@ -12,6 +12,7 @@ data class RelocationEntry(val address: Long, val symbol: String)
 
 @Serializable
 data class LibPatchInfo(
-    val keystream: String,
-    val relocations: List<RelocationEntry>
+    val keystream: String? = null,
+    val patch: String? = null,
+    val relocations: List<RelocationEntry>? = null
 )

@@ -21,6 +21,14 @@
 param(
     [string]$Serial,
     [switch]$Replace,
+    # Print every line the desktop CLI writes, not only errors. The privacy patches say how
+    # many call sites they intercepted, and a count of zero is the finding that matters.
+    [switch]$ShowPatchLog,
+    # Patch names to leave out of this build. The catalog applies everything, which puts the
+    # optimizer strips on a test phone too, and "Remove creation tools" empties the video
+    # editor's native libraries: the Create tab then dies in TENativeLibsLoader, so a camera
+    # check needs a build without it.
+    [string[]]$Exclude = @(),
     [string]$Apk,
     [string]$DesktopJar = (Get-ChildItem 'C:\_claude-backups\morphe-tools' -Filter 'morphe-desktop*.jar' -File | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName,
     [string]$Java = 'C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot\bin\java.exe',
@@ -57,7 +65,11 @@ if ([string]::IsNullOrEmpty($keystorePassword)) {
 $version = Get-BundleVersion -Root $root
 $bundle = Join-Path $root "patches\build\libs\patches-$version.mpp"
 if (-not (Test-Path $bundle)) { throw "No bundle at $bundle. Build it first: :patches:generatePatchesList then :patches:buildAndroid, through the governor." }
-$names = $catalog.patches | ForEach-Object { $_.name }
+$names = @($catalog.patches | ForEach-Object { $_.name } | Where-Object { $_ -notin $Exclude })
+foreach ($excluded in $Exclude) {
+    if ($excluded -notin ($catalog.patches | ForEach-Object { $_.name })) { throw "No patch named '$excluded' to exclude." }
+}
+if ($Exclude.Count -gt 0) { Write-Host "[device] leaving out: $($Exclude -join ', ')" }
 $dependencyNames = @(Get-PatchDependencyNames -PatchList $catalog -RequestedNames $names)
 
 New-Item -ItemType Directory -Force $OutDir | Out-Null
@@ -87,7 +99,7 @@ $argumentFileLines = @($arguments | ForEach-Object {
 try {
     & $Java -jar $DesktopJar "@$argumentFile" 2>&1 | ForEach-Object {
         $line = [string]$_
-        if ($line -match 'SEVERE|ERROR|Exception|Saved to') { Write-Host "[device] $line" }
+        if ($ShowPatchLog -or $line -match 'SEVERE|ERROR|Exception|Saved to') { Write-Host "[device] $line" }
     }
     if ($LASTEXITCODE -ne 0) { throw "The desktop CLI exited with $LASTEXITCODE" }
 } finally {

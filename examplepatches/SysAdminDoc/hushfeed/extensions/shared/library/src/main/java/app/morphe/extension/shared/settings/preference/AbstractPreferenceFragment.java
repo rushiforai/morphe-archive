@@ -118,7 +118,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
      * Indicates that if a preference changes,
      * to apply the change from the Setting to the UI component.
      */
-    public static boolean settingImportInProgress;
+    public static volatile boolean settingImportInProgress;
 
     /**
      * Prevents recursive calls during preference <-> UI syncing from showing extra dialogs.

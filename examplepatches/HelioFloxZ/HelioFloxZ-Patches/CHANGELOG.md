@@ -1,3 +1,20 @@
+## [1.7.0](https://github.com/HelioFloxZ/HelioFloxZ-Patches/compare/v1.6.0...v1.7.0) (2026-09-17)
+
+### ✨ New Features
+
+* Added Logic Of Flags ([c4a2377](https://github.com/HelioFloxZ/HelioFloxZ-Patches/commit/c4a2377f1f5bcbac331444d802106c107454dfcb))
+
+## [1.6.0](https://github.com/HelioFloxZ/HelioFloxZ-Patches/compare/v1.5.0...v1.6.0) (2026-09-17)
+
+### 🐛 Bug Fixes
+
+* Fixed Compiler detecting old code. ([2f0bdf9](https://github.com/HelioFloxZ/HelioFloxZ-Patches/commit/2f0bdf9d7bb0bdaee50854c93a7529eb6e427fd4))
+
+### ✨ New Features
+
+* Added Change Flags Patch logic in ChangeFlagsPatch.kt ([551ac12](https://github.com/HelioFloxZ/HelioFloxZ-Patches/commit/551ac129e8049153b994b26612c12ed8e6206356))
+* Updated ExamplePatch.java For Change Flags. ([acafb22](https://github.com/HelioFloxZ/HelioFloxZ-Patches/commit/acafb22eac5f5b2fb74961cdfa7733a1e258b16b))
+
 ## [1.5.0](https://github.com/HelioFloxZ/HelioFloxZ-Patches/compare/v1.4.0...v1.5.0) (2026-09-16)
 
 ### 🐛 Bug Fixes

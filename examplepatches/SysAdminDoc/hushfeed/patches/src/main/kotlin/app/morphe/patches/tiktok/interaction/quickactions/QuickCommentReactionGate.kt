@@ -20,6 +20,10 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 internal const val QUICK_COMMENT_ASSEM =
     "Lcom/ss/android/ugc/aweme/feed/assem/quickcomment/VideoQuickCommentAssem;"
 internal const val QUICK_COMMENT_ROW = "Landroid/widget/LinearLayout;"
+internal const val EXPOSED_EMOJI_PANEL_TRIGGER =
+    "Lcom/ss/android/ugc/aweme/comment/keyboard/keyboardv2/refactor/ExposedEmojiPanelTrigger;"
+internal const val COMMENT_CONTEXT_SOURCE =
+    "Lcom/ss/android/ugc/aweme/comment/model/CommentContextSource;"
 
 private val VISIBILITY_PARAMETERS = listOf("I", "Landroid/view/View;")
 private const val FEATURE_CONTROLS_DESCRIPTOR =

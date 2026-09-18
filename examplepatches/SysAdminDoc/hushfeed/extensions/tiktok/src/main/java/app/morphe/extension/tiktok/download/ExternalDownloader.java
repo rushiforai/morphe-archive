@@ -59,11 +59,26 @@ public final class ExternalDownloader {
             context.startActivity(send);
             return true;
         } catch (ActivityNotFoundException notInstalled) {
-            Utils.showToastShort(L10n.f("%1$s isn't installed or doesn't take links", target));
+            String label = appLabel(context, target);
+            Utils.showToastShort(label != null
+                    ? L10n.f("%1$s isn't installed or doesn't take links", label)
+                    : L10n.t("The downloader app you chose isn't installed. Check Send links to another app under Downloads."));
             return false;
         } catch (RuntimeException exception) {
             Logger.printException(() -> "Could not hand the link to " + target, exception);
             return false;
+        }
+    }
+
+    @Nullable
+    private static String appLabel(android.content.Context context, String packageName) {
+        try {
+            return context.getPackageManager()
+                    .getApplicationLabel(context.getPackageManager()
+                            .getApplicationInfo(packageName, 0))
+                    .toString();
+        } catch (android.content.pm.PackageManager.NameNotFoundException ignored) {
+            return null;
         }
     }
 

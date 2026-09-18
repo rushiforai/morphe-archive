@@ -27,7 +27,7 @@ public final class ModWelcome {
     private ModWelcome() {}
 
     /** Bump every time {@link #BODY} changes so returning users see it once more. */
-    private static final int BUILD = 6;
+    private static final int BUILD = 7;
     private static final String KEY = "welcome_build";
 
     private static final String TITLE = "What's new";
@@ -40,19 +40,8 @@ public final class ModWelcome {
     // churn (refactors, anything added then reverted in the same batch). The full feature list
     // lives in the Mods screen and the README, not here.
     private static final String BODY =
-            "Bottom navigation\n"
-          + "•  Choose which tabs the bar shows, up to five\n"
-          + "•  New Watchlist tab — its own filters and sort, back goes to Films\n"
-          + "•  Set which tab the app opens on at launch\n\n"
-          + "Home tabs\n"
-          + "•  Show, hide or reorder Films / Reviews / Lists / Journal\n"
-          + "•  Home opens on whichever tab you put first\n\n"
-          + "Film pages\n"
-          + "•  Runtime can read 1h 47m instead of 107 mins\n\n"
-          + "New patch: Hide ads\n"
-          + "•  Stops the banner ads on free accounts from loading\n\n"
-          + "Backup\n"
-          + "•  Export and import your mod config as a file, to share or restore";
+            "Support\n"
+          + "•  Report an issue — file a bug or feature request on GitHub, right from the Mods screen";
 
     /** Permanent closer — every release. New-to-this-version users still need this. */
     private static final String FOOTER =

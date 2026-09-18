@@ -378,7 +378,7 @@ public class FeedOverlaySettingsTest {
         Settings.NOT_INTERESTED_BUTTON.save(feedback);
         fragment = new TikTokPreferenceFragment();
         Bundle arguments = new Bundle();
-        arguments.putString("morphe_settings_section", "BEHAVIOR");
+        arguments.putString("morphe_settings_section", "FEED_FILTER");
         fragment.setArguments(arguments);
         activity.getFragmentManager().beginTransaction()
                 .replace(android.R.id.content, fragment).commit();

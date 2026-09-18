@@ -69,8 +69,13 @@ final class ModDialog {
             body.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
             ScrollView scroll = new ScrollView(ctx);
             scroll.addView(body);
+            // Weighted (not WRAP_CONTENT): once the window height below is clamped to fit the
+            // screen, this is what has to give. Without a weight the body just kept growing past
+            // the screen edge — on a long message (the what's-new dialog) that pushed the buttons
+            // row off-bottom with no way to reach them, and this dialog has no back/outside-tap
+            // dismiss, so there was no way out at all.
             LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                    ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f);
             slp.bottomMargin = Math.round(20 * d);
             root.addView(scroll, slp);
 
@@ -108,10 +113,18 @@ final class ModDialog {
             dialog.setContentView(root);
             if (window != null) {
                 int margin = Math.round(24 * d);
-                int max = Math.round(420 * d);
-                int screen = ctx.getResources().getDisplayMetrics().widthPixels;
-                window.setLayout(Math.min(screen - 2 * margin, max),
-                        ViewGroup.LayoutParams.WRAP_CONTENT);
+                int maxWidth = Math.round(420 * d);
+                int screenW = ctx.getResources().getDisplayMetrics().widthPixels;
+                int screenH = ctx.getResources().getDisplayMetrics().heightPixels;
+                int width = Math.min(screenW - 2 * margin, maxWidth);
+                int maxHeight = Math.round(screenH * 0.8f);
+                // Measure at that cap first: title + buttons keep their natural size and the
+                // (weighted) body absorbs whatever's left, so on a short message the dialog still
+                // sizes to its content instead of always taking 80% of the screen.
+                root.measure(
+                        View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                        View.MeasureSpec.makeMeasureSpec(maxHeight, View.MeasureSpec.AT_MOST));
+                window.setLayout(width, Math.min(root.getMeasuredHeight(), maxHeight));
             }
             if (onDismiss != null) {
                 dialog.setOnDismissListener(new android.content.DialogInterface.OnDismissListener() {

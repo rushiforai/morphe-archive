@@ -23,7 +23,7 @@ val shareSheetToolsPatch = bytecodePatch(
     description = "Asks twice before a video is sent to a friend from the share sheet. " +
         "The check follows the account or conversation instead of the visible name and covers " +
         "accessibility actions and keyboard input. It can also hide chosen people, share options " +
-        "or the whole Send to row.",
+        "or the whole Send to row. Switch: Hushfeed settings > Share sheet.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

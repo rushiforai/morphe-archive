@@ -293,7 +293,7 @@ public final class SettingsBackupPreference extends Preference
             }
         }
         if (action == UNDO && hasCause(error, java.io.FileNotFoundException.class)) {
-            return "There is nothing to undo yet.";
+            return "Nothing to undo yet.";
         }
         return "Could not restore settings.";
     }

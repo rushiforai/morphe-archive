@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.35.0",
+  "version": "1.40.0",
   "patches": [
     {
       "name": "APK Junk Cleaner",
@@ -79,8 +79,51 @@
       "options": []
     },
     {
+      "name": "Always show publish date",
+      "description": "Forces video publish/upload date to remain visible in video author information across all feed types.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.zhiliaoapp.musically",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Block Brave Telemetry",
-      "description": "Blocks P3A product analytics, Brave Stats usage pings, crash dump uploads, WDP, and Variations seed fetching.",
+      "description": "Blocks P3A product analytics, Brave Stats usage pings, crash dump uploads, WDP, Chromium UMA metrics, and Variations seed fetching.",
       "default": true,
       "dependencies": [
         "ResourcePatch",
@@ -203,10 +246,11 @@
     },
     {
       "name": "Block Vivaldi Telemetry",
-      "description": "Blocks Vivaldi usage statistics, crash reporting, Crashpad endpoints, and DirectMatch suggestions.",
+      "description": "Blocks Vivaldi usage statistics, crash reporting, Crashpad endpoints, DirectMatch suggestions, install referrer transmission, and background wallpaper polling.",
       "default": true,
       "dependencies": [
-        "RawResourcePatch"
+        "RawResourcePatch",
+        "ResourcePatch"
       ],
       "compatiblePackages": [
         {
@@ -342,6 +386,78 @@
           "targets": [
             {
               "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Clean New Tab Page",
+      "description": "Removes sponsored wallpaper images, Brave News/Today feeds, marketing widgets, and promo cards from the New Tab Page.",
+      "default": true,
+      "dependencies": [
+        "RawResourcePatch",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.brave.browser",
+          "name": "Brave Private Web Browser, VPN",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FF4500",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.95.101",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Clean Share URL",
+      "description": "Strips tracking parameters (utm_*, fbclid, gclid, igshid, si, msclkid) when sharing or copying links.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.brave.browser",
+          "name": "Brave Private Web Browser, VPN",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FF4500",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.95.101",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.vivaldi.browser",
+          "name": "Vivaldi Browser - Fast & Safe",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#EF3939",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "8.2.4147.77",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -588,6 +704,49 @@
           "targets": [
             {
               "version": "8.2.4147.77",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Copy comments without username",
+      "description": "Copies only the comment text without prepending the author username.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.zhiliaoapp.musically",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -1068,7 +1227,7 @@
     },
     {
       "name": "Disable Vivaldi Prompts & In-App Popups",
-      "description": "Disables in-app donation prompts, search engine switch promos, rate-app popups, background privacy report alarms, and default browser promotional handlers.",
+      "description": "Disables in-app donation prompts, search engine switch promos, rate-app popups, background privacy report alarms, default browser promo handlers, and hides the Vivaldia game from the main menu.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [
@@ -1124,6 +1283,59 @@
         }
       ],
       "options": []
+    },
+    {
+      "name": "Display Refresh Rate Governor",
+      "description": "Forces TikTok to run at peak display refresh rate (120Hz/90Hz/60Hz) and neutralizes video playback framerate downclocking routines.",
+      "default": false,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.zhiliaoapp.musically",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "targetRate",
+          "title": "Target Refresh Rate",
+          "description": "Select target display refresh rate: max (display peak rate), 120 (120 Hz), 90 (90 Hz), or 60 (60 Hz).",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "max",
+          "values": null
+        }
+      ]
     },
     {
       "name": "Enable Access Points Menu Redesign",
@@ -1321,6 +1533,49 @@
       "options": []
     },
     {
+      "name": "Fix Google login",
+      "description": "Restores Google account sign-in after patching by forcing fallback to Web-based OAuth when Google Play Services rejects the modified APK signature.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.zhiliaoapp.musically",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Force Incognito Mode",
       "description": "Forces Gboard to always operate in incognito mode (disabling personalized learning and persistent input logging) while keeping clipboard functionality enabled.",
       "default": false,
@@ -1343,6 +1598,49 @@
             },
             {
               "version": "18.2.4.969776716-lite_beta-armeabi-v7a",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Ghost Mode",
+      "description": "Enables anonymous profile and story browsing: suppresses outbound profile view records and story view pings while preserving your ability to see who viewed your profile.",
+      "default": false,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.zhiliaoapp.musically",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -1795,7 +2093,7 @@
     },
     {
       "name": "Media Usability & Watermark-Free Downloader",
-      "description": "Enables progress seekbar scrubbing on all videos, unblocks the download button on creator-restricted videos, and routes downloads to clean unwatermarked media streams.",
+      "description": "Unblocks the download button on creator-restricted videos and Stories inside the Share panel, and routes downloads to clean unwatermarked media streams.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [
@@ -2034,7 +2332,7 @@
     },
     {
       "name": "Resource Slimmer",
-      "description": "Strips bundled stock wallpapers and sponsored Speed Dial thumbnails to reduce APK size.",
+      "description": "Strips bundled stock wallpapers, sponsored Speed Dial thumbnails, partner favicons, Privacy Sandbox attestations, and hardens declarative preference defaults.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [
@@ -2112,6 +2410,92 @@
       ]
     },
     {
+      "name": "Sensor Privacy Guard",
+      "description": "Neutralizes motion, ambient, and orientation sensor providers to prevent hardware fingerprinting and tracking via Generic Sensor APIs.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.brave.browser",
+          "name": "Brave Private Web Browser, VPN",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FF4500",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.95.101",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.vivaldi.browser",
+          "name": "Vivaldi Browser - Fast & Safe",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#EF3939",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "8.2.4147.77",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Show seekbar",
+      "description": "Restores TikTok's native video seekbar and scrubbing controls where normally hidden or disabled.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.zhiliaoapp.musically",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.ss.android.ugc.trill",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Skip First Run",
       "description": "Skips the welcome screen, search engine selection, and onboarding First Run Experience (FRE) on clean installs.",
       "default": true,
@@ -2187,6 +2571,32 @@
           "targets": [
             {
               "version": "46.9.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Split Bundle Compatibility",
+      "description": "Removes split APK constraints (isSplitRequired, isolatedSplits) and split metadata from AndroidManifest.xml for standalone APK installation.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.vivaldi.browser",
+          "name": "Vivaldi Browser - Fast & Safe",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#EF3939",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "8.2.4147.77",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -2361,7 +2771,7 @@
     },
     {
       "name": "Video Quality Governor",
-      "description": "Caps maximum video playback resolution (1080p, 720p, 540p, 480p, 360p) to reduce GPU/MediaCodec load, lower memory retention, and prevent playback buffering.",
+      "description": "Caps video playback and download resolutions (1080p, 720p, 540p, 480p, 360p) independently to conserve battery, GPU/MediaCodec load, and mobile data.",
       "default": false,
       "dependencies": [],
       "compatiblePackages": [
@@ -2403,11 +2813,20 @@
       "options": [
         {
           "key": "maxQuality",
-          "title": "Maximum Video Resolution",
-          "description": "Select maximum resolution ceiling: 1080 (1080p ExtremelyHigh), 720 (720p SuperHigh), 540 (540p H_High), 480 (480p High), or 360 (360p Standard).",
+          "title": "Maximum Playback Resolution",
+          "description": "Select maximum video playback resolution ceiling: 1080 (1080p ExtremelyHigh), 720 (720p SuperHigh), 540 (540p H_High), 480 (480p High), or 360 (360p Standard).",
           "required": false,
           "type": "kotlin.String",
           "default": "480",
+          "values": null
+        },
+        {
+          "key": "maxDownloadQuality",
+          "title": "Maximum Download Resolution",
+          "description": "Select maximum video download resolution ceiling: 1080 (1080p Maximum Quality), 720 (720p SuperHigh), 540 (540p H_High), 480 (480p High), or 360 (360p Standard).",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "1080",
           "values": null
         }
       ]
@@ -2416,7 +2835,9 @@
       "name": "Vivaldi Startup Performance Optimization",
       "description": "Guards against fatal CompositorView NullPointerException crashes on cold startup and bypasses carrier partner customizations.",
       "default": true,
-      "dependencies": [],
+      "dependencies": [
+        "ResourcePatch"
+      ],
       "compatiblePackages": [
         {
           "packageName": "com.vivaldi.browser",

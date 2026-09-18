@@ -46,7 +46,7 @@ private val clipboardTextHelperFingerprint = Fingerprint(
 @Suppress("unused")
 val copyCommentsWithoutUsernamePatch = bytecodePatch(
     name = "Copy comments without username",
-    description = "Copies only the comment text without including the creator's username.",
+    description = "Copies only the comment text without including the creator's username. Switch: Hushfeed settings > Comments.",
     default = true,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

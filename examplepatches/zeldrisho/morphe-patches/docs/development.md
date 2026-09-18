@@ -8,9 +8,10 @@ For environment setup see [toolchain setup](toolchain.md).
 1. [Toolchain setup](toolchain.md) — install once per host.
 2. [CLI patching](cli.md) — terminal flows (Morphe CLI flags, `repatch.py`, signing).
 3. [Reverse engineering workflow](reverse-engineering.md) — finding targets.
-4. [Patch development](patch-development.md) — writing, building, and testing patches.
-5. [Validation guide](validation.md) — per-release and per-update device procedure.
-6. [Release process](release.md) — branching, versioning, and publishing.
+4. [Analysis workspace](analysis.md) — organizing local APK investigation artifacts.
+5. [Patch development](patch-development.md) — writing, building, and testing patches.
+6. [Validation guide](validation.md) — per-release and per-update device procedure.
+7. [Release process](release.md) — branching, versioning, and publishing.
 
 ## Prerequisites
 

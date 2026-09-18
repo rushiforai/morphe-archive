@@ -53,7 +53,7 @@ val feedFilterPatch = bytecodePatch(
         "counts. Sponsored cards are dropped from the profile video viewer, the search grids " +
         "and the Friends tab as well as the feed, and so are the mid-roll ads TikTok splices " +
         "into a video pager after the list has loaded. The share prompt that appears after a " +
-        "like can also be hidden.",
+        "like can also be hidden. Switch: Hushfeed settings > Feed filter.",
     default = true,
 ) {
     dependsOn(settingsPatch, 

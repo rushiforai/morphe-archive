@@ -18,7 +18,7 @@ private const val EXTENSION_DESCRIPTOR =
 @Suppress("unused")
 val stopVideoLoopingPatch = bytecodePatch(
     name = "Stop video looping",
-    description = "Stops videos at the end instead of replaying them.",
+    description = "Stops videos at the end instead of replaying them. Switch: Hushfeed settings > App.",
     default = true,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

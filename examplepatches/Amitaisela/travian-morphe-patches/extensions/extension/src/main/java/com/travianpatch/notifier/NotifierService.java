@@ -3,15 +3,12 @@ package com.travianpatch.notifier;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.IBinder;
-import android.util.Base64;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
@@ -19,50 +16,37 @@ import androidx.core.app.NotificationCompat;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.security.MessageDigest;
-import java.security.SecureRandom;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import okhttp3.MediaType;
+import okhttp3.Cookie;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okio.BufferedSink;
 
 /**
  * Standalone notifier for Travian: Legends build/troop-training queues.
  *
- * Logs in independently of the game's own Unity/IL2CPP layer (same public
- * HTTP API the app itself uses), polls for active queues, and fires a local
- * notification whenever one completes. Does not touch game logic at all.
+ * Resumes the session captured once by LoginActivity (same public HTTP API
+ * the app itself uses), polls for active queues, and fires a local
+ * notification with details whenever one completes. Does not touch game
+ * logic at all.
  */
 public class NotifierService extends Service {
 
     private static final String TAG = "TravianNotifier";
-    private static final String CHANNEL_ID = "travian_notifier";
-    private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-
-    // --- account + API constants (discovered via traffic capture) ---
-    // Non-final: the patch injects sput-object instructions at build time
-    // (from user-configurable patch options) to overwrite these defaults.
-    public static String EMAIL = "you@example.com";
-    public static String PASSWORD = "changeme";
-    private static final String CLIENT_ID = "HIaSfC2LNQ1yXOMuY7Pc2uIH3EqkAi26";
-    private static final String IDENTITY_HOST = "https://identity.service.legends.travian.info";
-    private static final String LOBBY_HOST = "https://lobby.legends.travian.com";
+    private static final String CHANNEL_ID = NotifierBootstrap.CHANNEL_ID;
     private static final long POLL_INTERVAL_MS = 60_000L;
+    private static final long SESSION_SEED_TTL_MS = TimeUnit.DAYS.toMillis(3650);
 
     private static volatile boolean running = false;
 
     private OkHttpClient http;
     private String gameworldHost; // e.g. https://ts12.x1.europe.travian.com
-    private final Set<String> notifiedEventIds = new HashSet<String>();
+    private final Map<String, TrackedEvent> tracked = new HashMap<String, TrackedEvent>();
     private Thread worker;
 
-    /** Called from the patched Activity's onCreate(). Safe to call repeatedly. */
+    /** Called from the patched Activity's onCreate() once a login session exists. Safe to call repeatedly. */
     public static void start(Context ctx) {
         if (running) {
             return;
@@ -93,11 +77,7 @@ public class NotifierService extends Service {
         createChannel();
         startForeground(1, buildStatusNotification("Watching for build/troop timers…"));
 
-        http = new OkHttpClient.Builder()
-                .cookieJar(new SimpleCookieJar())
-                .connectTimeout(15, TimeUnit.SECONDS)
-                .readTimeout(15, TimeUnit.SECONDS)
-                .build();
+        http = TravianApi.newClient(new SimpleCookieJar());
 
         worker = new Thread(new Runnable() {
             @Override
@@ -128,9 +108,15 @@ public class NotifierService extends Service {
         while (running) {
             try {
                 if (gameworldHost == null) {
-                    login();
+                    resumeSession();
                 }
                 poll();
+            } catch (SessionInvalidException sie) {
+                Log.w(TAG, "stored session no longer valid, asking to log in again: " + sie.getMessage());
+                SecureStore.clear(this);
+                NotifierBootstrap.promptLogin(this);
+                stopSelf();
+                return;
             } catch (Exception e) {
                 Log.w(TAG, "poll/login cycle failed, will retry: " + e);
                 gameworldHost = null; // force re-login next time
@@ -144,35 +130,47 @@ public class NotifierService extends Service {
     }
 
     // ------------------------------------------------------------------
-    // auth flow (mirrors the app's own login sequence)
+    // session resume (no password involved — see LoginActivity for that)
     // ------------------------------------------------------------------
 
-    private void login() throws Exception {
-        String codeVerifier = randomUrlSafe(32);
-        String codeChallenge = sha256UrlSafe(codeVerifier);
+    private static final class SessionInvalidException extends Exception {
+        SessionInvalidException(String msg) {
+            super(msg);
+        }
+    }
 
-        JSONObject step1Body = new JSONObject();
-        step1Body.put("code_challenge_method", "S256");
-        step1Body.put("login", EMAIL);
-        step1Body.put("password", PASSWORD);
-        step1Body.put("code_challenge", codeChallenge);
-        JSONObject step1 = postJson(IDENTITY_HOST + "/provider/login?client_id=" + CLIENT_ID, step1Body);
-        String authCode = step1.getString("code");
+    private void resumeSession() throws Exception {
+        String sessionCookie = SecureStore.loadSessionCookie(this);
+        if (sessionCookie == null) {
+            throw new SessionInvalidException("no saved login session");
+        }
 
-        JSONObject step2Body = new JSONObject();
-        step2Body.put("code", authCode);
-        step2Body.put("code_verifier", codeVerifier);
-        step2Body.put("locale", "en-US");
-        postJson(LOBBY_HOST + "/api/auth/code", step2Body); // sets _tl_lobby_session cookie
+        SimpleCookieJar jar = (SimpleCookieJar) http.cookieJar();
+        String lobbyHost = TravianApi.hostOf(TravianApi.LOBBY_HOST);
+        Cookie cookie = new Cookie.Builder()
+                .name(TravianApi.LOBBY_SESSION_COOKIE)
+                .value(sessionCookie)
+                .domain(lobbyHost)
+                .path("/")
+                .httpOnly()
+                .secure()
+                .expiresAt(System.currentTimeMillis() + SESSION_SEED_TTL_MS)
+                .build();
+        jar.seed(lobbyHost, cookie);
 
         String avatarsQuery = "{ \"query\": \"query { a: avatars(wuid: null, context: null) "
                 + "{ uuid, gameworld { metadata { url } } } }\" }";
         Request avatarsReq = new Request.Builder()
-                .url(LOBBY_HOST + "/api/graphql")
-                .post(jsonBody(avatarsQuery))
+                .url(TravianApi.LOBBY_HOST + "/api/graphql")
+                .post(TravianApi.jsonBody(avatarsQuery))
                 .build();
-        JSONObject avatarsResp = executeJson(avatarsReq);
-        JSONArray avatars = avatarsResp.getJSONObject("data").getJSONArray("a");
+        JSONObject avatarsResp = TravianApi.executeJson(http, avatarsReq);
+        JSONObject data = avatarsResp.optJSONObject("data");
+        if (data == null) {
+            // the saved session was rejected outright (expired/revoked) — needs a fresh login
+            throw new SessionInvalidException("session rejected by lobby: " + avatarsResp);
+        }
+        JSONArray avatars = data.getJSONArray("a");
         if (avatars.length() == 0) {
             throw new IllegalStateException("no avatars/villages found for this account");
         }
@@ -182,20 +180,20 @@ public class NotifierService extends Service {
         String worldHost = worldUrl.endsWith("/") ? worldUrl.substring(0, worldUrl.length() - 1) : worldUrl;
 
         Request playReq = new Request.Builder()
-                .url(LOBBY_HOST + "/api/avatar/play/" + avatarUuid)
-                .post(emptyBody())
+                .url(TravianApi.LOBBY_HOST + "/api/avatar/play/" + avatarUuid)
+                .post(TravianApi.emptyBody())
                 .build();
-        JSONObject playResp = executeJson(playReq);
+        JSONObject playResp = TravianApi.executeJson(http, playReq);
         String worldCode = playResp.getString("code");
 
         Request worldAuthReq = new Request.Builder()
                 .url(worldHost + "/api/v1/auth?redirect=false&code=" + worldCode + "&response_type=token")
-                .post(emptyBody())
+                .post(TravianApi.emptyBody())
                 .build();
-        executeJson(worldAuthReq); // sets JWT cookie for worldHost
+        TravianApi.executeJson(http, worldAuthReq); // sets JWT cookie for worldHost
 
         gameworldHost = worldHost;
-        Log.i(TAG, "logged in, gameworld host = " + gameworldHost);
+        Log.i(TAG, "resumed session, gameworld host = " + gameworldHost);
     }
 
     // ------------------------------------------------------------------
@@ -203,7 +201,7 @@ public class NotifierService extends Service {
     // ------------------------------------------------------------------
 
     private static final String POLL_QUERY =
-            "{ \"query\": \"query { p: ownPlayer { villages { id name "
+            "{ \"query\": \"query { p: ownPlayer { villages { id name x y "
             + "buildEvents { id buildingTypeId aspiredLevel timestamp status isActive } "
             + "trainingTroops { eventId unitsLeft nextUnitReadyAt } "
             + "stable { trainingUnits { eventId unitsLeft nextUnitReadyAt } } "
@@ -213,9 +211,9 @@ public class NotifierService extends Service {
     private void poll() throws Exception {
         Request req = new Request.Builder()
                 .url(gameworldHost + "/api/v1/graphql")
-                .post(jsonBody(POLL_QUERY))
+                .post(TravianApi.jsonBody(POLL_QUERY))
                 .build();
-        JSONObject resp = executeJson(req);
+        JSONObject resp = TravianApi.executeJson(http, req);
         JSONObject data = resp.optJSONObject("data");
         if (data == null) {
             throw new IllegalStateException("no data in poll response (session likely expired): " + resp);
@@ -223,55 +221,48 @@ public class NotifierService extends Service {
         JSONObject player = data.getJSONObject("p");
         JSONArray villages = player.getJSONArray("villages");
 
-        Set<String> stillActive = new HashSet<String>();
+        Map<String, TrackedEvent> stillActive = new HashMap<String, TrackedEvent>();
 
         for (int i = 0; i < villages.length(); i++) {
             JSONObject village = villages.getJSONObject(i);
             String villageName = village.optString("name", "your village");
+            int vx = village.optInt("x", 0);
+            int vy = village.optInt("y", 0);
 
             JSONArray buildEvents = village.optJSONArray("buildEvents");
             if (buildEvents != null) {
                 for (int j = 0; j < buildEvents.length(); j++) {
                     JSONObject ev = buildEvents.getJSONObject(j);
                     String id = "build:" + ev.optLong("id");
-                    stillActive.add(id);
-                    if (!notifiedEventIds.contains(id)) {
-                        // first time we've seen it: nothing to notify yet, just track it
-                        notifiedEventIds.add(id + ":seen");
-                    }
+                    stillActive.put(id, new TrackedEvent("build", villageName, vx, vy,
+                            ev.optInt("buildingTypeId", -1), ev.optInt("aspiredLevel", -1), 0));
                 }
             }
-            collectQueue(village.optJSONArray("trainingTroops"), "train", villageName, stillActive);
+            collectQueue(village.optJSONArray("trainingTroops"), "train", villageName, vx, vy, stillActive);
             JSONObject stable = village.optJSONObject("stable");
             if (stable != null) {
-                collectQueue(stable.optJSONArray("trainingUnits"), "stable", villageName, stillActive);
+                collectQueue(stable.optJSONArray("trainingUnits"), "stable", villageName, vx, vy, stillActive);
             }
             JSONObject barracks = village.optJSONObject("barracks");
             if (barracks != null) {
-                collectQueue(barracks.optJSONArray("trainingUnits"), "barracks", villageName, stillActive);
+                collectQueue(barracks.optJSONArray("trainingUnits"), "barracks", villageName, vx, vy, stillActive);
             }
         }
 
-        // sweep: any previously-seen id no longer present => completed
-        Set<String> toRemove = new HashSet<String>();
-        for (String tracked : notifiedEventIds) {
-            if (!tracked.endsWith(":seen")) {
-                continue;
-            }
-            String bareId = tracked.substring(0, tracked.length() - ":seen".length());
-            if (!stillActive.contains(bareId)) {
-                notify(describeCompletion(bareId));
-                toRemove.add(tracked);
+        // sweep: anything tracked from the previous cycle that's no longer active just completed
+        for (Map.Entry<String, TrackedEvent> entry : tracked.entrySet()) {
+            if (!stillActive.containsKey(entry.getKey())) {
+                notify(describeCompletion(entry.getValue()));
             }
         }
-        notifiedEventIds.removeAll(toRemove);
+        tracked.clear();
+        tracked.putAll(stillActive);
 
-        Log.i(TAG, "poll ok: villages=" + villages.length()
-                + " active=" + stillActive + " tracked=" + notifiedEventIds
-                + " completedThisRound=" + toRemove.size());
+        Log.i(TAG, "poll ok: villages=" + villages.length() + " active=" + stillActive.size());
     }
 
-    private void collectQueue(JSONArray queue, String kind, String villageName, Set<String> stillActive) {
+    private void collectQueue(JSONArray queue, String kind, String villageName, int vx, int vy,
+                               Map<String, TrackedEvent> stillActive) {
         if (queue == null) {
             return;
         }
@@ -281,22 +272,49 @@ public class NotifierService extends Service {
                 continue;
             }
             String id = kind + ":" + ev.optLong("eventId") + ":" + villageName;
-            stillActive.add(id);
-            String seenKey = id + ":seen";
-            if (!notifiedEventIds.contains(seenKey)) {
-                notifiedEventIds.add(seenKey);
+            // keep the count as first observed — unitsLeft counts down each poll
+            TrackedEvent existing = tracked.get(id);
+            if (existing != null) {
+                stillActive.put(id, existing);
+            } else {
+                stillActive.put(id, new TrackedEvent(kind, villageName, vx, vy, -1, -1, ev.optInt("unitsLeft", 0)));
             }
         }
     }
 
-    private String describeCompletion(String bareId) {
-        if (bareId.startsWith("build:")) {
-            return "A building upgrade has finished!";
+    private String describeCompletion(TrackedEvent ev) {
+        String location = ev.villageName + " (" + ev.villageX + "|" + ev.villageY + ")";
+        if ("build".equals(ev.kind)) {
+            String name = GameData.buildingName(ev.buildingTypeId);
+            String level = ev.aspiredLevel >= 0 ? " upgraded to level " + ev.aspiredLevel : " upgrade finished";
+            return name + level + " — " + location;
         }
-        if (bareId.startsWith("train:") || bareId.startsWith("stable:") || bareId.startsWith("barracks:")) {
-            return "Troop training has finished!";
+        String label = "train".equals(ev.kind) ? "Troop training"
+                : "stable".equals(ev.kind) ? "Stable training"
+                : "Barracks training";
+        String count = ev.initialUnitsLeft > 0 ? " (" + ev.initialUnitsLeft + " units)" : "";
+        return label + " finished" + count + " — " + location;
+    }
+
+    private static final class TrackedEvent {
+        final String kind; // "build" | "train" | "stable" | "barracks"
+        final String villageName;
+        final int villageX;
+        final int villageY;
+        final int buildingTypeId; // -1 for troop-training events
+        final int aspiredLevel; // -1 for troop-training events
+        final int initialUnitsLeft; // 0 for build events
+
+        TrackedEvent(String kind, String villageName, int villageX, int villageY,
+                     int buildingTypeId, int aspiredLevel, int initialUnitsLeft) {
+            this.kind = kind;
+            this.villageName = villageName;
+            this.villageX = villageX;
+            this.villageY = villageY;
+            this.buildingTypeId = buildingTypeId;
+            this.aspiredLevel = aspiredLevel;
+            this.initialUnitsLeft = initialUnitsLeft;
         }
-        return "A queue has finished in your village!";
     }
 
     // ------------------------------------------------------------------
@@ -340,79 +358,5 @@ public class NotifierService extends Service {
                 .setAutoCancel(true)
                 .build();
         nm.notify((int) System.currentTimeMillis(), n);
-    }
-
-    // ------------------------------------------------------------------
-    // http helpers
-    // ------------------------------------------------------------------
-
-    private JSONObject postJson(String url, JSONObject body) throws Exception {
-        Request req = new Request.Builder()
-                .url(url)
-                .post(jsonBody(body.toString()))
-                .build();
-        return executeJson(req);
-    }
-
-    private JSONObject executeJson(Request req) throws Exception {
-        Response resp = http.newCall(req).execute();
-        try {
-            String bodyStr = resp.body() != null ? resp.body().string() : "";
-            if (bodyStr.length() == 0) {
-                return new JSONObject();
-            }
-            return new JSONObject(bodyStr);
-        } finally {
-            resp.close();
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // request body helpers (avoids OkHttp version-specific RequestBody.create
-    // overload ordering, which differs between OkHttp 3.x and 4.x)
-    // ------------------------------------------------------------------
-
-    private static RequestBody jsonBody(final String content) {
-        return new RequestBody() {
-            @Override
-            public MediaType contentType() {
-                return JSON;
-            }
-
-            @Override
-            public void writeTo(BufferedSink sink) throws java.io.IOException {
-                sink.writeUtf8(content);
-            }
-        };
-    }
-
-    private static RequestBody emptyBody() {
-        return new RequestBody() {
-            @Override
-            public MediaType contentType() {
-                return null;
-            }
-
-            @Override
-            public void writeTo(BufferedSink sink) throws java.io.IOException {
-                // no body
-            }
-        };
-    }
-
-    // ------------------------------------------------------------------
-    // PKCE helpers
-    // ------------------------------------------------------------------
-
-    private static String randomUrlSafe(int numBytes) {
-        byte[] b = new byte[numBytes];
-        new SecureRandom().nextBytes(b);
-        return Base64.encodeToString(b, Base64.URL_SAFE | Base64.NO_PADDING | Base64.NO_WRAP);
-    }
-
-    private static String sha256UrlSafe(String input) throws Exception {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] hash = digest.digest(input.getBytes("UTF-8"));
-        return Base64.encodeToString(hash, Base64.URL_SAFE | Base64.NO_PADDING | Base64.NO_WRAP);
     }
 }

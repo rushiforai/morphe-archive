@@ -353,7 +353,10 @@ public final class BlockAuthorOverlay {
         Drawable glyph = new OverlayGlyphDrawable(OverlayGlyphDrawable.Shape.NOTE,
                 SettingsUi.OVERLAY_TEXT, SettingsUi.dp(activity, 2));
         button.setBackground(SettingsUi.overlayControl(activity, SettingsUi.RADIUS_OVERLAY, glyph));
-        button.setOnClickListener(view -> onBlockSoundTapped());
+        button.setOnClickListener(view -> {
+            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+            onBlockSoundTapped();
+        });
         installDrag(button);
         return button;
     }
@@ -366,7 +369,10 @@ public final class BlockAuthorOverlay {
         Drawable glyph = new OverlayGlyphDrawable(OverlayGlyphDrawable.Shape.CROSS,
                 SettingsUi.OVERLAY_TEXT, SettingsUi.dp(activity, 2));
         button.setBackground(SettingsUi.overlayControl(activity, SettingsUi.RADIUS_OVERLAY, glyph));
-        button.setOnClickListener(view -> onLocalHideTapped());
+        button.setOnClickListener(view -> {
+            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+            onLocalHideTapped();
+        });
         installDrag(button);
         return button;
     }
@@ -383,7 +389,10 @@ public final class BlockAuthorOverlay {
         Drawable glyph = new OverlayGlyphDrawable(OverlayGlyphDrawable.Shape.MINUS,
                 SettingsUi.OVERLAY_TEXT, SettingsUi.dp(activity, 2));
         button.setBackground(SettingsUi.overlayControl(activity, SettingsUi.RADIUS_OVERLAY, glyph));
-        button.setOnClickListener(view -> NotInterested.submit());
+        button.setOnClickListener(view -> {
+            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+            NotInterested.submit();
+        });
         installDrag(button);
         return button;
     }
@@ -428,7 +437,10 @@ public final class BlockAuthorOverlay {
                 SettingsUi.OVERLAY_TEXT, SettingsUi.dp(activity, 2));
         button.setBackground(SettingsUi.overlayControl(activity, SettingsUi.RADIUS_OVERLAY, glyph));
 
-        button.setOnClickListener(view -> onBlockTapped());
+        button.setOnClickListener(view -> {
+            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+            onBlockTapped();
+        });
         installDrag(button);
         return button;
     }
@@ -474,7 +486,9 @@ public final class BlockAuthorOverlay {
             dragging = true;
             view.setAlpha(0.75f);
             view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-            Utils.showToastShort(L10n.t("Drag to move, release to place"));
+            if (positionSetting(view).get().isEmpty()) {
+                Utils.showToastShort(L10n.t("Drag to move, release to place"));
+            }
             return true;
         });
 

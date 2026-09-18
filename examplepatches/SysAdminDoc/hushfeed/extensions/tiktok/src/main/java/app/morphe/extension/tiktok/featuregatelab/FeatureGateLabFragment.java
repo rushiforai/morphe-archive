@@ -164,7 +164,7 @@ public final class FeatureGateLabFragment extends Fragment {
         int containerId = findFragmentContainer(activity);
         if (containerId == View.NO_ID) {
             Utils.showToastLong(L10n.t(Utils.getContext(),
-                    "Feature Gate Lab could not find the settings container"));
+                    "The Lab could not open. Go back and open it again."));
             return;
         }
         FeatureGateLabSession.begin();
@@ -358,7 +358,7 @@ public final class FeatureGateLabFragment extends Fragment {
                 FeatureGateLabUi.dp(context, 2),
                 FeatureGateLabUi.dp(context, 2)
         );
-        viewTabs.setBackground(SettingsUi.borderedSurface(context, 6, false));
+        viewTabs.setBackground(SettingsUi.borderedSurface(context, SettingsUi.RADIUS_CONTROL, false));
         for (int i = 0; i < VIEW_LABELS.length; i++) {
             final int position = i;
             TextView tab = FeatureGateLabUi.text(context, L10n.t(context, VIEW_LABELS[i]), 14,
@@ -885,9 +885,10 @@ public final class FeatureGateLabFragment extends Fragment {
         int padding = FeatureGateLabUi.dp(context, 16);
         selectionBar.setPadding(padding, FeatureGateLabUi.dp(context, 12), padding,
                 FeatureGateLabUi.dp(context, 12));
-        selectionBar.setBackground(SettingsUi.roundedSurface(context, 0, false));
+        selectionBar.setBackground(SettingsUi.roundedSurface(context, SettingsUi.RADIUS_SQUARE, false));
 
         selectionCount = FeatureGateLabUi.label(context, "");
+        selectionCount.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         selectionBar.addView(selectionCount, FeatureGateLabUi.matchWrap());
 
         // Four labels do not fit one line at large text, and four German labels do not fit one
@@ -905,6 +906,11 @@ public final class FeatureGateLabFragment extends Fragment {
             onSelectionChanged();
         }, false));
         selectionBar.addView(actions, FeatureGateLabUi.matchWrap());
+
+        TextView selectionHint = FeatureGateLabUi.label(context,
+                L10n.t(context, "Hold a gate to choose several"));
+        selectionHint.setTextColor(SettingsUi.textSecondary());
+        selectionBar.addView(selectionHint, FeatureGateLabUi.matchWrap());
         return selectionBar;
     }
 
@@ -1113,7 +1119,7 @@ public final class FeatureGateLabFragment extends Fragment {
                     .addCategory(Intent.CATEGORY_OPENABLE)
                     .setType("application/gzip")
                     .putExtra(Intent.EXTRA_TITLE,
-                            "tiktok-46.2.3-loaded-feature-gates-" + timestamp + ".json.gz");
+                            "tiktok-" + FeatureGateLabStore.TARGET_VERSION + "-loaded-feature-gates-" + timestamp + ".json.gz");
             startActivityForResult(intent, REQUEST_EXPORT_LOADED);
         } catch (Throwable throwable) {
             Utils.showToastLong(L10n.t(Utils.getContext(),
@@ -1154,7 +1160,7 @@ public final class FeatureGateLabFragment extends Fragment {
                 Logger.printException(() -> "Loaded-value file export failed", throwable);
                 postToast(L10n.t(Utils.getContext(), deleteCreatedDocument(resolver, uri)
                         ? "Loaded-value file export failed"
-                        : "Loaded-value file export failed; cleanup also failed"));
+                        : "The export failed and the partial file could not be removed. Delete it from your Downloads folder."));
             }
         });
     }
@@ -1181,7 +1187,7 @@ public final class FeatureGateLabFragment extends Fragment {
                 // used to be reported as invalid or too large, the same as a corrupt one.
                 postToast(throwable instanceof ImportRefused
                         ? throwable.getMessage()
-                        : L10n.t(Utils.getContext(), "Loaded-value file is invalid or too large"));
+                        : L10n.t(Utils.getContext(), "That file is not a loaded-values export, or it is larger than the Lab accepts."));
             }
         });
     }
@@ -1764,6 +1770,18 @@ public final class FeatureGateLabFragment extends Fragment {
                 if (stacked) stateParams.setMargins(0, FeatureGateLabUi.dp(context, 8), 0, 0);
                 row.addView(stateColumn, stateParams);
 
+                row.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+                    @Override
+                    public void onInitializeAccessibilityNodeInfo(
+                            View host, android.view.accessibility.AccessibilityNodeInfo info) {
+                        super.onInitializeAccessibilityNodeInfo(host, info);
+                        info.addAction(
+                                new android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction(
+                                        android.view.accessibility.AccessibilityNodeInfo
+                                                .AccessibilityAction.ACTION_LONG_CLICK.getId(),
+                                        L10n.t(context, "Select")));
+                    }
+                });
                 holder = new RowHolder(title, key, type, value, state, chosenMark);
                 row.setTag(holder);
                 convertView = row;

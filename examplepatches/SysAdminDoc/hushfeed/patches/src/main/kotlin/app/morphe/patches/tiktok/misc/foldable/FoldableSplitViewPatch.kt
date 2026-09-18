@@ -30,7 +30,7 @@ private object ContainerCheck : Fingerprint(
 @Suppress("unused")
 val foldableSplitViewPatch = bytecodePatch(
     name = "Foldable split comment view",
-    description = "Shows comments beside the video on windows wider than a configurable threshold. Off by default.",
+    description = "Shows comments beside the video on windows wider than a configurable threshold. Off by default. Switch: Hushfeed settings > App.",
     default = false,
 ) {
     compatibleWith(*AppCompatibilities.tiktok4623())

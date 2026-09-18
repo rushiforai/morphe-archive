@@ -49,7 +49,7 @@ public class ActionRowChevronTest {
                 chevronOf(screen, 0));
         assertNull("Start today over still looks like a row that opens a page",
                 chevronOf(screen, 1));
-        assertNull("Clear the seen video history still looks like a row that opens a page",
+        assertNull("Clear seen videos still looks like a row that opens a page",
                 chevronOf(screen, 2));
     }
 

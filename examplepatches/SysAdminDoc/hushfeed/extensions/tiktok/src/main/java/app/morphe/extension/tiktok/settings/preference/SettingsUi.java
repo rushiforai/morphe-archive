@@ -32,6 +32,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.inputmethod.EditorInfo;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.AbsListView;
@@ -67,9 +68,19 @@ public final class SettingsUi {
     public static final @ColorInt int LIGHT_DIVIDER = Color.argb(255, 224, 224, 224);
     public static final @ColorInt int LIGHT_TEXT_PRIMARY = Color.rgb(22, 22, 28);
     public static final @ColorInt int LIGHT_TEXT_SECONDARY = Color.rgb(87, 87, 98);
-    public static final @ColorInt int LIGHT_TEXT_DISABLED = Color.argb(255, 140, 140, 140);
+    public static final @ColorInt int LIGHT_TEXT_DISABLED = Color.argb(255, 117, 117, 125);
 
     public static final int LIGHT_ACCENT = Color.rgb(184, 22, 77);
+
+    static final @ColorInt int DARK_SWITCH_TRACK_OFF = Color.rgb(100, 100, 111);
+    static final @ColorInt int LIGHT_SWITCH_TRACK_OFF = Color.rgb(116, 116, 127);
+    static final @ColorInt int SWITCH_THUMB = Color.WHITE;
+    static final @ColorInt int DARK_SWITCH_THUMB_STROKE = Color.rgb(225, 225, 230);
+    static final @ColorInt int LIGHT_SWITCH_THUMB_STROKE = Color.rgb(116, 116, 127);
+
+    public static @ColorInt int rippleTint() {
+        return (accent() & 0x00FFFFFF) | 0x26000000;
+    }
 
     /**
      * The corner radii this bundle draws with. Every rounded surface picks one of these rather
@@ -121,6 +132,12 @@ public final class SettingsUi {
 
     public static boolean isDarkMode() {
         return isDarkModeEnabled();
+    }
+
+    public static boolean isDarkContext(android.content.Context context) {
+        int night = context.getResources().getConfiguration().uiMode
+                & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+        return night == android.content.res.Configuration.UI_MODE_NIGHT_YES;
     }
 
     public static @ColorInt int accent() { return isDarkMode() ? ACCENT : LIGHT_ACCENT; }
@@ -229,12 +246,12 @@ public final class SettingsUi {
                 switchShape(context, (accent() & 0x00ffffff) | 0x66000000, 44, 26, 6));
         track.addState(new int[]{-android.R.attr.state_enabled}, switchShape(context, border(), 44, 26, 6));
         track.addState(new int[]{android.R.attr.state_checked}, switchShape(context, accent(), 44, 26, 6));
-        track.addState(new int[]{}, switchShape(context, isDarkMode() ? Color.rgb(100, 100, 111) : Color.rgb(116, 116, 127), 44, 26, 6));
+        track.addState(new int[]{}, switchShape(context, isDarkMode() ? DARK_SWITCH_TRACK_OFF : LIGHT_SWITCH_TRACK_OFF, 44, 26, 6));
         control.setTrackTintList(null);
         control.setThumbTintList(null);
         control.setTrackDrawable(track);
-        GradientDrawable thumb = switchShape(context, Color.WHITE, 20, 22, 4);
-        thumb.setStroke(dp(context, 1), isDarkMode() ? Color.rgb(225, 225, 230) : Color.rgb(116, 116, 127));
+        GradientDrawable thumb = switchShape(context, SWITCH_THUMB, 20, 22, 4);
+        thumb.setStroke(dp(context, 1), isDarkMode() ? DARK_SWITCH_THUMB_STROKE : LIGHT_SWITCH_THUMB_STROKE);
         control.setThumbDrawable(thumb);
         control.setSwitchMinWidth(dp(context, 44));
         control.setThumbTextPadding(0);
@@ -252,7 +269,7 @@ public final class SettingsUi {
     }
 
     public static Drawable groupedRow(Context context, boolean first, boolean last) {
-        return new RippleDrawable(ColorStateList.valueOf((accent() & 0x00ffffff) | 0x26000000),
+        return new RippleDrawable(ColorStateList.valueOf(rippleTint()),
                 new GroupRowDrawable(context, first, last),
                 groupRowMask(context, first, last));
     }
@@ -368,7 +385,7 @@ public final class SettingsUi {
      * press that made it rather than as a second idea.
      */
     public static int activatedFill() {
-        return (accent() & 0x00ffffff) | 0x26000000;
+        return rippleTint();
     }
 
     private static final class GroupRowDrawable extends Drawable {
@@ -587,6 +604,18 @@ public final class SettingsUi {
         }
     }
 
+    public static TextView sectionTitle(Context context, String text) {
+        TextView title = new TextView(context);
+        title.setText(text);
+        title.setTextColor(accent());
+        title.setTextSize(13);
+        title.setTypeface(title.getTypeface(), Typeface.BOLD);
+        if (android.os.Build.VERSION.SDK_INT >= 28) {
+            title.setAccessibilityHeading(true);
+        }
+        return title;
+    }
+
     public static TextView text(Context context, String value, float sizeSp, int color, int style) {
         TextView textView = new TextView(context);
         textView.setText(value);
@@ -595,6 +624,14 @@ public final class SettingsUi {
         textView.setTextSize(sizeSp);
         textView.setTypeface(textView.getTypeface(), style);
         return textView;
+    }
+
+    public static TextView dialogTitle(Context context, CharSequence text) {
+        TextView title = text(context, text.toString(), 20, textPrimary(), Typeface.BOLD);
+        markDialogHeading(title);
+        int padding = dp(context, 22);
+        title.setPadding(padding, padding, padding, dp(context, 12));
+        return title;
     }
 
     /** Marks a title in a hand-built dialog as a heading for accessibility services. */
@@ -841,7 +878,7 @@ public final class SettingsUi {
     public static void styleFramedDialog(Dialog dialog) {
         Window window = dialog.getWindow();
         if (window != null) {
-            window.setBackgroundDrawable(borderedSurface(dialog.getContext(), 10, true));
+            window.setBackgroundDrawable(borderedSurface(dialog.getContext(), RADIUS_CARD, true));
             constrainDialogWindow(dialog, window);
         }
 
@@ -1138,6 +1175,25 @@ public final class SettingsUi {
             }
             if (!check.accept()) return;
             dialog.dismiss();
+        });
+    }
+
+    /**
+     * Pressing the keyboard's Done key clicks the positive button so the dialog's own
+     * validation runs, rather than just hiding the keyboard and waiting for a tap.
+     */
+    public static void submitOnDone(EditText field, Dialog dialog) {
+        field.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        field.setOnEditorActionListener((view, actionId, event) -> {
+            boolean done = actionId == EditorInfo.IME_ACTION_DONE
+                    || (actionId == EditorInfo.IME_NULL && event != null
+                        && event.getKeyCode() == android.view.KeyEvent.KEYCODE_ENTER
+                        && event.getAction() == android.view.KeyEvent.ACTION_DOWN);
+            if (!done) return false;
+            if (!(dialog instanceof AlertDialog)) return false;
+            Button save = ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE);
+            if (save != null) save.performClick();
+            return true;
         });
     }
 

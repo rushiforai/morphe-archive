@@ -46,3 +46,18 @@ tasks {
         dependsOn("generatePatchesList")
     }
 }
+
+// Smoke-test harness: applies patches to a real APK and asserts on the emitted bytecode.
+// Each test reads its APK from the gitignored `apks/` directory and skips (rather than fails)
+// when that APK is absent, so CI stays green without the multi-hundred-MB inputs.
+// See patches/src/test/kotlin/.
+dependencies {
+    testImplementation(kotlin("test"))
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+}
+
+tasks.test {
+    useJUnitPlatform()
+    // The smoke tests load a ~100 MB multidex APK and parse every emitted dex in memory.
+    maxHeapSize = "2g"
+}

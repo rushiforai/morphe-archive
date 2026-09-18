@@ -97,7 +97,7 @@ public class TabSelectionPreference extends Preference {
         Set<String> selected = parseEnabledKeys(value);
         List<OptionRow> observedOptions = getObservedOptions();
         if (observedOptions.size() <= 1) {
-            setSummary(bottomTabs ? "Open TikTok home to detect loaded bottom tabs." : "Open TikTok home feed to detect loaded tabs.");
+            setSummary(bottomTabs ? "Open the feed once so Hushfeed can see which bottom tabs TikTok loaded." : "Open the feed once so Hushfeed can see which tabs TikTok loaded.");
             return;
         }
 
@@ -163,7 +163,7 @@ public class TabSelectionPreference extends Preference {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
-        helperParams.setMargins(0, SettingsUi.dp(getContext(), 16), 0, SettingsUi.dp(getContext(), 12));
+        helperParams.setMargins(0, SettingsUi.dp(getContext(), 14), 0, SettingsUi.dp(getContext(), 10));
         dialogView.addView(helper, helperParams);
 
         LinearLayout optionsContainer = new LinearLayout(context);
@@ -172,6 +172,19 @@ public class TabSelectionPreference extends Preference {
         int optionInset = Math.max(1, SettingsUi.dp(getContext(), 1));
         optionsContainer.setPadding(optionInset, optionInset, optionInset, optionInset);
 
+        boolean empty = observedOptions.size() <= 1;
+        if (empty) {
+            TextView emptyState = new TextView(context);
+            emptyState.setText(L10n.t(context, bottomTabs
+                    ? "Open the feed once so Hushfeed can see which bottom tabs TikTok loaded."
+                    : "Open the feed once so Hushfeed can see which tabs TikTok loaded."));
+            emptyState.setTextColor(SettingsUi.textSecondary());
+            emptyState.setTextSize(14);
+            emptyState.setGravity(Gravity.CENTER);
+            int emptyPad = SettingsUi.dp(context, 24);
+            emptyState.setPadding(emptyPad, emptyPad, emptyPad, emptyPad);
+            optionsContainer.addView(emptyState);
+        }
         for (OptionRow option : observedOptions) {
             optionsContainer.addView(createOptionRow(context, selected, option));
         }
@@ -213,6 +226,9 @@ public class TabSelectionPreference extends Preference {
         // selection they came in with, with no undo.
         View showAllButton = dialog.getButton(DialogInterface.BUTTON_NEUTRAL);
         if (showAllButton != null) {
+            if (empty) {
+                showAllButton.setEnabled(false);
+            }
             showAllButton.setOnClickListener(view -> {
                 selected.clear();
                 for (OptionRow option : observedOptions) {
@@ -399,7 +415,7 @@ public class TabSelectionPreference extends Preference {
     }
 
     private GradientDrawable createListBackground() {
-        return SettingsUi.borderedSurface(getContext(), 4, false);
+        return SettingsUi.borderedSurface(getContext(), SettingsUi.RADIUS_BADGE, false);
     }
 
     private static int getDialogBackgroundColor() {

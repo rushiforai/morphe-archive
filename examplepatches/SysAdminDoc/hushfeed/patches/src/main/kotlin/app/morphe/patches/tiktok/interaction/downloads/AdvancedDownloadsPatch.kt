@@ -206,7 +206,7 @@ private object StartDownloadFingerprint : Fingerprint(
 @Suppress("unused")
 val advancedDownloadsPatch = bytecodePatch(
     name = "Advanced downloads",
-    description = "Adds download quality choices, saves Photo Mode images directly from their source URLs, keeps a video's sound as its own audio file, and saves a profile picture or a story from a long press.",
+    description = "Adds download quality choices, saves Photo Mode images directly from their source URLs, keeps a video's sound as its own audio file, and saves a profile picture or a story from a long press. Switch: Hushfeed settings > Downloads.",
     default = false,
 ) {
     compatibleWith(*AppCompatibilities.tiktok4623())

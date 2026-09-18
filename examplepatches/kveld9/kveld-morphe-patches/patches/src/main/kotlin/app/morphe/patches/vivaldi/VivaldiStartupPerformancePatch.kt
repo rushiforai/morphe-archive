@@ -5,8 +5,51 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.opcode
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.Constants
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import org.w3c.dom.Element
+
+val vivaldiSplitCompatibilityPatch = resourcePatch(
+    name = "Split Bundle Compatibility",
+    description = "Removes split APK constraints (isSplitRequired, isolatedSplits) and split metadata from AndroidManifest.xml for standalone APK installation.",
+    default = true,
+) {
+    compatibleWith(Constants.COMPATIBILITY_VIVALDI)
+
+    execute {
+        val manifestFile = get("AndroidManifest.xml")
+        if (!manifestFile.exists()) return@execute
+
+        document(manifestFile.absolutePath).use { doc ->
+            val root = doc.documentElement
+            if (root != null) {
+                listOf(
+                    "android:requiredSplitTypes",
+                    "android:splitTypes",
+                    "android:isolatedSplits",
+                    "android:isSplitRequired",
+                ).forEach { attr ->
+                    if (root.hasAttribute(attr)) {
+                        root.removeAttribute(attr)
+                    }
+                }
+            }
+
+            val metaElements = doc.getElementsByTagName("meta-data")
+            val splitsMeta = mutableListOf<Element>()
+            for (i in 0 until metaElements.length) {
+                val elem = metaElements.item(i) as? Element ?: continue
+                if (elem.getAttribute("android:name") == "com.android.vending.splits") {
+                    splitsMeta.add(elem)
+                }
+            }
+            splitsMeta.forEach { it.parentNode?.removeChild(it) }
+        }
+        println("[Split Compatibility] Stripped split APK attributes & metadata from AndroidManifest.xml")
+    }
+}
 
 @Suppress("unused")
 val vivaldiStartupPerformancePatch = bytecodePatch(
@@ -15,6 +58,7 @@ val vivaldiStartupPerformancePatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(Constants.COMPATIBILITY_VIVALDI)
+    dependsOn(vivaldiSplitCompatibilityPatch)
 
     execute {
         // 1. Neutralize PartnerBrowserCustomizations.initializeAsync(Context).
@@ -54,12 +98,15 @@ val vivaldiStartupPerformancePatch = bytecodePatch(
                 opcode(Opcode.IF_NE),
                 opcode(Opcode.IGET_OBJECT),
                 opcode(Opcode.IGET_OBJECT),
+                opcode(Opcode.IF_EQZ),
+                opcode(Opcode.INVOKE_VIRTUAL),
             ),
         )
+        val targetReg = (fp2.method.implementation?.instructions?.elementAtOrNull(3) as? TwoRegisterInstruction)?.registerA ?: 2
         fp2.method.addInstructionsWithLabels(
             4,
             """
-                if-nez v2, :safe_continue
+                if-nez v$targetReg, :safe_continue
                 return-void
                 :safe_continue
                 nop
@@ -67,6 +114,25 @@ val vivaldiStartupPerformancePatch = bytecodePatch(
         )
         val c2 = app.morphe.patches.shared.LocaleUtils.cleanClassName(fp2.originalClassDef.type)
 
-        println("[Startup Performance] Neutralized $c1 async OEM init & patched $c2 CompositorView null safety")
+        // 3. Android Automotive OEM Reflection Guard:
+        // CarDataProvider.isModel(String) attempts Class.forName reflection on car OEM classes,
+        // throwing ClassNotFoundException and logging error spam on non-automotive Android devices.
+        var automotivePatched = false
+        try {
+            Fingerprint(
+                definingClass = "Lorg/vivaldi/browser/oem_extensions/CarDataProvider;",
+                name = "isModel",
+                parameters = listOf("Ljava/lang/String;"),
+                returnType = "Z",
+            ).method.apply {
+                addInstructions(0, "const/4 v0, 0x0\nreturn v0")
+                automotivePatched = true
+            }
+        } catch (e: Exception) {
+            println("[Startup Performance] CarDataProvider hook note: ${e.message}")
+        }
+
+        val autoNote = if (automotivePatched) " & suppressed Automotive reflection" else ""
+        println("[Startup Performance] Neutralized $c1 async OEM init, patched $c2 CompositorView null safety$autoNote")
     }
 }

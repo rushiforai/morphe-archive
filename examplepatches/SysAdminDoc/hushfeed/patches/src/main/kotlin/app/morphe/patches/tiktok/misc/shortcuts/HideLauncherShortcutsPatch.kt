@@ -119,7 +119,7 @@ val hideLauncherShortcutsPatch = bytecodePatch(
         "TikTok only rewrites them when it notices a difference, so this takes away what is " +
         "already published and answers the handover that would publish more. Turning it off " +
         "asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut " +
-        "pinned to a home screen is left alone.",
+        "pinned to a home screen is left alone. Switch: Hushfeed settings > App.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

@@ -14,20 +14,21 @@ import app.morphe.patcher.patch.resourcePatch
  */
 val manifestPatch = resourcePatch(
     name = "Travian notifier manifest entry",
-    description = "Adds the NotifierService <service> declaration.",
+    description = "Adds the NotifierService and LoginActivity declarations.",
     default = false, // pulled in automatically via dependsOn(); not user-toggleable
 ) {
     execute {
         val manifestFile = get("AndroidManifest.xml", true)
         val original = manifestFile.readText()
 
-        val serviceTag = """    <service android:name="com.travianpatch.notifier.NotifierService" android:enabled="true" android:exported="false" android:foregroundServiceType="dataSync"/>
+        val entries = """    <service android:name="com.travianpatch.notifier.NotifierService" android:enabled="true" android:exported="false" android:foregroundServiceType="dataSync"/>
+    <activity android:name="com.travianpatch.notifier.LoginActivity" android:enabled="true" android:exported="false" android:theme="@android:style/Theme.DeviceDefault.Light.Dialog"/>
 """
 
         val marker = "</application>"
         check(original.contains(marker)) { "Could not find </application> in AndroidManifest.xml" }
 
-        val patched = original.replaceFirst(marker, serviceTag + marker)
+        val patched = original.replaceFirst(marker, entries + marker)
         manifestFile.writeText(patched)
     }
 }

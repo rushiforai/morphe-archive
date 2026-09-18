@@ -1,0 +1,130 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
+ *
+ * Original hard forked code:
+ * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ */
+
+package app.morphe.patches.youtube.video.speed.custom
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.OpcodesFilter
+import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.literal
+import app.morphe.patcher.methodCall
+import app.morphe.patcher.newInstance
+import app.morphe.patcher.opcode
+import app.morphe.patcher.string
+import app.morphe.patches.all.misc.resources.ResourceType
+import app.morphe.patches.all.misc.resources.resourceLiteral
+import app.morphe.patches.youtube.shared.InitializePlaybackSpeedValuesFingerprint
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+
+internal object AudioTrackOldBottomSheetFingerprint : Fingerprint(
+    returnType = "V",
+    filters = listOf(
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            parameters = listOf(),
+            returnType = "Z"
+        ),
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            parameters = listOf(),
+            returnType = "Z"
+        ),
+        string("AUDIO_TRACKS_MENU_BOTTOM_SHEET_FRAGMENT"),
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            parameters = listOf("L", "Ljava/lang/String;"),
+            returnType = "V"
+        ),
+    )
+)
+
+internal object ShowOldPlaybackSpeedMenuFingerprint : Fingerprint(
+    classFingerprint = InitializePlaybackSpeedValuesFingerprint,
+    filters = listOf(
+        resourceLiteral(ResourceType.STRING, "varispeed_unavailable_message"),
+        opcode(Opcode.RETURN_VOID),
+        fieldAccess(
+            opcode = Opcode.IGET_OBJECT,
+            definingClass = "this"
+        )
+    )
+)
+
+internal object ShowOldPlaybackSpeedMenuExtensionFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS,
+    name = "showOldPlaybackSpeedMenu"
+)
+
+internal object ServerSideMaxSpeedFeatureFlagFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Z",
+    filters = listOf(
+        literal(45719140L)
+    )
+)
+
+internal object FlyoutMenuNonLegacyFeatureFlagFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf(),
+    filters = listOf(
+        literal(45731126)
+    )
+)
+
+internal object SpeedArrayGeneratorFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "[L",
+    parameters = listOf("L"),
+    filters = listOf(
+        methodCall(
+            name = "size",
+            returnType = "I"
+        ),
+        newInstance("Ljava/text/DecimalFormat;"),
+        string("0.0#"),
+        literal(7),
+        opcode(Opcode.NEW_ARRAY),
+        fieldAccess(
+            opcode = Opcode.SGET_OBJECT,
+            type = "[F"
+        )
+    )
+)
+
+internal object TapAndHoldSpeedFingerprint : Fingerprint(
+    name = "run",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf(),
+    filters = listOf(
+        fieldAccess(
+            opcode = Opcode.IGET_OBJECT,
+            type = "Landroid/os/Handler;"
+        ),
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            smali = "Landroid/os/Handler;->removeCallbacks(Ljava/lang/Runnable;)V"
+        ),
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            parameters = listOf(),
+            returnType = "Z"
+        ),
+        opcode(Opcode.IF_EQZ),
+        fieldAccess(
+            opcode = Opcode.IGET_BOOLEAN,
+            type = "Z"
+        ),
+        opcode(Opcode.IF_NEZ),
+        literal(2.0f)
+    )
+)

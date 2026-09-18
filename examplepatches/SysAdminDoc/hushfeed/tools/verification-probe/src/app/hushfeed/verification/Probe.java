@@ -265,6 +265,28 @@ public final class Probe extends Instrumentation {
                         Log.i(TAG, "ok labclear");
                         break;
                     }
+                    case "views": {
+                        // The current activity's view tree, one line per view that carries an
+                        // id, with its resource name, visibility, place, size and scale. With
+                        // -e find <name> only the views carrying that id name are printed, each
+                        // with the chain of id names above it. uiautomator cannot dump TikTok's
+                        // feed, and this is how a hider's target ids are checked against what is
+                        // really on screen. The log takes about 4 KB a line, so it goes out in
+                        // pieces the way the report does.
+                        android.app.Activity activity = (android.app.Activity) loader.loadClass(UTILS)
+                                .getMethod("getActivity").invoke(null);
+                        if (activity == null) throw new IllegalStateException("no current activity");
+                        String find = intent.getStringExtra("find");
+                        StringBuilder out = new StringBuilder();
+                        walkViews(activity.getWindow().getDecorView(), 0, find, out, activity.getResources());
+                        String text = out.toString();
+                        int pieces = 0;
+                        for (int at = 0; at < text.length(); at += 3000, pieces++) {
+                            Log.i(TAG, "views[" + pieces + "] " + text.substring(at, Math.min(text.length(), at + 3000)));
+                        }
+                        Log.i(TAG, "ok views " + text.length() + " chars in " + pieces + " pieces");
+                        break;
+                    }
                     default:
                         throw new IllegalArgumentException("unknown action: " + action);
                 }
@@ -293,6 +315,56 @@ public final class Probe extends Instrumentation {
             String value = intent.getStringExtra(name);
             if (value == null) throw new IllegalArgumentException("-e " + name + " is required");
             return value;
+        }
+
+        /** The resource entry name of a view's id, the raw number for an id without one. */
+        private static String idName(android.view.View view, android.content.res.Resources resources) {
+            int id = view.getId();
+            if (id == android.view.View.NO_ID) return null;
+            try {
+                return resources.getResourceEntryName(id);
+            } catch (android.content.res.Resources.NotFoundException missing) {
+                return "0x" + Integer.toHexString(id);
+            }
+        }
+
+        private static void walkViews(android.view.View view, int depth, String find, StringBuilder out,
+                android.content.res.Resources resources) {
+            String name = idName(view, resources);
+            boolean print = find == null ? name != null : find.equals(name);
+            if (print) {
+                int[] where = new int[2];
+                view.getLocationOnScreen(where);
+                // The obfuscated class says nothing; the first framework class above it says
+                // whether this is an ImageView, a TextView or a plain ViewGroup.
+                Class<?> framework = view.getClass();
+                while (framework != null && !framework.getName().startsWith("android.")) {
+                    framework = framework.getSuperclass();
+                }
+                out.append(depth).append(' ').append(view.getClass().getSimpleName())
+                        .append(" is=").append(framework == null ? "?" : framework.getSimpleName())
+                        .append(" id=").append(name)
+                        .append(" vis=").append(view.getVisibility())
+                        .append(" at=").append(where[0]).append(',').append(where[1])
+                        .append(" size=").append(view.getWidth()).append('x').append(view.getHeight())
+                        .append(" scale=").append(view.getScaleX());
+                if (find != null) {
+                    out.append(" under=");
+                    android.view.ViewParent parent = view.getParent();
+                    while (parent instanceof android.view.View) {
+                        String above = idName((android.view.View) parent, resources);
+                        if (above != null) out.append(above).append(" < ");
+                        parent = parent.getParent();
+                    }
+                }
+                out.append('\n');
+            }
+            if (view instanceof android.view.ViewGroup) {
+                android.view.ViewGroup group = (android.view.ViewGroup) view;
+                for (int i = 0, count = group.getChildCount(); i < count; i++) {
+                    walkViews(group.getChildAt(i), depth + 1, find, out, resources);
+                }
+            }
         }
 
         /** Opens the settings screen the same way the row inside TikTok's own settings does. */

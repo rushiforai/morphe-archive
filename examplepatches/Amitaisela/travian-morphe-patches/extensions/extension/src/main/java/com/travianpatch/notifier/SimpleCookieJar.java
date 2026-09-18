@@ -48,4 +48,33 @@ public class SimpleCookieJar implements CookieJar {
         }
         return result;
     }
+
+    /** Injects a cookie as if it had arrived in a response, e.g. one restored from disk. */
+    public synchronized void seed(String host, Cookie cookie) {
+        List<Cookie> existing = store.get(host);
+        if (existing == null) {
+            existing = new ArrayList<Cookie>();
+            store.put(host, existing);
+        }
+        for (int i = existing.size() - 1; i >= 0; i--) {
+            if (existing.get(i).name().equals(cookie.name())) {
+                existing.remove(i);
+            }
+        }
+        existing.add(cookie);
+    }
+
+    /** Reads back a cookie's value, e.g. right after a login response set it. */
+    public synchronized String getCookieValue(String host, String name) {
+        List<Cookie> cookies = store.get(host);
+        if (cookies == null) {
+            return null;
+        }
+        for (Cookie c : cookies) {
+            if (c.name().equals(name)) {
+                return c.value();
+            }
+        }
+        return null;
+    }
 }

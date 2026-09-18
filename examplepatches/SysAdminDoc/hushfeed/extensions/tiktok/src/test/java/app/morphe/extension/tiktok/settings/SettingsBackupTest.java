@@ -972,7 +972,7 @@ public class SettingsBackupTest {
             SettingsStatus.diagnosticsEnabled = false;
             var fragment = new TikTokPreferenceFragment();
             Bundle arguments = new Bundle();
-            arguments.putString("morphe_settings_section", "DIAGNOSTICS");
+            arguments.putString("morphe_settings_section", "BACKUP");
             fragment.setArguments(arguments);
             activity.getFragmentManager().beginTransaction().replace(android.R.id.content, fragment).commit();
             activity.getFragmentManager().executePendingTransactions();
@@ -1024,7 +1024,7 @@ public class SettingsBackupTest {
 
             var fragment = new TikTokPreferenceFragment();
             Bundle arguments = new Bundle();
-            arguments.putString("morphe_settings_section", "DIAGNOSTICS");
+            arguments.putString("morphe_settings_section", "BACKUP");
             fragment.setArguments(arguments);
             activity.getFragmentManager().beginTransaction()
                     .replace(android.R.id.content, fragment).commit();
@@ -1091,7 +1091,7 @@ public class SettingsBackupTest {
 
             var fragment = new TikTokPreferenceFragment();
             Bundle arguments = new Bundle();
-            arguments.putString("morphe_settings_section", "DIAGNOSTICS");
+            arguments.putString("morphe_settings_section", "BACKUP");
             fragment.setArguments(arguments);
             activity.getFragmentManager().beginTransaction()
                     .replace(android.R.id.content, fragment).commit();
@@ -1163,7 +1163,7 @@ public class SettingsBackupTest {
             Utils.setContext(activity);
             var fragment = new TikTokPreferenceFragment();
             Bundle arguments = new Bundle();
-            arguments.putString("morphe_settings_section", "DIAGNOSTICS");
+            arguments.putString("morphe_settings_section", "BACKUP");
             fragment.setArguments(arguments);
             activity.getFragmentManager().beginTransaction()
                     .replace(android.R.id.content, fragment).commit();

@@ -34,12 +34,15 @@ public final class SettingsMenuPreference extends Preference {
         COMMENTS,
         DOWNLOADS,
         PLAYBACK,
+        SCREEN_TIME,
         INBOX,
         SHARE,
         REGION,
+        PRIVACY,
         BEHAVIOR,
         LAB,
-        DIAGNOSTICS
+        DIAGNOSTICS,
+        BACKUP
     }
 
     private static final int ACCESSORY_TAG = 0x4D4D454E;
@@ -112,13 +115,13 @@ public final class SettingsMenuPreference extends Preference {
         labels.setGravity(Gravity.CENTER_VERTICAL);
         labels.setOrientation(LinearLayout.VERTICAL);
 
-        TextView title = SettingsUi.text(context, "", 15.5f, SettingsUi.textPrimary(), 1);
+        TextView title = SettingsUi.text(context, "", 16, SettingsUi.textPrimary(), 1);
         title.setId(android.R.id.title);
         title.setSingleLine(false);
         title.setEllipsize(null);
         labels.addView(title, new LinearLayout.LayoutParams(-1, -2));
 
-        TextView summary = SettingsUi.text(context, "", 12.8f, SettingsUi.textSecondary(), 0);
+        TextView summary = SettingsUi.text(context, "", 14, SettingsUi.textSecondary(), 0);
         summary.setId(android.R.id.summary);
         summary.setSingleLine(false);
         summary.setEllipsize(null);
@@ -220,7 +223,7 @@ public final class SettingsMenuPreference extends Preference {
                     SettingsUi.dp(getContext(), 9),
                     SettingsUi.dp(getContext(), 5)
             );
-            android.graphics.drawable.GradientDrawable badgeBackground = SettingsUi.roundedSurface(getContext(), 4, true);
+            android.graphics.drawable.GradientDrawable badgeBackground = SettingsUi.roundedSurface(getContext(), SettingsUi.RADIUS_BADGE, true);
             badgeBackground.setColor(SettingsUi.badgeFill());
             badge.setBackground(badgeBackground);
             accessory.addView(badge);
@@ -241,27 +244,43 @@ public final class SettingsMenuPreference extends Preference {
 
     public static final class ChevronDrawable extends Drawable {
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final int enabledColor;
+        private final int disabledColor;
 
         public ChevronDrawable(Context context) {
-            // For the one call site that hands this to a TextView rather than an ImageView:
-            // FeatureGateDetailFragment builds a spinner row and hangs the chevron off it as a
-            // compound drawable, and an adapter's row is unattached, so it has no direction of
-            // its own to pass on and the arrow went out pointing away from the text an Arabic
-            // reader was reading. An ImageView is a different story: setImageDrawable sets the
-            // direction from the view there and then, so for those sites this line is
-            // overwritten immediately and the direction arrives when the view resolves.
             setLayoutDirection(context.getResources().getConfiguration().getLayoutDirection());
-            paint.setColor(SettingsUi.textSecondary());
+            enabledColor = SettingsUi.textSecondary();
+            disabledColor = SettingsUi.textDisabled();
+            paint.setColor(enabledColor);
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(SettingsUi.strokePx(context, 1.8f));
             paint.setStrokeCap(Paint.Cap.ROUND);
             paint.setStrokeJoin(Paint.Join.ROUND);
         }
 
-        /** The row it sits at the end of mirrors; pointing into the text is what it did before. */
         @Override
         public boolean isAutoMirrored() {
             return true;
+        }
+
+        @Override
+        public boolean isStateful() {
+            return true;
+        }
+
+        @Override
+        protected boolean onStateChange(int[] state) {
+            boolean enabled = false;
+            for (int s : state) {
+                if (s == android.R.attr.state_enabled) { enabled = true; break; }
+            }
+            int color = enabled ? enabledColor : disabledColor;
+            if (paint.getColor() != color) {
+                paint.setColor(color);
+                invalidateSelf();
+                return true;
+            }
+            return false;
         }
 
         @Override
@@ -411,7 +430,56 @@ public final class SettingsMenuPreference extends Preference {
                     canvas.drawLine(left, cy, right, cy, line);
                     canvas.drawOval(new RectF(cx - bounds.width() * 0.1f, top, cx + bounds.width() * 0.1f, bottom), line);
                     break;
+                case PRIVACY:
+                    // A shield with a tick in it.
+                    path.reset();
+                    path.moveTo(cx, top);
+                    path.lineTo(right, top + bounds.height() * 0.08f);
+                    path.lineTo(right, cy);
+                    path.quadTo(right, bottom - bounds.height() * 0.05f, cx, bottom);
+                    path.quadTo(left, bottom - bounds.height() * 0.05f, left, cy);
+                    path.lineTo(left, top + bounds.height() * 0.08f);
+                    path.close();
+                    canvas.drawPath(path, line);
+                    canvas.drawLine(cx - bounds.width() * 0.1f, cy, cx - bounds.width() * 0.02f,
+                            cy + bounds.height() * 0.08f, line);
+                    canvas.drawLine(cx - bounds.width() * 0.02f, cy + bounds.height() * 0.08f,
+                            cx + bounds.width() * 0.11f, cy - bounds.height() * 0.09f, line);
+                    break;
                 case LAYOUT:
+                    // A screen with the right column's buttons down its edge and a caption
+                    // line at the foot: the feed as it is drawn.
+                    canvas.drawRoundRect(new RectF(left, top, right, bottom),
+                            bounds.width() * 0.06f, bounds.width() * 0.06f, line);
+                    // Inside the frame with room to spare: on the tile's edge the three dots
+                    // merged with the border and read as a bite out of the screen.
+                    float railX = right - bounds.width() * 0.17f;
+                    float railDot = bounds.width() * 0.025f;
+                    canvas.drawCircle(railX, cy - bounds.height() * 0.13f, railDot, line);
+                    canvas.drawCircle(railX, cy, railDot, line);
+                    canvas.drawCircle(railX, cy + bounds.height() * 0.13f, railDot, line);
+                    canvas.drawLine(left + bounds.width() * 0.1f, bottom - bounds.height() * 0.1f,
+                            cx - bounds.width() * 0.02f, bottom - bounds.height() * 0.1f, line);
+                    break;
+                case SCREEN_TIME:
+                    // A clock face.
+                    canvas.drawCircle(cx, cy, bounds.width() * 0.23f, line);
+                    canvas.drawLine(cx, cy, cx, cy - bounds.height() * 0.14f, line);
+                    canvas.drawLine(cx, cy, cx + bounds.width() * 0.1f, cy + bounds.height() * 0.06f, line);
+                    break;
+                case BACKUP:
+                    // An open box with an arrow rising out of it. Downloads is the arrow going
+                    // the other way onto a line, so the two read as a pair.
+                    path.reset();
+                    path.moveTo(left, cy);
+                    path.lineTo(left, bottom);
+                    path.lineTo(right, bottom);
+                    path.lineTo(right, cy);
+                    canvas.drawPath(path, line);
+                    canvas.drawLine(cx, top, cx, cy + bounds.height() * 0.1f, line);
+                    canvas.drawLine(cx, top, cx - bounds.width() * 0.1f, top + bounds.height() * 0.1f, line);
+                    canvas.drawLine(cx, top, cx + bounds.width() * 0.1f, top + bounds.height() * 0.1f, line);
+                    break;
                 case BEHAVIOR:
                     canvas.drawLine(left, top + bounds.height() * 0.05f, right, top + bounds.height() * 0.05f, line);
                     canvas.drawLine(left, cy, right, cy, line);

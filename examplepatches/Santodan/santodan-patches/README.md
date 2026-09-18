@@ -53,7 +53,7 @@ https://github.com/Santodan/santodan-patches
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Reddit - RedditPlusPlus content filters (Experimental)](#reddit-redditplusplus-content-filters-experimental) | Adds keyword and per-community flair filters under Morphe > Filters. |  |
+| [Reddit - Content filters (Experimental)](#reddit-content-filters-experimental) | Adds keyword and per-community flair filters under Morphe > Filters. |  |
 | [Reddit - Start as guest](#reddit-start-as-guest) | Skips the forced startup login screen using Reddit's native browse-logged-out action. Login remains available from the account menu. |  |
 
 </details>
@@ -70,12 +70,14 @@ For local Windows builds, copy `.env.example` to the ignored `.env` file, insert
 .\build-local.ps1
 ```
 
-On Windows:
+On Windows, if you use the `.env` file, run the wrapper through `build-local.ps1` so the GitHub package credentials are loaded:
 
 ```powershell
-.\gradlew.bat :patches:buildAndroid
-.\gradlew.bat :patches:generatePatchesList
+.\build-local.ps1 :patches:buildAndroid
+.\build-local.ps1 :patches:generatePatchesList
 ```
+
+You can run `gradlew.bat` directly only when `GITHUB_ACTOR` and `GITHUB_TOKEN` (or the equivalent Gradle properties) are already set in that terminal.
 
 On Linux or macOS:
 
@@ -94,7 +96,7 @@ The generated bundle is written to `patches/build/libs/patches-<version>.mpp`. `
 | Peafowl Theme Maker for EMUI | `h7.hamzio.emuithemeotg` | `GMS_27.5.1` | Unlock Theme Ownership (Experimental) |
 | Pillo | `xyz.rtrvr.pillo` | `0.6.19` | Hybrid Lock-Screen Notifications |
 
-### Reddit - content filters (Experimental)
+### Reddit - Content filters (Experimental)
 
 Enable this patch together with an official Reddit patch that provides the **Settings > Morphe** screen, such as **Hide ads**. Configure the filters at runtime under **Settings > Morphe > Filters**:
 

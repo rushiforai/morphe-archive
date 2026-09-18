@@ -9,7 +9,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.19.0](https://github.com/legendsciber/morphe-patches/releases/tag/v1.19.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+> **[v1.19.1](https://github.com/legendsciber/morphe-patches/releases/tag/v1.19.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
 <details open>
 <summary>📦 Toolbox for Minecraft PE&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -27,17 +27,17 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 </details>
 
 <details open>
-<summary>📦 Clumsy Ninja&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Dan The Man&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 1.33.5 |
+| 1.14.02 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Clumsy Ninja License Bypass](#clumsy-ninja-license-bypass) | Bypasses Google Play license verification at startup. |  |
+| [Dan The Man Free IAP](#dan-the-man-free-iap) | All in-app purchases are granted instantly and free without Google Play billing. |  |
 
 </details>
 

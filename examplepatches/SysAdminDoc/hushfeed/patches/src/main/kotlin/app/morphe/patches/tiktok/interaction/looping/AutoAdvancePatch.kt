@@ -148,7 +148,7 @@ val autoAdvancePatch = bytecodePatch(
     name = "Automatic video advance",
     description = "Keeps TikTok's automatic advance enabled while preserving its pause, dialog " +
         "and gesture checks, and shows TikTok's own Auto scroll action in the video panel for " +
-        "accounts outside its rollout.",
+        "accounts outside its rollout. Switch: Hushfeed settings > Playback.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

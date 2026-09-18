@@ -1,0 +1,30 @@
+name: Check
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [main, dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6.0.0
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Test and build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :extensions:extension:testDebugUnitTest :extensions:extension:lintDebug :patches:test buildAndroid --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: patches
+          path: patches/build/libs/*.mpp
+          if-no-files-found: error

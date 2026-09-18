@@ -43,7 +43,7 @@ private object TouchPointPendantParserFingerprint : Fingerprint(
 @Suppress("unused")
 val hideFloatingPromotionsPatch = bytecodePatch(
     name = "Hide floating promotions",
-    description = "Removes floating promotional badges, coin icons, and timer banners from the Home feed.",
+    description = "Removes floating promotional badges, coin icons, and timer banners from the feed. Switch: Hushfeed settings > Feed screen.",
     default = true,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

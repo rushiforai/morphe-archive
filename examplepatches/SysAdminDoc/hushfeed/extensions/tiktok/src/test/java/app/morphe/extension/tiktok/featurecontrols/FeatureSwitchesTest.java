@@ -113,12 +113,14 @@ public class FeatureSwitchesTest {
                 FeatureControls.hideQuickCommentReactionsVisibility(View.VISIBLE));
         assertEquals(View.INVISIBLE,
                 FeatureControls.hideQuickCommentReactionsVisibility(View.INVISIBLE));
+        assertFalse(FeatureControls.hideQuickCommentReactions());
 
         Settings.HIDE_COMMENT_QUICK_REACTIONS.save(true);
         assertEquals(View.GONE,
                 FeatureControls.hideQuickCommentReactionsVisibility(View.VISIBLE));
         assertEquals(View.GONE,
                 FeatureControls.hideQuickCommentReactionsVisibility(View.INVISIBLE));
+        assertTrue(FeatureControls.hideQuickCommentReactions());
     }
 
     /** These two answer "is it enabled", so hiding means returning false rather than GONE. */

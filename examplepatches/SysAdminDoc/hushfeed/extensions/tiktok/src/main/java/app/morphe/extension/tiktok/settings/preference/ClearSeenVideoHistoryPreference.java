@@ -15,61 +15,69 @@ import android.view.View;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.seen.SeenVideoHistory;
 
+import java.text.NumberFormat;
+
 @SuppressWarnings("deprecation")
 public final class ClearSeenVideoHistoryPreference extends Preference
         implements app.morphe.extension.shared.settings.preference.ImmediateAction {
     @Override public boolean actsOnTap() { return true; }
 
-    static final String CLEAR_SUMMARY = "Delete the local record of the videos you have watched.";
-    static final String UNDO_SUMMARY = "Cleared. Tap again to put the record back.";
+    static final String CLEAR_TITLE = "Clear seen videos";
+    static final String UNDO_TITLE = "Undo clearing seen videos";
     static final String NOT_READY = "Still reading the record. Tap again in a moment.";
-    static final String FAILED = "Could not put back the seen video history. Try again.";
+    static final String FAILED = "Could not undo the clear. Try again.";
 
     public ClearSeenVideoHistoryPreference(Context context) {
         super(context);
-        // A key so the settings search can index this row. A key with no Setting behind
-        // it is skipped by the settings framework, so nothing tries to persist it.
         setKey("action_clear_seen_video_history");
-        setTitle("Clear the seen video history");
-        // Whether a clear is waiting to be undone outlives this row, so the row has to ask
-        // rather than assume it is the first one ever built.
-        setSummary(SeenVideoHistory.canUndo() ? UNDO_SUMMARY : CLEAR_SUMMARY);
+        applyState(SeenVideoHistory.canUndo());
 
-        // One tap clears it. Nothing is lost that cannot be put back, so the way back is
-        // the next tap rather than a dialog asking permission first.
         setOnPreferenceClickListener(preference -> {
             if (SeenVideoHistory.canUndo()) {
                 SeenVideoHistory.undoClear(result -> {
                     String message;
                     if (result == SeenVideoHistory.UndoResult.RESTORED) {
-                        message = "Seen video history put back";
+                        message = "Seen videos restored.";
                     } else if (result == SeenVideoHistory.UndoResult.FAILED) {
                         message = FAILED;
                     } else if (result == SeenVideoHistory.UndoResult.EMPTY) {
-                        message = "There was nothing to put back";
+                        message = "There was nothing to undo.";
                     } else if (result == SeenVideoHistory.UndoResult.SUPERSEDED) {
-                        message = "A newer clear replaced that undo. Tap the row again to put it back.";
+                        message = "A newer clear replaced that undo. Tap the row again to undo.";
                     } else {
                         message = NOT_READY;
                     }
                     Utils.showToastShort(L10n.t(context, message));
-                    setSummary(result == SeenVideoHistory.UndoResult.RESTORED
-                            || result == SeenVideoHistory.UndoResult.EMPTY
-                            ? CLEAR_SUMMARY
-                            : UNDO_SUMMARY);
+                    boolean restored = result == SeenVideoHistory.UndoResult.RESTORED
+                            || result == SeenVideoHistory.UndoResult.EMPTY;
+                    applyState(!restored);
                 });
-                // The offer survives a tap that arrives before the copy has been read or while
-                // SQLite is retrying, so leave the row ready for another tap until the callback
-                // reports a durable result.
-                setSummary(UNDO_SUMMARY);
                 return true;
             }
 
             SeenVideoHistory.clear();
-            Utils.showToastLong(L10n.t(context, "Seen video history cleared. Tap again to put it back."));
-            setSummary(UNDO_SUMMARY);
+            Utils.showToastLong(L10n.t(context,
+                    "Seen videos cleared. Tap the row to undo before TikTok closes."));
+            applyState(true);
             return true;
         });
+    }
+
+    private void applyState(boolean canUndo) {
+        if (canUndo) {
+            setTitle(UNDO_TITLE);
+            setSummary("Cleared. Tap to undo before TikTok closes.");
+        } else {
+            setTitle(CLEAR_TITLE);
+            int count = SeenVideoHistory.size();
+            if (count > 0) {
+                setSummary(L10n.f(getContext(),
+                        "Forget the %1$s seen videos.",
+                        NumberFormat.getInstance().format(count)));
+            } else {
+                setSummary("No seen videos recorded yet.");
+            }
+        }
     }
 
     @Override

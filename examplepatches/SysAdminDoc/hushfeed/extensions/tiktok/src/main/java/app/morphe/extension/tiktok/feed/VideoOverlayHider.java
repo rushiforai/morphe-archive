@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.SystemClock;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
@@ -37,13 +38,16 @@ import java.util.WeakHashMap;
  *   df_search_biz:id/fb   full screen layer the visual search prompt lives in
  *   df_search_biz:id/cn   the clickable "Search this image" pill inside it
  *   id/jup                the Live entrance, top left, 158 px square, no description
- *   id/kzj                the right-hand column: avatar, like, comments, favourite, share
- *                         and the music disc, six id/eoh buttons in one LinearLayout
+ *   id/kzj                the interaction area over the video: the right-hand column's slots
+ *                         (id/eoh, one per button), the caption block and the music row
  *   id/ezp                the root of every feed survey card; the cell's survey ViewStubs
  *                         carry no inflatedId, so the card keeps its own layout id. The
  *                         profile's Favorites page is a LinearLayout with the same id.
- *   id/long_press_layout  the root of every feed cell, the layer that takes the long press.
- *                         Every id below it here is feed furniture and lives inside one.
+ *   id/view_rootview      the root of every feed cell (VideoViewCellRootView). Every id below
+ *                         it here is feed furniture and lives inside one. id/long_press_layout
+ *                         is a sibling layer under it, not an ancestor of the rail: scoping
+ *                         to that from 0.35.0 hid nothing in the right column (S22, 2026-09-17,
+ *                         read off the live tree with the probe's views action).
  *   id/twc                the strip across the top holding For You, Following and the rest
  *   id/hvo id/fws id/ehl  the six id/eoh buttons inside id/kzj, in order: avatar and
  *   id/hu9 id/p2l id/v9o  follow, like, comments, favourite, music disc, share
@@ -76,9 +80,38 @@ public final class VideoOverlayHider {
      * target that stays window-wide. A build that renames the cell root falls back to the
      * whole window, and the hook status names the miss.
      */
-    private static final String CELL_ROOT_ID = "long_press_layout";
+    private static final String CELL_ROOT_ID = "view_rootview";
     /** Whether the last pass left the rail buttons scaled, so the next one can put them back. */
     private static boolean scaledLastPass;
+    /** The index of the music row in {@link #RAIL_BUTTON_IDS}; it spans the width and is not scaled. */
+    private static final int RAIL_MUSIC_INDEX = 4;
+    /**
+     * The one size the column has room for. The slots sit at a 169 px pitch on the S22 with a
+     * 126 px icon area and the count in the rest, so an icon grown from its bottom edge by a
+     * quarter still clears the count under it and the button above it; anything more lands on
+     * a neighbour. A larger stored value, from the days the row offered 1.5x and 2x, is read as
+     * this.
+     */
+    static final float MAX_TOUCH_SCALE = 1.25f;
+    /**
+     * The rail buttons the last walk scaled, put back to the chosen size before every frame
+     * while a size other than Normal is chosen.
+     *
+     * <p>TikTok animates scaleX and scaleY on these very buttons (the like bounce, the avatar
+     * pulse), and an animation ends by writing 1 back. The walk scales on a layout pass and an
+     * animation is not a layout, which is why the S22 showed the first video's heart at 2x and
+     * the next video's at 1x, with the comment, save and share buttons never enlarged at all.
+     * A pre-draw listener runs before every frame, so a 1 that TikTok wrote back is corrected
+     * before it is drawn. The values are compared first: setting a scale invalidates, and an
+     * unconditional write from pre-draw would be a frame that never stops.
+     */
+    private static final List<WeakReference<View>> SCALED = new ArrayList<>();
+    private static float scaleWanted = 1f;
+    private static WeakReference<View> rescaleRoot = new WeakReference<>(null);
+    private static final ViewTreeObserver.OnPreDrawListener RESCALE = () -> {
+        reapplyScale();
+        return true;
+    };
     /** The six buttons inside the action column, in the order they are stacked. */
     /** The row under each rail button holding its count, without the button itself. */
     private static final String[] RAIL_COUNT_ROW_IDS = {"fwu", "ecq", "ht9", "v5x"};
@@ -215,6 +248,7 @@ public final class VideoOverlayHider {
                 touchScale = Float.parseFloat(Settings.TOUCH_TARGET_SCALE.get());
             } catch (NumberFormatException ignored) {
             }
+            touchScale = Math.min(MAX_TOUCH_SCALE, Math.max(1f, touchScale));
             if (caption || music || actionBar || surveys || tabStrip || anyRail
                     || !HIDDEN_HERE.isEmpty() || touchScale != 1f || scaledLastPass) {
                 ViewGroup root = activity.findViewById(android.R.id.content);
@@ -262,34 +296,149 @@ public final class VideoOverlayHider {
                             setHidden(view, hidden[i]);
                         }
                     }
-                    // Written every pass, 1 included, so returning the row to Normal puts the
-                    // buttons back instead of leaving them enlarged. The pivot is the right
-                    // edge so a grown button reaches into the video rather than off the screen.
+                    // The size goes on the icon inside each button, not the button. The slots
+                    // are packed with no room between them, so a grown button lands on its
+                    // neighbours; an icon grown from its bottom edge stays inside its slot at
+                    // the one size the column has room for. The parents between the icon and
+                    // the column stop clipping, or the growth is cut off at the slot's edge and
+                    // never seen. Written every pass, 1 included, so returning the row to
+                    // Normal puts the icons back. The music row spans the width and is left alone.
+                    List<View> scaled = TRAVERSAL.scaled;
+                    scaled.clear();
                     for (int i = 5; i < 5 + RAIL_BUTTON_IDS.length; i++) {
-                        for (View view : found.get(i)) {
-                            // The scale is written whatever the measured size, because a button
-                            // skipped for having no width yet was never revisited and stayed at
-                            // 1 while its neighbours grew (S22, 2026-09-16: only the avatar and
-                            // the like heart scaled). The pivot needs a real width, so it waits.
-                            if (view.getWidth() > 0) {
-                                view.setPivotX(view.getWidth());
-                                view.setPivotY(view.getHeight() / 2f);
-                            }
-                            view.setScaleX(touchScale);
-                            view.setScaleY(touchScale);
+                        if (i - 5 == RAIL_MUSIC_INDEX) continue;
+                        for (View button : found.get(i)) {
+                            collectIcons(button, scaled);
                         }
                     }
+                    for (View icon : scaled) {
+                        if (touchScale != 1f) unclipUpTo(icon, ids[2]);
+                        scaleView(icon, touchScale);
+                    }
+                    if (touchScale != 1f) {
+                        final int count = scaled.size();
+                        final float scale = touchScale;
+                        Logger.printDebug(() -> "Rail scale " + scale + " written to " + count + " icons");
+                    }
+                    rememberScaled(scaled, touchScale, root);
                     scaledLastPass = touchScale != 1f;
                 } finally {
                     for (List<View> views : found) {
                         views.clear();
                     }
+                    TRAVERSAL.scaled.clear();
                 }
             }
 
             setStatusBarHidden(activity, Settings.HIDE_STATUS_BAR.get());
         } catch (Throwable ex) {
             Logger.printException(() -> "Video overlay hider failed", ex);
+        }
+    }
+
+    /**
+     * The icon-sized leaves under a rail button: the glyph itself, and for the avatar button
+     * its picture, its ring and the follow plus. Read off the S22 (2026-09-17): the like heart
+     * is a 127 px leaf inside a 180 by 126 area, the comment and share glyphs 90 px, the count
+     * rows 180 wide, so a leaf between 22 and 52 dp on both sides is a glyph and nothing else.
+     */
+    static void collectIcons(View view, List<View> out) {
+        if (view instanceof ViewGroup && ((ViewGroup) view).getChildCount() > 0) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0, count = group.getChildCount(); i < count; i++) {
+                collectIcons(group.getChildAt(i), out);
+            }
+            return;
+        }
+        if (view.getVisibility() != View.VISIBLE) return;
+        float density = view.getResources().getDisplayMetrics().density;
+        int min = Math.round(22 * density);
+        int max = Math.round(52 * density);
+        int width = view.getWidth();
+        int height = view.getHeight();
+        if (width >= min && width <= max && height >= min && height <= max) out.add(view);
+    }
+
+    /**
+     * Lets the growth be drawn. Every ViewGroup clips its children to its own bounds by
+     * default, and the icon sits in a frame its own size, so a scaled glyph was cut off at the
+     * frame's edge. Unclipped up to the interaction area, which is the whole column and clips
+     * nothing that matters.
+     */
+    private static void unclipUpTo(View icon, int stopId) {
+        android.view.ViewParent parent = icon.getParent();
+        for (int depth = 0; depth < 8 && parent instanceof ViewGroup; depth++) {
+            ViewGroup group = (ViewGroup) parent;
+            if (stopId != 0 && group.getId() == stopId) break;
+            if (group.getClipChildren()) group.setClipChildren(false);
+            if (group.getClipToPadding()) group.setClipToPadding(false);
+            parent = group.getParent();
+        }
+    }
+
+    /**
+     * The scale is written whatever the measured size, because a button skipped for having no
+     * width yet was never revisited and stayed at 1 while its neighbours grew. The pivot is the
+     * bottom centre, so a grown glyph rises into the free space above it and leaves the count
+     * under it readable; it needs a real size, so it waits.
+     */
+    private static void scaleView(View view, float scale) {
+        if (view.getWidth() > 0) {
+            view.setPivotX(view.getWidth() / 2f);
+            view.setPivotY(view.getHeight());
+        }
+        if (view.getScaleX() != scale) view.setScaleX(scale);
+        if (view.getScaleY() != scale) view.setScaleY(scale);
+    }
+
+    /** Keeps the scaled icons for the pre-draw pass, and the pass itself on the root. */
+    private static void rememberScaled(List<View> scaled, float touchScale, View root) {
+        SCALED.clear();
+        scaleWanted = touchScale;
+        if (touchScale != 1f) {
+            for (View view : scaled) {
+                SCALED.add(new WeakReference<>(view));
+            }
+        }
+        View watched = rescaleRoot.get();
+        if (touchScale != 1f) {
+            if (watched != root && root != null) {
+                if (watched != null && watched.getViewTreeObserver().isAlive()) {
+                    watched.getViewTreeObserver().removeOnPreDrawListener(RESCALE);
+                }
+                root.getViewTreeObserver().addOnPreDrawListener(RESCALE);
+                rescaleRoot = new WeakReference<>(root);
+            }
+        } else if (watched != null) {
+            if (watched.getViewTreeObserver().isAlive()) {
+                watched.getViewTreeObserver().removeOnPreDrawListener(RESCALE);
+            }
+            rescaleRoot = new WeakReference<>(null);
+        }
+    }
+
+    /** When the frame pass last said what it put back, so the log is not written per frame. */
+    private static long rescaleLoggedAt;
+
+    /** The pre-draw pass: every remembered button back to the chosen size, if it moved. */
+    static void reapplyScale() {
+        float scale = scaleWanted;
+        if (scale == 1f) return;
+        int corrected = 0;
+        int seen = 0;
+        for (WeakReference<View> held : SCALED) {
+            View view = held.get();
+            if (view == null || !view.isAttachedToWindow()) continue;
+            seen++;
+            if (view.getScaleX() != scale || view.getScaleY() != scale) corrected++;
+            scaleView(view, scale);
+        }
+        long now = SystemClock.uptimeMillis();
+        if (corrected > 0 && now - rescaleLoggedAt > 2000L) {
+            rescaleLoggedAt = now;
+            final int put = corrected;
+            final int held = seen;
+            Logger.printDebug(() -> "Rail scale " + scale + " put back on " + put + " of " + held + " icons");
         }
     }
 
@@ -380,6 +529,8 @@ public final class VideoOverlayHider {
         final boolean[] needsCell;
         final boolean[] rail;
         final List<List<View>> found;
+        /** The icons one pass scaled, cleared with the rest once the pass is over. */
+        final List<View> scaled = new ArrayList<>();
 
         TraversalScratch(int targetCount) {
             ids = new int[targetCount];

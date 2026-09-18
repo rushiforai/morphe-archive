@@ -22,9 +22,9 @@ import java.util.logging.Logger;
 import java.util.zip.*;
 import kotlin.Unit;
 
-/** Add runtime RedditPlusPlus filters to Morphe's Reddit settings. */
+/** Add runtime content filters to Morphe's Reddit settings. */
 public final class RedditContentFilterPatch {
-    public static final String NAME = "Reddit - RedditPlusPlus content filters (Experimental)";
+    public static final String NAME = "Reddit - Content filters (Experimental)";
     static final String PACKAGE = "com.reddit.frontpage";
     static final String VERSION = "2026.37.0";
     static final String LINK = "Lcom/reddit/domain/model/Link;";
@@ -70,7 +70,7 @@ public final class RedditContentFilterPatch {
                     if (settings == null) throw unsupported("Morphe's Reddit settings extension is missing; "
                         + "also enable an official Reddit patch that adds the Morphe settings menu");
                     hookSettings(uniqueMethod(settings, "initialize", "V"));
-                    LOG.info("SantoDan: RedditPlusPlus filters added to FeedPostSection emission and Morphe settings.");
+                    LOG.info("SantoDan: content filters added to FeedPostSection emission and Morphe settings.");
                     return Unit.INSTANCE;
                 });
                 return Unit.INSTANCE;

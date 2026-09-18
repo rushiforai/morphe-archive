@@ -22,7 +22,7 @@ import app.morphe.extension.tiktok.settings.L10n;
 public class SimSpoofPreferenceCategory extends ConditionalPreferenceCategory {
     public SimSpoofPreferenceCategory(Context context, PreferenceScreen screen) {
         super(context, screen);
-        setTitle("Region settings");
+        setTitle("Region");
     }
 
     /** Whether this page has anything on it. The row into it asks the same question. */

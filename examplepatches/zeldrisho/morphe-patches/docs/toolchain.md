@@ -24,6 +24,7 @@ Install the remaining host utilities used by the scripts as needed:
 
 ```fish
 sudo dnf install -y git unzip zip ripgrep binutils bash jq gh
+
 ```
 
 ## 2. Java, Android CLI, and analysis tools

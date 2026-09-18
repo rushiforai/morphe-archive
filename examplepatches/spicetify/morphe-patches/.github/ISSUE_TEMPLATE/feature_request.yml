@@ -1,0 +1,21 @@
+name: Feature request
+description: Suggest a Spotify Android customization.
+title: "feat: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check the [plan](https://github.com/spicetify/morphe-patches/blob/main/docs/plan.md)
+        and [existing issues](https://github.com/spicetify/morphe-patches/issues) first.
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Desired behavior
+      description: Describe what you want to change and when it would help.
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: Source references
+      description: Link any related implementation, including its license and supported app version.

@@ -73,7 +73,7 @@ public final class RestartPendingPreference extends Preference {
         row.setPadding(side, ends, side, ends);
         row.setMinimumHeight(SettingsUi.dp(context, 48));
         row.setBackground(SettingsUi.pressAndFocusOver(context, SettingsUi.RADIUS_CONTROL,
-                SettingsUi.borderedSurface(context, 10, false)));
+                SettingsUi.borderedSurface(context, SettingsUi.RADIUS_CARD, false)));
         row.setFocusable(true);
         // A TextView with a click listener is read as text; the role has to be said.
         SettingsUi.markAsButton(row);

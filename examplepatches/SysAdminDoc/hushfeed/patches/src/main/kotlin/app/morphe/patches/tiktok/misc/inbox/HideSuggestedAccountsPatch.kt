@@ -37,7 +37,7 @@ val hideSuggestedAccountsPatch = bytecodePatch(
     name = "Hide suggested accounts",
     description = "Stops the suggested accounts list from being built on the Activity, New " +
         "followers and Inbox pages, and collapses every other People you may like card: the " +
-        "profile header, the Friends tab and the feed. Shares its switch with Hide inbox items.",
+        "profile header, the Friends tab and the feed. Shares its switch with Hide inbox items. Switch: Hushfeed settings > Inbox.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

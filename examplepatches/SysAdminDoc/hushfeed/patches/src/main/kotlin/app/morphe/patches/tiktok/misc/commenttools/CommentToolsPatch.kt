@@ -90,7 +90,7 @@ val commentToolsPatch = bytecodePatch(
     description = "Hides comments that contain chosen words or come from chosen accounts, turns " +
         "the thumbs down on each comment into a block button that shows the block symbol, " +
         "makes a web address in a comment tappable, hides comment media and polls, and " +
-        "adds a box above the comments that narrows them by what they say or who said it.",
+        "adds a box above the comments that narrows them by what they say or who said it. Switch: Hushfeed settings > Comments.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

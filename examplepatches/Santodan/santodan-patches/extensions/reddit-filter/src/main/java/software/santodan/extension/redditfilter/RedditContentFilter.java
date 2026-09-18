@@ -140,7 +140,7 @@ public final class RedditContentFilter {
                     if (method.getName().equals("invoke")) browseSubredditFlair(community, flair);
                     if (method.getName().equals("hashCode")) return System.identityHashCode(proxy);
                     if (method.getName().equals("equals")) return proxy == args[0];
-                    if (method.getName().equals("toString")) return "RedditPlusPlus flair click";
+                    if (method.getName().equals("toString")) return "Reddit flair click";
                     return null;
                 });
             FLAIR_CALLBACK_MODELS.put(replacement, model);
@@ -272,7 +272,7 @@ public final class RedditContentFilter {
 
     private static void renderSubredditFlairRow(android.widget.FrameLayout frame, String community) {
         Context context = frame.getContext();
-        android.view.View old = frame.findViewWithTag("redditplusplus_flair_row");
+        android.view.View old = frame.findViewWithTag("reddit_filter_flair_row");
         if (old != null) frame.removeView(old);
         SharedPreferences preferences = prefs(context);
         Set<String> selected = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
@@ -289,7 +289,7 @@ public final class RedditContentFilter {
                 available.add(entry.substring(split + 2));
         }
         android.widget.HorizontalScrollView scroll = new android.widget.HorizontalScrollView(context);
-        scroll.setTag("redditplusplus_flair_row");
+        scroll.setTag("reddit_filter_flair_row");
         scroll.setHorizontalScrollBarEnabled(false);
         scroll.setFillViewport(false);
         scroll.setBackgroundColor(0xff000000);
@@ -531,7 +531,7 @@ public final class RedditContentFilter {
                 lastFlairRequestError = error.getClass().getSimpleName() + ": " + error.getMessage();
                 new Handler(Looper.getMainLooper()).post(() -> done.accept(false));
             }
-        }, "RedditPlusPlus-flairs").start();
+        }, "Reddit-filter-flairs").start();
     }
 
     private static boolean storeFullFlairs(Context context, String community, Object response) {
@@ -886,7 +886,7 @@ public final class RedditContentFilter {
                 + "\nLast flair request error: " + lastFlairRequestError
                 + "\n\nElement classes:\n" + lastClasses + "\n\nTitles:\n" + lastTitles
                 + "\n\nFlairs:\n" + lastFlairs;
-            new AlertDialog.Builder(context).setTitle("RedditPlusPlus diagnostics")
+            new AlertDialog.Builder(context).setTitle("Filter diagnostics")
                 .setMessage(message).setPositiveButton("Save .txt", (dialog, which) -> saveDiagnostics(context))
                 .setNegativeButton("Close", null).show(); return true;
         });
@@ -1053,17 +1053,17 @@ public final class RedditContentFilter {
             return;
         }
         SharedPreferences stored = prefs(context);
-        StringBuilder text = new StringBuilder("RedditPlusPlus diagnostics\n")
+        StringBuilder text = new StringBuilder("Filter diagnostics\n")
             .append("Template colors stored: ").append(lineCount(stored.getString(FLAIR_COLORS, ""))).append('\n')
             .append("Chip style calls/applied: ").append(chipStyleCalls).append('/')
             .append(chipStylesApplied).append('\n')
             .append("Last chip style: ").append(lastChipStyle).append("\n\n")
-            .append("RedditPlusPlus filter decisions\n");
+            .append("Filter decisions\n");
         synchronized (DECISIONS) {
             for (String line : DECISIONS) text.append(line).append('\n');
         }
         ContentValues values = new ContentValues();
-        values.put(MediaStore.MediaColumns.DISPLAY_NAME, "redditplusplus-filter-debug-" + System.currentTimeMillis() + ".txt");
+        values.put(MediaStore.MediaColumns.DISPLAY_NAME, "reddit-filter-debug-" + System.currentTimeMillis() + ".txt");
         values.put(MediaStore.MediaColumns.MIME_TYPE, "text/plain");
         values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
         Uri uri = null;

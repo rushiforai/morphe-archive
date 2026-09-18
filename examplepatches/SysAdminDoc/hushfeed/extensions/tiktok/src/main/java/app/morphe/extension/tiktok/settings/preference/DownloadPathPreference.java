@@ -164,7 +164,7 @@ public class DownloadPathPreference extends DialogPreference {
     @Override
     protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
         builder.setPositiveButton(L10n.t(getContext(), "Save"), (dialog, which) -> this.onClick(dialog, DialogInterface.BUTTON_POSITIVE));
-        builder.setNegativeButton(android.R.string.cancel, null);
+        builder.setNegativeButton(L10n.t(getContext(), "Cancel"), null);
         builder.setNeutralButton(L10n.t(getContext(), "Browse"), null);
     }
 

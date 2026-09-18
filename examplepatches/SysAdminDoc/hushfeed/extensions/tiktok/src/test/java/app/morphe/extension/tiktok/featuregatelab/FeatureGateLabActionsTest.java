@@ -289,7 +289,7 @@ public class FeatureGateLabActionsTest {
             ShadowToast.reset();
             FeatureGateLabSession.showRestartDialog(activity);
             FeatureGateLabSession.showAfterHostExit(activity);
-            assertEquals(1, ShadowToast.shownToastCount());
+            assertEquals("the exit toast is redundant now that every action says restart", 0, ShadowToast.shownToastCount());
             assertNull(ShadowDialog.getLatestDialog());
         }
     }

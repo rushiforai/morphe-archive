@@ -55,7 +55,7 @@
       "options": []
     },
     {
-      "name": "Reddit - RedditPlusPlus content filters (Experimental)",
+      "name": "Reddit - Content filters (Experimental)",
       "description": "Adds keyword and per-community flair filters under Morphe > Filters.",
       "default": false,
       "dependencies": [],

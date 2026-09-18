@@ -81,6 +81,37 @@ class SyncUpstreamTests(unittest.TestCase):
             self.assertIn("PlayerVolumePatch", source)
             self.assertNotIn("VotOriginalVolumePatch", source)
 
+    def test_merges_direct_streams_with_upstream_download_requests(self):
+        root = MODULE_PATH.parents[2]
+        source = (root / sync_upstream.STREAMING_DATA_REQUEST_PATH).read_text(
+            encoding="utf-8"
+        )
+
+        merged = sync_upstream.merge_streaming_data_request_download_support(source)
+
+        self.assertIn("fetchDirectStreamRequest", merged)
+        self.assertIn("fetchRequestForDownload", merged)
+        self.assertIn("DIRECT_STREAM_CLIENT_ORDER", merged)
+        self.assertIn(
+            "new StreamingDataRequest(videoId, false, lastPlayerHeaders, false, true)",
+            merged,
+        )
+        self.assertIn(
+            "getPlayerResponseConnectionFromRoute(clientType, includeVideoDetails)",
+            merged,
+        )
+        self.assertEqual(merged.count("showErrorToast, includeVideoDetails"), 2)
+        self.assertNotIn(
+            "new StreamingDataRequest(videoId, isInline, fetchHeaders, true);",
+            merged,
+        )
+
+    def test_rejects_changed_streaming_conflict_shape(self):
+        with self.assertRaises(sync_upstream.SyncError):
+            sync_upstream.merge_streaming_data_request_download_support(
+                "class StreamingDataRequest {}"
+            )
+
     def test_dispatcher_has_staggered_two_hour_schedules(self):
         workflow = (
             MODULE_PATH.parents[1] / "workflows" / "upstream_sync.yml"

@@ -1,3 +1,17 @@
+## [1.44.1](https://github.com/hoo-dles/morphe-patches/compare/v1.44.0...v1.44.1) (2026-09-17)
+
+
+### Bug Fixes
+
+* **Lightroom:** Fix pairip stripping and update patches to `11.5.22` ([2c1b213](https://github.com/hoo-dles/morphe-patches/commit/2c1b213cbfe3665b3d1330065c31d7f807fe7919))
+
+## [1.44.1-dev.1](https://github.com/hoo-dles/morphe-patches/compare/v1.44.0...v1.44.1-dev.1) (2026-09-16)
+
+
+### Bug Fixes
+
+* **Lightroom:** Fix pairip stripping and update patches to `11.5.22` ([2c1b213](https://github.com/hoo-dles/morphe-patches/commit/2c1b213cbfe3665b3d1330065c31d7f807fe7919))
+
 # [1.44.0](https://github.com/hoo-dles/morphe-patches/compare/v1.43.0...v1.44.0) (2026-09-07)
 
 

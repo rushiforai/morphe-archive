@@ -34,8 +34,12 @@ public final class SystemBarInsets {
         if (view == null) return;
         view.setOnApplyWindowInsetsListener((target, insets) -> {
             Rect bars = systemBarsAndCutout(insets);
-            target.setPadding(bars.left, bars.top, bars.right, bars.bottom);
-            // Passed on rather than consumed, so anything above this view still reads them.
+            int bottom = bars.bottom;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                int imeBottom = insets.getInsets(WindowInsets.Type.ime()).bottom;
+                if (imeBottom > bottom) bottom = imeBottom;
+            }
+            target.setPadding(bars.left, bars.top, bars.right, bottom);
             return insets;
         });
         view.requestApplyInsets();

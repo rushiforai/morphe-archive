@@ -35,7 +35,7 @@ private object CommentEasterEggTriggerFingerprint : Fingerprint(
 val hideCommentEggsPatch = bytecodePatch(
     name = "Hide comment popup ads",
     description = "Stops the brand animation that plays over the comment sheet when a comment " +
-        "matches an advertiser's trigger word or emoji.",
+        "matches an advertiser's trigger word or emoji. Switch: Hushfeed settings > Comments.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

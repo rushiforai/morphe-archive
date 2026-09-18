@@ -77,6 +77,7 @@ BUCKETS = [
 
 
 def main():
+    """Scan a decompiled source tree and summarize matching signal buckets."""
     p = argparse.ArgumentParser()
     p.add_argument("directory", type=Path)
     p.add_argument("--files", action="store_true")
@@ -98,7 +99,7 @@ def main():
         print(f"-- {group} --")
         for label, pattern in buckets:
             hits = hits_by_bucket[(group, label)]
-            print(f"  {label + ':':-28} {len(hits)} files")
+            print(f"  {label + ':':<28} {len(hits)} files")
             if a.files and 0 < len(hits) <= 20:
                 print("\n".join("      " + x for x in hits))
     print(

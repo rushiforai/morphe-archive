@@ -4,53 +4,53 @@
  */
 package app.morphe.patches.tiktok.privacy
 
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
+import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
-import app.morphe.util.findMutableMethodOf
-import app.morphe.util.getReference
-import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.ClassDef
-import com.android.tools.smali.dexlib2.iface.Method
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val EXTENSION = "Lapp/morphe/extension/tiktok/privacy/BrowserPrivacyGuard;"
-private data class JsSite(val owner: ClassDef, val method: Method, val index: Int, val replacement: String)
+private const val WEB_VIEW = "Landroid/webkit/WebView;"
+private const val ADD_INTERFACE = "->addJavascriptInterface(Ljava/lang/Object;Ljava/lang/String;)V"
 
 @Suppress("unused")
 val browserPrivacyGuardPatch = bytecodePatch(
     name = "In-app browser privacy guard",
-    description = "Stops TikTok from injecting JavaScript tracking interfaces into the in-app browser's WebView. Links redirected to the system browser by Open external links directly are not affected.",
+    description = "Can stop TikTok's in-app browser handing its JavaScript bridge to the pages it loads. Most of TikTok's own web pages need that bridge, including the shop checkout and the CAPTCHA page, so the switch is off until you turn it on. Switch: Hushfeed settings > Privacy.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4623())
 
     execute {
-        val jsTarget = "Landroid/webkit/WebView;->addJavascriptInterface(Ljava/lang/Object;Ljava/lang/String;)V"
-        val sites = mutableListOf<JsSite>()
-        classDefForEach { owner ->
-            if (owner.type.startsWith("Lapp/morphe/extension/")) return@classDefForEach
-            owner.methods.forEach { method ->
-                method.implementation?.instructions?.forEachIndexed { index, instruction ->
-                    val ref = instruction.getReference<MethodReference>()?.toString() ?: return@forEachIndexed
-                    if (ref != jsTarget) return@forEachIndexed
-                    if (instruction.opcode != Opcode.INVOKE_VIRTUAL) return@forEachIndexed
-                    val invoke = instruction as FiveRegisterInstruction
-                    sites += JsSite(
-                        owner, method, index,
-                        "invoke-static { v${invoke.registerC}, v${invoke.registerD}, v${invoke.registerE} }, " +
-                            "$EXTENSION->filterJsInterface(Landroid/webkit/WebView;Ljava/lang/Object;Ljava/lang/String;)V",
-                    )
-                }
+        SettingsStatusLoadFingerprint.method.addInstruction(
+            0,
+            "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableBrowserPrivacyGuard()V",
+        )
+
+        // TikTok wraps WebView in a subclass of its own that overrides addJavascriptInterface
+        // and calls super, and three of the sites call the override by the subclass's name. The
+        // subclass is found rather than named, because its name changes with every build. The
+        // invoke-super inside the override is left alone: it is the pass-through path, and
+        // rewriting it to a static that dispatches virtually again would recurse.
+        val webViewTypes = mutableSetOf(WEB_VIEW)
+        var grew = true
+        while (grew) {
+            grew = false
+            classDefForEach { classDef ->
+                if (classDef.superclass in webViewTypes && webViewTypes.add(classDef.type)) grew = true
             }
         }
-        sites.forEach { site ->
-            mutableClassDefBy(site.owner).findMutableMethodOf(site.method).replaceInstruction(site.index, site.replacement)
+        val replacement = "$EXTENSION->filterJsInterface(${WEB_VIEW}Ljava/lang/Object;Ljava/lang/String;)V"
+        val replacements = webViewTypes.associate { type -> "$type$ADD_INTERFACE" to replacement }
+        val sites = invokeSitesOf(replacements.keys)
+        if (sites.isEmpty()) {
+            throw PatchException("In-app browser privacy guard: no addJavascriptInterface call site was found.")
         }
-        println("[Browser privacy guard] Intercepted ${sites.size} WebView JS interface injection sites.")
+        replaceSites(sites, replacements)
+        println("[Browser privacy guard] Intercepted ${sites.size} WebView JS interface sites across ${webViewTypes.size} WebView types.")
     }
 }

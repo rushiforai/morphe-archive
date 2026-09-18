@@ -1,0 +1,88 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ */
+
+package app.morphe.patches.shared.misc.proto
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.BytecodePatch
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
+import app.morphe.util.cloneMutable
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import java.lang.ref.WeakReference
+
+private lateinit var elementProtoParserMethodRef: WeakReference<MutableMethod>
+
+/**
+ * Shared factory for the element proto parser hook used by both YouTube and YT Music.
+ *
+ * Hooks the generic proto parser method so that patched extensions can inspect (and modify)
+ * the raw byte buffer of every parsed proto element.
+ *
+ * @param sharedExtensionPatchDep The app-specific `sharedExtensionPatch`.
+ */
+internal fun createElementProtoParserHookPatch(
+    sharedExtensionPatchDep: BytecodePatch,
+): BytecodePatch = bytecodePatch(
+    description = "Hook to modify the proto message class, which can only be accessed through reflection.",
+) {
+    dependsOn(
+        sharedExtensionPatchDep,
+        fixProtoLibraryPatch,
+    )
+
+    execute {
+        NewElementProtoParserFingerprint.let {
+            it.method.apply {
+                val existingHelper = it.classDef.methods.firstOrNull { m -> m.name == "patch_parseNewElement" }
+                if (existingHelper != null) {
+                    elementProtoParserMethodRef = WeakReference(this)
+                    return@let
+                }
+
+                // Not enough registers in the method. Clone the method and use the original
+                // method as an intermediate to call extension code.
+                val helperMethod = cloneMutable(name = "patch_parseNewElement")
+
+                it.classDef.methods.add(helperMethod)
+
+                addInstructions(
+                    0,
+                    """
+                        # Invoke the copied method (helper method).
+                        invoke-static { p0 }, $helperMethod
+                        move-result-object p0
+
+                        # Since the copied method (helper method) has already been invoked, it just returns.
+                        return-object p0
+                    """
+                )
+
+                elementProtoParserMethodRef = WeakReference(this)
+            }
+        }
+    }
+}
+
+fun hookElement(
+    methodDescriptor: String
+) {
+    val method = elementProtoParserMethodRef.get()!!
+    val alreadyHooked = method.implementation?.instructions?.any { inst ->
+        (inst as? ReferenceInstruction)?.reference?.toString()?.contains(methodDescriptor) == true
+    } == true
+    if (alreadyHooked) return
+
+    method.addInstructions(
+        2,
+        """
+            invoke-static { p0 }, $methodDescriptor([B)[B
+            move-result-object p0
+        """
+    )
+}

@@ -98,6 +98,21 @@ ADDON_COMPATIBILITY_CONFLICTS = {
     ),
 }
 
+STREAMING_DATA_REQUEST_PATH = (
+    "extensions/shared-youtube/library/src/main/java/app/morphe/extension/shared/"
+    "spoof/requests/StreamingDataRequest.java"
+)
+
+# Morphe 1.44.0-dev.3 added uncached download requests in the same constructor
+# and fetch loop that Dual VoT extends for ordinary byte-addressable audio
+# streams. Resolve only this exact three-way conflict. A later edit to any side
+# changes its blob id and deliberately falls back to a manual source merge.
+STREAMING_DATA_REQUEST_CONFLICT_BLOBS = (
+    "2d468bc3ba3464b15b72dde8eadc35eeaced8811",
+    "997cfd829f487b438b4190409c5e8059c09a89eb",
+    "c6848c11ac1b23d985794c79973f365ae9b3f883",
+)
+
 DUAL_YANDEX_STRINGS_PATH = re.compile(
     r"^patches/src/main/resources/addresources/values(?:-[^/]+)?/youtube/strings\.xml$"
 )
@@ -327,6 +342,154 @@ def resolve_addon_compatibility_conflicts() -> None:
         restore_path_from("HEAD", path)
 
 
+def replace_exact_once(value: str, old: str, new: str, label: str) -> str:
+    count = value.count(old)
+    if count != 1:
+        raise SyncError(f"Expected one {label} block, found {count}")
+    return value.replace(old, new, 1)
+
+
+def merge_streaming_data_request_download_support(ours: str) -> str:
+    """Combine the known Dual direct-stream path with Morphe downloads."""
+    merged_markers = (
+        "fetchDirectStreamRequest",
+        "fetchRequestForDownload",
+        "DIRECT_STREAM_CLIENT_ORDER",
+        "lastPlayerHeaders",
+        "directStreamsOnly, includeVideoDetails",
+        "getPlayerResponseConnectionFromRoute(clientType, includeVideoDetails)",
+    )
+    if all(marker in ours for marker in merged_markers):
+        return ours
+
+    replacements = (
+        (
+            "    private static volatile boolean fallbackWithTVDash;\n",
+            "    private static volatile boolean fallbackWithTVDash;\n"
+            "    private static volatile Map<String, String> lastPlayerHeaders = "
+            "Collections.emptyMap();\n",
+            "streaming header state",
+        ),
+        (
+            "            boolean directStreamsOnly\n    ) {\n"
+            "        this.videoId = videoId;",
+            "            boolean directStreamsOnly,\n"
+            "            boolean includeVideoDetails\n    ) {\n"
+            "        this.videoId = videoId;",
+            "streaming request constructor",
+        ),
+        (
+            "                        directStreamsOnly));\n",
+            "                        directStreamsOnly, includeVideoDetails));\n",
+            "constructor fetch call",
+        ),
+        (
+            "    public static void fetchRequest(String videoId, boolean isInline, "
+            "Map<String, String> fetchHeaders) {\n",
+            "    public static void fetchRequest(String videoId, boolean isInline, "
+            "Map<String, String> fetchHeaders) {\n"
+            "        // Keep the latest player headers so downloads can resolve tracks that were never opened.\n"
+            "        if (fetchHeaders != null && !fetchHeaders.isEmpty()) {\n"
+            "            lastPlayerHeaders = fetchHeaders;\n"
+            "        }\n",
+            "cached streaming request",
+        ),
+        (
+            "new StreamingDataRequest(videoId, isInline, fetchHeaders, false)",
+            "new StreamingDataRequest(videoId, isInline, fetchHeaders, false, false)",
+            "cached request constructor call",
+        ),
+        (
+            "new StreamingDataRequest(videoId, isInline, fetchHeaders, true)",
+            "new StreamingDataRequest(videoId, isInline, fetchHeaders, true, false)",
+            "direct request constructor call",
+        ),
+        (
+            "    @Nullable\n"
+            "    public static StreamingDataRequest getRequestForVideoId(String videoId) {",
+            "    /**\n"
+            "     * Resolves a video that the app never opened, using the latest player headers.\n"
+            "     * Deliberately not cached, so downloads cannot evict the streams of videos being watched.\n"
+            "     */\n"
+            "    public static StreamingDataRequest fetchRequestForDownload(String videoId) {\n"
+            "        // The video details name the saved file, so the download asks for them as well.\n"
+            "        return new StreamingDataRequest(videoId, false, lastPlayerHeaders, false, true);\n"
+            "    }\n\n"
+            "    @Nullable\n"
+            "    public static StreamingDataRequest getRequestForVideoId(String videoId) {",
+            "download request method",
+        ),
+        (
+            "                                          boolean showErrorToasts) {\n"
+            "        Utils.verifyOffMainThread();",
+            "                                          boolean showErrorToasts,\n"
+            "                                          boolean includeVideoDetails) {\n"
+            "        Utils.verifyOffMainThread();",
+            "player request sender",
+        ),
+        (
+            "            HttpURLConnection connection = "
+            "PlayerRoutes.getPlayerResponseConnectionFromRoute(clientType);\n",
+            "            HttpURLConnection connection =\n"
+            "                    PlayerRoutes.getPlayerResponseConnectionFromRoute("
+            "clientType, includeVideoDetails);\n",
+            "player route creation",
+        ),
+        (
+            "            boolean directStreamsOnly\n    ) {\n"
+            "        final boolean debugEnabled = BaseSettings.DEBUG.get();",
+            "            boolean directStreamsOnly,\n"
+            "            boolean includeVideoDetails\n    ) {\n"
+            "        final boolean debugEnabled = BaseSettings.DEBUG.get();",
+            "stream fetch method",
+        ),
+        (
+            "            HttpURLConnection connection = send("
+            "clientType, videoId, authorization, showErrorToast);\n",
+            "            HttpURLConnection connection =\n"
+            "                    send(clientType, videoId, authorization, "
+            "showErrorToast, includeVideoDetails);\n",
+            "primary player request",
+        ),
+        (
+            "                HttpURLConnection fallBackConnection = send("
+            "clientType, videoId, authorization, showErrorToast);\n",
+            "                HttpURLConnection fallBackConnection =\n"
+            "                        send(clientType, videoId, authorization, "
+            "showErrorToast, includeVideoDetails);\n",
+            "fallback player request",
+        ),
+    )
+    merged = ours
+    for old, new, label in replacements:
+        merged = replace_exact_once(merged, old, new, label)
+
+    for marker in merged_markers:
+        if marker not in merged:
+            raise SyncError(f"Merged streaming request is missing: {marker}")
+    return merged
+
+
+def resolve_streaming_data_request_conflict() -> None:
+    if STREAMING_DATA_REQUEST_PATH not in unresolved_paths():
+        return
+
+    stage_blobs = tuple(
+        output_of("git", "rev-parse", f":{stage}:{STREAMING_DATA_REQUEST_PATH}")
+        for stage in (1, 2, 3)
+    )
+    if stage_blobs != STREAMING_DATA_REQUEST_CONFLICT_BLOBS:
+        return
+
+    ours = run(
+        "git", "show", f":2:{STREAMING_DATA_REQUEST_PATH}", capture=True
+    ).stdout
+    merged = merge_streaming_data_request_download_support(ours)
+    destination = ROOT / STREAMING_DATA_REQUEST_PATH
+    destination.write_text(merged, encoding="utf-8", newline="")
+    run("git", "add", "--", STREAMING_DATA_REQUEST_PATH)
+
+
 def merge_ref(
     ref: str,
     project_preference: str,
@@ -365,6 +528,7 @@ def merge_ref(
 
     resolve_dual_yandex_string_conflicts()
     resolve_addon_compatibility_conflicts()
+    resolve_streaming_data_request_conflict()
 
     remaining = unresolved_paths()
     if remaining:

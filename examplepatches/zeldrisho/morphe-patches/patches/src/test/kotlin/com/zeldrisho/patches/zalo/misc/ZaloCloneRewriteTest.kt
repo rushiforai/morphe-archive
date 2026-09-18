@@ -30,6 +30,21 @@ class ZaloCloneRewriteTest {
         assertFalse(isValidZaloPackageName("com"))
     }
 
+    /** Verifies that only provider URIs owned by Zalo are rewritten. */
+    @Test fun rewritesPackageOwnedProviderUrisOnly() {
+        assertEquals(
+            "content://com.zing.zalo.clone.db.preferencesprovider",
+            rewriteZaloProviderUri(
+                "content://com.zing.zalo.db.preferencesprovider",
+                "com.zing.zalo.clone",
+            ),
+        )
+        assertEquals(
+            "content://third.party.provider",
+            rewriteZaloProviderUri("content://third.party.provider", "com.zing.zalo.clone"),
+        )
+    }
+
     @Test fun rewritesOwnedManifestIdentitiesOnly() {
         val document = manifest()
         rewriteZaloPackage(document, "com.zing.zalo.clone")

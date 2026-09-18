@@ -26,14 +26,21 @@ import org.robolectric.annotation.Config;
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE, sdk = 28)
 public class ReflectMissingMemberTest {
+    private String previousFilters;
+
     @Before public void setUp() {
         Utils.setContext(RuntimeEnvironment.getApplication());
+        previousFilters = BaseSettings.DEBUG_LOG_FILTERS.get();
         BaseSettings.DEBUG_LOG_FILTERS.save("errors");
         LogBufferManager.clearLogBuffer();
         clearRegistry();
     }
 
     @After public void tearDown() {
+        // The filter outlives the test: the settings layer caches values across Robolectric
+        // resets, and a later class in the same fork read the Diagnostics summary as
+        // "Includes these events: Errors", which no translation table carries.
+        BaseSettings.DEBUG_LOG_FILTERS.save(previousFilters);
         LogBufferManager.clearLogBuffer();
         clearRegistry();
     }

@@ -1,3 +1,15 @@
+## [1.2.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.1.1...v1.2.0) (2026-09-17)
+
+### ⚠ BREAKING CHANGES
+
+* the "Travian account email"/"Travian account password"
+patch options are removed. Existing patched installs need to be re-patched
+and will be asked to log in once in-app.
+
+### ✨ New Features
+
+* store no credentials on disk, add building/troop detail to notifications ([512af7f](https://github.com/Amitaisela/travian-morphe-patches/commit/512af7fadd8e1168fc5278350e782970545d9f68))
+
 ## [1.1.1](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.1.0...v1.1.1) (2026-09-16)
 
 ### 🐛 Bug Fixes

@@ -78,8 +78,8 @@ internal fun MutableMethod.returnBeforeReporting(guard: String): Boolean {
 @Suppress("unused")
 val ghostModePatch = bytecodePatch(
     name = "Ghost mode",
-    description = "Adds an option to stop TikTok reporting that you viewed a story or a " +
-        "profile or that you are typing. Online status is unchanged.",
+    description = "Stop TikTok reporting that you viewed a story or a " +
+        "profile or that you are typing. Online status is unchanged. Switch: Hushfeed settings > Privacy.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

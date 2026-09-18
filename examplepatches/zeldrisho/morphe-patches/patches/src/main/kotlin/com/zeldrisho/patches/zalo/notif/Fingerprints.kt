@@ -12,7 +12,7 @@ import com.android.tools.smali.dexlib2.Opcode
  *
  * Lpy/i;.j0() is the push dispatcher: it hashes EXTRA_KEY_TYPE, maps each type
  * string to an int key, then packed-switches the key to an Lpy/m channel enum
- * (verified type map in analysis/zalo-26.08.01/notes/batch2-evidence.md §1).
+ * (verified type map in analysis/zalo/26.08.01/notes/batch2-evidence.md §1).
  * The Lpy/i + Lpy/m + Lpy/p holder classes are non-obfuscated; the j0 name is
  * pinned to this exact version via COMPATIBILITY_ZALO — re-verify per update.
  */

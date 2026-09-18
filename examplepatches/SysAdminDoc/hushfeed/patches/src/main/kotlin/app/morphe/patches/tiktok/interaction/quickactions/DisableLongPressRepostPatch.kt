@@ -21,7 +21,7 @@ private const val FEATURE_CONTROLS_DESCRIPTOR =
 @Suppress("unused")
 val disableLongPressRepostPatch = bytecodePatch(
     name = "Disable the long press repost",
-    description = "Keeps holding Like from opening TikTok's repost action.",
+    description = "Keeps holding Like from opening TikTok's repost action. Switch: Hushfeed settings > Feed screen.",
     default = true,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)
@@ -34,6 +34,11 @@ val disableLongPressRepostPatch = bytecodePatch(
                 "Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableDisableLongPressRepost()V",
         )
 
+        // The method is the Like button's long-click callback (an OnLongClickListener hands it
+        // the view). Answering false used to say "not handled", so the platform turned the
+        // release into a click and a hold liked the video: on the S22 the heart went red and
+        // the count rose by one. Answering true consumes the hold, and holding Like does
+        // nothing, which is what the switch promises.
         LongPressRepostGateFingerprint.method.apply {
             requireLocals("Disable the long press repost", 1)
             addInstructionsWithLabels(
@@ -42,7 +47,7 @@ val disableLongPressRepostPatch = bytecodePatch(
                     invoke-static {}, $FEATURE_CONTROLS_DESCRIPTOR->disableLongPressRepost()Z
                     move-result v0
                     if-eqz v0, :continue_long_press_repost
-                    const/4 v0, 0x0
+                    const/4 v0, 0x1
                     return v0
                 """,
                 ExternalLabel("continue_long_press_repost", getInstruction(0)),

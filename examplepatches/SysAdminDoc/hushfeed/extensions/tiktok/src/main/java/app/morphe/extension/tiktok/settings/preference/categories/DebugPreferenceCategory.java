@@ -16,7 +16,9 @@ import app.morphe.extension.shared.settings.preference.ExportDiagnosticReportPre
 import app.morphe.extension.shared.settings.preference.LogExportFilterPreference;
 import app.morphe.extension.tiktok.Utils;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
+import app.morphe.extension.tiktok.settings.preference.FeatureGateRecorderPreference;
 import app.morphe.extension.tiktok.settings.preference.HookStatusPreference;
+import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 
@@ -27,9 +29,12 @@ public class DebugPreferenceCategory extends ConditionalPreferenceCategory {
         setTitle("Diagnostics");
     }
 
-    /** Whether this page has anything on it. The row into it asks the same question. */
+    /**
+     * Whether this page has anything on it. The row into it asks the same question. The gate
+     * recorder is a diagnostics tool, so a bundle carrying only that patch still gets the page.
+     */
     public static boolean isAvailable() {
-        return SettingsStatus.diagnosticsEnabled;
+        return SettingsStatus.diagnosticsEnabled || SettingsStatus.featureGateRecorderEnabled;
     }
 
     @Override
@@ -39,48 +44,57 @@ public class DebugPreferenceCategory extends ConditionalPreferenceCategory {
 
     @Override
     public void addPreferences(Context context) {
-        addPreference(new TogglePreference(
-                context,
-                "Enable diagnostic logging",
-                "Only enable when recording logs to report an issue. Leaving it on for too long can make TikTok feel laggy and may lead to crashes.",
-                BaseSettings.DEBUG
-        ));
+        if (SettingsStatus.diagnosticsEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Enable diagnostic logging",
+                    "Only enable when recording logs to report an issue. Leaving it on for too long can make TikTok feel laggy and may lead to crashes.",
+                    BaseSettings.DEBUG
+            ));
 
-        // The switch behind the failure messages. It was read, persisted and backed up from the
-        // first release and had no row anywhere, so nobody could turn the messages off without
-        // turning the logging off with them.
-        addPreference(new TogglePreference(
-                context,
-                "Show failures on screen",
-                "While diagnostic logging is on, a message names the part of Hushfeed that failed. Off keeps failures in the report only.",
-                BaseSettings.DEBUG_TOAST_ON_ERROR
-        ));
+            // The switch behind the failure messages. It was read, persisted and backed up from
+            // the first release and had no row anywhere, so nobody could turn the messages off
+            // without turning the logging off with them.
+            addPreference(new TogglePreference(
+                    context,
+                    "Show failures on screen",
+                    "While diagnostic logging is on, a message names the part of Hushfeed that failed. Off keeps failures in the report only.",
+                    BaseSettings.DEBUG_TOAST_ON_ERROR
+            ));
 
-        addPreference(new TogglePreference(
-                context,
-                "Capture crash reports locally",
-                "Save the latest available TikTok crash report for diagnostic export.",
-                BaseSettings.CAPTURE_JAVA_CRASHES
-        ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Capture crash reports locally",
+                    "Save the latest available TikTok crash report for diagnostic export.",
+                    BaseSettings.CAPTURE_JAVA_CRASHES
+            ));
 
-        addPreference(new HookStatusPreference(context));
+            addPreference(new HookStatusPreference(context));
 
-        var logFilter = new TintedLogExportFilterPreference(context);
-        logFilter.setTitle(L10n.t(context, "Included diagnostics"));
-        addPreference(logFilter);
+            var logFilter = new TintedLogExportFilterPreference(context);
+            logFilter.setTitle(L10n.t(context, "Included diagnostics"));
+            addPreference(logFilter);
 
-        var exportLogs = new TintedExportDiagnosticReportPreference(context);
-        exportLogs.setTitle(L10n.t(context, "Export diagnostic report"));
-        exportLogs.setSummary(L10n.t(context, "Copy a quick report or save the full report as a file."));
-        addPreference(exportLogs);
+            var exportLogs = new TintedExportDiagnosticReportPreference(context);
+            exportLogs.setTitle(L10n.t(context, "Export diagnostic report"));
+            exportLogs.setSummary(L10n.t(context, "Copy a quick report or save the full report as a file."));
+            addPreference(exportLogs);
 
-        var clearLogs = new TintedClearLogBufferPreference(context);
-        clearLogs.setTitle(L10n.t(context, "Clear diagnostic data"));
-        clearLogs.setClearAndUndoSummaries(
-                L10n.t(context,
-                        "Clear buffered events, saved crash reports and the hook status above."),
-                L10n.t(context, "Diagnostic data cleared. Tap again to put it back."));
-        addPreference(clearLogs);
+            var clearLogs = new TintedClearLogBufferPreference(context);
+            clearLogs.setTitle(L10n.t(context, "Clear diagnostic data"));
+            clearLogs.setClearAndUndoSummaries(
+                    L10n.t(context,
+                            "Clear buffered events, saved crash reports and the hook status above."),
+                    L10n.t(context, "Diagnostic data cleared. Tap again to put it back."));
+            addPreference(clearLogs);
+        }
+
+        // The recorder used to sit on the master menu as the one row without an icon tile. It
+        // records what TikTok reads from its gates, which is diagnostics, so it lives here.
+        if (SettingsStatus.featureGateRecorderEnabled) {
+            addPreference(new SectionHeadingPreference(context, "Feature Gate Lab"));
+            addPreference(new FeatureGateRecorderPreference(context));
+        }
     }
 
     private static class TintedExportDiagnosticReportPreference extends ExportDiagnosticReportPreference {

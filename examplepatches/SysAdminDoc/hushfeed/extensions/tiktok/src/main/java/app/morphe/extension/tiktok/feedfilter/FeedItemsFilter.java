@@ -656,14 +656,12 @@ public final class FeedItemsFilter {
         Map<String, Integer> reasonCounts = new HashMap<>();
 
         List snapshot = new ArrayList(list);
-        List contentKept = new ArrayList(snapshot.size());
         List rangeKept = new ArrayList(snapshot.size());
         Object qualityFallback = null;
         double closestDistance = Double.POSITIVE_INFINITY;
         for (Object container : snapshot) {
             Aweme item = extractor.extract(container);
             if (item == null) {
-                contentKept.add(container);
                 rangeKept.add(container);
                 continue;
             }
@@ -683,7 +681,6 @@ public final class FeedItemsFilter {
                 continue;
             }
 
-            contentKept.add(container);
             String rangeReason = getFilterReason(activeRangeFilters, item);
             if (rangeReason != null) {
                 rangeRejected++;

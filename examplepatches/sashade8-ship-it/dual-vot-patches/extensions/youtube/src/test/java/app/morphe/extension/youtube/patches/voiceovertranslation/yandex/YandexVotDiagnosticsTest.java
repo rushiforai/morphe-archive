@@ -94,6 +94,14 @@ public class YandexVotDiagnosticsTest {
         assertFalse(transportPatch.contains("default = false"));
         assertTrue(transportPatch.contains("hookBuildRequest"));
         assertTrue(transportPatch.contains("recordPlayerRequest"));
+        assertTrue(transportPatch.contains("instructionMatches[0].getFieldAccessed()"));
+        assertTrue(transportPatch.contains("instructionMatches[1].getFieldAccessed()"));
+        assertTrue(transportPatch.contains("instructionMatches[2].getFieldAccessed()"));
+        assertTrue(transportPatch.contains(
+                "parameterTypes.indexOf(\"Ljava/util/Map;\")"));
+        assertTrue(transportPatch.contains("move-object/from16 v4, p$headersRegister"));
+        assertTrue(transportPatch.contains("move-object/from16 v5, p$keyRegister"));
+        assertFalse(transportPatch.contains("p6, p11"));
         assertTrue(transportPatch.contains(
                 "invoke-static/range { v$register .. v$register }"));
         assertFalse(transportPatch.contains("invoke-static { v$register }"));

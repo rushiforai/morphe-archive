@@ -100,7 +100,7 @@ public class SimPresetPreference extends Preference {
         dialogView.setOrientation(LinearLayout.VERTICAL);
         // No background of its own. The card is the window's, so it covers the platform's
         // button panel as well, which is where the actions now live.
-        int padding = SettingsUi.dp(getContext(), 20);
+        int padding = SettingsUi.dp(getContext(), 22);
         dialogView.setPadding(padding, padding, padding, SettingsUi.dp(getContext(), 8));
 
         TextView title = new TextView(context);
@@ -121,7 +121,7 @@ public class SimPresetPreference extends Preference {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
-        helperParams.setMargins(0, SettingsUi.dp(getContext(), 18), 0, SettingsUi.dp(getContext(), 8));
+        helperParams.setMargins(0, SettingsUi.dp(getContext(), 14), 0, SettingsUi.dp(getContext(), 10));
         dialogView.addView(helper, helperParams);
 
         EditText search = new EditText(context);
@@ -198,7 +198,7 @@ public class SimPresetPreference extends Preference {
                 // The way back to no preset. Picking a row applied it and closed the dialog, and
                 // nothing undid that short of retyping three fields.
                 .setNeutralButton(L10n.t(context, "Clear preset"), (ignored, which) -> clearPreset())
-                .setNegativeButton(android.R.string.cancel, null)
+                .setNegativeButton(L10n.t(context, "Cancel"), null)
                 .create();
 
         listView.setOnItemClickListener((parent, view, position, id) -> {
@@ -232,11 +232,11 @@ public class SimPresetPreference extends Preference {
 
     private boolean savePreset(SimPreset preset) {
         if (!preset.isValid()) {
-            Logger.printException(() -> "Invalid SIM preset refused: "
+            Logger.printException(() -> "That preset is not recognized. Choose another. refused: "
                     + preset.country + " / " + preset.operatorName + " / "
                     + preset.mccMnc + " / " + preset.iso);
             app.morphe.extension.shared.Utils.showToastLong(
-                app.morphe.extension.tiktok.settings.L10n.t("Invalid SIM preset"));
+                app.morphe.extension.tiktok.settings.L10n.t("That preset is not recognized. Choose another."));
             return false;
         }
 
@@ -250,9 +250,7 @@ public class SimPresetPreference extends Preference {
 
         if (Settings.SIM_SPOOF.get()) {
             app.morphe.extension.shared.Utils.showToastLong(
-                    app.morphe.extension.tiktok.settings.L10n.t("SIM preset saved. Restart TikTok to apply this."));
-        } else {
-            app.morphe.extension.shared.Utils.showToastShort(app.morphe.extension.tiktok.settings.L10n.t("SIM preset saved"));
+                    app.morphe.extension.tiktok.settings.L10n.t("Restart TikTok to apply this."));
         }
 
         return true;
@@ -317,7 +315,7 @@ public class SimPresetPreference extends Preference {
     }
 
     private GradientDrawable createListBackground() {
-        return SettingsUi.borderedSurface(getContext(), 4, false);
+        return SettingsUi.borderedSurface(getContext(), SettingsUi.RADIUS_BADGE, false);
     }
 
     private static int getDialogBackgroundColor() {

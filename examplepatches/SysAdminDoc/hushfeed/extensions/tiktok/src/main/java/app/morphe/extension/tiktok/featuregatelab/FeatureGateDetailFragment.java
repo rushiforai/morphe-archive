@@ -39,6 +39,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import android.os.Build;
+
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
@@ -202,7 +204,7 @@ public final class FeatureGateDetailFragment extends Fragment {
         LinearLayout currentState = new LinearLayout(context);
         currentState.setOrientation(LinearLayout.VERTICAL);
         currentState.setPadding(FeatureGateLabUi.dp(context, 16), 0, FeatureGateLabUi.dp(context, 16), 0);
-        currentState.setBackground(SettingsUi.borderedSurface(context, 10, false));
+        currentState.setBackground(SettingsUi.borderedSurface(context, SettingsUi.RADIUS_CARD, false));
         content.addView(currentState, FeatureGateLabUi.matchWrap());
         addInfo(currentState, L10n.t(context, "Seen this session"),
                 L10n.t(context, entry.loaded ? "Yes" : "No"));
@@ -277,7 +279,7 @@ public final class FeatureGateDetailFragment extends Fragment {
             LinearLayout forceRow = FeatureGateLabUi.switchRow(
                     context,
                     L10n.t(context, "Override this configuration"),
-                    L10n.t(context, "Return a copied object with the selected fields changed"),
+                    L10n.t(context, "Return a copy of this configuration with the fields below changed"),
                     force
             );
             content.addView(forceRow, FeatureGateLabUi.matchWrap());
@@ -610,7 +612,7 @@ public final class FeatureGateDetailFragment extends Fragment {
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setPadding(FeatureGateLabUi.dp(context, 16), FeatureGateLabUi.dp(context, 16),
                 FeatureGateLabUi.dp(context, 16), FeatureGateLabUi.dp(context, 16));
-        row.setBackground(SettingsUi.borderedSurface(context, 10, false));
+        row.setBackground(SettingsUi.borderedSurface(context, SettingsUi.RADIUS_CARD, false));
         LinearLayout labels = new LinearLayout(context);
         labels.setOrientation(LinearLayout.VERTICAL);
         labels.addView(FeatureGateLabUi.body(context, title), FeatureGateLabUi.matchWrap());
@@ -763,15 +765,26 @@ public final class FeatureGateDetailFragment extends Fragment {
     private void showCustomValue() {
         EditText input = new EditText(getActivity());
         input.setSingleLine(!"STRING".equals(entry.type));
-        // One sentence with the type in it, rather than three pieces glued together: no
-        // table row can express a concatenation, and word order is not the same everywhere.
-        input.setHint(L10n.f(getContext(), "Custom %1$s value (unverified)",
-                entry.type.toLowerCase(Locale.ROOT)));
+        input.setHint(L10n.t(getContext(), "Value"));
         input.setText(rule == null ? "" : rule.value);
         SettingsUi.styleEditText(input);
+        LinearLayout dialogBody = new LinearLayout(getActivity());
+        dialogBody.setOrientation(LinearLayout.VERTICAL);
+        int bodyPad = SettingsUi.dp(getActivity(), 20);
+        dialogBody.setPadding(bodyPad, bodyPad, bodyPad, 0);
+        TextView notice = new TextView(getActivity());
+        notice.setText(L10n.t(getContext(),
+                "The Lab can't check this. TikTok gets it exactly as typed."));
+        notice.setTextColor(SettingsUi.textSecondary());
+        notice.setTextSize(14);
+        dialogBody.addView(notice);
+        LinearLayout.LayoutParams inputParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        inputParams.setMargins(0, SettingsUi.dp(getActivity(), 12), 0, 0);
+        dialogBody.addView(input, inputParams);
         AlertDialog dialog = customValueDialog = new AlertDialog.Builder(getActivity())
-                .setTitle(L10n.t(getContext(), "Custom value (unverified)"))
-                .setView(input)
+                .setTitle(L10n.t(getContext(), "Custom value"))
+                .setView(dialogBody)
                 .setPositiveButton(L10n.t(getContext(), "Use value"), null)
                 .setNegativeButton(L10n.t(getContext(), "Cancel"),
                         (ignored, which) -> restoreSelection())
@@ -875,14 +888,14 @@ public final class FeatureGateDetailFragment extends Fragment {
             status.setText(L10n.t(getContext(), "Using TikTok's value"));
             status.setTextColor(SettingsUi.textSecondary());
             showFailureReason(null);
-            if (effectiveValue != null) effectiveValue.setText(effectiveValueText());
+            if (effectiveValue != null) updateEffectiveValue();
             return;
         }
         if (!rule.enabled) {
             status.setText(L10n.t(getContext(), "Saved, override off"));
             status.setTextColor(SettingsUi.textSecondary());
             showFailureReason(null);
-            if (effectiveValue != null) effectiveValue.setText(effectiveValueText());
+            if (effectiveValue != null) updateEffectiveValue();
             return;
         }
         boolean triggered = FeatureGateLabRuntime.isTriggered(entry.manager, entry.key, entry.type);
@@ -890,12 +903,12 @@ public final class FeatureGateDetailFragment extends Fragment {
                 entry.manager, entry.key, entry.type);
         status.setText(failure != null
                 ? L10n.t(getContext(),
-                        "TikTok read it, but the structured override could not be applied")
+                        "TikTok read it, but the override could not be applied. Reset it and save it again.")
                 : L10n.t(getContext(), triggered
                         ? "TikTok read it" : "Not read yet"));
         status.setTextColor(triggered ? SettingsUi.accent() : FeatureGateLabUi.warningColor(getActivity()));
         showFailureReason(failure);
-        if (effectiveValue != null) effectiveValue.setText(effectiveValueText());
+        if (effectiveValue != null) updateEffectiveValue();
     }
 
     /** The reason under the status, which is there only while there is one. */
@@ -912,6 +925,14 @@ public final class FeatureGateDetailFragment extends Fragment {
 
     private String effectiveValueText() {
         return FeatureGateLabText.effectiveValue(getContext(), entry);
+    }
+
+    private void updateEffectiveValue() {
+        String text = effectiveValueText();
+        effectiveValue.setText(text);
+        effectiveValue.setContentDescription(
+                L10n.f(getContext(), "%1$s: %2$s",
+                        L10n.t(getContext(), "What TikTok gets"), text));
     }
 
     private void addObjectEditors(LinearLayout root, boolean editable) {
@@ -1076,8 +1097,16 @@ public final class FeatureGateDetailFragment extends Fragment {
                 result.put(editor.name, editor.value());
             }
         } catch (FieldValueException failure) {
-            Utils.showToastLong(FeatureGateLabText.fieldValidation(
-                    getContext(), failure.fieldName, failure.validation));
+            String message = FeatureGateLabText.fieldValidation(
+                    getContext(), failure.fieldName, failure.validation);
+            for (ObjectFieldEditor editor : objectEditors) {
+                if (editor.name.equals(failure.fieldName) && editor.input != null) {
+                    editor.input.setError(message);
+                    editor.input.requestFocus();
+                    return null;
+                }
+            }
+            Utils.showToastLong(message);
             return null;
         } catch (Throwable failure) {
             Logger.printException(() -> "Could not collect Feature Gate field values", failure);
@@ -1169,10 +1198,20 @@ public final class FeatureGateDetailFragment extends Fragment {
                 FeatureGateLabUi.dp(context, 12),
                 0
         );
+        technicalToggle.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         heading.addView(technicalToggle, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 FeatureGateLabUi.dp(context, 48)
         ));
+        SettingsUi.markAsButton(heading);
+        heading.setFocusable(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            heading.setContentDescription(L10n.t(context, "Technical details"));
+            heading.setStateDescription(L10n.t(context, "collapsed"));
+        } else {
+            heading.setContentDescription(
+                    L10n.f(context, "Technical details, %1$s", L10n.t(context, "collapsed")));
+        }
         LinearLayout.LayoutParams headingParams = FeatureGateLabUi.matchWrap();
         headingParams.setMargins(0, FeatureGateLabUi.dp(context, 12), 0, 0);
         root.addView(heading, headingParams);
@@ -1205,14 +1244,22 @@ public final class FeatureGateDetailFragment extends Fragment {
             boolean show = technicalDetails.getVisibility() != View.VISIBLE;
             technicalDetails.setVisibility(show ? View.VISIBLE : View.GONE);
             technicalToggle.setText(L10n.t(getContext(), show ? "Hide" : "Show"));
+            String state = L10n.t(getContext(), show ? "expanded" : "collapsed");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                heading.setContentDescription(
+                        L10n.t(getContext(), "Technical details"));
+                heading.setStateDescription(state);
+            } else {
+                heading.setContentDescription(
+                        L10n.f(getContext(), "Technical details, %1$s", state));
+            }
         };
         heading.setOnClickListener(toggle);
         technicalToggle.setOnClickListener(toggle);
     }
 
     private void addSectionTitle(LinearLayout root, String text) {
-        TextView title = FeatureGateLabUi.text(root.getContext(), text.toUpperCase(Locale.ROOT), 11, SettingsUi.accent(), Typeface.BOLD);
-        title.setLetterSpacing(0.12f);
+        TextView title = SettingsUi.sectionTitle(root.getContext(), text);
         LinearLayout.LayoutParams params = FeatureGateLabUi.matchWrap();
         params.setMargins(0, FeatureGateLabUi.dp(root.getContext(), 18), 0, FeatureGateLabUi.dp(root.getContext(), 12));
         root.addView(title, params);
@@ -1230,11 +1277,14 @@ public final class FeatureGateDetailFragment extends Fragment {
         row.setMinimumHeight(FeatureGateLabUi.dp(context, 60));
         row.setPadding(0, FeatureGateLabUi.dp(context, 16), 0, FeatureGateLabUi.dp(context, 16));
         TextView labelView = FeatureGateLabUi.body(context, label);
+        labelView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         row.addView(labelView, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView valueView = FeatureGateLabUi.label(context, value == null || value.isEmpty()
-                ? L10n.t(context, "None recorded") : value);
+        String displayValue = value == null || value.isEmpty()
+                ? L10n.t(context, "None recorded") : value;
+        TextView valueView = FeatureGateLabUi.label(context, displayValue);
         valueView.setTextIsSelectable(true);
         valueView.setGravity(Gravity.END);
+        valueView.setContentDescription(L10n.f(context, "%1$s: %2$s", label, displayValue));
         LinearLayout.LayoutParams valueParams = new LinearLayout.LayoutParams(0, -2, 1);
         valueParams.setMarginStart(FeatureGateLabUi.dp(context, 16));
         row.addView(valueView, valueParams);

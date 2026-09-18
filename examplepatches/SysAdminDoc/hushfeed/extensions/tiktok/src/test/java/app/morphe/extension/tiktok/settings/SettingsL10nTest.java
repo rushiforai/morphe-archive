@@ -28,6 +28,7 @@ import app.morphe.extension.tiktok.settings.preference.categories.FeedNavigation
 import app.morphe.extension.tiktok.settings.preference.categories.InboxPreferenceCategory;
 import app.morphe.extension.tiktok.settings.preference.categories.InterfacePreferenceCategory;
 import app.morphe.extension.tiktok.settings.preference.categories.PlaybackPreferenceCategory;
+import app.morphe.extension.tiktok.settings.preference.categories.ScreenTimePreferenceCategory;
 import app.morphe.extension.tiktok.settings.preference.categories.SharePreferenceCategory;
 import app.morphe.extension.tiktok.settings.preference.categories.SimSpoofPreferenceCategory;
 
@@ -1626,6 +1627,7 @@ public class SettingsL10nTest {
             new CommentsPreferenceCategory(activity, screen);
             new DownloadsPreferenceCategory(activity, screen);
             new PlaybackPreferenceCategory(activity, screen);
+            new ScreenTimePreferenceCategory(activity, screen);
             // "Start today over" says something different once it has been tapped, and that
             // sentence shipped in English on every translated phone because nothing here had
             // ever tapped it. The page is built a second time with the undo armed, and the tap
@@ -1635,7 +1637,7 @@ public class SettingsL10nTest {
             app.morphe.extension.tiktok.wellbeing.SessionBudget.clear();
             PreferenceScreen afterStartingOver =
                     activity.getPreferenceManager().createPreferenceScreen(activity);
-            new PlaybackPreferenceCategory(activity, afterStartingOver);
+            new ScreenTimePreferenceCategory(activity, afterStartingOver);
             collect(afterStartingOver, strings);
             app.morphe.extension.tiktok.wellbeing.SessionBudget.undoClear();
             assertFalse("the tap on Start today over was not taken back, so the next language"
@@ -1647,9 +1649,20 @@ public class SettingsL10nTest {
             new DebugPreferenceCategory(activity, screen);
             new ExtensionPreferenceCategory(activity, screen);
             collect(screen, strings);
-            for (String section : new String[]{"Feed filter", "Feed navigation", "Interface",
-                    "Comments and translation", "Downloads", "Playback", "Inbox", "Share sheet",
-                    "Region settings", "App behavior", "Diagnostics", "Settings"}) {
+            // The master menu's own words: the section titles and subtitles its rows carry,
+            // the four group headings above them, and the header. None of these is built by a
+            // category, so they are named here.
+            for (String section : new String[]{"Feed filter", "Feed tabs", "Feed screen",
+                    "Playback", "Screen time", "Comments", "Downloads", "Share sheet", "Inbox",
+                    "Privacy", "Region", "App", "Diagnostics", "Backup and restore", "Settings",
+                    "Your feed", "Watching and sharing", "Privacy and system", "About",
+                    "Choose what reaches your feed", "Arrange your feed and bottom tabs",
+                    "Captions, gestures and on-screen controls", "Quality, speed and automatic advance",
+                    "Daily budgets, reminders and the hold", "Filters, translation and copy options",
+                    "Quality, files, subtitles and hand-off", "People, shortcuts and sending controls",
+                    "Choose which rows and controls appear", "Tracking, device access and links",
+                    "Country and network preferences", "Layout, player, search and system",
+                    "Logging, hook status and reports", "Save, restore, reset and undo your settings"}) {
                 strings.add(L10n.t(activity, section));
             }
             strings.add(L10n.t(activity, "Back up settings"));

@@ -86,14 +86,10 @@ public final class SettingsHeaderPreference extends Preference {
                 14, SettingsUi.textSecondary(), 0);
         LinearLayout.LayoutParams subtitleParams = new LinearLayout.LayoutParams(-1, -2);
         subtitleParams.topMargin = SettingsUi.dp(getContext(), 12);
+        // The "YOUR EXPERIENCE" label that used to sit here headed one card holding every row
+        // from Search to Licenses. The master menu carries its own group headings now.
+        subtitleParams.bottomMargin = SettingsUi.dp(getContext(), 8);
         header.addView(subtitle, subtitleParams);
-        TextView label = SettingsUi.text(getContext(), L10n.t(getContext(), "YOUR EXPERIENCE"),
-                11, SettingsUi.textSecondary(), 1);
-        label.setLetterSpacing(0.15f);
-        LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(-1, -2);
-        labelParams.topMargin = SettingsUi.dp(getContext(), 38);
-        labelParams.bottomMargin = SettingsUi.dp(getContext(), 12);
-        header.addView(label, labelParams);
         return header;
     }
 
@@ -118,10 +114,9 @@ public final class SettingsHeaderPreference extends Preference {
         // dark surface, which is no press feedback at all. The ring under it is what a reader
         // moving by keyboard or d-pad sees: the ripple's own focus tint is fainter still.
         back.setBackground(new android.graphics.drawable.RippleDrawable(
-                android.content.res.ColorStateList.valueOf(
-                        (SettingsUi.accent() & 0x00ffffff) | 0x26000000),
+                android.content.res.ColorStateList.valueOf(SettingsUi.rippleTint()),
                 SettingsUi.focusRing(context, 6),
-                SettingsUi.roundedSurface(context, 6, false)));
+                SettingsUi.roundedSurface(context, SettingsUi.RADIUS_CONTROL, false)));
         LinearLayout.LayoutParams backParams = new LinearLayout.LayoutParams(SettingsUi.dp(context, 48), SettingsUi.dp(context, 48));
         // -8 lines the glyph up with the 8dp gutter. Anything more pushes the button's
         // leading edge outside the header, where it is clipped and takes no touches.
@@ -136,6 +131,7 @@ public final class SettingsHeaderPreference extends Preference {
         TextView heading = SettingsUi.text(
                 context, title, headingSizeSp(context), SettingsUi.textPrimary(), 1);
         heading.setTag("hushfeed_page_title");
+        heading.setHyphenationFrequency(android.text.Layout.HYPHENATION_FREQUENCY_NONE);
         if (android.os.Build.VERSION.SDK_INT >= 28) heading.setAccessibilityHeading(true);
         LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(-1, -2);
         titleParams.topMargin = SettingsUi.dp(context, 24);

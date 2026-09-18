@@ -31,7 +31,7 @@ val playbackQualityPatch = bytecodePatch(
     name = "Playback quality",
     description = "Selects the lowest, highest or a target video quality for playback, adaptive " +
         "streams included. A second choice caps quality on mobile data and only ever lowers " +
-        "it. Download quality has its own setting.",
+        "it. Download quality has its own setting. Switch: Hushfeed settings > Playback.",
     default = false,
 ) {
     compatibleWith(*AppCompatibilities.tiktok4623())

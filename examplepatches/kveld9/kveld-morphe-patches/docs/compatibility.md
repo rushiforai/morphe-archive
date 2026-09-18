@@ -32,13 +32,13 @@ Always use `Bravemonoarm64.apk` from [Brave GitHub Releases](https://github.com/
 ### 🔴 Vivaldi Browser: Stable Transition (`com.vivaldi.browser`)
 Download the official `arm64-v8a` bundle release from [APKMirror](https://www.apkmirror.com/apk/vivaldi-technologies/vivaldi-browser-beta/).
 
-- **Stable Target**: Morphe Patches has transitioned to the stable release of Vivaldi Browser (`com.vivaldi.browser`, v8.2.4147.58).
+- **Stable Target**: Morphe Patches has transitioned to the stable release of Vivaldi Browser (`com.vivaldi.browser`, v8.2.4147.77).
 - **APKM Bundle Requirement**: Distributed as an Android App Bundle (`.apkm` / split APKs) containing `base.apk` and `split_chrome.apk`. **Do not download the ~320 MB standalone APK option on APKMirror**, as that is merely an unbundled `base.apk` stripped of browser bytecode. Select the **BUNDLE (`.apkm`)** file so Morphe can fuse split modules and apply the complete patch suite.
 
 ### 🏋️ Hevy: Gym Log Workout Tracker (`com.hevy`)
 Download the official `arm64-v8a` bundle release from [APKMirror](https://www.apkmirror.com/apk/hevy/hevy-gym-log-workout-tracker/).
 
-- **Current Target**: `3.1.13` (`com.hevy`, APKM bundle).
+- **Current Target**: `3.1.14` (`com.hevy`, APKM bundle).
 - **Bundle Format**: Distributed as an APKM / split APK set (`base.apk`, `split_config.arm64_v8a.apk`, `split_config.xxhdpi.apk`, etc.). Morphe patches both Dalvik bytecode in `classes*.dex`, manifest components in `AndroidManifest.xml`, and the Hermes bytecode bundle in `assets/index.android.bundle`.
 
 ### 🎵 TikTok: Global & Asia (`com.zhiliaoapp.musically` / `com.ss.android.ugc.trill`)
@@ -47,3 +47,18 @@ Download the official APK release from [APKMirror (TikTok)](https://www.apkmirro
 - **Package Names**: `com.zhiliaoapp.musically` (Global) and `com.ss.android.ugc.trill` (Asia).
 - **APK Format**: Standalone nodpi APK (`arm64-v8a` or dual-ABI `arm64-v8a, armeabi-v7a`).
 - **Compatibility**: Patches operate on stable ByteDance SDK boundaries and MultiDEX classes across versions, with slimmers targeting ByteDance assets and heavy native libraries.
+
+---
+
+## Cross-Browser Patch Policy: Brave vs. Vivaldi
+
+While both browsers derive from Chromium, their underlying engine modifications differ fundamentally:
+
+| Candidate Feature / Patch | Vivaldi Browser | Brave Browser | Technical Rationale |
+| :--- | :--- | :--- | :--- |
+| **Privacy Sandbox Attestations** | **Applied** (`Resource Slimmer`) | **Omitted** | Brave strips Google Topics, Protected Audience, and Attribution Reporting at the C++ engine level (`brave-core`). Pre-bundled `.dat` assets are uncallable by web content. |
+| **UKM Metrics Neutralization** | **Applied** (`Block Telemetry`) | **Omitted** | Brave replaces Chromium UMA/UKM reporting pipelines with its own P3A/WDP telemetry in C++. `Block Brave Telemetry` intercepts P3A and WDP at bytecode and network levels (`0.0.0.0`), rendering upstream UKM hooks obsolete. |
+| **Close Tabs on Exit** | **Applied** (Bytecode hook) | **Omitted** | Brave provides a native, first-party toggle in *Settings -> Close tabs on exit*. Bytecode overrides would break user configuration. |
+| **Sensor Privacy Guard** | **Applied** (Shared patch) | **Applied** (Shared patch) | Both browsers expose W3C Generic Sensor APIs to web content. Intercepting `PlatformSensor` prevents gyroscope/accelerometer fingerprinting. |
+| **Clean Share URL** | **Applied** (Shared patch) | **Applied** (Shared patch) | Both browsers invoke Android share intents and clipboard setters with tracking tokens. Intercepting share/clipboard sanitizes query parameters across both. |
+

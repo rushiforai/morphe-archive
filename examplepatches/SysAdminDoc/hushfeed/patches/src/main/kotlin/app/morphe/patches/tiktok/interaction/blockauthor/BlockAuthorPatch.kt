@@ -27,7 +27,7 @@ val blockAuthorPatch = bytecodePatch(
     name = "Block author button",
     description = "Adds one-tap controls for blocking the creator, hiding them locally and " +
         "blocking the current sound. The local-hide and sound controls have separate switches. " +
-        "Long press any visible control to move it, and all of them hide while comments are open.",
+        "Long press any visible control to move it, and all of them hide while comments are open. Switch: Hushfeed settings > Feed filter.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

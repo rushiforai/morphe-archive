@@ -82,7 +82,7 @@ final class RemoteMedia {
                     // message contains only a query-free, bounded address summary.
                     failure.addSuppressed(new IOException(
                             "Media mirror failed (" + exception.getClass().getSimpleName() + "): "
-                                     + summarizeUrl(url)));
+                                     + summarizeUrl(url), exception));
                     if (!cleaned) failure.addSuppressed(
                             new IOException("Could not remove partial media output"));
                     break;

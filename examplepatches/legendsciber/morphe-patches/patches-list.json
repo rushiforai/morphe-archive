@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.19.0",
+  "version": "1.19.1",
   "patches": [
     {
       "name": "Bypass Google Play Install Check",
@@ -29,21 +29,21 @@
       "options": []
     },
     {
-      "name": "Clumsy Ninja License Bypass",
-      "description": "Bypasses Google Play license verification at startup.",
+      "name": "Dan The Man Free IAP",
+      "description": "All in-app purchases are granted instantly and free without Google Play billing.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [
         {
-          "packageName": "com.naturalmotion.clumsyninja",
-          "name": "Clumsy Ninja",
+          "packageName": "com.halfbrick.dantheman",
+          "name": "Dan The Man",
           "description": null,
           "apkFileType": "APK",
-          "appIconColor": "#FF6F00",
+          "appIconColor": "#4CAF50",
           "signatures": null,
           "targets": [
             {
-              "version": "1.33.5",
+              "version": "1.14.02",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

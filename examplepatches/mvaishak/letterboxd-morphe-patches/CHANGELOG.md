@@ -1,3 +1,27 @@
+## [2.2.0](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v2.1.1...v2.2.0) (2026-09-17)
+
+### ✨ New Features
+
+* Add "Report an issue" and "Full changelog" links to Mod settings ([1bbef53](https://github.com/mvaishak/letterboxd-morphe-patches/commit/1bbef5323fc70acee84419b1400c139080935182))
+
+## [2.2.0-dev.1](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v2.1.1...v2.2.0-dev.1) (2026-09-17)
+
+### ✨ New Features
+
+* Add "Report an issue" and "Full changelog" links to Mod settings ([1bbef53](https://github.com/mvaishak/letterboxd-morphe-patches/commit/1bbef5323fc70acee84419b1400c139080935182))
+
+## [2.1.1](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v2.1.0...v2.1.1) (2026-09-17)
+
+### 🐛 Bug Fixes
+
+* What's-new dialog can overflow the screen with no way to dismiss it ([b65ff55](https://github.com/mvaishak/letterboxd-morphe-patches/commit/b65ff552a45a5df16cd6a2ddced43fd2c5b69c0a))
+
+## [2.1.1-dev.1](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v2.1.0...v2.1.1-dev.1) (2026-09-17)
+
+### 🐛 Bug Fixes
+
+* What's-new dialog can overflow the screen with no way to dismiss it ([b65ff55](https://github.com/mvaishak/letterboxd-morphe-patches/commit/b65ff552a45a5df16cd6a2ddced43fd2c5b69c0a))
+
 ## [2.1.0](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v2.0.0...v2.1.0) (2026-09-16)
 
 ### 🐛 Bug Fixes

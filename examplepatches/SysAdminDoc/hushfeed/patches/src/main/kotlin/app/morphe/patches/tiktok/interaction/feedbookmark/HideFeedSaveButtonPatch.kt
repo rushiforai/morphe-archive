@@ -44,7 +44,7 @@ private object FeedFavoriteStateFingerprint : Fingerprint(
 @Suppress("unused")
 val hideFeedSaveButtonPatch = bytecodePatch(
     name = "Hide feed save button",
-    description = "Adds an option to hide the save button from video feeds.",
+    description = "Hide the save button from video feeds. Switch: Hushfeed settings > Feed screen.",
     default = true,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

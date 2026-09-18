@@ -72,7 +72,7 @@ public class FeatureGateLocalizationTest {
     @Config(sdk = 28, qualifiers = "de-w480dp-h960dp-night-mdpi")
     public void germanOwnsEveryFeatureGateFailureAndStateSentence() throws Exception {
         verifyFeatureGateLanguage(new Expected(
-                "Gib einen gültigen Wert für INT ein.",
+                "Gib eine ganze Zahl ein.",
                 "Kein aktueller Wert und keine aktive Überschreibung",
                 "11 (wird bei der Abfrage zurückgegeben)",
                 "App-AB / generiertes Register und aktueller Cache",
@@ -95,7 +95,7 @@ public class FeatureGateLocalizationTest {
     @Config(sdk = 28, qualifiers = "in-rID-w480dp-h960dp-night-mdpi")
     public void indonesianOwnsEveryFeatureGateFailureAndStateSentence() throws Exception {
         verifyFeatureGateLanguage(new Expected(
-                "Masukkan nilai INT yang valid.",
+                "Masukkan bilangan bulat.",
                 "Tidak ada nilai saat ini dan tidak ada penimpaan aktif",
                 "11 (akan dikembalikan saat diminta)",
                 "AB aplikasi / registri yang dibuat dan cache saat ini",
@@ -192,7 +192,7 @@ public class FeatureGateLocalizationTest {
             View save = structuredPage.getView().findViewWithTag("feature_gate_save_fields");
             assertNotNull(save);
             assertTrue(save.performClick());
-            assertEquals(expected.invalidStructured, ShadowToast.getTextOfLatestToast());
+            assertEquals(expected.invalidStructured, String.valueOf(json.getError()));
 
             // A saved override naming a field the class does not have is refused when TikTok
             // asks for the object, and the page has to say which field, in this language.

@@ -1,0 +1,32 @@
+package app.morphe.patches.chromium
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.shared.Constants
+
+@Suppress("unused")
+val batteryOptimizationPatch = bytecodePatch(
+    name = "Disable Battery Status API & OS Listener",
+    description = "Neutralizes the Battery Status API (navigator.getBattery) to prevent cross-site device fingerprinting and drops OS battery change broadcasts.",
+    default = true,
+) {
+    compatibleWith(Constants.COMPATIBILITY_BRAVE, Constants.COMPATIBILITY_VIVALDI)
+
+    execute {
+        val fp = Fingerprint(
+            returnType = "V",
+            parameters = listOf("Landroid/content/Context;", "Landroid/content/Intent;"),
+            strings = listOf("android.intent.action.BATTERY_CHANGED", "cr_BatteryStatusManager"),
+        )
+        fp.method.addInstructions(
+            0,
+            """
+                return-void
+            """.trimIndent(),
+        )
+
+        val targetClass = fp.originalClassDef.type.substringAfterLast('/').removeSuffix(";")
+        println("[Disable Battery API] Hooked onReceive in $targetClass to drop BATTERY_CHANGED broadcast events")
+    }
+}

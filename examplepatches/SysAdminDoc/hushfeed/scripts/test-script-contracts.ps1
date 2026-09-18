@@ -724,10 +724,33 @@ try {
         Set-Content -LiteralPath $path -Value (& $Edit $text) -Encoding UTF8 -NoNewline
     }
 
+    # A prepare window: the source version has moved past the index, which still describes the
+    # last release, and the gate allows that lag for an index that did not change. The copied
+    # tree is not a release tree then, and holding it to the lagging index failed the control
+    # for a reason that had nothing to do with the check (2026-09-17, 0.40.0 being prepared over
+    # the 0.39.0 index). The copied index is written up to the catalog it sits beside, its
+    # version strings and its patch count, so every case below still moves exactly one fact
+    # and is judged on the strict path.
+    function Sync-FixtureIndex {
+        $fixtureVersion = ((Get-Content -LiteralPath (Join-Path $factsRoot 'gradle.properties')) `
+            -match '^version\s*=' | Select-Object -First 1) -replace '^version\s*=\s*', ''
+        $index = Get-Content -LiteralPath (Join-Path $factsRoot 'patches-bundle.json') -Raw | ConvertFrom-Json
+        $indexVersion = "$($index.version)"
+        if ($indexVersion -eq $fixtureVersion) { return }
+        $count = @((Get-Content -LiteralPath (Join-Path $factsRoot 'patches-list.json') -Raw | ConvertFrom-Json).patches).Count
+        Set-FactsFile 'patches-bundle.json' {
+            param($text)
+            ($text -replace [regex]::Escape($indexVersion), $fixtureVersion) -replace '\b\d+ patches\b', "$count patches"
+        }
+    }
+
     function Reset-FactsFile {
         param([string]$Name)
         Copy-Item -LiteralPath (Join-Path $Root $Name) -Destination (Join-Path $factsRoot $Name) -Force
+        if ($Name -eq 'patches-bundle.json') { Sync-FixtureIndex }
     }
+
+    Sync-FixtureIndex
 
     # The control. Everything below is this same tree with one fact moved, so a failure there is
     # the moved fact talking and not the fixture being wrong.

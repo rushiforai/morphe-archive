@@ -1,3 +1,15 @@
+## [2.3.0](https://github.com/braiNtropy/braintropy-patches/compare/v2.2.0...v2.3.0) (2026-09-17)
+
+### ✨ New Features
+
+* Turn Tracearr patches into universal patches ([f4f0874](https://github.com/braiNtropy/braintropy-patches/commit/f4f087408bb1d6f91419097e8a08a943ab2f885f))
+
+## [2.3.0-dev.1](https://github.com/braiNtropy/braintropy-patches/compare/v2.2.0...v2.3.0-dev.1) (2026-09-17)
+
+### ✨ New Features
+
+* Turn Tracearr patches into universal patches ([f4f0874](https://github.com/braiNtropy/braintropy-patches/commit/f4f087408bb1d6f91419097e8a08a943ab2f885f))
+
 ## [2.2.0](https://github.com/braiNtropy/braintropy-patches/compare/v2.1.0...v2.2.0) (2026-09-15)
 
 ### ✨ New Features

@@ -17,6 +17,22 @@ internal object QuickCommentBindFingerprint : Fingerprint(
     },
 )
 
+/**
+ * The comment keyboard's exposed emoji trigger: the predicate that decides whether the row of
+ * emoji above the comment box is added. Its name is obfuscated on every build (Cp, Vq, nr and
+ * vr on 46.2.3 through 46.9.3) but it is the class's only boolean taking the comment context;
+ * the base class's default answer has the same shape and is kept out by the defining class.
+ */
+internal object ExposedEmojiPanelTriggerFingerprint : Fingerprint(
+    definingClass = EXPOSED_EMOJI_PANEL_TRIGGER,
+    returnType = "Z",
+    custom = { method, _ ->
+        method.parameterTypes.size == 2 &&
+            method.parameterTypes[0].toString() == COMMENT_CONTEXT_SOURCE &&
+            method.implementation != null
+    },
+)
+
 internal object LongPressRepostGateFingerprint : Fingerprint(
     definingClass = "Lcom/ss/android/ugc/aweme/feed/assem/digg/VideoDiggAssem;",
     returnType = "Z",

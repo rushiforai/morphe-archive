@@ -35,7 +35,7 @@ private const val AWEME = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;"
 @Suppress("unused")
 val playbackSpeedPatch = bytecodePatch(
     name = "Playback speed",
-    description = "Remembers playback speed or applies a default to each new video, with custom menu choices up to 3x.",
+    description = "Remembers playback speed or applies a default to each new video, with custom menu choices up to 3x. Switch: Hushfeed settings > Playback.",
     default = true,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

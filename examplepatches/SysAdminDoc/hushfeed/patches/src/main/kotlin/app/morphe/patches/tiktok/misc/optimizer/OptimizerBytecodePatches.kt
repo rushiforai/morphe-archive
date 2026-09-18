@@ -154,7 +154,7 @@ val updatePromptSuppressorPatch = bytecodePatch(
     }
 }
 
-/** Bytecode half of Live Stream Suite Optimizer. It is selected only through the resource patch. */
+/** Bytecode half of LIVE Stream Suite Optimizer. It is selected only through the resource patch. */
 internal val liveGiftEffectOptimizerPatch = bytecodePatch {
     compatibleWith(*AppCompatibilities.tiktok4623())
 

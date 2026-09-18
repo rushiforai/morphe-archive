@@ -1350,23 +1350,29 @@ public final class Haiagaru {
         scheduleKnownAdChecks(rootGroup);
     }
 
-    /** Finds the legacy banner slot in every Fragment root by its stable layout position. */
+    /** Only the identified 191 ad view is safe to hide across arbitrary Fragments. */
     public static void hideLegacyBanner(View root) {
         if (!(root instanceof ViewGroup) || !shouldHideAds()) return;
+        hideKnownLegacyAds(root);
+        root.post(() -> hideKnownLegacyAds(root));
+        root.postDelayed(() -> hideKnownLegacyAds(root), 300);
+        root.postDelayed(() -> hideKnownLegacyAds(root), 1000);
+        root.postDelayed(() -> hideKnownLegacyAds(root), 2500);
+    }
 
-        ViewGroup rootGroup = (ViewGroup) root;
-        int childCount = rootGroup.getChildCount();
-        if (childCount >= 3) {
-            View candidate = rootGroup.getChildAt(childCount - 3);
-            if (candidate instanceof FrameLayout
-                    && candidate.getClass() != FrameLayout.class) {
-                rememberAdClass(candidate);
-                hideAdView(candidate);
+    private static void hideKnownLegacyAds(View view) {
+        // Search options also occupy a FrameLayout subclass. Neither child order
+        // nor an adClass persisted by the old positional heuristic identifies ads.
+        if (AD_CLASS_191.equals(view.getClass().getName())) {
+            hideAdView(view);
+            return;
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                hideKnownLegacyAds(group.getChildAt(i));
             }
         }
-
-        hideRememberedAdViews(rootGroup);
-        scheduleKnownAdChecks(rootGroup);
     }
 
     public static void removeMonaKey() {

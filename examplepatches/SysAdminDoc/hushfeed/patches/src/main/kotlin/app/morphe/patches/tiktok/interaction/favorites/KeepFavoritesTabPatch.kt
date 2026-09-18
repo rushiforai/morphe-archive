@@ -29,7 +29,7 @@ val keepFavoritesTabPatch = bytecodePatch(
     name = "Keep the Favorites tab",
     description = "Keeps the Favorites tab on your profile when TikTok's server puts the account " +
         "into an experiment that empties it. Two people saw that after patching: the tab was " +
-        "there and the saved videos were not.",
+        "there and the saved videos were not. Switch: Hushfeed settings > App.",
     default = true,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

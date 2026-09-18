@@ -7,13 +7,14 @@ import app.morphe.util.returnEarly
 @Suppress("unused")
 val disableFacebookSdkPatch = bytecodePatch(
     name = "Disable Facebook SDK",
-    description = "Disables Facebook SDK initialization, marketing, and ad network activity."
+    description = "Blocks Facebook SDK and Audience Network auto-initialization."
 ) {
     compatibleWith(COMPATIBILITY_SOFASCORE)
 
     execute {
-        FacebookSdkInitializeFingerprint.methodOrNull?.returnEarly()
-        FacebookMarketingLoggerFingerprint.methodOrNull?.returnEarly()
-        FacebookAdsInitFingerprint.methodOrNull?.returnEarly()
+        // Returning false from the providers' onCreate() reports "initialization failed",
+        // which the SDK handles by staying uninitialized.
+        FacebookInitProviderFingerprint.methodOrNull?.returnEarly(false)
+        AudienceNetworkContentProviderFingerprint.methodOrNull?.returnEarly(false)
     }
 }

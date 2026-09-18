@@ -20,6 +20,15 @@ Automated semantic releases depend on commit messages adhering strictly to the c
 | `chore:` | None | Hidden | **No** (Skipped) |
 | `docs:` | None | Hidden | **No** (Skipped) |
 
+### Mandatory Atomic Commits Policy
+
+Never squash or bundle unrelated changes across test harnesses, patch suites, cross-compatibility bridges, and documentation into a single monolithic commit. Every task must produce discrete, atomic commits:
+
+1. **Tooling & Test Harness** (`test(harness): ...` or `refactor(harness): ...`): Isolate test runner improvements from product patch logic.
+2. **App Patch Core** (`feat(<app>): ...` or `fix(<app>): ...`): Commit per target application or distinct functional feature.
+3. **Cross-Compatibility & Shared Contracts** (`feat(patches): ...` or `feat(shared): ...`): Isolate shared compatibility bindings across apps.
+4. **Technical Documentation** (`docs(<app>): ...` or `docs: ...`): Commit documentation and catalog updates independently from bytecode/native code changes.
+
 ---
 
 ## 2. Release Pipeline Chain (`release.yml` & `.releaserc`)
@@ -44,8 +53,9 @@ When commits are pushed to `main`, the automated release pipeline executes:
 
 ---
 
-## 3. Branching Strategy
-
-- **Single-Branch Workflow**: Development and releases are anchored on `main`.
-- Automated releases trigger exclusively on pushes to `main`.
-- **Never force-push** after a release tag has been created.
+## 3. Branching Strategy & Direct Commit Workflow
+ 
+ - **Single-Branch Workflow**: Development and releases are anchored on `main`.
+ - **Strict Direct Workflow (No Pull Requests)**: This repository operates without PRs. Work is committed directly or managed locally without PRs. Under no circumstances should agents propose, generate, or ask about PR titles, descriptions, or PR workflows.
+ - Automated releases trigger exclusively on pushes to `main`.
+ - **Never force-push** after a release tag has been created.

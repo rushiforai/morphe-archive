@@ -77,13 +77,15 @@ final class FeatureGateLabText {
             case EXPECTED_TRUE_OR_FALSE:
                 return L10n.t(context, "Enter true or false.");
             case INVALID_NUMBER:
-                return L10n.f(context, "Enter a valid value for %1$s.",
-                        failure.technicalType);
+                return "INT".equals(failure.technicalType)
+                        ? L10n.t(context, "Enter a whole number.")
+                        : L10n.t(context, "Enter a number.");
             case VALUE_MUST_BE_FINITE:
                 return L10n.t(context, "Enter a finite number.");
             case STRING_TOO_LONG:
-                return L10n.t(context,
-                        "Keep this string to 4,096 characters or fewer.");
+                return L10n.f(context,
+                        "Keep this string to %1$s characters or fewer.",
+                        java.text.NumberFormat.getInstance().format(4096));
             case STRUCTURED_VALUE_TOO_LARGE:
                 return L10n.t(context,
                         "Keep this structured value to 64 KB or less.");
@@ -165,7 +167,7 @@ final class FeatureGateLabText {
             return L10n.t(context, "Player Config");
         }
         if (FeatureGateLabStore.MANAGER_LIVE.equals(manager)) {
-            return L10n.t(context, "Live Settings");
+            return L10n.t(context, "LIVE settings");
         }
         if (FeatureGateLabStore.MANAGER_VE_CONFIG.equals(manager)) {
             return L10n.t(context, "Media Config (VE)");

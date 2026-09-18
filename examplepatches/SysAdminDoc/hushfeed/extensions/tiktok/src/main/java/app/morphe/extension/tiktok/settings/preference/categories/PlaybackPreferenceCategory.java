@@ -15,15 +15,9 @@ import app.morphe.extension.tiktok.settings.preference.ChoicePreference;
 import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
-import app.morphe.extension.tiktok.settings.preference.ClockHourPreference;
 import app.morphe.extension.tiktok.settings.preference.NumberInputPreference;
-import app.morphe.extension.tiktok.settings.preference.StartTodayOverPreference;
 import app.morphe.extension.tiktok.speed.PlaybackSpeedPatch;
-import android.preference.Preference;
 
-import app.morphe.extension.shared.Utils;
-import app.morphe.extension.tiktok.wellbeing.SessionBudget;
-import app.morphe.extension.tiktok.wellbeing.SessionLockOverlay;
 
 @SuppressWarnings("deprecation")
 public final class PlaybackPreferenceCategory extends ConditionalPreferenceCategory {
@@ -36,7 +30,6 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
     public static boolean isAvailable() {
         return SettingsStatus.playbackQualityEnabled || SettingsStatus.playbackSpeedEnabled
                 || SettingsStatus.autoAdvanceEnabled || SettingsStatus.videoFitEnabled
-                || SettingsStatus.blockAuthorEnabled
                 // The comment sheet switch is a playback switch, and on a bundle with the
                 // comment tools and none of the players it is the only thing on this page.
                 || SettingsStatus.commentToolsEnabled;
@@ -62,115 +55,11 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                             + "is rebuilt or you change this number.",
                     Settings.AUTO_ADVANCE_LIMIT, "video", "videos").zeroMeansOff());
         }
-        // The counting hangs off the hook that tracks which video is on screen, which the
-        // block author patch installs. Without it these would take a number and count nothing.
         if (SettingsStatus.commentToolsEnabled) {
             addPreference(new TogglePreference(context, "Quieten the feed while comments are open",
                     "Mutes the video behind the comment sheet while you read. "
                             + "Sound comes back when the sheet closes.",
                     Settings.PAUSE_ON_COMMENTS));
-        }
-        if (SettingsStatus.blockAuthorEnabled) {
-            addPreference(new TogglePreference(context, "Do not start the feed on returning",
-                    "The feed waits for one tap before it starts playing again when you "
-                            + "come back to the app. Messages, profiles and search are still "
-                            + "one tap away.",
-                    Settings.NO_RESUME_ON_FOREGROUND));
-        addPreference(new SectionHeadingPreference(context, "Daily budget"));
-        addPreference(new NumberInputPreference(context, "Daily video budget",
-                "Zero switches this off. Count every video that comes up in the feed, however you "
-                        + "got to it, and say so once the count is reached. This is separate from "
-                        + "the auto-advance limit above, which only counts videos Hushfeed itself "
-                        + "advanced past.", Settings.SESSION_BUDGET_VIDEOS, "video", "videos") {
-            @Override protected String extraSummaryLine() {
-                if (Settings.SESSION_BUDGET_VIDEOS.get() <= 0) return null;
-                int seen = SessionBudget.videosSeen();
-                return seen == 1
-                        ? L10n.f(getContext(), "Today: %1$d video", seen)
-                        : L10n.f(getContext(), "Today: %1$d videos", seen);
-            }
-        }.zeroMeansOff());
-        addPreference(new NumberInputPreference(context, "Daily time budget",
-                "Zero switches this off. Count the minutes the player spends running in the feed. "
-                        + "Time on messages, a profile or search does not count.",
-                Settings.SESSION_BUDGET_MINUTES, "minute", "minutes") {
-            @Override protected String extraSummaryLine() {
-                if (Settings.SESSION_BUDGET_MINUTES.get() <= 0) return null;
-                // Whole minutes down, so a budget of 30 never reads "Today: 30 minutes" while
-                // there is still time left on it.
-                long minutes = SessionBudget.watchedMs() / 60_000L;
-                return minutes == 1
-                        ? L10n.f(getContext(), "Today: %1$d minute", minutes)
-                        : L10n.f(getContext(), "Today: %1$d minutes", minutes);
-            }
-        }.zeroMeansOff());
-        addPreference(new NumberInputPreference(context, "Remind me every",
-                "Zero switches this off. A short reminder after that many minutes of watching, "
-                        + "and again after the same again. Time on messages, a profile or search "
-                        + "does not count, and nothing is shown while the feed is on hold.",
-                Settings.SESSION_BUDGET_NOTICE_MINUTES, "minute", "minutes").zeroMeansOff());
-        addPreference(new NumberInputPreference(context, "Hold the feed after the budget",
-                "Zero shows the notice and leaves the feed alone. Anything else covers the feed "
-                        + "for that many minutes once a budget is reached. Messages, profiles and "
-                        + "search keep working, and nothing in the feed is thrown away.",
-                Settings.SESSION_BUDGET_LOCK_MINUTES, "minute", "minutes"));
-        addPreference(new TogglePreference(context, "Fade the feed out before the hold",
-                "The feed dims over the last three quarters of a minute before the hold, "
-                        + "so you arrive at it rather than land on it. Needs a time budget and "
-                        + "a hold to arrive at.",
-                Settings.SESSION_BUDGET_RAMP));
-        addPreference(new TogglePreference(context, "Show what is left of the budget",
-                "A small label on the feed shows the minutes or videos left of today's "
-                        + "budget, whichever is closer to running out.",
-                Settings.SESSION_BUDGET_CUE));
-        addPreference(new ClockHourPreference(context, "Start the day at",
-                "The hour both budgets reset, on a 24 hour clock. Four in the morning by default, "
-                        + "because someone still scrolling at one is having last night.",
-                Settings.SESSION_BUDGET_RESET_HOUR));
-        addPreference(new TogglePreference(context, "Lock today's budget",
-                "Once today's budget runs out, the hold stays and cannot be dismissed. "
-                        + "The budget settings are locked until the day starts over. "
-                        + "Turn this off any time before the budget runs out.",
-                Settings.SESSION_BUDGET_LOCK));
-        addPreference(new NumberInputPreference(context, "Times you can open the feed anyway",
-                "Zero leaves the way out of the hold there every time, which is what it has "
-                        + "always done. Anything else is how many times a day it works, and once "
-                        + "they are gone the hold stays up until the day starts over. Ignored "
-                        + "while the budget is locked, which takes the way out away entirely.",
-                Settings.SESSION_BUDGET_PASSES_PER_DAY, "time", "times").zeroMeansOff());
-
-        // Everything the budget is made of, refused for the rest of a locked day. A commitment
-        // anyone can edit their way out of in two taps is a suggestion.
-        Preference.OnPreferenceChangeListener refuseWhileLocked = (preference, value) -> {
-            if (!SessionBudget.lockedToday()) return true;
-            Utils.showToastShort(L10n.f(context,
-                    "Today's budget is locked. This can be changed again at %1$s.",
-                    SessionLockOverlay.resetTimeLabel()));
-            return false;
-        };
-        for (String key : new String[]{Settings.SESSION_BUDGET_VIDEOS.key,
-                Settings.SESSION_BUDGET_MINUTES.key, Settings.SESSION_BUDGET_LOCK_MINUTES.key,
-                Settings.SESSION_BUDGET_RESET_HOUR.key,
-                Settings.SESSION_BUDGET_PASSES_PER_DAY.key,
-                Settings.SESSION_BUDGET_NOTICE_MINUTES.key}) {
-            Preference row = findPreference(key);
-            if (row != null) row.setOnPreferenceChangeListener(refuseWhileLocked);
-        }
-
-        // The switch itself refuses the same way, and turning it on when the budget has already
-        // run out locks the rest of that day. Left to work it out from the switch and the counts
-        // together, lowering the budget under the count you already had locked the day for
-        // someone who never reached it.
-        Preference lockRow = findPreference(Settings.SESSION_BUDGET_LOCK.key);
-        if (lockRow != null) {
-            lockRow.setOnPreferenceChangeListener((preference, value) -> {
-                if (!refuseWhileLocked.onPreferenceChange(preference, value)) return false;
-                if (Boolean.TRUE.equals(value)) SessionBudget.lockIfSpent();
-                return true;
-            });
-        }
-
-        addPreference(new StartTodayOverPreference(context));
         }
 
         if (SettingsStatus.playbackSpeedEnabled) {
@@ -188,12 +77,17 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
             InputTextPreference speeds = new InputTextPreference(context, "Speed menu choices",
                     "Up to 8 speeds from 0.5 to 3, separated by commas. Example: 0.5, 1, 1.5, 2, 2.5, 3. Leave empty for TikTok's list. Restart TikTok to apply this.",
                     Settings.CUSTOM_SPEEDS);
-            speeds.setOnPreferenceChangeListener((preference, value) -> {
-                try { PlaybackSpeedPatch.parseMenuSpeeds(value.toString()); return true; }
+            speeds.withCheck(value -> {
+                if (value == null || value.isEmpty()) return null;
+                try { PlaybackSpeedPatch.parseMenuSpeeds(value); return null; }
                 catch (IllegalArgumentException error) {
-                    Utils.showToastShort(L10n.t("Enter up to 8 comma-separated speeds from 0.5 to 3"));
-                    return false;
+                    return L10n.t(context, "Enter up to 8 comma-separated speeds from 0.5 to 3");
                 }
+            });
+            speeds.setOnPreferenceChangeListener((preference, value) -> {
+                if (value == null || value.toString().isEmpty()) return true;
+                try { PlaybackSpeedPatch.parseMenuSpeeds(value.toString()); return true; }
+                catch (IllegalArgumentException error) { return false; }
             });
             addPreference(speeds);
         }

@@ -297,6 +297,12 @@ final class ModSettingsView extends ScrollView {
         column.addView(linkRow("Source and releases",
                 "github.com/mvaishak/letterboxd-morphe-patches",
                 "https://github.com/mvaishak/letterboxd-morphe-patches"));
+        column.addView(linkRow("Report an issue",
+                "File a bug or request a feature on GitHub",
+                "https://github.com/mvaishak/letterboxd-morphe-patches/issues/new"));
+        column.addView(linkRow("Full changelog",
+                "Every past release, with dates and version numbers",
+                "https://github.com/mvaishak/letterboxd-morphe-patches/blob/main/CHANGELOG.md"));
     }
 
     private View actionRow(String title, String subtitle, final Runnable onClick) {

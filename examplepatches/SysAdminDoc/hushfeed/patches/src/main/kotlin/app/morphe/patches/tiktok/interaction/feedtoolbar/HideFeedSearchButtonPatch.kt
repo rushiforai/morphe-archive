@@ -65,7 +65,7 @@ private fun BytecodePatchContext.resolveSearchEnabledBoundary(): MutableMethod {
 @Suppress("unused")
 val hideFeedSearchButtonPatch = bytecodePatch(
     name = "Hide feed search button",
-    description = "Adds an option to hide the search button at the top right of video feeds.",
+    description = "Hide the search button at the top right of video feeds. Switch: Hushfeed settings > Feed screen.",
     default = true,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

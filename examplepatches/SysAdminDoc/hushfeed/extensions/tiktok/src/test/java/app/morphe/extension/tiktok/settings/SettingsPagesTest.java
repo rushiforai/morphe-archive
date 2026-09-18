@@ -37,10 +37,12 @@ import org.robolectric.annotation.GraphicsMode;
 @SuppressWarnings("deprecation")
 public class SettingsPagesTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
-    private static final String[] SECTIONS = {"FEED_FILTER", "FEED_NAVIGATION", "INTERFACE", "COMMENTS",
-            "DOWNLOADS", "PLAYBACK", "INBOX", "SHARE", "REGION", "BEHAVIOR", "DIAGNOSTICS"};
-    private static final String[] TITLES = {"Feed filter", "Feed navigation", "Interface", "Comments and translation",
-            "Downloads", "Playback", "Inbox", "Share sheet", "Region settings", "App behavior", "Diagnostics"};
+    private static final String[] SECTIONS = {"FEED_FILTER", "FEED_NAVIGATION", "INTERFACE", "PLAYBACK",
+            "SCREEN_TIME", "COMMENTS", "DOWNLOADS", "SHARE", "INBOX", "PRIVACY", "REGION", "BEHAVIOR",
+            "DIAGNOSTICS", "BACKUP"};
+    private static final String[] TITLES = {"Feed filter", "Feed tabs", "Feed screen", "Playback",
+            "Screen time", "Comments", "Downloads", "Share sheet", "Inbox", "Privacy", "Region", "App",
+            "Diagnostics", "Backup and restore"};
     private final Map<Field, Boolean> statuses = new LinkedHashMap<>();
 
     public static class PageActivity extends Activity {
@@ -83,8 +85,8 @@ public class SettingsPagesTest {
             android.preference.PreferenceScreen screen = home.getPreferenceScreen();
             for (int index = 0; index < screen.getPreferenceCount(); index++) {
                 CharSequence title = screen.getPreference(index).getTitle();
-                assertNotEquals("App behavior has nothing in it without its patches",
-                        "App behavior", title == null ? "" : title.toString());
+                assertNotEquals("App has nothing in it without its patches",
+                        "App", title == null ? "" : title.toString());
             }
         }
     }
@@ -101,16 +103,20 @@ public class SettingsPagesTest {
             app.morphe.extension.tiktok.settings.preference.categories.CommentsPreferenceCategory.class,
             app.morphe.extension.tiktok.settings.preference.categories.DownloadsPreferenceCategory.class,
             app.morphe.extension.tiktok.settings.preference.categories.PlaybackPreferenceCategory.class,
+            app.morphe.extension.tiktok.settings.preference.categories.ScreenTimePreferenceCategory.class,
             app.morphe.extension.tiktok.settings.preference.categories.InboxPreferenceCategory.class,
             app.morphe.extension.tiktok.settings.preference.categories.SharePreferenceCategory.class,
             app.morphe.extension.tiktok.settings.preference.categories.SimSpoofPreferenceCategory.class,
+            app.morphe.extension.tiktok.settings.preference.categories.PrivacyPreferenceCategory.class,
             // Left out until 2026-09-14, and it was the one that had drifted: its row asked a
             // copy of the question kept in the fragment, and the copy was missing the launcher
             // shortcuts flag. A page this sweep does not walk is a page the drift can hide in.
             app.morphe.extension.tiktok.settings.preference.categories.ExtensionPreferenceCategory.class,
+            app.morphe.extension.tiktok.settings.preference.categories.DebugPreferenceCategory.class,
         };
-        String[] titles = {"Feed filter", "Feed navigation", "Interface", "Comments and translation",
-            "Downloads", "Playback", "Inbox", "Share sheet", "Region settings", "App behavior"};
+        String[] titles = {"Feed filter", "Feed tabs", "Feed screen", "Comments",
+            "Downloads", "Playback", "Screen time", "Inbox", "Share sheet", "Region", "Privacy", "App",
+            "Diagnostics"};
 
         // What each page builds with nothing in the bundle at all. Those rows are unconditional
         // and show whenever something else opens the page, so they are the floor to compare
@@ -451,6 +457,29 @@ public class SettingsPagesTest {
         }
     }
 
+    @Test
+    public void everyMenuIconIsItsOwnPicture() {
+        // Feed screen and App wore the same sliders glyph for a release, which defeats the point
+        // of an icon column. Every tile is drawn and compared with every other one.
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            java.util.Map<String, int[]> pictures = new java.util.LinkedHashMap<>();
+            for (var icon : app.morphe.extension.tiktok.settings.preference.SettingsMenuPreference.Icon.values()) {
+                var row = new app.morphe.extension.tiktok.settings.preference.SettingsMenuPreference(
+                        activity, "row", "summary", icon, 0, preference -> true);
+                pictures.put(icon.name(), render(row.getIcon(), View.LAYOUT_DIRECTION_LTR, 48));
+            }
+            for (var first : pictures.entrySet()) {
+                for (var second : pictures.entrySet()) {
+                    if (first.getKey().compareTo(second.getKey()) >= 0) continue;
+                    assertTrue(first.getKey() + " and " + second.getKey() + " draw the same picture",
+                            !java.util.Arrays.equals(first.getValue(), second.getValue()));
+                }
+            }
+        }
+    }
+
     /** The stroke the drawable's own paint carries. */
     private static float strokeOf(android.graphics.drawable.Drawable drawable) throws Exception {
         var field = drawable.getClass().getDeclaredField("paint");
@@ -687,6 +716,12 @@ public class SettingsPagesTest {
             assertTrue(targetPosition >= 0);
             assertTrue(list.getFirstVisiblePosition() <= targetPosition);
             assertTrue(list.getLastVisiblePosition() >= targetPosition);
+            int childIndex = targetPosition - list.getFirstVisiblePosition();
+            if (childIndex >= 0 && childIndex < list.getChildCount()) {
+                View row = list.getChildAt(childIndex);
+                assertTrue("the target row sits flush at the top with no context above it",
+                        row.getTop() > list.getPaddingTop());
+            }
         }
     }
 
@@ -819,16 +854,20 @@ public class SettingsPagesTest {
             var configuration = activity.getResources().getConfiguration();
             configuration.fontScale = 1.3f;
             activity.getResources().updateConfiguration(configuration, activity.getResources().getDisplayMetrics());
-            TikTokPreferenceFragment page = attachSection(activity, "COMMENTS");
+            // Backup and restore: "Sichern und wiederherstellen" is the longest page title in
+            // German now that Comments is one word, so it is the one that has to wrap cleanly.
+            TikTokPreferenceFragment page = attachSection(activity, "BACKUP");
             layout(page.getView(), 360, 800);
             Shadows.shadowOf(Looper.getMainLooper()).idle();
-            UiCapture.save(page.getView(), "pages/dark/comments-german-large.png", 360, 800);
+            UiCapture.save(page.getView(), "pages/dark/backup-german-large.png", 360, 800);
             android.widget.TextView heading = page.getView().findViewWithTag("hushfeed_page_title");
             assertNotNull(heading);
+            assertEquals("the page title is not in German, so this proves nothing",
+                    "Sichern und wiederherstellen", heading.getText().toString());
             assertTrue(heading.getLineCount() > 1);
             assertEquals(0, heading.getLayout().getEllipsisCount(heading.getLineCount() - 1));
             assertTrue(heading.getHeight() >= heading.getLayout().getHeight());
-            TextView caption = findTextViewContaining(page.getView(), "Filter, Übersetzung");
+            TextView caption = findTextViewContaining(page.getView(), "Einstellungen sichern");
             assertNotNull(caption);
             assertTextFits(caption);
             assertRowsReadable(page.getView().findViewById(android.R.id.list), 48);
@@ -857,7 +896,7 @@ public class SettingsPagesTest {
             TextView heading = page.getView().findViewWithTag("hushfeed_page_title");
             assertNotNull(heading);
             assertEquals("the page title is not in Spanish, so this proves nothing",
-                    "Comentarios y traducción", heading.getText().toString());
+                    "Comentarios", heading.getText().toString());
             assertTextFits(heading);
             TextView caption = findTextViewContaining(page.getView(), "Filtros, traducción");
             assertNotNull("the page description is not in Spanish", caption);
@@ -1011,7 +1050,8 @@ assertEquals(View.LAYOUT_DIRECTION_RTL, configuration.getLayoutDirection());
      * coverage that already exists.
      */
     private static final String[] MAIN_PAGES = {"FEED_FILTER", "INTERFACE", "COMMENTS",
-            "DOWNLOADS", "PLAYBACK", "INBOX", "SHARE", "BEHAVIOR", "DIAGNOSTICS"};
+            "DOWNLOADS", "PLAYBACK", "SCREEN_TIME", "INBOX", "SHARE", "PRIVACY", "BEHAVIOR",
+            "DIAGNOSTICS", "BACKUP"};
 
     /**
      * A badge on the master menu says how many settings on the page behind it are away from

@@ -22,6 +22,66 @@ Genuine Brave telemetry is fully neutralized by the **Block Brave Telemetry** pa
 
 ---
 
+## Brave Browser: Privacy, Debloat & Anti-Fingerprinting Architecture
+
+### 1. Clean New Tab Page (Sponsored Wallpaper & Feed Neutralization)
+Official Brave periodically downloads full-screen sponsored advertising wallpapers and updates the Brave News/Today feed in the background. The **`Clean New Tab Page`** patch enforces a lightweight, zero-ad startup state across three layers:
+- **Asset Schema Sanitization (`rawResourcePatch`)**: Overwrites `assets/brave/sponsored-images/default.json` with an empty campaigns schema (`{"schemaVersion":1,"campaigns":[]}`). Chromium's sponsored image coordinator finds zero campaigns to download, preventing background bandwidth consumption (~15–30 MB/month) and memory allocations.
+- **Preference Defaults Enforcement (`resourcePatch`)**: Sets XML defaults for `show_sponsored_images`, `new_tab_page_show_sponsored_images`, `brave_news_switch`, and `show_brave_news` to `false`.
+- **Dalvik Gatekeeper Interception (`bytecodePatch`)**: Intercepts `PrefService.e` for `brave.new_tab_page.show_sponsored_images`, `brave.today.enabled`, `brave.today.opted_in`, and `brave.new_tab_page.show_brave_news`, returning `false` directly at the preference service layer.
+
+### 2. Sensor Privacy Guard (W3C Generic Sensor API Neutralization)
+Web applications can fingerprint device hardware variations or infer user input patterns (keystroke acoustic leakage and walking cadence) via high-frequency accelerometer and gyroscope APIs. The **`Sensor Privacy Guard`** patch neutralizes the underlying Chromium sensor providers:
+- **`PlatformSensorProvider.hasSensorType(int)`**: Forces return `false` (`0x0`) so hardware sensor existence queries report unsupported.
+- **`PlatformSensor.create(PlatformSensorProvider, int, long)`**: Forces return `null` so any low-level or sensor-fusion creation attempts gracefully resolve to `nullptr`.
+- **JNI Receiver Stability**: Preserves the `PlatformSensorProvider` Java instance created by `PlatformSensorProvider.create()` because Chromium's native `PlatformSensorProviderAndroid` caches it as a JNI receiver; returning null would trigger a fatal `SIGSEGV` / CheckJNI abort when calling instance methods.
+- **Standard Compliant Fallback**: Follows W3C Generic Sensor specifications: sites querying sensors receive standard "NotReadableError" or sensor unavailable responses without crashing web pages.
+
+### 3. Clean Share URL (Link Tracking Sanitization)
+When sharing links via Android's native share sheet or copying URLs from the address bar and context menus, sites frequently attach tracking and attribution query tokens (`utm_*`, `fbclid`, `gclid`, `igshid`, `si`, `msclkid`, etc.). The **`Clean Share URL`** patch intercepts shared and copied data:
+- **Android Share Sheet Dispatch (`Lcch.a`)**: Intercepts the generated `android.content.Intent` across all share entrypoints, sanitizing `Intent.EXTRA_TEXT`, `Intent.getData()`, and `ClipData` via [`BraveExtension.cleanShareIntent`](../extensions/extension/src/main/java/com/kveld9/morphe/extension/BraveExtension.java).
+- **Clipboard Sanitization (`Clipboard.setText`)**: Cleans single URLs and embedded URLs in composite text before strings enter the system clipboard.
+- **Invariant Preservation**: Functional parameters such as video identifiers (`v`), navigation anchors (`t`), and search queries (`q`) are strictly preserved while stripping profiling tokens.
+
+#### Scope & False-Positive Prevention Strategy
+The parameter sanitizer does **not** attempt to match every ad network parameter across the entire web. It is intentionally designed as a **domain-agnostic deterministic filter**:
+- **Why not strip all unknown parameters?** Broad or generic query keys (such as `ref`, `source`, `token`, `id`, `session`, `click`, `campaign`) cannot be purged universally without domain context, as doing so breaks legitimate web navigation, e-commerce checkouts, faceted search filters, and one-time authentication links.
+- **Comparison with Domain-Conditional Engines**: Projects like ClearURLs, AdGuard URL Tracking Protection, or Brave's upstream C++ `url_cleaner` maintain hundreds of rules scoped to specific domains (e.g. stripping `tag` only on `amazon.com` or `rdt_cid` only on `reddit.com`). Morphe's lightweight companion runtime prioritizes high-confidence global tokens that can be removed with zero risk of site breakage.
+
+#### Complete Catalog of Filtered Parameters (Chromium Extension)
+Implemented in [`ChromiumExtension.java`](../extensions/extension/src/main/java/com/kveld9/morphe/extension/ChromiumExtension.java#L34-L94) and [`isTrackingParam`](../extensions/extension/src/main/java/com/kveld9/morphe/extension/ChromiumExtension.java#L214-L235):
+- **Prefix Families (Global Dynamic Matching)**:
+  - `utm_*`: Urchin Tracking Module / Google Analytics marketing attribution (`utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content`).
+  - `ga_*`: Google Analytics client parameters.
+  - `pk_*`: Piwik / Matomo campaign tracking.
+  - `matomo_*`: Modern Matomo campaign tracking tokens.
+- **Global Tokens (Unambiguous AdTech Identifiers)**:
+  - *Meta / Facebook / Instagram*: `fbclid`, `igshid`
+  - *Google Ads / DoubleClick*: `gclid`, `gbraid`, `wbraid`, `dclid`
+  - *Microsoft / Bing*: `msclkid`
+  - *Twitter / X*: `twclid`
+  - *Yandex*: `yclid`
+  - *HubSpot*: `_hsenc`, `_hsmi`
+  - *Mailchimp*: `mc_cid`, `mc_eid`
+  - *Adobe Analytics / Omniture*: `s_kwcid`
+  - *Marketo & Wicked Reports*: `mkt_tok`, `wickedid`
+  - *Affiliate & Advertising Networks*: `sc_channel`, `sc_campaign`, `sc_geo`, `zanpid`, `vero_id`, `vero_conv`
+- **Domain-Scoped Tokens (Authoritative Context Matching)**:
+  - *YouTube* (`youtube.com`, `youtu.be`): `si` (share source identifier)
+  - *Spotify* (`spotify.com`): `si` (share source identifier)
+  - *Twitter / X* (`x.com`, `twitter.com`): `ref_src`, `ref_url`
+  - *LinkedIn* (`linkedin.com`): `trk`
+  - *TikTok* (`tiktok.com`): `tt_medium`, `tt_content`
+
+#### Platform-Specific Companion: TikTok URL Sanitization
+In contrast to the browser implementation, the TikTok companion filter ([`TikTokFeedAdFilter.sanitizeShareUrl`](../extensions/extension/src/main/java/com/kveld9/morphe/extension/tiktok/TikTokFeedAdFilter.java#L305-L328)) is domain-scoped (`tiktok.com`) and purges ByteDance-specific user tracking and device fingerprinting keys:
+- `user_id`, `sec_user_id`, `u_code` (sender user identification)
+- `sender_device`, `checksum` (device telemetry and verification)
+- `share_link_id`, `share_item_id`, `share_app_id`, `ug_source`, `tt_from`, `timestamp`, `_r`, `source` (viral loop and graph correlation)
+
+
+---
+
 ## Chromium DataPack v5 vs. Android Resource Architecture
 
 ### Why Chromium Requires Specialized PAK Slimming

@@ -32,7 +32,7 @@ private object DislikeRequestFactoryFingerprint : Fingerprint(
 val notInterestedPatch = bytecodePatch(
     name = "Not interested button",
     description = "Adds a movable button that tells TikTok you aren't interested in the current " +
-        "video. It hides while comments are open. Off by default.",
+        "video. It hides while comments are open. Off by default. Switch: Hushfeed settings > Feed filter.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch, blockAuthorPatch)

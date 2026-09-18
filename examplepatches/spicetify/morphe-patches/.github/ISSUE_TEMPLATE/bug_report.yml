@@ -1,0 +1,29 @@
+name: Bug report
+description: Report patching or runtime failures.
+title: "bug: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search [existing issues](https://github.com/spicetify/morphe-patches/issues) first.
+        Do not upload Spotify APKs, credentials, or unredacted account data.
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Spotify version and version code, Android version, ABI, Morphe version, and patch bundle version.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps and behavior
+      description: Include selected patches, option values, expected behavior, and what happened.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Paste the failing patch log or crash excerpt. Remove account identifiers and tokens.
+      render: text

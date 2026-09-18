@@ -89,6 +89,41 @@ public class SettingsStatus {
     public static boolean hideFeedSearchButtonEnabled = false;
     public static boolean showSeekbarEnabled = false;
     public static boolean sanitizeShareUrlsEnabled = false;
+    public static boolean contactListBlockerEnabled = false;
+    public static boolean installedAppsBlockerEnabled = false;
+    public static boolean locationGovernorEnabled = false;
+    public static boolean devicePrivacyGuardEnabled = false;
+    public static boolean resourceGovernorEnabled = false;
+    public static boolean browserPrivacyGuardEnabled = false;
+    public static boolean cameraMicIndicatorEnabled = false;
+
+    public static void enableContactListBlocker() {
+        contactListBlockerEnabled = true;
+    }
+
+    public static void enableInstalledAppsBlocker() {
+        installedAppsBlockerEnabled = true;
+    }
+
+    public static void enableLocationGovernor() {
+        locationGovernorEnabled = true;
+    }
+
+    public static void enableDevicePrivacyGuard() {
+        devicePrivacyGuardEnabled = true;
+    }
+
+    public static void enableResourceGovernor() {
+        resourceGovernorEnabled = true;
+    }
+
+    public static void enableBrowserPrivacyGuard() {
+        browserPrivacyGuardEnabled = true;
+    }
+
+    public static void enableCameraMicIndicator() {
+        cameraMicIndicatorEnabled = true;
+    }
 
     public static void enableFeedFilter() {
         feedFilterEnabled = true;

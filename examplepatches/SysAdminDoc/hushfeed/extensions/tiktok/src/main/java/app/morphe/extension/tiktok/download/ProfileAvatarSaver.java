@@ -178,7 +178,7 @@ public final class ProfileAvatarSaver {
         if (android.os.Build.VERSION.SDK_INT < 29
                 && context.checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-            Utils.showToastLong(L10n.t("Storage permission is needed to save a profile picture"));
+            Utils.showToastLong(L10n.t("Allow storage for TikTok in Android settings to save profile pictures."));
             return;
         }
 
@@ -201,7 +201,7 @@ public final class ProfileAvatarSaver {
                 Utils.showToastShort(L10n.f("Profile picture saved to %1$s", path));
             } catch (IOException | RuntimeException exception) {
                 Logger.printException(() -> "Profile picture download failed", exception);
-                Utils.showToastLong(L10n.t("The profile picture couldn't be saved."));
+                Utils.showToastLong(L10n.t("The profile picture couldn't be saved. Try again."));
             } finally {
                 if (temp != null && !MediaCache.delete(temp)) {
                     Logger.printInfo(() -> "Could not remove profile picture temporary file");

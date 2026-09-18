@@ -4,55 +4,52 @@
  */
 package app.morphe.patches.tiktok.privacy
 
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
+import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
-import app.morphe.util.findMutableMethodOf
-import app.morphe.util.getReference
-import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.ClassDef
-import com.android.tools.smali.dexlib2.iface.Method
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val EXTENSION = "Lapp/morphe/extension/tiktok/privacy/LocationGovernor;"
-private data class LocationSite(val owner: ClassDef, val method: Method, val index: Int, val replacement: String)
+private const val MANAGER = "Landroid/location/LocationManager;"
+private const val LISTENER = "Landroid/location/LocationListener;"
 
 @Suppress("unused")
 val locationGovernorPatch = bytecodePatch(
     name = "Location access governor",
-    description = "Blocks TikTok from reading your real GPS location. Location requests return null. Goes beyond the SIM and region spoof, which changes the locale and timezone but not the coordinates.",
+    description = "Answers TikTok's location requests with nothing: the last known location comes back empty and update requests never fire. The SIM and region spoof change the locale and timezone, not the coordinates; this stops the coordinates. Switch: Hushfeed settings > Privacy.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4623())
 
     execute {
-        val targets = mapOf(
-            "Landroid/location/LocationManager;->getLastKnownLocation(Ljava/lang/String;)Landroid/location/Location;" to
-                "interceptGetLastKnownLocation(Landroid/location/LocationManager;Ljava/lang/String;)Landroid/location/Location;",
+        SettingsStatusLoadFingerprint.method.addInstruction(
+            0,
+            "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableLocationGovernor()V",
         )
-        val sites = mutableListOf<LocationSite>()
-        classDefForEach { owner ->
-            if (owner.type.startsWith("Lapp/morphe/extension/")) return@classDefForEach
-            owner.methods.forEach { method ->
-                method.implementation?.instructions?.forEachIndexed { index, instruction ->
-                    val ref = instruction.getReference<MethodReference>()?.toString() ?: return@forEachIndexed
-                    val target = targets[ref] ?: return@forEachIndexed
-                    if (instruction.opcode != Opcode.INVOKE_VIRTUAL) return@forEachIndexed
-                    val invoke = instruction as FiveRegisterInstruction
-                    sites += LocationSite(
-                        owner, method, index,
-                        "invoke-static { v${invoke.registerC}, v${invoke.registerD} }, $EXTENSION->$target",
-                    )
-                }
-            }
+
+        // The three LocationManager entry points TikTok 46.2.3 reaches, and the two plain
+        // requestLocationUpdates overloads a later build is most likely to pick up.
+        val replacements = mapOf(
+            "$MANAGER->getLastKnownLocation(Ljava/lang/String;)Landroid/location/Location;" to
+                "$EXTENSION->interceptGetLastKnownLocation(${MANAGER}Ljava/lang/String;)Landroid/location/Location;",
+            "$MANAGER->requestSingleUpdate(Ljava/lang/String;${LISTENER}Landroid/os/Looper;)V" to
+                "$EXTENSION->interceptRequestSingleUpdate(${MANAGER}Ljava/lang/String;${LISTENER}Landroid/os/Looper;)V",
+            "$MANAGER->requestLocationUpdates(JFLandroid/location/Criteria;${LISTENER}Landroid/os/Looper;)V" to
+                "$EXTENSION->interceptRequestLocationUpdates(${MANAGER}JFLandroid/location/Criteria;${LISTENER}Landroid/os/Looper;)V",
+            "$MANAGER->requestLocationUpdates(Ljava/lang/String;JF$LISTENER)V" to
+                "$EXTENSION->interceptRequestLocationUpdates(${MANAGER}Ljava/lang/String;JF$LISTENER)V",
+            "$MANAGER->requestLocationUpdates(Ljava/lang/String;JF${LISTENER}Landroid/os/Looper;)V" to
+                "$EXTENSION->interceptRequestLocationUpdates(${MANAGER}Ljava/lang/String;JF${LISTENER}Landroid/os/Looper;)V",
+        )
+        val sites = invokeSitesOf(replacements.keys)
+        if (sites.isEmpty()) {
+            throw PatchException("Location access governor: no LocationManager call site was found.")
         }
-        sites.forEach { site ->
-            mutableClassDefBy(site.owner).findMutableMethodOf(site.method).replaceInstruction(site.index, site.replacement)
-        }
+        replaceSites(sites, replacements)
         println("[Location governor] Intercepted ${sites.size} location access sites.")
     }
 }

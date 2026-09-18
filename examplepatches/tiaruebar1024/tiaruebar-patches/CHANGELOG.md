@@ -1,3 +1,17 @@
+## [1.5.0](https://github.com/tiaruebar1024/tiaruebar-patches/compare/v1.4.0...v1.5.0) (2026-09-17)
+
+### ✨ New Features
+
+* add comprehensive BitLife premium bypass patches ([2566635](https://github.com/tiaruebar1024/tiaruebar-patches/commit/2566635583c3f1b359c76b6eeeb481fd72b2e14d))
+* I was just trying stuff, doesn't work so dev it is ([35311ef](https://github.com/tiaruebar1024/tiaruebar-patches/commit/35311ef52cf1196180de18b64fab5bc9ec20501a))
+
+## [1.5.0-dev.1](https://github.com/tiaruebar1024/tiaruebar-patches/compare/v1.4.0...v1.5.0-dev.1) (2026-08-16)
+
+### ✨ New Features
+
+* add comprehensive BitLife premium bypass patches ([2566635](https://github.com/tiaruebar1024/tiaruebar-patches/commit/2566635583c3f1b359c76b6eeeb481fd72b2e14d))
+* I was just trying stuff, doesn't work so dev it is ([35311ef](https://github.com/tiaruebar1024/tiaruebar-patches/commit/35311ef52cf1196180de18b64fab5bc9ec20501a))
+
 ## [1.4.0](https://github.com/tiaruebar1024/tiaruebar-patches/compare/v1.3.2...v1.4.0) (2026-08-16)
 
 ### 🐛 Bug Fixes

@@ -1,3 +1,64 @@
+## [1.19.1](https://github.com/legendsciber/morphe-patches/compare/v1.19.0...v1.19.1) (2026-09-18)
+
+### 🐛 Bug Fixes
+
+* **dantheman:** use fieldAccess filter for DoPurchase fingerprint (no string constants in method) ([93c53d1](https://github.com/legendsciber/morphe-patches/commit/93c53d1d1df4e9abfcc3bb3b31fd878f9efa2761))
+
+## [1.19.0](https://github.com/legendsciber/morphe-patches/compare/v1.18.5...v1.19.0) (2026-09-17)
+
+### 🐛 Bug Fixes
+
+* **clumsy-ninja:** add Google Play license bypass ([0239066](https://github.com/legendsciber/morphe-patches/commit/0239066ad2f96c468ad334fc47dba66a547d9225))
+* **clumsy-ninja:** add installer spoof back alongside permission bypass ([23f0133](https://github.com/legendsciber/morphe-patches/commit/23f01332ba0a4078c3267a81f5795908b8d2eeab))
+* **clumsy-ninja:** add native binary patch for source check bypass ([2bd3817](https://github.com/legendsciber/morphe-patches/commit/2bd38177a1c641cc2579fa58fa508c11f2b6c604)), closes [#0](https://github.com/legendsciber/morphe-patches/issues/0)
+* **clumsy-ninja:** replace license bypass with storage permission bypass ([2b12a3c](https://github.com/legendsciber/morphe-patches/commit/2b12a3caf982ec0e2034c6b779303cdd8567d7fe))
+* **clumsyninja:** fix smali string escaping for inner class reference ([0a51b96](https://github.com/legendsciber/morphe-patches/commit/0a51b96657d057e40e2ee767e659a8f08ccd2e2a))
+* **clumsyninja:** license bypass patch added ([b173719](https://github.com/legendsciber/morphe-patches/commit/b1737191117c6045b994ca22ba011029550c281a))
+* **clumsyninja:** spoof installer as Google Play to bypass source check ([6cf2350](https://github.com/legendsciber/morphe-patches/commit/6cf2350d81238db78cb5a06095e989df5823ee1d))
+* **dantheman:** use 0xRRGGBB color format without alpha ([5b0fc47](https://github.com/legendsciber/morphe-patches/commit/5b0fc473bdb3aa1b57687c8b320d32f7c199ca17))
+* **dantheman:** use fingerprint-based method lookup instead of findMethod ([0909591](https://github.com/legendsciber/morphe-patches/commit/0909591dcd631bf491c26d97d2d316b4a176cbe7))
+
+### ✨ New Features
+
+* **clumsyninja:** add license bypass patch; remove blockblast ([5f0259e](https://github.com/legendsciber/morphe-patches/commit/5f0259e0ec8ab1daa152c0b294f7f0356d6f4031))
+* **dantheman:** add Dan The Man free IAP patch ([f638e5a](https://github.com/legendsciber/morphe-patches/commit/f638e5a8ec52cd292d61b433e4f111600a42a742))
+
+## [1.19.6](https://github.com/legendsciber/morphe-patches/compare/v1.19.5...v1.19.6) (2026-09-17)
+
+### 🐛 Bug Fixes
+
+* **clumsy-ninja:** add Google Play license bypass ([0239066](https://github.com/legendsciber/morphe-patches/commit/0239066ad2f96c468ad334fc47dba66a547d9225))
+
+## [1.19.5](https://github.com/legendsciber/morphe-patches/compare/v1.19.4...v1.19.5) (2026-09-17)
+
+### 🐛 Bug Fixes
+
+* **clumsy-ninja:** add native binary patch for source check bypass ([2bd3817](https://github.com/legendsciber/morphe-patches/commit/2bd38177a1c641cc2579fa58fa508c11f2b6c604)), closes [#0](https://github.com/legendsciber/morphe-patches/issues/0)
+
+## [1.19.4](https://github.com/legendsciber/morphe-patches/compare/v1.19.3...v1.19.4) (2026-09-17)
+
+### 🐛 Bug Fixes
+
+* **clumsy-ninja:** add installer spoof back alongside permission bypass ([23f0133](https://github.com/legendsciber/morphe-patches/commit/23f01332ba0a4078c3267a81f5795908b8d2eeab))
+
+## [1.19.3](https://github.com/legendsciber/morphe-patches/compare/v1.19.2...v1.19.3) (2026-09-17)
+
+### 🐛 Bug Fixes
+
+* **clumsy-ninja:** replace license bypass with storage permission bypass ([2b12a3c](https://github.com/legendsciber/morphe-patches/commit/2b12a3caf982ec0e2034c6b779303cdd8567d7fe))
+
+## [1.19.2](https://github.com/legendsciber/morphe-patches/compare/v1.19.1...v1.19.2) (2026-09-17)
+
+### 🐛 Bug Fixes
+
+* **clumsyninja:** spoof installer as Google Play to bypass source check ([6cf2350](https://github.com/legendsciber/morphe-patches/commit/6cf2350d81238db78cb5a06095e989df5823ee1d))
+
+## [1.19.1](https://github.com/legendsciber/morphe-patches/compare/v1.19.0...v1.19.1) (2026-09-17)
+
+### 🐛 Bug Fixes
+
+* **clumsyninja:** fix smali string escaping for inner class reference ([0a51b96](https://github.com/legendsciber/morphe-patches/commit/0a51b96657d057e40e2ee767e659a8f08ccd2e2a))
+
 ## [1.19.0](https://github.com/legendsciber/morphe-patches/compare/v1.18.5...v1.19.0) (2026-09-17)
 
 ### 🐛 Bug Fixes

@@ -682,7 +682,7 @@ public final class CommentTools {
             return;
         }
 
-        cell.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+        cell.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
         if (author.uid != null && BLOCKED_UIDS.contains(author.uid)) {
             unblock(cell, author);
         } else {

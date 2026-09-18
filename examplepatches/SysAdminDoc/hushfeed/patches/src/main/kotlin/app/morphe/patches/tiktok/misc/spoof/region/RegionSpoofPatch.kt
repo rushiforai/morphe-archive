@@ -35,7 +35,7 @@ private object RegionService : Fingerprint(
 @Suppress("unused")
 val regionSpoofPatch = bytecodePatch(
     name = "Region spoof",
-    description = "Matches locale, timezone and native region getters to the SIM preset, with a separate experimental store-region switch.",
+    description = "Matches locale, timezone and native region getters to the SIM preset, with a separate experimental store-region switch. Switch: Hushfeed settings > Region.",
     default = false,
 ) {
     compatibleWith(*AppCompatibilities.tiktok4623())

@@ -2,17 +2,15 @@ package app.template.patches.sofascore.misc.facebook
 
 import app.morphe.patcher.Fingerprint
 
-// Facebook SDK initialization
-object FacebookSdkInitializeFingerprint : Fingerprint(
-    custom = { method, classDef -> classDef.type == "Lcom/facebook/FacebookSdk;" && method.name == "sdkInitialize" }
+// Both classes are AndroidX/Android ContentProviders and are not obfuscated, so both the
+// class names and the framework onCreate override survive R8. They are the auto-init
+// entry points that run before Application.onCreate().
+object FacebookInitProviderFingerprint : Fingerprint(
+    definingClass = "Lcom/facebook/internal/FacebookInitProvider;",
+    name = "onCreate",
 )
 
-// Facebook Marketing logger
-object FacebookMarketingLoggerFingerprint : Fingerprint(
-    custom = { method, classDef -> classDef.type.contains("marketing") && method.name == "logEvent" }
-)
-
-// Facebook Ads internal init
-object FacebookAdsInitFingerprint : Fingerprint(
-    custom = { method, classDef -> classDef.type.startsWith("Lcom/facebook/ads/") && method.name == "<init>" }
+object AudienceNetworkContentProviderFingerprint : Fingerprint(
+    definingClass = "Lcom/facebook/ads/AudienceNetworkContentProvider;",
+    name = "onCreate",
 )

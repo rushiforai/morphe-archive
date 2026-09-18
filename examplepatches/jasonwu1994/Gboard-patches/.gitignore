@@ -17,6 +17,7 @@
 *.nar
 *.ear
 *.zip
+!release-assets/custom-theme-previews/**/*.zip
 *.tar.gz
 *.rar
 

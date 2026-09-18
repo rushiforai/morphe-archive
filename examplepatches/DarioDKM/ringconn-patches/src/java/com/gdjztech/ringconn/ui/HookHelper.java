@@ -38,7 +38,8 @@ public class HookHelper {
 
     public static final String TAG_CARD = "CYCLING_COACH_DISCOVER_CARD";
     public static final String TAG_OLD_FAB = "INTERVALS_SYNC_FAB";
-    private static volatile boolean sIsDiscoverTab = false;
+    private static volatile boolean sInDiscoverTab = false;
+    private static volatile boolean sInSubmenu = false;
 
     public static void attachFloatingButton(final Activity activity) {
         if (activity == null) return;
@@ -59,7 +60,7 @@ public class HookHelper {
                     if (!(decorView instanceof ViewGroup)) return;
                     ViewGroup root = (ViewGroup) decorView;
 
-                    // 1. Remove legacy floating FAB completely
+                    // 1. Remove legacy floating FAB completely if present
                     View oldFab = root.findViewWithTag(TAG_OLD_FAB);
                     if (oldFab != null) {
                         root.removeView(oldFab);
@@ -67,48 +68,41 @@ public class HookHelper {
 
                     // 2. Check if card already attached
                     View existingCard = root.findViewWithTag(TAG_CARD);
+                    final View activeCard;
                     if (existingCard != null) {
-                        updateCardVisibility(activity, existingCard);
-                        return;
+                        activeCard = existingCard;
+                        activeCard.setVisibility(sInDiscoverTab && !sInSubmenu ? View.VISIBLE : View.GONE);
+                        if (sInDiscoverTab && !sInSubmenu) {
+                            updateCard(activeCard, activity);
+                        }
+                    } else {
+                        // 3. Build native Discover Intervals Sync Card
+                        final LinearLayout card = buildSyncCard(activity);
+                        card.setTag(TAG_CARD);
+                        card.setVisibility(sInDiscoverTab && !sInSubmenu ? View.VISIBLE : View.GONE);
+                        if (sInDiscoverTab && !sInSubmenu) {
+                            updateCard(card, activity);
+                        }
+
+                        int marginPx = dpToPx(activity, 16);
+                        int topMarginPx = dpToPx(activity, 404); // positioned cleanly below original Sort button
+                        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.WRAP_CONTENT
+                        );
+                        params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
+                        params.setMargins(marginPx, topMarginPx, marginPx, 0);
+
+                        root.addView(card, params);
+                        activeCard = card;
                     }
 
-                    // 3. Build native Discover Intervals Sync Card
-                    final LinearLayout card = buildSyncCard(activity);
-                    card.setTag(TAG_CARD);
-                    card.setVisibility(View.GONE); // Default hidden until confirmed on root Discover tab
-
-                    int marginPx = dpToPx(activity, 16);
-                    int topMarginPx = dpToPx(activity, 404); // positioned cleanly below original Sort button
-                    FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.WRAP_CONTENT
-                    );
-                    params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-                    params.setMargins(marginPx, topMarginPx, marginPx, 0);
-
-                    root.addView(card, params);
-
-                    // 4. Hook Window Callback for instantaneous tab switching and submenu detection
+                    // 4. Hook Window Callback for touch and navigation detection
                     Window window = activity.getWindow();
                     Window.Callback currentCallback = window.getCallback();
                     if (!(currentCallback instanceof WindowCallbackWrapper)) {
-                        window.setCallback(new WindowCallbackWrapper(currentCallback, activity, card));
+                        window.setCallback(new WindowCallbackWrapper(currentCallback, activity, activeCard));
                     }
-
-                    // 5. Initial visibility check
-                    updateCardVisibility(activity, card);
-
-                    // 6. Periodic check to keep state in sync
-                    final Handler handler = new Handler(Looper.getMainLooper());
-                    Runnable checkRunnable = new Runnable() {
-                        @Override
-                        public void run() {
-                            if (activity.isFinishing() || activity.isDestroyed()) return;
-                            updateCardVisibility(activity, card);
-                            handler.postDelayed(this, 350);
-                        }
-                    };
-                    handler.postDelayed(checkRunnable, 350);
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -297,129 +291,6 @@ public class HookHelper {
         }).start();
     }
 
-    private static class ScreenState {
-        boolean hasTopDiscover = false;
-        boolean hasBottomDiscover = false;
-        boolean hasContent = false;
-    }
-
-    private static void evaluateNode(AccessibilityNodeInfo node, ScreenState state, int screenHeight, int depth) {
-        if (node == null || depth > 50) return;
-
-        CharSequence text = node.getText();
-        CharSequence desc = node.getContentDescription();
-        String str = text != null ? text.toString().trim() : (desc != null ? desc.toString().trim() : "");
-
-        Rect bounds = new Rect();
-        node.getBoundsInScreen(bounds);
-
-        if (!str.isEmpty()) {
-            // 1. Top header "Discover"
-            if ("Discover".equalsIgnoreCase(str) && bounds.top < (screenHeight * 0.20f)) {
-                state.hasTopDiscover = true;
-            }
-
-            // 2. Bottom navigation tab "Discover"
-            if ("Discover".equalsIgnoreCase(str) && bounds.top > (screenHeight * 0.80f)) {
-                state.hasBottomDiscover = true;
-            }
-
-            // 3. Discover main content ("Sort" button or Exercise card)
-            if (("Sort".equalsIgnoreCase(str) || str.startsWith("Exercise")) && 
-                bounds.top >= (screenHeight * 0.08f) && bounds.top <= (screenHeight * 0.70f)) {
-                state.hasContent = true;
-            }
-        }
-
-        int count = node.getChildCount();
-        for (int i = 0; i < count; i++) {
-            AccessibilityNodeInfo child = node.getChild(i);
-            if (child != null) {
-                evaluateNode(child, state, screenHeight, depth + 1);
-                child.recycle();
-            }
-        }
-    }
-
-    public static boolean checkIsDiscoverRoot(Activity activity) {
-        if (activity == null || activity.isFinishing() || activity.isDestroyed()) return false;
-        View decor = activity.getWindow().getDecorView();
-        if (decor == null) return false;
-
-        AccessibilityNodeInfo rootNode = null;
-        try {
-            rootNode = decor.createAccessibilityNodeInfo();
-            if (rootNode == null) return false;
-
-            int screenHeight = activity.getResources().getDisplayMetrics().heightPixels;
-            if (screenHeight <= 0) screenHeight = 2400;
-
-            ScreenState state = new ScreenState();
-            evaluateNode(rootNode, state, screenHeight, 0);
-
-            boolean isRoot = state.hasTopDiscover && state.hasBottomDiscover && state.hasContent;
-            android.util.Log.d("HookHelper", "checkIsDiscoverRoot: top=" + state.hasTopDiscover + 
-                    ", bottom=" + state.hasBottomDiscover + ", content=" + state.hasContent + " => " + isRoot);
-            return isRoot;
-        } catch (Exception e) {
-            android.util.Log.e("HookHelper", "checkIsDiscoverRoot error", e);
-            return false;
-        } finally {
-            if (rootNode != null) {
-                try { rootNode.recycle(); } catch (Exception ignored) {}
-            }
-        }
-    }
-
-    public static void updateCardVisibility(final Activity activity, final View card) {
-        if (activity == null || card == null) return;
-        if (activity.isFinishing() || activity.isDestroyed()) return;
-
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    boolean isDiscoverRoot = checkIsDiscoverRoot(activity);
-                    sIsDiscoverTab = isDiscoverRoot;
-
-                    if (isDiscoverRoot) {
-                        if (card.getVisibility() != View.VISIBLE) {
-                            card.setVisibility(View.VISIBLE);
-                            updateCard(card, activity);
-                        }
-                    } else {
-                        if (card.getVisibility() != View.GONE) {
-                            card.setVisibility(View.GONE);
-                        }
-                    }
-                } catch (Exception ignored) {}
-            }
-        });
-    }
-
-    public static void triggerFastCheck(final Activity activity, final View card) {
-        if (activity == null || card == null) return;
-        final Handler handler = new Handler(Looper.getMainLooper());
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                updateCardVisibility(activity, card);
-            }
-        }, 60);
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                updateCardVisibility(activity, card);
-            }
-        }, 180);
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                updateCardVisibility(activity, card);
-            }
-        }, 350);
-    }
-
     private static int dpToPx(Context context, float dp) {
         return (int) TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics()
@@ -430,6 +301,8 @@ public class HookHelper {
         private final Window.Callback wrapped;
         private final Activity activity;
         private final View card;
+        private float downX = 0f;
+        private float downY = 0f;
 
         public WindowCallbackWrapper(Window.Callback wrapped, Activity activity, View card) {
             this.wrapped = wrapped;
@@ -440,29 +313,59 @@ public class HookHelper {
         @Override
         public boolean dispatchTouchEvent(MotionEvent event) {
             int action = event.getActionMasked();
-            if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
-                float y = event.getRawY();
-                float x = event.getRawX();
+            if (action == MotionEvent.ACTION_DOWN) {
+                downX = event.getRawX();
+                downY = event.getRawY();
+            } else if (action == MotionEvent.ACTION_UP) {
+                float upX = event.getRawX();
+                float upY = event.getRawY();
                 int h = activity.getResources().getDisplayMetrics().heightPixels;
                 int w = activity.getResources().getDisplayMetrics().widthPixels;
-                int threshold = dpToPx(activity, 85);
+                int bottomNavThreshold = dpToPx(activity, 95);
 
-                // 1. Instant check on bottom nav bar
-                if (y > (h - threshold)) {
-                    boolean isDiscoverTab = (x >= 0.20f * w && x <= 0.40f * w);
-                    if (!isDiscoverTab) {
-                        // Immediately hide if user tapped another bottom tab (Insights, Health, Plan, Me)
-                        sIsDiscoverTab = false;
-                        card.setVisibility(View.GONE);
+                // 1. Check Bottom Navigation Bar taps
+                if (upY > (h - bottomNavThreshold)) {
+                    // Discover tab is the 2nd tab from left (roughly 18% to 42% screen width)
+                    boolean isDiscoverTab = (upX >= 0.18f * w && upX <= 0.42f * w);
+                    if (isDiscoverTab) {
+                        sInDiscoverTab = true;
+                        sInSubmenu = false;
+                        card.setVisibility(View.VISIBLE);
+                        updateCard(card, activity);
                     } else {
-                        triggerFastCheck(activity, card);
+                        // Tapped another bottom tab (Insights, Health, Plan, Me)
+                        sInDiscoverTab = false;
+                        sInSubmenu = false;
+                        card.setVisibility(View.GONE);
                     }
-                } else {
-                    // 2. Touch was elsewhere on screen (e.g. tapped Exercise card, Sort, submenus, etc.)
+                } else if (sInDiscoverTab) {
+                    // 2. User is on Discover tab
                     Rect cardRect = new Rect();
                     card.getGlobalVisibleRect(cardRect);
-                    if (!cardRect.contains((int) x, (int) y)) {
-                        triggerFastCheck(activity, card);
+
+                    // If tap is inside card, card click listeners handle it
+                    if (!cardRect.contains((int) upX, (int) upY)) {
+                        float dx = Math.abs(upX - downX);
+                        float dy = Math.abs(upY - downY);
+                        float slop = dpToPx(activity, 15);
+
+                        // If it's a tap/click (not a scroll gesture)
+                        if (dx < slop && dy < slop) {
+                            if (sInSubmenu) {
+                                // In submenu: top-left back button tap exits submenu
+                                if (upX < 0.22f * w && upY < dpToPx(activity, 90)) {
+                                    sInSubmenu = false;
+                                    card.setVisibility(View.VISIBLE);
+                                    updateCard(card, activity);
+                                }
+                            } else {
+                                // On Discover root: tapping content above or below the card (Exercise cards, Sort, etc.) opens submenu
+                                if (upY > dpToPx(activity, 75) && (upY < cardRect.top || upY > (cardRect.bottom + dpToPx(activity, 15)))) {
+                                    sInSubmenu = true;
+                                    card.setVisibility(View.GONE);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -472,22 +375,21 @@ public class HookHelper {
         @Override
         public boolean dispatchKeyEvent(KeyEvent event) {
             if (event.getKeyCode() == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP) {
-                triggerFastCheck(activity, card);
+                if (sInDiscoverTab && sInSubmenu) {
+                    sInSubmenu = false;
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            card.setVisibility(View.VISIBLE);
+                            updateCard(card, activity);
+                        }
+                    });
+                }
             }
             return wrapped != null ? wrapped.dispatchKeyEvent(event) : false;
         }
 
-        @Override
-        public boolean dispatchPopulateAccessibilityEvent(AccessibilityEvent event) {
-            int type = event.getEventType();
-            if (type == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ||
-                type == AccessibilityEvent.TYPE_VIEW_SCROLLED ||
-                type == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
-                triggerFastCheck(activity, card);
-            }
-            return wrapped != null ? wrapped.dispatchPopulateAccessibilityEvent(event) : false;
-        }
-
+        @Override public boolean dispatchPopulateAccessibilityEvent(AccessibilityEvent event) { return wrapped != null ? wrapped.dispatchPopulateAccessibilityEvent(event) : false; }
         @Override public boolean dispatchKeyShortcutEvent(KeyEvent event) { return wrapped != null ? wrapped.dispatchKeyShortcutEvent(event) : false; }
         @Override public boolean dispatchTrackballEvent(MotionEvent event) { return wrapped != null ? wrapped.dispatchTrackballEvent(event) : false; }
         @Override public boolean dispatchGenericMotionEvent(MotionEvent event) { return wrapped != null ? wrapped.dispatchGenericMotionEvent(event) : false; }

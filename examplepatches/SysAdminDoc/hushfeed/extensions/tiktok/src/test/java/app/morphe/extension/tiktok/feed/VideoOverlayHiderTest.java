@@ -104,7 +104,7 @@ public class VideoOverlayHiderTest {
         int captionId = 0x7f0a0a13;
         VideoOverlayHider.resolveForTests("ezp", surveyId);
         VideoOverlayHider.resolveForTests("desc", captionId);
-        VideoOverlayHider.resolveForTests("long_press_layout", cellId);
+        VideoOverlayHider.resolveForTests("view_rootview", cellId);
         try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
             Activity activity = controller.get();
             Utils.setContext(activity);
@@ -135,7 +135,112 @@ public class VideoOverlayHiderTest {
         } finally {
             Settings.HIDE_FEED_SURVEYS.save(false);
             Settings.HIDE_FEED_CAPTION.save(false);
-            VideoOverlayHider.resolveForTests("long_press_layout", 0);
+            VideoOverlayHider.resolveForTests("view_rootview", 0);
+        }
+    }
+
+    @Test
+    public void theChosenButtonSizeGrowsTheGlyphAndSurvivesTikToksOwnAnimation() {
+        // The rail on the S22 is a column of 180 by 169 slots with a 126 px icon frame and the
+        // count in the rest, and the frame clips its children. So the size goes on the glyph
+        // inside the button, grown from its bottom edge, with the frames above it unclipped,
+        // and never beyond a quarter, which is all the column has room for. TikTok animates
+        // scale on these glyphs itself and writes 1 back when it is done, so the size has to
+        // hold through a reset and stop holding once Normal is chosen again. The music row
+        // spans the width and is left alone. Before 2026-09-17 none of this reached a phone:
+        // the cell root the walk scoped to was a sibling of the rail, so it found nothing.
+        String[] names = {"hvo", "fws", "ehl", "hu9", "p2l", "v9o"};
+        int cellId = 0x7f0a0a31;
+        int actionBarId = 0x7f0a0a32;
+        VideoOverlayHider.resolveForTests("view_rootview", cellId);
+        VideoOverlayHider.resolveForTests("kzj", actionBarId);
+        for (int i = 0; i < names.length; i++) {
+            VideoOverlayHider.resolveForTests(names[i], 0x7f0a0a40 + i);
+        }
+        try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = controller.get();
+            Utils.setContext(activity);
+            FrameLayout cell = new FrameLayout(activity);
+            cell.setId(cellId);
+            FrameLayout column = new FrameLayout(activity);
+            column.setId(actionBarId);
+            cell.addView(column);
+            View[] buttons = new View[names.length];
+            View[] glyphs = new View[names.length];
+            for (int i = 0; i < names.length; i++) {
+                FrameLayout button = new FrameLayout(activity);
+                button.setId(0x7f0a0a40 + i);
+                // A glyph-sized leaf (40 px at density 1 sits inside the 22 to 52 dp window) and
+                // a count row too wide to be one. The last two glyphs have no size yet, the way an
+                // unlaid-out cell arrives.
+                View glyph = new View(activity);
+                boolean sized = i < 4;
+                button.addView(glyph, new FrameLayout.LayoutParams(sized ? 40 : 0, sized ? 40 : 0));
+                View count = new View(activity);
+                button.addView(count, new FrameLayout.LayoutParams(120, 12));
+                column.addView(button, new FrameLayout.LayoutParams(120, 80));
+                buttons[i] = button;
+                glyphs[i] = glyph;
+            }
+            activity.setContentView(cell);
+            View content = activity.findViewById(android.R.id.content);
+            content.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(1920, View.MeasureSpec.EXACTLY));
+            content.layout(0, 0, 1080, 1920);
+
+            Settings.TOUCH_TARGET_SCALE.save("1.25");
+            VideoOverlayHider.applyTo(activity);
+            for (int i = 0; i < 4; i++) {
+                assertEquals(names[i] + " glyph", 1.25f, glyphs[i].getScaleX(), 0f);
+                assertEquals(names[i] + " glyph", 1.25f, glyphs[i].getScaleY(), 0f);
+                assertEquals("the button itself is never scaled", 1f, buttons[i].getScaleX(), 0f);
+            }
+            assertEquals("the music row is left alone", 1f, glyphs[4].getScaleX(), 0f);
+            assertEquals("a glyph with no size yet cannot be told from padding", 1f, glyphs[5].getScaleX(), 0f);
+            assertEquals("a sized glyph grows from its bottom centre", 20f, glyphs[1].getPivotX(), 0f);
+            assertEquals(40f, glyphs[1].getPivotY(), 0f);
+            assertFalse("the frame around a grown glyph must stop clipping it",
+                    ((FrameLayout) buttons[1]).getClipChildren());
+            assertTrue("the column itself keeps clipping", column.getClipChildren());
+
+            // The cell lays out, the glyph has a size, and the next pass takes it.
+            glyphs[5].setLayoutParams(new FrameLayout.LayoutParams(40, 40));
+            content.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(1920, View.MeasureSpec.EXACTLY));
+            content.layout(0, 0, 1080, 1920);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals("a glyph laid out after the first pass is scaled on the next", 1.25f, glyphs[5].getScaleX(), 0f);
+
+            // A stored size from the days the row offered more is read as the most that fits.
+            Settings.TOUCH_TARGET_SCALE.save("2");
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(1.25f, glyphs[1].getScaleX(), 0f);
+
+            // TikTok's animation ends and writes 1 back; the next frame corrects it.
+            glyphs[1].setScaleX(1f);
+            glyphs[1].setScaleY(1f);
+            glyphs[3].setScaleX(1.1f);
+            content.getViewTreeObserver().dispatchOnPreDraw();
+            assertEquals("the reset was not corrected before the frame", 1.25f, glyphs[1].getScaleX(), 0f);
+            assertEquals(1.25f, glyphs[1].getScaleY(), 0f);
+            assertEquals(1.25f, glyphs[3].getScaleX(), 0f);
+
+            // Back to Normal: the walk writes 1, and the frame pass leaves the glyphs alone.
+            Settings.TOUCH_TARGET_SCALE.save("1");
+            VideoOverlayHider.applyTo(activity);
+            for (View glyph : glyphs) {
+                assertEquals(1f, glyph.getScaleX(), 0f);
+            }
+            glyphs[1].setScaleX(1.3f);
+            content.getViewTreeObserver().dispatchOnPreDraw();
+            assertEquals("Normal must not keep rewriting TikTok's own scale", 1.3f, glyphs[1].getScaleX(), 0f);
+        } finally {
+            Settings.TOUCH_TARGET_SCALE.resetToDefault();
+            VideoOverlayHider.resolveForTests("view_rootview", 0);
+            VideoOverlayHider.resolveForTests("kzj", 0);
+            for (String name : names) {
+                VideoOverlayHider.resolveForTests(name, 0);
+            }
         }
     }
 
@@ -145,7 +250,7 @@ public class VideoOverlayHiderTest {
         // falls back to the whole window and the hook status names the miss.
         int surveyId = 0x7f0a0a21;
         VideoOverlayHider.resolveForTests("ezp", surveyId);
-        VideoOverlayHider.resolveForTests("long_press_layout", 0);
+        VideoOverlayHider.resolveForTests("view_rootview", 0);
         try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
             Activity activity = controller.get();
             Utils.setContext(activity);

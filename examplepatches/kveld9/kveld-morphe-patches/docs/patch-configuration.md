@@ -268,30 +268,79 @@ TH, TR, TW, UA, US, UY, VN, ZA
 
 ## 🎵 TikTok: Video Quality Governor
 
-The **`Video Quality Governor`** patch enforces user-configured maximum resolution ceilings (`1080p`, `720p`, `540p`, `480p`, `360p`) across video feeds. While standard TikTok features like "Data Saver" only compress network transfers under cellular conditions without capping hardware decoders, this governor caps the actual rendition ladder (`bitRateList` and `SimBitRate`) parsed by PlayerKit/TTPlayer, reducing hardware MediaCodec load, thermals, GraphicBuffers memory consumption, and frame drops on lower-spec or battery-sensitive devices.
+The **`Video Quality Governor`** patch enforces user-configured maximum resolution ceilings (`1080p`, `720p`, `540p`, `480p`, or unconstrained) across video feeds while allowing independent configuration of download quality. While standard TikTok features like "Data Saver" only compress network transfers under cellular conditions without capping hardware decoders, this governor caps the actual rendition ladder (`bitRateList` and `SimBitRate`) parsed by PlayerKit/TTPlayer, reducing hardware MediaCodec load, thermals, GraphicBuffers memory consumption, and frame drops on lower-spec or battery-sensitive devices.
+
+Crucially, **playback quality and download quality are decoupled**: users can browse their feed in battery-efficient 480p while downloading clean videos and stories in full 1080p.
 
 ### Configuration in Morphe Manager
 
 | Option | Key | Type | Default | Supported Ceilings | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Maximum Video Resolution** | `maxQuality` | String | `480` | `1080`, `720`, `540`, `480`, `360` | Maximum video playback height in vertical pixels. Discards higher rendition profiles. |
+| **Maximum Playback Resolution** | `maxQuality` | String | `480` | `1080`, `720`, `540`, `480`, `none` | Caps video playback height in vertical pixels. Discards higher rendition profiles in feed. |
+| **Maximum Download Resolution** | `maxDownloadQuality` | String | `1080` | `1080`, `720`, `540`, `480`, `none` | Sets download resolution ceiling independently of playback, allowing high-fidelity saving. |
 
 ### Supported Resolution Ceilings
 
 | Option String | Resolution Height | Typical Bitrate Band | Target Profile & Resource Rationale |
 | :--- | :--- | :--- | :--- |
-| `1080` | 1080p | ~2500–4000 kbps | **ExtremelyHigh**: Uncapped full-HD playback for high-end devices and unmetered Wi-Fi. |
+| `none` | Uncapped | Source bitrates | **Unconstrained**: Preserves the highest bitrate stream provided by TikTok servers without modification. |
+| `1080` | 1080p | ~2500–4000 kbps | **ExtremelyHigh**: Uncapped full-HD rendition; recommended default for downloads. |
 | `720` | 720p | ~1200–2000 kbps | **SuperHigh**: High-definition baseline balancing sharp visual fidelity with moderate GPU decoding. |
 | `540` | 540p | ~800–1200 kbps | **H_High**: Balanced midpoint optimizing fluid 60fps feed scrolling without thermal buildup. |
-| `480` *(Default)* | 480p | ~500–800 kbps | **High**: Recommended sweet spot significantly reducing GraphicBuffers RAM allocation and decoding wattage. |
-| `360` | 360p | ~300–500 kbps | **Standard**: Maximum resource and battery conservation; ideal for background listening or weak connections. |
+| `480` *(Playback Default)* | 480p | ~500–800 kbps | **High**: Recommended sweet spot significantly reducing GraphicBuffers RAM allocation and decoding wattage. |
 
 ### Technical Architecture
 - **Dalvik Hooking**: Injects hooks into `Aweme.getVideo()` (return object synchronization), `Video.getBitRate()` & `Video.getRawBitRate()` (candidate ladder filtering), and `SimVideoUrlModel.getBitRate()` (PlayerKit engine filtering).
-- **In-Situ Synchronization**: Invokes `TikTokVideoQualityHook.capVideoObject(Video)` and `TikTokVideoQualityHook.filterBitrates(List)`. Discards streams exceeding the cap and prioritizes the highest valid stream within the ceiling.
+- **Decoupled Quality Caching**: Before mutating `Video` candidate streams for PlayerKit playback, `TikTokVideoQualityHook.capVideoObject(Video)` extracts and preserves the highest-bitrate stream within the download ceiling inside `uncappedDownloadAddrs`.
+- **Downloader Routing**: `TikTokMediaHook` checks `TikTokVideoQualityHook.getBestDownloadPlayAddr(video)` when extracting clean media URLs, ensuring downloaded videos and Stories maintain full 1080p/720p resolution regardless of feed playback caps.
+- **In-Situ Synchronization**: Invokes `TikTokVideoQualityHook.capVideoObject(Video)` and `TikTokVideoQualityHook.filterBitrates(List)`. Discards streams exceeding the playback cap and prioritizes the highest valid stream within the ceiling.
 - **Fail-Safe Fallback**: If an uploaded video only provides renditions exceeding the ceiling, the governor preserves the lowest available stream rather than black-screening or stalling playback.
-- **Preference Persistence**: User selection is saved to `morphe_tiktok_quality_prefs` SharedPreferences, maintaining state across restarts.
+- **Preference Persistence**: User selections are saved to `morphe_tiktok_quality_prefs` SharedPreferences, maintaining state across restarts.
 
+---
 
+## 🎵 TikTok: Display Refresh Rate Governor
 
+The **`Display Refresh Rate Governor`** patch locks TikTok's window rendering frequency to peak hardware refresh rates (120Hz/90Hz) or a user-selected ceiling, neutralizing TikTok's internal refresh rate downclocking mechanisms. Under standard execution, PlayerKit lowers the window refresh rate to match video fps (typically 24–30fps or 60fps), which creates perceptible UI stutter when interacting with comments, scrolling feeds, or viewing overlays.
+
+### Configuration in Morphe Manager
+
+| Option | Key | Type | Default | Supported Values | Description |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Target Refresh Rate** | `targetRate` | String | `max` | `max`, `120`, `90`, `60` | Select target display refresh rate. `max` queries the display hardware for its highest supported rate. |
+
+### Technical Architecture
+- **Hardware Query**: In `TikTokRefreshRateHook.resolveTargetRate()`, queries `Display.getSupportedModes()` (Android M+) with fallback to `Display.getSupportedRefreshRates()` to detect the physical screen's maximum capability.
+- **Window Locking**: Enforces `WindowManager.LayoutParams.preferredRefreshRate` on `MainActivity` during `onResume()` and `onWindowFocusChanged()`.
+- **Downclock Neutralization**: Bypasses video playback framerate downclocking via `LX/09YB.invoke()` (`ui_video_frame_rate_opt`) and `LX/07tH.invoke()` (`setRefreshRateIfNeeded`) while preserving all `onRenderFirstFrame` callbacks intact.
+- **Gesture Drag Synchronization**: Overrides `LX/0JOJ.LIZ()` and `LX/1PFE.LIZ()` / `LIZIZ()` to immediately re-lock preferred refresh rate upon gesture completion.
+
+---
+
+## 🦁 Brave Browser: Zero-Configuration Privacy & Debloat Patches
+
+The following Brave patches are enabled by default and operate automatically without requiring user configuration in Morphe Manager:
+
+| Patch | Category | Primary Mechanism | Technical Impact |
+| :--- | :--- | :--- | :--- |
+| **`Clean New Tab Page`** | Debloat & Performance | Sanitizes `default.json` asset campaigns, forces NTP marketing preference defaults to `false`, and intercepts `PrefService.e` gates. | Completely suppresses sponsored full-screen advertising wallpapers (~15–30 MB/mo saved) and Brave News/Today feeds. |
+| **`Sensor Privacy Guard`** | Privacy & Anti-Fingerprinting | Forces `PlatformSensorProvider.hasSensorType -> false` and `PlatformSensor.create -> null`. | Neutralizes W3C Generic Sensor APIs (accelerometer, gyroscope, ambient light) to prevent hardware jitter profiling and acoustic keystroke fingerprinting. |
+| **`Clean Share URL`** | Privacy & Anti-Tracking | Hooks Android share intent builder (`Lcch.a`) and clipboard copy (`Clipboard.setText`) via [`BraveExtension`](../extensions/extension/src/main/java/com/kveld9/morphe/extension/BraveExtension.java). | Automatically purges telemetry query tokens (`utm_*`, `fbclid`, `gclid`, `igshid`, `si`, `msclkid`, etc.) from shared or copied URLs while preserving functional parameters (`id`, `v`, `q`, `t`). |
+| **`Block Brave Telemetry`** | Privacy & Telemetry | Intercepts `PrefService.e` (P3A, stats, WDP), aborts variations seed HTTP connection, and redirects native endpoints to `0.0.0.0`. | Completely stops outbound analytic pings and variations fetch loops. |
+
+### Architectural Rationale: Non-Applicability of Vivaldi Patches in Brave
+
+The following patches present in Vivaldi are intentionally omitted from Brave Browser:
+
+1. **Google Privacy Sandbox Attestations Zeroing (`privacy-sandbox-attestations.dat`)**:
+   - **Why Vivaldi needs it**: Vivaldi inherits standard Chromium components without stripping Google Privacy Sandbox ad-tech features at the engine level. Emptying `assets/privacy_sandbox_attestations/privacy-sandbox-attestations.dat` invalidates partner attestations and blocks Topics/Protected Audience tracking.
+   - **Why Brave omits it**: Brave removes and disables all Google Privacy Sandbox APIs (Topics API, FLEDGE / Protected Audience, Attribution Reporting, Private Aggregation) directly at the C++ level in `brave-core`. While the `.dat` file is packaged into the APK as a standard Chromium GN asset dependency, the underlying APIs are completely uncallable by web content. Zeroing the file provides zero privacy improvement in Brave.
+
+2. **UKM (URL-Keyed Metrics) Recorder Neutralization (`UkmRecorder.c()V`)**:
+   - **Why Vivaldi needs it**: Standard Chromium dispatches URL-keyed browsing metrics to Google servers (`clients4.google.com`). Hooking `UkmRecorder.c()V` to `return-void` eliminates native event collection in forks that retain upstream telemetry hooks.
+   - **Why Brave omits it**: Brave strips Google UMA and UKM metric reporting pipelines in C++ and replaces them with its own opt-out P3A (*Privacy-Preserving Product Analytics*), WDP, and Brave Stats. The `Block Brave Telemetry` patch already fully neutralizes P3A and WDP at both bytecode (`PrefService.e`) and native socket levels (redirecting `*.bsg.brave.com`, `*.wdp.brave.com`, and `usage-ping.brave.com` to `0.0.0.0`). Hooking upstream `UkmRecorder` in Brave is redundant because the reporting pipeline does not transmit to Google.
+
+3. **Close Tabs on Exit (`TabStateFileManager` Hook)**:
+   - **Why Vivaldi needs it**: Vivaldi does not provide a native switch to discard non-incognito tabs on process termination, requiring bytecode neutralization in `TabStateFileManager`.
+   - **Why Brave omits it**: Brave provides a native, user-configurable preference directly in its Settings (*Settings -> Close tabs on exit*). Enforcing tab state discard via bytecode hooks would override user configuration and break intentional session retention.
 

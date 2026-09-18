@@ -2,17 +2,16 @@ package app.template.patches.sofascore.misc.notifications
 
 import app.morphe.patcher.Fingerprint
 
-// UTR promotion modal display check
-object UtrPromotionModalFingerprint : Fingerprint(
-    custom = { method, classDef -> classDef.type.contains("PromotionModal") && method.name.contains("show", ignoreCase = true) }
+// The promo bottom sheets are created by call sites buried in huge shared R8-synthetic
+// lambdas (svf.invoke) that also drive unrelated UI, so they cannot be blocked at the
+// caller. onViewCreated is a Fragment lifecycle override - R8 must keep the name - and
+// is the first callback that can dismiss the dialog.
+object PromotionModalFingerprint : Fingerprint(
+    definingClass = "Lcom/sofascore/results/event/details/view/promotion/PromotionModal;",
+    name = "onViewCreated",
 )
 
-// Marketing notification flag
-object IsMarketingNotificationFingerprint : Fingerprint(
-    custom = { method, classDef -> method.name.contains("marketing", ignoreCase = true) || method.name.contains("promo", ignoreCase = true) }
-)
-
-// Notification settings promo toggle
-object NotificationPromoToggleFingerprint : Fingerprint(
-    custom = { method, classDef -> classDef.type.contains("NotificationSettings") && method.name.contains("promo", ignoreCase = true) }
+object TennisPromoSheetFingerprint : Fingerprint(
+    definingClass = "Lcom/sofascore/results/event/aiInsights/SofascoreAnalystTennisPromoBottomSheet;",
+    name = "onViewCreated",
 )

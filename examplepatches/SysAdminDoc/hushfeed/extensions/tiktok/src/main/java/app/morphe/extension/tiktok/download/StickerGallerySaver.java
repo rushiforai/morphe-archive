@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Metra TikTok Patches
+ * Copyright 2026 icysymmetra/tiktok-patches-for-morphe contributors
  * https://github.com/icysymmetra/tiktok-patches-for-morphe
  */
 
@@ -180,7 +180,9 @@ public final class StickerGallerySaver {
                     textTemplate.getPaddingBottom()
             );
         } else {
-            button.setTextColor(SettingsUi.enabledTextColors(SettingsUi.textPrimary()));
+            boolean dark = SettingsUi.isDarkContext(template.getContext());
+            int textColor = SettingsUi.textPrimaryOn(dark);
+            button.setTextColor(SettingsUi.enabledTextColors(textColor));
             button.setTextSize(16);
             int paddingHorizontal = SettingsUi.dp(context, 16);
             int paddingVertical = SettingsUi.dp(context, 10);
@@ -189,14 +191,11 @@ public final class StickerGallerySaver {
 
         Drawable background = template.getBackground();
         if (background != null && background.getConstantState() != null) {
-            // TikTok's own row background, states and all, so a press on this looks like a press
-            // on the rows beside it.
             button.setBackground(background.getConstantState().newDrawable().mutate());
         } else {
-            // A template with no background of its own left this one flat: no press, and nothing
-            // at all for a reader arriving with a keyboard or switch access.
+            boolean dark = SettingsUi.isDarkContext(template.getContext());
             button.setBackground(SettingsUi.overlayAction(context, SettingsUi.RADIUS_CONTROL,
-                    SettingsUi.textPrimary()));
+                    SettingsUi.textPrimaryOn(dark)));
         }
 
         button.setEnabled(template.isEnabled());

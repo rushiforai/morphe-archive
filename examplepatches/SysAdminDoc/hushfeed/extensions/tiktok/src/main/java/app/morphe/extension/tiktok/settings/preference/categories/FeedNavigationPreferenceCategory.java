@@ -16,7 +16,7 @@ import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 public class FeedNavigationPreferenceCategory extends ConditionalPreferenceCategory {
     public FeedNavigationPreferenceCategory(Context context, PreferenceScreen screen) {
         super(context, screen);
-        setTitle("Feed navigation");
+        setTitle("Feed tabs");
     }
 
     /** Whether this page has anything on it. The row into it asks the same question. */

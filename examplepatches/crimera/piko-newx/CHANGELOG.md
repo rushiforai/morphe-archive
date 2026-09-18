@@ -1,3 +1,29 @@
+## [3.27.0](https://github.com/crimera/piko-newx/compare/v3.26.2...v3.27.0) (2026-09-18)
+
+### ✨ New Features
+* **Twitter - newx:** hide badges from custom navigation bar items ([6c27e79](https://github.com/crimera/piko/commit/6c27e79dee4e6be5a1bf03e9c85b333f5e14781c))
+
+## [3.26.2](https://github.com/crimera/piko-newx/compare/v3.26.1...v3.26.2) (2026-09-17)
+
+### 🐛 Bug Fixes
+* **Twitter:** Move NewX inline download click handling off the UI thread ([632b153](https://github.com/crimera/piko/commit/632b1538c44ae9851ebab03528c48e4599bc1191))
+
+## [3.26.1](https://github.com/crimera/piko-newx/compare/v3.26.0...v3.26.1) (2026-09-17)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** stabilize drawer choice option IDs across app updates ([95226c8](https://github.com/crimera/piko/commit/95226c86aebea587e97d2dbd5e504fa4407a7290))
+* **Twitter - newx:** dynamically resolve URT repository request in timeline refresh patch ([96245a7](https://github.com/crimera/piko/commit/96245a7f102042cf847837236ad85fd33ef83dbb))
+* **Twitter - newx:** dynamically resolve compose settings row layout for 12.28 ([7bae415](https://github.com/crimera/piko/commit/7bae415ebc05f28daec60a094e4667e58215d9c3))
+* **Twitter - newx:** harden drawer patch fingerprint and close argument resolution ([ac32219](https://github.com/crimera/piko/commit/ac32219b45d0ebad7c83fca4ece0ef3726887079))
+
+## [3.26.0](https://github.com/crimera/piko-newx/compare/v3.25.1...v3.26.0) (2026-09-17)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** differentiate navigation editor icon ([1ba8355](https://github.com/crimera/piko/commit/1ba8355fa72811eb6a9ab36cee7bff02025d4e4e))
+
+### ✨ New Features
+* **Twitter - newx:** overhaul drawer items customization ([244602b](https://github.com/crimera/piko/commit/244602bdddb581a40a76c989c1172d934dc50ca2))
+
 ## [3.25.1](https://github.com/crimera/piko-newx/compare/v3.25.0...v3.25.1) (2026-09-16)
 
 ### 🐛 Bug Fixes

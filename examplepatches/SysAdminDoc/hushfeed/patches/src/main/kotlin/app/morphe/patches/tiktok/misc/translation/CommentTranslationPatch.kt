@@ -112,7 +112,7 @@ private fun ClassDef.holdsResultsAndTask(): Boolean {
 @Suppress("unused")
 val commentTranslationPatch = bytecodePatch(
     name = "Translate comments",
-    description = "Adds comment translation controls using TikTok's translation system, with selectable language exclusions.",
+    description = "Adds comment translation controls using TikTok's translation system, with selectable language exclusions. Switch: Hushfeed settings > Comments.",
     default = true,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

@@ -1,3 +1,77 @@
+## [1.40.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.39.0...v1.40.0) (2026-09-18)
+
+### New Features
+
+* **shared:** add TikTok privacy and refresh rate extension hook constants ([af0e943](https://github.com/kveld9/kveld-morphe-patches/commit/af0e943622763f1bce87291d470b08e922a08681))
+* **tiktok:** add display refresh rate governor patch ([0809d22](https://github.com/kveld9/kveld-morphe-patches/commit/0809d224cf708af334643e75af6049b5e6f4a09a))
+* **tiktok:** add ghost mode patch for anonymous profile and story browsing ([dd72e1b](https://github.com/kveld9/kveld-morphe-patches/commit/dd72e1b4af7d81055590a6bc6ef7dffe3ce13dd3))
+* **tiktok:** decouple download quality ceiling and unblock story downloads ([0258045](https://github.com/kveld9/kveld-morphe-patches/commit/0258045a13c7d7e8cb843b7372bf7d5dfb21d912))
+* **tiktok:** harden device privacy guard against package scanning, contacts access, and sensor fingerprinting ([ec5bab1](https://github.com/kveld9/kveld-morphe-patches/commit/ec5bab13de4d319b1654ac7f72ab3a9825c98c1e))
+
+## [1.39.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.38.4...v1.39.0) (2026-09-18)
+
+### Bug Fixes
+
+* **tiktok:** restore seekbar by targeting Aweme.getVideoControl ([633c238](https://github.com/kveld9/kveld-morphe-patches/commit/633c23813c1c6a414918bd1fb28ce3a9866f1f6e)), closes [#39](https://github.com/kveld9/kveld-morphe-patches/issues/39)
+
+### New Features
+
+* **chromium:** strip fragment tracking and add mercadolibre support ([bdcd9db](https://github.com/kveld9/kveld-morphe-patches/commit/bdcd9db4f484dbde8730de4dc2176912b220b467))
+
+## [1.38.4](https://github.com/kveld9/kveld-morphe-patches/compare/v1.38.3...v1.38.4) (2026-09-17)
+
+### Bug Fixes
+
+* **tiktok:** ensure publish date is visible across feed cards ([4c70235](https://github.com/kveld9/kveld-morphe-patches/commit/4c70235782db56e81a676c83bdf0ea1ff521329e))
+
+## [1.38.3](https://github.com/kveld9/kveld-morphe-patches/compare/v1.38.2...v1.38.3) (2026-09-17)
+
+### Bug Fixes
+
+* **vivaldi:** neutralize default browser prompts and remove redundant background media patch ([22c2970](https://github.com/kveld9/kveld-morphe-patches/commit/22c2970eaab824af5f9106273bab86534813af62))
+
+## [1.38.2](https://github.com/kveld9/kveld-morphe-patches/compare/v1.38.1...v1.38.2) (2026-09-17)
+
+### Bug Fixes
+
+* **chromium:** preserve PlatformSensorProvider JNI receiver stability ([c71ef43](https://github.com/kveld9/kveld-morphe-patches/commit/c71ef43cf6212e82d3ca21c9d0e6b8aaab5e40ec))
+
+## [1.38.1](https://github.com/kveld9/kveld-morphe-patches/compare/v1.38.0...v1.38.1) (2026-09-17)
+
+### Bug Fixes
+
+* **vivaldi:** harden bytecode register allocation, promo handlers, and split compatibility ([509d2ac](https://github.com/kveld9/kveld-morphe-patches/commit/509d2ac1af554af03ef2b7ad62d77332577de483))
+
+### Code Refactoring
+
+* **chromium:** decouple shared browser patches and extension runtime from brave ([783cede](https://github.com/kveld9/kveld-morphe-patches/commit/783cedea464b99967e7a7cfb351eef9d7b00ed34))
+* **extension:** isolate ambiguous link tracking parameters to target domains ([1f304fa](https://github.com/kveld9/kveld-morphe-patches/commit/1f304fa55ae415a489e37a52588b9677b376a616))
+
+## [1.38.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.37.0...v1.38.0) (2026-09-17)
+
+### New Features
+
+* **patches:** enable sensor privacy and clean share url for vivaldi ([3077171](https://github.com/kveld9/kveld-morphe-patches/commit/30771712f5d4d9243679d6f563496bf60eb62abb))
+* **vivaldi:** add background media, telemetry blocking, and UI debloat patches ([4c1f36b](https://github.com/kveld9/kveld-morphe-patches/commit/4c1f36b99e8c59b0217bfa56f3c6ec0e7696c823))
+
+## [1.37.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.36.1...v1.37.0) (2026-09-17)
+
+### New Features
+
+* **brave:** add clean new tab page, sensor privacy, and link tracking sanitizer ([192c1b1](https://github.com/kveld9/kveld-morphe-patches/commit/192c1b1e1ec7af7a934f81baf87a6b0c18c070d3))
+
+## [1.36.1](https://github.com/kveld9/kveld-morphe-patches/compare/v1.36.0...v1.36.1) (2026-09-17)
+
+### Bug Fixes
+
+* **tiktok:** resolve comment copy fingerprint matching and guard one-tap auth ([a038068](https://github.com/kveld9/kveld-morphe-patches/commit/a038068d17dff29686eadb6e83c99927d45f8ddd))
+
+## [1.36.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.35.0...v1.36.0) (2026-09-17)
+
+### New Features
+
+* **tiktok:** add google login fix, seekbar restore, publish date, and clean comment copy ([34f13fc](https://github.com/kveld9/kveld-morphe-patches/commit/34f13fccc71b3b1a0395484a10ac3571a2a774e2))
+
 ## [1.35.0](https://github.com/kveld9/kveld-morphe-patches/compare/v1.34.0...v1.35.0) (2026-09-17)
 
 ### New Features

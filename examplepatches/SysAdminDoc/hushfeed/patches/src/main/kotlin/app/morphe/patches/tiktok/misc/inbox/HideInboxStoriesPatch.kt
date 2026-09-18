@@ -19,7 +19,7 @@ import app.morphe.patches.tiktok.misc.settings.settingsPatch
 val hideInboxStoriesPatch = bytecodePatch(
     name = "Hide inbox stories",
     description = "Hides the stories tray at the top of the Inbox and restores it immediately " +
-        "when the switch is turned off. Shares its switch with Hide inbox items.",
+        "when the switch is turned off. Shares its switch with Hide inbox items. Switch: Hushfeed settings > Inbox.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

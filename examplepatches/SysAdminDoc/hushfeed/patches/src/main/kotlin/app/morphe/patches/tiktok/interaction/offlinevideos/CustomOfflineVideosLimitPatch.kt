@@ -46,7 +46,7 @@ internal fun isCustomOfflineOptionConstructor(instruction: Instruction, optionEn
 @Suppress("unused")
 val customOfflineVideosLimitPatch = bytecodePatch(
     name = "Custom offline videos limit",
-    description = "Adds a custom entry to TikTok's offline videos menu with a configurable limit from 1 to 1000 videos.",
+    description = "Adds a custom entry to TikTok's offline videos menu with a configurable limit from 1 to 1000 videos. Switch: Hushfeed settings > Downloads.",
     default = true,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

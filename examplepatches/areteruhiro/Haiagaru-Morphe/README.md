@@ -95,23 +95,29 @@ ChMate `0.8.10.241`では、アプリデータを残したまま以前のChMate�
 
 ## URV Manager / Morphe Managerへの追加と更新
 
-現在の公式版（1.3.1）を取得するパッチソースは次のURLです。
+現在の公式版（1.3.2）を取得するパッチソースは次のURLです。
 
 ```text
 https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/refs/heads/master/patches-bundle.json
 ```
 
-プレリリース版を取得するパッチソースは次のURLです。現在は公式版（1.3.1）と同じ内容です。
+プレリリース版を取得するパッチソースは次のURLです。現在は公式版（1.3.2）と同じ内容です。
 
 ```text
 https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/refs/heads/master/patches-bundle-pre.json
 ```
 
-現在のパッチ本体のバージョンは `1.3.1` です。同じバージョン内で修正版を配布する場合は、
+現在のパッチ本体のバージョンは `1.3.2` です。同じバージョン内で修正版を配布する場合は、
 URV Manager / Morphe Managerが更新を検出できるようにJSON上の配布リビジョンを更新します。
 更新が表示されない場合は、パッチソース画面から手動で更新を実行してください。
 
 ## 更新履歴
+
+### 1.3.2（正式版）
+
+- ChMate `0.8.10.191 dev`で広告削除をONにすると、取得済みスレの検索結果画面にある検索条件のチェックボックスが消える問題を修正
+- 「正規表現」「大文字小文字を区別しない」「ヘッダー」「本文」「取得済みのスレ」「アーカイブ」を表示したまま、特定済みの広告Viewを非表示にするよう変更
+- 修正版191 APKを実機にインストールし、ユーザーによる表示確認済み
 
 ### 1.3.1（正式版）
 

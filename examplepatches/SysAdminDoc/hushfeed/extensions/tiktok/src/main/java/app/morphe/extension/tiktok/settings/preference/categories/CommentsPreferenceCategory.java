@@ -10,13 +10,18 @@ import android.preference.PreferenceScreen;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
+import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 
+/**
+ * Reading comments, hiding some of them, and blocking who wrote them. The page was one card
+ * of thirteen rows in the order the patches arrived.
+ */
 @SuppressWarnings("deprecation")
 public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
     public CommentsPreferenceCategory(Context context, PreferenceScreen screen) {
         super(context, screen);
-        setTitle("Comments and translation");
+        setTitle("Comments");
     }
 
     /** Whether this page has anything on it. The row into it asks the same question. */
@@ -36,28 +41,19 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
 
     @Override
     public void addPreferences(Context context) {
+        boolean reading = SettingsStatus.commentTranslationEnabled
+                || SettingsStatus.commentSortControlsEnabled
+                || SettingsStatus.commentToolsEnabled
+                || SettingsStatus.copyCommentsWithoutUsernameEnabled;
+        if (reading) {
+            addPreference(new SectionHeadingPreference(context, "Reading"));
+        }
         if (SettingsStatus.commentTranslationEnabled) {
             addPreference(new TogglePreference(
                     context,
                     "Auto translate comments",
                     "Translate comments as they load, using TikTok's own translator.",
                     Settings.COMMENT_BATCH_TRANSLATION
-            ));
-        }
-        if (SettingsStatus.hideCommentQuickReactionsEnabled) {
-            addPreference(new TogglePreference(
-                    context,
-                    "Hide quick comment reactions",
-                    "Hide TikTok's exposed quick emoji row in supported comment inputs.",
-                    Settings.HIDE_COMMENT_QUICK_REACTIONS
-            ));
-        }
-        if (SettingsStatus.copyCommentsWithoutUsernameEnabled) {
-            addPreference(new TogglePreference(
-                    context,
-                    "Copy comments without username",
-                    "Copy only the comment text when using TikTok's copy comment action.",
-                    Settings.COPY_COMMENTS_WITHOUT_USERNAME
             ));
         }
         if (SettingsStatus.commentSortControlsEnabled) {
@@ -69,14 +65,6 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
                             + "given. Restart TikTok to apply this. It reads the style "
                             + "once per run and remembers it.",
                     Settings.COMMENT_SORT_CONTROLS
-            ));
-        }
-        if (SettingsStatus.hideCommentEggsEnabled) {
-            addPreference(new TogglePreference(
-                    context,
-                    "Hide comment popup ads",
-                    "Stop the brand animation that plays over the comments when what someone typed matches an advertiser's trigger.",
-                    Settings.HIDE_COMMENT_EGGS
             ));
         }
         if (SettingsStatus.commentToolsEnabled) {
@@ -96,6 +84,39 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
                             + "it did.",
                     Settings.COMMENT_LINKS
             ));
+        }
+        if (SettingsStatus.copyCommentsWithoutUsernameEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Copy comments without username",
+                    "Copy only the comment text when using TikTok's copy comment action.",
+                    Settings.COPY_COMMENTS_WITHOUT_USERNAME
+            ));
+        }
+
+        boolean hiding = SettingsStatus.hideCommentQuickReactionsEnabled
+                || SettingsStatus.hideCommentEggsEnabled
+                || SettingsStatus.commentToolsEnabled;
+        if (hiding) {
+            addPreference(new SectionHeadingPreference(context, "Hiding"));
+        }
+        if (SettingsStatus.hideCommentQuickReactionsEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide quick comment reactions",
+                    "Hide TikTok's exposed quick emoji row in supported comment inputs.",
+                    Settings.HIDE_COMMENT_QUICK_REACTIONS
+            ));
+        }
+        if (SettingsStatus.hideCommentEggsEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide comment popup ads",
+                    "Stop the brand animation that plays over the comments when what someone typed matches an advertiser's trigger.",
+                    Settings.HIDE_COMMENT_EGGS
+            ));
+        }
+        if (SettingsStatus.commentToolsEnabled) {
             addPreference(new TogglePreference(
                     context,
                     "Filter comments by keyword",
@@ -126,6 +147,8 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
                     "Remove polls from the comments before TikTok shows them.",
                     Settings.HIDE_COMMENT_POLLS
             ));
+
+            addPreference(new SectionHeadingPreference(context, "Blocking"));
             addPreference(new TogglePreference(
                     context,
                     "Thumbs down blocks the commenter",

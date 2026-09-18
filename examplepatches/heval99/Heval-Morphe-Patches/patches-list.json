@@ -1,10 +1,10 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.1.0-dev.2",
+  "version": "1.3.1",
   "patches": [
     {
       "name": "Block marketing notifications",
-      "description": "Blocks promotional and marketing notification prompts and modals.",
+      "description": "Blocks promotional and marketing prompts and modals.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [
@@ -24,8 +24,20 @@
               "description": null
             },
             {
-              "version": "26.08.03",
+              "version": "26.08.24",
               "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "26.09.07",
+              "versionCodes": {
+                "ARM64_V8A": 260907002,
+                "ARMEABI_V7A": 260907002,
+                "X86_64": 260907002,
+                "X86": 260907002
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -65,7 +77,7 @@
     },
     {
       "name": "Disable Facebook SDK",
-      "description": "Disables Facebook SDK initialization, marketing, and ad network activity.",
+      "description": "Blocks Facebook SDK and Audience Network auto-initialization.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [
@@ -85,41 +97,20 @@
               "description": null
             },
             {
-              "version": "26.08.03",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Disable Play Integrity",
-      "description": "Bypasses Google Play Integrity API checks.",
-      "default": true,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.sofascore.results",
-          "name": "Sofascore",
-          "description": null,
-          "apkFileType": "APK",
-          "appIconColor": "#384CF4",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "26.07.27",
+              "version": "26.08.24",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
               "description": null
             },
             {
-              "version": "26.08.03",
-              "versionCodes": null,
+              "version": "26.09.07",
+              "versionCodes": {
+                "ARM64_V8A": 260907002,
+                "ARMEABI_V7A": 260907002,
+                "X86_64": 260907002,
+                "X86": 260907002
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -146,6 +137,37 @@
             {
               "version": null,
               "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Disable ads",
+      "description": "Removes the 'notes_edit_banner' unit from utils/AdManager and the app-open ad from App$AppOpenAdManager. Both are gated on the single App.isAdFree() check, which normally depends on a VIP subscription.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "easynotes.notes.notepad.notebook.privatenotes.note",
+          "name": "EasyNotes",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#00ACFF",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.3.61.0907",
+              "versionCodes": {
+                "ARM64_V8A": 10567,
+                "ARMEABI_V7A": 10567,
+                "X86_64": 10567,
+                "X86": 10567
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -201,12 +223,12 @@
           "signatures": null,
           "targets": [
             {
-              "version": "9.9.1",
+              "version": "10.1",
               "versionCodes": {
-                "ARM64_V8A": 2120,
-                "ARMEABI_V7A": 2120,
-                "X86_64": 2120,
-                "X86": 2120
+                "ARM64_V8A": 2144,
+                "ARMEABI_V7A": 2144,
+                "X86_64": 2144,
+                "X86": 2144
               },
               "isExperimental": false,
               "minSdk": null,
@@ -232,12 +254,12 @@
           "signatures": null,
           "targets": [
             {
-              "version": "14.8.8",
+              "version": "14.9.4",
               "versionCodes": {
-                "ARM64_V8A": 1488,
-                "ARMEABI_V7A": 1488,
-                "X86_64": 1488,
-                "X86": 1488
+                "ARM64_V8A": 1494,
+                "ARMEABI_V7A": 1494,
+                "X86_64": 1494,
+                "X86": 1494
               },
               "isExperimental": false,
               "minSdk": null,
@@ -270,8 +292,20 @@
               "description": null
             },
             {
-              "version": "26.08.03",
+              "version": "26.08.24",
               "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "26.09.07",
+              "versionCodes": {
+                "ARM64_V8A": 260907002,
+                "ARMEABI_V7A": 260907002,
+                "X86_64": 260907002,
+                "X86": 260907002
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -322,8 +356,13 @@
           "signatures": null,
           "targets": [
             {
-              "version": "6.5.5",
-              "versionCodes": null,
+              "version": "6.6.0",
+              "versionCodes": {
+                "ARM64_V8A": 212620,
+                "ARMEABI_V7A": 212620,
+                "X86_64": 212620,
+                "X86": 212620
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -335,7 +374,7 @@
     },
     {
       "name": "Disable telemetry",
-      "description": "Disables AppsFlyer, Firebase Analytics, Crashlytics, and Adjust telemetry.",
+      "description": "Disables AppsFlyer and Firebase Analytics event logging, plus Crashlytics crash reporting.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [
@@ -355,8 +394,20 @@
               "description": null
             },
             {
-              "version": "26.08.03",
+              "version": "26.08.24",
               "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "26.09.07",
+              "versionCodes": {
+                "ARM64_V8A": 260907002,
+                "ARMEABI_V7A": 260907002,
+                "X86_64": 260907002,
+                "X86": 260907002
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -383,8 +434,56 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
-              "versionCodes": null,
+              "version": "236.17398.20260827",
+              "versionCodes": {
+                "ARM64_V8A": 17398,
+                "ARMEABI_V7A": 17398,
+                "X86_64": 17398,
+                "X86": 17398
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "236.17338.20260822",
+              "versionCodes": {
+                "ARM64_V8A": 17338,
+                "ARMEABI_V7A": 17338,
+                "X86_64": 17338,
+                "X86": 17338
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable Full Version",
+      "description": "Bypasses the Play license check so the paid app runs as licensed.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "net.dinglisch.android.taskerm",
+          "name": "Tasker",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#4CAF50",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "6.6.18",
+              "versionCodes": {
+                "ARM64_V8A": 5443,
+                "ARMEABI_V7A": 5443,
+                "X86_64": 5443,
+                "X86": 5443
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -409,12 +508,43 @@
           "signatures": null,
           "targets": [
             {
-              "version": "8.3.4",
+              "version": "9.0.0",
               "versionCodes": {
-                "ARM64_V8A": 80304,
-                "ARMEABI_V7A": 80304,
-                "X86_64": 80304,
-                "X86": 80304
+                "ARM64_V8A": 90000,
+                "ARMEABI_V7A": 90000,
+                "X86_64": 90000,
+                "X86": 90000
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable Premium",
+      "description": "Unlocks the Pro/Premium features and lifts the free-version feature locks.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "org.kman.AquaMail",
+          "name": "Aqua Mail",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#00B0FF",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.7.0",
+              "versionCodes": {
+                "ARM64_V8A": 200700061,
+                "ARMEABI_V7A": 200700061,
+                "X86_64": 200700061,
+                "X86": 200700061
               },
               "isExperimental": false,
               "minSdk": null,
@@ -453,6 +583,37 @@
     },
     {
       "name": "Enable Premium",
+      "description": "Unlocks the VIP-only fonts, note backgrounds, stickers and drawing tools. The app checks entitlement entirely locally — there is no license server — so forcing the App.isVip() gate to return true unlocks everything, and stays unlocked even though BillingManager resets the underlying purchase flags from Play on every startup.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "easynotes.notes.notepad.notebook.privatenotes.note",
+          "name": "EasyNotes",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#00ACFF",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.3.61.0907",
+              "versionCodes": {
+                "ARM64_V8A": 10567,
+                "ARMEABI_V7A": 10567,
+                "X86_64": 10567,
+                "X86": 10567
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable Premium",
       "description": "Forces User.hasPremium() to return true, unlocking premium features locked behind the RevenueCat subscription entitlement.",
       "default": true,
       "dependencies": [],
@@ -466,12 +627,12 @@
           "signatures": null,
           "targets": [
             {
-              "version": "11.0.84",
+              "version": "11.0.101",
               "versionCodes": {
-                "ARM64_V8A": 110084,
-                "ARMEABI_V7A": 110084,
-                "X86_64": 110084,
-                "X86": 110084
+                "ARM64_V8A": 110101,
+                "ARMEABI_V7A": 110101,
+                "X86_64": 110101,
+                "X86": 110101
               },
               "isExperimental": false,
               "minSdk": null,
@@ -515,6 +676,68 @@
     },
     {
       "name": "Enable Premium",
+      "description": "Unlocks the 'Advanced device settings' features (Personalized Volume, Adaptive Audio, accessibility configs, hearing protection, etc.) that LibrePods gates behind the Play Store 'Unlock advanced features' one-time purchase. The patch forces the premium entitlement (PlayBillingProvider's _isPremium StateFlow) to always be true.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "me.kavishdevar.librepods",
+          "name": "LibrePods",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#406C5C",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.0.0-rc1-play",
+              "versionCodes": {
+                "ARM64_V8A": 63,
+                "ARMEABI_V7A": 63,
+                "X86_64": 63,
+                "X86": 63
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable Premium",
+      "description": "Unlocks the Monefy Pro features.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.monefy.app.lite",
+          "name": "Monefy",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#8BC34A",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.22.11",
+              "versionCodes": {
+                "ARM64_V8A": 2229,
+                "ARMEABI_V7A": 2229,
+                "X86_64": 2229,
+                "X86": 2229
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable Premium",
       "description": "Unlocks all features locked behind the Saphe subscription paywall (navigation, car integration, speed limits, voice alarms, roadwork detection, animal nearby, slow-moving traffic, emergency vehicle, etc.).",
       "default": true,
       "dependencies": [],
@@ -528,8 +751,13 @@
           "signatures": null,
           "targets": [
             {
-              "version": "6.5.5",
-              "versionCodes": null,
+              "version": "6.6.0",
+              "versionCodes": {
+                "ARM64_V8A": 212620,
+                "ARMEABI_V7A": 212620,
+                "X86_64": 212620,
+                "X86": 212620
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -541,7 +769,7 @@
     },
     {
       "name": "Enable Premium",
-      "description": "Unlocks AI insights and premium features locked behind subscription.",
+      "description": "Unlocks AI insights and premium features locked behind the Sofascore Plus/Pro subscription.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [
@@ -561,8 +789,51 @@
               "description": null
             },
             {
-              "version": "26.08.03",
+              "version": "26.08.24",
               "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "26.09.07",
+              "versionCodes": {
+                "ARM64_V8A": 260907002,
+                "ARMEABI_V7A": 260907002,
+                "X86_64": 260907002,
+                "X86": 260907002
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable Premium",
+      "description": "Unlocks the premium features.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "org.swiftapps.swiftbackup",
+          "name": "Swift Backup",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#1E88E5",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.1.0",
+              "versionCodes": {
+                "ARM64_V8A": 620,
+                "ARMEABI_V7A": 620,
+                "X86_64": 620,
+                "X86": 620
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -589,6 +860,68 @@
             {
               "version": null,
               "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable Pro",
+      "description": "Unlocks the FairEmail pro features.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "eu.faircode.email",
+          "name": "FairEmail",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#2196F3",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.2337",
+              "versionCodes": {
+                "ARM64_V8A": 2337,
+                "ARMEABI_V7A": 2337,
+                "X86_64": 2337,
+                "X86": 2337
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove ads",
+      "description": "Unlocks the ad-free purchase.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.wunderground.android.weather",
+          "name": "Weather Underground",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#1565C0",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "6.20.1",
+              "versionCodes": {
+                "ARM64_V8A": 2019070035,
+                "ARMEABI_V7A": 2019070035,
+                "X86_64": 2019070035,
+                "X86": 2019070035
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null

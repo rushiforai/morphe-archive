@@ -17,11 +17,13 @@ RECON → DECOMPILE → HUNT → WRITE → TEST
 | Write | How to bypass it? | `Fingerprints.kt` + `*Patch.kt` under `patches/src/main/kotlin/com/zeldrisho/patches/<app>/` |
 | Test | Does it match? | `./gradlew buildAndroid`, then apply the `.mpp` in Morphe |
 
-Analysis work lives in this repo's **gitignored `analysis/` scratch workspace**,
-for example `analysis/<app>/` with `apk/`, `decompiled/`, `smali/`, and `notes/`.
+Analysis work lives in this repo's **gitignored `analysis/` scratch workspace**.
+Use the canonical `analysis/<app>/<version>/` layout documented in
+[analysis.md](analysis.md), with `apk/`, `decoded/`, `decompiled/`, `smali/`,
+`mapping/`, `notes/`, and `runs/` used for their respective artifact types.
 Never commit analysis inputs or outputs. In the commands below, `<analysis>`
-means this repository's `analysis/` directory (use its absolute path or run
-relative paths from the repo root).
+means this repository's `analysis/<app>/<version>/` directory (use its absolute
+path or run relative paths from the repo root).
 
 ## Tools
 
@@ -45,7 +47,7 @@ Record the download page URL and input SHA-256 alongside versionCode and ABI.
 Run `scripts/apk_recon.py`:
 
 ```bash
-python3 scripts/apk_recon.py <analysis>/<app>/apk/<app>_<version>.apkm
+python3 scripts/apk_recon.py <analysis>/apk/<app>_<version>.apkm
 ```
 
 Manual equivalent:
@@ -65,14 +67,32 @@ Manual equivalent:
    Hilt/Koin, RevenueCat/Adapty/Play Billing) — they pick the hunt patterns in
    [Hunt targets](#hunt-targets).
 
-Save as `<analysis>/<app>/notes/recon.md` (rename the APK to `<app>_<version>.<ext>`).
+Save as `<analysis>/notes/recon.md` (rename the APK to `<app>_<version>.<ext>`).
 
 ## Decompile
 
 ```bash
-jadx -d <analysis>/<app>/decompiled <analysis>/<app>/apk/<app>_<version>.apkm
-python3 scripts/extract_smali.py <analysis>/<app>/apk/<app>_<version>.apkm <analysis>/<app>/smali
+jadx -d <analysis>/decompiled <analysis>/apk/<app>_<version>.apkm
+python3 scripts/extract_smali.py <analysis>/apk/<app>_<version>.apkm <analysis>/smali
 ```
+
+### JADX escalation for difficult classes
+
+JADX is a navigation/decompilation aid, not the source of truth. When a class or
+method is missing or reconstructed incorrectly, retry only the relevant input
+with progressively less reconstruction:
+
+```bash
+jadx --single-class 'com.example.Target' <analysis>/<app>/apk/<app>_<version>.apkm
+jadx --decompilation-mode simple --no-inline-methods <analysis>/<app>/apk/<app>_<version>.apkm
+jadx --decompilation-mode fallback --single-class 'com.example.Target' \
+  <analysis>/<app>/apk/<app>_<version>.apkm
+```
+
+Check `jadx --help` first because options vary by installed version. These
+outputs are for locating callers and strings only; verify the final target in
+smali from every DEX. `--raw-cfg` and `--call-graph json` are optional aids when
+control flow or callers remain unclear.
 
 ### Remote decompilation for large APKs
 
@@ -80,8 +100,8 @@ Local jadx can OOM on large APKs:
 
 ```bash
 KAGGLE_API_TOKEN=... KAGGLE_KERNEL_ID=user/jadx-apk-decompiler \
-  python3 scripts/remote_decompile.py "<direct-apk-url>" <analysis>/<app>/
-cd <analysis>/<app> && unzip *_decompiled.zip -d decompiled/
+  python3 scripts/remote_decompile.py "<direct-apk-url>" <analysis>/
+cd <analysis> && unzip *_decompiled.zip -d decompiled/
 ```
 
 Needs the `kaggle` CLI plus a private Kaggle notebook with internet access.
@@ -102,7 +122,7 @@ Search in a fixed order — protections first, because an integrity/root check w
 break testing of everything else. Start with a one-pass triage:
 
 ```bash
-python3 scripts/hunt_signals.py <analysis>/<app>/decompiled [--files]
+python3 scripts/hunt_signals.py <analysis>/decompiled [--files]
 ```
 
 `scripts/hunt_signals.py` is the canonical pattern list. The buckets below
@@ -198,7 +218,7 @@ not; treat recovery coverage as best-effort.) Before tracing call flows, rebuild
 the real names:
 
 ```bash
-python3 scripts/recover_kotlin_names.py <analysis>/<app>/decompiled <analysis>/<app>/mapping
+python3 scripts/recover_kotlin_names.py <analysis>/decompiled <analysis>/mapping
 # → mapping.tsv / mapping.json / by_package/
 ```
 
@@ -211,7 +231,7 @@ Obfuscation-resistant fallback: when call sites inline to `a.b(c, "…")`, grep 
 path literals themselves — R8 does not obfuscate string contents:
 
 ```bash
-rg -o '"(/[A-Za-z0-9_{}.\-]+(/[A-Za-z0-9_{}.\-]+)+/?)"' <analysis>/<app>/decompiled -g '*.java'
+rg -o '"(/[A-Za-z0-9_{}.\-]+(/[A-Za-z0-9_{}.\-]+)+/?)"' <analysis>/decompiled -g '*.java'
 ```
 
 ### Dynamic confirmation for runtime gates
@@ -285,15 +305,17 @@ that kill static-only guesses for runtime gates.
 
 ### Smali verification is mandatory
 
-Never trust jadx output alone — it mis-decompiles obfuscated code. For every candidate:
+Never trust JADX or third-party opcode tables alone — they can mis-decompile or
+misdescribe obfuscated code. The [Android bytecode specification](https://source.android.com/docs/core/runtime/dalvik-bytecode)
+is authoritative for instruction formats and register limits. For every candidate:
 
-1. Find the smali file across **all** DEX dirs: `find <analysis>/<app>/smali -name '<ClassName>.smali'`.
+1. Find the smali file across **all** DEX dirs: `find <analysis>/smali -name '<ClassName>.smali'`.
 2. Read the exact method: `rg -B 2 -A 50 '\.method.*<methodName>' <file>`.
 3. Record: access flags, return type (the descriptor after `)` in the method header),
    full parameter descriptors, register count, invoke sequence **in order**, and which
    DEX it came from.
 4. If Java and smali disagree, **trust smali**.
-5. Write the finding down (`<analysis>/<app>/notes/<topic>.md`) with the smali evidence
+5. Write the finding down (`<analysis>/notes/<topic>.md`) with the smali evidence
    quoted, plus a fingerprint strategy (which stable strings/calls to match on —
    see the the fingerprint reference in [patch development](patch-development.md)). Unverified findings are not ready for patch-writing.
 

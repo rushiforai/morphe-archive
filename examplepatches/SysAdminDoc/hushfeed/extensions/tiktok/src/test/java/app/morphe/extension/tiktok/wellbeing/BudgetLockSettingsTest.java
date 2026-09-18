@@ -13,7 +13,7 @@ import android.preference.PreferenceScreen;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
-import app.morphe.extension.tiktok.settings.preference.categories.PlaybackPreferenceCategory;
+import app.morphe.extension.tiktok.settings.preference.categories.ScreenTimePreferenceCategory;
 
 import java.lang.reflect.Field;
 import java.util.Calendar;
@@ -235,7 +235,7 @@ public class BudgetLockSettingsTest {
         PreferenceScreen screen = fragment.getPreferenceManager().createPreferenceScreen(activity);
         fragment.setPreferenceScreen(screen);
         // The category adds itself to the screen and its rows to itself.
-        new PlaybackPreferenceCategory(activity, screen);
+        new ScreenTimePreferenceCategory(activity, screen);
         return screen;
     }
 

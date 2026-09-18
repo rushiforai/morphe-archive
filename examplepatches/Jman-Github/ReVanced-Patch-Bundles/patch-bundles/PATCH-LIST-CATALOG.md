@@ -102,7 +102,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Piko](#-piko-bundle-patch-list) | 131 | 2 | Generated |
 | [HK-Morphe](#-hk-morphe-bundle-patch-list) | 12 | 4 | Generated |
 | [BholeyKaBhakt](#-bholeykabhakt-bundle-patch-list) | 24 | 15 | Generated |
-| [Andronedev](#-andronedev-bundle-patch-list) | 2 | 1 | Generated |
+| [Andronedev](#-andronedev-bundle-patch-list) | 5 | 2 | Generated |
 | [Brosssh](#-brosssh-bundle-patch-list) | 22 | 5 | Generated |
 | [Quantro100](#-quantro100-bundle-patch-list) | - | - | Pending patch list |
 | [Chiggi](#-chiggi-bundle-patch-list) | 68 | 12 | Generated |
@@ -154,7 +154,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [RIVanced-Universal](#-rivanced-universal-bundle-patch-list) | 27 | 1 | Generated |
 | [Variablenine](#-variablenine-bundle-patch-list) | 149 | 4 | Generated |
 | [Stylus](#-stylus-bundle-patch-list) | 6 | 3 | Generated |
-| [HXReborn](#-hxreborn-bundle-patch-list) | 48 | 26 | Generated |
+| [HXReborn](#-hxreborn-bundle-patch-list) | 51 | 27 | Generated |
 | [Ikura](#-ikura-bundle-patch-list) | 6 | 1 | Generated |
 | [DH6K](#-dh6k-bundle-patch-list) | 7 | 7 | Generated |
 | [AndrewLiang25](#-andrewliang25-bundle-patch-list) | 32 | 2 | Generated |
@@ -183,14 +183,14 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [FTL](#-ftl-bundle-patch-list) | 61 | 18 | Generated |
 | [braiNtropy](#-braintropy-bundle-patch-list) | 3 | 2 | Generated |
 | [Ang3lo](#-ang3lo-bundle-patch-list) | 1 | 1 | Generated |
-| [Heval99](#-heval99-bundle-patch-list) | 20 | 11 | Generated |
+| [Heval99](#-heval99-bundle-patch-list) | 28 | 19 | Generated |
 | [Atharv](#-atharv-bundle-patch-list) | 2 | 1 | Generated |
 | [Tiaruebar](#-tiaruebar-bundle-patch-list) | 1 | 1 | Generated |
 | [FTL-Portal](#-ftl-portal-bundle-patch-list) | 3 | 2 | Generated |
 | [Imgur](#-imgur-bundle-patch-list) | 1 | 1 | Generated |
 | [aapam](#-aapam-bundle-patch-list) | 16 | 4 | Generated |
 | [RabehX](#-rabehx-bundle-patch-list) | 10 | 3 | Generated |
-| [Tiaruebar1024](#-tiaruebar1024-bundle-patch-list) | 4 | 2 | Generated |
+| [Tiaruebar1024](#-tiaruebar1024-bundle-patch-list) | 1 | 1 | Generated |
 | [Slight](#-slight-bundle-patch-list) | 2 | 2 | Generated |
 | [Riky](#-riky-bundle-patch-list) | 10 | 4 | Generated |
 | [iPusnas](#-ipusnas-bundle-patch-list) | 6 | 1 | Generated |
@@ -200,7 +200,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [RuStore-Privacy](#-rustore-privacy-bundle-patch-list) | 14 | 1 | Generated |
 | [Abhishek-Bhujang](#-abhishek-bhujang-bundle-patch-list) | 2 | 2 | Generated |
 | [MauroGamerVN](#-maurogamervn-bundle-patch-list) | 2 | 2 | Generated |
-| [Kveld](#-kveld-bundle-patch-list) | 66 | 7 | Generated |
+| [Kveld](#-kveld-bundle-patch-list) | 76 | 7 | Generated |
 | [Anime-Witcher](#-anime-witcher-bundle-patch-list) | 9 | 1 | Generated |
 | [Apos](#-apos-bundle-patch-list) | 1 | 1 | Generated |
 | [HH](#-hh-bundle-patch-list) | 4 | 1 | Generated |
@@ -216,7 +216,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Aimal](#-aimal-bundle-patch-list) | 6 | 4 | Generated |
 | [ShuhaibNC](#-shuhaibnc-bundle-patch-list) | 12 | 10 | Generated |
 | [Stremio-AndroidTV](#-stremio-androidtv-bundle-patch-list) | 3 | 1 | Generated |
-| [Legendsciber](#-legendsciber-bundle-patch-list) | 11 | 6 | Generated |
+| [Legendsciber](#-legendsciber-bundle-patch-list) | 10 | 6 | Generated |
 | [SteamLink](#-steamlink-bundle-patch-list) | 29 | 2 | Generated |
 | [Froggo](#-froggo-bundle-patch-list) | 12 | 2 | Generated |
 | [Kecerim24](#-kecerim24-bundle-patch-list) | 4 | 3 | Generated |
@@ -249,12 +249,12 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Discord](#-discord-bundle-patch-list) | 3 | 1 | Generated |
 | [Xperia-1V-Camera](#-xperia-1v-camera-bundle-patch-list) | 6 | 2 | Generated |
 | [Gemini-MicroG](#-gemini-microg-bundle-patch-list) | 13 | 2 | Generated |
-| [Hushfeed](#-hushfeed-bundle-patch-list) | 81 | 1 | Generated |
+| [Hushfeed](#-hushfeed-bundle-patch-list) | 90 | 1 | Generated |
 | [Debakarr](#-debakarr-bundle-patch-list) | 2 | 3 | Generated |
 | [RingConn](#-ringconn-bundle-patch-list) | 2 | 1 | Generated |
-| [Yann-Soliman](#-yann-soliman-bundle-patch-list) | 6 | 3 | Generated |
+| [Yann-Soliman](#-yann-soliman-bundle-patch-list) | 7 | 3 | Generated |
 | [Picarica](#-picarica-bundle-patch-list) | 1 | 1 | Generated |
-| [Zeldrisho](#-zeldrisho-bundle-patch-list) | 16 | 2 | Generated |
+| [Zeldrisho](#-zeldrisho-bundle-patch-list) | 18 | 2 | Generated |
 | [Psylos](#-psylos-bundle-patch-list) | 5 | 1 | Generated |
 | [CrimeRadar](#-crimeradar-bundle-patch-list) | 13 | 2 | Generated |
 | [Vantage](#-vantage-bundle-patch-list) | 2 | 2 | Generated |
@@ -276,6 +276,9 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Dhrubonai](#-dhrubonai-bundle-patch-list) | 46 | 25 | Generated |
 | [PixivPatches](#-pixivpatches-bundle-patch-list) | 8 | 1 | Generated |
 | [De-Vanced](#-de-vanced-bundle-patch-list) | 7 | 1 | Generated |
+| [CBC](#-cbc-bundle-patch-list) | 4 | 1 | Generated |
+| [D-moniak](#-d-moniak-bundle-patch-list) | 1 | 1 | Generated |
+| [Spicetify](#-spicetify-bundle-patch-list) | 2 | 1 | Generated |
 
 ### Legacy
 | Bundle | Patches | Apps | Status |
@@ -2874,12 +2877,15 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Andronedev Bundle Patch List:
 [📦 Andronedev-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-andronedev-patches-bundle-morphe)
 <details>
-<summary><b>Andronedev</b> - 2 patches, 1 app</summary>
+<summary><b>Andronedev</b> - 5 patches, 2 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Custom Maps API Key``` | ```Replace Transit Google Maps key with your own Android Maps SDK key for re-signed APKs.``` | ```com.thetransitapp.droid``` | ```All versions``` |
 | ```Pro Features Unlock``` | ```Unlock all pro features in Transit``` | ```com.thetransitapp.droid``` | ```All versions``` |
+| ```AdMob Credentials Screen``` | ```Declare the screen where the AdMob credentials are entered.``` | ```io.stark.admob``` | ```All versions``` |
+| ```Pro Unlock``` | ```Unlock every pro feature in AdMobile, in every process that checks for one.``` | ```io.stark.admob``` | ```All versions``` |
+| ```Serverless Sign-In``` | ```Sign in with your own Google OAuth client, so the app talks to Google directly and to nobody else. No developer backend, no Firebase session, no third party holding your tokens or seeing your earnings, and no Google Sign-In that a re-signed APK cannot complete.``` | ```io.stark.admob``` | ```All versions``` |
 
 </details>
 
@@ -3705,7 +3711,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Enable Premium``` | ```Enables app features locked behind the subscription paywall.``` | ```AdGuard``` | ```4.14.0``` |
+| ```Enable Premium``` | ```Enables app features locked behind the subscription paywall.``` | ```AdGuard``` | ```4.14.1``` |
 | ```Enable Peak membership``` | ```Enables some app features locked behind the subscription paywall. Not all premium functionality is available.``` | ```AllTrails``` | ```26.3.20``` |
 | ```Enable Premium``` | ```Enables app features locked behind the subscription paywall.``` | ```ASL Bloom``` | ```1.36.67``` |
 | ```Enable Premium``` | ```Enables app features locked behind the subscription paywall.``` | ```Avocards``` | ```3.0.18``` |
@@ -4168,7 +4174,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Disable dislike redirection``` | ```Adds an option to prevent skipping to the next track when the dislike button is pressed.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
 | ```Disable DRC audio``` | ```Adds an option to disable DRC (Dynamic Range Compression) audio.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
 | ```Disable QUIC protocol``` | ```Adds an option to disable QUIC (Quick UDP Internet Connections) network protocol.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
-| ```Downloads``` | ```Adds support to download songs with an external downloader app using the in-app download button.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
+| ```Downloads``` | ```Adds support to download songs using the in-app download button, either with an external downloader app or inside YouTube Music.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
 | ```Enable debugging``` | ```Adds options for debugging and exporting Morphe logs to the clipboard.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
 | ```Enable exclusive audio playback``` | ```Enables the option to play audio without video.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
 | ```Enable forced miniplayer``` | ```Adds an option to enable forced miniplayer when switching between music videos, podcasts, or songs.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
@@ -4619,8 +4625,8 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Spoof device ID``` | ```Spoofs device ID to mitigate manual bans by developers.``` | ```Photomath``` | ```All versions``` |
 | ```Unlock plus``` | ```N/A``` | ```Photomath``` | ```All versions``` |
 | ```Bypass login``` | ```Allows the use of the app after its discontinuation.``` | ```Photoshop Mix``` | ```All versions``` |
-| ```Hide ads``` | ```N/A``` | ```Pixiv``` | ```6.196.0, 6.141.1``` |
-| ```Remove popular search time limit``` | ```Removes the 7-day trial countdown on popular search results so the free popular-search preview (30 works) never expires.``` | ```Pixiv``` | ```6.141.1``` |
+| ```Hide ads``` | ```N/A``` | ```Pixiv``` | ```6.141.1, 6.196.0``` |
+| ```Remove popular search time limit``` | ```Removes the 7-day trial countdown on popular search results so the free popular-search preview (30 works) never expires.``` | ```Pixiv``` | ```6.141.1, 6.196.0``` |
 | ```Add 'Give Kudos' button to 'Group Activity'``` | ```Adds a button that triggers the same action as shaking your phone would.``` | ```Strava``` | ```477.14``` |
 | ```Add activity export``` | ```Adds an "Export GPX" item to the activity overflow menu, which saves the activity's GPS track as a GPX file in Downloads/Strava.``` | ```Strava``` | ```477.14``` |
 | ```Add media download``` | ```Extends the full-screen media viewer menu with items to copy or open their URLs or download them directly.``` | ```Strava``` | ```477.14``` |
@@ -5925,7 +5931,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 HXReborn Bundle Patch List:
 [📦 HXReborn-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-hxreborn-patches-bundle-morphe)
 <details>
-<summary><b>HXReborn</b> - 48 patches, 26 apps</summary>
+<summary><b>HXReborn</b> - 51 patches, 27 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -5959,15 +5965,18 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Disable tracking``` | ```Disables analytics and crash reporting.``` | ```Projectivy Launcher``` | ```4.71, 4.70``` |
 | ```Unlock premium``` | ```Unlocks all premium features.``` | ```Projectivy Launcher``` | ```4.71, 4.70``` |
 | ```AMOLED dark theme``` | ```Replaces the dark theme background with pure black.``` | ```Proton Mail``` | ```7.11.5, 7.10.4``` |
+| ```Custom accent color``` | ```Changes the accent color. Choose a color in the patches menu.``` | ```Proton Mail``` | ```7.11.5, 7.10.4``` |
 | ```Hide upgrade promotions``` | ```Hides the top-bar upgrade button, promotional sidebar rows and the auto-delete upgrade banner in Trash and Spam. Keeps the Empty trash and Empty spam buttons.``` | ```Proton Mail``` | ```7.11.5, 7.10.4``` |
 | ```Remove 'Sent from' signature``` | ```Removes the 'Sent from Proton Mail' signature from emails.``` | ```Proton Mail``` | ```7.11.5, 7.10.4``` |
 | ```Remove free accounts limit``` | ```Removes the limit for maximum free accounts logged in.``` | ```Proton Mail``` | ```7.11.5, 7.10.4``` |
-| ```Scheduled Trash and Spam deletion``` | ```Deletes all messages in Trash and Spam on a configurable schedule. Deleted messages cannot be recovered.``` | ```Proton Mail``` | ```7.11.5, 7.10.4``` |
+| ```Scheduled Trash and Spam deletion``` | ```Deletes all messages in Trash and Spam on separate configurable schedules. Deleted messages cannot be recovered.``` | ```Proton Mail``` | ```7.11.5, 7.10.4``` |
 | ```Unlock custom time picker``` | ```Enables picking a custom date and time when snoozing conversations and scheduling messages.``` | ```Proton Mail``` | ```7.11.5, 7.10.4``` |
 | ```Hide ads``` | ```Disables banner, interstitial, and native ads.``` | ```QR & Barcode Scanner``` | ```2.2.221``` |
 | ```Unlock premium``` | ```Unlocks downloading every surah, lyrics and tafsir, Android Auto, background playback controls, and insights.``` | ```Quranify``` | ```2.2.8``` |
 | ```Unlock premium``` | ```Unlocks all premium features.``` | ```RateGlance``` | ```1.14.8``` |
 | ```Remove nags``` | ```Removes the rate this app dialog and the promotional dialogs shown on startup.``` | ```ReadEra``` | ```26.05.20+2300``` |
+| ```Remove rating prompts``` | ```Removes the prompts asking for a rating.``` | ```Ringtone Maker``` | ```1.01.99.0909, 1.01.98.0831, 1.01.98.0824, 1.01.97.0818, 1.01.96.0716, 1.01.94.0602, 1.01.90.0421``` |
+| ```Unlock premium``` | ```Unlocks premium, removes ads and skips the upgrade screens.``` | ```Ringtone Maker``` | ```1.01.99.0909, 1.01.98.0831, 1.01.98.0824, 1.01.97.0818, 1.01.96.0716, 1.01.94.0602, 1.01.90.0421``` |
 | ```Disable telemetry``` | ```Stops crash and error reports from reaching Sentry.``` | ```RISE Sleep Tracker``` | ```Android V1.78.49, Android V1.78.47``` |
 | ```Disable usage tracking``` | ```Stops app usage events from being uploaded. Local usage tracking remains enabled.``` | ```RISE Sleep Tracker``` | ```Android V1.78.49, Android V1.78.47``` |
 | ```Unlock premium``` | ```Unlocks the energy schedule, habit tools, smart alarm and progress insights. Requires a RISE account.``` | ```RISE Sleep Tracker``` | ```Android V1.78.49, Android V1.78.47``` |
@@ -5976,7 +5985,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock premium``` | ```Unlocks ad removal, light theme, custom images, list view types, quick ratings, and transparent widgets. The News feed is not included.``` | ```Showly``` | ```3.70.0``` |
 | ```Unlock premium``` | ```Unlocks all premium features.``` | ```Symfonium``` | ```14.0.0, 14.1.0, 15.0.1, 14.0.0 TV``` |
 | ```Hide ads``` | ```Removes the adverts shown between search results.``` | ```Trainline``` | ```407.0.0.178994``` |
-| ```Unlock premium``` | ```Unlocks premium servers and removes ads, upgrade banners and the launch paywall.``` | ```VPN Super Unlimited Proxy``` | ```2.32.0``` |
+| ```Unlock premium``` | ```Unlocks premium servers and removes ads, upgrade banners, the launch paywall and the Android TV sign-in screen.``` | ```VPN Super Unlimited Proxy``` | ```2.32.0``` |
 
 </details>
 
@@ -6412,7 +6421,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Unlock Premium``` | ```Unlocks all premium features.``` | ```SeriesGuide``` | ```2026.2.2, 2026.3.0, 2026.3.1, 2026.4.0, 2026.4.1``` |
+| ```Unlock Premium``` | ```Unlocks all premium features.``` | ```SeriesGuide``` | ```2026.2.2, 2026.3.0, 2026.3.1, 2026.4.0, 2026.4.1, 2026.4.2``` |
 
 </details>
 
@@ -6599,8 +6608,8 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Disable OTA updates``` | ```Disables expo-updates: the app no longer contacts the Expo update server (u.expo.dev) on launch and can never download or run over-the-air JavaScript updates published by the developer.``` | ```Tracearr``` | ```2.2.0``` |
-| ```Unlock Premium``` | ```Disables the Google Play license check (Pairip) that redirects installs not purchased through the Play Store to the buy page.``` | ```Tracearr``` | ```2.2.0``` |
+| ```Disable Expo OTA updates``` | ```Disables expo-updates: the app no longer contacts the Expo update server (u.expo.dev) on launch and can never download or run over-the-air JavaScript updates published by the developer. Only applies to apps built with Expo.``` | ```Universal``` | ```All versions``` |
+| ```Disable Pairip license check``` | ```Disables the Google Play license check (Pairip) that redirects installs not purchased through the Play Store to the buy page. The check never runs, so this also works on degoogled devices without Play services. Does not bypass Play Integrity attestation.``` | ```Universal``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks all premium content and removes subscription banners.``` | ```Waking Up``` | ```3.24.1``` |
 
 </details>
@@ -6674,30 +6683,38 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Heval99 Bundle Patch List:
 [📦 Heval99-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-heval99-patches-bundle-morphe)
 <details>
-<summary><b>Heval99</b> - 20 patches, 11 apps</summary>
+<summary><b>Heval99</b> - 28 patches, 19 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Disable ads``` | ```Disables Google Mobile Ads (AdMob) initialization, blocking banner, interstitial, rewarded, native and mediated ads.``` | ```365Scores``` | ```14.8.8``` |
-| ```Enable Premium``` | ```Unlocks premium features by patching the Java license wrapper methods in JniAdExt: isFreeLicense returns false (app treats the license as paid), account registration and address book are allowed, and the remove-license option is available in settings. Note: the underlying license validation is native (libanydesk.so) and cannot be patched via bytecode — this patch only affects the Java-layer feature gates.``` | ```AnyDesk``` | ```8.3.4``` |
+| ```Disable ads``` | ```Disables Google Mobile Ads (AdMob) initialization, blocking banner, interstitial, rewarded, native and mediated ads.``` | ```365Scores``` | ```14.9.4``` |
+| ```Enable Premium``` | ```Unlocks premium features by patching the Java license wrapper methods in JniAdExt: isFreeLicense returns false (app treats the license as paid), account registration and address book are allowed, and the remove-license option is available in settings. Note: the underlying license validation is native (libanydesk.so) and cannot be patched via bytecode — this patch only affects the Java-layer feature gates.``` | ```AnyDesk``` | ```9.0.0``` |
+| ```Enable Premium``` | ```Unlocks the Pro/Premium features and lifts the free-version feature locks.``` | ```Aqua Mail``` | ```2.7.0``` |
 | ```Disable ads``` | ```Prevents AppLovin interstitial ads from loading and showing.``` | ```BoxBox``` | ```All versions``` |
 | ```Disable telemetry``` | ```Disables AppsFlyer, Firebase Analytics and Crashlytics event logging.``` | ```BoxBox``` | ```All versions``` |
 | ```Enable Premium``` | ```Unlocks premium features by bypassing RevenueCat subscription checks.``` | ```BoxBox``` | ```All versions``` |
 | ```Brave Origin``` | ```Unlocks Brave Origin and enables feature toggle controls.``` | ```Brave Browser``` | ```1.93.136``` |
-| ```Enable Premium``` | ```Forces User.hasPremium() to return true, unlocking premium features locked behind the RevenueCat subscription entitlement.``` | ```FishBuddy``` | ```11.0.84``` |
-| ```Enable FotMob+``` | ```Enables app features locked behind the subscription paywall.``` | ```FotMob``` | ```All versions``` |
+| ```Disable ads``` | ```Removes the 'notes_edit_banner' unit from utils/AdManager and the app-open ad from App$AppOpenAdManager. Both are gated on the single App.isAdFree() check, which normally depends on a VIP subscription.``` | ```EasyNotes``` | ```1.3.61.0907``` |
+| ```Enable Premium``` | ```Unlocks the VIP-only fonts, note backgrounds, stickers and drawing tools. The app checks entitlement entirely locally — there is no license server — so forcing the App.isVip() gate to return true unlocks everything, and stays unlocked even though BillingManager resets the underlying purchase flags from Play on every startup.``` | ```EasyNotes``` | ```1.3.61.0907``` |
+| ```Enable Pro``` | ```Unlocks the FairEmail pro features.``` | ```FairEmail``` | ```1.2337``` |
+| ```Enable Premium``` | ```Forces User.hasPremium() to return true, unlocking premium features locked behind the RevenueCat subscription entitlement.``` | ```FishBuddy``` | ```11.0.101``` |
+| ```Enable FotMob+``` | ```Enables app features locked behind the subscription paywall.``` | ```FotMob``` | ```236.17398.20260827, 236.17338.20260822``` |
 | ```Disable ads``` | ```Disables Wortise ad SDK initialization, blocking banner, interstitial, native and mediated ads (AppLovin, Yandex, Google Mobile Ads, etc.).``` | ```IPTV``` | ```9.1.25``` |
 | ```Enable Premium``` | ```Forces IptvFreeApplication's pro/trial gate to return true, keeping pro features unlocked after the 20-minute trial expires and suppressing the in-app review / buy-pro upsell prompts.``` | ```IPTV``` | ```9.1.25``` |
-| ```Disable ads``` | ```Forces AdsRemovalSettings.areAdsDisabled() to return true, disabling banner, interstitial, MPU, hero placement, coverage sponsorship and announcement ads.``` | ```Livescore``` | ```9.9.1``` |
+| ```Enable Premium``` | ```Unlocks the 'Advanced device settings' features (Personalized Volume, Adaptive Audio, accessibility configs, hearing protection, etc.) that LibrePods gates behind the Play Store 'Unlock advanced features' one-time purchase. The patch forces the premium entitlement (PlayBillingProvider's _isPremium StateFlow) to always be true.``` | ```LibrePods``` | ```1.0.0-rc1-play``` |
+| ```Disable ads``` | ```Forces AdsRemovalSettings.areAdsDisabled() to return true, disabling banner, interstitial, MPU, hero placement, coverage sponsorship and announcement ads.``` | ```Livescore``` | ```10.1``` |
+| ```Enable Premium``` | ```Unlocks the Monefy Pro features.``` | ```Monefy``` | ```1.22.11``` |
 | ```Enable Premium+``` | ```Enables app features locked behind the subscription paywall.``` | ```MyFitnessPal``` | ```All versions``` |
-| ```Disable telemetry``` | ```Disables Braze custom event tracking. Firebase Analytics/Crashlytics are covered by the universal "Disable Firebase Analytics & Crashlytics" patch.``` | ```Saphe Link``` | ```6.5.5``` |
-| ```Enable Premium``` | ```Unlocks all features locked behind the Saphe subscription paywall (navigation, car integration, speed limits, voice alarms, roadwork detection, animal nearby, slow-moving traffic, emergency vehicle, etc.).``` | ```Saphe Link``` | ```6.5.5``` |
-| ```Block marketing notifications``` | ```Blocks promotional and marketing notification prompts and modals.``` | ```Sofascore``` | ```26.07.27, 26.08.03``` |
-| ```Disable ads``` | ```Disables banner, interstitial, feed, native, preroll and rewarded ads.``` | ```Sofascore``` | ```26.07.27, 26.08.03``` |
-| ```Disable Facebook SDK``` | ```Disables Facebook SDK initialization, marketing, and ad network activity.``` | ```Sofascore``` | ```26.07.27, 26.08.03``` |
-| ```Disable Play Integrity``` | ```Bypasses Google Play Integrity API checks.``` | ```Sofascore``` | ```26.07.27, 26.08.03``` |
-| ```Disable telemetry``` | ```Disables AppsFlyer, Firebase Analytics, Crashlytics, and Adjust telemetry.``` | ```Sofascore``` | ```26.07.27, 26.08.03``` |
-| ```Enable Premium``` | ```Unlocks AI insights and premium features locked behind subscription.``` | ```Sofascore``` | ```26.07.27, 26.08.03``` |
+| ```Disable telemetry``` | ```Disables Braze custom event tracking. Firebase Analytics/Crashlytics are covered by the universal "Disable Firebase Analytics & Crashlytics" patch.``` | ```Saphe Link``` | ```6.6.0``` |
+| ```Enable Premium``` | ```Unlocks all features locked behind the Saphe subscription paywall (navigation, car integration, speed limits, voice alarms, roadwork detection, animal nearby, slow-moving traffic, emergency vehicle, etc.).``` | ```Saphe Link``` | ```6.6.0``` |
+| ```Block marketing notifications``` | ```Blocks promotional and marketing prompts and modals.``` | ```Sofascore``` | ```26.07.27, 26.08.24, 26.09.07``` |
+| ```Disable ads``` | ```Disables banner, interstitial, feed, native, preroll and rewarded ads.``` | ```Sofascore``` | ```26.07.27, 26.08.24, 26.09.07``` |
+| ```Disable Facebook SDK``` | ```Blocks Facebook SDK and Audience Network auto-initialization.``` | ```Sofascore``` | ```26.07.27, 26.08.24, 26.09.07``` |
+| ```Disable telemetry``` | ```Disables AppsFlyer and Firebase Analytics event logging, plus Crashlytics crash reporting.``` | ```Sofascore``` | ```26.07.27, 26.08.24, 26.09.07``` |
+| ```Enable Premium``` | ```Unlocks AI insights and premium features locked behind the Sofascore Plus/Pro subscription.``` | ```Sofascore``` | ```26.07.27, 26.08.24, 26.09.07``` |
+| ```Enable Premium``` | ```Unlocks the premium features.``` | ```Swift Backup``` | ```5.1.0``` |
+| ```Enable Full Version``` | ```Bypasses the Play license check so the paid app runs as licensed.``` | ```Tasker``` | ```6.6.18``` |
+| ```Remove ads``` | ```Unlocks the ad-free purchase.``` | ```Weather Underground``` | ```6.20.1``` |
 
 </details>
 
@@ -6816,13 +6833,10 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Tiaruebar1024 Bundle Patch List:
 [📦 Tiaruebar1024-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-tiaruebar1024-patches-bundle-morphe)
 <details>
-<summary><b>Tiaruebar1024</b> - 4 patches, 2 apps</summary>
+<summary><b>Tiaruebar1024</b> - 1 patch, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```BitLife Ad Removal``` | ```Removes ads from BitLife by disabling ad loading and display methods.``` | ```BitLife``` | ```3.24.4``` |
-| ```BitLife Pairip Bypass``` | ```Bypasses Google Play Integrity (Pairip) license checks in BitLife.``` | ```BitLife``` | ```3.24.4``` |
-| ```BitLife Premium``` | ```Unlocks all premium features, Bitizenship, God Mode, and expansions using native ARM64 hex patching of IL2CPP methods.``` | ```BitLife``` | ```3.24.4``` |
 | ```Devices Tycoon Premium``` | ```Instantly completes all IAP purchases (remove ads, research coins, budget) on tap and disables all ads in Devices Tycoon.``` | ```Devices Tycoon``` | ```4.0.1``` |
 
 </details>
@@ -6851,12 +6865,12 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Hide ads``` | ```Removes banner, native, cover and interstitial ads and unlocks premium features.``` | ```3BMeteo``` | ```4.9.16``` |
-| ```Hide Promotional UI``` | ```Suppresses home banners, export promos, subscription paywalls, Pro badges, Lynx promo modals, and PC diversion popups.``` | ```CapCut``` | ```19.2.0``` |
-| ```Hide Unavailable Features``` | ```Hides cloud-gated editor options that won't work offline: AI sounds, super resolution, optical flow, and smart frame interpolation.``` | ```CapCut``` | ```19.2.0``` |
-| ```Remove Security Notice``` | ```Suppresses the modified-build security notice by disabling the risk SDK dialog entry point and the isCracking flag writer.``` | ```CapCut``` | ```19.2.0``` |
-| ```Simplify Navigation``` | ```Removes the Templates, Inbox, and AI Lab bottom navigation tabs.``` | ```CapCut``` | ```19.2.0``` |
-| ```Suppress Telemetry``` | ```Disables background monitoring and analytics frameworks including ByteDance Helios, AppLog, and AppsFlyer.``` | ```CapCut``` | ```19.2.0``` |
-| ```Unlock Premium``` | ```Forces the VIP flag to true so premium features are unlocked client-side. Server-validated assets (cloud effects/templates) are not affected.``` | ```CapCut``` | ```19.2.0``` |
+| ```Hide Promotional UI``` | ```Suppresses home banners, export promos, subscription paywalls, Pro badges, Lynx promo modals, and PC diversion popups.``` | ```CapCut``` | ```19.2.0, 19.6.0``` |
+| ```Hide Unavailable Features``` | ```Hides cloud-gated editor options that won't work offline: AI sounds, super resolution, optical flow, and smart frame interpolation.``` | ```CapCut``` | ```19.2.0, 19.6.0``` |
+| ```Remove Security Notice``` | ```Suppresses modified-build security notices and geo-gated force-update blocks: stubs the native CrackingInterceptor, risk SDK dialog entry, and VersionUpdateService force popup. Server IP policy may still limit cloud assets.``` | ```CapCut``` | ```19.2.0, 19.6.0``` |
+| ```Simplify Navigation``` | ```Removes the Templates, Inbox, and AI Lab bottom navigation tabs.``` | ```CapCut``` | ```19.2.0, 19.6.0``` |
+| ```Suppress Telemetry``` | ```Disables background monitoring and analytics frameworks including ByteDance Helios, AppLog, and AppsFlyer.``` | ```CapCut``` | ```19.2.0, 19.6.0``` |
+| ```Unlock Premium``` | ```Forces the VIP flag to true so premium features are unlocked client-side. Server-validated assets (cloud effects/templates) are not affected.``` | ```CapCut``` | ```19.2.0, 19.6.0``` |
 | ```Hide ads``` | ```Spoofs premium/unlocked state to disable ad-gated behavior.``` | ```Electron: battery health info``` | ```3.0.3``` |
 | ```Unlock map regions``` | ```Spoof Komoot Maps ownership client-side (world pack / owned regions in shop and offline UI). Server-side limits may still apply: offline tile download auth, sync overwriting local state, and Play receipt validation. Does not replace a real Play Store purchase.``` | ```Komoot``` | ```2026.34.2``` |
 | ```Unlock Premium features``` | ```Unlock Premium features. Some features are not possible to patch (server sided), such as saving a multi-days hike.``` | ```Komoot``` | ```2026.34.2``` |
@@ -7029,18 +7043,21 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Kveld Bundle Patch List:
 [📦 Kveld-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-kveld-patches-bundle-morphe)
 <details>
-<summary><b>Kveld</b> - 66 patches, 7 apps</summary>
+<summary><b>Kveld</b> - 76 patches, 7 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Block Brave Telemetry``` | ```Blocks P3A product analytics, Brave Stats usage pings, crash dump uploads, WDP, and Variations seed fetching.``` | ```Brave Private Web Browser, VPN``` | ```1.95.101``` |
+| ```Block Brave Telemetry``` | ```Blocks P3A product analytics, Brave Stats usage pings, crash dump uploads, WDP, Chromium UMA metrics, and Variations seed fetching.``` | ```Brave Private Web Browser, VPN``` | ```1.95.101``` |
 | ```Brave In-Product & Commercial Notification Optimizer``` | ```Eliminates background wakeups and notifications from Chromium tips scheduler (Job ID 105), Brave Rewards onboarding promo, and retention marketing campaigns.``` | ```Brave Private Web Browser, VPN``` | ```1.95.101``` |
 | ```Brave Origin``` | ```Unlocks Brave Origin and enables local feature toggle controls.``` | ```Brave Private Web Browser, VPN``` | ```1.95.101``` |
 | ```Brave Startup Performance Optimization``` | ```Optimizes startup time and eliminates background CPU/disk overhead by disabling unused OEM carrier partner customizations.``` | ```Brave Private Web Browser, VPN``` | ```1.95.101``` |
+| ```Clean New Tab Page``` | ```Removes sponsored wallpaper images, Brave News/Today feeds, marketing widgets, and promo cards from the New Tab Page.``` | ```Brave Private Web Browser, VPN``` | ```1.95.101``` |
 | ```Disable Background Sync & Periodic Sync``` | ```Eliminates background wakeups, radio modem activity, and battery drain by forcing GooglePlayServicesChecker.shouldDisableBackgroundSync() -> true and neutralizing wakeup tasks.``` | ```Brave Private Web Browser, VPN``` | ```1.95.101``` |
 | ```Native Bloat Slimmer``` | ```Strips unused native companion binaries (Impress Vision AI, WireGuard VPN, and Android XR) to significantly reduce APK size.``` | ```Brave Private Web Browser, VPN``` | ```1.95.101``` |
+| ```Clean Share URL``` | ```Strips tracking parameters (utm_*, fbclid, gclid, igshid, si, msclkid) when sharing or copying links.``` | ```Brave Private Web Browser, VPN, Vivaldi Browser - Fast & Safe``` | ```1.95.101, 8.2.4147.77``` |
 | ```Disable Battery Status API & OS Listener``` | ```Neutralizes the Battery Status API (navigator.getBattery) to prevent cross-site device fingerprinting and drops OS battery change broadcasts.``` | ```Brave Private Web Browser, VPN, Vivaldi Browser - Fast & Safe``` | ```1.95.101, 8.2.4147.77``` |
 | ```Locale PAK Slimmer``` | ```Strips unselected language resource PAKs from assets/locales/.``` | ```Brave Private Web Browser, VPN, Vivaldi Browser - Fast & Safe``` | ```1.95.101, 8.2.4147.77``` |
+| ```Sensor Privacy Guard``` | ```Neutralizes motion, ambient, and orientation sensor providers to prevent hardware fingerprinting and tracking via Generic Sensor APIs.``` | ```Brave Private Web Browser, VPN, Vivaldi Browser - Fast & Safe``` | ```1.95.101, 8.2.4147.77``` |
 | ```Skip First Run``` | ```Skips the welcome screen, search engine selection, and onboarding First Run Experience (FRE) on clean installs.``` | ```Brave Private Web Browser, VPN, Vivaldi Browser - Fast & Safe``` | ```1.95.101, 8.2.4147.77``` |
 | ```Add AMOLED Theme``` | ```Adds a selectable Pure Black AMOLED theme using Gboard's native color_black theme package, without replacing Dark, Light, System Auto, or Dynamic Color.``` | ```Gboard Lite``` | ```18.2.4.969776716-lite_beta-arm64-v8a, 18.2.4.969776716-lite_beta-armeabi-v7a``` |
 | ```Allow Modified APK``` | ```Bypasses internal signature check to allow custom APK execution.``` | ```Gboard Lite``` | ```18.2.4.969776716-lite_beta-arm64-v8a, 18.2.4.969776716-lite_beta-armeabi-v7a``` |
@@ -7063,25 +7080,31 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Hevy Battery Optimization & Background Sync Killer``` | ```Disables background WorkManager alarms, periodic job schedulers, Google Play Billing IPC (~89 MB RAM), and removes largeHeap to force aggressive Garbage Collection.``` | ```Hevy - Gym Log Workout Tracker``` | ```3.1.14, 3.1.13``` |
 | ```Hevy Resource Slimmer``` | ```Strips embedded onboarding MP4 tutorial video, heavy IMG.LY photo editor stickers/textures, and compiler junk metadata.``` | ```Hevy - Gym Log Workout Tracker``` | ```3.1.14, 3.1.13``` |
 | ```Unlock Pro``` | ```Unlocks local Hevy Pro capabilities (unlimited workout routines, routine folders, advanced graphs, and local analytics) by dynamically enabling Pro getters in Hermes Bytecode (HBC96).``` | ```Hevy - Gym Log Workout Tracker``` | ```3.1.14, 3.1.13``` |
+| ```Always show publish date``` | ```Forces video publish/upload date to remain visible in video author information across all feed types.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
+| ```Bypass Mandatory Login``` | ```Neutralizes mandatory login walls, dynamic regional forced login gates, and guest browsing restrictions.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Clean Share URL``` | ```Strips tracking parameters, user IDs, device fingerprints, and marketing tokens from shared TikTok links.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Client-Side AI & Behavioral Profiling Governor``` | ```Neutralizes on-device machine learning inference (Pitaya), Tako AI chatbot entry points and icons, and AI smart search suggestion clutter.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
+| ```Copy comments without username``` | ```Copies only the comment text without prepending the author username.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Core Asset De-bloat``` | ```Strips embedded Microblink/FinTech card scanner models, Pitaya AI & ByteNN LLM engines, C2PA origin verification, DLNA cast scanners, and redundant non-Latin fonts to save APK space.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Device Privacy Guard``` | ```Neutralizes background clipboard snooping routines, local network scanning permissions, and screenshot/recording detection and telemetry listeners to protect user data.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Disable Push Notifications``` | ```Neutralizes background push notification tasks and persistent socket wake locks to eliminate background battery drain.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Feed Ad Blocker``` | ```Removes sponsored advertisements, brand promotions, and promotional audio from the For You and Following feeds.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Feed Bloat & Distraction Blocker``` | ```Removes non-video clutter and floating ad widgets from the For You and Following feeds, including Touchpoint Rewards pendants, floating ad stickers, suggested friend cards, mini-games, CapCut/template creation prompts, memories ('On This Day'), surveys, and mini-drama paywalls.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Feed Live Stream Blocker``` | ```Removes live stream broadcast cards and live recommendations from the For You and Following feeds.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
+| ```Fix Google login``` | ```Restores Google account sign-in after patching by forcing fallback to Web-based OAuth when Google Play Services rejects the modified APK signature.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Hide TikTok Shop & Mall``` | ```Removes product showcase badges, shopping cart tags, and the TikTok Shop / Mall tab from navigation bars and video posts.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```In-App Browser Privacy Guard``` | ```Redirects external and third-party web links to the default system browser and neutralizes inline JavaScript tracking, DOM monitoring, and AJAX hooking in residual in-app WebViews.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Instant Launch & Splash Blocker``` | ```Eliminates cold startup delays, real-time splash advertisements, and background TopView preloading (<0.4s launch).``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Language Pack Purger``` | ```Strips unselected language string bundles from assets/strings#lang_* to save APK space.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Live Stream 3D Gift Optimizer``` | ```Disables Live 3D gift particle effect engine and widget rendering lifecycle to eliminate frame drops during live streams.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Live Stream SDK & Minigame De-bloat``` | ```Strips Live link mic SDK (liblink_mic_sdk.so), Lyrax RTC broadcasting engines (liblyrax.so), and live stream interactive minigames to reduce APK size and memory footprint.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
-| ```Media Usability & Watermark-Free Downloader``` | ```Enables progress seekbar scrubbing on all videos, unblocks the download button on creator-restricted videos, and routes downloads to clean unwatermarked media streams.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
+| ```Media Usability & Watermark-Free Downloader``` | ```Unblocks the download button on creator-restricted videos and routes downloads to clean unwatermarked media streams.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```P2P Video Relay & Mesh CDN Blocker``` | ```Strips background Peer-to-Peer CDN distribution binaries (libavmdlp2pv2.so and libp2plivevdp.so) to prevent battery drain, background data upload, and mesh relay.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Playback Speed Persistence``` | ```Persists selected video playback speed across all feed videos and application restarts.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Resource & Battery Governor``` | ```Throttles background sensor polling (gyroscope/accelerometer 3D ads), prevents aggressive video buffer preloading, and caps Fresco animated image memory retention to conserve battery and RAM.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
+| ```Show seekbar``` | ```Restores TikTok's native video seekbar and scrubbing controls where normally hidden or disabled.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```SIM Region Selector``` | ```Spoofs the detected SIM and network country ISO code to bypass regional feed restrictions and catalog blocks.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
+| ```Skip First-Launch Onboarding``` | ```Bypasses the entire first-run introduction funnel (interest pickers, swipe tutorials, language prompts, and consent sheets) directly to the feed.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Studio & Creation De-bloat``` | ```Strips heavy video creation plugins, CapCut NLE editor SDKs, effect plugins, and AR camera face models to significantly reduce APK size.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Unified Telemetry & Tracker Silencer``` | ```Neutralizes ByteDance AppLog user tracking, APM/Npth/Heimdallr crash monitors, AppsFlyer attribution, and Firebase analytics.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Update Prompt Suppressor``` | ```Neutralizes background update polling tasks and device ID check routines to prevent forced update popups.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
@@ -7091,13 +7114,14 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Locale Resource Slimmer``` | ```Strips unselected language translation directories from res/ (e.g. values-*, raw-*, xml-*). Base fallback resources with no language qualifiers are always preserved.``` | ```Universal``` | ```All versions``` |
 | ```PNG Asset Optimizer``` | ```Losslessly recompresses PNG assets with maximum zlib compression and strips non-rendering metadata chunks (pHYs, tEXt, tIME) while preserving 9-patch structures and pixel accuracy.``` | ```Universal``` | ```All versions``` |
 | ```Block Vivaldi Sync``` | ```Redirects bifrost.vivaldi.com to 0.0.0.0 in libchrome.so to completely disable Vivaldi account synchronization for an air-gapped experience.``` | ```Vivaldi Browser - Fast & Safe``` | ```8.2.4147.77``` |
-| ```Block Vivaldi Telemetry``` | ```Blocks Vivaldi usage statistics, crash reporting, Crashpad endpoints, and DirectMatch suggestions.``` | ```Vivaldi Browser - Fast & Safe``` | ```8.2.4147.77``` |
+| ```Block Vivaldi Telemetry``` | ```Blocks Vivaldi usage statistics, crash reporting, Crashpad endpoints, DirectMatch suggestions, install referrer transmission, and background wallpaper polling.``` | ```Vivaldi Browser - Fast & Safe``` | ```8.2.4147.77``` |
 | ```Clean Speed Dial Bookmarks``` | ```Removes sponsored commercial affiliate bookmarks, hides the 3-dot customize button, and disables phantom touch actions on the blank Start Page.``` | ```Vivaldi Browser - Fast & Safe``` | ```8.2.4147.77``` |
 | ```Close Tabs on Exit``` | ```Prevents tab restoration on startup, ensuring Vivaldi always opens with a clean Start Page session regardless of how the app was terminated.``` | ```Vivaldi Browser - Fast & Safe``` | ```8.2.4147.77``` |
 | ```Disable Background Sync & Periodic Sync``` | ```Prevents Web Background Sync and Periodic Sync APIs from scheduling wakeups and background tasks in Android JobScheduler.``` | ```Vivaldi Browser - Fast & Safe``` | ```8.2.4147.77``` |
 | ```Disable Chromium Tips & Notification Scheduler``` | ```Eliminates periodic background wakeups, native library loading, and in-product promotional tips from Chromium tips scheduler.``` | ```Vivaldi Browser - Fast & Safe``` | ```8.2.4147.77``` |
-| ```Disable Vivaldi Prompts & In-App Popups``` | ```Disables in-app donation prompts, search engine switch promos, rate-app popups, background privacy report alarms, and default browser promotional handlers.``` | ```Vivaldi Browser - Fast & Safe``` | ```8.2.4147.77``` |
-| ```Resource Slimmer``` | ```Strips bundled stock wallpapers and sponsored Speed Dial thumbnails to reduce APK size.``` | ```Vivaldi Browser - Fast & Safe``` | ```8.2.4147.77``` |
+| ```Disable Vivaldi Prompts & In-App Popups``` | ```Disables in-app donation prompts, search engine switch promos, rate-app popups, background privacy report alarms, default browser promo handlers, and hides the Vivaldia game from the main menu.``` | ```Vivaldi Browser - Fast & Safe``` | ```8.2.4147.77``` |
+| ```Resource Slimmer``` | ```Strips bundled stock wallpapers, sponsored Speed Dial thumbnails, partner favicons, Privacy Sandbox attestations, and hardens declarative preference defaults.``` | ```Vivaldi Browser - Fast & Safe``` | ```8.2.4147.77``` |
+| ```Split Bundle Compatibility``` | ```Removes split APK constraints (isSplitRequired, isolatedSplits) and split metadata from AndroidManifest.xml for standalone APK installation.``` | ```Vivaldi Browser - Fast & Safe``` | ```8.2.4147.77``` |
 | ```Vivaldi Startup Performance Optimization``` | ```Guards against fatal CompositorView NullPointerException crashes on cold startup and bypasses carrier partner customizations.``` | ```Vivaldi Browser - Fast & Safe``` | ```8.2.4147.77``` |
 
 </details>
@@ -7419,12 +7443,11 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Legendsciber Bundle Patch List:
 [📦 Legendsciber-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-legendsciber-patches-bundle-morphe)
 <details>
-<summary><b>Legendsciber</b> - 11 patches, 6 apps</summary>
+<summary><b>Legendsciber</b> - 10 patches, 6 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Ad Removal``` | ```Removes all ads (banner, interstitial, rewarded).``` | ```Block Blast``` | ```10.4.5``` |
-| ```Premium (Subscription Simulation)``` | ```Simulates an active subscription to unlock premium features.``` | ```Block Blast``` | ```10.4.5``` |
+| ```Dan The Man Free IAP``` | ```All in-app purchases are granted instantly and free without Google Play billing.``` | ```Dan The Man``` | ```1.14.02``` |
 | ```Extreme Car Driving Add Native Lib``` | ```Adds libcurrencyhack.so to assets and helper dex.``` | ```Extreme Car Driving Simulator``` | ```7.13.1``` |
 | ```Extreme Car Driving Unlimited Currencies``` | ```Sets all in-game currencies (diamonds, coins, upgrade points) to 999,999,999 via IL2CPP API.``` | ```Extreme Car Driving Simulator``` | ```7.13.1``` |
 | ```Hill Climb Racing Ad Removal``` | ```Completely removes ads: banners and interstitials can never be displayed (CFirebaseAds.showBanners/showInterstitial become no-ops) and ad-free is granted once per app start — loadStore() seeds mAdFree = 1, the native engine's poll grants it and the store's own reset (inappPurchasesProcessed) zeroes the field, so no repeated purchase popups.``` | ```Hill Climb Racing``` | ```1.71.1``` |
@@ -7938,7 +7961,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Disable dislike redirection``` | ```Adds an option to prevent skipping to the next track when the dislike button is pressed.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
 | ```Disable DRC audio``` | ```Adds an option to disable DRC (Dynamic Range Compression) audio.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
 | ```Disable QUIC protocol``` | ```Adds an option to disable QUIC (Quick UDP Internet Connections) network protocol.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
-| ```Downloads``` | ```Adds support to download songs with an external downloader app using the in-app download button.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
+| ```Downloads``` | ```Adds support to download songs using the in-app download button, either with an external downloader app or inside YouTube Music.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
 | ```Enable debugging``` | ```Adds options for debugging and exporting Morphe logs to the clipboard.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
 | ```Enable exclusive audio playback``` | ```Enables the option to play audio without video.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
 | ```Enable forced miniplayer``` | ```Adds an option to enable forced miniplayer when switching between music videos, podcasts, or songs.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
@@ -8065,10 +8088,10 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Custom App Display Patch (Experimental, Enhanced)``` | ```Adjust an APK's display compatibility: screen shape, Unity window-size request, preferred refresh rate, Unity renderer preference, ANGLE preference, and Android game-category hint. Start with Display scaling. Android and the app can ignore any request. Resolution and renderer overrides currently target Unity activities. Scaling removes Android aspect-ratio restrictions where present; it cannot universally rescale every game engine. Custom App Resolution and game-optimization inspiration: Nai64Patches from Nai64. Frame-rate, graphics-driver, ANGLE, and aspect-ratio controls are UniPatches work. Compatibility: when combined with Universal Overlay, keep Activity injection and display overrides scoped to the launcher unless a broader scope is required. Broad Activity changes can affect overlay, sign-in, billing, or other third-party screens. When combined with Legacy App Compatibility, both patches may change display or manifest compatibility values; review the final generated manifest.``` | ```Universal``` | ```All versions``` |
 | ```Custom App Output Patch (Experimental, Enhanced)``` | ```Customize an APK's install identity and launcher presentation in one patch. Start with the launcher name or icon; enable Clone only when you need a side-by-side copy. Name, icon, hide-icon, and clone options are independent. This cannot preserve original-app data when a package or signing identity changes. Clone mode rewrites supported manifest identifiers only; it does not rewrite bytecode strings, explicit process names, task affinities, or arbitrary SDK configuration. A clone has a new Android package identity and normally a new signing identity: package- or certificate-bound OAuth, Firebase, Google Play Games, billing, deep links, and server licenses may therefore not work and cannot be repaired safely by this patch. If PairIP Bypass is also enabled, server/package-bound PairIP enforcement can still reject the clone. Inspired by Nai64Patches from Nai64: Clone, Custom App Icon, and Hide App Icon patches. The optional Preserve App Data After Uninstall setting applies Android's fragile-user-data and backup compatibility flags. It does not guarantee data retention, and it cannot carry data from the original package into a clone with a different package identity. For target SDK compatibility, use Improve Legacy App / Game Compatibility for Modern Android Patch. Keeping target SDK handling there avoids duplicate manifest changes.``` | ```Universal``` | ```All versions``` |
 | ```Disable Forced Online Checks (Experimental)``` | ```Try to bypass high-confidence client-side “internet required” gates. Start with Auto mode. This cannot bypass server-side login, entitlement, multiplayer, or game-state checks. Compatibility: Control App Ads can intentionally block ad hosts. Keep “Exclude ad SDK and networking code” enabled when both patches are selected so blocked ads are not falsely told the device is online and repeatedly retried. This does not bypass server-enforced online play.``` | ```Universal``` | ```All versions``` |
-| ```Improve Legacy App / Game Compatibility for Modern Android Patch ( Enhanced )``` | ```Improve compatibility for older apps and games on modern Android versions. This patch combines legacy manifest, storage, screen, native runtime, network, shared-library, and optional device identity compatibility controls, including a configurable OpenIAB dynamic receiver compatibility fix. Spoof Target SDK can help older apps that modern Android may refuse to install or launch, but changing the reported target can also enable newer platform behavior and cannot repair incompatible application code. For Google Play license checks or Google Play Services checks, use Control Embedded Auth / Stores Patch. Those options are intentionally kept separate to prevent overlapping injections. This patch cannot restore shut-down servers, missing CPU architecture support, server licensing, Play Integrity, or unsupported native code. Conservative compatibility features are enabled by default; more invasive native, network, storage, library, and identity options remain disabled. Credits: Nai64Patches from Nai64 for the original legacy compatibility functionality. UniPatches provides the merged settings, validation, manifest safeguards, and compatibility organization.``` | ```Universal``` | ```All versions``` |
-| ```InApp Emulation Patch ( Experimental, Enhanced, Has Overlay Addon )``` | ```InApp emulation modifies in app buying behavior to make pressing buy grant items without charging! Best for offline games. Warning : This DOES NOT solve server-side purchase verification! InApp Emulation Overlay Module : This patch as an overlay addon involves an InApp Emulation hook module being added to overlay menu, that has a settings button, which shows a popup showing a checkbox whether to enable InApp Emulation popup or not at buy time, and then if it's enabled, it list of saved purchases, that are saved at buy time if user chooses to save the purchase. Saved purchases are so popup windows don't appear again on buy time. The settings popup list of item of saved purchases also allows for management of them, by deleting saved purchases items. Experimental : This patch may not work on all apps, as it modifies internal app / game behavior. Credits to Nai64Patches from Nai64 for original IAP patch functionality, and credits to MiguelNinja19's billing patches, as it was used to enhance original IAP patch with Cocos2D and GameMaker and Native ILL2CPP Hex Patch. UniPatches enhances this patch by improving compatibility, stability, and adding patch strategy via Auto Mode ( default ) or Managed or Native mode. UniPatches also adds an optional overlay addon for use with Universal Overlay Patch. Compatibility: the overlay addon requires Universal Overlay in the same patch operation. If using Control Embedded Auth / Stores, keep its licensing and Google Play Services controls separate from this patch's purchase emulation controls. If using Custom App Display, avoid applying broad Activity changes to third-party billing or sign-in screens unless required.``` | ```Universal``` | ```All versions``` |
+| ```Improve Legacy App / Game Compatibility for Modern Android Patch ( Experimental, Enhanced )``` | ```Improve compatibility for older apps and games on modern Android versions. This patch combines legacy manifest, storage, screen, native runtime, network, shared-library, and optional device identity compatibility controls, including a configurable OpenIAB dynamic receiver compatibility fix. Spoof Target SDK can help older apps that modern Android may refuse to install or launch, but changing the reported target can also enable newer platform behavior and cannot repair incompatible application code. For Google Play license checks or Google Play Services checks, use Control Embedded Auth / Stores Patch. Those options are intentionally kept separate to prevent overlapping injections. This patch cannot restore shut-down servers, missing CPU architecture support, server licensing, Play Integrity, or unsupported native code. Conservative compatibility features are enabled by default; more invasive native, network, storage, library, and identity options remain disabled. Experimental: Its functionalities are not guaranteed to work in all apps. Credits: Nai64Patches from Nai64 for the original legacy compatibility functionality. UniPatches provides the merged settings, validation, manifest safeguards, compatibility organization, and provides suppress GPlay Login UI patch option.``` | ```Universal``` | ```All versions``` |
+| ```InApp Emulation Patch ( Experimental, Enhanced, Has Overlay Addon )``` | ```InApp emulation Patch does a local modification of in-app buying behavior via DEX modification to make pressing buy grant items without charging! Best for offline and legacy apps and games. Warning : This DOES NOT solve server-side purchase verification, which is used by many modern apps and games! InApp Emulation Overlay Module : This patch as an overlay addon involves an InApp Emulation hook module being added to overlay menu, that has a settings button, which shows a popup showing a checkbox whether to enable InApp Emulation popup or not at buy time, and then if it's enabled, it list of saved purchases, that are saved at buy time if user chooses to save the purchase. Saved purchases are so popup windows don't appear again on buy time. The settings popup list of item of saved purchases also allows for management of them, by deleting saved purchases items. Experimental : This patch may not work on all apps, as it modifies internal app / game behavior. It's billing libraries support may extend with updates, and it's functionality is not guaranteed. Credits : Credits to Nai64Patches from Nai64 for original IAP patch core functionality, and credits to MiguelNinja19's billing patches, as it was used to enhance original IAP patch with Cocos2D and GameMaker and Native ILL2CPP Hex Patch. Enhancement : UniPatches enhances this patch by improving compatibility, stability, and adding Automatic Mode (enabled by default) with optional per-backend Patch Coverage controls. UniPatches also adds an optional overlay addon for use with Universal Overlay Patch. Compatibility: the overlay addon requires Universal Overlay in the same patch operation. If using Control Embedded Auth / Stores, keep its licensing and Google Play Services controls separate from this patch's purchase emulation controls. If using Custom App Display, avoid applying broad Activity changes to third-party billing or sign-in screens unless required.``` | ```Universal``` | ```All versions``` |
 | ```PairIP Bypass Patch (Experimental, Enhanced)``` | ```A merged experimental PairIP bypass for common legacy, V2, and V3 protection layouts. Automatic mode applies compatible strategies up to the selected risk level. It defaults to Low and Med Risk Strategies; that setting includes medium-risk strategies, while Low, Med, and High Risk Strategies also includes invasive high-risk strategies. Turn off automatic mode to test individual strategies. Manual selections are independent of the automatic risk-level setting. Firebase auto-init disabling, Firebase component removal, and the LicenseClient FULL_CHECK_OK state strategy are manual-only: automatic mode ignores them at every risk level, including “Low, Med, and High Risk Strategies.” Every manual strategy is disabled by default. This patch is experimental and app-dependent. It does not bypass server-side Play Integrity, server-side licensing, or other server-side enforcement. Compatibility: cloned APKs can still fail when PairIP or a server binds entitlement to the original package or signing certificate. Firebase component removal can break Firebase Auth, Google Play Games, billing, analytics, and ad rewards. Device spoofing can also change apps' device-integrity behavior. These identity and server-side conditions cannot be fixed safely by combining PairIP Bypass with Custom App Output, Control App Ads, or Emulator Detection. Compatibility: when combining this patch with Universal Overlay, the shared overlay startup bridge is preserved. PairIP Application redirect and Application.onCreate bypass strategies may be skipped if they would make that bridge unreachable. If combining this patch with Custom App Output, apply package cloning only when package- or certificate-bound services are not required. This enhanced patch is a merged product of the PairIP bypass patches from the credited developers, with improvements for broader functionality, safer strategy selection, and usability. Credits: Nai64Patches from Nai64, Entree, kondratjev, and rushiranpise (Doom).``` | ```Universal``` | ```All versions``` |
-| ```UniPatches Universal Overlay Patch v2.6.0 (Experimental)``` | ```A customizable in-app overlay for Android apps and games. For a quick first build: choose a visual preset, select the overlay modules you want, optionally supply an icon image, then patch. Modules are excluded and disabled by default. Monitor modules show information, Activity modules control the current Activity, Hook modules make best-effort changes to app behavior, System modules control Android capabilities, and Advanced modules provide opt-in diagnostics. Text is the default legacy icon; an optional image replaces it completely, while the advanced Multi-parts editor supports custom drawn icons, and can be conveniently made in Icon Builder local website in UniPatches repo. This is an experimental patch and may not work on all apps. UI presets can save and reuse supported appearance and advanced icon settings. The title, description, repository button text, and repository button URL remain controlled by the visible Morphe settings. Module selections and module behavior are excluded because hook and module combinations can be app-specific. Compatibility: this patch owns one shared startup bridge for its runtime and integrated modules. PairIP Bypass preserves that bridge when its Application startup strategies run after Universal Overlay. If a patched APK still has an unusual entry point, use the explicit Activity override rather than selecting a library or SDK Activity. Custom App Display, Control App Ads, and InApp Emulation attach to this bridge when their runtime addons are enabled; they should not create a second overlay runtime. InApp Emulation has an optional overlay addon that adds an InApp Emulation module to this menu. The module can show a themed confirmation popup before emulated purchases, let you save product identifiers to skip later popups during the current app session, and manage those saved products from its Settings button. To enable it, select InApp Emulation Patch, enable its Enable Overlay Module setting, enable Universal Overlay in the same patch operation, and keep Initially enable popups before buying products enabled if popups should start enabled. The addon does not control catalog discovery, receipt verification, legacy inventory behavior, or native IL2CPP patching. Control App Ads can also add runtime ad-control modules here, but Universal Overlay does not patch ad SDKs by itself. To use them, select Control App Ads Patch and Universal Overlay, enable the desired options under Control App Ads' Overlay integration > Runtime controls. The Ads runtime policy is enabled automatically when at least one of those modules is selected. The available modules are Block Ads, Ads Free Rewards, and Block Ads / Tracking Hosts. Their initial runtime values come from the Control App Ads settings, and later changes are session-only. When both patches are selected, Control App Ads attaches its policy to this overlay's exact startup bridge, including an explicit Activity override, instead of selecting a separate Activity. Attribution: The idea and initial works of Universal Overlay Patch are from Zanuaimi / Noobite.``` | ```Universal``` | ```All versions``` |
+| ```UniPatches Universal Overlay Patch v2.6.0 (Experimental)``` | ```A customizable in-app overlay for Android apps and games. For a quick first build: choose a visual preset, select the overlay modules you want, optionally supply an icon image, then patch. Modules are excluded and disabled by default. Monitor modules show information, Activity modules control the current Activity, Hook modules make best-effort changes to app behavior, System modules control Android capabilities, and Advanced modules provide opt-in diagnostics. Text is the default legacy icon; an optional image replaces it completely, while the advanced Multi-parts editor supports custom drawn icons, and can be conveniently made in Icon Builder local website in UniPatches repo. UI presets can save and reuse supported appearance and advanced icon settings. The title, description, repository button text, and repository button URL remain controlled by the visible Morphe settings. Module selections and module behavior are excluded because hook and module combinations can be app-specific. Experimental : This patch may not work on all apps. Compatibility: this patch owns one shared startup bridge for its runtime and integrated modules. PairIP Bypass preserves that bridge when its Application startup strategies run after Universal Overlay. If a patched APK still has an unusual entry point, use the explicit Activity override rather than selecting a library or SDK Activity. Custom App Display, Control App Ads, and InApp Emulation attach to this bridge when their runtime addons are enabled; they should not create a second overlay runtime. InApp Emulation has an optional overlay addon that adds an InApp Emulation module to this menu. The module can show a themed confirmation popup before emulated purchases, let you save product identifiers to skip later popups during the current app session, and manage those saved products from its Settings button. To enable it, select InApp Emulation Patch, enable its Enable Overlay Module setting, enable Universal Overlay in the same patch operation, and keep Initially enable popups before buying products enabled if popups should start enabled. The addon does not control catalog discovery, receipt verification, legacy inventory behavior, or native IL2CPP patching. Control App Ads can also add runtime ad-control modules here, but Universal Overlay does not patch ad SDKs by itself. To use them, select Control App Ads Patch and Universal Overlay, enable the desired options under Control App Ads' Overlay integration > Runtime controls. The Ads runtime policy is enabled automatically when at least one of those modules is selected. The available modules are Block Ads, Ads Free Rewards, and Block Ads / Tracking Hosts. Their initial runtime values come from the Control App Ads settings, and later changes are session-only. When both patches are selected, Control App Ads attaches its policy to this overlay's exact startup bridge, including an explicit Activity override, instead of selecting a separate Activity. Attribution: The idea and initial works of Universal Overlay Patch are from Zanuaimi / Noobite.``` | ```Universal``` | ```All versions``` |
 
 </details>
 
@@ -8130,7 +8153,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Hushfeed Bundle Patch List:
 [📦 Hushfeed-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-hushfeed-patches-bundle-morphe)
 <details>
-<summary><b>Hushfeed</b> - 81 patches, 1 app</summary>
+<summary><b>Hushfeed</b> - 90 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -8138,29 +8161,34 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Allow Duet and Stitch``` | ```Ignores the creator's Duet and Stitch setting so the entries appear for videos that closed them. Everything else the app checks still applies: a photo post, a private video or one with music it may not reuse is still refused, and whether the upload is accepted is the server's decision, not the app's.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Allow screenshots and Circle to Search``` | ```Removes secure window flags and disables the Circle to Search block. Off by default; restart after changing.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Always show publish date``` | ```Always shows the publish date in video author information.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```AMOLED dark theme``` | ```Replaces TikTok's dark background palette with black or a chosen color. The light theme keeps its colors. Choose this patch to enable it. It is the one patch that rewrites resources, so patching with it on needs the memory limit raised to 768 MB.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```AMOLED dark theme``` | ```Replaces TikTok's dark background palette with black or a chosen color. The light theme keeps its colors. It is the one patch that rewrites resources, so patching with it on needs the memory limit raised to 768 MB.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Automatic video advance``` | ```Keeps TikTok's automatic advance enabled while preserving its pause, dialog and gesture checks, and shows TikTok's own Auto scroll action in the video panel for accounts outside its rollout.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Block author button``` | ```Adds one-tap controls for blocking the uploader, hiding the uploader locally and blocking the current sound. The local-hide and sound controls have separate switches. Long press any visible control to move it, and all of them hide while comments are open.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Block author button``` | ```Adds one-tap controls for blocking the creator, hiding them locally and blocking the current sound. The local-hide and sound controls have separate switches. Long press any visible control to move it, and all of them hide while comments are open.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Block contact list access``` | ```Answers TikTok's reads of your phone contacts with an empty list. Find Friends and People you may know lose access to your contact list. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Block installed app scanning``` | ```Answers TikTok's scan of the apps installed on your phone with an empty list. Checks for one named app, which TikTok also uses to open an app you tap, are left alone. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Block P2P video relay``` | ```Strips TikTok's peer-to-peer CDN libraries so your phone is not used as a relay node for other people's video traffic. Saves battery and mobile data.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Camera and microphone indicator``` | ```Shows a small dot in the top corner while TikTok has the camera open or is recording sound. Green for the camera, orange for the microphone, both when both. It goes when the access ends. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Comment publish diagnostics``` | ```Says in the diagnostic report whether a comment send reached TikTok's publish code, what it had in hand, and whether it returned early or handed the comment to the request. A comment that never posts leaves no other trace.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Comment sort controls``` | ```Shows TikTok's own comment sort sheet on every post, with its hot, newest, media and creator options, instead of the cut-down row an account outside the rollout is given.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Comment tools``` | ```Hides comments that contain chosen words or come from chosen accounts, turns the thumbs down on each comment into a block button, hides comment media and polls, and adds a box above the comments that narrows them by what they say or who said it.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Comment tools``` | ```Hides comments that contain chosen words or come from chosen accounts, turns the thumbs down on each comment into a block button that shows the block symbol, makes a web address in a comment tappable, hides comment media and polls, and adds a box above the comments that narrows them by what they say or who said it.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Confirm feed interactions``` | ```Adds optional second-tap protection to the feed Follow button and like heart. A red ring marks the armed button.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Copy comments without username``` | ```Copies only the comment text without including the creator's username.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Core Asset De-bloat``` | ```Empties TikTok's bundled C2PA native libraries and Microblink payment-card OCR assets. Content credentials and card scanning may stop. Choose this patch to enable it.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Custom offline videos limit``` | ```Adds a custom entry to TikTok's offline videos menu with a configurable limit from 1 to 1000 videos.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Device privacy guard``` | ```Blocks TikTok from reading your clipboard. Copying a link you asked for still works. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Diagnostic tools``` | ```Adds diagnostic logging, filtered reports and local TikTok crash capture. The switches are under Diagnostics in Hushfeed settings.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Disable login requirement``` | ```Removes TikTok's mandatory login gate from supported flows.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Disable screen capture detection``` | ```Prevents TikTok from reacting to screenshots and screen recordings.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Disable telemetry``` | ```Adds an App behavior toggle that stops ByteDance AppLog analytics, AppsFlyer attribution, explicit Firebase screen reports and TikTok's Npth or MonitorCrash startup reporting. TikTok's own diagnostics go quiet with them. Off by default.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Disable telemetry``` | ```Adds a switch on the Privacy page that stops ByteDance AppLog analytics, AppsFlyer attribution, explicit Firebase screen reports and TikTok's Npth or MonitorCrash startup reporting. TikTok's own diagnostics go quiet with them. Off by default.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Disable the long press quick share``` | ```Keeps long-pressing Share from opening TikTok's quick-share interaction.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Disable the long press repost``` | ```Keeps holding Like from opening TikTok's repost action.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Double-tap controls``` | ```Lets double taps do nothing or open the current video's comments.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Downloads``` | ```Adds watermark-free downloads, comment sticker saving, configurable folders, and filename templates. It ignores the flag TikTok sets when a creator turns downloading off, so those videos save too. Network fetches accept public HTTPS addresses and follow at most five checked redirects.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Drop the animated image cache``` | ```Makes TikTok's reviewed Fresco animated-frame cache lookups return no cached frame. This can increase decoding work or change animation playback.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Enable voice comments``` | ```Turns on TikTok's own voice comment recording and publishing entry points for accounts that do not have them.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Expand activity list``` | ```Adds an option to show the full Activity and New followers lists instead of collapsing them behind a View all button.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Feature Gate Lab``` | ```Adds a menu for viewing and overriding supported TikTok feature flags and configuration values.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Feature Gate Recorder``` | ```Records feature gate reads while you use TikTok and compares them with their previous values.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Feed filter``` | ```Hides feed ads, including videos with creator commission disclosures, TikTok Shop items, livestreams, LIVE replays, stories, photo posts, paid partnerships, AI labelled videos, verified accounts, series, playlists, the playlist bar, the floating event badge and inserted cards. Videos can also be filtered by your own caption words, creator handles or patterns, sound names, length, the country they were posted from and their view, like, comment, favourite and share counts. Sponsored cards are dropped from the profile video viewer, the search grids and the Friends tab as well as the feed, and so are the mid-roll ads TikTok splices into a video pager after the list has loaded.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Feed filter``` | ```Hides feed ads, including videos with creator commission disclosures, TikTok Shop items, livestreams, LIVE replays, stories, photo posts, paid partnerships, AI labeled videos, verified accounts, series, playlists, the playlist bar, the floating event badge and inserted cards. Videos can also be filtered by your own caption words, creator handles or patterns, sound names, length, the country they were posted from and their view, like, comment, favorite and share counts. Sponsored cards are dropped from the profile video viewer, the search grids and the Friends tab as well as the feed, and so are the mid-roll ads TikTok splices into a video pager after the list has loaded. The share prompt that appears after a like can also be hidden.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Feed tab navigation``` | ```Controls which loaded top and bottom navigation tabs remain visible, blocks newly added tabs when requested, and can hide the Tako AI bubble.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Fit the video to the screen``` | ```Puts the whole of a vertical video on screen instead of cropping it to the window. On a 9:16 phone nothing changes, because the video already fills it. On a Fold opened up, a squarer phone or a split view the sides or the ends stop being cut off.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Fix Google login``` | ```Restores Google account sign-in after patching.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
@@ -8172,25 +8200,24 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Hide comment popup ads``` | ```Stops the brand animation that plays over the comment sheet when a comment matches an advertiser's trigger word or emoji.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Hide feed follow button``` | ```Adds an option to hide the + follow button below creator avatars in video feeds.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Hide feed LIVE button``` | ```Adds an option to hide the LIVE button at the top left of video feeds. Shares its switch with the Live entrance option of Hide video overlays, and stops the button before it is built rather than hiding it once it is on screen.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Hide feed save button``` | ```Adds an option to hide the save/favourites button from video feeds.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Hide feed save button``` | ```Adds an option to hide the save button from video feeds.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Hide feed search button``` | ```Adds an option to hide the search button at the top right of video feeds.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Hide floating promotions``` | ```Removes floating promotional badges, coin icons, and timer banners from the Home feed.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Hide inbox items``` | ```Adds a switch for each row and header control on the Inbox tab, so message requests, TikTok Tako, TikTok Shop, the stories tray and the rest can be hidden individually.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Hide inbox stories``` | ```Hides the stories tray at the top of the Inbox and restores it immediately when the switch is turned off. Shares its switch with Hide inbox items.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Hide quick comment reactions``` | ```Hides TikTok's exposed quick emoji row in supported comment inputs.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Hide quick comment reactions``` | ```Hides the emoji row above the comment box and the quick comment strip on videos.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Hide search suggestions``` | ```Hides the suggested searches TikTok offers on the search page before you type, and stops the page asking for them. Your own search history is left alone.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Hide suggested accounts``` | ```Stops the suggested accounts list from being built on the Activity, New followers and Inbox pages, and collapses every other People you may like card: the profile header, the Friends tab and the feed. Shares its switch with Hide inbox items.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Hide the launcher shortcuts``` | ```Empties the menu that opens on pressing and holding TikTok's icon on the home screen. The entries are built while the app runs rather than declared in it, and TikTok only rewrites them when it notices a difference, so this takes away what is already published and answers the handover that would publish more. Turning it off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut pinned to a home screen is left alone.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Hide the risk control CAPTCHA``` | ```Hides TikTok's risk control CAPTCHA dialog, raised by its BdTuring service, which the browsing CAPTCHA patch does not cover. Answers the Hide CAPTCHA popups setting, never touches SMS or two factor verification, and never hides a check the server raised over a follow, like, comment or repost. Off by default.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Hide video overlays``` | ```Hides the visual search prompt TikTok lays over videos, the Live entrance in the top left corner, caption and music text, selected action buttons or their counts in the right column, survey cards and the status bar.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Hold-and-slide 2x lock``` | ```Enables TikTok's native hold, slide down, and release gesture to lock 2x speed.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Instant Launch & Splash Blocker``` | ```Stops TikTok's splash-ad preload tasks and returns false from its reviewed splash and TopView gates. Other startup behavior is left in place. Choose this patch to enable it.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```In-app browser privacy guard``` | ```Can stop TikTok's in-app browser handing its JavaScript bridge to the pages it loads. Most of TikTok's own web pages need that bridge, including the shop checkout and the CAPTCHA page, so the switch is off until you turn it on. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Keep the Favorites tab``` | ```Keeps the Favorites tab on your profile when TikTok's server puts the account into an experiment that empties it. Two people saw that after patching: the tab was there and the saved videos were not.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Keep the screen's refresh rate``` | ```Stops TikTok asking the screen to run slower than it can, which it does by asking for the frame rate of the video it is playing. On a 90 or 120 Hz phone that ask takes the whole app down to that rate, scrolling included. A request that is not slower than the screen is left alone.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Language Pack Purger``` | ```Empties unselected TikTok language bundles while always keeping English. Selected language codes are checked before any file changes. Choose this patch to enable it.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Live Stream Suite Optimizer``` | ```Empties TikTok's link-mic and LIVE match or minigame assets, then skips its gift-effect widget setup. Co-hosting, games and animated gifts may stop. Choose this patch to enable it.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Limit background traffic``` | ```Turns off TikTok's buffer-preload gate and skips its push initialization task. Videos may start buffering later, and TikTok push notifications may stop.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Location access governor``` | ```Answers TikTok's location requests with nothing: the last known location comes back empty and update requests never fire. The SIM and region spoof change the locale and timezone, not the coordinates; this stops the coordinates. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Long-press controls``` | ```Lets a long press on a video keep TikTok's own action, do nothing, open the video's comments, save the original sound, or copy the link to the video or its sound, and can turn a press on the left or right third of the screen into a jump back or forward. Brings Double-tap controls with it, which supplies the comment control.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Network & Background Traffic Governor``` | ```Turns off TikTok's buffer-preload gate and skips its push initialization task. Videos may start buffering later, and TikTok push notifications may stop. Choose this patch to enable it.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Not interested button``` | ```Adds a movable button that tells TikTok you aren't interested in the current video. It hides while comments are open. Off by default.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Notification controls``` | ```Adds a switch for the notification saying somebody new followed you, and one for message streaks, neither of which TikTok lets you turn off. The follower switch drops the notification before Android is asked to post it, so nothing else in the drawer is affected.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Open external links directly``` | ```Opens profile and story website links in the system browser instead of TikTok's in-app browser.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
@@ -8198,8 +8225,12 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Playback speed``` | ```Remembers playback speed or applies a default to each new video, with custom menu choices up to 3x.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Region spoof``` | ```Matches locale, timezone and native region getters to the SIM preset, with a separate experimental store-region switch.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Remember clear display``` | ```Remembers clear display between videos, or enters it automatically after a chosen delay.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Remove content credential and card scanner assets``` | ```Empties TikTok's bundled C2PA and Microblink card-scanning assets, the Pitaya AI model libraries, the live-cast dynamic feature, and the ART log monitor probe.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Remove creation tools``` | ```Empties TikTok's reviewed editor, camera-effect and face-model assets. Recording, editing, effects and creator tools may stop working.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Remove LIVE extras``` | ```Empties TikTok's link-mic and LIVE match or minigame assets, then skips its gift-effect widget setup. Co-hosting, games and animated gifts may stop.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Remove unused language packs``` | ```Empties unselected TikTok language bundles while always keeping English. Selected language codes are checked before any file changes.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Resource and battery governor``` | ```Stops TikTok listening to the motion sensors it polls for device fingerprinting: the accelerometer, gyroscope, magnetometer, rotation, gravity and linear acceleration sensors. Saves the battery they wake. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Resume videos after scrolling``` | ```Continues supported videos from where playback stopped when returning after a scroll.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Runtime Memory Governor``` | ```Makes TikTok's reviewed Fresco animated-frame cache lookups return no cached frame. This can increase decoding work or change animation playback. Choose this patch to enable it.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Sanitize sharing links``` | ```Removes tracking parameters from TikTok links before they are shared, and can put a host of your choosing in place of tiktok.com.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Settings``` | ```Adds the Hushfeed settings screen to TikTok.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Share sheet tools``` | ```Asks twice before a video is sent to a friend from the share sheet. The check follows the account or conversation instead of the visible name and covers accessibility actions and keyboard input. It can also hide chosen people, share options or the whole Send to row.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
@@ -8209,11 +8240,12 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Show the progress bar thumbnail``` | ```Shows TikTok's video preview thumbnail while dragging the seekbar.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```SIM spoof``` | ```Spoofs SIM country and operator information retrieved by TikTok, with country presets for easier setup.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Skip content warnings``` | ```Adds an option to play videos TikTok has classified without the warning overlay asking to be tapped through first.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Skip the splash ad``` | ```Stops TikTok's splash-ad preload tasks and returns false from its reviewed splash and TopView gates. Other startup behavior is left in place.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Skip update checks``` | ```Skips TikTok's background and boot-finished device-ID update-check tasks. This may suppress some in-app update checks. Play Store updates are unaffected.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Stop on-device AI profiling``` | ```Kills the Pitaya on-device ML inference engine at startup so it cannot build a behavioral profile. The AI asset strip in the core de-bloat patch removes the native libraries; this stops the initialization code that would download replacements.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Stop video looping``` | ```Stops videos at the end instead of replaying them.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Studio & Creation De-bloat``` | ```Empties TikTok's reviewed editor, camera-effect and face-model assets. Recording, editing, effects and creator tools may stop working. Choose this patch to enable it.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Subtitle tools``` | ```Saves subtitle files beside downloaded videos and adds caption size, background, and clear-display options.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Translate comments``` | ```Adds comment translation controls using TikTok's translation system, with selectable language exclusions.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Update Prompt Suppressor``` | ```Skips TikTok's background and boot-finished device-ID update-check tasks. This may suppress some in-app update checks. Play Store updates are unaffected. Choose this patch to enable it.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Use non-personalized search``` | ```Uses TikTok's non-personalized search mode instead of its saved account choice.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 
 </details>
@@ -8258,12 +8290,13 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Yann-Soliman Bundle Patch List:
 [📦 Yann-Soliman-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-yann-soliman-patches-bundle-morphe)
 <details>
-<summary><b>Yann-Soliman</b> - 6 patches, 3 apps</summary>
+<summary><b>Yann-Soliman</b> - 7 patches, 3 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Keepcool: allow plus in email``` | ```Allow + in the local email part without changing the input or login request. Keepcool 1.8.21 only.``` | ```Keepcool``` | ```1.8.21``` |
 | ```Keepcool: booking availability dots``` | ```Show a green dot on calendar dates having at least one booking slot with a free place. Keepcool 1.8.21 only.``` | ```Keepcool``` | ```1.8.21``` |
+| ```Leboncoin: persistent search filters``` | ```Keeps the category, keywords, seller type, price, sort order, location and dynamic filters from the previous search when starting a new one. Leboncoin 100.125.0 only.``` | ```Leboncoin``` | ```100.125.0``` |
 | ```Leboncoin: privacy mode``` | ```Suppress behavioral analytics and attribution events sent through Firebase Analytics, Piano Analytics, Adjust and mParticle, and disable Datadog telemetry. Keeps consent, notifications and required SDK startup intact. Leboncoin 100.125.0 only.``` | ```Leboncoin``` | ```100.125.0``` |
 | ```Leboncoin: remove ads``` | ```Use Leboncoin's built-in ad-free paths to suppress banners, native ads and interstitials. Supports Leboncoin 100.124.1 and 100.125.0.``` | ```Leboncoin``` | ```100.124.1, 100.125.0``` |
 | ```Meteo Consult: disable video autoplay``` | ```Open weather videos paused; manual play still works. Ad videos are handled by the cleanup patch. Meteo Consult 1.1.4 only.``` | ```Meteo Consult``` | ```1.1.4``` |
@@ -8285,7 +8318,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Zeldrisho Bundle Patch List:
 [📦 Zeldrisho-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-zeldrisho-patches-bundle-morphe)
 <details>
-<summary><b>Zeldrisho</b> - 16 patches, 2 apps</summary>
+<summary><b>Zeldrisho</b> - 18 patches, 2 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -8295,7 +8328,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Remove AD_ID permission``` | ```Removes the advertising-id (AD_ID) permissions so the device advertising id cannot be read for ad tracking. Does not disable Meta's core analytics.``` | ```Threads``` | ```434.0.0.41.74, 445.0.0.46.83``` |
 | ```Bypass native startup tamper check``` | ```Preserves native key initialization and NOPs only the JNI System.exit dispatch in the pinned arm64 26.08.01 build.``` | ```Zalo``` | ```26.08.01``` |
 | ```Change Zalo app name``` | ```Changes the name shown for Zalo under the launcher icon. Set the desired name in the patch options.``` | ```Zalo``` | ```26.08.01``` |
-| ```Change Zalo package name``` | ```Changes Zalo's package name so a clone can be installed beside stock Zalo. WARNING: package- and certificate-bound login, push, sharing, deep links, and backup may not work with the renamed application.``` | ```Zalo``` | ```26.08.01``` |
+| ```Change Zalo package name``` | ```Changes Zalo's package name so a clone can be installed beside stock Zalo, including package-owned provider references used after login. WARNING: package- and certificate-bound login, push, sharing, deep links, and backup may not work with the renamed application.``` | ```Zalo``` | ```26.08.01``` |
 | ```Disable ads``` | ```Disables Zalo offline/Google ad networks (forces the Adtima offline gates closed, always drops admob/dfp/ima, and reports limit-ad-tracking opted-out). Sponsored Story/community placements need the companion patch.``` | ```Zalo``` | ```26.08.01``` |
 | ```Disable sponsored placements``` | ```Forces Zalo Story/community ad-enable flags to off at their config reads (normal content path kept). Server-stitched or OA-message promos may remain.``` | ```Zalo``` | ```26.08.01``` |
 | ```Disable telemetry and crash reporting``` | ```Stops Zalo's first-party analytics records and diagnostic crash data by suppressing its Room analytics writes, Firebase Crashlytics logs/keys, and native crash-handler registration. Messaging, sockets, and database initialization remain intact.``` | ```Zalo``` | ```26.08.01``` |
@@ -8303,8 +8336,10 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Hide Business Box``` | ```Removes Zalo's Business Box service entry from the main chat list without filtering ordinary conversations or user-initiated Official Account chats.``` | ```Zalo``` | ```26.08.01``` |
 | ```Keep expired media accessible``` | ```Keeps locally stored large chat media usable after Zalo's client-side expiry window by bypassing the expired/subscription state. It does not restore missing files or bypass server download authorization.``` | ```Zalo``` | ```26.08.01``` |
 | ```microG Drive support``` | ```Adds Zalo launch/provider checks and redirects Google Drive account selection and token binding to microG-RE (app.revanced / app.revanced.android.gms). Initial photo restore and the complete backup/restore cycle were device-validated on Zalo 26.08.01.``` | ```Zalo``` | ```26.08.01``` |
-| ```Prefer original photo quality``` | ```Enables Zalo's existing original-quality photo path. It does not change picker defaults, server upload limits, account restrictions, or video handling.``` | ```Zalo``` | ```26.08.01``` |
+| ```Prefer original photo quality``` | ```Enables Zalo's existing original-quality photo path by default. It does not change server upload limits, account restrictions, or video handling.``` | ```Zalo``` | ```26.08.01``` |
 | ```Remove AD_ID permission``` | ```Removes the advertising-id (AD_ID) permissions from Zalo so the device advertising id cannot be read for ad tracking. In-app readers fall back to "unknown"; core messaging is unaffected.``` | ```Zalo``` | ```26.08.01``` |
+| ```Remove media backup age limit``` | ```Includes media of any age in Zalo's existing Google Drive backup/restore pipeline. It does not bypass Drive retention or media exclusions.``` | ```Zalo``` | ```26.08.01``` |
+| ```Suppress outbound typing status``` | ```Stops Zalo from sending typing indicators. Incoming status rendering and messages remain unchanged.``` | ```Zalo``` | ```26.08.01``` |
 
 </details>
 
@@ -8573,8 +8608,8 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Build/troop queue notifications``` | ```Notifies you when a building upgrade or troop training queue finishes, by independently polling the game's own API on a background timer.``` | ```Travian: Legends``` | ```4.0.0, 4.0.1``` |
-| ```Travian notifier manifest entry``` | ```Adds the NotifierService <service> declaration.``` | ```Universal``` | ```All versions``` |
+| ```Build/troop queue notifications``` | ```Notifies you when a building upgrade or troop training queue finishes, with the building/unit name, level, and village. The first time you open the app you'll be asked to log in once; your password is sent straight to Travian's own login endpoint and is never stored — only the resulting session is kept, encrypted on-device.``` | ```Travian: Legends``` | ```4.0.0, 4.0.1``` |
+| ```Travian notifier manifest entry``` | ```Adds the NotifierService and LoginActivity declarations.``` | ```Universal``` | ```All versions``` |
 
 </details>
 
@@ -8585,7 +8620,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Call recording support``` | ```Prepares the existing Google Phone call-recording implementation for customization.``` | ```Google Phone``` | ```236.0.969488611-downloadable``` |
+| ```Change flags``` | ```Adds customizable Google Phone feature flags.``` | ```Google Phone``` | ```236.0.969488611-downloadable``` |
 | ```Remove Dialer Support Library``` | ```Removes the unavailable com.google.android.dialer.support shared-library requirement.``` | ```Google Phone``` | ```236.0.969488611-downloadable``` |
 
 </details>
@@ -8727,5 +8762,44 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```GmsCore support``` | ```Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services.``` | ```com.google.android.apps.photos``` | ```All versions``` |
 | ```Model Readiness Gates``` | ```Bypasses the 0MB Mobile Data Download check for AI models and reports them as loaded.``` | ```com.google.android.apps.photos``` | ```All versions``` |
 | ```Spoof features``` | ```Spoofs the device to enable Google Pixel exclusive features, including unlimited storage and modern UI.``` | ```com.google.android.apps.photos``` | ```All versions``` |
+
+</details>
+
+### 🧩 CBC Bundle Patch List:
+[📦 CBC-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-cbc-patches-bundle-morphe)
+<details>
+<summary><b>CBC</b> - 4 patches, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Disable ads``` | ```Prevents the app from requesting banner, in-read and mediated ads.``` | ```CBC News``` | ```7.11.0``` |
+| ```Disable article ads``` | ```Prevents ads from being inserted into article bodies.``` | ```CBC News``` | ```7.11.0``` |
+| ```Disable interstitial ads``` | ```Prevents the app from showing full-screen interstitial ads.``` | ```CBC News``` | ```7.11.0``` |
+| ```Disable video ads``` | ```Prevents pre-roll and mid-roll ads from playing in the video player.``` | ```CBC News``` | ```7.11.0``` |
+
+</details>
+
+
+### 🧩 D-moniak Bundle Patch List:
+[📦 D-moniak-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-d-moniak-patches-bundle-morphe)
+<details>
+<summary><b>D-moniak</b> - 1 patch, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Bypass Rewarded Ads``` | ```Bypasses rewarded video ads in Hungry Shark World by emulating ad completion events.``` | ```Hungry Shark World``` | ```All versions``` |
+
+</details>
+
+
+### 🧩 Spicetify Bundle Patch List:
+[📦 Spicetify-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-spicetify-patches-bundle-morphe)
+<details>
+<summary><b>Spicetify</b> - 2 patches, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Clean sharing links``` | ```Removes sharing identifiers and marketing parameters from open.spotify.com links. Keeps playback timestamps, context, and other parameters.``` | ```Spotify``` | ```9.1.80.2221``` |
+| ```Theme colors``` | ```Changes selected background and accent color resources; defaults to AMOLED black. Some screens, hardcoded colors, and animations retain Spotify's colors.``` | ```Spotify``` | ```9.1.80.2221``` |
 
 </details>

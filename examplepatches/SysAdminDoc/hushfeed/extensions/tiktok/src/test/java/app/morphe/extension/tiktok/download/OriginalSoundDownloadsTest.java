@@ -175,7 +175,7 @@ public class OriginalSoundDownloadsTest {
 
         OriginalSoundDownloads.start(post, RuntimeEnvironment.getApplication());
 
-        assertEquals("Storage permission is needed to save a sound",
+        assertEquals("Allow storage for TikTok in Android settings to save sounds.",
                 org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
     }
 

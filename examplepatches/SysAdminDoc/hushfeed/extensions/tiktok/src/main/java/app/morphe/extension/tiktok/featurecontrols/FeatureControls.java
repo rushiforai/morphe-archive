@@ -47,6 +47,14 @@ public final class FeatureControls {
         return Settings.HIDE_COMMENT_QUICK_REACTIONS.get() ? View.GONE : originalVisibility;
     }
 
+    /**
+     * The comment box's emoji row is added by a trigger rather than shown by a visibility
+     * write, so the same switch answers the trigger before its own checks run.
+     */
+    public static boolean hideQuickCommentReactions() {
+        return Settings.HIDE_COMMENT_QUICK_REACTIONS.get();
+    }
+
     public static int hideFeedFollowButtonVisibility(int originalVisibility) {
         return Settings.HIDE_FEED_FOLLOW_BUTTON.get() ? View.GONE : originalVisibility;
     }

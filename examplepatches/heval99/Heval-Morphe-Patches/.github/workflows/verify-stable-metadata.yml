@@ -1,0 +1,46 @@
+name: Verify stable bundle metadata
+
+# The Morphe Manager reads patches-bundle.json from `main` for the stable channel and from
+# `dev` when the per-source "Pre-release patches" toggle is on. If `main` ever advertises a
+# prerelease version (that is what broke issue #11: main pointed at v1.1.0-dev.2), users
+# adding the source as stable get a bundle they cannot use.
+#
+# This check runs daily so a stuck/incorrect stable channel is caught even when no release
+# is being cut.
+
+on:
+  schedule:
+    # Daily at 07:00 UTC, after the usual release window.
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: main points at a stable, downloadable bundle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check main's patches-bundle.json
+        run: |
+          set -euo pipefail
+          url="https://raw.githubusercontent.com/${{ github.repository }}/main/patches-bundle.json"
+          json="$(curl -fsSL "${url}?t=$(date +%s)")"
+          version="$(jq -r .version <<<"$json")"
+          download="$(jq -r .download_url <<<"$json")"
+          echo "main channel: ${version} -> ${download}"
+
+          case "$version" in
+            *-*)
+              echo "::error::main's patches-bundle.json advertises prerelease '${version}'"
+              exit 1
+              ;;
+            "")
+              echo "::error::main's patches-bundle.json has no version"
+              exit 1
+              ;;
+          esac
+
+          curl -fsIL "$download" -o /dev/null
+          echo "OK: main advertises stable ${version} and its bundle is downloadable"

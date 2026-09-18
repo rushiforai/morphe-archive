@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Metra TikTok Patches
+ * Copyright 2026 icysymmetra/tiktok-patches-for-morphe contributors
  * https://github.com/icysymmetra/tiktok-patches-for-morphe
  */
 package app.morphe.extension.tiktok.download;
@@ -30,7 +30,7 @@ public final class DownloadDestination {
         for (String segment : segments) {
             if (segment.isEmpty() || ".".equals(segment) || "..".equals(segment)) {
                 throw new IllegalArgumentException(
-                        L10n.t("The destination contains an invalid folder name"));
+                        L10n.t("That folder name has a character Android does not allow. Use letters, numbers, spaces or dashes."));
             }
         }
 

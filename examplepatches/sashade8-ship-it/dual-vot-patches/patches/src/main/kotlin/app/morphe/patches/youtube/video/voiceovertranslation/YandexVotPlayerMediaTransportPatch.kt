@@ -16,7 +16,6 @@ import app.morphe.patches.shared.misc.spoof.BuildMediaDataSourceFingerprint
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.spoof.spoofVideoStreamsPatch
 import app.morphe.util.findInstructionIndicesReversedOrThrow
-import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
@@ -43,19 +42,42 @@ internal val yandexVotPlayerMediaTransportPatch = bytecodePatch {
         // in-memory context needed to start a direct-stream request if Yandex asks for audio.
         hookBuildRequest("$PLAYER_MEDIA_TRANSPORT->recordPlayerRequest")
 
-        BuildMediaDataSourceFingerprint.method.apply {
-            val returnIndex = indexOfFirstInstructionReversedOrThrow(Opcode.RETURN_VOID)
-            // Read a/c/d from the completed DataSpec.  In particular d may have been cleared by
-            // Spoof video streams; recording p5 here would incorrectly retain the pre-mutation
-            // SABR body.  p6/p11 are immutable constructor metadata (headers/key).
-            addInstructions(
+        BuildMediaDataSourceFingerprint.let {
+            val urlField = it.instructionMatches[0].getFieldAccessed()
+            val httpMethodField = it.instructionMatches[1].getFieldAccessed()
+            val httpBodyField = it.instructionMatches[2].getFieldAccessed()
+            val returnIndex = it.instructionMatches.last().index
+
+            val parameterTypes = it.method.parameterTypes.map { type -> type.toString() }
+            val headersParameterIndex = parameterTypes.indexOf("Ljava/util/Map;")
+            val keyParameterIndex = parameterTypes.indexOfLast { type ->
+                type == "Ljava/lang/String;"
+            }
+            check(headersParameterIndex >= 0 && keyParameterIndex >= 0) {
+                "Could not resolve MediaDataSource headers/key parameters: $parameterTypes"
+            }
+
+            fun parameterRegister(parameterIndex: Int) = 1 + parameterTypes
+                .take(parameterIndex)
+                .sumOf { type -> if (type == "J" || type == "D") 2 else 1 }
+
+            val headersRegister = parameterRegister(headersParameterIndex)
+            val keyRegister = parameterRegister(keyParameterIndex)
+
+            // Read the completed DataSpec fields discovered by the shared fingerprint. In
+            // particular the body may have been cleared by Spoof video streams. Constructor
+            // metadata moved from p6/p11 to p7/p12 in YouTube 21.37, so derive both registers
+            // from their parameter types and copy them below v16 before invoking the hook.
+            it.method.addInstructions(
                 returnIndex,
                 """
                     move-object v0, p0
-                    iget-object v1, v0, $definingClass->a:Landroid/net/Uri;
-                    iget v2, v0, $definingClass->c:I
-                    iget-object v3, v0, $definingClass->d:[B
-                    invoke-static { v1, v2, v3, p6, p11 }, $PLAYER_MEDIA_TRANSPORT->recordPlayerMediaRequest(Landroid/net/Uri;I[BLjava/util/Map;Ljava/lang/String;)V
+                    iget-object v1, v0, $urlField
+                    iget v2, v0, $httpMethodField
+                    iget-object v3, v0, $httpBodyField
+                    move-object/from16 v4, p$headersRegister
+                    move-object/from16 v5, p$keyRegister
+                    invoke-static { v1, v2, v3, v4, v5 }, $PLAYER_MEDIA_TRANSPORT->recordPlayerMediaRequest(Landroid/net/Uri;I[BLjava/util/Map;Ljava/lang/String;)V
                 """
             )
         }

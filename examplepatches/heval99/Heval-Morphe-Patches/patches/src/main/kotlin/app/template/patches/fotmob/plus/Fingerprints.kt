@@ -3,24 +3,16 @@ package app.template.patches.fotmob.plus
 import app.morphe.patcher.Fingerprint
 
 /**
- * FotMob v229 uses obfuscated RevenueCat classes.
- * Class m4a implements interface jg5 and contains the subscription checks.
+ * FotMob's subscription manager is R8-obfuscated and its class/method names rotate on every
+ * release (the previous patch pinned `o`/`l` from v229 and broke immediately).
+ *
+ * This anchors the class on the staff-account email check, whose address strings are unique
+ * in the APK. EnablePlusPatch then finds the subscription getter structurally inside that
+ * class: it is the only no-arg boolean method that reads a preference through the (stable,
+ * unobfuscated) SharedPreferencesRepository API. The pref it reads is `valid_subscription`,
+ * which the RevenueCat customer-info listener writes after `Entitlements.getActive()` comes
+ * back, so forcing the getter unlocks the paywall regardless of obfuscation rotation.
  */
-
-object SubscriptionManagerFingerprint : Fingerprint(
-    strings = listOf("purchase_status_changed")
-)
-
-object HasActiveEntitlementFingerprint : Fingerprint(
-    classFingerprint = SubscriptionManagerFingerprint,
-    name = "o",
-    returnType = "Z",
-    parameters = listOf()
-)
-
-object IsStaffAccountFingerprint : Fingerprint(
-    classFingerprint = SubscriptionManagerFingerprint,
-    name = "l",
-    returnType = "Z",
-    parameters = listOf()
+object StaffAccountFingerprint : Fingerprint(
+    strings = listOf("norapps.as@"),
 )

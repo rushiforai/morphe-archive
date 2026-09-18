@@ -286,39 +286,45 @@ public class StickerGallerySaverTest {
                 (Boolean) has.invoke(null, parent));
     }
 
-    @Test public void aSheetWithoutATextTemplateUsesTheSettingsThemeColours() throws Exception {
+    @Test public void aSheetWithoutATextTemplateUsesTheContextThemeColours() throws Exception {
         android.content.Context context = RuntimeEnvironment.getApplication();
         app.morphe.extension.shared.Utils.setContext(context);
         Method create = StickerGallerySaver.class.getDeclaredMethod(
                 "createActionButton", View.class, View.class);
         create.setAccessible(true);
 
-        app.morphe.extension.shared.Utils.setIsDarkModeEnabled(true);
+        android.content.Context darkContext = contextWithNightMode(context, true);
         android.widget.TextView dark = (android.widget.TextView) create.invoke(
-                null, new View(context), new View(context));
-        assertEquals(app.morphe.extension.tiktok.settings.preference.SettingsUi.textPrimary(),
+                null, new View(darkContext), new View(context));
+        assertEquals(app.morphe.extension.tiktok.settings.preference.SettingsUi.textPrimaryOn(true),
                 dark.getCurrentTextColor());
         dark.setEnabled(false);
         assertEquals(app.morphe.extension.tiktok.settings.preference.SettingsUi.textDisabled(),
                 dark.getCurrentTextColor());
 
-        app.morphe.extension.shared.Utils.setIsDarkModeEnabled(false);
+        android.content.Context lightContext = contextWithNightMode(context, false);
         android.widget.TextView light = (android.widget.TextView) create.invoke(
-                null, new View(context), new View(context));
-        assertEquals(app.morphe.extension.tiktok.settings.preference.SettingsUi.textPrimary(),
+                null, new View(lightContext), new View(context));
+        assertEquals(app.morphe.extension.tiktok.settings.preference.SettingsUi.textPrimaryOn(false),
                 light.getCurrentTextColor());
         assertNotEquals("the fallback colour stayed fixed across themes",
                 dark.getTextColors().getColorForState(new int[]{android.R.attr.state_enabled}, 0),
                 light.getCurrentTextColor());
 
-        // The sticker sheet follows TikTok's theme, so in the light theme the Save button sits on
-        // a light surface where a white ring and ripple would be invisible. The fallback takes a
-        // ripple background keyed on the host text tone. That the ring colour actually shows on a
-        // light surface is proven in SettingsUiTest; here it only has to carry the ripple at all.
         android.graphics.drawable.Drawable background = light.getBackground();
         assertTrue("the fallback Save button has no ripple: " + (background == null ? "null"
                         : background.getClass().getSimpleName()),
                 background instanceof android.graphics.drawable.RippleDrawable);
+    }
+
+    private static android.content.Context contextWithNightMode(
+            android.content.Context base, boolean night) {
+        android.content.res.Configuration config = new android.content.res.Configuration(
+                base.getResources().getConfiguration());
+        config.uiMode = (config.uiMode & ~android.content.res.Configuration.UI_MODE_NIGHT_MASK)
+                | (night ? android.content.res.Configuration.UI_MODE_NIGHT_YES
+                         : android.content.res.Configuration.UI_MODE_NIGHT_NO);
+        return base.createConfigurationContext(config);
     }
 
     @Test public void aCleartextStickerMirrorIsNotFetchedFrom() {

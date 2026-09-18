@@ -31,12 +31,11 @@ public final class FeatureGateLabSession {
         return restartNeeded;
     }
 
-    /** Retained entry point for callers leaving the Lab. No dialog or automatic restart. */
+    /**
+     * Retained entry point for callers leaving the Lab. Every action already toasts
+     * "Restart TikTok to apply this." so the exit toast was a duplicate.
+     */
     public static void showRestartDialog(Activity activity) {
-        if (activity == null || !restartNeeded || noticeShown) return;
-        noticeShown = true;
-        Utils.showToastLong(L10n.t(activity,
-                "Restart TikTok to apply this."));
     }
 
     public static void showAfterHostExit(Activity host) {

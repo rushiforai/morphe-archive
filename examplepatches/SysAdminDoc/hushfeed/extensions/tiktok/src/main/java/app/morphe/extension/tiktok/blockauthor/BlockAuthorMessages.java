@@ -22,9 +22,9 @@ public final class BlockAuthorMessages {
     ) {
         if (result == BlockAuthorService.Result.REJECTED) {
             return L10n.f(context,
-                    "TikTok rejected the request to block %1$s", author);
+                    "TikTok did not block %1$s. Try again in a moment.", author);
         }
-        return L10n.f(context, "Could not confirm block for %1$s", author);
+        return L10n.f(context, "Blocked %1$s, but TikTok has not confirmed it yet.", author);
     }
 
     public static String unblockResult(
@@ -37,8 +37,8 @@ public final class BlockAuthorMessages {
         }
         if (result == BlockAuthorService.Result.REJECTED) {
             return L10n.f(context,
-                    "TikTok rejected the request to unblock %1$s", author);
+                    "TikTok did not unblock %1$s. Try again in a moment.", author);
         }
-        return L10n.f(context, "Could not confirm unblock for %1$s", author);
+        return L10n.f(context, "Unblocked %1$s, but TikTok has not confirmed it yet.", author);
     }
 }

@@ -28,8 +28,8 @@ public class NumberInputPreference extends EditTextPreference {
     private final int maxValue;
     private final String singularUnit;
     private final String pluralUnit;
-    /** True where the row's own wording says that zero turns the setting off. */
-    private boolean zeroIsOff;
+    /** Non-null means "show this label instead of the value and unit when the value is zero." */
+    private String zeroLabel;
 
     public NumberInputPreference(Context context, String title, String summary,
                                  IntegerSetting setting) {
@@ -75,7 +75,11 @@ public class NumberInputPreference extends EditTextPreference {
      * row and no delay on another, and neither of those is off.
      */
     public NumberInputPreference zeroMeansOff() {
-        zeroIsOff = true;
+        return zeroMeans("Off");
+    }
+
+    public NumberInputPreference zeroMeans(String label) {
+        zeroLabel = label;
         setValue(getText());
         return this;
     }
@@ -88,9 +92,9 @@ public class NumberInputPreference extends EditTextPreference {
         int clampedValue = parseAndClamp(value);
         String text = String.valueOf(clampedValue);
         setText(text);
-        boolean off = zeroIsOff && clampedValue == 0;
-        String shown = off ? L10n.t(getContext(), "Off") : displayValue(clampedValue);
-        String unit = off ? "" : L10n.t(getContext(), unitForValue(clampedValue));
+        boolean labeled = zeroLabel != null && clampedValue == 0;
+        String shown = labeled ? L10n.t(getContext(), zeroLabel) : displayValue(clampedValue);
+        String unit = labeled ? "" : L10n.t(getContext(), unitForValue(clampedValue));
         // The range is read off the setting, so every one of these rows states it without each
         // of them growing a sentence of its own. Twelve of the fourteen said nothing about it
         // and pulled an out of range number to the nearest end without a word.
@@ -196,9 +200,7 @@ public class NumberInputPreference extends EditTextPreference {
     protected void showDialog(Bundle state) {
         super.showDialog(state);
         SettingsUi.styleFramedDialog(getDialog());
-        // Nothing typed here is rejected outright, because a number outside the range is
-        // pulled into it and said so. What does get refused is the whole row, while the day's
-        // budget is locked, and that refusal used to arrive after the dialog had closed.
+        SettingsUi.submitOnDone(getEditText(), getDialog());
         SettingsUi.keepOpenOnInvalidInput(getDialog(), new SettingsUi.DialogCheck() {
             @Override public String problem() {
                 return typedProblem(getEditText().getText().toString());
@@ -218,7 +220,7 @@ public class NumberInputPreference extends EditTextPreference {
     protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
         builder.setPositiveButton(L10n.t(getContext(), "Save"), (dialog, which)
                 -> this.onClick(dialog, DialogInterface.BUTTON_POSITIVE));
-        builder.setNegativeButton(android.R.string.cancel, null);
+        builder.setNegativeButton(L10n.t(getContext(), "Cancel"), null);
     }
 
     @Override

@@ -61,18 +61,18 @@ public class UndoRowTest {
 
         Exception missing = new java.io.FileNotFoundException("hushfeed-settings-undo.json");
         assertTrue("an empty undo reads as a breakage",
-                "There is nothing to undo yet.".equals(message.invoke(null, UNDO, missing)));
+                "Nothing to undo yet.".equals(message.invoke(null, UNDO, missing)));
         // A reset that really failed still says so.
         assertTrue("a real failure was softened into the empty message",
                 "Could not restore settings.".equals(
                         message.invoke(null, RESET, new IllegalStateException("broken"))));
     }
 
-    /** The real Undo row, built the way the Diagnostics page builds it. */
+    /** The real Undo row, built the way the Backup and restore page builds it. */
     private Preference undoRow() {
         TikTokPreferenceFragment fragment = new TikTokPreferenceFragment();
         Bundle arguments = new Bundle();
-        arguments.putString("morphe_settings_section", "DIAGNOSTICS");
+        arguments.putString("morphe_settings_section", "BACKUP");
         fragment.setArguments(arguments);
         activity.getFragmentManager().beginTransaction()
                 .replace(android.R.id.content, fragment).commit();
@@ -81,7 +81,7 @@ public class UndoRowTest {
 
         PreferenceScreen screen = fragment.getPreferenceScreen();
         Preference row = screen == null ? null : screen.findPreference("settings_backup_" + UNDO);
-        if (row == null) throw new AssertionError("the Diagnostics page has no Undo row");
+        if (row == null) throw new AssertionError("the Backup and restore page has no Undo row");
         return row;
     }
 

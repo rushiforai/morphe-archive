@@ -30,8 +30,8 @@ private const val VIDEO_ITEM_PARAMS_DESCRIPTOR =
 @Suppress("unused")
 val hideSensitiveWarningsPatch = bytecodePatch(
     name = "Skip content warnings",
-    description = "Adds an option to play videos TikTok has classified without the warning " +
-        "overlay asking to be tapped through first.",
+    description = "Play videos TikTok has classified without the warning " +
+        "overlay asking to be tapped through first. Switch: Hushfeed settings > Feed screen.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

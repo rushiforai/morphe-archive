@@ -189,8 +189,9 @@ final class SubtitleDownloads {
                         MediaBudget.waitBeforeRetry(null, attempt, deadline);
                         continue;
                     }
-                    last = new IOException("Subtitle mirror failed ("
-                            + error.getClass().getSimpleName() + "): " + RemoteMedia.summarizeUrl(url));
+                    last.addSuppressed(new IOException("Subtitle mirror failed ("
+                            + error.getClass().getSimpleName() + "): "
+                            + RemoteMedia.summarizeUrl(url), error));
                     break;
                 }
             }

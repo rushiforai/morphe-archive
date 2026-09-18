@@ -42,7 +42,7 @@ public class AboutRowTest {
     @Test public void thePatchedRowNamesTheBundleAndTheAppItRunsIn() {
         MorpheTikTokAboutPreference row = new MorpheTikTokAboutPreference(context, "0.31.0", "46.2.3");
 
-        assertEquals("Version 0.31.0 for TikTok 46.2.3. Source code and releases",
+        assertEquals("Version 0.31.0 for TikTok 46.2.3. Opens github.com in your browser",
                 row.getSummary().toString());
         assertEquals("Hushfeed", row.getTitle().toString());
         assertEquals("a row with no key is skipped by the settings search",
@@ -52,9 +52,9 @@ public class AboutRowTest {
     @Test public void anUnpatchedBuildKeepsWhatTheRowAlwaysSaid() {
         MorpheTikTokAboutPreference row = new MorpheTikTokAboutPreference(context, "", "46.2.3");
 
-        assertEquals("Source code and releases", row.getSummary().toString());
+        assertEquals("Opens github.com in your browser", row.getSummary().toString());
         assertEquals("the row built for this test build shows a version it cannot know",
-                "Source code and releases", new MorpheTikTokAboutPreference(context).getSummary().toString());
+                "Opens github.com in your browser", new MorpheTikTokAboutPreference(context).getSummary().toString());
     }
 
     /**
@@ -63,11 +63,11 @@ public class AboutRowTest {
      * than leaving TikTok's version out, so the row falls back to the bundle version alone.
      */
     @Test public void anAppWhoseVersionCannotBeReadLeavesTikTokOutRatherThanSayingUnknown() {
-        assertEquals("Version 0.31.0. Source code and releases",
+        assertEquals("Version 0.31.0. Opens github.com in your browser",
                 MorpheTikTokAboutPreference.summaryFor(context, "0.31.0", "Unknown").toString());
-        assertEquals("Version 0.31.0. Source code and releases",
+        assertEquals("Version 0.31.0. Opens github.com in your browser",
                 MorpheTikTokAboutPreference.summaryFor(context, "0.31.0", "").toString());
-        assertEquals("Version 0.31.0. Source code and releases",
+        assertEquals("Version 0.31.0. Opens github.com in your browser",
                 MorpheTikTokAboutPreference.summaryFor(context, "0.31.0", null).toString());
     }
 

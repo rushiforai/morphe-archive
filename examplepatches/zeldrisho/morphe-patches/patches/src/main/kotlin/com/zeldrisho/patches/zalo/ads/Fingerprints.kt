@@ -11,7 +11,7 @@ import com.android.tools.smali.dexlib2.Opcode
 /*
  * Zalo 26.08.01 ad gates (versionCode 260801903, APKMirror arm64-v8a).
  *
- * All smali quotes live in analysis/zalo-26.08.01/notes/candidate-evidence.md.
+ * All smali quotes live in analysis/zalo/26.08.01/notes/candidate-evidence.md.
  * Obfuscated holders (Lvx/s2, Ljt classes) are matched only under the pinned
  * COMPATIBILITY_ZALO version; re-verify per update.
  */

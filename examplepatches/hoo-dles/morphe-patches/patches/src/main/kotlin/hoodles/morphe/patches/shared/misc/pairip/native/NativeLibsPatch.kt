@@ -14,6 +14,8 @@ import java.io.RandomAccessFile
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.util.Base64
+import io.sigpipe.jbsdiff.Patch
+import java.io.ByteArrayOutputStream
 
 private const val apkLibsPath = "lib/arm64-v8a/"
 
@@ -35,16 +37,27 @@ internal fun getNativeLibsPatch(app: String) = rawResourcePatch {
 
             for ((libName, data) in nativeLibMap) {
                 val lib = get(apkLibsPath + libName, true)
+                val elf: ElfFile by lazy { ElfFile.from(lib) }
 
                 // decrypt .text
-                if (data.keystream.isNotEmpty()) {
-                    val elf = ElfFile.from(lib)
+                if (!data.keystream.isNullOrBlank()) {
                     val offset = elf.firstSectionByName(".text").header.sh_offset
                     decryptElf(lib, offset, data.keystream)
                 }
 
+                // patch .data
+                if (!data.patch.isNullOrBlank()) {
+                    val dataSection = elf.firstSectionByName(".data")
+                    patchData(
+                        lib,
+                        dataSection.header.sh_offset,
+                        dataSection.header.sh_size.toInt(),
+                        data.patch
+                    )
+                }
+
                 // fix GOT
-                if (data.relocations.isNotEmpty()) {
+                if (!data.relocations.isNullOrEmpty()) {
                     ElfPatcher.init(this)
                     val result =
                         ElfPatcher.patch(lib.path, data.relocations.toTypedArray())
@@ -77,5 +90,28 @@ fun decryptElf(
 
         channel.position(offset)
         channel.write(ByteBuffer.wrap(fileBytes, 0, bytesRead))
+    }
+}
+
+fun patchData(
+    file: File,
+    offset: Long,
+    size: Int,
+    base64BsDiffPatch: String
+) {
+    val patchBytes = Base64.getDecoder().decode(base64BsDiffPatch)
+
+    RandomAccessFile(file, "rw").use { raf ->
+        raf.seek(offset)
+
+        val dataBytes = ByteArray(size)
+        raf.readFully(dataBytes)
+
+        ByteArrayOutputStream().use { outputStream ->
+            Patch.patch(dataBytes, patchBytes, outputStream)
+
+            raf.seek(offset)
+            raf.write(outputStream.toByteArray())
+        }
     }
 }

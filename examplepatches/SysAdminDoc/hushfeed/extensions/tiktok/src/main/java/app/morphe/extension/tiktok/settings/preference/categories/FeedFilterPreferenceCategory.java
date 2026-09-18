@@ -20,6 +20,12 @@ import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 import app.morphe.extension.tiktok.feedfilter.AdvancedFeedRules;
 
+/**
+ * What reaches the feed, in the order a reader asks: which kinds of post, how much of them,
+ * from whom and with which sounds, which words and countries, what was already seen, and the
+ * one advanced switch. The player's four buttons live here too, since blocking a creator or a
+ * sound from a video is the same choice as listing them.
+ */
 @SuppressWarnings("deprecation")
 public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory {
     public FeedFilterPreferenceCategory(Context context, PreferenceScreen screen) {
@@ -30,7 +36,9 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
     /** Whether this page has anything on it. The row into it asks the same question. */
     public static boolean isAvailable() {
         return SettingsStatus.feedFilterEnabled
-                || SettingsStatus.seenVideoFilterEnabled;
+                || SettingsStatus.seenVideoFilterEnabled
+                || SettingsStatus.blockAuthorEnabled
+                || SettingsStatus.notInterestedEnabled;
     }
 
     @Override
@@ -40,42 +48,20 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
 
     @Override
     public void addPreferences(Context context) {
-        // Each patch's rows go behind its own flag. The page is reachable when either patch
+        // Each patch's rows go behind its own flag. The page is reachable when any of them
         // is in the bundle, and a page reachable because of one of them must not offer the
-        // other's settings, which would sit there doing nothing.
-        if (SettingsStatus.feedFilterEnabled) addFeedFilterRules(context);
+        // others' settings, which would sit there doing nothing.
+        if (SettingsStatus.feedFilterEnabled) addKindsOfPost(context);
+        if (SettingsStatus.feedFilterEnabled) addLimits(context);
+        addCreatorsAndSounds(context);
+        if (SettingsStatus.feedFilterEnabled) addWordsAndCountries(context);
         if (SettingsStatus.seenVideoFilterEnabled) addSeenVideoRules(context);
+        if (SettingsStatus.feedFilterEnabled) addAdvanced(context);
     }
 
-    private void addFeedFilterRules(Context context) {
-        addPreference(new SectionHeadingPreference(context, "Lists"));
-        addPreference(new InputTextPreference(context, "Blocked caption words",
-                "Comma separated words or phrases. Matching captions are skipped. Case does not matter. Two phrases in quotes can be joined: \"a\" & \"b\" needs both, \"a\" !& \"b\" needs the first without the second.",
-                Settings.BLOCKED_CAPTION_WORDS)
-                .withCheck(app.morphe.extension.tiktok.feedfilter.KeywordRules::problem));
-        addPreference(new InputTextPreference(context, "Only from these countries",
-                "Comma separated country codes, like GB, IE. Videos posted from anywhere else are hidden. Leave empty for all countries.",
-                Settings.REGION_ONLY_FROM)
-                .withCheck(app.morphe.extension.tiktok.feedfilter.RegionFilter::countryProblem));
-        addPreference(new InputTextPreference(context, "Never from these countries",
-                "Comma separated country codes. Videos posted from these are hidden, whatever the list above says.",
-                Settings.REGION_NEVER_FROM)
-                .withCheck(app.morphe.extension.tiktok.feedfilter.RegionFilter::countryProblem));
-        addPreference(new InputTextPreference(context, "Blocked creators", "Comma separated account handles or user ids. These accounts are always skipped. An entry between slashes, like /^news_/, is a pattern matched against the handle and the display name.", Settings.BLOCKED_CREATORS)
-                .withCheck(AdvancedFeedRules::creatorEntryProblem));
-        addPreference(new CreatorListPreference(context, "Locally hidden creators",
-                "Creators hidden from later feed batches by the player action. Search the list and remove one entry at a time.",
-                Settings.LOCAL_HIDDEN_CREATORS));
-        addPreference(new SectionHeadingPreference(context, "Limits"));
-        addPreference(new NumberInputPreference(context, "Maximum video length", "Seconds. Zero keeps every length. If a whole batch would be filtered out, the video closest to your limit is kept so the feed is not empty.", Settings.MAX_VIDEO_SECONDS, "second", "seconds").zeroMeansOff());
-        addPreference(new NumberInputPreference(context, "Maximum post age",
-                "Days. Zero keeps every age. Posts without a usable timestamp, including future posts, stay visible.",
-                Settings.MAX_PUBLICATION_AGE_DAYS, "day", "days").zeroMeansOff());
-        addPreference(new NumberInputPreference(context, "Maximum views per like", "Hide videos with a lot of views and few likes. Lower numbers are stricter, zero turns the rule off, and one video is kept back if a whole batch would go.", Settings.MAX_VIEWS_PER_LIKE, "view per like", "views per like").zeroMeansOff());
-        addPreference(new NumberInputPreference(context, "Maximum views per comment", "Hide videos with a lot of views and few comments. Works the same way as views per like. Zero turns it off.", Settings.MAX_VIEWS_PER_COMMENT, "view per comment", "views per comment").zeroMeansOff());
+    private void addKindsOfPost(Context context) {
         addPreference(new SectionHeadingPreference(context, "Kinds of post"));
-        addPreference(new TogglePreference(context, "Hide promotional music", "Skip videos marked as using promotional music.", Settings.HIDE_PROMOTIONAL_MUSIC));
-        addPreference(new TogglePreference(context, "Hide LIVE replays", "Skip recorded LIVE broadcasts in the feed.", Settings.HIDE_LIVE_REPLAYS));
+        // Ads first: it is the switch most people open this page for.
         addPreference(new TogglePreference(
                 context,
                 "Remove feed ads",
@@ -92,6 +78,7 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
                 "Hide LIVE videos", "Hide the LIVE videos from the feed.",
                 Settings.HIDE_LIVE
         ));
+        addPreference(new TogglePreference(context, "Hide LIVE replays", "Skip recorded LIVE broadcasts in the feed.", Settings.HIDE_LIVE_REPLAYS));
         addPreference(new TogglePreference(
                 context,
                 "Hide story", "Hide the stories from the feed.",
@@ -102,31 +89,7 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
                 "Hide photo posts", "Hide the photo posts from the feed.",
                 Settings.HIDE_IMAGE
         ));
-        addPreference(new RangeValuePreference(
-                context,
-                "Min/Max views", "The minimum or maximum views of a video to show.",
-                Settings.MIN_MAX_VIEWS
-        ));
-        addPreference(new RangeValuePreference(
-                context,
-                "Min/Max likes", "The minimum or maximum likes of a video to show.",
-                Settings.MIN_MAX_LIKES
-        ));
-        addPreference(new RangeValuePreference(
-                context,
-                "Min/Max comments", "The minimum or maximum comments on a video to show.",
-                Settings.MIN_MAX_COMMENTS
-        ));
-        addPreference(new RangeValuePreference(
-                context,
-                "Min/Max favorites", "The minimum or maximum favorites of a video to show.",
-                Settings.MIN_MAX_FAVOURITES
-        ));
-        addPreference(new RangeValuePreference(
-                context,
-                "Min/Max shares", "The minimum or maximum shares of a video to show.",
-                Settings.MIN_MAX_SHARES
-        ));
+        addPreference(new TogglePreference(context, "Hide promotional music", "Skip videos marked as using promotional music.", Settings.HIDE_PROMOTIONAL_MUSIC));
         addPreference(new TogglePreference(
                 context,
                 "Hide paid partnerships",
@@ -157,50 +120,119 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
                 "Hide videos posted as part of a playlist.",
                 Settings.HIDE_PLAYLIST_VIDEOS
         ));
-        addPreference(new SectionHeadingPreference(context, "Sounds"));
-        addPreference(new TogglePreference(
+    }
+
+    private void addLimits(Context context) {
+        addPreference(new SectionHeadingPreference(context, "Limits"));
+        addPreference(new NumberInputPreference(context, "Maximum video length", "Seconds. Zero keeps every length. If a whole batch would be filtered out, the video closest to your limit is kept so the feed is not empty.", Settings.MAX_VIDEO_SECONDS, "second", "seconds").zeroMeansOff());
+        addPreference(new NumberInputPreference(context, "Maximum post age",
+                "Days. Zero keeps every age. Posts without a usable timestamp, including future posts, stay visible.",
+                Settings.MAX_PUBLICATION_AGE_DAYS, "day", "days").zeroMeansOff());
+        addPreference(new NumberInputPreference(context, "Maximum views per like", "Hide videos with a lot of views and few likes. Lower numbers are stricter, zero turns the rule off, and one video is kept back if a whole batch would go.", Settings.MAX_VIEWS_PER_LIKE, "view per like", "views per like").zeroMeansOff());
+        addPreference(new NumberInputPreference(context, "Maximum views per comment", "Hide videos with a lot of views and few comments. Works the same way as views per like. Zero turns it off.", Settings.MAX_VIEWS_PER_COMMENT, "view per comment", "views per comment").zeroMeansOff());
+        addPreference(new RangeValuePreference(
                 context,
-                "Skip blocked sounds",
-                "Skip videos that use a sound blocked with the player's sound button, or named below.",
-                Settings.HIDE_BLOCKED_SOUNDS
+                "Min/Max views", "The minimum or maximum views of a video to show.",
+                Settings.MIN_MAX_VIEWS
         ));
-        addPreference(new InputTextPreference(
+        addPreference(new RangeValuePreference(
                 context,
-                "Blocked sound names",
-                "Comma separated words to match against a sound's name, like saxophone. Case does not matter.",
-                Settings.BLOCKED_SOUND_NAMES
+                "Min/Max likes", "The minimum or maximum likes of a video to show.",
+                Settings.MIN_MAX_LIKES
         ));
-        addPreference(new InputTextPreference(
+        addPreference(new RangeValuePreference(
                 context,
-                "Blocked sound ids",
-                "Comma separated sound ids recorded by the player's sound button. Remove one to unblock it.",
-                Settings.BLOCKED_SOUND_IDS
+                "Min/Max comments", "The minimum or maximum comments on a video to show.",
+                Settings.MIN_MAX_COMMENTS
         ));
-        addPreference(new SectionHeadingPreference(context, "Feed elements"));
-        addPreference(new TogglePreference(
+        addPreference(new RangeValuePreference(
                 context,
-                "Hide the playlist bar",
-                "Hide the playlist bar along the bottom of videos that belong to a series.",
-                Settings.HIDE_PLAYLIST_BAR
+                "Min/Max favorites", "The minimum or maximum favorites of a video to show.",
+                Settings.MIN_MAX_FAVOURITES
         ));
-        addPreference(new TogglePreference(
+        addPreference(new RangeValuePreference(
                 context,
-                "Hide the event badge",
-                "Hide the floating promotional badge over the feed.",
-                Settings.HIDE_EVENT_BADGE
+                "Min/Max shares", "The minimum or maximum shares of a video to show.",
+                Settings.MIN_MAX_SHARES
         ));
-        addPreference(new TogglePreference(
-                context,
-                "Hide inserted cards",
-                "Hide the friend recommendation card and the other cards TikTok slots between videos.",
-                Settings.HIDE_INSERTED_CARDS
-        ));
-        addPreference(new TogglePreference(
-                context,
-                "Filter offline fallback videos",
-                "Also apply these filters to downloaded videos TikTok uses when the feed cannot load enough new items.",
-                Settings.FILTER_OFFLINE_FALLBACK_VIDEOS
-        ));
+    }
+
+    private void addCreatorsAndSounds(Context context) {
+        boolean any = SettingsStatus.feedFilterEnabled || SettingsStatus.blockAuthorEnabled
+                || SettingsStatus.notInterestedEnabled;
+        if (!any) return;
+        addPreference(new SectionHeadingPreference(context, "Creators and sounds"));
+        if (SettingsStatus.feedFilterEnabled) {
+            addPreference(new InputTextPreference(context, "Blocked creators", "Comma separated account handles or user ids. These accounts are always skipped. An entry between slashes, like /^news_/, is a pattern matched against the handle and the display name.", Settings.BLOCKED_CREATORS)
+                    .withCheck(AdvancedFeedRules::creatorEntryProblem));
+            addPreference(new CreatorListPreference(context, "Locally hidden creators",
+                    "Creators hidden from later feed batches by the player action. Search the list and remove one entry at a time.",
+                    Settings.LOCAL_HIDDEN_CREATORS));
+        }
+        // The player's own buttons. They were the middle of the App page's Player card,
+        // three pages away from the lists they add to.
+        if (SettingsStatus.blockAuthorEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Show block button on videos",
+                    "Add a block button to the video player that blocks the creator of the "
+                            + "current video in one tap. An undo action is shown after each block.",
+                    Settings.BLOCK_AUTHOR_BUTTON
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Show local hide button",
+                    "Add a separate button that skips this account locally without blocking it.",
+                    Settings.LOCAL_HIDE_BUTTON
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Show block sound button",
+                    "Add a separate button that skips videos using the current sound.",
+                    Settings.BLOCK_SOUND_BUTTON
+            ));
+        }
+        if (SettingsStatus.notInterestedEnabled) {
+            addPreference(new TogglePreference(context, "Show the Not interested button",
+                    "Add a button beside the block control to send feedback about the current video.",
+                    Settings.NOT_INTERESTED_BUTTON));
+        }
+        if (SettingsStatus.feedFilterEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Skip blocked sounds",
+                    "Skip videos that use a sound blocked with the player's sound button, or named below.",
+                    Settings.HIDE_BLOCKED_SOUNDS
+            ));
+            addPreference(new InputTextPreference(
+                    context,
+                    "Blocked sound names",
+                    "Comma separated words to match against a sound's name, like saxophone. Case does not matter.",
+                    Settings.BLOCKED_SOUND_NAMES
+            ));
+            addPreference(new InputTextPreference(
+                    context,
+                    "Blocked sound ids",
+                    "Comma separated sound ids recorded by the player's sound button. Remove one to unblock it.",
+                    Settings.BLOCKED_SOUND_IDS
+            ));
+        }
+    }
+
+    private void addWordsAndCountries(Context context) {
+        addPreference(new SectionHeadingPreference(context, "Words and countries"));
+        addPreference(new InputTextPreference(context, "Blocked caption words",
+                "Comma separated words or phrases. Matching captions are skipped. Case does not matter. Two phrases in quotes can be joined: \"a\" & \"b\" needs both, \"a\" !& \"b\" needs the first without the second.",
+                Settings.BLOCKED_CAPTION_WORDS)
+                .withCheck(app.morphe.extension.tiktok.feedfilter.KeywordRules::problem));
+        addPreference(new InputTextPreference(context, "Only from these countries",
+                "Comma separated country codes, like GB, IE. Videos posted from anywhere else are hidden. Leave empty for all countries.",
+                Settings.REGION_ONLY_FROM)
+                .withCheck(app.morphe.extension.tiktok.feedfilter.RegionFilter::countryProblem));
+        addPreference(new InputTextPreference(context, "Never from these countries",
+                "Comma separated country codes. Videos posted from these are hidden, whatever the list above says.",
+                Settings.REGION_NEVER_FROM)
+                .withCheck(app.morphe.extension.tiktok.feedfilter.RegionFilter::countryProblem));
     }
 
     private void addSeenVideoRules(Context context) {
@@ -219,5 +251,15 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
                 Settings.SEEN_VIDEO_RETENTION_DAYS, "day", "days"
         ).zeroMeansOff());
         addPreference(new ClearSeenVideoHistoryPreference(context));
+    }
+
+    private void addAdvanced(Context context) {
+        addPreference(new SectionHeadingPreference(context, "Advanced"));
+        addPreference(new TogglePreference(
+                context,
+                "Filter offline fallback videos",
+                "Also apply these filters to downloaded videos TikTok uses when the feed cannot load enough new items.",
+                Settings.FILTER_OFFLINE_FALLBACK_VIDEOS
+        ));
     }
 }

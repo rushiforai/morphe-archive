@@ -7,6 +7,17 @@ const val ORIGINAL_ZALO_PACKAGE = "com.zing.zalo"
 private const val LEGACY_ZALO_PERMISSION_PREFIX = "zing.zalo.permission."
 private val PACKAGE_NAME_REGEX = Regex("^[a-z][\\w]*(\\.[a-z][\\w]*)+$")
 
+/** Rewrites a Zalo-owned provider URI for the cloned package. */
+fun rewriteZaloProviderUri(uri: String, newPackage: String): String = when (uri) {
+    "content://$ORIGINAL_ZALO_PACKAGE.db.preferencesprovider" ->
+        "content://$newPackage.db.preferencesprovider"
+
+    "content://$ORIGINAL_ZALO_PACKAGE.provider.InternalProvider" ->
+        "content://$newPackage.provider.InternalProvider"
+
+    else -> uri
+}
+
 fun isValidZaloPackageName(name: String?): Boolean = name != null && PACKAGE_NAME_REGEX.matches(name)
 
 /** Rewrites only package-owned manifest identities; third-party authorities remain unchanged. */

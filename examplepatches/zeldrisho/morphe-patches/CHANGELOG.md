@@ -4,6 +4,15 @@ Release and changelog policy: [docs/release.md](docs/release.md#changelog-policy
 
 ## Unreleased
 
+## [1.5.0](https://github.com/zeldrisho/morphe-patches/compare/v1.4.0...v1.5.0) (2026-09-17)
+
+### ✨ New Features
+* **Zalo - Remove media backup age limit:** Includes media of any age in Zalo's existing Google Drive backup and restore pipeline for `26.08.01`; Drive retention and unsupported media remain unchanged.
+* **Zalo - Suppress outbound typing status:** Stops Zalo from sending typing indicators by default while leaving incoming status rendering unchanged.
+
+### 🐛 Bug Fixes
+* **Zalo - Prefer original photo quality:** Enables Original-quality photo sending by default, bypasses the client-side entitlement gate, and keeps the picker send-mode label consistent on Zalo `26.08.01`; server limits and remote media availability are unchanged.
+
 ## [1.4.0](https://github.com/zeldrisho/morphe-patches/compare/v1.3.0...v1.4.0) (2026-09-15)
 
 ### ✨ New Features

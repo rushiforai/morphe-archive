@@ -25,8 +25,8 @@ private const val EXTENSION_CLASS_DESCRIPTOR =
 @Suppress("unused")
 val showAuthorRegionPatch = bytecodePatch(
     name = "Show author region",
-    description = "Adds an option to show the country a video was posted from next to the " +
-        "creator's name on the feed.",
+    description = "Show the country a video was posted from next to the " +
+        "creator's name on the feed. Switch: Hushfeed settings > Feed screen.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch, blockAuthorPatch)

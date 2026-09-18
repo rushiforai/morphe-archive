@@ -1,5 +1,5 @@
 {
-    "version": "v1.34.0",
+    "version": "v1.38.4",
     "patches": [
         {
             "compatiblePackages": [
@@ -62,6 +62,45 @@
             "options": []
         },
         {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#FE2C55",
+                    "name": "TikTok",
+                    "packageName": "com.zhiliaoapp.musically",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "46.9.3"
+                        }
+                    ],
+                    "versions": [
+                        "46.9.3"
+                    ]
+                },
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#FE2C55",
+                    "name": "TikTok",
+                    "packageName": "com.ss.android.ugc.trill",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "46.9.3"
+                        }
+                    ],
+                    "versions": [
+                        "46.9.3"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Forces video publish/upload date to remain visible in video author information across all feed types.",
+            "name": "Always show publish date",
+            "options": []
+        },
+        {
             "compatiblePackages": null,
             "default": false,
             "dependencies": [],
@@ -92,7 +131,7 @@
                 "ResourcePatch",
                 "RawResourcePatch"
             ],
-            "description": "Blocks P3A product analytics, Brave Stats usage pings, crash dump uploads, WDP, and Variations seed fetching.",
+            "description": "Blocks P3A product analytics, Brave Stats usage pings, crash dump uploads, WDP, Chromium UMA metrics, and Variations seed fetching.",
             "name": "Block Brave Telemetry",
             "options": []
         },
@@ -200,9 +239,10 @@
             ],
             "default": true,
             "dependencies": [
-                "RawResourcePatch"
+                "RawResourcePatch",
+                "ResourcePatch"
             ],
-            "description": "Blocks Vivaldi usage statistics, crash reporting, Crashpad endpoints, and DirectMatch suggestions.",
+            "description": "Blocks Vivaldi usage statistics, crash reporting, Crashpad endpoints, DirectMatch suggestions, install referrer transmission, and background wallpaper polling.",
             "name": "Block Vivaldi Telemetry",
             "options": []
         },
@@ -278,6 +318,111 @@
             "dependencies": [],
             "description": "Optimizes startup time and eliminates background CPU/disk overhead by disabling unused OEM carrier partner customizations.",
             "name": "Brave Startup Performance Optimization",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#FE2C55",
+                    "name": "TikTok",
+                    "packageName": "com.zhiliaoapp.musically",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "46.9.3"
+                        }
+                    ],
+                    "versions": [
+                        "46.9.3"
+                    ]
+                },
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#FE2C55",
+                    "name": "TikTok",
+                    "packageName": "com.ss.android.ugc.trill",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "46.9.3"
+                        }
+                    ],
+                    "versions": [
+                        "46.9.3"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Neutralizes mandatory login walls, dynamic regional forced login gates, and guest browsing restrictions.",
+            "name": "Bypass Mandatory Login",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKM",
+                    "appIconColor": "#FF4500",
+                    "name": "Brave Private Web Browser, VPN",
+                    "packageName": "com.brave.browser",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "1.95.101"
+                        }
+                    ],
+                    "versions": [
+                        "1.95.101"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [
+                "RawResourcePatch",
+                "ResourcePatch"
+            ],
+            "description": "Removes sponsored wallpaper images, Brave News/Today feeds, marketing widgets, and promo cards from the New Tab Page.",
+            "name": "Clean New Tab Page",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKM",
+                    "appIconColor": "#FF4500",
+                    "name": "Brave Private Web Browser, VPN",
+                    "packageName": "com.brave.browser",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "1.95.101"
+                        }
+                    ],
+                    "versions": [
+                        "1.95.101"
+                    ]
+                },
+                {
+                    "apkFileType": "APKM",
+                    "appIconColor": "#EF3939",
+                    "name": "Vivaldi Browser - Fast & Safe",
+                    "packageName": "com.vivaldi.browser",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "8.2.4147.77"
+                        }
+                    ],
+                    "versions": [
+                        "8.2.4147.77"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Strips tracking parameters (utm_*, fbclid, gclid, igshid, si, msclkid) when sharing or copying links.",
+            "name": "Clean Share URL",
             "options": []
         },
         {
@@ -504,6 +649,45 @@
             "dependencies": [],
             "description": "Prevents tab restoration on startup, ensuring Vivaldi always opens with a clean Start Page session regardless of how the app was terminated.",
             "name": "Close Tabs on Exit",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#FE2C55",
+                    "name": "TikTok",
+                    "packageName": "com.zhiliaoapp.musically",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "46.9.3"
+                        }
+                    ],
+                    "versions": [
+                        "46.9.3"
+                    ]
+                },
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#FE2C55",
+                    "name": "TikTok",
+                    "packageName": "com.ss.android.ugc.trill",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "46.9.3"
+                        }
+                    ],
+                    "versions": [
+                        "46.9.3"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Copies only the comment text without prepending the author username.",
+            "name": "Copy comments without username",
             "options": []
         },
         {
@@ -930,7 +1114,7 @@
             ],
             "default": true,
             "dependencies": [],
-            "description": "Disables in-app donation prompts, search engine switch promos, rate-app popups, background privacy report alarms, and default browser promotional handlers.",
+            "description": "Disables in-app donation prompts, search engine switch promos, rate-app popups, background privacy report alarms, default browser promo handlers, and hides the Vivaldia game from the main menu.",
             "name": "Disable Vivaldi Prompts & In-App Popups",
             "options": []
         },
@@ -1154,6 +1338,45 @@
             "dependencies": [],
             "description": "Removes live stream broadcast cards and live recommendations from the For You and Following feeds.",
             "name": "Feed Live Stream Blocker",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#FE2C55",
+                    "name": "TikTok",
+                    "packageName": "com.zhiliaoapp.musically",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "46.9.3"
+                        }
+                    ],
+                    "versions": [
+                        "46.9.3"
+                    ]
+                },
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#FE2C55",
+                    "name": "TikTok",
+                    "packageName": "com.ss.android.ugc.trill",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "46.9.3"
+                        }
+                    ],
+                    "versions": [
+                        "46.9.3"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Restores Google account sign-in after patching by forcing fallback to Web-based OAuth when Google Play Services rejects the modified APK signature.",
+            "name": "Fix Google login",
             "options": []
         },
         {
@@ -1620,7 +1843,7 @@
             ],
             "default": true,
             "dependencies": [],
-            "description": "Enables progress seekbar scrubbing on all videos, unblocks the download button on creator-restricted videos, and routes downloads to clean unwatermarked media streams.",
+            "description": "Unblocks the download button on creator-restricted videos and routes downloads to clean unwatermarked media streams.",
             "name": "Media Usability & Watermark-Free Downloader",
             "options": []
         },
@@ -1822,8 +2045,86 @@
             ],
             "default": true,
             "dependencies": [],
-            "description": "Strips bundled stock wallpapers and sponsored Speed Dial thumbnails to reduce APK size.",
+            "description": "Strips bundled stock wallpapers, sponsored Speed Dial thumbnails, partner favicons, Privacy Sandbox attestations, and hardens declarative preference defaults.",
             "name": "Resource Slimmer",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKM",
+                    "appIconColor": "#FF4500",
+                    "name": "Brave Private Web Browser, VPN",
+                    "packageName": "com.brave.browser",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "1.95.101"
+                        }
+                    ],
+                    "versions": [
+                        "1.95.101"
+                    ]
+                },
+                {
+                    "apkFileType": "APKM",
+                    "appIconColor": "#EF3939",
+                    "name": "Vivaldi Browser - Fast & Safe",
+                    "packageName": "com.vivaldi.browser",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "8.2.4147.77"
+                        }
+                    ],
+                    "versions": [
+                        "8.2.4147.77"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Neutralizes motion, ambient, and orientation sensor providers to prevent hardware fingerprinting and tracking via Generic Sensor APIs.",
+            "name": "Sensor Privacy Guard",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#FE2C55",
+                    "name": "TikTok",
+                    "packageName": "com.zhiliaoapp.musically",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "46.9.3"
+                        }
+                    ],
+                    "versions": [
+                        "46.9.3"
+                    ]
+                },
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#FE2C55",
+                    "name": "TikTok",
+                    "packageName": "com.ss.android.ugc.trill",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "46.9.3"
+                        }
+                    ],
+                    "versions": [
+                        "46.9.3"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Restores TikTok's native video seekbar and scrubbing controls where normally hidden or disabled.",
+            "name": "Show seekbar",
             "options": []
         },
         {
@@ -1865,8 +2166,8 @@
             "name": "SIM Region Selector",
             "options": [
                 {
-                    "default": "US",
-                    "description": "Two-letter ISO country code for SIM and network country spoofing (e.g. 'US', 'JP', 'GB', 'DE').",
+                    "default": "CH",
+                    "description": "Two-letter ISO country code for SIM and network country spoofing (e.g. 'CH', 'US', 'JP', 'GB').",
                     "key": "region",
                     "required": false,
                     "title": "Spoofed Region ISO Code",
@@ -1912,6 +2213,69 @@
             "dependencies": [],
             "description": "Skips the welcome screen, search engine selection, and onboarding First Run Experience (FRE) on clean installs.",
             "name": "Skip First Run",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#FE2C55",
+                    "name": "TikTok",
+                    "packageName": "com.zhiliaoapp.musically",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "46.9.3"
+                        }
+                    ],
+                    "versions": [
+                        "46.9.3"
+                    ]
+                },
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#FE2C55",
+                    "name": "TikTok",
+                    "packageName": "com.ss.android.ugc.trill",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "46.9.3"
+                        }
+                    ],
+                    "versions": [
+                        "46.9.3"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Bypasses the entire first-run introduction funnel (interest pickers, swipe tutorials, language prompts, and consent sheets) directly to the feed.",
+            "name": "Skip First-Launch Onboarding",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKM",
+                    "appIconColor": "#EF3939",
+                    "name": "Vivaldi Browser - Fast & Safe",
+                    "packageName": "com.vivaldi.browser",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "8.2.4147.77"
+                        }
+                    ],
+                    "versions": [
+                        "8.2.4147.77"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Removes split APK constraints (isSplitRequired, isolatedSplits) and split metadata from AndroidManifest.xml for standalone APK installation.",
+            "name": "Split Bundle Compatibility",
             "options": []
         },
         {
@@ -2128,7 +2492,9 @@
                 }
             ],
             "default": true,
-            "dependencies": [],
+            "dependencies": [
+                "ResourcePatch"
+            ],
             "description": "Guards against fatal CompositorView NullPointerException crashes on cold startup and bypasses carrier partner customizations.",
             "name": "Vivaldi Startup Performance Optimization",
             "options": []

@@ -26,7 +26,7 @@ private const val EXTENSION_CLASS_DESCRIPTOR =
 @Suppress("unused")
 val alwaysShowPublishDatePatch = bytecodePatch(
     name = "Always show publish date",
-    description = "Always shows the publish date in video author information.",
+    description = "Always shows the publish date in video author information. Switch: Hushfeed settings > Feed screen.",
     default = true,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)

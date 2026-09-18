@@ -1,0 +1,144 @@
+name: Sync upstream template
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Weekly on Monday, 06:00 UTC.
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync with upstream template
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PAT }}
+          persist-credentials: true
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/MorpheApp/morphe-patches-template.git
+          git fetch upstream main
+
+      - name: Check for new upstream commits
+        id: check
+        run: |
+          COUNT=$(git rev-list --count origin/main..upstream/main)
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "Found $COUNT new upstream commit(s)."
+
+      - name: No changes -> exit early
+        if: steps.check.outputs.count == '0'
+        run: echo "Already up to date with upstream, nothing to do."
+
+      - name: Prepare upstream-sync branch
+        id: prepare
+        if: steps.check.outputs.count != '0'
+        run: |
+          # Branch commits carry the project identity, same as manual commits.
+          git config user.name "RoundSalmon4"
+          git config user.email "209016228+RoundSalmon4@users.noreply.github.com"
+
+          # Reset the branch to latest main, then squash-merge the upstream changes.
+          # --squash does not record upstream commits as ancestors, so merging this
+          # branch can never pull upstream fix:/feat: commits into main's history and
+          # accidentally trigger a semantic-release bump (chore: is not a release type).
+          git branch -f upstream-sync origin/main
+          git checkout upstream-sync
+          git merge --squash upstream/main || true
+
+          # Resolve any conflicts with a policy:
+          # - fork-specific files: always keep ours
+          # - shared infrastructure files: take upstream
+          # Modify/delete conflicts (file exists on only one side) are handled by
+          # falling back to 'git rm --force': keeping ours means keeping our
+          # deletion, taking upstream means keeping their deletion.
+          git diff --name-only --diff-filter=U | while read -r f; do
+            case "$f" in
+              .github/*|README.md|CHANGELOG.md|patches-list.json|patches-bundle.json|gradle.properties|settings.gradle.kts|.releaserc|patches/*|extensions/*)
+                echo "Keeping ours: $f"
+                git checkout --ours -- "$f" 2>/dev/null || git rm --force -- "$f" ;;
+              *)
+                echo "Taking upstream: $f"
+                git checkout --theirs -- "$f" 2>/dev/null || git rm --force -- "$f" ;;
+            esac
+          done
+
+          # Our CI configuration is fork-specific (release.yml, dependabot, sync
+          # tooling). Restore it from origin/main so upstream workflow changes never
+          # enter the sync branch - this also avoids needing the push token to hold
+          # the 'workflows' permission required to write .github/workflows/*.
+          git checkout origin/main -- .github/ 2>/dev/null || true
+
+          # settings.gradle.kts is fork-specific (our project name) but it also
+          # carries the app.morphe.patches Gradle plugin version, which must track
+          # upstream - it decides the Kotlin compiler version used to build the
+          # patches. Keep our file and copy just the plugin version across.
+          git checkout origin/main -- settings.gradle.kts
+          UPSTREAM_PLUGIN_VERSION=$(git show upstream/main:settings.gradle.kts \
+            | sed -n 's/.*app\.morphe\.patches.*version "\([^"]*\)".*/\1/p')
+          if [ -n "$UPSTREAM_PLUGIN_VERSION" ]; then
+            echo "Syncing app.morphe.patches plugin version to $UPSTREAM_PLUGIN_VERSION"
+            sed -i -E "s/(app\.morphe\.patches\"\) version \")[^\"]+/\1${UPSTREAM_PLUGIN_VERSION}/" settings.gradle.kts
+          fi
+
+          # If after resolution the branch matches main (all upstream changes are in
+          # files we keep ours), there is nothing to sync.
+          if git diff --quiet origin/main; then
+            echo "Resolved result is identical to main, nothing to sync."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+          git add -A
+          git commit -m "chore: sync changes from MorpheApp template"
+          git push --force origin upstream-sync
+
+      - name: Open or update sync PR
+        if: steps.check.outputs.count != '0' && steps.prepare.outputs.changed == 'true'
+        env:
+          # Use the same PAT secret as the other repos. A PAT bypasses the
+          # repository setting that otherwise blocks GITHUB_TOKEN from creating
+          # pull requests. Falls back to GITHUB_TOKEN if PAT is not set.
+          GH_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          BODY=$(cat <<'EOF'
+          Auto-synced changes from [MorpheApp/morphe-patches-template](https://github.com/MorpheApp/morphe-patches-template).
+
+          This branch squash-merges the upstream changes into a single `chore:` commit, so merging it cannot trigger a semantic-release bump or introduce upstream release commits into `main`.
+
+          Fork-specific files (README, patches, changelog, generated metadata, CI workflow config) are kept as-is. Shared infrastructure files (dependency versions, gradle wrapper, npm deps) follow upstream.
+
+          Review the diff, and merge with **Squash and merge** when ready.
+          EOF
+          )
+
+          # Pin the base repository explicitly. gh resolves the PR base repo from
+          # the git remotes, and because this workflow adds an 'upstream' remote
+          # pointing at MorpheApp it would otherwise open the PR there instead of
+          # in this fork - which the token has no access to.
+          REPO="${{ github.repository }}"
+
+          EXISTING=$(gh pr list --repo "$REPO" --base main --head upstream-sync --json number --jq '.[0].number')
+          if [ -n "$EXISTING" ]; then
+            echo "Sync PR #$EXISTING already exists, updating it."
+            gh pr edit "$EXISTING" --repo "$REPO" \
+              --title "chore: sync changes from MorpheApp template" \
+              --body "$BODY"
+          else
+            gh pr create --repo "$REPO" --base main --head upstream-sync \
+              --title "chore: sync changes from MorpheApp template" \
+              --body "$BODY"
+          fi
