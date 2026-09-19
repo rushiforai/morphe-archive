@@ -40,6 +40,33 @@ private const val STICKER_EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/ti
 private const val FILENAME_FORMATTER_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/download/DownloadFilenameFormatter;"
 
 /**
+ * Hands the finished download's path and video to the filename formatter, at index 0.
+ *
+ * <p>The block writes v0 and v1, so the frame needs two locals or the writes land on the
+ * parameters. iget-object is format 22c, whose register fields are four bits wide. In a frame
+ * with more than fifteen locals p0 sits above v15 and cannot be named there, so it is copied
+ * into v1 first (move-object/from16 reaches any register) and both reads go through the copy.
+ * The second read overwrites v1 after the first has already used it. No local is live at
+ * index 0, so the copy costs the host nothing. A reporter's 46.8.3 had eighteen locals here
+ * and the patch used to refuse it (issue #9).
+ */
+internal fun MutableMethod.injectDownloadNameHook(pathField: FieldReference, awemeField: FieldReference) {
+    requireLocals("Downloads", 2)
+    val locals = implementation!!.registerCount - numberOfParameterRegisters
+    val receiver = if (locals <= 15) "p0" else "v1"
+    val copy = if (receiver == "p0") "" else "move-object/from16 v1, p0"
+    addInstructions(
+        0,
+        """
+            $copy
+            iget-object v0, $receiver, $pathField
+            iget-object v1, $receiver, $awemeField
+            invoke-static {v0, v1}, $FILENAME_FORMATTER_CLASS_DESCRIPTOR->registerDownloadedMediaName(Ljava/lang/String;Ljava/lang/Object;)V
+        """,
+    )
+}
+
+/**
  * Checks the four instructions the download path redirect is about to delete.
  *
  * <p>They are the DCIM directory name, its append onto the path builder, the "/Camera/" literal
@@ -261,26 +288,7 @@ val downloadsPatch = bytecodePatch(
                     "video, so which one holds the downloaded path is no longer obvious.",
             )
 
-            // The injected block writes v0 and v1 and reads p0. iget-object is format 22c,
-            // whose register fields are four bits wide, so both locals and p0 have to be
-            // registers it can name. Checking only that the local count fits in four bits was
-            // the wrong question: a body with one local passes that and then writes over p0.
-            val locals = implementation!!.registerCount - numberOfParameterRegisters
-            if (locals < 2 || locals > 15) {
-                throw PatchException(
-                    "Downloads: $name has $locals local registers, and the download name hook " +
-                        "needs two of them below v16.",
-                )
-            }
-
-            addInstructions(
-                0,
-                """
-                    iget-object v0, p0, $pathField
-                    iget-object v1, p0, $awemeField
-                    invoke-static {v0, v1}, $FILENAME_FORMATTER_CLASS_DESCRIPTOR->registerDownloadedMediaName(Ljava/lang/String;Ljava/lang/Object;)V
-                """,
-            )
+            injectDownloadNameHook(pathField, awemeField)
         }
 
         // Change the download path.

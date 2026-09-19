@@ -14,6 +14,7 @@ import android.view.ViewParent;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.Setting;
+import app.morphe.extension.tiktok.blockauthor.BlockAuthorOverlay;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
@@ -109,10 +110,17 @@ public final class AutoAdvance {
         if (!completedId.equals(current)) return;
         if (!control.recordCompletion(completedId)) return;
         if (control.limitReached() && control.claimLimitNotice()) {
-            Utils.showToastShort(control.completedCount == 1
+            String message = control.completedCount == 1
                     ? L10n.t("Automatic advance stopped after one video")
                     : L10n.f("Automatic advance stopped after %1$d videos",
-                            control.completedCount));
+                            control.completedCount);
+            BlockAuthorOverlay.showActionBanner(message,
+                    L10n.t("Keep going"), () -> {
+                        control.completedCount = 0;
+                        control.lastCompletedId = null;
+                        control.limitNoticeShown = false;
+                        update(component);
+                    });
         }
         update(component);
     }

@@ -138,3 +138,15 @@ local.properties
 
 # Kotlin compiler sessions / cache
 .kotlin/
+
+# Local agent instructions (kept local, not published)
+AGENTS.md
+CLAUDE.md
+.opencode/
+
+# Scratch analysis output (see AGENTS.md cleanup rule)
+/jadx*/
+/decomp*/
+/*_src/
+/*_classes/
+/probe_*

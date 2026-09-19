@@ -1,3 +1,9 @@
+## [1.19.2](https://github.com/legendsciber/morphe-patches/compare/v1.19.1...v1.19.2) (2026-09-18)
+
+### 🐛 Bug Fixes
+
+* **dantheman:** remove extra semicolons in smali templates causing lexer errors ([2d895f5](https://github.com/legendsciber/morphe-patches/commit/2d895f5fecfe7a1d3f066f689a180ae0221b6a1c))
+
 ## [1.19.1](https://github.com/legendsciber/morphe-patches/compare/v1.19.0...v1.19.1) (2026-09-18)
 
 ### 🐛 Bug Fixes

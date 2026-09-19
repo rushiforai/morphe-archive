@@ -1,3 +1,45 @@
+## [1.1.6](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.5...v1.1.6) (2026-09-18)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** prevent VerifyError freeze with check-cast and complete billing lifecycle ([f5c6911](https://github.com/SatanMerde/D-moniakPatches/commit/f5c69118777a0f94a0d99c7a78dfda292ad9d235))
+
+## [1.1.5](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.4...v1.1.5) (2026-09-18)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** use FiveRegisterInstruction/RegisterRangeInstruction interfaces for call site matching ([ed269c2](https://github.com/SatanMerde/D-moniakPatches/commit/ed269c2d0f5adeaff508fff998a4c01237332227))
+
+## [1.1.4](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.3...v1.1.4) (2026-09-18)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** patch launchBillingFlow call sites in game code instead of BillingClient impl ([c588ead](https://github.com/SatanMerde/D-moniakPatches/commit/c588eade207719fd756f729231eb791b12b07655))
+
+## [1.1.3](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.2...v1.1.3) (2026-09-18)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** isolate Free Shopping to launchBillingFlow and restrict strictly to billingclient package ([e009d42](https://github.com/SatanMerde/D-moniakPatches/commit/e009d426b5a9fc94058986929552d791efeb3806))
+
+## [1.1.2](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.1...v1.1.2) (2026-09-18)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** prevent loading freeze by removing intrusive startup lifecycle hooks ([99ddbce](https://github.com/SatanMerde/D-moniakPatches/commit/99ddbce2b71b0b6f3c1708bd52880b15bee7a707))
+
+## [1.1.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.0...v1.1.1) (2026-09-18)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** fix Free Shopping smali register errors and eliminate Google Play dialog ([02ad80c](https://github.com/SatanMerde/D-moniakPatches/commit/02ad80cf108ebaa5c45fa226ad5064bee72be7d0))
+
+## [1.1.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.0.9...v1.1.0) (2026-09-18)
+
+### ✨ New Features
+
+* **hungryshark:** add Free Shopping patch for in-app purchases and shop unlocks ([5ae65e7](https://github.com/SatanMerde/D-moniakPatches/commit/5ae65e762d1e7c4114713545b69d8e2ac78fba79))
+
 ## [1.0.9](https://github.com/SatanMerde/D-moniakPatches/compare/v1.0.8...v1.0.9) (2026-09-17)
 
 ### 🐛 Bug Fixes

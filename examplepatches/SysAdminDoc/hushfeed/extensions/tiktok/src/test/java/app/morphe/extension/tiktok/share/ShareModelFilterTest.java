@@ -24,6 +24,11 @@ public class ShareModelFilterTest {
         public String key() { return key; }
         public String getLabel() { return label; }
     }
+    /** Stands in for BaseSharePackage, whose itemType is a public field TikTok never renames. */
+    public static final class Package {
+        public final String itemType;
+        Package(String itemType) { this.itemType = itemType; }
+    }
     // Every case here writes a Setting. Run this class first in a sandbox and all three
     // failed, because Setting's static initialiser needs a context and only @After set one.
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
@@ -33,6 +38,9 @@ public class ShareModelFilterTest {
         Settings.HIDE_SHARE_ACTIONS.save(false);
         Settings.HIDE_SHARE_CONTACTS.save(false);
         Settings.SHARE_ACTION_CATALOG.save("");
+        Settings.SHARE_HIDDEN_ITEMS_PROFILE.save(Settings.SHARE_HIDDEN_ITEMS_FOLLOW_VIDEO);
+        Settings.SHARE_HIDDEN_ITEMS_LIVE.save(Settings.SHARE_HIDDEN_ITEMS_FOLLOW_VIDEO);
+        ShareModelFilter.surface(new Package("aweme"));
         HookStatus.clear();
     }
     @Test public void filtersBeforeRenderingWithoutChangingTheBuilderOrUnknownItems() {
@@ -98,5 +106,65 @@ public class ShareModelFilterTest {
         assertEquals("Copy link", catalog.get(0).label);
         assertEquals("save", catalog.get(1).key);
         assertEquals("Save video", catalog.get(1).label);
+    }
+
+    @Test public void profileAndLiveFollowTheVideoListUntilTheirOwnIsSaved() {
+        Object copy = new Item("copy"), save = new Item("save");
+        List<?> input = Arrays.asList(copy, save);
+        Settings.SHARE_HIDDEN_ITEMS.save("copy");
+
+        for (String itemType : new String[] {"aweme", "user", "live"}) {
+            ShareModelFilter.surface(new Package(itemType));
+            assertEquals(itemType + " follows the video list", List.of(save), ShareModelFilter.actions(input));
+        }
+
+        Settings.SHARE_HIDDEN_ITEMS_PROFILE.save("save");
+        ShareModelFilter.surface(new Package("user"));
+        assertEquals("the profile sheet uses its own list", List.of(copy), ShareModelFilter.actions(input));
+        assertEquals("and so does its channels row", List.of(copy), ShareModelFilter.channels(input));
+        ShareModelFilter.surface(new Package("live"));
+        assertEquals("LIVE still follows the video list", List.of(save), ShareModelFilter.actions(input));
+        ShareModelFilter.surface(new Package("aweme"));
+        assertEquals("the video sheet is untouched", List.of(save), ShareModelFilter.actions(input));
+
+        Settings.SHARE_HIDDEN_ITEMS_LIVE.save("");
+        ShareModelFilter.surface(new Package("live"));
+        assertSame("an empty saved LIVE list hides nothing, it does not fall back", input,
+                ShareModelFilter.actions(input));
+    }
+
+    @Test public void anUnknownKindOrAnUnreadablePackageIsTreatedAsAVideo() {
+        Settings.SHARE_HIDDEN_ITEMS.save("copy");
+        Settings.SHARE_HIDDEN_ITEMS_PROFILE.save("");
+        Settings.SHARE_HIDDEN_ITEMS_LIVE.save("");
+        List<?> input = List.of(new Item("copy"));
+        for (Object pkg : new Object[] {new Package("aweme_photo"), new Package(null), new Object(), null}) {
+            ShareModelFilter.surface(new Package("user"));
+            ShareModelFilter.surface(pkg);
+            assertEquals(String.valueOf(pkg), ShareSurface.VIDEO, ShareModelFilter.current());
+            assertTrue(ShareModelFilter.actions(input).isEmpty());
+        }
+        ShareModelFilter.surface(new Package(" USER "));
+        assertEquals(ShareSurface.PROFILE, ShareModelFilter.current());
+    }
+
+    @Test public void theCatalogueRemembersWhichSheetsEachActionWasSeenOn() {
+        Settings.SHARE_ACTION_CATALOG.save("copy\tCopy link");
+        ShareModelFilter.surface(new Package("user"));
+        ShareModelFilter.actions(Arrays.asList(new Item("copy", "Copy link"), new Item("qr_code", "QR code")));
+        ShareModelFilter.surface(new Package("live"));
+        ShareModelFilter.actions(List.of(new Item("report", "Report")));
+
+        assertEquals("a line written before the split counts as seen on videos",
+                List.of("copy"), keys(ShareActionCatalog.entries(ShareSurface.VIDEO)));
+        assertEquals(List.of("copy", "qr code"), keys(ShareActionCatalog.entries(ShareSurface.PROFILE)));
+        assertEquals(List.of("report"), keys(ShareActionCatalog.entries(ShareSurface.LIVE)));
+        assertEquals(3, ShareActionCatalog.entries().size());
+    }
+
+    private static List<String> keys(List<ShareActionCatalog.Entry> entries) {
+        List<String> keys = new java.util.ArrayList<>();
+        for (ShareActionCatalog.Entry entry : entries) keys.add(entry.key);
+        return keys;
     }
 }

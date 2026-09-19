@@ -32,6 +32,16 @@ class AquaMailSmokeTest {
 
         val licenseManager = classes.firstOrNull { it.type == LICENSE_MANAGER }
             ?: error("LicenseManager not found in emitted dexes")
+
+        // The UI consumes the numeric level directly.
+        assertReturnsInt(licenseManager.method("getLicenseLevel"), expected = 40, label = "LicenseManager.getLicenseLevel()")
+        assertReturnsMethodCall(
+            licenseManager.method("getLicenseType"),
+            targetClass = LICENSE_MANAGER,
+            targetName = "getLicenseTypeInApp",
+            label = "LicenseManager.getLicenseType()",
+        )
+
         assertForcedBoolean(licenseManager.method("isPro"), expected = true, label = "LicenseManager.isPro()")
         assertForcedBoolean(licenseManager.method("isPremium"), expected = true, label = "LicenseManager.isPremium()")
         assertForcedBoolean(licenseManager.method("isLicensedVersion"), expected = true, label = "LicenseManager.isLicensedVersion()")

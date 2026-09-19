@@ -61,12 +61,21 @@ object Constants {
     // The subscription manager is R8-obfuscated; the patch anchors it on the staff-account
     // email strings and identifies the subscription getter structurally (see
     // fotmob/plus/Fingerprints.kt), so obfuscated name rotation no longer breaks it.
+    // Verified 2026-09-18 against 237.17536.20260911 (versionCode 17536, the current APKMirror
+    // phone build). This release swapped the storage layer under the getter (236 read
+    // SharedPreferencesRepository.get(Z), 237 goes through a settings holder), so the getter
+    // search is now storage-agnostic: the manager's only non-constant no-arg boolean method
+    // that does not hold the staff email. Both old 236 targets were re-checked and still pass.
     val COMPATIBILITY_FOTMOB = Compatibility(
         name = "FotMob",
         packageName = "com.mobilefootie.wc2010",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x00985F,
         targets = listOf(
+            AppTarget(
+                version = "237.17536.20260911",
+                versionCode = 17536
+            ),
             AppTarget(
                 version = "236.17398.20260827",
                 versionCode = 17398
@@ -78,24 +87,32 @@ object Constants {
         )
     )
 
+    // Verified 2026-09-18 against com.myfitnesspal.android 26.37.0 (versionCode 51401) from
+    // APKPure. 26.37.0 removed the old local `SubscriptionPreferences.getPremiumPlusEnabled`
+    // gate; premium is now server-driven through queryenvoy `FeatureState` objects
+    // (feature + entitlement + tier). The patch overrides the two enum-companion parsers
+    // (Entitlement -> Entitled, Tier -> PremiumPlus), which is the single conversion point
+    // for every feature state deserialized from the server.
     val COMPATIBILITY_MYFITNESSPAL = Compatibility(
         name = "MyFitnessPal",
         packageName = "com.myfitnesspal.android",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x0072BC,
-        // Drift 2026-09-17: GetPremiumPlusFingerprint no longer matches on 26.36.0;
-        // target left open until re-anchored.
-        targets = listOf(AppTarget(version = null))
+        targets = listOf(AppTarget(version = "26.37.0", versionCode = 51401))
     )
 
+    // Verified 2026-09-18 against club.boxbox.android 5.4.9 (versionCode 251, the current
+    // APKMirror build) from APKMirror. The telemetry and interstitial patches used to call
+    // returnEarly() on the first fingerprint match only - on 5.4.9 that hit an abstract
+    // AppsFlyer declaration (patcher NPE) and the overridden showAd overload, leaving the
+    // terminal showAd(String, String, Activity) alive. Both now patch every concrete match
+    // by class scan; bytecode-verified in BoxBoxSmokeTest.
     val COMPATIBILITY_BOXBOX = Compatibility(
         name = "BoxBox",
         packageName = "club.boxbox.android",
         apkFileType = ApkFileType.APK,
         appIconColor = 0xFF0000,
-        // Drift 2026-09-17: on 5.4.15 Disable ads still applies but Disable telemetry
-        // fails to match; target left open until the telemetry fingerprint is re-anchored.
-        targets = listOf(AppTarget(version = null))
+        targets = listOf(AppTarget(version = "5.4.9", versionCode = 251))
     )
 
     val COMPATIBILITY_SAPHELINK = Compatibility(
@@ -103,6 +120,11 @@ object Constants {
         packageName = "my.saphelink",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x000000,
+        // Verified 2026-09-18 against 6.6.0 (versionCode 212620) from APKPure. The old
+        // secondary SubscriptionManager.isPremium fingerprint does not exist in this build
+        // and was removed; the primary FeatureToggleRouterImpl.userHasFeature gate is
+        // mandatory now (no methodOrNull), so a future rename fails loudly and is
+        // bytecode-verified in SapheLinkSmokeTest.
         targets = listOf(AppTarget(version = "6.6.0", versionCode = 212620))
     )
 
@@ -111,6 +133,11 @@ object Constants {
         packageName = "com.anydesk.anydeskandroid",
         apkFileType = ApkFileType.APK,
         appIconColor = 0xEF443B,
+        // Verified 2026-09-18 against 9.0.0 (versionCode 90000) from APKMirror. The old
+        // fingerprints pinned R8 wrapper names (r3/a2/b2/Q1) that rotated - on 9.0.0 they
+        // point at unrelated helpers and the patch silently no-opped. The patch now anchors
+        // on the stable native jniIsFreeLicense/jniDoesLicenseAllow*/jniCanRemoveLicense
+        // calls and forces every wrapper; bytecode-verified in AnyDeskSmokeTest.
         targets = listOf(AppTarget(version = "9.0.0", versionCode = 90000))
     )
 
@@ -171,19 +198,21 @@ object Constants {
         targets = listOf(AppTarget(version = "9.1.25", versionCode = 5010))
     )
 
-    // Verified 2026-08-19 against brave.apkm v1.93.136 (arm64-v8a, Android 12L+).
-    // All Brave Origin anchor strings and non-obfuscated classes
-    // (BraveOriginPreferences, BraveOriginSettingsLauncherHelper, profiles/Profile)
-    // are present. Obfuscated class names rotated vs dh6k's v1.92.140 target
-    // (v42 -> ei2, d72 -> hk2, b12 -> ke2, lf2 -> rs2, pc2 -> vp2, lv1 -> t82),
-    // but every fingerprint is string-based so resolves at patch time.
-    // Drift 2026-09-17: v1.95.101 fails to match and is not listed.
+    // Verified 2026-08-19 against brave.apkm v1.93.136, re-anchored 2026-09-18 against
+    // v1.95.104 (versionCode 429510404, the current APKMirror build). All Brave Origin
+    // anchor strings and non-obfuscated classes (BraveOriginPreferences,
+    // BraveOriginSettingsLauncherHelper, profiles/Profile) are present. Obfuscated class
+    // names rotate between versions, but every fingerprint is string/shape-based so it
+    // resolves at patch time. 1.95.104 swapped the parameter order of the package/product
+    // pref writer from (Profile, String) to (String, Profile), which broke the fingerprint
+    // pinning v1.93.136; the patch matches the new order and is bytecode-verified in
+    // BraveSmokeTest.
     val COMPATIBILITY_BRAVE = Compatibility(
         name = "Brave Browser",
         packageName = "com.brave.browser",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0xFF4500,
-        targets = listOf(AppTarget(version = "1.93.136"))
+        targets = listOf(AppTarget(version = "1.95.104"))
     )
 
     // Verified 2026-08-27 against librepods_1.0.0-rc1-play-63 .apkm from APKMirror
@@ -253,6 +282,10 @@ object Constants {
     // FairEmail is FOSS and not obfuscated: the pro entitlement is a single SharedPreferences
     // boolean ("pro") read through ActivityBilling.isPro(Context). The billing client rewrites
     // the pref from Play on launch, so the patch forces the getter instead of the pref.
+    // Note: Gmail OAuth cannot work on a re-signed build. FairEmail gets Gmail tokens through
+    // AccountManager and Google only issues them to packages signed with the certificates
+    // registered for the OAuth client (the Play/GitHub builds). For Gmail accounts use an app
+    // password instead (Gmail requires 2FA for that); non-Google accounts are unaffected.
     val COMPATIBILITY_FAIREMAIL = Compatibility(
         name = "FairEmail",
         packageName = "eu.faircode.email",
@@ -273,21 +306,11 @@ object Constants {
         targets = listOf(AppTarget(version = "6.6.18", versionCode = 5443))
     )
 
-    // Verified 2026-09-17 against org.swiftapps.swiftbackup 5.1.0 (versionCode 620) from
-    // APKPure. Premium entitlement is stored in encrypted preferences; every gate reads the
-    // obfuscated singleton org.swiftapps.swiftbackup.common.V, whose getA() is forced true.
-    val COMPATIBILITY_SWIFTBACKUP = Compatibility(
-        name = "Swift Backup",
-        packageName = "org.swiftapps.swiftbackup",
-        apkFileType = ApkFileType.APK,
-        appIconColor = 0x1E88E5,
-        targets = listOf(AppTarget(version = "5.1.0", versionCode = 620))
-    )
-
     // Verified 2026-09-17 against org.kman.AquaMail 2.7.0 (versionCode 200700061) from
     // APKPure. LicenseManager computes a licence level (0 free / 10-20 Pro / 30 migration /
     // 40 Pro+ subscription) and LockFeatures answers the per-feature locks; both classes and
-    // methods are unobfuscated.
+    // methods are unobfuscated. The UI reads getLicenseLevel() directly, so the patch forces
+    // the level to 40 as well as the derived booleans.
     val COMPATIBILITY_AQUAMAIL = Compatibility(
         name = "Aqua Mail",
         packageName = "org.kman.AquaMail",
@@ -319,5 +342,59 @@ object Constants {
         apkFileType = ApkFileType.APK,
         appIconColor = 0x8BC34A,
         targets = listOf(AppTarget(version = "1.22.11", versionCode = 2229))
+    )
+
+    // Verified 2026-09-18 against com.rammigsoftware.bluecoins 13.1.79 (versionCode 33145)
+    // from APKMirror. The app is not obfuscated: every premium check collects
+    // BillingDomain.isPremiumVersionFlow(), whose only implementation is BillingDomainManager.
+    // The manager delegates to an encrypted "premiumKey" preference; the patch returns a
+    // constant flow of true instead, so all screens see premium without touching the
+    // encrypted storage or the billing client.
+    val COMPATIBILITY_BLUECOINS = Compatibility(
+        name = "Bluecoins",
+        packageName = "com.rammigsoftware.bluecoins",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x2979FF,
+        targets = listOf(AppTarget(version = "13.1.79", versionCode = 33145))
+    )
+
+    // Verified 2026-09-18 against Flashscore 26.9.2 (versionCode 517) supplied from
+    // apks/flashscore. The app is obfuscated, but ads all go through Google's next-generation
+    // Mobile Ads SDK (com.google.android.libraries.ads.mobile.sdk), whose class and method
+    // names are stable library API; the "Disable ads" patch hooks that surface. There is no
+    // Play Billing client at all - the subscription is validated server-side
+    // (/api/v2/android/validate_subscription_v2), so premium cannot be unlocked client-side.
+    val COMPATIBILITY_FLASHSCORE = Compatibility(
+        name = "Flashscore",
+        packageName = "eu.livesport.FlashScore_com",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x1E88E5,
+        targets = listOf(AppTarget(version = "26.9.2", versionCode = 517))
+    )
+
+    // Verified 2026-09-18 against OneFootball 15.142.0 (versionCode 1044958885) from APKMirror.
+    // The app code is obfuscated; all ads run through Google Mobile Ads
+    // (com.google.android.gms.ads), so the "Disable ads" patch hooks that stable library
+    // surface (initialize, every load/loadAd and the app-open preloader). No premium tier
+    // was found in the readable code - the patch targets ads only.
+    val COMPATIBILITY_ONEFOOTBALL = Compatibility(
+        name = "OneFootball",
+        packageName = "de.motain.iliga",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x00C853,
+        targets = listOf(AppTarget(version = "15.142.0", versionCode = 1044958885))
+    )
+
+    // Verified 2026-09-18 against net.osmand 5.4.5 (versionCode 5405) from APKMirror.
+    // Not obfuscated: InAppPurchaseHelper.isPurchased(String) walks the purchase list and
+    // InAppPurchaseHelperImpl answers the cached local entitlement getters. applyPurchases()
+    // derives the OSMAND_PRO_PURCHASED / OSMAND_MAPS_PURCHASED / LIVE_UPDATES_PURCHASED
+    // settings from those same getters, so forcing them also stops the writer resetting them.
+    val COMPATIBILITY_OSMAND = Compatibility(
+        name = "OsmAnd",
+        packageName = "net.osmand",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x7CB342,
+        targets = listOf(AppTarget(version = "5.4.5", versionCode = 5405))
     )
 }

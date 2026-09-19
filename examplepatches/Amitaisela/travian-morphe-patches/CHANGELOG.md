@@ -1,3 +1,45 @@
+## [1.6.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.5.2...v1.6.0) (2026-09-18)
+
+### ✨ New Features
+
+* **Travian: Legends:** remind a minute before an attack lands, report friendly arrivals ([3e09958](https://github.com/Amitaisela/travian-morphe-patches/commit/3e0995824538d1ed13dd3a29dc68af72ee1bfde5))
+
+## [1.5.2](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.5.1...v1.5.2) (2026-09-18)
+
+### 🐛 Bug Fixes
+
+* **Travian: Legends:** run checks one at a time and log trained unit ids ([c8e16b2](https://github.com/Amitaisela/travian-morphe-patches/commit/c8e16b25db9df0ac17f4db78fc05be0c96880af0))
+
+## [1.5.1](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.5.0...v1.5.1) (2026-09-18)
+
+### 🐛 Bug Fixes
+
+* **Travian: Legends:** send one notification per troop training, not two ([0193b0d](https://github.com/Amitaisela/travian-morphe-patches/commit/0193b0d08d373230127a09db63af610612fe7f45))
+
+## [1.5.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.4.1...v1.5.0) (2026-09-18)
+
+### ✨ New Features
+
+* **Travian: Legends:** alert on incoming attacks and raids ([141372d](https://github.com/Amitaisela/travian-morphe-patches/commit/141372d529068bcd2968cb69814eaebc77d88835))
+
+## [1.4.1](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.4.0...v1.4.1) (2026-09-18)
+
+### 🐛 Bug Fixes
+
+* keep checking while the game isn't logged in yet ([0c3f19c](https://github.com/Amitaisela/travian-morphe-patches/commit/0c3f19cc908ece168835aa5d88f8202a11055263))
+
+## [1.4.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.3.0...v1.4.0) (2026-09-18)
+
+### ✨ New Features
+
+* check every 5 minutes using a cached world token ([b54dbd9](https://github.com/Amitaisela/travian-morphe-patches/commit/b54dbd984e9366d4cac9c472a5af5e3d018b3510))
+
+## [1.3.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.2.0...v1.3.0) (2026-09-18)
+
+### ✨ New Features
+
+* notify from the game's own session with no login, no persistent notification ([fbf0561](https://github.com/Amitaisela/travian-morphe-patches/commit/fbf056119b6de41d36a6c2db9f3c106767915a6a))
+
 ## [1.2.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.1.1...v1.2.0) (2026-09-17)
 
 ### ⚠ BREAKING CHANGES

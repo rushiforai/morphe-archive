@@ -115,11 +115,14 @@ public class SettingsActionFlowTest {
         TikTokPreferenceFragment fragment = diagnostics();
         HookStatusPreference preference = row(fragment, HookStatusPreference.class);
         HookStatus.bound("comments", "like_button");
-        assertEquals("One area was checked and everything it needs is here.", preference.getSummary());
+        assertTrue(preference.getSummary().toString().contains(
+                "One area was checked and everything it needs is here."));
         HookStatus.bound("inbox", "itemView");
-        assertEquals("2 areas were checked and everything they need is here.", preference.getSummary());
+        assertTrue(preference.getSummary().toString().contains(
+                "2 areas were checked and everything they need is here."));
         HookStatus.missingViewId("inbox", "bo5");
-        assertEquals("Something is missing from inbox. Tap for the whole report.", preference.getSummary());
+        assertTrue(preference.getSummary().toString().contains(
+                "Something is missing from inbox. Tap for the whole report."));
 
         clickRow(fragment, HookStatusPreference.class);
         AlertDialog report = ShadowAlertDialog.getLatestAlertDialog();

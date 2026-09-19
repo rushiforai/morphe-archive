@@ -463,6 +463,31 @@ if ($VerifyPublishedAsset) {
         # Last of the three on purpose. It is the only one needing a tool from outside the
         # repository, so running it first meant a machine without that tool also lost the hash
         # and checksum comparisons, which need nothing but the download.
+        # Morphe Manager loads patches from the bundle's classes.dex (loadPatchesFromDex), not from
+        # the .class files the desktop CLI and verifyBundle read. A bundle whose classes.dex was
+        # dropped, which a stray :patches:jar run after buildAndroid does, still lists every patch
+        # to those JVM readers while Manager shows zero. v0.43.0 shipped exactly that. So the
+        # published asset is opened here and its classes.dex is required, non-empty, the one thing
+        # that reproduces what Manager sees.
+        Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction SilentlyContinue
+        $assetZip = [System.IO.Compression.ZipFile]::OpenRead($temporaryArtifact)
+        try {
+            $classesDex = $assetZip.GetEntry('classes.dex')
+            if ($null -eq $classesDex) {
+                throw ('The published bundle has no classes.dex, so Morphe Manager will load zero ' +
+                    'patches from it. It was built without its patch dex (a :patches:jar run after ' +
+                    ':patches:buildAndroid strips it). Rebuild with :patches:buildAndroid last and ' +
+                    'republish.')
+            }
+            if ($classesDex.Length -le 0) {
+                throw 'The published bundle carries an empty classes.dex, so Morphe Manager loads zero patches.'
+            }
+            Write-Host ("[release] the published bundle carries classes.dex (" +
+                "$($classesDex.Length) bytes), which is what Morphe Manager loads")
+        } finally {
+            $assetZip.Dispose()
+        }
+
         $countJar = Resolve-DesktopCli -Explicit $DesktopJar -Root $Root
         if (-not $countJar) {
             throw ('The published bundle was downloaded but its patches cannot be counted: no ' +
@@ -524,7 +549,7 @@ function Test-ChangelogHere {
     <#
     .SYNOPSIS
         The CHANGELOG still describes what it described at the last tag, and describes this
-        version.
+        version in a form Morphe Manager can show.
     .DESCRIPTION
         Held against the file as it stood at the most recent tag reachable from HEAD, which is
         read with git. A checkout with no tag, or one where that tag carried no CHANGELOG, is
@@ -557,6 +582,11 @@ function Test-ChangelogHere {
     }
     $check = Test-ChangelogVersions @arguments
     if (-not $check.Valid) { throw "The CHANGELOG does not describe this release: $($check.Reason)" }
+
+    $manager = Test-ChangelogManagerEntry -Current $current -ExpectedVersion $releaseVersion
+    if (-not $manager.Valid) { throw "Morphe Manager cannot show this release: $($manager.Reason)" }
+    Write-Host ("[release] Morphe Manager can read the $releaseVersion entry: dated " +
+        "$($manager.Date), $($manager.Bullets) bullets scoped TikTok")
 
     $described = @(Get-ChangelogVersions -Text $current)
     if ($null -eq $previous) {

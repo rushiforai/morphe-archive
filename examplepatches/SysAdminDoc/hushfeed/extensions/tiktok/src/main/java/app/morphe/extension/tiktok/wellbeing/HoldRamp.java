@@ -37,9 +37,10 @@ public final class HoldRamp {
     static final long RAMP_MS = 45_000L;
 
     /**
-     * Where the ramp finishes. The hold's own panel is {@code argb(238, 0, 0, 0)}, so the two
-     * meet without a step: the last frame of the ramp and the first frame of the hold are the
-     * same shade.
+     * Where the ramp finishes. The hold's own panel is {@code SettingsUi.OVERLAY_SCRIM_SOLID},
+     * so the two meet without a step: the last frame of the ramp and the first frame of the hold
+     * are the same shade. {@code HoldRampTest} pins the two together, because they are now a
+     * number in two files and a ramp that overshoots its own panel flashes at the handoff.
      */
     static final int FULL_ALPHA = 238;
 

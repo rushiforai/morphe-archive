@@ -49,7 +49,9 @@ jobs:
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: r28c
-          local-cache: true
+          # See ci.yml: local-cache restored a partial NDK (missing clang) and
+          # broke the native build; download fresh each run instead.
+          local-cache: false
 
       - name: Build libpvhook.so (armeabi-v7a)
         env:

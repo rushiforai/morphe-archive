@@ -128,14 +128,16 @@
 
 # ESPN Android TV — live passthrough-SSAI slate overlay helper. Called directly
 # from injected smali via invoke-static {} in PlayerActivity.onResume()/onPause(),
-# MediaPlayerViewModel.attachSession(), sessionListener.onEvent(), and
-# SgaiPlaybackSession.playlistRetrieved().
+# MediaPlayerViewModel.attachSession(), sessionListener.onEvent(),
+# SgaiPlaybackSession.playlistRetrieved(), and
+# MediaPlayerViewModel.createAndEmitProgramData$lambda (onProgramData).
 -keep class ajstrick81.morphe.extension.espn.ads.EspnAdBreakOverlayHelper {
     public static void registerActivity(android.app.Activity);
     public static void unregisterActivity(android.app.Activity);
     public static void setSession(java.lang.Object);
     public static void onPlayerEvent(java.lang.Object);
     public static void onDateRanges(java.lang.Object);
+    public static void onProgramData(java.lang.Object);
 }
 # EspnAdBreakOverlayHelper reflects the app's suspend DisneyMediaPlaybackSession
 # chain and passes its own kotlin.coroutines.Continuation; keep the coroutine

@@ -23,8 +23,9 @@ import android.widget.TextView;
 
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.share.ShareActionCatalog;
+import app.morphe.extension.tiktok.share.ShareModelFilter;
+import app.morphe.extension.tiktok.share.ShareSurface;
 import app.morphe.extension.tiktok.settings.L10n;
-import app.morphe.extension.tiktok.settings.Settings;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -33,9 +34,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-/** Edits observed share actions while preserving manually saved unknown identifiers. */
+/**
+ * Edits the share actions one sheet hides, while preserving manually saved unknown identifiers.
+ *
+ * <p>Videos, and every sheet that is neither a profile nor a LIVE, share the original list. The
+ * profile and LIVE sheets each have their own, which follows the video list until it is first
+ * saved here, so the dialog opens on whatever that sheet hides today.
+ */
 @SuppressWarnings("deprecation")
 public final class ShareActionChecklistPreference extends DialogPreference {
+    private final ShareSurface surface;
     private final List<ShareActionCatalog.Entry> catalog = new ArrayList<>();
     private final Set<String> selected = new LinkedHashSet<>();
     private LinearLayout rows;
@@ -44,10 +52,29 @@ public final class ShareActionChecklistPreference extends DialogPreference {
     private String originalHidden = "";
 
     public ShareActionChecklistPreference(Context context) {
+        this(context, ShareSurface.VIDEO);
+    }
+
+    public ShareActionChecklistPreference(Context context, ShareSurface surface) {
         super(context);
-        setKey("share_action_checklist");
-        setTitle("Share action checklist");
-        setSummary("Choose observed share actions to hide. The stable identifier is shown below each label; unknown saved identifiers stay in the manual list.");
+        this.surface = surface;
+        switch (surface) {
+            case PROFILE:
+                setKey("share_action_checklist_profile");
+                setTitle("Profile share actions");
+                setSummary("Until you save a choice here, this sheet hides the same actions as the share action checklist.");
+                break;
+            case LIVE:
+                setKey("share_action_checklist_live");
+                setTitle("LIVE share actions");
+                setSummary("Until you save a choice here, this sheet hides the same actions as the share action checklist.");
+                break;
+            default:
+                setKey("share_action_checklist");
+                setTitle("Share action checklist");
+                setSummary("Choose observed share actions to hide. The stable identifier is shown below each label; unknown saved identifiers stay in the manual list.");
+                break;
+        }
     }
 
     @Override
@@ -64,8 +91,8 @@ public final class ShareActionChecklistPreference extends DialogPreference {
     protected View onCreateDialogView() {
         Context context = getContext();
         catalog.clear();
-        catalog.addAll(ShareActionCatalog.entries());
-        originalHidden = Settings.SHARE_HIDDEN_ITEMS.get();
+        catalog.addAll(ShareActionCatalog.entries(surface));
+        originalHidden = ShareModelFilter.hiddenItems(surface);
         selected.clear();
         selected.addAll(selectedKeys(originalHidden));
 
@@ -191,7 +218,7 @@ public final class ShareActionChecklistPreference extends DialogPreference {
     @Override
     protected void onDialogClosed(boolean positiveResult) {
         if (positiveResult) {
-            Settings.SHARE_HIDDEN_ITEMS.save(buildHidden());
+            ShareModelFilter.hiddenSetting(surface).save(buildHidden());
         }
         super.onDialogClosed(positiveResult);
     }

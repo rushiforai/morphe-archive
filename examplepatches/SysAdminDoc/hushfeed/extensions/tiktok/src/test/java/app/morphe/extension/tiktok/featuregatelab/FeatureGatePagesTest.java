@@ -133,7 +133,7 @@ public class FeatureGatePagesTest {
 
             for (String tag : new String[]{"feature_gate_view_0", "feature_gate_view_1",
                     "feature_gate_view_2", "feature_gate_filter"}) {
-                TextView action = lab.getView().findViewWithTag(tag);
+                View action = lab.getView().findViewWithTag(tag);
                 assertNotNull(tag, action);
                 assertButtonRole(action);
                 // Tabbing through the Lab used to show nothing moving at all: every one of
@@ -1124,7 +1124,7 @@ public class FeatureGatePagesTest {
         }
     }
 
-    private static void assertButtonRole(TextView view) {
+    private static void assertButtonRole(View view) {
         assertNotNull(view);
         assertEquals(android.widget.Button.class.getName(),
                 view.createAccessibilityNodeInfo().getClassName());

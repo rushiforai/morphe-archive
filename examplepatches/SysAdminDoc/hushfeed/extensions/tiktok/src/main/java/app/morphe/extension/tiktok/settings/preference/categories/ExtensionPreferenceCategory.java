@@ -38,6 +38,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
      */
     public static boolean isAvailable() {
         return SettingsStatus.foldableSplitViewEnabled
+                || SettingsStatus.systemFontEnabled
                 || SettingsStatus.showSeekbarEnabled
                 || SettingsStatus.seekbarThumbnailEnabled
                 || SettingsStatus.stopVideoLoopingEnabled
@@ -65,6 +66,16 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new app.morphe.extension.tiktok.settings.preference.NumberInputPreference(context,
                     "Split comment minimum width", "Window width needed to enable the layout. Restart TikTok to apply this.",
                     Settings.FOLDABLE_SPLIT_VIEW_MIN_WIDTH_DP, "dp", "dp"));
+        }
+        if (SettingsStatus.systemFontEnabled) {
+            addPreference(new SectionHeadingPreference(context, "Appearance"));
+            addPreference(new TogglePreference(
+                    context,
+                    "Use system font",
+                    "Draw TikTok's text in your device's font instead of TikTok Sans. Icons, gift "
+                            + "animations and the @ and # glyphs keep their own fonts. Restart TikTok to apply this.",
+                    Settings.SYSTEM_FONT
+            ));
         }
         boolean hasPlayer = SettingsStatus.showSeekbarEnabled || SettingsStatus.seekbarThumbnailEnabled
                 || SettingsStatus.stopVideoLoopingEnabled || SettingsStatus.resumeVideoAfterScrollEnabled

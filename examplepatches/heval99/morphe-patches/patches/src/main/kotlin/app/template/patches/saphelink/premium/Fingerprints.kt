@@ -14,17 +14,3 @@ object UserHasFeatureFingerprint : Fingerprint(
         classDef.type == "Lcom/saphe/FeatureToggleRouterImpl;" && method.name == "userHasFeature"
     }
 )
-
-// SubscriptionManager.isPremium(): boolean
-// Secondary subscription gate consulted by the paywall UI and some feature
-// guards. Matched by name + boolean return so it survives obfuscation of the
-// surrounding class as long as the method signature stays stable.
-object IsPremiumFingerprint : Fingerprint(
-    returnType = "Z",
-    parameters = listOf(),
-    custom = { method, classDef ->
-        method.name == "isPremium" &&
-            (classDef.type.contains("Subscription", ignoreCase = true) ||
-                classDef.type.contains("Saphe", ignoreCase = true))
-    }
-)

@@ -991,6 +991,73 @@ Assert-True $realCheck.Valid "This repository's own CHANGELOG was refused: $($re
 
 Write-Host '[scripts] changelog history contracts passed'
 
+# --- Test-ChangelogManagerEntry --------------------------------------------------------------
+#
+# Morphe Manager skips a heading with no date and flags an app only for bullets scoped to it.
+# Every heading from 0.23.0 to 0.40.0 was bare and Manager's list stopped at 0.22.0, while the
+# history check above passed them all. Each refusal below is the readable entry with one thing
+# taken away, and the real CHANGELOG is the control.
+
+$readable = @"
+## Unreleased
+
+* not held to anything yet
+
+## 0.42.0 (2026-09-20)
+
+A sentence about the release.
+
+### Settings
+
+* **TikTok:** one change.
+* **TikTok:** another change.
+
+### On the video
+
+* **TikTok:** a third.
+
+## 0.41.0
+
+* an older entry, frozen as it shipped
+"@
+$entry = Test-ChangelogManagerEntry -Current $readable -ExpectedVersion '0.42.0'
+Assert-True $entry.Valid "A dated entry with scoped bullets was refused: $($entry.Reason)"
+Assert-True ($entry.Date -eq '2026-09-20' -and $entry.Bullets -eq 3) `
+    "The readable entry was misread: date $($entry.Date), $($entry.Bullets) bullets"
+$crlf = Test-ChangelogManagerEntry -Current ($readable -replace "`r?`n", "`r`n") -ExpectedVersion '0.42.0'
+Assert-True ($crlf.Valid -and $crlf.Bullets -eq 3) "CRLF line endings changed the reading: $($crlf.Reason)"
+
+$undated = Test-ChangelogManagerEntry -Current ($readable -replace '## 0\.42\.0 \(2026-09-20\)', '## 0.42.0') `
+    -ExpectedVersion '0.42.0'
+Assert-True (-not $undated.Valid) 'An undated heading, which Manager skips, was accepted.'
+Assert-True ($undated.Reason -like '*no date*') "The undated heading was refused for the wrong reason: $($undated.Reason)"
+
+$unscoped = Test-ChangelogManagerEntry -Current ($readable -replace '\* \*\*TikTok:\*\* another', '* another') `
+    -ExpectedVersion '0.42.0'
+Assert-True (-not $unscoped.Valid) 'A bullet Manager does not scope to TikTok was accepted.'
+Assert-True ($unscoped.Reason -like 'Line 12 *') "The unscoped bullet was refused for the wrong reason: $($unscoped.Reason)"
+
+$wrapped = Test-ChangelogManagerEntry -Current ($readable -replace 'one change\.', "one`n  change.") `
+    -ExpectedVersion '0.42.0'
+Assert-True (-not $wrapped.Valid) 'A wrapped bullet, whose second line Manager drops, was accepted.'
+Assert-True ($wrapped.Reason -like '*continues the bullet*') "The wrapped bullet was refused for the wrong reason: $($wrapped.Reason)"
+
+$noBullets = Test-ChangelogManagerEntry -Current "## 0.42.0 (2026-09-20)`n`nOnly prose.`n" -ExpectedVersion '0.42.0'
+Assert-True (-not $noBullets.Valid) 'An entry with no scoped bullet, which gets no update badge, was accepted.'
+
+$otherScope = Test-ChangelogManagerEntry -Current ($readable -replace '\*\*TikTok:\*\* a third', '**YouTube:** a third') `
+    -ExpectedVersion '0.42.0'
+Assert-True (-not $otherScope.Valid) 'A bullet scoped to another app was accepted.'
+
+Assert-True (-not (Test-ChangelogManagerEntry -Current $readable -ExpectedVersion '0.43.0').Valid) `
+    'An entry for a version the CHANGELOG does not name was accepted.'
+
+# The control. The real file, held to the real version, must pass.
+$realEntry = Test-ChangelogManagerEntry -Current $realChangelog -ExpectedVersion $realVersion
+Assert-True $realEntry.Valid "Morphe Manager could not read this repository's own $realVersion entry: $($realEntry.Reason)"
+
+Write-Host '[scripts] changelog Manager contracts passed'
+
 # --- Resolve-D8 ------------------------------------------------------------------------------
 #
 # The build-tools directory is chosen by version number. Sorted as text, 9.0.0 wins over 37.0.0

@@ -14,7 +14,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.graphics.drawable.GradientDrawable;
+
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -139,6 +139,8 @@ public final class FeatureGateLabFragment extends Fragment {
     private View clearSearch;
     private LinearLayout viewTabs;
     private final TextView[] viewTabLabels = new TextView[VIEW_LABELS.length];
+    private final View[] viewTabContainers = new View[VIEW_LABELS.length];
+    private final View[] viewTabIndicators = new View[VIEW_LABELS.length];
     private final View[] sourceTabContainers = new View[SOURCE_LABELS.length];
     private final TextView[] sourceTabLabels = new TextView[SOURCE_LABELS.length];
     private final View[] sourceTabIndicators = new View[SOURCE_LABELS.length];
@@ -232,13 +234,12 @@ public final class FeatureGateLabFragment extends Fragment {
                 L10n.t(context, "Replace values when TikTok asks for them"), master);
         controls.addView(masterRow, FeatureGateLabUi.matchWrap());
 
-        TextView warning = FeatureGateLabUi.label(
-                context,
-                L10n.t(context, "Account warning: forced client values apply to every account in this app data and cannot bypass server controls.")
-        );
-        warning.setTextColor(FeatureGateLabUi.warningColor(context));
+        View warning = SettingsUi.inlineNotice(context,
+                L10n.t(context, "Account warning: forced client values apply to every account in this app data and cannot bypass server controls."),
+                SettingsUi.attentionColor());
         LinearLayout.LayoutParams warningParams = FeatureGateLabUi.matchWrap();
-        warningParams.setMargins(FeatureGateLabUi.dp(context, 4), FeatureGateLabUi.dp(context, 14), FeatureGateLabUi.dp(context, 4), FeatureGateLabUi.dp(context, 16));
+        int noticeMargin = FeatureGateLabUi.dp(context, SettingsUi.NOTICE_MARGIN);
+        warningParams.setMargins(0, noticeMargin, 0, noticeMargin);
         controls.addView(warning, warningParams);
 
         LinearLayout searchRow = new LinearLayout(context);
@@ -352,26 +353,36 @@ public final class FeatureGateLabFragment extends Fragment {
 
         viewTabs = new LinearLayout(context);
         viewTabs.setOrientation(LinearLayout.HORIZONTAL);
-        viewTabs.setPadding(
-                FeatureGateLabUi.dp(context, 2),
-                FeatureGateLabUi.dp(context, 2),
-                FeatureGateLabUi.dp(context, 2),
-                FeatureGateLabUi.dp(context, 2)
-        );
-        viewTabs.setBackground(SettingsUi.borderedSurface(context, SettingsUi.RADIUS_CONTROL, false));
         for (int i = 0; i < VIEW_LABELS.length; i++) {
             final int position = i;
+            LinearLayout tabContainer = new LinearLayout(context);
+            tabContainer.setOrientation(LinearLayout.VERTICAL);
+            tabContainer.setGravity(Gravity.CENTER);
+            tabContainer.setFocusable(true);
+            tabContainer.setTag("feature_gate_view_" + i);
+            tabContainer.setContentDescription(L10n.t(context, VIEW_LABELS[i]));
+            tabContainer.setBackground(SettingsUi.pressAndFocusOver(
+                    context, SettingsUi.RADIUS_CONTROL,
+                    new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT)));
+            SettingsUi.markAsButton(tabContainer);
+            tabContainer.setOnClickListener(view -> onViewSelected(position));
             TextView tab = FeatureGateLabUi.text(context, L10n.t(context, VIEW_LABELS[i]), 14,
                     SettingsUi.textSecondary(), Typeface.BOLD);
-            tab.setTag("feature_gate_view_" + i);
-            SettingsUi.styleTextAction(tab, false);
-            tab.setTypeface(tab.getTypeface(), Typeface.BOLD);
             tab.setGravity(Gravity.CENTER);
-            tab.setMinHeight(FeatureGateLabUi.dp(context, 48));
-            tab.setFocusable(true);
-            tab.setOnClickListener(view -> onViewSelected(position));
+            tab.setMinHeight(FeatureGateLabUi.dp(context, 46));
+            tab.setPadding(
+                    FeatureGateLabUi.dp(context, 14), 0,
+                    FeatureGateLabUi.dp(context, 14), 0);
+            View indicator = new View(context);
             viewTabLabels[i] = tab;
-            viewTabs.addView(tab, new LinearLayout.LayoutParams(0, FeatureGateLabUi.dp(context, 48), 1f));
+            viewTabContainers[i] = tabContainer;
+            viewTabIndicators[i] = indicator;
+            tabContainer.addView(tab, FeatureGateLabUi.matchWrap());
+            tabContainer.addView(indicator, new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    FeatureGateLabUi.dp(context, 2)));
+            viewTabs.addView(tabContainer, new LinearLayout.LayoutParams(0,
+                    FeatureGateLabUi.dp(context, 48), 1f));
         }
         controls.addView(viewTabs, FeatureGateLabUi.matchWrap());
 
@@ -398,7 +409,7 @@ public final class FeatureGateLabFragment extends Fragment {
         filterButton.setOnClickListener(view -> showFilterPicker());
         resultRow.addView(filterButton, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
-                FeatureGateLabUi.dp(context, 48)
+                FeatureGateLabUi.dp(context, 44)
         ));
         controls.addView(resultRow, FeatureGateLabUi.matchWrap());
 
@@ -549,7 +560,11 @@ public final class FeatureGateLabFragment extends Fragment {
         list = null;
         selectionBar = null;
         selectionCount = null;
-        for (int i = 0; i < viewTabLabels.length; i++) viewTabLabels[i] = null;
+        for (int i = 0; i < viewTabLabels.length; i++) {
+            viewTabContainers[i] = null;
+            viewTabLabels[i] = null;
+            viewTabIndicators[i] = null;
+        }
         for (int i = 0; i < sourceTabLabels.length; i++) {
             sourceTabContainers[i] = null;
             sourceTabLabels[i] = null;
@@ -684,6 +699,7 @@ public final class FeatureGateLabFragment extends Fragment {
                     visible.size(), filterLabels(getContext())[selectedFilter]));
         }
         updateEmptyState(query);
+        adapter.setRules(rules);
         adapter.notifyDataSetChanged();
         if (restoreListPosition && list != null) {
             int position = listPosition;
@@ -774,27 +790,15 @@ public final class FeatureGateLabFragment extends Fragment {
 
     private void updateControls() {
         for (int i = 0; i < viewTabLabels.length; i++) {
+            View container = viewTabContainers[i];
             TextView tab = viewTabLabels[i];
-            if (tab == null) continue;
+            View indicator = viewTabIndicators[i];
+            if (container == null || tab == null || indicator == null) continue;
             boolean selected = i == selectedView;
-            tab.setSelected(selected);
-            tab.setTextColor(selected ? SettingsUi.badgeText() : SettingsUi.textSecondary());
-            if (selected) {
-                // One step under the 6 its container is drawn with, which is what a rounded
-                // shape nested inside another one needs to look concentric. It was 5, which is
-                // not a step on the scale at all.
-                GradientDrawable background = new GradientDrawable();
-                background.setColor(SettingsUi.badgeFill());
-                background.setCornerRadius(
-                        FeatureGateLabUi.dp(tab.getContext(), SettingsUi.RADIUS_BADGE));
-                tab.setBackground(SettingsUi.pressAndFocusOver(
-                        tab.getContext(), SettingsUi.RADIUS_BADGE, background));
-            } else {
-                // Repainted on every selection change, so the press and focus states
-                // styleTextAction gave this tab have to be put back with the fill.
-                SettingsUi.styleTextAction(tab, false);
-                tab.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-            }
+            container.setSelected(selected);
+            tab.setTextColor(selected ? SettingsUi.accent() : SettingsUi.textSecondary());
+            tab.setTypeface(Typeface.DEFAULT, selected ? Typeface.BOLD : Typeface.NORMAL);
+            indicator.setBackgroundColor(selected ? SettingsUi.accent() : Color.TRANSPARENT);
         }
         for (int i = 0; i < sourceTabLabels.length; i++) {
             View container = sourceTabContainers[i];
@@ -1681,10 +1685,15 @@ public final class FeatureGateLabFragment extends Fragment {
     private final class GateAdapter extends BaseAdapter {
         private final Context context;
         private final List<FeatureGateCatalog.Entry> entries;
+        private Map<String, FeatureGateLabStore.Rule> rules = Collections.emptyMap();
 
         GateAdapter(Context context, List<FeatureGateCatalog.Entry> entries) {
             this.context = context;
             this.entries = entries;
+        }
+
+        void setRules(Map<String, FeatureGateLabStore.Rule> rules) {
+            this.rules = rules;
         }
 
         @Override public int getCount() { return entries.size(); }
@@ -1725,7 +1734,7 @@ public final class FeatureGateLabFragment extends Fragment {
 
                 LinearLayout textColumn = new LinearLayout(context);
                 textColumn.setOrientation(LinearLayout.VERTICAL);
-                TextView title = FeatureGateLabUi.text(context, "", 15, SettingsUi.textPrimary(), Typeface.BOLD);
+                TextView title = FeatureGateLabUi.text(context, "", 16, SettingsUi.textPrimary(), Typeface.BOLD);
                 title.setMaxLines(2);
                 TextView key = FeatureGateLabUi.label(context, "");
                 key.setTextSize(12);
@@ -1790,7 +1799,7 @@ public final class FeatureGateLabFragment extends Fragment {
             }
 
             FeatureGateCatalog.Entry entry = entries.get(position);
-            FeatureGateLabStore.Rule rule = FeatureGateLabStore.rule(entry.manager, entry.key, entry.type);
+            FeatureGateLabStore.Rule rule = rules.get(ruleIdentity(entry));
             holder.title.setText(entry.title);
             holder.key.setText(entry.key);
             holder.type.setText(entry.shortSourceName() + " " + entry.type);

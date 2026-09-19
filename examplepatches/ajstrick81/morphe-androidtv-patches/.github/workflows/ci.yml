@@ -45,7 +45,12 @@ jobs:
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: r28c
-          local-cache: true
+          # local-cache stored a partial NDK (toolchain dir present but the
+          # clang/clang++ binaries missing), and every run restored that broken
+          # copy → "CMAKE_C_COMPILER ... is not a full path to an existing
+          # compiler tool", failing the native libpvhook.so build on all PRs.
+          # Download a fresh NDK each run instead — reliable over cache-fast.
+          local-cache: false
 
       - name: Build libpvhook.so (armeabi-v7a)
         env:

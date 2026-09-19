@@ -348,9 +348,12 @@ public final class CommentSearch {
         // A minimum rather than a height: 48dp is the touch target, but at a large font scale
         // the text needs more than that and a fixed height would cut the letters off.
         box.setMinimumHeight(SettingsUi.dp(context, 48));
-        box.setLayoutParams(new LinearLayout.LayoutParams(
+        int sideMargin = SettingsUi.dp(context, 16);
+        LinearLayout.LayoutParams boxParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        boxParams.setMargins(sideMargin, SettingsUi.dp(context, 8), sideMargin, 0);
+        box.setLayoutParams(boxParams);
         TextView status = SettingsUi.resultCount(context, STATUS_TAG);
         status.setTextColor(SettingsUi.textSecondaryOn(dark));
         status.setFocusable(false);
@@ -358,9 +361,11 @@ public final class CommentSearch {
         status.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
         status.setVisibility(View.GONE);
         status.setPadding(padding, 0, padding, SettingsUi.dp(context, 4));
-        status.setLayoutParams(new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams statusParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        statusParams.setMargins(sideMargin, 0, sideMargin, SettingsUi.dp(context, 8));
+        status.setLayoutParams(statusParams);
         box.setText(query);
         box.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}

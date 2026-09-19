@@ -7,9 +7,7 @@
 package app.morphe.extension.tiktok.share;
 
 import android.app.Activity;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
 import android.os.SystemClock;
 import android.view.HapticFeedbackConstants;
 import android.view.View;
@@ -20,6 +18,7 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceIdCache;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.HookStatus;
+import app.morphe.extension.tiktok.interaction.TapConfirmation;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.L10n;
@@ -91,7 +90,7 @@ public final class ShareSheetTools {
     private static long armedAtMs;
     private static WeakReference<View> armedCell = new WeakReference<>(null);
     private static Drawable armedPreviousForeground;
-    private static GradientDrawable armedRing;
+    private static Drawable armedRing;
     private static int armGeneration;
 
     private ShareSheetTools() {
@@ -147,7 +146,7 @@ public final class ShareSheetTools {
                 RECIPIENTS.clear();
             }
 
-            List<String> hidden = entries(Settings.SHARE_HIDDEN_ITEMS.get());
+            List<String> hidden = entries(ShareModelFilter.hiddenItems());
             boolean confirm = Settings.SHARE_CONFIRM_SEND.get();
             if (!confirm) {
                 disarm();
@@ -369,14 +368,7 @@ public final class ShareSheetTools {
         armedCell = new WeakReference<>(cell);
         armedPreviousForeground = cell.getForeground();
 
-        float density = cell.getResources().getDisplayMetrics().density;
-        armedRing = new GradientDrawable();
-        armedRing.setShape(GradientDrawable.RECTANGLE);
-        // The same radius and the same red as the ring that arms a Follow or a Like, from the
-        // scale rather than from a number of its own. The two are the same idea on two screens.
-        armedRing.setCornerRadius(SettingsUi.dp(cell.getContext(), SettingsUi.RADIUS_OVERLAY));
-        armedRing.setColor(Color.TRANSPARENT);
-        armedRing.setStroke(Math.max(2, Math.round(2 * density)), SettingsUi.OVERLAY_ACCENT);
+        armedRing = TapConfirmation.armedRing(cell);
         cell.setForeground(armedRing);
         cell.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
 

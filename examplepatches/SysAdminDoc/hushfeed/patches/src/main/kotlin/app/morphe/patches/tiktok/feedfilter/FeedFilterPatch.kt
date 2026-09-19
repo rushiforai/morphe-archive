@@ -8,6 +8,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -22,13 +23,16 @@ import app.morphe.patches.tiktok.shared.objectIn
 import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findInstructionIndicesReversedOrThrow
+import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -52,8 +56,9 @@ val feedFilterPatch = bytecodePatch(
         "the country they were posted from and their view, like, comment, favorite and share " +
         "counts. Sponsored cards are dropped from the profile video viewer, the search grids " +
         "and the Friends tab as well as the feed, and so are the mid-roll ads TikTok splices " +
-        "into a video pager after the list has loaded. The share prompt that appears after a " +
-        "like can also be hidden. Switch: Hushfeed settings > Feed filter.",
+        "into a video pager after the list has loaded and the ads a creator's video pager asks " +
+        "for on its own. The share prompt that appears after a like can also be hidden. " +
+        "Switch: Hushfeed settings > Feed filter.",
     default = true,
 ) {
     dependsOn(settingsPatch, 
@@ -150,6 +155,27 @@ val feedFilterPatch = bytecodePatch(
             0,
             "invoke-static {}, $EXTENSION_CLASS_DESCRIPTOR->midAdInstalled()V",
         )
+
+        // Issue #2 as it stood on 0.40.0. A creator's video pager asks a commerce endpoint of
+        // its own for ads and splices the answer between the creator's videos, so those ads are
+        // in none of the lists above and the mid-roll splice never sees them either. TikTok first
+        // asks itself whether this profile should get ads; that answer is filtered at every
+        // return, and a no means the request is never sent.
+        ProfileAdEligibilityFingerprint.method.apply {
+            findInstructionIndicesReversedOrThrow { opcode == Opcode.RETURN }.forEach { index ->
+                val register = getInstruction<OneRegisterInstruction>(index).registerA
+                addInstructionsAtControlFlowLabel(
+                    index,
+                    """
+                        invoke-static/range {v$register .. v$register}, $EXTENSION_CLASS_DESCRIPTOR->allowProfileAdRequest(Z)Z
+                        move-result v$register
+                    """,
+                )
+            }
+        }
+        // And every read of the response's ad list, wherever it is (the request, the coroutine
+        // that inserts the ads, the ad measurement), for a request that gets out some other way.
+        filterProfileAdResponseReads()
 
         // The search grids are not Aweme lists, so their cards are filtered on the parsed
         // response instead, before the forty places that read them get a look.
@@ -428,6 +454,33 @@ val feedFilterPatch = bytecodePatch(
             "return-void",
         )
 
+        // The "Ask · topic" bar issue #6's reporter still saw on 0.40.0 is none of the Tako
+        // components above. It is one of TikTok's common bottom banners, keyed bottom_banner_tako
+        // and drawn by the same banner view as the "Search · topic" bar, and every banner reaches
+        // a feed cell through this getter. Its answer goes through the Tako filter on the way out.
+        AwemeBannersFingerprint.method.apply {
+            findInstructionIndicesReversedOrThrow { opcode == Opcode.RETURN_OBJECT }.forEach { index ->
+                val register = getInstruction<OneRegisterInstruction>(index).registerA
+                // The two-register form, because the call takes the video as well as its list. A
+                // getter has two registers in all, but a build that grows it is refused here
+                // rather than handed a register the instruction cannot name.
+                val receiver = implementation!!.registerCount - 1
+                if (register > 15 || receiver > 15) {
+                    throw PatchException(
+                        "Feed filter: Aweme.getBanners holds its list in v$register and itself in " +
+                            "v$receiver, past what invoke-static can name.",
+                    )
+                }
+                addInstructionsAtControlFlowLabel(
+                    index,
+                    """
+                        invoke-static {p0, v$register}, $TAKO_AI_FILTER_CLASS_DESCRIPTOR->filterBanners(Lcom/ss/android/ugc/aweme/feed/model/Aweme;Ljava/util/List;)Ljava/util/List;
+                        move-result-object v$register
+                    """,
+                )
+            }
+        }
+
         TakoAiFeedButtonBindFingerprint.method.apply {
             // After the base class has laid the view out, which is what index 2 meant on 46.2.3
             // and what it stops meaning the moment anything is added above it.
@@ -541,6 +594,56 @@ internal fun selectRecUserCardInsertion(
     }
     return insertion
 }
+
+/**
+ * Every read of the profile ad response's `awemeList`, answered by the extension instead.
+ *
+ * <p>The field keeps its real name because gson fills it, and the three methods reading it on
+ * each retained build (the request, the coroutine that inserts the ads and the ad measurement)
+ * are all named by R8, so the reads are found by the field rather than by their methods. The
+ * hook goes after the read, on the fall-through, and a branch into the next instruction keeps
+ * its target: the register holds the list only on the path that read it.
+ */
+internal fun BytecodePatchContext.filterProfileAdResponseReads() {
+    val readers = mutableListOf<Pair<ClassDef, Method>>()
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith("Lapp/morphe/extension/")) return@classDefForEach
+        classDef.methods.forEach { method ->
+            if (method.implementation?.instructions?.any(Instruction::readsProfileAdList) == true) {
+                readers += classDef to method
+            }
+        }
+    }
+    if (readers.isEmpty()) {
+        throw PatchException(
+            "Feed filter: nothing reads awemeList of $PROFILE_AD_RESPONSE_DESCRIPTOR any more.",
+        )
+    }
+    readers.forEach { (classDef, method) ->
+        val reader = mutableClassDefBy(classDef).findMutableMethodOf(method)
+        reader.implementation!!.instructions.withIndex()
+            .filter { it.value.readsProfileAdList() }
+            .map { it.index }
+            .asReversed()
+            .forEach { index ->
+                val register = reader.getInstruction<TwoRegisterInstruction>(index).registerA
+                reader.addInstructions(
+                    index + 1,
+                    """
+                        invoke-static/range {v$register .. v$register}, $EXTENSION_CLASS_DESCRIPTOR->filterProfileAdResponse(Ljava/util/List;)Ljava/util/List;
+                        move-result-object v$register
+                    """,
+                )
+            }
+    }
+}
+
+private fun Instruction.readsProfileAdList(): Boolean =
+    opcode == Opcode.IGET_OBJECT && getReference<FieldReference>()?.let { field ->
+        field.definingClass == PROFILE_AD_RESPONSE_DESCRIPTOR &&
+            field.name == "awemeList" &&
+            field.type == "Ljava/util/List;"
+    } == true
 
 /**
  * Filters the result before the rebuilt cache stack forwards it to any callback.

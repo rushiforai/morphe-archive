@@ -115,7 +115,7 @@ public class CreatorListPreference extends DialogPreference {
         TextView searchLabel = SettingsUi.text(
                 context,
                 L10n.t(context, "Search hidden creators"),
-                13,
+                14,
                 SettingsUi.textSecondary(),
                 Typeface.BOLD
         );
@@ -138,17 +138,32 @@ public class CreatorListPreference extends DialogPreference {
         searchParams.setMargins(0, SettingsUi.dp(context, 5), 0, SettingsUi.dp(context, 10));
         dialogView.addView(searchEditText, searchParams);
 
+        TextView addLabel = SettingsUi.text(
+                context,
+                L10n.t(context, "Add a creator"),
+                14,
+                SettingsUi.textSecondary(),
+                Typeface.BOLD
+        );
+        LinearLayout.LayoutParams addLabelParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        addLabelParams.setMargins(0, SettingsUi.dp(context, 10), 0, 0);
+        dialogView.addView(addLabel, addLabelParams);
+
         LinearLayout addRow = new LinearLayout(context);
         addRow.setGravity(Gravity.CENTER_VERTICAL);
-        addEditText = editor(context, L10n.t(context, "Creator handle or id"));
+        addEditText = editor(context, L10n.t(context, "Handle or id"));
         addEditText.setTag("creator_list_add");
-        SettingsUi.labelEditor(addEditText, L10n.t(context, "Creator handle or id"));
+        SettingsUi.labelEditor(addLabel, addEditText);
         addRow.addView(addEditText, new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         // Flat, like the Cancel and Save two rows below it. styleActionButton sets the colour
         // and the weight and leaves the platform background, so this was the only raised button
         // in any Hushfeed dialog.
         TextView addButton = new TextView(context);
+        addButton.setTag("creator_list_add_button");
         addButton.setText(L10n.t(context, "Add"));
         addButton.setContentDescription(L10n.t(context, "Add hidden creator"));
         addButton.setTextSize(16);
@@ -170,8 +185,14 @@ public class CreatorListPreference extends DialogPreference {
         resultParams.setMargins(0, SettingsUi.dp(context, 10), 0, 0);
         dialogView.addView(resultCount, resultParams);
 
-        ScrollView scroll = new ScrollView(context);
-        scroll.setFillViewport(true);
+        int maxHeight = SettingsUi.dialogListHeight(context, 230);
+        ScrollView scroll = new ScrollView(context) {
+            @Override protected void onMeasure(int widthSpec, int heightSpec) {
+                int capped = android.view.View.MeasureSpec.makeMeasureSpec(
+                        maxHeight, android.view.View.MeasureSpec.AT_MOST);
+                super.onMeasure(widthSpec, capped);
+            }
+        };
         entriesContainer = new LinearLayout(context);
         entriesContainer.setOrientation(LinearLayout.VERTICAL);
         scroll.addView(entriesContainer, new ScrollView.LayoutParams(
@@ -180,7 +201,7 @@ public class CreatorListPreference extends DialogPreference {
         ));
         LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                SettingsUi.dialogListHeight(context, 230)
+                ViewGroup.LayoutParams.WRAP_CONTENT
         );
         scrollParams.setMargins(0, SettingsUi.dp(context, 12), 0, 0);
         dialogView.addView(scroll, scrollParams);

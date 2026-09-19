@@ -58,6 +58,7 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
-    // The smoke tests load a ~100 MB multidex APK and parse every emitted dex in memory.
-    maxHeapSize = "2g"
+    // The smoke tests load the full APK (up to ~390 MB, multidex) and parse every emitted
+    // dex in memory.
+    maxHeapSize = "4g"
 }

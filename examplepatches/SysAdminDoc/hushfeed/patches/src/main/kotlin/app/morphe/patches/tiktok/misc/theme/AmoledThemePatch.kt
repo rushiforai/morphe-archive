@@ -28,6 +28,9 @@ val amoledThemePatch = resourcePatch(
         values = mapOf("Black" to "#000000", "Mocha" to "#181825", "Dark gray" to "#121212"),
     )
     execute {
+        document("AndroidManifest.xml").use { manifest ->
+            if (isMergedSplitBundle(manifest)) throw PatchException(MERGED_BUNDLE_REFUSAL)
+        }
         val color = background ?: throw PatchException("Choose a background color")
         if (!Regex("#[0-9a-fA-F]{6}|#[fF]{2}[0-9a-fA-F]{6}").matches(color)) {
             throw PatchException("Background color must be opaque #RRGGBB or #FFRRGGBB")
@@ -65,6 +68,30 @@ val amoledThemePatch = resourcePatch(
         if (found != backgrounds) throw PatchException("Dark background palette is incomplete: $found")
         checkSheetStyleItems(styleItemsFound, packageMetadata.versionName, declaredVersions())
     }
+}
+
+internal const val MERGED_BUNDLE_REFUSAL =
+    "AMOLED dark theme: this TikTok APK was merged from a split bundle (an .apkm file), and " +
+        "rebuilding its resources loses about 1,400 of them, so TikTok would crash at launch. " +
+        "Nothing was changed. Untick this patch, or patch the full APK from APKMirror."
+
+/**
+ * Whether the APK was merged from split APKs rather than shipped whole.
+ *
+ * <p>This is the one patch that rewrites resources, and on the APKMirror 46.2.3 bundle merged
+ * by Morphe the rewritten APK came out with 1,375 resource entries pointing at files it no
+ * longer carried (23,668 res files in, 22,293 out). TikTok then died inflating its first feed
+ * layout (layout/ceo, a missing background drawable) on the S22, 2026-09-18. The same patch
+ * on the universal APK leaves nothing dangling. Every whole APK on the desk keeps Play's
+ * `com.android.vending.splits` meta-data, and merging removes it, so its absence is the tell.
+ */
+internal fun isMergedSplitBundle(manifest: Document): Boolean {
+    val metaData = manifest.getElementsByTagName("meta-data")
+    for (index in 0 until metaData.length) {
+        val name = (metaData.item(index) as Element).getAttribute("android:name")
+        if (name == "com.android.vending.splits") return false
+    }
+    return true
 }
 
 /** The builds this patch is declared for, where the sheet style names are known to be right. */

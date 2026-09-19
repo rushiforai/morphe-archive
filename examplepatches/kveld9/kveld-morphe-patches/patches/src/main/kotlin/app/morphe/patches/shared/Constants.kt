@@ -5,7 +5,7 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 
 object Constants {
-    const val BRAVE_TARGET_VERSION = "1.95.101"
+    const val BRAVE_TARGET_VERSION = "1.95.102"
     const val BRAVE_PACKAGE_NAME = "com.brave.browser"
 
     val COMPATIBILITY_BRAVE = Compatibility(
@@ -16,7 +16,7 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = BRAVE_TARGET_VERSION,
-                description = "Download Bravemonoarm64.apk (v1.95.101) from github.com/brave/brave-browser/releases"
+                description = "Download Bravemonoarm64.apk (v1.95.102) from github.com/brave/brave-browser/releases"
             )
         )
     )
@@ -43,7 +43,7 @@ object Constants {
     )
 
     const val VIVALDI_PACKAGE_NAME = "com.vivaldi.browser"
-    const val VIVALDI_TARGET_VERSION = "8.2.4147.77"
+    const val VIVALDI_TARGET_VERSION = "8.2.4147.93"
 
     val COMPATIBILITY_VIVALDI = Compatibility(
         name = "Vivaldi Browser - Fast & Safe",
@@ -53,7 +53,7 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = VIVALDI_TARGET_VERSION,
-                description = "Download 8.2.4147.77 (arm64-v8a APKM bundle) from APKMirror"
+                description = "Download 8.2.4147.93 (arm64-v8a APKM bundle) from APKMirror"
             )
         )
     )
@@ -117,6 +117,7 @@ object Constants {
     const val TIKTOK_EXTENSION_SEEKBAR_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokSeekbarHook;"
     const val TIKTOK_EXTENSION_PRIVACY_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokPrivacyHook;"
     const val TIKTOK_EXTENSION_REFRESH_RATE_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokRefreshRateHook;"
+    const val TIKTOK_EXTENSION_GHOST_MODE_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokGhostModeHook;"
     const val BRAVE_EXTENSION_CLASS = "Lcom/kveld9/morphe/extension/BraveExtension;"
     const val CHROMIUM_EXTENSION_CLASS = "Lcom/kveld9/morphe/extension/ChromiumExtension;"
 }

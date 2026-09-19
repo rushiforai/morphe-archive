@@ -762,9 +762,13 @@ public final class BlockAuthorOverlay {
 
     private static void setButtonEnabled(boolean enabled) {
         View button = buttonReference.get();
-        if (button != null) {
-            button.setEnabled(enabled);
-            button.setAlpha(enabled ? 1f : 0.4f);
+        if (button == null) return;
+        SettingsUi.setBusy(button, !enabled, L10n.t(button.getContext(), "Blocking"));
+        // The glyph loses contrast, the scrim behind it does not. Fading the whole chip took
+        // the backdrop's alpha down with it and left a smudge over a bright frame.
+        if (button instanceof TextView) {
+            ((TextView) button).setTextColor(
+                    enabled ? SettingsUi.OVERLAY_TEXT : SettingsUi.OVERLAY_TEXT_MUTED);
         }
     }
 
@@ -824,6 +828,15 @@ public final class BlockAuthorOverlay {
      * to be a dialog, and a dialog over the feed stops a scroll dead for something whose only
      * purpose is to be read.
      */
+    public static void showActionBanner(String message, String actionLabel, Runnable action) {
+        Utils.runOnMainThread(() -> {
+            Activity activity = Utils.getActivity();
+            ViewGroup root = activity == null || activity.isFinishing() || activity.isDestroyed()
+                    ? null : activity.findViewById(android.R.id.content);
+            showBanner(root, message, action, actionLabel);
+        });
+    }
+
     public static void showActionBanner(ViewGroup root, String message, String actionLabel,
             Runnable action) {
         showBanner(root, message, action, actionLabel);

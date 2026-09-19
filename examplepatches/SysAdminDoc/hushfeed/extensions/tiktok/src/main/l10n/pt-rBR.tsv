@@ -72,6 +72,7 @@ Activity Center (PIA)	Centro de Atividade (PIA)
 Add	Adicionar
 Add a block button to the video player that blocks the creator of the current video in one tap. An undo action is shown after each block.	Adiciona um botão de bloqueio ao reprodutor que bloqueia o criador do video atual com um toque. Uma ação de desfazer aparece depois de cada bloqueio.
 Add a button beside the block control to send feedback about the current video.	Adiciona um botão ao lado do controle de bloqueio para enviar feedback sobre o vídeo atual.
+Add a creator	Add a creator
 Add a separate button that skips this account locally without blocking it.	Adiciona um botão separado que ignora esta conta localmente sem bloqueá-la.
 Add a separate button that skips videos using the current sound.	Adiciona um botão separado que ignora vídeos que usam o som atual.
 Add hidden creator	Adicionar criador oculto
@@ -105,10 +106,12 @@ Answer TikTok's reads of your contacts with an empty list. Find Friends and Peop
 Answer TikTok's scan of the apps on this phone with an empty list. A check for one named app, which TikTok also uses to open an app you tap, is left alone.	Responde à varredura dos apps deste telefone pelo TikTok com uma lista vazia. A verificação de um app específico, que o TikTok também usa para abrir um app que você toca, é deixada em paz.
 App	Aplicativo
 App AB	AB do app
+Appearance	Aparência
 Applies to both video and photo downloads.	Vale tanto para os downloads de vídeo quanto para os de fotos.
 Apply	Aplicar
 Around the video	Ao redor do vídeo
 Arrange your feed and bottom tabs	Organize seu feed e as abas de baixo
+Attention	Attention
 Audio	Áudio
 Auto translate comments	Traduzir comentários automaticamente
 Auto-advance session limit	Limite de avanço automático por sessão
@@ -232,7 +235,6 @@ Country ISO	ISO do país
 Country and network preferences	Preferências de país e de rede
 Counts under the buttons	Números sob os botões
 Create	Criar
-Creator handle or id	Nome de usuário ou id do criador
 Creators and sounds	Criadores e sons
 Creators hidden from later feed batches by the player action. Search the list and remove one entry at a time.	Criadores escondidos dos próximos lotes do feed pela ação do player. Busque na lista e tire uma entrada de cada vez.
 Current	Atual
@@ -277,6 +279,7 @@ Download path updated	Pasta de download atualizada
 Downloads	Downloads
 Drag to move, release to place	Arraste para mover, solte para posicionar
 Drama and Series	Drama e séries
+Draw TikTok's text in your device's font instead of TikTok Sans. Icons, gift animations and the @ and # glyphs keep their own fonts. Restart TikTok to apply this.	Mostra o texto do TikTok na fonte do seu aparelho em vez da TikTok Sans. Os ícones, as animações de presentes e os símbolos @ e # mantêm a própria fonte. Reinicie o TikTok para aplicar.
 Drop the notification saying somebody new followed you before it reaches the drawer. Every other notification is left alone, and the follower still appears in the Inbox.	Descarta a notificação que diz que alguém novo passou a seguir você antes de ela chegar à gaveta. As outras notificações ficam como estão, e o seguidor continua aparecendo na caixa de entrada.
 Each area, how many of the things it looks for are in this build and how many are not.	Cada área, quantas das coisas que ela procura estão nesta build e quantas não estão.
 Empty	Vazio
@@ -357,6 +360,7 @@ Generated defaults	Padrões gerados
 Gestures	Gestos
 Ghost mode	Modo fantasma
 Hand-off	Passagem
+Handle or id	Handle or id
 Hidden %1$s locally	%1$s escondido no aparelho
 Hidden commenters	Comentaristas escondidos
 Hidden creators	Criadores escondidos
@@ -421,7 +425,7 @@ Hide the LIVE videos from the feed.	Esconder os vídeos LIVE do feed.
 Hide the Message requests row.	Esconder a linha de Solicitações de mensagem.
 Hide the New followers row.	Esconder a linha de Novos seguidores.
 Hide the Send to row	Esconder a linha Enviar para
-Hide the Tako AI feed bubble above the profile button.	Esconder a bolha do Tako AI no feed, acima do botão de perfil.
+Hide the Tako AI bubble above the profile button and the Ask bar under videos.	Esconder a bolha do Tako AI acima do botão de perfil e a barra do Tako abaixo dos vídeos.
 Hide the TikTok Tako assistant conversation.	Esconder a conversa com o assistente TikTok Tako.
 Hide the activity status control in the Inbox header.	Esconder o controle de status de atividade no topo da caixa de entrada.
 Hide the add people icon	Esconder o ícone de adicionar pessoas
@@ -487,6 +491,7 @@ Inserted cards	Cards inseridos
 Keep a local record of what you have watched and drop those videos from later feed pages.	Guardar no aparelho um registro do que você viu e tirar esses vídeos das próximas páginas do feed.
 Keep automatic advance enabled, and show TikTok's own Auto scroll action in the video panel even if your account never had it. Pauses and open dialogs still stop scrolling. Restart TikTok to apply this. Then use this switch to turn it off.	Manter o avanço automático ligado e mostrar a ação Rolagem automática do TikTok no painel do vídeo mesmo que sua conta nunca tenha tido. Pausas e diálogos abertos continuam parando a rolagem. Reinicie o TikTok para aplicar. Depois use esta chave para desligar.
 Keep captions in clear display	Manter as legendas com a tela limpa
+Keep going	Keep going
 Keep the Favorites tab	Manter a aba Favoritos
 Keep the clock and status icons off the screen while TikTok is open. Swipe down from the top to peek at them.	Manter o relógio e os ícones de status fora da tela enquanto o TikTok está aberto. Deslize de cima para dar uma olhada.
 Keep the screen's refresh rate	Manter a taxa de atualização da tela
@@ -498,6 +503,7 @@ Kinds of post	Tipos de post
 LIVE	LIVE
 LIVE replays	Reprises de LIVE
 LIVE settings	Configurações de Live
+LIVE share actions	Ações de compartilhamento de LIVE
 LIVE videos	Vídeos LIVE
 Lab data reset. Undo last Lab change is in the menu. Restart TikTok to apply this.	Dados do Lab redefinidos. Desfazer a última alteração do Lab está no menu. Reinicie o TikTok para aplicar.
 Lab data was over its rule limit, so it was cleared without an undo copy. Restart TikTok to apply this.	Os dados do Lab ultrapassavam o limite de regras, então foram apagados sem uma cópia para desfazer. Reinicie o TikTok para aplicar.
@@ -604,6 +610,7 @@ Nothing new was imported. %1$d already matched, %2$d unavailable, %3$d rejected.
 Nothing on this page changes what TikTok does until they are on.	Nada nesta página muda o que o TikTok faz enquanto elas estiverem desligadas.
 Nothing to undo yet.	Ainda não há nada para desfazer.
 Notices from this project and the ones it is built on	Avisos deste projeto e daqueles em que ele se baseia
+OK	OK
 Off	Desligado
 Off forces false; on forces true. Reset returns control to TikTok	Desligado força false e ligado força true. Redefinir devolve o controle ao TikTok
 Offline videos	Vídeos offline
@@ -671,6 +678,7 @@ Privacy	Privacidade
 Privacy and system	Privacidade e sistema
 Profile	Perfil
 Profile picture saved to %1$s	Foto de perfil salva em %1$s
+Profile share actions	Ações de compartilhamento do perfil
 Promotional music	Música promocional
 Proof	Comprovação
 Publication age	Idade da publicação
@@ -760,6 +768,7 @@ Saved %1$s photos. The rest failed, so try again.	%1$s fotos salvas. As outras f
 Saved one original photo	Uma foto original foi salva
 Saved, override off	Salvo, substituição desligada
 Saved. Restart TikTok to apply this.	Salvo. Reinicie o TikTok para aplicar.
+Saving	Saving
 Saving %1$s original photos	Salvando %1$s fotos originais
 Saving settings backup	Salvando o backup das configurações
 Saving sticker	Salvando o sticker
@@ -1027,12 +1036,14 @@ Undo clearing seen videos	Undo clearing seen videos
 Undo last Lab change	Desfazer a última mudança do Lab
 Undo last restore or reset	Desfazer a última restauração ou redefinição
 Undoing the last change	Desfazendo a última mudança
+Until you save a choice here, this sheet hides the same actions as the share action checklist.	Até você salvar uma escolha aqui, este menu oculta as mesmas ações que a lista de ações de compartilhamento.
 Up to 8 speeds from 0.5 to 3, separated by commas. Example: 0.5, 1, 1.5, 2, 2.5, 3. Leave empty for TikTok's list. Restart TikTok to apply this.	Até 8 velocidades de 0.5 a 3, separadas por vírgula. Por exemplo: 0.5, 1, 1.5, 2, 2.5, 3. Deixe vazio para a lista do TikTok. Reinicie o TikTok para aplicar.
 Use 0 for TikTok's size, or 12 to 48. Applies to the next caption.	Use 0 para o tamanho do TikTok, ou de 12 a 48. Vale para a próxima legenda.
 Use Save JSON for this large report	Use Salvar JSON para este relatório grande
 Use TikTok's native hold, slide down, and release gesture to lock 2x speed.	Usar o gesto nativo do TikTok de segurar, deslizar para baixo e soltar para travar a velocidade 2x.
 Use a default playback speed	Usar uma velocidade de reprodução padrão
 Use non-personalized search	Usar a busca sem personalização
+Use system font	Usar a fonte do sistema
 Use the preset for the region TikTok reports for your account and its shop too. May affect search.	Usar a predefinição também para a região que o TikTok informa para a sua conta e a loja dela. Pode afetar a busca.
 Use the selected country and operator values. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.	Usar o país e os valores de operadora selecionados. Isso muda só o que o SIM informa: seu endereço IP, o histórico da sua conta e o idioma em que você lê continuam os mesmos, e qualquer um deles já basta para o TikTok manter a região que já escolheu. Reinicie o TikTok para aplicar.
 Use the selected country. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.	Usar o país selecionado. Isso muda só o que o SIM informa: seu endereço IP, o histórico da sua conta e o idioma em que você lê continuam os mesmos, e qualquer um deles já basta para o TikTok manter a região que já escolheu. Reinicie o TikTok para aplicar.

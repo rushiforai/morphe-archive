@@ -92,10 +92,15 @@ class SyncUpstreamTests(unittest.TestCase):
         self.assertIn("fetchDirectStreamRequest", merged)
         self.assertIn("fetchRequestForDownload", merged)
         self.assertIn("DIRECT_STREAM_CLIENT_ORDER", merged)
-        self.assertIn(
-            "new StreamingDataRequest(videoId, false, lastPlayerHeaders, false, true)",
-            merged,
-        )
+        if "private static List<ClientType> buildClientOrder" in merged:
+            self.assertIn("DIRECT_STREAM_CLIENT_ORDER, false, true", merged)
+            self.assertIn("clientOrderToUse, false, false", merged)
+            self.assertIn("clientOrder, true, false", merged)
+        else:
+            self.assertIn(
+                "new StreamingDataRequest(videoId, false, lastPlayerHeaders, false, true)",
+                merged,
+            )
         self.assertIn(
             "getPlayerResponseConnectionFromRoute(clientType, includeVideoDetails)",
             merged,
@@ -106,9 +111,43 @@ class SyncUpstreamTests(unittest.TestCase):
             merged,
         )
 
+    def test_merges_explicit_download_clients_with_direct_stream_requests(self):
+        root = MODULE_PATH.parents[2]
+        source = (root / sync_upstream.STREAMING_DATA_REQUEST_PATH).read_text(
+            encoding="utf-8"
+        )
+        source_with_downloads = (
+            sync_upstream.merge_streaming_data_request_download_support(source)
+        )
+
+        merged = sync_upstream.merge_streaming_data_request_client_order(
+            source_with_downloads
+        )
+
+        self.assertIn("private static List<ClientType> buildClientOrder", merged)
+        self.assertIn("fetchDirectStreamRequest", merged)
+        self.assertIn("DIRECT_STREAM_CLIENT_ORDER, false, true", merged)
+        self.assertIn("clientOrderToUse, false, false", merged)
+        self.assertIn("clientOrder, true, false", merged)
+        self.assertIn("boolean isDownload,", merged)
+        self.assertIn("boolean directStreamsOnly", merged)
+        self.assertIn("No direct stream client succeeded", merged)
+        self.assertIn("No client could resolve the download", merged)
+        self.assertIn("ClientType preferredClient = clients[0]", merged)
+        self.assertNotIn(
+            "ClientType[] clients = directStreamsOnly\n"
+            "                ? DIRECT_STREAM_CLIENT_ORDER\n"
+            "                : clientOrderToUse;",
+            merged,
+        )
+
     def test_rejects_changed_streaming_conflict_shape(self):
         with self.assertRaises(sync_upstream.SyncError):
             sync_upstream.merge_streaming_data_request_download_support(
+                "class StreamingDataRequest {}"
+            )
+        with self.assertRaises(sync_upstream.SyncError):
+            sync_upstream.merge_streaming_data_request_client_order(
                 "class StreamingDataRequest {}"
             )
 

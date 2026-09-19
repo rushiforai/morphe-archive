@@ -1,53 +1,58 @@
-# foxxo-patches 🦊
+# 🦊 Foxxo Patches
 
-Kolekce vlastních patchů pro **Morphe Manager** (a kompatibilní patchery založené na ReVanced/Morphe ekosystému) vytvořená uživatelem **FoxxoOwO**.
+Custom Morphe Patches repository by [FoxxoOwO](https://github.com/FoxxoOwO).
 
----
+### 📲 How to use these patches in Morphe
 
-## 🌿 Podporované aplikace a patche
+Click here to add this repository as a patch source in Morphe:  
+👉 **[Add to Morphe](https://morphe.software/add-source?github=FoxxoOwO/foxxo-patches)**
 
-### **AI Plant Doctor** (`me.jodoin.aiplantdoctor`)
-- **Podporovaná verze:** `2.19.2`
-- **Obsažené patche:**
-  1. **Disable PairIP License Check (`disable-pairip-license-check`)**
-     - Neutralizuje Google Play Integrity / PairIP ochranu integrity (`com.pairip.licensecheck.LicenseClient`).
-     - Umožňuje bezproblémový běh modifikované aplikace bez pádů s chybou *"Get this app from Play"*.
-  2. **Unlock Premium (`unlock-premium`)**
-     - Odemyká veškeré prémiové funkce aplikace (neomezená identifikace chorob, detailní diagnostika, plné plány péče o rostliny).
-     - Simuluje platné a aktivní předplatné ve Flutter `in_app_purchase` (Pigeon bridge) vrstvě.
+Or add manually in Morphe Manager:
+- **Source:** `FoxxoOwO/foxxo-patches`
 
 ---
 
-## 📲 Jak přidat do Morphe Manageru
+## 🩹 Patches list
 
-1. Otevřete aplikaci **Morphe Manager** na svém Android zařízení.
-2. Přejděte do **Settings** -> **Sources** (Zdroje patchů).
-3. Do pole pro zdroj patchů zadejte:
-   ```
-   https://github.com/FoxxoOwO/foxxo-patches
-   ```
-   případně odkaz na raw `patches-bundle.json`:
-   ```
-   https://raw.githubusercontent.com/FoxxoOwO/foxxo-patches/main/patches-bundle.json
-   ```
-4. V sekci **Patcher** vyberte nainstalovanou aplikaci **AI Plant Doctor** (nebo zvolte APK soubor verze 2.19.2).
-5. Zvolte patche **Disable PairIP License Check** a **Unlock Premium**.
-6. Klepněte na **Patch**, vyčkejte na dokončení a nainstalujte upravenou aplikaci!
+<!-- PATCHES_START EXPANDED -->
+> **[v1.0.1](https://github.com/FoxxoOwO/foxxo-patches/releases/tag/v1.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+<details open>
+<summary>📦 AI Plant Doctor&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
 
----
+**🎯 Supported versions:**
 
-## 💻 Přímé patchování na PC (bez Morphe Manageru)
+| 3.1.0 |
+| :---: |
 
-Pokud chcete APK opatchovat přímo na počítači:
-1. Zkopírujte původní `AI Plant Doctor.apk` do stejné složky se skriptem `tools/patch_apk.py`.
-2. Spusťte:
-   ```bash
-   python tools/patch_apk.py
-   ```
-3. Skript upraví bytecode, vygeneruje podepsané `AI Plant Doctor-patched.apk` připravené k okamžité instalaci (`adb install "AI Plant Doctor-patched.apk"`).
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock premium](#unlock-premium) | Unlocks all AI Plant Doctor premium features by bypassing Google Play Billing and returning an active annual subscription. |  |
+
+</details>
+
+<!-- PATCHES_END -->
 
 ---
 
-## 📜 Licence
+## 🌿 AI Plant Doctor (me.jodoin.aiplantdoctor)
 
-Tento projekt je šířen pod licencí **GPLv3**.
+### Co patch dělá
+Patch odemyká všechny premium funkce aplikace **AI Plant Doctor** (`me.jodoin.aiplantdoctor v3.1.0_antisplit`) tím, že přesměruje Google Play Billing komunikaci. Aplikace si vždy myslí, že uživatel má aktivní roční předplatné (`me.jodoin.aiplantdoctor.premium_annual`).
+
+### Odemčené funkce
+- Neomezená diagnostika rostlin (AI Plant Doctor)
+- Přístup k asistentovi Budsy
+- Detekce škůdců a chorob bez limitu
+- Personalizované plány péče
+- Pokročilá analýza zdraví rostlin
+- AI diagnózy a Day pass funkce
+
+### Jak patch funguje
+Aplikace je postavena na Flutteru. Logika předplatného běží v Dart kódu (`libapp.so`), který získává stav předplatného přes Pigeon IPC bridge z Java pluginu `in_app_purchase_android`.
+Patch zachytí volání `queryPurchasesAsync` v Java vrstvě a vrátí fake odpověď s aktivním předplatným `me.jodoin.aiplantdoctor.premium_annual`, čímž zcela obejde reálný Google Play BillingClient.
+
+---
+
+## 📜 License
+[GPLv3](LICENSE)

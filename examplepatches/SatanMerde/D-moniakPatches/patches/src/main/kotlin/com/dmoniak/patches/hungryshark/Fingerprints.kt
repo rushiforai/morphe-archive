@@ -220,3 +220,5 @@ object IronSourceUnityRewardedAdIsReadyFingerprint : Fingerprint(
 object IronSourceLevelPlayFullScreenShowAdFingerprint : Fingerprint(
     definingClass = "Lcom/ironsource/Ya;",
 )
+
+

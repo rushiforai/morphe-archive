@@ -14,6 +14,7 @@ import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
 import app.morphe.extension.tiktok.settings.preference.ShareActionChecklistPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
+import app.morphe.extension.tiktok.share.ShareSurface;
 
 @SuppressWarnings("deprecation")
 public final class SharePreferenceCategory extends ConditionalPreferenceCategory {
@@ -50,6 +51,8 @@ public final class SharePreferenceCategory extends ConditionalPreferenceCategory
                 Settings.HIDE_SHARE_CONTACTS
         ));
         addPreference(new ShareActionChecklistPreference(context));
+        addPreference(new ShareActionChecklistPreference(context, ShareSurface.PROFILE));
+        addPreference(new ShareActionChecklistPreference(context, ShareSurface.LIVE));
         addPreference(new InputTextPreference(
                 context,
                 "Hide people and options by name",

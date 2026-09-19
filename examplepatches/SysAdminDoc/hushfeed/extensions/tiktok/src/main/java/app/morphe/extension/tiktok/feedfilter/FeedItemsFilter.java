@@ -126,6 +126,7 @@ public final class FeedItemsFilter {
         itemLogCount.set(0);
         filterExceptionLogCount.set(0);
         listReplacementLogCount.set(0);
+        profileAdRefusalLogCount.set(0);
         filterCallProbeCount.set(0);
         synchronized (filterCallProbeSeenLists) {
             filterCallProbeSeenLists.clear();
@@ -253,6 +254,65 @@ public final class FeedItemsFilter {
         FeedFilterCounters.removed(MID_AD_SOURCE, 1, MID_AD_REASON);
         logItem(ad, MID_AD_REASON, verbose);
         return true;
+    }
+
+    /** The counter line for the profile pager's own ad request, so an export names the route. */
+    static final String PROFILE_AD_SOURCE = "ProfileAdResponse";
+    private static final String PROFILE_AD_HOOK_FAMILY = "profile ads";
+    private static final String PROFILE_AD_REASON = "ProfileAdFilter";
+    private static final AtomicInteger profileAdRefusalLogCount = new AtomicInteger();
+
+    /**
+     * TikTok's own answer to whether a creator's video pager should ask for ads, on its way out.
+     *
+     * <p>Issue #2 was still open on 0.40.0: its reporter's export showed the pager asking a
+     * commerce endpoint of its own, {@code /tiktok/v1/ad/profile_page/}, whose answer carries a
+     * list of ads the module splices between the creator's videos. None of those ads were ever
+     * in the profile list the other hooks read, and the mid-roll splice never fired, which is
+     * why every export said nothing was removed. Answering no here while Remove feed ads is on
+     * means that request is never sent.
+     */
+    public static boolean allowProfileAdRequest(boolean eligible) {
+        boolean removing = ADS_FILTER.getEnabled();
+        HookStatus.bound(PROFILE_AD_HOOK_FAMILY, !eligible ? "request not wanted"
+                : removing ? "request refused" : "request allowed");
+        if (eligible && removing && BaseSettings.DEBUG.get()
+                && profileAdRefusalLogCount.getAndIncrement() < MAX_BATCH_LOGS) {
+            Logger.printInfo(() -> "[Morphe TikTok FeedFilter] Refused the profile page's own ad "
+                    + "request (TikTok wanted ads on this profile)");
+        }
+        return eligible && !removing;
+    }
+
+    /**
+     * The ad list of that request's response, wherever TikTok reads it: the request itself,
+     * the coroutine that inserts the ads and the ad measurement. With the request refused above
+     * this should not run at all; it is here for a request that reaches the endpoint some other
+     * way. The list is emptied in place, so TikTok's own insertion answers "Response list has no
+     * ads" and stops, and the later reads of the same response find nothing to count again.
+     */
+    @SuppressWarnings("rawtypes")
+    public static List filterProfileAdResponse(List ads) {
+        if (ads == null || ads.isEmpty()) return ads;
+        HookStatus.bound(PROFILE_AD_HOOK_FAMILY, "response read");
+        FeedFilterCounters.sawList(PROFILE_AD_SOURCE, ads.size());
+        boolean verbose = BaseSettings.DEBUG.get();
+        if (!ADS_FILTER.getEnabled()) {
+            for (Object item : ads) {
+                if (item instanceof Aweme) logKeptItem(PROFILE_AD_SOURCE, (Aweme) item, verbose);
+            }
+            return ads;
+        }
+        FeedFilterCounters.removed(PROFILE_AD_SOURCE, ads.size(), PROFILE_AD_REASON);
+        for (Object item : ads) {
+            if (item instanceof Aweme) logItem((Aweme) item, PROFILE_AD_REASON, verbose);
+        }
+        try {
+            ads.clear();
+            return ads;
+        } catch (UnsupportedOperationException immutable) {
+            return new ArrayList<>();
+        }
     }
 
     /**

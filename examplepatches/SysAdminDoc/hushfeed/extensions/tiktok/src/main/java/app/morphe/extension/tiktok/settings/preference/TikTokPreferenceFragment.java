@@ -1257,7 +1257,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
 
         String relativePath = getRelativePrimaryStoragePath(data.getData());
         if (relativePath == null) {
-            app.morphe.extension.shared.Utils.showToastLong(L10n.t("Choose a folder on internal storage. SD cards are not supported."));
+            preference.applyPickedPath(null);
             return;
         }
 

@@ -88,6 +88,13 @@ public class HoldRampTest {
                 106, HoldRamp.alphaFor(15_000L));
         assertEquals("the ramp does not reach the hold's own shade",
                 HoldRamp.FULL_ALPHA, HoldRamp.alphaFor(0L));
+        // The ramp's target and the panel it hands over to are a number in two files now. A ramp
+        // that overshoots its own panel lightens at the handoff instead of meeting it.
+        assertEquals("the ramp's target and the hold panel's scrim have drifted apart",
+                HoldRamp.FULL_ALPHA,
+                android.graphics.Color.alpha(
+                        app.morphe.extension.tiktok.settings.preference.SettingsUi
+                                .OVERLAY_SCRIM_SOLID));
         assertEquals("a budget counted in videos has nothing to ramp from",
                 0, HoldRamp.alphaFor(-1L));
 

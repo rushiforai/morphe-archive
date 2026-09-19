@@ -18,12 +18,8 @@ val enablePremiumPatch = bytecodePatch(
         // userHasFeature is the single private gate that every is*Enabled()
         // check on FeatureToggleRouter delegates to. Returning true here
         // flips every feature flag on without touching the 20+ public wrappers.
-        UserHasFeatureFingerprint.methodOrNull?.returnEarly(true)
-
-        // Secondary gate: some builds also consult the subscription state directly
-        // via SubscriptionManager.isPremium() before calling the feature router.
-        // Force it true so the paywall UI never shows even if userHasFeature is
-        // bypassed server-side in a future build.
-        IsPremiumFingerprint.methodOrNull?.returnEarly(true)
+        // Matched as mandatory (not methodOrNull) so a future rename fails loudly
+        // instead of silently shipping an inert patch.
+        UserHasFeatureFingerprint.method.returnEarly(true)
     }
 }

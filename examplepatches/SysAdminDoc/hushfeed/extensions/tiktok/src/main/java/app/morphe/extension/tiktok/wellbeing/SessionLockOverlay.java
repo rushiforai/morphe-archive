@@ -7,7 +7,7 @@ package app.morphe.extension.tiktok.wellbeing;
 import android.app.Activity;
 import android.content.Context;
 import android.media.AudioManager;
-import android.graphics.Color;
+
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -321,7 +321,7 @@ public final class SessionLockOverlay {
         panel.setGravity(Gravity.CENTER);
         int sidePad = SettingsUi.dp(activity, 24);
         panel.setPadding(sidePad, sidePad, sidePad, sidePad);
-        panel.setBackgroundColor(Color.argb(HoldRamp.FULL_ALPHA, 0, 0, 0));
+        panel.setBackgroundColor(SettingsUi.OVERLAY_SCRIM_SOLID);
         // Swallows every touch, so the feed underneath stops scrolling without being emptied.
         panel.setClickable(true);
         panel.setFocusable(true);
@@ -338,7 +338,7 @@ public final class SessionLockOverlay {
             panel.setAccessibilityPaneTitle(titleText);
         }
         title.setText(titleText);
-        title.setTextColor(Color.WHITE);
+        title.setTextColor(SettingsUi.OVERLAY_TEXT);
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         title.setGravity(Gravity.CENTER);
         panel.addView(title);
@@ -363,7 +363,7 @@ public final class SessionLockOverlay {
 
         TextView hint = new TextView(activity);
         hint.setText(L10n.t(activity, "Messages, profiles and search still work."));
-        hint.setTextColor(Color.argb(200, 235, 235, 240));
+        hint.setTextColor(SettingsUi.OVERLAY_TEXT_MUTED);
         hint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         hint.setGravity(Gravity.CENTER);
         panel.addView(hint);
@@ -413,7 +413,7 @@ public final class SessionLockOverlay {
         messages.setText(L10n.t(activity, "Open messages"));
         messages.setContentDescription(L10n.t(activity, "Open messages"));
         SettingsUi.markAsButton(messages);
-        messages.setTextColor(Color.argb(200, 255, 255, 255));
+        messages.setTextColor(SettingsUi.OVERLAY_TEXT_MUTED);
         messages.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
         messages.setGravity(Gravity.CENTER);
         messages.setPadding(padding, SettingsUi.dp(activity, 12), padding,

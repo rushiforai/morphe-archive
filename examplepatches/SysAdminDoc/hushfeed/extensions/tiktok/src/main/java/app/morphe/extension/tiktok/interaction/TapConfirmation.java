@@ -9,9 +9,11 @@ package app.morphe.extension.tiktok.interaction;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.view.HapticFeedbackConstants;
 import android.view.View;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor;
@@ -26,7 +28,7 @@ public final class TapConfirmation {
     private static String armedKey;
     private static long armedAt;
     private static Drawable previousForeground;
-    private static GradientDrawable ring;
+    private static Drawable ring;
     private static int generation;
     private TapConfirmation() {}
 
@@ -67,16 +69,9 @@ public final class TapConfirmation {
         armedKey = key;
         armedAt = now;
         previousForeground = view.getForeground();
-        ring = new GradientDrawable();
-        ring.setColor(Color.TRANSPARENT);
-        // A radius from the scale rather than the 1000 that was here, which asked for a full
-        // circle and got one that tracked whatever size the host's button happened to be.
-        ring.setCornerRadius(app.morphe.extension.tiktok.settings.preference.SettingsUi.dp(
-                view.getContext(),
-                app.morphe.extension.tiktok.settings.preference.SettingsUi.RADIUS_OVERLAY));
-        ring.setStroke(Math.max(2, Math.round(2 * view.getResources().getDisplayMetrics().density)),
-                app.morphe.extension.tiktok.settings.preference.SettingsUi.OVERLAY_ACCENT);
+        ring = armedRing(view);
         view.setForeground(ring);
+        view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
         int token = generation;
         MAIN.postDelayed(() -> { if (token == generation) clear(); }, 4000);
         // Two whole sentences rather than a verb spliced into one. The verb was an English
@@ -88,6 +83,27 @@ public final class TapConfirmation {
                 : L10n.t("Tap again to like");
         Utils.showToastShort(message);
         return false;
+    }
+
+    public static Drawable armedRing(View anchor) {
+        float density = anchor.getResources().getDisplayMetrics().density;
+        int radius = app.morphe.extension.tiktok.settings.preference.SettingsUi.dp(
+                anchor.getContext(),
+                app.morphe.extension.tiktok.settings.preference.SettingsUi.RADIUS_OVERLAY);
+        GradientDrawable inner = new GradientDrawable();
+        inner.setColor(Color.TRANSPARENT);
+        inner.setCornerRadius(radius);
+        inner.setStroke(Math.max(1, Math.round(1 * density)),
+                app.morphe.extension.tiktok.settings.preference.SettingsUi.OVERLAY_SCRIM);
+        GradientDrawable outer = new GradientDrawable();
+        outer.setColor(Color.TRANSPARENT);
+        outer.setCornerRadius(radius);
+        outer.setStroke(Math.max(2, Math.round(2 * density)),
+                app.morphe.extension.tiktok.settings.preference.SettingsUi.OVERLAY_TEXT);
+        LayerDrawable result = new LayerDrawable(new Drawable[]{outer, inner});
+        int inset = Math.max(2, Math.round(2 * density));
+        result.setLayerInset(1, inset, inset, inset, inset);
+        return result;
     }
 
     private static void clear() {

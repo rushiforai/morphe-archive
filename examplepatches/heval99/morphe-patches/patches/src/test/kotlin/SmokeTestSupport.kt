@@ -12,6 +12,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertNull
@@ -85,6 +86,76 @@ fun assertReturnsLicensedEnum(method: Method, label: String, diagnostics: String
     assertTrue(
         insns.getOrNull(1)?.opcode == Opcode.RETURN_OBJECT,
         "$label does not return immediately; second instruction is ${insns.getOrNull(1)?.opcode}\n$diagnostics"
+    )
+}
+
+fun assertReturnsInt(method: Method, expected: Int, label: String, diagnostics: String = "") {
+    val insns = method.instructions()
+    val first = insns.getOrNull(0)
+    assertTrue(
+        first is NarrowLiteralInstruction && first.narrowLiteral.toInt() == expected,
+        "$label was not forced to $expected; first instruction is ${first?.opcode}\n$diagnostics"
+    )
+    assertTrue(
+        insns.getOrNull(1)?.opcode == Opcode.RETURN,
+        "$label does not return immediately; second instruction is ${insns.getOrNull(1)?.opcode}\n$diagnostics"
+    )
+}
+
+fun assertReturnsMethodCall(
+    method: Method,
+    targetClass: String,
+    targetName: String,
+    label: String,
+    diagnostics: String = "",
+) {
+    val insns = method.instructions()
+    val first = insns.getOrNull(0) as? ReferenceInstruction
+    val ref = first?.reference as? MethodReference
+    assertTrue(
+        ref != null && ref.definingClass == targetClass && ref.name == targetName,
+        "$label does not call $targetClass.$targetName first; first instruction is ${first?.opcode} ${ref}\n$diagnostics"
+    )
+    assertTrue(
+        insns.getOrNull(2)?.opcode == Opcode.RETURN_OBJECT,
+        "$label does not return the call result; third instruction is ${insns.getOrNull(2)?.opcode}\n$diagnostics"
+    )
+}
+
+/** Asserts the method was replaced by an immediate `return-void`. */
+fun assertReturnsEarlyVoid(method: Method, label: String, diagnostics: String = "") {
+    assertTrue(
+        method.instructions().firstOrNull()?.opcode == Opcode.RETURN_VOID,
+        "$label does not return immediately; first instruction is ${method.instructions().firstOrNull()?.opcode}\n$diagnostics"
+    )
+}
+
+/** Asserts the method was replaced by `return FlowKt.flowOf(Boolean.TRUE)`. */
+fun assertReturnsTrueFlow(method: Method, label: String, diagnostics: String = "") {
+    val insns = method.instructions()
+    val first = insns.getOrNull(0) as? ReferenceInstruction
+    val field = first?.reference as? FieldReference
+    assertTrue(
+        first?.opcode == Opcode.SGET_OBJECT &&
+            field?.definingClass == "Ljava/lang/Boolean;" &&
+            field.name == "TRUE",
+        "$label does not start with Boolean.TRUE; first instruction is ${first?.opcode} ${field}\n$diagnostics"
+    )
+    val second = insns.getOrNull(1) as? ReferenceInstruction
+    val call = second?.reference as? MethodReference
+    assertTrue(
+        second?.opcode == Opcode.INVOKE_STATIC &&
+            call?.definingClass == "Lkotlinx/coroutines/flow/FlowKt;" &&
+            call.name == "flowOf",
+        "$label does not call FlowKt.flowOf; second instruction is ${second?.opcode} ${call}\n$diagnostics"
+    )
+    assertTrue(
+        insns.getOrNull(2)?.opcode == Opcode.MOVE_RESULT_OBJECT,
+        "$label does not move the flow result; third instruction is ${insns.getOrNull(2)?.opcode}\n$diagnostics"
+    )
+    assertTrue(
+        insns.getOrNull(3)?.opcode == Opcode.RETURN_OBJECT,
+        "$label does not return the flow; fourth instruction is ${insns.getOrNull(3)?.opcode}\n$diagnostics"
     )
 }
 

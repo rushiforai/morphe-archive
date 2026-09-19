@@ -6,7 +6,13 @@ package app.morphe.extension.tiktok.settings.preference;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.graphics.Typeface;
+import android.os.Build;
 import android.preference.Preference;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import android.view.View;
 
 import app.morphe.extension.shared.diagnostics.HookStatus;
@@ -51,26 +57,41 @@ public class HookStatusPreference extends Preference {
      * as the app reaches it, so leaving this screen and coming back is what refreshes the
      * answer; nothing here pushes an update while the screen is open.
      */
+    private Boolean lastOk;
+
     @Override
     public CharSequence getSummary() {
         Context context = getContext();
         List<String> report = HookStatus.report();
         if (report.isEmpty()) {
+            lastOk = null;
             return L10n.t(context,
                     "Nothing has been looked up yet. Use the app for a moment, then come back.");
         }
 
         List<String> broken = HookStatus.familiesMissingSomething();
         if (broken.isEmpty()) {
-            return report.size() == 1
+            lastOk = Boolean.TRUE;
+            String text = report.size() == 1
                     ? L10n.t(context, "One area was checked and everything it needs is here.")
                     : L10n.f(context, "%1$d areas were checked and everything they need is here.",
                             report.size());
+            return toned("✓ ", SettingsUi.okColor(), text);
         }
-        // Joined before the call, so the separator is not collected as text to translate.
+        lastOk = Boolean.FALSE;
         String surfaces = String.join(", ", broken);
-        return L10n.f(context, "Something is missing from %1$s. Tap for the whole report.",
+        String text = L10n.f(context, "Something is missing from %1$s. Tap for the whole report.",
                 surfaces);
+        return toned(SettingsUi.ATTENTION_GLYPH + " ", SettingsUi.attentionColor(), text);
+    }
+
+    private static CharSequence toned(String glyph, int color, String body) {
+        SpannableString result = new SpannableString(glyph + body);
+        result.setSpan(new ForegroundColorSpan(color), 0, glyph.length(),
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        result.setSpan(new StyleSpan(Typeface.BOLD), 0, glyph.length(),
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return result;
     }
 
     private void showReport() {
@@ -98,5 +119,9 @@ public class HookStatusPreference extends Preference {
     protected void onBindView(View view) {
         super.onBindView(view);
         Utils.setTitleAndSummaryColor(view);
+        if (Build.VERSION.SDK_INT >= 30 && lastOk != null) {
+            view.setStateDescription(lastOk
+                    ? L10n.t(getContext(), "OK") : L10n.t(getContext(), "Attention"));
+        }
     }
 }

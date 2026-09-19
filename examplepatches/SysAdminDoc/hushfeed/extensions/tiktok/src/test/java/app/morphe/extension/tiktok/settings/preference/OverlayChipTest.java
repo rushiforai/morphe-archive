@@ -145,6 +145,46 @@ public class OverlayChipTest {
                 + "in SettingsUi: " + offenders, 0, offenders.size());
     }
 
+    @Test public void noOverlayClassHandRollsColourLiterals() throws Exception {
+        java.io.File root = new java.io.File("src/main/java/app/morphe/extension/tiktok");
+        if (!root.isDirectory()) {
+            root = new java.io.File("extensions/tiktok/src/main/java/app/morphe/extension/tiktok");
+        }
+        assertTrue(root.isDirectory());
+        String[] overlayFiles = {
+                "blockauthor/BlockAuthorOverlay.java",
+                "wellbeing/SessionLockOverlay.java"
+        };
+        List<String> offenders = new ArrayList<>();
+        for (String name : overlayFiles) {
+            java.io.File file = new java.io.File(root, name);
+            // Not a skip. A renamed or moved overlay class would leave this gate passing
+            // against nothing at all, which is how the radius scan earned its own file count.
+            assertTrue(name + " is not where the scan expects it, so the scan guards nothing",
+                    file.exists());
+            String text = new String(java.nio.file.Files.readAllBytes(file.toPath()),
+                    java.nio.charset.StandardCharsets.UTF_8);
+            if (OVERLAY_COLOUR_LITERAL.matcher(text).find()) offenders.add(name);
+        }
+        assertEquals("overlay classes still hand-roll colour literals instead of using tokens: "
+                + offenders, 0, offenders.size());
+    }
+
+    private static final java.util.regex.Pattern OVERLAY_COLOUR_LITERAL =
+            java.util.regex.Pattern.compile("Color\\s*\\.\\s*(argb|WHITE)");
+
+    /** The mutation control: the colour pattern has to catch what the overlays used to hold. */
+    @Test public void theColourScanCanActuallyFail() {
+        assertTrue("the scan would not have caught the hold panel's own black",
+                OVERLAY_COLOUR_LITERAL.matcher(
+                        "panel.setBackgroundColor(Color.argb(238, 0, 0, 0));").find());
+        assertTrue("the scan would not have caught a bare white title",
+                OVERLAY_COLOUR_LITERAL.matcher("title.setTextColor(Color.WHITE);").find());
+        assertFalse("the scan flags a colour that does come from the tokens",
+                OVERLAY_COLOUR_LITERAL.matcher(
+                        "title.setTextColor(SettingsUi.OVERLAY_TEXT);").find());
+    }
+
     /** The mutation control for the scan: the pattern has to catch what it is looking for. */
     @Test public void theSourceScanCanActuallyFail() {
         java.util.regex.Pattern bare = java.util.regex.Pattern.compile(

@@ -57,6 +57,15 @@ public class Aweme {
         throw new UnsupportedOperationException("Stub");
     }
 
+    /** The bottom banners TikTok draws under the video, each a {@code BannerCommonStruct}. */
+    public List getBanners() {
+        throw new UnsupportedOperationException("Stub");
+    }
+
+    public void setBanners(List banners) {
+        throw new UnsupportedOperationException("Stub");
+    }
+
     public PhotoModeImageInfo getPhotoModeImageInfo() {
         throw new UnsupportedOperationException("Stub");
     }

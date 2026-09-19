@@ -73,6 +73,7 @@ Activity Center (PIA),Activity Center (PIA)
 Add,Add
 Add a block button to the video player that blocks the creator of the current video in one tap. An undo action is shown after each block.,Add a block button to the video player that blocks the creator of the current video in one tap. An undo action is shown after each block.
 Add a button beside the block control to send feedback about the current video.,Add a button beside the block control to send feedback about the current video.
+Add a creator,Add a creator
 Add a separate button that skips this account locally without blocking it.,Add a separate button that skips this account locally without blocking it.
 Add a separate button that skips videos using the current sound.,Add a separate button that skips videos using the current sound.
 Add hidden creator,Add hidden creator
@@ -106,10 +107,12 @@ Answer TikTok's reads of your contacts with an empty list. Find Friends and Peop
 "Answer TikTok's scan of the apps on this phone with an empty list. A check for one named app, which TikTok also uses to open an app you tap, is left alone.","Answer TikTok's scan of the apps on this phone with an empty list. A check for one named app, which TikTok also uses to open an app you tap, is left alone."
 App,App
 App AB,App AB
+Appearance,Appearance
 Applies to both video and photo downloads.,Applies to both video and photo downloads.
 Apply,Apply
 Around the video,Around the video
 Arrange your feed and bottom tabs,Arrange your feed and bottom tabs
+Attention,Attention
 Audio,Audio
 Auto translate comments,Auto translate comments
 Auto-advance session limit,Auto-advance session limit
@@ -233,7 +236,6 @@ Country ISO,Country ISO
 Country and network preferences,Country and network preferences
 Counts under the buttons,Counts under the buttons
 Create,Create
-Creator handle or id,Creator handle or id
 Creators and sounds,Creators and sounds
 Creators hidden from later feed batches by the player action. Search the list and remove one entry at a time.,Creators hidden from later feed batches by the player action. Search the list and remove one entry at a time.
 Current,Current
@@ -278,6 +280,7 @@ Download path updated,Download path updated
 Downloads,Downloads
 "Drag to move, release to place","Drag to move, release to place"
 Drama and Series,Drama and Series
+"Draw TikTok's text in your device's font instead of TikTok Sans. Icons, gift animations and the @ and # glyphs keep their own fonts. Restart TikTok to apply this.","Draw TikTok's text in your device's font instead of TikTok Sans. Icons, gift animations and the @ and # glyphs keep their own fonts. Restart TikTok to apply this."
 "Drop the notification saying somebody new followed you before it reaches the drawer. Every other notification is left alone, and the follower still appears in the Inbox.","Drop the notification saying somebody new followed you before it reaches the drawer. Every other notification is left alone, and the follower still appears in the Inbox."
 "Each area, how many of the things it looks for are in this build and how many are not.","Each area, how many of the things it looks for are in this build and how many are not."
 Empty,Empty
@@ -358,6 +361,7 @@ Generated defaults,Generated defaults
 Gestures,Gestures
 Ghost mode,Ghost mode
 Hand-off,Hand-off
+Handle or id,Handle or id
 Hidden %1$s locally,Hidden %1$s locally
 Hidden commenters,Hidden commenters
 Hidden creators,Hidden creators
@@ -422,7 +426,7 @@ Hide the LIVE videos from the feed.,Hide the LIVE videos from the feed.
 Hide the Message requests row.,Hide the Message requests row.
 Hide the New followers row.,Hide the New followers row.
 Hide the Send to row,Hide the Send to row
-Hide the Tako AI feed bubble above the profile button.,Hide the Tako AI feed bubble above the profile button.
+Hide the Tako AI bubble above the profile button and the Ask bar under videos.,Hide the Tako AI bubble above the profile button and the Ask bar under videos.
 Hide the TikTok Tako assistant conversation.,Hide the TikTok Tako assistant conversation.
 Hide the activity status control in the Inbox header.,Hide the activity status control in the Inbox header.
 Hide the add people icon,Hide the add people icon
@@ -488,6 +492,7 @@ Inserted cards,Inserted cards
 Keep a local record of what you have watched and drop those videos from later feed pages.,Keep a local record of what you have watched and drop those videos from later feed pages.
 "Keep automatic advance enabled, and show TikTok's own Auto scroll action in the video panel even if your account never had it. Pauses and open dialogs still stop scrolling. Restart TikTok to apply this. Then use this switch to turn it off.","Keep automatic advance enabled, and show TikTok's own Auto scroll action in the video panel even if your account never had it. Pauses and open dialogs still stop scrolling. Restart TikTok to apply this. Then use this switch to turn it off."
 Keep captions in clear display,Keep captions in clear display
+Keep going,Keep going
 Keep the Favorites tab,Keep the Favorites tab
 Keep the clock and status icons off the screen while TikTok is open. Swipe down from the top to peek at them.,Keep the clock and status icons off the screen while TikTok is open. Swipe down from the top to peek at them.
 Keep the screen's refresh rate,Keep the screen's refresh rate
@@ -499,6 +504,7 @@ Kinds of post,Kinds of post
 LIVE,LIVE
 LIVE replays,LIVE replays
 LIVE settings,LIVE settings
+LIVE share actions,LIVE share actions
 LIVE videos,LIVE videos
 Lab data reset. Undo last Lab change is in the menu. Restart TikTok to apply this.,Lab data reset. Undo last Lab change is in the menu. Restart TikTok to apply this.
 "Lab data was over its rule limit, so it was cleared without an undo copy. Restart TikTok to apply this.","Lab data was over its rule limit, so it was cleared without an undo copy. Restart TikTok to apply this."
@@ -605,6 +611,7 @@ Nothing is playing to seek,Nothing is playing to seek
 Nothing on this page changes what TikTok does until they are on.,Nothing on this page changes what TikTok does until they are on.
 Nothing to undo yet.,Nothing to undo yet.
 Notices from this project and the ones it is built on,Notices from this project and the ones it is built on
+OK,OK
 Off,Off
 Off forces false; on forces true. Reset returns control to TikTok,Off forces false; on forces true. Reset returns control to TikTok
 Offline videos,Offline videos
@@ -672,6 +679,7 @@ Privacy,Privacy
 Privacy and system,Privacy and system
 Profile,Profile
 Profile picture saved to %1$s,Profile picture saved to %1$s
+Profile share actions,Profile share actions
 Promotional music,Promotional music
 Proof,Proof
 Publication age,Publication age
@@ -761,6 +769,7 @@ Saved %1$s original photos,Saved %1$s original photos
 Saved one original photo,Saved one original photo
 "Saved, override off","Saved, override off"
 Saved. Restart TikTok to apply this.,Saved. Restart TikTok to apply this.
+Saving,Saving
 Saving %1$s original photos,Saving %1$s original photos
 Saving settings backup,Saving settings backup
 Saving sticker,Saving sticker
@@ -1028,12 +1037,14 @@ Undo clearing seen videos,Undo clearing seen videos
 Undo last Lab change,Undo last Lab change
 Undo last restore or reset,Undo last restore or reset
 Undoing the last change,Undoing the last change
+"Until you save a choice here, this sheet hides the same actions as the share action checklist.","Until you save a choice here, this sheet hides the same actions as the share action checklist."
 "Up to 8 speeds from 0.5 to 3, separated by commas. Example: 0.5, 1, 1.5, 2, 2.5, 3. Leave empty for TikTok's list. Restart TikTok to apply this.","Up to 8 speeds from 0.5 to 3, separated by commas. Example: 0.5, 1, 1.5, 2, 2.5, 3. Leave empty for TikTok's list. Restart TikTok to apply this."
 "Use 0 for TikTok's size, or 12 to 48. Applies to the next caption.","Use 0 for TikTok's size, or 12 to 48. Applies to the next caption."
 Use Save JSON for this large report,Use Save JSON for this large report
 "Use TikTok's native hold, slide down, and release gesture to lock 2x speed.","Use TikTok's native hold, slide down, and release gesture to lock 2x speed."
 Use a default playback speed,Use a default playback speed
 Use non-personalized search,Use non-personalized search
+Use system font,Use system font
 Use the preset for the region TikTok reports for your account and its shop too. May affect search.,Use the preset for the region TikTok reports for your account and its shop too. May affect search.
 "Use the selected country and operator values. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.","Use the selected country and operator values. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this."
 "Use the selected country. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.","Use the selected country. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this."

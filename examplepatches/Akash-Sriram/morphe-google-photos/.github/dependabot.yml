@@ -1,0 +1,34 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    labels: []
+    directory: /
+    target-branch: main
+    schedule:
+      interval: monthly
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  - package-ecosystem: npm
+    labels: []
+    directory: /
+    target-branch: main
+    schedule:
+      interval: monthly
+    groups:
+      npm_and_yarn:
+        patterns:
+          - "*"
+
+  - package-ecosystem: gradle
+    labels: []
+    directory: /
+    target-branch: main
+    schedule:
+      interval: monthly
+    groups:
+      gradle:
+        patterns:
+          - "*"

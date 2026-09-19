@@ -107,10 +107,19 @@ STREAMING_DATA_REQUEST_PATH = (
 # and fetch loop that Dual VoT extends for ordinary byte-addressable audio
 # streams. Resolve only this exact three-way conflict. A later edit to any side
 # changes its blob id and deliberately falls back to a manual source merge.
-STREAMING_DATA_REQUEST_CONFLICT_BLOBS = (
+STREAMING_DATA_REQUEST_DOWNLOAD_CONFLICT_BLOBS = (
     "2d468bc3ba3464b15b72dde8eadc35eeaced8811",
     "997cfd829f487b438b4190409c5e8059c09a89eb",
     "c6848c11ac1b23d985794c79973f365ae9b3f883",
+)
+
+# Morphe 1.44.0-dev.5 made download clients explicit after the earlier download
+# support had already been combined with Dual VoT's direct-stream path. Keep the
+# exact blob guard so any later edit to the common request loop remains manual.
+STREAMING_DATA_REQUEST_CLIENT_ORDER_CONFLICT_BLOBS = (
+    "c6848c11ac1b23d985794c79973f365ae9b3f883",
+    "a5cac157943a1ced527aa9ac33781888c3b5ce01",
+    "e3b9f5eebb00b69212c17ac4bc213fc1d9fa4c7b",
 )
 
 DUAL_YANDEX_STRINGS_PATH = re.compile(
@@ -351,7 +360,7 @@ def replace_exact_once(value: str, old: str, new: str, label: str) -> str:
 
 def merge_streaming_data_request_download_support(ours: str) -> str:
     """Combine the known Dual direct-stream path with Morphe downloads."""
-    merged_markers = (
+    original_merged_markers = (
         "fetchDirectStreamRequest",
         "fetchRequestForDownload",
         "DIRECT_STREAM_CLIENT_ORDER",
@@ -359,7 +368,20 @@ def merge_streaming_data_request_download_support(ours: str) -> str:
         "directStreamsOnly, includeVideoDetails",
         "getPlayerResponseConnectionFromRoute(clientType, includeVideoDetails)",
     )
-    if all(marker in ours for marker in merged_markers):
+    client_order_merged_markers = (
+        "private static List<ClientType> buildClientOrder",
+        "fetchDirectStreamRequest",
+        "DIRECT_STREAM_CLIENT_ORDER, false, true",
+        "clientOrderToUse, false, false",
+        "clientOrder, true, false",
+        "boolean isDownload,",
+        "boolean directStreamsOnly",
+        "getPlayerResponseConnectionFromRoute(clientType, includeVideoDetails)",
+    )
+    if (
+        all(marker in ours for marker in original_merged_markers)
+        or all(marker in ours for marker in client_order_merged_markers)
+    ):
         return ours
 
     replacements = (
@@ -464,6 +486,184 @@ def merge_streaming_data_request_download_support(ours: str) -> str:
     for old, new, label in replacements:
         merged = replace_exact_once(merged, old, new, label)
 
+    for marker in original_merged_markers:
+        if marker not in merged:
+            raise SyncError(f"Merged streaming request is missing: {marker}")
+    return merged
+
+
+def merge_streaming_data_request_client_order(ours: str) -> str:
+    """Combine Morphe's explicit download clients with Dual direct streams."""
+    merged_markers = (
+        "private static List<ClientType> buildClientOrder",
+        "fetchDirectStreamRequest",
+        "DIRECT_STREAM_CLIENT_ORDER, false, true",
+        "clientOrderToUse, false, false",
+        "clientOrder, true, false",
+        "boolean isDownload,",
+        "boolean directStreamsOnly",
+        "No direct stream client succeeded",
+        "No client could resolve the download",
+    )
+    if all(marker in ours for marker in merged_markers):
+        return ours
+
+    replacements = (
+        (
+            "    public static void setClientOrderToUse(List<ClientType> availableClients, ClientType preferredClient) {\n"
+            "        Objects.requireNonNull(preferredClient);\n\n"
+            "        List<ClientType> orderToUse = new ArrayList<>(availableClients.size());\n"
+            "        orderToUse.add(preferredClient);\n\n"
+            "        for (ClientType client : availableClients) {\n"
+            "            if (client.requireJS && !JavaScriptEngineSupport.supportsJavaScriptEngine()) {\n"
+            "                Logger.printDebug(() -> \"Could not find JavaScript engine. Skipping JavaScript client: \" + client.name());\n"
+            "                continue;\n"
+            "            }\n\n"
+            "            if (client != preferredClient) {\n"
+            "                orderToUse.add(client);\n"
+            "            }\n"
+            "        }\n\n"
+            "        clientOrderToUse = orderToUse.toArray(new ClientType[0]);\n"
+            "        Logger.printDebug(() -> \"Available spoof clients: \" + orderToUse);\n"
+            "    }",
+            "    public static void setClientOrderToUse(List<ClientType> availableClients, ClientType preferredClient) {\n"
+            "        List<ClientType> orderToUse = buildClientOrder(availableClients, preferredClient);\n\n"
+            "        clientOrderToUse = orderToUse.toArray(new ClientType[0]);\n"
+            "        Logger.printDebug(() -> \"Available spoof clients: \" + orderToUse);\n"
+            "    }\n\n"
+            "    private static List<ClientType> buildClientOrder(List<ClientType> availableClients,\n"
+            "                                                     ClientType preferredClient) {\n"
+            "        Objects.requireNonNull(preferredClient);\n\n"
+            "        List<ClientType> orderToUse = new ArrayList<>(availableClients.size());\n"
+            "        orderToUse.add(preferredClient);\n\n"
+            "        for (ClientType client : availableClients) {\n"
+            "            if (client.requireJS && !JavaScriptEngineSupport.supportsJavaScriptEngine()) {\n"
+            "                Logger.printDebug(() -> \"Could not find JavaScript engine. Skipping JavaScript client: \" + client.name());\n"
+            "                continue;\n"
+            "            }\n\n"
+            "            if (client != preferredClient) {\n"
+            "                orderToUse.add(client);\n"
+            "            }\n"
+            "        }\n\n"
+            "        return orderToUse;\n"
+            "    }",
+            "client order builder",
+        ),
+        (
+            "            boolean directStreamsOnly,\n"
+            "            boolean includeVideoDetails\n"
+            "    ) {\n"
+            "        this.videoId = videoId;\n"
+            "        this.isInline = isInline;\n"
+            "        this.future = Utils.submitOnBackgroundThread(\n"
+            "                () -> fetch(resolveVideoIdToFetch(videoId), isInline, playerHeaders,\n"
+            "                        directStreamsOnly, includeVideoDetails));",
+            "            boolean includeVideoDetails,\n"
+            "            ClientType[] clientOrder,\n"
+            "            boolean isDownload,\n"
+            "            boolean directStreamsOnly\n"
+            "    ) {\n"
+            "        this.videoId = videoId;\n"
+            "        this.isInline = isInline;\n"
+            "        this.future = Utils.submitOnBackgroundThread(\n"
+            "                () -> fetch(resolveVideoIdToFetch(videoId), isInline, playerHeaders,\n"
+            "                        includeVideoDetails, clientOrder, isDownload, directStreamsOnly));",
+            "streaming request constructor",
+        ),
+        (
+            "new StreamingDataRequest(videoId, isInline, fetchHeaders, false, false)",
+            "new StreamingDataRequest(videoId, isInline, fetchHeaders, false,\n"
+            "                clientOrderToUse, false, false)",
+            "cached request constructor call",
+        ),
+        (
+            "new StreamingDataRequest(videoId, isInline, fetchHeaders, true, false)",
+            "new StreamingDataRequest(videoId, isInline, fetchHeaders, false,\n"
+            "                DIRECT_STREAM_CLIENT_ORDER, false, true)",
+            "direct request constructor call",
+        ),
+        (
+            "    public static StreamingDataRequest fetchRequestForDownload(String videoId) {\n"
+            "        // The video details name the saved file, so the download asks for them as well.\n"
+            "        return new StreamingDataRequest(videoId, false, lastPlayerHeaders, false, true);\n"
+            "    }",
+            "    public static StreamingDataRequest fetchRequestForDownload(String videoId,\n"
+            "                                                               List<ClientType> downloadClients,\n"
+            "                                                               ClientType preferredClient) {\n"
+            "        ClientType[] clientOrder = buildClientOrder(downloadClients, preferredClient)\n"
+            "                .toArray(new ClientType[0]);\n"
+            "        // The video details name the saved file, so the download asks for them as well.\n"
+            "        return new StreamingDataRequest(videoId, false, lastPlayerHeaders, true,\n"
+            "                clientOrder, true, false);\n"
+            "    }",
+            "download request method",
+        ),
+        (
+            "            boolean directStreamsOnly,\n"
+            "            boolean includeVideoDetails\n"
+            "    ) {\n"
+            "        final boolean debugEnabled = BaseSettings.DEBUG.get();\n"
+            "        final long fetchStartTime = System.currentTimeMillis();\n"
+            "        String authorization = playerHeaders.get(AUTHORIZATION_HEADER);\n"
+            "        ClientType[] clients = directStreamsOnly\n"
+            "                ? DIRECT_STREAM_CLIENT_ORDER\n"
+            "                : clientOrderToUse;",
+            "            boolean includeVideoDetails,\n"
+            "            ClientType[] clientOrder,\n"
+            "            boolean isDownload,\n"
+            "            boolean directStreamsOnly\n"
+            "    ) {\n"
+            "        final boolean debugEnabled = BaseSettings.DEBUG.get();\n"
+            "        final long fetchStartTime = System.currentTimeMillis();\n"
+            "        String authorization = playerHeaders.get(AUTHORIZATION_HEADER);\n"
+            "        ClientType[] clients = clientOrder;",
+            "stream fetch method",
+        ),
+        (
+            "            final boolean showErrorToast = !directStreamsOnly\n"
+            "                    && ((++i == clients.length) || debugEnabled);",
+            "            // Independent direct/download requests report their own failure.\n"
+            "            final boolean showErrorToast = ((++i == clients.length) || debugEnabled)\n"
+            "                    && !isDownload && !directStreamsOnly;",
+            "request error reporting",
+        ),
+        (
+            "                if (!directStreamsOnly) {\n"
+            "                    lastSpoofedClientType = clientType;\n"
+            "                }",
+            "                // Stats for nerds describes playback, not a direct/download request.\n"
+            "                if (!isDownload && !directStreamsOnly) {\n"
+            "                    lastSpoofedClientType = clientType;\n"
+            "                }",
+            "spoof client state",
+        ),
+        (
+            "        if (directStreamsOnly) {\n"
+            "            Logger.printInfo(() -> \"No direct stream client succeeded\");\n"
+            "            return null;\n"
+            "        }\n\n"
+            "        lastSpoofedClientType = null;",
+            "        if (directStreamsOnly) {\n"
+            "            Logger.printInfo(() -> \"No direct stream client succeeded\");\n"
+            "            return null;\n"
+            "        }\n"
+            "        if (isDownload) {\n"
+            "            Logger.printDebug(() -> \"No client could resolve the download: \" + videoId);\n"
+            "            return null;\n"
+            "        }\n\n"
+            "        lastSpoofedClientType = null;",
+            "independent request failure",
+        ),
+        (
+            "        ClientType preferredClient = clientOrderToUse[0];",
+            "        ClientType preferredClient = clients[0];",
+            "preferred client error hint",
+        ),
+    )
+    merged = ours
+    for old, new, label in replacements:
+        merged = replace_exact_once(merged, old, new, label)
+
     for marker in merged_markers:
         if marker not in merged:
             raise SyncError(f"Merged streaming request is missing: {marker}")
@@ -478,13 +678,17 @@ def resolve_streaming_data_request_conflict() -> None:
         output_of("git", "rev-parse", f":{stage}:{STREAMING_DATA_REQUEST_PATH}")
         for stage in (1, 2, 3)
     )
-    if stage_blobs != STREAMING_DATA_REQUEST_CONFLICT_BLOBS:
+    if stage_blobs == STREAMING_DATA_REQUEST_DOWNLOAD_CONFLICT_BLOBS:
+        merge_known_conflict = merge_streaming_data_request_download_support
+    elif stage_blobs == STREAMING_DATA_REQUEST_CLIENT_ORDER_CONFLICT_BLOBS:
+        merge_known_conflict = merge_streaming_data_request_client_order
+    else:
         return
 
     ours = run(
         "git", "show", f":2:{STREAMING_DATA_REQUEST_PATH}", capture=True
     ).stdout
-    merged = merge_streaming_data_request_download_support(ours)
+    merged = merge_known_conflict(ours)
     destination = ROOT / STREAMING_DATA_REQUEST_PATH
     destination.write_text(merged, encoding="utf-8", newline="")
     run("git", "add", "--", STREAMING_DATA_REQUEST_PATH)

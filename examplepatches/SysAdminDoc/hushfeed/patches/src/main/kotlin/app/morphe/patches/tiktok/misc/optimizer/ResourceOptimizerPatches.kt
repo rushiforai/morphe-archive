@@ -103,7 +103,7 @@ val languagePackPurgerPatch = rawResourcePatch(
     )
 
     execute {
-        stripVerifiedLanguagePacks(get("."), targetLocales, languageInventory).report("Language Pack Purger")
+        stripVerifiedLanguagePacks(get("."), targetLocales, languageInventories).report("Language Pack Purger")
     }
 }
 
@@ -292,10 +292,40 @@ private val liveCastFiles4693 = listOf(
     file("lib/armeabi-v7a/libdex_df_live_cast.so", "499ed07c6858a5739f55f46bb61b3de64e4dd0aacac76a6f22b01f3f8f058a76"),
 )
 
+// APKMirror also sells 46.2.3 as a split bundle (tiktok-46-2-3-2, "arm64-v8a + arm-v7a",
+// 120-640dpi). Morphe Manager and the desktop CLI merge every split in it, and the merged APK
+// carries a strict subset of the universal APK's files, every one of them byte-identical: all of
+// the arm64 libraries, only part of the armeabi-v7a set, one C2PA debug library fewer, and 25 of
+// the 64 language asset directories, because those ship as language splits. Each bundle profile is
+// the 46.2.3 profile less the files the bundle does not have, read off the bundle on 2026-09-18
+// (issue #9, where all four strips refused it).
+private const val BUNDLE_4623 = "TikTok 46.2.3 split bundle"
+
+/** [profile] without [absent], every one of which it must list. */
+private fun bundleOf(profile: ResourceProfile, vararg absent: String): ResourceProfile {
+    val paths = profile.files.map { it.path }.toSet()
+    val missing = absent.filterNot { it in paths }
+    check(missing.isEmpty()) { "${profile.label} does not list $missing, so it cannot be left out of the bundle profile" }
+    return ResourceProfile(BUNDLE_4623, profile.files.filterNot { it.path in absent })
+}
+
+private val coreAssets4623 = ResourceProfile(
+    "TikTok 46.2.3",
+    microblinkFiles + c2paArm64Files + c2paArmeabiFiles + pitayaFiles4623 + monitorFiles4623 + liveCastFiles4623,
+)
+
 internal val coreAssetProfiles = listOf(
-    ResourceProfile(
-        "TikTok 46.2.3",
-        microblinkFiles + c2paArm64Files + c2paArmeabiFiles + pitayaFiles4623 + monitorFiles4623 + liveCastFiles4623,
+    coreAssets4623,
+    bundleOf(
+        coreAssets4623,
+        "lib/arm64-v8a/libtt_c2pa_sdk_d.so",
+        "lib/armeabi-v7a/libtt_c2pa_sdk_d.so",
+        "lib/armeabi-v7a/libPitayaBdComponent.so",
+        "lib/armeabi-v7a/libPitayaTTPPolicy.so",
+        "lib/armeabi-v7a/libTTNativeML.so",
+        "lib/armeabi-v7a/libclient_ai_impl_df_jni.so",
+        "lib/armeabi-v7a/libdex_df_pitaya.so",
+        "lib/armeabi-v7a/libdex_df_live_cast.so",
     ),
     ResourceProfile(
         "TikTok 46.7.3",
@@ -330,12 +360,15 @@ private fun studioProfile(label: String, cameraDigest: String, additionalFiles: 
     studioArm64Files + file("lib/arm64-v8a/libdex_df_camera_biz.so", cameraDigest) + additionalFiles,
 )
 
+private val studioAssets4623 = studioProfile(
+    "TikTok 46.2.3",
+    "007e1196a936af0c15ced6749b01b5cfb29f8d16858af7c3a9eaffd0c57a01a7",
+    studioArmV7Files,
+)
+
 internal val studioAssetProfiles = listOf(
-    studioProfile(
-        "TikTok 46.2.3",
-        "007e1196a936af0c15ced6749b01b5cfb29f8d16858af7c3a9eaffd0c57a01a7",
-        studioArmV7Files,
-    ),
+    studioAssets4623,
+    bundleOf(studioAssets4623, *studioArmV7Files.map { it.path }.toTypedArray()),
     studioProfile("TikTok 46.7.3", "a373335786f26d0da9089a0c470c9b97b2beb6a2b59e4532e9f3dd6fb2ca793b"),
     studioProfile("TikTok 46.8.3", "9dda032818072944eaca3c08cbdf55103ceda0cc9707e7130993c54c204105f4"),
     // Both ABIs again, like 46.2.3, with one camera library digest shared by the two and every
@@ -395,16 +428,19 @@ internal val liveAssetProfiles = listOf(
     ),
 )
 
-internal val p2pRelayProfiles = listOf(
-    ResourceProfile(
-        "TikTok 46.2.3",
-        listOf(
-            file("lib/arm64-v8a/libavmdlp2pv2.so", "d2be5f45bbe3c46f47dbb14ec14721da4a1e9de31bcdbe0d43db0611e1d33e9c"),
-            file("lib/arm64-v8a/libp2plivevdp.so", "ed35b032fac7c169860d3f37bc3be1933df9bddc8ac6785413f9608945946337"),
-            file("lib/armeabi-v7a/libavmdlp2pv2.so", "4455cf9ce576de61c04368e869d27abc485fac1e33046e14a87abad7f422a429"),
-            file("lib/armeabi-v7a/libp2plivevdp.so", "dd8a626f8b0efe36a883096923bed56ecb457e9408b26262c844442901dc1d09"),
-        ),
+private val p2pRelay4623 = ResourceProfile(
+    "TikTok 46.2.3",
+    listOf(
+        file("lib/arm64-v8a/libavmdlp2pv2.so", "d2be5f45bbe3c46f47dbb14ec14721da4a1e9de31bcdbe0d43db0611e1d33e9c"),
+        file("lib/arm64-v8a/libp2plivevdp.so", "ed35b032fac7c169860d3f37bc3be1933df9bddc8ac6785413f9608945946337"),
+        file("lib/armeabi-v7a/libavmdlp2pv2.so", "4455cf9ce576de61c04368e869d27abc485fac1e33046e14a87abad7f422a429"),
+        file("lib/armeabi-v7a/libp2plivevdp.so", "dd8a626f8b0efe36a883096923bed56ecb457e9408b26262c844442901dc1d09"),
     ),
+)
+
+internal val p2pRelayProfiles = listOf(
+    p2pRelay4623,
+    bundleOf(p2pRelay4623, "lib/armeabi-v7a/libavmdlp2pv2.so", "lib/armeabi-v7a/libp2plivevdp.so"),
     ResourceProfile(
         "TikTok 46.7.3",
         listOf(
@@ -433,19 +469,31 @@ internal val p2pRelayProfiles = listOf(
     ),
 )
 
-private val languageInventory = LanguageInventoryContract(
-    directories = setOf(
-        "af", "ar", "az", "bg", "bn", "ca", "ceb", "cs", "da", "de", "el", "en", "es", "et", "fa", "fi",
-        "fil", "fr", "ga", "gu", "he", "hi", "hr", "hu", "id", "in", "is", "it", "iw", "ja", "jv", "kk",
-        "km", "kn", "ko", "lt", "lv", "ml", "mr", "ms", "my", "nb", "nl", "or", "pa", "pl", "pt", "ro",
-        "ru", "sk", "sl", "sq", "sv", "sw", "ta", "te", "th", "tr", "uk", "ur", "uz", "vi", "zh", "zu",
+internal val languageInventories = listOf(
+    LanguageInventoryContract(
+        directories = setOf(
+            "af", "ar", "az", "bg", "bn", "ca", "ceb", "cs", "da", "de", "el", "en", "es", "et", "fa", "fi",
+            "fil", "fr", "ga", "gu", "he", "hi", "hr", "hu", "id", "in", "is", "it", "iw", "ja", "jv", "kk",
+            "km", "kn", "ko", "lt", "lv", "ml", "mr", "ms", "my", "nb", "nl", "or", "pa", "pl", "pt", "ro",
+            "ru", "sk", "sl", "sq", "sv", "sw", "ta", "te", "th", "tr", "uk", "ur", "uz", "vi", "zh", "zu",
+        ),
+        pathManifestSha256 = "38f412319f00a31a025e03095ea9bf4266b412c2322d2a6b0b4a031a073b0c08",
+        contentManifestSha256 = setOf(
+            "147b0f0f1dba4e5baac4cccc512cc39f1fc2601291828a908825b382b0442e51",
+            "4af4860c7f3f27fd9195bc6b2e0e976698861dc3cb82bba6465b06b9da14843c",
+            "a42fac1f4d1fa86e0cfbbf3286c4daca12a6172944789a797bb27ac028ad1206",
+            // 46.9.3: the same 64 directories and the same path manifest, new strings.
+            "8bea806dfa98e0f0bf00362acf9f7afd065c77a90541e8a3bbb61b368898bab8",
+        ),
     ),
-    pathManifestSha256 = "38f412319f00a31a025e03095ea9bf4266b412c2322d2a6b0b4a031a073b0c08",
-    contentManifestSha256 = setOf(
-        "147b0f0f1dba4e5baac4cccc512cc39f1fc2601291828a908825b382b0442e51",
-        "4af4860c7f3f27fd9195bc6b2e0e976698861dc3cb82bba6465b06b9da14843c",
-        "a42fac1f4d1fa86e0cfbbf3286c4daca12a6172944789a797bb27ac028ad1206",
-        // 46.9.3: the same 64 directories and the same path manifest, new strings.
-        "8bea806dfa98e0f0bf00362acf9f7afd065c77a90541e8a3bbb61b368898bab8",
+    // The 46.2.3 split bundle: 25 language splits, 102 files, each byte-identical to the
+    // universal APK's copy.
+    LanguageInventoryContract(
+        directories = setOf(
+            "ar", "de", "en", "es", "et", "fi", "fr", "hi", "hu", "id", "in", "it", "ja", "ko", "ms", "nl",
+            "pl", "pt", "ru", "sv", "th", "tr", "uk", "vi", "zh",
+        ),
+        pathManifestSha256 = "33aad0753feebf540e226b415eecfc59323d40f7b52dfc70a06bd278e7acc9a6",
+        contentManifestSha256 = setOf("9c41da0041c61b4eab8b891b6bb2749223330bbecdd6a8d5808ac2cac7226ae8"),
     ),
 )

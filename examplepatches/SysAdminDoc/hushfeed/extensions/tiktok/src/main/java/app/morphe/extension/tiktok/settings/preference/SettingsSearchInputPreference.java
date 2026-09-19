@@ -6,6 +6,11 @@
 package app.morphe.extension.tiktok.settings.preference;
 
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.drawable.Drawable;
 import android.preference.Preference;
 import android.text.InputType;
 import android.text.Editable;
@@ -16,6 +21,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -32,7 +38,7 @@ public final class SettingsSearchInputPreference extends Preference {
     /** The page is entered once; a recreation with a query in the box keeps the box. */
     private boolean focusedOnEntry;
     private EditText editText;
-    private TextView clearButton;
+    private View clearButton;
     private TextView resultCount;
     private int shownResults = -1;
 
@@ -92,20 +98,21 @@ public final class SettingsSearchInputPreference extends Preference {
         });
         row.addView(editText, new LinearLayout.LayoutParams(0, -2, 1));
 
-        clearButton = new TextView(context);
-        clearButton.setTag("settings_search_clear");
-        clearButton.setText("×");
-        clearButton.setTextSize(24);
-        clearButton.setTextColor(SettingsUi.accent());
-        SettingsUi.styleTextAction(clearButton, true);
-        clearButton.setGravity(Gravity.CENTER);
-        clearButton.setContentDescription(L10n.t(context, "Clear search"));
-        clearButton.setFocusable(true);
-        clearButton.setClickable(true);
-        clearButton.setMinimumWidth(SettingsUi.dp(context, 48));
-        clearButton.setMinimumHeight(SettingsUi.dp(context, 48));
-        clearButton.setOnClickListener(view -> editText.setText(""));
-        row.addView(clearButton, new LinearLayout.LayoutParams(-2, -2));
+        ImageView clear = new ImageView(context);
+        clear.setTag("settings_search_clear");
+        clear.setImageDrawable(new ClearDrawable(context));
+        clear.setScaleType(ImageView.ScaleType.CENTER);
+        clear.setBackground(SettingsUi.roundedSurface(context, SettingsUi.RADIUS_CONTROL, false));
+        clear.setContentDescription(L10n.t(context, "Clear search"));
+        SettingsUi.markAsButton(clear);
+        clear.setFocusable(true);
+        clear.setClickable(true);
+        int clearSize = SettingsUi.dp(context, 48);
+        clear.setMinimumWidth(clearSize);
+        clear.setMinimumHeight(clearSize);
+        clear.setOnClickListener(view -> editText.setText(""));
+        clearButton = clear;
+        row.addView(clear, new LinearLayout.LayoutParams(clearSize, clearSize));
         updateClearButton();
         root.addView(row, new LinearLayout.LayoutParams(-1, -2));
 
@@ -162,5 +169,29 @@ public final class SettingsSearchInputPreference extends Preference {
         if (resultCount == null) return;
         resultCount.setVisibility(shownResults < 0 ? View.GONE : View.VISIBLE);
         if (shownResults >= 0) SettingsUi.setResultCount(resultCount, shownResults);
+    }
+
+    static final class ClearDrawable extends Drawable {
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+        ClearDrawable(Context context) {
+            paint.setColor(SettingsUi.accent());
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(SettingsUi.strokePx(context, 2.1f));
+            paint.setStrokeCap(Paint.Cap.ROUND);
+        }
+
+        @Override
+        public void draw(Canvas canvas) {
+            float cx = getBounds().exactCenterX();
+            float cy = getBounds().exactCenterY();
+            float size = Math.min(getBounds().width(), getBounds().height()) * 0.16f;
+            canvas.drawLine(cx - size, cy - size, cx + size, cy + size, paint);
+            canvas.drawLine(cx + size, cy - size, cx - size, cy + size, paint);
+        }
+
+        @Override public void setAlpha(int alpha) { paint.setAlpha(alpha); }
+        @Override public void setColorFilter(ColorFilter filter) { paint.setColorFilter(filter); }
+        @Override public int getOpacity() { return PixelFormat.TRANSLUCENT; }
     }
 }

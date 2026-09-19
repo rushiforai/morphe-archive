@@ -77,6 +77,16 @@ val espnLiveSlatePatch = bytecodePatch(
                 "->setSession(Ljava/lang/Object;)V",
         )
 
+        // 3b) Playing-game IDENTITY — hand the helper the ProgramData when the stream
+        //     title becomes available, so the live-score strip can match the EXACT
+        //     game (via ProgramData.eventId) instead of guessing "first in-progress".
+        //     p0 = the ProgramData. See docs/SCOREBOARD_SCHEMA_REFERENCE.md.
+        ProgramDataAvailableFingerprint.method.addInstructions(
+            0,
+            "invoke-static { p0 }, Lajstrick81/morphe/extension/espn/ads/EspnAdBreakOverlayHelper;" +
+                "->onProgramData(Ljava/lang/Object;)V",
+        )
+
         // 4) Feed B2 — manifest DateRanges. On pure-passthrough streams getBreaks()
         //    is empty, but SgaiPlaybackSession.playlistRetrieved(DateTime, List<DateRange>)
         //    always carries the ad windows (absolute dates). p2 = the DateRange list.

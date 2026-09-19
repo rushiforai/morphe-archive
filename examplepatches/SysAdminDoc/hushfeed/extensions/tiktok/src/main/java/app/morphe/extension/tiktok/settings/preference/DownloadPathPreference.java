@@ -71,12 +71,32 @@ public class DownloadPathPreference extends DialogPreference {
     }
 
     public void applyPickedPath(String path) {
+        if (path == null) {
+            String error = app.morphe.extension.tiktok.settings.L10n.t(
+                    "Choose a folder on internal storage. SD cards are not supported.");
+            if (pathField != null && getDialog() != null && getDialog().isShowing()) {
+                pathField.setError(error);
+            } else {
+                app.morphe.extension.shared.Utils.showToastLong(error);
+            }
+            return;
+        }
         try {
-            setValue(DownloadDestination.validate(path, kind));
-            app.morphe.extension.shared.Utils.showToastShort(
-                    app.morphe.extension.tiktok.settings.L10n.t("Download path updated"));
+            String validated = DownloadDestination.validate(path, kind);
+            if (pathField != null && getDialog() != null && getDialog().isShowing()) {
+                pathField.setText(validated);
+                pathField.setError(null);
+            } else {
+                setValue(validated);
+                app.morphe.extension.shared.Utils.showToastShort(
+                        app.morphe.extension.tiktok.settings.L10n.t("Download path updated"));
+            }
         } catch (IllegalArgumentException ex) {
-            app.morphe.extension.shared.Utils.showToastLong(ex.getMessage());
+            if (pathField != null && getDialog() != null && getDialog().isShowing()) {
+                pathField.setError(ex.getMessage());
+            } else {
+                app.morphe.extension.shared.Utils.showToastLong(ex.getMessage());
+            }
         }
     }
 
@@ -212,7 +232,6 @@ public class DownloadPathPreference extends DialogPreference {
         if (browseButton != null) {
             browseButton.setOnClickListener(view -> {
                 TikTokPreferenceFragment.openDownloadPathFolderPicker(this);
-                dialog.dismiss();
             });
         }
     }

@@ -350,6 +350,41 @@ internal object MidAdComponentCreateFingerprint : Fingerprint(
     parameters = listOf(),
 )
 
+private const val USER_DESCRIPTOR = "Lcom/ss/android/ugc/aweme/profile/model/User;"
+
+/** The response of the profile pager's own ad request, a real name on every retained build. */
+internal const val PROFILE_AD_RESPONSE_DESCRIPTOR =
+    "Lcom/ss/android/ugc/aweme/commercialize/profile/impl/ad/CommerceProfileAdResponse;"
+
+/**
+ * TikTok's own answer to whether a creator's video pager should ask for ads: it reads the
+ * `profile_ad_experiment` value and, for some values, the creator's friend match and follow
+ * status. On 46.2.3 its only callers are the profile ad module's two request gates, one for
+ * each value of the module's `profileAdVersion`.
+ *
+ * <p>Static `(User)Z` with that string on 46.2.3 through 46.9.3 (`LX/0lk2;->LIZ` on 46.2.3). The
+ * only other method carrying the string registers the setting and takes nothing. No access
+ * flags: the patcher compares them exactly, and the static flag is checked here instead.
+ */
+internal object ProfileAdEligibilityFingerprint : Fingerprint(
+    returnType = "Z",
+    parameters = listOf(USER_DESCRIPTOR),
+    strings = listOf("profile_ad_experiment"),
+    custom = { method, _ -> AccessFlags.STATIC.isSet(method.accessFlags) },
+)
+
+/**
+ * Every bottom banner under a feed video reaches its cell through this getter: the Tako "Ask"
+ * banner, the "Search" one, series and drama bars. Named, and without access flags for the
+ * reason [FollowFeedListGetItemsFingerprint] gives.
+ */
+internal object AwemeBannersFingerprint : Fingerprint(
+    definingClass = AWEME_DESCRIPTOR,
+    name = "getBanners",
+    returnType = "Ljava/util/List;",
+    parameters = emptyList(),
+)
+
 /**
  * The search page's own result list. It arrives parsed, then this method walks its items to
  * stamp the request id on each, which makes it the one place every result passes through

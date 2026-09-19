@@ -1,5 +1,5 @@
 {
-  "version": "v0.40.0",
+  "version": "v0.45.0",
   "appNames": {
     "com.zhiliaoapp.musically": "TikTok"
   },
@@ -901,7 +901,7 @@
     },
     {
       "name": "Feed filter",
-      "description": "Hides feed ads, including videos with creator commission disclosures, TikTok Shop items, livestreams, LIVE replays, stories, photo posts, paid partnerships, AI labeled videos, verified accounts, series, playlists, the playlist bar, the floating event badge and inserted cards. Videos can also be filtered by your own caption words, creator handles or patterns, sound names, length, the country they were posted from and their view, like, comment, favorite and share counts. Sponsored cards are dropped from the profile video viewer, the search grids and the Friends tab as well as the feed, and so are the mid-roll ads TikTok splices into a video pager after the list has loaded. The share prompt that appears after a like can also be hidden. Switch: Hushfeed settings > Feed filter.",
+      "description": "Hides feed ads, including videos with creator commission disclosures, TikTok Shop items, livestreams, LIVE replays, stories, photo posts, paid partnerships, AI labeled videos, verified accounts, series, playlists, the playlist bar, the floating event badge and inserted cards. Videos can also be filtered by your own caption words, creator handles or patterns, sound names, length, the country they were posted from and their view, like, comment, favorite and share counts. Sponsored cards are dropped from the profile video viewer, the search grids and the Friends tab as well as the feed, and so are the mid-roll ads TikTok splices into a video pager after the list has loaded and the ads a creator's video pager asks for on its own. The share prompt that appears after a like can also be hidden. Switch: Hushfeed settings > Feed filter.",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -1188,7 +1188,7 @@
     },
     {
       "name": "Hide feed LIVE button",
-      "description": "Hide the LIVE button at the top left of video feeds. Shares its switch with the Live entrance option of Hide video overlays, and stops the button before it is built rather than hiding it once it is on screen. Switch: Hushfeed settings > Feed screen.",
+      "description": "Hide the LIVE button at the top left of video feeds. Shares its switch with the LIVE entrance option of Hide video overlays, and stops the button before it is built rather than hiding it once it is on screen. Switch: Hushfeed settings > Feed screen.",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -1304,7 +1304,7 @@
     },
     {
       "name": "Hide floating promotions",
-      "description": "Removes floating promotional badges, coin icons, and timer banners from the Home feed. Switch: Hushfeed settings > Feed screen.",
+      "description": "Removes floating promotional badges, coin icons, and timer banners from the feed. Switch: Hushfeed settings > Feed screen.",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -2230,7 +2230,7 @@
     },
     {
       "name": "Share sheet tools",
-      "description": "Asks twice before a video is sent to a friend from the share sheet. The check follows the account or conversation instead of the visible name and covers accessibility actions and keyboard input. It can also hide chosen people, share options or the whole Send to row. Switch: Hushfeed settings > Share sheet.",
+      "description": "Asks twice before a video is sent to a friend from the share sheet. The check follows the account or conversation instead of the visible name and covers accessibility actions and keyboard input. It can also hide chosen people, share options or the whole Send to row, and a profile's or a LIVE's share sheet can hide a different set from a video's. Switch: Hushfeed settings > Share sheet.",
       "use": false,
       "dependencies": [
         "BytecodePatch",
@@ -2259,7 +2259,7 @@
     },
     {
       "name": "Show LIVE search",
-      "description": "Shows TikTok's search entry in the Live drawer where supported.",
+      "description": "Shows TikTok's search entry in the LIVE drawer where supported.",
       "use": true,
       "dependencies": [
         "BytecodePatch"
@@ -2572,6 +2572,35 @@
       "name": "Use non-personalized search",
       "description": "Uses TikTok's non-personalized search mode instead of its saved account choice. Switch: Hushfeed settings > App.",
       "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "Settings"
+      ],
+      "compatiblePackages": {
+        "com.zhiliaoapp.musically": [
+          "46.2.3"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "TikTok",
+          "packageName": "com.zhiliaoapp.musically",
+          "description": null,
+          "appIconColor": 16657493,
+          "targets": [
+            {
+              "version": "46.2.3",
+              "experimental": false
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Use system font",
+      "description": "Draws TikTok's text in your device's font instead of TikTok Sans. The icons, the gift animations and the @ and # glyphs keep their own fonts. Off by default; restart after changing. Switch: Hushfeed settings > App.",
+      "use": false,
       "dependencies": [
         "BytecodePatch",
         "Settings"

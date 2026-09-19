@@ -217,7 +217,8 @@ public final class StickerGallerySaver {
 
     private static void saveStickerFromButton(View button, StickerAsset asset) {
         Context context = button.getContext().getApplicationContext();
-        button.setEnabled(false);
+        SettingsUi.setBusy(button, true,
+                L10n.t(button.getContext(), "Saving"));
         Utils.showToastShort(L10n.t("Saving sticker"));
 
         // A submitted job can wait behind eight others, then run up to the two minute deadline.
@@ -254,7 +255,7 @@ public final class StickerGallerySaver {
     /** Re-enables the Save button, unless the sheet that owned it has already gone. */
     private static void handBack(WeakReference<View> anchor) {
         View button = anchor.get();
-        if (button != null) button.setEnabled(true);
+        if (button != null) SettingsUi.setBusy(button, false, null);
     }
 
     private static SaveResult saveSticker(Context context, StickerAsset asset) {

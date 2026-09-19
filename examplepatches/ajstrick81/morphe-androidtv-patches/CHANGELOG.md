@@ -1,3 +1,10 @@
+## [1.37.3](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.37.2...v1.37.3) (2026-09-19)
+
+
+### Bug Fixes
+
+* **espn:** match live break slate to the exact game via ProgramData.eventId ([ec91b80](https://github.com/ajstrick81/morphe-androidtv-patches/commit/ec91b8012759972cec2dcec2e47b5c0b60688373))
+
 ## [1.37.2](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.37.1...v1.37.2) (2026-09-16)
 
 

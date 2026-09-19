@@ -19,7 +19,7 @@ Comprehensive breakdown of the **31 patches** included in the Morphe TikTok patc
 | **Privacy** | **Bypass Mandatory Login** | `bytecodePatch` | Neutralizes mandatory login walls, dynamic regional forced login gates, and guest mode browsing restrictions |
 | **Privacy** | **Clean Share URL** | `bytecodePatch` | Strips tracking query parameters, user tokens, and campaign IDs |
 | **Privacy** | **Device Privacy Guard** | `bytecodePatch` | Blocks background clipboard inspection, purges 35 invasive permissions, prunes 92 external package query declarations, silences HAR hardware sensors, and bypasses FLAG_SECURE |
-| **Privacy** | **Ghost Mode** | `bytecodePatch` | Enables anonymous profile and story browsing by suppressing outbound view reporting records and story view pings |
+| **Privacy** | **Ghost Mode** | `bytecodePatch` | Enables anonymous profile, story, and conversation browsing: suppresses outbound view records, story view pings, and typing indicators |
 | **Privacy** | **In-App Browser Privacy Guard** | `bytecodePatch` | Redirects external links to default system browser, neutralizes WebView JS tracking injection and AJAX hookers |
 | **Privacy** | **Client-Side AI & Behavioral Profiling Governor** | `bytecodePatch` | Neutralizes Pitaya on-device ML, Tako AI chatbot entries, and AI search clutter |
 | **Privacy** | **Region & Geo-Restriction Bypass** | `bytecodePatch` | Spoofs SIM and network country ISO codes to bypass regional restrictions |
@@ -49,8 +49,11 @@ Comprehensive breakdown of the **31 patches** included in the Morphe TikTok patc
 * **Internal Mechanisms**:
   * **Forced Download Button Unblock**:
     * Hooks `Aweme.isPreventDownload()Z` -> returns `false`.
+    * Hooks `Aweme.getIsCommentPostVideo()Z` -> returns `false`.
     * Invokes `TikTokMediaHook` to dynamically flip internal `canDownload` boolean fields via reflection, restoring the "Save video" action in the share modal.
-    * Hooks `AwemeExtKt.isSharedStoryVisible(Aweme;)Z` -> returns `true`, unblocking the native "Save video" action in `LX/0HGG;->LJJI()` and `LX/0HJb;->enable()` for Stories in the native Share panel (eliminating the need for accidental download on story pause long-press).
+    * Hooks `AwemeExtKt.isSharedStoryVisible(Aweme;)Z` -> returns `true`.
+    * Intercepts Share panel action builder (`LX/0HGG;->LJJI()`) and neutralizes all early `return-void` guards (story type 45, 46, 180, 181, comment video, and restriction checks) prior to action instantiation, ensuring the "Save video" button (`LX/0HJb`) is unconditionally constructed and appended to the Share panel for Stories.
+    * Hooks download action `LX/0HJb;->enable()Z` and `now_save` action -> returns `true`, guaranteeing the Save action in the Share panel is always clickable and active rather than grayed out.
   * **Clean Watermark-Free Downloads**:
     * Hooks `Aweme.getDownloadWithoutWatermark()Z` -> returns `true`.
     * Hooks `Aweme.needTTSWatermarkWhenDownload()Z` -> returns `false` (suppresses text-to-speech audio watermark stamps).
@@ -153,8 +156,10 @@ Comprehensive breakdown of the **31 patches** included in the Morphe TikTok patc
     * Hooks `MandatoryLoginService.shouldShowForcedLogin(Z)Z` -> returns `false`.
     * Hooks `MandatoryLoginService.enableForcedLogin(Z)Z` -> returns `false`.
     * Hooks `MandatoryLoginService.shouldShowLoginTabFirst()Z` -> returns `false` (prevents auto-focusing on login tabs).
-  * **Fullscreen Login Wall Neutralization**:
-    * Hooks `MandatoryLoginService.tryShowMandatoryLoginPage(...)V` with immediate `return-void` to prevent invoking `SignUpOrLoginActivity` over the feed.
+  * **Fullscreen Login Wall Neutralization & Playback Resumption**:
+    * Hooks `MandatoryLoginService.tryShowMandatoryLoginPage(...)V` to dispatch `TikTokLoginHook.notifyLoginResult(listener)` with `onResult(1, 2, null)` on the main Looper before `return-void`. This dismisses login wait states immediately and signals `VideoViewComponent` to resume video playback without stalling for watchdog timeouts when switching tabs.
+  * **Authoritative Guest Mode State Resolution**:
+    * Hooks `GuestModeServiceImpl.isGuestMode()Z` to delegate to `TikTokLoginHook.isGuestMode()`, querying `AccountUserService.isLogin()` via reflection. This decouples guest browsing validity from skipped first-launch onboarding / Keva age gate consent flags.
 
 ### 3. Clean Share URL (`cleanShareUrlPatch`)
 * **Objective**: Protect user privacy when sharing video links with friends or third-party apps.
@@ -200,12 +205,16 @@ Comprehensive breakdown of the **31 patches** included in the Morphe TikTok patc
     * Suppresses quick-share popup modals and Tako AI screenshot triggers.
 
 ### 5. Ghost Mode (`ghostModePatch`)
-* **Objective**: Enable fully anonymous profile and story browsing, allowing you to view profiles and stories without alerting creators or leaving view history traces, while preserving your own profile viewer list.
+* **Objective**: Enable fully anonymous profile, story, and conversation browsing: view profiles and stories without alerting creators or leaving view history traces, and browse conversations without sending typing indicators, while preserving your ability to view follower counts and your own viewer list.
 * **Internal Mechanisms**:
-  * **Profile View Suppression**:
-    * Intercepts `ProfileViewerApiService.reportView(String, String, String)` -> returns empty single `LX/02um;->LJJJJZI("")`, completely suppressing outbound profile visit beacons.
-  * **Story View Ping Suppression**:
-    * Intercepts `LX/07Rx.LIZIZ(Boolean, String, String)` (`StoryApi.reportStoryViewed`) -> immediate `return-void`, preventing outbound story view notifications from being dispatched to ByteDance servers.
+  * **Reactive Call-Site Skipping (Profile & Story View Suppression)**:
+    * Dynamically identifies callers of `ProfileViewerApiService.reportView` and `StoryApi` methods (`reportStoryViewed`, `reportUserInteraction`, `reportStoryReveal`).
+    * Traces Dalvik execution chains from invocation through `.subscribeOn(...)` to terminal `.subscribe()` / `.enqueue()` dispatch points.
+    * Injects conditional branches (`skipReportAtCallSite`) backed by backward control-flow graph register liveness analysis (`RegisterLiveness`), safely jumping over the entire dispatch pipeline when `TikTokGhostModeHook` is active. This avoids passing invalid/dummy objects into RxJava or Kotlin coroutine state machines, completely preventing `NullPointerException` crashes and preserved follower counts.
+  * **Outbound Typing Status Suppression**:
+    * Guards `TypingStatusSenderTimer.LIZ(String)` and `LIZIZ(String)` entrypoints with early `return-void` via `TikTokGhostModeHook.shouldBlockTypingStatus()`.
+  * **Companion Runtime Hook**:
+    * Bridges hooks through `TikTokGhostModeHook` in `extensions/extension.mpe` with granular diagnostic telemetry.
 
 ### 6. In-App Browser Privacy Guard (`inAppBrowserPrivacyGuardPatch`)
 * **Objective**: Protect user privacy by redirecting external and third-party web links directly to the user's default system browser (Brave, Firefox, Chrome), preventing third-party browsing sessions from ever running inside TikTok's process, and neutralizing residual tracking inside essential internal WebViews.
@@ -285,7 +294,7 @@ Comprehensive breakdown of the **31 patches** included in the Morphe TikTok patc
     * Hooks `FeedApiService.fetchFeedList()`, `FeedItemList.getItems()`, and `FollowFeedList.getItems()`.
     * Neutralizes Lego cross-promotion task `Lemon8ServiceInitTask.run(Context)`.
     * Delegates to `TikTokFeedAdFilter.isFeedBloat(Aweme)`:
-      * **Suggested Accounts**: `Aweme.getAwemeType() == 4004` (`TTRecUserBigCardViewHolder`), `CardInsertInfo.getCardType() == 49`, `Aweme.isFriendsTabFakeAweme() == true`, `Aweme.getRecommendCardType() > 0`.
+      * **Suggested Accounts**: `Aweme.getAwemeType() == 4004` (`TTRecUserBigCardViewHolder`), `CardInsertInfo.getCardType() == 49`, `Aweme.isFriendsTabFakeAweme() == true`.
       * **Mini-Games**: `Aweme.getAwemeType() == 104` or `CardInsertInfo.getCardType() == 120` (`MiniGameInstantPlayCardVH`).
       * **Creation & CapCut Prompts**: `CardInsertInfo.getCardType() in 188..191` (`CreationFeedCardViewHolder`).
       * **Memories ("On This Day")**: `CardInsertInfo.getCardType() == 127` (`OnThisDayCreationCardViewHolder`).
@@ -294,6 +303,7 @@ Comprehensive breakdown of the **31 patches** included in the Morphe TikTok patc
       * **Surveys & Feedback**: `CardInsertInfo.getCardType() == 4` or `16` (`BottomSurveyAssem`).
       * **Mini-Dramas & Series Promos**: `Aweme.getAwemeType() == 110` (`MiniDramaCard`).
       * **Lynx In-Feed Promos**: `Aweme.getAwemeType() == 106`.
+    * **Following Feed Invariants**: Preserves essential watch history and unread markers (`feedType == 65280`, `65465`, `65298`, `lastViewData`) to prevent presenter index out-of-bounds crashes, while safely isolating and pruning confirmed recommendation cards (`feedType == 3`, `62`, `recommendUser`).
     * Prunes matching cards from list iterators in-situ with zero crashes or UI gaps.
 
 ### 13. Unified Telemetry & Tracker Silencer (`unifiedTelemetryTrackerSilencerPatch`)
@@ -316,14 +326,16 @@ Comprehensive breakdown of the **31 patches** included in the Morphe TikTok patc
 ### 15. Display Refresh Rate Governor (`displayRefreshRateGovernorPatch`)
 * **Objective**: Eliminate micro-stutter and forced refresh rate drops, locking TikTok's window display rate to peak hardware frequency (120Hz/90Hz) or a user-selected target, while neutralizing internal framerate downclocking routines during feed playback.
 * **Internal Mechanisms**:
-  * **Opt-In & Configurable Frequency**:
+  * **Opt-In & Configurable Frequency with Hardware Clamping**:
     * Configurable via `targetRate` option: `max` (peak display rate detected dynamically via `Display.getSupportedModes()` with fallback to `Display.getSupportedRefreshRates()`), `120` (120 Hz), `90` (90 Hz), or `60` (60 Hz).
+    * **Hardware Capability Boundary Protection**: `TikTokRefreshRateHook` queries actual physical display modes via `Display.getSupportedModes()` / `Display.getSupportedRefreshRates()`. If a requested target rate exceeds the panel's maximum physical frequency (e.g., selecting 120Hz on a 90Hz or 60Hz screen), it automatically clamps to the screen's peak supported rate instead of attempting an out-of-bounds mode switch that crashes the app or display pipeline.
+    * Activity lifecycle guards verify the `Activity` is active and not finishing/destroyed before applying LayoutParams.
   * **Safe Video Playback Downclocking Neutralization**:
     * Hooks `LX/09YB.invoke()` (`ui_video_frame_rate_opt`) to return `Boolean.TRUE`, causing `PlayerController.LJJZZIII` to branch past internal downclocking instructions without aborting `onRenderFirstFrame` callbacks.
     * Neutralizes `LX/07tH.invoke()` (`setRefreshRateIfNeeded`) -> returns `Unit.LIZ`.
   * **Touch & Drag Release Frequency Enforcement**:
     * Overrides `LX/0JOJ.LIZ()` to immediately re-apply the target refresh rate to `Window.LayoutParams.preferredRefreshRate` whenever drag gestures stop.
-    * Overrides `LX/1PFE.LIZ()` and `LX/1PFE.LIZIZ()` (`RefreshFrequencyTutor`) passing the target `Activity` instance to prevent resetting the display back to 60Hz.
+    * Overrides `LX/1PFE.LIZ()` (instance) and `LX/1PFE.LIZIZ()` (static) (`RefreshFrequencyTutor`) passing the target `Activity` instance to prevent resetting the display back to 60Hz.
   * **Activity Lifecycle Lock**:
     * Hooks `MainActivity.onResume()` and `MainActivity.onWindowFocusChanged(boolean)` to ensure window parameters remain strictly locked to target refresh rate across focus switches and app switching.
 

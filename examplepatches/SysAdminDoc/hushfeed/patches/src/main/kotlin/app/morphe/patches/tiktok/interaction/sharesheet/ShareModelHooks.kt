@@ -14,6 +14,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.numberOfParameterRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -35,6 +36,7 @@ private const val IM_CONVERSATION =
     "Lcom/ss/android/ugc/aweme/im/contacts/api/model/IMConversation;"
 private const val FUNCTION0 = "Lkotlin/jvm/functions/Function0;"
 private const val SHARE_TOOLS = "Lapp/morphe/extension/tiktok/share/ShareSheetTools;"
+private const val BASE_SHARE_PACKAGE = "Lcom/ss/android/ugc/aweme/share/base/model/BaseSharePackage;"
 
 private object ShareSnapshotFingerprint : Fingerprint(
     strings = listOf("click_to_respond_duration", "config_duration"),
@@ -66,9 +68,13 @@ context(patchContext: BytecodePatchContext)
 internal fun hookShareModel() {
     val method = ShareSnapshotFingerprint.method
     val builder = method.parameterTypes.single().toString()
-    val fields = patchContext.mutableClassDefBy(builder).fields
-    check(fields.any { it.type == "Lcom/ss/android/ugc/aweme/share/base/model/BaseSharePackage;" }) {
+    val packages = patchContext.mutableClassDefBy(builder).fields
+        .filter { it.type == BASE_SHARE_PACKAGE }
+    check(packages.isNotEmpty()) {
         "Share sheet: $builder holds no BaseSharePackage, so it is not the share model builder."
+    }
+    check(packages.size == 1) {
+        "Share sheet: $builder holds ${packages.size} BaseSharePackage fields, so which one the sheet is built from is no longer obvious."
     }
     val callbacks = mapOf("LIZ" to "channels", "LJFF" to "actions", "LJJIIJZLJL" to "contacts")
     val found = mutableSetOf<String>()
@@ -89,6 +95,33 @@ internal fun hookShareModel() {
         found.add(field.name)
     }
     if (found != callbacks.keys) throw PatchException("Share panel hooks are incomplete: $found")
+
+    // Last, so the indices the three hooks above were placed by are not moved under them.
+    method.injectShareSurface("$builder->${packages.single().name}:$BASE_SHARE_PACKAGE")
+}
+
+/**
+ * Tells the filter which sheet is being built before any of its three callbacks run: the
+ * package's itemType says video, profile or LIVE, and each can hide a different set of actions.
+ *
+ * <p>Index 0 of a constructor comes before its super call, which is fine because nothing here
+ * touches p0. The builder is p1, read with iget-object, whose four bit register fields cannot
+ * name p1 in a frame with more than fourteen locals. Every build so far has nine, and a larger
+ * one copies p1 into v0 first rather than failing.
+ */
+internal fun MutableMethod.injectShareSurface(packageField: String) {
+    requireLocals("Share sheet tools", 1)
+    val locals = implementation!!.registerCount - numberOfParameterRegisters
+    val builder = if (locals + 1 <= 15) "p1" else "v0"
+    val copy = if (builder == "p1") "" else "move-object/from16 v0, p1"
+    addInstructions(
+        0,
+        """
+            $copy
+            iget-object v0, $builder, $packageField
+            invoke-static { v0 }, Lapp/morphe/extension/tiktok/share/ShareModelFilter;->surface(Ljava/lang/Object;)V
+        """,
+    )
 }
 
 context(patchContext: BytecodePatchContext)

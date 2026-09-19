@@ -16,7 +16,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/** Keeps a small, persistent catalogue of share actions seen in the native model. */
+/**
+ * Keeps a small, persistent catalogue of share actions seen in the native model, and which share
+ * sheets each was seen on. A line is {@code key TAB label TAB surfaces}; a line written before
+ * the sheets were told apart has no third field and reads as seen on videos.
+ */
 public final class ShareActionCatalog {
     private static final int MAX_ENTRIES = 64;
     private static final int MAX_LABEL_LENGTH = 80;
@@ -27,16 +31,24 @@ public final class ShareActionCatalog {
     public static final class Entry {
         public final String key;
         public final String label;
+        /** One {@link ShareSurface} flag letter per sheet this action was seen on. */
+        final String surfaces;
 
-        Entry(String key, String label) {
+        Entry(String key, String label, String surfaces) {
             this.key = key;
             this.label = label;
+            this.surfaces = surfaces;
+        }
+
+        public boolean seenOn(ShareSurface surface) {
+            return surfaces.indexOf(surface.flag) >= 0;
         }
     }
 
-    static synchronized void observe(List<?> items) {
+    static synchronized void observe(List<?> items, ShareSurface surface) {
         if (items == null || items.isEmpty()) return;
         LinkedHashMap<String, String> catalog = read();
+        LinkedHashMap<String, String> seen = readSurfaces();
         boolean changed = false;
         for (Object item : items) {
             String rawKey = Reflect.firstNonBlank(
@@ -55,16 +67,32 @@ public final class ShareActionCatalog {
                 catalog.put(key, label);
                 changed = true;
             }
+            String flags = seen.containsKey(key) ? seen.get(key) : "";
+            if (flags.indexOf(surface.flag) < 0) {
+                seen.put(key, flags + surface.flag);
+                changed = true;
+            }
         }
         if (changed) {
-            Settings.SHARE_ACTION_CATALOG.save(write(catalog));
+            Settings.SHARE_ACTION_CATALOG.save(write(catalog, seen));
         }
     }
 
     public static synchronized List<Entry> entries() {
         List<Entry> result = new ArrayList<>();
+        LinkedHashMap<String, String> seen = readSurfaces();
         for (Map.Entry<String, String> entry : read().entrySet()) {
-            result.add(new Entry(entry.getKey(), entry.getValue()));
+            String flags = seen.get(entry.getKey());
+            result.add(new Entry(entry.getKey(), entry.getValue(), flags == null ? "" : flags));
+        }
+        return result;
+    }
+
+    /** The actions seen on [surface]'s sheet, in the order they were first seen. */
+    public static synchronized List<Entry> entries(ShareSurface surface) {
+        List<Entry> result = new ArrayList<>();
+        for (Entry entry : entries()) {
+            if (entry.seenOn(surface)) result.add(entry);
         }
         return result;
     }
@@ -111,7 +139,9 @@ public final class ShareActionCatalog {
             int separator = line.indexOf('\t');
             if (separator <= 0) continue;
             String key = canonical(line.substring(0, separator));
-            String label = cleanLabel(line.substring(separator + 1));
+            int flags = line.indexOf('\t', separator + 1);
+            String label = cleanLabel(flags < 0
+                    ? line.substring(separator + 1) : line.substring(separator + 1, flags));
             if (!key.isEmpty() && !label.isEmpty() && result.size() < MAX_ENTRIES) {
                 result.put(key, label);
             }
@@ -119,11 +149,36 @@ public final class ShareActionCatalog {
         return result;
     }
 
-    private static String write(LinkedHashMap<String, String> catalog) {
+    /** key to surface flags, for every line; a line with no flags field was written by videos. */
+    private static LinkedHashMap<String, String> readSurfaces() {
+        LinkedHashMap<String, String> result = new LinkedHashMap<>();
+        String stored = Settings.SHARE_ACTION_CATALOG.get();
+        if (stored == null || stored.trim().isEmpty()) return result;
+        for (String line : stored.split("\\n")) {
+            int separator = line.indexOf('\t');
+            if (separator <= 0) continue;
+            String key = canonical(line.substring(0, separator));
+            int flags = line.indexOf('\t', separator + 1);
+            String raw = flags < 0 ? String.valueOf(ShareSurface.VIDEO.flag) : line.substring(flags + 1);
+            StringBuilder known = new StringBuilder();
+            for (int index = 0; index < raw.length(); index++) {
+                char flag = raw.charAt(index);
+                if (ShareSurface.ofFlag(flag) != null && known.indexOf(String.valueOf(flag)) < 0) {
+                    known.append(flag);
+                }
+            }
+            if (!key.isEmpty()) result.put(key, known.toString());
+        }
+        return result;
+    }
+
+    private static String write(LinkedHashMap<String, String> catalog, Map<String, String> seen) {
         StringBuilder result = new StringBuilder();
         for (Map.Entry<String, String> entry : catalog.entrySet()) {
             if (result.length() > 0) result.append('\n');
-            result.append(entry.getKey()).append('\t').append(cleanLabel(entry.getValue()));
+            String flags = seen.get(entry.getKey());
+            result.append(entry.getKey()).append('\t').append(cleanLabel(entry.getValue()))
+                    .append('\t').append(flags == null ? "" : flags);
         }
         return result.toString();
     }

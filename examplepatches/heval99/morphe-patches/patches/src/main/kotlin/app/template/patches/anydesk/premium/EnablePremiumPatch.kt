@@ -3,31 +3,46 @@ package app.template.patches.anydesk.premium
 import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.shared.Constants.COMPATIBILITY_ANYDESK
 import app.morphe.util.returnEarly
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+
+private const val JNI = "Lcom/anydesk/jni/JniAdExt;"
+
+/**
+ * The JNI class keeps its native `jni*` entry points stable but R8 rotates the Java wrapper
+ * names every release (the previous patch pinned r3/a2/b2/Q1, which on 9.0.0 are unrelated
+ * helpers - the patch silently no-opped). Anchor on the native call instead: every no-arg
+ * boolean wrapper that invokes one of the license natives is forced to the paid result.
+ */
+private val LICENSE_GATES = mapOf(
+    "jniIsFreeLicense" to false,
+    "jniDoesLicenseAllowAccountRegistration" to true,
+    "jniDoesLicenseAllowAddressBook" to true,
+    "jniCanRemoveLicense" to true,
+)
 
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Unlocks premium features by patching the Java license wrapper " +
-        "methods in JniAdExt: isFreeLicense returns false (app treats the license " +
-        "as paid), account registration and address book are allowed, and the " +
-        "remove-license option is available in settings. Note: the underlying " +
-        "license validation is native (libanydesk.so) and cannot be patched via " +
-        "bytecode — this patch only affects the Java-layer feature gates.",
-    default = true,
+    description = "Enables premium features by making the app treat the free license as paid."
 ) {
     compatibleWith(COMPATIBILITY_ANYDESK)
 
     execute {
-        // Make the app think the current license is not free (i.e. is a paid license).
-        IsFreeLicenseFingerprint.methodOrNull?.returnEarly(false)
-
-        // Allow account registration (disallowed on free licenses).
-        LicenseAllowsAccountRegistrationFingerprint.methodOrNull?.returnEarly(true)
-
-        // Allow address book / roster usage (disallowed on free licenses).
-        LicenseAllowsAddressBookFingerprint.methodOrNull?.returnEarly(true)
-
-        // Make the remove-license option available in settings.
-        CanRemoveLicenseFingerprint.methodOrNull?.returnEarly(true)
+        classDefForEach { classDef ->
+            mutableClassDefBy(classDef).methods
+                .filter { it.implementation != null }
+                .filter { it.returnType == "Z" && it.parameterTypes.isEmpty() }
+                .forEach { method ->
+                    val gate = method.implementation!!.instructions
+                        .mapNotNull { insn ->
+                            (insn as? ReferenceInstruction)?.reference as? MethodReference
+                        }
+                        .firstOrNull { ref ->
+                            ref.definingClass == JNI && LICENSE_GATES.containsKey(ref.name)
+                        }
+                    if (gate != null) method.returnEarly(LICENSE_GATES.getValue(gate.name))
+                }
+        }
     }
 }

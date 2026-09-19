@@ -56,6 +56,7 @@ public class SettingsStatus {
     public static boolean resumeVideoAfterScrollEnabled = false;
     public static boolean externalBrowserEnabled = false;
     public static boolean alwaysShowPublishDateEnabled = false;
+    public static boolean systemFontEnabled = false;
     public static boolean diagnosticsEnabled = false;
     public static boolean blockAuthorEnabled = false;
     public static boolean authorRegionEnabled = false;
@@ -213,6 +214,10 @@ public class SettingsStatus {
 
     public static void enableExternalBrowser() {
         externalBrowserEnabled = true;
+    }
+
+    public static void enableSystemFont() {
+        systemFontEnabled = true;
     }
 
     public static void enableAlwaysShowPublishDate() {

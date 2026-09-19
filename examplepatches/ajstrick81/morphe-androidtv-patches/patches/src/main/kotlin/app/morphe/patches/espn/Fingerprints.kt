@@ -102,6 +102,44 @@ internal object SessionListenerOnEventFingerprint : Fingerprint(
     },
 )
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Playing-game IDENTITY seam — the "match the game" fix (see
+// docs/SCOREBOARD_SCHEMA_REFERENCE.md).
+//
+// The canonical ESPN scoreboard event id rides all the way from the WatchESPN SDK
+// into the player's program model:
+//   com.espn.watchespn.sdk.Airing.eventId : Long
+//     → ExtensionsKt.getEventId(GraphResult)  (airing.eventId.longValue().toString())
+//       → ProgramDataFactory → ProgramData.eventId : String
+//         → MediaPlayerViewModel emits it via programDataFlow.
+//
+// The cleanest place to grab a fully-built ProgramData is the side-effect lambda
+// that fires when the stream title becomes available — it receives ProgramData as
+// its FIRST arg (p0), is static + non-suspend, and runs once per new stream:
+//   MediaPlayerViewModel.createAndEmitProgramData$lambda$N(
+//       ProgramData, MediaPlayerViewState) : MviSideEffect
+//
+// We match it STRUCTURALLY, not by the R8 lambda index (which drifts): the
+// espn/video/dmp package keeps clean (non-minified) names, so the base name
+// "createAndEmitProgramData$lambda" is stable, and we additionally require the
+// (ProgramData, MediaPlayerViewState) params and a reference to the
+// StreamTitleAvailable side-effect it constructs. Fails loud if that shape moves.
+// eventId is constant for the life of a stream, so hooking the create path only
+// (not the update-refresh lambda) is sufficient.
+internal object ProgramDataAvailableFingerprint : Fingerprint(
+    custom = { method, _ ->
+        method.definingClass == "Lcom/espn/video/dmp/model/MediaPlayerViewModel;" &&
+            method.name.startsWith("createAndEmitProgramData\$lambda") &&
+            method.parameterTypes.size == 2 &&
+            method.parameterTypes[0] == "Lcom/espn/video/dmp/model/ProgramData;" &&
+            method.parameterTypes[1] == "Lcom/espn/video/dmp/model/MediaPlayerViewState;" &&
+            method.implementation?.instructions?.any { insn ->
+                ((insn as? ReferenceInstruction)?.reference as? TypeReference)?.type ==
+                    "Lcom/espn/video/dmp/model/MediaPlayerSideEffect\$StreamTitleAvailable;"
+            } == true
+    },
+)
+
 // PlayerActivity lifecycle — used to (un)register the slate's host container
 // (the Activity's android.R.id.content root) with the overlay helper.
 internal object PlayerActivityOnResumeFingerprint : Fingerprint(

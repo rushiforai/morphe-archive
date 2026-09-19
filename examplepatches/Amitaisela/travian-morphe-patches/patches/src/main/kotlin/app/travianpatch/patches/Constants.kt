@@ -13,6 +13,7 @@ object Constants {
         targets = listOf(
             AppTarget(version = "4.0.0"),
             AppTarget(version = "4.0.1"),
+            AppTarget(version = "4.0.2"),
             // Any other version is allowed to try (Unity bootstrap layer rarely changes).
             AppTarget(version = null, isExperimental = true)
         )

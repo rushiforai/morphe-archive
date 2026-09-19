@@ -6,7 +6,7 @@ Custom Morphe patches by heval99.
 
 Patches for apps I like. Covers ads, telemetry, and premium/licence unlocks — see the patch
 list below for the supported apps and versions.
-
+If you have requests feel free to message me via hevalomevalo@gmail.com
 > **AI-generated patches.** Every patch in this repo is written with AI assistance: the
 > fingerprint analysis, patch code and smoke tests are AI-generated, then verified by
 > applying the patches to the real APKs (see `patches/src/test/`) before release. Review
@@ -15,7 +15,7 @@ list below for the supported apps and versions.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.1](https://github.com/heval99/Heval-Morphe-Patches/releases/tag/v1.3.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;28 patches total
+> **[v1.4.0](https://github.com/heval99/Heval-Morphe-Patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;31 patches total
 
 **📦 Sofascore** (5)
 - Block marketing notifications
@@ -36,11 +36,17 @@ list below for the supported apps and versions.
 - Disable ads
 - Enable Premium
 
+**📦 Flashscore** (1)
+- Disable ads
+
 **📦 IPTV** (2)
 - Disable ads
 - Enable Premium
 
 **📦 Livescore** (1)
+- Disable ads
+
+**📦 OneFootball** (1)
 - Disable ads
 
 **📦 365Scores** (1)
@@ -62,6 +68,9 @@ list below for the supported apps and versions.
 **📦 Aqua Mail** (1)
 - Enable Premium
 
+**📦 Bluecoins** (1)
+- Enable Premium
+
 **📦 FishBuddy** (1)
 - Enable Premium
 
@@ -71,7 +80,7 @@ list below for the supported apps and versions.
 **📦 Monefy** (1)
 - Enable Premium
 
-**📦 Swift Backup** (1)
+**📦 OsmAnd** (1)
 - Enable Premium
 
 **📦 MyFitnessPal** (1)

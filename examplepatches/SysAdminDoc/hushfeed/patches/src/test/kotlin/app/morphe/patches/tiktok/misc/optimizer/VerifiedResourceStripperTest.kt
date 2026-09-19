@@ -34,6 +34,7 @@ class VerifiedResourceStripperTest {
         }
 
         assertTrue(error.message.orEmpty().contains("Test resources"))
+        assertTrue(error.message.orEmpty(), error.message.orEmpty().endsWith(UNREVIEWED_BUILD_HINT))
         assertArrayEquals("first".toByteArray(), first.readBytes())
         assertArrayEquals("changed".toByteArray(), second.readBytes())
     }
@@ -193,8 +194,8 @@ class VerifiedResourceStripperTest {
         root.write("assets/strings#lang_es/es.xrsc", "spanish")
         val contract = languageContract(root, setOf("en", "es"))
 
-        val first = stripVerifiedLanguagePacks(root, "en", contract)
-        val second = stripVerifiedLanguagePacks(root, "en", contract)
+        val first = stripVerifiedLanguagePacks(root, "en", listOf(contract))
+        val second = stripVerifiedLanguagePacks(root, "en", listOf(contract))
 
         assertEquals(1, first.files)
         assertEquals(7L, first.bytes)
@@ -213,9 +214,56 @@ class VerifiedResourceStripperTest {
         root.resolve("assets/strings#lang_en/en.xrsc").writeText("altered")
 
         assertThrows(PatchException::class.java) {
-            stripVerifiedLanguagePacks(root, "en", contract)
+            stripVerifiedLanguagePacks(root, "en", listOf(contract))
         }
         assertArrayEquals("spanish".toByteArray(), root.resolve("assets/strings#lang_es/es.xrsc").readBytes())
+    }
+
+    @Test
+    fun `a bundle merged with only some languages is refused, says why, and empties nothing`() {
+        // Issue #9: a split bundle merged on the phone kept 25 of the 64 #lang_ directories.
+        val root = temporary.newFolder("partial-languages")
+        root.write("assets/strings#lang_en/en.xrsc", "english")
+        root.write("assets/strings#lang_es/es.xrsc", "spanish")
+        val contract = languageContract(root, setOf("en", "es", "fr"))
+
+        val error = assertThrows(PatchException::class.java) {
+            stripVerifiedLanguagePacks(root, "en", listOf(contract))
+        }
+
+        val message = error.message.orEmpty()
+        assertTrue(message, message.contains("found 2 language directories, but the reviewed set has 3."))
+        assertTrue(message, message.endsWith(UNREVIEWED_BUILD_HINT))
+        assertArrayEquals("spanish".toByteArray(), root.resolve("assets/strings#lang_es/es.xrsc").readBytes())
+    }
+
+    @Test
+    fun `the inventory whose directory set matches is the one that is checked`() {
+        // A merged split bundle carries fewer language directories than the universal APK, so a
+        // build has one reviewed inventory per shape and the directory set picks between them.
+        val full = temporary.newFolder("full-languages")
+        full.write("assets/strings#lang_en/en.xrsc", "english")
+        full.write("assets/strings#lang_es/es.xrsc", "spanish")
+        full.write("assets/strings#lang_fr/fr.xrsc", "french")
+        val partial = temporary.newFolder("bundle-languages")
+        partial.write("assets/strings#lang_en/en.xrsc", "english")
+        partial.write("assets/strings#lang_es/es.xrsc", "spanish")
+        val contracts = listOf(
+            languageContract(full, setOf("en", "es", "fr")),
+            languageContract(partial, setOf("en", "es")),
+        )
+
+        assertEquals(2, stripVerifiedLanguagePacks(full, "en", contracts).files)
+        assertEquals(1, stripVerifiedLanguagePacks(partial, "en", contracts).files)
+        assertTrue(partial.resolve("assets/strings#lang_es/es.xrsc").readBytes().isEmpty())
+        assertArrayEquals("english".toByteArray(), partial.resolve("assets/strings#lang_en/en.xrsc").readBytes())
+
+        val other = temporary.newFolder("other-languages")
+        other.write("assets/strings#lang_en/en.xrsc", "english")
+        val error = assertThrows(PatchException::class.java) {
+            stripVerifiedLanguagePacks(other, "en", contracts)
+        }
+        assertTrue(error.message, error.message.orEmpty().contains("found 1 language directories, but the reviewed sets have 2 or 3."))
     }
 
     private fun languageContract(root: File, directories: Set<String>): LanguageInventoryContract {

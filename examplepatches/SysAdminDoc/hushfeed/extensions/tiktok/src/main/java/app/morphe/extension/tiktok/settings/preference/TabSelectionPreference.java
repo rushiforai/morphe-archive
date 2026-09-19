@@ -327,7 +327,7 @@ public class TabSelectionPreference extends Preference {
             TextView summary = new TextView(context);
             summary.setText(L10n.t(getContext(), "Required"));
             summary.setTextColor(getSummaryTextColor());
-            summary.setTextSize(13);
+            summary.setTextSize(14);
             textContainer.addView(summary);
         }
 

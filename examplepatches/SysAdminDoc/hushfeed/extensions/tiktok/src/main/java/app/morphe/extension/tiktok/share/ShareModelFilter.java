@@ -9,9 +9,11 @@ package app.morphe.extension.tiktok.share;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
+import app.morphe.extension.shared.settings.StringSetting;
 import app.morphe.extension.tiktok.settings.Settings;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Runs before the share panel builds its rows. Never mutates the builder's lists.
@@ -27,7 +29,56 @@ import java.util.List;
 public final class ShareModelFilter {
     static final String FAMILY = "share sheet";
 
+    /**
+     * The sheet being built now. The patch sets it first thing in the share model's constructor,
+     * before the three filters below run, and the layout pass that hides rows by name reads it
+     * after. One sheet is open at a time, so the last one built is the one on screen.
+     */
+    private static volatile ShareSurface current = ShareSurface.VIDEO;
+
     private ShareModelFilter() {}
+
+    /** Called with the {@code BaseSharePackage} the share model is being built from. */
+    public static void surface(Object sharePackage) {
+        try {
+            current = ShareSurface.of(Reflect.string(sharePackage, "getItemType", "itemType"));
+            // The export then says which sheets this process has actually opened.
+            HookStatus.bound(FAMILY, "surface " + current.name().toLowerCase(Locale.ROOT));
+        } catch (Throwable ex) {
+            current = ShareSurface.VIDEO;
+            HookStatus.threw(FAMILY, "surface", ex);
+            Logger.printException(() -> "Could not tell which share sheet is opening", ex);
+        }
+    }
+
+    static ShareSurface current() {
+        return current;
+    }
+
+    /** The setting that holds [surface]'s own list. Videos and every other kind share the original. */
+    public static StringSetting hiddenSetting(ShareSurface surface) {
+        switch (surface) {
+            case PROFILE:
+                return Settings.SHARE_HIDDEN_ITEMS_PROFILE;
+            case LIVE:
+                return Settings.SHARE_HIDDEN_ITEMS_LIVE;
+            default:
+                return Settings.SHARE_HIDDEN_ITEMS;
+        }
+    }
+
+    /** What [surface] hides: its own list once saved, the video list until then. */
+    public static String hiddenItems(ShareSurface surface) {
+        String own = hiddenSetting(surface).get();
+        return own == null || Settings.SHARE_HIDDEN_ITEMS_FOLLOW_VIDEO.equals(own)
+                ? Settings.SHARE_HIDDEN_ITEMS.get()
+                : own;
+    }
+
+    /** What the sheet on screen hides. */
+    public static String hiddenItems() {
+        return hiddenItems(current);
+    }
 
     public static List<?> channels(List<?> items) {
         try {
@@ -41,7 +92,7 @@ public final class ShareModelFilter {
 
     public static List<?> actions(List<?> items) {
         try {
-            ShareActionCatalog.observe(items);
+            ShareActionCatalog.observe(items, current);
         } catch (Throwable ex) {
             HookStatus.threw(FAMILY, "action catalog", ex);
             Logger.printException(() -> "Could not record the share actions", ex);
@@ -68,7 +119,7 @@ public final class ShareModelFilter {
     private static List<?> filter(List<?> items, boolean hideRow) {
         if (items == null) return null;
         if (hideRow) return new ArrayList<>();
-        String hidden = Settings.SHARE_HIDDEN_ITEMS.get();
+        String hidden = hiddenItems();
         if (hidden.trim().isEmpty()) return items;
         List<Object> kept = new ArrayList<>(items.size());
         for (Object item : items) {

@@ -73,6 +73,7 @@ Activity Center (PIA),Pusat Aktivitas (PIA)
 Add,Tambah
 Add a block button to the video player that blocks the creator of the current video in one tap. An undo action is shown after each block.,Tambahkan tombol blokir ke pemutar video yang memblokir kreator video saat ini dengan satu ketukan. Tindakan batalkan ditampilkan setelah setiap blokir.
 Add a button beside the block control to send feedback about the current video.,Tambahkan tombol di samping kontrol blokir untuk mengirim masukan tentang video ini.
+Add a creator,Add a creator
 Add a separate button that skips this account locally without blocking it.,Tambahkan tombol terpisah yang melewati akun ini secara lokal tanpa memblokirnya.
 Add a separate button that skips videos using the current sound.,Tambahkan tombol terpisah yang melewati video yang menggunakan suara saat ini.
 Add hidden creator,Tambah kreator tersembunyi
@@ -106,10 +107,12 @@ Answer TikTok's reads of your contacts with an empty list. Find Friends and Peop
 "Answer TikTok's scan of the apps on this phone with an empty list. A check for one named app, which TikTok also uses to open an app you tap, is left alone.","Menjawab pemindaian aplikasi di ponsel ini oleh TikTok dengan daftar kosong. Pemeriksaan satu aplikasi tertentu, yang juga dipakai TikTok untuk membuka aplikasi yang Anda ketuk, dibiarkan."
 App,Aplikasi
 App AB,AB aplikasi
+Appearance,Tampilan
 Applies to both video and photo downloads.,Berlaku untuk unduhan video dan foto.
 Apply,Terapkan
 Around the video,Di sekitar video
 Arrange your feed and bottom tabs,Atur feed dan tab bawahmu
+Attention,Attention
 Audio,Audio
 Auto translate comments,Terjemahkan komentar otomatis
 Auto-advance session limit,Batas lanjut otomatis per sesi
@@ -233,7 +236,6 @@ Country ISO,ISO negara
 Country and network preferences,Preferensi negara dan jaringan
 Counts under the buttons,Angka di bawah tombol
 Create,Buat
-Creator handle or id,Handle atau ID kreator
 Creators and sounds,Kreator dan suara
 Creators hidden from later feed batches by the player action. Search the list and remove one entry at a time.,Kreator yang disembunyikan dari pemuatan feed berikutnya lewat aksi pemutar. Cari di daftar dan hapus satu entri setiap kali.
 Current,Saat ini
@@ -278,6 +280,7 @@ Download path updated,Lokasi unduhan diperbarui
 Downloads,Unduhan
 "Drag to move, release to place","Seret untuk memindahkan, lepaskan untuk menempatkan"
 Drama and Series,Drama dan Serial
+"Draw TikTok's text in your device's font instead of TikTok Sans. Icons, gift animations and the @ and # glyphs keep their own fonts. Restart TikTok to apply this.","Tampilkan teks TikTok dengan font perangkatmu, bukan TikTok Sans. Ikon, animasi hadiah, serta tanda @ dan # tetap memakai fontnya sendiri. Mulai ulang TikTok agar berlaku."
 "Drop the notification saying somebody new followed you before it reaches the drawer. Every other notification is left alone, and the follower still appears in the Inbox.","Buang notifikasi yang memberi tahu ada orang baru yang mengikutimu sebelum masuk ke laci notifikasi. Notifikasi lain tidak terpengaruh, dan pengikutnya tetap muncul di Kotak Masuk."
 "Each area, how many of the things it looks for are in this build and how many are not.","Setiap area, berapa banyak hal yang dicarinya ada di build ini dan berapa yang tidak."
 Empty,Kosong
@@ -358,6 +361,7 @@ Generated defaults,Nilai bawaan yang dihasilkan
 Gestures,Gerakan
 Ghost mode,Mode siluman
 Hand-off,Penerusan
+Handle or id,Handle or id
 Hidden %1$s locally,%1$s disembunyikan secara lokal
 Hidden commenters,Pengomentar yang disembunyikan
 Hidden creators,Kreator tersembunyi
@@ -422,7 +426,7 @@ Hide the LIVE videos from the feed.,Sembunyikan video LIVE dari feed.
 Hide the Message requests row.,Sembunyikan baris Permintaan pesan.
 Hide the New followers row.,Sembunyikan baris Pengikut baru.
 Hide the Send to row,Sembunyikan baris Kirim ke
-Hide the Tako AI feed bubble above the profile button.,"Sembunyikan gelembung Tako AI di feed, tepat di atas tombol profil."
+Hide the Tako AI bubble above the profile button and the Ask bar under videos.,Sembunyikan gelembung Tako AI di atas tombol profil dan bilah Tako di bawah video.
 Hide the TikTok Tako assistant conversation.,Sembunyikan percakapan asisten TikTok Tako.
 Hide the activity status control in the Inbox header.,Sembunyikan kontrol status aktivitas di header Kotak Masuk.
 Hide the add people icon,Sembunyikan ikon tambah orang
@@ -488,6 +492,7 @@ Inserted cards,Kartu yang disisipkan
 Keep a local record of what you have watched and drop those videos from later feed pages.,Simpan catatan tontonanmu di perangkat dan buang video itu dari halaman feed berikutnya.
 "Keep automatic advance enabled, and show TikTok's own Auto scroll action in the video panel even if your account never had it. Pauses and open dialogs still stop scrolling. Restart TikTok to apply this. Then use this switch to turn it off.",Biarkan lanjut otomatis tetap aktif dan tampilkan aksi Auto scroll milik TikTok di panel video meski akun Anda tidak pernah punya. Jeda dan dialog terbuka tetap menghentikan guliran. Mulai ulang TikTok agar berlaku. Lalu pakai sakelar ini untuk mematikannya.
 Keep captions in clear display,Pertahankan keterangan saat tampilan bersih
+Keep going,Keep going
 Keep the Favorites tab,Pertahankan tab Favorit
 Keep the clock and status icons off the screen while TikTok is open. Swipe down from the top to peek at them.,Sembunyikan jam dan ikon status selama TikTok terbuka. Geser dari atas untuk mengintipnya.
 Keep the screen's refresh rate,Pertahankan laju penyegaran layar
@@ -499,6 +504,7 @@ Kinds of post,Jenis postingan
 LIVE,LIVE
 LIVE replays,Putar ulang LIVE
 LIVE settings,Pengaturan Live
+LIVE share actions,Tindakan berbagi LIVE
 LIVE videos,Video LIVE
 Lab data reset. Undo last Lab change is in the menu. Restart TikTok to apply this.,Data Lab disetel ulang. Batalkan perubahan Lab terakhir ada di menu. Mulai ulang TikTok agar berlaku.
 "Lab data was over its rule limit, so it was cleared without an undo copy. Restart TikTok to apply this.","Data Lab melebihi batas aturan, jadi data dihapus tanpa salinan untuk dibatalkan. Mulai ulang TikTok agar berlaku."
@@ -605,6 +611,7 @@ Nothing is playing to seek,Tidak ada yang diputar untuk dilompati
 Nothing on this page changes what TikTok does until they are on.,Tidak ada di halaman ini yang mengubah perilaku TikTok selama itu mati.
 Nothing to undo yet.,Belum ada yang bisa dibatalkan.
 Notices from this project and the ones it is built on,Pemberitahuan dari proyek ini dan proyek yang menjadinya
+OK,OK
 Off,Mati
 Off forces false; on forces true. Reset returns control to TikTok,"Mati memaksa false, hidup memaksa true. Atur ulang mengembalikan kendali ke TikTok"
 Offline videos,Video offline
@@ -672,6 +679,7 @@ Privacy,Privasi
 Privacy and system,Privasi dan sistem
 Profile,Profil
 Profile picture saved to %1$s,Foto profil disimpan ke %1$s
+Profile share actions,Tindakan berbagi profil
 Promotional music,Musik promosi
 Proof,Bukti
 Publication age,Usia kiriman
@@ -761,6 +769,7 @@ Saved %1$s original photos,%1$s foto asli tersimpan
 Saved one original photo,Satu foto asli disimpan
 "Saved, override off","Disimpan, penggantian mati"
 Saved. Restart TikTok to apply this.,Tersimpan. Mulai ulang TikTok agar berlaku.
+Saving,Saving
 Saving %1$s original photos,Menyimpan %1$s foto asli
 Saving settings backup,Menyimpan cadangan pengaturan
 Saving sticker,Menyimpan stiker
@@ -1028,12 +1037,14 @@ Undo clearing seen videos,Undo clearing seen videos
 Undo last Lab change,Batalkan perubahan Lab terakhir
 Undo last restore or reset,Urungkan pemulihan atau reset terakhir
 Undoing the last change,Membatalkan perubahan terakhir
+"Until you save a choice here, this sheet hides the same actions as the share action checklist.","Sampai Anda menyimpan pilihan di sini, lembar ini menyembunyikan tindakan yang sama dengan daftar periksa tindakan berbagi."
 "Up to 8 speeds from 0.5 to 3, separated by commas. Example: 0.5, 1, 1.5, 2, 2.5, 3. Leave empty for TikTok's list. Restart TikTok to apply this.","Sampai 8 kecepatan dari 0.5 hingga 3, dipisah koma. Contoh: 0.5, 1, 1.5, 2, 2.5, 3. Kosongkan untuk daftar TikTok. Mulai ulang TikTok agar berlaku."
 "Use 0 for TikTok's size, or 12 to 48. Applies to the next caption.","Gunakan 0 untuk ukuran TikTok, atau 12 sampai 48. Berlaku untuk teks berikutnya."
 Use Save JSON for this large report,Pakai Simpan JSON untuk laporan sebesar ini
 "Use TikTok's native hold, slide down, and release gesture to lock 2x speed.","Pakai gestur bawaan TikTok, tahan lalu geser ke bawah dan lepas, untuk mengunci kecepatan 2x."
 Use a default playback speed,Pakai kecepatan pemutaran bawaan
 Use non-personalized search,Pakai pencarian nonpersonal
+Use system font,Gunakan font sistem
 Use the preset for the region TikTok reports for your account and its shop too. May affect search.,Gunakan preset juga untuk wilayah yang dilaporkan TikTok untuk akun Anda dan tokonya. Bisa memengaruhi pencarian.
 "Use the selected country and operator values. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.","Gunakan negara dan nilai operator yang dipilih. Ini hanya mengubah apa yang dilaporkan SIM: alamat IP, riwayat akun, dan bahasa yang kamu baca tetap sama, dan salah satunya saja sudah cukup bagi TikTok untuk mempertahankan wilayah yang sudah dipilihnya. Mulai ulang TikTok agar berlaku."
 "Use the selected country. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.","Gunakan negara yang dipilih. Ini hanya mengubah apa yang dilaporkan SIM: alamat IP, riwayat akun, dan bahasa yang kamu baca tetap sama, dan salah satunya saja sudah cukup bagi TikTok untuk mempertahankan wilayah yang sudah dipilihnya. Mulai ulang TikTok agar berlaku."

@@ -173,6 +173,22 @@ object EspnAdBreakOverlayHelper {
     private val netExecutor = Executors.newSingleThreadExecutor()
     private var scoreStrip: TextView? = null
     private var activeLeagues: List<String> = emptyList()
+
+    // ── Playing-game IDENTITY (the "match the game" fix) ──────────────────────
+    // Fed by onProgramData() (injected at MediaPlayerViewModel's
+    // createAndEmitProgramData lambda). ProgramData.eventId is the canonical ESPN
+    // scoreboard event id (from WatchESPN Airing.eventId), so the strip can match
+    // the EXACT game instead of guessing the first in-progress one in the league.
+    // See docs/SCOREBOARD_SCHEMA_REFERENCE.md.
+    @Volatile private var currentEventId: String? = null
+    @Volatile private var currentSportLeague: String? = null   // API slug e.g. "football/nfl", or null
+    @Volatile private var currentTitle: String? = null
+    @Volatile private var currentIsLive: Boolean = false
+    private var mPdEventId: Method? = null
+    private var mPdSport: Method? = null
+    private var mPdLeague: Method? = null
+    private var mPdTitle: Method? = null
+    private var mPdIsLive: Method? = null
     private val scoreRefresh = object : Runnable {
         override fun run() {
             refreshScoreOnce()
@@ -718,6 +734,54 @@ object EspnAdBreakOverlayHelper {
     // (optional) are a comma-separated list of "sport/league" (e.g. "baseball/mlb");
     // empty = default college-football + nfl. Shows the first in-progress game's
     // score + clock over the slate, refreshed periodically. Public API, no auth.
+    // Injected at MediaPlayerViewModel.createAndEmitProgramData$lambda (p0 = ProgramData).
+    // Reflectively pull the identity fields so the strip can match the exact game.
+    @JvmStatic
+    fun onProgramData(programData: Any?) {
+        val pd = programData ?: return
+        try {
+            val eid = (mPdEventId ?: byName(pd.javaClass, "getEventId")?.also { mPdEventId = it })
+                ?.invoke(pd) as? String
+            val sport = (mPdSport ?: byName(pd.javaClass, "getSportName")?.also { mPdSport = it })
+                ?.invoke(pd) as? String
+            val league = (mPdLeague ?: byName(pd.javaClass, "getLeagueName")?.also { mPdLeague = it })
+                ?.invoke(pd) as? String
+            val title = (mPdTitle ?: byName(pd.javaClass, "getTitle")?.also { mPdTitle = it })
+                ?.invoke(pd) as? String
+            // Kotlin exposes `val isLive: Boolean` as isLive() (JVM keeps the `is`
+            // prefix); some toolchains emit getIsLive(). Accept either.
+            val live = (mPdIsLive
+                ?: byName(pd.javaClass, "isLive")
+                ?: byName(pd.javaClass, "getIsLive"))
+                ?.also { mPdIsLive = it }
+                ?.invoke(pd) as? Boolean ?: false
+            currentEventId = eid?.takeIf { it.isNotBlank() && it != "0" }
+            currentSportLeague = toApiSlug(sport, league)
+            currentTitle = title
+            currentIsLive = live
+            Log.d(TAG, "onProgramData: eventId=$currentEventId slug=$currentSportLeague live=$live title=${title?.take(60)}")
+        } catch (t: Throwable) {
+            Log.w(TAG, "onProgramData reflect failed: $t")
+        }
+    }
+
+    // Best-effort map ProgramData's sportName/leagueName labels to an ESPN API
+    // "{sport}/{league}" slug. Returns null when we can't confidently map — callers
+    // then fall back to scanning the configured leagues and matching by event id.
+    private fun toApiSlug(sport: String?, league: String?): String? {
+        val s = sport?.trim()?.lowercase()?.replace(' ', '-') ?: return null
+        val l = league?.trim()?.lowercase()?.replace(' ', '-') ?: return null
+        if (s.isEmpty() || l.isEmpty()) return null
+        // Common league-label → API-slug fixups; extend as field data comes in.
+        val leagueSlug = when (l) {
+            "college-football", "ncaa-football", "ncaaf" -> "college-football"
+            "mens-college-basketball", "ncaam" -> "mens-college-basketball"
+            "womens-college-basketball", "ncaaw" -> "womens-college-basketball"
+            else -> l
+        }
+        return "$s/$leagueSlug"
+    }
+
     private fun startScoreStrip(overlay: FrameLayout, context: Context) {
         val leagues = resolveLeagues(context)
         activeLeagues = leagues
@@ -757,11 +821,42 @@ object EspnAdBreakOverlayHelper {
     }
 
     private fun refreshScoreOnce() {
-        val leagues = activeLeagues
+        val eid = currentEventId
+        // Candidate leagues: prefer the game's own mapped slug (from ProgramData),
+        // then the configured/default ones — deduped, order-preserving.
+        val leagues = (listOfNotNull(currentSportLeague) + activeLeagues).distinct()
         netExecutor.execute {
-            val line = fetchScoreLine(leagues)
+            // 1) EXACT: if we know the playing game's event id, find that game.
+            val exact = if (eid != null) fetchScoreLineForEvent(eid, leagues) else null
+            // 2) Fallback: legacy first-in-progress guess (no id, or not found).
+            val line = exact ?: fetchScoreLine(activeLeagues)
             if (line != null) mainHandler.post { scoreStrip?.text = line }
         }
+    }
+
+    // EXACT match: scan the candidate leagues' scoreboards for the event whose
+    // id == our ProgramData.eventId and format that game. Returns null if not
+    // found (caller falls back). No sport/league slug guessing required — we match
+    // by id across whatever leagues we scan.
+    private fun fetchScoreLineForEvent(eventId: String, leagues: List<String>): String? {
+        for (lg in leagues) {
+            try {
+                val json = httpGet("https://site.api.espn.com/apis/site/v2/sports/$lg/scoreboard") ?: continue
+                val events = JSONObject(json).optJSONArray("events") ?: continue
+                for (i in 0 until events.length()) {
+                    val ev = events.getJSONObject(i)
+                    if (ev.optString("id") != eventId) continue
+                    val comp = ev.optJSONArray("competitions")?.optJSONObject(0) ?: continue
+                    val line = formatCompetition(comp)
+                    Log.d(TAG, "score fetch EXACT $lg event=$eventId -> $line")
+                    return line
+                }
+            } catch (t: Throwable) {
+                Log.w(TAG, "score fetch (exact) failed ($lg): $t")
+            }
+        }
+        Log.d(TAG, "score fetch EXACT event=$eventId -> not found in $leagues")
+        return null
     }
 
     private fun fetchScoreLine(leagues: List<String>): String? {
@@ -773,16 +868,7 @@ object EspnAdBreakOverlayHelper {
                     val comp = events.getJSONObject(i).optJSONArray("competitions")?.optJSONObject(0) ?: continue
                     val type = comp.optJSONObject("status")?.optJSONObject("type")
                     if (type?.optString("state") != "in") continue   // in-progress only
-                    val cs = comp.optJSONArray("competitors") ?: continue
-                    var away = ""; var home = ""
-                    for (j in 0 until cs.length()) {
-                        val c = cs.getJSONObject(j)
-                        val ab = c.optJSONObject("team")?.optString("abbreviation") ?: "?"
-                        val sc = c.optString("score", "0")
-                        if (c.optString("homeAway") == "home") home = "$ab $sc" else away = "$ab $sc"
-                    }
-                    val detail = type.optString("shortDetail", "")
-                    val line = listOf("$away    $home", detail).filter { it.isNotBlank() }.joinToString("   ·   ")
+                    val line = formatCompetition(comp)
                     Log.d(TAG, "score fetch $lg -> $line")
                     return line
                 }
@@ -792,6 +878,23 @@ object EspnAdBreakOverlayHelper {
             }
         }
         return null
+    }
+
+    // Format one competition (scoreboard shape) into the strip line:
+    //   "AWAY 13    HOME 17   ·   3rd 4:12"
+    private fun formatCompetition(comp: JSONObject): String {
+        val cs = comp.optJSONArray("competitors")
+        var away = ""; var home = ""
+        if (cs != null) {
+            for (j in 0 until cs.length()) {
+                val c = cs.getJSONObject(j)
+                val ab = c.optJSONObject("team")?.optString("abbreviation") ?: "?"
+                val sc = c.optString("score", "0")
+                if (c.optString("homeAway") == "home") home = "$ab $sc" else away = "$ab $sc"
+            }
+        }
+        val detail = comp.optJSONObject("status")?.optJSONObject("type")?.optString("shortDetail", "") ?: ""
+        return listOf("$away    $home", detail).filter { it.isNotBlank() }.joinToString("   ·   ")
     }
 
     private fun httpGet(urlStr: String): String? {

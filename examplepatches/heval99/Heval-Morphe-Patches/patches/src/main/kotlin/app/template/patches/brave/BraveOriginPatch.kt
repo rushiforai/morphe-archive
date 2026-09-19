@@ -115,12 +115,14 @@ val braveOriginPatch = bytecodePatch(
             strings = listOf("brave_origin_credential_summary_cached"),
         ).method.returnEarly(true)
 
-        // ── 4. ei2.a(Profile, String) → skip (write package/product id) ──────────────
+        // ── 4. a(Profile, String) / a(String, Profile) → skip (write package/product id) ─
+        // 1.95.104 swapped the parameter order to (String, Profile); match either order and
+        // let the fingerprint pick the method that holds both pref keys.
         Fingerprint(
             returnType = "V",
             parameters = listOf(
-                "Lorg/chromium/chrome/browser/profiles/Profile;",
                 "Ljava/lang/String;",
+                "Lorg/chromium/chrome/browser/profiles/Profile;",
             ),
             strings = listOf(
                 "brave.origin.package_name_android",

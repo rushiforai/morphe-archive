@@ -74,9 +74,9 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Bufferk](#-bufferk-bundle-patch-list) | 13 | 7 | Generated |
 | [Franticg33k](#-franticg33k-bundle-patch-list) | 23 | 12 | Generated |
 | [Gryphous-Morphe](#-gryphous-morphe-bundle-patch-list) | 6 | 2 | Generated |
-| [Okish-Morphe](#-okish-morphe-bundle-patch-list) | 62 | 28 | Generated |
+| [Okish-Morphe](#-okish-morphe-bundle-patch-list) | 65 | 29 | Generated |
 | [Xhehab](#-xhehab-bundle-patch-list) | 14 | 13 | Generated |
-| [Nai64](#-nai64-bundle-patch-list) | 437 | 2 | Generated |
+| [Nai64](#-nai64-bundle-patch-list) | 5 | 1 | Generated |
 | [Morphe-Google](#-morphe-google-bundle-patch-list) | 2 | 1 | Generated |
 | [Prathxm](#-prathxm-bundle-patch-list) | 7 | 1 | Generated |
 | [Telegram-Morphe](#-telegram-morphe-bundle-patch-list) | 10 | 1 | Generated |
@@ -98,7 +98,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [ProGuard](#-proguard-bundle-patch-list) | 2 | 2 | Generated |
 | [Lain](#-lain-bundle-patch-list) | 45 | 33 | Generated |
 | [Edge-Morphe](#-edge-morphe-bundle-patch-list) | 5 | 2 | Generated |
-| [Anddea](#-anddea-bundle-patch-list) | 127 | 3 | Generated |
+| [Anddea](#-anddea-bundle-patch-list) | 128 | 3 | Generated |
 | [Piko](#-piko-bundle-patch-list) | 131 | 2 | Generated |
 | [HK-Morphe](#-hk-morphe-bundle-patch-list) | 12 | 4 | Generated |
 | [BholeyKaBhakt](#-bholeykabhakt-bundle-patch-list) | 24 | 15 | Generated |
@@ -111,10 +111,10 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [X-Shim](#-x-shim-bundle-patch-list) | 3 | 1 | Generated |
 | [Pepper-Morphe](#-pepper-morphe-bundle-patch-list) | 17 | 10 | Generated |
 | [Fin-Tweaks](#-fin-tweaks-bundle-patch-list) | - | - | Pending patch list |
-| [Kondratjev](#-kondratjev-bundle-patch-list) | 18 | 11 | Generated |
+| [Kondratjev](#-kondratjev-bundle-patch-list) | 19 | 11 | Generated |
 | [Hoo-dles](#-hoo-dles-bundle-patch-list) | 79 | 58 | Generated |
 | [AmpleReVanced](#-amplerevanced-bundle-patch-list) | 124 | 10 | Generated |
-| [Morphe](#-morphe-bundle-patch-list) | 148 | 4 | Generated |
+| [Morphe](#-morphe-bundle-patch-list) | 149 | 4 | Generated |
 | [Patcheddit](#-patcheddit-bundle-patch-list) | 39 | 19 | Generated |
 | [RVX-Morphed](#-rvx-morphed-bundle-patch-list) | 113 | 3 | Generated |
 | [IMXEren](#-imxeren-bundle-patch-list) | 13 | 5 | Generated |
@@ -125,7 +125,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Docbt](#-docbt-bundle-patch-list) | 6 | 3 | Generated |
 | [PixelPusher247](#-pixelpusher247-bundle-patch-list) | 1 | 1 | Generated |
 | [Rabilrbl](#-rabilrbl-bundle-patch-list) | 3 | 2 | Generated |
-| [Jasonwu1994](#-jasonwu1994-bundle-patch-list) | 40 | 1 | Generated |
+| [Jasonwu1994](#-jasonwu1994-bundle-patch-list) | 41 | 1 | Generated |
 | [RealCyberwash](#-realcyberwash-bundle-patch-list) | 1 | 1 | Generated |
 | [Paresh-Maheshwari](#-paresh-maheshwari-bundle-patch-list) | 61 | 23 | Generated |
 | [Binarymend](#-binarymend-bundle-patch-list) | 11 | 7 | Generated |
@@ -183,7 +183,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [FTL](#-ftl-bundle-patch-list) | 61 | 18 | Generated |
 | [braiNtropy](#-braintropy-bundle-patch-list) | 3 | 2 | Generated |
 | [Ang3lo](#-ang3lo-bundle-patch-list) | 1 | 1 | Generated |
-| [Heval99](#-heval99-bundle-patch-list) | 28 | 19 | Generated |
+| [Heval99](#-heval99-bundle-patch-list) | 31 | 22 | Generated |
 | [Atharv](#-atharv-bundle-patch-list) | 2 | 1 | Generated |
 | [Tiaruebar](#-tiaruebar-bundle-patch-list) | 1 | 1 | Generated |
 | [FTL-Portal](#-ftl-portal-bundle-patch-list) | 3 | 2 | Generated |
@@ -200,7 +200,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [RuStore-Privacy](#-rustore-privacy-bundle-patch-list) | 14 | 1 | Generated |
 | [Abhishek-Bhujang](#-abhishek-bhujang-bundle-patch-list) | 2 | 2 | Generated |
 | [MauroGamerVN](#-maurogamervn-bundle-patch-list) | 2 | 2 | Generated |
-| [Kveld](#-kveld-bundle-patch-list) | 76 | 7 | Generated |
+| [Kveld](#-kveld-bundle-patch-list) | 78 | 7 | Generated |
 | [Anime-Witcher](#-anime-witcher-bundle-patch-list) | 9 | 1 | Generated |
 | [Apos](#-apos-bundle-patch-list) | 1 | 1 | Generated |
 | [HH](#-hh-bundle-patch-list) | 4 | 1 | Generated |
@@ -240,16 +240,16 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Dumketo](#-dumketo-bundle-patch-list) | 8 | 4 | Generated |
 | [Benzophury](#-benzophury-bundle-patch-list) | 4 | 1 | Generated |
 | [PyFlat-JR](#-pyflat-jr-bundle-patch-list) | 2 | 1 | Generated |
-| [Dual-VoT](#-dual-vot-bundle-patch-list) | 149 | 4 | Generated |
+| [Dual-VoT](#-dual-vot-bundle-patch-list) | 150 | 4 | Generated |
 | [SmartLauncher](#-smartlauncher-bundle-patch-list) | 6 | 1 | Generated |
 | [Rahul9999xda-Telegram](#-rahul9999xda-telegram-bundle-patch-list) | 20 | 4 | Generated |
 | [6ixfalls](#-6ixfalls-bundle-patch-list) | 1 | 1 | Generated |
 | [Letterboxd](#-letterboxd-bundle-patch-list) | 6 | 1 | Generated |
-| [UniPatches](#-unipatches-bundle-patch-list) | 12 | 2 | Generated |
+| [UniPatches](#-unipatches-bundle-patch-list) | 11 | 2 | Generated |
 | [Discord](#-discord-bundle-patch-list) | 3 | 1 | Generated |
 | [Xperia-1V-Camera](#-xperia-1v-camera-bundle-patch-list) | 6 | 2 | Generated |
 | [Gemini-MicroG](#-gemini-microg-bundle-patch-list) | 13 | 2 | Generated |
-| [Hushfeed](#-hushfeed-bundle-patch-list) | 90 | 1 | Generated |
+| [Hushfeed](#-hushfeed-bundle-patch-list) | 91 | 1 | Generated |
 | [Debakarr](#-debakarr-bundle-patch-list) | 2 | 3 | Generated |
 | [RingConn](#-ringconn-bundle-patch-list) | 2 | 1 | Generated |
 | [Yann-Soliman](#-yann-soliman-bundle-patch-list) | 7 | 3 | Generated |
@@ -269,7 +269,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Haiagaru](#-haiagaru-bundle-patch-list) | 1 | 1 | Generated |
 | [MohamedElnaggar00-TikTok-Lite](#-mohamedelnaggar00-tiktok-lite-bundle-patch-list) | 17 | 2 | Generated |
 | [Hari-Telegram](#-hari-telegram-bundle-patch-list) | 20 | 3 | Generated |
-| [Travian](#-travian-bundle-patch-list) | 2 | 2 | Generated |
+| [Travian](#-travian-bundle-patch-list) | 2 | 1 | Generated |
 | [HelioFloxZ](#-heliofloxz-bundle-patch-list) | 2 | 1 | Generated |
 | [Ahmedyarub](#-ahmedyarub-bundle-patch-list) | 17 | 2 | Generated |
 | [Epxec](#-epxec-bundle-patch-list) | 11 | 11 | Generated |
@@ -277,8 +277,8 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [PixivPatches](#-pixivpatches-bundle-patch-list) | 8 | 1 | Generated |
 | [De-Vanced](#-de-vanced-bundle-patch-list) | 7 | 1 | Generated |
 | [CBC](#-cbc-bundle-patch-list) | 4 | 1 | Generated |
-| [D-moniak](#-d-moniak-bundle-patch-list) | 1 | 1 | Generated |
-| [Spicetify](#-spicetify-bundle-patch-list) | 2 | 1 | Generated |
+| [D-moniak](#-d-moniak-bundle-patch-list) | 2 | 1 | Generated |
+| [Spicetify](#-spicetify-bundle-patch-list) | 4 | 1 | Generated |
 
 ### Legacy
 | Bundle | Patches | Apps | Status |
@@ -704,7 +704,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Okish-Morphe Bundle Patch List:
 [📦 Okish-Morphe-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-okish-morphe-patches-bundle-morphe)
 <details>
-<summary><b>Okish-Morphe</b> - 62 patches, 28 apps</summary>
+<summary><b>Okish-Morphe</b> - 65 patches, 29 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -763,6 +763,9 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Rodeo Stampede Ad-Free (Ads blocked + instant rewards)``` | ```Blocks banner/app-open/native ads and turns rewarded + interstitial ads into instant no-ad events so the game never fetches or displays ads.``` | ```Rodeo Stampede: Sky Zoo Safari``` | ```4.23.0, 4.24.0``` |
 | ```Rodeo Stampede Free Purchase``` | ```Spoofs in-app purchases as instantly successful at the Yodo1 purchase funnel.``` | ```Rodeo Stampede: Sky Zoo Safari``` | ```4.23.0, 4.24.0``` |
 | ```Smash Hit Premium Unlock``` | ```Unlocks premium and all game modes without purchase.``` | ```Smash Hit``` | ```1.5.14``` |
+| ```Swift Backup Premium Unlock``` | ```Unlocks all Premium features.``` | ```Swift Backup``` | ```5.1.0``` |
+| ```Swift Backup Tamper Protection``` | ```Stops the app from closing itself on patched installs.``` | ```Swift Backup``` | ```5.1.0``` |
+| ```Swift Backup Web Login``` | ```Makes Google sign-in work for connecting cloud accounts.``` | ```Swift Backup``` | ```5.1.0``` |
 | ```Swordigo Premium Unlock``` | ```Enables ad-free, guiding compass, and coin doubler without purchase.``` | ```Swordigo``` | ```1.4.12, 1.4.13``` |
 | ```Tentacle Wars Free Purchases``` | ```Spoofs in-app purchases as instantly successful: tapping Buy grants the SKU directly through the game's own purchase callback — no Google Play dialog, no payment. For ad-free, just tap the Remove-Ads button on the main game screen.``` | ```Tentacle Wars``` | ```2.1.27``` |
 | ```Traffic Rider Ads Removal + Instant Rewards``` | ```Removes ads and grants rewarded rewards instantly: interstitial/banner/app-open never show, rewarded videos fire onUserEarnedReward(1.0) instantly without ad.``` | ```Traffic Rider``` | ```2.11``` |
@@ -802,447 +805,15 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Nai64 Bundle Patch List:
 [📦 Nai64-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-nai64-patches-bundle-morphe)
 <details>
-<summary><b>Nai64</b> - 437 patches, 2 apps</summary>
+<summary><b>Nai64</b> - 5 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Allow Mobile Downloads``` | ```Bandcamp: allows audio cache downloads over mobile data without the confirmation dialog.``` | ```com.bandcamp.android``` | ```All versions``` |
-| ```Disable Bandcamp Tracker``` | ```Bandcamp: disables the first-party accessibility tracker that pings /api/tracker.``` | ```com.bandcamp.android``` | ```All versions``` |
-| ```Disable Onboarding Overlays``` | ```Bandcamp: skips the one-time onboarding overlays for the play queue, long-press downloads and public playlist tooltips.``` | ```com.bandcamp.android``` | ```All versions``` |
-| ```Disable Support Banners``` | ```Bandcamp: hides server-pushed banner dialogs such as update prompts, rate-me requests and announcements.``` | ```com.bandcamp.android``` | ```All versions``` |
-| ```Enable Hidden Settings``` | ```Bandcamp: turns on hidden feature flags - audio-cache indicators, podcast player controls and public-playlist track visibility.``` | ```com.bandcamp.android``` | ```All versions``` |
-| ```Remove Play Count Limit``` | ```Bandcamp: removes the free streaming play limit on unowned tralbums, so full tracks keep playing and the purchase nag never appears.``` | ```com.bandcamp.android``` | ```All versions``` |
-| ```Show Search Result Scores``` | ```Bandcamp: always shows relevance scores in search results (admin debug flag show_search_result_score).``` | ```com.bandcamp.android``` | ```All versions``` |
-| ```Unlock Playback Speed``` | ```Bandcamp: applies the playback-rate control to every track instead of podcasts only, so 1x, 1.5x and 2x speeds work for music too.``` | ```com.bandcamp.android``` | ```All versions``` |
 | ```Ads Free Rewards``` | ```Get rewards without watching ads. Combine with No Ads for other formats, but keep No Ads' rewarded block off.``` | ```Universal``` | ```All versions``` |
-| ```Allow Background Activity``` | ```Makes ActivityManager.isBackgroundRestricted always return false so apps ignore background activity restrictions imposed by the system or user``` | ```Universal``` | ```All versions``` |
-| ```Allow Clearing App Data``` | ```Sets android:allowClearUserData so the system's Clear Data button stays available even for apps that try to disable it``` | ```Universal``` | ```All versions``` |
-| ```Allow Cleartext Traffic``` | ```Sets android:usesCleartextTraffic and drops any network security config so plain HTTP requests are allowed (useful for debugging through local proxies)``` | ```Universal``` | ```All versions``` |
-| ```Allow Mixed Content``` | ```Forces WebSettings.setMixedContentMode(MIXED_CONTENT_ALWAYS_ALLOW) so WebViews load HTTP resources on HTTPS pages.``` | ```Universal``` | ```All versions``` |
-| ```Allow Screenshots``` | ```Remove the screenshot-blocking window flag``` | ```Universal``` | ```All versions``` |
-| ```Allow Text Selection``` | ```Makes protected text selectable and copyable.``` | ```Universal``` | ```All versions``` |
-| ```Allow WebView Autoplay``` | ```Forces WebSettings.setMediaPlaybackRequiresUserGesture(false) so media in WebViews can autoplay without a tap.``` | ```Universal``` | ```All versions``` |
-| ```Allow WebView File Access``` | ```Forces WebSettings file-access flags on so WebViews can load local files and content URLs.``` | ```Universal``` | ```All versions``` |
-| ```Always Allow Biometrics``` | ```Makes BiometricManager.canAuthenticate always return BIOMETRIC_SUCCESS so apps do not block biometric features on unsupported or unenrolled devices``` | ```Universal``` | ```All versions``` |
-| ```Always Show Scrollbars``` | ```Forces scrollbars to stay enabled so scroll position is always visible``` | ```Universal``` | ```All versions``` |
-| ```AMOLED Theme``` | ```Makes dark mode pure black for AMOLED screens. Light mode stays normal.``` | ```Universal``` | ```All versions``` |
-| ```Apk Junk Cleanup``` | ```Removes unused CPU libraries to shrink the APK. Keep only your device's architecture.``` | ```Universal``` | ```All versions``` |
-| ```Block Analytics Long Tail``` | ```Stops smaller product analytics SDKs so events never reach their dashboards``` | ```Universal``` | ```All versions``` |
-| ```Block APM Suites``` | ```Stops app performance monitoring SDKs so timings, crashes and network traces never upload``` | ```Universal``` | ```All versions``` |
-| ```Block Attribution Extras``` | ```Stops smaller attribution SDKs so installs and opens are never credited to ad networks``` | ```Universal``` | ```All versions``` |
-| ```Block BLE Scan``` | ```Blocks Bluetooth Low Energy scans so apps cannot track nearby beacons or accessories``` | ```Universal``` | ```All versions``` |
-| ```Block Crash Extras``` | ```Stops smaller crash reporters missed by Disable Crash Reporters so stack traces never upload``` | ```Universal``` | ```All versions``` |
-| ```Block Data Pipelines``` | ```Stops customer data pipeline SDKs so events never stream into warehouses or profiles``` | ```Universal``` | ```All versions``` |
-| ```Block GMS Tracking``` | ```Blocks Google activity recognition and geofencing so apps cannot track movement or location zones``` | ```Universal``` | ```All versions``` |
-| ```Block Huawei Analytics``` | ```Stops Huawei Analytics event uploads so usage never reaches Huawei servers``` | ```Universal``` | ```All versions``` |
-| ```Block Install Referrer``` | ```Blocks the Play Install Referrer API so apps cannot read which ad or link installed them``` | ```Universal``` | ```All versions``` |
-| ```Block Legacy Analytics``` | ```Stops pre-Firebase Google Analytics so screen views and hits never upload``` | ```Universal``` | ```All versions``` |
-| ```Block Location Trackers``` | ```Stops location intelligence SDKs so visits and beacon sightings never upload``` | ```Universal``` | ```All versions``` |
-| ```Block MoEngage``` | ```Stops the MoEngage SDK so events and profile traits never reach its engagement cloud``` | ```Universal``` | ```All versions``` |
-| ```Block PostHog``` | ```Stops the PostHog SDK so captures, screens and feature flags never upload``` | ```Universal``` | ```All versions``` |
-| ```Block Profile Tracking``` | ```Stops user profile stitching in analytics SDKs whose events are blocked but identity calls are not``` | ```Universal``` | ```All versions``` |
-| ```Block Push Ads``` | ```Block push notification ads (Firebase Cloud Messaging). Also blocks legitimate notifications.``` | ```Universal``` | ```All versions``` |
-| ```Block Push Analytics``` | ```Stops push engagement SDKs so tags, outcomes and identity never reach push vendors``` | ```Universal``` | ```All versions``` |
-| ```Block Screenshot Detection``` | ```Adds FLAG_SECURE to every activity window so the system blocks screenshots, screen recording and recents previews of the app``` | ```Universal``` | ```All versions``` |
-| ```Block Session Replay``` | ```Stops session recording SDKs so apps cannot film your taps, scrolling or screen content``` | ```Universal``` | ```All versions``` |
-| ```Block Snowplow``` | ```Stops the Snowplow tracker so structured events never reach its collectors``` | ```Universal``` | ```All versions``` |
-| ```Block TikTok Events``` | ```Stops the TikTok Events SDK so app activity never reaches TikTok for ad targeting``` | ```Universal``` | ```All versions``` |
-| ```Block Yandex Metrica``` | ```Stops Yandex Metrica activation and event reports so usage never reaches Yandex servers``` | ```Universal``` | ```All versions``` |
-| ```Bypass Demo User``` | ```Makes UserManager.isDemoUser() report false so apps that gate functionality in retail/demo mode run normally.``` | ```Universal``` | ```All versions``` |
-| ```Bypass DND Policy Access``` | ```Lets automation apps work without Do Not Disturb permission.``` | ```Universal``` | ```All versions``` |
-| ```Bypass Emulator Detection``` | ```Hides emulator traces by spoofing Build info and related checks so apps cannot detect an emulator.``` | ```Universal``` | ```All versions``` |
-| ```Bypass Forced Updates (Experimental)``` | ```Skip forced update screens and keep using the app.``` | ```Universal``` | ```All versions``` |
-| ```Bypass Google Play Services Check``` | ```Tricks the app into thinking Google Play Services is installed and working, so it does not disable features that depend on it.``` | ```Universal``` | ```All versions``` |
-| ```Bypass Guest User``` | ```Makes UserManager.isGuestUser() report false so apps that limit guest accounts behave as on a primary account.``` | ```Universal``` | ```All versions``` |
-| ```Bypass Hostname Verification``` | ```Makes any HostnameVerifier.verify(String, SSLSession) always return true, accepting any certificate hostname without errors.``` | ```Universal``` | ```All versions``` |
-| ```Bypass Instant App``` | ```Treats instant apps as full installs.``` | ```Universal``` | ```All versions``` |
-| ```Bypass Keyguard Secure``` | ```Makes KeyguardManager.isKeyguardSecure() report false so apps that require a secure lock screen run without one.``` | ```Universal``` | ```All versions``` |
-| ```Bypass License Verification``` | ```Forces Google Play's license (LVL) check to pass, so the app does not refuse to run on unlicensed or modified builds.``` | ```Universal``` | ```All versions``` |
-| ```Bypass Linked User``` | ```Makes UserManager.isLinkedUser() report false so apps that restrict linked/secondary profiles run normally.``` | ```Universal``` | ```All versions``` |
-| ```Bypass Lock Task Mode``` | ```Makes ActivityManager.isInLockTaskMode() report false so apps that change behavior under screen-pinning or kiosk mode run normally.``` | ```Universal``` | ```All versions``` |
-| ```Bypass Low-End Device``` | ```Makes ActivityManager.isLowEndDevice() report false so apps stop applying low-end-device restrictions and degraded quality.``` | ```Universal``` | ```All versions``` |
-| ```Bypass Managed Profile``` | ```Treats work profiles as regular profiles.``` | ```Universal``` | ```All versions``` |
-| ```Bypass OkHttp Pinning``` | ```No-ops the certificate verification entry points of bundled OkHttp clients so certificate pinning never rejects connections``` | ```Universal``` | ```All versions``` |
-| ```Bypass Overlay Detection``` | ```Lets apps work with screen overlays.``` | ```Universal``` | ```All versions``` |
-| ```Bypass Package Suspended``` | ```Makes PackageManager.isPackageSuspended() report false so apps that refuse to run while suspended keep working.``` | ```Universal``` | ```All versions``` |
-| ```Bypass Permission Check``` | ```Forces permission checks to report granted so permission-gated features skip dialogs``` | ```Universal``` | ```All versions``` |
-| ```Bypass Picture-in-Picture Mode``` | ```Makes Activity.isInPictureInPictureMode() report false so apps that change behavior in PiP keep their full UI.``` | ```Universal``` | ```All versions``` |
-| ```Bypass Play License Check``` | ```Answers the Play license check (LVL) with LICENSED without contacting Google. Only affects apps using the legacy licensing library.``` | ```Universal``` | ```All versions``` |
-| ```Bypass Safe Mode``` | ```Makes PackageManager.isSafeMode() report false so apps that disable functionality in safe mode behave normally.``` | ```Universal``` | ```All versions``` |
-| ```Bypass System User``` | ```Makes UserManager.isSystemUser() report false so apps gating behavior to the system user treat the current user as normal.``` | ```Universal``` | ```All versions``` |
-| ```Bypass Test Environment``` | ```Hides test and automation environment.``` | ```Universal``` | ```All versions``` |
-| ```Bypass User Restricted``` | ```Makes UserManager.isUserRestricted() report false so apps that limit restricted accounts run normally.``` | ```Universal``` | ```All versions``` |
-| ```Bypass VPN Detection``` | ```Makes NetworkCapabilities report no VPN: hasTransport always returns false and hasCapability always returns true, so apps cannot block or alter behavior on VPN``` | ```Universal``` | ```All versions``` |
-| ```Bypass WebView Safe Browsing``` | ```Bypasses deceptive site warnings in WebView.``` | ```Universal``` | ```All versions``` |
-| ```Bypass WebView SSL Errors``` | ```Ignores SSL errors in WebView.``` | ```Universal``` | ```All versions``` |
-| ```Change Package Name``` | ```Clone the app with a new package name.``` | ```Universal``` | ```All versions``` |
-| ```Change Version Code``` | ```Overrides the android:versionCode declared in the manifest``` | ```Universal``` | ```All versions``` |
-| ```Change Version Name``` | ```Overrides the android:versionName declared in the manifest``` | ```Universal``` | ```All versions``` |
-| ```Classic Back Gesture``` | ```Sets android:enableOnBackInvokedCallback to false so apps that break under the Android 13+ predictive back system keep the classic back behavior``` | ```Universal``` | ```All versions``` |
-| ```Clearing Split Metadata``` | ```Removes split-install manifest attributes and Play Store split metadata from the app manifest.``` | ```Universal``` | ```All versions``` |
-| ```Custom Accent Color``` | ```Replaces the app accent color (buttons, switches, highlights) in every theme``` | ```Universal``` | ```All versions``` |
-| ```Custom App Icon``` | ```Change the app icon.``` | ```Universal``` | ```All versions``` |
-| ```Custom App Resolution (Experimental)``` | ```Set a custom resolution for the game``` | ```Universal``` | ```All versions``` |
-| ```Custom Navigation Bar Color``` | ```Sets a custom background color for the navigation bar in every theme``` | ```Universal``` | ```All versions``` |
-| ```Custom Startup Dialog``` | ```Shows a customizable dialog once when the app is opened``` | ```Universal``` | ```All versions``` |
-| ```Custom Startup Sound``` | ```Plays a custom sound once when the app starts.``` | ```Universal``` | ```All versions``` |
-| ```Custom Startup Toast``` | ```Shows a customizable toast message every time the app starts``` | ```Universal``` | ```All versions``` |
-| ```Custom Status Bar Color``` | ```Sets a custom background color for the status bar in every theme``` | ```Universal``` | ```All versions``` |
-| ```Custom Window Background``` | ```Sets a custom window background color in every theme``` | ```Universal``` | ```All versions``` |
-| ```Deny Permission Checks``` | ```Forces permission checks to report denied so the app cannot silently access permission-gated data``` | ```Universal``` | ```All versions``` |
-| ```Disable Activity Transitions``` | ```No-ops Activity.overridePendingTransition(...) so the app's custom activity enter/exit animations are skipped.``` | ```Universal``` | ```All versions``` |
-| ```Disable Ad SDK Init``` | ```Stops ad SDKs from initializing at startup (no tracking, faster launch). Aggressive: apps gating content on init callbacks may hang. Do not combine with Ads Free Rewards, which needs live SDKs.``` | ```Universal``` | ```All versions``` |
-| ```Disable Analytics Events``` | ```Blocks app tracking and analytics.``` | ```Universal``` | ```All versions``` |
-| ```Disable Animations``` | ```Forces Settings.Global window/transition/animator scale values to 0 so the app runs without UI animations (faster, less motion).``` | ```Universal``` | ```All versions``` |
-| ```Disable App Backup``` | ```Prevents the app from backing up its data.``` | ```Universal``` | ```All versions``` |
-| ```Disable App Links Verification``` | ```Removes android:autoVerify from intent filters so Android stops prompting to verify the app's web domains and never converts links into app opens``` | ```Universal``` | ```All versions``` |
-| ```Disable Audio Effects``` | ```Keeps equalizer, bass boost and other audio effects disabled.``` | ```Universal``` | ```All versions``` |
-| ```Disable Audio Recording``` | ```Drops microphone recording calls so the app cannot capture audio.``` | ```Universal``` | ```All versions``` |
-| ```Disable Autofill``` | ```Makes AutofillManager report as disabled so apps stop showing autofill prompts.``` | ```Universal``` | ```All versions``` |
-| ```Disable Background Dim``` | ```Removes the dim behind dialogs and popups so the background stays fully bright``` | ```Universal``` | ```All versions``` |
-| ```Disable Background Sync``` | ```Stops background uploads to cloud accounts.``` | ```Universal``` | ```All versions``` |
-| ```Disable Battery Optimization Prompt``` | ```Removes the permission and intent filters apps use to ask for battery optimization exemptions, so the 'Ignore battery optimizations?' dialog never appears``` | ```Universal``` | ```All versions``` |
-| ```Disable Bluetooth A2DP``` | ```Makes AudioManager.isBluetoothA2dpOn() report false so apps that change behavior when Bluetooth audio is streaming run normally.``` | ```Universal``` | ```All versions``` |
-| ```Disable Bluetooth Discovering``` | ```Makes BluetoothAdapter.isDiscovering() report false so apps cannot tell the adapter is in discovery mode.``` | ```Universal``` | ```All versions``` |
-| ```Disable Bluetooth SCO``` | ```Makes AudioManager.isBluetoothScoOn() report false so apps that change behavior when a Bluetooth SCO link is active run normally.``` | ```Universal``` | ```All versions``` |
-| ```Disable Boot Auto-Start``` | ```Stops the app from starting on its own after reboot.``` | ```Universal``` | ```All versions``` |
-| ```Disable Camera Shutter Sound``` | ```Silences the camera shutter and video-record sounds by neutralizing MediaActionSound.play(...) and Camera.playSound(...).``` | ```Universal``` | ```All versions``` |
-| ```Disable Clipboard Write``` | ```No-ops ClipboardManager.setPrimaryClip(...) so the app cannot silently overwrite the system clipboard.``` | ```Universal``` | ```All versions``` |
-| ```Disable Content Capture``` | ```Reports content capture as disabled so apps stop sharing their view hierarchy with capture services``` | ```Universal``` | ```All versions``` |
-| ```Disable Crash Reporters``` | ```Blocks crash reporting so the app doesn't send crash logs.``` | ```Universal``` | ```All versions``` |
-| ```Disable DTMF Tones``` | ```Makes dialer tone playback report failure so keypad tones stay silent.``` | ```Universal``` | ```All versions``` |
-| ```Disable Edge-To-Edge Enforcement``` | ```Opts out of Android 15 mandatory edge-to-edge so apps that break with enforced edge-to-edge render normally.``` | ```Universal``` | ```All versions``` |
-| ```Disable Elevation Shadows``` | ```Drops view elevation and shadow calls for a flatter, faster UI.``` | ```Universal``` | ```All versions``` |
-| ```Disable Facebook SDK Auto-Init``` | ```Adds Facebook SDK manifest switches that stop auto-initialization, automatic app event logging and advertiser ID collection at startup``` | ```Universal``` | ```All versions``` |
-| ```Disable Firebase Auto-Init``` | ```Stops Firebase Analytics, Crashlytics, Performance, Messaging, In-App Messaging and ad-ID collection from auto-initializing, and removes the measurement provider, receiver and services. Standalone version of the Pairip Bypass Firebase cleanup.``` | ```Universal``` | ```All versions``` |
-| ```Disable Firebase Performance``` | ```Noops Firebase Performance traces and HTTP metrics (start, stop, counters). Stops performance spying with zero behavior change.``` | ```Universal``` | ```All versions``` |
-| ```Disable Fixed Volume``` | ```Makes AudioManager.isVolumeFixed() report false so volume keys and stream changes work even when an app pins the volume.``` | ```Universal``` | ```All versions``` |
-| ```Disable Forced Online Checks (Experimental)``` | ```Lets the app start without internet.``` | ```Universal``` | ```All versions``` |
-| ```Disable Game Sounds``` | ```Makes SoundPool playback return an invalid stream so short game sounds stay silent.``` | ```Universal``` | ```All versions``` |
-| ```Disable Google Pay``` | ```Reports Google Pay as unavailable so GPay buttons and prompts never appear. Does not touch the app's own checkout flow.``` | ```Universal``` | ```All versions``` |
-| ```Disable Google Update Check``` | ```Disables Play Core in-app update flow. Don't use with Bypass Forced Updates which already includes this.``` | ```Universal``` | ```All versions``` |
-| ```Disable Haptic Feedback``` | ```Disables vibration feedback.``` | ```Universal``` | ```All versions``` |
-| ```Disable Haptic On Scroll``` | ```Prevents haptic feedback triggered by scrolling.``` | ```Universal``` | ```All versions``` |
-| ```Disable Hardware Acceleration``` | ```Sets android:hardwareAccelerated="false" on the <application> so the app renders on the software path (fixes some rendering/compat bugs).``` | ```Universal``` | ```All versions``` |
-| ```Disable HDR Detection``` | ```Makes HDR and wide-gamut checks report false so apps skip HDR rendering.``` | ```Universal``` | ```All versions``` |
-| ```Disable Heads-up Notifications``` | ```Blocks pop-up notifications.``` | ```Universal``` | ```All versions``` |
-| ```Disable Heap Pointer Tagging``` | ```Sets android:allowNativeHeapPointerTagging to false so older native games that break under Android 12+ tagged pointers keep running``` | ```Universal``` | ```All versions``` |
-| ```Disable High Text Contrast``` | ```Makes AccessibilityManager.isHighTextContrastEnabled() report false so apps do not alter layouts for high-contrast text.``` | ```Universal``` | ```All versions``` |
-| ```Disable Keyboard Sound``` | ```Silences keyboard and system sounds.``` | ```Universal``` | ```All versions``` |
-| ```Disable Location Requests``` | ```Stops the app from tracking your location.``` | ```Universal``` | ```All versions``` |
-| ```Disable Logcat Logging``` | ```No-ops android.util.Log calls so the app stops spamming logcat.``` | ```Universal``` | ```All versions``` |
-| ```Disable Music Detection``` | ```Makes AudioManager.isMusicActive() report false so apps that react to playing music behave as if nothing is playing.``` | ```Universal``` | ```All versions``` |
-| ```Disable Notification Badges``` | ```Remove launcher badge dots from notification channels.``` | ```Universal``` | ```All versions``` |
-| ```Disable Notification Sound``` | ```Mutes notification sounds.``` | ```Universal``` | ```All versions``` |
-| ```Disable Notification Vibration``` | ```Forces Notification(.Builder/Channel).setVibrate(...) to receive a null pattern so posted notifications do not vibrate.``` | ```Universal``` | ```All versions``` |
-| ```Disable Notifications``` | ```No-ops NotificationManager.notify(...) so the app cannot post any notifications at all.``` | ```Universal``` | ```All versions``` |
-| ```Disable Orientation Lock``` | ```Lets the app rotate with the device.``` | ```Universal``` | ```All versions``` |
-| ```Disable Overscroll Effect``` | ```Forces View.setOverScrollMode(OVER_SCROLL_NEVER) so the edge glow/bounce at list boundaries is disabled.``` | ```Universal``` | ```All versions``` |
-| ```Disable Permission Auto-Revoke``` | ```Sets android:autoRevokePermissions to discouraged so Android stops resetting unused permissions of apps you rarely open``` | ```Universal``` | ```All versions``` |
-| ```Disable Popup Keyboard``` | ```Makes soft-keyboard requests report failure so the keyboard stops popping up.``` | ```Universal``` | ```All versions``` |
-| ```Disable Quiet Mode``` | ```Makes UserManager.isQuietModeEnabled() report false so apps behave as if quiet mode is off.``` | ```Universal``` | ```All versions``` |
-| ```Disable Remote Config Fetch``` | ```Remote Config fetches complete instantly (fetch resolves empty, activate reports success) so apps run on bundled defaults and server-side kill switches never land.``` | ```Universal``` | ```All versions``` |
-| ```Disable Ringtone Playback``` | ```Drops ringtone playback calls so ringtones stay silent.``` | ```Universal``` | ```All versions``` |
-| ```Disable Root Checks``` | ```Disable root detection``` | ```Universal``` | ```All versions``` |
-| ```Disable RTT``` | ```Makes TelephonyManager.isRttSupported() report false so apps that require RTT calling run normally.``` | ```Universal``` | ```All versions``` |
-| ```Disable Scrollbars``` | ```Forces View.setVerticalScrollBarEnabled/setHorizontalScrollBarEnabled(false) so scrollbars are never drawn.``` | ```Universal``` | ```All versions``` |
-| ```Disable Secure Surfaces``` | ```Forces Surface.setSecure() and SurfaceView.setSecure() to false so secure surfaces no longer block screenshots and screen recording.``` | ```Universal``` | ```All versions``` |
-| ```Disable Sensors``` | ```Stops the app from reading motion and orientation sensors.``` | ```Universal``` | ```All versions``` |
-| ```Disable Snackbars``` | ```No-ops com.google.android.material.snackbar.Snackbar.show() so Material Design snackbars no longer appear.``` | ```Universal``` | ```All versions``` |
-| ```Disable Sound Effects``` | ```Forces AudioManager.setSoundEffectsEnabled(false) so system UI sound effects (locks, clicks, navigation) are silenced within the app.``` | ```Universal``` | ```All versions``` |
-| ```Disable StrictMode``` | ```No-ops StrictMode policy installs made by the app so debug builds that enable strict disk or network checks stop crashing on release-like usage``` | ```Universal``` | ```All versions``` |
-| ```Disable Telemetry``` | ```Block analytics and tracking``` | ```Universal``` | ```All versions``` |
-| ```Disable Text-to-Speech``` | ```Reports text-to-speech success without playing anything so spoken prompts stay silent.``` | ```Universal``` | ```All versions``` |
-| ```Disable Toasts``` | ```No-ops Toast.show() so the app cannot display toast pop-ups.``` | ```Universal``` | ```All versions``` |
-| ```Disable Vibration``` | ```Replaces framework Vibrator.vibrate calls with no-ops so apps cannot make the device buzz``` | ```Universal``` | ```All versions``` |
-| ```Disable Wake Locks``` | ```Stops the app from keeping the screen awake.``` | ```Universal``` | ```All versions``` |
-| ```Disable WebView Safe Browsing``` | ```Forces WebSettings.setSafeBrowsingEnabled(false) to disable WebView Google Safe Browsing checks (complements the callback bypass).``` | ```Universal``` | ```All versions``` |
-| ```Disable Window Blur``` | ```Drops window and view blur calls for sharper UI and better performance.``` | ```Universal``` | ```All versions``` |
-| ```Empty Clipboard Report``` | ```Makes ClipboardManager.hasPrimaryClip always return false so apps stop harvesting or acting on clipboard content copied from other apps``` | ```Universal``` | ```All versions``` |
-| ```Enable Large Heap``` | ```Sets android:largeHeap so the app gets a bigger Java heap on devices that allow it, reducing OutOfMemoryError crashes in memory-hungry games``` | ```Universal``` | ```All versions``` |
-| ```Enable Unrestricted Background Work``` | ```Makes JobScheduler/WorkManager jobs ignore idle and not require charging so background work runs even in Doze.``` | ```Universal``` | ```All versions``` |
-| ```Enable Unrestricted Clipboard Access``` | ```Makes clipboard appear to have content so apps that require clipboard access keep working.``` | ```Universal``` | ```All versions``` |
-| ```Enable WebView App Cache``` | ```Enables the WebView HTML5 application cache so offline-capable web apps work.``` | ```Universal``` | ```All versions``` |
-| ```Enable WebView Cache``` | ```Forces WebSettings.setCacheMode(LOAD_CACHE_ELSE_NETWORK) so WebViews reuse cached resources and work better offline.``` | ```Universal``` | ```All versions``` |
-| ```Enable WebView Content Access``` | ```Forces WebSettings.setAllowContentAccess(true) so WebViews can access content providers.``` | ```Universal``` | ```All versions``` |
-| ```Enable WebView Debugging``` | ```Turns on WebView remote debugging: existing setWebContentsDebuggingEnabled calls are forced to true and it is actively enabled at startup, so WebViews can be inspected via chrome://inspect``` | ```Universal``` | ```All versions``` |
-| ```Enable WebView DOM Storage``` | ```Forces WebSettings DOM storage and database storage on so WebViews that disable web storage work fully.``` | ```Universal``` | ```All versions``` |
-| ```Enable WebView Geolocation``` | ```Forces WebSettings.setGeolocationEnabled(true) so WebViews expose the HTML5 Geolocation API (pairs with auto-granting prompts).``` | ```Universal``` | ```All versions``` |
-| ```Enable WebView Image Loading``` | ```Forces WebViews to load images and never block network image or resource loads.``` | ```Universal``` | ```All versions``` |
-| ```Enable WebView Initial Focus``` | ```Forces WebSettings.setNeedInitialFocus(true) so a WebView requests focus when created.``` | ```Universal``` | ```All versions``` |
-| ```Enable WebView JavaScript``` | ```Forces WebSettings.setJavaScriptEnabled(true) so WebViews that disable JS still run scripts.``` | ```Universal``` | ```All versions``` |
-| ```Enable WebView Offscreen Pre-Raster``` | ```Forces WebSettings.setOffscreenPreRaster(true) to rasterize WebView content off-screen for snappier scrolling.``` | ```Universal``` | ```All versions``` |
-| ```Enable WebView Popups``` | ```Lets WebViews open popups and new windows (JavaScript window.open, target=_blank).``` | ```Universal``` | ```All versions``` |
-| ```Enable WebView Save Form Data``` | ```Forces WebSettings.setSaveFormData(true) so WebViews remember entered form data.``` | ```Universal``` | ```All versions``` |
-| ```Enable WebView Save Password``` | ```Forces WebSettings.setSavePassword(true) so WebViews can store passwords.``` | ```Universal``` | ```All versions``` |
-| ```Enable WebView Wide Viewport``` | ```Forces WebViews to use the viewport meta tag and load with overview mode for proper desktop-style layout.``` | ```Universal``` | ```All versions``` |
-| ```Enable WebView Zoom``` | ```Enables built-in pinch zoom in WebViews and hides the zoom controls for a cleaner view.``` | ```Universal``` | ```All versions``` |
-| ```Enable WebView Zoom Support``` | ```Forces WebSettings.setSupportZoom(true) so WebViews permit zooming the page.``` | ```Universal``` | ```All versions``` |
-| ```Ensure Exact Alarm Availability``` | ```Makes exact alarms appear available so old alarm apps keep working.``` | ```Universal``` | ```All versions``` |
-| ```Ensure Internet Permission``` | ```Adds the INTERNET permission if it is missing. Useful after aggressive permission stripping or for offline builds that still need web endpoints``` | ```Universal``` | ```All versions``` |
-| ```Ensure Modern Media Permissions``` | ```Adds media permissions so old apps can access photos and videos on Android 13+.``` | ```Universal``` | ```All versions``` |
-| ```Ensure Notification Permission``` | ```Adds notification permission for old apps on Android 13+.``` | ```Universal``` | ```All versions``` |
-| ```Ensure Storage Permissions``` | ```Adds storage permissions so old apps can access files on newer Android.``` | ```Universal``` | ```All versions``` |
-| ```Exclude From Recents``` | ```Hides the app from recent apps.``` | ```Universal``` | ```All versions``` |
-| ```Export All Activities``` | ```Makes all activities launchable by other apps and ADB.``` | ```Universal``` | ```All versions``` |
-| ```Fake ADB Enabled``` | ```Reports a chosen ADB state through Settings.Global so apps that restrict features based on developer options stop doing so.``` | ```Universal``` | ```All versions``` |
-| ```Fake Animation Scales``` | ```Reports animation scales via Settings so apps that check them see a chosen value.``` | ```Universal``` | ```All versions``` |
-| ```Fake Auto Rotate On``` | ```Reports a chosen auto-rotation state through Settings.System so apps that restrict features based on rotation lock stop doing so.``` | ```Universal``` | ```All versions``` |
-| ```Fake Auto Time``` | ```Reports automatic date & time as enabled through Settings.Global so apps that flag manual time as suspicious stop doing so.``` | ```Universal``` | ```All versions``` |
-| ```Fake Auto Time Zone``` | ```Reports automatic time zone as enabled through Settings.Global so apps that flag manual time zone as suspicious stop doing so.``` | ```Universal``` | ```All versions``` |
-| ```Fake Available Processors``` | ```Reports a chosen CPU count through Runtime.availableProcessors() so apps that check core count see a high-end device.``` | ```Universal``` | ```All versions``` |
-| ```Fake Battery Whitelist``` | ```Makes PowerManager.isIgnoringBatteryOptimizations report a chosen state so apps stop nagging about battery optimization exemptions``` | ```Universal``` | ```All versions``` |
-| ```Fake Bluetooth Bonded Devices Empty``` | ```Makes BluetoothAdapter.getBondedDevices() return an empty set so apps cannot fingerprint paired Bluetooth devices.``` | ```Universal``` | ```All versions``` |
-| ```Fake Bluetooth Enabled``` | ```Makes BluetoothAdapter.isEnabled always return true so apps that require Bluetooth stop nagging about it being turned off``` | ```Universal``` | ```All versions``` |
-| ```Fake Brightness Auto Mode``` | ```Reports a chosen brightness mode through Settings.System so apps that restrict features based on brightness mode stop doing so.``` | ```Universal``` | ```All versions``` |
-| ```Fake Cell Info Empty``` | ```Makes TelephonyManager.getAllCellInfo() return an empty list so apps cannot fingerprint nearby cell towers.``` | ```Universal``` | ```All versions``` |
-| ```Fake Device Admin``` | ```Report device admin as active.``` | ```Universal``` | ```All versions``` |
-| ```Fake Device Idle Mode``` | ```Makes PowerManager.isDeviceIdleMode() report a chosen state so apps that gate features behind device idle checks stop doing so.``` | ```Universal``` | ```All versions``` |
-| ```Fake Doze Always On``` | ```Reports a chosen always-on display state through Settings.Secure so apps that restrict features based on doze settings stop doing so.``` | ```Universal``` | ```All versions``` |
-| ```Fake DTMF Tone Enabled``` | ```Reports a chosen DTMF tone state through Settings.System so apps that check dialer tone settings stop doing so.``` | ```Universal``` | ```All versions``` |
-| ```Fake Fingerprint Hardware``` | ```Makes FingerprintManager report available hardware and enrolled fingerprints so apps unlock fingerprint-gated features on any device``` | ```Universal``` | ```All versions``` |
-| ```Fake Font Scale``` | ```Reports a chosen font scale through Settings.System so apps that restrict features based on font size stop doing so.``` | ```Universal``` | ```All versions``` |
-| ```Fake Location Accuracy``` | ```Reports a chosen location accuracy through Location.getAccuracy() so apps that restrict features based on low accuracy stop doing so.``` | ```Universal``` | ```All versions``` |
-| ```Fake Memory Class``` | ```Reports a chosen memory class through ActivityManager.getMemoryClass() so apps that check available heap see a high value.``` | ```Universal``` | ```All versions``` |
-| ```Fake NFC Enabled``` | ```Makes NfcAdapter.isEnabled always return true so apps that require NFC stop blocking features on devices without it``` | ```Universal``` | ```All versions``` |
-| ```Fake Notification Listener``` | ```Report notification-listener access as granted.``` | ```Universal``` | ```All versions``` |
-| ```Fake Notification Policy Access``` | ```Fakes Do Not Disturb access.``` | ```Universal``` | ```All versions``` |
-| ```Fake Online State``` | ```Makes connectivity checks report an active connection: WifiManager.isWifiEnabled, NetworkInfo.isConnected/isAvailable/isConnectedOrConnecting all return true``` | ```Universal``` | ```All versions``` |
-| ```Fake Pointer Location``` | ```Reports pointer location as disabled via Settings so apps that check it stop doing so.``` | ```Universal``` | ```All versions``` |
-| ```Fake Screen Timeout``` | ```Reports a chosen screen timeout through Settings.System so apps that restrict features based on screen timeout stop doing so.``` | ```Universal``` | ```All versions``` |
-| ```Fake Show Touches``` | ```Reports show touches as disabled via Settings so apps that check developer touch visualization stop doing so.``` | ```Universal``` | ```All versions``` |
-| ```Fake Sound Effects Enabled``` | ```Reports sound effects as disabled via Settings so apps that check it stop playing touch sounds.``` | ```Universal``` | ```All versions``` |
-| ```Fake Stay On While Plugged``` | ```Fakes the stay-on-while-charging setting.``` | ```Universal``` | ```All versions``` |
-| ```Fake Storage Available``` | ```Reports a chosen amount of free storage through StatFs so apps that refuse to run or nag when storage is low stop doing so.``` | ```Universal``` | ```All versions``` |
-| ```Fake Store Install Source``` | ```Fakes the install source.``` | ```Universal``` | ```All versions``` |
-| ```Fake Usage Access``` | ```Report usage-stats access as granted.``` | ```Universal``` | ```All versions``` |
-| ```Fake Vibrate When Ringing``` | ```Reports a chosen vibrate-when-ringing state through Settings.System so apps that check ringer vibration behavior stop doing so.``` | ```Universal``` | ```All versions``` |
-| ```Fake WiFi Scan Results Empty``` | ```Makes WifiManager.getScanResults() return an empty list so apps cannot fingerprint nearby WiFi networks.``` | ```Universal``` | ```All versions``` |
-| ```Fake Write Settings Access``` | ```Report system-settings write access as granted.``` | ```Universal``` | ```All versions``` |
-| ```Fix Maps on MicroG``` | ```Reports Maps init SUCCESS and fires the initialized callback with the LATEST renderer so maps keep loading without real Play Services.``` | ```Universal``` | ```All versions``` |
-| ```Force 32-Bit Color``` | ```Requests RGBA_8888 window format to reduce color banding.``` | ```Universal``` | ```All versions``` |
-| ```Force 5GHz Band Supported``` | ```Makes WifiManager.is5GHzBandSupported() report true so apps that require 5GHz Wi-Fi functionality run normally.``` | ```Universal``` | ```All versions``` |
-| ```Force Android Beam``` | ```Makes NfcAdapter.isNdefPushEnabled() report true so apps that require Android Beam (NDEF push) run normally.``` | ```Universal``` | ```All versions``` |
-| ```Force App Active``` | ```Makes UsageStatsManager.isAppInactive() report false so apps are not throttled by Android's app-standby buckets.``` | ```Universal``` | ```All versions``` |
-| ```Force Battery Health Good``` | ```Reports battery health as good via BatteryManager so apps that check health stop warning.``` | ```Universal``` | ```All versions``` |
-| ```Force Battery Present``` | ```Makes BatteryManager.isBatteryPresent() report true so apps that refuse to run without a battery work on batteryless devices.``` | ```Universal``` | ```All versions``` |
-| ```Force Battery Temperature``` | ```Fakes the battery temperature.``` | ```Universal``` | ```All versions``` |
-| ```Force Can Install Packages``` | ```Makes PackageManager.canRequestPackageInstalls() report true so sideload/unknown-source install prompts are treated as already granted.``` | ```Universal``` | ```All versions``` |
-| ```Force Charging Status``` | ```Fakes the charging state.``` | ```Universal``` | ```All versions``` |
-| ```Force Dark Mode``` | ```Makes night-mode checks report dark theme on so apps render their dark theme.``` | ```Universal``` | ```All versions``` |
-| ```Force Data Capable``` | ```Makes TelephonyManager.isDataCapable() report true so apps that require mobile-data support run on Wi-Fi-only devices.``` | ```Universal``` | ```All versions``` |
-| ```Force Do Not Disturb Off``` | ```Makes interruption-filter checks report all so apps behave as if Do Not Disturb is off.``` | ```Universal``` | ```All versions``` |
-| ```Force Emulated Storage``` | ```Makes Environment.isExternalStorageEmulated() report true so apps that expect emulated storage behave normally.``` | ```Universal``` | ```All versions``` |
-| ```Force Extract Native Libs``` | ```Sets android:extractNativeLibs so native libraries are extracted at install time. Some mod loaders, hooks and older tools only work with extracted libs``` | ```Universal``` | ```All versions``` |
-| ```Force Google Signed-Out``` | ```Forces the Google signed-out state: permission checks fail and last-account returns null (documented nullable). Apps fall back to guest or offline mode instead of nagging for sign-in.``` | ```Universal``` | ```All versions``` |
-| ```Force Haptics Available``` | ```Makes Vibrator.hasVibrator() report true so apps that require vibration/haptics run on devices without a vibrator.``` | ```Universal``` | ```All versions``` |
-| ```Force Hardware Acceleration``` | ```Sets android:hardwareAccelerated so every activity renders with GPU acceleration, even when the app disables it globally``` | ```Universal``` | ```All versions``` |
-| ```Force Hardware Layers``` | ```Makes hardware-acceleration checks report true for smoother rendering.``` | ```Universal``` | ```All versions``` |
-| ```Force Has System Feature``` | ```Makes PackageManager.hasSystemFeature always return true so feature-gated installs pass runtime checks``` | ```Universal``` | ```All versions``` |
-| ```Force Idle Call State``` | ```Makes TelephonyManager.getCallState() report CALL_STATE_IDLE (0) so apps that react to active calls behave as if none are in progress.``` | ```Universal``` | ```All versions``` |
-| ```Force Ignore Audio Focus``` | ```Makes AudioManager.requestAudioFocus always return granted so apps never duck or pause for other audio.``` | ```Universal``` | ```All versions``` |
-| ```Force Landscape / Portrait``` | ```Force the app to a fixed screen orientation``` | ```Universal``` | ```All versions``` |
-| ```Force Left-to-Right Layout``` | ```Sets android:supportsRtl to false so the app always renders left-to-right, fixing layouts that break under right-to-left system languages``` | ```Universal``` | ```All versions``` |
-| ```Force Light Mode``` | ```Makes night-mode checks report light theme so apps render their light theme even in dark mode``` | ```Universal``` | ```All versions``` |
-| ```Force Max Brightness``` | ```Forces the system screen brightness setting to a chosen value (default 255) so apps that read it cannot dim or restrict the screen.``` | ```Universal``` | ```All versions``` |
-| ```Force Microphone Unmuted``` | ```Makes AudioManager.isMicrophoneMute() report false so apps that pause or alter behavior when the mic is muted keep running normally.``` | ```Universal``` | ```All versions``` |
-| ```Force Multi-SIM``` | ```Makes TelephonyManager.isMultiSimEnabled() report true so apps that require multiple SIMs run on single-SIM devices.``` | ```Universal``` | ```All versions``` |
-| ```Force Normal Audio Mode``` | ```Makes AudioManager.getMode() report MODE_NORMAL (0) so apps that change behavior in call/ringtone modes run normally.``` | ```Universal``` | ```All versions``` |
-| ```Force Overlay Permission``` | ```Makes overlay permission checks report granted so floating features work without the system prompt.``` | ```Universal``` | ```All versions``` |
-| ```Force Picture-in-Picture``` | ```Enables picture-in-picture for every activity by setting supportsPictureInPicture=true, so videos can be popped into a floating window.``` | ```Universal``` | ```All versions``` |
-| ```Force Resizable Activity``` | ```Sets android:resizeableActivity and supportsFreeformWindowManagement so the app can run in split-screen, free-form windows, DeX, and Chromebooks``` | ```Universal``` | ```All versions``` |
-| ```Force Screen Interactive``` | ```Makes PowerManager.isInteractive() report true so apps that pause or degrade when the screen is off keep running.``` | ```Universal``` | ```All versions``` |
-| ```Force SIM Ready``` | ```Makes TelephonyManager.getSimState() report SIM_STATE_READY (5) so apps that wait for a ready SIM run immediately.``` | ```Universal``` | ```All versions``` |
-| ```Force Single Phone``` | ```Makes TelephonyManager.getPhoneCount() report 1 so apps that branch on multiple phones/radios behave as a single-phone device.``` | ```Universal``` | ```All versions``` |
-| ```Force Single SIM``` | ```Makes TelephonyManager.getSimCount() report 1 so apps that require or count multiple SIMs run on a single-SIM device.``` | ```Universal``` | ```All versions``` |
-| ```Force SMS Capable``` | ```Makes TelephonyManager.isSmsCapable() report true so apps that require SMS support run on devices without a cellular radio.``` | ```Universal``` | ```All versions``` |
-| ```Force Speakerphone Off``` | ```Makes AudioManager.isSpeakerphoneOn() report false so apps that react to speakerphone state behave as if it is off.``` | ```Universal``` | ```All versions``` |
-| ```Force Speakerphone On``` | ```Forces the speakerphone on and makes speakerphone checks report true.``` | ```Universal``` | ```All versions``` |
-| ```Force Storage Non-Removable``` | ```Makes Environment.isExternalStorageRemovable() report false so apps that refuse to run from removable storage treat it as internal.``` | ```Universal``` | ```All versions``` |
-| ```Force User Unlocked``` | ```Makes UserManager.isUserUnlocked() report true so direct-boot restricted features and storage become available immediately.``` | ```Universal``` | ```All versions``` |
-| ```Force Voice Capable``` | ```Makes TelephonyManager.isVoiceCapable() report true so apps that require voice-call support run on data-only devices.``` | ```Universal``` | ```All versions``` |
-| ```Force Wide Color Gamut``` | ```Makes wide-gamut checks report true so apps render richer colors.``` | ```Universal``` | ```All versions``` |
-| ```Force WiFi P2P Supported``` | ```Makes WifiManager.isP2pSupported() report true so apps that need Wi-Fi Direct run on devices without P2P support.``` | ```Universal``` | ```All versions``` |
-| ```Force WiFi Scan Always Available``` | ```Makes WifiManager.isScanAlwaysAvailable() report true so apps that need background scanning see it as enabled.``` | ```Universal``` | ```All versions``` |
-| ```Force World Phone``` | ```Makes TelephonyManager.isWorldPhone() report true so apps that gate features to world phones run normally.``` | ```Universal``` | ```All versions``` |
-| ```Frame Rate Preference (Experimental)``` | ```Requests a preferred refresh rate like 60 or 90 Hz for the app window. The system may ignore it.``` | ```Universal``` | ```All versions``` |
 | ```Free In-app Purchases``` | ```Get paid items free: buying grants items without charging. Best for offline games.``` | ```Universal``` | ```All versions``` |
-| ```GmsCore support (MicroG)``` | ```Use MicroG instead of Google Play Services for logins.``` | ```Universal``` | ```All versions``` |
-| ```Grant All-Files Access``` | ```Makes Environment.isExternalStorageManager always return true so apps accept the storage permission state without the special Android 11+ prompt``` | ```Universal``` | ```All versions``` |
-| ```Grant WebView Geolocation``` | ```Auto-grants WebView geolocation requests inside onGeolocationPermissionsShowPrompt so location prompts never block the page.``` | ```Universal``` | ```All versions``` |
-| ```Graphics API Override (Experimental)``` | ```Forces a Unity game to use Vulkan or OpenGL via launch argument. Only for supported Unity games.``` | ```Universal``` | ```All versions``` |
-| ```Hide Accessibility Services``` | ```Makes AccessibilityManager return empty lists so apps cannot detect TalkBack or automation services``` | ```Universal``` | ```All versions``` |
-| ```Hide Accessibility Usage``` | ```Makes AccessibilityManager.isEnabled() report false so apps cannot tell an accessibility service is running.``` | ```Universal``` | ```All versions``` |
-| ```Hide Accounts``` | ```Redirects AccountManager.getAccounts/getAccountsByType(...) to an empty Account[] so the app sees no linked accounts.``` | ```Universal``` | ```All versions``` |
-| ```Hide App Ops``` | ```Makes app ops checks appear allowed so apps cannot probe permissions.``` | ```Universal``` | ```All versions``` |
-| ```Hide App Tasks``` | ```Makes the app see no recent tasks so it cannot read your recent apps.``` | ```Universal``` | ```All versions``` |
-| ```Hide Audio Devices``` | ```Reports no audio devices so apps cannot enumerate microphones, speakers or Bluetooth audio routes``` | ```Universal``` | ```All versions``` |
-| ```Hide Cell Location``` | ```Makes cell location appear unavailable so apps cannot read your tower location.``` | ```Universal``` | ```All versions``` |
-| ```Hide Cell Signal``` | ```Reports no cell signal strength so apps cannot read your tower signal or track location changes``` | ```Universal``` | ```All versions``` |
-| ```Hide Clipboard``` | ```Forces ClipboardManager.getPrimaryClip() to return null so the app cannot read the system clipboard.``` | ```Universal``` | ```All versions``` |
-| ```Hide Clipboard Description``` | ```Makes ClipboardManager.getPrimaryClipDescription return null to block MIME and type harvesting``` | ```Universal``` | ```All versions``` |
-| ```Hide Current Location``` | ```Prevents the app from requesting your current location.``` | ```Universal``` | ```All versions``` |
-| ```Hide Data Usage``` | ```Nulls network stats queries so apps cannot read your mobile and WiFi data consumption``` | ```Universal``` | ```All versions``` |
-| ```Hide Debugger Connection``` | ```Makes Debug.isDebuggerConnected and waitingForDebugger always return false so apps that refuse to run under a debugger keep working``` | ```Universal``` | ```All versions``` |
-| ```Hide Default Sensor``` | ```Makes SensorManager.getDefaultSensor return null so sensor fingerprint and VR gates see no hardware``` | ```Universal``` | ```All versions``` |
-| ```Hide Device Admins``` | ```Redirects DevicePolicyManager.getActiveAdmins() to Collections.emptyList() so the app sees no active device admins.``` | ```Universal``` | ```All versions``` |
-| ```Hide Display Cutout``` | ```Hides the display cutout.``` | ```Universal``` | ```All versions``` |
-| ```Hide Eavesdropping``` | ```Hides active notifications and microphones so apps cannot snoop on other apps or enumerate audio inputs``` | ```Universal``` | ```All versions``` |
-| ```Hide Hardware Address``` | ```Returns an empty hardware address for network interfaces so apps cannot read the device MAC``` | ```Universal``` | ```All versions``` |
-| ```Hide Input Devices``` | ```Hides physical keyboards, gamepads and other input devices so apps cannot fingerprint your hardware``` | ```Universal``` | ```All versions``` |
-| ```Hide Input Methods``` | ```Makes input methods appear empty so apps cannot fingerprint keyboards.``` | ```Universal``` | ```All versions``` |
-| ```Hide Installed Apps``` | ```Hides other installed apps.``` | ```Universal``` | ```All versions``` |
-| ```Hide Mock Location``` | ```Makes Location.isMock and Location.isFromMockProvider always return false so apps cannot detect spoofed GPS apps``` | ```Universal``` | ```All versions``` |
-| ```Hide Navigation Bar``` | ```Hides the navigation bar for a cleaner fullscreen view``` | ```Universal``` | ```All versions``` |
-| ```Hide Neighboring Cells``` | ```Makes neighboring cell info appear empty so apps cannot read nearby towers.``` | ```Universal``` | ```All versions``` |
-| ```Hide Network Identity``` | ```Hides network interfaces, DNS servers and the local IP so apps cannot fingerprint your LAN``` | ```Universal``` | ```All versions``` |
-| ```Hide Nfc Adapter``` | ```Makes NfcAdapter.getDefaultAdapter return null so NFC probes fail uniformly``` | ```Universal``` | ```All versions``` |
-| ```Hide Personal Data``` | ```Blocks contacts, call log, SMS, calendar and photo reads by emptying sensitive provider queries``` | ```Universal``` | ```All versions``` |
-| ```Hide Query Intents``` | ```Makes intent queries appear empty so apps cannot discover other installed apps via intents.``` | ```Universal``` | ```All versions``` |
-| ```Hide Roaming Status``` | ```Makes TelephonyManager.isNetworkRoaming always return false so apps that block or warn while roaming behave as if the device is on its home network``` | ```Universal``` | ```All versions``` |
-| ```Hide Running Processes``` | ```Makes the app see no running processes so it cannot fingerprint other apps.``` | ```Universal``` | ```All versions``` |
-| ```Hide Running Services``` | ```Makes the app see no running services so it cannot detect other services.``` | ```Universal``` | ```All versions``` |
-| ```Hide Service State``` | ```Nulls cell service state so apps cannot read your voice and data registration or operator detail``` | ```Universal``` | ```All versions``` |
-| ```Hide Storage Volumes``` | ```Makes StorageManager return empty lists so volume enumeration for fingerprint sees nothing``` | ```Universal``` | ```All versions``` |
-| ```Hide Stylus Handwriting``` | ```Makes stylus handwriting appear unavailable so apps hide handwriting UI.``` | ```Universal``` | ```All versions``` |
-| ```Hide Title Bar``` | ```Removes the title bar and action bar from every theme for more content space``` | ```Universal``` | ```All versions``` |
-| ```Hide Usage Events``` | ```Makes usage events appear empty so apps cannot read your app launch history.``` | ```Universal``` | ```All versions``` |
-| ```Hide Usage Stats``` | ```Makes UsageStatsManager return empty lists so app usage fingerprinting sees nothing``` | ```Universal``` | ```All versions``` |
-| ```Hide USB Devices``` | ```Reports no USB devices or accessories so apps cannot fingerprint connected hardware``` | ```Universal``` | ```All versions``` |
-| ```Hide Wallpaper``` | ```Nulls wallpaper reads so apps cannot grab your home or lock screen image``` | ```Universal``` | ```All versions``` |
-| ```Ignore Data Saver``` | ```Makes Data Saver checks report disabled so apps do not throttle downloads or quality on metered networks.``` | ```Universal``` | ```All versions``` |
-| ```Ignore GPS Disabled``` | ```Makes LocationManager.isProviderEnabled always return true so apps that refuse to run without location services keep working``` | ```Universal``` | ```All versions``` |
-| ```Ignore Location Services Off``` | ```Makes LocationManager.isLocationEnabled always return true so apps that refuse to run when location services are disabled keep working``` | ```Universal``` | ```All versions``` |
-| ```Ignore Low RAM Device``` | ```Makes ActivityManager.isLowRamDevice always return false so apps stop degrading graphics or features on entry-level devices``` | ```Universal``` | ```All versions``` |
-| ```Ignore Power Save Mode``` | ```Makes PowerManager.isPowerSaveMode and isDeviceIdleMode always return false so apps do not throttle features or downloads while battery saver or Doze is active``` | ```Universal``` | ```All versions``` |
-| ```Ignore Screen Lock``` | ```Makes KeyguardManager lock-state checks report an unlocked device so apps that gate features behind a screen lock behave as if none is set``` | ```Universal``` | ```All versions``` |
-| ```Ignore Touch Exploration``` | ```Makes AccessibilityManager.isTouchExplorationEnabled always return false so games that disable or alter gameplay under TalkBack behave normally``` | ```Universal``` | ```All versions``` |
-| ```Immersive Fullscreen``` | ```Adds android:windowFullscreen to every theme so activities render edge-to-edge without the status bar``` | ```Universal``` | ```All versions``` |
-| ```Keep Data on Uninstall``` | ```Sets android:hasFragileUserData so Android offers to keep the app's data when uninstalling (the confirmation dialog appears on Android 10+)``` | ```Universal``` | ```All versions``` |
-| ```Keep Screen On``` | ```Adds android:keepScreenOn to every theme so the display stays on while any activity of the app is visible``` | ```Universal``` | ```All versions``` |
-| ```Legacy App Reviver``` | ```Revives Android 1.0-5.0 era apps on modern Android: restores the removed Apache HTTP stack, and declares the foreground-service, exact-alarm and Bluetooth permissions that old apps assume. Combine with SpoofTargetSdk (28), AllowCleartextTraffic, LegacyExternalStorage, SupportAllScreens, UnlockMaxAspectRatio, RelaxSharedLibraries, SpoofImei, Bypass Play License Check, Bypass Google Play Services Check, DisableHeapPointerTagging and VmSafeMode. Cannot fix armeabi-only native code on 64-bit-only devices or shut-down game servers.``` | ```Universal``` | ```All versions``` |
-| ```Legacy External Storage``` | ```Sets android:requestLegacyExternalStorage so the app keeps using the classic shared-storage model instead of scoped storage (Android 10; ignored on 11+)``` | ```Universal``` | ```All versions``` |
-| ```Limit Ad Tracking``` | ```Neutralize the Google advertising ID: empty ID and limit ad tracking enabled``` | ```Universal``` | ```All versions``` |
-| ```Make App Debuggable``` | ```Sets android:debuggable so debuggers and profiling tools can attach``` | ```Universal``` | ```All versions``` |
-| ```Nai64Patches Universal Overlay Patch v1.0 (Experimental)``` | ```Universal in-app overlay for Android apps and games. Optional modules include System Time, FPS, fullscreen, app brightness, and haptic controls. Modules are excluded and disabled by default; select them in Morphe settings before patching. Statistic modules show information, Activity modules control the current Activity, and Hook modules control internal app behavior, such as disabling animations, through best-effort runtime changes. A selected local image automatically replaces the legacy icon; empty or invalid image input falls back to the legacy icon. This is experimental and may not work on all apps. The idea and initial works of this Universal Overlay Patch are from Zanuaimi / Noobite.``` | ```Universal``` | ```All versions``` |
 | ```No Ads``` | ```Blocks ads by type. Pick what to block. For rewarded ads use Ads Free Rewards instead.``` | ```Universal``` | ```All versions``` |
-| ```Null Play Location``` | ```Makes Play Services location return empty results: last location resolves to null and update requests complete instantly without fixes. Apps fall back to no-location behavior.``` | ```Universal``` | ```All versions``` |
-| ```Optimize as Game``` | ```Sets android:appCategory to game so Android applies game mode, battery and screenshot optimizations tuned for games``` | ```Universal``` | ```All versions``` |
 | ```Pairip Bypass``` | ```Bypass app protection so the patched app can start.``` | ```Universal``` | ```All versions``` |
-| ```Prefer ANGLE Graphics Driver``` | ```Asks the system to use ANGLE for better graphics on supported devices.``` | ```Universal``` | ```All versions``` |
-| ```Preserve App Data``` | ```Keeps app data when reinstalling by setting hasFragileUserData so Android offers to keep data.``` | ```Universal``` | ```All versions``` |
-| ```Relax Hardware Features``` | ```Sets android:required="false" on every <uses-feature> so the app installs on devices that lack those hardware features.``` | ```Universal``` | ```All versions``` |
-| ```Relax Required Libraries``` | ```Sets android:required="false" on every <uses-library> so the app installs even when optional system libraries are missing.``` | ```Universal``` | ```All versions``` |
-| ```Relax Shared Libraries``` | ```Marks every <uses-library> entry as optional so missing shared libraries no longer block the app from installing on devices that lack them``` | ```Universal``` | ```All versions``` |
-| ```Remove Ad Services Entries``` | ```Strips Privacy Sandbox (AdServices) permissions, the ad ID permission and their config metadata from the manifest``` | ```Universal``` | ```All versions``` |
-| ```Remove App Icon``` | ```Replaces the launcher icon with a transparent drawable``` | ```Universal``` | ```All versions``` |
-| ```Remove Backup Restrictions``` | ```Sets android:allowBackup and removes data extraction / full backup rules that exclude app data from device transfers and cloud backups``` | ```Universal``` | ```All versions``` |
-| ```Remove Compatible Screens``` | ```Removes the <compatible-screens> block so the app is not restricted to a fixed set of screen sizes/densities.``` | ```Universal``` | ```All versions``` |
-| ```Remove Hardware Requirements``` | ```Remove uses-feature entries so the app installs on more devices``` | ```Universal``` | ```All versions``` |
-| ```Remove Internet Permission``` | ```Removes internet permission for offline use. Apps needing internet will crash.``` | ```Universal``` | ```All versions``` |
-| ```Remove Network Security Config``` | ```Removes the app's network security config so certificate pinning and cleartext restrictions fall back to platform defaults (useful for HTTPS inspection)``` | ```Universal``` | ```All versions``` |
-| ```Remove Permissions``` | ```Remove permissions from the app manifest``` | ```Universal``` | ```All versions``` |
-| ```Rename App``` | ```Overrides the launcher label of the app``` | ```Universal``` | ```All versions``` |
-| ```Repair Missing Component Export Flags``` | ```Adds missing android:exported to components with intent filters so the app installs on newer Android.``` | ```Universal``` | ```All versions``` |
-| ```Report Legacy Storage``` | ```Makes Environment.isExternalStorageLegacy always return true so apps behave as if they got classic shared-storage access``` | ```Universal``` | ```All versions``` |
-| ```Report No Cameras``` | ```Report an empty camera list to apps.``` | ```Universal``` | ```All versions``` |
-| ```Restore Package Visibility``` | ```Lets old apps see all installed apps on Android 11+.``` | ```Universal``` | ```All versions``` |
-| ```Set Install Location``` | ```Overrides the android:installLocation declared in the manifest``` | ```Universal``` | ```All versions``` |
-| ```Set Profileable``` | ```Adds <profileable android:shell="true"/> so profilers (Android Studio, simpleperf, Perfetto) can attach to release builds for performance analysis``` | ```Universal``` | ```All versions``` |
-| ```Show Navigation Bar``` | ```Keeps the navigation bar visible in apps that hide it``` | ```Universal``` | ```All versions``` |
-| ```Show Status Bar``` | ```Keep the status bar visible in fullscreen apps``` | ```Universal``` | ```All versions``` |
-| ```Silence Notification Channels``` | ```Forces notification channel importance to none so channels stay silent.``` | ```Universal``` | ```All versions``` |
-| ```Silence Play Services Errors``` | ```Kills Google Play Services error dialogs, notifications and resolvable-error flags. Apps stop nagging about missing or outdated Play Services. Pair with Bypass Google Play Services Check.``` | ```Universal``` | ```All versions``` |
-| ```Skip Consent Popup``` | ```Skip the Google consent (GDPR) popup``` | ```Universal``` | ```All versions``` |
-| ```Skip Rate-Us Prompt``` | ```Skip the in-app review (rate us) prompt``` | ```Universal``` | ```All versions``` |
-| ```Skip Splash Screen (Experimental)``` | ```Skip or shorten splash screen delays``` | ```Universal``` | ```All versions``` |
-| ```Spoof 24-Hour Format``` | ```Reports a chosen clock format so apps render times the way you prefer.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Airplane Mode``` | ```Forces Settings.Global AIRPLANE_MODE_ON reads to 0 (off) so apps that change behavior in airplane mode see a normal connection state.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Amazon Appstore Availability``` | ```Makes app-specific Amazon Appstore availability checks succeed without changing the system package manager.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Android ID``` | ```Replaces Settings.Secure.ANDROID_ID reads with a fixed value so the patched app cannot be tracked across reinstalls or matched to a specific device.``` | ```Universal``` | ```All versions``` |
-| ```Spoof App Signature``` | ```Bypasses signature checks.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Battery Charging State``` | ```Forces BatteryManager.isCharging() to return true so apps that restrict features unless the device is charging stop doing so.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Battery Level``` | ```Fakes the battery level.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Bluetooth Audio On``` | ```Makes Bluetooth audio checks report connected so headset-gated features stay active.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Bluetooth Enabled``` | ```Forces Settings.Global BLUETOOTH_ON reads to 0 (off) so apps that behave differently when Bluetooth is enabled cannot tell it is on.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Bluetooth Identity``` | ```Reports chosen values from BluetoothAdapter.getName() and getAddress() so apps cannot read the real Bluetooth device name or MAC address.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Bluetooth Name``` | ```Reports a constant name from BluetoothAdapter.getName() so apps cannot read the real local Bluetooth adapter name.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Bluetooth Profile State``` | ```Forces BluetoothAdapter.getProfileConnectionState to report connected so headset and A2DP gates proceed``` | ```Universal``` | ```All versions``` |
-| ```Spoof Board and Hardware``` | ```Reports Pixel board and hardware names so apps cannot fingerprint the real device through them.``` | ```Universal``` | ```All versions``` |
-| ```Spoof BSSID``` | ```Reports a chosen value from WifiInfo.getBSSID() so apps cannot read the real access point MAC address.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Build Fingerprint``` | ```Replaces every read of Build.FINGERPRINT with a custom value, useful for integrity and device checks. Leave empty to keep the original fingerprint``` | ```Universal``` | ```All versions``` |
-| ```Spoof Build Serial``` | ```Reports a chosen device serial through Build.getSerial() so apps that fingerprint by serial number see a constant value.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Build Type and Tags``` | ```Reports a user build with release-keys tags so apps stop treating the device as rooted or debuggable.``` | ```Universal``` | ```All versions``` |
-| ```Spoof CPU Architecture``` | ```Replaces reads of Build.CPU_ABI and Build.CPU_ABI2 with a custom value. Leave empty to keep the original``` | ```Universal``` | ```All versions``` |
-| ```Spoof Data State``` | ```Makes the app think mobile data is connected.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Developer Options``` | ```Hides developer options and USB debugging so blocking apps keep working.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Device Model``` | ```Replaces common android.os.Build fields (model, manufacturer, brand) with custom values. Leave an option empty to keep the original value``` | ```Universal``` | ```All versions``` |
-| ```Spoof Device Provisioned``` | ```Reports a chosen setup state so apps that gate on setup completion keep working.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Device Software Version``` | ```Reports a chosen value from TelephonyManager.getDeviceSoftwareVersion() so apps cannot read the real radio/software version.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Fixed Location``` | ```Fakes your GPS location.``` | ```Universal``` | ```All versions``` |
-| ```Spoof GPU Info``` | ```Replaces OpenGL renderer and vendor strings so apps see a chosen GPU.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Group ID Level 1``` | ```Reports a chosen value from TelephonyManager.getGroupIdLevel1() so apps cannot read the real SIM GID1.``` | ```Universal``` | ```All versions``` |
-| ```Spoof High Sample Rate``` | ```Reports 48000 Hz sample rate so apps unlock high-quality audio paths.``` | ```Universal``` | ```All versions``` |
-| ```Spoof IMEI``` | ```Fakes the device IMEI.``` | ```Universal``` | ```All versions``` |
-| ```Spoof ISIM IMPI``` | ```Reports a chosen string from TelephonyManager.getIsimImpi() so apps cannot read the ISIM private identity.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Last Known Location``` | ```Forces LocationManager.getLastKnownLocation() to return null so apps cannot read the device's last cached GPS/network position.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Locale``` | ```Forces Locale.getDefault() to return a chosen BCP-47 language tag (e.g. en-US) so region- or language-locked apps see the locale you pick.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Location Provider``` | ```Forces LocationManager.getBestProvider() to report "gps" and isProviderEnabled() to report true, so location-dependent apps believe a GPS provider is always available and enabled.``` | ```Universal``` | ```All versions``` |
-| ```Spoof MAC Address``` | ```Reports a chosen MAC address through WifiInfo.getMacAddress() so apps cannot fingerprint the device by its Wi-Fi MAC.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Media Playing``` | ```Makes media-player checks report playing so playback-gated features stay active.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Multi-Window Mode``` | ```Makes multi-window checks report true so split-screen layouts stay active.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Network Access Identifier``` | ```Reports a chosen string from TelephonyManager.getNai() so apps cannot read the network access identifier.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Network Operator Name``` | ```Fakes the network operator name.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Network Type LTE``` | ```Reports NETWORK_TYPE_LTE (13) from TelephonyManager.getNetworkType() so apps that require an LTE connection run on any network.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Notifications as Enabled``` | ```Makes the app think notifications are enabled so it keeps working even if blocked.``` | ```Universal``` | ```All versions``` |
-| ```Spoof OpenGL ES Version``` | ```Reports a chosen GLES version so games unlock higher graphics options.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Phone Number``` | ```Reports a chosen phone number from TelephonyManager.getLine1Number() and getLine2Number() so apps cannot read the device's phone number.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Play Integrity``` | ```Makes the app think it passed Google's device check.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Play Services Version``` | ```Reports a high Play Services version (25000000) so apps stop demanding a Play Services update. Useful on MicroG and de-Googled ROMs.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Play Store Install Source``` | ```Make the app believe it was installed from the Play Store``` | ```Universal``` | ```All versions``` |
-| ```Spoof Ringer Mode``` | ```Forces AudioManager.getRingerMode() to report RINGER_MODE_NORMAL (2) so apps cannot detect silent or vibrate mode.``` | ```Universal``` | ```All versions``` |
-| ```Spoof SDK Level``` | ```Reports a chosen Android version. Lower values can crash the app.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Sensor List``` | ```Forces SensorManager.getSensorList() to return an empty list so apps cannot enumerate the device's sensors for fingerprinting or capability checks.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Signature Match``` | ```Makes PackageManager.checkSignatures always return SIGNATURE_MATCH so apps that verify their own or another package's signature accept any build``` | ```Universal``` | ```All versions``` |
-| ```Spoof SIM Country``` | ```Reports a chosen ISO country (e.g. us) from TelephonyManager.getSimCountryIso() and getNetworkCountryIso() to bypass region locks and geo-restrictions.``` | ```Universal``` | ```All versions``` |
-| ```Spoof SIM Operator``` | ```Reports a chosen MCC+MNC from TelephonyManager.getSimOperator() and getNetworkOperator() so apps cannot read the real mobile network operator.``` | ```Universal``` | ```All versions``` |
-| ```Spoof SIM Operator Name``` | ```Reports a chosen carrier name from TelephonyManager.getSimOperatorName() and getNetworkOperatorName() so apps cannot read the real carrier display name.``` | ```Universal``` | ```All versions``` |
-| ```Spoof SIM Serial Number``` | ```Fakes the SIM serial number.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Storage State``` | ```Reports 'mounted' from Environment.getExternalStorageState() so apps that require mounted external storage run normally.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Stream Volume``` | ```Reports a chosen level for stream-volume reads so apps behave as if the volume is set there.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Subscriber ID``` | ```Reports a chosen subscriber id (IMSI) through TelephonyManager.getSubscriberId() so apps that fingerprint by IMSI see a constant value.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Target SDK``` | ```Fixes install errors on newer Android versions.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Time Zone``` | ```Forces TimeZone.getDefault() to return a fixed timezone so region-locked apps see a constant zone (e.g. Europe/London for All4).``` | ```Universal``` | ```All versions``` |
-| ```Spoof Tracking IDs``` | ```Spoofs the App Set ID and Firebase Instance ID so reinstalls cannot be linked to your device``` | ```Universal``` | ```All versions``` |
-| ```Spoof UiMode Night State``` | ```Forces UiModeManager to report TYPE_NORMAL and night mode off so car/TV/night gates never trigger``` | ```Universal``` | ```All versions``` |
-| ```Spoof Voice Mail``` | ```Reports empty strings from TelephonyManager.getVoiceMailNumber() and getVoiceMailAlphaTag() so apps cannot read the voicemail number or tag.``` | ```Universal``` | ```All versions``` |
-| ```Spoof WebView User Agent``` | ```Replaces WebSettings.getUserAgentString() with a desktop browser user agent so embedded webviews load desktop versions of sites.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Widevine L1``` | ```Reports a chosen Widevine security level so streaming apps unlock HD playback.``` | ```Universal``` | ```All versions``` |
-| ```Spoof WiFi Enabled``` | ```Forces WifiManager.isWifiEnabled() to report true and getWifiState() to report WIFI_STATE_ENABLED (3) so apps cannot tell Wi-Fi is off.``` | ```Universal``` | ```All versions``` |
-| ```Spoof WiFi RSSI``` | ```Reports a chosen signal strength from WifiInfo.getRssi() so apps cannot read the real Wi-Fi signal level.``` | ```Universal``` | ```All versions``` |
-| ```Spoof WiFi SSID``` | ```Reports a chosen value from WifiInfo.getSSID() so apps cannot read the real connected network name.``` | ```Universal``` | ```All versions``` |
-| ```Spoof Wired Headset``` | ```Makes AudioManager.isWiredHeadsetOn() report true so apps that require a wired headset think one is connected.``` | ```Universal``` | ```All versions``` |
-| ```Status Bar Icons``` | ```Forces the status bar and navigation bar icon color in every theme. Pick white icons for dark backgrounds or dark icons for light backgrounds``` | ```Universal``` | ```All versions``` |
-| ```Strip BuildConfig DEBUG``` | ```Forces BuildConfig.DEBUG to false so apps hide debug banners and verbose checks.``` | ```Universal``` | ```All versions``` |
-| ```Strip Exif Location``` | ```Makes ExifInterface.getLatLong return null so apps cannot read GPS from photos.``` | ```Universal``` | ```All versions``` |
-| ```Strip Package Verifier``` | ```Makes package verifier appear disabled via Settings so apps skip verification checks.``` | ```Universal``` | ```All versions``` |
-| ```Strip Translations``` | ```Deletes all translated resources so only the default language remains, reducing APK size. Android falls back to the default strings automatically.``` | ```Universal``` | ```All versions``` |
-| ```Support All Screens``` | ```Removes compatible-screens restrictions and marks every screen size supported so the app installs on devices it would otherwise reject``` | ```Universal``` | ```All versions``` |
-| ```Tablet Mode``` | ```Spoof a tablet smallest width so apps render their tablet UI.``` | ```Universal``` | ```All versions``` |
-| ```Transparent System Bars``` | ```Forces the status bar and navigation bar to render transparent in every theme so app content draws edge-to-edge behind them``` | ```Universal``` | ```All versions``` |
-| ```Treat Network as Unmetered``` | ```Makes ConnectivityManager.isActiveNetworkMetered always return false so apps lift download restrictions and quality caps on mobile data``` | ```Universal``` | ```All versions``` |
-| ```Treat Screen as On``` | ```Makes PowerManager.isInteractive always return true so apps keep playing audio or progressing instead of pausing while the screen is off``` | ```Universal``` | ```All versions``` |
-| ```Trust User CAs (Config)``` | ```Injects a network security config that trusts user-installed CA certificates, enabling MITM/proxy interception for the app.``` | ```Universal``` | ```All versions``` |
-| ```Trust User Certificates``` | ```No-ops the check methods of app-bundled X509TrustManager implementations so custom certificate validation (including pinning reimplemented by hand) accepts anything``` | ```Universal``` | ```All versions``` |
-| ```Unlimited Currencies``` | ```Get unlimited coins, gems and other currencies. Works on most games. Not supported on newer Unity games.``` | ```Universal``` | ```All versions``` |
-| ```Unlock Max Aspect Ratio``` | ```Removes maxAspectRatio limits from the application, activities and metadata so the app fills tall edge-to-edge screens instead of letterboxing``` | ```Universal``` | ```All versions``` |
-| ```Unlock Notification Channels``` | ```Makes all notification channels blockable and their importance unlocked so greyed-out toggles become interactable.``` | ```Universal``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlock premium features and remove paywalls.``` | ```Universal``` | ```All versions``` |
-| ```Unlock Rotation``` | ```Remove screenOrientation locks so the app rotates freely``` | ```Universal``` | ```All versions``` |
-| ```Unmark Test Only``` | ```Removes android:testOnly from the manifest so builds marked as test-only can be installed and launched like normal apps``` | ```Universal``` | ```All versions``` |
-| ```Use Display Cutout Area``` | ```Renders inside the notch and punch-hole area for fullscreen games.``` | ```Universal``` | ```All versions``` |
-| ```VM Safe Mode``` | ```Sets android:vmSafeMode so the app runs with AOT/JIT optimizations disabled, which can stabilize apps that crash from compiler optimizations on some devices``` | ```Universal``` | ```All versions``` |
-| ```WebView Private Mode``` | ```Hardens WebViews: denies geolocation prompts and disables cookies, DOM storage and saved form data``` | ```Universal``` | ```All versions``` |
 
 </details>
 
@@ -2215,7 +1786,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Anddea Bundle Patch List:
 [📦 Anddea-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-anddea-patches-bundle-morphe)
 <details>
-<summary><b>Anddea</b> - 127 patches, 3 apps</summary>
+<summary><b>Anddea</b> - 128 patches, 3 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -2264,82 +1835,83 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Video playback``` | ```Adds options to customize settings related to video playback, such as default video quality and playback speed.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
 | ```Visual preferences icons for YouTube Music``` | ```Adds icons to specific preferences in the settings.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
 | ```Watch history``` | ```Adds an option to change the domain of the watch history or check its status.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
-| ```Alternative thumbnails``` | ```Adds options to replace video thumbnails using the DeArrow API or image captures from the video.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Ambient mode control``` | ```Adds options to disable Ambient mode and to bypass Ambient mode restrictions.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```App refresh rate``` | ```Adds an option to change the app refresh rate.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Bypass image region restrictions``` | ```Adds an option to use a different host for static images, so that images blocked in some countries can be received.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Bypass URL redirects``` | ```Adds an option to bypass URL redirects and open the original URL directly.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Change form factor``` | ```Adds an option to change the UI appearance to a phone, tablet, or automotive device.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Change player flyout menu toggles``` | ```Adds an option to use text toggles instead of switch toggles within the additional settings menu.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Change share sheet``` | ```Adds an option to change the in-app share sheet to the system share sheet.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Change start page``` | ```Adds an option to set which page the app opens in instead of the homepage.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Custom branding for YouTube``` | ```Adds in-app app-name, launcher-icon, header, splash, and settings-icon selection.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Custom double tap length``` | ```Adds Double-tap to seek values that are specified in patch options.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Custom DPI``` | ```Forces a higher display density for this app only, so the whole UI scales up without changing system density.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Custom Shorts action buttons``` | ```Changes, at compile time, the icon of the action buttons of the Shorts player.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Description components``` | ```Adds options to hide and disable description components.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Disable forced auto captions``` | ```Adds an option to disable captions from being automatically enabled.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Disable haptic feedback``` | ```Adds options to disable haptic feedback when swiping in the video player.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Disable layout updates``` | ```Adds an option to disable layout updates by server.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Disable playlist autoplay``` | ```Adds an option to stop a playlist from automatically advancing to the next video.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Disable QUIC protocol``` | ```Adds an option to disable CronetEngine's QUIC protocol.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Disable resuming Miniplayer on startup``` | ```Adds an option to disable the Miniplayer 'Continue watching' from resuming on app startup.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Disable resuming Shorts on startup``` | ```Adds an option to disable the Shorts player from resuming on app startup when Shorts were last being watched.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Disable scrolling speed limit``` | ```Adds an option to remove limits of how fast the home and subscription feed can be scrolled.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Disable sign in to TV popup``` | ```Adds an option to disable the popup asking to sign into a TV on the same local network.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Enable debug logging``` | ```Adds an option for debugging and exporting RVX logs to the clipboard.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Enable gradient loading screen``` | ```Adds an option to enable the gradient loading screen.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Force original audio``` | ```Adds an option to disable audio tracks from being automatically enabled.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Fullscreen components``` | ```Adds options to hide or change components related to fullscreen.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Fullscreen video scale``` | ```Adds options to stretch or zoom videos to fill the screen in fullscreen mode.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Gemini``` | ```Adds options to use Gemini for video summaries, transcription, and settings search.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```GmsCore support``` | ```Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Hide accessibility controls dialog``` | ```Removes, at compile time, accessibility controls dialog 'Turn on accessibility controls for the video player?'.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Hide action buttons``` | ```Adds options to hide action buttons under videos.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Hide ads``` | ```Adds options to hide ads.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Hide comments components``` | ```Adds options to hide components related to comments.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Hide feed components``` | ```Adds options to hide components related to feeds.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Hide feed flyout menu``` | ```Adds the ability to hide feed flyout menu components using a custom filter.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Hide layout components``` | ```Adds options to hide general layout components.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Hide player buttons``` | ```Adds options to hide buttons in the video player, and to hide or change the opacity of the player control buttons background.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Hide player flyout menu``` | ```Adds options to hide player flyout menu components.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Hide shortcuts``` | ```Remove, at compile time, the app shortcuts that appears when the app icon is long pressed.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Hide Shorts dimming``` | ```Removes, at compile time, the dimming effect at the top and bottom of Shorts videos.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Hook download actions``` | ```Adds support to download videos with an external downloader app using the in-app download button.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Miniplayer``` | ```Adds options to change the in-app minimized player, and if patching target 19.16+ adds options to use modern miniplayers.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Navigation bar components``` | ```Adds options to hide or change components related to the navigation bar.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Open channel of live avatar``` | ```Adds an option to prevent a channel's current live video from opening when tapping its avatar.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Open links externally``` | ```Adds an option to always open links in your browser instead of the in-app browser.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Overlay buttons``` | ```Adds options to display useful overlay buttons in the video player.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Override YouTube Music buttons``` | ```Overrides YouTube Music buttons to open RVX Music or any compatible third-party client.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Playback in feeds``` | ```Adds the 'Playback in feeds' setting of YouTube to the RVX settings, where it is always available even if YouTube hides it.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Player components``` | ```Adds options to hide or change components related to the video player.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```PoToken provider``` | ```Adds option to get PoToken using the built-in PoToken provider.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Reload video``` | ```Adds an option to display a button in the video player to reload the current video.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Remove background playback restrictions``` | ```Removes restrictions on background playback, including for music and kids videos.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Remove viewer discretion dialog``` | ```Adds an option to remove the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Return YouTube Dislike``` | ```Adds an option to show the dislike count of videos using the Return YouTube Dislike API.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Return YouTube Username``` | ```Adds an option to replace YouTube handles with usernames in comments using YouTube Data API v3.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Sanitize sharing links``` | ```Adds an option to sanitize sharing links by removing tracking query parameters.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Save to Watch later``` | ```Adds options to save videos to Watch later from the video player or feed flyout menu.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Seekbar components``` | ```Adds options to hide or change components related to the seekbar.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Set transcript cookies``` | ```Adds an option to set Cookies in YouTube Transcript API requests.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Settings for YouTube``` | ```Applies mandatory patches to implement ReVanced Extended settings into the application.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Settings menu filter``` | ```Adds an option to hide items on the standard YouTube settings screen by their visible name.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Shorts components``` | ```Adds options to hide or change components related to YouTube Shorts.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Snack bar components``` | ```Adds options to hide or change components related to the snack bar.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```SponsorBlock``` | ```Adds options to enable and configure SponsorBlock, which can skip undesired video segments, such as sponsored content.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Spoof app version``` | ```Adds options to spoof the YouTube client version. This can be used to restore old UI elements and features.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Spoof video streams``` | ```Adds options to spoof the client video streams to fix playback.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Spoof watch history``` | ```Adds an option to change the domain of the watch history or check its status.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Swipe controls``` | ```Adds options for controlling volume and brightness with swiping, and whether to enter fullscreen when swiping down below the player.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Theme``` | ```Adds options to change the app's themes and splash screen style.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Toolbar components``` | ```Adds options to hide or change components located on the toolbar, such as the search bar, header, and toolbar buttons.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Translations for YouTube``` | ```Add translations or remove string resources.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Video playback``` | ```Adds options to customize settings related to video playback, such as default video quality and playback speed.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Visual preferences icons for YouTube``` | ```Adds icons to specific preferences in the settings.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Voice Over Translation``` | ```Adds an option to enable Yandex voice-over translation of video audio tracks.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
-| ```Wide search bar``` | ```Adds a wide search bar to the top of the home and subscription feed.``` | ```com.google.android.youtube``` | ```20.05.46, 21.07.247``` |
+| ```Alternative thumbnails``` | ```Adds options to replace video thumbnails using the DeArrow API or image captures from the video.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Ambient mode control``` | ```Adds options to disable Ambient mode and to bypass Ambient mode restrictions.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```App refresh rate``` | ```Adds an option to change the app refresh rate.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Bypass image region restrictions``` | ```Adds an option to use a different host for static images, so that images blocked in some countries can be received.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Bypass URL redirects``` | ```Adds an option to bypass URL redirects and open the original URL directly.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Change form factor``` | ```Adds an option to change the UI appearance to a phone, tablet, or automotive device.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Change player flyout menu toggles``` | ```Adds an option to use text toggles instead of switch toggles within the additional settings menu.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Change share sheet``` | ```Adds an option to change the in-app share sheet to the system share sheet.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Change start page``` | ```Adds an option to set which page the app opens in instead of the homepage.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Custom branding for YouTube``` | ```Adds in-app app-name, launcher-icon, header, splash, and settings-icon selection.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Custom double tap length``` | ```Adds Double-tap to seek values that are specified in patch options.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Custom DPI``` | ```Forces a higher display density for this app only, so the whole UI scales up without changing system density.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Custom Shorts action buttons``` | ```Changes, at compile time, the icon of the action buttons of the Shorts player.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Description components``` | ```Adds options to hide and disable description components.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Disable forced auto captions``` | ```Adds an option to disable captions from being automatically enabled.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Disable haptic feedback``` | ```Adds options to disable haptic feedback when swiping in the video player.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Disable layout updates``` | ```Adds an option to disable layout updates by server.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Disable playlist autoplay``` | ```Adds an option to stop a playlist from automatically advancing to the next video.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Disable QUIC protocol``` | ```Adds an option to disable CronetEngine's QUIC protocol.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Disable resuming Miniplayer on startup``` | ```Adds an option to disable the Miniplayer 'Continue watching' from resuming on app startup.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Disable resuming Shorts on startup``` | ```Adds an option to disable the Shorts player from resuming on app startup when Shorts were last being watched.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Disable scrolling speed limit``` | ```Adds an option to remove limits of how fast the home and subscription feed can be scrolled.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Disable sign in to TV popup``` | ```Adds an option to disable the popup asking to sign into a TV on the same local network.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Enable debug logging``` | ```Adds an option for debugging and exporting RVX logs to the clipboard.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Enable gradient loading screen``` | ```Adds an option to enable the gradient loading screen.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Force original audio``` | ```Adds an option to disable audio tracks from being automatically enabled.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Fullscreen components``` | ```Adds options to hide or change components related to fullscreen.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Fullscreen video scale``` | ```Adds options to stretch or zoom videos to fill the screen in fullscreen mode.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Gemini``` | ```Adds options to use Gemini for video summaries, transcription, and settings search.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```GmsCore support``` | ```Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Hide accessibility controls dialog``` | ```Removes, at compile time, accessibility controls dialog 'Turn on accessibility controls for the video player?'.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Hide action buttons``` | ```Adds options to hide action buttons under videos.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Hide ads``` | ```Adds options to hide ads.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Hide comments components``` | ```Adds options to hide components related to comments.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Hide feed components``` | ```Adds options to hide components related to feeds.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Hide feed flyout menu``` | ```Adds the ability to hide feed flyout menu components using a custom filter.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Hide layout components``` | ```Adds options to hide general layout components.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Hide player buttons``` | ```Adds options to hide buttons in the video player, and to hide or change the opacity of the player control buttons background.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Hide player flyout menu``` | ```Adds options to hide player flyout menu components.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Hide shortcuts``` | ```Remove, at compile time, the app shortcuts that appears when the app icon is long pressed.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Hide Shorts dimming``` | ```Removes, at compile time, the dimming effect at the top and bottom of Shorts videos.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Hook download actions``` | ```Adds support to download videos with an external downloader app using the in-app download button.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Miniplayer``` | ```Adds options to change the in-app minimized player, and if patching target 19.16+ adds options to use modern miniplayers.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Navigation bar components``` | ```Adds options to hide or change components related to the navigation bar.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Open channel of live avatar``` | ```Adds an option to prevent a channel's current live video from opening when tapping its avatar.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Open links externally``` | ```Adds an option to always open links in your browser instead of the in-app browser.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Overlay buttons``` | ```Adds options to display useful overlay buttons in the video player.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Override YouTube Music buttons``` | ```Overrides YouTube Music buttons to open RVX Music or any compatible third-party client.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Playback in feeds``` | ```Adds the 'Playback in feeds' setting of YouTube to the RVX settings, where it is always available even if YouTube hides it.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Player components``` | ```Adds options to hide or change components related to the video player.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```PoToken provider``` | ```Adds option to get PoToken using the built-in PoToken provider.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Reload video``` | ```Adds an option to display a button in the video player to reload the current video.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Remember livestream playback position``` | ```Adds an option to remember the playback position of ongoing livestreams and resume from there when reopening a livestream.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Remove background playback restrictions``` | ```Removes restrictions on background playback, including for music and kids videos.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Remove viewer discretion dialog``` | ```Adds an option to remove the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Return YouTube Dislike``` | ```Adds an option to show the dislike count of videos using the Return YouTube Dislike API.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Return YouTube Username``` | ```Adds an option to replace YouTube handles with usernames in comments using YouTube Data API v3.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Sanitize sharing links``` | ```Adds an option to sanitize sharing links by removing tracking query parameters.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Save to Watch later``` | ```Adds options to save videos to Watch later from the video player or feed flyout menu.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Seekbar components``` | ```Adds options to hide or change components related to the seekbar.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Set transcript cookies``` | ```Adds an option to set Cookies in YouTube Transcript API requests.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Settings for YouTube``` | ```Applies mandatory patches to implement ReVanced Extended settings into the application.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Settings menu filter``` | ```Adds an option to hide items on the standard YouTube settings screen by their visible name.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Shorts components``` | ```Adds options to hide or change components related to YouTube Shorts.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Snack bar components``` | ```Adds options to hide or change components related to the snack bar.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```SponsorBlock``` | ```Adds options to enable and configure SponsorBlock, which can skip undesired video segments, such as sponsored content.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Spoof app version``` | ```Adds options to spoof the YouTube client version. This can be used to restore old UI elements and features.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Spoof video streams``` | ```Adds options to spoof the client video streams to fix playback.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Spoof watch history``` | ```Adds an option to change the domain of the watch history or check its status.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Swipe controls``` | ```Adds options for controlling volume and brightness with swiping, and whether to enter fullscreen when swiping down below the player.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Theme``` | ```Adds options to change the app's themes and splash screen style.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Toolbar components``` | ```Adds options to hide or change components located on the toolbar, such as the search bar, header, and toolbar buttons.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Translations for YouTube``` | ```Add translations or remove string resources.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Video playback``` | ```Adds options to customize settings related to video playback, such as default video quality and playback speed.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Visual preferences icons for YouTube``` | ```Adds icons to specific preferences in the settings.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Voice Over Translation``` | ```Adds an option to enable Yandex voice-over translation of video audio tracks.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
+| ```Wide search bar``` | ```Adds a wide search bar to the top of the home and subscription feed.``` | ```com.google.android.youtube``` | ```21.13.164, 20.05.46``` |
 | ```Change installer package name``` | ```Spoof the installer package name to make it appear that the app was installed from the Google Play Store.``` | ```Universal``` | ```All versions``` |
 | ```Change version code``` | ```Changes the version code of the app to the value specified in patch options. Except when mounting, this can prevent app stores from updating the app and allow the app to be installed over an existing installation that has a higher version code. By default, the highest version code is set.``` | ```Universal``` | ```All versions``` |
 | ```Disable edge-to-edge display``` | ```Disable forced edge-to-edge display on Android 15+ by changing the app's target SDK version. This patch does not work if the app is installed by mounting.``` | ```Universal``` | ```All versions``` |
@@ -3678,7 +3250,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Kondratjev Bundle Patch List:
 [📦 Kondratjev-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-kondratjev-patches-bundle-morphe)
 <details>
-<summary><b>Kondratjev</b> - 18 patches, 11 apps</summary>
+<summary><b>Kondratjev</b> - 19 patches, 11 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -3687,11 +3259,12 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock Premium``` | ```Unlocks all FatSecret Gold features and hides the Premium tab.``` | ```FatSecret``` | ```11.8.0.5``` |
 | ```Unlock Premium``` | ```Unlocks all premium features.``` | ```Lifesum``` | ```20.9.0``` |
 | ```Unlock Premium``` | ```Unlocks all premium features.``` | ```Lyfta``` | ```1.591, 1.575``` |
-| ```Unlock Premium``` | ```Unlocks all premium features.``` | ```Medisafe``` | ```9.51.0``` |
+| ```Unlock Premium``` | ```Unlocks all premium features.``` | ```Medisafe``` | ```9.52.1``` |
 | ```Unlock Premium``` | ```Unlocks all Muscle Motion Strength Training Pro/Individual/Business features.``` | ```Muscle Motion Strength Training``` | ```3.5.0``` |
 | ```Unlock Premium``` | ```Unlocks Ornament subscription features.``` | ```Ornament``` | ```4.19.2``` |
 | ```Unlock Premium``` | ```Unlocks premium features.``` | ```Parcels``` | ```3.0.11``` |
 | ```Disable analytics``` | ```Disables PulseSDK analytics.``` | ```Pillo``` | ```0.6.19``` |
+| ```MicroG support``` | ```Fixes Google sign-in and sync on patched builds: routes Google services through MicroG-RE and reports the original certificate to Firebase. Requires MicroG-RE with a Google account.``` | ```Pillo``` | ```0.6.19``` |
 | ```Unlock Premium``` | ```Unlocks premium features and removes ads.``` | ```Pillo``` | ```0.6.19``` |
 | ```Disable analytics``` | ```Disables SoundCloud's analytics.``` | ```SoundCloud``` | ```2026.08.26-release``` |
 | ```Disable consent popup``` | ```Disables the OneTrust consent/cookies popup on first launch.``` | ```SoundCloud``` | ```2026.08.26-release``` |
@@ -4053,7 +3626,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Morphe Bundle Patch List:
 [📦 Morphe-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-morphe-patches-bundle-morphe)
 <details>
-<summary><b>Morphe</b> - 148 patches, 4 apps</summary>
+<summary><b>Morphe</b> - 149 patches, 4 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -4080,89 +3653,90 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Clone app``` | ```Changes the app package name to allow installing the same app multiple times. By default ".morphe" is appended to the package name. Each cloned install must use a unique package name. Cloning does not work with all apps and using this patch may cause app crashes or other unexpected behavior.``` | ```Universal``` | ```All versions``` |
 | ```Disable Play Store updates``` | ```Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting``` | ```Universal``` | ```All versions``` |
 | ```Override certificate pinning``` | ```Overrides certificate pinning, allowing to inspect traffic via a proxy.``` | ```Universal``` | ```All versions``` |
-| ```Add to queue``` | ```Overrides the feed flyout 'Play next in queue' with the Morphe video queue.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Alternative thumbnails``` | ```Adds options to replace video thumbnails using the DeArrow API or image captures from the video.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Ambient mode``` | ```Adds options to bypass power saving restrictions for Ambient mode and disable it entirely or in fullscreen.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```App refresh rate``` | ```Adds an option to change the app refresh rate.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Bypass image region restrictions``` | ```Adds an option to use a different host for user avatar and channel images and can fix missing images that are blocked in some countries.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Bypass link redirects``` | ```Adds an option to bypass redirects and open the original link directly.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Captions``` | ```Adds an option to disable captions from being automatically enabled or to set caption cookies.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Change form factor``` | ```Adds an option to change the UI appearance to a phone, tablet, or automotive device.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Change header``` | ```Adds an option to change the header logo in the top left corner of the app.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Change start page``` | ```Adds an option to set which page the app opens in instead of the homepage.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Channel search``` | ```Adds an option to search inside the channel that is currently open instead of searching all of YouTube.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Check watch history domain name resolution``` | ```Checks if the device DNS server is preventing user watch history from being saved.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Copy video link``` | ```Adds options to display buttons in the video player to copy video links.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Custom branding``` | ```Adds options to change the app icon and app name. For mounted (root) installations the branding is applied while patching, because it cannot be changed from the app settings.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Custom player overlay opacity``` | ```Adds an option to change the opacity of the video player background when player controls are visible.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable double tap actions``` | ```Adds an option to disable player double tap gestures.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable DRC audio``` | ```Adds an option to disable DRC (Dynamic Range Compression) audio.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable fullscreen gestures``` | ```Adds options to selectively disable gestures for entering and exiting fullscreen mode, and to disable pinch-to-zoom.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable haptic feedback``` | ```Adds an option to disable haptic feedback in the player for various actions.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable layout updates``` | ```Adds an option to disable server side layout updates and use an older UI.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable player popup panels``` | ```Adds an option to disable panels (such as live chat) from opening automatically.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable playlist autoplay``` | ```Adds an option to stop a playlist from automatically advancing to the next video.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable QUIC protocol``` | ```Adds an option to disable QUIC (Quick UDP Internet Connections) network protocol.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable rolling number animations``` | ```Adds an option to disable rolling number animations of video view count, user likes, and upload time.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable scrolling speed limit``` | ```Adds an option to remove limits of how fast the home and subscription feed can be scrolled.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable Shorts resuming on startup``` | ```Adds an option to disable Shorts from resuming on app startup when Shorts were last being watched.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable sign in to TV popup``` | ```Adds options to disable the popups asking to sign into or connect to a TV on the same local network.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable video codecs``` | ```Adds options to disable or force HDR, and to disable VP9 codecs.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Double tap to seek``` | ```Adds additional double-tap to seek values to the YouTube settings menu.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Downloads``` | ```Adds support to download videos with an external downloader app using the in-app download button or a video player action button.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Enable debugging``` | ```Adds options for debugging and exporting Morphe logs to the clipboard.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Exit fullscreen mode``` | ```Adds options to automatically exit fullscreen mode when a video reaches the end.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Force original audio``` | ```Adds an option to always use the original audio track.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Fullscreen video scale``` | ```Adds options to stretch or zoom videos to fill the screen in fullscreen mode.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```GmsCore support``` | ```Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide ads``` | ```Adds options to hide general ads, Premium promotions and video ads.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide autoplay preview``` | ```Adds an option to hide the autoplay preview at the end of videos.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide end screen cards``` | ```Adds an option to hide suggested video cards at the end of videos.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide end screen suggested video``` | ```Adds an option to hide the suggested video at the end of videos.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide info cards``` | ```Adds an option to hide info cards that creators add in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide layout components``` | ```Adds options to hide general layout components.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide player flyout menu components``` | ```Adds options to hide menu components that appear when pressing the gear icon in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide player overlay buttons``` | ```Adds options to hide the player Cast, Autoplay, Captions, Previous & Next buttons, and to hide or change the opacity of the player control buttons background.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide related video overlay``` | ```Adds an option to hide the related video overlay shown when swiping up in fullscreen.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide related videos``` | ```Adds options to hide related videos.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide Shorts components``` | ```Adds options to hide components related to Shorts.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide timestamp``` | ```Adds an option to hide the timestamp in the bottom left of the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide video action buttons``` | ```Adds options to hide video action buttons in fullscreen and portrait modes.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Loop video``` | ```Adds an option to loop videos and display loop video button in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Media notification controls``` | ```Adds options to disable the seekbar and previous/next buttons in the media notification and headphone controls.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Miniplayer``` | ```Adds options to change the in-app minimized player. Patching 21.28.206 and lower has more miniplayer types to choose from.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Mute button``` | ```Adds an option to show a player button that mutes the video audio.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Navigation bar``` | ```Adds options to hide and change the bottom navigation bar (such as the Shorts button) and the upper navigation toolbar.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Network proxy``` | ```Adds settings to route supported network requests through an HTTP or HTTPS proxy. Including this patch may cause connectivity problems on certain devices``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Open channel of live avatar``` | ```Adds an option to prevent a channel's current live video from opening when tapping its avatar.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Open links externally``` | ```Adds an option to always open links in your browser instead of with the in-app browser.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Open Shorts in regular player``` | ```Adds options to open Shorts in the regular video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Open system share sheet``` | ```Adds an option to always open the system share sheet instead of the in-app share sheet.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Open videos fullscreen``` | ```Adds options to automatically open videos in fullscreen portrait or landscape mode.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Override YouTube Music buttons``` | ```Overrides YouTube Music buttons to open Morphe Music or any compatible third-party client.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Play all``` | ```Adds an option to play all the videos from a channel and to display play all button in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Playback in feeds``` | ```Adds the 'Playback in feeds' setting of YouTube to the Morphe settings, where it is always available even if YouTube hides it.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Playback speed``` | ```Adds options to customize available playback speeds, set a default playback speed, and show a speed dialog button in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```PoToken provider``` | ```Adds option to get PoToken using an external PoToken minter app.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Reload video``` | ```Adds an option to display reload video button in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Remember live stream playback position``` | ```Adds an option to remember the playback position of an ongoing live stream and resume from there when reopening that live stream.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Remove background playback restrictions``` | ```Removes restrictions on background playback, including playing kids videos in the background.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Remove viewer discretion dialog``` | ```Adds an option to remove the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Return YouTube Dislike``` | ```Adds an option to show the dislike count of videos with Return YouTube Dislike.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Sanitize sharing links``` | ```Removes the tracking query parameters from shared links.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Save to Watch later``` | ```Adds an option to display save to Watch later button in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Seekbar``` | ```Adds options to show old seekbar thumbnails, disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in live streams, and expanding the live stream DVR duration.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Settings menu filter``` | ```Adds an option to hide items on the standard YouTube settings screen by their visible name.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Shorts autoplay``` | ```Adds options to automatically play the next Short.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```SponsorBlock``` | ```Adds options to enable and configure SponsorBlock, which can skip undesired video segments such as sponsored content.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Spoof app version``` | ```Adds an option to trick the app into thinking you are running an older version.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Spoof device dimensions``` | ```Adds an option to spoof the device dimensions which can unlock higher video qualities.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Spoof video streams``` | ```Adds options to spoof the client video streams to fix playback.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Swipe controls``` | ```Adds options to enable and configure volume and brightness swipe controls.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Theme``` | ```Adds options for theming, and settings to change the app foreground and background colors.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Video quality``` | ```Adds options to set default video qualities and always use the advanced video quality menu.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Voice over translation``` | ```Adds additional voice over languages using text-to-speech synchronized to the video playback.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Wide search bar``` | ```Adds a wide search bar to the top of the home and subscription feed.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
+| ```Add to queue``` | ```Overrides the feed flyout 'Play next in queue' with the Morphe video queue.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Alternative thumbnails``` | ```Adds options to replace video thumbnails using the DeArrow API or image captures from the video.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Ambient mode``` | ```Adds options to bypass power saving restrictions for Ambient mode and disable it entirely or in fullscreen.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```App refresh rate``` | ```Adds an option to change the app refresh rate.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Bypass image region restrictions``` | ```Adds an option to use a different host for user avatar and channel images and can fix missing images that are blocked in some countries.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Bypass link redirects``` | ```Adds an option to bypass redirects and open the original link directly.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Captions``` | ```Adds an option to disable captions from being automatically enabled or to set caption cookies.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Change form factor``` | ```Adds an option to change the UI appearance to a phone, tablet, or automotive device.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Change header``` | ```Adds an option to change the header logo in the top left corner of the app.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Change start page``` | ```Adds an option to set which page the app opens in instead of the homepage.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Channel search``` | ```Adds an option to search inside the channel that is currently open instead of searching all of YouTube.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Check watch history domain name resolution``` | ```Checks if the device DNS server is preventing user watch history from being saved.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Copy video link``` | ```Adds options to display buttons in the video player to copy video links.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Custom branding``` | ```Adds options to change the app icon and app name. For mounted (root) installations the branding is applied while patching, because it cannot be changed from the app settings.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Custom player overlay opacity``` | ```Adds an option to change the opacity of the video player background when player controls are visible.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable double tap actions``` | ```Adds an option to disable player double tap gestures.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable DRC audio``` | ```Adds an option to disable DRC (Dynamic Range Compression) audio.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable fullscreen gestures``` | ```Adds options to selectively disable gestures for entering and exiting fullscreen mode, and to disable pinch-to-zoom.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable haptic feedback``` | ```Adds an option to disable haptic feedback in the player for various actions.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable layout updates``` | ```Adds an option to disable server side layout updates and use an older UI.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable player popup panels``` | ```Adds an option to disable panels (such as live chat) from opening automatically.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable playlist autoplay``` | ```Adds an option to stop a playlist from automatically advancing to the next video.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable QUIC protocol``` | ```Adds an option to disable QUIC (Quick UDP Internet Connections) network protocol.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable rolling number animations``` | ```Adds an option to disable rolling number animations of video view count, user likes, and upload time.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable scrolling speed limit``` | ```Adds an option to remove limits of how fast the home and subscription feed can be scrolled.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable Shorts resuming on startup``` | ```Adds an option to disable Shorts from resuming on app startup when Shorts were last being watched.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable sign in to TV popup``` | ```Adds options to disable the popups asking to sign into or connect to a TV on the same local network.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable video codecs``` | ```Adds options to disable or force HDR, and to disable VP9 codecs.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Double tap to seek``` | ```Adds additional double-tap to seek values to the YouTube settings menu.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Downloads``` | ```Adds support to download videos with an external downloader app using the in-app download button or a video player action button.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Enable debugging``` | ```Adds options for debugging and exporting Morphe logs to the clipboard.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Exit fullscreen mode``` | ```Adds options to automatically exit fullscreen mode when a video reaches the end.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Force fullscreen landscape``` | ```Adds an option to rotate the player to landscape when entering fullscreen mode on tablets and other large screen devices.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Force original audio``` | ```Adds an option to always use the original audio track.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Fullscreen video scale``` | ```Adds options to stretch or zoom videos to fill the screen in fullscreen mode.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```GmsCore support``` | ```Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide ads``` | ```Adds options to hide general ads, Premium promotions and video ads.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide autoplay preview``` | ```Adds an option to hide the autoplay preview at the end of videos.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide end screen cards``` | ```Adds an option to hide suggested video cards at the end of videos.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide end screen suggested video``` | ```Adds an option to hide the suggested video at the end of videos.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide info cards``` | ```Adds an option to hide info cards that creators add in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide layout components``` | ```Adds options to hide general layout components.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide player flyout menu components``` | ```Adds options to hide menu components that appear when pressing the gear icon in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide player overlay buttons``` | ```Adds options to hide the player Cast, Autoplay, Captions, Previous & Next buttons, and to hide or change the opacity of the player control buttons background.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide related video overlay``` | ```Adds an option to hide the related video overlay shown when swiping up in fullscreen.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide related videos``` | ```Adds options to hide related videos.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide Shorts components``` | ```Adds options to hide components related to Shorts.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide timestamp``` | ```Adds an option to hide the timestamp in the bottom left of the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide video action buttons``` | ```Adds options to hide video action buttons in fullscreen and portrait modes.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Loop video``` | ```Adds an option to loop videos and display loop video button in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Media notification controls``` | ```Adds options to disable the seekbar and previous/next buttons in the media notification and headphone controls.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Miniplayer``` | ```Adds options to change the in-app minimized player. Patching 21.28.206 and lower has more miniplayer types to choose from.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Mute button``` | ```Adds an option to show a player button that mutes the video audio.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Navigation bar``` | ```Adds options to hide and change the bottom navigation bar (such as the Shorts button) and the upper navigation toolbar.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Network proxy``` | ```Adds settings to route supported network requests through an HTTP or HTTPS proxy. Including this patch may cause connectivity problems on certain devices``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Open channel of live avatar``` | ```Adds an option to prevent a channel's current live video from opening when tapping its avatar.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Open links externally``` | ```Adds an option to always open links in your browser instead of with the in-app browser.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Open Shorts in regular player``` | ```Adds options to open Shorts in the regular video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Open system share sheet``` | ```Adds an option to always open the system share sheet instead of the in-app share sheet.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Open videos fullscreen``` | ```Adds options to automatically open videos in fullscreen portrait or landscape mode.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Override YouTube Music buttons``` | ```Overrides YouTube Music buttons to open Morphe Music or any compatible third-party client.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Play all``` | ```Adds an option to play all the videos from a channel and to display play all button in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Playback in feeds``` | ```Adds the 'Playback in feeds' setting of YouTube to the Morphe settings, where it is always available even if YouTube hides it.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Playback speed``` | ```Adds options to customize available playback speeds, set a default playback speed, and show a speed dialog button in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```PoToken provider``` | ```Adds option to get PoToken using an external PoToken minter app.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Reload video``` | ```Adds an option to display reload video button in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Remember live stream playback position``` | ```Adds an option to remember the playback position of an ongoing live stream and resume from there when reopening that live stream.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Remove background playback restrictions``` | ```Removes restrictions on background playback, including playing kids videos in the background.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Remove viewer discretion dialog``` | ```Adds an option to remove the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Return YouTube Dislike``` | ```Adds an option to show the dislike count of videos with Return YouTube Dislike.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Sanitize sharing links``` | ```Removes the tracking query parameters from shared links.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Save to Watch later``` | ```Adds an option to display save to Watch later button in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Seekbar``` | ```Adds options to show old seekbar thumbnails, disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in live streams, and expanding the live stream DVR duration.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Settings menu filter``` | ```Adds an option to hide items on the standard YouTube settings screen by their visible name.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Shorts autoplay``` | ```Adds options to automatically play the next Short.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```SponsorBlock``` | ```Adds options to enable and configure SponsorBlock, which can skip undesired video segments such as sponsored content.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Spoof app version``` | ```Adds an option to trick the app into thinking you are running an older version.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Spoof device dimensions``` | ```Adds an option to spoof the device dimensions which can unlock higher video qualities.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Spoof video streams``` | ```Adds options to spoof the client video streams to fix playback.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Swipe controls``` | ```Adds options to enable and configure volume and brightness swipe controls.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Theme``` | ```Adds options for theming, and settings to change the app foreground and background colors.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Video quality``` | ```Adds options to set default video qualities and always use the advanced video quality menu.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Voice over translation``` | ```Adds additional voice over languages using text-to-speech synchronized to the video playback.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Wide search bar``` | ```Adds a wide search bar to the top of the home and subscription feed.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
 | ```App refresh rate``` | ```Adds an option to change the app refresh rate.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
 | ```Bypass certificate checks``` | ```Bypasses certificate checks which prevent YouTube Music from working on Android Auto.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
 | ```Change header``` | ```Adds an option to change the header logo in the top left corner of the app.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
@@ -4643,7 +4217,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Block video ads``` | ```Blocks video ads in streams and VODs.``` | ```Twitch``` | ```16.9.1, 25.3.0``` |
 | ```Debug mode``` | ```Enables Twitch's internal debugging mode.``` | ```Twitch``` | ```16.9.1, 25.3.0``` |
 | ```Show deleted messages``` | ```Shows deleted chat messages behind a clickable spoiler.``` | ```Twitch``` | ```16.9.1, 25.3.0``` |
-| ```Change package name``` | ```Appends ".morphe" to the package name by default. Changing the package name of the app can lead to unexpected issues. This patch does not work with Reddit.``` | ```Universal``` | ```All versions``` |
+| ```Clone app``` | ```Changes the app package name to allow installing the same app multiple times. By default ".morphe" is appended to the package name. Each cloned install must use a unique package name. Cloning does not work with all apps and using this patch may cause app crashes or other unexpected behavior.``` | ```Universal``` | ```All versions``` |
 | ```Hide Ads``` | ```Hides ad banners between chats.``` | ```Viber``` | ```25.9.2.0, 26.1.2.0``` |
 | ```Hide navigation buttons``` | ```Permanently hides navigation bar buttons, such as Explore and Marketplace.``` | ```Viber``` | ```All versions``` |
 
@@ -4778,7 +4352,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Jasonwu1994 Bundle Patch List:
 [📦 Jasonwu1994-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-jasonwu1994-patches-bundle-morphe)
 <details>
-<summary><b>Jasonwu1994</b> - 40 patches, 1 app</summary>
+<summary><b>Jasonwu1994</b> - 41 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -4792,6 +4366,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Clipboard Enhancements``` | ```增強剪貼簿的保留時間、數量上限、預覽行數、倒數/建立時間、順序編號與欄數 Enhance clipboard retention time, item count limit, preview lines, countdown/creation time labels, order index, and column count.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Close Proactive Suggestions``` | ```在主動建議列顯示關閉按鈕 Show a dismiss button in the proactive suggestions bar.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Custom Symbols``` | ```新增獨立的特殊符號分頁，長按逗號->愛心 Add a dedicated custom symbols tab and replace the long-press comma entry with a heart shortcut.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Custom Theme``` | ```支援匯入自訂 ZIP 主題，並支援從 Rboard 官方儲存庫匯入精美主題。 Import custom ZIP themes and beautiful themes from the official Rboard repository.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Developer options``` | ```啟用 開發人員選項 與 Flag 編輯器，你可以自己修改Flag的值 Enable Developer options and the Flag Editor, allowing you to modify flag values.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Emojis, stickers & GIFs Tab Order``` | ```自訂 Gboard「Emojis, stickers & GIFs」底部 tabs 的排序，支援拖曳調整 Customize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with drag-and-drop reordering.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Enable accessibility layout``` | ```啟用無障礙鍵盤配置 Enable accessibility layout.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
@@ -6683,28 +6258,32 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Heval99 Bundle Patch List:
 [📦 Heval99-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-heval99-patches-bundle-morphe)
 <details>
-<summary><b>Heval99</b> - 28 patches, 19 apps</summary>
+<summary><b>Heval99</b> - 31 patches, 22 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Disable ads``` | ```Disables Google Mobile Ads (AdMob) initialization, blocking banner, interstitial, rewarded, native and mediated ads.``` | ```365Scores``` | ```14.9.4``` |
-| ```Enable Premium``` | ```Unlocks premium features by patching the Java license wrapper methods in JniAdExt: isFreeLicense returns false (app treats the license as paid), account registration and address book are allowed, and the remove-license option is available in settings. Note: the underlying license validation is native (libanydesk.so) and cannot be patched via bytecode — this patch only affects the Java-layer feature gates.``` | ```AnyDesk``` | ```9.0.0``` |
+| ```Enable Premium``` | ```Enables premium features by making the app treat the free license as paid.``` | ```AnyDesk``` | ```9.0.0``` |
 | ```Enable Premium``` | ```Unlocks the Pro/Premium features and lifts the free-version feature locks.``` | ```Aqua Mail``` | ```2.7.0``` |
-| ```Disable ads``` | ```Prevents AppLovin interstitial ads from loading and showing.``` | ```BoxBox``` | ```All versions``` |
-| ```Disable telemetry``` | ```Disables AppsFlyer, Firebase Analytics and Crashlytics event logging.``` | ```BoxBox``` | ```All versions``` |
-| ```Enable Premium``` | ```Unlocks premium features by bypassing RevenueCat subscription checks.``` | ```BoxBox``` | ```All versions``` |
-| ```Brave Origin``` | ```Unlocks Brave Origin and enables feature toggle controls.``` | ```Brave Browser``` | ```1.93.136``` |
+| ```Enable Premium``` | ```Unlocks the premium version (removes ads and lifts premium limits).``` | ```Bluecoins``` | ```13.1.79``` |
+| ```Disable ads``` | ```Disables AppLovin interstitial ads.``` | ```BoxBox``` | ```5.4.9``` |
+| ```Disable telemetry``` | ```Disables AppsFlyer, Firebase Analytics and Crashlytics event logging.``` | ```BoxBox``` | ```5.4.9``` |
+| ```Enable Premium``` | ```Unlocks premium features by bypassing RevenueCat subscription checks.``` | ```BoxBox``` | ```5.4.9``` |
+| ```Brave Origin``` | ```Unlocks Brave Origin and enables feature toggle controls.``` | ```Brave Browser``` | ```1.95.104``` |
 | ```Disable ads``` | ```Removes the 'notes_edit_banner' unit from utils/AdManager and the app-open ad from App$AppOpenAdManager. Both are gated on the single App.isAdFree() check, which normally depends on a VIP subscription.``` | ```EasyNotes``` | ```1.3.61.0907``` |
 | ```Enable Premium``` | ```Unlocks the VIP-only fonts, note backgrounds, stickers and drawing tools. The app checks entitlement entirely locally — there is no license server — so forcing the App.isVip() gate to return true unlocks everything, and stays unlocked even though BillingManager resets the underlying purchase flags from Play on every startup.``` | ```EasyNotes``` | ```1.3.61.0907``` |
 | ```Enable Pro``` | ```Unlocks the FairEmail pro features.``` | ```FairEmail``` | ```1.2337``` |
 | ```Enable Premium``` | ```Forces User.hasPremium() to return true, unlocking premium features locked behind the RevenueCat subscription entitlement.``` | ```FishBuddy``` | ```11.0.101``` |
-| ```Enable FotMob+``` | ```Enables app features locked behind the subscription paywall.``` | ```FotMob``` | ```236.17398.20260827, 236.17338.20260822``` |
+| ```Disable ads``` | ```Disables banner, interstitial, native, app-open and rewarded ads.``` | ```Flashscore``` | ```26.9.2``` |
+| ```Enable FotMob+``` | ```Enables app features locked behind the subscription paywall.``` | ```FotMob``` | ```237.17536.20260911, 236.17398.20260827, 236.17338.20260822``` |
 | ```Disable ads``` | ```Disables Wortise ad SDK initialization, blocking banner, interstitial, native and mediated ads (AppLovin, Yandex, Google Mobile Ads, etc.).``` | ```IPTV``` | ```9.1.25``` |
 | ```Enable Premium``` | ```Forces IptvFreeApplication's pro/trial gate to return true, keeping pro features unlocked after the 20-minute trial expires and suppressing the in-app review / buy-pro upsell prompts.``` | ```IPTV``` | ```9.1.25``` |
 | ```Enable Premium``` | ```Unlocks the 'Advanced device settings' features (Personalized Volume, Adaptive Audio, accessibility configs, hearing protection, etc.) that LibrePods gates behind the Play Store 'Unlock advanced features' one-time purchase. The patch forces the premium entitlement (PlayBillingProvider's _isPremium StateFlow) to always be true.``` | ```LibrePods``` | ```1.0.0-rc1-play``` |
 | ```Disable ads``` | ```Forces AdsRemovalSettings.areAdsDisabled() to return true, disabling banner, interstitial, MPU, hero placement, coverage sponsorship and announcement ads.``` | ```Livescore``` | ```10.1``` |
 | ```Enable Premium``` | ```Unlocks the Monefy Pro features.``` | ```Monefy``` | ```1.22.11``` |
-| ```Enable Premium+``` | ```Enables app features locked behind the subscription paywall.``` | ```MyFitnessPal``` | ```All versions``` |
+| ```Enable Premium+``` | ```Enables app features locked behind the subscription paywall.``` | ```MyFitnessPal``` | ```26.37.0``` |
+| ```Disable ads``` | ```Disables banner, interstitial, native, app-open and rewarded ads.``` | ```OneFootball``` | ```15.142.0``` |
+| ```Enable Premium``` | ```Unlocks OsmAnd Pro, Maps+ and live updates.``` | ```OsmAnd``` | ```5.4.5``` |
 | ```Disable telemetry``` | ```Disables Braze custom event tracking. Firebase Analytics/Crashlytics are covered by the universal "Disable Firebase Analytics & Crashlytics" patch.``` | ```Saphe Link``` | ```6.6.0``` |
 | ```Enable Premium``` | ```Unlocks all features locked behind the Saphe subscription paywall (navigation, car integration, speed limits, voice alarms, roadwork detection, animal nearby, slow-moving traffic, emergency vehicle, etc.).``` | ```Saphe Link``` | ```6.6.0``` |
 | ```Block marketing notifications``` | ```Blocks promotional and marketing prompts and modals.``` | ```Sofascore``` | ```26.07.27, 26.08.24, 26.09.07``` |
@@ -6712,7 +6291,6 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Disable Facebook SDK``` | ```Blocks Facebook SDK and Audience Network auto-initialization.``` | ```Sofascore``` | ```26.07.27, 26.08.24, 26.09.07``` |
 | ```Disable telemetry``` | ```Disables AppsFlyer and Firebase Analytics event logging, plus Crashlytics crash reporting.``` | ```Sofascore``` | ```26.07.27, 26.08.24, 26.09.07``` |
 | ```Enable Premium``` | ```Unlocks AI insights and premium features locked behind the Sofascore Plus/Pro subscription.``` | ```Sofascore``` | ```26.07.27, 26.08.24, 26.09.07``` |
-| ```Enable Premium``` | ```Unlocks the premium features.``` | ```Swift Backup``` | ```5.1.0``` |
 | ```Enable Full Version``` | ```Bypasses the Play license check so the paid app runs as licensed.``` | ```Tasker``` | ```6.6.18``` |
 | ```Remove ads``` | ```Unlocks the ad-free purchase.``` | ```Weather Underground``` | ```6.20.1``` |
 
@@ -6965,8 +6543,8 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Suggested Settings``` | ```Turns on flick keys for symbols, touch & hold keys for numbers, suggestion strip, grammar check and smart replies, and turns off block offensive words and word suggestions. Written once as defaults, so each can still be changed in Gboard's own settings. Grammar check is the switch, not the feature: the row only exists on a resigned build if Hidden Features is applied too.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Swipe Left to Delete``` | ```Swipe left anywhere on the keyboard to delete the previous word, and swipe right to restore it. Uses Gboard's own word-scrub engine, so it behaves exactly like swiping on the backspace key already does — only it can start anywhere.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Swipe Right to Undo``` | ```Swipe right after deleting to put the words back — the swipe starts on the Delete key, or anywhere when Swipe Left to Delete is also applied. Uses Gboard's own undo, which already records what a delete swipe removed.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
-| ```Swipe up diagnostic (temporary)``` | ```Diagnostic build only. Swipe up on a key to delete a character, which proves whether the swipe gesture is being detected at all. Do not enable this at the same time as "Swipe up to undo autocorrect" — they attach to the same place and you would get both effects. Off by default, and this patch will be removed once it has answered its question.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
-| ```Swipe up to undo autocorrect``` | ```Swipe up on the keyboard to put back the word an autocorrect replaced. Gboard has the same undo on backspace, behind a setting; this adds a gesture for it and works whether or not that setting is on. A swipe with nothing to undo does nothing. Off by default until it has been confirmed on a device.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Swipe up diagnostic (temporary)``` | ```Diagnostic build only. Swipe up on a key to type a marker character, which proves whether the swipe gesture is being detected at all without eating any text. Cannot be used alongside "Swipe up to undo autocorrect" — they attach to the same instruction, and selecting both fails the patch rather than giving you both effects. Off by default, and this patch will be removed once it has answered its question.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Swipe up to undo autocorrect``` | ```Swipe up on the keyboard to put back the word an autocorrect replaced. Gboard has the same undo on backspace, behind a setting; this adds a gesture for it and works whether or not that setting is on. A swipe with nothing to undo does nothing. Cannot be used alongside "Swipe up diagnostic (temporary)", which attaches to the same instruction. Off by default until it has been confirmed on a device.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Text Action Buttons``` | ```Add Select all, Copy and Paste buttons to the toolbar above the keyboard, so each is one tap instead of opening Gboard's text editing panel first. Registered natively, so drag-to-reorder through the toolbar customize page persists. These three share the toolbar with Gboard's own icons and with Toolbar Hotkeys. Bigger Toolbar, which is applied unless you deselect it, raises the ceiling from five to twelve; without it, five is all the bar can hold.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Toolbar Hotkeys``` | ```Adds eight configurable hotkey slots to Gboard's toolbar — each commits a text of your choice on tap. A slot appears when its text is set; when cleared it hides at the next toolbar rebuild (rotate, switch IME, or restart — there's no mid-session un-register). Text and icon edits apply on the next keyboard open. The slots share the toolbar with Gboard's own icons: Bigger Toolbar, which is applied unless you deselect it, makes room for twelve, but on a stock ceiling of five not all eight fit.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Vibration Slider Everywhere``` | ```Forces Gboard to show its own vibration strength slider on every device, rather than deferring to the system haptic settings page, so the strength is adjustable instead of being fixed by whichever rollout the device landed in.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
@@ -7043,7 +6621,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Kveld Bundle Patch List:
 [📦 Kveld-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-kveld-patches-bundle-morphe)
 <details>
-<summary><b>Kveld</b> - 76 patches, 7 apps</summary>
+<summary><b>Kveld</b> - 78 patches, 7 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -7088,17 +6666,19 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Core Asset De-bloat``` | ```Strips embedded Microblink/FinTech card scanner models, Pitaya AI & ByteNN LLM engines, C2PA origin verification, DLNA cast scanners, and redundant non-Latin fonts to save APK space.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Device Privacy Guard``` | ```Neutralizes background clipboard snooping routines, local network scanning permissions, and screenshot/recording detection and telemetry listeners to protect user data.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Disable Push Notifications``` | ```Neutralizes background push notification tasks and persistent socket wake locks to eliminate background battery drain.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
+| ```Display Refresh Rate Governor``` | ```Forces TikTok to run at peak display refresh rate (120Hz/90Hz/60Hz) and neutralizes video playback framerate downclocking routines.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Feed Ad Blocker``` | ```Removes sponsored advertisements, brand promotions, and promotional audio from the For You and Following feeds.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Feed Bloat & Distraction Blocker``` | ```Removes non-video clutter and floating ad widgets from the For You and Following feeds, including Touchpoint Rewards pendants, floating ad stickers, suggested friend cards, mini-games, CapCut/template creation prompts, memories ('On This Day'), surveys, and mini-drama paywalls.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Feed Live Stream Blocker``` | ```Removes live stream broadcast cards and live recommendations from the For You and Following feeds.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Fix Google login``` | ```Restores Google account sign-in after patching by forcing fallback to Web-based OAuth when Google Play Services rejects the modified APK signature.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
+| ```Ghost Mode``` | ```Enables anonymous profile and story browsing: suppresses outbound profile view records and story view pings while preserving your ability to see who viewed your profile.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Hide TikTok Shop & Mall``` | ```Removes product showcase badges, shopping cart tags, and the TikTok Shop / Mall tab from navigation bars and video posts.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```In-App Browser Privacy Guard``` | ```Redirects external and third-party web links to the default system browser and neutralizes inline JavaScript tracking, DOM monitoring, and AJAX hooking in residual in-app WebViews.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Instant Launch & Splash Blocker``` | ```Eliminates cold startup delays, real-time splash advertisements, and background TopView preloading (<0.4s launch).``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Language Pack Purger``` | ```Strips unselected language string bundles from assets/strings#lang_* to save APK space.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Live Stream 3D Gift Optimizer``` | ```Disables Live 3D gift particle effect engine and widget rendering lifecycle to eliminate frame drops during live streams.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Live Stream SDK & Minigame De-bloat``` | ```Strips Live link mic SDK (liblink_mic_sdk.so), Lyrax RTC broadcasting engines (liblyrax.so), and live stream interactive minigames to reduce APK size and memory footprint.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
-| ```Media Usability & Watermark-Free Downloader``` | ```Unblocks the download button on creator-restricted videos and routes downloads to clean unwatermarked media streams.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
+| ```Media Usability & Watermark-Free Downloader``` | ```Unblocks the download button on creator-restricted videos and Stories inside the Share panel, and routes downloads to clean unwatermarked media streams.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```P2P Video Relay & Mesh CDN Blocker``` | ```Strips background Peer-to-Peer CDN distribution binaries (libavmdlp2pv2.so and libp2plivevdp.so) to prevent battery drain, background data upload, and mesh relay.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Playback Speed Persistence``` | ```Persists selected video playback speed across all feed videos and application restarts.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Resource & Battery Governor``` | ```Throttles background sensor polling (gyroscope/accelerometer 3D ads), prevents aggressive video buffer preloading, and caps Fresco animated image memory retention to conserve battery and RAM.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
@@ -7108,7 +6688,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Studio & Creation De-bloat``` | ```Strips heavy video creation plugins, CapCut NLE editor SDKs, effect plugins, and AR camera face models to significantly reduce APK size.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Unified Telemetry & Tracker Silencer``` | ```Neutralizes ByteDance AppLog user tracking, APM/Npth/Heimdallr crash monitors, AppsFlyer attribution, and Firebase analytics.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```Update Prompt Suppressor``` | ```Neutralizes background update polling tasks and device ID check routines to prevent forced update popups.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
-| ```Video Quality Governor``` | ```Caps maximum video playback resolution (1080p, 720p, 540p, 480p, 360p) to reduce GPU/MediaCodec load, lower memory retention, and prevent playback buffering.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
+| ```Video Quality Governor``` | ```Caps video playback and download resolutions (1080p, 720p, 540p, 480p, 360p) independently to conserve battery, GPU/MediaCodec load, and mobile data.``` | ```TikTok, TikTok``` | ```46.9.3, 46.9.3``` |
 | ```APK Junk Cleaner``` | ```Strips non-functional build metadata, compiler properties, Kotlin coroutines debug tables, and duplicate license texts from META-INF and APK root.``` | ```Universal``` | ```All versions``` |
 | ```DPI Resource Slimmer``` | ```Strips unselected screen density resource directories from res/ (e.g. drawable-mdpi, drawable-hdpi, mipmap-xhdpi). Density-independent resources (nodpi, anydpi) and orphan resources are safely preserved.``` | ```Universal``` | ```All versions``` |
 | ```Locale Resource Slimmer``` | ```Strips unselected language translation directories from res/ (e.g. values-*, raw-*, xml-*). Base fallback resources with no language qualifiers are always preserved.``` | ```Universal``` | ```All versions``` |
@@ -7839,7 +7419,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Dual-VoT Bundle Patch List:
 [📦 Dual-VoT-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-dual-vot-patches-bundle-morphe)
 <details>
-<summary><b>Dual-VoT</b> - 149 patches, 4 apps</summary>
+<summary><b>Dual-VoT</b> - 150 patches, 4 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -7866,90 +7446,91 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Clone app``` | ```Changes the app package name to allow installing the same app multiple times. By default ".morphe" is appended to the package name. Each cloned install must use a unique package name. Cloning does not work with all apps and using this patch may cause app crashes or other unexpected behavior.``` | ```Universal``` | ```All versions``` |
 | ```Disable Play Store updates``` | ```Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting``` | ```Universal``` | ```All versions``` |
 | ```Override certificate pinning``` | ```Overrides certificate pinning, allowing to inspect traffic via a proxy.``` | ```Universal``` | ```All versions``` |
-| ```Add to queue``` | ```Overrides the feed flyout 'Play next in queue' with the Morphe video queue.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Alternative thumbnails``` | ```Adds options to replace video thumbnails using the DeArrow API or image captures from the video.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Ambient mode``` | ```Adds options to bypass power saving restrictions for Ambient mode and disable it entirely or in fullscreen.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```App refresh rate``` | ```Adds an option to change the app refresh rate.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Bypass image region restrictions``` | ```Adds an option to use a different host for user avatar and channel images and can fix missing images that are blocked in some countries.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Bypass link redirects``` | ```Adds an option to bypass redirects and open the original link directly.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Captions``` | ```Adds an option to disable captions from being automatically enabled or to set caption cookies.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Change form factor``` | ```Adds an option to change the UI appearance to a phone, tablet, or automotive device.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Change header``` | ```Adds an option to change the header logo in the top left corner of the app.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Change start page``` | ```Adds an option to set which page the app opens in instead of the homepage.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Channel search``` | ```Adds an option to search inside the channel that is currently open instead of searching all of YouTube.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Check watch history domain name resolution``` | ```Checks if the device DNS server is preventing user watch history from being saved.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Copy video link``` | ```Adds options to display buttons in the video player to copy video links.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Custom branding``` | ```Adds options to change the app icon and app name. For mounted (root) installations the branding is applied while patching, because it cannot be changed from the app settings.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Custom player overlay opacity``` | ```Adds an option to change the opacity of the video player background when player controls are visible.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable double tap actions``` | ```Adds an option to disable player double tap gestures.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable DRC audio``` | ```Adds an option to disable DRC (Dynamic Range Compression) audio.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable fullscreen gestures``` | ```Adds options to selectively disable gestures for entering and exiting fullscreen mode, and to disable pinch-to-zoom.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable haptic feedback``` | ```Adds an option to disable haptic feedback in the player for various actions.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable layout updates``` | ```Adds an option to disable server side layout updates and use an older UI.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable player popup panels``` | ```Adds an option to disable panels (such as live chat) from opening automatically.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable playlist autoplay``` | ```Adds an option to stop a playlist from automatically advancing to the next video.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable QUIC protocol``` | ```Adds an option to disable QUIC (Quick UDP Internet Connections) network protocol.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable rolling number animations``` | ```Adds an option to disable rolling number animations of video view count, user likes, and upload time.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable scrolling speed limit``` | ```Adds an option to remove limits of how fast the home and subscription feed can be scrolled.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable Shorts resuming on startup``` | ```Adds an option to disable Shorts from resuming on app startup when Shorts were last being watched.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable sign in to TV popup``` | ```Adds options to disable the popups asking to sign into or connect to a TV on the same local network.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Disable video codecs``` | ```Adds options to disable or force HDR, and to disable VP9 codecs.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Double tap to seek``` | ```Adds additional double-tap to seek values to the YouTube settings menu.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Downloads``` | ```Adds support to download videos with an external downloader app using the in-app download button or a video player action button.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Enable debugging``` | ```Adds options for debugging and exporting Morphe logs to the clipboard.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Exit fullscreen mode``` | ```Adds options to automatically exit fullscreen mode when a video reaches the end.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Force original audio``` | ```Adds an option to always use the original audio track.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Fullscreen video scale``` | ```Adds options to stretch or zoom videos to fill the screen in fullscreen mode.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```GmsCore support``` | ```Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide ads``` | ```Adds options to hide general ads, Premium promotions and video ads.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide autoplay preview``` | ```Adds an option to hide the autoplay preview at the end of videos.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide end screen cards``` | ```Adds an option to hide suggested video cards at the end of videos.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide end screen suggested video``` | ```Adds an option to hide the suggested video at the end of videos.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide info cards``` | ```Adds an option to hide info cards that creators add in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide layout components``` | ```Adds options to hide general layout components.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide player flyout menu components``` | ```Adds options to hide menu components that appear when pressing the gear icon in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide player overlay buttons``` | ```Adds options to hide the player Cast, Autoplay, Captions, Previous & Next buttons, and to hide or change the opacity of the player control buttons background.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide related video overlay``` | ```Adds an option to hide the related video overlay shown when swiping up in fullscreen.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide related videos``` | ```Adds options to hide related videos.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide Shorts components``` | ```Adds options to hide components related to Shorts.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide timestamp``` | ```Adds an option to hide the timestamp in the bottom left of the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Hide video action buttons``` | ```Adds options to hide video action buttons in fullscreen and portrait modes.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Loop video``` | ```Adds an option to loop videos and display loop video button in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Media notification controls``` | ```Adds options to disable the seekbar and previous/next buttons in the media notification and headphone controls.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Miniplayer``` | ```Adds options to change the in-app minimized player. Patching 21.28.206 and lower has more miniplayer types to choose from.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Mute button``` | ```Adds an option to show a player button that mutes the video audio.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Navigation bar``` | ```Adds options to hide and change the bottom navigation bar (such as the Shorts button) and the upper navigation toolbar.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Network proxy``` | ```Adds settings to route supported network requests through an HTTP or HTTPS proxy. Including this patch may cause connectivity problems on certain devices``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Open channel of live avatar``` | ```Adds an option to prevent a channel's current live video from opening when tapping its avatar.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Open links externally``` | ```Adds an option to always open links in your browser instead of with the in-app browser.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Open Shorts in regular player``` | ```Adds options to open Shorts in the regular video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Open system share sheet``` | ```Adds an option to always open the system share sheet instead of the in-app share sheet.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Open videos fullscreen``` | ```Adds options to automatically open videos in fullscreen portrait or landscape mode.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Override YouTube Music buttons``` | ```Overrides YouTube Music buttons to open Morphe Music or any compatible third-party client.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Play all``` | ```Adds an option to play all the videos from a channel and to display play all button in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Playback in feeds``` | ```Adds the 'Playback in feeds' setting of YouTube to the Morphe settings, where it is always available even if YouTube hides it.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Playback speed``` | ```Adds options to customize available playback speeds, set a default playback speed, and show a speed dialog button in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```PoToken provider``` | ```Adds option to get PoToken using an external PoToken minter app.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Reload video``` | ```Adds an option to display reload video button in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Remember live stream playback position``` | ```Adds an option to remember the playback position of an ongoing live stream and resume from there when reopening that live stream.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Remove background playback restrictions``` | ```Removes restrictions on background playback, including playing kids videos in the background.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Remove viewer discretion dialog``` | ```Adds an option to remove the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Return YouTube Dislike``` | ```Adds an option to show the dislike count of videos with Return YouTube Dislike.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Sanitize sharing links``` | ```Removes the tracking query parameters from shared links.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Save to Watch later``` | ```Adds an option to display save to Watch later button in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Seekbar``` | ```Adds options to show old seekbar thumbnails, disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in live streams, and expanding the live stream DVR duration.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Settings menu filter``` | ```Adds an option to hide items on the standard YouTube settings screen by their visible name.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Shorts autoplay``` | ```Adds options to automatically play the next Short.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```SponsorBlock``` | ```Adds options to enable and configure SponsorBlock, which can skip undesired video segments such as sponsored content.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Spoof app version``` | ```Adds an option to trick the app into thinking you are running an older version.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Spoof device dimensions``` | ```Adds an option to spoof the device dimensions which can unlock higher video qualities.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Spoof video streams``` | ```Adds options to spoof the client video streams to fix playback.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Swipe controls``` | ```Adds options to enable and configure volume and brightness swipe controls.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Theme``` | ```Adds options for theming, and settings to change the app foreground and background colors.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Video quality``` | ```Adds options to set default video qualities and always use the advanced video quality menu.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Voice over translation``` | ```Adds additional voice over languages using text-to-speech synchronized to the video playback.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Wide search bar``` | ```Adds a wide search bar to the top of the home and subscription feed.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
-| ```Yandex voice-over translation``` | ```Adds a separate Yandex translation button alongside Morphe voice-over translation.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.13.164, 21.07.247, 20.31.42, 20.21.37``` |
+| ```Add to queue``` | ```Overrides the feed flyout 'Play next in queue' with the Morphe video queue.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Alternative thumbnails``` | ```Adds options to replace video thumbnails using the DeArrow API or image captures from the video.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Ambient mode``` | ```Adds options to bypass power saving restrictions for Ambient mode and disable it entirely or in fullscreen.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```App refresh rate``` | ```Adds an option to change the app refresh rate.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Bypass image region restrictions``` | ```Adds an option to use a different host for user avatar and channel images and can fix missing images that are blocked in some countries.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Bypass link redirects``` | ```Adds an option to bypass redirects and open the original link directly.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Captions``` | ```Adds an option to disable captions from being automatically enabled or to set caption cookies.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Change form factor``` | ```Adds an option to change the UI appearance to a phone, tablet, or automotive device.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Change header``` | ```Adds an option to change the header logo in the top left corner of the app.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Change start page``` | ```Adds an option to set which page the app opens in instead of the homepage.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Channel search``` | ```Adds an option to search inside the channel that is currently open instead of searching all of YouTube.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Check watch history domain name resolution``` | ```Checks if the device DNS server is preventing user watch history from being saved.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Copy video link``` | ```Adds options to display buttons in the video player to copy video links.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Custom branding``` | ```Adds options to change the app icon and app name. For mounted (root) installations the branding is applied while patching, because it cannot be changed from the app settings.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Custom player overlay opacity``` | ```Adds an option to change the opacity of the video player background when player controls are visible.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable double tap actions``` | ```Adds an option to disable player double tap gestures.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable DRC audio``` | ```Adds an option to disable DRC (Dynamic Range Compression) audio.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable fullscreen gestures``` | ```Adds options to selectively disable gestures for entering and exiting fullscreen mode, and to disable pinch-to-zoom.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable haptic feedback``` | ```Adds an option to disable haptic feedback in the player for various actions.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable layout updates``` | ```Adds an option to disable server side layout updates and use an older UI.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable player popup panels``` | ```Adds an option to disable panels (such as live chat) from opening automatically.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable playlist autoplay``` | ```Adds an option to stop a playlist from automatically advancing to the next video.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable QUIC protocol``` | ```Adds an option to disable QUIC (Quick UDP Internet Connections) network protocol.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable rolling number animations``` | ```Adds an option to disable rolling number animations of video view count, user likes, and upload time.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable scrolling speed limit``` | ```Adds an option to remove limits of how fast the home and subscription feed can be scrolled.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable Shorts resuming on startup``` | ```Adds an option to disable Shorts from resuming on app startup when Shorts were last being watched.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable sign in to TV popup``` | ```Adds options to disable the popups asking to sign into or connect to a TV on the same local network.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Disable video codecs``` | ```Adds options to disable or force HDR, and to disable VP9 codecs.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Double tap to seek``` | ```Adds additional double-tap to seek values to the YouTube settings menu.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Downloads``` | ```Adds support to download videos with an external downloader app using the in-app download button or a video player action button.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Enable debugging``` | ```Adds options for debugging and exporting Morphe logs to the clipboard.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Exit fullscreen mode``` | ```Adds options to automatically exit fullscreen mode when a video reaches the end.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Force fullscreen landscape``` | ```Adds an option to rotate the player to landscape when entering fullscreen mode on tablets and other large screen devices.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Force original audio``` | ```Adds an option to always use the original audio track.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Fullscreen video scale``` | ```Adds options to stretch or zoom videos to fill the screen in fullscreen mode.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```GmsCore support``` | ```Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide ads``` | ```Adds options to hide general ads, Premium promotions and video ads.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide autoplay preview``` | ```Adds an option to hide the autoplay preview at the end of videos.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide end screen cards``` | ```Adds an option to hide suggested video cards at the end of videos.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide end screen suggested video``` | ```Adds an option to hide the suggested video at the end of videos.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide info cards``` | ```Adds an option to hide info cards that creators add in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide layout components``` | ```Adds options to hide general layout components.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide player flyout menu components``` | ```Adds options to hide menu components that appear when pressing the gear icon in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide player overlay buttons``` | ```Adds options to hide the player Cast, Autoplay, Captions, Previous & Next buttons, and to hide or change the opacity of the player control buttons background.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide related video overlay``` | ```Adds an option to hide the related video overlay shown when swiping up in fullscreen.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide related videos``` | ```Adds options to hide related videos.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide Shorts components``` | ```Adds options to hide components related to Shorts.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide timestamp``` | ```Adds an option to hide the timestamp in the bottom left of the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Hide video action buttons``` | ```Adds options to hide video action buttons in fullscreen and portrait modes.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Loop video``` | ```Adds an option to loop videos and display loop video button in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Media notification controls``` | ```Adds options to disable the seekbar and previous/next buttons in the media notification and headphone controls.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Miniplayer``` | ```Adds options to change the in-app minimized player. Patching 21.28.206 and lower has more miniplayer types to choose from.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Mute button``` | ```Adds an option to show a player button that mutes the video audio.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Navigation bar``` | ```Adds options to hide and change the bottom navigation bar (such as the Shorts button) and the upper navigation toolbar.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Network proxy``` | ```Adds settings to route supported network requests through an HTTP or HTTPS proxy. Including this patch may cause connectivity problems on certain devices``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Open channel of live avatar``` | ```Adds an option to prevent a channel's current live video from opening when tapping its avatar.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Open links externally``` | ```Adds an option to always open links in your browser instead of with the in-app browser.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Open Shorts in regular player``` | ```Adds options to open Shorts in the regular video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Open system share sheet``` | ```Adds an option to always open the system share sheet instead of the in-app share sheet.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Open videos fullscreen``` | ```Adds options to automatically open videos in fullscreen portrait or landscape mode.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Override YouTube Music buttons``` | ```Overrides YouTube Music buttons to open Morphe Music or any compatible third-party client.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Play all``` | ```Adds an option to play all the videos from a channel and to display play all button in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Playback in feeds``` | ```Adds the 'Playback in feeds' setting of YouTube to the Morphe settings, where it is always available even if YouTube hides it.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Playback speed``` | ```Adds options to customize available playback speeds, set a default playback speed, and show a speed dialog button in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```PoToken provider``` | ```Adds option to get PoToken using an external PoToken minter app.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Reload video``` | ```Adds an option to display reload video button in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Remember live stream playback position``` | ```Adds an option to remember the playback position of an ongoing live stream and resume from there when reopening that live stream.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Remove background playback restrictions``` | ```Removes restrictions on background playback, including playing kids videos in the background.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Remove viewer discretion dialog``` | ```Adds an option to remove the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Return YouTube Dislike``` | ```Adds an option to show the dislike count of videos with Return YouTube Dislike.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Sanitize sharing links``` | ```Removes the tracking query parameters from shared links.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Save to Watch later``` | ```Adds an option to display save to Watch later button in the video player.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Seekbar``` | ```Adds options to show old seekbar thumbnails, disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in live streams, and expanding the live stream DVR duration.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Settings menu filter``` | ```Adds an option to hide items on the standard YouTube settings screen by their visible name.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Shorts autoplay``` | ```Adds options to automatically play the next Short.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```SponsorBlock``` | ```Adds options to enable and configure SponsorBlock, which can skip undesired video segments such as sponsored content.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Spoof app version``` | ```Adds an option to trick the app into thinking you are running an older version.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Spoof device dimensions``` | ```Adds an option to spoof the device dimensions which can unlock higher video qualities.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Spoof video streams``` | ```Adds options to spoof the client video streams to fix playback.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Swipe controls``` | ```Adds options to enable and configure volume and brightness swipe controls.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Theme``` | ```Adds options for theming, and settings to change the app foreground and background colors.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Video quality``` | ```Adds options to set default video qualities and always use the advanced video quality menu.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Voice over translation``` | ```Adds additional voice over languages using text-to-speech synchronized to the video playback.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Wide search bar``` | ```Adds a wide search bar to the top of the home and subscription feed.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
+| ```Yandex voice-over translation``` | ```Adds a separate Yandex translation button alongside Morphe voice-over translation.``` | ```YouTube``` | ```21.37.42, 21.36.45, 21.28.208, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
 | ```App refresh rate``` | ```Adds an option to change the app refresh rate.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
 | ```Bypass certificate checks``` | ```Bypasses certificate checks which prevent YouTube Music from working on Android Auto.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
 | ```Change header``` | ```Adds an option to change the header logo in the top left corner of the app.``` | ```YouTube Music``` | ```9.36.50, 9.35.54, 9.34.52, 9.15.51``` |
@@ -8076,7 +7657,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 UniPatches Bundle Patch List:
 [📦 UniPatches-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-unipatches-patches-bundle-morphe)
 <details>
-<summary><b>UniPatches</b> - 12 patches, 2 apps</summary>
+<summary><b>UniPatches</b> - 11 patches, 2 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -8084,14 +7665,13 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Bypass Emulator Detection``` | ```Hides common emulator traces by spoofing Build info and related checks so apps are less likely to identify an emulator. This patch is marked for enhancement in future updates; coverage is currently limited to the checks it can safely recognize. Compatibility: PairIP Bypass and other server-side integrity systems can still reject a device when entitlement is bound to genuine device signals, package identity, or attestation. Combining spoofing with those patches is app-specific and cannot safely bypass remote checks. Credits: Nai64Patches from Nai64.``` | ```Universal``` | ```All versions``` |
 | ```Bypass Forced Updates (Experimental)``` | ```Try to bypass high-confidence client-side forced-update screens. Start with the defaults; each option handles a different part of an update flow. This cannot bypass a server that refuses old app versions, and an unsupported app may still require an update.``` | ```Universal``` | ```All versions``` |
 | ```Control App Ads Patch ( Experimental, Enhanced, Has Overlay Addon )``` | ```A merged ad-control patch based on Nai64's No Ads and Ads Free Rewards patches, plus literal-host blocking inspired by Entree and Adobo. Block common ad formats, choose the SDKs to target, optionally grant ad rewards without an ad, and redirect matching literal ad/tracker hosts embedded in the APK. Host filters are small embedded subsets inspired by uBlock Origin, EasyList, AdGuard, OISD, HaGeZi Pro mini, Privacy Essentials, EasyPrivacy, and Peter Lowe's list; they are not downloaded full subscriptions. Each filter is independently toggleable. They only affect hosts stored as literal strings by the app; they cannot block dynamically generated hosts, encrypted traffic, or requests made entirely inside Google Play services. Compatibility: when combined with Disable Forced Online Checks, keep that patch's “Exclude ad SDK and networking code” option enabled; otherwise blocked ad hosts may be treated as online and retried. PairIP Firebase cleanup/removal can disable Firebase-backed reward, sign-in, billing, and attribution flows, which this patch cannot restore. This patch includes an optional Universal Overlay addon. To use the addon, patch Control App Ads together with Universal Overlay and select one or more of its three overlay addon modules: “Block Ads”, “Ads Free Rewards”, and “Block Ads / Tracking Hosts”. Ad runtime policy is enabled automatically when at least one of these Ads runtime modules is enabled in patch settings. The selected modules appear under “Ad control hook modules” in Universal Overlay when selected. Host blocking starts according to the Enable Block Ads / Tracking Hosts master setting. Universal Overlay is required for the runtime policy to be installed; if it is not selected, the normal static ad controls still work but these runtime addon modules are not available. Runtime changes last for the current app process and affect only methods and literal hosts successfully instrumented by this patch. Its policy is attached to the selected overlay's own startup bridge, including a manual Activity override; it does not independently choose an Application or Activity. Native, dynamically generated, unsupported, or unrecognized SDK paths remain unchanged. Credits: Nai64Patches from Nai64; host-blocking approach inspired by Entree and Adobo.``` | ```Universal``` | ```All versions``` |
-| ```Control Embedded Auth / Stores Patch ( Enhanced )``` | ```Control embedded Google Play, Firebase, Google Pay, location, licensing, sign-in, and store availability behavior. Choose real Google Play Services, GmsCore, or Zero Google Play behavior. GmsCore mode includes Maps-on-MicroG compatibility and supports package and main-activity overrides. All controls are optional and apply only to matching methods or manifest components. Compatibility: use InApp Emulation Patch for purchase-flow and catalog behavior. This patch only controls embedded services, licensing, and store checks. Its optional GmsCore startup Activity override should not target a third-party sign-in or billing Activity. When combined with Universal Overlay, use the overlay's Activity override only when automatic launcher resolution cannot identify the app's real entry Activity. Credits to Nai64 for the majority of the original Google Services, Firebase, licensing, location, store, and GmsCore functionality. UniPatches provides the merged settings, compatibility guards, and patch organization.``` | ```Universal``` | ```All versions``` |
+| ```Control Embedded Auth / Stores Patch ( Enhanced )``` | ```Control embedded Google Play, Firebase, Google Pay, location, licensing, sign-in, and store availability behavior. Choose real Google Play Services, GmsCore, or Zero Google Play behavior. GmsCore mode includes Maps-on-MicroG compatibility and supports package and main-activity overrides. All controls are optional and apply only to matching methods or manifest components. This patch only controls embedded services, licensing, and store checks. Its optional GmsCore startup Activity override should not target a third-party sign-in or billing Activity. When combined with Universal Overlay, use the overlay's Activity override only when automatic launcher resolution cannot identify the app's real entry Activity. Credits to Nai64 for the majority of the original Google Services, Firebase, licensing, location, store, and GmsCore functionality. UniPatches provides the merged settings, compatibility guards, and patch organization.``` | ```Universal``` | ```All versions``` |
 | ```Custom App Display Patch (Experimental, Enhanced)``` | ```Adjust an APK's display compatibility: screen shape, Unity window-size request, preferred refresh rate, Unity renderer preference, ANGLE preference, and Android game-category hint. Start with Display scaling. Android and the app can ignore any request. Resolution and renderer overrides currently target Unity activities. Scaling removes Android aspect-ratio restrictions where present; it cannot universally rescale every game engine. Custom App Resolution and game-optimization inspiration: Nai64Patches from Nai64. Frame-rate, graphics-driver, ANGLE, and aspect-ratio controls are UniPatches work. Compatibility: when combined with Universal Overlay, keep Activity injection and display overrides scoped to the launcher unless a broader scope is required. Broad Activity changes can affect overlay, sign-in, billing, or other third-party screens. When combined with Legacy App Compatibility, both patches may change display or manifest compatibility values; review the final generated manifest.``` | ```Universal``` | ```All versions``` |
 | ```Custom App Output Patch (Experimental, Enhanced)``` | ```Customize an APK's install identity and launcher presentation in one patch. Start with the launcher name or icon; enable Clone only when you need a side-by-side copy. Name, icon, hide-icon, and clone options are independent. This cannot preserve original-app data when a package or signing identity changes. Clone mode rewrites supported manifest identifiers only; it does not rewrite bytecode strings, explicit process names, task affinities, or arbitrary SDK configuration. A clone has a new Android package identity and normally a new signing identity: package- or certificate-bound OAuth, Firebase, Google Play Games, billing, deep links, and server licenses may therefore not work and cannot be repaired safely by this patch. If PairIP Bypass is also enabled, server/package-bound PairIP enforcement can still reject the clone. Inspired by Nai64Patches from Nai64: Clone, Custom App Icon, and Hide App Icon patches. The optional Preserve App Data After Uninstall setting applies Android's fragile-user-data and backup compatibility flags. It does not guarantee data retention, and it cannot carry data from the original package into a clone with a different package identity. For target SDK compatibility, use Improve Legacy App / Game Compatibility for Modern Android Patch. Keeping target SDK handling there avoids duplicate manifest changes.``` | ```Universal``` | ```All versions``` |
 | ```Disable Forced Online Checks (Experimental)``` | ```Try to bypass high-confidence client-side “internet required” gates. Start with Auto mode. This cannot bypass server-side login, entitlement, multiplayer, or game-state checks. Compatibility: Control App Ads can intentionally block ad hosts. Keep “Exclude ad SDK and networking code” enabled when both patches are selected so blocked ads are not falsely told the device is online and repeatedly retried. This does not bypass server-enforced online play.``` | ```Universal``` | ```All versions``` |
 | ```Improve Legacy App / Game Compatibility for Modern Android Patch ( Experimental, Enhanced )``` | ```Improve compatibility for older apps and games on modern Android versions. This patch combines legacy manifest, storage, screen, native runtime, network, shared-library, and optional device identity compatibility controls, including a configurable OpenIAB dynamic receiver compatibility fix. Spoof Target SDK can help older apps that modern Android may refuse to install or launch, but changing the reported target can also enable newer platform behavior and cannot repair incompatible application code. For Google Play license checks or Google Play Services checks, use Control Embedded Auth / Stores Patch. Those options are intentionally kept separate to prevent overlapping injections. This patch cannot restore shut-down servers, missing CPU architecture support, server licensing, Play Integrity, or unsupported native code. Conservative compatibility features are enabled by default; more invasive native, network, storage, library, and identity options remain disabled. Experimental: Its functionalities are not guaranteed to work in all apps. Credits: Nai64Patches from Nai64 for the original legacy compatibility functionality. UniPatches provides the merged settings, validation, manifest safeguards, compatibility organization, and provides suppress GPlay Login UI patch option.``` | ```Universal``` | ```All versions``` |
-| ```InApp Emulation Patch ( Experimental, Enhanced, Has Overlay Addon )``` | ```InApp emulation Patch does a local modification of in-app buying behavior via DEX modification to make pressing buy grant items without charging! Best for offline and legacy apps and games. Warning : This DOES NOT solve server-side purchase verification, which is used by many modern apps and games! InApp Emulation Overlay Module : This patch as an overlay addon involves an InApp Emulation hook module being added to overlay menu, that has a settings button, which shows a popup showing a checkbox whether to enable InApp Emulation popup or not at buy time, and then if it's enabled, it list of saved purchases, that are saved at buy time if user chooses to save the purchase. Saved purchases are so popup windows don't appear again on buy time. The settings popup list of item of saved purchases also allows for management of them, by deleting saved purchases items. Experimental : This patch may not work on all apps, as it modifies internal app / game behavior. It's billing libraries support may extend with updates, and it's functionality is not guaranteed. Credits : Credits to Nai64Patches from Nai64 for original IAP patch core functionality, and credits to MiguelNinja19's billing patches, as it was used to enhance original IAP patch with Cocos2D and GameMaker and Native ILL2CPP Hex Patch. Enhancement : UniPatches enhances this patch by improving compatibility, stability, and adding Automatic Mode (enabled by default) with optional per-backend Patch Coverage controls. UniPatches also adds an optional overlay addon for use with Universal Overlay Patch. Compatibility: the overlay addon requires Universal Overlay in the same patch operation. If using Control Embedded Auth / Stores, keep its licensing and Google Play Services controls separate from this patch's purchase emulation controls. If using Custom App Display, avoid applying broad Activity changes to third-party billing or sign-in screens unless required.``` | ```Universal``` | ```All versions``` |
 | ```PairIP Bypass Patch (Experimental, Enhanced)``` | ```A merged experimental PairIP bypass for common legacy, V2, and V3 protection layouts. Automatic mode applies compatible strategies up to the selected risk level. It defaults to Low and Med Risk Strategies; that setting includes medium-risk strategies, while Low, Med, and High Risk Strategies also includes invasive high-risk strategies. Turn off automatic mode to test individual strategies. Manual selections are independent of the automatic risk-level setting. Firebase auto-init disabling, Firebase component removal, and the LicenseClient FULL_CHECK_OK state strategy are manual-only: automatic mode ignores them at every risk level, including “Low, Med, and High Risk Strategies.” Every manual strategy is disabled by default. This patch is experimental and app-dependent. It does not bypass server-side Play Integrity, server-side licensing, or other server-side enforcement. Compatibility: cloned APKs can still fail when PairIP or a server binds entitlement to the original package or signing certificate. Firebase component removal can break Firebase Auth, Google Play Games, billing, analytics, and ad rewards. Device spoofing can also change apps' device-integrity behavior. These identity and server-side conditions cannot be fixed safely by combining PairIP Bypass with Custom App Output, Control App Ads, or Emulator Detection. Compatibility: when combining this patch with Universal Overlay, the shared overlay startup bridge is preserved. PairIP Application redirect and Application.onCreate bypass strategies may be skipped if they would make that bridge unreachable. If combining this patch with Custom App Output, apply package cloning only when package- or certificate-bound services are not required. This enhanced patch is a merged product of the PairIP bypass patches from the credited developers, with improvements for broader functionality, safer strategy selection, and usability. Credits: Nai64Patches from Nai64, Entree, kondratjev, and rushiranpise (Doom).``` | ```Universal``` | ```All versions``` |
-| ```UniPatches Universal Overlay Patch v2.6.0 (Experimental)``` | ```A customizable in-app overlay for Android apps and games. For a quick first build: choose a visual preset, select the overlay modules you want, optionally supply an icon image, then patch. Modules are excluded and disabled by default. Monitor modules show information, Activity modules control the current Activity, Hook modules make best-effort changes to app behavior, System modules control Android capabilities, and Advanced modules provide opt-in diagnostics. Text is the default legacy icon; an optional image replaces it completely, while the advanced Multi-parts editor supports custom drawn icons, and can be conveniently made in Icon Builder local website in UniPatches repo. UI presets can save and reuse supported appearance and advanced icon settings. The title, description, repository button text, and repository button URL remain controlled by the visible Morphe settings. Module selections and module behavior are excluded because hook and module combinations can be app-specific. Experimental : This patch may not work on all apps. Compatibility: this patch owns one shared startup bridge for its runtime and integrated modules. PairIP Bypass preserves that bridge when its Application startup strategies run after Universal Overlay. If a patched APK still has an unusual entry point, use the explicit Activity override rather than selecting a library or SDK Activity. Custom App Display, Control App Ads, and InApp Emulation attach to this bridge when their runtime addons are enabled; they should not create a second overlay runtime. InApp Emulation has an optional overlay addon that adds an InApp Emulation module to this menu. The module can show a themed confirmation popup before emulated purchases, let you save product identifiers to skip later popups during the current app session, and manage those saved products from its Settings button. To enable it, select InApp Emulation Patch, enable its Enable Overlay Module setting, enable Universal Overlay in the same patch operation, and keep Initially enable popups before buying products enabled if popups should start enabled. The addon does not control catalog discovery, receipt verification, legacy inventory behavior, or native IL2CPP patching. Control App Ads can also add runtime ad-control modules here, but Universal Overlay does not patch ad SDKs by itself. To use them, select Control App Ads Patch and Universal Overlay, enable the desired options under Control App Ads' Overlay integration > Runtime controls. The Ads runtime policy is enabled automatically when at least one of those modules is selected. The available modules are Block Ads, Ads Free Rewards, and Block Ads / Tracking Hosts. Their initial runtime values come from the Control App Ads settings, and later changes are session-only. When both patches are selected, Control App Ads attaches its policy to this overlay's exact startup bridge, including an explicit Activity override, instead of selecting a separate Activity. Attribution: The idea and initial works of Universal Overlay Patch are from Zanuaimi / Noobite.``` | ```Universal``` | ```All versions``` |
+| ```UniPatches Universal Overlay Patch v2.6.0 (Experimental)``` | ```A customizable in-app overlay for Android apps and games. For a quick first build: choose a visual preset, select the overlay modules you want, optionally supply an icon image, then patch. Modules are excluded and disabled by default. Monitor modules show information, Activity modules control the current Activity, Hook modules make best-effort changes to app behavior, System modules control Android capabilities, and Advanced modules provide opt-in diagnostics. Text is the default legacy icon; an optional image replaces it completely, while the advanced Multi-parts editor supports custom drawn icons, and can be conveniently made in Icon Builder local website in UniPatches repo. UI presets can save and reuse supported appearance and advanced icon settings. The title, description, repository button text, and repository button URL remain controlled by the visible Morphe settings. Module selections and module behavior are excluded because hook and module combinations can be app-specific. Experimental : This patch may not work on all apps. Compatibility: this patch owns one shared startup bridge for its runtime and integrated modules. PairIP Bypass preserves that bridge when its Application startup strategies run after Universal Overlay. If a patched APK still has an unusual entry point, use the explicit Activity override rather than selecting a library or SDK Activity. Custom App Display and Control App Ads attach to this bridge when their runtime addons are enabled; they should not create a second overlay runtime. Control App Ads can also add runtime ad-control modules here, but Universal Overlay does not patch ad SDKs by itself. To use them, select Control App Ads Patch and Universal Overlay, enable the desired options under Control App Ads' Overlay integration > Runtime controls. The Ads runtime policy is enabled automatically when at least one of those modules is selected. The available modules are Block Ads, Ads Free Rewards, and Block Ads / Tracking Hosts. Their initial runtime values come from the Control App Ads settings, and later changes are session-only. When both patches are selected, Control App Ads attaches its policy to this overlay's exact startup bridge, including an explicit Activity override, instead of selecting a separate Activity. Attribution: The idea and initial works of Universal Overlay Patch are from Zanuaimi / Noobite.``` | ```Universal``` | ```All versions``` |
 
 </details>
 
@@ -8153,100 +7733,101 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Hushfeed Bundle Patch List:
 [📦 Hushfeed-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-hushfeed-patches-bundle-morphe)
 <details>
-<summary><b>Hushfeed</b> - 90 patches, 1 app</summary>
+<summary><b>Hushfeed</b> - 91 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Advanced downloads``` | ```Adds download quality choices, saves Photo Mode images directly from their source URLs, keeps a video's sound as its own audio file, and saves a profile picture or a story from a long press.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Allow Duet and Stitch``` | ```Ignores the creator's Duet and Stitch setting so the entries appear for videos that closed them. Everything else the app checks still applies: a photo post, a private video or one with music it may not reuse is still refused, and whether the upload is accepted is the server's decision, not the app's.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Allow screenshots and Circle to Search``` | ```Removes secure window flags and disables the Circle to Search block. Off by default; restart after changing.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Always show publish date``` | ```Always shows the publish date in video author information.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Advanced downloads``` | ```Adds download quality choices, saves Photo Mode images directly from their source URLs, keeps a video's sound as its own audio file, and saves a profile picture or a story from a long press. Switch: Hushfeed settings > Downloads.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Allow Duet and Stitch``` | ```Ignores the creator's Duet and Stitch setting so the entries appear for videos that closed them. Everything else the app checks still applies: a photo post, a private video or one with music it may not reuse is still refused, and whether the upload is accepted is the server's decision, not the app's. Switch: Hushfeed settings > App.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Allow screenshots and Circle to Search``` | ```Removes secure window flags and disables the Circle to Search block. Off by default; restart after changing. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Always show publish date``` | ```Always shows the publish date in video author information. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```AMOLED dark theme``` | ```Replaces TikTok's dark background palette with black or a chosen color. The light theme keeps its colors. It is the one patch that rewrites resources, so patching with it on needs the memory limit raised to 768 MB.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Automatic video advance``` | ```Keeps TikTok's automatic advance enabled while preserving its pause, dialog and gesture checks, and shows TikTok's own Auto scroll action in the video panel for accounts outside its rollout.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Block author button``` | ```Adds one-tap controls for blocking the creator, hiding them locally and blocking the current sound. The local-hide and sound controls have separate switches. Long press any visible control to move it, and all of them hide while comments are open.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Automatic video advance``` | ```Keeps TikTok's automatic advance enabled while preserving its pause, dialog and gesture checks, and shows TikTok's own Auto scroll action in the video panel for accounts outside its rollout. Switch: Hushfeed settings > Playback.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Block author button``` | ```Adds one-tap controls for blocking the creator, hiding them locally and blocking the current sound. The local-hide and sound controls have separate switches. Long press any visible control to move it, and all of them hide while comments are open. Switch: Hushfeed settings > Feed filter.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Block contact list access``` | ```Answers TikTok's reads of your phone contacts with an empty list. Find Friends and People you may know lose access to your contact list. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Block installed app scanning``` | ```Answers TikTok's scan of the apps installed on your phone with an empty list. Checks for one named app, which TikTok also uses to open an app you tap, are left alone. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Block P2P video relay``` | ```Strips TikTok's peer-to-peer CDN libraries so your phone is not used as a relay node for other people's video traffic. Saves battery and mobile data.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Camera and microphone indicator``` | ```Shows a small dot in the top corner while TikTok has the camera open or is recording sound. Green for the camera, orange for the microphone, both when both. It goes when the access ends. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Comment publish diagnostics``` | ```Says in the diagnostic report whether a comment send reached TikTok's publish code, what it had in hand, and whether it returned early or handed the comment to the request. A comment that never posts leaves no other trace.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Comment sort controls``` | ```Shows TikTok's own comment sort sheet on every post, with its hot, newest, media and creator options, instead of the cut-down row an account outside the rollout is given.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Comment tools``` | ```Hides comments that contain chosen words or come from chosen accounts, turns the thumbs down on each comment into a block button that shows the block symbol, makes a web address in a comment tappable, hides comment media and polls, and adds a box above the comments that narrows them by what they say or who said it.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Confirm feed interactions``` | ```Adds optional second-tap protection to the feed Follow button and like heart. A red ring marks the armed button.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Copy comments without username``` | ```Copies only the comment text without including the creator's username.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Custom offline videos limit``` | ```Adds a custom entry to TikTok's offline videos menu with a configurable limit from 1 to 1000 videos.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Comment sort controls``` | ```Shows TikTok's own comment sort sheet on every post, with its hot, newest, media and creator options, instead of the cut-down row an account outside the rollout is given. Switch: Hushfeed settings > Comments.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Comment tools``` | ```Hides comments that contain chosen words or come from chosen accounts, turns the thumbs down on each comment into a block button that shows the block symbol, makes a web address in a comment tappable, hides comment media and polls, and adds a box above the comments that narrows them by what they say or who said it. Switch: Hushfeed settings > Comments.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Confirm feed interactions``` | ```Adds optional second-tap protection to the feed Follow button and like heart. A red ring marks the armed button. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Copy comments without username``` | ```Copies only the comment text without including the creator's username. Switch: Hushfeed settings > Comments.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Custom offline videos limit``` | ```Adds a custom entry to TikTok's offline videos menu with a configurable limit from 1 to 1000 videos. Switch: Hushfeed settings > Downloads.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Device privacy guard``` | ```Blocks TikTok from reading your clipboard. Copying a link you asked for still works. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Diagnostic tools``` | ```Adds diagnostic logging, filtered reports and local TikTok crash capture. The switches are under Diagnostics in Hushfeed settings.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Diagnostic tools``` | ```Adds diagnostic logging, filtered reports and local TikTok crash capture. The switches are under Diagnostics in Hushfeed settings. Switch: Hushfeed settings > Diagnostics.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Disable login requirement``` | ```Removes TikTok's mandatory login gate from supported flows.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Disable screen capture detection``` | ```Prevents TikTok from reacting to screenshots and screen recordings.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Disable telemetry``` | ```Adds a switch on the Privacy page that stops ByteDance AppLog analytics, AppsFlyer attribution, explicit Firebase screen reports and TikTok's Npth or MonitorCrash startup reporting. TikTok's own diagnostics go quiet with them. Off by default.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Disable the long press quick share``` | ```Keeps long-pressing Share from opening TikTok's quick-share interaction.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Disable the long press repost``` | ```Keeps holding Like from opening TikTok's repost action.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Double-tap controls``` | ```Lets double taps do nothing or open the current video's comments.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Downloads``` | ```Adds watermark-free downloads, comment sticker saving, configurable folders, and filename templates. It ignores the flag TikTok sets when a creator turns downloading off, so those videos save too. Network fetches accept public HTTPS addresses and follow at most five checked redirects.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Disable telemetry``` | ```Adds a switch on the Privacy page that stops ByteDance AppLog analytics, AppsFlyer attribution, explicit Firebase screen reports and TikTok's Npth or MonitorCrash startup reporting. TikTok's own diagnostics go quiet with them. Off by default. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Disable the long press quick share``` | ```Keeps long-pressing Share from opening TikTok's quick-share interaction. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Disable the long press repost``` | ```Keeps holding Like from opening TikTok's repost action. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Double-tap controls``` | ```Lets double taps do nothing or open the current video's comments. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Downloads``` | ```Adds watermark-free downloads, comment sticker saving, configurable folders, and filename templates. It ignores the flag TikTok sets when a creator turns downloading off, so those videos save too. Network fetches accept public HTTPS addresses and follow at most five checked redirects. Switch: Hushfeed settings > Downloads.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Drop the animated image cache``` | ```Makes TikTok's reviewed Fresco animated-frame cache lookups return no cached frame. This can increase decoding work or change animation playback.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Enable voice comments``` | ```Turns on TikTok's own voice comment recording and publishing entry points for accounts that do not have them.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Expand activity list``` | ```Adds an option to show the full Activity and New followers lists instead of collapsing them behind a View all button.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Expand activity list``` | ```Show the full Activity and New followers lists instead of collapsing them behind a View all button. Switch: Hushfeed settings > Inbox.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Feature Gate Lab``` | ```Adds a menu for viewing and overriding supported TikTok feature flags and configuration values.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Feature Gate Recorder``` | ```Records feature gate reads while you use TikTok and compares them with their previous values.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Feed filter``` | ```Hides feed ads, including videos with creator commission disclosures, TikTok Shop items, livestreams, LIVE replays, stories, photo posts, paid partnerships, AI labeled videos, verified accounts, series, playlists, the playlist bar, the floating event badge and inserted cards. Videos can also be filtered by your own caption words, creator handles or patterns, sound names, length, the country they were posted from and their view, like, comment, favorite and share counts. Sponsored cards are dropped from the profile video viewer, the search grids and the Friends tab as well as the feed, and so are the mid-roll ads TikTok splices into a video pager after the list has loaded. The share prompt that appears after a like can also be hidden.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Feed tab navigation``` | ```Controls which loaded top and bottom navigation tabs remain visible, blocks newly added tabs when requested, and can hide the Tako AI bubble.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Fit the video to the screen``` | ```Puts the whole of a vertical video on screen instead of cropping it to the window. On a 9:16 phone nothing changes, because the video already fills it. On a Fold opened up, a squarer phone or a split view the sides or the ends stop being cut off.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Feature Gate Recorder``` | ```Records feature gate reads while you use TikTok and compares them with their previous values. Switch: Hushfeed settings > Diagnostics.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Feed filter``` | ```Hides feed ads, including videos with creator commission disclosures, TikTok Shop items, livestreams, LIVE replays, stories, photo posts, paid partnerships, AI labeled videos, verified accounts, series, playlists, the playlist bar, the floating event badge and inserted cards. Videos can also be filtered by your own caption words, creator handles or patterns, sound names, length, the country they were posted from and their view, like, comment, favorite and share counts. Sponsored cards are dropped from the profile video viewer, the search grids and the Friends tab as well as the feed, and so are the mid-roll ads TikTok splices into a video pager after the list has loaded and the ads a creator's video pager asks for on its own. The share prompt that appears after a like can also be hidden. Switch: Hushfeed settings > Feed filter.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Feed tab navigation``` | ```Controls which loaded top and bottom navigation tabs remain visible, blocks newly added tabs when requested, and can hide the Tako AI bubble. Switch: Hushfeed settings > Feed tabs.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Fit the video to the screen``` | ```Puts the whole of a vertical video on screen instead of cropping it to the window. On a 9:16 phone nothing changes, because the video already fills it. On a Fold opened up, a squarer phone or a split view the sides or the ends stop being cut off. Switch: Hushfeed settings > Playback.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Fix Google login``` | ```Restores Google account sign-in after patching.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Foldable split comment view``` | ```Shows comments beside the video on windows wider than a configurable threshold. Off by default.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Foldable split comment view``` | ```Shows comments beside the video on windows wider than a configurable threshold. Off by default. Switch: Hushfeed settings > App.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Follow diagnostics``` | ```Reads what the server said about a follow. A follow TikTok turns down comes back looking like a success, so this reports the refusal and its reason once per session and, with diagnostic logging on, writes the whole exchange to the report.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Ghost mode``` | ```Adds an option to stop TikTok reporting that you viewed a story or a profile or that you are typing. Online status is unchanged.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Hide already seen videos``` | ```Keeps a local record of the videos you have watched and drops them from later feed pages. The record never leaves the device and can be cleared from settings.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Hide CAPTCHA popups``` | ```Adds a default-off setting to hide browsing and LIVE puzzle dialogs. Login and account verification stay visible, and so does any puzzle the server raised over a follow, like, comment or repost, because hiding one of those makes the action fail with no message.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Hide comment popup ads``` | ```Stops the brand animation that plays over the comment sheet when a comment matches an advertiser's trigger word or emoji.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Hide feed follow button``` | ```Adds an option to hide the + follow button below creator avatars in video feeds.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Hide feed LIVE button``` | ```Adds an option to hide the LIVE button at the top left of video feeds. Shares its switch with the Live entrance option of Hide video overlays, and stops the button before it is built rather than hiding it once it is on screen.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Hide feed save button``` | ```Adds an option to hide the save button from video feeds.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Hide feed search button``` | ```Adds an option to hide the search button at the top right of video feeds.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Hide floating promotions``` | ```Removes floating promotional badges, coin icons, and timer banners from the Home feed.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Hide inbox items``` | ```Adds a switch for each row and header control on the Inbox tab, so message requests, TikTok Tako, TikTok Shop, the stories tray and the rest can be hidden individually.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Hide inbox stories``` | ```Hides the stories tray at the top of the Inbox and restores it immediately when the switch is turned off. Shares its switch with Hide inbox items.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Hide quick comment reactions``` | ```Hides the emoji row above the comment box and the quick comment strip on videos.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Hide search suggestions``` | ```Hides the suggested searches TikTok offers on the search page before you type, and stops the page asking for them. Your own search history is left alone.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Hide suggested accounts``` | ```Stops the suggested accounts list from being built on the Activity, New followers and Inbox pages, and collapses every other People you may like card: the profile header, the Friends tab and the feed. Shares its switch with Hide inbox items.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Hide the launcher shortcuts``` | ```Empties the menu that opens on pressing and holding TikTok's icon on the home screen. The entries are built while the app runs rather than declared in it, and TikTok only rewrites them when it notices a difference, so this takes away what is already published and answers the handover that would publish more. Turning it off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut pinned to a home screen is left alone.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Ghost mode``` | ```Stop TikTok reporting that you viewed a story or a profile or that you are typing. Online status is unchanged. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Hide already seen videos``` | ```Keeps a local record of the videos you have watched and drops them from later feed pages. The record never leaves the device and can be cleared from settings. Switch: Hushfeed settings > Feed filter.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Hide CAPTCHA popups``` | ```Adds a default-off setting to hide browsing and LIVE puzzle dialogs. Login and account verification stay visible, and so does any puzzle the server raised over a follow, like, comment or repost, because hiding one of those makes the action fail with no message. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Hide comment popup ads``` | ```Stops the brand animation that plays over the comment sheet when a comment matches an advertiser's trigger word or emoji. Switch: Hushfeed settings > Comments.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Hide feed follow button``` | ```Hide the + follow button below creator avatars in video feeds. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Hide feed LIVE button``` | ```Hide the LIVE button at the top left of video feeds. Shares its switch with the LIVE entrance option of Hide video overlays, and stops the button before it is built rather than hiding it once it is on screen. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Hide feed save button``` | ```Hide the save button from video feeds. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Hide feed search button``` | ```Hide the search button at the top right of video feeds. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Hide floating promotions``` | ```Removes floating promotional badges, coin icons, and timer banners from the feed. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Hide inbox items``` | ```Adds a switch for each row and header control on the Inbox tab, so message requests, TikTok Tako, TikTok Shop, the stories tray and the rest can be hidden individually. Switch: Hushfeed settings > Inbox.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Hide inbox stories``` | ```Hides the stories tray at the top of the Inbox and restores it immediately when the switch is turned off. Shares its switch with Hide inbox items. Switch: Hushfeed settings > Inbox.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Hide quick comment reactions``` | ```Hides the emoji row above the comment box and the quick comment strip on videos. Switch: Hushfeed settings > Comments.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Hide search suggestions``` | ```Hides the suggested searches TikTok offers on the search page before you type, and stops the page asking for them. Your own search history is left alone. Switch: Hushfeed settings > App.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Hide suggested accounts``` | ```Stops the suggested accounts list from being built on the Activity, New followers and Inbox pages, and collapses every other People you may like card: the profile header, the Friends tab and the feed. Shares its switch with Hide inbox items. Switch: Hushfeed settings > Inbox.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Hide the launcher shortcuts``` | ```Empties the menu that opens on pressing and holding TikTok's icon on the home screen. The entries are built while the app runs rather than declared in it, and TikTok only rewrites them when it notices a difference, so this takes away what is already published and answers the handover that would publish more. Turning it off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut pinned to a home screen is left alone. Switch: Hushfeed settings > App.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Hide the risk control CAPTCHA``` | ```Hides TikTok's risk control CAPTCHA dialog, raised by its BdTuring service, which the browsing CAPTCHA patch does not cover. Answers the Hide CAPTCHA popups setting, never touches SMS or two factor verification, and never hides a check the server raised over a follow, like, comment or repost. Off by default.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Hide video overlays``` | ```Hides the visual search prompt TikTok lays over videos, the Live entrance in the top left corner, caption and music text, selected action buttons or their counts in the right column, survey cards and the status bar.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Hold-and-slide 2x lock``` | ```Enables TikTok's native hold, slide down, and release gesture to lock 2x speed.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Hide video overlays``` | ```Hides the visual search prompt TikTok lays over videos, the Live entrance in the top left corner, caption and music text, selected action buttons or their counts in the right column, survey cards and the status bar. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Hold-and-slide 2x lock``` | ```Enables TikTok's native hold, slide down, and release gesture to lock 2x speed. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```In-app browser privacy guard``` | ```Can stop TikTok's in-app browser handing its JavaScript bridge to the pages it loads. Most of TikTok's own web pages need that bridge, including the shop checkout and the CAPTCHA page, so the switch is off until you turn it on. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Keep the Favorites tab``` | ```Keeps the Favorites tab on your profile when TikTok's server puts the account into an experiment that empties it. Two people saw that after patching: the tab was there and the saved videos were not.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Keep the screen's refresh rate``` | ```Stops TikTok asking the screen to run slower than it can, which it does by asking for the frame rate of the video it is playing. On a 90 or 120 Hz phone that ask takes the whole app down to that rate, scrolling included. A request that is not slower than the screen is left alone.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Keep the Favorites tab``` | ```Keeps the Favorites tab on your profile when TikTok's server puts the account into an experiment that empties it. Two people saw that after patching: the tab was there and the saved videos were not. Switch: Hushfeed settings > App.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Keep the screen's refresh rate``` | ```Stops TikTok asking the screen to run slower than it can, which it does by asking for the frame rate of the video it is playing. On a 90 or 120 Hz phone that ask takes the whole app down to that rate, scrolling included. A request that is not slower than the screen is left alone. Switch: Hushfeed settings > App.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Limit background traffic``` | ```Turns off TikTok's buffer-preload gate and skips its push initialization task. Videos may start buffering later, and TikTok push notifications may stop.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Location access governor``` | ```Answers TikTok's location requests with nothing: the last known location comes back empty and update requests never fire. The SIM and region spoof change the locale and timezone, not the coordinates; this stops the coordinates. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Long-press controls``` | ```Lets a long press on a video keep TikTok's own action, do nothing, open the video's comments, save the original sound, or copy the link to the video or its sound, and can turn a press on the left or right third of the screen into a jump back or forward. Brings Double-tap controls with it, which supplies the comment control.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Not interested button``` | ```Adds a movable button that tells TikTok you aren't interested in the current video. It hides while comments are open. Off by default.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Notification controls``` | ```Adds a switch for the notification saying somebody new followed you, and one for message streaks, neither of which TikTok lets you turn off. The follower switch drops the notification before Android is asked to post it, so nothing else in the drawer is affected.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Open external links directly``` | ```Opens profile and story website links in the system browser instead of TikTok's in-app browser.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Playback quality``` | ```Selects the lowest, highest or a target video quality for playback, adaptive streams included. A second choice caps quality on mobile data and only ever lowers it. Download quality has its own setting.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Playback speed``` | ```Remembers playback speed or applies a default to each new video, with custom menu choices up to 3x.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Region spoof``` | ```Matches locale, timezone and native region getters to the SIM preset, with a separate experimental store-region switch.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Remember clear display``` | ```Remembers clear display between videos, or enters it automatically after a chosen delay.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Long-press controls``` | ```Lets a long press on a video keep TikTok's own action, do nothing, open the video's comments, save the original sound, or copy the link to the video or its sound, and can turn a press on the left or right third of the screen into a jump back or forward. Brings Double-tap controls with it, which supplies the comment control. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Not interested button``` | ```Adds a movable button that tells TikTok you aren't interested in the current video. It hides while comments are open. Off by default. Switch: Hushfeed settings > Feed filter.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Notification controls``` | ```Adds a switch for the notification saying somebody new followed you, and one for message streaks, neither of which TikTok lets you turn off. The follower switch drops the notification before Android is asked to post it, so nothing else in the drawer is affected. Switch: Hushfeed settings > Inbox.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Open external links directly``` | ```Opens profile and story website links in the system browser instead of TikTok's in-app browser. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Playback quality``` | ```Selects the lowest, highest or a target video quality for playback, adaptive streams included. A second choice caps quality on mobile data and only ever lowers it. Download quality has its own setting. Switch: Hushfeed settings > Playback.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Playback speed``` | ```Remembers playback speed or applies a default to each new video, with custom menu choices up to 3x. Switch: Hushfeed settings > Playback.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Region spoof``` | ```Matches locale, timezone and native region getters to the SIM preset, with a separate experimental store-region switch. Switch: Hushfeed settings > Region.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Remember clear display``` | ```Remembers clear display between videos, or enters it automatically after a chosen delay. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Remove content credential and card scanner assets``` | ```Empties TikTok's bundled C2PA and Microblink card-scanning assets, the Pitaya AI model libraries, the live-cast dynamic feature, and the ART log monitor probe.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Remove creation tools``` | ```Empties TikTok's reviewed editor, camera-effect and face-model assets. Recording, editing, effects and creator tools may stop working.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Remove creation tools``` | ```Empties TikTok's reviewed editor, camera-effect and face-model assets. The Create tab and all recording, editing and effects tools stop working. Switch: Hushfeed settings > App behavior.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Remove LIVE extras``` | ```Empties TikTok's link-mic and LIVE match or minigame assets, then skips its gift-effect widget setup. Co-hosting, games and animated gifts may stop.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Remove unused language packs``` | ```Empties unselected TikTok language bundles while always keeping English. Selected language codes are checked before any file changes.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Resource and battery governor``` | ```Stops TikTok listening to the motion sensors it polls for device fingerprinting: the accelerometer, gyroscope, magnetometer, rotation, gravity and linear acceleration sensors. Saves the battery they wake. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Resume videos after scrolling``` | ```Continues supported videos from where playback stopped when returning after a scroll.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Sanitize sharing links``` | ```Removes tracking parameters from TikTok links before they are shared, and can put a host of your choosing in place of tiktok.com.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Resume videos after scrolling``` | ```Continues supported videos from where playback stopped when returning after a scroll. Switch: Hushfeed settings > App.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Sanitize sharing links``` | ```Removes tracking parameters from TikTok links before they are shared, and can put a host of your choosing in place of tiktok.com. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Settings``` | ```Adds the Hushfeed settings screen to TikTok.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Share sheet tools``` | ```Asks twice before a video is sent to a friend from the share sheet. The check follows the account or conversation instead of the visible name and covers accessibility actions and keyboard input. It can also hide chosen people, share options or the whole Send to row.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Show author region``` | ```Adds an option to show the country a video was posted from next to the creator's name on the feed.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Show LIVE search``` | ```Shows TikTok's search entry in the Live drawer where supported.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Show the progress bar``` | ```Shows TikTok's native video seekbar where it would normally be hidden.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Share sheet tools``` | ```Asks twice before a video is sent to a friend from the share sheet. The check follows the account or conversation instead of the visible name and covers accessibility actions and keyboard input. It can also hide chosen people, share options or the whole Send to row, and a profile's or a LIVE's share sheet can hide a different set from a video's. Switch: Hushfeed settings > Share sheet.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Show author region``` | ```Show the country a video was posted from next to the creator's name on the feed. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Show LIVE search``` | ```Shows TikTok's search entry in the LIVE drawer where supported.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Show the progress bar``` | ```Shows TikTok's native video seekbar where it would normally be hidden. Switch: Hushfeed settings > App.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Show the progress bar thumbnail``` | ```Shows TikTok's video preview thumbnail while dragging the seekbar.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```SIM spoof``` | ```Spoofs SIM country and operator information retrieved by TikTok, with country presets for easier setup.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Skip content warnings``` | ```Adds an option to play videos TikTok has classified without the warning overlay asking to be tapped through first.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```SIM spoof``` | ```Spoofs SIM country and operator information retrieved by TikTok, with country presets for easier setup. Switch: Hushfeed settings > Region.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Skip content warnings``` | ```Play videos TikTok has classified without the warning overlay asking to be tapped through first. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Skip the splash ad``` | ```Stops TikTok's splash-ad preload tasks and returns false from its reviewed splash and TopView gates. Other startup behavior is left in place.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Skip update checks``` | ```Skips TikTok's background and boot-finished device-ID update-check tasks. This may suppress some in-app update checks. Play Store updates are unaffected.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Stop on-device AI profiling``` | ```Kills the Pitaya on-device ML inference engine at startup so it cannot build a behavioral profile. The AI asset strip in the core de-bloat patch removes the native libraries; this stops the initialization code that would download replacements.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Stop video looping``` | ```Stops videos at the end instead of replaying them.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Subtitle tools``` | ```Saves subtitle files beside downloaded videos and adds caption size, background, and clear-display options.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Translate comments``` | ```Adds comment translation controls using TikTok's translation system, with selectable language exclusions.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Use non-personalized search``` | ```Uses TikTok's non-personalized search mode instead of its saved account choice.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Stop video looping``` | ```Stops videos at the end instead of replaying them. Switch: Hushfeed settings > App.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Subtitle tools``` | ```Saves subtitle files beside downloaded videos and adds caption size, background, and clear-display options. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Translate comments``` | ```Adds comment translation controls using TikTok's translation system, with selectable language exclusions. Switch: Hushfeed settings > Comments.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Use non-personalized search``` | ```Uses TikTok's non-personalized search mode instead of its saved account choice. Switch: Hushfeed settings > App.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Use system font``` | ```Draws TikTok's text in your device's font instead of TikTok Sans. The icons, the gift animations and the @ and # glyphs keep their own fonts. Off by default; restart after changing. Switch: Hushfeed settings > App.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 
 </details>
 
@@ -8604,12 +8185,12 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Travian Bundle Patch List:
 [📦 Travian-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-travian-patches-bundle-morphe)
 <details>
-<summary><b>Travian</b> - 2 patches, 2 apps</summary>
+<summary><b>Travian</b> - 2 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Build/troop queue notifications``` | ```Notifies you when a building upgrade or troop training queue finishes, with the building/unit name, level, and village. The first time you open the app you'll be asked to log in once; your password is sent straight to Travian's own login endpoint and is never stored — only the resulting session is kept, encrypted on-device.``` | ```Travian: Legends``` | ```4.0.0, 4.0.1``` |
-| ```Travian notifier manifest entry``` | ```Adds the NotifierService and LoginActivity declarations.``` | ```Universal``` | ```All versions``` |
+| ```Build/troop queue notifications``` | ```Notifies you when a building upgrade or troop training queue finishes, with the building/unit name, level, and village, and warns you about incoming attacks and raids (who, from where, and when they arrive) with a second warning about a minute before they land, and tells you when reinforcements or your own returning troops arrive. Uses the session you're already logged in with in the game — no separate login, no password ever handled by this patch. Checks run quietly in the background: one is scheduled for just after each build/training is due to finish, plus a regular check every 5 minutes (Android may delay background work slightly). Nothing is shown unless something actually finished. The first time you open the app it asks once for notification permission and to exempt the app from battery optimization, so the background checks aren't killed by the system.``` | ```Travian: Legends``` | ```4.0.0, 4.0.1, 4.0.2``` |
+| ```Travian notifier manifest entry``` | ```Adds the permission needed to ask for a battery optimization exemption.``` | ```Travian: Legends``` | ```4.0.0, 4.0.1, 4.0.2``` |
 
 </details>
 
@@ -8755,13 +8336,13 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Account avatar``` | ```Loads and displays account profile avatars across the top toolbar, Bento menu, and account switcher.``` | ```com.google.android.apps.photos``` | ```All versions``` |
-| ```Bake memory style flags``` | ```Hard-codes the Styles in Memories feature flags into the DEX.``` | ```com.google.android.apps.photos``` | ```All versions``` |
-| ```Enable DCIM folders backup control``` | ```Disables always on backup for the Camera and other DCIM folders, allowing you to control backup for each folder individually. This will make the app default to having no folders backed up.``` | ```com.google.android.apps.photos``` | ```All versions``` |
-| ```Enable Phenotype flag manager``` | ```Enables an in-app flag manager in Photos Settings to customize experimental UI redesigns and feature flags.``` | ```com.google.android.apps.photos``` | ```All versions``` |
-| ```GmsCore support``` | ```Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services.``` | ```com.google.android.apps.photos``` | ```All versions``` |
-| ```Model Readiness Gates``` | ```Bypasses the 0MB Mobile Data Download check for AI models and reports them as loaded.``` | ```com.google.android.apps.photos``` | ```All versions``` |
-| ```Spoof features``` | ```Spoofs the device to enable Google Pixel exclusive features, including unlimited storage and modern UI.``` | ```com.google.android.apps.photos``` | ```All versions``` |
+| ```Account avatar``` | ```Loads and displays account profile avatars across the top toolbar, Bento menu, and account switcher.``` | ```Google Photos``` | ```7.92.0.977185651, 7.93.0.982110057``` |
+| ```Bake memory style flags``` | ```Hard-codes the Styles in Memories feature flags into the DEX.``` | ```Google Photos``` | ```7.92.0.977185651, 7.93.0.982110057``` |
+| ```Enable DCIM folders backup control``` | ```Disables always on backup for the Camera and other DCIM folders, allowing you to control backup for each folder individually. This will make the app default to having no folders backed up.``` | ```Google Photos``` | ```7.92.0.977185651, 7.93.0.982110057``` |
+| ```Enable Phenotype flag manager``` | ```Enables an in-app flag manager in Photos Settings to customize experimental UI redesigns and feature flags.``` | ```Google Photos``` | ```7.92.0.977185651, 7.93.0.982110057``` |
+| ```GmsCore support``` | ```Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services.``` | ```Google Photos``` | ```7.92.0.977185651, 7.93.0.982110057``` |
+| ```Model Readiness Gates``` | ```Bypasses the 0MB Mobile Data Download check for AI models and reports them as loaded.``` | ```Google Photos``` | ```7.92.0.977185651, 7.93.0.982110057``` |
+| ```Spoof features``` | ```Spoofs the device to enable Google Pixel exclusive features, including unlimited storage.``` | ```Google Photos``` | ```7.92.0.977185651, 7.93.0.982110057``` |
 
 </details>
 
@@ -8783,11 +8364,12 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 D-moniak Bundle Patch List:
 [📦 D-moniak-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-d-moniak-patches-bundle-morphe)
 <details>
-<summary><b>D-moniak</b> - 1 patch, 1 app</summary>
+<summary><b>D-moniak</b> - 2 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Bypass Rewarded Ads``` | ```Bypasses rewarded video ads in Hungry Shark World by emulating ad completion events.``` | ```Hungry Shark World``` | ```All versions``` |
+| ```Free Shopping``` | ```Unlocks shop items and in-app purchases in Hungry Shark World by intercepting Google Play Billing transactions for free.``` | ```Hungry Shark World``` | ```All versions``` |
 
 </details>
 
@@ -8795,11 +8377,13 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Spicetify Bundle Patch List:
 [📦 Spicetify-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-spicetify-patches-bundle-morphe)
 <details>
-<summary><b>Spicetify</b> - 2 patches, 1 app</summary>
+<summary><b>Spicetify</b> - 4 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Clean sharing links``` | ```Removes sharing identifiers and marketing parameters from open.spotify.com links. Keeps playback timestamps, context, and other parameters.``` | ```Spotify``` | ```9.1.80.2221``` |
+| ```Local files from a server``` | ```Streams audio from an HTTPS WebDAV folder into Local Files. Configure the server in Spicetify settings. Experimental; requires byte-range support.``` | ```Spotify``` | ```9.1.80.2221``` |
+| ```Pin shortcuts on Home``` | ```Choose which of Spotify's Home shortcuts appear first in Spicetify settings. Pins are saved on this device. Restart Spotify after changing pins.``` | ```Spotify``` | ```9.1.80.2221``` |
 | ```Theme colors``` | ```Changes selected background and accent color resources; defaults to AMOLED black. Some screens, hardcoded colors, and animations retain Spotify's colors.``` | ```Spotify``` | ```9.1.80.2221``` |
 
 </details>

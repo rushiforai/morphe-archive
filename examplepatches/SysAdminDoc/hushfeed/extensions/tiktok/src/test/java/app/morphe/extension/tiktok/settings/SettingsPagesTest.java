@@ -749,7 +749,7 @@ public class SettingsPagesTest {
             input.setText("kein Treffer");
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             assertNotNull(findPreference(page.getPreferenceScreen(), "Keine passenden Einstellungen"));
-            TextView clear = page.getView().findViewWithTag("settings_search_clear");
+            View clear = page.getView().findViewWithTag("settings_search_clear");
             assertNotNull(clear);
             assertTrue(clear.performClick());
             Shadows.shadowOf(Looper.getMainLooper()).idle();
@@ -836,7 +836,7 @@ public class SettingsPagesTest {
             EditText add = dialog.getWindow().getDecorView().findViewWithTag("creator_list_add");
             assertNotNull(add);
             add.setText("gamma");
-            TextView addButton = findTextViewContaining(dialog.getWindow().getDecorView(), "Add");
+            View addButton = dialog.getWindow().getDecorView().findViewWithTag("creator_list_add_button");
             assertNotNull(addButton);
             assertTrue(addButton.performClick());
             dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE).performClick();

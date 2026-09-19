@@ -397,6 +397,85 @@ function Test-ChangelogVersions {
     return [pscustomobject]@{ Valid = $true; Reason = 'ok' }
 }
 
+function Test-ChangelogManagerEntry {
+    <#
+    .SYNOPSIS
+        Whether Morphe Manager can show the entry for the version being released.
+    .DESCRIPTION
+        Manager fetches this file from main and reads it with its own parser (ChangelogParser,
+        Manager 1.30.0). A heading only counts when it ends in a date, "## 0.41.0 (2026-09-18)",
+        and an app only gets its update badge when a bullet is scoped to it, "* **TikTok:** ...".
+        Scoped lines are kept one line at a time, so a bullet wrapped onto a second line loses
+        the rest. Every heading from 0.23.0 to 0.40.0 was bare, Manager's list stopped at 0.22.0
+        and every update showed nothing, and no gate noticed, because Test-ChangelogVersions
+        reads its own heading pattern, which the bare headings matched.
+
+        Only the section being released is held to this. Older sections are frozen as shipped.
+        Answers @{ Valid; Reason; Date; Bullets }.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$Current,
+        [Parameter(Mandatory = $true)][string]$ExpectedVersion,
+        [string]$App = 'TikTok'
+    )
+
+    function Fail { param([string]$Reason) return [pscustomobject]@{ Valid = $false; Reason = $Reason; Date = $null; Bullets = 0 } }
+
+    # Manager's VERSION_HEADING and BULLET_SCOPE_RE, as its source spells them.
+    $managerHeading = '^#{1,3}\s+(?:\S+\s+)?(?:\[([^\]]+)\]\([^)]*\)|([^\s\[(]+))\s+\((\d{4}-\d{2}-\d{2})\)'
+    $managerScope = '^\* \*\*(.+?):\*\*'
+
+    $lines = @($Current -split '\r?\n')
+    $start = -1
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        $version = [regex]::Match($lines[$i], '^##\s+\[?v?(\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?)')
+        if ($version.Success -and $version.Groups[1].Value -eq $ExpectedVersion) { $start = $i; break }
+    }
+    if ($start -lt 0) { return Fail "The CHANGELOG has no heading for $ExpectedVersion." }
+
+    $heading = [regex]::Match($lines[$start], $managerHeading)
+    if (-not $heading.Success) {
+        return Fail ("The $ExpectedVersion heading has no date, so Morphe Manager skips the whole " +
+            "entry. Write it as ""## $ExpectedVersion (YYYY-MM-DD)"".")
+    }
+    $named = if ($heading.Groups[1].Success) { $heading.Groups[1].Value } else { $heading.Groups[2].Value }
+    if ($named.TrimStart('v') -ne $ExpectedVersion) {
+        return Fail ("Morphe Manager reads the $ExpectedVersion heading as version $named.")
+    }
+
+    $bullets = 0
+    $previousWasBullet = $false
+    for ($i = $start + 1; $i -lt $lines.Count; $i++) {
+        $line = $lines[$i]
+        # The next level-one or level-two heading ends the section. "### Settings" inside it
+        # groups bullets and is read by Manager as an ordinary line.
+        if ($line -match '^#{1,2}(?!#)\s') { break }
+        if ($line -match '^\s*[*+-]\s') {
+            $scope = [regex]::Match($line, $managerScope)
+            if (-not $scope.Success -or -not ($scope.Groups[1].Value -eq $App -or
+                    $scope.Groups[1].Value.StartsWith("$App - "))) {
+                return Fail ("Line $($i + 1) is a $ExpectedVersion bullet Morphe Manager does not " +
+                    "scope to $App, so it is not counted as a $App change. Start it with " +
+                    """* **${App}:** "": $line")
+            }
+            $bullets++
+            $previousWasBullet = $true
+            continue
+        }
+        if ($previousWasBullet -and -not [string]::IsNullOrWhiteSpace($line) -and $line -notmatch '^#') {
+            return Fail ("Line $($i + 1) continues the bullet above it, and Morphe Manager keeps " +
+                "scoped lines one at a time, so it would drop this text. Join it onto one line: $line")
+        }
+        $previousWasBullet = $false
+    }
+    if ($bullets -eq 0) {
+        return Fail ("The $ExpectedVersion entry has no ""* **${App}:** "" bullet, so Morphe " +
+            "Manager shows no update for $App.")
+    }
+
+    return [pscustomobject]@{ Valid = $true; Reason = 'ok'; Date = $heading.Groups[3].Value; Bullets = $bullets }
+}
+
 function Invoke-RepoGit {
     <#
     .SYNOPSIS

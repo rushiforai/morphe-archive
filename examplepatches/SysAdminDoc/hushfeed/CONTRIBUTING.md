@@ -2,6 +2,8 @@
 
 Feature ideas, bug reports, and pull requests are welcome.
 
+Not sure it's a bug, or just have a question? Start in [Discussions](https://github.com/SysAdminDoc/hushfeed/discussions). If it turns out to be a bug, it moves to an issue from there.
+
 If you open an issue, include:
 
 - the TikTok package name and version

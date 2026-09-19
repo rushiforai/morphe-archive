@@ -10,9 +10,17 @@ private const val EXTENSION_CLASS = "Lcom/travianpatch/notifier/NotifierBootstra
 val travianNotifierPatch = bytecodePatch(
     name = "Build/troop queue notifications",
     description = "Notifies you when a building upgrade or troop training queue finishes, with " +
-        "the building/unit name, level, and village. The first time you open the app you'll be " +
-        "asked to log in once; your password is sent straight to Travian's own login endpoint " +
-        "and is never stored — only the resulting session is kept, encrypted on-device.",
+        "the building/unit name, level, and village, and warns you about incoming attacks and " +
+        "raids (who, from where, and when they arrive) with a second warning about a minute " +
+        "before they land, and tells you when reinforcements or your own returning troops " +
+        "arrive. Uses the session you're already logged in " +
+        "with in the game — no separate login, no password ever handled by this patch. Checks " +
+        "run quietly in the background: one is scheduled for just after each build/training is " +
+        "due to finish, plus a regular check every 5 minutes (Android may delay background " +
+        "work slightly). Nothing is shown unless something actually finished. The first time " +
+        "you open the app it asks once for " +
+        "notification permission and to exempt the app from battery optimization, so the " +
+        "background checks aren't killed by the system.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_TRAVIAN_LEGENDS)

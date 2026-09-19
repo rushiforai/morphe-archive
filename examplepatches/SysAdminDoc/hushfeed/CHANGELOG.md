@@ -1,4 +1,147 @@
-## 0.40.0
+# Changelog
+
+Every Hushfeed release, newest first.
+
+## 0.45.0 (2026-09-18)
+
+TikTok 46.2.3 from APKMirror's bundle download, an .apkm file, now patches cleanly (#9).
+
+### Fixes
+
+* **TikTok:** The four optional cleanup patches now accept APKMirror's 46.2.3 bundle. They refused it before, because a merged bundle carries fewer files and only 25 of the 64 language packs. Every file they empty is still checked byte for byte first.
+* **TikTok:** AMOLED dark theme now refuses an APK merged from a bundle instead of building one that crashes at launch, because rebuilding a merged bundle's resources loses about 1,400 of them. Use the plain APK from APKMirror if you want the dark theme.
+
+## 0.44.0 (2026-09-18)
+
+Separate share lists for profiles and LIVEs, and two fixes from a patching report (#9).
+
+### Share sheet
+
+* **TikTok:** A profile's share sheet and a LIVE's share sheet can now hide a different set of actions from a video's. Each has its own checklist under Hushfeed settings > Share sheet, and until you save one it hides whatever your video list hides, so nothing you set up before changes.
+
+### Fixes
+
+* **TikTok:** Downloads no longer fails to patch on TikTok builds where the download step's code is larger than usual. A reporter's 46.8.3 lost Downloads to this.
+* **TikTok:** When one of the four optional cleanup patches meets a TikTok APK it hasn't checked, its error now says nothing was removed and what to do next: untick it, or patch the full APK from APKMirror. A split bundle (an .apkm file) can cause this.
+
+## 0.43.1 (2026-09-18)
+
+A packaging fix. No patch changed.
+
+### Fixes
+
+* **TikTok:** The 0.43.0 bundle was published without its patch code, so Morphe Manager showed zero patches for the source and could not build anything. This rebuilds it correctly, with all 91 patches. If you updated to 0.43.0 and saw no patches, update the source again.
+
+## 0.43.0 (2026-09-18)
+
+One new patch, from a feature request.
+
+### App
+
+* **TikTok:** A new Use system font switch draws TikTok's text in your device's own font instead of TikTok Sans. The icons, the gift animations and the @ and # glyphs keep their own fonts. It is off by default and needs a restart. Switch: Hushfeed settings > App.
+
+## 0.42.0 (2026-09-18)
+
+Two ad and Tako surfaces that slipped past the feed filter, both reported on 0.40.0 and traced to routes the earlier hooks never saw.
+
+### Feed filter
+
+* **TikTok:** Ads no longer appear while you scroll a creator's videos from their profile. The profile's own video pager was asking a separate ad endpoint and splicing the answer between the creator's videos, so those ads were in none of the lists the filter already cleaned. That request is refused now while Remove feed ads is on.
+* **TikTok:** The "Ask" bar that sat under some videos is gone with Hide Tako AI on. It looked like a Tako feature but was one of TikTok's bottom banners, so Hide Tako AI now covers it along with the floating bubble, and its switch says so.
+
+## 0.41.0 (2026-09-18)
+
+A polish release. No patches were added or removed. Most of it makes the settings screen and the Feature Gate Lab read as one app, with a round of accessibility fixes and a changelog Morphe Manager can finally read.
+
+### Morphe Manager
+
+* **TikTok:** Every patch description now says where its switches live, for example "Switch: Hushfeed settings > Feed filter.", so choosing a patch in Manager tells you which page to open afterwards. Eight descriptions that opened with "Adds an option to" now start with what the patch does.
+
+* **TikTok:** Manager's update screen can show what changed. It only reads changelog headings that carry a date, and every release since 0.23.0 had none, so updating Hushfeed showed an empty list. Every heading here has its date now, and each entry names TikTok so Manager can tell the update touches it.
+
+### Settings search
+
+* **TikTok:** Search keeps what you typed when the phone rotates or the text size changes, and the keyboard no longer covers the last results or the empty-state message.
+
+* **TikTok:** Tapping a search result scrolls to it with a little of the page still showing above it, and the row flashes briefly so you can see where you landed. With TalkBack on, focus lands on that row too.
+
+* **TikTok:** The clear button is a drawn cross at the same stroke weight as the back arrow, with a ripple when you press it. It used to be a typed × character that grew with the text size. The query and the result count now share one left edge.
+
+### Settings pages
+
+* **TikTok:** A setting set to zero says what zero means. Caption text size reads "TikTok's size" instead of "0 points", and Clear display delay reads "No delay".
+
+* **TikTok:** Opening a page slides it in from the side you're moving toward, and Back slides it out the way it came, instead of the same fade both ways. Right-to-left languages mirror the motion, and with animations turned off in Android's settings, pages switch instantly.
+
+* **TikTok:** Page titles break between words at large text sizes instead of mid-word, so German no longer shows "Kommen-tare". Menu summaries are 14sp like every other summary, not 12.8sp.
+
+* **TikTok:** Disabled text in the light theme is readable now, at about 4.5:1 against the page where it was 3:1, and a disabled row's arrow dims along with its title.
+
+* **TikTok:** Dialogs share one corner radius, one set of margins and one 20sp title size. The SIM preset and tab dialogs had tighter corners, and the gate recording dialog's title was 28sp.
+
+* **TikTok:** The About row says it opens github.com in your browser, and it no longer shows the arrow that means another settings page.
+
+* **TikTok:** Browse in a download folder dialog keeps what you typed. The dialog stays open under the folder picker, a folder you pick fills the field, and a folder Hushfeed can't use, like one on an SD card, shows the reason under the field rather than in a toast after the dialog has closed.
+
+* **TikTok:** The hidden creators editor labels its search and add fields the same way, and adding a creator now confirms it the way removing one already did. With only a few creators in it, the list shrinks to fit instead of leaving a tall empty band.
+
+* **TikTok:** Clear seen videos becomes "Undo clearing seen videos" while you can still undo, says the undo only lasts until TikTok closes, and shows how many videos a clear would forget.
+
+* **TikTok:** The Hook status row on Diagnostics starts with a green check when every hook found its target and an amber warning sign when something is missing, and TalkBack reads that state before the sentence.
+
+* **TikTok:** Cancel buttons follow Hushfeed's language instead of the phone's. The tab picker explains why it's empty until TikTok has loaded the feed, and its Select every tab button waits until there are tabs to select.
+
+* **TikTok:** Choosing a SIM preset no longer toasts what the row already shows, a speed list that can't be saved shows the reason under the field, and the Hide feed save button row explains how it differs from the Save entry in the checklist above it.
+
+### Feature Gate Lab
+
+* **TikTok:** The Lab looks like the rest of settings. Its title matches every other page title, row titles are 16sp, the section titles on a gate's page match the settings categories, and the scope row underlines its choice the way the source tabs above it do.
+
+* **TikTok:** The account warning on the Lab and the sensitivity note on a gate's page sit inside a card with a warning sign, instead of hanging between controls as loose orange text.
+
+* **TikTok:** A field that can't be saved on a gate's page is marked where it is, with the cursor moved into it, instead of reported in a toast. The custom value dialog says "unverified" once, and asks for a whole number rather than naming a data type.
+
+* **TikTok:** Holding a gate to select several is easier to discover. The selection bar says how, the count is announced as it changes, and TalkBack offers "Select" on each row.
+
+* **TikTok:** The gate list scrolls without reading every row's saved override from storage. Leaving the Lab no longer repeats "Restart TikTok to apply this." after each change already said it, and an export's file name follows the TikTok version the Lab targets.
+
+### On the video
+
+* **TikTok:** The ring that arms a Follow or Like confirmation is white with a dark inner edge, so it shows on TikTok's red buttons, and arming it vibrates. It used to be the same red as the button it circled.
+
+* **TikTok:** Block, local hide, block sound and Not interested vibrate when tapped, like the share sheet's confirm step. The comment block used the long-press vibration for a tap.
+
+* **TikTok:** When automatic advance reaches its limit, the notice offers Keep going, which starts a fresh run from the video you're on. Before, the only way on was to open settings and raise the limit.
+
+* **TikTok:** While a block or a sticker save is running, the button stays readable instead of fading into the video, and a screen reader hears "Blocking" or "Saving". The sticker Save button also follows the sheet's own light or dark look.
+
+* **TikTok:** The comment search box lines up with the comment text instead of running edge to edge. The daily hold panel keeps its text away from the screen edges at large text sizes, and the tip about dragging a control shows only until you've moved it once.
+
+* **TikTok:** The CAPTCHA notice stays up long enough to read. On Android 13 and newer, copying a link no longer shows Hushfeed's toast on top of Android's own, and a failed hand-off to a downloader app names the app instead of its package name.
+
+### Accessibility
+
+* **TikTok:** The range dialog reads its Minimum and Maximum labels once, as part of their fields, and the keyboard no longer autocorrects a value like "1.5M" into something that won't parse.
+
+* **TikTok:** Pressing Done on a dialog's keyboard saves it just like tapping Save, including on number keyboards that send Enter instead of Done.
+
+* **TikTok:** The hold panel's two actions are announced as buttons. A gate's Technical details heading says whether it's expanded, once rather than twice, and each info row on a gate's page is read as a single item.
+
+### Wording
+
+* **TikTok:** Failure messages end with what to do next. A failed save now says "Allow storage for TikTok in Android settings to save sounds." rather than only that permission is missing.
+
+* **TikTok:** The feed is called the feed everywhere, not "the homepage", "Home feed" or "TikTok home", and TikTok LIVE is spelled LIVE throughout.
+
+* **TikTok:** Remove creation tools says plainly that the Create tab stops working, rather than that it may.
+
+### Diagnostics
+
+* **TikTok:** The diagnostic export lists Hide Tako AI whenever one of its hooks attached, even with the switch off. Before, the Tako family could be missing from a report entirely.
+
+* **TikTok:** When every mirror fails a download, the error keeps the cause of each attempt instead of only the last one.
+
+## 0.40.0 (2026-09-17)
 
 * The settings menu is four groups instead of one list. Your feed holds Feed filter, Feed tabs and Feed screen. Watching and sharing holds Playback, Screen time, Comments, Downloads, Share sheet and Inbox. Privacy and system holds Privacy, Region, App, the Feature Gate Lab, Diagnostics and Backup and restore, and About sits on its own at the end. The "YOUR EXPERIENCE" label over a single card of fourteen rows is gone. Five pages have shorter names: Interface is Feed screen, Feed navigation is Feed tabs, Comments and translation is Comments, Region settings is Region, and App behavior is App.
 
@@ -74,17 +217,17 @@
 
 * A share hook that fails now leaves TikTok's own share sheet alone instead of taking it down. Three of them ran inside the share model's constructor with nothing catching behind them, and the link rewrite replaced a native method outright, so one bad read anywhere in there reached TikTok as a Share button that did nothing, followed by the app stopping. That is what upstream's report looked like from the outside. Each of those boundaries now catches for itself and hands back exactly what TikTok passed in, and a failure that used to be silent shows up in the diagnostic export as a named hook that threw. The confirm step keeps holding a send to a person, but it no longer eats a tap on Repost, Copy link or Save when it cannot tell what it is looking at.
 
-## 0.39.0
+## 0.39.0 (2026-09-16)
 
 * Ads no longer appear while paging through a creator's videos from their profile. TikTok has a mid-roll ad component that waits for the pager to load, then takes the video on screen and an ad, finds the video in the pager and puts the ad in its place. That runs after every list the feed filter reads, which is why issue #2's exports showed a profile list of 184 organic videos with nothing removed while the reporter was looking at an ad: the ad was never in the list. Remove feed ads now refuses that swap, on all four retained builds, and the diagnostic export carries a line for it, so a report can say whether the route ran and what it kept out. The video the ad would have replaced stays where it was.
 
 * Hide Tako AI now covers the "Ask" strip that appears under some videos' captions, the one offering to answer a question about the video. It is drawn by a different component from the floating Tako button the switch already hid, so a reader who turned the switch on still saw it. With the switch on, the strip is hidden before it is filled, and the diagnostic export names it either way.
 
-## 0.38.0
+## 0.38.0 (2026-09-16)
 
 * Hide series no longer empties the feed. TikTok hangs a paid content struct on ordinary recommended videos with its fields left at defaults, and the filter treated the struct being there as the marker, so with the switch on nine of ten videos in a batch were removed and For You never loaded anything. A video counts as a series when it says it is paid content, or when that struct carries a collection behind it: an id, a name, an episode number or the intro flag. Hide playlist videos and Hide AI generated videos had the same fault and got the same repair, so an empty mix or moderation struct is no longer a match. Reported on 0.36.0 with a diagnostic export that named the filter.
 
-## 0.37.0
+## 0.37.0 (2026-09-16)
 
 * The Android 17 audit covers the changes the platform will actually enforce, not just the three on the developer site. A phone running Android 16 already carries eleven compat changes gated at target 37, and three of them could have reached injected code. None does: the payload loads no code from a file, nothing in it subclasses Thread, and a handshake the platform refuses is reported rather than retried, which is the same answer Certificate Transparency gets. Each verdict is held by a test, so a change to any of the three fails the suite instead of a phone.
 
@@ -98,7 +241,7 @@
 
 * Follow diagnostics lets go of a request when its response is parsed or it fails, instead of holding up to 160 request graphs, bodies and buffers included, until TikTok is killed. A request that never finishes is held weakly, and the readback context expires after its thirty-second window.
 
-## 0.36.0
+## 0.36.0 (2026-09-16)
 
 * The feature gate recorder's report dialog puts Save JSON last with the accent, and Copy report no longer closes the dialog, so the preview stays where it was. A stop with nothing read says so in a sentence instead of showing an empty JSON object, and offers nothing to copy or save. A fresh install's row says no recording has run yet rather than "Last recording: 0 gates", and it has no chevron while a tap starts recording on the spot. Once a report exists, the row offers Start recording or Show last report, so a report closed too soon can be opened again until the next recording.
 
@@ -116,7 +259,7 @@
 
 * Playback speed and the Feature Gate Lab (and the Feature Gate Recorder with it) apply on TikTok 46.9.3. That build carries the speed menu's list factory twice, two identical copies of one outlined lambda, and a second raw App AB getter next to the first. Both patches used to refuse with "found 2". The speed patch now hooks every identical copy and still refuses when the copies differ, and the Lab holds both raw getters open. Nothing moves on 46.2.3, 46.7.3 or 46.8.3, which carry one of each.
 
-## 0.35.0
+## 0.35.0 (2026-09-15)
 
 * Hide feed surveys no longer empties the profile's Favorites tab. TikTok gives the Favorites page the same view id as the feed survey card, and the overlay hider took every view with that id anywhere in the window. Feed furniture (the caption, the music block, the action column, the survey card, the rail buttons and their counts) is now hidden only inside a feed cell; the tab strip is unchanged. Found on a Galaxy S25 by restoring the settings one group at a time, and the fix was checked there.
 
@@ -124,7 +267,7 @@
 
 * The Feature Gate Lab's switch rows (Enable overrides and the detail page's Override and Forced result rows) are one screen-reader stop each with the Switch role, and the whole row toggles the switch. They used to read twice and only answer a tap on the switch itself.
 
-## 0.34.0
+## 0.34.0 (2026-09-15)
 
 * A new patch, Comment publish diagnostics, on by default. When a comment will not post, the text stays in the box with no toast and nothing in the log, and TikTok's publish code has a dozen ways to return before the request without a word. The diagnostic report now says whether the send reached that code, what it had in hand (the text's length, the attachments, a reply target, the video), and whether it returned early or handed the comment to the request.
 
@@ -158,7 +301,7 @@
 
 * The diagnostic report's feed filter table now counts a profile list or a late insertion that arrived empty. A report from a phone showing an empty Favorites tab used to carry no profile line at all, which read the same as the hook never running, so it couldn't say whether TikTok asked for the list and got nothing back or never asked.
 
-## 0.33.0
+## 0.33.0 (2026-09-15)
 
 * Hide suggested accounts now covers every "People you may like" card, not only the inbox lists. The profile header, the Friends tab and the feed's account cards each build their own list, so the switch used to leave them all standing. Every one of those cards is collapsed as it is bound, and comes back at its own size when the switch goes off.
 
@@ -202,7 +345,7 @@
 
 * A Feature Gate Lab override that fails to save no longer leaves the switch showing the value that was refused. The toast said it could not save while the screen carried on claiming the new value; the controls go back to what is actually stored.
 
-## 0.32.0
+## 0.32.0 (2026-09-15)
 
 * Every control Hushfeed draws over the video answers a press and shows where the focus is. The four feed controls, the two actions on the daily hold, Undo, Clear all in the inbox and the sticker Save button used to paint the same thing pressed, focused or at rest, so a keyboard, a d-pad or switch access moved through them with nothing on screen saying so. Each one ripples under a finger now and carries a white ring while it holds focus.
 
@@ -257,7 +400,7 @@
 * Double tap set to open comments now opens them. It pressed the comment button's click listener, which on the current app is a placeholder that does nothing while the real press is handled as a touch, so the double tap returned true and nothing opened. The press now goes through the comment assem's own icon-press method, the one TikTok's keyboard shortcut uses, with all of TikTok's own checks in front of it. Confirmed on the S22 on 46.2.3: do nothing leaves the like and the video alone, comments opens the sheet with the like untouched, and the default still likes.
 
 
-## 0.31.0
+## 0.31.0 (2026-09-14)
 
 * The exported diagnostic report now says which feed filter route handled each list, whether or not diagnostic logging is on. Several routes can put a video on a profile page or in the feed, and an advert in a screenshot cannot say which one delivered it, so every ad report so far has needed a second round of questions. Each route now reports the lists it was handed, the videos in them and what it took out. A route that has never run has no line at all, which is the answer that was hardest to get before.
 
@@ -351,7 +494,7 @@
 
 * Session budget recovery now validates the whole persisted record before making any of it live. Damaged fields and invalid shapes reset to clean current-day values and are rewritten, while historical five-field records and the current nine-field format keep their exact meaning.
 
-## 0.30.2
+## 0.30.2 (2026-09-13)
 
 * GIF conversion now has separate deadline regressions for its color-precision, palette and frame-encoding passes. Each check has to stop before the second frame, so losing one cannot hide behind an earlier pass.
 
@@ -389,7 +532,7 @@
 
 * The release gate now checks the published bundle against the version tag during the final index push. The index is committed after the artifact exists, so comparing the bundle to that later commit rejected a correct release.
 
-## 0.30.1
+## 0.30.1 (2026-09-12)
 
 * TikTok's own Photo Mode save now gives every image its own `{index}` number instead of naming the whole slideshow as image 1. This also prevents later photos replacing the first one on Android 6 through 9. Animated WebP to GIF conversion now budgets the canvas and decoded frame alongside the stored frame pixels, which cuts the worst pixel allocation from about 100 MiB to 32 MiB before encoder overhead. Turning off Keep captions in clear display removes its overlay and layout observer immediately. Media jobs keep their two minute deadline without carrying a cancel path that no shipped control could call.
 
@@ -419,7 +562,7 @@
 
 * The previous header, both finished hero layouts, README-width previews, fresh offscreen screenshots and rejected mark studies now live in the marketing concept archive. A regression test keeps the selected hero first, prevents a second copy, checks its dimensions and locks the approved H to the supplied file.
 
-## 0.30.0
+## 0.30.0 (2026-09-10)
 
 * Fit the video to the screen now works on the For You feed. The feed cell never sized its video through the method the patch hooked; it hands the size to a helper of its own, and that helper is what the patch reaches now, on every build seen. A fitted video is handed back as a copy of TikTok's own answer, so the size the feed applies and the size it checks against are the same one. The story cell's own path is still covered, and the copy it keeps is looked up by the object rather than by its numbers, which a size change had moved out from under.
 
@@ -471,7 +614,7 @@
 
 * The README's Patches heading renders on GitHub again; a stray line break tag had swallowed it into body text. The bug report template asks for the phone and its Android version, and its example names a Manager release that can load this bundle. The split-view width setting says dp, which is what it compares against, instead of pixels. The Feature Gate Lab no longer says "No gates match" under "Loading" before it has looked, every switch on its detail page has a name for a screen reader, its page title follows the font scale like every other page, the share checklist's boxes take the theme, and the greyed Undo row says why it's greyed.
 
-## 0.29.0
+## 0.29.0 (2026-09-10)
 
 * A new switch empties the menu that opens when you press and hold TikTok's icon on the home screen. Those entries are not declared anywhere in the app, TikTok builds them while it runs, and it only rewrites them when it notices a difference. So the switch takes away what is already published and answers the handover that would publish more. Turning it off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut you pinned to a home screen yourself is left alone.
 
@@ -479,7 +622,7 @@
 
 * Everything the patches inject is now checked against the register count of the method it lands in, and against the Android runtime's own verifier on a phone. A patch that writes into a register a method never declared assembles cleanly, applies cleanly, and fails only on a device; nothing here does that.
 
-## 0.28.0
+## 0.28.0 (2026-09-10)
 
 * Automatic video advance now works from a cold start. Two things stood in the way. TikTok builds its auto scroll component only once somebody opens the video panel and asks for it by hand, so with the setting already on, a fresh launch had nothing to work with. And the check for whether the feed was on screen asked TikTok's auto scroll indicator about itself, which TikTok keeps hidden until scrolling is already running, so the answer was always no. With the setting on, the component is now built alongside the ones TikTok always builds, and the feed it sits in is what answers for being on screen. With the setting off, TikTok's own choice is left alone. Automatic advance also looks again when a video ends rather than staying down for the rest of the session, so changing the session limit or coming back to the feed picks it up again without restarting TikTok.
 
@@ -559,7 +702,7 @@
 
 * The oversized animated-sticker check now closes its test file on Windows. It still rejects the canvas before allocation and checks the rejection reason.
 
-## 0.27.0
+## 0.27.0 (2026-09-09)
 
 * The settings screens are done being half English. Around eighty strings still went out in English whatever your phone was set to, nearly all of them in the Feature Gate Lab: the gate details page top to bottom, both override switches and the sentences under them, the overflow menu, the filter, the three buttons that reset or force a selection, and nineteen of its messages. The close button on the Lab's search box and the three buttons under the tab picker went with them. All of it is in the four tables now.
 
@@ -575,7 +718,7 @@
 
 * Four of the checks meant to catch all of this were letting it through themselves, and each now has its own failing case pinned in front of it, because a check that has only ever seen code it passes proves nothing. A patch-time helper that overrides the result of a call reads what an instruction writes more carefully too: five comparison opcodes were in no write set at all, and a conversion away from a long was read as though its answer took two registers.
 
-## 0.26.0
+## 0.26.0 (2026-09-09)
 
 * The last English left on the settings screen is translated. The diagnostics picker with its eight kinds of event, the line you see after saving any of the fifty settings that ask for a restart, the message when diagnostic data is cleared, and every line of the hook status report. These live in code shared with other bundles that carry no translations at all, so they could not simply be wrapped: the shared classes ask this bundle for the words and fall back to English for anyone else. The report line was five pieces glued together, which no translation can hold, and is one sentence now.
 
@@ -655,7 +798,7 @@
 
 * Saving a gate configuration writes what is on the screen. Rotating the phone, changing the text size or theme, or coming back from a deeper screen rebuilt the page and kept the fields from every earlier version of it, so a save could collect text from boxes nobody could see. Those pages are also released now instead of being held for the life of the app, and a custom value box left open when the screen goes is closed with it.
 
-## 0.25.0
+## 0.25.0 (2026-09-08)
 
 * A Lab change that fails halfway no longer erases what the Lab had recorded. Saving a set of overrides, resetting them, undoing that, or restoring a backup puts the previous configuration back when the write fails, and the record of which gates had actually fired was thrown away with it, so the detail screen reported "not triggered" for gates that were.
 
@@ -679,7 +822,7 @@
 
 * A gate override whose type the catalogue disagrees with is no longer handed to TikTok. It only mattered on one path, where TikTok holds no cached value and so there is no type to check the rule against: a text rule on a key the app reads as a number came back as text, and the app crashed in its own code rather than in anything this project added. The Lab's detail screen says why the rule was refused. The catalogue has to have been loaded for this to bite, which today means the Lab screen has been opened.
 
-## 0.24.0
+## 0.24.0 (2026-09-08)
 
 * The Save button on a sticker is in your language. It was the one piece of text this project adds to TikTok that never went through the translations, and it could not simply be translated: the button's own English label was also how the code recognised its own button, so a German one would have been added a second time on every sheet. It carries a marker now, and reads "Medien speichern" or "Simpan media" where it should.
 
@@ -699,7 +842,7 @@
 
 * Translators can work in Weblate. The settings strings were one tab separated file per language, a shape Weblate cannot host, so translating meant editing a file in a pull request. A language table can now be either that file or the comma form Weblate exports, and the generator writes the list of source strings a Weblate project translates from. A table that has been through a spreadsheet is read as well, byte order mark and all. Nothing changes for anyone already editing the tab form.
 
-## 0.23.0
+## 0.23.0 (2026-09-08)
 
 * Back keeps working on the settings screen when TikTok moves to the newer back gesture. The screen's Back rode entirely on a method Android stops calling once an app opts into predictive back, which TikTok has not done yet and will. The Feature Gate Lab already handled it; the settings screen does now too, through the same code.
 
@@ -1273,8 +1416,7 @@
 
 Everything below this line is the release history of icysymmetra/tiktok-patches-for-morphe, which Hushfeed was forked from.
 
-# [0.7.0](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.6.1...v0.7.0) (2026-08-23)
-
+## [0.7.0](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.6.1...v0.7.0) (2026-08-23)
 
 ### Bug Fixes
 
@@ -1292,93 +1434,49 @@ Everything below this line is the release history of icysymmetra/tiktok-patches-
 * **tiktok:** preserve swipe-lock playback speed ([dfbe2a5](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/dfbe2a55aaced183f97a457b494893c31cebf596))
 * **tiktok:** prevent settings crash and expand crash reports ([08186e7](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/08186e77ba89d92debfcd319fe8fcc745e2a363b))
 
-
 ### Features
 
 * **downloads:** support separate media destinations ([f4580c9](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/f4580c94b3b2c0d2d79c2bb0bfa6a544abeaedb3))
 * **tiktok:** add repost and cached feed controls ([446ee90](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/446ee90123b118642fe3c50f5da9221d984667c2))
 * **tiktok:** expand offline video limits ([35eff0e](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/35eff0e4f84ea69925bbddc71eb04c6d0bf5e66d))
 
-
-
-
-
-## 0.7.0
-
-# [0.7.0-dev.8](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.7.0-dev.7...v0.7.0-dev.8) (2026-08-22)
-
+## [0.7.0-dev.8](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.7.0-dev.7...v0.7.0-dev.8) (2026-08-22)
 
 ### Bug Fixes
 
 * **tiktok:** preserve swipe-lock playback speed ([dfbe2a5](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/dfbe2a55aaced183f97a457b494893c31cebf596))
 
-
-
-
-
-## 0.7.0-dev.8
-
-# [0.7.0-dev.7](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.7.0-dev.6...v0.7.0-dev.7) (2026-08-20)
-
+## [0.7.0-dev.7](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.7.0-dev.6...v0.7.0-dev.7) (2026-08-20)
 
 ### Bug Fixes
 
 * **tiktok:** consume download filename mappings ([864fc15](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/864fc1526d51f819daea8e0730716d62a4c6b662))
 * **tiktok:** harden bytecode hook resolution ([95e0a3f](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/95e0a3f8d6c45e97eb44c3066bd201e2d9ab1843))
 
-
 ### Features
 
 * **tiktok:** add repost and cached feed controls ([446ee90](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/446ee90123b118642fe3c50f5da9221d984667c2))
 
-
-
-
-
-## 0.7.0-dev.7
-
-# [0.7.0-dev.6](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.7.0-dev.5...v0.7.0-dev.6) (2026-08-20)
-
+## [0.7.0-dev.6](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.7.0-dev.5...v0.7.0-dev.6) (2026-08-20)
 
 ### Features
 
 * **tiktok:** expand offline video limits ([35eff0e](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/35eff0e4f84ea69925bbddc71eb04c6d0bf5e66d))
 
-
-
-
-
-## 0.7.0-dev.6
-
-# [0.7.0-dev.5](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.7.0-dev.4...v0.7.0-dev.5) (2026-08-16)
-
+## [0.7.0-dev.5](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.7.0-dev.4...v0.7.0-dev.5) (2026-08-16)
 
 ### Bug Fixes
 
 * **build:** complete feed model stubs ([053ce6c](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/053ce6cd064c16c1a06e87e10b76896da7c00a83))
 * **tiktok:** filter cached feed insertions ([d30a6dd](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/d30a6dd37f9eaa1c1faecdf2b30b047707170860))
 
-
-
-
-
-## 0.7.0-dev.5
-
-# [0.7.0-dev.4](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.7.0-dev.3...v0.7.0-dev.4) (2026-08-13)
-
+## [0.7.0-dev.4](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.7.0-dev.3...v0.7.0-dev.4) (2026-08-13)
 
 ### Bug Fixes
 
 * **clear-display:** preserve state across feed transitions ([a433fe0](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/a433fe03b98ecee8814a83f94aaef760222e538f))
 
-
-
-
-
-## 0.7.0-dev.4
-
-# [0.7.0-dev.3](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.7.0-dev.2...v0.7.0-dev.3) (2026-08-11)
-
+## [0.7.0-dev.3](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.7.0-dev.2...v0.7.0-dev.3) (2026-08-11)
 
 ### Bug Fixes
 
@@ -1386,79 +1484,37 @@ Everything below this line is the release history of icysymmetra/tiktok-patches-
 * **settings:** make custom dialogs fit device screens ([7592339](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/75923397520ff45fde1b5f618c1de2010de422e0))
 * **tiktok:** expand startup and runtime hook coverage ([bac0ba8](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/bac0ba8d2697a60d2c66d723fba75e211ca48a49))
 
-
-
-
-
-## 0.7.0-dev.3
-
-# [0.7.0-dev.2](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.7.0-dev.1...v0.7.0-dev.2) (2026-08-11)
-
+## [0.7.0-dev.2](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.7.0-dev.1...v0.7.0-dev.2) (2026-08-11)
 
 ### Bug Fixes
 
 * **tiktok:** prevent settings crash and expand crash reports ([08186e7](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/08186e77ba89d92debfcd319fe8fcc745e2a363b))
 
-
-
-
-
-## 0.7.0-dev.2
-
-# [0.7.0-dev.1](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.6.2-dev.1...v0.7.0-dev.1) (2026-08-10)
-
+## [0.7.0-dev.1](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.6.2-dev.1...v0.7.0-dev.1) (2026-08-10)
 
 ### Features
 
 * **downloads:** support separate media destinations ([f4580c9](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/f4580c94b3b2c0d2d79c2bb0bfa6a544abeaedb3))
 
-
-
-
-
-## 0.7.0-dev.1
-
 ## [0.6.2-dev.1](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.6.1...v0.6.2-dev.1) (2026-08-10)
-
 
 ### Bug Fixes
 
 * **tiktok:** cover direct Turing CAPTCHA dialogs ([27b2639](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/27b263920ffadaf2e27777c703c225f2e4f3ce40))
 
-
-
-
-
-## 0.6.2-dev.1
-
 ## [0.6.1](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.6.0...v0.6.1) (2026-08-09)
-
 
 ### Bug Fixes
 
 * **morphe:** support patching on older Android versions ([01463a0](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/01463a04e2a64a2a1400391778576779cfb2b211)), closes [#85](https://github.com/icysymmetra/tiktok-patches-for-morphe/issues/85)
 
-
-
-
-
-## 0.6.1
-
-# [0.6.0](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.5.0...v0.6.0) (2026-08-09)
-
+## [0.6.0](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.5.0...v0.6.0) (2026-08-09)
 
 ### Features
 
 * **tiktok:** restore download templates and sticker formats ([91d158c](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/91d158ca3da1126a2d2ca9f4c2330e81d3ea96f9))
 
-
-
-
-
-## 0.6.0
-
-# [0.5.0](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.4.1...v0.5.0) (2026-08-09)
-
+## [0.5.0](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.4.1...v0.5.0) (2026-08-09)
 
 ### Bug Fixes
 
@@ -1473,7 +1529,6 @@ Everything below this line is the release history of icysymmetra/tiktok-patches-
 * **tiktok:** skip same-language automatic translations ([3415710](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/3415710facfc60db19943599112b9bc47cf82647))
 * **tiktok:** use native video loop control ([f508adb](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/f508adbdbf6229e7a993a42616ed00cc0feadcd2))
 
-
 ### Features
 
 * **tiktok:** add native search and seekbar controls ([c36bfaf](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/c36bfaf51d6e8d30fbef6e5c6ba99bfdeae283e2))
@@ -1484,27 +1539,13 @@ Everything below this line is the release history of icysymmetra/tiktok-patches-
 * **tiktok:** redesign patch settings navigation ([a479bdb](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/a479bdb09a4e01584f9d683cdfda1c65d3ab6dff))
 * **tiktok:** separate optional diagnostics from settings entry ([aad18c3](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/aad18c3e4b301366685174b0faa5a23a8a2850de))
 
-
-
-
-
-## 0.5.0
-
 ## [0.4.1](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.4.0...v0.4.1) (2026-07-28)
-
 
 ### Bug Fixes
 
 * **tiktok:** prevent seekbar recursion on stories ([9d2c0bc](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/9d2c0bc823ce661b385fff12945ac5c2ace0223f))
 
-
-
-
-
-## 0.4.1
-
-# [0.4.0](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.3.1...v0.4.0) (2026-07-26)
-
+## [0.4.0](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.3.1...v0.4.0) (2026-07-26)
 
 ### Features
 
@@ -1517,14 +1558,7 @@ Everything below this line is the release history of icysymmetra/tiktok-patches-
 * **tiktok:** port publish date patch from lyyako ([1b6c386](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/1b6c386611239c39242bc813fca9614c8de3d3d1))
 * **tiktok:** redesign support row ([cc39469](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/cc39469c98eabc0ccdea40fc423e94639c34703f))
 
-
-
-
-
-## 0.4.0
-
-# [0.4.0-dev.1](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.3.1...v0.4.0-dev.1) (2026-07-26)
-
+## [0.4.0-dev.1](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.3.1...v0.4.0-dev.1) (2026-07-26)
 
 ### Features
 
@@ -1536,28 +1570,14 @@ Everything below this line is the release history of icysymmetra/tiktok-patches-
 * **tiktok:** port external browser patch from lyyako ([7a517c2](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/7a517c218a35508ac4f284450ff6d6c4d3ea05d8))
 * **tiktok:** port publish date patch from lyyako ([1b6c386](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/1b6c386611239c39242bc813fca9614c8de3d3d1))
 * **tiktok:** redesign support row ([cc39469](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/cc39469c98eabc0ccdea40fc423e94639c34703f))
-
-
-
-
-
-## 0.4.0-dev.1
 
 ## [0.3.1](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.3.0...v0.3.1) (2026-06-17)
-
 
 ### Bug Fixes
 
 * avoid concurrent feed list iteration crash ([275e8d5](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/275e8d5f3ad273b24a5bd592b0da86bfe7dc3ee4))
 
-
-
-
-
-## 0.3.1
-
-# [0.3.0](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.2.0...v0.3.0) (2026-06-17)
-
+## [0.3.0](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.2.0...v0.3.0) (2026-06-17)
 
 ### Bug Fixes
 
@@ -1565,7 +1585,6 @@ Everything below this line is the release history of icysymmetra/tiktok-patches-
 * prefer largest clean download source ([4f63b8a](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/4f63b8aab765373041cbce77135efd55f34623c0))
 * reduce repeated feed filter scans ([d161ef2](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/d161ef20c8d9648fb4e48d84655f062c9be99813))
 * restore downloads fallback for restricted videos ([32cfafe](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/32cfafeaf10ad1bcf87d72a38927977f76000ec5))
-
 
 ### Features
 
@@ -1577,19 +1596,11 @@ Everything below this line is the release history of icysymmetra/tiktok-patches-
 * **tiktok:** add custom offline videos limit ([bfcb717](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/bfcb717d9e6fdcfb69ec7d0b30016352ed6d6c90))
 * **tiktok:** add focused debug diagnostics ([878d0f4](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/878d0f44b4b1bc1846ecb888ca3f9536fcf4db11))
 
-
 ### Performance Improvements
 
 * reduce feed filter scanning overhead ([ac13277](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/ac13277743e2c5f4022a4e1bafea1caf067520fe))
 
-
-
-
-
-## 0.3.0
-
-# [0.2.0](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.1.5...v0.2.0) (2026-06-06)
-
+## [0.2.0](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.1.5...v0.2.0) (2026-06-06)
 
 ### Bug Fixes
 
@@ -1597,99 +1608,43 @@ Everything below this line is the release history of icysymmetra/tiktok-patches-
 * reduce repeated feed filter scans ([370b806](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/370b806cc1c64574d767b397d612e79a58ed6896))
 * restore downloads fallback for restricted videos ([277f400](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/277f4003643b35045b62f9f95f63ed2d8bb889bf))
 
-
 ### Features
 
 * add SIM spoof country presets ([7f8fb32](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/7f8fb32dd7bc1f0b34078482216c087914b8ff4c))
-
 
 ### Performance Improvements
 
 * reduce feed filter scanning overhead ([007d1be](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/007d1be0a93393a7ca1935cea8740cb167b5e6f9))
 
-
-
-
-
-## 0.2.0
-
 ## [0.1.5](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.1.4...v0.1.5) (2026-06-01)
-
 
 ### Bug Fixes
 
 * limit TikTok compatibility to global package ([49806ad](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/49806ad5a1c75bc2d7f052abf227b7d055879935))
 * sanitize TikTok sharing links before shortening ([53a3558](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/53a3558f7e1921ccd2636fe2d322a4b7c1ca3d04))
 
-
-
-
-
-## 0.1.5
-
 ## [0.1.4](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.1.3...v0.1.4) (2026-05-30)
-
 
 ### Bug Fixes
 
 * improve settings readability and debug logging ([f4f4bc4](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/f4f4bc4dc9104182c1a419878ddf837057555340))
 
-
-
-
-
-## 0.1.4
-
 ## [0.1.3](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.1.2...v0.1.3) (2026-05-29)
-
 
 ### Bug Fixes
 
 * support global settings top row insertion ([c38f1b6](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/c38f1b63d32b3d7218de1f5c46243f728c6c5868))
-
-
-
-
-
-## 0.1.3
-
-## [0.1.3](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.1.2...v0.1.3) (2026-05-29)
-
-
-### Bug Fixes
-
-* support global settings top row insertion ([c38f1b6](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/c38f1b63d32b3d7218de1f5c46243f728c6c5868))
-
-
-
-
-
-## 0.1.3
 
 ## [0.1.2](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.1.1...v0.1.2) (2026-05-29)
-
 
 ### Bug Fixes
 
 * fallback open debug settings insertion ([e201d53](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/e201d533d19504f4e32001d6985cad7ee9804b15))
 
-
-
-
-
-## 0.1.2
-
 ## [0.1.1](https://github.com/icysymmetra/tiktok-patches-for-morphe/compare/v0.1.0...v0.1.1) (2026-05-29)
-
 
 ### Bug Fixes
 
 * add release changelog script ([74fa14e](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/74fa14ebe975509816a9344031dd176a76595407))
 * distinguish global and jp tiktok packages ([7e1f7df](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/7e1f7dfd23d79346529715854a9b1840af210d47))
 * soften support preference copy ([5cbfd26](https://github.com/icysymmetra/tiktok-patches-for-morphe/commit/5cbfd26030b35d5b2996ead5073b2ffd7df166a5))
-
-
-
-
-
-## 0.1.1
