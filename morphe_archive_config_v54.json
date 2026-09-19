@@ -1857,6 +1857,22 @@
                 "sortOrder": 243,
                 "createdAt": 1789701796030,
                 "updatedAt": 1789701796030
+            },
+            {
+                "name": "morphe-google-photos",
+                "source": "https://raw.githubusercontent.com/Akash-Sriram/morphe-google-photos/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 244,
+                "createdAt": 1789787828643,
+                "updatedAt": 1789787828643
+            },
+            {
+                "name": "brave-waffle",
+                "source": "https://raw.githubusercontent.com/RjBiermann/brave-waffle/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 245,
+                "createdAt": 1789787829734,
+                "updatedAt": 1789787829734
             }
         ]
     }
