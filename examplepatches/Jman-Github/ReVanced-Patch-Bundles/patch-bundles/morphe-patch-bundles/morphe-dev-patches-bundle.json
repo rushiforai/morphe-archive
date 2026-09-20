@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-18T16:39:09",
-  "description": "## [1.44.0-dev.6](https://github.com/MorpheApp/morphe-patches/compare/v1.44.0-dev.5...v1.44.0-dev.6) (2026-09-18)\n\n### \ud83d\ude80 Updated App Support\n\n* **YouTube:** Add support for `21.16.256` ([900575c](https://github.com/MorpheApp/morphe-patches/commit/900575ccc97cb8faf831786afd693c30d28e4f9f))\n",
-  "download_url": "https://github.com/MorpheApp/morphe-patches/releases/download/v1.44.0-dev.6/patches-1.44.0-dev.6.mpp",
+  "created_at": "2026-09-19T18:45:02",
+  "description": "## [1.44.0-dev.11](https://github.com/MorpheApp/morphe-patches/compare/v1.44.0-dev.10...v1.44.0-dev.11) (2026-09-19)\n\n### \u2728 New Features\n\n* **YouTube - Channel search:** Show the searched channel in the results header ([c0e49d4](https://github.com/MorpheApp/morphe-patches/commit/c0e49d4ba97a5ca79033e379f3f581a395cda7a4))\n",
+  "download_url": "https://github.com/MorpheApp/morphe-patches/releases/download/v1.44.0-dev.11/patches-1.44.0-dev.11.mpp",
   "signature_download_url": "N/A",
-  "version": "v1.44.0-dev.6"
+  "version": "v1.44.0-dev.11"
 }

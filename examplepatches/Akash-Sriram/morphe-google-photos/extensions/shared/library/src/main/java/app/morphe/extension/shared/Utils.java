@@ -410,6 +410,8 @@ public class Utils {
             setActivity(activity);
         }
 
+        seedPhenotypeEarly(appContext);
+
         AppLanguage language = BaseSettings.MORPHE_LANGUAGE.get();
         if (language != AppLanguage.DEFAULT) {
             // Create a new context with the desired language.
@@ -421,18 +423,19 @@ public class Utils {
 
         setThemeLightColor(getThemeColor(getThemeLightColorResourceName(), Color.WHITE));
         setThemeDarkColor(getThemeColor(getThemeDarkColorResourceName(), Color.BLACK));
-
-        // Seed embedded Phenotype flags for Google Photos on first launch
-        seedPhenotypeFlags(appContext);
     }
 
     public static void seedPhenotypeEarly(Context context) {
         try {
             app.morphe.extension.shared.patches.PhenotypeSeedData.ensureSeeded(context);
-        } catch (Throwable ignored) {}
+        } catch (Throwable t) {
+            Logger.printInfo(() -> "seedPhenotypeEarly: PhenotypeSeedData failed: " + t);
+        }
         try {
             app.morphe.extension.shared.patches.PhotosModelSeeder.ensureSeeded(context);
-        } catch (Throwable ignored) {}
+        } catch (Throwable t) {
+            Logger.printInfo(() -> "seedPhenotypeEarly: PhotosModelSeeder failed: " + t);
+        }
     }
 
     public static void seedPhenotypeFlags(Context context) {

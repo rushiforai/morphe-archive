@@ -66,6 +66,18 @@ fun toggleFeatureFlag(
             )
         }
     }
+
+    // Allow resetting a flag with a new default value
+    SetDefaultValueFingerprint.method.apply {
+        val areNotEqualIndex = SetDefaultValueFingerprint.instructionMatches.last().index
+        val areNotEqualRegister =
+            getInstruction<OneRegisterInstruction>(areNotEqualIndex).registerA
+
+        addInstruction(
+            index = areNotEqualIndex,
+            smaliInstructions = "const/4 v$areNotEqualRegister, 0x0"
+        )
+    }
 }
 
 context(_: BytecodePatchContext)

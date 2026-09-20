@@ -61,12 +61,13 @@ public final class PhotosModelSeeder {
                 int expected = getExpectedModelCount();
                 int modelCount = countModelsInDir(targetModelsDir);
                 File groupsXml = new File(prefsDir, MDD_GROUPS_XML);
-                boolean hasGroups = groupsXml.exists() && groupsXml.length() > 25000;
+                boolean hasGroups = groupsXml.exists() && groupsXml.length() > 500;
 
                 Logger.printInfo(() -> "PhotosModelSeeder: ensureSeeded() called. Current models count=" + modelCount + ", expected=" + expected);
 
                 if (expected > 0 && modelCount >= expected && hasGroups) {
                     isSeeded = true;
+                    ensureStoryFontsAsync(filesDir);
                     return;
                 }
 
@@ -151,6 +152,7 @@ public final class PhotosModelSeeder {
                 Logger.printInfo(() -> "PhotosModelSeeder: Dynamically discovered " + urlToFile.size() + " ML models to download.");
 
                 int downloaded = 0;
+                int newlyDownloaded = 0;
                 for (Map.Entry<String, String> entry : urlToFile.entrySet()) {
                     String urlStr = entry.getKey();
                     String filename = entry.getValue();
@@ -166,6 +168,7 @@ public final class PhotosModelSeeder {
                         dest.setWritable(true, false);
                         dest.setExecutable(true, false);
                         downloaded++;
+                        newlyDownloaded++;
                     } else {
                         Logger.printInfo(() -> "PhotosModelSeeder: Failed to download " + filename + " from " + urlStr);
                     }
@@ -178,19 +181,24 @@ public final class PhotosModelSeeder {
                     patchMddManifests(prefsDir, context.getPackageName());
 
                     lockModels(targetModelsDir);
+                    ensureStoryFonts(context.getFilesDir());
 
                     isSeeded = true;
-                    Logger.printInfo(() -> "PhotosModelSeeder: Successfully dynamically downloaded and seeded all " + finalDownloaded + " models! Restarting app...");
-                    showToast(context, "AI Models downloaded! Restarting to apply...");
+                    if (newlyDownloaded > 0) {
+                        Logger.printInfo(() -> "PhotosModelSeeder: Successfully dynamically downloaded and seeded all " + finalDownloaded + " models! Restarting app...");
+                        showToast(context, "AI Models downloaded! Restarting to apply...");
 
-                    try { Thread.sleep(2000); } catch (Exception ignored) {}
+                        try { Thread.sleep(2000); } catch (Exception ignored) {}
 
-                    android.content.Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
-                    if (intent != null) {
-                        intent.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP | android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        context.startActivity(intent);
+                        android.content.Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+                        if (intent != null) {
+                            intent.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP | android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            context.startActivity(intent);
+                        }
+                        Runtime.getRuntime().exit(0);
+                    } else {
+                        Logger.printInfo(() -> "PhotosModelSeeder: All " + finalDownloaded + " models already present on disk. Ready.");
                     }
-                    Runtime.getRuntime().exit(0);
                 } else {
                     Logger.printInfo(() -> "PhotosModelSeeder: Downloaded " + finalDownloaded + " of " + expectedCount + " models.");
                 }
@@ -201,6 +209,35 @@ public final class PhotosModelSeeder {
                 isDownloading = false;
             }
         }, "PhotosModelDownloader").start();
+    }
+
+    private static void ensureStoryFontsAsync(File filesDir) {
+        new Thread(() -> ensureStoryFonts(filesDir), "PhotosFontDownloader").start();
+    }
+
+    private static void ensureStoryFonts(File filesDir) {
+        try {
+            File fontsDir = new File(filesDir, "fonts");
+            if (!fontsDir.exists()) fontsDir.mkdirs();
+
+            String[][] fonts = {
+                {"Caveat.ttf", "https://raw.githubusercontent.com/google/fonts/main/ofl/caveat/Caveat%5Bwght%5D.ttf"},
+                {"Handlee.ttf", "https://raw.githubusercontent.com/google/fonts/main/ofl/handlee/Handlee-Regular.ttf"},
+                {"Oswald.ttf", "https://raw.githubusercontent.com/google/fonts/main/ofl/oswald/Oswald%5Bwght%5D.ttf"},
+                {"Montserrat.ttf", "https://raw.githubusercontent.com/google/fonts/main/ofl/montserrat/Montserrat%5Bwght%5D.ttf"},
+                {"PlayfairDisplay.ttf", "https://raw.githubusercontent.com/google/fonts/main/ofl/playfairdisplay/PlayfairDisplay%5Bwght%5D.ttf"}
+            };
+
+            for (String[] font : fonts) {
+                File fontFile = new File(fontsDir, font[0]);
+                if (!fontFile.exists() || fontFile.length() == 0) {
+                    downloadFile(font[1], fontFile);
+                    fontFile.setReadable(true, false);
+                }
+            }
+        } catch (Throwable t) {
+            Logger.printInfo(() -> "PhotosModelSeeder: ensureStoryFonts error: " + t.getMessage());
+        }
     }
 
     public static class ModelEntry {

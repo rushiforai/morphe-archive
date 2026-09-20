@@ -96,6 +96,30 @@ public class SettingsActionFlowTest {
         assertEquals(empty, titles(fragment));
     }
 
+    @Test public void searchQuerySurvivesOpeningAResultAndReturning() {
+        Bundle arguments = new Bundle();
+        arguments.putBoolean("morphe_settings_search", true);
+        TikTokPreferenceFragment fragment = attach(arguments);
+        EditText input = fragment.getView().findViewWithTag("settings_search_input");
+        assertNotNull("the search input was not attached", input);
+
+        input.setText("speed");
+        idle();
+        assertTrue(titles(fragment).contains("Default playback speed"));
+
+        clickTitle(fragment, "Default playback speed");
+        fragment.getFragmentManager().executePendingTransactions();
+        idle();
+        assertNull("the search view stayed attached behind its result", fragment.getView());
+
+        assertTrue(fragment.getFragmentManager().popBackStackImmediate());
+        idle();
+        EditText restored = fragment.getView().findViewWithTag("settings_search_input");
+        assertNotNull("the search input was not rebuilt", restored);
+        assertEquals("speed", restored.getText().toString());
+        assertTrue(titles(fragment).contains("Default playback speed"));
+    }
+
     @Test public void hookStatusShowsTheEmptyReportFromItsInstalledRow() {
         TikTokPreferenceFragment fragment = diagnostics();
         HookStatusPreference preference = row(fragment, HookStatusPreference.class);
@@ -197,5 +221,20 @@ public class SettingsActionFlowTest {
             }
         }
         throw new AssertionError("The page did not install " + type.getSimpleName());
+    }
+
+    private static void clickTitle(TikTokPreferenceFragment fragment, String title) {
+        ListView list = fragment.getView().findViewById(android.R.id.list);
+        for (int i = 0; i < list.getCount(); i++) {
+            Object item = list.getItemAtPosition(i);
+            if (!(item instanceof Preference)) continue;
+            CharSequence itemTitle = ((Preference) item).getTitle();
+            if (itemTitle == null || !title.contentEquals(itemTitle)) continue;
+            assertTrue(list.performItemClick(list.getAdapter().getView(i, null, list),
+                    i, list.getItemIdAtPosition(i)));
+            idle();
+            return;
+        }
+        throw new AssertionError("The page did not install " + title);
     }
 }

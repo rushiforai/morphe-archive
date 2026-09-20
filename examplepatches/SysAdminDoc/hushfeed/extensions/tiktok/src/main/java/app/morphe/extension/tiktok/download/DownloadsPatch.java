@@ -8,10 +8,12 @@ package app.morphe.extension.tiktok.download;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.settings.BaseSettings;
+import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.settings.Settings;
 import com.ss.android.ugc.aweme.base.model.UrlModel;
 import com.ss.android.ugc.aweme.feed.model.Video;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 @SuppressWarnings("unused")
@@ -97,10 +99,30 @@ public class DownloadsPatch {
         }
     }
 
+    /**
+     * The two play addresses, by field. 46.9.3 renamed both to ...Value, so reading the old names
+     * threw NoSuchFieldError there and this fallback silently never ran. The getters exist on every
+     * build but rewrite the models' codec type, ratio and expiry as a side effect, so the fields
+     * are read, the newer name first because older builds never declare it.
+     */
+    private static final String[] H264_PLAY_ADDR_FIELDS = {"h264PlayAddrValue", "h264PlayAddr"};
+    private static final String[] PLAY_ADDR_FIELDS = {"playAddrValue", "playAddr"};
+
+    private static UrlModel playAddress(Video video, String[] names) {
+        Field field = Reflect.firstField(video.getClass(), names);
+        if (field == null) return null;
+        try {
+            Object value = field.get(video);
+            return value instanceof UrlModel ? (UrlModel) value : null;
+        } catch (IllegalAccessException ex) {
+            return null;
+        }
+    }
+
     private static Candidate selectCleanFallback(Video video) {
         Candidate[] candidates = {
-                new Candidate("h264PlayAddr", video.h264PlayAddr),
-                new Candidate("playAddr", video.playAddr),
+                new Candidate("h264PlayAddr", playAddress(video, H264_PLAY_ADDR_FIELDS)),
+                new Candidate("playAddr", playAddress(video, PLAY_ADDR_FIELDS)),
         };
 
         for (Candidate candidate : candidates) {

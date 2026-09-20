@@ -211,3 +211,38 @@ fun BytecodePatchContext.cloneMethodWithAdditionalRegisters(
     return clonedMethod
 }
 
+/**
+ * Completely replaces a method's implementation with a brand-new implementation with [registerCount] registers
+ * and [smaliCode], leaving zero leftover instructions, zero dead-code register type mismatches, and no try blocks.
+ */
+fun BytecodePatchContext.replaceMethod(
+    method: Method,
+    registerCount: Int,
+    smaliCode: String,
+): MutableMethod {
+    val mutableClass = mutableClassDefBy(method.definingClass)
+    val target = mutableClass.methods.first { MethodUtil.methodSignaturesMatch(it, method) }
+    mutableClass.methods.remove(target)
+
+    val newImpl = ImmutableMethodImplementation(
+        registerCount,
+        emptyList(),
+        emptyList(),
+        null,
+    )
+    val newMethod = ImmutableMethod(
+        method.definingClass,
+        method.name,
+        method.parameters,
+        method.returnType,
+        method.accessFlags,
+        method.annotations,
+        method.hiddenApiRestrictions,
+        newImpl,
+    ).toMutable().apply {
+        addInstructions(0, smaliCode)
+    }
+    mutableClass.methods.add(newMethod)
+    return newMethod
+}
+

@@ -192,15 +192,66 @@ public final class FeedItemsFilter {
     }
 
     public static void filter(FollowFeedList followFeedList) {
-        filterFollowFeedList(followFeedList, true, FilterPhase.RESPONSE);
+        filterFollowFeedListSafely(followFeedList, true, FilterPhase.RESPONSE);
     }
 
     public static void filterLate(FollowFeedList followFeedList) {
-        filterFollowFeedList(followFeedList, true, FilterPhase.LATE_FOLLOW);
+        filterFollowFeedListSafely(followFeedList, true, FilterPhase.LATE_FOLLOW);
     }
 
     public static void filterLateFinal(FollowFeedList followFeedList) {
-        filterFollowFeedList(followFeedList, false, FilterPhase.LATE_FOLLOW);
+        filterFollowFeedListSafely(followFeedList, false, FilterPhase.LATE_FOLLOW);
+    }
+
+    /**
+     * These run inside TikTok's own FollowFeedList.getItems and its response path, so anything
+     * that escapes here escapes into TikTok. Issue #12 was exactly that: a NoSuchFieldError, which
+     * no catch of Exception stops, closed the app every time the Following tab loaded on 46.9.3.
+     * A Following feed that keeps an ad is a much smaller failure than no app.
+     */
+    private static void filterFollowFeedListSafely(
+        FollowFeedList followFeedList,
+        boolean allowRecentSkip,
+        FilterPhase phase
+    ) {
+        try {
+            filterFollowFeedList(followFeedList, allowRecentSkip, phase);
+        } catch (Throwable ex) {
+            HookStatus.threw(FOLLOW_FEED_HOOK_FAMILY, phase.name(), ex);
+            Logger.printException(() -> "Could not filter the Following feed", ex);
+        }
+    }
+
+    private static final String FOLLOW_FEED_HOOK_FAMILY = "following feed";
+
+    /**
+     * Where FollowFeedList keeps its items: mItems up to 46.8.3, items from 46.9.3, which moved
+     * the class to Kotlin. getItems() exists on every build, but the late filter is hooked into
+     * it, so the field is read directly, the newer name first because older builds never
+     * declare it.
+     */
+    private static final String[] FOLLOW_ITEMS_FIELDS = {"items", "mItems"};
+
+    private static Field followItemsField(FollowFeedList list) {
+        Field field = Reflect.firstField(list.getClass(), FOLLOW_ITEMS_FIELDS);
+        if (field == null) {
+            HookStatus.missingMember(FOLLOW_FEED_HOOK_FAMILY, "field", "FollowFeedList", "items");
+        } else {
+            HookStatus.bound(FOLLOW_FEED_HOOK_FAMILY, "items field " + field.getName());
+        }
+        return field;
+    }
+
+    static List followItems(FollowFeedList list) {
+        if (list == null) return null;
+        Field field = followItemsField(list);
+        if (field == null) return null;
+        try {
+            Object value = field.get(list);
+            return value instanceof List ? (List) value : null;
+        } catch (IllegalAccessException ex) {
+            return null;
+        }
     }
 
     public static List filterProfileAds(List items) {
@@ -637,7 +688,8 @@ public final class FeedItemsFilter {
     ) {
         boolean verbose = BaseSettings.DEBUG.get();
 
-        if (followFeedList == null || followFeedList.mItems == null) {
+        List followItems = followItems(followFeedList);
+        if (followItems == null) {
             if (verbose) {
                 logNullItems("FollowFeedList", followFeedListNullItemsLogCount);
             }
@@ -647,7 +699,7 @@ public final class FeedItemsFilter {
         if (verbose && shouldLogBatch()) {
             debugLogBatch(
                 "FollowFeedList",
-                followFeedList.mItems,
+                followItems,
                 "phase=" + phase
                     + " feedType=" + followFeedList.feedType
                     + " hasMore=" + followFeedList.hasMore
@@ -659,7 +711,7 @@ public final class FeedItemsFilter {
         filterFeedList(
             phase == FilterPhase.RESPONSE ? "FollowFeedList:response" : "FollowFeedList:late",
             followFeedList,
-            followFeedList.mItems,
+            followItems,
             container -> (container instanceof FollowFeed) ? ((FollowFeed) container).aweme : null,
             verbose,
             allowRecentSkip,
@@ -832,7 +884,15 @@ public final class FeedItemsFilter {
             return replacement;
         }
         if (owner instanceof FollowFeedList) {
-            ((FollowFeedList) owner).mItems = replacement;
+            Field field = followItemsField((FollowFeedList) owner);
+            if (field == null) {
+                throw new IllegalStateException("FollowFeedList has no items field on this build");
+            }
+            try {
+                field.set(owner, replacement);
+            } catch (IllegalAccessException ex) {
+                throw new IllegalStateException("Could not replace the Following feed items", ex);
+            }
             return replacement;
         }
         throw new IllegalStateException("Unsupported feed list owner: " + owner.getClass().getName());

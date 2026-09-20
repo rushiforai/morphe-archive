@@ -173,75 +173,7 @@ public class IntervalsSyncEngine {
     }
 
     public static String getCoachDataJson(Context context) {
-        JSONObject obj = new JSONObject();
-        try {
-            SharedPreferences prefs = getPrefs(context);
-            float ctl = prefs.getFloat(KEY_CTL, 68.0f);
-            float atl = prefs.getFloat(KEY_ATL, 65.0f);
-            float tsb = prefs.getFloat(KEY_TSB, ctl - atl);
-
-            SQLiteDatabase db = getDatabase(context);
-            int rhr = 46;
-            int hrv = 68;
-            float tempOffset = 0.0f;
-            String latestDate = "";
-            int sleepScore = 80;
-
-            if (db != null) {
-                Cursor cursor = null;
-                try {
-                    cursor = db.query(
-                            "SleepSyncModel",
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            "dateSleep DESC",
-                            "1"
-                    );
-                    if (cursor != null && cursor.moveToFirst()) {
-                        int colDate = cursor.getColumnIndex("dateSleep");
-                        int colRestingHr = cursor.getColumnIndex("restingHr");
-                        int colHrvAvg = cursor.getColumnIndex("hrvAvg");
-                        int colTempOffset = cursor.getColumnIndex("tempOffset");
-                        int colScore = cursor.getColumnIndex("sleepScore");
-                        int colDeep = cursor.getColumnIndex("deepDuration");
-                        int colRem = cursor.getColumnIndex("remDuration");
-                        int colAwake = cursor.getColumnIndex("awakeDuration");
-                        int colSleepDur = cursor.getColumnIndex("sleepDuration");
-
-                        if (colDate >= 0) latestDate = cursor.getString(colDate);
-                        if (colRestingHr >= 0 && !cursor.isNull(colRestingHr)) rhr = cursor.getInt(colRestingHr);
-                        if (colHrvAvg >= 0 && !cursor.isNull(colHrvAvg)) hrv = (int) cursor.getFloat(colHrvAvg);
-                        if (colTempOffset >= 0 && !cursor.isNull(colTempOffset)) tempOffset = cursor.getFloat(colTempOffset);
-
-                        int totalM = colSleepDur >= 0 ? (int) cursor.getFloat(colSleepDur) : 0;
-                        int deepM = colDeep >= 0 ? (int) cursor.getFloat(colDeep) : 0;
-                        int remM = colRem >= 0 ? (int) cursor.getFloat(colRem) : 0;
-                        int awakeM = colAwake >= 0 ? (int) cursor.getFloat(colAwake) : 0;
-                        sleepScore = calculateAthleticSleepScore(totalM, deepM, remM, awakeM);
-                    }
-                } finally {
-                    if (cursor != null) cursor.close();
-                }
-            }
-
-            CoachBrain.EvaluationResult eval = CoachBrain.evaluate(rhr, hrv, tempOffset, ctl, atl, tsb, null);
-            obj = eval.toJson();
-            obj.put("latestDate", latestDate);
-            obj.put("restingHr", rhr);
-            obj.put("hrv", hrv);
-            obj.put("tempOffset", tempOffset);
-            obj.put("sleepScore", sleepScore);
-
-            String osaStr = getOsaDataJson(context);
-            obj.put("osa", new JSONObject(osaStr));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return obj.toString();
+        return "{}";
     }
 
     public static void saveSettings(Context context, String athleteId, String apiKey, boolean autoSync, String scoreSource) {
@@ -506,7 +438,6 @@ public class IntervalsSyncEngine {
                 }
             }
             // Note: Intervals.icu standard wellness rejects skinTemp with HTTP 422.
-            // Temperature evaluation is handled natively inside CoachBrain.
             if (deepMins > 0) {
                 payload.put("DeepSleep", deepMins);
             }

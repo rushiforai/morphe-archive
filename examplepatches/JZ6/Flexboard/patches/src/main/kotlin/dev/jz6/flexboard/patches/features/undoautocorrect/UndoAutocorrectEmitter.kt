@@ -5,6 +5,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import dev.jz6.flexboard.patches.shared.assertRegisterCount
 import dev.jz6.flexboard.patches.shared.callsMethod
@@ -14,8 +15,10 @@ import dev.jz6.flexboard.patches.shared.checkInvokeKind
 import dev.jz6.flexboard.patches.shared.checkMethodExists
 import dev.jz6.flexboard.patches.shared.destinationRegistersOrEmpty
 import dev.jz6.flexboard.patches.shared.indexOfSoleCall
+import dev.jz6.flexboard.patches.shared.methodDescriptorOrNull
 import dev.jz6.flexboard.patches.shared.invokeRegisterAt
 import dev.jz6.flexboard.patches.shared.assertNotReadBeforeWritten
+import dev.jz6.flexboard.patches.shared.registersRead
 import dev.jz6.flexboard.patches.shared.opcodeName
 import dev.jz6.flexboard.patches.shared.validateScratchRegisters
 
@@ -41,7 +44,12 @@ private val SCRATCH_REGISTERS = listOf(3, 5, 6, 7, 8)
 /** How far past the lookup the stock null test may sit. It is two `const/4`s away on this build. */
 private const val TEST_SEARCH_WINDOW = 8
 
+
+/** Anything this project emits a call to lives under here, whatever the payload happens to be. */
+private const val EXTENSION = "Ldev/jz6/flexboard/extension/"
+
 private const val SKIP_LABEL = "flexboard_not_undo_autocorrect"
+
 
 /**
  * Emits the revert on an upward flick that no key claims.
@@ -100,7 +108,13 @@ internal fun BytecodePatchContext.emitUndoAutocorrectOnUpFlick(
     //
     // Stock `Lpvf;->t` contains no call to the event sink at all, pinned in preflight, so finding
     // one means this method has already been emitted into.
-    val alreadyEmitted = body.count { it.callsMethod(DISPATCH_EVENT) }
+    // Any prior emission, not just one that raises a Gboard event. The first version of this
+    // counted DISPATCH_EVENT only; the diagnostic was later changed to call the extension probe
+    // instead, which left nothing for the guard to find and silently defeated it. `:driver:run`
+    // then applied both patches and stacked two guards in one method with no complaint.
+    val alreadyEmitted = body.count {
+        it.callsMethod(DISPATCH_EVENT) || it.methodDescriptorOrNull()?.startsWith(EXTENSION) == true
+    }
     check(alreadyEmitted == 0) {
         "$what already carries a Flexboard emission. \"Swipe up to undo autocorrect\" and " +
             "\"Swipe up diagnostic (temporary)\" both attach to the same instruction — enable one " +
@@ -133,6 +147,16 @@ internal fun BytecodePatchContext.emitUndoAutocorrectOnUpFlick(
                 "action lookup in $what — the fall-through this emission relies on is not there"
         )
     val stockTest = body[insertIndex]
+
+    // Where to go once the gesture is ours. Falling through leaves Gboard to run `Lpvi;->u(...)`
+    // and commit the key, which is why the first device build typed the letter *and* fired: the
+    // emission was additive when it needed to be exclusive.
+    //
+    // The destination is not invented. Eight stock arms already branch to the teardown that
+    // follows the per-direction dispatch -- the block that cancels the pending runnable, clears
+    // the tracker and ends the trace -- and that is exactly "this pointer is finished, no key
+    // action". Identifying it by what converges on it rather than by a pc, so a build that moves
+    // the block is followed rather than missed.
 
     validateScratchRegisters(
         scratch = SCRATCH_REGISTERS,
@@ -170,6 +194,7 @@ internal fun BytecodePatchContext.emitUndoAutocorrectOnUpFlick(
 
     // Either raise Gboard's own event, or -- for the probe build -- call straight into the
     // extension. commitText through an InputConnection has no event vocabulary to get wrong.
+
     val payload = if (probe != null) "            invoke-static { }, $probe" else """
             new-instance v$a, $KEY_DATA
             const/16 v$b, $keycode
@@ -195,3 +220,5 @@ $payload
         ExternalLabel(SKIP_LABEL, stockTest),
     )
 }
+
+

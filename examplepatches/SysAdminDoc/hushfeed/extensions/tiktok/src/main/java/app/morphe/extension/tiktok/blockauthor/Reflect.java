@@ -91,6 +91,20 @@ public final class Reflect {
         return cached == MISSING ? null : (Method) cached;
     }
 
+    /**
+     * The first of {@code names} that {@code type} or a superclass declares, or null.
+     *
+     * <p>For a model TikTok renamed between builds: list the newer name first, since an older
+     * build never declares it and falls through to the name it does have.
+     */
+    public static Field firstField(Class<?> type, String... names) {
+        for (String name : names) {
+            Field found = field(type, name);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
     /** The field {@code name} on {@code type} or a superclass, made accessible, or null. */
     public static Field field(Class<?> type, String name) {
         String key = type.getName() + '#' + name;

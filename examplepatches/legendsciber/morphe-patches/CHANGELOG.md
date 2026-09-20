@@ -1,3 +1,45 @@
+## [1.23.1](https://github.com/legendsciber/morphe-patches/compare/v1.23.0...v1.23.1) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **worldsoccerchamps:** use ${} for smali constant interpolation ([6537ea7](https://github.com/legendsciber/morphe-patches/commit/6537ea70b582f558a32e4d1cb9ce37e63600fe5b))
+
+## [1.23.0](https://github.com/legendsciber/morphe-patches/compare/v1.22.0...v1.23.0) (2026-09-19)
+
+### ✨ New Features
+
+* **worldsoccerchamps:** add free IAP patch ([c2358f4](https://github.com/legendsciber/morphe-patches/commit/c2358f48794c757009e99c99608eefc74a0a687b))
+
+## [1.22.0](https://github.com/legendsciber/morphe-patches/compare/v1.21.1...v1.22.0) (2026-09-19)
+
+### ✨ New Features
+
+* **dantheman:** remove smali patch, single binary-only patch ([f89a6e9](https://github.com/legendsciber/morphe-patches/commit/f89a6e9b52909f3b68d38e684457f833c61c5b9c)), closes [#1](https://github.com/legendsciber/morphe-patches/issues/1) [#0](https://github.com/legendsciber/morphe-patches/issues/0)
+
+## [1.21.1](https://github.com/legendsciber/morphe-patches/compare/v1.21.0...v1.21.1) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **dantheman:** fix crash - set result=0 in DoPurchase binary, remove Update() patches ([448297c](https://github.com/legendsciber/morphe-patches/commit/448297c2ab7324d6044b39226b2e4e970c332292)), closes [#1](https://github.com/legendsciber/morphe-patches/issues/1) [#0](https://github.com/legendsciber/morphe-patches/issues/0)
+
+## [1.21.0](https://github.com/legendsciber/morphe-patches/compare/v1.20.0...v1.21.0) (2026-09-19)
+
+### ✨ New Features
+
+* **dantheman:** move DoPurchase bypass to binary, keep GetProductInfo smali ([6369e0e](https://github.com/legendsciber/morphe-patches/commit/6369e0e081c526adedb2aaf74029bba6b448609f))
+
+## [1.20.0](https://github.com/legendsciber/morphe-patches/compare/v1.19.3...v1.20.0) (2026-09-19)
+
+### ✨ New Features
+
+* **dantheman:** add native binary patch to bypass server validation ([7e72cb8](https://github.com/legendsciber/morphe-patches/commit/7e72cb81878d362e6b953033dfc2f0c154b6aba4))
+
+## [1.19.3](https://github.com/legendsciber/morphe-patches/compare/v1.19.2...v1.19.3) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **dantheman:** fix register overflow in DoPurchase patch ([9c8ecc1](https://github.com/legendsciber/morphe-patches/commit/9c8ecc16868e2c712b9b389970a9ebfc11518ccf))
+
 ## [1.19.2](https://github.com/legendsciber/morphe-patches/compare/v1.19.1...v1.19.2) (2026-09-18)
 
 ### 🐛 Bug Fixes

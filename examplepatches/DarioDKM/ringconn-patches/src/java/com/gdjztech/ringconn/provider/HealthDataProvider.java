@@ -5,12 +5,15 @@ import android.app.Application;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import com.gdjztech.ringconn.engine.IntervalsSyncEngine;
 import com.gdjztech.ringconn.ui.HookHelper;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import java.io.File;
 import java.util.ArrayList;
 
@@ -30,6 +33,7 @@ public class HealthDataProvider extends ContentProvider {
                             if (activity != null && !activity.getClass().getName().contains("IntervalsActivity")) {
                                 HookHelper.attachFloatingButton(activity);
                                 checkAutoSync(activity);
+                                enforceGen2Capabilities(activity);
                             }
                         }
 
@@ -41,13 +45,15 @@ public class HealthDataProvider extends ContentProvider {
                         @Override public void onActivityDestroyed(Activity activity) {}
                     });
 
+                    enforceGen2Capabilities(appCtx);
+
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
                             try {
                                 SQLiteDatabase database = getDbInstance(appCtx);
                                 if (database != null) {
-                                    database.execSQL("UPDATE UserInfo SET isOSAHSAgreeTerm = 1, hasOpenOSAReport = 1 WHERE isOSAHSAgreeTerm != 1 OR hasOpenOSAReport != 1;");
+                                    database.execSQL("UPDATE UserInfo SET isOSAHSAgreeTerm = 1, hasOpenOSAReport = 1, researchUser = 1 WHERE isOSAHSAgreeTerm != 1 OR hasOpenOSAReport != 1 OR researchUser != 1;");
                                 }
                             } catch (Exception ignored) {}
                         }
@@ -58,6 +64,47 @@ public class HealthDataProvider extends ContentProvider {
             e.printStackTrace();
         }
         return true;
+    }
+
+    public static void enforceGen2Capabilities(Context context) {
+        if (context == null) return;
+        try {
+            SharedPreferences prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE);
+            String devInfo = prefs.getString("flutter.DeviceInfo", null);
+            if (devInfo != null) {
+                JSONObject obj = new JSONObject(devInfo);
+                boolean changed = false;
+                if (obj.optInt("deviceType", 0) != 2) {
+                    obj.put("deviceType", 2);
+                    changed = true;
+                }
+                JSONArray feats = obj.optJSONArray("features");
+                if (feats == null) {
+                    feats = new JSONArray();
+                    feats.put(1);
+                    feats.put(2);
+                    feats.put(3);
+                    obj.put("features", feats);
+                    changed = true;
+                } else {
+                    boolean has1 = false;
+                    for (int i = 0; i < feats.length(); i++) {
+                        if (feats.optInt(i) == 1) {
+                            has1 = true;
+                            break;
+                        }
+                    }
+                    if (!has1) {
+                        feats.put(1);
+                        obj.put("features", feats);
+                        changed = true;
+                    }
+                }
+                if (changed) {
+                    prefs.edit().putString("flutter.DeviceInfo", obj.toString()).apply();
+                }
+            }
+        } catch (Exception ignored) {}
     }
 
     private static SQLiteDatabase sDb;
@@ -150,6 +197,22 @@ public class HealthDataProvider extends ContentProvider {
                     result.putInt("rowCount", c.getCount());
                     c.close();
                 }
+                result.putBoolean("success", true);
+                return result;
+            } else if ("triggerSync".equalsIgnoreCase(method)) {
+                String today = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(new java.util.Date());
+                org.json.JSONObject res = IntervalsSyncEngine.syncDate(getContext(), today);
+                result.putBoolean("success", res != null && res.optBoolean("success", false));
+                return result;
+            } else if ("enforceGen2".equalsIgnoreCase(method)) {
+                enforceGen2Capabilities(getContext());
+                if (database != null) {
+                    database.execSQL("UPDATE UserInfo SET isOSAHSAgreeTerm = 1, hasOpenOSAReport = 1, researchUser = 1 WHERE isOSAHSAgreeTerm != 1 OR hasOpenOSAReport != 1 OR researchUser != 1;");
+                }
+                result.putBoolean("success", true);
+                return result;
+            } else if ("execSql".equalsIgnoreCase(method) && arg != null) {
+                database.execSQL(arg);
                 result.putBoolean("success", true);
                 return result;
             }

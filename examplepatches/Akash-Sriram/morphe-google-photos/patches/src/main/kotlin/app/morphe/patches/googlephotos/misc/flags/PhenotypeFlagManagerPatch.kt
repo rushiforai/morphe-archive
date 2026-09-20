@@ -7,7 +7,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 @Suppress("unused")
 val phenotypeFlagManagerPatch = bytecodePatch(
     name = "Enable Phenotype flag manager",
-    description = "Enables an in-app flag manager in Photos Settings to customize experimental UI redesigns and feature flags.",
+    description = "Enables an in-app flag manager in Photos Settings to toggle curated experimental UI redesigns, video editor tools, and feature flags.",
     default = true,
 ) {
     compatibleWith(AppCompatibilities.GOOGLE_PHOTOS)

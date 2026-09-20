@@ -168,6 +168,11 @@ public final class GooglePhotosAccountAvatar {
             "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";
 
     public static void ensureOneGoogleFlagsConfigured(Context context) {
+        syncOneGoogleFlags(context, true);
+    }
+
+    public static void syncOneGoogleFlags(Context context, boolean enable) {
+        if (context == null) return;
         try {
             File sharedDir = new File(context.getFilesDir(), "phenotype/shared");
             if (!sharedDir.exists()) {
@@ -180,14 +185,10 @@ public final class GooglePhotosAccountAvatar {
                     "com.google.android.libraries.onegoogle#com.google.android.apps.photos.pb"
             };
 
-            byte[] pbBytes = null;
-
-            for (String targetName : targetNames) {
-                File pbFile = new File(sharedDir, targetName);
-                if (!pbFile.exists() || pbFile.length() < 500) {
-                    if (pbBytes == null) {
-                        pbBytes = Base64.decode(ONEGOOGLE_PB_BASE64, Base64.DEFAULT);
-                    }
+            if (enable) {
+                byte[] pbBytes = Base64.decode(ONEGOOGLE_PB_BASE64, Base64.DEFAULT);
+                for (String targetName : targetNames) {
+                    File pbFile = new File(sharedDir, targetName);
                     try (FileOutputStream fos = new FileOutputStream(pbFile)) {
                         fos.write(pbBytes);
                         fos.flush();
@@ -195,6 +196,13 @@ public final class GooglePhotosAccountAvatar {
                     pbFile.setReadable(true, false);
                     pbFile.setWritable(true, false);
                     Logger.printInfo(() -> "Seeded OneGoogle phenotype flags to: " + pbFile.getAbsolutePath());
+                }
+            } else {
+                for (String targetName : targetNames) {
+                    File pbFile = new File(sharedDir, targetName);
+                    if (pbFile.exists()) {
+                        pbFile.delete();
+                    }
                 }
             }
         } catch (Throwable t) {

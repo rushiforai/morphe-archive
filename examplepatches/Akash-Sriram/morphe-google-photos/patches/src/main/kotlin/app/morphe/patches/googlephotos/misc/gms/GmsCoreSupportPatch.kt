@@ -9,6 +9,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.googlephotos.misc.gms.Constants.MORPHE_PHOTOS_PACKAGE_NAME
 import app.morphe.patches.googlephotos.misc.gms.Constants.PHOTOS_PACKAGE_NAME
 import app.morphe.patches.googlephotos.misc.gms.HomeActivityOnCreateFingerprint
+import app.morphe.patches.shared.misc.gms.PackageNameConfig
 import app.morphe.patches.shared.misc.gms.gmsCoreSupportPatch
 import app.morphe.patches.shared.misc.settings.preference.BasePreferenceScreen
 import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPreference
@@ -81,13 +82,64 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
             }
         }
 
-        // 2) Disable the AccountValidityMonitor check that runs on resume.
+        // 2) Fix Locked Folder (Mars) cloud backup: translate Mars-related internal package-name
+        //    strings in DEX bytecode from the official package name to the mod package name.
+        //
+        //    Background: patchManifest() in the shared GmsCore patch renames the ContentProvider
+        //    authority *declarations* in AndroidManifest.xml, e.g.:
+        //      "com.google.android.apps.photos.mars.contentprovider.local_locked_media"
+        //    →  "app.morphe.android.apps.photos.mars.contentprovider.local_locked_media"
+        //    However, the DEX bytecode constructs content:// URIs and Intent actions using the
+        //    original package name, so the OS fails to resolve the provider and the entire
+        //    Locked Folder pipeline (backup eligibility, auth handshake, data sync) breaks.
+        //    This pass re-aligns those strings with the renamed authorities in the manifest.
+        //    Only execute this transformation when package renaming is enabled.
+        if (PackageNameConfig.isPackageNameChangeEnabled) {
+            val targetPackageName = PackageNameConfig.effectivePackageName.ifEmpty { MORPHE_PHOTOS_PACKAGE_NAME }
+            val marsPackagePrefixes = listOf(
+                "$PHOTOS_PACKAGE_NAME.mars.",
+                "content://$PHOTOS_PACKAGE_NAME.mars.",
+            )
+            classDefForEach { classDef ->
+                val mutableClass by lazy { mutableClassDefBy(classDef) }
+
+                classDef.methods.forEach marsLoop@{ method ->
+                    val implementation = method.implementation ?: return@marsLoop
+
+                    val mutableMethod by lazy { mutableClass.findMutableMethodOf(method) }
+
+                    implementation.instructions.forEachIndexed { index, instruction ->
+                        val stringRef =
+                            (instruction as? com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction21c)
+                                ?.reference as? StringReference
+                                ?: return@forEachIndexed
+
+                        val original = stringRef.string
+                        val transformed = marsPackagePrefixes
+                            .firstOrNull { original.startsWith(it) }
+                            ?.let { original.replace(PHOTOS_PACKAGE_NAME, targetPackageName) }
+                            ?: return@forEachIndexed
+
+                        mutableMethod.replaceInstruction(
+                            index,
+                            com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c(
+                                com.android.tools.smali.dexlib2.Opcode.CONST_STRING,
+                                (instruction as com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction).registerA,
+                                com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference(transformed),
+                            ),
+                        )
+                    }
+                }
+            }
+        }
+
+        // 3) Disable the AccountValidityMonitor check that runs on resume.
         AccountValidityMonitorCheckFingerprint.method.addInstruction(
             0,
             "return-void",
         )
 
-        // 3) Keep the frictionless eligibility result intact, but prevent the
+        // 4) Keep the frictionless eligibility result intact, but prevent the
         //    MicroG failure path from clearing the selected account.
         FrictionlessEligibilityFingerprint.method.apply {
             val clearSelectedAccountIndex = indexOfFirstInstructionOrThrow {
@@ -104,7 +156,7 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
             replaceInstruction(clearSelectedAccountIndex, "invoke-virtual {p0}, $accountHandlerClass->p()V")
         }
 
-        // 4) Hook CurrentLocationMixin.a() to immediately obtain device location and animate map camera.
+        // 5) Hook CurrentLocationMixin.a() to immediately obtain device location and animate map camera.
         CurrentLocationMixinFingerprint.method.apply {
             addInstruction(
                 0,

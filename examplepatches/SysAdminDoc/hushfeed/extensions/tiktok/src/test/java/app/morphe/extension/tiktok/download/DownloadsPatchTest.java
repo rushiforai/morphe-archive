@@ -52,6 +52,24 @@ public class DownloadsPatchTest {
         assertSame(h264, video.downloadNoWatermarkAddr);
     }
 
+    /** 46.9.3 renamed both play addresses to ...Value. */
+    public static final class Video4693 extends Video {
+        public VideoUrlModel h264PlayAddrValue;
+        public VideoUrlModel playAddrValue;
+    }
+
+    @Test public void theRenamedPlayAddressesOf4693AreRead() {
+        // Reading the old names threw NoSuchFieldError there and the fallback never ran.
+        Video4693 video = new Video4693();
+        Address play = new Address(List.of("https://example.com/play"));
+        video.downloadNoWatermarkAddr = new Address(Collections.emptyList());
+        video.playAddrValue = play;
+
+        DownloadsPatch.patchVideoObject(video);
+
+        assertSame(play, video.downloadNoWatermarkAddr);
+    }
+
     @Test public void blankAndThrowingModelsAreSkippedWithoutReplacingAUsableAddress() {
         Video video = new Video();
         Address clean = new Address(List.of("https://example.com/clean"));

@@ -1,3 +1,46 @@
+## [1.5.0](https://github.com/jkennethcarino/adobo/compare/v1.4.0...v1.5.0) (2026-09-19)
+
+### Bug Fixes
+
+* **Gboard - Toggle feature flags:** Allow resetting feature flag's default value ([5b82dc7](https://github.com/jkennethcarino/adobo/commit/5b82dc750a144dfd29a6174d36166d15cad4e1b8))
+
+### Features
+
+* **Reddit:** Add `Enable guest mode` patch ([a034454](https://github.com/jkennethcarino/adobo/commit/a03445494c27a07cfb80c19c86c6044ff92ec168))
+* **Reddit:** Add `Make system navigation bar transparent` patch ([72cd773](https://github.com/jkennethcarino/adobo/commit/72cd77318c3ac29bbb5b8f38b55b06723960b4f8))
+
+### Updated App Support
+
+* **Reddit:** Add support for `2026.36.0` ([8037af0](https://github.com/jkennethcarino/adobo/commit/8037af0ec2f26d0b3cb4a41864e5358155fee005))
+* **Reddit:** Add support for `2026.37.0` ([8c54c39](https://github.com/jkennethcarino/adobo/commit/8c54c39422a209795d972a64ed9a63e82610687a))
+* **Reddit:** Add support for `2026.38.0` ([d326d45](https://github.com/jkennethcarino/adobo/commit/d326d4525898ab9730f7b4fb894f85b924e0f786))
+
+## [1.5.0-dev.4](https://github.com/jkennethcarino/adobo/compare/v1.5.0-dev.3...v1.5.0-dev.4) (2026-09-19)
+
+### Bug Fixes
+
+* **Gboard - Toggle feature flags:** Allow resetting feature flag's default value ([5b82dc7](https://github.com/jkennethcarino/adobo/commit/5b82dc750a144dfd29a6174d36166d15cad4e1b8))
+
+## [1.5.0-dev.3](https://github.com/jkennethcarino/adobo/compare/v1.5.0-dev.2...v1.5.0-dev.3) (2026-09-19)
+
+### Updated App Support
+
+* **Reddit:** Add support for `2026.36.0` ([8037af0](https://github.com/jkennethcarino/adobo/commit/8037af0ec2f26d0b3cb4a41864e5358155fee005))
+* **Reddit:** Add support for `2026.37.0` ([8c54c39](https://github.com/jkennethcarino/adobo/commit/8c54c39422a209795d972a64ed9a63e82610687a))
+* **Reddit:** Add support for `2026.38.0` ([d326d45](https://github.com/jkennethcarino/adobo/commit/d326d4525898ab9730f7b4fb894f85b924e0f786))
+
+## [1.5.0-dev.2](https://github.com/jkennethcarino/adobo/compare/v1.5.0-dev.1...v1.5.0-dev.2) (2026-09-06)
+
+### Features
+
+* **Reddit:** Add `Make system navigation bar transparent` patch ([72cd773](https://github.com/jkennethcarino/adobo/commit/72cd77318c3ac29bbb5b8f38b55b06723960b4f8))
+
+## [1.5.0-dev.1](https://github.com/jkennethcarino/adobo/compare/v1.4.0...v1.5.0-dev.1) (2026-09-06)
+
+### Features
+
+* **Reddit:** Add `Enable guest mode` patch ([a034454](https://github.com/jkennethcarino/adobo/commit/a03445494c27a07cfb80c19c86c6044ff92ec168))
+
 ## [1.4.0](https://github.com/jkennethcarino/adobo/compare/v1.3.0...v1.4.0) (2026-08-31)
 
 ### Bug Fixes

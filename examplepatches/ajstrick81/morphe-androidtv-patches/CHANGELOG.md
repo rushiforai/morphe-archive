@@ -1,3 +1,10 @@
+## [1.37.4](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.37.3...v1.37.4) (2026-09-20)
+
+
+### Bug Fixes
+
+* **primevideo:** blank complete ad items in truncated mid-roll chunks ([#120](https://github.com/ajstrick81/morphe-androidtv-patches/issues/120)) ([5828353](https://github.com/ajstrick81/morphe-androidtv-patches/commit/5828353e07cab6e0eda673da9404e54fd50c48ff))
+
 ## [1.37.3](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.37.2...v1.37.3) (2026-09-19)
 
 

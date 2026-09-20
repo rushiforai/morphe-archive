@@ -18,7 +18,7 @@ internal val toStringFingerprints =
                 string(dataClass),
                 string(isGildable),
                 opcode(Opcode.INVOKE_VIRTUAL, MatchAfterImmediately()),
-                opcode(Opcode.IGET_BOOLEAN, MatchAfterImmediately())
+                opcode(Opcode.IGET_BOOLEAN)
             )
         )
     }.plus(CommentPresentationModelToStringFingerprint)

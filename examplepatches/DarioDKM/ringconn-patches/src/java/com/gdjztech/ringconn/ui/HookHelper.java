@@ -36,7 +36,7 @@ import java.util.Locale;
 
 public class HookHelper {
 
-    public static final String TAG_CARD = "CYCLING_COACH_DISCOVER_CARD";
+    public static final String TAG_CARD = "RINGCONN_SYNC_DISCOVER_CARD";
     public static final String TAG_OLD_FAB = "INTERVALS_SYNC_FAB";
     private static volatile boolean sInDiscoverTab = false;
     private static volatile boolean sInSubmenu = false;
@@ -157,7 +157,7 @@ public class HookHelper {
 
         TextView tvSub = new TextView(activity);
         tvSub.setTag("TAG_SYNC_SUBTITLE");
-        tvSub.setText("Cloud-Synchronisation • Auto-Sync");
+        tvSub.setText("Cloud Sync • Auto-Sync");
         tvSub.setTextColor(0xFF8E8E93);
         tvSub.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         titleCol.addView(tvSub);
@@ -167,7 +167,7 @@ public class HookHelper {
         // Status Pill badge
         TextView tvBadge = new TextView(activity);
         tvBadge.setTag("TAG_SYNC_BADGE");
-        tvBadge.setText("● Aktiv");
+        tvBadge.setText("● Active");
         tvBadge.setTextColor(0xFF34C759);
         tvBadge.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         tvBadge.setTypeface(Typeface.DEFAULT_BOLD);
@@ -189,9 +189,9 @@ public class HookHelper {
 
         card.addView(headerRow);
 
-        // ROW 2: Native RingConn White Pill Button ("⚡ Jetzt synchronisieren")
+        // ROW 2: Native RingConn White Pill Button ("⚡ Sync Now")
         final TextView btnSync = new TextView(activity);
-        btnSync.setText("⚡ Jetzt synchronisieren");
+        btnSync.setText("⚡ Sync Now");
         btnSync.setTextColor(0xFF000000);
         btnSync.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         btnSync.setTypeface(Typeface.DEFAULT_BOLD);
@@ -212,26 +212,26 @@ public class HookHelper {
         btnSync.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(activity, "⚡ Übertrage RingConn-Daten zu Intervals.icu...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, "⚡ Syncing RingConn data to Intervals.icu...", Toast.LENGTH_SHORT).show();
                 btnSync.setEnabled(false);
-                btnSync.setText("⏳ Übertrage Daten...");
+                btnSync.setText("⏳ Syncing data...");
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
                         String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
                         JSONObject res = IntervalsSyncEngine.syncDate(activity, today);
                         final boolean ok = res != null && res.optBoolean("success", false);
-                        final String msg = res != null ? res.optString("message", "") : "Keine Antwort";
+                        final String msg = res != null ? res.optString("message", "") : "No response";
                         activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 btnSync.setEnabled(true);
-                                btnSync.setText("⚡ Jetzt synchronisieren");
+                                btnSync.setText("⚡ Sync Now");
                                 if (ok) {
-                                    Toast.makeText(activity, "✅ Intervals.icu erfolgreich synchronisiert!", Toast.LENGTH_LONG).show();
+                                    Toast.makeText(activity, "✅ Intervals.icu synced successfully!", Toast.LENGTH_LONG).show();
                                     updateCard(card, activity);
                                 } else {
-                                    Toast.makeText(activity, "Sync-Status: " + msg, Toast.LENGTH_LONG).show();
+                                    Toast.makeText(activity, "Sync status: " + msg, Toast.LENGTH_LONG).show();
                                 }
                             }
                         });
@@ -241,6 +241,15 @@ public class HookHelper {
         });
 
         card.addView(btnSync);
+
+        // Tapping card background opens detailed IntervalsActivity
+        card.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(activity, IntervalsActivity.class);
+                activity.startActivity(intent);
+            }
+        });
 
         return card;
     }
@@ -263,10 +272,10 @@ public class HookHelper {
 
                                 if (tvSub != null) {
                                     if (lastSyncTime > 0) {
-                                        String timeStr = new SimpleDateFormat("dd.MM. HH:mm", Locale.GERMANY).format(new Date(lastSyncTime));
-                                        tvSub.setText("Letzter Sync: " + timeStr);
+                                        String timeStr = new SimpleDateFormat("MMM dd, HH:mm", Locale.US).format(new Date(lastSyncTime));
+                                        tvSub.setText("Last sync: " + timeStr);
                                     } else {
-                                        tvSub.setText("Bereit für Synchronisation");
+                                        tvSub.setText("Ready to sync");
                                     }
                                 }
 
@@ -275,7 +284,7 @@ public class HookHelper {
                                         tvBadge.setText("● Synced");
                                         tvBadge.setTextColor(0xFF34C759);
                                     } else {
-                                        tvBadge.setText("● Bereit");
+                                        tvBadge.setText("● Ready");
                                         tvBadge.setTextColor(0xFF38BDF8);
                                     }
                                 }

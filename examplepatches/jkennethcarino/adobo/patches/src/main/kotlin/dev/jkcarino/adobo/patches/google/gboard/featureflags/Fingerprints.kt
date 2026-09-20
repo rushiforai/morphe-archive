@@ -39,3 +39,11 @@ internal val stringFlagFingerprint = { flag: String ->
         )
     )
 }
+
+internal object SetDefaultValueFingerprint : Fingerprint(
+    filters = listOf(
+        string("Resetting default value is disallowed ["),
+        opcode(Opcode.AGET_OBJECT),
+        opcode(Opcode.IF_EQZ, MatchAfterImmediately())
+    )
+)

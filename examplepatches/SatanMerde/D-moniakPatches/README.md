@@ -35,7 +35,7 @@ Ou manuellement dans l'application :
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.6](https://github.com/SatanMerde/D-moniakPatches/releases/tag/v1.1.6)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.1.15](https://github.com/SatanMerde/D-moniakPatches/releases/tag/v1.1.15)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 Hungry Shark World&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -43,7 +43,7 @@ Ou manuellement dans l'application :
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Bypass Rewarded Ads](#bypass-rewarded-ads) | Bypasses rewarded video ads in Hungry Shark World by emulating ad completion events. |  |
-| [Free Shopping](#free-shopping) | Unlocks shop items and in-app purchases in Hungry Shark World by intercepting Google Play Billing transactions for free. |  |
+| [Free Shopping](#free-shopping) | Unlocks shop items and in-app purchases in Hungry Shark World by cleanly replacing GoogleBillingService purchase methods and receipt validation. |  |
 
 </details>
 

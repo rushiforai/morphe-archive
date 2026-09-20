@@ -1,3 +1,33 @@
+## [3.29.1](https://github.com/crimera/piko-newx/compare/v3.29.0...v3.29.1) (2026-09-19)
+
+### 🐛 Bug Fixes
+* **Twitter:** drop legacy 12.25 targets ([e4a1e2e](https://github.com/crimera/piko/commit/e4a1e2e5026d73277b64b7a65d2d28dc04d69dad))
+
+## [3.29.0](https://github.com/crimera/piko-newx/compare/v3.28.0...v3.29.0) (2026-09-19)
+
+### 🐛 Bug Fixes
+* **Twitter:** refactor NewX source identity resolution ([45b230e](https://github.com/crimera/piko/commit/45b230e18a686afd97c6b386077303a2d6bd161d))
+
+### ✨ New Features
+* **Twitter:** add profile photos gallery view ([9daf4a3](https://github.com/crimera/piko/commit/9daf4a31a8daf97c8105a5da2e8c1894740d0df6))
+* **Twitter:** add more post menu hide options ([2c7c268](https://github.com/crimera/piko/commit/2c7c268aef36aaf0dd365339c137c804ca449e98))
+* **Twitter - newx:** add dislike inline action toggle ([ae7cdd2](https://github.com/crimera/piko/commit/ae7cdd2c729e8c30d6dea584320f7efd20f5cb68))
+
+### New Patches
+* **Twitter:** NewX: Gallery profile Photos tab
+
+## [3.28.0](https://github.com/crimera/piko-newx/compare/v3.27.1...v3.28.0) (2026-09-19)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** share crash log via direct activity intent ([b942d2b](https://github.com/crimera/piko/commit/b942d2b70bf021844aefba092a9469c672789725))
+
+### ✨ New Features
+* **Twitter - newx:** add crash test triggers to developer tools ([5b2b4a4](https://github.com/crimera/piko/commit/5b2b4a456c07063a3710c15b6f988b780ee8d974))
+* **Twitter - newx:** add crash logs with share and copy actions ([5feb43d](https://github.com/crimera/piko/commit/5feb43d3ccf0390405963bad742cdcc0e329e21a))
+
+### New Patches
+* **Twitter:** NewX: Crash logs
+
 ## [3.27.1](https://github.com/crimera/piko-newx/compare/v3.27.0...v3.27.1) (2026-09-18)
 
 ### 🐛 Bug Fixes

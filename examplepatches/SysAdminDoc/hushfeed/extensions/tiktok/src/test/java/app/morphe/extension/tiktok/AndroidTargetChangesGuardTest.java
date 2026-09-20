@@ -97,9 +97,10 @@ public class AndroidTargetChangesGuardTest {
             new ReviewedWrites("feed/SensitiveWarnings.java", 2,
                     "safe: writes the mask and the Aweme the host handed it, and already catches "
                             + "a refusal and reports it as a diagnostic row"),
-            new ReviewedWrites("feedfilter/FeedItemsFilter.java", 2,
-                    "safe: writes mItems and friendFeedData on the response instance the hook "
-                            + "was given"));
+            new ReviewedWrites("feedfilter/FeedItemsFilter.java", 3,
+                    "safe: writes the search results' mItems, friendFeedData and, since #12, the "
+                            + "Following feed's items field (mItems up to 46.8.3, items from "
+                            + "46.9.3), each an instance field on the response the hook was given"));
 
     /**
      * Addresses written into the payload, and what is done with them.
@@ -176,7 +177,8 @@ public class AndroidTargetChangesGuardTest {
         }
         int reviewed = REVIEWED_WRITES.stream().mapToInt(row -> row.writes).sum();
         assertEquals("the reviewed total no longer matches what the scan finds", reviewed, total);
-        assertEquals("the audit counted eight reflective writes on 2026-09-15", 8, total);
+        // Eight on 2026-09-15; the ninth is the Following feed's renamed items field (#12).
+        assertEquals("the audit counted nine reflective writes on 2026-09-19", 9, total);
     }
 
     @Test

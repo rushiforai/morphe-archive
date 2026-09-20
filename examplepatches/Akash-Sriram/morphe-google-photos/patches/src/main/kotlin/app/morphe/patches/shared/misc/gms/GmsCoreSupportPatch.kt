@@ -45,6 +45,21 @@ internal const val EXTENSION_CLASS_DESCRIPTOR =
  */
 internal const val GMS_CORE_VENDOR_GROUP_ID = "app.revanced"
 
+object PackageNameConfig {
+    var isPackageNameChangeEnabled: Boolean = false
+    var effectivePackageName: String = ""
+
+    fun resolvePackageName(fromPackageName: String, fallbackPackageName: String): String {
+        return if (isPackageNameChangeEnabled && effectivePackageName.isNotEmpty()) {
+            effectivePackageName
+        } else if (isPackageNameChangeEnabled) {
+            fallbackPackageName
+        } else {
+            fromPackageName
+        }
+    }
+}
+
 /**
  * A patch that allows patched Google apps to run without root and under a different package name
  * by using GmsCore instead of Google Play Services.
@@ -76,7 +91,6 @@ fun gmsCoreSupportPatch(
 ) {
 
     dependsOn(
-        changePackageNamePatch,
         gmsCoreSupportResourcePatchFactory(),
         extensionPatch,
     )
@@ -197,14 +211,20 @@ fun gmsCoreSupportPatch(
 
         // endregion
 
-        val packageName = setOrGetFallbackPackageName(toPackageName)
+        val packageName = PackageNameConfig.resolvePackageName(fromPackageName, toPackageName)
 
-        // Transform all strings using all provided transforms, first match wins.
-        val transformations = arrayOf(
-            ::commonTransform,
-            ::contentUrisTransform,
-            packageNameTransform(fromPackageName, packageName),
-        )
+        val transformations: List<(String) -> String?> = if (packageName != fromPackageName) {
+            listOf(
+                ::commonTransform,
+                ::contentUrisTransform,
+                packageNameTransform(fromPackageName, packageName),
+            )
+        } else {
+            listOf(
+                ::commonTransform,
+                ::contentUrisTransform,
+            )
+        }
         transformStringReferences transform@{ string ->
             transformations.forEach { transform ->
                 transform(string)?.let { transformedString -> return@transform transformedString }
@@ -559,10 +579,6 @@ fun gmsCoreSupportResourcePatch(
     executeBlock: ResourcePatchContext.() -> Unit = {},
     block: ResourcePatchBuilder.() -> Unit = {},
 ) = resourcePatch {
-    dependsOn(
-        changePackageNamePatch
-    )
-
     execute {
         /**
          * Add metadata to manifest to support spoofing the package name and signature of GmsCore.
@@ -615,17 +631,20 @@ fun gmsCoreSupportResourcePatch(
          * Patch the manifest to support GmsCore.
          */
         fun patchManifest() {
-            val packageName = setOrGetFallbackPackageName(toPackageName)
+            val packageName = PackageNameConfig.resolvePackageName(fromPackageName, toPackageName)
 
-            val transformations = mapOf(
-                "package=\"$fromPackageName" to "package=\"$packageName",
-                "android:authorities=\"$fromPackageName" to "android:authorities=\"$packageName",
-                "$fromPackageName.permission.C2D_MESSAGE" to "$packageName.permission.C2D_MESSAGE",
-                "$fromPackageName.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" to "$packageName.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+            val transformations = mutableMapOf(
                 "com.google.android.c2dm" to "$GMS_CORE_VENDOR_GROUP_ID.android.c2dm",
                 "com.google.android.libraries.photos.api.mars" to "$GMS_CORE_VENDOR_GROUP_ID.android.apps.photos.api.mars",
                 "</queries>" to "<package android:name=\"$GMS_CORE_VENDOR_GROUP_ID.android.gms\"/></queries>",
             )
+
+            if (packageName != fromPackageName) {
+                transformations["package=\"$fromPackageName"] = "package=\"$packageName"
+                transformations["android:authorities=\"$fromPackageName"] = "android:authorities=\"$packageName"
+                transformations["$fromPackageName.permission.C2D_MESSAGE"] = "$packageName.permission.C2D_MESSAGE"
+                transformations["$fromPackageName.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"] = "$packageName.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+            }
 
             val manifest = get("AndroidManifest.xml")
             manifest.writeText(
@@ -656,100 +675,4 @@ fun gmsCoreSupportResourcePatch(
     block()
 }
 
-lateinit var packageNameOption: Option<String>
-
-fun setOrGetFallbackPackageName(fallbackPackageName: String): String {
-    val packageName = packageNameOption.value!!
-
-    return if (packageName == packageNameOption.default) {
-        fallbackPackageName.also { packageNameOption.value = it }
-    } else {
-        packageName
-    }
-}
-
-private val changePackageNamePatch = resourcePatch(
-    name = "Change package name",
-    description = "Appends \".morphe\" to the package name by default. " +
-        "Changing the package name of the app can lead to unexpected issues.",
-    default = false,
-) {
-    packageNameOption = stringOption(
-        key = "packageName",
-        default = "Default",
-        values = mapOf("Default" to "Default"),
-        title = "Package name",
-        description = "The name of the package to rename the app to.",
-        required = true,
-    ) {
-        it == "Default" || it!!.matches(Regex("^[a-z]\\w*(\\.[a-z]\\w*)+\$"))
-    }
-
-    val updatePermissions by booleanOption(
-        key = "updatePermissions",
-        default = false,
-        title = "Update permissions",
-        description = "Update compatibility receiver permissions. " +
-            "Enabling this can fix installation errors, but this can also break features in certain apps.",
-    )
-
-    val updateProviders by booleanOption(
-        key = "updateProviders",
-        default = false,
-        title = "Update providers",
-        description = "Update provider names declared by the app. " +
-            "Enabling this can fix installation errors, but this can also break features in certain apps.",
-    )
-
-    finalize {
-        val incompatibleAppPackages = setOf(
-            "com.reddit.frontpage",
-        )
-
-        document("AndroidManifest.xml").use { document ->
-            val manifest = document.getNode("manifest") as Element
-            val packageName = manifest.getAttribute("package")
-
-            if (incompatibleAppPackages.contains(packageName)) {
-                return@finalize java.util.logging.Logger.getLogger(this::class.java.name).severe(
-                    "'$packageName' does not work correctly with \"Change package name\"",
-                )
-            }
-
-            val replacementPackageName = packageNameOption.value
-            val newPackageName = if (replacementPackageName != packageNameOption.default) {
-                replacementPackageName!!
-            } else {
-                "$packageName.morphe"
-            }
-
-            manifest.setAttribute("package", newPackageName)
-
-            if (updatePermissions == true) {
-                val permissions = manifest.getElementsByTagName("permission").asSequence()
-                val usesPermissions = manifest.getElementsByTagName("uses-permission").asSequence()
-
-                val receiverNotExported = "DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
-
-                (permissions + usesPermissions)
-                    .map { it as Element }
-                    .filter { it.getAttribute("android:name") == "$packageName.$receiverNotExported" }
-                    .forEach { it.setAttribute("android:name", "$newPackageName.$receiverNotExported") }
-            }
-
-            if (updateProviders == true) {
-                val providers = manifest.getElementsByTagName("provider").asSequence()
-
-                for (node in providers) {
-                    val provider = node as Element
-
-                    val authorities = provider.getAttribute("android:authorities")
-                    if (!authorities.startsWith("$packageName.")) continue
-
-                    provider.setAttribute("android:authorities", authorities.replace(packageName, newPackageName))
-                }
-            }
-        }
-    }
-}
 

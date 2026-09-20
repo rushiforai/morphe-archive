@@ -23,14 +23,15 @@ public class IntervalsActivity extends Activity {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
         ));
-        root.setBackgroundColor(0xFF0B0F19);
+        root.setBackgroundColor(0xFF070A11);
+        root.setFitsSystemWindows(true);
 
         webView = new WebView(this);
         webView.setLayoutParams(new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
         ));
-        webView.setBackgroundColor(0xFF0B0F19);
+        webView.setBackgroundColor(0xFF070A11);
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
@@ -38,8 +39,17 @@ public class IntervalsActivity extends Activity {
         settings.setDatabaseEnabled(true);
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
+        settings.setAllowFileAccess(true);
+        settings.setAllowContentAccess(true);
 
-        webView.setWebChromeClient(new WebChromeClient());
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onConsoleMessage(android.webkit.ConsoleMessage consoleMessage) {
+                android.util.Log.d("IntervalsDashboard", consoleMessage.message() + " -- Line "
+                        + consoleMessage.lineNumber());
+                return true;
+            }
+        });
         webView.setWebViewClient(new WebViewClient());
 
         webView.addJavascriptInterface(new IntervalsBridge(this), "IntervalsBridge");

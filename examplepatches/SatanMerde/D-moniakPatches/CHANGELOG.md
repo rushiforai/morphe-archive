@@ -1,3 +1,58 @@
+## [1.1.15](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.14...v1.1.15) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** fix inverted branch conditions preventing shop callbacks from firing ([52525be](https://github.com/SatanMerde/D-moniakPatches/commit/52525be0d529ce6c8ea98c9394861d20ce43746b))
+
+## [1.1.14](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.13...v1.1.14) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** clean method replacement for google billing service and preserve houston bytecode ([979538c](https://github.com/SatanMerde/D-moniakPatches/commit/979538cd12eab95c7e012e1bf0adc2887cd06839))
+
+## [1.1.13](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.12...v1.1.13) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** guard onPurchasesUpdated against cold startup queries to fix loading hang ([45250df](https://github.com/SatanMerde/D-moniakPatches/commit/45250df8babba19c18c70af4f890c5fce2b2d887))
+
+## [1.1.12](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.11...v1.1.12) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** resolve loading screen hang by preserving initialise and fix purchase completion ([089831e](https://github.com/SatanMerde/D-moniakPatches/commit/089831e0fa3e9931e801014734ce5b05bee86832))
+
+## [1.1.11](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.10...v1.1.11) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** bypass ubisoft orion and houston validation to resolve shop freeze ([7cac43a](https://github.com/SatanMerde/D-moniakPatches/commit/7cac43ad61ebc8dd49b7276114cc2cae7274d1f0))
+
+## [1.1.10](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.9...v1.1.10) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** make sku extraction null-safe and prevent exceptions in launch billing flow ([af7bbcb](https://github.com/SatanMerde/D-moniakPatches/commit/af7bbcba5a67625411ba0e39e7b51d80c228175e))
+
+## [1.1.9](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.8...v1.1.9) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** resolve shop purchase freeze via real sku extraction and purchases updated broadcast ([e461ece](https://github.com/SatanMerde/D-moniakPatches/commit/e461ecead7615c33b7b4c10463fa08527699996a))
+
+## [1.1.8](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.7...v1.1.8) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** fix constructor reference in billing listener capture ([153dde8](https://github.com/SatanMerde/D-moniakPatches/commit/153dde880e5e6bdb8c7c30bc2d9698d2fedfe8fa))
+* **hungryshark:** fix shop purchase freeze by capturing billing listener via system properties and correct list branch logic ([d139504](https://github.com/SatanMerde/D-moniakPatches/commit/d139504cf6cbb04b87599ed13cf7b6fcf239416c))
+
+## [1.1.7](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.6...v1.1.7) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** eliminate loading freeze and enable shop unlock via self-contained pure smali billing bypass ([b045062](https://github.com/SatanMerde/D-moniakPatches/commit/b0450629e9b7ffce35da13b6efb91d8dd7cd8a01))
+
 ## [1.1.6](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.5...v1.1.6) (2026-09-18)
 
 ### 🐛 Bug Fixes

@@ -2,3 +2,5 @@ build/
 .DS_Store
 *.iml
 .idea/
+*.bak
+*.backup

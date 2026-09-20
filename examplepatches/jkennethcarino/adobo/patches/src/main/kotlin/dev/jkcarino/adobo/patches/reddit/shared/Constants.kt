@@ -14,15 +14,15 @@ val COMPATIBILITY_REDDIT =
         ),
         targets = listOf(
             AppTarget(
-                version = "2026.35.0",
+                version = "2026.38.0",
                 minSdk = 29
             ),
             AppTarget(
-                version = "2026.34.0",
+                version = "2026.37.0",
                 minSdk = 29
             ),
             AppTarget(
-                version = "2026.33.2",
+                version = "2026.36.0",
                 minSdk = 29
             ),
             AppTarget(

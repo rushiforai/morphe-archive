@@ -41,6 +41,8 @@ public final class SettingsSearchInputPreference extends Preference {
     private View clearButton;
     private TextView resultCount;
     private int shownResults = -1;
+    /** Kept by the preference while its view is replaced by a result page. */
+    private String query = "";
 
     public SettingsSearchInputPreference(Context context, QueryListener queryListener) {
         super(context);
@@ -82,14 +84,19 @@ public final class SettingsSearchInputPreference extends Preference {
             if (manager != null) manager.hideSoftInputFromWindow(view.getWindowToken(), 0);
             return true;
         });
+        if (!query.isEmpty()) {
+            editText.setText(query);
+            editText.setSelection(query.length());
+        }
         editText.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) {
             }
 
             @Override public void onTextChanged(CharSequence text, int start, int before, int count) {
+                query = text == null ? "" : text.toString();
                 updateClearButton();
                 if (queryListener != null) {
-                    queryListener.onQueryChanged(text == null ? "" : text.toString());
+                    queryListener.onQueryChanged(query);
                 }
             }
 
@@ -130,13 +137,15 @@ public final class SettingsSearchInputPreference extends Preference {
     }
 
     public String getQuery() {
-        return editText == null ? "" : editText.getText().toString();
+        return editText == null ? query : editText.getText().toString();
     }
 
     public void setQuery(String query) {
-        if (editText != null && query != null && !query.isEmpty()) {
-            editText.setText(query);
-            editText.setSelection(query.length());
+        String value = query == null ? "" : query;
+        this.query = value;
+        if (editText != null && !value.contentEquals(editText.getText())) {
+            editText.setText(value);
+            editText.setSelection(value.length());
         }
     }
 

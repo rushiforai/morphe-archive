@@ -1368,3 +1368,27 @@ fun customLiteral(literalSupplier: () -> Long): ((method: Method, classDef: Clas
     { method, _ ->
         method.containsLiteralInstruction(literalSupplier())
     }
+context(BytecodePatchContext)
+fun Fingerprint.matchAllMethodIndicesForEach(
+    requireMatches: Boolean = true,
+    block: MutableMethod.(Int) -> Unit
+) {
+    requireNotNull(filters)
+    require(filters!!.size == 1) {
+        "Fingerprint must contain exactly 1 filter"
+    }
+
+    val matches = matchAllOrNull()
+    if (matches == null) {
+        if (requireMatches) throw PatchException("Could not find any matches of $this")
+        return
+    }
+
+    val filter = filters!!.first()
+    matches.forEach { match ->
+        val method = match.method
+        method.findInstructionIndicesReversedOrThrow(filter).forEach { index ->
+            block(method, index)
+        }
+    }
+}

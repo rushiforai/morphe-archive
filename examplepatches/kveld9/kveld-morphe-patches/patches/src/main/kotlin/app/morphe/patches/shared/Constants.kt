@@ -5,7 +5,7 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 
 object Constants {
-    const val BRAVE_TARGET_VERSION = "1.95.102"
+    const val BRAVE_TARGET_VERSION = "1.95.104"
     const val BRAVE_PACKAGE_NAME = "com.brave.browser"
 
     val COMPATIBILITY_BRAVE = Compatibility(
@@ -16,7 +16,7 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = BRAVE_TARGET_VERSION,
-                description = "Download Bravemonoarm64.apk (v1.95.102) from github.com/brave/brave-browser/releases"
+                description = "Download Bravemonoarm64.apk (v1.95.104) from github.com/brave/brave-browser/releases"
             )
         )
     )
@@ -70,10 +70,6 @@ object Constants {
             AppTarget(
                 version = HEVY_TARGET_VERSION,
                 description = "Download com.hevy v$HEVY_TARGET_VERSION (APKM bundle) from APKMirror"
-            ),
-            AppTarget(
-                version = "3.1.13",
-                description = "Download com.hevy v3.1.13 (APKM bundle) from APKMirror"
             )
         )
     )

@@ -49,6 +49,17 @@ constexpr const char* kIgnite = "libignite.so";
 #endif
 constexpr bool kApplyWrites = (PV_DRY_RUN == 0);
 
+// DIAGNOSTIC build (-DPV_DIAG=1): extra logging to root-cause the #120 mid-roll
+// buffer-lock freeze. Confirms whether a mid-roll getVideoAds (regolith) response
+// arrives TRUNCATED across memcpy chunks — which makes maybe_empty_regolith bail
+// (json_match_bracket == -1) so the clean empty-break path never fires and the
+// reserved PeriodTailor slot buffer-locks. Never changes behavior, only logs.
+#ifndef PV_DIAG
+#define PV_DIAG 0
+#endif
+// Counts regolith ad-responses seen truncated (couldn't be emptied). Cheap; always on.
+std::atomic<uint64_t> g_rego_trunc{0};
+
 // Same size gate as the verified bench's CModule scan: cheap enough to run on
 // every copy, wide enough to cover real intraTitlePlaylist buffers (~40-68KB
 // observed) with headroom.
@@ -169,12 +180,55 @@ void maybe_empty_regolith(void* vbuf, size_t n) {
     g_rego_seen.fetch_add(1, std::memory_order_relaxed);
     size_t open = pl + 11;                                // index of '[' in "\"playlist\":["
     size_t close = pvfilter::json_match_bracket(buf, n, open);
-    if (close == static_cast<size_t>(-1)) {
-        // Truncated playlist: the closing ']' isn't in this chunk, so the
-        // whole-array empty below can't run. Rather than leak the ad, blank
-        // every COMPLETE media.urls array before the cut — the interstitial
-        // .mpd URLs the player fetches to start the pre-roll — same-length and
-        // string-safe, never touching the truncated trailing element.
+    if (close == static_cast<size_t>(-1)) {               // truncated array (#120)
+        // ⭐ #120 ROOT CAUSE: a large (aggressive-region: India/EU) ad-response
+        // arrived split across memcpy chunks, so the whole "playlist":[...] array
+        // doesn't close in this chunk and the whole-array empty below can't run.
+        // Two-layer salvage instead of bailing (which lets the ad through, or
+        // buffer-locks the PeriodTailor slot into the mid-roll freeze):
+        //   (1) blank each COMPLETE ad object {...} (plus its trailing comma) that
+        //       closes inside the chunk — kills the mid-roll ads that used to
+        //       freeze. Same same-length space-fill the intraTitlePlaylist path
+        //       uses for truncated arrays; the truncated tail object is left intact
+        //       so the JSON stays structurally valid on reassembly.
+        //   (2) for that leftover truncated tail, still blank its COMPLETE
+        //       media.urls arrays — the interstitial .mpd URLs the player fetches
+        //       to start a pre-roll (the v1.37.2 salvage). Runs over the same
+        //       region; the objects blanked in (1) are now spaces, so this only
+        //       touches URLs inside the tail. Same-length and string-safe.
+        g_rego_trunc.fetch_add(1, std::memory_order_relaxed);
+#if PV_DIAG
+        {
+            char head[97]; size_t hl = (n - pl) < 96 ? (n - pl) : 96;
+            for (size_t i = 0; i < hl; ++i) { char c = buf[pl + i]; head[i] = (c >= 32 && c < 127) ? c : '.'; }
+            head[hl] = '\0';
+            LOGW("PVDIAG rego TRUNCATED (mid-roll suspect) n=%zu open=%zu head=[%s]", n, open, head);
+        }
+#endif
+        // (1) mid-roll: blank complete ad objects that close in-chunk
+        int trunc_blanked = 0;
+        size_t i = open + 1;
+        auto is_ws = [](char c){ return c==' '||c=='\t'||c=='\n'||c=='\r'; };
+        while (i < n) {
+            while (i < n && is_ws(buf[i])) ++i;
+            if (i >= n || buf[i] != '{') break;            // not at an object start → stop
+            size_t item_close = pvfilter::json_match_bracket(buf, n, i);
+            if (item_close == static_cast<size_t>(-1)) break;  // truncated tail item — leave it
+            size_t j = item_close + 1;                     // find optional trailing comma
+            while (j < n && is_ws(buf[j])) ++j;
+            bool has_comma = (j < n && buf[j] == ',');
+            size_t blank_end = has_comma ? j + 1 : item_close + 1;
+            if (kApplyWrites) for (size_t k = i; k < blank_end; ++k) buf[k] = ' ';
+            ++trunc_blanked;
+            if (!has_comma) break;                         // no comma after → nothing valid follows in-chunk
+            i = j + 1;
+        }
+        if (trunc_blanked > 0) {
+            g_pvkill_tv.fetch_add(static_cast<uint64_t>(trunc_blanked), std::memory_order_relaxed);
+            LOGI("PVKILL path=tv-trunc blanked=%d complete ad item(s) in truncated chunk (n=%zu)",
+                 trunc_blanked, n);
+        }
+        // (2) pre-roll: salvage the truncated tail's complete media.urls arrays
         int nb = pvfilter::blank_complete_media_urls(buf, n, open);
         if (nb > 0) {
             uint64_t c = g_rego_trunc_salvaged.fetch_add(1, std::memory_order_relaxed);
@@ -186,7 +240,12 @@ void maybe_empty_regolith(void* vbuf, size_t n) {
         }
         return;                                           // truncated tail left untouched
     }
-    if (close <= open + 1) return;                        // already empty
+    if (close <= open + 1) {                               // already empty
+#if PV_DIAG
+        LOGI("PVDIAG rego already-empty n=%zu", n);
+#endif
+        return;
+    }
     int ads = 1; int depth = 0; bool in_str = false, esc = false;
     for (size_t i = open; i < close; ++i) {
         char c = buf[i];
@@ -374,7 +433,7 @@ void* worker_thread(void*) {
         sleep(5);
         LOGI("[hb] skipchunk=%llu malloc=%llu | cpy=%llu mov=%llu cpy_chk=%llu mov_chk=%llu | "
              "total=%llu in_gate=%llu max_n=%llu marker=%llu complete=%llu "
-             "trunc=%llu trunc_rem=%llu modified=%llu blanked=%llu rego_trunc_salv=%llu",
+             "trunc=%llu trunc_rem=%llu modified=%llu blanked=%llu rego_trunc=%llu rego_trunc_salv=%llu",
              (unsigned long long)g_skipped_chunk.load(std::memory_order_relaxed),
              (unsigned long long)g_malloc_calls.load(std::memory_order_relaxed),
              (unsigned long long)g_n_memcpy.load(std::memory_order_relaxed),
@@ -390,6 +449,7 @@ void* worker_thread(void*) {
              (unsigned long long)g_trunc_remotes.load(std::memory_order_relaxed),
              (unsigned long long)g_modified.load(std::memory_order_relaxed),
              (unsigned long long)g_remote_blanked.load(std::memory_order_relaxed),
+             (unsigned long long)g_rego_trunc.load(std::memory_order_relaxed),
              (unsigned long long)g_rego_trunc_salvaged.load(std::memory_order_relaxed));
         // Self-stamp summary (oracle): total ads removed since load, both paths.
         LOGI("PVOBS movieBlanked=%llu tvEmptied=%llu tvTruncSalvaged=%llu",

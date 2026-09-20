@@ -1,12 +1,35 @@
 # Changelog
 
+## 1.2.10 (2026-09-19)
+
+### Localization & UI Consistency
+* **English Patch Metadata & Descriptions:**
+  * Updated `patches-list.json`, `patches-bundle.json` and Smali definitions with comprehensive English titles and descriptions.
+  * Replaced German target descriptions with clear English metadata.
+* **Full English Dashboard & Tile Interface:**
+  * Complete English localization in `DashboardHtml.java` for metrics, sleep stages, status indicators, toasts and settings.
+  * English status labels and button text in `HookHelper.java` (Cloud Sync, Sync Now, Active, Synced, Ready).
+
+## 1.2.9 (2026-09-19)
+
+### Fixes & Stabilität im Dashboard-Fenster
+* **Korrektur der JavaScript-Syntax im Intervals.icu Hub (`DashboardHtml.java`):**
+  * Behebung eines gravierenden Anführungszeichen-Syntaxfehlers in HTML/JS-String-Templates, der das Ausführen des gesamten Frontend-Skripts blockierte.
+  * Korrekte Initialisierung und Live-Befüllung der Vitalwerte (Schlafdauer, Ruhepuls, HRV, Hauttemperatur, Schlafphasen-Balken und Effizienz).
+  * Wiederherstellung der Interaktivität für alle Reiter (Sync, Historie, Einstellungen, Logs) sowie für den manuellen Übertragungs- und Schließen-Button.
+* **Erweiterte Kachel-Interaktion (`HookHelper.java`):**
+  * Klicks auf den gesamten Hintergrund der Kachel öffnen nun zuverlässig das Detailfenster (nicht mehr nur die Headerzeile).
+* **Systemleisten-Integration (`IntervalsActivity.java`):**
+  * `setFitsSystemWindows(true)` aktiviert, damit Header und Schließen-Button nicht von Display-Ausschnitten oder der Statusleiste verdeckt werden.
+  * WebChromeClient Konsolen-Logging für WebView-Diagnose ergänzt.
+
 ## 1.2.8 (2026-09-17)
 
 ### Fokussierung & Bereinigung
 * **Reine Datenübertragung:**
-  * Vollständige Entfernung des Coaching-Reiters (Wattkorridore, Wonhalde-Bestwerte, Durability-Vorgaben, Periodisierung und Verpflegungsregeln) aus dem eingebetteten RingConn-Hub.
+  * Vollständige Entfernung des Coaching-Reiters (Trainingsvorgaben, Power Zones und Periodisierungsregeln) aus dem eingebetteten RingConn-Hub.
   * Das Hub fungiert nun als schlankes, reines Synchronisationswerkzeug für die Übertragung von RingConn-Daten (Schlafdauer, Ruhepuls, HRV, SpO2, Temperatur) zu Intervals.icu.
-  * Sämtliche Trainingssteuerung, Leistungsdiagnostik und das Whoop 4.0 Dashboard sind exklusiv in die eigenständige CyclingCoach-App überführt.
+  * Sämtliche Trainingssteuerung, Leistungsdiagnostik und das erweiterte Dashboard sind exklusiv in eine separate Companion-App überführt.
 
 ## 1.2.7 (2026-09-17)
 
@@ -40,19 +63,19 @@
 ## 1.2.3 (2026-09-07)
 
 ### Fixes & Optimizations
-* **Intervals.icu API Payload:** Nicht unterstütztes Feld `skinTemp` aus dem PUT-Payload entfernt, wodurch HTTP 422 Fehler behoben sind. Lokale Temperaturüberwachung bleibt im CoachBrain aktiv.
+* **Intervals.icu API Payload:** Nicht unterstütztes Feld `skinTemp` aus dem PUT-Payload entfernt, wodurch HTTP 422 Fehler behoben sind. Lokale Temperaturüberwachung bleibt im Sync-Modul aktiv.
 * **Intelligenter Datums-Fallback:** Automatischer Fallback auf den jüngsten Schlafeintrag, falls für das aktuelle Datum noch kein Schlafzyklus abgeschlossen ist.
 * **Persistenter Discover-Tab-Status:** Zuverlässige Erhaltung der Hub-Kachel-Sichtbarkeit bei Rückkehr aus dem Dashboard oder Activity-Wechseln.
 
 ## 1.2.2 (2026-09-07)
 
 ### Features & Architecture
-* **Natives CyclingCoach-Hub im Discover-Tab:**
+* **Natives Quick-Sync-Hub im Discover-Tab:**
   * Schwebender FAB von Standard-Tabs (Insights, Health, Plan, Me) entfernt.
-  * Native Glassmorphism-Kachel exklusiv im Discover-Tab integriert mit Tages-Readiness, Wattkorridor-Empfehlung (301 W FTP), TSB-Status, Periodisierungsphase und Sofort-Sync-Button.
+  * Native Glassmorphism-Kachel exklusiv im Discover-Tab integriert mit Tages-Readiness, Wattkorridor-Empfehlung, TSB-Status, Periodisierungsphase und Sofort-Sync-Button.
   * Latenzfreie Umschaltung via Window-Touch-Callback auf der unteren Navigationsleiste.
 * **Erweiterter Coach-Reiter im Embedded Dashboard:**
-  * Vollwertiger Startreiter mit Tages-Freigabe, Wattkorridoren nach Coggan/Hunter, Durability-Leitfaden für Spätbelastungen über 2.000 kJ, Formsteuerung (CTL/ATL/TSB) und veganer Verpflegungsstrategie.
+  * Vollwertiger Startreiter mit Tages-Freigabe, Power Zones nach Coggan/Hunter, Formsteuerung (CTL/ATL/TSB) und Periodisierung.
 * **Schlafapnoe-Monitoring (OSA):**
   * Nativer Freischalt-Hook in UserInfo (`isOSAHSAgreeTerm = 1`, `hasOpenOSAReport = 1`).
   * Nächtliche OSA-Auswertung und SpO2-Tiefstwerte direkt im Dashboard und Datenprovider verfügbar.

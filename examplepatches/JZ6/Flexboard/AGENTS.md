@@ -21,9 +21,62 @@ goes unseen. That is exactly how the toolbar broke.
 **Parse your own inputs by their own name.** An assertion that fires on merged output names the
 wrong file and sends the reader into someone else's five thousand lines.
 
-**There is no Android SDK here.** `:patches:buildAndroid`, `generatePatchesList` and `:driver:run`
-against a locally built bundle cannot run. Static verification is not device verification — say
-which one you did.
+**There is no Android SDK here**, so `:patches:buildAndroid` and `generatePatchesList` cannot run.
+**`:driver:run` can.** The SDK is only needed to *build* a bundle; applying one needs nothing but a
+JVM, and CI uploads a bundle on **every push**, not only on releases:
+
+```
+gh run download --name patches-bundle --dir /tmp/mpp      # any push
+FLEXBOARD_BUNDLE=/tmp/mpp/patches-*.mpp tools/gate        # applies it, then verifies it
+```
+
+That turns on two lanes. `driver` applies the bundle; `verify` reads the result and type-checks
+**every method the patch changed** — seventeen on the current bundle, found by diffing against
+stock rather than by anyone naming them. Nothing has to be remembered.
+
+**Test a patch change before shipping it, not by shipping it.** Until the artifact step existed the
+only way to get a bundle was to cut a release, which is how two builds of a keyboard that would not
+open reached people who had selected the patch.
+
+That turns the `driver` lane on, which is the only lane that executes the patches rather than
+inspecting them from the outside. It found a real shipped bug within minutes of first being run.
+
+**Know what it covers.** It writes a dex; it does not load one, so ART's verifier never runs:
+
+| Failure | Caught by the driver |
+|---|---|
+| A fingerprint that matches nothing | yes |
+| A patch-time `check`/`require` firing | yes |
+| An exception inside a patch | yes |
+| Resource splicing that breaks the table | yes |
+| **A method rejected at class load** | **no** |
+| **Wrong behaviour on a device** | **no** |
+
+The `dev.0`/`dev.1` crash applies cleanly here. Reading the output with `tools/apk/patched.py` is
+what catches that class, and it is a manual read rather than a lane. Static verification is still
+not device verification, so say which one you did.
+
+## Reading what the patcher produced
+
+**`tools/apk/patched.py` reads a patched APK.** Everything else here reads the APK Gboard ships, so
+until this existed nothing had ever looked at a class the patcher wrote.
+
+```
+tools/apk/patched.py flexboard.apk 'Lpvf;->t(Lpvi;Landroid/view/MotionEvent;I)V' --stock gboard-apk
+```
+
+**An emission that produces nothing looks exactly like one that worked.** A helper returning `""`
+for its empty case, a `str.replace` that matched nothing, a guard whose condition is never true —
+the patch applies, every lane passes, and the build ships unchanged. `2.5.0-dev.1` was a fix for
+`dev.0` that emitted zero instructions and was byte-identical to it; three further diagnoses were
+argued from the stock dex before anyone looked at the output. **If an emission is supposed to change
+something, read the patched method and confirm it did.**
+
+**Never write a fresh liveness walk.** `preflight.live_free` does backward liveness over the real
+control-flow graph. A linear scan from an index is wrong in both directions and has now shipped
+twice from this repo: once in `assertNotReadBeforeWritten`, once in `handoverFor`, days apart, in
+the same file. The second reported every register as available and silently disabled the fix it was
+part of.
 
 ## Reading Gboard's dex
 
@@ -75,3 +128,21 @@ releases. See `docs/phenotype-flags.md`.
 
 **Morphe keys patch selection by name.** Renaming a user-facing patch resets anyone who had
 deselected it back to the default.
+
+**The resolution helpers take a `ClassLookup`, not a `BytecodePatchContext`, and that is on
+purpose.** `ClassLookup` is `(String) -> ClassDef?` — the one thing `findField`, `checkAssignable`,
+`checkInvokeKind` and the rest ever needed from the patcher. They used to take the context, and that
+single parameter is why none of them had a test for a year: `BytecodePatchContext` is a final class
+whose constructor wants a `PatcherConfig` and an APK, so asking "does this find an inherited static
+field" first meant producing sixty thousand decoded Gboard classes. Two bugs shipped from that blind
+spot — a field lookup that could not see a static, and one that reported "absent" when it had really
+left the APK and could not tell.
+
+Do not tidy them back into extension functions. Production reaches them through one-line delegating
+overloads on `BytecodePatchContext` at the bottom of `Types.kt` and `Resolve.kt`; a test passes a
+map. The delegates are the only uncovered part and `.github/scripts/check_delegates.py` checks their
+argument forwarding structurally, because swapping `type` and `target` in one of them compiles, type
+checks, and produces a confident wrong failure.
+
+The emitters are a different matter: they need `mutableClassDefBy`, mutable proxies and a dex a
+fingerprint can match, which is what `:driver:run` exists for instead.

@@ -180,7 +180,7 @@ public final class Haiagaru {
                     if (info.signatures != null && info.signatures.length > 0) {
                         info.signatures[0] = originalSignature;
                     }
-                    if (info.signingInfo != null) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && info.signingInfo != null) {
                         Signature[] signers = info.signingInfo.getApkContentsSigners();
                         if (signers != null && signers.length > 0) {
                             signers[0] = originalSignature;

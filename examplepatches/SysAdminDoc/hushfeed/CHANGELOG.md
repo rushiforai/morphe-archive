@@ -2,6 +2,23 @@
 
 Every Hushfeed release, newest first.
 
+## 0.45.2 (2026-09-19)
+
+One settings search fix found during the TikTok interface audit.
+
+### Settings search
+
+* **TikTok:** Opening a search result and pressing Back now keeps the query visible. Before this release the filtered result list stayed on screen, but the search box looked empty.
+
+## 0.45.1 (2026-09-19)
+
+Two fixes for TikTok 46.9.3, one of them a crash (#12).
+
+### Fixes
+
+* **TikTok:** On TikTok 46.9.3, Feed filter no longer closes the app when the Following feed loads. That build renamed where the feed keeps its videos, and the filter now finds them under either name.
+* **TikTok:** On TikTok 46.9.3, a download with no clean address falls back to the video's own playback address again, the way it does on 46.2.3.
+
 ## 0.45.0 (2026-09-18)
 
 TikTok 46.2.3 from APKMirror's bundle download, an .apkm file, now patches cleanly (#9).

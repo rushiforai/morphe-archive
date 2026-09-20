@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.IntegerSetting;
@@ -321,6 +322,46 @@ public class DeepFeedFilterBoundaryTest {
                 new Video("native-organic", false, 500, ""));
         assertEquals(List.of(nativeInsertion.get(1)), FeedItemsFilter.filterInsertedFeedItems(
                 new ForYouPanel(), 0, "golden_house", nativeInsertion));
+    }
+
+    /** 46.9.3 moved FollowFeedList to Kotlin and renamed mItems to items (issue #12). */
+    public static final class FollowFeedList4693 extends FollowFeedList {
+        public List items;
+    }
+
+    @Test
+    public void theFollowingFeedOf4693IsFilteredThroughItsRenamedField() {
+        // Reading mItems threw NoSuchFieldError on the real 46.9.3 class and closed TikTok.
+        Settings.REMOVE_ADS.save(true);
+        FollowFeed ordinary = follow(new Video("ordinary", false, 500, ""));
+        FollowFeedList4693 list = new FollowFeedList4693();
+        list.items = new ArrayList<>(Arrays.asList(
+                follow(new Video("ad", true, 500, "")), ordinary));
+
+        FeedItemsFilter.filterLate(list);
+
+        assertEquals(List.of(ordinary), list.items);
+        assertNull("the 46.2.3 field is not the one written on this shape", list.mItems);
+    }
+
+    @Test
+    public void aFollowingFeedFilterThatThrowsLeavesTikTokRunning() {
+        // These run inside TikTok's own getItems. An Error from here is an app crash.
+        Settings.REMOVE_ADS.save(true);
+        HookStatus.clear();
+        FollowFeedList4693 list = new FollowFeedList4693();
+        list.items = new java.util.AbstractList<Object>() {
+            @Override public Object get(int index) { throw new NoSuchFieldError("hostile"); }
+            @Override public int size() { throw new NoSuchFieldError("hostile"); }
+        };
+
+        FeedItemsFilter.filterLate(list);
+        FeedItemsFilter.filterLateFinal(list);
+        FeedItemsFilter.filter(list);
+
+        assertFalse("the failure is named in the export",
+                HookStatus.missing("following feed").isEmpty());
+        HookStatus.clear();
     }
 
     @Test
