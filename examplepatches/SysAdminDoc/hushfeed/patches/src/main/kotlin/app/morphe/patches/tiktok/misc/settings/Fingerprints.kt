@@ -5,6 +5,11 @@
 package app.morphe.patches.tiktok.misc.settings
 
 import app.morphe.patcher.Fingerprint
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 
 internal object AdPersonalizationActivityOnCreateFingerprint : Fingerprint(
@@ -45,15 +50,30 @@ internal object NpthExtentTaskInitFingerprint : Fingerprint(
     },
 )
 
+/**
+ * The compose pass that turns TikTok's settings cells into the visible, sorted menu list.
+ *
+ * TikTok 47.0.3 changed the method name and parameter count again. The class and the final
+ * comparator-plus-iterable sort are the contract the patch actually consumes, so matching that
+ * call keeps the Hushfeed row at index zero without coupling the fingerprint to R8 output.
+ */
+internal fun isSettingsComposeRowsMethod(method: Method, classDef: ClassDef): Boolean =
+    classDef.type.endsWith("/SettingsComposeRvmpFragment;") &&
+        method.returnType == "V" &&
+        method.implementation?.instructions?.any { instruction ->
+            if (instruction.opcode != Opcode.INVOKE_STATIC) return@any false
+            val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                ?: return@any false
+            reference.isSettingsRowsSort()
+        } == true
+
+/** Kotlin's sorted-with helper after obfuscation. Its owner and name drift; its contract does not. */
+internal fun MethodReference.isSettingsRowsSort(): Boolean =
+    parameterTypes == listOf("Ljava/util/Comparator;", "Ljava/lang/Iterable;") &&
+        returnType == "Ljava/util/List;"
+
 internal object SettingsComposeRowsFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        classDef.endsWith("/SettingsComposeRvmpFragment;") &&
-            method.returnType == "V" &&
-            (
-                (method.name == "XN" && method.parameterTypes.size == 8) ||
-                    (method.name == "ER" && method.parameterTypes.size == 11)
-            )
-    },
+    custom = ::isSettingsComposeRowsMethod,
 )
 
 internal object SupportGroupDefaultStateFingerprint : Fingerprint(

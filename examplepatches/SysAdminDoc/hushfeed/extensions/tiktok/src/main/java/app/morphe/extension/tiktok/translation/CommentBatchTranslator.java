@@ -230,15 +230,29 @@ public final class CommentBatchTranslator {
         if (commentItemList == null) return;
 
         try {
-            Object itemsObject = readField(commentItemList, "items");
-            if (!(itemsObject instanceof List)) {
+            Field itemsField = findField(commentItemList.getClass(), "items");
+            if (itemsField == null) {
                 HookStatus.missingMember(FAMILY, "field", commentItemList.getClass().getName(),
+                        "items");
+                Logger.printDebug(() -> "[Morphe CommentBatchTranslator] loaded.batch has no items");
+                return;
+            }
+            itemsField.setAccessible(true);
+            Object itemsObject = itemsField.get(commentItemList);
+            HookStatus.bound(FAMILY, "comment list items");
+            // TikTok 47.0.3 leaves this public field null for a valid empty first page. That is
+            // content state, not evidence that the model anchor disappeared.
+            if (itemsObject == null) {
+                Logger.printDebug(() -> "[Morphe CommentBatchTranslator] loaded.batch empty rawSize=0");
+                return;
+            }
+            if (!(itemsObject instanceof List)) {
+                HookStatus.missingMember(FAMILY, "List field", commentItemList.getClass().getName(),
                         "items");
                 Logger.printDebug(() -> "[Morphe CommentBatchTranslator] loaded.batch ignored items="
                         + className(itemsObject));
                 return;
             }
-            HookStatus.bound(FAMILY, "comment list items");
 
             List<?> items = (List<?>) itemsObject;
             ArrayList<Object> comments = new ArrayList<>();
@@ -295,12 +309,6 @@ public final class CommentBatchTranslator {
             }
 
             translateLoadedBatchIfReady(lastManager.get(), false);
-        } catch (NoSuchFieldException ex) {
-            // The list this build hands over carries no items field at all, which is the same
-            // dead end as one holding something other than a list.
-            HookStatus.missingMember(FAMILY, "field", commentItemList.getClass().getName(), "items");
-            Logger.printDebug(() -> "[Morphe CommentBatchTranslator] loaded.batch has no items",
-                    asException(ex));
         } catch (Throwable ex) {
             Logger.printDebug(() -> "[Morphe CommentBatchTranslator] loaded.batch failed", asException(ex));
         }

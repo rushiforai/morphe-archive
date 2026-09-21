@@ -48,6 +48,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                 || SettingsStatus.liveSearchEnabled
                 || SettingsStatus.hideSearchSuggestionsEnabled
                 || SettingsStatus.keepFavoritesTabEnabled
+                || SettingsStatus.promotionalBannersEnabled
                 || SettingsStatus.refreshRateEnabled
                 || SettingsStatus.launcherShortcutsEnabled;
     }
@@ -134,33 +135,43 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(
                     context,
                     "Use non-personalized search",
-                    "Search without personalization, whatever your account is set to.",
+                    "Ask TikTok for search results that aren't personalized to your account. This changes results, not search buttons or suggestions.",
                     Settings.ENABLE_NON_PERSONALIZED_SEARCH
             ));
         }
         if (SettingsStatus.liveSearchEnabled) {
             addPreference(new TogglePreference(
                     context,
-                    "Show LIVE search",
-                    "Show TikTok's search entry in the LIVE drawer where supported.",
+                    "Show search in LIVE",
+                    "Show the search entry inside TikTok's LIVE drawer, where available. This doesn't add a search box to video comments.",
                     Settings.ENABLE_LIVE_SEARCH
             ));
         }
         if (SettingsStatus.hideSearchSuggestionsEnabled) {
             addPreference(new TogglePreference(
                     context,
-                    "Hide search suggestions",
-                    "Hide the searches TikTok offers before you type. Your own search history stays.",
+                    "Hide suggestions on the search page",
+                    "Hide recommended searches before you type on TikTok's search page. Your search history stays. This doesn't hide suggestions above comments.",
                     Settings.HIDE_SEARCH_SUGGESTIONS
             ));
         }
-        if (SettingsStatus.keepFavoritesTabEnabled) {
+        if (SettingsStatus.keepFavoritesTabEnabled || SettingsStatus.promotionalBannersEnabled) {
             addPreference(new SectionHeadingPreference(context, "Profile"));
+        }
+        if (SettingsStatus.keepFavoritesTabEnabled) {
             addPreference(new TogglePreference(
                     context,
                     "Keep the Favorites tab",
                     "TikTok's server can put an account into an experiment that empties the Favorites tab on your profile. Keep the tab and its saved videos.",
                     Settings.KEEP_FAVORITES_TAB
+            ));
+        }
+        if (SettingsStatus.promotionalBannersEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide the rewards shortcut",
+                    "Hide the purple rewards button beside Add friends on your profile.",
+                    Settings.HIDE_PROFILE_REWARDS_SHORTCUT
             ));
         }
         if (SettingsStatus.refreshRateEnabled || SettingsStatus.launcherShortcutsEnabled) {

@@ -70,10 +70,16 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
         if (SettingsStatus.commentToolsEnabled) {
             addPreference(new TogglePreference(
                     context,
-                    "Search the comments",
-                    "Put a box above the comments that narrows them to the ones matching "
-                            + "what you type, by what they say or who said it. Clearing the "
-                            + "box brings the rest back.",
+                    "Easier comment likes",
+                    "Extend the heart's touch area into nearby blank space. The icon and row spacing stay the same. "
+                            + "Text, Reply and other controls keep their own space.",
+                    Settings.LARGER_COMMENT_LIKE_TARGET
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Search within comments",
+                    "Add a search box that filters comments already loaded on this video by text or username. "
+                            + "It doesn't search all of TikTok or remove TikTok's suggested-search banner.",
                     Settings.COMMENT_SEARCH
             ));
             addPreference(new TogglePreference(
@@ -119,6 +125,20 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
         if (SettingsStatus.commentToolsEnabled) {
             addPreference(new TogglePreference(
                     context,
+                    "Hide search suggestions above comments",
+                    "Hide TikTok's \"Search: ...\" banner above the comment count. "
+                            + "This doesn't hide the comments or Hushfeed's comment-search box.",
+                    Settings.HIDE_COMMENT_SEARCH_SUGGESTIONS
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Compact comment header",
+                    "Start with comments. Hide the comment count, sort and close buttons, "
+                            + "plus the suggestion area above them. Use Back or swipe down to close comments.",
+                    Settings.COMPACT_COMMENT_HEADER
+            ));
+            addPreference(new TogglePreference(
+                    context,
                     "Filter comments by keyword",
                     "Hide comments that contain any of the words below, or that come from the accounts below.",
                     Settings.COMMENT_KEYWORD_FILTER
@@ -144,7 +164,7 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(
                     context,
                     "Hide comment polls",
-                    "Remove polls from the comments before TikTok shows them.",
+                    "Hide voting cards and poll results above the comments, including polls that have ended.",
                     Settings.HIDE_COMMENT_POLLS
             ));
 

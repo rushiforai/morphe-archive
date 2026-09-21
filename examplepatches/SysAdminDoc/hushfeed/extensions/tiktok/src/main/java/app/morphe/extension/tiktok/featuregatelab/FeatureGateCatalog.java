@@ -596,6 +596,9 @@ public final class FeatureGateCatalog {
         public final String key;
         public final String title;
         public final String searchText;
+        final String normalizedKey;
+        final String normalizedTitle;
+        final String[] searchTokens;
         public final String manager;
         public final String type;
         public final boolean actionable;
@@ -651,7 +654,13 @@ public final class FeatureGateCatalog {
         ) {
             this.key = key;
             this.title = title;
-            this.searchText = (key + "\n" + title).toLowerCase(Locale.ROOT);
+            this.normalizedKey = normalizeSearchText(key);
+            this.normalizedTitle = normalizeSearchText(title);
+            this.searchText = normalizedKey + "\n" + normalizedTitle;
+            String searchable = normalizedKey + " " + normalizedTitle;
+            this.searchTokens = searchable.trim().isEmpty()
+                    ? new String[0]
+                    : searchable.trim().split(" ");
             this.manager = manager;
             this.type = type;
             this.actionable = actionable;
@@ -702,6 +711,28 @@ public final class FeatureGateCatalog {
             return manager;
         }
 
+    }
+
+    static String normalizeSearchText(String text) {
+        if (text == null || text.isEmpty()) return "";
+        String lower = text.toLowerCase(Locale.ROOT);
+        StringBuilder normalized = new StringBuilder(lower.length());
+        boolean previousWasSpace = true;
+        for (int index = 0; index < lower.length(); index++) {
+            char character = lower.charAt(index);
+            if (Character.isLetterOrDigit(character)) {
+                normalized.append(character);
+                previousWasSpace = false;
+            } else if (!previousWasSpace) {
+                normalized.append(' ');
+                previousWasSpace = true;
+            }
+        }
+        int length = normalized.length();
+        if (length > 0 && normalized.charAt(length - 1) == ' ') {
+            normalized.setLength(length - 1);
+        }
+        return normalized.toString();
     }
 
 }

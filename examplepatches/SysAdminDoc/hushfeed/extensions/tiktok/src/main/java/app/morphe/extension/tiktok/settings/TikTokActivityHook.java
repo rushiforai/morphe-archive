@@ -13,10 +13,10 @@ import android.os.Bundle;
 import android.preference.PreferenceFragment;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.tiktok.settings.preference.SettingsActionBanner;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 
@@ -54,15 +54,15 @@ public class TikTokActivityHook {
         app.morphe.extension.tiktok.featuregatelab.FeatureGateLabReport.install();
         SettingsUi.syncDarkMode(base);
 
-        LinearLayout linearLayout = new LinearLayout(base);
-        linearLayout.setLayoutParams(new LinearLayout.LayoutParams(-1, -1));
-        linearLayout.setOrientation(LinearLayout.VERTICAL);
+        FrameLayout settingsSurface = new FrameLayout(base);
+        settingsSurface.setLayoutParams(new FrameLayout.LayoutParams(-1, -1));
+        settingsSurface.setTag(SettingsActionBanner.CONTENT_ROOT_TAG);
         // The background sits here rather than only on the fragment, so it reaches behind the
         // bars. fitsSystemWindows would pad this view too, but it consumes the insets on the way
         // past, and it has no answer for a display cutout on a side edge.
-        linearLayout.setBackgroundColor(SettingsUi.background());
-        SystemBarInsets.applyTo(linearLayout);
-        linearLayout.setTransitionGroup(true);
+        settingsSurface.setBackgroundColor(SettingsUi.background());
+        SystemBarInsets.applyTo(settingsSurface);
+        settingsSurface.setTransitionGroup(true);
 
         FrameLayout fragment = new FrameLayout(base);
         fragment.setLayoutParams(new FrameLayout.LayoutParams(-1, -1));
@@ -72,8 +72,11 @@ public class TikTokActivityHook {
         int fragmentId = restoredRoot == null ? View.generateViewId() : restoredRoot.getId();
         fragment.setId(fragmentId);
 
-        linearLayout.addView(fragment);
-        base.setContentView(linearLayout);
+        // Fragments replace one another inside this child. Feedback belongs to the stable parent
+        // above it: a fragment restored by Back is added after the banner and would otherwise
+        // cover that banner even though its ten-second action was still alive.
+        settingsSurface.addView(fragment);
+        base.setContentView(settingsSurface);
 
         if (restoredRoot == null) {
             PreferenceFragment preferenceFragment = new TikTokPreferenceFragment();
@@ -93,7 +96,7 @@ public class TikTokActivityHook {
         // would have lost Back the day that attribute goes. The hook below stays as the path
         // for everything older.
         new SystemBackHandler("HushfeedSettingsBackCallback")
-                .registerUntilDetached(base, linearLayout, () -> handleBackPressed(base));
+                .registerUntilDetached(base, settingsSurface, () -> handleBackPressed(base));
 
         return true;
     }

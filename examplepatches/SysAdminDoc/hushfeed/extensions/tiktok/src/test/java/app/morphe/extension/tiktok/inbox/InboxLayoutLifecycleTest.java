@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BooleanSetting;
+import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import java.time.Duration;
@@ -34,8 +35,9 @@ import org.robolectric.annotation.LooperMode;
 @Config(sdk = 28, qualifiers = "en")
 @LooperMode(LooperMode.Mode.PAUSED)
 public class InboxLayoutLifecycleTest {
-    private static final String[] RESOURCE_NAMES = {"o1l", "kmx", "pgu", "t4g", "fnc",
-            "vpj", "vid", "user_name", "tyh", "bo5", "v15", "f8t", "k_f", "kmz"};
+    private static final String[] RESOURCE_NAMES = {"o1l", "omr", "kmx", "l7b", "pgu", "t4g",
+            "fnc", "vpj", "wqq", "vid", "zci", "user_name", "tyh", "uy5", "bo5", "brb",
+            "v15", "olv", "f8t", "fg5", "k_f", "kp1", "kmz", "l7d"};
     private final List<Inbox> inboxes = new ArrayList<>();
     private BooleanSetting[] switches;
 
@@ -52,6 +54,8 @@ public class InboxLayoutLifecycleTest {
         Settings.HIDE_INBOX_CUSTOM_TITLES.save("");
         String packageName = RuntimeEnvironment.getApplication().getPackageName();
         for (String name : RESOURCE_NAMES) InboxFilter.resolveForTests(packageName, name, id(name));
+        FeedVisibility.resolveForTests(packageName, "o1l", id("o1l"));
+        FeedVisibility.resolveForTests(packageName, "omr", id("omr"));
     }
 
     @After public void tearDown() {
@@ -188,6 +192,31 @@ public class InboxLayoutLifecycleTest {
         assertRow(row, false);
     }
 
+    @Test public void currentNamesWinWhenOlderResourcesStillExistElsewhere() {
+        Inbox inbox = openInbox(true);
+        Settings.HIDE_INBOX_ADD_PEOPLE.save(true);
+        Settings.HIDE_INBOX_SEARCH.save(true);
+        Settings.HIDE_INBOX_ACTIVITY_STATUS.save(true);
+        Settings.HIDE_INBOX_CONVERSATIONS.save(true);
+
+        LinearLayout conversation = new LinearLayout(inbox.activity);
+        conversation.setId(id("olv"));
+        LinearLayout titleWrapper = new LinearLayout(inbox.activity);
+        titleWrapper.setId(id("zci"));
+        TextView title = new TextView(inbox.activity);
+        title.setId(id("user_name"));
+        titleWrapper.addView(title);
+        conversation.addView(titleWrapper);
+        inbox.rows.addView(conversation, new LinearLayout.LayoutParams(-1, 72));
+
+        inbox.layout();
+
+        assertEquals(View.GONE, inbox.addPeople.getVisibility());
+        assertEquals(View.GONE, inbox.search.getVisibility());
+        assertEquals(View.GONE, inbox.status.getVisibility());
+        assertRow(conversation, true);
+    }
+
     @Test public void storiesOnlyModeLeavesOtherInboxViewsAloneAndRestoresRecycledRows() {
         SettingsStatus.inboxFilterEnabled = false;
         Settings.HIDE_INBOX_STORIES.save(true);
@@ -286,7 +315,11 @@ public class InboxLayoutLifecycleTest {
     }
 
     private Inbox openInbox() {
-        Inbox inbox = new Inbox();
+        return openInbox(false);
+    }
+
+    private Inbox openInbox(boolean currentNames) {
+        Inbox inbox = new Inbox(currentNames);
         inboxes.add(inbox);
         InboxFilter.install(inbox.activity);
         Shadows.shadowOf(Looper.getMainLooper()).idle();
@@ -354,15 +387,19 @@ public class InboxLayoutLifecycleTest {
         final View tab = new View(activity), addPeople = new View(activity), search = new View(activity), status = new View(activity);
 
         Inbox() {
+            this(false);
+        }
+
+        Inbox(boolean currentNames) {
             LinearLayout root = new LinearLayout(activity);
             root.setOrientation(LinearLayout.VERTICAL);
-            tab.setId(id("o1l"));
+            tab.setId(id(currentNames ? "omr" : "o1l"));
             tab.setSelected(true);
-            addPeople.setId(id("f8t"));
-            search.setId(id("k_f"));
-            status.setId(id("kmz"));
+            addPeople.setId(id(currentNames ? "fg5" : "f8t"));
+            search.setId(id(currentNames ? "kp1" : "k_f"));
+            status.setId(id(currentNames ? "l7d" : "kmz"));
             for (View view : new View[]{tab, addPeople, search, status}) root.addView(view, new LinearLayout.LayoutParams(-1, 48));
-            rows.setId(id("kmx"));
+            rows.setId(id(currentNames ? "l7b" : "kmx"));
             rows.setOrientation(LinearLayout.VERTICAL);
             root.addView(rows, new LinearLayout.LayoutParams(-1, -1));
             activity.setContentView(root);

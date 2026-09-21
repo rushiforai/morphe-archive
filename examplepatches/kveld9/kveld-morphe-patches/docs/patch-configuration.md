@@ -270,7 +270,7 @@ TH, TR, TW, UA, US, UY, VN, ZA
 
 The **`Video Quality Governor`** patch enforces user-configured maximum resolution ceilings (`1080p`, `720p`, `540p`, `480p`, or unconstrained) across video feeds while allowing independent configuration of download quality. While standard TikTok features like "Data Saver" only compress network transfers under cellular conditions without capping hardware decoders, this governor caps the actual rendition ladder (`bitRateList` and `SimBitRate`) parsed by PlayerKit/TTPlayer, reducing hardware MediaCodec load, thermals, GraphicBuffers memory consumption, and frame drops on lower-spec or battery-sensitive devices.
 
-Crucially, **playback quality and download quality are decoupled**: users can browse their feed in battery-efficient 480p while downloading clean videos and stories in full 1080p.
+Crucially, **playback quality and download quality are decoupled**: users can browse their feed in battery-efficient 480p while downloading clean videos in full 1080p.
 
 ### Configuration in Morphe Manager
 
@@ -292,7 +292,7 @@ Crucially, **playback quality and download quality are decoupled**: users can br
 ### Technical Architecture
 - **Dalvik Hooking**: Injects hooks into `Aweme.getVideo()` (return object synchronization), `Video.getBitRate()` & `Video.getRawBitRate()` (candidate ladder filtering), and `SimVideoUrlModel.getBitRate()` (PlayerKit engine filtering).
 - **Decoupled Quality Caching**: Before mutating `Video` candidate streams for PlayerKit playback, `TikTokVideoQualityHook.capVideoObject(Video)` extracts and preserves the highest-bitrate stream within the download ceiling inside `uncappedDownloadAddrs`.
-- **Downloader Routing**: `TikTokMediaHook` checks `TikTokVideoQualityHook.getBestDownloadPlayAddr(video)` when extracting clean media URLs, ensuring downloaded videos and Stories maintain full 1080p/720p resolution regardless of feed playback caps.
+- **Downloader Routing**: `TikTokMediaHook` checks `TikTokVideoQualityHook.getBestDownloadPlayAddr(video)` when extracting clean media URLs, ensuring downloaded videos maintain full 1080p/720p resolution regardless of feed playback caps.
 - **In-Situ Synchronization**: Invokes `TikTokVideoQualityHook.capVideoObject(Video)` and `TikTokVideoQualityHook.filterBitrates(List)`. Discards streams exceeding the playback cap and prioritizes the highest valid stream within the ceiling.
 - **Fail-Safe Fallback**: If an uploaded video only provides renditions exceeding the ceiling, the governor preserves the lowest available stream rather than black-screening or stalling playback.
 - **Preference Persistence**: User selections are saved to `morphe_tiktok_quality_prefs` SharedPreferences, maintaining state across restarts.
@@ -313,8 +313,25 @@ The **`Display Refresh Rate Governor`** patch locks TikTok's window rendering fr
 - **Hardware Query & Boundary Clamping**: In `TikTokRefreshRateHook.resolveTargetRate()`, queries `Display.getSupportedModes()` (Android M+) with fallback to `Display.getSupportedRefreshRates()` to detect physical display capabilities. If a configured rate exceeds the physical panel frequency (e.g. selecting 120Hz on a 90Hz or 60Hz display), it automatically clamps to `maxSupportedRate` to prevent fatal WindowManager / SurfaceFlinger mode switch aborts.
 - **Lifecycle Guards**: Validates that the `Activity` is non-null, not finishing, and not destroyed before applying window layout parameters.
 - **Window Locking**: Enforces `WindowManager.LayoutParams.preferredRefreshRate` on `MainActivity` during `onResume()` and `onWindowFocusChanged()`.
-- **Downclock Neutralization**: Bypasses video playback framerate downclocking via `LX/09YB.invoke()` (`ui_video_frame_rate_opt`) and `LX/07tH.invoke()` (`setRefreshRateIfNeeded`) while preserving all `onRenderFirstFrame` callbacks intact.
-- **Gesture Drag Synchronization**: Overrides `LX/0JOJ.LIZ()` and `LX/1PFE.LIZ()` (instance) / `LX/1PFE.LIZIZ()` (static) to immediately re-lock preferred refresh rate upon gesture completion.
+- **Downclock Neutralization**: Bypasses video playback framerate downclocking via `LX/09iz.invoke()` (formerly `LX/09YB`, `ui_video_frame_rate_opt`) and `LX/087o.invoke()` (formerly `LX/07tH`, `setRefreshRateIfNeeded`) while preserving all `onRenderFirstFrame` callbacks intact.
+- **Gesture Drag Synchronization**: Overrides `LX/0KAE.LIZ()` (formerly `LX/0JOJ`) and `LX/1RHf.LIZ()` (instance) / `LX/1RHf.LIZIZ()` (static) (formerly `LX/1PFE`) to immediately re-lock preferred refresh rate upon gesture completion.
+
+---
+
+## 🎵 TikTok: Custom Offline Videos Limit
+
+The **`Custom Offline Videos Limit`** patch customizes the maximum video caching limit available in TikTok's native Offline Mode bottom sheet. While stock TikTok restricts offline download caching to fixed tiers (e.g. 50, 100, 150), this patch injects a user-configurable count (default: `200`, clamped `1..50000`) into the options list while preserving native Keva persistence and the Auto-adjust option.
+
+### Configuration in Morphe Manager
+
+| Option | Key | Type | Default | Supported Values | Description |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Custom Offline Videos Limit** | `customLimit` | Integer | `200` | Any integer `1` to `50000` | Maximum number of offline videos that can be cached for offline playback. |
+
+### Technical Architecture
+- **Non-Destructive Limits Injection**: Intercepts the limits list provider in `OfflineModeSheetPageAssem.onAssemPostCreate()` to insert the configured limit in sorted order while keeping the `-1` (Auto-adjust) marker at index 0. Preserves native user choice without locking Keva cache.
+- **Plural Title Resolution**: Intercepts title formatting in `OfflineModeSheetPageAssem.Kr()` to format the header title using Android's native plural quantity strings (`2131755487`) or clean localized fallbacks.
+- **Dynamic Duration & Storage Estimation**: Intercepts radio item instantiation and download progress in `OfflineModeSheetPageAssem.Sr()` / subtitle formatter. Dynamically computes duration (`Math.round(count * 0.5)` mins) and storage size (`count * 2` MB / GB) when standard enum lookup fails for custom numbers.
 
 ---
 

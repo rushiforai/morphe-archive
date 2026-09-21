@@ -69,17 +69,37 @@ public class ContentAndSoundFilterTest {
     @Test public void partnershipRequiresAccountsOrAnActualCommerceSignal() {
         Item item = new Item();
         item.brandContentAccounts = List.of();
-        item.commerceVideoAuthInfo = new Commerce(false);
+        item.commerceVideoAuthInfo = new Commerce(false, 0L, 0L, null);
         item.commercialVideoInfo = "  ";
         assertFalse(markers[1].getFiltered(item));
         item.brandContentAccounts = List.of("brand");
         assertTrue(markers[1].getFiltered(item));
         item.brandContentAccounts = List.of();
-        item.commerceVideoAuthInfo = new Commerce(true);
+        item.commerceVideoAuthInfo = new Commerce(true, 0L, 0L, null);
         assertTrue(markers[1].getFiltered(item));
-        item.commerceVideoAuthInfo = new Commerce(false);
+        item.commerceVideoAuthInfo = new Commerce(false, 0L, 0L, null);
         item.commercialVideoInfo = "paid partnership";
         assertTrue(markers[1].getFiltered(item));
+    }
+
+    /** TikTok 47.0.3 renders Paid partnership from AwemeCommerceStruct, not isCommerce. */
+    @Test public void partnershipReadsEveryBrandedContentSignalUsedBy4703() {
+        Item item = new Item();
+        item.commerceVideoAuthInfo = new Commerce(false, 1L, 0L, null);
+        assertTrue("brandedContentType drives the visible Paid partnership label",
+                markers[1].getFiltered(item));
+
+        item.commerceVideoAuthInfo = new Commerce(false, 0L, 2L, null);
+        assertTrue("brand organic content carries the same disclosure treatment",
+                markers[1].getFiltered(item));
+
+        item.commerceVideoAuthInfo = new Commerce(false, 0L, 0L, "Sponsored by Acme");
+        assertTrue("the localized BO/BC label is a branded-content marker",
+                markers[1].getFiltered(item));
+
+        item.commerceVideoAuthInfo = new Commerce(false, 0L, 0L, "  ");
+        assertFalse("an attached commerce struct with default fields is ordinary content",
+                markers[1].getFiltered(item));
     }
 
     @Test public void seriesAndPlaylistDoNotShareTheirSignals() {
@@ -229,8 +249,22 @@ public class ContentAndSoundFilterTest {
     }
     private static final class Commerce {
         private final boolean value;
-        Commerce(boolean value) { this.value = value; }
+        public final long brandedContentType;
+        public final long brandOrganicType;
+        public final String ecSearchBoBcLabelText;
+
+        Commerce(boolean value, long brandedContentType, long brandOrganicType, String label) {
+            this.value = value;
+            this.brandedContentType = brandedContentType;
+            this.brandOrganicType = brandOrganicType;
+            this.ecSearchBoBcLabelText = label;
+        }
+
         public boolean isCommerce() { return value; }
+        public boolean isBrandedContent() { return brandedContentType > 0L; }
+        public boolean isBrandOrganicContent() { return brandOrganicType > 0L; }
+        public long getBrandedContentType() { return brandedContentType; }
+        public String getEcSearchBoBcLabelText() { return ecSearchBoBcLabelText; }
     }
     /** TikTok's PaidContentInfo: attached to ordinary videos with everything at its default. */
     private static final class PaidContent {

@@ -1,48 +1,89 @@
-name: 🐞 Bug report
-description: Report a bug or an issue.
+name: "🐛 Signalement de bug / Bug report"
+description: "Signaler un problème, un dysfonctionnement ou un crash lié à un patch."
 title: "bug: "
-labels: ["Bug report"]
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        # Patches template bug report
+        ### 🐞 Signalement d'un bug / Bug report
+        Merci de prendre le temps de signaler ce problème. Avant de soumettre, veuillez vérifier qu'un ticket similaire n'est pas déjà ouvert dans les [Issues existantes](https://github.com/SatanMerde/D-moniakPatches/issues?q=is%3Aissue).
 
-        Before creating a new bug report, please keep the following in mind:
-
-        - **Do not submit a duplicate bug report**: Search for existing bug reports [here](https://github.com/TEMPLATE/template-patches-template/issues?q=label%3A%22Bug+report%22).
-        - **Review the contribution guidelines**: Make sure your bug report adheres to it. You can find the guidelines [here](https://github.com/TEMPLATE/template-patches-template/blob/main/CONTRIBUTING.md).
-  - type: textarea
+  - type: input
+    id: app-name
     attributes:
-      label: Bug description
-      description: |
-        - Describe your bug in detail
-        - Add steps to reproduce the bug if possible (Step 1. ... Step 2. ...)
-        - Add images and videos if possible
+      label: "Jeu ou Application concernée / Target Game or App"
+      description: "Indiquez le nom du jeu ou de l'application (ex. Hungry Shark World)."
+      placeholder: "ex: Hungry Shark World"
     validations:
       required: true
-  - type: textarea
+
+  - type: input
+    id: app-version
     attributes:
-      label: Error logs
-      description: Exceptions can be captured by running `logcat | grep AndroidRuntime` in a shell.
-      render: shell
-  - type: textarea
-    attributes:
-      label: Solution
-      description: If applicable, add a possible solution to the bug.
-  - type: textarea
-    attributes:
-      label: Additional context
-      description: Add additional context here.
+      label: "Version du jeu / App Version"
+      description: "La version exacte de l'application patchée."
+      placeholder: "ex: 5.6.0"
+    validations:
+      required: false
+
   - type: checkboxes
-    id: acknowledgements
+    id: patches-applied
     attributes:
-      label: Acknowledgements
-      description: Your bug report will be closed if you don't follow the checklist below.
+      label: "Patch(s) appliqué(s) / Applied Patches"
+      description: "Cochez les patchs que vous avez activés dans Morphe."
       options:
-        - label: I have checked all open and closed bug reports and this is not a duplicate.
+        - label: "Free Shopping"
+        - label: "Bypass Rewarded Ads"
+        - label: "Autre / Other"
+
+  - type: input
+    id: morphe-version
+    attributes:
+      label: "Version de Morphe Manager / Morphe Version"
+      description: "La version de Morphe Manager utilisée."
+      placeholder: "ex: 1.0.0"
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Description détaillée du bug / Bug Description"
+      description: "Décrivez précisément le problème rencontré et le comportement attendu."
+      placeholder: "Lorsque je clique sur..., le jeu freeze / ne crédite pas l'article..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: "Étapes pour reproduire / Steps to Reproduce"
+      description: "Détaillez les étapes successives pour reproduire le bug."
+      value: |
+        1. Lancer le jeu patché
+        2. Aller dans...
+        3. Cliquer sur...
+        4. Constater l'erreur
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs-screenshots
+    attributes:
+      label: "Logs, Captures d'écran ou Vidéos / Logs or Screenshots"
+      description: "Collez ici des logs (logcat) ou glissez-déposez des captures d'écran / vidéos du problème."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: "Checklist de vérification"
+      options:
+        - label: "J'ai vérifié qu'un signalement identique n'existe pas déjà."
           required: true
-        - label: I have chosen an appropriate title.
+        - label: "J'utilise la dernière version disponible des patchs sur le repo."
           required: true
-        - label: All requested information has been provided properly.
+        - label: "Toutes les informations nécessaires ont été fournies."
           required: true

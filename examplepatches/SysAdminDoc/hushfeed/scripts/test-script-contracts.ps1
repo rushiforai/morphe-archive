@@ -29,10 +29,95 @@ function Assert-Throws {
     throw "$Message No error was raised."
 }
 
+# --- phone.sh foreground parser -------------------------------------------------------------
+#
+# Android can report focused windows for several displays. The input guard reads display 0 only,
+# which is where an unqualified adb input command lands, and refuses a missing or null focus.
+$bash = (Get-Command bash -ErrorAction Stop).Source
+$bashHost = $bash
+$bashArguments = @('-lc')
+$phoneScript = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot 'phone.sh')).Path
+if ($IsWindows) {
+    $bashHost = (Get-Command wsl.exe -ErrorAction Stop).Source
+    $bashArguments = @('--exec', '/bin/bash', '-lc')
+    $escapedPhoneScript = $phoneScript.Replace("'", "'\''")
+    $phoneScript = (& $bashHost @bashArguments "wslpath -a -- '$escapedPhoneScript'").Trim()
+    if ($LASTEXITCODE -ne 0 -or -not $phoneScript) {
+        throw 'Could not translate phone.sh to a path visible to bash.'
+    }
+}
+$escapedPhoneScript = $phoneScript.Replace("'", "'\''")
+$phoneParserCommand = "PHONE_SERIAL=R5CT139QJ5F ADB=/not-used " +
+    "PHONE_SHOTS=/tmp/hushfeed-phone-parser-contract '$escapedPhoneScript' parse_top"
+
+function Invoke-PhoneTopParser {
+    param([Parameter(Mandatory)][string]$Fixture)
+    $output = @($Fixture | & $bashHost @bashArguments $phoneParserCommand 2> $null)
+    return [pscustomobject]@{
+        ExitCode = $LASTEXITCODE
+        Output   = ($output -join "`n").Trim()
+    }
+}
+
+$defaultDisplayTop = Invoke-PhoneTopParser @'
+WINDOW MANAGER DISPLAY CONTENTS (dumpsys window displays)
+  Display: mDisplayId=55 (organized)
+  mCurrentFocus=Window{1111111 u0 com.zhiliaoapp.musically/.OtherDisplayActivity}
+  Display: mDisplayId=0
+  mCurrentFocus=Window{2222222 u0 com.example.app/.MainActivity}
+'@
+Assert-True ($defaultDisplayTop.ExitCode -eq 0 -and
+    $defaultDisplayTop.Output -eq 'com.example.app/.MainActivity') `
+    'phone.sh trusted TikTok on a display that adb input does not target.'
+
+$wrappedTop = Invoke-PhoneTopParser @'
+WINDOW MANAGER DISPLAY CONTENTS (dumpsys window displays)
+  Display: mDisplayId=0
+  mCurrentFocus=Window{ddb77cb u0
+    com.zhiliaoapp.musically/com.ss.android.ugc.aweme.main.MainActivity}
+  Display: mDisplayId=55 (organized)
+  mCurrentFocus=Window{3333333 u0 com.example.app/.OtherActivity}
+'@
+Assert-True ($wrappedTop.ExitCode -eq 0 -and $wrappedTop.Output -eq
+    'com.zhiliaoapp.musically/com.ss.android.ugc.aweme.main.MainActivity') `
+    'phone.sh did not parse the wrapped focused window on display 0.'
+
+$nullTop = Invoke-PhoneTopParser @'
+WINDOW MANAGER DISPLAY CONTENTS (dumpsys window displays)
+  Display: mDisplayId=0
+  mCurrentFocus=null
+'@
+Assert-True ($nullTop.ExitCode -ne 0 -and -not $nullTop.Output) `
+    'phone.sh accepted display 0 with no focused window.'
+
+$missingTop = Invoke-PhoneTopParser 'WINDOW MANAGER DISPLAY CONTENTS (dumpsys window displays)'
+Assert-True ($missingTop.ExitCode -ne 0 -and -not $missingTop.Output) `
+    'phone.sh accepted a dump with no default display.'
+
+$phoneSource = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'phone.sh') -Raw
+foreach ($verb in @('tap', 'swipe', 'keyevent', 'text')) {
+    Assert-True ($phoneSource -match "shell input -d 0 $verb") `
+        "phone.sh guards display 0 but sends $verb input to another display."
+}
+
+$findAdbCommand = (@'
+fixture=$(mktemp -d)
+trap 'rm -rf "$fixture"' EXIT
+printf '#!/bin/sh\nexit 0\n' > "$fixture/adb.exe"
+chmod +x "$fixture/adb.exe"
+PATH="$fixture:/usr/bin:/bin" PHONE_SERIAL=R5CT139QJ5F \
+    PHONE_SHOTS=/tmp/hushfeed-phone-parser-contract '__PHONE_SCRIPT__' find_adb
+'@).Replace('__PHONE_SCRIPT__', $escapedPhoneScript)
+$resolvedWindowsAdb = @(& $bashHost @bashArguments $findAdbCommand 2> $null)
+Assert-True ($LASTEXITCODE -eq 0 -and ($resolvedWindowsAdb -join "`n").Trim() -like '*/adb.exe') `
+    'phone.sh did not resolve adb.exe from an interoperable Windows path.'
+
+Write-Host '[scripts] guarded phone foreground parser contracts passed'
+
 $catalog = Get-Content -LiteralPath (Join-Path $Root 'patches-list.json') -Raw | ConvertFrom-Json
 $target = Get-PatchTarget -PatchList $catalog
 Assert-True ($target.PackageName -eq 'com.zhiliaoapp.musically') 'The catalog package was not resolved.'
-Assert-True ($target.PackageVersion -eq '46.2.3') 'The catalog version was not resolved.'
+Assert-True ($target.PackageVersion -eq '47.0.3') 'The catalog version was not resolved.'
 
 $allNames = @($catalog.patches | ForEach-Object { $_.name })
 $allDependencies = @(Get-PatchDependencyNames -PatchList $catalog -RequestedNames $allNames)
@@ -761,6 +846,31 @@ try {
     $catalogVersion = ((Get-Content -LiteralPath (Join-Path $factsRoot 'gradle.properties')) `
         -match '^version\s*=' | Select-Object -First 1) -replace '^version\s*=\s*', ''
 
+    # Manager decodes created_at as kotlinx.datetime.LocalDateTime, not Instant.
+    # A trailing Z produces its generic "remote metadata file is unavailable" error,
+    # even when both the JSON and bundle download answer HTTP 200.
+    foreach ($invalidTimestamp in @(
+            '"2026-09-20T21:23:31Z"',
+            '"2026-09-20T21:23:31+00:00"',
+            '"2026-02-30T21:23:31"',
+            '"2026-09-20"',
+            '""',
+            'null',
+            '1790000000')) {
+        Set-FactsFile 'patches-bundle.json' {
+            param($text)
+            $text -replace '"created_at"\s*:\s*("[^"\r\n]*"|null|\d+)', ('"created_at": ' + $invalidTimestamp)
+        }
+        Assert-Throws { Invoke-Facts } '*created_at*' `
+            "An index with a Manager-incompatible created_at was accepted: $invalidTimestamp"
+        Reset-FactsFile 'patches-bundle.json'
+    }
+    Set-FactsFile 'patches-bundle.json' {
+        param($text) $text -replace '"created_at"\s*:\s*"[^"\r\n]*"\s*,', ''
+    }
+    Assert-Throws { Invoke-Facts } '*created_at*' 'An index without created_at was accepted.'
+    Reset-FactsFile 'patches-bundle.json'
+
     # A published index naming a version the catalog does not build. This is the shape v0.28.0
     # shipped in: the index said one thing and the bundle behind it was another.
     Set-FactsFile 'patches-bundle.json' {
@@ -842,6 +952,13 @@ Write-Host '[scripts] release facts contracts passed'
 $prePushScript = Join-Path $PSScriptRoot 'pre-push.ps1'
 $hookRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("hushfeed-hook-" + [guid]::NewGuid().ToString('N'))
 $savedSkip = $env:HUSHFEED_SKIP_PRE_PUSH
+$savedHookGit = @{}
+# These cases invoke another hook against a foreign repository. Git's own hook environment
+# must not leak into that repository or its local bare transport, including GIT_EXEC_PATH.
+foreach ($variable in @(Get-ChildItem Env: | Where-Object { $_.Name -like 'GIT_*' })) {
+    $savedHookGit[$variable.Name] = $variable.Value
+    Remove-Item -LiteralPath ('Env:\' + $variable.Name)
+}
 try {
     $env:HUSHFEED_SKIP_PRE_PUSH = $null
     New-Item -ItemType Directory -Path (Join-Path $hookRoot 'scripts') -Force | Out-Null
@@ -891,6 +1008,86 @@ try {
     Assert-True ((Get-Content -LiteralPath $factsMarker -Raw) -like 'lag=False*') `
         'An index change was allowed to lag behind the published release.'
 
+    # A new remote branch can contain several unpublished commits. The code change here is in
+    # the first commit and the tip changes only documentation. Looking at HEAD^..HEAD silently
+    # misses the code and skips every build gate.
+    $newBranchSource = Join-Path $hookRoot 'extensions/tiktok/src/main/java/FirstCommit.java'
+    New-Item -ItemType Directory -Path (Split-Path -Parent $newBranchSource) -Force | Out-Null
+    Set-Content -LiteralPath $newBranchSource -Encoding UTF8 -Value 'final class FirstCommit {}'
+    & git -C $hookRoot init --quiet
+    $actualHookGitDir = (& git -C $hookRoot rev-parse --absolute-git-dir).Trim()
+    Assert-True ([IO.Path]::GetFullPath($actualHookGitDir).TrimEnd('\', '/') -ieq
+        [IO.Path]::GetFullPath((Join-Path $hookRoot '.git')).TrimEnd('\', '/')) `
+        'The hook fixture resolved outside its temporary repository; refusing to write.'
+    & git -C $hookRoot config user.name 'Hook Contract'
+    & git -C $hookRoot config user.email 'hook@example.invalid'
+    & git -C $hookRoot add extensions/tiktok/src/main/java/FirstCommit.java
+    & git -C $hookRoot commit --quiet -m 'code first'
+    $firstCommit = (& git -C $hookRoot rev-parse HEAD).Trim()
+    Set-Content -LiteralPath (Join-Path $hookRoot 'CONTRIBUTING.md') -Encoding UTF8 -Value 'tip only'
+    & git -C $hookRoot add CONTRIBUTING.md
+    & git -C $hookRoot commit --quiet -m 'docs tip'
+    $newBranchHead = (& git -C $hookRoot rev-parse HEAD).Trim()
+    # A stale local remote-tracking ref that already points at the code commit must not subtract
+    # that commit from a new branch push. The destination advertises this branch as new.
+    & git -C $hookRoot update-ref refs/remotes/origin/stale $firstCommit
+    $newBranchRefs = "refs/heads/new $newBranchHead refs/heads/new $('0' * 40)"
+    $savedNewBranchPath = $env:PATH
+    $savedNewBranchActor = $env:GITHUB_ACTOR
+    $savedNewBranchToken = $env:GITHUB_TOKEN
+    try {
+        $env:PATH = Split-Path -Parent (Get-Command git).Source
+        $env:GITHUB_ACTOR = $null
+        $env:GITHUB_TOKEN = $null
+        Assert-Throws { & $prePushScript -Root $hookRoot -PushedRefs $newBranchRefs 6> $null } `
+            '*GITHUB_ACTOR*' 'A new branch checked only its documentation tip and skipped earlier code.'
+    } finally {
+        $env:PATH = $savedNewBranchPath
+        $env:GITHUB_ACTOR = $savedNewBranchActor
+        $env:GITHUB_TOKEN = $savedNewBranchToken
+    }
+
+    # A release tag can name the exact tree already on a remote branch. It adds a pointer,
+    # not a new index: treating it as a first branch push creates a publication deadlock.
+    $tagRemote = Join-Path $hookRoot 'tag-remote.git'
+    & git init --bare --quiet $tagRemote
+    & git -C $hookRoot push --quiet $tagRemote "${newBranchHead}:refs/heads/main"
+    & git -C $hookRoot tag -a release-same-tree -m 'release' $newBranchHead
+    $tagObject = (& git -C $hookRoot rev-parse refs/tags/release-same-tree).Trim()
+    $tagRefs = "refs/tags/release-same-tree $tagObject refs/tags/release-same-tree $('0' * 40)"
+    try {
+        # Git hooks put git-core first. Keeping only that directory breaks Windows Git's
+        # local transport because its runtime DLLs live elsewhere. Hide gh, not Git's dependencies.
+        $env:PATH = (@($savedNewBranchPath -split [IO.Path]::PathSeparator | Where-Object {
+            $directory = $_.Trim('"')
+            $directory -and -not (@('gh', 'gh.exe', 'gh.cmd', 'gh.bat') | Where-Object {
+                Test-Path -LiteralPath (Join-Path $directory $_) -PathType Leaf
+            })
+        }) -join [IO.Path]::PathSeparator)
+        Assert-True (-not (Get-Command gh -ErrorAction SilentlyContinue)) 'The tag fixture still exposes gh.'
+        $env:GITHUB_ACTOR = $null
+        $env:GITHUB_TOKEN = $null
+        & $prePushScript -Root $hookRoot -RemoteUrl $tagRemote -PushedRefs $tagRefs 6> $null
+        Assert-True ($LASTEXITCODE -eq 0) 'An annotated tag of the advertised remote tree reran file-change gates.'
+        $lightTagRefs = "refs/tags/light $newBranchHead refs/tags/light $('0' * 40)"
+        & $prePushScript -Root $hookRoot -RemoteUrl $tagRemote -PushedRefs $lightTagRefs 6> $null
+        Assert-True ($LASTEXITCODE -eq 0) 'A lightweight tag of the advertised remote tree reran file-change gates.'
+
+        # A stale local tracking ref is not proof that the target is hosted. Only the live
+        # remote advertisement above can qualify; unknown targets retain the full-tree gate.
+        $unknownTagRefs = "refs/tags/unknown $firstCommit refs/tags/unknown $('0' * 40)"
+        Assert-Throws { & $prePushScript -Root $hookRoot -RemoteUrl $tagRemote -PushedRefs $unknownTagRefs 6> $null } `
+            '*GITHUB_ACTOR*' 'A tag not matching an advertised remote branch skipped code checks.'
+        Assert-Throws { & $prePushScript -Root $hookRoot -RemoteUrl $tagRemote -PushedRefs "$tagRefs`n$newBranchRefs" 6> $null } `
+            '*GITHUB_ACTOR*' 'A known tag suppressed checks for a new branch in the same push.'
+        Assert-Throws { & $prePushScript -Root $hookRoot -RemoteUrl (Join-Path $hookRoot 'missing-remote.git') -PushedRefs $tagRefs 6> $null } `
+            '*remote branches*' 'An unavailable remote was treated as proof that a tag target was already hosted.'
+    } finally {
+        $env:PATH = $savedNewBranchPath
+        $env:GITHUB_ACTOR = $savedNewBranchActor
+        $env:GITHUB_TOKEN = $savedNewBranchToken
+    }
+
     # The build branch, which runs the Gradle gates that hold the Bouncy Castle graphs to the
     # reviewed release. Starting a real build from a contract test would be absurd, so the case
     # reads the first thing that branch does instead: with no GitHub credentials and no gh on
@@ -919,6 +1116,7 @@ try {
     }
 } finally {
     $env:HUSHFEED_SKIP_PRE_PUSH = $savedSkip
+    foreach ($name in $savedHookGit.Keys) { Set-Item -LiteralPath ('Env:\' + $name) -Value $savedHookGit[$name] }
     Remove-Item -LiteralPath $hookRoot -Recurse -Force -ErrorAction SilentlyContinue
 }
 

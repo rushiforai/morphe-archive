@@ -109,7 +109,7 @@ TIKTOK_PATCH_CONTRACTS: List[PatchContract] = [
     ),
     PatchContract(
         patch_id="hide_tiktok_shop_anchors",
-        name="Hide TikTok Shop Anchors",
+        name="Hide TikTok Shop & Mall",
         target_type="bytecode",
         description="Removes product showcase badges, shopping cart tags, and TikTok Shop commercial anchors from video posts in the feed.",
         required_classes=[
@@ -192,12 +192,11 @@ TIKTOK_PATCH_CONTRACTS: List[PatchContract] = [
         patch_id="resource_governor",
         name="Resource & Battery Governor",
         target_type="bytecode",
-        description="Throttles background sensor polling (gyroscope/accelerometer 3D ads), prevents aggressive video buffer preloading, and caps Fresco animated image memory retention.",
+        description="Throttles background sensor polling (gyroscope/accelerometer 3D ads) and prevents aggressive video buffer preloading.",
         required_classes=[
-            "Lcom/facebook/fresco/animation/bitmap/cache/FrescoFrameCache;",
             "Lcom/ss/android/ugc/aweme/video/preload/model/PreloadStrategyConfig;",
         ],
-        required_strings=["isEnableBufferPreload", "LIZJ", "LJFF"],
+        required_strings=["isEnableBufferPreload"],
         criticality="HIGH",
     ),
     PatchContract(
@@ -213,7 +212,7 @@ TIKTOK_PATCH_CONTRACTS: List[PatchContract] = [
         patch_id="media_enhancements",
         name="Media Usability & Watermark-Free Downloader",
         target_type="bytecode",
-        description="Unblocks the download button on creator-restricted videos and Stories in the Share panel, routing downloads to clean unwatermarked media streams.",
+        description="Unblocks the download button on creator-restricted videos in the Share panel, routing downloads to clean unwatermarked media streams.",
         required_classes=[
             "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
             "Lcom/ss/android/ugc/aweme/feed/model/Video;",
@@ -263,7 +262,7 @@ TIKTOK_PATCH_CONTRACTS: List[PatchContract] = [
             "Lcom/ss/android/ugc/aweme/main/MainPageFragment;",
             "Lcom/ss/android/ugc/aweme/NewUserJourneyService;",
         ],
-        required_strings=["JS", "did_finish_nuj", "new_user_journey"],
+        required_strings=["did_finish_nuj", "new_user_journey"],
         criticality="HIGH",
     ),
     PatchContract(
@@ -308,7 +307,7 @@ TIKTOK_PATCH_CONTRACTS: List[PatchContract] = [
         target_type="bytecode",
         description="Restores TikTok's native video seekbar and scrubbing controls where normally hidden or disabled.",
         required_classes=["Lcom/ss/android/ugc/aweme/feed/model/Aweme;"],
-        required_strings=["getVideoControl", "seekbar show type change, change to:"],
+        required_strings=["getVideoControl"],
         criticality="HIGH",
     ),
     PatchContract(
@@ -343,14 +342,14 @@ TIKTOK_PATCH_CONTRACTS: List[PatchContract] = [
         criticality="HIGH",
     ),
     PatchContract(
-        patch_id="ghost_mode",
-        name="Ghost Mode",
+        patch_id="custom_offline_videos_limit",
+        name="Custom Offline Videos Limit",
         target_type="bytecode",
-        description="Enables anonymous profile and story browsing by suppressing outbound view reporting.",
+        description="Customizes the maximum number of videos available for offline download caching.",
         required_classes=[
-            "Lcom/ss/android/ugc/profile/business/ci/viewer/api/ProfileViewerApiService;",
+            "Lcom/ss/android/ugc/aweme/offlinemode/ui/sheet/OfflineModeSheetPageAssem;",
         ],
-        required_strings=["reportView", "reportStoryViewed"],
+        required_strings=["onAssemPostCreate"],
         criticality="HIGH",
     ),
 ]

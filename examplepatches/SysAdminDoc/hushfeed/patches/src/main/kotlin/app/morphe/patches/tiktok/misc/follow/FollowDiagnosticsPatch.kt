@@ -48,7 +48,7 @@ val followDiagnosticsPatch = bytecodePatch(
 ) {
     dependsOn(sharedExtensionPatch)
 
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         val patchesByMethod = linkedMapOf<Method, ArrayDeque<FollowCallPatch>>()

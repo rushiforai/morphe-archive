@@ -188,7 +188,7 @@ public class CreatorListTest {
             // shown over the dialog is a reason beside the thing it is about.
             ShadowToast.reset();
             addButton.performClick();
-            assertEquals("Enter a creator handle or id", String.valueOf(add.getError()));
+            assertEquals("Enter a creator handle or id", inlineError(add).getText().toString());
             assertNull(ShadowToast.getTextOfLatestToast());
             assertEquals(java.util.List.of("alice"), rows(view));
 
@@ -197,7 +197,8 @@ public class CreatorListTest {
             ShadowToast.reset();
             add.setText("@Alice");
             addButton.performClick();
-            assertEquals("That creator is already in the list", String.valueOf(add.getError()));
+            assertEquals("That creator is already in the list",
+                    inlineError(add).getText().toString());
             assertEquals(java.util.List.of("alice"), rows(view));
 
             // A pattern that will not compile is refused here rather than at the next feed
@@ -205,7 +206,8 @@ public class CreatorListTest {
             ShadowToast.reset();
             add.setText("/[/");
             addButton.performClick();
-            assertTrue(String.valueOf(add.getError()), add.getError().toString().contains("/[/"));
+            assertTrue(inlineError(add).getText().toString(),
+                    inlineError(add).getText().toString().contains("/[/"));
             assertEquals(java.util.List.of("alice"), rows(view));
 
             // A good one lands as a row and clears the field, error and all.
@@ -213,7 +215,8 @@ public class CreatorListTest {
             addButton.performClick();
             assertEquals(java.util.List.of("alice", "carol"), rows(view));
             assertEquals("", add.getText().toString());
-            assertNull("the last refusal is still under a box that is now fine", add.getError());
+            assertEquals("the last refusal is still under a box that is now fine", View.GONE,
+                    inlineError(add).getVisibility());
 
             preference.onDialogClosed(true);
             assertEquals("alice, carol", Settings.LOCAL_HIDDEN_CREATORS.get());
@@ -251,12 +254,16 @@ public class CreatorListTest {
                     "alice, dave", Settings.LOCAL_HIDDEN_CREATORS.get());
             assertNull("the refusal was said over the dialog instead of under the box",
                     ShadowToast.getTextOfLatestToast());
-            assertNotNull("the box does not say what is wrong with what is in it", add.getError());
-            assertTrue(String.valueOf(add.getError()),
-                    add.getError().toString().contains("/[/"));
+            assertTrue("the box does not say what is wrong with what is in it",
+                    inlineError(add).getText().toString().contains("/[/"));
             assertEquals("the handle was taken out of the box the reader typed it into",
                     "/[/", add.getText().toString());
         }
+    }
+
+    private static TextView inlineError(EditText field) {
+        ViewGroup parent = (ViewGroup) field.getParent();
+        return (TextView) parent.getChildAt(parent.indexOfChild(field) + 1);
     }
 
     @Test

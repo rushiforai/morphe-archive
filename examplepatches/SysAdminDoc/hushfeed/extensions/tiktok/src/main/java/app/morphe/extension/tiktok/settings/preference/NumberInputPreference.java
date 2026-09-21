@@ -240,11 +240,10 @@ public class NumberInputPreference extends EditTextPreference {
         String typed = getEditText().getText().toString();
         String problem = typedProblem(typed);
         if (problem != null) {
-            getEditText().setError(problem);
-            app.morphe.extension.shared.Utils.showToastShort(problem);
+            SettingsUi.reportFieldError(getEditText(), problem);
             return false;
         }
-        getEditText().setError(null);
+        SettingsUi.clearFieldError(getEditText());
         int value = parseAndClamp(typed);
         String text = String.valueOf(value);
         if (!callChangeListener(text)) return false;

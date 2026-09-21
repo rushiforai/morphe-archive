@@ -57,6 +57,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -103,6 +104,13 @@ public final class FeatureGateLabFragment extends Fragment {
         thread.setDaemon(true);
         return thread;
     });
+    private static final ExecutorService SEARCH_EXECUTOR = Executors.newSingleThreadExecutor(runnable -> {
+        Thread thread = new Thread(runnable, "MorpheGateSearch");
+        thread.setDaemon(true);
+        return thread;
+    });
+    private static volatile String lastSearchThreadForTests;
+    private static volatile Runnable searchWorkHookForTests;
     private static final int REQUEST_EXPORT_LOADED = 0x6f10;
     private static final int REQUEST_IMPORT_LOADED = 0x6f11;
     private static final int MAX_COMPRESSED_IMPORT_BYTES = 4 * 1024 * 1024;
@@ -117,6 +125,7 @@ public final class FeatureGateLabFragment extends Fragment {
     private static final int FILTER_UNLOADED = 4;
 
     private final Handler searchHandler = new Handler(Looper.getMainLooper());
+    private final AtomicInteger rebuildGeneration = new AtomicInteger();
     private final app.morphe.extension.tiktok.settings.SystemBackHandler systemBack =
             new app.morphe.extension.tiktok.settings.SystemBackHandler("FeatureGateLabBackCallback");
     private final List<FeatureGateCatalog.Entry> visible = new ArrayList<>();
@@ -181,8 +190,22 @@ public final class FeatureGateLabFragment extends Fragment {
         FILE_IO_EXECUTOR.submit(() -> { }).get(5, TimeUnit.SECONDS);
     }
 
+    static void awaitSearchForTests() throws Exception {
+        SEARCH_EXECUTOR.submit(() -> { }).get(5, TimeUnit.SECONDS);
+    }
+
+    static String lastSearchThreadForTests() {
+        return lastSearchThreadForTests;
+    }
+
+    static void setSearchWorkHookForTests(Runnable hook) {
+        searchWorkHookForTests = hook;
+    }
+
     static void resetForTests() {
         CHANGING.set(false);
+        lastSearchThreadForTests = null;
+        searchWorkHookForTests = null;
     }
 
     @Override
@@ -256,7 +279,7 @@ public final class FeatureGateLabFragment extends Fragment {
         search.setTextSize(16);
         // No content description on a search box. On an editable view it replaces what was
         // typed in the announcement, so "cats" came back as the label. The hint names it.
-        search.setHint(L10n.t(context, "Search words or key"));
+        search.setHint(L10n.t(context, "Search by name or gate key"));
         search.setBackgroundColor(Color.TRANSPARENT);
         search.setTextColor(SettingsUi.textPrimary());
         search.setHintTextColor(SettingsUi.textSecondary());
@@ -415,6 +438,7 @@ public final class FeatureGateLabFragment extends Fragment {
 
         FrameLayout listContainer = new FrameLayout(context);
         list = new ListView(context);
+        SettingsUi.styleScrollableList(list);
         list.setDivider(null);
         list.setDividerHeight(0);
         list.setPadding(FeatureGateLabUi.dp(context, 16), 0, FeatureGateLabUi.dp(context, 16), FeatureGateLabUi.dp(context, 24));
@@ -493,6 +517,8 @@ public final class FeatureGateLabFragment extends Fragment {
         search.addTextChangedListener(new SimpleTextWatcher(() -> {
             searchQuery = search.getText().toString();
             clearSearch.setVisibility(searchQuery.isEmpty() ? View.GONE : View.VISIBLE);
+            // An older ranking result must not flash after the reader has already typed more.
+            rebuildGeneration.incrementAndGet();
             searchHandler.removeCallbacks(delayedSearch);
             searchHandler.postDelayed(delayedSearch, SEARCH_DELAY_MS);
         }));
@@ -541,6 +567,7 @@ public final class FeatureGateLabFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
+        rebuildGeneration.incrementAndGet();
         searchHandler.removeCallbacks(delayedSearch);
         if (search != null) searchQuery = search.getText().toString();
         if (list != null && list.getChildCount() > 0) {
@@ -653,53 +680,114 @@ public final class FeatureGateLabFragment extends Fragment {
         if (snapshot == null || adapter == null) return;
         String query = normalizeSearchText(searchQuery);
         Map<String, FeatureGateLabStore.Rule> rules = rulesByIdentity();
-        Map<FeatureGateCatalog.Entry, Integer> searchRanks = new HashMap<>();
+        int generation = rebuildGeneration.incrementAndGet();
+        RebuildRequest request = new RebuildRequest(
+                snapshot.entries,
+                rules,
+                query,
+                selectedView,
+                selectedFilter,
+                SOURCE_MANAGERS[selectedSource]
+        );
 
-        visible.clear();
-        for (FeatureGateCatalog.Entry entry : snapshot.entries) {
+        // Plain tab and filter changes are cheap. Fuzzy search is not: the complete 47.0.3
+        // catalogue has 16,052 entries, so it is ranked on a serial worker and only the newest
+        // answer is allowed back onto the view hierarchy.
+        if (query.isEmpty()) {
+            applyRebuild(generation, buildRebuild(request, generation, false));
+            return;
+        }
+        SEARCH_EXECUTOR.execute(() -> {
+            lastSearchThreadForTests = Thread.currentThread().getName();
+            Runnable hook = searchWorkHookForTests;
+            if (hook != null) hook.run();
+            RebuildResult result;
+            try {
+                result = buildRebuild(request, generation, true);
+            } catch (Throwable error) {
+                Logger.printException(() -> "Could not search the Feature Gate Lab", error);
+                try {
+                    // Exact, prefix and substring matching remain useful if fuzzy ranking hits
+                    // an unexpected malformed value or allocation limit.
+                    result = buildRebuild(request, generation, false);
+                } catch (Throwable fallbackError) {
+                    Logger.printException(() -> "Could not run the Lab search fallback",
+                            fallbackError);
+                    return;
+                }
+            }
+            if (result == null) return;
+            RebuildResult delivered = result;
+            searchHandler.post(() -> applyRebuild(generation, delivered));
+        });
+    }
+
+    private RebuildResult buildRebuild(
+            RebuildRequest request,
+            int generation,
+            boolean fuzzy
+    ) {
+        List<FeatureGateCatalog.Entry> matches = new ArrayList<>();
+        Map<FeatureGateCatalog.Entry, Integer> searchRanks = new HashMap<>();
+        String[] queryTokens = request.query.isEmpty()
+                ? new String[0]
+                : request.query.split(" ");
+        int visited = 0;
+        for (FeatureGateCatalog.Entry entry : request.entries) {
+            if ((visited++ & 127) == 0 && generation != rebuildGeneration.get()) return null;
             if (!entry.userVisible()) continue;
-            String sourceManager = SOURCE_MANAGERS[selectedSource];
-            if (sourceManager != null && !sourceManager.equals(entry.manager)) continue;
-            FeatureGateLabStore.Rule rule = rules.get(ruleIdentity(entry));
-            if (selectedView == 0 && !entry.loaded) continue;
-            if (selectedView == 2 && rule == null) continue;
-            if (!matchesFilter(entry)) continue;
-            if (!query.isEmpty()) {
-                int rank = searchRank(entry, query);
+            if (request.sourceManager != null
+                    && !request.sourceManager.equals(entry.manager)) continue;
+            FeatureGateLabStore.Rule rule = request.rules.get(ruleIdentity(entry));
+            if (request.selectedView == 0 && !entry.loaded) continue;
+            if (request.selectedView == 2 && rule == null) continue;
+            if (!matchesFilter(entry, request.selectedFilter)) continue;
+            if (!request.query.isEmpty()) {
+                int rank = searchRank(entry, request.query, queryTokens, fuzzy);
                 if (rank < 0) continue;
                 searchRanks.put(entry, rank);
             }
-            visible.add(entry);
+            matches.add(entry);
         }
 
-        if (selectedView == 2) {
-            Collections.sort(visible, (left, right) -> {
-                FeatureGateLabStore.Rule leftRule = rules.get(ruleIdentity(left));
-                FeatureGateLabStore.Rule rightRule = rules.get(ruleIdentity(right));
+        if (generation != rebuildGeneration.get()) return null;
+        if (request.selectedView == 2) {
+            Collections.sort(matches, (left, right) -> {
+                FeatureGateLabStore.Rule leftRule = request.rules.get(ruleIdentity(left));
+                FeatureGateLabStore.Rule rightRule = request.rules.get(ruleIdentity(right));
                 return Long.compare(
                         rightRule == null ? 0 : rightRule.updatedAtMs,
                         leftRule == null ? 0 : leftRule.updatedAtMs
                 );
             });
-        } else if (!query.isEmpty()) {
-            Collections.sort(visible, (left, right) -> {
+        } else if (!request.query.isEmpty()) {
+            Collections.sort(matches, (left, right) -> {
                 int rank = Integer.compare(searchRanks.get(left), searchRanks.get(right));
                 return rank != 0 ? rank : left.title.compareToIgnoreCase(right.title);
             });
         }
+        return generation == rebuildGeneration.get()
+                ? new RebuildResult(matches, request.rules, request.query, request.selectedFilter)
+                : null;
+    }
+
+    private void applyRebuild(int generation, RebuildResult result) {
+        if (result == null || generation != rebuildGeneration.get() || adapter == null) return;
+        visible.clear();
+        visible.addAll(result.entries);
 
         // Which filter produced this count. The picker's own label is off screen while the
         // list is being read, and a count on its own gives no way of telling a short list from
         // a narrow filter.
-        if (selectedFilter == FILTER_ALL) {
+        if (result.selectedFilter == FILTER_ALL) {
             SettingsUi.setResultCount(count, visible.size());
         } else {
             SettingsUi.setTextIfChanged(count, L10n.f(getContext(),
                     "%1$d results, filtered to %2$s",
-                    visible.size(), filterLabels(getContext())[selectedFilter]));
+                    visible.size(), filterLabels(getContext())[result.selectedFilter]));
         }
-        updateEmptyState(query);
-        adapter.setRules(rules);
+        updateEmptyState(result.query);
+        adapter.setRules(result.rules);
         adapter.notifyDataSetChanged();
         if (restoreListPosition && list != null) {
             int position = listPosition;
@@ -708,6 +796,50 @@ public final class FeatureGateLabFragment extends Fragment {
             list.post(() -> {
                 if (list != null) list.setSelectionFromTop(position, offset);
             });
+        }
+    }
+
+    private static final class RebuildRequest {
+        final List<FeatureGateCatalog.Entry> entries;
+        final Map<String, FeatureGateLabStore.Rule> rules;
+        final String query;
+        final int selectedView;
+        final int selectedFilter;
+        final String sourceManager;
+
+        RebuildRequest(
+                List<FeatureGateCatalog.Entry> entries,
+                Map<String, FeatureGateLabStore.Rule> rules,
+                String query,
+                int selectedView,
+                int selectedFilter,
+                String sourceManager
+        ) {
+            this.entries = entries;
+            this.rules = rules;
+            this.query = query;
+            this.selectedView = selectedView;
+            this.selectedFilter = selectedFilter;
+            this.sourceManager = sourceManager;
+        }
+    }
+
+    private static final class RebuildResult {
+        final List<FeatureGateCatalog.Entry> entries;
+        final Map<String, FeatureGateLabStore.Rule> rules;
+        final String query;
+        final int selectedFilter;
+
+        RebuildResult(
+                List<FeatureGateCatalog.Entry> entries,
+                Map<String, FeatureGateLabStore.Rule> rules,
+                String query,
+                int selectedFilter
+        ) {
+            this.entries = entries;
+            this.rules = rules;
+            this.query = query;
+            this.selectedFilter = selectedFilter;
         }
     }
 
@@ -739,17 +871,17 @@ public final class FeatureGateLabFragment extends Fragment {
         return entry.manager + "\n" + entry.key + "\n" + entry.type;
     }
 
-    private boolean matchesFilter(FeatureGateCatalog.Entry entry) {
-        if (selectedFilter == FILTER_ALL) return true;
-        if (selectedFilter == FILTER_UNLOADED) return !entry.loaded;
+    private static boolean matchesFilter(FeatureGateCatalog.Entry entry, int filter) {
+        if (filter == FILTER_ALL) return true;
+        if (filter == FILTER_UNLOADED) return !entry.loaded;
         if (!entry.loaded) return false;
 
         boolean isBoolean = "BOOLEAN".equalsIgnoreCase(entry.type)
                 || "BOOLEAN".equalsIgnoreCase(entry.currentType);
         if (!isBoolean) return false;
-        if (selectedFilter == FILTER_BOOLEAN) return true;
-        if (selectedFilter == FILTER_ENABLED) return "true".equalsIgnoreCase(entry.currentValue);
-        if (selectedFilter == FILTER_DISABLED) return "false".equalsIgnoreCase(entry.currentValue);
+        if (filter == FILTER_BOOLEAN) return true;
+        if (filter == FILTER_ENABLED) return "true".equalsIgnoreCase(entry.currentValue);
+        if (filter == FILTER_DISABLED) return "false".equalsIgnoreCase(entry.currentValue);
         return true;
     }
 
@@ -1558,22 +1690,26 @@ public final class FeatureGateLabFragment extends Fragment {
         dialog.show();
     }
 
-    private static int searchRank(FeatureGateCatalog.Entry entry, String query) {
-        String key = normalizeSearchText(entry.key);
-        String title = normalizeSearchText(entry.title);
+    private static int searchRank(
+            FeatureGateCatalog.Entry entry,
+            String query,
+            String[] queryTokens,
+            boolean fuzzy
+    ) {
+        String key = entry.normalizedKey;
+        String title = entry.normalizedTitle;
         if (key.equals(query)) return 0;
         if (title.equals(query)) return 1;
         if (key.startsWith(query)) return 2;
         if (title.startsWith(query)) return 3;
         if (key.contains(query)) return 4;
         if (title.contains(query)) return 5;
+        if (!fuzzy) return -1;
 
-        String[] queryTokens = query.split(" ");
-        String[] candidateTokens = (key + " " + title).split(" ");
         int score = 10;
         for (String queryToken : queryTokens) {
             int bestTokenScore = Integer.MAX_VALUE;
-            for (String candidateToken : candidateTokens) {
+            for (String candidateToken : entry.searchTokens) {
                 bestTokenScore = Math.min(
                         bestTokenScore,
                         tokenMatchScore(queryToken, candidateToken)
@@ -1587,25 +1723,7 @@ public final class FeatureGateLabFragment extends Fragment {
     }
 
     private static String normalizeSearchText(String text) {
-        if (text == null || text.isEmpty()) return "";
-        String lower = text.toLowerCase(Locale.ROOT);
-        StringBuilder normalized = new StringBuilder(lower.length());
-        boolean previousWasSpace = true;
-        for (int index = 0; index < lower.length(); index++) {
-            char character = lower.charAt(index);
-            if (Character.isLetterOrDigit(character)) {
-                normalized.append(character);
-                previousWasSpace = false;
-            } else if (!previousWasSpace) {
-                normalized.append(' ');
-                previousWasSpace = true;
-            }
-        }
-        int length = normalized.length();
-        if (length > 0 && normalized.charAt(length - 1) == ' ') {
-            normalized.setLength(length - 1);
-        }
-        return normalized.toString();
+        return FeatureGateCatalog.normalizeSearchText(text);
     }
 
     private static int tokenMatchScore(String queryToken, String candidateToken) {
@@ -1629,12 +1747,12 @@ public final class FeatureGateLabFragment extends Fragment {
     private static int editDistanceWithin(String left, String right, int maximum) {
         if (Math.abs(left.length() - right.length()) > maximum) return -1;
 
-        int[] previousPrevious = null;
+        int[] previousPrevious = new int[right.length() + 1];
         int[] previous = new int[right.length() + 1];
+        int[] current = new int[right.length() + 1];
         for (int column = 0; column <= right.length(); column++) previous[column] = column;
 
         for (int row = 1; row <= left.length(); row++) {
-            int[] current = new int[right.length() + 1];
             current[0] = row;
             int rowMinimum = current[0];
             for (int column = 1; column <= right.length(); column++) {
@@ -1643,8 +1761,7 @@ public final class FeatureGateLabFragment extends Fragment {
                         Math.min(current[column - 1] + 1, previous[column] + 1),
                         previous[column - 1] + substitutionCost
                 );
-                if (previousPrevious != null
-                        && row > 1
+                if (row > 1
                         && column > 1
                         && left.charAt(row - 1) == right.charAt(column - 2)
                         && left.charAt(row - 2) == right.charAt(column - 1)) {
@@ -1656,8 +1773,10 @@ public final class FeatureGateLabFragment extends Fragment {
                 rowMinimum = Math.min(rowMinimum, current[column]);
             }
             if (rowMinimum > maximum) return -1;
+            int[] reusable = previousPrevious;
             previousPrevious = previous;
             previous = current;
+            current = reusable;
         }
         return previous[right.length()] <= maximum ? previous[right.length()] : -1;
     }

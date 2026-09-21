@@ -104,6 +104,18 @@ private object EdgeSubjectUrl226Fingerprint : Fingerprint(
     strings = listOf("/subject.txt")
 )
 
+private object EdgeThreadMenu226Fingerprint : Fingerprint(
+    definingClass = "Lo/TTInterstitialActivity;",
+    name = "<init>",
+    strings = listOf("threadTitle", "bookmarkId", "threadUrl")
+)
+
+private object EdgeThreadMenu191Fingerprint : Fingerprint(
+    definingClass = "Lo/q8;",
+    name = "<init>",
+    strings = listOf("threadTitle", "bookmarkId", "threadUrl")
+)
+
 private object EdgeSubjectUrl241Fingerprint : Fingerprint(
     definingClass = "Ljp/syoboi/a2chMate/client/BBSUrlInfo;",
     name = "B",
@@ -363,11 +375,16 @@ private val haiagaruBytecodePatch = bytecodePatch {
         // the check's numeric RuntimeException rejection into the same delegate return used by
         // its successful path.
         if (profile.patchSignatureWrapper) {
-            mutableClassDefBy(profile.signatureClass).methods.single { method ->
+            val signatureMethod = mutableClassDefBy(profile.signatureClass).methods.single { method ->
                 method.name == profile.signatureMethod
                     && method.returnType == "Ljava/lang/Object;"
                     && method.parameters.isEmpty()
-            }.ignoreSignatureRejection(profile)
+            }
+            if (packageMetadata.versionName == "0.8.10.243 dev") {
+                signatureMethod.returnSignatureDelegate(profile)
+            } else {
+                signatureMethod.ignoreSignatureRejection(profile)
+            }
             if (profile.signatureDirectWrapperBypass) {
                 mutableClassDefBy(profile.signatureSuperType).methods.single { method ->
                     method.name == profile.signatureDelegateMethod
@@ -446,11 +463,17 @@ private val haiagaruBytecodePatch = bytecodePatch {
 
         when (packageMetadata.versionName) {
             "0.8.10.191 dev" -> {
+                patchPreIoHissiMenu(
+                    "Lo/setExtraParameter;", "d",
+                    "Lo/processAdDisplayErrorPostbackForUserError;",
+                    "Lo/setExtraParameter\$RemoteActionCompatParcelizer;",
+                )
                 patchLegacy5chIoCompatibility()
                 patchLegacyTalkDatLoading()
                 patchLegacyTalkAuthIntegrity()
             }
             "0.8.10.226 dev" -> {
+                patchPreIoHissiMenu()
                 patchThreadBannerAdWrapper("Lo/TTVideoLandingPageLink2Activity1;")
                 patchLegacyThreadListAd("Lo/listener;")
                 patchPreIoTalkDatLoading()
@@ -470,18 +493,55 @@ private val haiagaruBytecodePatch = bytecodePatch {
             }
             "0.8.10.243 dev" -> {
                 patchSetTextCalls()
+                patchModernThreadListAd()
                 patchModernTalkDatLoading()
+                patchModernTalkPostIntegrity()
+                patchModernTalkIntegrityPrimitives()
             }
             else -> patchSetTextCalls()
         }
+        patchTabletThreadHeaderAdSpace(packageMetadata.versionName)
         when (packageMetadata.versionName) {
-            "0.8.10.191 dev" -> EdgeSubjectUrl191Fingerprint.method.rewriteEdgeSubjectUrl()
-            "0.8.10.226 dev" -> EdgeSubjectUrl226Fingerprint.method.rewriteEdgeSubjectUrl()
+            "0.8.10.191 dev" -> {
+                EdgeSubjectUrl191Fingerprint.method.rewriteEdgeSubjectUrl()
+                EdgeThreadMenu191Fingerprint.method.preserveEdgeReporterTitle("Lo/isReady;", "k")
+            }
+            "0.8.10.226 dev" -> {
+                EdgeSubjectUrl226Fingerprint.method.rewriteEdgeSubjectUrl()
+                EdgeThreadMenu226Fingerprint.method.preserveEdgeReporterTitle("Lo/MessageInflater;", "m")
+            }
             "0.8.10.241" -> EdgeSubjectUrl241Fingerprint.method.rewriteEdgeSubjectUrl()
             "0.8.10.243 dev" -> EdgeSubjectUrlFingerprint.method.rewriteEdgeSubjectUrl()
         }
+        patchEdgeReporterHistory(packageMetadata.versionName)
         patchHttpsTransport()
     }
+}
+
+/** Rewrite at expansion time so existing user menu settings are repaired as well. */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchPreIoHissiMenu(
+    owner: String = "Lo/PublicSuffixDatabaseCompanion;",
+    methodName: String = "a",
+    responseType: String = "Lo/BouncyCastleSocketAdapterCompanion;",
+    expansionStateType: String = "Lo/PublicSuffixDatabaseCompanion\$IconCompatParcelizer;",
+) {
+    mutableClassDefBy(owner).methods.single { method ->
+        method.name == methodName
+            && method.returnType == "Ljava/lang/String;"
+            && method.parameters.map(CharSequence::toString) == listOf(
+                "Ljava/lang/String;",
+                responseType,
+                "Ljp/syoboi/a2chMate/client/BBSUrlInfo;",
+                "Ljava/lang/String;",
+                expansionStateType,
+            )
+    }.addInstructionsWithLabels(
+        0,
+        """
+            invoke-static/range { p0 .. p0 }, Lapp/morphe/extension/chmate/HissiMenuCompatibility;->rewriteTemplate(Ljava/lang/String;)Ljava/lang/String;
+            move-result-object p0
+        """,
+    )
 }
 
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchModernTalkDatLoading() {
@@ -574,6 +634,130 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchPreIoTalkDatLoadi
  * they differ after re-signing. Route only that reflected posting call through
  * the extension so the generated request construction itself remains unchanged.
  */
+/** 243's generated token builder keeps its integrity cache in o.setExtras. */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchModernTalkPostIntegrity() {
+    val networkClass = mutableClassDefBy("Lo/zzaat;")
+    val candidates = networkClass.methods.flatMap { method ->
+        val instructions = method.implementation?.instructions ?: return@flatMap emptyList()
+        instructions.mapIndexedNotNull { index, instruction ->
+            val reference = (instruction as? ReferenceInstruction)?.reference
+                as? MethodReference ?: return@mapIndexedNotNull null
+            if (reference.definingClass != "Ljava/lang/reflect/Method;"
+                || reference.name != "invoke"
+                || reference.returnType != "Ljava/lang/Object;"
+                || instructions.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
+                || reference.parameterTypes.map(CharSequence::toString) != listOf(
+                    "Ljava/lang/Object;",
+                    "[Ljava/lang/Object;",
+                )
+            ) {
+                return@mapIndexedNotNull null
+            }
+            val isTalkPost = instructions.subList(maxOf(0, index - 180), index)
+                .any { previous ->
+                    ((previous as? ReferenceInstruction)?.reference as? StringReference)?.string ==
+                        "https://api.talk-platform.com/v1/bbs.cgi"
+                }
+            if (isTalkPost) method to index else null
+        }
+    }
+    check(candidates.size == 1) {
+        "Expected one ChMate 243 Talk posting invocation, found ${candidates.size}"
+    }
+    val (method, index) = candidates.single()
+    when (val invocation = method.implementation!!.instructions[index]) {
+        is FiveRegisterInstruction -> method.replaceInstruction(
+            index,
+            "invoke-static {v${invocation.registerC}, v${invocation.registerD}, " +
+                "v${invocation.registerE}}, Lapp/morphe/extension/chmate/TalkPostCompatibility;->invoke(" +
+                "Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)" +
+                "Ljava/lang/Object;",
+        )
+        is RegisterRangeInstruction -> method.replaceInstruction(
+            index,
+            "invoke-static/range {v${invocation.startRegister} .. " +
+                "v${invocation.startRegister + 2}}, " +
+                "Lapp/morphe/extension/chmate/TalkPostCompatibility;->invoke(Ljava/lang/reflect/Method;" +
+                "Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;",
+        )
+        else -> error("ChMate 243 Talk posting invocation registers were not found")
+    }
+}
+
+/**
+ * Tablet mode adds a 50dp Compose Spacer above the response-filter buttons to reserve
+ * a banner slot. The banner View itself is already hidden elsewhere, so suppress the
+ * captured boolean that emits only this spacer while retaining the filter controls.
+ */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchTabletThreadHeaderAdSpace(
+    version: String,
+) {
+    val owner = when (version) {
+        // 191 uses top padding on its legacy row; hideLegacyThreadListAd removes it.
+        "0.8.10.191 dev" -> return
+        "0.8.10.226 dev" -> "Lo/writeWindowUpdateLaterokhttp;"
+        "0.8.10.241" -> "Lo/getRewardItem;"
+        "0.8.10.243 dev" -> "Lo/zzdhn;"
+        else -> return
+    }
+    val mutableClass = mutableClassDefBy(owner)
+    mutableClass.fields.single { field ->
+        field.type == "Z" && field.accessFlags and 8 == 0
+    }
+    val method = mutableClass.methods.single { candidate ->
+        candidate.name == "invoke"
+            && candidate.returnType == "Ljava/lang/Object;"
+            && candidate.parameters.map(CharSequence::toString) == listOf(
+                "Ljava/lang/Object;",
+                "Ljava/lang/Object;",
+            )
+    }
+    method.addInstructionsWithLabels(
+        0,
+        """
+            invoke-static/range { p0 .. p0 }, $EXTENSION->suppressTabletThreadHeaderAdSpace(Ljava/lang/Object;)V
+        """.trimIndent(),
+    )
+}
+
+/**
+ * Normalizes the result of 243's certificate-derived helper before the generated Talk
+ * token builder consumes it. The generated wrapper itself is loaded from an in-memory
+ * DEX, while this helper and SafeParcelableReserved$4 are regular APK classes.
+ */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchModernTalkIntegrityPrimitives() {
+    val integrityMethod = mutableClassDefBy("Lo/zzeyn${'$'}read;").methods.single { method ->
+        method.name == "d"
+            && method.returnType == "[Ljava/lang/Object;"
+            && method.parameters.map(CharSequence::toString) == listOf(
+                "Landroid/content/Context;",
+                "[Ljava/lang/String;",
+                "I",
+                "I",
+                "I",
+            )
+    }
+    val returnSites = integrityMethod.implementation!!.instructions
+        .mapIndexedNotNull { index, instruction ->
+            if (instruction.opcode == Opcode.RETURN_OBJECT) {
+                index to (instruction as OneRegisterInstruction).registerA
+            } else {
+                null
+            }
+        }
+    check(returnSites.isNotEmpty()) { "ChMate 243 integrity helper return was not found" }
+    returnSites.asReversed().forEach { (index, register) ->
+        integrityMethod.addInstructionsWithLabels(
+            index,
+            """
+                invoke-static {v$register}, Lapp/morphe/extension/chmate/TalkPostCompatibility;->normalizeIntegrityState([Ljava/lang/Object;)[Ljava/lang/Object;
+                move-result-object v$register
+            """.trimIndent(),
+        )
+    }
+}
+
+
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchPreIoTalkPostIntegrity() {
     val networkClass = mutableClassDefBy("Lo/OpenJSSEPlatformCompanion;")
     val candidates = networkClass.methods.flatMap { method ->
@@ -1729,6 +1913,39 @@ private fun MutableMethod.ignoreSignatureRejection(profile: ChMateProfile) {
     )
 }
 
+/**
+ * ChMate 243 moved the in-thread banner from the legacy ListView adapter to
+ * ResListRecyclerAdapter. Its INLINE_AD item (view type 5) always creates this
+ * dedicated ViewHolder, so collapse its root view without affecting response rows.
+ */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchModernThreadListAd() {
+    mutableClassDefBy("Lo/zzdpc\$IconCompatParcelizer;").methods
+        .single { method ->
+            method.name == "<init>"
+                && method.returnType == "V"
+                && method.parameters.map(CharSequence::toString) ==
+                listOf("Landroid/view/View;")
+        }
+        .addBeforeEveryReturn(
+            "invoke-static/range { p1 .. p1 }, " +
+                "$EXTENSION->hideModernThreadListAd(Landroid/view/View;)V",
+        )
+}
+
+/** Execute the wrapped callable directly, without the certificate-derived decoy path. */
+private fun MutableMethod.returnSignatureDelegate(profile: ChMateProfile) {
+    addInstructionsWithLabels(
+        0,
+        """
+            move-object/from16 v0, p0
+            iget-object v0, v0, ${profile.signatureClass}->${profile.signatureDelegateField}:${profile.signatureDelegateType}
+            invoke-virtual {v0}, ${profile.signatureDelegateType}->${profile.signatureDelegateMethod}()Ljava/lang/Object;
+            move-result-object v0
+            return-object v0
+        """.trimIndent(),
+    )
+}
+
 private fun MutableMethod.bypassSignatureFailureBranches() {
     val branchIndexes = implementation?.instructions
         ?.mapIndexedNotNull { index, instruction ->
@@ -1812,6 +2029,28 @@ private fun MutableMethod.addBeforeEveryReturn(instruction: String) {
         }
         ?.asReversed()
         ?.forEach { addInstruction(it, instruction) }
+}
+
+/** Keeps selected reporter metadata while retaining the normal history fallback. */
+private fun MutableMethod.preserveEdgeReporterTitle(historyClass: String, titleField: String) {
+    val instructions = implementation!!.instructions.toList()
+    // The history title is read once for isEmpty, then to overwrite the selected
+    // title. Replace only that final move, preserving all original branches.
+    val index = instructions.indices.single { i ->
+        val field = (instructions[i] as? ReferenceInstruction)?.reference as? FieldReference
+        instructions[i].opcode == Opcode.IGET_OBJECT &&
+            field?.definingClass == historyClass && field.name == titleField &&
+            field.type == "Ljava/lang/String;" &&
+            instructions.getOrNull(i + 1)?.opcode == Opcode.MOVE_OBJECT
+    }
+    val read = instructions[index] as TwoRegisterInstruction
+    val move = instructions[index + 1] as TwoRegisterInstruction
+    check(move.registerB == read.registerA && move.registerA != move.registerB)
+    check(move.registerA < 16 && move.registerB < 16)
+    replaceInstruction(index + 1,
+        "invoke-static {v${move.registerA}, v${move.registerB}}, " +
+            "Lapp/morphe/extension/chmate/EdgeReporterTitle;->preserve(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;")
+    addInstruction(index + 2, "move-result-object v${move.registerA}")
 }
 
 /** Rewrites Edge's live-board subject feed before ChMate starts the request. */
@@ -2932,5 +3171,83 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacy5chIoCompat
             )
         }
 
+    }
+}
+
+/** Hooks use stable parameter types; obfuscated owners are validated for each supported APK. */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchEdgeReporterHistory(version: String) {
+    val runtime = "Lapp/morphe/extension/chmate/EdgeReporterHistory;"
+    val board = if (version == "0.8.10.191 dev")
+        "Ljp/syoboi/a2chMate/client/BBSUrlInfo\$BoardID;" else "Ljp/syoboi/a2chMate/client/BoardID;"
+    val owners = when (version) {
+        "0.8.10.191 dev" -> listOf("Lo/r8lambdaEBvvDaQDWIaS7WUoordU_4sxR3Y;", "Lo/isReady;", "Lo/getLabel;")
+        "0.8.10.226 dev" -> listOf("Lo/TrustRootIndex;", "Lo/MessageInflater;", "Lo/OpenJSSEPlatformCompanion;")
+        "0.8.10.241" -> listOf("Lo/tul11;", "Lo/changeVideoState;", "Lo/VLj;")
+        else -> listOf("Lo/zzaA;", "Lo/zzaC;", "Lo/zzaaq;")
+    }
+    val writes = mutableClassDefBy(owners[0]).methods.filter {
+        it.accessFlags and 8 == 0 && it.parameterTypes.take(3) == listOf(board, "J", "Ljava/lang/String;")
+    }
+    check(writes.size == 2) { "Reporter history writers changed: $version (${writes.size})" }
+    writes.forEach { it.addInstructionsWithLabels(0, """
+        invoke-static/range {p1 .. p4}, $runtime->title(Ljava/lang/Object;JLjava/lang/String;)Ljava/lang/String;
+        move-result-object p4
+    """) }
+    val history = mutableClassDefBy(owners[1]).methods.single { it.name == "<init>" }
+    // History constructor: bookmark id, thread key, board id, title, ...
+    // p3/p4 hold the thread key, p5 board, p6 title. Use a reordered bridge to retain wide registers.
+    history.addInstructionsWithLabels(0, """
+        invoke-static/range {p3 .. p6}, $runtime->historyTitle(JLjava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
+        move-result-object p6
+    """)
+    var captures = 0
+    mutableClassDefBy(owners[2]).methods.toList().forEach { method ->
+        val urlIndex = method.parameterTypes.indexOf("Ljp/syoboi/a2chMate/client/BBSUrlInfo;")
+            .takeIf { it >= 0 } ?: method.parameterTypes.indexOf("[Ljava/lang/Object;")
+        if (urlIndex < 0) return@forEach
+        var offset = if (method.accessFlags and 8 == 0) 1 else 0
+        method.parameterTypes.take(urlIndex).forEach { offset += if (it == "J" || it == "D") 2 else 1 }
+        val instructions = method.implementation?.instructions?.toList() ?: return@forEach
+        val sites = instructions.indices.filter { index ->
+            val ref = (instructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+            ref != null && (ref.definingClass == "Ljp/syoboi/a2chMate/data/BBSThreadList;"
+                    || ref.definingClass == "Lo/zzadh;") && ref.parameterTypes.firstOrNull() == "Ljava/io/InputStream;"
+                    && instructions.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
+        }
+        sites.asReversed().forEach { index ->
+            val list = (instructions[index + 1] as OneRegisterInstruction).registerA
+            val urlRegister = method.implementation!!.registerCount -
+                (if (method.accessFlags and 8 == 0) 1 else 0) -
+                method.parameterTypes.sumOf { if (it == "J" || it == "D") 2 else 1 } + offset
+            method.addInstructionsWithLabels(index + 2, """
+                invoke-static/range {v$list .. v$list}, $runtime->pending(Ljava/lang/Object;)V
+                invoke-static/range {v$urlRegister .. v$urlRegister}, $runtime->capturePending(Ljava/lang/Object;)V
+            """)
+            captures++
+        }
+    }
+    check(captures > 0) { "Subject metadata capture missing: $version" }
+    if (version == "0.8.10.191 dev") {
+        mutableClassDefBy("Lo/MaxFullscreenAdImplExternalSyntheticLambda4;").methods.single {
+            it.name == "onViewCreated"
+        }.addBeforeEveryReturn("invoke-static {p0, p1}, $runtime->addLegacyButton(Ljava/lang/Object;Landroid/view/View;)V")
+    } else {
+        val owner = when (version) {
+            "0.8.10.226 dev" -> "Lo/getSegmentsokio;"
+            "0.8.10.241" -> "Lo/TTRewardVideoActivity2;"
+            else -> "Lo/zzawg;"
+        }
+        val entry = mutableClassDefBy(owner).methods.single {
+            it.name == "e" && it.parameterTypes.firstOrNull() == "Landroidx/fragment/app/FragmentActivity;"
+        }
+        val free = entry.findFreeRegister(0)
+        entry.addInstructionsWithLabels(0, """
+            invoke-static/range {p0 .. p3}, $runtime->choose(Landroid/app/Activity;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)Z
+            move-result v$free
+            if-eqz v$free, :reporter_stock_editor
+            return-void
+            :reporter_stock_editor
+            nop
+        """)
     }
 }

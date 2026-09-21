@@ -36,6 +36,7 @@ public final class FeedItemsFilter {
     static final String FINAL_INSERT_SOURCE = "FinalInsert:";
 
     private static final AdsFilter ADS_FILTER = new AdsFilter();
+    private static final LocationBadgeFilter LOCATION_FILTER = new LocationBadgeFilter();
     private static final List<IFilter> CONTENT_FILTERS = List.of(
         ADS_FILTER,
         new LiveFilter(),
@@ -44,6 +45,7 @@ public final class FeedItemsFilter {
         new ShopFilter(),
         new SoundFilter(),
         new ContentMarkerFilters.PaidPartnershipFilter(),
+        LOCATION_FILTER,
         new ContentMarkerFilters.AiGeneratedFilter(),
         new ContentMarkerFilters.VerifiedFilter(),
         new ContentMarkerFilters.SeriesFilter(),
@@ -59,7 +61,8 @@ public final class FeedItemsFilter {
         new AdvancedFeedRules.QualityFilter()
     );
     private static volatile List<IFilter> RANGE_FILTERS = createRangeFilters();
-    private static final List<IFilter> LATE_FOLLOW_FILTERS = List.of(ADS_FILTER);
+    private static final List<IFilter> AD_ONLY_FILTERS = List.of(ADS_FILTER);
+    private static final List<IFilter> LATE_FOLLOW_FILTERS = List.of(ADS_FILTER, LOCATION_FILTER);
     /** The card shapes TikTok uses for a bought search result. */
     private static final String[] SEARCH_AD_FIELDS = {"multiAdCard", "aiAdCard", "brandZoneCard"};
 
@@ -189,6 +192,25 @@ public final class FeedItemsFilter {
             true,
             FilterPhase.RESPONSE
         );
+    }
+
+    /**
+     * Last shared boundary before TikTok consumes a main-feed response.
+     *
+     * <p>TikTok 47.0.3 can restore or finish populating a {@link FeedItemList} without returning
+     * it through {@code FeedApiService.fetchFeedList}. Every consumer still reads the response
+     * through {@code FeedItemList.getItems()}, so filtering there catches cached and late-filled
+     * lists as well. The wrapper must fail open because this method runs inside TikTok's model
+     * getter. A filter failure must never make the feed getter throw.
+     */
+    public static void filterOnRead(FeedItemList feedItemList) {
+        try {
+            HookStatus.bound("main feed", "FeedItemList.getItems");
+            filter(feedItemList);
+        } catch (Throwable ex) {
+            HookStatus.threw("main feed", "FeedItemList.getItems", ex);
+            Logger.printException(() -> "Could not filter the main feed while reading it", ex);
+        }
     }
 
     public static void filter(FollowFeedList followFeedList) {
@@ -433,7 +455,7 @@ public final class FeedItemsFilter {
         }
 
         Object aweme = Reflect.readField(card, "aweme");
-        return aweme instanceof Aweme && getFilterReason(LATE_FOLLOW_FILTERS, (Aweme) aweme) != null;
+        return aweme instanceof Aweme && getFilterReason(AD_ONLY_FILTERS, (Aweme) aweme) != null;
     }
 
     /**
@@ -521,7 +543,7 @@ public final class FeedItemsFilter {
                 notVideos++;
                 nameNotVideo(source, container);
             }
-            String reason = item == null ? null : getFilterReason(LATE_FOLLOW_FILTERS, item);
+            String reason = item == null ? null : getFilterReason(AD_ONLY_FILTERS, item);
             if (reason == null) {
                 if (kept != null) kept.add(container);
                 if (item != null) logKeptItem(source, item, verbose);
@@ -1448,6 +1470,7 @@ public final class FeedItemsFilter {
         final String firstAid;
         final String middleAid;
         final String lastAid;
+        final long contentSignature;
 
         private ListFingerprint(
             int size,
@@ -1456,7 +1479,8 @@ public final class FeedItemsFilter {
             int lastIdentity,
             String firstAid,
             String middleAid,
-            String lastAid
+            String lastAid,
+            long contentSignature
         ) {
             this.size = size;
             this.firstIdentity = firstIdentity;
@@ -1465,12 +1489,13 @@ public final class FeedItemsFilter {
             this.firstAid = firstAid;
             this.middleAid = middleAid;
             this.lastAid = lastAid;
+            this.contentSignature = contentSignature;
         }
 
         static ListFingerprint from(List list, AwemeExtractor extractor) {
             int size = list.size();
             if (size == 0) {
-                return new ListFingerprint(0, 0, 0, 0, "", "", "");
+                return new ListFingerprint(0, 0, 0, 0, "", "", "", 0L);
             }
 
             int middleIndex = size / 2;
@@ -1478,6 +1503,17 @@ public final class FeedItemsFilter {
             Aweme first = extractAt(list, extractor, 0);
             Aweme middle = extractAt(list, extractor, middleIndex);
             Aweme last = extractAt(list, extractor, lastIndex);
+            long contentSignature = 1125899906842597L;
+            for (int index = 0; index < size; index++) {
+                Aweme item = extractAt(list, extractor, index);
+                contentSignature = 31L * contentSignature + identity(item);
+                contentSignature = 31L * contentSignature + aid(item).hashCode();
+                contentSignature = 31L * contentSignature + AdsFilter.evidenceFingerprint(item);
+                // A cached Aweme can receive its anchors after the first delivery. The UI-only
+                // hide option must never erase the evidence used by this independent filter.
+                if (Settings.FILTER_LOCATION_VIDEOS.get())
+                    contentSignature = 31L * contentSignature + (LocationBadgeFilter.hasBadge(item) ? 1 : 0);
+            }
 
             return new ListFingerprint(
                 size,
@@ -1486,7 +1522,8 @@ public final class FeedItemsFilter {
                 identity(last),
                 aid(first),
                 aid(middle),
-                aid(last)
+                aid(last),
+                contentSignature
             );
         }
 
@@ -1505,7 +1542,8 @@ public final class FeedItemsFilter {
                 && lastIdentity == other.lastIdentity
                 && firstAid.equals(other.firstAid)
                 && middleAid.equals(other.middleAid)
-                && lastAid.equals(other.lastAid);
+                && lastAid.equals(other.lastAid)
+                && contentSignature == other.contentSignature;
         }
 
         String toSampleString() {

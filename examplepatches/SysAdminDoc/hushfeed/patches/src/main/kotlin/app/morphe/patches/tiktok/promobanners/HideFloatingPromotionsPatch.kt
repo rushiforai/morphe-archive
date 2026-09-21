@@ -26,6 +26,9 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val FEATURE_CONTROLS_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/featurecontrols/FeatureControls;"
+private const val PROFILE_ACTIVITY_ICON_DESCRIPTOR =
+    "Lcom/bytedance/touchpoint/api/model/ProfileActivityIcon;"
+private const val TUX_ICON_VIEW_DESCRIPTOR = "Lcom/bytedance/tux/icon/TuxIconView;"
 
 private object TouchPointPendantParserFingerprint : Fingerprint(
     returnType = "V",
@@ -40,14 +43,35 @@ private object TouchPointPendantParserFingerprint : Fingerprint(
     },
 )
 
+/** The 47.0.3 binder that creates the purple rewards shortcut beside Add friends. */
+internal fun isProfileRewardsIconBinder(method: com.android.tools.smali.dexlib2.iface.Method): Boolean {
+    val instructions = method.implementation?.instructions ?: return false
+    val hasProfileModel = instructions.any {
+        it.getReference<FieldReference>()?.definingClass == PROFILE_ACTIVITY_ICON_DESCRIPTOR
+    }
+    val hasIconView = instructions.any {
+        it.opcode == Opcode.CHECK_CAST &&
+            it.getReference<TypeReference>()?.type == TUX_ICON_VIEW_DESCRIPTOR
+    }
+    val assignsViewId = instructions.any {
+        it.getReference<MethodReference>()?.toString() == "Landroid/view/View;->setId(I)V"
+    }
+    return method.returnType == "Ljava/lang/Object;" && hasProfileModel && hasIconView && assignsViewId
+}
+
+private object ProfileRewardsIconBinderFingerprint : Fingerprint(
+    returnType = "Ljava/lang/Object;",
+    custom = { method, _ -> isProfileRewardsIconBinder(method) },
+)
+
 @Suppress("unused")
 val hideFloatingPromotionsPatch = bytecodePatch(
     name = "Hide floating promotions",
-    description = "Removes floating promotional badges, coin icons, and timer banners from the feed. Switch: Hushfeed settings > Feed screen.",
+    description = "Removes floating promotional badges from the feed and can hide the rewards shortcut on Profile. Switches: Hushfeed settings > Feed screen and App.",
     default = true,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         SettingsStatusLoadFingerprint.method.addInstruction(
@@ -97,6 +121,22 @@ val hideFloatingPromotionsPatch = bytecodePatch(
 
             modelGetter.filterPromotionalTouchPoint()
             launchPlanGetter.filterPromotionalTouchPoint()
+        }
+
+        ProfileRewardsIconBinderFingerprint.method.let { method ->
+            val iconCastIndex = method.indexOfFirstInstructionOrThrow {
+                opcode == Opcode.CHECK_CAST &&
+                    getReference<TypeReference>()?.type == TUX_ICON_VIEW_DESCRIPTOR
+            }
+            val iconRegister = method.getInstruction<OneRegisterInstruction>(iconCastIndex).registerA
+            val returnIndex = method.indexOfFirstInstructionOrThrow {
+                opcode == Opcode.RETURN_OBJECT
+            }
+            method.addInstruction(
+                returnIndex,
+                "invoke-static/range {v$iconRegister .. v$iconRegister}, " +
+                    "$FEATURE_CONTROLS_CLASS_DESCRIPTOR->hideProfileRewardsShortcut(Landroid/view/View;)V",
+            )
         }
     }
 }

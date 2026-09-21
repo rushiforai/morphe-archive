@@ -6,10 +6,13 @@ Morphe patch bundle for Brave Browser, Quetta browser plus app-independent Andro
 
 | Build | Package name | Support status |
 | --- | --- | --- |
-| Quetta Browser (Play Store edition) | `net.quetta.browser` | version-unpinned, Should work normally |
-| Quetta Browser (Direct APK edition) | `net.quetta.browser.official` | version-unpinned, tested on `2.0.2 (5307)` |
+| Quetta Browser (Play Store edition) | `net.quetta.browser` | version-unpinned; refresh-rate patch statically validated on `2.0.5` |
+| Quetta Browser (Direct APK edition) | `net.quetta.browser.official` | version-unpinned; extension patch tested on `2.0.2 (5307)` |
 
-Supports both versions of Quetta Browser through the **Block Quetta bundled extension installation** patch. Compatibility is version-unpinned and experimental, intended for arm64-v8a APKs (armeabi-v7a might work too, but currently not planned atm); the framework does not enforce ABI.
+Supports both versions of Quetta Browser through two Quetta-local patches:
+
+- **Block Quetta bundled extension installation** — bundled extension install/reinstall block.
+- **Force highest refresh rate** — Quetta-adapted sibling of the Titanium patch. Separate fingerprints: Quetta 2.0.5 keeps `WindowAndroid.setPreferredRefreshRate(F)V` but obfuscates the nearest-mode worker and drops the Titanium log literal; this patch matches the structural shape (`getRefreshRate` + `getModeId` + `Window.setAttributes`) instead of editing the helium/Titanium implementation. Version-unpinned, experimental, fail-closed on ambiguity. Intended for arm64-v8a APKs; the framework does not enforce ABI.
 
 Patch blocks bundled installation/reinstallation for these exact extensions:
 
@@ -57,24 +60,26 @@ Do not use Chromium's GServices WebAPK package/signing-check overrides as an end
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.0](https://github.com/dh6k/morphe-patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
+> **[v1.6.0](https://github.com/dh6k/morphe-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
 <details open>
-<summary>📦 Quetta Browser&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Quetta Browser&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Block Quetta bundled extension installation](#block-quetta-bundled-extension-installation) | Blocks bundled extension installation/reinstallation on arm64-v8a APKs (the framework does not enforce ABI restrictions). Does not remove copies already present in existing profiles. Takes effect immediately on clean installs. |  |
+| [Force highest refresh rate](#force-highest-refresh-rate) | Quetta-adapted experimental version-unpinned patch: forces Chromium WindowAndroid to pick the highest-refresh Display mode by writing Float.MAX_VALUE into setPreferredRefreshRate(F) and the structural nearest-mode worker (getRefreshRate + getModeId + Window.setAttributes). Validated statically on Quetta 2.0.5 base APK; may increase battery usage; ambiguous targets fail closed. |  |
 
 </details>
 
 <details open>
-<summary>📦 Quetta Browser Official&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Quetta Browser Official&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Block Quetta bundled extension installation](#block-quetta-bundled-extension-installation) | Blocks bundled extension installation/reinstallation on arm64-v8a APKs (the framework does not enforce ABI restrictions). Does not remove copies already present in existing profiles. Takes effect immediately on clean installs. |  |
+| [Force highest refresh rate](#force-highest-refresh-rate) | Quetta-adapted experimental version-unpinned patch: forces Chromium WindowAndroid to pick the highest-refresh Display mode by writing Float.MAX_VALUE into setPreferredRefreshRate(F) and the structural nearest-mode worker (getRefreshRate + getModeId + Window.setAttributes). Validated statically on Quetta 2.0.5 base APK; may increase battery usage; ambiguous targets fail closed. |  |
 
 </details>
 
@@ -109,12 +114,13 @@ Do not use Chromium's GServices WebAPK package/signing-check overrides as an end
 </details>
 
 <details open>
-<summary>📦 Titanium Browser for Android&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Titanium Browser for Android&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Keep Titanium Extensions Child Processes Alive](#keep-titanium-extensions-child-processes-alive) | Experimental version-unpinned structural/data-flow patch: starts one main-process foreground service with persistent low-priority notification and forces child STRONG binding plus IMPORTANT/STRONG priority updates. Tolerates routine signature, register, and helper-name changes; ambiguous targets fail closed. May increase RAM, battery, and process pressure; mitigates LMK kills only. |  |
+| [Force highest refresh rate](#force-highest-refresh-rate) | Experimental version-unpinned patch: forces Chromium to pick the highest-refresh display mode by requesting Float.MAX_VALUE through WindowAndroid. Works on any panel (60/90/120/144/165Hz+) without knowing the max at patch time. May increase battery usage; ambiguous targets fail closed. |  |
+| [Keep Titanium Extensions Child Processes Alive](#keep-titanium-extensions-child-processes-alive) | Experimental version-unpinned structural/data-flow patch: starts one main-process foreground service with persistent low-priority notification and forces child STRONG binding plus IMPORTANT/STRONG priority updates. Tolerates routine signature, register, and helper-name changes; ambiguous targets fail closed. May increase RAM, battery, and process pressure; mitigates LMK kills only. To hide the notification, use Android Settings > Apps > Titanium > Notifications (the keep-alive service stays active either way). | • Notification title<br>• Notification text |
 
 </details>
 

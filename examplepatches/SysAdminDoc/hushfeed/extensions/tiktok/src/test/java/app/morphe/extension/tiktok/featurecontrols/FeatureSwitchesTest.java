@@ -37,6 +37,7 @@ public class FeatureSwitchesTest {
                 Settings.GHOST_MODE, Settings.DISABLE_ANALYTICS,
                 Settings.HIDE_INBOX_SUGGESTED_ACCOUNTS, Settings.HIDE_INBOX_STORIES,
                 Settings.EXPAND_ACTIVITY_LIST, Settings.HIDE_HOMEPAGE_COIN,
+                Settings.HIDE_PROFILE_REWARDS_SHORTCUT,
                 Settings.HIDE_FEED_FOLLOW_BUTTON, Settings.HIDE_FEED_SAVE_BUTTON,
                 Settings.HIDE_LIVE_ENTRANCE, Settings.HIDE_FEED_SEARCH_BUTTON,
                 Settings.HIDE_COMMENT_QUICK_REACTIONS, Settings.ENABLE_LONG_PRESS_SPEED_LOCK}) {
@@ -105,6 +106,18 @@ public class FeatureSwitchesTest {
         Settings.HIDE_FEED_SAVE_BUTTON.save(true);
         assertEquals(View.GONE, FeatureControls.hideFeedFollowButtonVisibility(View.VISIBLE));
         assertEquals(View.GONE, FeatureControls.hideFeedSaveButtonVisibility(View.VISIBLE));
+    }
+
+    @Test public void profileRewardsShortcutUsesItsOwnDeclutterSwitch() {
+        Settings.HIDE_PROFILE_REWARDS_SHORTCUT.save(false);
+        assertEquals(View.VISIBLE,
+                FeatureControls.hideProfileRewardsShortcutVisibility(View.VISIBLE));
+        assertEquals(View.INVISIBLE,
+                FeatureControls.hideProfileRewardsShortcutVisibility(View.INVISIBLE));
+
+        Settings.HIDE_PROFILE_REWARDS_SHORTCUT.save(true);
+        assertEquals(View.GONE,
+                FeatureControls.hideProfileRewardsShortcutVisibility(View.VISIBLE));
     }
 
     @Test public void quickCommentReactionsKeepNativeVisibilityUntilHidden() {

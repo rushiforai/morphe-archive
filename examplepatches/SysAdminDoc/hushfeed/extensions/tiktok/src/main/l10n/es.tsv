@@ -24,6 +24,7 @@
 %1$s and above	%1$s y superior
 %1$s appears more than once in this file.	%1$s aparece más de una vez en este archivo.
 %1$s changed	%1$s cambiados
+%1$s is already hidden	%1$s ya está oculto
 %1$s destinations must start with %2$s	Los destinos de %1$s deben empezar por %2$s
 %1$s has an invalid value. %2$s	%1$s tiene un valor no válido. %2$s
 %1$s has no supported override boundary in this Lab build.	%1$s no tiene un límite de sobrescritura compatible en esta compilación del Lab.
@@ -70,15 +71,16 @@ Account-sensitive name: forcing this key may affect security, login, compliance,
 Activity	Actividad
 Activity Center (PIA)	Centro de actividad (PIA)
 Add	Añadir
-Add a block button to the video player that blocks the creator of the current video in one tap. An undo action is shown after each block.	Agrega un botón de bloqueo al reproductor que bloquea al creador del video actual con un toque. Se muestra una acción de deshacer después de cada bloqueo.
+Block the creator in one tap. Once TikTok confirms, skip to the next video. A small Unblock button appears at the top left for two seconds. You can also unblock later in TikTok's Privacy > Blocked accounts.	Bloquea al creador con un toque. Cuando TikTok lo confirme, pasa al siguiente video. Aparece un botón pequeño para desbloquear arriba a la izquierda durante dos segundos. También puedes desbloquear más tarde en Privacidad > Cuentas bloqueadas de TikTok.
+Unblock	Desbloquear
 Add a button beside the block control to send feedback about the current video.	Añade un botón junto al control de bloqueo para enviar comentarios sobre el vídeo actual.
 Add a creator	Add a creator
-Add a separate button that skips this account locally without blocking it.	Añade un botón separado que omite esta cuenta localmente sin bloquearla.
+Add a button that hides the current creator on this phone without blocking them.	Añade un botón que oculta al creador actual en este dispositivo sin bloquearlo.
 Add a separate button that skips videos using the current sound.	Añade un botón separado que omite los vídeos que usan el sonido actual.
 Add hidden creator	Añadir creador oculto
 Added %1$s	Se agrego %1$s
 Ads	Anuncios
-Advance when a video ends	Avanzar cuando termina un vídeo
+Auto-advance videos	Avanzar vídeos automáticamente
 Advanced	Avanzado
 Advanced JSON value	Valor JSON avanzado
 All	Todos
@@ -90,7 +92,7 @@ Allow screenshots and Circle to Search	Permitir capturas de pantalla y Círculo 
 Allow storage for TikTok in Android settings to save profile pictures.	Hace falta permiso de almacenamiento para guardar una foto de perfil.
 Allow storage for TikTok in Android settings to save sounds.	Hace falta permiso de almacenamiento para guardar un sonido.
 Allow storage for TikTok in Android settings to save stories.	Hace falta permiso de almacenamiento para guardar una historia.
-Allowed bottom tabs	Pestañas inferiores permitidas
+Bottom tabs to keep	Pestañas inferiores que mantener
 Already marked as not interested	Ya marcado como no me interesa
 Also apply these filters to downloaded videos TikTok uses when the feed cannot load enough new items.	Aplicar también estos filtros a los vídeos descargados que TikTok usa cuando el feed no consigue cargar suficientes elementos nuevos.
 Also change the region TikTok reports internally. Keeps your interface language. Your IP address and your account's own rules still apply.	Cambia también la región que TikTok informa internamente. Mantiene el idioma de la interfaz. Tu dirección IP y las reglas de tu cuenta siguen aplicándose.
@@ -116,9 +118,9 @@ Audio	Audio
 Auto translate comments	Traducir comentarios automáticamente
 Auto-advance session limit	Límite de avance automático por sesión
 Automatic	Automático
-Automatic advance	Avance automático
-Automatic advance stopped after %1$d videos	El avance automático se detuvo tras %1$d vídeos
-Automatic advance stopped after one video	El avance automático se detuvo tras un vídeo
+Auto-advance	Avance automático
+Auto-advance stopped after %1$d videos	El avance automático se detuvo tras %1$d vídeos
+Auto-advance stopped after one video	El avance automático se detuvo tras un vídeo
 Automatic clear display	Ocultar controles automáticamente
 Avatar and follow button	Avatar y botón de seguir
 Back	Atrás
@@ -130,14 +132,15 @@ Block contact list access	Bloquear el acceso a los contactos
 Block installed app scanning	Bloquear el escaneo de apps instaladas
 Block location	Bloquear la ubicación
 Block motion sensors	Bloquear los sensores de movimiento
-Block new TikTok tabs	Bloquear pestañas nuevas de TikTok
+Block new feed tabs	Bloquear pestañas nuevas del feed
 Block new bottom tabs	Bloquear pestañas inferiores nuevas
 Block this commenter	Bloquear a quien comenta
 Block this creator	Bloquear a este creador
 Block this sound	Bloquear este sonido
 Blocked	Bloqueado
 Blocked %1$s	%1$s bloqueado
-Blocked %1$s, but TikTok has not confirmed it yet.	No se pudo confirmar el bloqueo de %1$s.
+Blocked %1$s. Unblock	%1$s bloqueado. Desbloquear
+Couldn't confirm the block for %1$s.	No se pudo confirmar el bloqueo de %1$s.
 Blocked caption words	Palabras bloqueadas en las descripciones
 Blocked comment words	Palabras bloqueadas en los comentarios
 Blocked creators	Creadores bloqueados
@@ -160,10 +163,10 @@ Choose a backup file. Your current settings are kept for Undo.	Elige un archivo 
 Choose a folder on internal storage. SD cards are not supported.	Solo se admiten carpetas del almacenamiento interno.
 Choose a preset to fill the SIM details.	Elige un ajuste preestablecido para rellenar los datos de la SIM.
 Choose a subfolder under %1$s.	Elige una subcarpeta dentro de %1$s.
-Choose observed share actions to hide. The stable identifier is shown below each label; unknown saved identifiers stay in the manual list.	Elige qué acciones de compartir observadas quieres ocultar. El identificador estable se muestra bajo cada etiqueta; los identificadores guardados desconocidos se quedan en la lista manual.
+Pick the actions to remove from the share sheet. Names you typed by hand that TikTok hasn't shown yet stay in the list above.	Elige las acciones que quieres quitar de la hoja para compartir. Los nombres que escribiste a mano y que TikTok aún no ha mostrado se mantienen en la lista de arriba.
 Choose what reaches your feed	Elige qué llega a tu feed
 Choose which loaded TikTok bottom navigation tabs should stay visible.	Elige qué pestañas de navegación inferior cargadas por TikTok deben seguir visibles.
-Choose which loaded TikTok feed tabs should stay visible.	Elige qué pestañas del feed cargadas por TikTok deben seguir visibles.
+Choose which loaded TikTok feed tabs should stay visible. If only For You remains, its redundant header is hidden.	Elige qué pestañas del feed cargadas por TikTok deben seguir visibles. Si solo queda Para ti, se oculta el encabezado redundante.
 Choose which rows and controls appear	Elige qué filas y controles aparecen
 Clear all	Borrar todo
 Clear all Lab data (overrides, switch, recordings)	Borrar todos los datos del Lab (sustituciones, interruptor, grabaciones)
@@ -231,12 +234,12 @@ Could not start the report export. Try again shortly.	No se pudo iniciar la expo
 Could not start the settings operation. Try again shortly.	No se pudo iniciar la operación de ajustes. Inténtalo de nuevo en breve.
 Could not tell which folder to update. Choose it again.	No se pudo saber qué carpeta actualizar. Vuelve a elegirla.
 Could not undo the clear. Try again.	Could not undo the clear. Try again.
-Country ISO	ISO del país
+Country code	Código de país
 Country and network preferences	Preferencias de país y de red
 Counts under the buttons	Cifras bajo los botones
 Create	Crear
 Creators and sounds	Creadores y sonidos
-Creators hidden from later feed batches by the player action. Search the list and remove one entry at a time.	Creadores ocultados de los siguientes lotes del feed mediante la acción del reproductor. Busca en la lista y quita las entradas de una en una.
+Creators you hid from a video. Search the list and remove one at a time.	Creadores que ocultaste desde un vídeo. Busca en la lista y quita las entradas de una en una.
 Current	Actual
 Current %1$s	Actual: %1$s
 Current cache unavailable: %1$s	La caché actual no está disponible: %1$s
@@ -275,7 +278,7 @@ Do nothing	No hacer nada
 Done	Listo
 Double tap	Doble toque
 Download original photos	Descargar las fotos originales
-Download path updated	Ruta de descarga actualizada
+Destination updated	Destino actualizado
 Downloads	Descargas
 Drag to move, release to place	Arrastra para mover, suelta para colocar
 Drama and Series	Drama y series
@@ -331,7 +334,7 @@ Filter settings	Ajustes de filtros
 Filter the list	Filtrar la lista
 Filter: %1$s	Filtro: %1$s
 Filters, translation and copy options	Filtros, traducción y opciones de copia
-Find a setting by title or description	Busca un ajuste por título o descripción
+Find a setting by name or description	Busca un ajuste por nombre o descripción
 First caller	Primera llamada
 First rejection:	Primer rechazo:
 Fit the video to the screen	Ajustar el vídeo a la pantalla
@@ -361,21 +364,21 @@ Gestures	Gestos
 Ghost mode	Modo fantasma
 Hand-off	Traspaso
 Handle or id	Handle or id
-Hidden %1$s locally	%1$s ocultado en el dispositivo
+Hidden %1$s on this phone	%1$s se ocultó en este dispositivo
 Hidden commenters	Comentaristas ocultos
 Hidden creators	Creadores ocultos
 Hidden: %1$s	Ocultos: %1$s
 Hide	Ocultar
-Hide AI generated videos	Ocultar los vídeos generados por IA
+Hide AI-generated videos	Ocultar los vídeos generados por IA
 Hide CAPTCHA popups	Ocultar las ventanas de CAPTCHA
 Hide LIVE replays	Ocultar las repeticiones de LIVE
 Hide LIVE videos	Ocultar los vídeos LIVE
 Hide Series	Ocultar Series
-Hide Tako AI	Ocultar Tako AI
+Hide the Tako bubble	Ocultar la burbuja de Tako
 Hide TikTok Shop	Ocultar TikTok Shop
 Hide TikTok Shop posts from the feed.	Ocultar las publicaciones de TikTok Shop en el feed.
 Hide TikTok Shop updates and coupon messages.	Ocultar las novedades de TikTok Shop y los mensajes de cupones.
-Hide TikTok Tako	Ocultar TikTok Tako
+Hide the Tako chat	Ocultar el chat de Tako
 Hide TikTok's exposed quick emoji row in supported comment inputs.	Ocultar la fila de emojis rápidos que TikTok deja a la vista en los campos de comentario compatibles.
 Hide activity	Ocultar la actividad
 Hide activity status	Ocultar el estado de actividad
@@ -390,8 +393,8 @@ Hide comments that contain any of the words below, or that come from the account
 Hide controls after each video starts. Tap to restore them.	Ocultar los controles después de que empiece cada vído. Toca para recuperarlos.
 Hide conversations	Ocultar las conversaciones
 Hide every direct message conversation. Leaves the Inbox empty apart from whatever else is still switched on.	Ocultar todas las conversaciones de mensajes directos. Deja la bandeja vacía salvo por lo que sigas teniendo activado.
-Hide feed save button	Ocultar el botón de guardar del feed
-Hide feed search button	Ocultar el botón de buscar del feed
+Hide the save button on the feed	Ocultar el botón de guardar del feed
+Hide the search button on the feed	Ocultar el botón de buscar del feed
 Hide floating promotion badges, coins, and timer banners on the feed.	Ocultar las insignias promocionales flotantes, las monedas y los banners con cuenta atrás de la página de inicio.
 Hide floating promotions	Ocultar las promociones flotantes
 Hide inserted cards	Ocultar las tarjetas insertadas
@@ -407,26 +410,26 @@ Hide playlist videos	Ocultar los vídeos de listas de reproducción
 Hide promotional music	Ocultar la música promocional
 Hide quick comment reactions	Ocultar las reacciones rápidas a los comentarios
 Hide rows by title	Ocultar filas por título
-Hide search	Ocultar la búsqueda
-Hide search suggestions	Ocultar las sugerencias de búsqueda
+Hide the Inbox search button	Ocultar el botón de búsqueda de la bandeja de entrada
+Hide suggestions on the search page	Ocultar sugerencias en la página de búsqueda
 Hide sharing apps	Ocultar las apps para compartir
 Hide stories tray	Ocultar la bandeja de historias
-Hide story	Ocultar las historias
+Hide stories	Ocultar las historias
 Hide suggested account rows.	Ocultar las filas de cuentas sugeridas.
 Hide suggested accounts	Ocultar las cuentas sugeridas
 Hide surveys	Ocultar las encuestas
 Hide tabs TikTok adds later unless you allow them.	Ocultar las pestañas que TikTok añada más adelante salvo que las permitas.
-Hide the "Search this image" prompt TikTok shows over videos when it spots something to shop for.	Ocultar el aviso "Buscar esta imagen" que TikTok pone sobre los vídeos cuando ve algo que vender.
+Hide the "Search this image" prompt shown over videos. The feed search button and suggestions above comments are separate settings.	Oculta el aviso «Buscar esta imagen» que aparece sobre los videos. El botón de búsqueda del feed y las sugerencias sobre los comentarios tienen ajustes independientes.
 Hide the Activity row of likes and comments on your posts.	Ocultar la fila de Actividad con los me gusta y los comentarios en tus publicaciones.
 Hide the Archive row.	Ocultar la fila de Archivo.
 Hide the LIVE button	Ocultar el botón de LIVE
 Hide the LIVE button in the top left corner of the feed.	Ocultar el botón de LIVE en la esquina superior izquierda del feed.
-Hide the LIVE videos from the feed.	Ocultar del feed los vídeos LIVE.
+Hide LIVE videos from the feed.	Ocultar vídeos LIVE del feed.
 Hide the Message requests row.	Ocultar la fila de Solicitudes de mensaje.
 Hide the New followers row.	Ocultar la fila de Nuevos seguidores.
 Hide the Send to row	Ocultar la fila Enviar a
 Hide the Tako AI bubble above the profile button and the Ask bar under videos.	Ocultar la burbuja de Tako AI encima del botón de perfil y la barra de Tako debajo de los videos.
-Hide the TikTok Tako assistant conversation.	Ocultar la conversación con el asistente TikTok Tako.
+Hide the Tako assistant conversation in Inbox.	Ocultar la conversación del asistente Tako en Recibidos.
 Hide the activity status control in the Inbox header.	Ocultar el control de estado de actividad en la cabecera de la bandeja.
 Hide the add people icon	Ocultar el icono de añadir personas
 Hide the add people icon in the Inbox header.	Ocultar el icono de añadir personas en la cabecera de la bandeja.
@@ -438,26 +441,28 @@ Hide the follow button on the feed	Ocultar el botón de seguir del feed
 Hide the friend recommendation card and the other cards TikTok slots between videos.	Ocultar la tarjeta de amigos recomendados y las demás tarjetas que TikTok mete entre vídeos.
 Hide the launcher shortcuts	Ocultar los accesos directos del lanzador
 Hide the music line	Ocultar la línea de música
-Hide the photo posts from the feed.	Ocultar del feed las publicaciones de fotos.
+Hide photo posts from the feed.	Ocultar publicaciones de fotos del feed.
 Hide the playlist bar	Ocultar la barra de la lista de reproducción
 Hide the playlist bar along the bottom of videos that belong to a series.	Ocultar la barra de la lista de reproducción en la parte de abajo de los vídeos que pertenecen a una serie.
 Hide the plus button under the creator's picture in the right column. Ticking Avatar and follow button above hides the picture with it.	Oculta el botón más bajo la foto del creador en la columna derecha. Si marcas Avatar y botón de seguir arriba, la foto desaparece también.
+Hide the purple rewards button beside Add friends on your profile.	Oculta el botón morado de recompensas junto a Añadir amigos en tu perfil.
 Hide the question cards TikTok slides over a video near its end.	Ocultar las tarjetas con preguntas que TikTok desliza sobre un vídeo cerca del final.
+Hide the rewards shortcut	Ocultar el acceso a recompensas
 Hide the right column	Ocultar la columna derecha
 Hide the row of story avatars across the top of the Inbox.	Ocultar la fila de fotos de historias en la parte de arriba de la bandeja.
 Hide the save button through its native visibility hook. Ticking Save in the checklist above hides the same button through the overlay.	Ocultar el boton de guardar a traves de su hook de visibilidad nativo. Marcar Guardar en la lista de arriba oculta el mismo boton a traves de la superposicion.
-Hide the search button in the top right corner of the feed.	Ocultar el botón de buscar en la esquina superior derecha del feed.
-Hide the search icon in the Inbox header.	Ocultar el icono de buscar en la cabecera de la bandeja.
-Hide the searches TikTok offers before you type. Your own search history stays.	Ocultar las búsquedas que TikTok propone antes de que escribas. Tu propio historial de búsqueda se queda.
+Hide the magnifying glass at the top right of the feed. Search in Inbox and suggestions above comments stay unchanged.	Oculta la lupa de la esquina superior derecha del feed. La búsqueda en la bandeja de entrada y las sugerencias sobre los comentarios no cambian.
+Remove the magnifying glass at the top of Inbox. It doesn't hide search on the feed or in comments.	Quita la lupa de la parte superior de la bandeja de entrada. No oculta la búsqueda en el feed ni en los comentarios.
+Hide recommended searches before you type on TikTok's search page. Your search history stays. This doesn't hide suggestions above comments.	Oculta las búsquedas recomendadas antes de escribir en la página de búsqueda de TikTok. Tu historial de búsqueda se conserva. No oculta las sugerencias sobre los comentarios.
 Hide the share prompt after a like	Ocultar la sugerencia de compartir tras un me gusta
 Hide the spinning music cover and the track name beside the caption.	Ocultar la portada giratoria de la música y el nombre de la pista junto a la descripción.
 Hide the status bar	Ocultar la barra de estado
-Hide the stories from the feed.	Ocultar las historias del feed.
+Hide stories from the feed.	Ocultar historias del feed.
 Hide the whole column on the right, from the avatar down to the music disc.	Ocultar toda la columna derecha, desde la foto hasta el disco de música.
-Hide this creator locally	Ocultar a este creador en el dispositivo
+Hide this creator on this phone	Ocultar a este creador en este dispositivo
 Hide verified accounts	Ocultar las cuentas verificadas
 Hide video actions	Ocultar las acciones del vídeo
-Hide videos carrying TikTok's AI generated label.	Ocultar los vídeos con la etiqueta de generado por IA de TikTok.
+Hide videos carrying TikTok's AI-generated label.	Ocultar los vídeos con la etiqueta de contenido generado por IA de TikTok.
 Hide videos marked as paid partnership or branded content.	Ocultar los vídeos marcados como colaboración pagada o contenido de marca.
 Hide videos posted as part of a playlist.	Ocultar los vídeos publicados dentro de una lista de reproducción.
 Hide videos posted by verified accounts.	Ocultar los vídeos publicados por cuentas verificadas.
@@ -465,7 +470,7 @@ Hide videos that belong to a paid Series.	Ocultar los vídeos que pertenecen a u
 Hide videos with a lot of views and few comments. Works the same way as views per like. Zero turns it off.	Oculta los vídeos con muchas visualizaciones y pocos comentarios. Funciona igual que las visualizaciones por me gusta. Cero lo desactiva.
 Hide videos with a lot of views and few likes. Lower numbers are stricter, zero turns the rule off, and one video is kept back if a whole batch would go.	Ocultar los vídeos con muchas visualizaciones y pocos me gusta. Los números más bajos son más estrictos, cero desactiva la regla, y se deja un vídeo si un lote entero se fuera a ir.
 Hide videos you have already seen	Ocultar los vídeos que ya has visto
-Hide visual search prompt	Ocultar el aviso de búsqueda visual
+Hide Search this image prompts	Ocultar avisos de Buscar esta imagen
 Hiding	Ocultar
 Highest	La más alta
 Historical	Histórico
@@ -477,6 +482,7 @@ Hook status	Comprobación de funciones
 How far each edge press moves the video.	Cuánto avanza el vídeo con cada toque en el borde.
 Hushfeed cannot read the creator pattern %1$s	Hushfeed no puede leer el patrón de creador %1$s
 Hushfeed hid a TikTok puzzle. Turn off Hide CAPTCHA popups if something stops working.	Hushfeed ocultó un rompecabezas de TikTok. Desactiva Ocultar las ventanas de CAPTCHA si algo deja de funcionar.
+Hushfeed is active	Hushfeed está activo
 Ignore the creator's choice so the Duet and Stitch entries appear. Everything else the app checks still applies, and whether the upload is accepted is the server's decision.	Ignorar la decisión del creador para que aparezcan las entradas de Dúo y Unir. Todo lo demás que comprueba la app sigue aplicándose, y que se acepte la subida lo decide el servidor.
 Import finished	Importación finalizada
 Import loaded values	Importar los valores cargados
@@ -489,7 +495,7 @@ Includes all diagnostic events.	Incluye todos los eventos de diagnóstico.
 Includes these events: %1$s	Incluye estos eventos: %1$s
 Inserted cards	Tarjetas insertadas
 Keep a local record of what you have watched and drop those videos from later feed pages.	Guardar en el dispositivo un registro de lo que has visto y quitar esos vídeos de las páginas siguientes del feed.
-Keep automatic advance enabled, and show TikTok's own Auto scroll action in the video panel even if your account never had it. Pauses and open dialogs still stop scrolling. Restart TikTok to apply this. Then use this switch to turn it off.	Mantener el avance automático activado y mostrar la acción Desplazamiento automático de TikTok en el panel del vídeo aunque tu cuenta nunca la haya tenido. Las pausas y los diálogos abiertos siguen deteniendo el desplazamiento. Reinicia TikTok para que se aplique. Luego usa este interruptor para desactivarlo.
+Move to the next video when the current one ends. Pauses, open dialogs and screen-time holds stop it. Restart TikTok after changing this.	Pasa al siguiente vídeo cuando termine el actual. Las pausas, los diálogos abiertos y los bloqueos de tiempo de pantalla lo detienen. Reinicia TikTok después de cambiar este ajuste.
 Keep captions in clear display	Mantener los subtítulos con los controles ocultos
 Keep going	Keep going
 Keep the Favorites tab	Mantener la pestaña Favoritos
@@ -532,7 +538,7 @@ Loaded values are still being read. Try again in a moment.	Los valores cargados 
 Loaded-value file export failed	Ha fallado la exportación de los valores cargados
 Loading gates...	Cargando los interruptores...
 Loading local catalog and current TikTok cache...	Cargando el catálogo local y la caché actual de TikTok...
-Locally hidden creators	Creadores ocultos en el dispositivo
+Creators hidden on this phone	Creadores ocultos en este dispositivo
 Lock today's budget	Bloquear el presupuesto de hoy
 Logging, hook status and reports	Registros, estado de los hooks e informes
 Long press	Pulsación larga
@@ -640,7 +646,7 @@ Open the feed once so Hushfeed can see which tabs TikTok loaded.	Abre el feed de
 Open the profile again and try once more	Abre el perfil otra vez e inténtalo de nuevo
 Open the story again and try once more	Abre la historia otra vez e inténtalo de nuevo
 Opens github.com in your browser	Abre github.com en tu navegador
-Operator MCC/MNC	MCC/MNC del operador
+Operator code	Código del operador
 Operator name	Nombre del operador
 Original language	Idioma original
 Other	Otros
@@ -682,12 +688,12 @@ Profile share actions	Acciones de compartir del perfil
 Promotional music	Música promocional
 Proof	Prueba
 Publication age	Antigüedad de la publicación
-Put a box above the comments that narrows them to the ones matching what you type, by what they say or who said it. Clearing the box brings the rest back.	Poner encima de los comentarios un campo que los reduce a los que coinciden con lo que escribes, por lo que dicen o por quién lo dijo. Al vaciar el campo vuelven los demás.
+Add a search box that filters comments already loaded on this video by text or username. It doesn't search all of TikTok or remove TikTok's suggested-search banner.	Añade un cuadro de búsqueda para filtrar los comentarios ya cargados de este video por texto o nombre de usuario. No busca en todo TikTok ni elimina su banner de búsquedas sugeridas.
 Putting the settings back to their defaults	Devolviendo los ajustes a sus valores de fábrica
 Quality	Calidad
 Quality, files, subtitles and hand-off	Calidad, archivos, subtítulos y traspaso
-Quality, speed and automatic advance	Calidad, velocidad y avance automático
-Quieten the feed while comments are open	Silenciar el feed mientras los comentarios están abiertos
+Quality, speed and auto-advance	Calidad, velocidad y avance automático
+Silence the feed while comments are open	Silenciar el feed mientras los comentarios están abiertos
 Reading	Lectura
 Recorded gate reads (%1$d)	Lecturas de interruptores registradas (%1$d)
 Recording gate reads. Use a feature, then return here to stop.	Registrando las lecturas de los interruptores. Usa una función y vuelve aquí para parar.
@@ -703,8 +709,8 @@ Remove	Quitar
 Remove %1$s	Quitar %1$s
 Remove all overrides	Quitar todas las sustituciones
 Remove feed ads	Quitar los anuncios del feed
-Remove feed ads, including videos with a creator commission disclosure.	Quita los anuncios del feed, incluidos los vídeos con un aviso de comisión para creadores.
-Remove polls from the comments before TikTok shows them.	Elimina las encuestas de los comentarios antes de que TikTok las muestre.
+Remove feed ads, creator commission posts, paid partnerships, and branded content.	Quita los anuncios del feed, las publicaciones con comisión para creadores, las colaboraciones pagadas y el contenido de marca.
+Hide voting cards and poll results above the comments, including polls that have ended.	Oculta las tarjetas de votación y sus resultados sobre los comentarios, incluidas las encuestas finalizadas.
 Remove the Share via row.	Quitar la fila Compartir con.
 Remove the actions row from the share sheet.	Quitar la fila de acciones del panel de compartir.
 Remove the row of friends from the top of the share sheet.	Quitar la fila de amigos de la parte de arriba del panel de compartir.
@@ -724,6 +730,7 @@ Reset 1 gate. Restart TikTok to apply this.	1 interruptor restablecido. Reinicia
 Reset override	Restablecer la sustitución
 Reset position	Restablecer la posición
 Reset settings	Reiniciar los ajustes
+Restart now	Reiniciar ahora
 Restart TikTok to apply %1$d changes	Reinicia TikTok para aplicar %1$d cambios
 Restart TikTok to apply this change	Reinicia TikTok para aplicar este cambio
 Restart TikTok to apply this.	Reinicia TikTok para que se aplique.
@@ -779,24 +786,24 @@ Saving video and subtitles to %1$s	Guardando el vídeo y los subtítulos en %1$s
 Screen	Pantalla
 Screen time	Tiempo de pantalla
 Search	Búsqueda
-Search a title, description or category.	Busca un título, una descripción o una categoría.
+Search by name, description or category.	Busca por nombre, descripción o categoría.
 Search and override gate flags	Buscar y sustituir marcas de interruptores
 Search countries or operators	Buscar países u operadores
 Search hidden creators	Buscar creadores ocultos
 Search settings	Buscar en los ajustes
 Search share actions	Buscar acciones de compartir
-Search the comments	Buscar en los comentarios
+Search within comments	Buscar en los comentarios
 Search these comments	Buscar en estos comentarios
 Search translated titles and descriptions, then open the original setting.	Buscar entre los títulos y las descripciones traducidos, y abrir después el ajuste original.
-Search without personalization, whatever your account is set to.	Buscar sin personalización, sea cual sea la configuración de tu cuenta.
-Search words or key	Buscar palabras o clave
+Ask TikTok for search results that aren't personalized to your account. This changes results, not search buttons or suggestions.	Pide a TikTok resultados de búsqueda que no estén personalizados para tu cuenta. Cambia los resultados, no los botones ni las sugerencias de búsqueda.
+Search by name or gate key	Buscar por nombre o clave de gate
 Seconds. Zero keeps every length. If a whole batch would be filtered out, the video closest to your limit is kept so the feed is not empty.	Segundos. Cero acepta cualquier duración. Si un lote entero se fuera a filtrar, se deja el vídeo más cercano a tu límite para que el feed no quede vacío.
 Seek by	Avanzar
 Seek from the edges	Avanzar desde los bordes
 Seen	Vistos
 Seen this session	Visto en esta sesión
 Seen videos	Vídeos vistos
-Seen videos cleared. Tap the row to undo before TikTok closes.	Seen videos cleared. Tap the row to undo before TikTok closes.
+Seen videos cleared. You can undo until TikTok closes.	Se borraron los vídeos vistos. Puedes deshacerlo hasta que se cierre TikTok.
 Seen videos restored.	Seen videos restored.
 Select	Select
 Select at least one field.	Selecciona al menos un campo.
@@ -813,24 +820,24 @@ Settings couldn't refresh completely. Reopen settings and try again.	No se pudo 
 Settings restored. Restart TikTok to apply all changes.	Ajustes restaurados. Reinicia TikTok para aplicar todos los cambios.
 Settings restored. The Feature Gate Lab rules were for another TikTok version and were left out. Restart TikTok to apply all changes.	Ajustes restaurados. Las reglas del Laboratorio de interruptores eran de otra versión de TikTok y se dejaron fuera. Reinicia TikTok para aplicar todos los cambios.
 Share	Compartir
-Share action checklist	Lista de acciones de compartir
+Hide share actions	Ocultar acciones de compartir
 Share links through another host	Compartir los enlaces con otro host
 Share sheet	Panel de compartir
 Shop	Tienda
 Shop posts	Publicaciones de la tienda
 Show	Mostrar
 Show @username beside a video instead of the display name the creator chose.	Mostrar @usuario junto al vídeo en vez del nombre visible que eligió el creador.
-Show LIVE search	Mostrar la búsqueda de LIVE
+Show search in LIVE	Mostrar búsqueda en LIVE
 Show TikTok's own progress bar on videos where it is normally hidden.	Mostrar la barra de progreso de TikTok en los vídeos donde normalmente está oculta.
 Show TikTok's own sort sheet on every post, with its hot, newest, media and creator options, instead of whichever cut-down row your account was given. Restart TikTok to apply this. It reads the style once per run and remembers it.	Mostrar el panel de orden de TikTok en todas las publicaciones, con sus opciones de populares, más recientes, contenido y creador, en vez de la fila recortada que le tocó a tu cuenta. Reinicia TikTok para que se aplique. Lee el estilo una vez por ejecución y lo recuerda.
-Show TikTok's search entry in the LIVE drawer where supported.	Mostrar la entrada de búsqueda de TikTok en el panel de LIVE donde esté disponible.
+Show the search entry inside TikTok's LIVE drawer, where available. This doesn't add a search box to video comments.	Muestra la opción de búsqueda en el panel de LIVE de TikTok, si está disponible. No añade un cuadro de búsqueda a los comentarios de videos.
 Show a video preview thumbnail while dragging the progress bar.	Mostrar una miniatura del vídeo mientras arrastras la barra de progreso.
-Show block button on videos	Mostrar el botón de bloquear en los vídeos
-Show block sound button	Mostrar el botón de bloquear sonido
+Show the block button on videos	Mostrar el botón de bloquear en los vídeos
+Show the block sound button	Mostrar el botón de bloquear sonido
 Show failures on screen	Mostrar fallos en pantalla
 Show gates	Mostrar interruptores
 Show last report	Ver el último informe
-Show local hide button	Mostrar el botón de ocultar localmente
+Show the hide button on videos	Mostrar el botón de ocultar en los vídeos
 Show the Not interested button	Mostrar el botón de No me interesa
 Show the country a video was posted from next to the creator's name.	Mostrar el país desde el que se publicó un vídeo junto al nombre del creador.
 Show the current spoken caption while the other controls are hidden.	Mostrar el subtítulo que se está diciendo mientras los demás controles están ocultos.
@@ -888,7 +895,7 @@ Structured value observed	Valor estructurado observado
 Subtitle language	Idioma de los subtítulos
 Subtitles	Subtítulos
 System	Sistema
-Tabs TikTok has loaded	Pestañas que TikTok ha cargado
+Feed tabs to keep	Pestañas del feed que mantener
 Take away the streak button in a chat and the reminder message that goes with it.	Quitar el botón de racha de un chat y el mensaje recordatorio que lo acompaña.
 Tap %1$s again to send	Toca %1$s otra vez para enviar
 Tap again to follow	Toca otra vez para seguir
@@ -965,6 +972,7 @@ There is no diagnostic data to put back.	No hay datos de diagnóstico que restau
 There was nothing to undo.	There was nothing to undo.
 These loaded values are for a different TikTok version.	Estos valores cargados son de otra versión de TikTok.
 This catalog entry is no longer available. Refresh the Lab and try again.	Esta entrada del catálogo ya no está disponible. Actualiza el Laboratorio e inténtalo otra vez.
+This change couldn't be saved. Try again.	No se pudo guardar este cambio. Inténtalo de nuevo.
 This configuration has no fields that can be copied and changed safely on this build.	Esta configuración no tiene campos que se puedan copiar y cambiar con seguridad en esta compilación.
 This file has more loaded values than the Lab takes at once.	Este archivo tiene más valores cargados de los que el Lab acepta de una vez.
 This file has no loaded values in it.	Este archivo no contiene valores cargados.
@@ -1026,17 +1034,17 @@ Turned off 1 gate of %1$d; the rest do not take a true or false value. Restart T
 Turned off 1 gate. Restart TikTok to apply this.	1 interruptor apagado. Reinicia TikTok para aplicar esto.
 Two letters, like us, gb or jp.	Dos letras, como us, gb o jp.
 Type	Tipo
-Type to search settings	Escribe para buscar en los ajustes
+Start typing	Empieza a escribir
 Unavailable	No disponible
 Unblock this commenter	Desbloquear a quien comenta
 Unblocked %1$s	%1$s desbloqueado
-Unblocked %1$s, but TikTok has not confirmed it yet.	No se pudo confirmar el desbloqueo de %1$s.
+Couldn't confirm the unblock for %1$s.	No se pudo confirmar el desbloqueo de %1$s.
 Undo	Deshacer
 Undo clearing seen videos	Undo clearing seen videos
 Undo last Lab change	Deshacer el último cambio del Lab
 Undo last restore or reset	Deshacer la última restauración o reinicio
 Undoing the last change	Deshaciendo el último cambio
-Until you save a choice here, this sheet hides the same actions as the share action checklist.	Hasta que guardes una elección aquí, este menú oculta las mismas acciones que la lista de acciones de compartir.
+Until you choose here, this sheet follows your choices under Hide share actions.	Hasta que elijas aquí, esta hoja sigue tus opciones en Ocultar acciones de compartir.
 Up to 8 speeds from 0.5 to 3, separated by commas. Example: 0.5, 1, 1.5, 2, 2.5, 3. Leave empty for TikTok's list. Restart TikTok to apply this.	Hasta 8 velocidades de 0.5 a 3, separadas por comas. Por ejemplo: 0.5, 1, 1.5, 2, 2.5, 3. Déjalo vacío para la lista de TikTok. Reinicia TikTok para que se aplique.
 Use 0 for TikTok's size, or 12 to 48. Applies to the next caption.	Usa 0 para el tamaño de TikTok, o de 12 a 48. Se aplica al siguiente subtítulo.
 Use Save JSON for this large report	Usa Guardar JSON para este informe tan grande
@@ -1114,3 +1122,40 @@ view per comment	visualización por comentario
 view per like	visualización por me gusta
 views per comment	visualizaciones por comentario
 views per like	visualizaciones por me gusta
+Already active	Ya está activo
+Applying Calm feed	Aplicando Feed tranquilo
+Calm feed	Feed tranquilo
+Calm feed couldn't be applied. Nothing was changed.	No se pudo aplicar Feed tranquilo. No se cambió nada.
+Calm feed couldn't start. Try again shortly.	No se pudo iniciar Feed tranquilo. Vuelve a intentarlo en breve.
+Calm feed is on. Restart TikTok to apply every change.	Feed tranquilo está activado. Reinicia TikTok para aplicar todos los cambios.
+Calm feed is on.	Feed tranquilo está activado.
+Changed	Cambiado
+Hide ads, Shop posts, LIVE videos and replays, promotional music, and paid partnerships.	Oculta anuncios, publicaciones de Tienda, vídeos LIVE y repeticiones, música promocional y colaboraciones pagadas.
+On	Activado
+On. Restore puts back the feed setup you had before.	Activado. Restaurar recupera la configuración del feed que tenías antes.
+Preset	Preajuste
+Quick setup	Configuración rápida
+Restore setup	Restaurar configuración
+Restoring setup	Restaurando configuración
+Some Calm feed settings changed. Restore still puts back your earlier setup.	Algunos ajustes de Feed tranquilo han cambiado. Restaurar seguirá recuperando tu configuración anterior.
+Use Calm feed	Usar Feed tranquilo
+Working	En curso
+Your current settings already match Calm feed.	Tus ajustes actuales ya coinciden con Feed tranquilo.
+Your previous feed setup couldn't be restored. Nothing was changed.	No se pudo restaurar tu configuración anterior del feed. No se cambió nada.
+Your previous feed setup is back. Restart TikTok to apply every change.	Se ha recuperado tu configuración anterior del feed. Reinicia TikTok para aplicar todos los cambios.
+Your previous feed setup is back.	Se ha recuperado tu configuración anterior del feed.
+Hide search suggestions above comments	Ocultar sugerencias de búsqueda sobre los comentarios
+Compact comment header	Cabecera de comentarios compacta
+Easier comment likes	Dar me gusta con más facilidad
+Hide the Full screen button	Ocultar el botón de pantalla completa
+Hide the Full screen button over videos. Playback and automatic rotation keep working as before.	Oculta el botón de pantalla completa que aparece sobre los videos. La reproducción y la rotación automática siguen funcionando como antes.
+Hide location labels	Ocultar etiquetas de ubicación
+Hide the search bar below videos	Ocultar la barra de búsqueda bajo los videos
+Remove the suggested-search strip above the bottom tabs and let video details and side controls use its space. The top search button and comments stay unchanged.	Quita la barra de búsquedas sugeridas sobre las pestañas inferiores para que los detalles del video y los controles laterales usen ese espacio. El botón de búsqueda superior y los comentarios no cambian.
+Hide place badges on videos, including cards with multiple places. Videos and your location permissions stay unchanged.	Oculta las etiquetas de ubicación de los videos, incluidas las tarjetas con varios lugares. Los videos y tus permisos de ubicación no cambian.
+Filter location-tagged videos	Filtrar videos con ubicación
+Skip feed videos with place badges, even when they aren't paid ads. To keep the video and hide only its badge, use Hide location labels in Feed screen.	Omite los videos del feed con etiquetas de ubicación, aunque no sean anuncios pagados. Para conservar el video y ocultar solo su etiqueta, usa Ocultar etiquetas de ubicación en Pantalla del feed.
+Location-tagged videos	Videos con ubicación
+Extend the heart's touch area into nearby blank space. The icon and row spacing stay the same. Text, Reply and other controls keep their own space.	Amplía el área táctil del corazón hacia el espacio vacío cercano. El icono y el espacio entre filas no cambian. El texto, Responder y los demás controles conservan su propia área.
+Start with comments. Hide the comment count, sort and close buttons, plus the suggestion area above them. Use Back or swipe down to close comments.	Empieza directamente con los comentarios. Oculta el número de comentarios, los botones de ordenar y cerrar y el área de sugerencias de arriba. Usa Atrás o desliza hacia abajo para cerrar los comentarios.
+Hide TikTok's "Search: ..." banner above the comment count. This doesn't hide the comments or Hushfeed's comment-search box.	Oculta el banner «Buscar: ...» de TikTok sobre el número de comentarios. No oculta los comentarios ni el cuadro de búsqueda de comentarios de Hushfeed.

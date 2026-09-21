@@ -18,7 +18,8 @@ param(
     [Parameter(Position = 0)][string]$RemoteName,
     [Parameter(Position = 1)][string]$RemoteUrl,
     [string]$Root,
-    [string[]]$ChangedPaths
+    [string[]]$ChangedPaths,
+    [string]$PushedRefs
 )
 
 $ErrorActionPreference = 'Stop'
@@ -40,8 +41,8 @@ function Write-Step {
 function Get-PushedPaths {
     <#
         Git writes "<local ref> <local sha> <remote ref> <remote sha>" per ref on stdin. A remote
-        sha of all zeroes means the branch is new there, so compare against its first parent
-        instead of diffing against nothing and checking the entire history.
+        sha of all zeroes means the branch is new there. A new branch is checked conservatively
+        from its complete resulting tree, so a stale local tracking ref cannot hide a code path.
 
         Read from the console rather than $input: a script started with -File binds stdin to its
         parameters, so piping into it fails to bind and leaves $input empty, which made the hook
@@ -59,8 +60,25 @@ function Get-PushedPaths {
         if ($localSha -eq $zeroObject) { continue }
 
         if ($remoteSha -eq $zeroObject) {
-            $range = $localSha
-            $names = git diff --name-only "$localSha^" $localSha 2>$null
+            # A new tag of an already hosted branch adds no files. In particular it does not
+            # rewrite the source index, which must keep naming the previous working bundle
+            # until the new release asset exists. Trust a live advertisement, not tracking refs.
+            if ($parts[2] -like 'refs/tags/*' -and $RemoteUrl) {
+                $target = git rev-parse --verify "$localSha^{commit}" 2>$null
+                if ($LASTEXITCODE -ne 0) { throw "Could not resolve tag target $localSha." }
+                $advertised = @(git ls-remote --heads $RemoteUrl 2>$null)
+                if ($LASTEXITCODE -ne 0) { throw 'Could not read remote branches to verify the tag target.' }
+                $targetPattern = '^' + [regex]::Escape(([string]$target).Trim()) + '\s+refs/heads/'
+                if (@($advertised | Where-Object { $_ -match $targetPattern }).Count -gt 0) {
+                    Write-Step 'new tag names an advertised remote branch commit; no file changes'
+                    continue
+                }
+            }
+            # This intentionally runs the relevant gate for any matching path in the tree, even
+            # when the branch changed only documentation. A first push is rare, and a complete
+            # tree cannot be made incomplete by a deleted or force-updated remote-tracking ref.
+            $range = "$localSha complete branch tree"
+            $names = git ls-tree -r --name-only $localSha 2>$null
         } else {
             $range = "$remoteSha..$localSha"
             $names = git diff --name-only $remoteSha $localSha 2>$null
@@ -87,10 +105,13 @@ try {
         foreach ($name in @($ChangedPaths)) { [void]$paths.Add($name) }
     } else {
         $refs = ''
-        if (-not [Console]::IsInputRedirected) {
+        if ($PSBoundParameters.ContainsKey('PushedRefs')) {
+            $refs = $PushedRefs
+        } elseif (-not [Console]::IsInputRedirected) {
             throw 'No pushed refs on standard input. Run this from the pre-push hook, or pass -ChangedPaths.'
+        } else {
+            $refs = [Console]::In.ReadToEnd()
         }
-        $refs = [Console]::In.ReadToEnd()
         $paths = Get-PushedPaths -Text $refs
     }
 

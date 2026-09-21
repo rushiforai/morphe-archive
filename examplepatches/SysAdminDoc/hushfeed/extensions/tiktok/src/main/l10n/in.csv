@@ -25,6 +25,7 @@ source,target
 %1$s and above,%1$s ke atas
 %1$s appears more than once in this file.,%1$s muncul lebih dari sekali dalam file ini.
 %1$s changed,%1$s diubah
+%1$s is already hidden,%1$s sudah disembunyikan
 %1$s destinations must start with %2$s,Tujuan %1$s harus diawali %2$s
 %1$s has an invalid value. %2$s,Nilai %1$s tidak valid. %2$s
 %1$s has no supported override boundary in this Lab build.,%1$s tidak memiliki batas penimpaan yang didukung dalam build Lab ini.
@@ -71,15 +72,16 @@ Account warning: forced client values apply to every account in this app data an
 Activity,Aktivitas
 Activity Center (PIA),Pusat Aktivitas (PIA)
 Add,Tambah
-Add a block button to the video player that blocks the creator of the current video in one tap. An undo action is shown after each block.,Tambahkan tombol blokir ke pemutar video yang memblokir kreator video saat ini dengan satu ketukan. Tindakan batalkan ditampilkan setelah setiap blokir.
+"Block the creator in one tap. Once TikTok confirms, skip to the next video. A small Unblock button appears at the top left for two seconds. You can also unblock later in TikTok's Privacy > Blocked accounts.","Blokir kreator dengan satu ketukan. Setelah TikTok mengonfirmasi, lanjut ke video berikutnya. Tombol Buka blokir kecil muncul di kiri atas selama dua detik. Anda juga bisa membuka blokir nanti di Privasi > Akun yang diblokir di TikTok."
+Unblock,Buka blokir
 Add a button beside the block control to send feedback about the current video.,Tambahkan tombol di samping kontrol blokir untuk mengirim masukan tentang video ini.
 Add a creator,Add a creator
-Add a separate button that skips this account locally without blocking it.,Tambahkan tombol terpisah yang melewati akun ini secara lokal tanpa memblokirnya.
+Add a button that hides the current creator on this phone without blocking them.,Tambahkan tombol yang menyembunyikan kreator saat ini di ponsel ini tanpa memblokirnya.
 Add a separate button that skips videos using the current sound.,Tambahkan tombol terpisah yang melewati video yang menggunakan suara saat ini.
 Add hidden creator,Tambah kreator tersembunyi
 Added %1$s,%1$s ditambahkan
 Ads,Iklan
-Advance when a video ends,Lanjut saat video berakhir
+Auto-advance videos,Lanjutkan video secara otomatis
 Advanced,Lanjutan
 Advanced JSON value,Nilai JSON lanjutan
 All,Semua
@@ -91,7 +93,7 @@ Allow screenshots and Circle to Search,Izinkan tangkapan layar dan Circle to Sea
 Allow storage for TikTok in Android settings to save profile pictures.,Izin penyimpanan dibutuhkan untuk menyimpan foto profil.
 Allow storage for TikTok in Android settings to save sounds.,Izin penyimpanan dibutuhkan untuk menyimpan suara.
 Allow storage for TikTok in Android settings to save stories.,Izin penyimpanan dibutuhkan untuk menyimpan Story.
-Allowed bottom tabs,Tab bawah yang diizinkan
+Bottom tabs to keep,Tab bawah yang dipertahankan
 Already marked as not interested,Sudah ditandai sebagai tidak tertarik
 Also apply these filters to downloaded videos TikTok uses when the feed cannot load enough new items.,Terapkan filter ini juga ke video terunduh yang TikTok pakai saat feed tidak bisa memuat cukup konten baru.
 Also change the region TikTok reports internally. Keeps your interface language. Your IP address and your account's own rules still apply.,Juga mengubah wilayah yang dilaporkan TikTok secara internal. Bahasa antarmuka tetap. Alamat IP dan aturan akun Anda tetap berlaku.
@@ -117,9 +119,9 @@ Audio,Audio
 Auto translate comments,Terjemahkan komentar otomatis
 Auto-advance session limit,Batas lanjut otomatis per sesi
 Automatic,Otomatis
-Automatic advance,Otomatis lanjut
-Automatic advance stopped after %1$d videos,Lanjut otomatis dihentikan setelah %1$d video
-Automatic advance stopped after one video,Lanjut otomatis dihentikan setelah satu video
+Auto-advance,Lanjut otomatis
+Auto-advance stopped after %1$d videos,Lanjut otomatis dihentikan setelah %1$d video
+Auto-advance stopped after one video,Lanjut otomatis dihentikan setelah satu video
 Automatic clear display,Tampilan bersih otomatis
 Avatar and follow button,Avatar dan tombol ikuti
 Back,Kembali
@@ -131,14 +133,15 @@ Block contact list access,Blokir akses ke daftar kontak
 Block installed app scanning,Blokir pemindaian aplikasi terpasang
 Block location,Blokir lokasi
 Block motion sensors,Blokir sensor gerak
-Block new TikTok tabs,Blokir tab TikTok yang baru
+Block new feed tabs,Blokir tab feed baru
 Block new bottom tabs,Blokir tab bawah yang baru
 Block this commenter,Blokir pengomentar ini
 Block this creator,Blokir kreator ini
 Block this sound,Blokir suara ini
 Blocked,Diblokir
 Blocked %1$s,%1$s diblokir
-"Blocked %1$s, but TikTok has not confirmed it yet.","Pemblokiran %1$s tidak dapat dikonfirmasi."
+Blocked %1$s. Unblock,%1$s diblokir. Buka blokir
+Couldn't confirm the block for %1$s.,Pemblokiran %1$s tidak dapat dikonfirmasi.
 Blocked caption words,Kata yang diblokir di keterangan
 Blocked comment words,Kata komentar yang diblokir
 Blocked creators,Kreator yang diblokir
@@ -161,10 +164,10 @@ Choose a backup file. Your current settings are kept for Undo.,Pilih berkas cada
 Choose a folder on internal storage. SD cards are not supported.,Hanya folder penyimpanan internal yang didukung.
 Choose a preset to fill the SIM details.,Pilih preset untuk mengisi detail SIM.
 Choose a subfolder under %1$s.,Pilih subfolder di %1$s.
-Choose observed share actions to hide. The stable identifier is shown below each label; unknown saved identifiers stay in the manual list.,Pilih tindakan berbagi yang telah diamati untuk disembunyikan. Pengenal stabil ditampilkan di bawah setiap label; pengenal tersimpan yang tidak dikenal tetap ada di daftar manual.
+"Pick the actions to remove from the share sheet. Names you typed by hand that TikTok hasn't shown yet stay in the list above.","Pilih tindakan yang ingin dihapus dari lembar berbagi. Nama yang Anda ketik sendiri dan belum ditampilkan TikTok tetap ada di daftar di atas."
 Choose what reaches your feed,Pilih apa yang sampai ke feed-mu
 Choose which loaded TikTok bottom navigation tabs should stay visible.,Pilih tab navigasi bawah TikTok mana yang tetap terlihat.
-Choose which loaded TikTok feed tabs should stay visible.,Pilih tab feed TikTok mana yang tetap terlihat.
+"Choose which loaded TikTok feed tabs should stay visible. If only For You remains, its redundant header is hidden.","Pilih tab feed TikTok mana yang tetap terlihat. Jika hanya For You yang tersisa, header yang tidak diperlukan akan disembunyikan."
 Choose which rows and controls appear,Pilih baris dan kontrol yang muncul
 Clear all,Hapus semua
 "Clear all Lab data (overrides, switch, recordings)","Hapus semua data Lab (penggantian, sakelar, rekaman)"
@@ -232,12 +235,12 @@ Could not start the report export. Try again shortly.,Ekspor laporan tidak bisa 
 Could not start the settings operation. Try again shortly.,Proses pengaturan tidak bisa dimulai. Coba lagi sebentar.
 Could not tell which folder to update. Choose it again.,Tidak diketahui folder mana yang harus diubah. Pilih lagi.
 Could not undo the clear. Try again.,Could not undo the clear. Try again.
-Country ISO,ISO negara
+Country code,Kode negara
 Country and network preferences,Preferensi negara dan jaringan
 Counts under the buttons,Angka di bawah tombol
 Create,Buat
 Creators and sounds,Kreator dan suara
-Creators hidden from later feed batches by the player action. Search the list and remove one entry at a time.,Kreator yang disembunyikan dari pemuatan feed berikutnya lewat aksi pemutar. Cari di daftar dan hapus satu entri setiap kali.
+Creators you hid from a video. Search the list and remove one at a time.,Kreator yang Anda sembunyikan dari video. Cari di daftar dan hapus satu per satu.
 Current,Saat ini
 Current %1$s,Saat ini %1$s
 Current cache unavailable: %1$s,Cache saat ini tidak tersedia: %1$s
@@ -276,7 +279,7 @@ Do nothing,Tidak melakukan apa pun
 Done,Selesai
 Double tap,Ketuk dua kali
 Download original photos,Unduh foto asli
-Download path updated,Lokasi unduhan diperbarui
+Destination updated,Tujuan diperbarui
 Downloads,Unduhan
 "Drag to move, release to place","Seret untuk memindahkan, lepaskan untuk menempatkan"
 Drama and Series,Drama dan Serial
@@ -332,7 +335,7 @@ Filter settings,Pengaturan filter
 Filter the list,Saring daftar
 Filter: %1$s,Filter: %1$s
 "Filters, translation and copy options","Filter, terjemahan, dan opsi salin"
-Find a setting by title or description,Temukan setelan berdasarkan judul atau deskripsi
+Find a setting by name or description,Temukan setelan berdasarkan nama atau deskripsi
 First caller,Pemanggil pertama
 First rejection:,Penolakan pertama:
 Fit the video to the screen,Sesuaikan video dengan layar
@@ -362,21 +365,21 @@ Gestures,Gerakan
 Ghost mode,Mode siluman
 Hand-off,Penerusan
 Handle or id,Handle or id
-Hidden %1$s locally,%1$s disembunyikan secara lokal
+Hidden %1$s on this phone,%1$s disembunyikan di ponsel ini
 Hidden commenters,Pengomentar yang disembunyikan
 Hidden creators,Kreator tersembunyi
 Hidden: %1$s,Disembunyikan: %1$s
 Hide,Sembunyikan
-Hide AI generated videos,Sembunyikan video buatan AI
+Hide AI-generated videos,Sembunyikan video buatan AI
 Hide CAPTCHA popups,Sembunyikan popup CAPTCHA
 Hide LIVE replays,Sembunyikan tayangan ulang LIVE
 Hide LIVE videos,Sembunyikan video LIVE
 Hide Series,Sembunyikan Series
-Hide Tako AI,Sembunyikan Tako AI
+Hide the Tako bubble,Sembunyikan gelembung Tako
 Hide TikTok Shop,Sembunyikan TikTok Shop
 Hide TikTok Shop posts from the feed.,Sembunyikan kiriman TikTok Shop dari feed.
 Hide TikTok Shop updates and coupon messages.,Sembunyikan info terbaru TikTok Shop dan pesan kupon.
-Hide TikTok Tako,Sembunyikan TikTok Tako
+Hide the Tako chat,Sembunyikan chat Tako
 Hide TikTok's exposed quick emoji row in supported comment inputs.,Sembunyikan baris emoji cepat yang TikTok tampilkan di kolom komentar yang mendukungnya.
 Hide activity,Sembunyikan aktivitas
 Hide activity status,Sembunyikan status aktivitas
@@ -391,8 +394,8 @@ Hide comments made of an image or a sticker instead of words.,"Sembunyikan komen
 Hide controls after each video starts. Tap to restore them.,Sembunyikan kontrol setelah tiap video mulai. Ketuk untuk memunculkannya lagi.
 Hide conversations,Sembunyikan percakapan
 Hide every direct message conversation. Leaves the Inbox empty apart from whatever else is still switched on.,Sembunyikan semua percakapan pesan langsung. Kotak Masuk jadi kosong kecuali apa pun yang masih kamu aktifkan.
-Hide feed save button,Sembunyikan tombol simpan di feed
-Hide feed search button,Sembunyikan tombol cari di feed
+Hide the save button on the feed,Sembunyikan tombol simpan di feed
+Hide the search button on the feed,Sembunyikan tombol cari di feed
 "Hide floating promotion badges, coins, and timer banners on the feed.","Sembunyikan lencana promosi mengambang, koin, dan spanduk penghitung waktu di beranda."
 Hide floating promotions,Sembunyikan promosi mengambang
 Hide inserted cards,Sembunyikan kartu sisipan
@@ -408,26 +411,26 @@ Hide playlist videos,Sembunyikan video playlist
 Hide promotional music,Sembunyikan musik promosi
 Hide quick comment reactions,Sembunyikan reaksi komentar cepat
 Hide rows by title,Sembunyikan baris berdasarkan judul
-Hide search,Sembunyikan pencarian
-Hide search suggestions,Sembunyikan saran pencarian
+Hide the Inbox search button,Sembunyikan tombol pencarian Kotak Masuk
+Hide suggestions on the search page,Sembunyikan saran di halaman pencarian
 Hide sharing apps,Sembunyikan aplikasi berbagi
 Hide stories tray,Sembunyikan deret Story
-Hide story,Sembunyikan Story
+Hide stories,Sembunyikan Story
 Hide suggested account rows.,Sembunyikan baris akun yang disarankan.
 Hide suggested accounts,Sembunyikan akun yang disarankan
 Hide surveys,Sembunyikan survei
 Hide tabs TikTok adds later unless you allow them.,"Sembunyikan tab yang TikTok tambahkan kemudian, kecuali kamu mengizinkannya."
-"Hide the ""Search this image"" prompt TikTok shows over videos when it spots something to shop for.","Sembunyikan ajakan ""Cari gambar ini"" yang TikTok tampilkan di atas video saat menemukan sesuatu yang bisa dibeli."
+"Hide the ""Search this image"" prompt shown over videos. The feed search button and suggestions above comments are separate settings.","Sembunyikan ajakan ""Cari gambar ini"" yang muncul di atas video. Tombol pencarian feed dan saran di atas komentar memiliki pengaturan terpisah."
 Hide the Activity row of likes and comments on your posts.,Sembunyikan baris Aktivitas berisi suka dan komentar pada unggahanmu.
 Hide the Archive row.,Sembunyikan baris Arsip.
 Hide the LIVE button,Sembunyikan tombol LIVE
 Hide the LIVE button in the top left corner of the feed.,Sembunyikan tombol LIVE di pojok kiri atas feed.
-Hide the LIVE videos from the feed.,Sembunyikan video LIVE dari feed.
+Hide LIVE videos from the feed.,Sembunyikan video LIVE dari feed.
 Hide the Message requests row.,Sembunyikan baris Permintaan pesan.
 Hide the New followers row.,Sembunyikan baris Pengikut baru.
 Hide the Send to row,Sembunyikan baris Kirim ke
 Hide the Tako AI bubble above the profile button and the Ask bar under videos.,Sembunyikan gelembung Tako AI di atas tombol profil dan bilah Tako di bawah video.
-Hide the TikTok Tako assistant conversation.,Sembunyikan percakapan asisten TikTok Tako.
+Hide the Tako assistant conversation in Inbox.,Sembunyikan percakapan asisten Tako di Kotak Masuk.
 Hide the activity status control in the Inbox header.,Sembunyikan kontrol status aktivitas di header Kotak Masuk.
 Hide the add people icon,Sembunyikan ikon tambah orang
 Hide the add people icon in the Inbox header.,Sembunyikan ikon tambah orang di header Kotak Masuk.
@@ -439,26 +442,28 @@ Hide the follow button on the feed,Sembunyikan tombol ikuti di feed
 Hide the friend recommendation card and the other cards TikTok slots between videos.,Sembunyikan kartu rekomendasi teman dan kartu lain yang TikTok selipkan di antara video.
 Hide the launcher shortcuts,Sembunyikan pintasan peluncur
 Hide the music line,Sembunyikan baris musik
-Hide the photo posts from the feed.,Sembunyikan publikasi foto dari feed.
+Hide photo posts from the feed.,Sembunyikan postingan foto dari feed.
 Hide the playlist bar,Sembunyikan bilah playlist
 Hide the playlist bar along the bottom of videos that belong to a series.,Sembunyikan bilah playlist di bagian bawah video yang termasuk sebuah seri.
 Hide the plus button under the creator's picture in the right column. Ticking Avatar and follow button above hides the picture with it.,Sembunyikan tombol plus di bawah foto kreator di kolom kanan. Mencentang Avatar dan tombol ikuti di atas ikut menyembunyikan fotonya.
+Hide the purple rewards button beside Add friends on your profile.,Sembunyikan tombol hadiah ungu di samping Tambah teman di profilmu.
 Hide the question cards TikTok slides over a video near its end.,Sembunyikan kartu pertanyaan yang TikTok munculkan menjelang akhir video.
+Hide the rewards shortcut,Sembunyikan pintasan hadiah
 Hide the right column,Sembunyikan kolom kanan
 Hide the row of story avatars across the top of the Inbox.,Sembunyikan baris foto profil Story di bagian atas Kotak Masuk.
 "Hide the save button through its native visibility hook. Ticking Save in the checklist above hides the same button through the overlay.","Sembunyikan tombol simpan melalui hook visibilitas aslinya. Mencentang Simpan di daftar di atas menyembunyikan tombol yang sama melalui overlay."
-Hide the search button in the top right corner of the feed.,Sembunyikan tombol cari di pojok kanan atas feed.
-Hide the search icon in the Inbox header.,Sembunyikan ikon cari di header Kotak Masuk.
-Hide the searches TikTok offers before you type. Your own search history stays.,Sembunyikan pencarian yang ditawarkan TikTok sebelum kamu mengetik. Riwayat pencarianmu sendiri tetap ada.
+Hide the magnifying glass at the top right of the feed. Search in Inbox and suggestions above comments stay unchanged.,Sembunyikan ikon kaca pembesar di kanan atas feed. Pencarian di Kotak Masuk dan saran di atas komentar tetap sama.
+Remove the magnifying glass at the top of Inbox. It doesn't hide search on the feed or in comments.,Hapus ikon kaca pembesar di bagian atas Kotak Masuk. Ini tidak menyembunyikan pencarian di feed atau komentar.
+Hide recommended searches before you type on TikTok's search page. Your search history stays. This doesn't hide suggestions above comments.,Sembunyikan pencarian yang direkomendasikan sebelum mengetik di halaman pencarian TikTok. Riwayat pencarian tetap ada. Ini tidak menyembunyikan saran di atas komentar.
 Hide the share prompt after a like,Sembunyikan ajakan berbagi setelah suka
 Hide the spinning music cover and the track name beside the caption.,Sembunyikan sampul musik yang berputar dan nama lagu di samping keterangan.
 Hide the status bar,Sembunyikan bilah status
-Hide the stories from the feed.,Sembunyikan stories dari feed.
+Hide stories from the feed.,Sembunyikan Story dari feed.
 "Hide the whole column on the right, from the avatar down to the music disc.","Sembunyikan seluruh kolom kanan, dari avatar sampai piringan musik."
-Hide this creator locally,Sembunyikan kreator ini secara lokal
+Hide this creator on this phone,Sembunyikan kreator ini di ponsel ini
 Hide verified accounts,Sembunyikan akun terverifikasi
 Hide video actions,Sembunyikan aksi video
-Hide videos carrying TikTok's AI generated label.,Sembunyikan video yang membawa label buatan AI dari TikTok.
+Hide videos carrying TikTok's AI-generated label.,Sembunyikan video dengan label buatan AI dari TikTok.
 Hide videos marked as paid partnership or branded content.,Sembunyikan video yang ditandai sebagai kemitraan berbayar atau konten bermerek.
 Hide videos posted as part of a playlist.,Sembunyikan video yang diunggah sebagai bagian dari playlist.
 Hide videos posted by verified accounts.,Sembunyikan video yang diunggah akun terverifikasi.
@@ -466,7 +471,7 @@ Hide videos that belong to a paid Series.,Sembunyikan video yang termasuk Series
 Hide videos with a lot of views and few comments. Works the same way as views per like. Zero turns it off.,Sembunyikan video dengan banyak tayangan dan sedikit komentar. Bekerja sama seperti tayangan per suka. Nol mematikannya.
 "Hide videos with a lot of views and few likes. Lower numbers are stricter, zero turns the rule off, and one video is kept back if a whole batch would go.","Sembunyikan video dengan banyak penayangan dan sedikit suka. Angka lebih kecil lebih ketat, nol mematikan aturannya, dan satu video disisakan kalau satu batch penuh akan hilang."
 Hide videos you have already seen,Sembunyikan video yang sudah kamu tonton
-Hide visual search prompt,Sembunyikan ajakan pencarian visual
+Hide Search this image prompts,Sembunyikan ajakan Cari gambar ini
 Hiding,Menyembunyikan
 Highest,Tertinggi
 Historical,Historis
@@ -478,6 +483,7 @@ Hook status,Pemeriksaan fitur
 How far each edge press moves the video.,Seberapa jauh setiap tekanan di tepi memindahkan video.
 Hushfeed cannot read the creator pattern %1$s,Hushfeed tidak bisa membaca pola kreator %1$s
 Hushfeed hid a TikTok puzzle. Turn off Hide CAPTCHA popups if something stops working.,Hushfeed menyembunyikan satu teka-teki TikTok. Matikan Sembunyikan popup CAPTCHA kalau ada yang berhenti berfungsi.
+Hushfeed is active,Hushfeed aktif
 "Ignore the creator's choice so the Duet and Stitch entries appear. Everything else the app checks still applies, and whether the upload is accepted is the server's decision.","Abaikan pilihan pembuat video supaya entri Duet dan Stitch muncul. Semua pemeriksaan lain di aplikasi tetap berlaku, dan diterima atau tidaknya unggahan adalah keputusan server."
 Import finished,Impor selesai
 Import loaded values,Impor nilai yang dimuat
@@ -490,7 +496,7 @@ Includes all diagnostic events.,Termasuk semua peristiwa diagnostik.
 Includes these events: %1$s,Termasuk peristiwa berikut: %1$s
 Inserted cards,Kartu yang disisipkan
 Keep a local record of what you have watched and drop those videos from later feed pages.,Simpan catatan tontonanmu di perangkat dan buang video itu dari halaman feed berikutnya.
-"Keep automatic advance enabled, and show TikTok's own Auto scroll action in the video panel even if your account never had it. Pauses and open dialogs still stop scrolling. Restart TikTok to apply this. Then use this switch to turn it off.",Biarkan lanjut otomatis tetap aktif dan tampilkan aksi Auto scroll milik TikTok di panel video meski akun Anda tidak pernah punya. Jeda dan dialog terbuka tetap menghentikan guliran. Mulai ulang TikTok agar berlaku. Lalu pakai sakelar ini untuk mematikannya.
+"Move to the next video when the current one ends. Pauses, open dialogs and screen-time holds stop it. Restart TikTok after changing this.","Pindah ke video berikutnya saat video saat ini berakhir. Jeda, dialog terbuka, dan batas waktu layar akan menghentikannya. Mulai ulang TikTok setelah mengubah setelan ini."
 Keep captions in clear display,Pertahankan keterangan saat tampilan bersih
 Keep going,Keep going
 Keep the Favorites tab,Pertahankan tab Favorit
@@ -533,7 +539,7 @@ Loaded values are still being read. Try again in a moment.,Nilai yang dimuat mas
 Loaded-value file export failed,Ekspor berkas nilai yang dimuat gagal
 Loading gates...,Memuat gate...
 Loading local catalog and current TikTok cache...,Memuat katalog lokal dan cache TikTok saat ini...
-Locally hidden creators,Kreator yang disembunyikan secara lokal
+Creators hidden on this phone,Kreator yang disembunyikan di ponsel ini
 Lock today's budget,Kunci anggaran hari ini
 "Logging, hook status and reports","Log, status hook, dan laporan"
 Long press,Tekan lama
@@ -641,7 +647,7 @@ Open the feed once so Hushfeed can see which tabs TikTok loaded.,Buka feed beran
 Open the profile again and try once more,Buka lagi profilnya dan coba sekali lagi
 Open the story again and try once more,Buka lagi Story-nya dan coba sekali lagi
 Opens github.com in your browser,Membuka github.com di browser Anda
-Operator MCC/MNC,MCC/MNC operator
+Operator code,Kode operator
 Operator name,Nama operator
 Original language,Bahasa asli
 Other,Lainnya
@@ -683,12 +689,12 @@ Profile share actions,Tindakan berbagi profil
 Promotional music,Musik promosi
 Proof,Bukti
 Publication age,Usia kiriman
-"Put a box above the comments that narrows them to the ones matching what you type, by what they say or who said it. Clearing the box brings the rest back.","Kotak di atas komentar yang mempersempit ke komentar yang cocok dengan ketikanmu, berdasarkan isinya atau siapa yang menulis. Mengosongkan kotaknya mengembalikan sisanya."
+Add a search box that filters comments already loaded on this video by text or username. It doesn't search all of TikTok or remove TikTok's suggested-search banner.,Tambahkan kotak pencarian untuk memfilter komentar yang sudah dimuat pada video ini berdasarkan teks atau nama pengguna. Ini tidak mencari di seluruh TikTok atau menghapus banner saran pencarian TikTok.
 Putting the settings back to their defaults,Mengembalikan pengaturan ke bawaan
 Quality,Kualitas
 "Quality, files, subtitles and hand-off","Kualitas, berkas, subtitel, dan penerusan"
-"Quality, speed and automatic advance","Kualitas, kecepatan, dan lanjut otomatis"
-Quieten the feed while comments are open,Senyapkan feed saat komentar terbuka
+"Quality, speed and auto-advance","Kualitas, kecepatan, dan lanjut otomatis"
+Silence the feed while comments are open,Senyapkan feed saat komentar terbuka
 Reading,Membaca
 Recorded gate reads (%1$d),Pembacaan gate yang terekam (%1$d)
 "Recording gate reads. Use a feature, then return here to stop.","Merekam pembacaan gate. Pakai sebuah fitur, lalu kembali ke sini untuk berhenti."
@@ -704,8 +710,8 @@ Remove,Hapus
 Remove %1$s,Hapus %1$s
 Remove all overrides,Hapus semua penggantian
 Remove feed ads,Hapus iklan di feed
-"Remove feed ads, including videos with a creator commission disclosure.","Hapus iklan di feed, termasuk video dengan label komisi kreator."
-Remove polls from the comments before TikTok shows them.,Hapus jajak pendapat dari komentar sebelum TikTok menampilkannya.
+"Remove feed ads, creator commission posts, paid partnerships, and branded content.","Hapus iklan di feed, postingan komisi kreator, kemitraan berbayar, dan konten bermerek."
+"Hide voting cards and poll results above the comments, including polls that have ended.","Sembunyikan kartu jajak pendapat dan hasilnya di atas komentar, termasuk jajak pendapat yang sudah berakhir."
 Remove the Share via row.,Hapus baris Bagikan lewat.
 Remove the actions row from the share sheet.,Hapus baris aksi dari menu bagikan.
 Remove the row of friends from the top of the share sheet.,Hapus baris teman dari bagian atas menu bagikan.
@@ -725,6 +731,7 @@ Reset 1 gate. Restart TikTok to apply this.,1 gate diatur ulang. Mulai ulang Tik
 Reset override,Setel ulang penggantian
 Reset position,Atur ulang posisi
 Reset settings,Setel ulang pengaturan
+Restart now,Mulai ulang sekarang
 Restart TikTok to apply %1$d changes,Mulai ulang TikTok untuk menerapkan %1$d perubahan
 Restart TikTok to apply this change,Mulai ulang TikTok untuk menerapkan perubahan ini
 Restart TikTok to apply this.,Mulai ulang TikTok agar berlaku.
@@ -780,24 +787,24 @@ Saving video and subtitles to %1$s,Menyimpan video dan subtitel ke %1$s
 Screen,Layar
 Screen time,Waktu layar
 Search,Pencarian
-"Search a title, description or category.","Cari judul, deskripsi, atau kategori."
+"Search by name, description or category.","Cari berdasarkan nama, deskripsi, atau kategori."
 Search and override gate flags,Cari dan timpa flag gate
 Search countries or operators,Cari negara atau operator
 Search hidden creators,Cari kreator tersembunyi
 Search settings,Cari setelan
 Search share actions,Cari tindakan berbagi
-Search the comments,Cari di komentar
+Search within comments,Cari dalam komentar
 Search these comments,Cari di komentar ini
 "Search translated titles and descriptions, then open the original setting.","Cari judul dan deskripsi terjemahan, lalu buka setelan asli."
-"Search without personalization, whatever your account is set to.","Cari tanpa personalisasi, apa pun pengaturan akun Anda."
-Search words or key,Cari kata atau kunci
+"Ask TikTok for search results that aren't personalized to your account. This changes results, not search buttons or suggestions.","Minta hasil pencarian TikTok yang tidak dipersonalisasi untuk akunmu. Ini mengubah hasil, bukan tombol atau saran pencarian."
+Search by name or gate key,Cari berdasarkan nama atau kunci gate
 "Seconds. Zero keeps every length. If a whole batch would be filtered out, the video closest to your limit is kept so the feed is not empty.","Detik. Nol menyimpan semua durasi. Kalau satu batch penuh akan tersaring habis, video yang paling dekat dengan batasmu tetap ada agar feed tidak kosong."
 Seek by,Jarak lompatan
 Seek from the edges,Lompat dari tepi layar
 Seen,Terlihat
 Seen this session,Terlihat di sesi ini
 Seen videos,Video yang sudah dilihat
-Seen videos cleared. Tap the row to undo before TikTok closes.,Seen videos cleared. Tap the row to undo before TikTok closes.
+Seen videos cleared. You can undo until TikTok closes.,Video yang dilihat telah dihapus. Anda dapat mengurungkannya sampai TikTok ditutup.
 Seen videos restored.,Seen videos restored.
 Select,Select
 Select at least one field.,Pilih setidaknya satu kolom.
@@ -814,24 +821,24 @@ Settings couldn't refresh completely. Reopen settings and try again.,Pengaturan 
 Settings restored. Restart TikTok to apply all changes.,Pengaturan dipulihkan. Mulai ulang TikTok untuk menerapkan semua perubahan.
 Settings restored. The Feature Gate Lab rules were for another TikTok version and were left out. Restart TikTok to apply all changes.,Pengaturan dipulihkan. Aturan Feature Gate Lab dibuat untuk versi TikTok lain dan tidak disertakan. Mulai ulang TikTok untuk menerapkan semua perubahan.
 Share,Bagikan
-Share action checklist,Daftar periksa tindakan berbagi
+Hide share actions,Sembunyikan tindakan berbagi
 Share links through another host,Bagikan tautan lewat host lain
 Share sheet,Menu bagikan
 Shop,Toko
 Shop posts,Kiriman Shop
 Show,Tampilkan
 Show @username beside a video instead of the display name the creator chose.,"Tampilkan @namapengguna di samping video, bukan nama tampilan pilihan kreator."
-Show LIVE search,Tampilkan pencarian LIVE
+Show search in LIVE,Tampilkan pencarian di LIVE
 Show TikTok's own progress bar on videos where it is normally hidden.,Tampilkan bilah progres TikTok pada video yang biasanya menyembunyikannya.
 "Show TikTok's own sort sheet on every post, with its hot, newest, media and creator options, instead of whichever cut-down row your account was given. Restart TikTok to apply this. It reads the style once per run and remembers it.","Tampilkan lembar pengurutan milik TikTok di setiap publikasi, dengan pilihan populer, terbaru, media dan kreator, bukan baris terpangkas yang didapat akun Anda. Mulai ulang TikTok agar berlaku. Aplikasi membaca gayanya sekali per proses dan mengingatnya."
-Show TikTok's search entry in the LIVE drawer where supported.,Tampilkan entri pencarian TikTok di panel LIVE jika didukung.
+"Show the search entry inside TikTok's LIVE drawer, where available. This doesn't add a search box to video comments.",Tampilkan opsi pencarian di panel LIVE TikTok jika tersedia. Ini tidak menambahkan kotak pencarian ke komentar video.
 Show a video preview thumbnail while dragging the progress bar.,Tampilkan pratinjau video saat menggeser bilah progres.
-Show block button on videos,Tampilkan tombol blokir di video
-Show block sound button,Tampilkan tombol blokir suara
+Show the block button on videos,Tampilkan tombol blokir di video
+Show the block sound button,Tampilkan tombol blokir suara
 Show failures on screen,Tampilkan kegagalan di layar
 Show gates,Tampilkan gate
 Show last report,Tampilkan laporan terakhir
-Show local hide button,Tampilkan tombol sembunyikan lokal
+Show the hide button on videos,Tampilkan tombol sembunyikan di video
 Show the Not interested button,Tampilkan tombol Tidak tertarik
 Show the country a video was posted from next to the creator's name.,Tampilkan negara asal unggahan video di sebelah nama kreator.
 Show the current spoken caption while the other controls are hidden.,Tampilkan teks ucapan yang sedang berjalan meski kontrol lain disembunyikan.
@@ -889,7 +896,7 @@ Structured value observed,Nilai terstruktur teramati
 Subtitle language,Bahasa subtitle
 Subtitles,Subtitel
 System,Sistem
-Tabs TikTok has loaded,Tab yang sudah dimuat TikTok
+Feed tabs to keep,Tab feed yang dipertahankan
 Take away the streak button in a chat and the reminder message that goes with it.,Hilangkan tombol rentetan di obrolan beserta pesan pengingatnya.
 Tap %1$s again to send,Ketuk %1$s lagi untuk mengirim
 Tap again to follow,Ketuk lagi untuk mengikuti
@@ -966,6 +973,7 @@ There is no diagnostic data to put back.,Tidak ada data diagnostik yang dapat di
 There was nothing to undo.,There was nothing to undo.
 These loaded values are for a different TikTok version.,Nilai yang dimuat ini untuk versi TikTok yang berbeda.
 This catalog entry is no longer available. Refresh the Lab and try again.,Entri katalog ini sudah tidak tersedia. Segarkan Lab dan coba lagi.
+This change couldn't be saved. Try again.,Perubahan ini tidak dapat disimpan. Coba lagi.
 This configuration has no fields that can be copied and changed safely on this build.,Konfigurasi ini tidak punya bidang yang bisa disalin dan diubah dengan aman di build ini.
 This file has more loaded values than the Lab takes at once.,Berkas ini berisi lebih banyak nilai yang dimuat daripada yang bisa diterima Lab sekaligus.
 This file has no loaded values in it.,Berkas ini tidak berisi nilai yang dimuat.
@@ -1027,17 +1035,17 @@ Turned off 1 gate of %1$d; the rest do not take a true or false value. Restart T
 Turned off 1 gate. Restart TikTok to apply this.,1 gate dimatikan. Mulai ulang TikTok agar berlaku.
 "Two letters, like us, gb or jp.","Dua huruf, misalnya us, gb atau jp."
 Type,Tipe
-Type to search settings,Ketik untuk mencari setelan
+Start typing,Mulai mengetik
 Unavailable,Tidak tersedia
 Unblock this commenter,Buka blokir pengomentar ini
 Unblocked %1$s,%1$s dibuka blokirnya
-"Unblocked %1$s, but TikTok has not confirmed it yet.","Pembukaan blokir %1$s tidak dapat dikonfirmasi."
+Couldn't confirm the unblock for %1$s.,Pembukaan blokir %1$s tidak dapat dikonfirmasi.
 Undo,Urungkan
 Undo clearing seen videos,Undo clearing seen videos
 Undo last Lab change,Batalkan perubahan Lab terakhir
 Undo last restore or reset,Urungkan pemulihan atau reset terakhir
 Undoing the last change,Membatalkan perubahan terakhir
-"Until you save a choice here, this sheet hides the same actions as the share action checklist.","Sampai Anda menyimpan pilihan di sini, lembar ini menyembunyikan tindakan yang sama dengan daftar periksa tindakan berbagi."
+"Until you choose here, this sheet follows your choices under Hide share actions.","Sampai Anda memilih di sini, lembar ini mengikuti pilihan Anda di Sembunyikan tindakan berbagi."
 "Up to 8 speeds from 0.5 to 3, separated by commas. Example: 0.5, 1, 1.5, 2, 2.5, 3. Leave empty for TikTok's list. Restart TikTok to apply this.","Sampai 8 kecepatan dari 0.5 hingga 3, dipisah koma. Contoh: 0.5, 1, 1.5, 2, 2.5, 3. Kosongkan untuk daftar TikTok. Mulai ulang TikTok agar berlaku."
 "Use 0 for TikTok's size, or 12 to 48. Applies to the next caption.","Gunakan 0 untuk ukuran TikTok, atau 12 sampai 48. Berlaku untuk teks berikutnya."
 Use Save JSON for this large report,Pakai Simpan JSON untuk laporan sebesar ini
@@ -1115,3 +1123,40 @@ view per comment,tayangan per komentar
 view per like,tayangan per like
 views per comment,tayangan per komentar
 views per like,tayangan per like
+"Already active","Sudah aktif"
+"Applying Calm feed","Menerapkan Feed tenang"
+"Calm feed","Feed tenang"
+"Calm feed couldn't be applied. Nothing was changed.","Feed tenang tidak dapat diterapkan. Tidak ada yang diubah."
+"Calm feed couldn't start. Try again shortly.","Feed tenang tidak dapat dimulai. Coba lagi sebentar lagi."
+"Calm feed is on. Restart TikTok to apply every change.","Feed tenang aktif. Mulai ulang TikTok untuk menerapkan semua perubahan."
+"Calm feed is on.","Feed tenang aktif."
+"Changed","Diubah"
+"Hide ads, Shop posts, LIVE videos and replays, promotional music, and paid partnerships.","Sembunyikan iklan, postingan Toko, video LIVE dan tayangan ulang, musik promosi, serta kemitraan berbayar."
+"On","Aktif"
+"On. Restore puts back the feed setup you had before.","Aktif. Pulihkan akan mengembalikan pengaturan feed Anda sebelumnya."
+"Preset","Preset"
+"Quick setup","Penyiapan cepat"
+"Restore setup","Pulihkan pengaturan"
+"Restoring setup","Memulihkan pengaturan"
+"Some Calm feed settings changed. Restore still puts back your earlier setup.","Beberapa pengaturan Feed tenang berubah. Pulihkan tetap akan mengembalikan pengaturan Anda sebelumnya."
+"Use Calm feed","Gunakan Feed tenang"
+"Working","Sedang bekerja"
+"Your current settings already match Calm feed.","Pengaturan Anda saat ini sudah cocok dengan Feed tenang."
+"Your previous feed setup couldn't be restored. Nothing was changed.","Pengaturan feed Anda sebelumnya tidak dapat dipulihkan. Tidak ada yang diubah."
+"Your previous feed setup is back. Restart TikTok to apply every change.","Pengaturan feed Anda sebelumnya sudah dipulihkan. Mulai ulang TikTok untuk menerapkan semua perubahan."
+"Your previous feed setup is back.","Pengaturan feed Anda sebelumnya sudah dipulihkan."
+Hide search suggestions above comments,Sembunyikan saran pencarian di atas komentar
+Compact comment header,Header komentar ringkas
+Easier comment likes,Lebih mudah menyukai komentar
+Hide the Full screen button,Sembunyikan tombol layar penuh
+Hide the Full screen button over videos. Playback and automatic rotation keep working as before.,Sembunyikan tombol layar penuh di atas video. Pemutaran dan rotasi otomatis tetap berfungsi seperti sebelumnya.
+Hide location labels,Sembunyikan label lokasi
+Hide the search bar below videos,Sembunyikan bilah pencarian di bawah video
+Remove the suggested-search strip above the bottom tabs and let video details and side controls use its space. The top search button and comments stay unchanged.,Hapus bilah saran pencarian di atas tab bawah agar detail video dan kontrol samping dapat menggunakan ruangnya. Tombol pencarian di atas dan komentar tidak berubah.
+"Hide place badges on videos, including cards with multiple places. Videos and your location permissions stay unchanged.","Sembunyikan label lokasi pada video, termasuk kartu dengan beberapa tempat. Video dan izin lokasi Anda tidak berubah."
+Filter location-tagged videos,Filter video berlabel lokasi
+"Skip feed videos with place badges, even when they aren't paid ads. To keep the video and hide only its badge, use Hide location labels in Feed screen.","Lewati video feed berlabel lokasi, meskipun bukan iklan berbayar. Untuk tetap menampilkan video dan hanya menyembunyikan labelnya, gunakan Sembunyikan label lokasi di Tampilan feed."
+Location-tagged videos,Video berlabel lokasi
+"Extend the heart's touch area into nearby blank space. The icon and row spacing stay the same. Text, Reply and other controls keep their own space.","Perluas area sentuh hati ke ruang kosong di sekitarnya. Ikon dan jarak antarbaris tetap sama. Teks, Balas, dan kontrol lain tetap memiliki area sendiri."
+"Start with comments. Hide the comment count, sort and close buttons, plus the suggestion area above them. Use Back or swipe down to close comments.","Langsung tampilkan komentar. Sembunyikan jumlah komentar, tombol urutkan dan tutup, serta area saran di atasnya. Gunakan Kembali atau geser ke bawah untuk menutup komentar."
+"Hide TikTok's ""Search: ..."" banner above the comment count. This doesn't hide the comments or Hushfeed's comment-search box.","Sembunyikan banner ""Cari: ..."" TikTok di atas jumlah komentar. Ini tidak menyembunyikan komentar atau kotak pencarian komentar Hushfeed."

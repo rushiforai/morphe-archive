@@ -1,0 +1,77 @@
+name: "✨ Demande d'ajout de patch / Patch request"
+description: "Demander l'ajout d'un nouveau patch ou le support d'un nouveau jeu / application."
+title: "patch: "
+labels: ["enhancement", "patch-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### 💡 Demande d'ajout de patch / Patch request
+        Vous souhaitez qu'un nouveau patch soit créé ou qu'un nouveau jeu/application soit supporté ? Remplissez ce formulaire !
+        Vérifiez d'abord si une demande similaire n'a pas déjà été faite dans les [Issues existantes](https://github.com/SatanMerde/D-moniakPatches/issues?q=is%3Aissue).
+
+  - type: input
+    id: app-name
+    attributes:
+      label: "Nom du jeu ou de l'application / Game or App Name"
+      description: "Le nom complet du jeu ou de l'application concernée."
+      placeholder: "ex: Subway Surfers, Hungry Shark Evolution, etc."
+    validations:
+      required: true
+
+  - type: input
+    id: package-name
+    attributes:
+      label: "Nom de package Android / Package Name (si connu)"
+      description: "L'identifiant de package Android (ex. com.kiloo.subwaysurf)."
+      placeholder: "ex: com.kiloo.subwaysurf"
+    validations:
+      required: false
+
+  - type: input
+    id: playstore-link
+    attributes:
+      label: "Lien Google Play Store ou APK / Store or APK Link"
+      description: "Lien vers la fiche officielle Google Play ou APKMirror."
+      placeholder: "https://play.google.com/store/apps/details?id=..."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: patch-type
+    attributes:
+      label: "Type de patch souhaité / Desired Patch Type"
+      description: "Cochez le ou les types de fonctionnalités souhaitées."
+      options:
+        - label: "Bypass de publicités avec récompense (Rewarded Ads)"
+        - label: "Achat in-app gratuit (Free In-App Purchases / Free Shopping)"
+        - label: "Déblocage de contenu cosmétique ou niveaux"
+        - label: "Suppression de trackers / télémétrie"
+        - label: "Autre fonctionnalité"
+
+  - type: textarea
+    id: patch-details
+    attributes:
+      label: "Description détaillée du patch / Patch Description"
+      description: "Expliquez ce que le patch doit faire concrètement dans le jeu ou l'application."
+      placeholder: "Je voudrais un patch qui permette de..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: "Informations complémentaires ou captures / Additional Info"
+      description: "Ajoutez toute information utile (version du jeu ciblée, captures d'écran, etc.)."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: "Checklist de vérification"
+      options:
+        - label: "J'ai vérifié qu'une demande identique n'a pas déjà été soumise."
+          required: true
+        - label: "La demande concerne une application ou un jeu Android accessible."
+          required: true

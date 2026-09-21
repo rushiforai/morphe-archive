@@ -40,7 +40,7 @@ val confirmInteractionsPatch = bytecodePatch(
     description = "Adds optional second-tap protection to the feed Follow button and like heart. A red ring marks the armed button. Switch: Hushfeed settings > Feed screen.",
     default = false,
 ) {
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
     dependsOn(settingsPatch, sharedExtensionPatch, blockAuthorPatch)
     execute {
         listOf(FollowClickFingerprint to "follow", LikeClickFingerprint to "like").forEach { (fingerprint, callback) ->

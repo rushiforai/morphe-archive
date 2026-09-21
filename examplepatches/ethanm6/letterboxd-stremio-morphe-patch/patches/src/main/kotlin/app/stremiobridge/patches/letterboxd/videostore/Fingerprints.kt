@@ -44,3 +44,24 @@ object GetVideoStoreHomeDataFingerprint : Fingerprint(
             method.name == "getVideoStoreHomeData"
     },
 )
+
+/**
+ * Targets BrowseRecyclerViewAdapter.addVideoStoreRow()V — the method that
+ * inserts the "Letterboxd Video Store" row into the "Browse by" list on the
+ * search page (Row.Service index + 1, or appended at the end if Service isn't
+ * found). The adapter's constructor already builds its base row list with
+ * Row.VideoStore filtered out; this method is the sole place that adds it
+ * back in, called from BrowseFragment when the feature is available.
+ *
+ * Verified against Letterboxd 3.5.7 (versionCode 503) by direct DEX analysis.
+ *
+ * Matched by class type + method name so it's resilient to most updates that
+ * don't rename the method.
+ */
+object AddVideoStoreRowFingerprint : Fingerprint(
+    returnType = "V",
+    custom = { method, classDef ->
+        classDef.type == "Lcom/letterboxd/letterboxd/ui/item/BrowseRecyclerViewAdapter;" &&
+            method.name == "addVideoStoreRow"
+    },
+)

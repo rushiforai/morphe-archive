@@ -49,6 +49,20 @@ public class AboutRowTest {
                 MorpheTikTokAboutPreference.KEY, row.getKey());
     }
 
+    @Test public void theStatusCardShowsTheSameVersionsAndOpensDiagnostics() {
+        boolean[] opened = {false};
+        SettingsStatusPreference status = new SettingsStatusPreference(
+                context, "0.47.0", "47.0.3", () -> opened[0] = true);
+
+        assertEquals("Hushfeed is active", status.getTitle().toString());
+        assertEquals("Version 0.47.0 for TikTok 47.0.3", status.getSummary().toString());
+        android.view.View view = status.getView(null, null);
+        android.view.View diagnostics = view.findViewWithTag(
+                SettingsStatusPreference.ACTION_TAG);
+        assertTrue(diagnostics.performClick());
+        assertTrue("the status action did not open Diagnostics", opened[0]);
+    }
+
     @Test public void anUnpatchedBuildKeepsWhatTheRowAlwaysSaid() {
         MorpheTikTokAboutPreference row = new MorpheTikTokAboutPreference(context, "", "46.2.3");
 

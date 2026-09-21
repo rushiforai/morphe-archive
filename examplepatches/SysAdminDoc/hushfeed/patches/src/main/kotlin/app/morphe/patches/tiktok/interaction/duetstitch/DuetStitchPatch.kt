@@ -52,7 +52,7 @@ val duetStitchPatch = bytecodePatch(
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)
 
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         for (fingerprint in listOf(DuetSettingFingerprint, StitchSettingFingerprint)) {

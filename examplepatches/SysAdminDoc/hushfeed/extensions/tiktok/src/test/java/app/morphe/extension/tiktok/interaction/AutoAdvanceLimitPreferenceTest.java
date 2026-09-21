@@ -161,7 +161,7 @@ public class AutoAdvanceLimitPreferenceTest {
         assertFalse(retained.owned);
         assertEquals(1, nativeComponent.stops);
         idle();
-        assertLimitNotice("Automatic advance stopped after 3 videos");
+        assertLimitNotice("Auto-advance stopped after 3 videos");
 
         View keepGoing = findBannerAction(
                 feedOwner.get().findViewById(android.R.id.content), "Keep going");
@@ -189,7 +189,7 @@ public class AutoAdvanceLimitPreferenceTest {
         assertFalse(retained.owned);
         assertEquals(2, nativeComponent.stops);
         idle();
-        assertLimitNotice("Automatic advance stopped after 2 videos");
+        assertLimitNotice("Auto-advance stopped after 2 videos");
     }
 
     private void complete(String id) {
@@ -388,7 +388,7 @@ public class AutoAdvanceLimitPreferenceTest {
     private static String findBannerText(View root) {
         if (root instanceof android.widget.TextView) {
             String text = ((android.widget.TextView) root).getText().toString();
-            if (text.contains("Automatic advance")) return text;
+            if (text.contains("Auto-advance")) return text;
         }
         if (root instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) root;

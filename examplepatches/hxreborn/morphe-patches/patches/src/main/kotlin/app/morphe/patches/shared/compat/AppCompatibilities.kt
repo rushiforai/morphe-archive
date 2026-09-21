@@ -29,6 +29,14 @@ internal object AppCompatibilities {
         targets = listOf(AppTarget(version = "2.4.0e", versionCode = 412)),
     )
 
+    val ATVTOOLS = Compatibility(
+        name = "atvTools",
+        packageName = "dev.vodik7.atvtools",
+        apkFileType = ApkFileType.XAPK_REQUIRED,
+        appIconColor = 0x2F2F2F,
+        targets = listOf(AppTarget(version = "1.3.2", versionCode = 49, minSdk = 26)),
+    )
+
     val AUDIBLE = Compatibility(
         name = "Audible",
         packageName = "com.audible.application",
@@ -97,6 +105,14 @@ internal object AppCompatibilities {
         appIconColor = 0x53FC18,
     )
 
+    val KLASSIK_RADIO = Compatibility(
+        name = "Klassik Radio+",
+        packageName = "de.klassikradio.app",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x000000,
+        targets = listOf(AppTarget(version = "p5.11.1", versionCode = 50126, minSdk = 29)),
+    )
+
     val MOVIEBOX = Compatibility(
         name = "MovieBox",
         packageName = "com.community.oneroom",
@@ -106,6 +122,7 @@ internal object AppCompatibilities {
             AppTarget(version = "4.0.02.0828.03", versionCode = 50020125, minSdk = 29),
             AppTarget(version = "4.0.02.0831.03", versionCode = 50020126, minSdk = 29),
             AppTarget(version = "4.0.02.0903.02", versionCode = 50020128, minSdk = 29),
+            AppTarget(version = "4.0.03.0918.03", versionCode = 50020129, minSdk = 29),
         ),
     )
 

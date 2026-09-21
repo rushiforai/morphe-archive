@@ -119,7 +119,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
         if (SettingsStatus.hideFeedSaveButtonEnabled) {
             addPreference(new TogglePreference(
                     context,
-                    "Hide feed save button",
+                    "Hide the save button on the feed",
                     "Hide the save button through its native visibility hook. Ticking Save in the checklist above hides the same button through the overlay.",
                     Settings.HIDE_FEED_SAVE_BUTTON
             ));
@@ -188,12 +188,24 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
         if (SettingsStatus.hideFeedSearchButtonEnabled) {
             addPreference(new TogglePreference(
                     context,
-                    "Hide feed search button",
-                    "Hide the search button in the top right corner of the feed.",
+                    "Hide the search button on the feed",
+                    "Hide the magnifying glass at the top right of the feed. Search in Inbox and suggestions above comments stay unchanged.",
                     Settings.HIDE_FEED_SEARCH_BUTTON
             ));
         }
         if (SettingsStatus.videoOverlaysEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide the Full screen button",
+                    "Hide the Full screen button over videos. Playback and automatic rotation keep working as before.",
+                    Settings.HIDE_FULLSCREEN_BUTTON
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide location labels",
+                    "Hide place badges on videos, including cards with multiple places. Videos and your location permissions stay unchanged.",
+                    Settings.HIDE_LOCATION_LABELS
+            ));
             addPreference(new TogglePreference(
                     context,
                     "Hide surveys",
@@ -202,15 +214,21 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             ));
             addPreference(new TogglePreference(
                     context,
-                    "Hide visual search prompt",
-                    "Hide the \"Search this image\" prompt TikTok shows over videos when it spots something to shop for.",
+                    "Hide Search this image prompts",
+                    "Hide the \"Search this image\" prompt shown over videos. The feed search button and suggestions above comments are separate settings.",
                     Settings.HIDE_VISUAL_SEARCH
             ));
         }
-        // Three feed filter rows that hide things drawn around a video rather than videos.
+        // Feed filter rows that hide things drawn around a video rather than videos.
         // They were the tail of the Feed filter page under "Feed elements", a page about
         // which videos arrive.
         if (SettingsStatus.feedFilterEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide the search bar below videos",
+                    "Remove the suggested-search strip above the bottom tabs and let video details and side controls use its space. The top search button and comments stay unchanged.",
+                    Settings.HIDE_BOTTOM_SEARCH_BAR
+            ));
             addPreference(new TogglePreference(
                     context,
                     "Hide the playlist bar",

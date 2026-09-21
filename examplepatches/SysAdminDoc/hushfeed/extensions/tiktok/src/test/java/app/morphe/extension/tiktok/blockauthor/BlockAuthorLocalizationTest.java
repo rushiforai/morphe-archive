@@ -5,14 +5,9 @@ import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.os.Looper;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import app.morphe.extension.shared.Utils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
@@ -85,15 +80,16 @@ public class BlockAuthorLocalizationTest {
     private static void verify(Expected expected) {
         try (var owner = Robolectric.buildActivity(Activity.class).setup().visible()) {
             Activity activity = owner.get();
+            owner.windowFocusChanged(true);
             Utils.setContext(activity);
             Utils.setActivity(activity);
 
             BlockAuthorOverlay.reportBlockResult(
                     AUTHOR, BlockAuthorService.Result.CONFIRMED);
             Shadows.shadowOf(Looper.getMainLooper()).idle();
-            assertTrue(texts(activity.findViewById(android.R.id.content)).toString(),
-                    texts(activity.findViewById(android.R.id.content))
-                            .contains(expected.blockConfirmed));
+            ViewGroup root = activity.findViewById(android.R.id.content);
+            assertTrue(root.getChildAt(root.getChildCount() - 1).getContentDescription()
+                    .toString().startsWith(expected.blockConfirmed + ". "));
 
             ShadowToast.reset();
             BlockAuthorOverlay.reportBlockResult(AUTHOR, BlockAuthorService.Result.REJECTED);
@@ -115,21 +111,6 @@ public class BlockAuthorLocalizationTest {
             BlockAuthorOverlay.reportUnblockResult(
                     AUTHOR, BlockAuthorService.Result.UNCONFIRMED);
             assertEquals(expected.unblockUnconfirmed, ShadowToast.getTextOfLatestToast());
-        }
-    }
-
-    private static List<String> texts(View root) {
-        List<String> result = new ArrayList<>();
-        collect(root, result);
-        return result;
-    }
-
-    private static void collect(View view, List<String> result) {
-        if (view instanceof TextView) result.add(((TextView) view).getText().toString());
-        if (!(view instanceof ViewGroup)) return;
-        ViewGroup group = (ViewGroup) view;
-        for (int index = 0; index < group.getChildCount(); index++) {
-            collect(group.getChildAt(index), result);
         }
     }
 

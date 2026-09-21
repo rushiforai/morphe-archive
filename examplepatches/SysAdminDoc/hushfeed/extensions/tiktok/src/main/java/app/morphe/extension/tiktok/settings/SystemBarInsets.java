@@ -45,6 +45,11 @@ public final class SystemBarInsets {
         view.requestApplyInsets();
     }
 
+    /** Current bars and cutout for an app-owned overlay attached to {@code view}'s window. */
+    public static Rect current(View view) {
+        return view == null ? new Rect() : systemBarsAndCutout(view.getRootWindowInsets());
+    }
+
     /**
      * The space the bars and the cutout take, in pixels.
      *

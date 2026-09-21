@@ -77,7 +77,7 @@ public final class RestartPendingPreference extends Preference {
         row.setFocusable(true);
         // A TextView with a click listener is read as text; the role has to be said.
         SettingsUi.markAsButton(row);
-        row.setOnClickListener(view -> restarter.restart(view.getContext()));
+        row.setOnClickListener(view -> restart(view.getContext()));
 
         FrameLayout holder = new FrameLayout(context);
         holder.setBackgroundColor(SettingsUi.background());
@@ -98,5 +98,9 @@ public final class RestartPendingPreference extends Preference {
     /** Test seam: the press would otherwise end the test process. */
     public static void setRestarterForTests(Restarter replacement) {
         restarter = replacement == null ? Utils::restartApp : replacement;
+    }
+
+    static void restart(Context context) {
+        restarter.restart(context);
     }
 }

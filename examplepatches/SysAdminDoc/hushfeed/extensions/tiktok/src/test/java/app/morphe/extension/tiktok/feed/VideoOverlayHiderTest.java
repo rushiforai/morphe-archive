@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.settings.Settings;
 
 import org.junit.Before;
@@ -269,6 +270,34 @@ public class VideoOverlayHiderTest {
     }
 
     @Test
+    public void anOrdinaryPostWithoutASurveyDoesNotReportTheBuildBroken() {
+        int cellId = 0x7f0a0a22;
+        int surveyId = 0x7f0a0a23;
+        VideoOverlayHider.resolveForTests("view_rootview", cellId);
+        VideoOverlayHider.resolveForTests("ezp", surveyId);
+        HookStatus.clear();
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Utils.setContext(activity);
+            FrameLayout cell = new FrameLayout(activity);
+            cell.setId(cellId);
+            activity.setContentView(cell);
+
+            Settings.HIDE_FEED_SURVEYS.save(true);
+            VideoOverlayHider.applyTo(activity);
+
+            assertTrue("a survey is optional content, not a required build anchor: "
+                            + HookStatus.missing("overlay"),
+                    HookStatus.missing("overlay").stream().noneMatch(line -> line.contains("ezp")));
+        } finally {
+            Settings.HIDE_FEED_SURVEYS.save(false);
+            VideoOverlayHider.resolveForTests("view_rootview", 0);
+            VideoOverlayHider.resolveForTests("ezp", 0);
+            HookStatus.clear();
+        }
+    }
+
+    @Test
     public void aPassHidesEveryCellsCaptionAndColumnAndPutsThemBack() {
         // The feed keeps the previous and next cells inflated beside the one on screen,
         // each with its own caption and action column under the same ids.
@@ -322,6 +351,98 @@ public class VideoOverlayHiderTest {
         }
         assertEquals(0, VideoOverlayHider.viewsWithId(new View(context), 0).size());
         assertEquals(0, VideoOverlayHider.viewsWithId(null, captionId).size());
+    }
+
+    @Test
+    public void current47NamesWinWhenOlderResourcesStillExistElsewhere() {
+        // TikTok 47.0.3 kept several 46.x names in the resource table even though the live
+        // feed moved to different ids. Resolving a name is therefore not proof that the view
+        // belongs to the current feed. The current candidate must win when both resolve.
+        int cellId = 0x7f0a0500;
+        int currentColumnId = 0x7f0a0501;
+        int oldColumnId = 0x7f0a0502;
+        int currentLikeId = 0x7f0a0503;
+        int oldLikeId = 0x7f0a0504;
+        int currentCountRowId = 0x7f0a0505;
+        int oldCountRowId = 0x7f0a0506;
+        int currentCountTextId = 0x7f0a0507;
+        int oldCountTextId = 0x7f0a0508;
+        VideoOverlayHider.resolveForTests("view_rootview", cellId);
+        VideoOverlayHider.resolveForTests("liy", currentColumnId);
+        VideoOverlayHider.resolveForTests("kzj", oldColumnId);
+        VideoOverlayHider.resolveForTests("g6r", currentLikeId);
+        VideoOverlayHider.resolveForTests("fws", oldLikeId);
+        VideoOverlayHider.resolveForTests("g6t", currentCountRowId);
+        VideoOverlayHider.resolveForTests("fwu", oldCountRowId);
+        VideoOverlayHider.resolveForTests("g6s", currentCountTextId);
+        VideoOverlayHider.resolveForTests("fwt", oldCountTextId);
+
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Utils.setContext(activity);
+            LinearLayout root = new LinearLayout(activity);
+            FrameLayout cell = new FrameLayout(activity);
+            cell.setId(cellId);
+            View currentColumn = new View(activity);
+            currentColumn.setId(currentColumnId);
+            View currentLike = new View(activity);
+            currentLike.setId(currentLikeId);
+            LinearLayout currentCountRow = new LinearLayout(activity);
+            currentCountRow.setId(currentCountRowId);
+            TextView currentCountText = new TextView(activity);
+            currentCountText.setId(currentCountTextId);
+            currentCountRow.addView(currentCountText);
+            cell.addView(currentColumn);
+            cell.addView(currentLike);
+            cell.addView(currentCountRow);
+
+            // These simulate the stale resource names that still resolve in 47.0.3 but are
+            // attached to unrelated preloaded UI rather than the active feed cell.
+            View oldColumn = new View(activity);
+            oldColumn.setId(oldColumnId);
+            View oldLike = new View(activity);
+            oldLike.setId(oldLikeId);
+            LinearLayout oldCountRow = new LinearLayout(activity);
+            oldCountRow.setId(oldCountRowId);
+            TextView oldCountText = new TextView(activity);
+            oldCountText.setId(oldCountTextId);
+            oldCountRow.addView(oldCountText);
+            root.addView(cell);
+            root.addView(oldColumn);
+            root.addView(oldLike);
+            root.addView(oldCountRow);
+            activity.setContentView(root);
+
+            Settings.HIDE_FEED_ACTION_BAR.save(true);
+            Settings.HIDE_RAIL_LIKE.save(true);
+            Settings.HIDE_RAIL_COUNTS.save(true);
+            VideoOverlayHider.applyTo(activity);
+
+            assertEquals(View.GONE, currentColumn.getVisibility());
+            assertEquals(View.GONE, currentLike.getVisibility());
+            assertEquals(View.GONE, currentCountRow.getVisibility());
+            assertEquals(View.GONE, currentCountText.getVisibility());
+            assertEquals(View.VISIBLE, oldColumn.getVisibility());
+            assertEquals(View.VISIBLE, oldLike.getVisibility());
+            assertEquals(View.VISIBLE, oldCountRow.getVisibility());
+            assertEquals(View.VISIBLE, oldCountText.getVisibility());
+
+            Settings.HIDE_FEED_ACTION_BAR.save(false);
+            Settings.HIDE_RAIL_LIKE.save(false);
+            Settings.HIDE_RAIL_COUNTS.save(false);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.VISIBLE, currentColumn.getVisibility());
+            assertEquals(View.VISIBLE, currentLike.getVisibility());
+            assertEquals(View.VISIBLE, currentCountRow.getVisibility());
+            assertEquals(View.VISIBLE, currentCountText.getVisibility());
+        } finally {
+            Settings.HIDE_FEED_ACTION_BAR.save(false);
+            Settings.HIDE_RAIL_LIKE.save(false);
+            Settings.HIDE_RAIL_COUNTS.save(false);
+            String[] names = {"view_rootview", "liy", "kzj", "g6r", "fws",
+                    "g6t", "fwu", "g6s", "fwt"};
+            for (String name : names) VideoOverlayHider.resolveForTests(name, 0);
+        }
     }
 
     @Test

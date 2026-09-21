@@ -1657,7 +1657,7 @@ public class SettingsL10nTest {
                     "Privacy", "Region", "App", "Diagnostics", "Backup and restore", "Settings",
                     "Your feed", "Watching and sharing", "Privacy and system", "About",
                     "Choose what reaches your feed", "Arrange your feed and bottom tabs",
-                    "Captions, gestures and on-screen controls", "Quality, speed and automatic advance",
+                    "Captions, gestures and on-screen controls", "Quality, speed and auto-advance",
                     "Daily budgets, reminders and the hold", "Filters, translation and copy options",
                     "Quality, files, subtitles and hand-off", "People, shortcuts and sending controls",
                     "Choose which rows and controls appear", "Tracking, device access and links",

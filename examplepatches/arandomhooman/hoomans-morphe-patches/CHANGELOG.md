@@ -1,3 +1,15 @@
+## [1.53.0](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.52.1...v1.53.0) (2026-09-21)
+
+### ✨ New Features
+
+* **twitch:** add custom proxy URL option ([1b6c1c1](https://github.com/arandomhooman/hoomans-morphe-patches/commit/1b6c1c12aa748bdcb53afa8a3f61ec549a1ad0e3))
+
+## [1.52.1](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.52.0...v1.52.1) (2026-09-21)
+
+### 🐛 Bug Fixes
+
+* **quizlet:** respect textbook answer limits ([c34bf64](https://github.com/arandomhooman/hoomans-morphe-patches/commit/c34bf641031c74b23ccb8d104e942b43705bbb0a))
+
 ## [1.52.0](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.51.1...v1.52.0) (2026-09-20)
 
 ### 🐛 Bug Fixes

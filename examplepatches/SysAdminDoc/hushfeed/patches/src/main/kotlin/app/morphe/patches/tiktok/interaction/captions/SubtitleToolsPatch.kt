@@ -40,7 +40,7 @@ val subtitleToolsPatch = bytecodePatch(
     description = "Saves subtitle files beside downloaded videos and adds caption size, background, and clear-display options. Switch: Hushfeed settings > Feed screen.",
     default = false,
 ) {
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
     dependsOn(settingsPatch, sharedExtensionPatch, advancedDownloadsPatch, blockAuthorPatch)
     execute {
         val rendererConstructor = CaptionViewFingerprint.method.implementation!!.instructions.mapNotNull {

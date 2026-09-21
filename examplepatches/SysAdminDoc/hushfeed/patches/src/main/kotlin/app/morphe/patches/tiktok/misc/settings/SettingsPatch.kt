@@ -54,6 +54,30 @@ private data class OpenDebugTargets(
 )
 
 /**
+ * Copies TikTok's sorted settings rows and moves its Open Debug singleton to index zero.
+ *
+ * TikTok 47.0.3 can already include that singleton in the support group. Removing it first avoids
+ * duplicate Compose keys, which otherwise leave the later, natively sorted row on screen.
+ */
+internal fun settingsRowMoveToFrontInstructions(
+    copyRegister: Int,
+    valueRegister: Int,
+    indexRegister: Int,
+    listRegister: Int,
+    openDebugField: FieldReference,
+): String =
+    """
+        new-instance v$copyRegister, Ljava/util/ArrayList;
+        move-object v$valueRegister, v$listRegister
+        invoke-direct {v$copyRegister, v$valueRegister}, Ljava/util/ArrayList;-><init>(Ljava/util/Collection;)V
+        sget-object v$valueRegister, ${openDebugField.definingClass}->OPEN_DEBUG:${openDebugField.type}
+        invoke-virtual {v$copyRegister, v$valueRegister}, Ljava/util/ArrayList;->remove(Ljava/lang/Object;)Z
+        const/4 v$indexRegister, 0x0
+        invoke-virtual {v$copyRegister, v$indexRegister, v$valueRegister}, Ljava/util/ArrayList;->add(ILjava/lang/Object;)V
+        move-object v$listRegister, v$copyRegister
+    """
+
+/**
  * The type of TikTok's `VectorResource(resId: Int)` data class, found by the string constant its
  * generated toString() appends. Exactly one class carries it, and it has to have the one-int
  * constructor the patch calls, or the patch says so rather than assembling a call to nothing.
@@ -180,12 +204,12 @@ private fun BytecodePatchContext.settingsIconResourceId(): Int {
 @Suppress("unused")
 val settingsPatch = bytecodePatch(
     name = "Settings",
-    description = "Adds the Hushfeed settings screen to TikTok.",
+    description = "Adds the Hushfeed settings screen to TikTok and keeps its entry first in Settings and privacy.",
     default = true,
 ) {
     dependsOn(sharedExtensionPatch)
 
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         val initializeSettingsMethodDescriptor =
@@ -394,9 +418,7 @@ val settingsPatch = bytecodePatch(
                 if (it.opcode != Opcode.INVOKE_STATIC) return@indexOfLast false
                 val reference = (it as? ReferenceInstruction)?.reference as? MethodReference
                     ?: return@indexOfLast false
-                reference.name in setOf("LJLJLLL", "LJLLLL") &&
-                    reference.parameterTypes == listOf("Ljava/util/Comparator;", "Ljava/lang/Iterable;") &&
-                    reference.returnType == "Ljava/util/List;"
+                reference.isSettingsRowsSort()
             } ?: -1
             if (sortedListIndex < 0) return false
 
@@ -418,15 +440,13 @@ val settingsPatch = bytecodePatch(
 
             composeRowsMethod.addInstructions(
                 sortedListIndex + 2,
-                """
-                    new-instance v$copyRegister, Ljava/util/ArrayList;
-                    move-object v$valueRegister, v$listRegister
-                    invoke-direct {v$copyRegister, v$valueRegister}, Ljava/util/ArrayList;-><init>(Ljava/util/Collection;)V
-                    sget-object v$valueRegister, ${openDebugField.definingClass}->OPEN_DEBUG:${openDebugField.type}
-                    const/4 v$indexRegister, 0x0
-                    invoke-virtual {v$copyRegister, v$indexRegister, v$valueRegister}, Ljava/util/ArrayList;->add(ILjava/lang/Object;)V
-                    move-object v$listRegister, v$copyRegister
-                """,
+                settingsRowMoveToFrontInstructions(
+                    copyRegister,
+                    valueRegister,
+                    indexRegister,
+                    listRegister,
+                    openDebugField,
+                ),
             )
 
             return true

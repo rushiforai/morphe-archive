@@ -29,7 +29,7 @@ val enableOpenDebugPatch = bytecodePatch(
 ) {
     dependsOn(sharedExtensionPatch, settingsPatch)
 
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         SettingsStatusLoadFingerprint.method.addInstruction(

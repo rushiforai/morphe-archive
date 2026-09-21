@@ -71,6 +71,21 @@ public class HookStatusTest {
         assertEquals(List.of("share sheet"), HookStatus.familiesMissingSomething());
     }
 
+    @Test public void recoveringAViewRemovesOnlyThatTransientMiss() {
+        HookStatus.missingViewId("navigation", "Home tab");
+        HookStatus.missingMember("navigation", "field", "TabModel", "selected");
+        HookStatus.threw("navigation", "selection", new IllegalStateException());
+
+        HookStatus.recoveredViewId("navigation", "Home tab");
+
+        assertEquals(List.of(
+                        "field TabModel#selected",
+                        "a working 'selection' hook (it threw java.lang.IllegalStateException)"),
+                HookStatus.missing("navigation"));
+        assertTrue(HookStatus.anyMissing());
+        assertEquals(List.of("navigation"), HookStatus.familiesMissingSomething());
+    }
+
     @Test public void eachSurfaceIsCountedOnItsOwn() {
         HookStatus.bound("overlay", "cover");
         HookStatus.missingMember("feed models", "method", "com.example.Card", "isAdOrContainAd");

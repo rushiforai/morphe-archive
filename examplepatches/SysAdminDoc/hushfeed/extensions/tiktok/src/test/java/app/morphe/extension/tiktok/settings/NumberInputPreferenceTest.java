@@ -176,8 +176,9 @@ public class NumberInputPreferenceTest {
             ShadowToast.reset();
             preference.getEditText().setText("");
             preference.save();
-            assertEquals("Enter a number.",
+            assertNull("the inline failure was duplicated in a toast",
                     ShadowToast.getTextOfLatestToast());
+            assertEquals("Enter a number.", preference.getEditText().getError().toString());
             assertEquals("Summary\n0 to 600\nCurrent: 45 minutes",
                     preference.getSummary().toString());
         }
@@ -205,11 +206,16 @@ public class NumberInputPreferenceTest {
             assertEquals("the dialog closed after refusing the empty value", true,
                     dialog.isShowing());
             assertEquals("Enter a number.",
-                    preference.getEditText().getError().toString());
+                    inlineError(preference.getEditText()).getText().toString());
             assertEquals("Summary\n0 to 600\nCurrent: 30 minutes",
                     preference.getSummary().toString());
             dialog.dismiss();
         }
+    }
+
+    private static TextView inlineError(android.widget.EditText field) {
+        ViewGroup parent = (ViewGroup) field.getParent();
+        return (TextView) parent.getChildAt(parent.indexOfChild(field) + 1);
     }
 
     @Test

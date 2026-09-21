@@ -440,7 +440,20 @@ public final class SettingsBackup {
         // is refused by both numbers, since applying a shape this build never saw field by field
         // would land half a backup with no message. Not a number is not a schema at all.
         Object declared = root.opt("schema");
-        int schema = declared == null ? 1 : declared instanceof Number ? ((Number) declared).intValue() : -1;
+        int schema = 1;
+        if (declared != null) {
+            if (!(declared instanceof Number)) {
+                schema = -1;
+            } else {
+                double numeric = ((Number) declared).doubleValue();
+                schema = Double.isFinite(numeric)
+                        && numeric == Math.rint(numeric)
+                        && numeric >= Integer.MIN_VALUE
+                        && numeric <= Integer.MAX_VALUE
+                        ? (int) numeric
+                        : -1;
+            }
+        }
         if (schema < 1 || schema > SCHEMA) {
             throw new RejectedBackup(Reason.SCHEMA, "Settings backup schema " + declared
                     + " is not one this build reads (it reads up to " + SCHEMA + ")");

@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-19T18:45:02",
-  "description": "## [1.44.0-dev.11](https://github.com/MorpheApp/morphe-patches/compare/v1.44.0-dev.10...v1.44.0-dev.11) (2026-09-19)\n\n### \u2728 New Features\n\n* **YouTube - Channel search:** Show the searched channel in the results header ([c0e49d4](https://github.com/MorpheApp/morphe-patches/commit/c0e49d4ba97a5ca79033e379f3f581a395cda7a4))\n",
-  "download_url": "https://github.com/MorpheApp/morphe-patches/releases/download/v1.44.0-dev.11/patches-1.44.0-dev.11.mpp",
+  "created_at": "2026-09-20T23:51:56",
+  "description": "## [1.44.0-dev.13](https://github.com/MorpheApp/morphe-patches/compare/v1.44.0-dev.12...v1.44.0-dev.13) (2026-09-20)\n\n### \u2728 New Features\n\n* **YouTube - Return YouTube Dislike:** Show like and dislike counts on the icon only video action bar ([#3075](https://github.com/MorpheApp/morphe-patches/issues/3075)) ([6934e0c](https://github.com/MorpheApp/morphe-patches/commit/6934e0c06dc8e6797f3217e8d609f7a6823b12c9))\n",
+  "download_url": "https://github.com/MorpheApp/morphe-patches/releases/download/v1.44.0-dev.13/patches-1.44.0-dev.13.mpp",
   "signature_download_url": "N/A",
-  "version": "v1.44.0-dev.11"
+  "version": "v1.44.0-dev.13"
 }

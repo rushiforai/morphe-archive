@@ -288,14 +288,18 @@ public abstract class Setting<T> {
             return;
         }
 
-        oldPrefs.preferences.edit().remove(settingKey).apply(); // Remove the old setting.
         if (migratedValue.equals(newValue)) {
             Logger.printDebug(() -> "Value does not need migrating: " + settingKey);
+            oldPrefs.removeKey(settingKey);
             return; // Old value is already equal to the new setting value.
         }
 
         Logger.printDebug(() -> "Migrating old preference value into current preference: " + settingKey);
-        setting.save(migratedValue);
+        if (setting.save(migratedValue)) {
+            oldPrefs.removeKey(settingKey);
+        } else {
+            Logger.printException(() -> "Kept old preference after migration failed: " + settingKey);
+        }
     }
 
     /**
@@ -312,7 +316,13 @@ public abstract class Setting<T> {
         // the default for a future release.  Without this after upgrading
         // the saved value will be whatever was the default when the app was first installed.
         if (setting.isSetToDefault()) {
-            setting.removeFromPreferences();
+            try {
+                setting.removeFromPreferences();
+            } catch (RuntimeException failure) {
+                // The framework already stored the selected default. Leaving that explicit value
+                // is semantically correct, even if the cleanup that normally removes it failed.
+                Logger.printException(() -> "Could not clear explicit default: " + setting.key, failure);
+            }
         }
     }
 
@@ -343,24 +353,45 @@ public abstract class Setting<T> {
     /**
      * Persistently saves the value.
      */
-    public final void save(T newValue) {
-        if (!Utils.isMainProcess()) {
-            Logger.printInfo(() -> "Ignored persistent setting write from a secondary process: " + key);
-            return;
-        }
-        newValue = coerce(Objects.requireNonNull(newValue));
-        if (value.equals(newValue)) {
-            return;
-        }
+    public final boolean save(T newValue) {
+        // Every Setting shares one preference file. Keep the live-value swap, disk commit and
+        // possible rollback in the same class lock as saveAll(), so a failed write cannot roll a
+        // newer successful write back after the newer caller has already returned.
+        synchronized (Setting.class) {
+            if (!Utils.isMainProcess()) {
+                Logger.printInfo(() -> "Ignored persistent setting write from a secondary process: " + key);
+                return false;
+            }
+            newValue = coerce(Objects.requireNonNull(newValue));
+            if (value.equals(newValue)) {
+                return true;
+            }
 
-        // Must set before saving to preferences (otherwise importing fails to update UI correctly).
-        value = newValue;
-
-        if (defaultValue.equals(newValue)) {
-            removeFromPreferences();
-        } else {
-            saveToPreferences();
+            // Must set before saving to preferences (otherwise importing fails to update UI correctly).
+            T previousValue = value;
+            value = newValue;
+            try {
+                persistCurrentValue();
+                return true;
+            } catch (RuntimeException failure) {
+                // A failed commit means the value that survives a restart is still the old one.
+                // Keep the live process on that same value, then make a best effort to restore
+                // storage in case a platform implementation reports failure after touching it.
+                value = previousValue;
+                try {
+                    persistCurrentValue();
+                } catch (RuntimeException rollbackFailure) {
+                    failure.addSuppressed(rollbackFailure);
+                }
+                Logger.printException(() -> "Could not save setting: " + key, failure);
+                return false;
+            }
         }
+    }
+
+    private void persistCurrentValue() {
+        if (defaultValue.equals(value)) removeFromPreferences();
+        else saveToPreferences();
     }
 
     /**

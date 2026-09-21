@@ -76,7 +76,7 @@ object Constants {
 
     const val TIKTOK_GLOBAL_PACKAGE_NAME = "com.zhiliaoapp.musically"
     const val TIKTOK_ASIA_PACKAGE_NAME = "com.ss.android.ugc.trill"
-    const val TIKTOK_TARGET_VERSION = "46.9.3"
+    const val TIKTOK_TARGET_VERSION = "47.0.3"
 
     val COMPATIBILITY_TIKTOK = Compatibility(
         name = "TikTok",
@@ -113,7 +113,7 @@ object Constants {
     const val TIKTOK_EXTENSION_SEEKBAR_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokSeekbarHook;"
     const val TIKTOK_EXTENSION_PRIVACY_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokPrivacyHook;"
     const val TIKTOK_EXTENSION_REFRESH_RATE_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokRefreshRateHook;"
-    const val TIKTOK_EXTENSION_GHOST_MODE_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokGhostModeHook;"
+    const val TIKTOK_EXTENSION_OFFLINE_VIDEOS_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokOfflineVideosHook;"
     const val BRAVE_EXTENSION_CLASS = "Lcom/kveld9/morphe/extension/BraveExtension;"
     const val CHROMIUM_EXTENSION_CLASS = "Lcom/kveld9/morphe/extension/ChromiumExtension;"
 }

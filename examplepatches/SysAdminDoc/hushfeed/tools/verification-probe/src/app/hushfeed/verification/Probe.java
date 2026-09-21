@@ -10,10 +10,19 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * Reaches Hushfeed's own settings on a phone, for the device checks in Roadmap_Blocked.md.
@@ -188,6 +197,102 @@ public final class Probe extends Instrumentation {
                     case "feed":
                         Log.i(TAG, "ok feed\n" + feedReport());
                         break;
+                    case "ad-evidence":
+                        // Technical booleans only. Never emit the video id, creator, visible
+                        // disclosure text or the raw anchors JSON into device evidence.
+                        Log.i(TAG, "ok ad-evidence\n" + adEvidence());
+                        break;
+                    case "ad-boundary":
+                        Log.i(TAG, "ok ad-boundary\n" + adBoundary());
+                        break;
+                    case "location-evidence":
+                        Log.i(TAG, "ok location-evidence\n" + locationEvidence(intent.getStringExtra("aid")));
+                        break;
+                    case "banner-evidence":
+                        Log.i(TAG, "ok banner-evidence\n" + bannerEvidence(intent.getStringExtra("aid")));
+                        break;
+                    case "commerce-evidence":
+                        // Each line is deliberately structural. Strings are represented only by
+                        // length, hash and fixed marker booleans so a diagnostic cannot collect
+                        // captions, creator names, product names or other visible content.
+                        for (String line : commerceEvidence()) {
+                            Log.i(TAG, "commerce " + line);
+                        }
+                        Log.i(TAG, "ok commerce-evidence");
+                        break;
+                    case "commission-view":
+                        for (String line : commissionViewEvidence()) {
+                            Log.i(TAG, "commission-view " + line);
+                        }
+                        Log.i(TAG, "ok commission-view");
+                        break;
+                    case "video-link":
+                        Log.i(TAG, "ok video-link " + copiedTikTokVideoLink());
+                        break;
+                    case "clear-test-clipboard": {
+                        String aid = required(intent, "aid");
+                        if (!aid.matches("[0-9]+")) throw new IllegalArgumentException("invalid video id");
+                        String copied = copiedTikTokVideoLink();
+                        String copiedPath = android.net.Uri.parse(copied).getPath();
+                        if (copiedPath != null && copiedPath.endsWith("/video/" + aid)) {
+                            android.content.ClipboardManager clipboard = (android.content.ClipboardManager)
+                                    app.getSystemService(Context.CLIPBOARD_SERVICE);
+                            clipboard.setPrimaryClip(android.content.ClipData.newPlainText("", ""));
+                            Log.i(TAG, "ok test clipboard cleared");
+                        } else {
+                            Log.i(TAG, "test clipboard no longer matches; left unchanged");
+                        }
+                        break;
+                    }
+                    case "open-copied-video": {
+                        String link = copiedTikTokVideoLink();
+                        if (!link.startsWith("https://www.tiktok.com/")) {
+                            throw new IllegalStateException("no copied TikTok video URL");
+                        }
+                        Intent video = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(link));
+                        video.setPackage("com.zhiliaoapp.musically");
+                        video.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        app.startActivity(video);
+                        Log.i(TAG, "ok open-copied-video");
+                        break;
+                    }
+                    case "open-public-video": {
+                        String aid = required(intent, "aid");
+                        if (!aid.matches("[0-9]+")) throw new IllegalArgumentException("invalid public video id");
+                        Intent video = new Intent(Intent.ACTION_VIEW,
+                                android.net.Uri.parse("snssdk1233://aweme/detail/" + aid));
+                        video.setPackage("com.zhiliaoapp.musically");
+                        video.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        app.startActivity(video);
+                        Log.i(TAG, "ok open-public-video");
+                        break;
+                    }
+                    case "open-video": {
+                        String user = required(intent, "user");
+                        String aid = required(intent, "aid");
+                        if (!user.matches("[A-Za-z0-9._]+") || !aid.matches("[0-9]+")) {
+                            throw new IllegalArgumentException("invalid public video route");
+                        }
+                        String link = "https://www.tiktok.com/@" + user + "/video/" + aid;
+                        Intent video = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(link));
+                        video.setPackage("com.zhiliaoapp.musically");
+                        video.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        app.startActivity(video);
+                        Log.i(TAG, "ok open-video");
+                        break;
+                    }
+                    case "hooks": {
+                        // HookStatus contains only the names and counts of Hushfeed's own
+                        // technical anchors. Keep this separate from the full diagnostic
+                        // export so a compatibility pass never has to collect account or
+                        // content-linked events just to find a renamed view or member.
+                        List<?> lines = (List<?>) loader.loadClass(
+                                "app.morphe.extension.shared.diagnostics.HookStatus")
+                                .getMethod("report").invoke(null);
+                        for (Object line : lines) Log.i(TAG, "hook " + line);
+                        Log.i(TAG, "ok hooks " + lines.size());
+                        break;
+                    }
                     case "doubletap": {
                         // Two taps on TikTok's own window, timed inside the double-tap window.
                         // "input tap" twice from adb spawns a process per tap and lands inside or
@@ -235,6 +340,10 @@ public final class Probe extends Instrumentation {
                         String value = required(intent, "value");
                         String before = valueOf(find(key));
                         write(key, value);
+                        if ("block_author_button".equals(key)) {
+                            loader.loadClass("app.morphe.extension.tiktok.blockauthor.BlockAuthorOverlay")
+                                    .getMethod("refresh").invoke(null);
+                        }
                         Log.i(TAG, "ok set " + key + " " + before + " -> " + valueOf(find(key)));
                         break;
                     }
@@ -287,11 +396,96 @@ public final class Probe extends Instrumentation {
                         Log.i(TAG, "ok views " + text.length() + " chars in " + pieces + " pieces");
                         break;
                     }
+                    case "block-flow-test": {
+                        BlockFlowProbe.run(loader, intent.getStringExtra("value"));
+                        break;
+                    }
+                    case "like-targets": {
+                        for (android.view.View root : windowRoots()) readLikeTargets(root);
+                        Log.i(TAG, "ok like-targets");
+                        break;
+                    }
+                    case "windowviews": {
+                        // Dialogs and bottom sheets can live in a separate WindowManager root.
+                        // TikTok 47.0.3's comment sheet leaves MainActivity's own content view
+                        // empty while its dialog window is visible, so the ordinary views action
+                        // cannot observe or verify its resource anchors. This emits the same
+                        // technical-only fields for every root, without text or descriptions.
+                        android.app.Activity activity = (android.app.Activity) loader.loadClass(UTILS)
+                                .getMethod("getActivity").invoke(null);
+                        if (activity == null) throw new IllegalStateException("no current activity");
+                        String find = intent.getStringExtra("find");
+                        java.util.List<android.view.View> roots = windowRoots();
+                        StringBuilder out = new StringBuilder();
+                        for (int i = 0; i < roots.size(); i++) {
+                            android.view.View root = roots.get(i);
+                            out.append("root ").append(i).append(' ')
+                                    .append(root.getClass().getSimpleName()).append('\n');
+                            walkViews(root, 0, find, out, activity.getResources());
+                        }
+                        String text = out.toString();
+                        int pieces = 0;
+                        for (int at = 0; at < text.length(); at += 3000, pieces++) {
+                            Log.i(TAG, "windowviews[" + pieces + "] "
+                                    + text.substring(at, Math.min(text.length(), at + 3000)));
+                        }
+                        Log.i(TAG, "ok windowviews " + roots.size() + " roots "
+                                + text.length() + " chars in " + pieces + " pieces");
+                        break;
+                    }
                     default:
                         throw new IllegalArgumentException("unknown action: " + action);
                 }
             } catch (Throwable error) {
                 Log.e(TAG, "failed " + action, error);
+            }
+        }
+
+        /** Read-only 47.0.3 acceptance data. No comment text, ids or account data is emitted. */
+        private void readLikeTargets(android.view.View view) throws Exception {
+            if (view.isShown() && "ncu".equals(idName(view, view.getResources()))) {
+                int[] position = new int[2];
+                view.getLocationOnScreen(position);
+                StringBuilder out = new StringBuilder("like-target at=").append(position[0])
+                        .append(',').append(position[1]).append(" size=").append(view.getWidth())
+                        .append('x').append(view.getHeight());
+                android.view.ViewParent parent = view.getParent();
+                boolean modelFound = false;
+                while (parent instanceof android.view.View) {
+                    android.view.View ancestor = (android.view.View) parent;
+                    if (!modelFound) {
+                        for (Field field : ancestor.getClass().getDeclaredFields()) {
+                            if (!field.getType().getName().equals(
+                                    "com.ss.android.ugc.aweme.comment.model.Comment")) continue;
+                            field.setAccessible(true);
+                            Object comment = field.get(ancestor);
+                            if (comment != null) {
+                                out.append(" liked=").append(comment.getClass()
+                                        .getMethod("isUserDigged").invoke(comment));
+                                modelFound = true;
+                            }
+                        }
+                    }
+                    android.view.TouchDelegate delegate = ancestor.getTouchDelegate();
+                    if (delegate != null) {
+                        ancestor.getLocationOnScreen(position);
+                        out.append(" delegate=").append(delegate.getClass().getName())
+                                .append(" hostAt=").append(position[0]).append(',').append(position[1]);
+                        if (Build.VERSION.SDK_INT >= 29) {
+                            android.view.accessibility.AccessibilityNodeInfo.TouchDelegateInfo info =
+                                    delegate.getTouchDelegateInfo();
+                            for (int i = 0; i < info.getRegionCount(); i++) {
+                                out.append(" localArea=").append(info.getRegionAt(i));
+                            }
+                        }
+                    }
+                    parent = parent.getParent();
+                }
+                Log.i(TAG, out.toString());
+            }
+            if (view instanceof android.view.ViewGroup) {
+                android.view.ViewGroup group = (android.view.ViewGroup) view;
+                for (int i = 0; i < group.getChildCount(); i++) readLikeTargets(group.getChildAt(i));
             }
         }
 
@@ -349,11 +543,18 @@ public final class Probe extends Instrumentation {
                         .append(" size=").append(view.getWidth()).append('x').append(view.getHeight())
                         .append(" scale=").append(view.getScaleX());
                 if (find != null) {
+                    out.append(" shown=").append(view.isShown())
+                            .append(" clickable=").append(view.isClickable())
+                            .append(" a11y=").append(view.getImportantForAccessibility());
                     out.append(" under=");
                     android.view.ViewParent parent = view.getParent();
                     while (parent instanceof android.view.View) {
-                        String above = idName((android.view.View) parent, resources);
-                        if (above != null) out.append(above).append(" < ");
+                        android.view.View ancestor = (android.view.View) parent;
+                        String above = idName(ancestor, resources);
+                        out.append(above == null ? ancestor.getClass().getSimpleName() : above)
+                                .append("(vis=").append(ancestor.getVisibility())
+                                .append(",a11y=").append(ancestor.getImportantForAccessibility())
+                                .append(") < ");
                         parent = parent.getParent();
                     }
                 }
@@ -365,6 +566,29 @@ public final class Probe extends Instrumentation {
                     walkViews(group.getChildAt(i), depth + 1, find, out, resources);
                 }
             }
+        }
+
+        @SuppressWarnings("unchecked")
+        private static java.util.List<android.view.View> windowRoots() throws Exception {
+            Class<?> globalClass = Class.forName("android.view.WindowManagerGlobal");
+            java.lang.reflect.Method getInstance = globalClass.getDeclaredMethod("getInstance");
+            getInstance.setAccessible(true);
+            Object global = getInstance.invoke(null);
+            Object value;
+            try {
+                java.lang.reflect.Method getWindowViews =
+                        globalClass.getDeclaredMethod("getWindowViews");
+                getWindowViews.setAccessible(true);
+                value = getWindowViews.invoke(global);
+            } catch (NoSuchMethodException missingMethod) {
+                java.lang.reflect.Field views = globalClass.getDeclaredField("mViews");
+                views.setAccessible(true);
+                value = views.get(global);
+            }
+            if (value instanceof java.util.List) {
+                return (java.util.List<android.view.View>) value;
+            }
+            throw new IllegalStateException("WindowManagerGlobal returned no root list");
         }
 
         /** Opens the settings screen the same way the row inside TikTok's own settings does. */
@@ -476,6 +700,470 @@ public final class Probe extends Instrumentation {
             Object result = open.invoke(null, aid);
             out.append("\n  openComments(").append(aid).append(")=").append(result);
             return out.toString();
+        }
+
+        /** Privacy-safe classifier state for the video currently bound to TikTok's player. */
+        private String adEvidence() throws Exception {
+            Class<?> author = loader.loadClass(
+                    "app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor");
+            Object aweme = author.getMethod("getAweme").invoke(null);
+            if (aweme == null) return "aweme=null";
+
+            Class<?> awemeClass = aweme.getClass();
+            Object anchorsValue = awemeClass.getMethod("getAnchorsExtras").invoke(aweme);
+            String anchors = anchorsValue instanceof String ? (String) anchorsValue : null;
+            Object rawAd = awemeClass.getMethod("getAwemeRawAd").invoke(aweme);
+            boolean nativeAd = (Boolean) awemeClass.getMethod("isAd").invoke(aweme);
+            boolean softAd = (Boolean) awemeClass.getMethod("isSoftAd").invoke(aweme);
+
+            Class<?> ads = loader.loadClass(
+                    "app.morphe.extension.tiktok.feedfilter.AdsFilter");
+            Class<?> awemeModel = loader.loadClass(
+                    "com.ss.android.ugc.aweme.feed.model.Aweme");
+            Method commission = ads.getDeclaredMethod(
+                    "hasCreatorCommissionDisclosure", awemeModel);
+            commission.setAccessible(true);
+            boolean commissionMatched = (Boolean) commission.invoke(null, aweme);
+            Class<?> reflect = loader.loadClass(
+                    "app.morphe.extension.tiktok.blockauthor.Reflect");
+            Method invoke = reflect.getMethod("invoke", Object.class, String.class);
+            Method field = reflect.getMethod("readField", Object.class, String.class);
+            Object content = invoke.invoke(null, aweme, "getContentModel");
+            Object business = field.invoke(null, content, "standardBusinessModel");
+            Object alliance = invoke.invoke(null, business, "getLocalAllianceInfo");
+            Object show = invoke.invoke(null, alliance, "showBottomLabel");
+            Object type = field.invoke(null, alliance, "allianceItemLabelType");
+            Object label = field.invoke(null, alliance, "allianceItemLabelText");
+
+            StringBuilder out = new StringBuilder();
+            out.append("awemeClass=").append(awemeClass.getName())
+                    .append("\nnativeAd=").append(nativeAd)
+                    .append("\nsoftAd=").append(softAd)
+                    .append("\nrawAdPresent=").append(rawAd != null)
+                    .append("\nanchorsPresent=").append(anchors != null && !anchors.isEmpty())
+                    .append("\nanchorsLength=").append(anchors == null ? 0 : anchors.length())
+                    .append("\nanchorsHash=")
+                    .append(anchors == null ? "none" : Integer.toHexString(anchors.hashCode()))
+                    .append("\npanelDisclosureKey=")
+                    .append(anchors != null && anchors.contains("panel_top_disclosure_label"))
+                    .append("\ncommissionMatched=").append(commissionMatched)
+                    .append("\ncontentPresent=").append(content != null)
+                    .append("\nbusinessPresent=").append(business != null)
+                    .append("\nlocalAlliancePresent=").append(alliance != null)
+                    .append("\nlocalAllianceShowLabel=").append(show)
+                    .append("\nlocalAllianceLabelType=").append(type)
+                    .append("\nlocalAllianceLabelLength=")
+                    .append(label instanceof String ? ((String) label).length() : 0)
+                    .append("\nremoveAds=").append(valueOf(find("remove_ads")))
+                    .append("\nhidePaidPartnership=")
+                    .append(valueOf(find("hide_paid_partnership")));
+            return out.toString();
+        }
+
+        /** Runs the real ad-only list boundary on a detached list, never the visible pager. */
+        private String adBoundary() throws Exception {
+            Object aweme = loader.loadClass(
+                    "app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
+                    .getMethod("getAweme").invoke(null);
+            if (aweme == null) return "aweme=null";
+            Class<?> ads = loader.loadClass("app.morphe.extension.tiktok.feedfilter.AdsFilter");
+            Class<?> model = loader.loadClass("com.ss.android.ugc.aweme.feed.model.Aweme");
+            boolean classified = (Boolean) ads.getMethod("getFiltered", model)
+                    .invoke(ads.getConstructor().newInstance(), aweme);
+            List<Object> detached = new ArrayList<>();
+            detached.add(aweme);
+            List<?> remaining = (List<?>) loader.loadClass(
+                    "app.morphe.extension.tiktok.feedfilter.FeedItemsFilter")
+                    .getMethod("filterProfileAds", List.class).invoke(null, detached);
+            Class<?> feed = loader.loadClass("com.ss.android.ugc.aweme.feed.model.FeedItemList");
+            Object response = feed.getConstructor().newInstance();
+            Field items = feed.getDeclaredField("items");
+            items.setAccessible(true);
+            items.set(response, new ArrayList<>(Collections.singletonList(aweme)));
+            List<?> read = (List<?>) feed.getMethod("getItems").invoke(response);
+            return "classified=" + classified + "\nremoveAds=" + valueOf(find("remove_ads"))
+                    + "\ninput=1\nremaining=" + remaining.size()
+                    + "\nnativeGetterRemaining=" + read.size();
+        }
+
+        /**
+         * Privacy-safe shape of commerce data attached to the video currently bound to TikTok.
+         *
+         * <p>47.0.3 renders the creator-commission label while the Aweme exposed by
+         * CurrentVideoAuthor has no anchorsExtras. This probe finds which other stable model
+         * property carries that decision without ever logging a user or server supplied string.
+         */
+        private List<String> commerceEvidence() throws Exception {
+            Class<?> author = loader.loadClass(
+                    "app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor");
+            Object aweme = author.getMethod("getAweme").invoke(null);
+            if (aweme == null) return Collections.singletonList("aweme=null");
+
+            List<String> out = new ArrayList<>();
+            out.add("awemeClass=" + aweme.getClass().getName());
+            addRelevantMembers("aweme", aweme, out, true);
+            return out;
+        }
+
+        /** Exact technical banner counts only. Never collect the search suggestion or other text. */
+        private String bannerEvidence(String expectedId) throws Exception {
+            Object aweme = loader.loadClass("app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
+                    .getMethod("getAweme").invoke(null);
+            if (aweme == null) return "aweme=null";
+            Class<?> model = loader.loadClass("com.ss.android.ugc.aweme.feed.model.Aweme");
+            Object raw = model.getMethod("getBanners").invoke(aweme);
+            List<?> banners = raw instanceof List ? (List<?>) raw : Collections.emptyList();
+            int search = 0, tako = 0, unknown = 0;
+            for (Object banner : banners) {
+                if (banner == null) { unknown++; continue; }
+                Object key = banner.getClass().getField("bannerKey").get(banner);
+                Object component = key == null ? null : key.getClass().getField("componentKey").get(key);
+                if ("bottom_banner_search_rs".equals(component)) search++;
+                else if ("bottom_banner_tako".equals(component)) tako++;
+                else unknown++;
+            }
+            return "banners=" + banners.size() + "\nsearchBanners=" + search + "\ntakoBanners=" + tako
+                    + "\notherBanners=" + unknown + "\nexpectedPublicVideo=" + (expectedId == null ? "not checked" :
+                    String.valueOf(expectedId.equals(model.getMethod("getAid").invoke(aweme))));
+        }
+
+        /** Real current model and patched native getter, on a detached list. No place or creator text. */
+        private String locationEvidence(String expectedId) throws Exception {
+            Object aweme = loader.loadClass("app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
+                    .getMethod("getAweme").invoke(null);
+            if (aweme == null) return "aweme=null";
+            Class<?> model = loader.loadClass("com.ss.android.ugc.aweme.feed.model.Aweme");
+            Object raw = model.getMethod("getAnchors").invoke(aweme);
+            List<?> anchors = raw instanceof List ? (List<?>) raw : Collections.emptyList();
+            int locations = 0;
+            for (Object anchor : anchors) {
+                if (anchor != null && "anchor_poi".equals(anchor.getClass().getMethod("getComponentKey").invoke(anchor))) locations++;
+            }
+            Class<?> rule = loader.loadClass("app.morphe.extension.tiktok.feedfilter.LocationBadgeFilter");
+            boolean classified = (Boolean) rule.getMethod("hasBadge", model).invoke(null, aweme);
+            List<?> display = (List<?>) rule.getMethod("visibleAnchors", List.class).invoke(null, anchors);
+            Class<?> feed = loader.loadClass("com.ss.android.ugc.aweme.feed.model.FeedItemList");
+            Object response = feed.getConstructor().newInstance();
+            Field items = feed.getDeclaredField("items");
+            items.setAccessible(true);
+            items.set(response, new ArrayList<>(Collections.singletonList(aweme)));
+            List<?> remaining = (List<?>) feed.getMethod("getItems").invoke(response);
+            Object originalAfter = model.getMethod("getAnchors").invoke(aweme);
+            return "anchors=" + anchors.size() + "\nlocationAnchors=" + locations
+                    + "\nclassified=" + classified + "\ndisplayAnchors=" + display.size()
+                    + "\noriginalAnchorsAfter=" + (originalAfter instanceof List ? ((List<?>) originalAfter).size() : 0)
+                    + "\nfilterEnabled=" + valueOf(find("filter_location_videos"))
+                    + "\nhideEnabled=" + valueOf(find("hide_location_labels"))
+                    + "\nnativeGetterInput=1\nnativeGetterRemaining=" + remaining.size()
+                    + "\nexpectedPublicVideo=" + (expectedId == null ? "not checked" :
+                    String.valueOf(expectedId.equals(model.getMethod("getAid").invoke(aweme))));
+        }
+
+        /** Finds the fixed disclosure label and reports only its native view structure. */
+        private List<String> commissionViewEvidence() throws Exception {
+            android.app.Activity activity = (android.app.Activity) loader.loadClass(UTILS)
+                    .getMethod("getActivity").invoke(null);
+            if (activity == null) return Collections.singletonList("activity=null");
+            android.view.View root = activity.getWindow().getDecorView();
+            List<android.view.View> queue = new ArrayList<>();
+            queue.add(root);
+            List<android.view.View> found = new ArrayList<>();
+            for (int index = 0; index < queue.size(); index++) {
+                android.view.View view = queue.get(index);
+                if (view instanceof android.widget.TextView) {
+                    CharSequence value = ((android.widget.TextView) view).getText();
+                    if (value != null && "Creator earns commission".contentEquals(value)) {
+                        found.add(view);
+                    }
+                }
+                if (view instanceof android.view.ViewGroup) {
+                    android.view.ViewGroup group = (android.view.ViewGroup) view;
+                    for (int child = 0; child < group.getChildCount(); child++) {
+                        queue.add(group.getChildAt(child));
+                    }
+                }
+            }
+
+            List<String> out = new ArrayList<>();
+            out.add("activity=" + activity.getClass().getName()
+                    + ",visited=" + queue.size() + ",matches=" + found.size());
+            for (int match = 0; match < found.size(); match++) {
+                android.view.View current = found.get(match);
+                for (int depth = 0; current != null && depth < 10; depth++) {
+                    android.graphics.Rect bounds = new android.graphics.Rect();
+                    current.getGlobalVisibleRect(bounds);
+                    Object tag = current.getTag();
+                    out.add("match=" + match + ",depth=" + depth
+                            + ",class=" + current.getClass().getName()
+                            + ",id=" + safeResourceName(current)
+                            + ",shown=" + current.isShown()
+                            + ",attached=" + current.isAttachedToWindow()
+                            + ",visibility=" + current.getVisibility()
+                            + ",bounds=" + bounds.flattenToString()
+                            + ",tag=" + (tag == null ? "null" : tag.getClass().getName()));
+                    addViewObjectFields("match=" + match + ",depth=" + depth, current, out);
+                    android.view.ViewParent parent = current.getParent();
+                    current = parent instanceof android.view.View
+                            ? (android.view.View) parent : null;
+                }
+            }
+            return out;
+        }
+
+        private static String safeResourceName(android.view.View view) {
+            if (view.getId() == android.view.View.NO_ID) return "none";
+            try {
+                return view.getResources().getResourceName(view.getId());
+            } catch (Throwable ignored) {
+                return "numeric";
+            }
+        }
+
+        private static void addViewObjectFields(
+                String prefix,
+                android.view.View view,
+                List<String> out
+        ) {
+            int emitted = 0;
+            for (Class<?> current = view.getClass(); current != null
+                    && current != android.view.View.class && current != Object.class;
+                 current = current.getSuperclass()) {
+                String owner = current.getName();
+                if (owner.startsWith("android.") || owner.startsWith("java.")) continue;
+                for (Field field : current.getDeclaredFields()) {
+                    if (Modifier.isStatic(field.getModifiers()) || ++emitted > 64) continue;
+                    try {
+                        field.setAccessible(true);
+                        Object value = field.get(view);
+                        if (value == null || value instanceof CharSequence
+                                || value instanceof Number || value instanceof Boolean) {
+                            continue;
+                        }
+                        out.add(prefix + ",owner=" + owner + ",field=" + field.getName()
+                                + ",declared=" + field.getType().getName()
+                                + ",value=" + value.getClass().getName());
+                    } catch (Throwable ignored) {
+                        // A hidden framework field is irrelevant to the custom renderer shape.
+                    }
+                }
+            }
+        }
+
+        private static void addRelevantMembers(
+                String prefix,
+                Object target,
+                List<String> out,
+                boolean includeMethods
+        ) {
+            if (target == null) return;
+            int before = out.size();
+            Class<?> type = target.getClass();
+            for (Class<?> current = type; current != null && current != Object.class;
+                 current = current.getSuperclass()) {
+                for (Field field : current.getDeclaredFields()) {
+                    if (Modifier.isStatic(field.getModifiers()) || !isCommerceMember(field.getName())) {
+                        continue;
+                    }
+                    try {
+                        field.setAccessible(true);
+                        addSafeValue(prefix + ".field." + field.getName(), field.get(target), out);
+                    } catch (Throwable error) {
+                        out.add(prefix + ".field." + field.getName() + "=unreadable");
+                    }
+                }
+            }
+
+            if (includeMethods) {
+                for (Method method : type.getMethods()) {
+                    String name = method.getName();
+                    if (method.getParameterTypes().length != 0
+                            || method.getReturnType() == void.class
+                            || !(name.startsWith("get") || name.startsWith("is"))
+                            || !isCommerceMember(name)) {
+                        continue;
+                    }
+                    try {
+                        method.setAccessible(true);
+                        addSafeValue(prefix + ".method." + name, method.invoke(target), out);
+                    } catch (Throwable error) {
+                        out.add(prefix + ".method." + name + "=unreadable");
+                    }
+                }
+            }
+
+            if (out.size() == before) out.add(prefix + "=no-relevant-members");
+        }
+
+        private static boolean isCommerceMember(String name) {
+            String lower = name.toLowerCase(Locale.ROOT);
+            return lower.contains("anchor")
+                    || lower.contains("commerce")
+                    || lower.contains("paid")
+                    || lower.contains("product")
+                    || lower.contains("affiliate")
+                    || lower.contains("commission")
+                    || lower.contains("disclosure")
+                    || lower.contains("promotion")
+                    || lower.contains("sponsor")
+                    || lower.contains("shop")
+                    || lower.contains("ecom");
+        }
+
+        private static void addSafeValue(String name, Object value, List<String> out) {
+            addSafeValue(name, value, out, true);
+        }
+
+        private static void addSafeValue(
+                String name,
+                Object value,
+                List<String> out,
+                boolean descend
+        ) {
+            if (value == null) {
+                out.add(name + "=null");
+                return;
+            }
+            if (value instanceof CharSequence) {
+                String text = value.toString();
+                String lower = text.toLowerCase(Locale.ROOT);
+                out.add(name + "=string"
+                        + ",len=" + text.length()
+                        + ",hash=" + Integer.toHexString(text.hashCode())
+                        + ",commission=" + lower.contains("commission")
+                        + ",affiliate=" + lower.contains("affiliate")
+                        + ",disclosure=" + lower.contains("disclosure")
+                        + ",paid=" + lower.contains("paid")
+                        + ",sponsored=" + lower.contains("sponsor")
+                        + ",product=" + lower.contains("product"));
+                if (name.endsWith(".field.extra")) addJsonShape(name, text, out);
+                return;
+            }
+            if (value instanceof Boolean) {
+                out.add(name + "=boolean," + value);
+                return;
+            }
+            if (value instanceof Number) {
+                out.add(name + "=number," + (((Number) value).doubleValue() == 0d
+                        ? "zero" : "nonzero"));
+                return;
+            }
+            if (value.getClass().isEnum()) {
+                out.add(name + "=enum," + value.getClass().getName());
+                return;
+            }
+
+            int size = -1;
+            Object first = null;
+            if (value instanceof Collection) {
+                Collection<?> collection = (Collection<?>) value;
+                size = collection.size();
+                if (!collection.isEmpty()) first = collection.iterator().next();
+            } else if (value instanceof Map) {
+                Map<?, ?> map = (Map<?, ?>) value;
+                size = map.size();
+                if (!map.isEmpty()) first = map.values().iterator().next();
+            } else if (value.getClass().isArray()) {
+                size = Array.getLength(value);
+                if (size > 0) first = Array.get(value, 0);
+            }
+            if (size >= 0) {
+                out.add(name + "=container," + value.getClass().getName() + ",size=" + size
+                        + (first == null ? "" : ",first=" + first.getClass().getName()));
+                if (descend && first != null) addAllFields(name + "[0]", first, out);
+                return;
+            }
+
+            out.add(name + "=object," + value.getClass().getName());
+            if (descend) addAllFields(name, value, out);
+        }
+
+        /** JSON keys and value shapes only. String contents never leave the process. */
+        private static void addJsonShape(String name, String text, List<String> out) {
+            String trimmed = text.trim();
+            if (!(trimmed.startsWith("{") || trimmed.startsWith("["))) return;
+            try {
+                Object root = trimmed.startsWith("{")
+                        ? new JSONObject(trimmed) : new JSONArray(trimmed);
+                int[] remaining = {96};
+                addJsonShape(name + ".json", root, out, 0, remaining);
+            } catch (Throwable error) {
+                out.add(name + ".json=invalid");
+            }
+        }
+
+        private static void addJsonShape(
+                String path,
+                Object value,
+                List<String> out,
+                int depth,
+                int[] remaining
+        ) {
+            if (remaining[0]-- <= 0) {
+                out.add(path + "=node-limit");
+                return;
+            }
+            if (depth > 5) {
+                out.add(path + "=depth-limit");
+                return;
+            }
+            if (value == null || value == JSONObject.NULL) {
+                out.add(path + "=null");
+                return;
+            }
+            if (value instanceof JSONObject) {
+                JSONObject object = (JSONObject) value;
+                List<String> keys = new ArrayList<>();
+                java.util.Iterator<String> iterator = object.keys();
+                while (iterator.hasNext()) keys.add(iterator.next());
+                Collections.sort(keys);
+                out.add(path + "=object,size=" + keys.size());
+                for (String key : keys) {
+                    addJsonShape(path + "." + key, object.opt(key), out, depth + 1, remaining);
+                }
+                return;
+            }
+            if (value instanceof JSONArray) {
+                JSONArray array = (JSONArray) value;
+                out.add(path + "=array,size=" + array.length());
+                if (array.length() > 0) {
+                    addJsonShape(path + "[0]", array.opt(0), out, depth + 1, remaining);
+                }
+                return;
+            }
+            addSafeValue(path, value, out, false);
+        }
+
+        /** One non-recursive field pass over a nested commerce model. */
+        private static void addAllFields(String prefix, Object target, List<String> out) {
+            int emitted = 0;
+            for (Class<?> current = target.getClass(); current != null && current != Object.class;
+                 current = current.getSuperclass()) {
+                for (Field field : current.getDeclaredFields()) {
+                    if (Modifier.isStatic(field.getModifiers())) continue;
+                    if (++emitted > 96) {
+                        out.add(prefix + "=field-limit");
+                        return;
+                    }
+                    try {
+                        field.setAccessible(true);
+                        addSafeValue(prefix + ".field." + field.getName(), field.get(target), out, false);
+                    } catch (Throwable error) {
+                        out.add(prefix + ".field." + field.getName() + "=unreadable");
+                    }
+                }
+            }
+        }
+
+        /** Reads only a copied public TikTok video URL, never arbitrary clipboard content. */
+        private String copiedTikTokVideoLink() {
+            android.content.ClipboardManager clipboard =
+                    (android.content.ClipboardManager) app.getSystemService(Context.CLIPBOARD_SERVICE);
+            android.content.ClipData clip = clipboard == null ? null : clipboard.getPrimaryClip();
+            if (clip == null || clip.getItemCount() == 0) return "missing";
+            CharSequence value = clip.getItemAt(0).coerceToText(app);
+            String text = value == null ? "" : value.toString().trim();
+            if (text.startsWith("https://www.tiktok.com/") && text.contains("/video/")) return text;
+            return "not-a-tiktok-video-url";
         }
 
         /**

@@ -23,6 +23,54 @@ import org.junit.Test
 
 class CommentDislikeTouchTest {
     @Test
+    fun `like halo captures only the native like receiver and leaves dislike unchanged`() {
+        for (range in listOf(false, true)) {
+            val method = nativeTouchInstalls(false, range)
+            val before = method.implementation!!.instructions.toList()
+            val write = method.resolveLikeTouchListener(listeners())
+            assertEquals(before, method.implementation!!.instructions.toList())
+            write()
+            val after = method.implementation!!.instructions.toList()
+            for (index in before.indices.filter { it != 5 }) assertSame(before[index], after[index])
+            assertEquals(if (range) Opcode.INVOKE_STATIC_RANGE else Opcode.INVOKE_STATIC, after[5].opcode)
+            val hook = (after[5] as ReferenceInstruction).reference as MethodReference
+            assertEquals("Lapp/morphe/extension/tiktok/comment/CommentLikeTouchTarget;", hook.definingClass)
+            assertEquals("setNativeListener", hook.name)
+            assertEquals(listOf("Landroid/view/View;", "Landroid/view/View\$OnTouchListener;"),
+                hook.parameterTypes.map(CharSequence::toString))
+            if (range) {
+                assertEquals(1, (after[5] as RegisterRangeInstruction).startRegister)
+                assertEquals(2, (after[5] as RegisterRangeInstruction).registerCount)
+            } else {
+                assertEquals(2, (after[5] as FiveRegisterInstruction).registerC)
+                assertEquals(1, (after[5] as FiveRegisterInstruction).registerD)
+            }
+        }
+    }
+
+    @Test
+    fun `both listener changes resolve before either writes and ambiguous likes fail closed`() {
+        val method = nativeTouchInstalls(false)
+        val before = method.implementation!!.instructions.toList()
+        try {
+            applyAfterCommentToolsPreflight(
+                { method.resolveDislikeTouchListener(listeners()) },
+                { method.resolveLikeTouchListener(listeners(dislikeAsks = "isUserDigged")) },
+            )
+            fail("ambiguous likes must refuse the patch")
+        } catch (refused: PatchException) {
+            assertTrue(refused.message.orEmpty(), "found 2" in refused.message.orEmpty())
+            assertEquals(before, method.implementation!!.instructions.toList())
+        }
+        applyAfterCommentToolsPreflight(
+            { method.resolveDislikeTouchListener(listeners()) },
+            { method.resolveLikeTouchListener(listeners()) },
+        )
+        assertEquals(Opcode.INVOKE_STATIC, method.implementation!!.instructions.elementAt(5).opcode)
+        assertEquals(Opcode.INVOKE_STATIC, method.implementation!!.instructions.elementAt(11).opcode)
+    }
+
+    @Test
     fun `capture preserves the like listener and both native dislike operands`() {
         for (range in listOf(false, true)) {
             val method = nativeTouchInstalls(range)
@@ -61,7 +109,7 @@ class CommentDislikeTouchTest {
         }
     }
 
-    private fun nativeTouchInstalls(range: Boolean): MutableMethod {
+    private fun nativeTouchInstalls(range: Boolean, likeRange: Boolean = false): MutableMethod {
         val method = MutableMethod(
             ImmutableMethod(
                 "LX/0nvj;", "LIZIZ", emptyList(), "V", AccessFlags.PUBLIC.value,
@@ -70,15 +118,18 @@ class CommentDislikeTouchTest {
         )
         val receiver = if (range) 1 else 2
         val listener = if (range) 2 else 1
+        val likeReceiver = if (likeRange) 1 else 2
+        val likeListener = if (likeRange) 2 else 1
+        val likeCall = if (likeRange) "invoke-virtual/range {v1 .. v2}" else "invoke-virtual {v2, v1}"
         val call = if (range) "invoke-virtual/range {v1 .. v2}" else "invoke-virtual {v2, v1}"
         method.addInstructions(
             """
-                iget-object v2, p0, LX/0nvj;->LLJJ:Landroid/widget/RelativeLayout;
-                if-eqz v2, :dislike
-                new-instance v1, LY/ATListenerS437S0100000_22;
+                iget-object v$likeReceiver, p0, LX/0nvj;->LLJJ:Landroid/widget/RelativeLayout;
+                if-eqz v$likeReceiver, :dislike
+                new-instance v$likeListener, LY/ATListenerS437S0100000_22;
                 const/16 v0, 8
-                invoke-direct {v1, p0, v0}, LY/ATListenerS437S0100000_22;-><init>(Ljava/lang/Object;I)V
-                invoke-virtual {v2, v1}, Landroid/view/View;->setOnTouchListener(Landroid/view/View${'$'}OnTouchListener;)V
+                invoke-direct {v$likeListener, p0, v0}, LY/ATListenerS437S0100000_22;-><init>(Ljava/lang/Object;I)V
+                $likeCall, Landroid/view/View;->setOnTouchListener(Landroid/view/View${'$'}OnTouchListener;)V
                 :dislike
                 iget-object v$receiver, p0, LX/0nvj;->LLJJIJIIJIL:Landroid/widget/RelativeLayout;
                 if-eqz v$receiver, :done

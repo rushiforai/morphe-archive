@@ -24,7 +24,7 @@ val showSeekbarPatch = bytecodePatch(
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)
 
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         // Checked before the first write: the predicate's injection writes v0 and then falls
@@ -73,7 +73,7 @@ val showSeekbarThumbnailPatch = bytecodePatch(
     default = true,
 ) {
     dependsOn(sharedExtensionPatch)
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         SettingsStatusLoadFingerprint.method.addInstruction(

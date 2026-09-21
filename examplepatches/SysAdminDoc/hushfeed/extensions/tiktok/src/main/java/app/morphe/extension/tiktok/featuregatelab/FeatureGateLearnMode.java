@@ -183,7 +183,7 @@ public final class FeatureGateLearnMode {
                         .put("after", DiagnosticRedactor.redact(read.after)));
             }
             lastCount = gates.length();
-            lastReport = new JSONObject().put("target", "TikTok 46.2.3")
+            lastReport = new JSONObject().put("target", "TikTok " + FeatureGateLabStore.TARGET_VERSION)
                     .put("note", "Addresses, hostnames, credential values and id-shaped "
                             + "tokens are replaced, so a gate marked changed can show the same "
                             + "text twice. Everything else is the value as it was read, so read "

@@ -19,7 +19,7 @@ val instantLaunchSplashBlockerPatch = bytecodePatch(
     description = "Stops TikTok's splash-ad preload tasks and returns false from its reviewed splash and TopView gates. Other startup behavior is left in place.",
     default = false,
 ) {
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         val voidMethods = listOf(
@@ -79,7 +79,7 @@ val networkTrafficGovernorPatch = bytecodePatch(
     description = "Turns off TikTok's buffer-preload gate and skips its push initialization task. Videos may start buffering later, and TikTok push notifications may stop.",
     default = false,
 ) {
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         val bufferGate = BufferPreloadGateFingerprint.method
@@ -96,7 +96,7 @@ val runtimeMemoryGovernorPatch = bytecodePatch(
     description = "Makes TikTok's reviewed Fresco animated-frame cache lookups return no cached frame. This can increase decoding work or change animation playback.",
     default = false,
 ) {
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         val frameCache = mutableClassDefBy(FRESCO_FRAME_CACHE_DESCRIPTOR)
@@ -143,7 +143,7 @@ val updatePromptSuppressorPatch = bytecodePatch(
     description = "Skips TikTok's background and boot-finished device-ID update-check tasks. This may suppress some in-app update checks. Play Store updates are unaffected.",
     default = false,
 ) {
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         val methods = listOf(
@@ -156,7 +156,7 @@ val updatePromptSuppressorPatch = bytecodePatch(
 
 /** Bytecode half of LIVE Stream Suite Optimizer. It is selected only through the resource patch. */
 internal val liveGiftEffectOptimizerPatch = bytecodePatch {
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         val methods = listOf(

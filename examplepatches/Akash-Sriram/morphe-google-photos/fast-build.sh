@@ -11,11 +11,11 @@ CLI_JAR="$PROJECT_DIR/morphe-desktop-1.15.1-dev.7-all.jar"
 STOCK_APK="$PROJECT_DIR/photos_7.92.0.977185651-52372370.apk"
 OUTPUT_APK="$PROJECT_DIR/photos_patched.apk"
 
-SOURCE_TARGET="test"
+SOURCE_TARGET="main"
 DO_PATCH=true
 DO_INSTALL=false
 CLEAN=false
-RENAME_PKG=false
+RENAME_PKG=true
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do

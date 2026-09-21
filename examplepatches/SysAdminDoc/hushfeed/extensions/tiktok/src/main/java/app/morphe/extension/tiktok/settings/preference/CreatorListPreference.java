@@ -253,7 +253,7 @@ public class CreatorListPreference extends DialogPreference {
 
     /** The reason, under the box it is about, where every other editor in the bundle puts it. */
     private void reportProblem(String problem) {
-        if (addEditText != null) addEditText.setError(problem);
+        SettingsUi.reportFieldError(addEditText, problem);
     }
 
     private void addEntry() {
@@ -268,7 +268,7 @@ public class CreatorListPreference extends DialogPreference {
             return;
         }
         pendingEntries.add(candidate);
-        addEditText.setError(null);
+        SettingsUi.clearFieldError(addEditText);
         addEditText.setText("");
         refreshEntryRows();
         Utils.showToastShort(L10n.f(getContext(), "Added %1$s", candidate));

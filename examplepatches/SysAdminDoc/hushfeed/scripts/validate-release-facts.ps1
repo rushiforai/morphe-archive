@@ -120,6 +120,19 @@ $readmePath = Join-Path $rootPath 'README.md'
 
 $patchList = Read-JsonFile $patchListPath
 $bundle = Read-JsonFile $bundlePath
+# Manager's MorpheAsset uses kotlinx.datetime.LocalDateTime. An Instant-style Z or
+# offset makes JSON decoding fail before Manager can read the working download URL.
+# Read the literal value: PowerShell 7 can otherwise turn it into a DateTime and
+# conceal the suffix that caused the failure. Publish UTC clock time without a zone.
+$createdAtMatches = [regex]::Matches(
+    (Get-Content -LiteralPath $bundlePath -Raw), '(?<!\\)"created_at"\s*:\s*"([^"\\]*)"')
+$createdAt = if ($createdAtMatches.Count -eq 1) { $createdAtMatches[0].Groups[1].Value } else { '' }
+$parsedCreatedAt = [datetime]::MinValue
+if (-not [datetime]::TryParseExact($createdAt, "yyyy-MM-dd'T'HH:mm:ss",
+        [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::None,
+        [ref]$parsedCreatedAt)) {
+    throw 'patches-bundle.json created_at must be a valid UTC clock time in yyyy-MM-ddTHH:mm:ss format, without Z or an offset, for Morphe Manager.'
+}
 $readme = Get-Content -LiteralPath $readmePath -Raw
 $properties = Get-Content -LiteralPath $propertiesPath -Raw
 

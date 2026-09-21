@@ -30,12 +30,39 @@ public class AdsFilterTest {
         boolean softAd;
         boolean promotionalMusic;
         AwemeRawAd rawAd;
+        Object commerceVideoAuthInfo;
+        Object contentModel;
+        String aid;
 
         @Override public boolean isAd() { return ad; }
         @Override public boolean isSoftAd() { return softAd; }
         @Override public AwemeRawAd getAwemeRawAd() { return rawAd; }
         @Override public boolean isWithPromotionalMusic() { return promotionalMusic; }
+        @Override public String getAid() { return aid; }
         public String getAnchorsExtras() { return anchorsExtras; }
+        public Object getCommerceVideoAuthInfo() { return commerceVideoAuthInfo; }
+        public Object getContentModel() { return contentModel; }
+    }
+
+    public static class Content {
+        public Object standardBusinessModel;
+        Content(Object business) { standardBusinessModel = business; }
+    }
+
+    public static class Business {
+        private final Object alliance;
+        Business(Object alliance) { this.alliance = alliance; }
+        public Object getLocalAllianceInfo() { return alliance; }
+    }
+
+    /** Matches LocalAllianceInfo.showBottomLabel in every retained TikTok fixture. */
+    public static class Alliance {
+        final Integer type;
+        final String label;
+        Alliance(Integer type, String label) { this.type = type; this.label = label; }
+        public boolean showBottomLabel() {
+            return Integer.valueOf(1).equals(type) && label != null && !label.isEmpty();
+        }
     }
 
     /** Simulates a future host model where the required serialized anchor getter moved. */
@@ -44,6 +71,7 @@ public class AdsFilterTest {
         @Override public boolean isSoftAd() { return false; }
         @Override public AwemeRawAd getAwemeRawAd() { return null; }
         @Override public boolean isWithPromotionalMusic() { return false; }
+        public Object getContentModel() { return null; }
     }
 
     @Before public void setUp() {
@@ -75,6 +103,50 @@ public class AdsFilterTest {
         assertFalse(filter.getFiltered(video("{\"product_cnt\":1,\"anchor_type\":4}")));
     }
 
+    @Test public void locationAffiliateCommissionIsFilteredBeforeAnyLabelRenders() {
+        Video video = video(null);
+        video.contentModel = new Content(new Business(new Alliance(1, "Creator earns commission")));
+
+        assertTrue(filter.getFiltered(video));
+        assertTrue(HookStatus.missing("feed ad disclosures").isEmpty());
+    }
+
+    @Test public void locationAffiliateDisclosureDoesNotDependOnEnglishText() {
+        Video video = video(null);
+        video.contentModel = new Content(new Business(new Alliance(1, "يحصل المنشئ على عمولة")));
+
+        assertTrue(filter.getFiltered(video));
+    }
+
+    @Test public void ordinaryLocationsAndIncompleteAllianceMetadataAreKept() {
+        Video video = video(null);
+        for (Object alliance : new Object[] {null, new Alliance(null, "label"),
+                new Alliance(0, "label"), new Alliance(2, "label"),
+                new Alliance(1, null), new Alliance(1, "")}) {
+            video.contentModel = new Content(new Business(alliance));
+            assertFalse(filter.getFiltered(video));
+        }
+        video.contentModel = new Content(null);
+        assertFalse(filter.getFiltered(video));
+    }
+
+    @Test public void locationDisclosureHydrationInvalidatesTheFeedSignature() {
+        Video video = video(null);
+        int before = AdsFilter.evidenceFingerprint(video);
+        video.contentModel = new Content(new Business(new Alliance(1, "Creator earns commission")));
+
+        assertNotEquals(before, AdsFilter.evidenceFingerprint(video));
+    }
+
+    @Test public void aBrokenLocationContractFailsOpen() {
+        Video video = video(null);
+        video.contentModel = new Content(new Business(new Object() {
+            public boolean showBottomLabel() { throw new IllegalStateException("host failure"); }
+        }));
+
+        assertFalse(filter.getFiltered(video));
+    }
+
     @Test public void aBlankDisclosureIsNotAdEvidence() {
         assertFalse(filter.getFiltered(video("{\"panel_top_disclosure_label\":"
                 + "{\"display_text\":\" \",\"truncatable_text\":\"\"}}")));
@@ -102,6 +174,15 @@ public class AdsFilterTest {
         assertTrue(filter.getFiltered(softAd));
         assertTrue(filter.getFiltered(rawAd));
         assertTrue(filter.getFiltered(promotional));
+    }
+
+    @Test public void brandedContentIsIncludedInRemoveFeedAds() {
+        Video branded = video(null);
+        branded.commerceVideoAuthInfo = new Object() {
+            public long getBrandedContentType() { return 1L; }
+        };
+
+        assertTrue(filter.getFiltered(branded));
     }
 
     @Test public void missingAnchorGetterFailsOpenAndNamesTheContract() {

@@ -1,3 +1,15 @@
+## [1.1.17](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.16...v1.1.17) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** generate dynamic order IDs and fire proper completion callbacks ([cd2f24b](https://github.com/SatanMerde/D-moniakPatches/commit/cd2f24b05cb3d157a971248f8816927b838e5d80))
+
+## [1.1.16](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.15...v1.1.16) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** fire correct completion callback to allow repeated purchases ([8808175](https://github.com/SatanMerde/D-moniakPatches/commit/88081756d6c4a2a12edc4e88e4f06bbc252362bc))
+
 ## [1.1.15](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.14...v1.1.15) (2026-09-19)
 
 ### 🐛 Bug Fixes

@@ -26,6 +26,7 @@ import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import app.morphe.extension.tiktok.settings.L10n;
+import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
 
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
@@ -41,38 +42,39 @@ import java.util.WeakHashMap;
  * content, which keeps recycled views correct: a hidden row that gets reused for
  * something else is shown again on the next pass.
  *
- * Resource ids are from TikTok 46.2.3, read off the live view hierarchy:
+ * Resource ids are read from live 46.2.3 and 47.0.3 view hierarchies. The newest
+ * reviewed name is tried first because an obsolete obfuscated name can remain in the
+ * resource table while identifying an unrelated view:
  * <pre>
- *   o1l        bottom navigation, the Inbox tab
- *   kmx        the Inbox RecyclerView
- *   tyh        a system notice row, with its title in bo5
- *   v15        the container shared by conversations and the message requests row
- *   vid        the title wrapper that only a real conversation has
+ *   o1l        bottom navigation, the Inbox tab (omr on 47.0.3)
+ *   kmx/l7b    the Inbox RecyclerView
+ *   tyh/uy5    a system notice row, with its title in bo5/brb
+ *   v15/olv    the container shared by conversations and the message requests row
+ *   vid/zci    the title wrapper that only a real conversation has
  *   user_name  the title of a conversation or of the message requests row
- *   vpj        a title inside the horizontal stories tray
+ *   vpj/wqq    a title inside the horizontal stories tray
  *   pgu        the suggested accounts section header, holding t4g
  *   t4g        the suggested accounts section title
  *   fnc        remove an account from suggested accounts
- *   f8t        header, add people
- *   k_f        header, search
- *   kmz        header, activity status
+ *   f8t/fg5    header, add people
+ *   k_f/kp1    header, search
+ *   kmz/l7d    header, activity status
  * </pre>
  */
 public final class InboxFilter {
-    private static final String INBOX_TAB_ID = "o1l";
-    private static final String LIST_ID = "kmx";
-    private static final String SYSTEM_ROW_ID = "tyh";
-    private static final String MESSAGE_REQUESTS_ID = "v15";
-    private static final String CONVERSATION_ID = "vid";
-    private static final String SYSTEM_ROW_TITLE_ID = "bo5";
-    private static final String USER_ROW_TITLE_ID = "user_name";
-    private static final String STORIES_TITLE_ID = "vpj";
-    private static final String SUGGESTED_HEADER_ID = "pgu";
-    private static final String SUGGESTED_TITLE_ID = "t4g";
-    private static final String SUGGESTED_REMOVE_ID = "fnc";
-    private static final String HEADER_ADD_PEOPLE_ID = "f8t";
-    private static final String HEADER_SEARCH_ID = "k_f";
-    private static final String HEADER_ACTIVITY_STATUS_ID = "kmz";
+    private static final String[] LIST_IDS = {"l7b", "kmx"};
+    private static final String[] SYSTEM_ROW_IDS = {"uy5", "tyh"};
+    private static final String[] MESSAGE_REQUESTS_IDS = {"olv", "v15"};
+    private static final String[] CONVERSATION_IDS = {"zci", "vid"};
+    private static final String[] SYSTEM_ROW_TITLE_IDS = {"brb", "bo5"};
+    private static final String[] USER_ROW_TITLE_IDS = {"user_name"};
+    private static final String[] STORIES_TITLE_IDS = {"wqq", "vpj"};
+    private static final String[] SUGGESTED_HEADER_IDS = {"pgu"};
+    private static final String[] SUGGESTED_TITLE_IDS = {"t4g"};
+    private static final String[] SUGGESTED_REMOVE_IDS = {"fnc"};
+    private static final String[] HEADER_ADD_PEOPLE_IDS = {"fg5", "f8t"};
+    private static final String[] HEADER_SEARCH_IDS = {"kp1", "k_f"};
+    private static final String[] HEADER_ACTIVITY_STATUS_IDS = {"l7d", "kmz"};
 
     /** One dismissal at a time, so bulk clearing does not hammer TikTok's API. */
     private static final long DISMISS_INTERVAL_MS = 300L;
@@ -191,7 +193,7 @@ public final class InboxFilter {
             }
 
             // Cheap gate: do nothing unless the Inbox tab is the one on show.
-            View inboxTab = find(activity, INBOX_TAB_ID);
+            View inboxTab = FeedVisibility.inboxTabView(activity);
             if (inboxTab == null || !inboxTab.isSelected()) {
                 return;
             }
@@ -201,7 +203,7 @@ public final class InboxFilter {
                 applyHeader(activity);
             }
 
-            View list = find(activity, LIST_ID);
+            View list = findRequired(activity, "list", LIST_IDS);
             if (!(list instanceof ViewGroup)) {
                 return;
             }
@@ -225,9 +227,12 @@ public final class InboxFilter {
     }
 
     private static void applyHeader(Activity activity) {
-        setHidden(find(activity, HEADER_ADD_PEOPLE_ID), Settings.HIDE_INBOX_ADD_PEOPLE.get());
-        setHidden(find(activity, HEADER_SEARCH_ID), Settings.HIDE_INBOX_SEARCH.get());
-        setHidden(find(activity, HEADER_ACTIVITY_STATUS_ID), Settings.HIDE_INBOX_ACTIVITY_STATUS.get());
+        setHidden(findRequired(activity, "add people", HEADER_ADD_PEOPLE_IDS),
+                Settings.HIDE_INBOX_ADD_PEOPLE.get());
+        setHidden(findRequired(activity, "search", HEADER_SEARCH_IDS),
+                Settings.HIDE_INBOX_SEARCH.get());
+        setHidden(findRequired(activity, "activity status", HEADER_ACTIVITY_STATUS_IDS),
+                Settings.HIDE_INBOX_ACTIVITY_STATUS.get());
     }
 
     /**
@@ -236,7 +241,7 @@ public final class InboxFilter {
      * reuses it for another item.
      */
     private static void applyStoriesOnly(Activity activity, View row) {
-        boolean stories = findWithin(activity, row, STORIES_TITLE_ID) != null;
+        boolean stories = findWithin(activity, row, STORIES_TITLE_IDS) != null;
         boolean wasStories = STORY_ROWS.remove(row) != null;
         if (stories) {
             STORY_ROWS.put(row, Boolean.TRUE);
@@ -248,15 +253,15 @@ public final class InboxFilter {
 
     private static boolean shouldHideRow(Activity activity, View row) {
         // The stories tray is the row that holds the horizontal avatar titles.
-        if (findWithin(activity, row, STORIES_TITLE_ID) != null) {
+        if (findWithin(activity, row, STORIES_TITLE_IDS) != null) {
             return Settings.HIDE_INBOX_STORIES.get();
         }
 
         // Suggested accounts is a section header followed by one row per account. The
         // header carries the section title, and each account row carries the remove
         // button. Neither uses the row title ids, so both are matched on their own marker.
-        if (findWithin(activity, row, SUGGESTED_TITLE_ID) != null
-                || findWithin(activity, row, SUGGESTED_REMOVE_ID) != null) {
+        if (findWithin(activity, row, SUGGESTED_TITLE_IDS) != null
+                || findWithin(activity, row, SUGGESTED_REMOVE_IDS) != null) {
             return Settings.HIDE_INBOX_SUGGESTED_ACCOUNTS.get();
         }
 
@@ -265,24 +270,25 @@ public final class InboxFilter {
         // title in the vid layout, so that is the discriminator, and it has to be tested
         // first. A conversation title is a person's name, so it is only ever matched
         // against the user's own list, never the system labels.
-        if (findWithin(activity, row, CONVERSATION_ID) != null) {
+        if (findWithin(activity, row, CONVERSATION_IDS) != null) {
             return Settings.HIDE_INBOX_CONVERSATIONS.get()
-                    || matchesCustomList(textOf(findWithin(activity, row, USER_ROW_TITLE_ID)));
+                    || matchesCustomList(textOf(findWithin(activity, row, USER_ROW_TITLE_IDS)));
         }
 
-        if (hasId(activity, row, MESSAGE_REQUESTS_ID)) {
+        if (hasId(activity, row, MESSAGE_REQUESTS_IDS)) {
             return Settings.HIDE_INBOX_MESSAGE_REQUESTS.get()
-                    || matchesCustomList(textOf(findWithin(activity, row, USER_ROW_TITLE_ID)));
+                    || matchesCustomList(textOf(findWithin(activity, row, USER_ROW_TITLE_IDS)));
         }
 
         BooleanSetting category = SYSTEM_ROWS.get(row);
         if (category != null) {
-            return category.get() || matchesCustomList(textOf(findWithin(activity, row, SYSTEM_ROW_TITLE_ID)));
+            return category.get()
+                    || matchesCustomList(textOf(findWithin(activity, row, SYSTEM_ROW_TITLE_IDS)));
         }
 
         // Unknown system rows still support the user's exact custom title list.
-        if (hasId(activity, row, SYSTEM_ROW_ID)) {
-            String title = textOf(findWithin(activity, row, SYSTEM_ROW_TITLE_ID));
+        if (hasId(activity, row, SYSTEM_ROW_IDS)) {
+            String title = textOf(findWithin(activity, row, SYSTEM_ROW_TITLE_IDS));
             return matchesCustomList(title);
         }
 
@@ -361,7 +367,7 @@ public final class InboxFilter {
             return;
         }
 
-        View header = find(activity, SUGGESTED_HEADER_ID);
+        View header = findOptional(activity, SUGGESTED_HEADER_IDS);
         if (!(header instanceof ViewGroup)) {
             return;
         }
@@ -497,8 +503,8 @@ public final class InboxFilter {
                 return;
             }
 
-            View list = find(activity, LIST_ID);
-            int removeId = identifier(activity, SUGGESTED_REMOVE_ID);
+            View list = findRequired(activity, "list", LIST_IDS);
+            int removeId = identifier(activity, SUGGESTED_REMOVE_IDS[0]);
             View button = (list == null || removeId == 0) ? null : findUndismissed(list, removeId);
 
             if (button == null) {
@@ -639,30 +645,69 @@ public final class InboxFilter {
         return null;
     }
 
-    private static boolean hasId(Activity activity, View view, String name) {
-        int id = identifier(activity, name);
-        return id != 0 && view.getId() == id;
+    private static boolean hasId(Activity activity, View view, String[] names) {
+        for (String name : names) {
+            int id = identifier(activity, name);
+            if (id != 0 && view.getId() == id) {
+                HookStatus.bound("inbox", name);
+                return true;
+            }
+        }
+        return false;
     }
 
-    private static View find(Activity activity, String name) {
-        int id = identifier(activity, name);
-        return id == 0 ? null : activity.findViewById(id);
+    private static View findRequired(Activity activity, String description, String[] names) {
+        String diagnosticName = description + " (" + join(names) + ")";
+        View view = findOptional(activity, names);
+        if (view == null) {
+            HookStatus.missingViewId("inbox", diagnosticName);
+        } else {
+            HookStatus.recoveredViewId("inbox", diagnosticName);
+        }
+        return view;
     }
 
-    private static View findWithin(Activity activity, View parent, String name) {
-        int id = identifier(activity, name);
-        return id == 0 ? null : parent.findViewById(id);
+    private static View findOptional(Activity activity, String[] names) {
+        for (String name : names) {
+            int id = identifier(activity, name);
+            if (id == 0) continue;
+            View view = activity.findViewById(id);
+            if (view != null) {
+                HookStatus.bound("inbox", name);
+                return view;
+            }
+        }
+        return null;
+    }
+
+    private static View findWithin(Activity activity, View parent, String[] names) {
+        for (String name : names) {
+            int id = identifier(activity, name);
+            if (id == 0) continue;
+            View view = parent.findViewById(id);
+            if (view != null) {
+                HookStatus.bound("inbox", name);
+                return view;
+            }
+        }
+        return null;
     }
 
     /** Resolves a resource id by name once and remembers it, including a miss. */
     private static int identifier(Activity activity, String name) {
-        int id = RESOURCE_IDS.resolve(
+        return RESOURCE_IDS.resolve(
                 activity == null ? null : activity.getResources(),
                 activity == null ? "" : activity.getPackageName(),
                 name,
                 false);
-        if (id == 0) HookStatus.missingViewId("inbox", name);
-        else HookStatus.bound("inbox", name);
-        return id;
+    }
+
+    private static String join(String[] names) {
+        StringBuilder joined = new StringBuilder();
+        for (String name : names) {
+            if (joined.length() != 0) joined.append('/');
+            joined.append(name);
+        }
+        return joined.toString();
     }
 }

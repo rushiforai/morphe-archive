@@ -208,6 +208,9 @@ ICONS = {
     "com.sry.rateglance": "rateglance.png",
     "com.risesci.nyx": "risesleep.png",
     "ipnossoft.rma.free": "bettersleep.png",
+    "com.handmark.expressweather": "oneweather.png",
+    "com.free.vpn.super.hotspot.open": "vpnsuper.png",
+    "de.klassikradio.app": "klassikradio.png",
 }
 
 

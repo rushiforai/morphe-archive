@@ -359,12 +359,8 @@ public final class FeatureGateDetailFragment extends Fragment {
             values.setTag("feature_gate_value");
             values.setEnabled(editable);
             applyOptionsAdapter();
-            // Transparent, so the reader could not see it was a control at all, let alone
-            // that focus had reached it.
-            values.setBackground(SettingsUi.focusableSurface(
-                    context, SettingsUi.RADIUS_CONTROL, false));
+            SettingsUi.styleSpinner(values);
             values.setContentDescription(L10n.t(context, "Value to return"));
-            values.setMinimumHeight(FeatureGateLabUi.dp(context, 48));
             LinearLayout.LayoutParams valueParams = FeatureGateLabUi.matchWrap();
             valueParams.setMargins(0, FeatureGateLabUi.dp(context, 4), 0, FeatureGateLabUi.dp(context, 4));
             valueRow.addView(values, valueParams);
@@ -796,7 +792,8 @@ public final class FeatureGateDetailFragment extends Fragment {
                 FeatureGateLabStore.ValidationFailure error =
                         FeatureGateLabStore.validateValue(entry.type, value);
                 if (error != null) {
-                    input.setError(FeatureGateLabText.validation(getContext(), error));
+                    SettingsUi.reportFieldError(
+                            input, FeatureGateLabText.validation(getContext(), error));
                     return;
                 }
                 addOrSelectCustomValue(value);
@@ -1100,8 +1097,7 @@ public final class FeatureGateDetailFragment extends Fragment {
                     getContext(), failure.fieldName, failure.validation);
             for (ObjectFieldEditor editor : objectEditors) {
                 if (editor.name.equals(failure.fieldName) && editor.input != null) {
-                    editor.input.setError(message);
-                    editor.input.requestFocus();
+                    SettingsUi.reportFieldError(editor.input, message);
                     return null;
                 }
             }

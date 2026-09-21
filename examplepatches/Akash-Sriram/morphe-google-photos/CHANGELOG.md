@@ -1,3 +1,9 @@
+## [1.5.1](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.5.0...v1.5.1) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* remove hardware and id spoofing to prevent Play Protect certification errors ([1fea300](https://github.com/Akash-Sriram/morphe-google-photos/commit/1fea300a0c3bc46c36d87297432e51949be52850))
+
 ## [1.5.0](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.4.1...v1.5.0) (2026-09-19)
 
 ### 🐛 Bug Fixes

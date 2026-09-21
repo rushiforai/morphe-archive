@@ -62,17 +62,17 @@ public final class ShareActionChecklistPreference extends DialogPreference {
             case PROFILE:
                 setKey("share_action_checklist_profile");
                 setTitle("Profile share actions");
-                setSummary("Until you save a choice here, this sheet hides the same actions as the share action checklist.");
+                setSummary("Until you choose here, this sheet follows your choices under Hide share actions.");
                 break;
             case LIVE:
                 setKey("share_action_checklist_live");
                 setTitle("LIVE share actions");
-                setSummary("Until you save a choice here, this sheet hides the same actions as the share action checklist.");
+                setSummary("Until you choose here, this sheet follows your choices under Hide share actions.");
                 break;
             default:
                 setKey("share_action_checklist");
-                setTitle("Share action checklist");
-                setSummary("Choose observed share actions to hide. The stable identifier is shown below each label; unknown saved identifiers stay in the manual list.");
+                setTitle("Hide share actions");
+                setSummary("Pick the actions to remove from the share sheet. Names you typed by hand that TikTok hasn't shown yet stay in the list above.");
                 break;
         }
     }

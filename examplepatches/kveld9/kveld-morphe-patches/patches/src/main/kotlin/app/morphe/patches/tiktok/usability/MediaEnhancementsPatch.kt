@@ -13,7 +13,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 
 val mediaEnhancementsPatch = bytecodePatch(
     name = "Media Usability & Watermark-Free Downloader",
-    description = "Unblocks the download button on creator-restricted videos and Stories inside the Share panel, and routes downloads to clean unwatermarked media streams.",
+    description = "Unblocks the download button on creator-restricted videos inside the Share panel, and routes downloads to clean unwatermarked media streams.",
     default = true,
 ) {
     compatibleWith(Constants.COMPATIBILITY_TIKTOK, Constants.COMPATIBILITY_TIKTOK_ASIA)
@@ -241,7 +241,7 @@ val mediaEnhancementsPatch = bytecodePatch(
         // 7. Strip client-side drawn watermark on saved image posts & comment pictures
         try {
             val fp = Fingerprint(
-                strings = listOf("[tiktok_logo]", "image/jpeg", "is_pending"),
+                strings = listOf("[tiktok_logo]"),
                 parameters = listOf("Landroid/graphics/Bitmap;"),
                 returnType = "V",
             )
@@ -314,109 +314,6 @@ val mediaEnhancementsPatch = bytecodePatch(
             patched++
         } catch (e: Exception) {
             println("[Media Usability] DownloaderSpec redirect note: ${e.message}")
-        }
-
-        // 10. Unblock Story downloading in share panel by forcing AwemeExtKt.isSharedStoryVisible() -> true
-        try {
-            Fingerprint(
-                definingClass = "Lcom/ss/android/ugc/aweme/feed/model/AwemeExtKt;",
-                name = "isSharedStoryVisible",
-                parameters = listOf("Lcom/ss/android/ugc/aweme/feed/model/Aweme;"),
-                returnType = "Z",
-            ).method.addInstructions(
-                0,
-                """
-                    const/4 v0, 0x1
-                    return v0
-                """.trimIndent(),
-            )
-            println("[Media Usability] Forced AwemeExtKt.isSharedStoryVisible() -> true (unblocks Story download action in Share panel).")
-            patched++
-        } catch (e: Exception) {
-            println("[Media Usability] AwemeExtKt.isSharedStoryVisible note: ${e.message}")
-        }
-
-        // 11. Unblock Story & restricted download actions in Share panel
-        try {
-            val shareBuilderFp = Fingerprint(
-                strings = listOf("panel_download_bar", "click_download_icon", "homepage_podcast"),
-                custom = { method, _ ->
-                    (method.implementation?.instructions?.count() ?: 0) < 300
-                },
-            )
-            val method = shareBuilderFp.method
-            val instructions = method.implementation?.instructions?.toList() ?: emptyList()
-
-            var actionClassName: String? = null
-            var newInstanceIndex = -1
-            for ((idx, ins) in instructions.withIndex()) {
-                if (ins.opcode == Opcode.NEW_INSTANCE) {
-                    newInstanceIndex = idx
-                    actionClassName = (ins as? ReferenceInstruction)?.reference?.toString()
-                    break
-                }
-            }
-
-            if (newInstanceIndex > 0) {
-                // Neutralize all early return-void guards (story type 45/46/180/181, comment video, etc.)
-                val returnIndices = instructions.withIndex()
-                    .filter { it.index < newInstanceIndex && it.value.opcode == Opcode.RETURN_VOID }
-                    .map { it.index }
-                    .toList()
-
-                returnIndices.asReversed().forEach { idx ->
-                    method.replaceInstruction(idx, "nop")
-                }
-                println("[Media Usability] Neutralized ${returnIndices.size} share panel early-return guard(s) for Stories.")
-                patched++
-            }
-
-            // Force download action.enable() -> true
-            if (actionClassName != null) {
-                try {
-                    Fingerprint(
-                        definingClass = actionClassName,
-                        name = "enable",
-                        returnType = "Z",
-                    ).method.addInstructions(
-                        0,
-                        """
-                            const/4 v0, 0x1
-                            return v0
-                        """.trimIndent(),
-                    )
-                    println("[Media Usability] Forced $actionClassName.enable() -> true.")
-                    patched++
-                } catch (e: Exception) {
-                    println("[Media Usability] Action enable note: ${e.message}")
-                }
-            }
-        } catch (e: Exception) {
-            println("[Media Usability] ShareBuilder story unblock note: ${e.message}")
-        }
-
-        // 12. Unblock Now story save action enable() flag
-        try {
-            val nowSaveFp = Fingerprint(
-                strings = listOf("now_save"),
-            )
-            val nowSaveClass = nowSaveFp.classDef
-            val enableMethod = nowSaveClass.methods.firstOrNull {
-                it.name == "enable" && it.returnType == "Z"
-            }
-            if (enableMethod != null) {
-                enableMethod.addInstructions(
-                    0,
-                    """
-                        const/4 v0, 0x1
-                        return v0
-                    """.trimIndent(),
-                )
-                println("[Media Usability] Forced ${nowSaveClass.type}->enable() -> true.")
-                patched++
-            }
-        } catch (e: Exception) {
-            println("[Media Usability] NowSaveAction note: ${e.message}")
         }
 
         println("[Media Usability & Watermark-Free Downloader] Applied $patched media usability and watermark-free download hook(s).")

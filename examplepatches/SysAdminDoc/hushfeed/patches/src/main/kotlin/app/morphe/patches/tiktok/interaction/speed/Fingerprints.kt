@@ -5,6 +5,11 @@
 package app.morphe.patches.tiktok.interaction.speed
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.util.getReference
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+
 internal object PlaybackSpeedSelectionBoundaryFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf(
@@ -20,11 +25,22 @@ internal object PlaybackSpeedSelectionBoundaryFingerprint : Fingerprint(
     ),
 )
 
+internal fun Method.playerManagerSpeedBoundary(): MethodReference? {
+    val candidates = implementation?.instructions?.mapNotNull { instruction ->
+        if (instruction.opcode != Opcode.INVOKE_INTERFACE) return@mapNotNull null
+        instruction.getReference<MethodReference>()?.takeIf { reference ->
+            reference.parameterTypes == listOf("F") && reference.returnType == "V"
+        }
+    }?.distinctBy(MethodReference::toString).orEmpty()
+    return candidates.singleOrNull()
+}
+
 internal object PlayerControllerSetSpeedFingerprint : Fingerprint(
     definingClass = "/feed/controller/PlayerController;",
-    name = "setSpeed",
     returnType = "V",
     parameters = listOf("F"),
+    strings = listOf("speed_begin", "begin_speed"),
+    custom = { method, _ -> method.playerManagerSpeedBoundary() != null },
 )
 
 internal object PlaybackSpeedMenuFingerprint : Fingerprint(

@@ -16,6 +16,7 @@ import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
 import app.morphe.extension.tiktok.settings.preference.ClearSeenVideoHistoryPreference;
 import app.morphe.extension.tiktok.settings.preference.NumberInputPreference;
 import app.morphe.extension.tiktok.settings.preference.CreatorListPreference;
+import app.morphe.extension.tiktok.settings.preference.CalmFeedPresetPreference;
 import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 import app.morphe.extension.tiktok.feedfilter.AdvancedFeedRules;
@@ -51,6 +52,8 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         // Each patch's rows go behind its own flag. The page is reachable when any of them
         // is in the bundle, and a page reachable because of one of them must not offer the
         // others' settings, which would sit there doing nothing.
+        if (SettingsStatus.feedFilterEnabled) addQuickSetup(context);
+        if (SettingsStatus.feedFilterEnabled) addAds(context);
         if (SettingsStatus.feedFilterEnabled) addKindsOfPost(context);
         if (SettingsStatus.feedFilterEnabled) addLimits(context);
         addCreatorsAndSounds(context);
@@ -59,15 +62,13 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         if (SettingsStatus.feedFilterEnabled) addAdvanced(context);
     }
 
+    private void addQuickSetup(Context context) {
+        addPreference(new SectionHeadingPreference(context, "Quick setup"));
+        addPreference(new CalmFeedPresetPreference(context));
+    }
+
     private void addKindsOfPost(Context context) {
         addPreference(new SectionHeadingPreference(context, "Kinds of post"));
-        // Ads first: it is the switch most people open this page for.
-        addPreference(new TogglePreference(
-                context,
-                "Remove feed ads",
-                "Remove feed ads, including videos with a creator commission disclosure.",
-                Settings.REMOVE_ADS
-        ));
         addPreference(new TogglePreference(
                 context,
                 "Hide TikTok Shop", "Hide TikTok Shop posts from the feed.",
@@ -75,31 +76,24 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         ));
         addPreference(new TogglePreference(
                 context,
-                "Hide LIVE videos", "Hide the LIVE videos from the feed.",
+                "Hide LIVE videos", "Hide LIVE videos from the feed.",
                 Settings.HIDE_LIVE
         ));
         addPreference(new TogglePreference(context, "Hide LIVE replays", "Skip recorded LIVE broadcasts in the feed.", Settings.HIDE_LIVE_REPLAYS));
         addPreference(new TogglePreference(
                 context,
-                "Hide story", "Hide the stories from the feed.",
+                "Hide stories", "Hide stories from the feed.",
                 Settings.HIDE_STORY
         ));
         addPreference(new TogglePreference(
                 context,
-                "Hide photo posts", "Hide the photo posts from the feed.",
+                "Hide photo posts", "Hide photo posts from the feed.",
                 Settings.HIDE_IMAGE
         ));
-        addPreference(new TogglePreference(context, "Hide promotional music", "Skip videos marked as using promotional music.", Settings.HIDE_PROMOTIONAL_MUSIC));
         addPreference(new TogglePreference(
                 context,
-                "Hide paid partnerships",
-                "Hide videos marked as paid partnership or branded content.",
-                Settings.HIDE_PAID_PARTNERSHIP
-        ));
-        addPreference(new TogglePreference(
-                context,
-                "Hide AI generated videos",
-                "Hide videos carrying TikTok's AI generated label.",
+                "Hide AI-generated videos",
+                "Hide videos carrying TikTok's AI-generated label.",
                 Settings.HIDE_AI_GENERATED
         ));
         addPreference(new TogglePreference(
@@ -120,6 +114,27 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
                 "Hide videos posted as part of a playlist.",
                 Settings.HIDE_PLAYLIST_VIDEOS
         ));
+    }
+
+    private void addAds(Context context) {
+        addPreference(new SectionHeadingPreference(context, "Ads"));
+        addPreference(new TogglePreference(
+                context,
+                "Remove feed ads",
+                "Remove feed ads, creator commission posts, paid partnerships, and branded content.",
+                Settings.REMOVE_ADS
+        ));
+        addPreference(new TogglePreference(
+                context,
+                "Hide paid partnerships",
+                "Hide videos marked as paid partnership or branded content.",
+                Settings.HIDE_PAID_PARTNERSHIP
+        ));
+        addPreference(new TogglePreference(context, "Hide promotional music",
+                "Skip videos marked as using promotional music.", Settings.HIDE_PROMOTIONAL_MUSIC));
+        addPreference(new TogglePreference(context, "Filter location-tagged videos",
+                "Skip feed videos with place badges, even when they aren't paid ads. To keep the video and hide only its badge, use Hide location labels in Feed screen.",
+                Settings.FILTER_LOCATION_VIDEOS));
     }
 
     private void addLimits(Context context) {
@@ -165,8 +180,8 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         if (SettingsStatus.feedFilterEnabled) {
             addPreference(new InputTextPreference(context, "Blocked creators", "Comma separated account handles or user ids. These accounts are always skipped. An entry between slashes, like /^news_/, is a pattern matched against the handle and the display name.", Settings.BLOCKED_CREATORS)
                     .withCheck(AdvancedFeedRules::creatorEntryProblem));
-            addPreference(new CreatorListPreference(context, "Locally hidden creators",
-                    "Creators hidden from later feed batches by the player action. Search the list and remove one entry at a time.",
+            addPreference(new CreatorListPreference(context, "Creators hidden on this phone",
+                    "Creators you hid from a video. Search the list and remove one at a time.",
                     Settings.LOCAL_HIDDEN_CREATORS));
         }
         // The player's own buttons. They were the middle of the App page's Player card,
@@ -174,20 +189,21 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         if (SettingsStatus.blockAuthorEnabled) {
             addPreference(new TogglePreference(
                     context,
-                    "Show block button on videos",
-                    "Add a block button to the video player that blocks the creator of the "
-                            + "current video in one tap. An undo action is shown after each block.",
+                    "Show the block button on videos",
+                    "Block the creator in one tap. Once TikTok confirms, skip to the next video. "
+                            + "A small Unblock button appears at the top left for two seconds. "
+                            + "You can also unblock later in TikTok's Privacy > Blocked accounts.",
                     Settings.BLOCK_AUTHOR_BUTTON
             ));
             addPreference(new TogglePreference(
                     context,
-                    "Show local hide button",
-                    "Add a separate button that skips this account locally without blocking it.",
+                    "Show the hide button on videos",
+                    "Add a button that hides the current creator on this phone without blocking them.",
                     Settings.LOCAL_HIDE_BUTTON
             ));
             addPreference(new TogglePreference(
                     context,
-                    "Show block sound button",
+                    "Show the block sound button",
                     "Add a separate button that skips videos using the current sound.",
                     Settings.BLOCK_SOUND_BUTTON
             ));

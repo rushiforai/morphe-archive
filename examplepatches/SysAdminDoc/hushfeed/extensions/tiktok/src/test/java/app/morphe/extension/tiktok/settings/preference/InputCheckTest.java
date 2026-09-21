@@ -9,6 +9,7 @@ package app.morphe.extension.tiktok.settings.preference;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.os.Bundle;
@@ -84,7 +85,9 @@ public class InputCheckTest {
             Shadows.shadowOf(Looper.getMainLooper()).idle();
 
             assertTrue("the dialog closed on a value it refused", dialog.isShowing());
-            assertNotNull("nothing was said under the field",
+            assertFalse("nothing was said under the field",
+                    inlineError(field.getEditText()).getText().toString().isEmpty());
+            assertNull("the host error bubble was used as well",
                     field.getEditText().getError());
             assertEquals("what was typed was thrown away",
                     "/^news_/, /([bad/", field.getEditText().getText().toString());
@@ -135,7 +138,7 @@ public class InputCheckTest {
             Shadows.shadowOf(Looper.getMainLooper()).idle();
 
             assertTrue("the dialog closed on a value it refused", dialog.isShowing());
-            String problem = String.valueOf(editor.getError());
+            String problem = inlineError(editor).getText().toString();
             assertTrue("focus stayed on Save, so the reason under the field is never read",
                     editor.isFocused());
             assertEquals("the reason was not announced: " + heard, 1, heard.size());
@@ -155,7 +158,7 @@ public class InputCheckTest {
 
             assertTrue("the caption dialog closed on 10,001 entries", dialog.isShowing());
             assertEquals("That list has too many entries. Keep it to 10,000 or fewer.",
-                    field.getEditText().getError().toString());
+                    inlineError(field.getEditText()).getText().toString());
             assertEquals("", Settings.BLOCKED_CAPTION_WORDS.get());
         });
 
@@ -172,7 +175,7 @@ public class InputCheckTest {
 
             assertTrue("the creator dialog closed on more than 256 KB", dialog.isShowing());
             assertEquals("That list is too large. Keep it to 256 KB or less.",
-                    field.getEditText().getError().toString());
+                    inlineError(field.getEditText()).getText().toString());
             assertEquals("", Settings.BLOCKED_CREATORS.get());
         });
     }
@@ -201,7 +204,8 @@ public class InputCheckTest {
             Shadows.shadowOf(Looper.getMainLooper()).idle();
 
             assertTrue("the dialog closed on a range it refused", dialog.isShowing());
-            assertNotNull("nothing was said under the first box", boxes[0].getError());
+            assertFalse("nothing was said under the first box",
+                    inlineError(boxes[0]).getText().toString().isEmpty());
             assertEquals("the smallest was thrown away", "900", boxes[0].getText().toString());
             assertEquals("the largest was thrown away", "100", boxes[1].getText().toString());
 
@@ -236,7 +240,8 @@ public class InputCheckTest {
             Shadows.shadowOf(Looper.getMainLooper()).idle();
 
             assertTrue("the dialog closed on a folder it refused", dialog.isShowing());
-            assertNotNull("nothing was said under the field", box.getError());
+            assertFalse("nothing was said under the field",
+                    inlineError(box).getText().toString().isEmpty());
             assertEquals("what was typed was thrown away",
                     "/data/local/tmp/anywhere", box.getText().toString());
             assertEquals("a refused folder was saved anyway", before,
@@ -255,6 +260,16 @@ public class InputCheckTest {
         collectEditTexts(dialog.getWindow().getDecorView(), found);
         assertEquals("the folder dialog does not have one box", 1, found.size());
         return found.get(0);
+    }
+
+    private static android.widget.TextView inlineError(android.widget.EditText field) {
+        assertTrue("the field is not in a form", field.getParent() instanceof android.view.ViewGroup);
+        android.view.ViewGroup parent = (android.view.ViewGroup) field.getParent();
+        int index = parent.indexOfChild(field);
+        assertTrue("the field has no inline error after it", index >= 0
+                && index + 1 < parent.getChildCount()
+                && parent.getChildAt(index + 1) instanceof android.widget.TextView);
+        return (android.widget.TextView) parent.getChildAt(index + 1);
     }
 
     private interface WithRange {

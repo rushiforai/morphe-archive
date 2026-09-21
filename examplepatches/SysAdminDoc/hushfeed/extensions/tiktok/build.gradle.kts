@@ -62,6 +62,7 @@ val trackedScreenshots = mapOf(
     "settings/two-times-text-light.png" to "pages/light/two-times-text.png",
     "settings/two-times-text.png" to "pages/dark/two-times-text.png",
     "subtitle-download-settings.png" to "subtitle-download-settings.png",
+    "block-unblock-chip.png" to "block-unblock-chip.png",
 )
 
 /** Read at configuration time so the test task can ask for the capture it is about to copy. */

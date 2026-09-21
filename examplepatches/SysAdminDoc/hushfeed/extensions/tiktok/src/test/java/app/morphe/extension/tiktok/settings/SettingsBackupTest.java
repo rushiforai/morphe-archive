@@ -266,6 +266,12 @@ public class SettingsBackupTest {
                 reasonFor(new JSONObject(baseline).put("schema", "1").toString()));
         assertEquals(SettingsBackup.Reason.SCHEMA,
                 reasonFor(new JSONObject(baseline).put("schema", 0).toString()));
+        assertEquals("a fractional schema was silently truncated",
+                SettingsBackup.Reason.SCHEMA,
+                reasonFor(new JSONObject(baseline).put("schema", 1.5).toString()));
+        assertEquals("an overflowing schema wrapped into a supported number",
+                SettingsBackup.Reason.SCHEMA,
+                reasonFor(new JSONObject(baseline).put("schema", 4_294_967_297L).toString()));
         // A file from before the key existed is the first schema, not a damaged one.
         JSONObject noSchema = new JSONObject(baseline);
         noSchema.remove("schema");

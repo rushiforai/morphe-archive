@@ -64,6 +64,11 @@ public final class SettingsMenuPreference extends Preference {
         setOnPreferenceClickListener(listener);
     }
 
+    /** The same icon language for compact routes on the master page. */
+    public static Drawable iconDrawable(Context context, Icon icon) {
+        return new MenuIconDrawable(context, icon);
+    }
+
     /**
      * How many settings on the page behind this row are away from their default.
      *

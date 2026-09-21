@@ -154,6 +154,21 @@ public class CommentBatchTranslatorTest {
         }
     }
 
+    @Test public void anEmptyLoadedPageDoesNotReportTheItemsAnchorMissing() {
+        HookStatus.clear();
+        try {
+            CommentBatchTranslator.onCommentListLoaded(new EmptyCommentItemList());
+
+            assertTrue("a null items value is a valid empty page: "
+                            + HookStatus.missing("comment translation"),
+                    HookStatus.missing("comment translation").isEmpty());
+            assertTrue(HookStatus.report().toString(), HookStatus.report().stream()
+                    .anyMatch(line -> line.equals("comment translation: 1 found, 0 missing")));
+        } finally {
+            HookStatus.clear();
+        }
+    }
+
     private static void registerCommentCellAndWait(Anchor anchor) {
         CommentBatchTranslator.onCommentListLoaded(new CommentItemList(anchor.comment));
         CommentBatchTranslator.registerCommentCell(new View(RuntimeEnvironment.getApplication()), anchor);
@@ -845,6 +860,11 @@ public class CommentBatchTranslatorTest {
     /** A loaded comment list from a build that renamed the field holding its rows. */
     public static final class ListWithoutItems {
         public final List<Comment> rows = new ArrayList<>();
+    }
+
+    /** The shape TikTok 47.0.3 returns for a post whose comments page has no rows. */
+    public static final class EmptyCommentItemList {
+        public final List<Comment> items = null;
     }
 
     public static final class CommentItemList {

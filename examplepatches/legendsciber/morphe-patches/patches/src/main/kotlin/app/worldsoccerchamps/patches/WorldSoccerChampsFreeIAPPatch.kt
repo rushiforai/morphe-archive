@@ -1,5 +1,6 @@
 package app.worldsoccerchamps.patches
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.bytecodePatch
 import app.worldsoccerchamps.patches.shared.Constants.COMPATIBILITY_WSC
@@ -51,6 +52,40 @@ val worldSoccerChampsFreeIAPPatch = bytecodePatch(
             :skip
             return-void
             nop
+        """.trimIndent())
+    }
+}
+
+@Suppress("unused")
+val worldSoccerChampsAntiTamperPatch = bytecodePatch(
+    name = "World Soccer Champs Anti-Tamper Bypass",
+    description = "Disables all Pairip anti-tamper checks: native VMRunner, signature verification, anti-hijack, and Play Store redirect.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_WSC)
+
+    execute {
+        StartupLauncherFingerprint.method.addInstructions(0, """
+            return-void
+        """.trimIndent())
+
+        SignatureCheckFingerprint.method.addInstructions(0, """
+            return-void
+        """.trimIndent())
+
+        AntiHijackFingerprint.method.addInstructions(0, """
+            const/4 v0, 0x1
+            return v0
+        """.trimIndent())
+
+        PlayStoreCheckFingerprint.method.addInstructions(0, """
+            const/4 v0, 0x1
+            return v0
+        """.trimIndent())
+
+        ApplicationAttachFingerprint.method.addInstructions(0, """
+            invoke-super {p0, p1}, Landroid/app/Application;->attachBaseContext(Landroid/content/Context;)V
+            return-void
         """.trimIndent())
     }
 }

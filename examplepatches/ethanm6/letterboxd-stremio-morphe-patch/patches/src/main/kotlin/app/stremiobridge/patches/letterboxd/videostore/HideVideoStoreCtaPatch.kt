@@ -5,7 +5,9 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.stremiobridge.patches.shared.Constants.COMPATIBILITY_LETTERBOXD
 
 /**
- * Hides the "Rent from Letterboxd Video Store" banner on film pages.
+ * Hides the "Rent from Letterboxd Video Store" banner on film pages, the
+ * video store carousel row on the home feed, and the "Letterboxd Video
+ * Store" row in the search page's "Browse by" list.
  *
  * This is a SEPARATE patch from the Stremio button patch and can be enabled or
  * disabled independently in Morphe Manager. Enabling one does not require or
@@ -53,13 +55,31 @@ import app.stremiobridge.patches.shared.Constants.COMPATIBILITY_LETTERBOXD
  * That getter is a tiny, single-purpose accessor in its own class/dex, with no
  * overlap with any method touched by the Stremio patch or the film-page banner
  * patch above — no index-conflict risk.
+ *
+ * -- "Browse by" row on the search page --
+ * The search page's "Browse by" list ("Release date", "Genre, country or
+ * language", "Service", "Letterboxd Video Store", "Most popular", ...) is
+ * built from a fixed Row enum. BrowseRecyclerViewAdapter's constructor
+ * already builds its row list with Row.VideoStore filtered out; a separate
+ * method, addVideoStoreRow(), is the only thing that inserts it back in
+ * (right after the "Service" row, or at the end as a fallback). That method
+ * is void and takes no parameters other than the implicit receiver, so
+ * turning it into a no-op is the whole patch — nothing is ever inserted, and
+ * the row never appears:
+ *
+ *   Class  : Lcom/letterboxd/letterboxd/ui/item/BrowseRecyclerViewAdapter;
+ *   Method : addVideoStoreRow()V
+ *
+ * A separate, self-contained method from the other two, so no index-conflict
+ * risk with anything above.
  */
 @Suppress("unused")
 val hideVideoStoreCtaPatch = bytecodePatch(
     name = "Hide Video Store",
     description = "Hides the \"Rent from Letterboxd Video Store\" banner on film " +
-        "pages and the video store carousel row on the home feed. Can be " +
-        "toggled independently of the Stremio button patch.",
+        "pages, the video store carousel row on the home feed, and the " +
+        "\"Letterboxd Video Store\" row in the search page's \"Browse by\" " +
+        "list. Can be toggled independently of the Stremio button patch.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_LETTERBOXD)
@@ -80,6 +100,13 @@ val hideVideoStoreCtaPatch = bytecodePatch(
             const/4 v0, 0x0
             return-object v0
             """.trimIndent(),
+        )
+
+        // No-op the method that inserts the "Letterboxd Video Store" row into
+        // the search page's "Browse by" list, so it's never added.
+        AddVideoStoreRowFingerprint.method.addInstructions(
+            0,
+            "return-void",
         )
     }
 }

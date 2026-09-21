@@ -2,6 +2,129 @@
 
 Every Hushfeed release, newest first.
 
+## 0.57.0 (2026-09-20)
+
+Block a creator and move on.
+
+* **TikTok:** The one-tap block button now skips to the next video as soon as TikTok confirms the block. A small Unblock button appears at the top left for two seconds instead of the large bottom banner. It always reverses the original block, even after the video changes.
+* **TikTok:** If you've already scrolled or left the feed while a block is being confirmed, Hushfeed won't move you again. Failed requests don't skip a video. Other Undo notices keep their existing recovery time.
+
+## 0.56.0 (2026-09-20)
+
+Give video controls the space used by suggested searches.
+
+* **TikTok:** Feed screen adds Hide the search bar below videos. It removes the suggested-search strip above the bottom tabs so video details and side controls can use that space. The top search button and suggestions above comments stay unchanged. It's off by default and needs a restart.
+* **TikTok:** Includes the independent location badge hiding and location-tagged video filtering from 0.55.0, plus Full screen button hiding and Easier comment likes.
+
+## 0.55.0 (2026-09-20)
+
+Choose which video overlays you want to see.
+
+* **TikTok:** Feed screen adds Hide the Full screen button and Hide location labels. Each has its own switch inside Hide video overlays. Hiding a location card doesn't filter the video or change location permissions. Full screen hiding leaves playback and automatic rotation alone. Both options are off by default and need a restart.
+* **TikTok:** Location hiding covers multi-place badges too. Filter location-tagged videos is a separate option under Feed filter > Ads. It skips videos with place badges, whether or not they're paid ads. Hiding a badge doesn't erase the location markers used by the filter. Both controls are optional.
+* **TikTok:** Includes Easier comment likes from 0.54.0. The heart can receive taps in nearby blank space without making comment rows taller. Enable it under Comments.
+
+## 0.54.0 (2026-09-20)
+
+Comment hearts are easier to tap.
+
+* **TikTok:** Comment tools adds Easier comment likes. It extends the heart's touch area into nearby blank space without enlarging the icon or adding space between comments. Text, Reply and neighboring controls keep their own areas. Swipes and interrupted presses don't turn into likes. It's off by default and needs a restart.
+
+## 0.53.0 (2026-09-20)
+
+Give the comment list more room.
+
+* **TikTok:** Comment tools adds Compact comment header. It removes the comment count, sort and close buttons, plus the suggestion area above them, including its empty space. Comments and the reply box stay available. Use Back or swipe down to close the panel. Headers with list-navigation tabs stay visible. The switch is off by default and needs a restart.
+* **TikTok:** Fixed a local release check that could block a new tag even though its source commit was already on GitHub. Update-index changes still require a published, verified bundle.
+
+## 0.52.0 (2026-09-20)
+
+Comments get their own suggested-search control, and search settings now say where they work.
+
+* **TikTok:** Comment tools adds Hide search suggestions above comments. It removes TikTok's "Search: ..." banner above the comment count without removing comments, their controls or Hushfeed's separate search box. It's off by default and needs a restart.
+* **TikTok:** Search controls now distinguish the feed button, Inbox button, LIVE drawer, image-search prompts, main search-page suggestions and searching within loaded comments. Poll hiding also explains that it removes voting cards and ended poll results.
+* **TikTok:** Fixed the Hushfeed source metadata that made Morphe report "The remote metadata file is unavailable." Refreshing the source is enough. The release check now rejects timestamps Manager can't read.
+
+## 0.51.0 (2026-09-20)
+
+Commission posts now use the same location-affiliate signal TikTok checks before showing its disclosure.
+
+* **TikTok:** Remove feed ads catches location videos marked "Creator earns commission" even when TikTok leaves the shopping and standard ad fields empty. It filters the video before display, without matching English text. Ordinary location tags aren't enough to remove a post.
+* **TikTok:** Paid partnerships and branded content are included in Remove feed ads. The separate paid-partnership switch remains available, and the related controls now sit together under Ads.
+* **TikTok:** When For You is the only remaining top tab, its title and underline are hidden. The feed and Search stay available.
+* **TikTok:** App settings can hide the purple rewards shortcut beside Add friends on Profile. This belongs to Hide floating promotions and is off by default.
+
+## 0.50.0 (2026-09-20)
+
+Settings failures are recoverable, movable controls stay reachable and the largest settings catalog no longer ranks searches on TikTok's UI thread.
+
+### Interface and accessibility
+
+* **TikTok:** Large translated settings titles now keep words whole at enlarged text sizes. The title adapts within a limited range while Android's chosen font scale remains unchanged everywhere else.
+* **TikTok:** Movable feed controls now stay clear of status bars, navigation insets, display cutouts and TikTok's bottom tab row. They recheck those boundaries whenever the window geometry changes.
+
+### Performance
+
+* **TikTok:** Feature Gate Lab now precomputes searchable gate text and performs fuzzy ranking on a cancellable worker. Typing a newer query immediately invalidates older results, so a slow search can't replace what the reader just requested.
+
+### Reliability
+
+* **TikTok:** A failed settings write now keeps the live value aligned with the value that will survive a restart. Concurrent writes can't cross its rollback window, and feed actions show a failure instead of a false success or Undo state.
+* **TikTok:** Settings restore now rejects fractional and overflowing backup schema numbers instead of truncating them into a supported version.
+* **TikTok:** Session budget resets now invalidate older queued writes, so one test can't quietly restore a spent budget after the next test has cleared it.
+* **TikTok:** A first push of a branch now checks its complete resulting tree. A documentation-only tip or stale tracking ref can no longer hide a code path from the local gates, and the script contracts follow the current TikTok 47.0.3 target.
+* **TikTok:** Guarded S22 acceptance now checks the focused window on Android's default display and sends every input to that same display. TikTok on another task or display can't authorize input, and the helper still resolves Windows `adb.exe` and evidence paths correctly under WSL.
+
+## 0.49.0 (2026-09-20)
+
+Settings feedback is clearer, easier to recover from and more consistent across every page.
+
+### Premium settings polish
+
+* **TikTok:** Invalid number, text, range, creator, folder and Feature Gate values now show an inline explanation inside the editor. The field keeps focus, announces the problem once and clears the message when typing resumes.
+* **TikTok:** Text cursors, selection handles, picker frames and list edge effects now use the Hushfeed palette instead of leaking TikTok's theme into the settings screen.
+* **TikTok:** Clear seen videos and Start today over now offer Undo in a ten-second settings banner. The action survives page changes and remains at least 48 dp for touch and accessibility input.
+* **TikTok:** Restart-gated changes now offer Restart now in the same banner while keeping the pinned restart row for later. Returning a value to what TikTok already runs no longer asks for a restart.
+* **TikTok:** Feed and bottom tab pickers now join the persistent restart state correctly instead of showing a restart message and then losing it.
+* **TikTok:** Forty-one labels and descriptions now use one naming system across Feed filter, Feed screen, Inbox, Playback, Region, search and the share sheet. German, Spanish, Indonesian and Brazilian Portuguese were updated with them.
+* **TikTok:** The three home shortcuts now become full-width rows at Android's first large-text step, so Privacy and Screen time stay intact instead of breaking in the middle of a word. The full settings matrix was rendered again in dark and light themes, large text and mirrored layout.
+
+## 0.48.0 (2026-09-20)
+
+Feed filter now has a reversible starting point for a calmer feed.
+
+### Calm feed
+
+* **TikTok:** Calm feed turns on six focused filters together: feed ads, Shop posts, LIVE videos, LIVE replays, promotional music and paid partnerships.
+* **TikTok:** Applying the preset saves the previous values first. Restore puts that exact setup back, even after TikTok restarts or after one of the six switches is changed by hand.
+* **TikTok:** The preset leaves stories, photo posts, AI labels, creator rules, keywords and time limits alone.
+* **TikTok:** Its status card shows when the preset is on or has been adjusted. The action is a real 48 dp button, stacks at large text sizes and is translated with the rest of Hushfeed settings.
+
+## 0.47.0 (2026-09-20)
+
+The settings home is faster to scan and easier to use with touch or a screen reader.
+
+### Settings
+
+* **TikTok:** A new status card confirms Hushfeed is active and shows the installed Hushfeed and TikTok versions. Diagnostics opens directly from the card.
+* **TikTok:** Feed filter, Privacy and Screen time now have direct buttons beside Search at the top of the settings home.
+* **TikTok:** The new actions use real button roles, visible focus and press feedback, and touch targets of at least 48 dp. They stack instead of clipping when text is enlarged.
+* **TikTok:** The settings home screenshot has been refreshed from the tested native Android view in both theme and accessibility checks.
+
+## 0.46.0 (2026-09-20)
+
+All 91 patches now support TikTok 47.0.3.
+
+### TikTok 47.0.3
+
+* **TikTok:** Hushfeed is the first row in Settings and privacy again. TikTok 47.0.3 changed how that menu is assembled, and the patch now moves the existing row instead of creating a duplicate.
+* **TikTok:** Downloads now follows the actual comment-image watermark draw when TikTok moves nearby MIME and pending-state strings.
+* **TikTok:** Feed filter now handles TikTok's separate golden-cache and offline-cache delivery methods. Hide already seen videos follows the same repaired boundary.
+* **TikTok:** Playback speed now finds the player boundary by its behavior after TikTok obfuscated both method names.
+* **TikTok:** Empty comment pages and ordinary posts without a survey no longer appear as broken hooks in Diagnostics.
+* **TikTok:** Block P2P video relay, Remove LIVE extras, Remove content credential and card scanner assets, Remove creation tools, and Remove unused language packs now use reviewed 47.0.3 file inventories.
+* **TikTok:** Feature Gate Lab now treats 47.0.3 as its target. Saved rules from an older target stay disabled until they are reviewed.
+
 ## 0.45.2 (2026-09-19)
 
 One settings search fix found during the TikTok interface audit.
@@ -487,7 +610,6 @@ A polish release. No patches were added or removed. Most of it makes the setting
 
 * The block, local-hide, sound and Not interested controls now disappear when TikTok's comment sheet covers the feed. The local-hide and sound buttons have their own switches, and each visible control can be moved and remembered on its own. Enabling local hide after the controls attach keeps it in its own slot instead of covering the sound button.
 
-* Restored the Ko-fi support link removed during the optimizer documentation update. The marketing contract now checks the canonical URL so later README rewrites cannot silently drop it again.
 
 * Eight optional TikTok optimizer patches from Kveld are now built into Hushfeed. The four resource patches validate complete path and SHA-256 profiles before emptying language, creator, LIVE, C2PA or card-scanner assets. The startup, network, Fresco and update patches use exact reviewed method contracts, stay off by default and describe their feature tradeoffs. Disable telemetry also covers TikTok's two Npth startup tasks behind its existing switch. The pre-push preparation check can keep the published 71-patch index intact while this unreleased catalog grows at the same version. Strict publication checks still reject the mismatch.
 

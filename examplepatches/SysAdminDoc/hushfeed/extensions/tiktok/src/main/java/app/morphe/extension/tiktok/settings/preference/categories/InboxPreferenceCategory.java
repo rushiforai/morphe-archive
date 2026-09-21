@@ -60,8 +60,8 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
             ));
             addPreference(new TogglePreference(
                     context,
-                    "Hide TikTok Tako",
-                    "Hide the TikTok Tako assistant conversation.",
+                    "Hide the Tako chat",
+                    "Hide the Tako assistant conversation in Inbox.",
                     Settings.HIDE_INBOX_TAKO
             ));
             addPreference(new TogglePreference(
@@ -91,8 +91,8 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
             ));
             addPreference(new TogglePreference(
                     context,
-                    "Hide search",
-                    "Hide the search icon in the Inbox header.",
+                    "Hide the Inbox search button",
+                    "Remove the magnifying glass at the top of Inbox. It doesn't hide search on the feed or in comments.",
                     Settings.HIDE_INBOX_SEARCH
             ));
             addPreference(new TogglePreference(

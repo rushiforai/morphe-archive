@@ -37,6 +37,7 @@ public class FeatureGatePagesTest {
         Utils.setContext(RuntimeEnvironment.getApplication());
         Utils.awaitBackgroundTasksForTests();
         FeatureGateDetailFragment.awaitChangesForTests();
+        FeatureGateLabFragment.awaitSearchForTests();
         FeatureGateCatalog.awaitForTests();
         Shadows.shadowOf(Looper.getMainLooper()).idle();
         FeatureGateDetailFragment.setDetailChangeTestHookForTests(null);
@@ -49,6 +50,112 @@ public class FeatureGatePagesTest {
     @Test public void darkLabSearchAndOverrideEditorWork() throws Exception { exercise("dark"); }
     @Test @Config(qualifiers = "w480dp-h960dp-notnight-mdpi")
     public void lightLabSearchAndOverrideEditorWork() throws Exception { exercise("light"); }
+
+    @Test public void labSearchRanksOffMainThreadFromPrecomputedEntryText() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            FeatureGateLabStore.resetAllLabData();
+            FeatureGateLabSession.begin();
+            var entry = new FeatureGateCatalog.Entry(
+                    "3P_LOGIN-OPTIMIZATION", "Fast sign in", "abmock", "BOOLEAN",
+                    true, true, List.of("false", "true"), List.of(), List.of(), "", "",
+                    true, "false", "BOOLEAN");
+            assertEquals("3p login optimization", entry.normalizedKey);
+            assertEquals("fast sign in", entry.normalizedTitle);
+            assertArrayEquals(new String[]{"3p", "login", "optimization", "fast", "sign", "in"},
+                    entry.searchTokens);
+            var cached = FeatureGateCatalog.class.getDeclaredField("cachedSnapshot");
+            cached.setAccessible(true);
+            cached.set(null, new FeatureGateCatalog.Snapshot(
+                    List.of(entry), Map.of(entry.identity(), entry), 1, 0, true));
+
+            FeatureGateLabFragment lab = new FeatureGateLabFragment();
+            attach(activity, lab);
+            EditText search = find(lab.getView(), EditText.class);
+            ListView list = find(lab.getView(), ListView.class);
+            assertNotNull(search);
+            assertNotNull(list);
+
+            search.setText("login optimiztion");
+            Shadows.shadowOf(Looper.getMainLooper())
+                    .idleFor(java.time.Duration.ofMillis(200));
+            FeatureGateLabFragment.awaitSearchForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            assertEquals("MorpheGateSearch", FeatureGateLabFragment.lastSearchThreadForTests());
+            assertEquals("fuzzy matching changed while moving search off the UI thread",
+                    1, list.getAdapter().getCount());
+        }
+    }
+
+    @Test public void anOlderSearchCannotReplaceTheReadersNewerQuery() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            FeatureGateLabStore.resetAllLabData();
+            FeatureGateLabSession.begin();
+            var alpha = new FeatureGateCatalog.Entry(
+                    "alpha_gate", "Alpha gate", "abmock", "BOOLEAN", true, true,
+                    List.of("false", "true"), List.of(), List.of(), "", "",
+                    true, "false", "BOOLEAN");
+            var beta = new FeatureGateCatalog.Entry(
+                    "beta_gate", "Beta gate", "abmock", "BOOLEAN", true, true,
+                    List.of("false", "true"), List.of(), List.of(), "", "",
+                    true, "false", "BOOLEAN");
+            var cached = FeatureGateCatalog.class.getDeclaredField("cachedSnapshot");
+            cached.setAccessible(true);
+            cached.set(null, new FeatureGateCatalog.Snapshot(
+                    List.of(alpha, beta), Map.of(alpha.identity(), alpha, beta.identity(), beta),
+                    2, 0, true));
+
+            FeatureGateLabFragment lab = new FeatureGateLabFragment();
+            attach(activity, lab);
+            EditText search = find(lab.getView(), EditText.class);
+            ListView list = find(lab.getView(), ListView.class);
+            assertNotNull(search);
+            assertNotNull(list);
+            java.util.concurrent.CountDownLatch oldSearchStarted =
+                    new java.util.concurrent.CountDownLatch(1);
+            java.util.concurrent.CountDownLatch releaseOldSearch =
+                    new java.util.concurrent.CountDownLatch(1);
+            java.util.concurrent.atomic.AtomicBoolean first =
+                    new java.util.concurrent.atomic.AtomicBoolean(true);
+            FeatureGateLabFragment.setSearchWorkHookForTests(() -> {
+                if (!first.compareAndSet(true, false)) return;
+                oldSearchStarted.countDown();
+                try {
+                    assertTrue("the test never released the first search",
+                            releaseOldSearch.await(2, java.util.concurrent.TimeUnit.SECONDS));
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                    throw new AssertionError(interrupted);
+                }
+            });
+            try {
+                search.setText("alpha");
+                Shadows.shadowOf(Looper.getMainLooper())
+                        .idleFor(java.time.Duration.ofMillis(200));
+                assertTrue("the first search never reached its worker",
+                        oldSearchStarted.await(2, java.util.concurrent.TimeUnit.SECONDS));
+
+                search.setText("beta");
+                releaseOldSearch.countDown();
+                Shadows.shadowOf(Looper.getMainLooper())
+                        .idleFor(java.time.Duration.ofMillis(200));
+                FeatureGateLabFragment.awaitSearchForTests();
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+                assertEquals(1, list.getAdapter().getCount());
+                FeatureGateCatalog.Entry shown =
+                        (FeatureGateCatalog.Entry) list.getAdapter().getItem(0);
+                assertEquals("beta_gate", shown.key);
+            } finally {
+                releaseOldSearch.countDown();
+                FeatureGateLabFragment.setSearchWorkHookForTests(null);
+            }
+        }
+    }
 
     @Test public void theCustomValueDialogKeepsItsActionHierarchyInTheDark() throws Exception {
         assertCustomValueActionsAreRanked();
@@ -163,6 +270,8 @@ public class FeatureGatePagesTest {
             search.setText("nothing-here");
             Shadows.shadowOf(Looper.getMainLooper())
                     .idleFor(java.time.Duration.ofMillis(200));
+            FeatureGateLabFragment.awaitSearchForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
             assertEquals("0 results", count.getText().toString());
         }
     }
@@ -428,6 +537,8 @@ public class FeatureGatePagesTest {
             EditText search = find(lab.getView(), EditText.class);
             search.setText("no-such-gate-12345");
             Shadows.shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(200));
+            FeatureGateLabFragment.awaitSearchForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
             ListView list = find(lab.getView(), ListView.class);
             assertEquals(0, list.getAdapter().getCount());
             UiCapture.save(lab.getView(), "pages/" + theme + "/lab-empty.png");
@@ -767,6 +878,11 @@ public class FeatureGatePagesTest {
                 attach(activity, detail);
                 Spinner values = find(detail.getView(), Spinner.class);
                 assertNotNull(values);
+                assertTrue("the value picker popup kept TikTok's surface",
+                        values.getPopupBackground()
+                                instanceof android.graphics.drawable.GradientDrawable);
+                assertTrue("the value picker is shorter than a 48dp touch target",
+                        values.getMinimumHeight() >= SettingsUi.dp(activity, 48));
                 var firstStarted = new java.util.concurrent.CountDownLatch(1);
                 var releaseFirst = new java.util.concurrent.CountDownLatch(1);
                 var secondFinished = new java.util.concurrent.CountDownLatch(1);

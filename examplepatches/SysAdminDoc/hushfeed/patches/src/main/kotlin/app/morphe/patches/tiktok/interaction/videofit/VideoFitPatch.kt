@@ -90,7 +90,7 @@ val videoFitPatch = bytecodePatch(
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)
 
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         // Every check comes before the first write. The patcher does not take a failed patch's

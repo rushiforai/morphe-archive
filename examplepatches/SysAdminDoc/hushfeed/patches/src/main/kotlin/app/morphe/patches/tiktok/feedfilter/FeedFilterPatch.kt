@@ -50,7 +50,7 @@ val feedFilterPatch = bytecodePatch(
     name = "Feed filter",
     description = "Hides feed ads, including videos with creator commission disclosures, TikTok " +
         "Shop items, livestreams, LIVE replays, stories, photo posts, paid partnerships, AI " +
-        "labeled videos, verified accounts, series, playlists, " +
+        "labeled videos, location-tagged videos, verified accounts, series, playlists, " +
         "the playlist bar, the floating event badge and inserted cards. Videos can also be " +
         "filtered by your own caption words, creator handles or patterns, sound names, length, " +
         "the country they were posted from and their view, like, comment, favorite and share " +
@@ -65,7 +65,7 @@ val feedFilterPatch = bytecodePatch(
         sharedExtensionPatch,
     )
 
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         // Enables the feed filter extension after settings were loaded.
@@ -90,6 +90,16 @@ val feedFilterPatch = bytecodePatch(
                 )
             }
         }
+
+        // Some 47.0.3 main-feed lists are restored or filled after fetchFeedList has returned.
+        // Every consumer still crosses this real-named getter. The extension wrapper catches
+        // every Throwable and leaves the original list alone on failure, so this late safety
+        // net cannot break TikTok's model read.
+        FeedItemListGetItemsFingerprint.method.addInstruction(
+            0,
+            "invoke-static/range {p0 .. p0}, " +
+                "$EXTENSION_CLASS_DESCRIPTOR->filterOnRead(Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;)V",
+        )
 
         FollowFeedFingerprint.method.let { method ->
             val returnIndices =
@@ -336,54 +346,64 @@ val feedFilterPatch = bytecodePatch(
             )
         }
 
-        ColdStartCachedFeedFingerprint.method.let { method ->
-            val instructions = method.implementation!!.instructions
-            val cacheStoreIndices = instructions.withIndex()
-                .filter {
-                    it.value.opcode == Opcode.SPUT_OBJECT &&
-                        (it.value as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)
-                            ?.reference
-                            ?.let { reference ->
-                                reference is FieldReference &&
-                                    reference.type == "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;"
-                            } == true
-                }
-                .map { it.index }
-                .toList()
-            check(cacheStoreIndices.size == 4) {
-                "Expected four cold-start cached FeedItemList stores, found ${cacheStoreIndices.size}"
-            }
-
-            val offlineMarkers = instructions.withIndex()
+        val coldStartMethods = listOf(
+            ColdStartGoldenCacheFingerprint.method,
+            ColdStartOfflineCacheFingerprint.method,
+        ).distinctBy { method ->
+            "${method.definingClass}->${method.name}${method.parameterTypes}${method.returnType}"
+        }
+        val coldStartStores = coldStartMethods.map { method ->
+            method to method.implementation!!.instructions.withIndex()
                 .filter { (_, instruction) ->
-                    instruction.getReference<FieldReference>()?.let { reference ->
-                        instruction.opcode == Opcode.SGET_OBJECT &&
-                            reference.name == "OFFLINE_MODE" &&
-                            reference.type == reference.definingClass
-                    } == true
+                    instruction.opcode == Opcode.SPUT_OBJECT &&
+                        instruction.getReference<FieldReference>()?.type ==
+                        "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;"
                 }
                 .map { it.index }
                 .toList()
-            if (offlineMarkers.size != 1) {
-                throw PatchException(
-                    "Expected one OFFLINE_MODE marker in cold-start cache method, " +
-                        "found ${offlineMarkers.size}",
-                )
-            }
-            val offlineMarker = offlineMarkers.single()
-            val offlineStoreIndices = cacheStoreIndices.filter { it > offlineMarker }
-            if (offlineStoreIndices.size != 1) {
-                throw PatchException(
-                    "Expected one offline FeedItemList store after OFFLINE_MODE, " +
-                        "found ${offlineStoreIndices.size}",
-                )
-            }
-            val offlineStoreIndex = offlineStoreIndices.single()
+        }
+        val cacheStoreCount = coldStartStores.sumOf { (_, indices) -> indices.size }
+        check(cacheStoreCount == 4) {
+            "Expected four cold-start cached FeedItemList stores, found $cacheStoreCount"
+        }
 
+        val offlineMarkers = coldStartMethods.flatMap { method ->
+            method.implementation!!.instructions.withIndex().mapNotNull { (index, instruction) ->
+                instruction.getReference<FieldReference>()?.let { reference ->
+                    if (
+                        instruction.opcode == Opcode.SGET_OBJECT &&
+                        reference.name == "OFFLINE_MODE" &&
+                        reference.type == reference.definingClass
+                    ) {
+                        method to index
+                    } else {
+                        null
+                    }
+                }
+            }
+        }
+        if (offlineMarkers.size != 1) {
+            throw PatchException(
+                "Expected one OFFLINE_MODE marker across cold-start cache methods, " +
+                    "found ${offlineMarkers.size}",
+            )
+        }
+        val (offlineMethod, offlineMarker) = offlineMarkers.single()
+        val offlineStoreIndices = coldStartStores.single { (method, _) -> method === offlineMethod }
+            .second.filter { it > offlineMarker }
+        if (offlineStoreIndices.size != 1) {
+            throw PatchException(
+                "Expected one offline FeedItemList store after OFFLINE_MODE, " +
+                    "found ${offlineStoreIndices.size}",
+            )
+        }
+        val offlineStoreIndex = offlineStoreIndices.single()
+
+        coldStartStores.forEachIndexed { methodOrdinal, (method, cacheStoreIndices) ->
             cacheStoreIndices.asReversed().forEachIndexed { ordinal, storeIndex ->
                 val listRegister =
                     (method.implementation!!.instructions[storeIndex] as OneRegisterInstruction).registerA
-                val filterMethod = if (storeIndex == offlineStoreIndex) {
+                val filterMethod = if (method === offlineMethod && storeIndex == offlineStoreIndex) {
                     "filterOfflineFeedList"
                 } else {
                     "filterCachedFeedList"
@@ -393,12 +413,12 @@ val feedFilterPatch = bytecodePatch(
                     """
                         invoke-static/range {v$listRegister .. v$listRegister}, $EXTENSION_CLASS_DESCRIPTOR->$filterMethod(Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;)Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;
                         move-result-object v$listRegister
-                        if-nez v$listRegister, :morphe_keep_cold_cache_$ordinal
+                        if-nez v$listRegister, :morphe_keep_cold_cache_${methodOrdinal}_$ordinal
                         const/4 v$listRegister, 0x0
                         return v$listRegister
                     """,
                     ExternalLabel(
-                        "morphe_keep_cold_cache_$ordinal",
+                        "morphe_keep_cold_cache_${methodOrdinal}_$ordinal",
                         method.getInstruction(storeIndex),
                     ),
                 )

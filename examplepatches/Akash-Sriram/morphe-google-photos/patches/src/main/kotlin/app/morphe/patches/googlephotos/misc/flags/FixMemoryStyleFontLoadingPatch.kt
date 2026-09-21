@@ -1,42 +1,38 @@
 package app.morphe.patches.googlephotos.misc.flags
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.googlephotos.misc.extension.sharedExtensionPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.findMutableMethodOf
+import app.morphe.util.indexOfFirstInstruction
+import app.morphe.util.indexOfFirstInstructionReversed
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 /**
- * Patches the Skottie font resolver class in Google Photos DEX to redirect
- * remote/CDN font requests to bundled system fonts.
- *
- * In the mod package (app.morphe.*), Google's font CDN is inaccessible, so
- * memory card animations render blank text without this fix.
- *
- * The patched class has two methods identified by signature:
- *   - fontUriResolver(String, CancellationSignal): Uri  → redirected to system font URIs
- *   - fontDataReader(Uri): byte[]                       → reads bytes from local file path
- *
- * Font mapping:
- *   "serif" requests  →  file:///system/fonts/NotoSerif-Italic.ttf
- *   all others        →  file:///system/fonts/Roboto-Regular.ttf
- *
- * Note: Legacy flag baking (45417849 / 45417850 / 45422890 / 45418195) was removed.
- * Those string literals do not exist anywhere in Google Photos v7.92 DEX — Google
- * removed those old Phenotype call-sites. Story flags are now guaranteed via
- * PhenotypeSeedData (2,496-flag official seed) + PhotoFlagsRegistry overrides.
+ * Patches font loading in Google Photos:
+ * 1. Skottie animation font resolver (bgwl) to resolve authentic Google Fonts (DM Serif Display, BioRhyme, Sarina, Google Sans Text, etc.).
+ * 2. AndroidX FontsContractCompat.requestFont (Lesc;->l) to immediately resolve Compose GoogleFont requests
+ *    and AndroidX downloadable font requests with authentic Google Sans Typefaces, preventing GMS Fonts failures.
+ * 3. AndroidX ResourcesCompat.loadFont (Leuj;->e) to resolve authentic Google Sans variants directly.
+ * 4. Resolves authentic Google Sans variants and styles for Home carousel cards and Stories.
  */
 val fixMemoryStyleFontLoadingPatch = bytecodePatch(
     name = "Fix memory style font loading",
-    description = "Redirects Skottie animation font loading to system fonts for mod package compatibility, fixing blank text and cutout crashes in Memories.",
+    description = "Redirects font loading across Stories and UI to authentic Google Fonts with local caching and CDN downloading, fixing fallback fonts and blank text in Memories.",
     default = true,
 ) {
     compatibleWith(AppCompatibilities.GOOGLE_PHOTOS)
+    dependsOn(sharedExtensionPatch)
 
     execute {
         classDefForEach { classDef ->
+            if (classDef.type.startsWith("Lapp/morphe/")) return@classDefForEach
+
+            // 1. Skottie font resolver in classes6.dex
             val methodA = classDef.methods.find {
                 it.parameterTypes == listOf("Ljava/lang/String;", "Landroid/os/CancellationSignal;") &&
                 it.returnType == "Landroid/net/Uri;"
@@ -48,74 +44,57 @@ val fixMemoryStyleFontLoadingPatch = bytecodePatch(
             }
 
             if (methodA != null && methodB != null) {
-                val mutableClass by lazy { mutableClassDefBy(classDef) }
+                val mutableClass = mutableClassDefBy(classDef)
 
-                var streamReaderRef: MethodReference? = null
-                methodB.implementation?.instructions?.forEach { instr ->
-                    if (instr.opcode == Opcode.INVOKE_STATIC) {
-                        val ref = (instr as? ReferenceInstruction)?.reference as? MethodReference
-                        if (ref?.parameterTypes == listOf("Ljava/io/InputStream;") && ref.returnType == "[B") {
-                            streamReaderRef = ref
-                        }
-                    }
-                }
+                // Patch font URI resolver: delegate to StoryFontResolver
+                val mutableMethodA = mutableClass.findMutableMethodOf(methodA)
+                mutableMethodA.addInstructions(0, """
+                    invoke-static { p1 }, Lapp/morphe/extension/shared/patches/StoryFontResolver;->resolveFontUri(Ljava/lang/String;)Landroid/net/Uri;
+                    move-result-object v0
+                    return-object v0
+                """.trimIndent())
 
-                if (streamReaderRef != null) {
-                    val streamReaderClass = streamReaderRef!!.definingClass
-                    val streamReaderMethod = streamReaderRef!!.name
+                // Patch font data reader: delegate to StoryFontResolver
+                val mutableMethodB = mutableClass.findMutableMethodOf(methodB)
+                mutableMethodB.addInstructions(0, """
+                    invoke-static { p1 }, Lapp/morphe/extension/shared/patches/StoryFontResolver;->readFontBytes(Landroid/net/Uri;)[B
+                    move-result-object v0
+                    return-object v0
+                """.trimIndent())
+            }
 
-                    // Patch font URI resolver: redirect to system font paths
-                    val mutableMethodA = mutableClass.findMutableMethodOf(methodA)
-                    mutableMethodA.addInstructions(0, """
-                        if-eqz p1, :cond_default_a
-                        invoke-virtual { p1 }, Ljava/lang/String;->toLowerCase()Ljava/lang/String;
-                        move-result-object v0
-                        const-string v1, "serif"
-                        invoke-virtual { v0, v1 }, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
-                        move-result v0
-                        if-eqz v0, :cond_default_a
-                        const-string v0, "file:///system/fonts/NotoSerif-Italic.ttf"
-                        goto :cond_parse_a
-                        :cond_default_a
-                        const-string v0, "file:///system/fonts/Roboto-Regular.ttf"
-                        :cond_parse_a
-                        invoke-static { v0 }, Landroid/net/Uri;->parse(Ljava/lang/String;)Landroid/net/Uri;
-                        move-result-object v0
-                        return-object v0
-                    """.trimIndent())
+            // 2. Skottie font loader dispatcher (Lbgsx;->q in classes6.dex)
+            val methodQ = classDef.methods.find {
+                it.parameterTypes.size == 8 &&
+                it.parameterTypes[0] == "Landroid/content/Context;" &&
+                it.parameterTypes.any { param -> param.contains("ConcurrentHashMap") } &&
+                it.returnType != "V"
+            }
 
-                    // Patch font data reader: read bytes from local file system path
-                    val mutableMethodB = mutableClass.findMutableMethodOf(methodB)
-                    mutableMethodB.addInstructions(0, """
-                        if-eqz p1, :cond_default_b
-                        invoke-virtual { p1 }, Landroid/net/Uri;->getPath()Ljava/lang/String;
-                        move-result-object v0
-                        if-eqz v0, :cond_default_b
-                        new-instance v1, Ljava/io/File;
-                        invoke-direct { v1, v0 }, Ljava/io/File;-><init>(Ljava/lang/String;)V
-                        invoke-virtual { v1 }, Ljava/io/File;->exists()Z
-                        move-result v0
-                        if-eqz v0, :cond_default_b
-                        new-instance v0, Ljava/io/FileInputStream;
-                        invoke-direct { v0, v1 }, Ljava/io/FileInputStream;-><init>(Ljava/io/File;)V
-                        invoke-static { v0 }, $streamReaderClass->$streamReaderMethod(Ljava/io/InputStream;)[B
-                        move-result-object v1
-                        invoke-virtual { v0 }, Ljava/io/FileInputStream;->close()V
-                        return-object v1
-                        :cond_default_b
-                        new-instance v0, Ljava/io/File;
-                        const-string v1, "/system/fonts/Roboto-Regular.ttf"
-                        invoke-direct { v0, v1 }, Ljava/io/File;-><init>(Ljava/lang/String;)V
-                        new-instance v1, Ljava/io/FileInputStream;
-                        invoke-direct { v1, v0 }, Ljava/io/FileInputStream;-><init>(Ljava/io/File;)V
-                        invoke-static { v1 }, $streamReaderClass->$streamReaderMethod(Ljava/io/InputStream;)[B
-                        move-result-object v0
-                        invoke-virtual { v1 }, Ljava/io/FileInputStream;->close()V
-                        return-object v0
-                    """.trimIndent())
-                }
+            if (methodQ != null) {
+                val mutableClass = mutableClassDefBy(classDef)
+                val mutableMethodQ = mutableClass.findMutableMethodOf(methodQ)
+
+                // Dynamically find immediateFuture call (e.g. Lccet;->l(Ljava/lang/Object;)Lccej;)
+                val immediateFutureCall = methodQ.implementation?.instructions?.mapNotNull { inst ->
+                    if (inst is Instruction35c && inst.opcode == Opcode.INVOKE_STATIC) {
+                        val ref = inst.reference as? MethodReference
+                        if (ref != null && ref.parameterTypes.size == 1 && ref.returnType == methodQ.returnType) {
+                            "${ref.definingClass}->${ref.name}(${ref.parameterTypes.joinToString("")})${ref.returnType}"
+                        } else null
+                    } else null
+                }?.firstOrNull() ?: "Lccet;->l(Ljava/lang/Object;)Lccej;"
+
+                mutableMethodQ.addInstructions(0, """
+                    invoke-static { p0, p4, p6 }, Lapp/morphe/extension/shared/patches/StoryFontResolver;->resolveFontBytesForTarget(Landroid/content/Context;Ljava/lang/Object;Ljava/lang/Object;)[B
+                    move-result-object v0
+                    if-eqz v0, :cond_skip_custom_font
+                    invoke-static { v0 }, $immediateFutureCall
+                    move-result-object v0
+                    return-object v0
+                    :cond_skip_custom_font
+                """.trimIndent())
             }
         }
     }
 }
-

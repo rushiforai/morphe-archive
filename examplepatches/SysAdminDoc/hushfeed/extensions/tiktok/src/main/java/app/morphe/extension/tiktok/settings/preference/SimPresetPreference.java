@@ -145,6 +145,7 @@ public class SimPresetPreference extends Preference {
         dialogView.addView(resultCount, resultParams);
 
         ListView listView = new ListView(context);
+        SettingsUi.styleScrollableList(listView);
         listView.setBackgroundColor(Color.TRANSPARENT);
         int listPadding = Math.max(1, SettingsUi.dp(getContext(), 1));
         listView.setPadding(listPadding, listPadding, listPadding, listPadding);

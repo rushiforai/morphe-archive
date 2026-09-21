@@ -26,13 +26,18 @@ private const val VIDEO_ITEM_PARAMS_DESCRIPTOR =
 val blockAuthorPatch = bytecodePatch(
     name = "Block author button",
     description = "Adds one-tap controls for blocking the creator, hiding them locally and " +
-        "blocking the current sound. The local-hide and sound controls have separate switches. " +
-        "Long press any visible control to move it, and all of them hide while comments are open. Switch: Hushfeed settings > Feed filter.",
+        "blocking the current sound. A confirmed account block skips to the next video and " +
+        "shows a small Unblock button at the top left for two seconds. " +
+        "The local-hide and sound controls have separate switches. " +
+        "Long press any visible control to move it. Hushfeed keeps it clear of system bars, " +
+        "cutouts and TikTok's bottom tabs when the window changes. A local action shows Undo " +
+        "only after its setting was saved. All controls hide while comments are open. Switch: " +
+        "Hushfeed settings > Feed filter.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)
 
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         SettingsStatusLoadFingerprint.method.addInstruction(
@@ -86,6 +91,9 @@ val blockAuthorPatch = bytecodePatch(
         // button that silently fails on a build that reshaped the API.
         BlockServiceFingerprint.method
 
+        val pager = mutableClassDefBy("Lcom/ss/android/ugc/aweme/common/widget/VerticalViewPager;")
+        validateBlockPager(pager.methods)
+
         val detail = mutableClassDefBy("Lcom/ss/android/ugc/aweme/detail/ui/DetailPageFragment;")
         val visibility = "Lapp/morphe/extension/tiktok/blockauthor/FeedVisibility;"
         listOf(
@@ -104,6 +112,21 @@ val blockAuthorPatch = bytecodePatch(
             val method = candidates.single()
             val endRegister = if (parameters.isEmpty()) "p0" else "p1"
             method.addInstruction(0, "invoke-static/range { p0 .. $endRegister }, $visibility->$callback")
+        }
+    }
+}
+
+internal fun validateBlockPager(methods: Iterable<com.android.tools.smali.dexlib2.iface.Method>) {
+    listOf(
+        Triple("getCurrentItem", emptyList(), "I"),
+        Triple("getScrollState", emptyList(), "I"),
+        Triple("setCurrentItem", listOf("I"), "V"),
+        Triple("canScrollVertically", listOf("I"), "Z"),
+    ).forEach { (name, parameters, result) ->
+        check(methods.count { it.name == name && it.parameterTypes == parameters &&
+            it.returnType == result && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
+            !AccessFlags.STATIC.isSet(it.accessFlags) && it.implementation != null } == 1) {
+            "Block author: native pager contract changed: $name$parameters$result"
         }
     }
 }

@@ -14,7 +14,7 @@ val aiProfilingGovernorPatch = bytecodePatch(
     description = "Kills the Pitaya on-device ML inference engine at startup so it cannot build a behavioral profile. The AI asset strip in the core de-bloat patch removes the native libraries; this stops the initialization code that would download replacements.",
     default = false,
 ) {
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         val initMethod = PitayaInitFingerprint.methodOrNull

@@ -97,7 +97,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         FEED_FILTER("Feed filter", "Choose what reaches your feed"),
         FEED_NAVIGATION("Feed tabs", "Arrange your feed and bottom tabs"),
         INTERFACE("Feed screen", "Captions, gestures and on-screen controls"),
-        PLAYBACK("Playback", "Quality, speed and automatic advance"),
+        PLAYBACK("Playback", "Quality, speed and auto-advance"),
         SCREEN_TIME("Screen time", "Daily budgets, reminders and the hold"),
         COMMENTS("Comments", "Filters, translation and copy options"),
         DOWNLOADS("Downloads", "Quality, files, subtitles and hand-off"),
@@ -350,6 +350,9 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         // translation table itself, so they are handed to it once, from here, where the
         // settings screen is being built and a context is at hand.
         savedMessage = L10n.t(context, "Saved. Restart TikTok to apply this.");
+        AbstractPreferenceFragment.setRestartFeedbackPresenter((feedbackContext, ignored) ->
+                SettingsActionBanner.showRestart(feedbackContext,
+                        RestartPendingPreference.label(feedbackContext)));
         app.morphe.extension.shared.settings.preference.LogBufferManager.clearedMessage =
                 L10n.t(context, "Diagnostic data cleared. Tap again to put it back.");
         app.morphe.extension.shared.settings.preference.LogBufferManager.nothingToClearMessage =
@@ -513,6 +516,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
 
         ListView list = view.findViewById(android.R.id.list);
         if (list != null) {
+            SettingsUi.styleScrollableList(list);
             list.setBackgroundColor(SettingsUi.background());
             list.setCacheColorHint(SettingsUi.background());
             list.setDivider(null);
@@ -674,7 +678,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         String normalizedQuery = normalizeSearchText(query == null ? "" : query.trim());
         if (normalizedQuery.isEmpty()) {
             if (searchInput != null) searchInput.hideResultCount();
-            addSearchState("Type to search settings", "Search a title, description or category.");
+            addSearchState("Start typing", "Search by name, description or category.");
             return;
         }
 
@@ -972,17 +976,51 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
 
     private void createMasterMenu(Context context, PreferenceScreen screen) {
         screen.addPreference(SettingsHeaderPreference.master(context, this::closeSettings));
-        screen.addPreference(new SettingsMenuPreference(
+        boolean diagnosticsAvailable = DebugPreferenceCategory.isAvailable();
+        screen.addPreference(new SettingsStatusPreference(
+                context,
+                diagnosticsAvailable ? () -> openSection(Section.DIAGNOSTICS) : null));
+
+        SettingsMenuPreference search = new SettingsMenuPreference(
                 context,
                 "Search settings",
-                "Find a setting by title or description",
+                "Find a setting by name or description",
                 SettingsMenuPreference.Icon.SEARCH,
                 0,
                 preference -> {
                     openSearch();
                     return true;
                 }
-        ));
+        );
+        search.setKey("action_search_settings");
+        search.setOrder(-900);
+        screen.addPreference(search);
+
+        List<SettingsQuickActionsPreference.Action> quickRoutes = new ArrayList<>();
+        if (FeedFilterPreferenceCategory.isAvailable()) {
+            quickRoutes.add(new SettingsQuickActionsPreference.Action(
+                    L10n.t(context, Section.FEED_FILTER.title),
+                    SettingsQuickActionsPreference.FEED_TAG,
+                    SettingsMenuPreference.Icon.FILTER,
+                    () -> openSection(Section.FEED_FILTER)));
+        }
+        if (PrivacyPreferenceCategory.isAvailable()) {
+            quickRoutes.add(new SettingsQuickActionsPreference.Action(
+                    L10n.t(context, Section.PRIVACY.title),
+                    SettingsQuickActionsPreference.PRIVACY_TAG,
+                    SettingsMenuPreference.Icon.PRIVACY,
+                    () -> openSection(Section.PRIVACY)));
+        }
+        if (ScreenTimePreferenceCategory.isAvailable()) {
+            quickRoutes.add(new SettingsQuickActionsPreference.Action(
+                    L10n.t(context, Section.SCREEN_TIME.title),
+                    SettingsQuickActionsPreference.SCREEN_TIME_TAG,
+                    SettingsMenuPreference.Icon.SCREEN_TIME,
+                    () -> openSection(Section.SCREEN_TIME)));
+        }
+        if (!quickRoutes.isEmpty()) {
+            screen.addPreference(new SettingsQuickActionsPreference(context, quickRoutes));
+        }
 
         // Four groups, each a card of its own under a heading, and a heading only shows when
         // the bundle gives its group at least one page. Every page answers for itself, from
@@ -1056,7 +1094,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             screen.addPreference(featureGateLab);
         }
 
-        if (DebugPreferenceCategory.isAvailable()) {
+        if (diagnosticsAvailable) {
             addMenu(screen, Section.DIAGNOSTICS, SettingsMenuPreference.Icon.DIAGNOSTICS);
         }
         addMenu(screen, Section.BACKUP, SettingsMenuPreference.Icon.BACKUP);
@@ -1116,6 +1154,20 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     }
 
     void refreshBackupSettings() { updateUIToSettingValues(); }
+
+    /** Reconciles a preset's batch write with the rows and the restart debt on this page. */
+    static void onSettingsBatchChanged(java.util.Map<Setting<?>, Object> previousValues) {
+        TikTokPreferenceFragment current = activeFragment;
+        if (current == null || !current.isAdded()) return;
+        for (java.util.Map.Entry<Setting<?>, Object> entry : previousValues.entrySet()) {
+            Setting<?> setting = entry.getKey();
+            if (setting.rebootApp && !java.util.Objects.equals(entry.getValue(), setting.get())) {
+                current.noteRestartPending(setting, entry.getValue());
+            }
+        }
+        current.updateUIToSettingValues();
+        current.refreshRestartPending();
+    }
 
     private static void flattenCategory(PreferenceScreen screen, PreferenceCategory category) {
         if (category == null) {

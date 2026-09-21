@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Set;
 
 import app.morphe.extension.shared.settings.StringSetting;
-import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment;
 import app.morphe.extension.tiktok.navigation.BottomNavigationTabOptions;
 import app.morphe.extension.tiktok.navigation.NavigationTabOptions;
 import app.morphe.extension.tiktok.settings.Settings;
@@ -45,7 +44,7 @@ public class TabSelectionPreference extends Preference {
         super(context);
         this.setting = setting;
         this.bottomTabs = bottomTabs;
-        setTitle(bottomTabs ? "Allowed bottom tabs" : "Tabs TikTok has loaded");
+        setTitle(bottomTabs ? "Bottom tabs to keep" : "Feed tabs to keep");
         setKey(setting.key);
         // In memory only. setValue writes, and writing the tidied form of what is already
         // stored, at the moment the row is built, made building the page a change to the
@@ -66,7 +65,10 @@ public class TabSelectionPreference extends Preference {
         if (changed || !valueSet) {
             this.value = sanitizedValue;
             valueSet = true;
-            setting.save(sanitizedValue);
+            // Persist through Preference so the fragment sees the old running value before it
+            // updates the Setting. Saving the Setting directly made this custom editor skip the
+            // restart tracker even though it still showed a restart toast.
+            persistString(sanitizedValue);
             refreshSummary();
             if (changed) {
                 notifyDependencyChange(shouldDisableDependents());
@@ -141,7 +143,7 @@ public class TabSelectionPreference extends Preference {
 
         TextView title = new TextView(context);
         title.setText(L10n.t(getContext(),
-                bottomTabs ? "Allowed bottom tabs" : "Tabs TikTok has loaded"));
+                bottomTabs ? "Bottom tabs to keep" : "Feed tabs to keep"));
         title.setTextColor(getTitleTextColor());
         title.setTextSize(20);
         title.setTypeface(title.getTypeface(), Typeface.BOLD);
@@ -240,11 +242,8 @@ public class TabSelectionPreference extends Preference {
         View saveButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
         if (saveButton != null) {
             saveButton.setOnClickListener(view -> {
-                boolean changed = setValue(serializeEnabledKeys(selected));
+                setValue(serializeEnabledKeys(selected));
                 dialog.dismiss();
-                if (changed && setting.rebootApp) {
-                    AbstractPreferenceFragment.showRestartDialog(context);
-                }
             });
         }
     }

@@ -20,7 +20,7 @@ val enableVoiceCommentsPatch = bytecodePatch(
         "accounts that do not have them.",
     default = false,
 ) {
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         // The answer returns at once, so nothing after it reads v0 and a parameter may be

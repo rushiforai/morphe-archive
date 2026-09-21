@@ -46,6 +46,8 @@ public class CommentControlOwnershipTest {
         ShadowToast.reset();
         Object cache = ReflectionHelpers.getStaticField(CommentTools.class, "RESOURCE_IDS");
         Map<String, Integer> ids = ReflectionHelpers.getField(cache, "ids");
+        ids.put("com.zhiliaoapp.musically:k0k", 0x7f000201);
+        ids.put("com.zhiliaoapp.musically:mmt", 0x7f000202);
         ids.put("com.zhiliaoapp.musically:jlk", 0x7f000101);
         ids.put("com.zhiliaoapp.musically:m3b", 0x7f000102);
     }
@@ -113,6 +115,17 @@ public class CommentControlOwnershipTest {
         bind(cell);
         assertSame("TikTok's own icon did not come back with the control",
                 nativeIcon, cell.nativeRow.icon.getDrawable());
+    }
+
+    @Test public void current47ControlsWinWhenOlderResourcesStillExistElsewhere() {
+        Cell cell = new Cell(0x7f000201, 0x7f000202);
+        CommentTools.setDislikeTouchListener(cell.nativeRow.button, cell.nativeRow);
+
+        Settings.BLOCK_FROM_COMMENT.save(true);
+        bind(cell);
+
+        assertBlockTouch(cell.nativeRow.button);
+        assertTrue(cell.nativeRow.icon.getDrawable() instanceof BlockGlyphDrawable);
     }
 
     @Test public void aNativeRebindRefreshesTheListenerThatWillBeHandedBack() {
@@ -222,7 +235,13 @@ public class CommentControlOwnershipTest {
         };
         final NativeRow nativeRow = new NativeRow(itemView.getContext());
 
-        Cell() { itemView.addView(nativeRow); }
+        Cell() { this(0x7f000101, 0x7f000102); }
+
+        Cell(int buttonId, int iconId) {
+            nativeRow.button.setId(buttonId);
+            nativeRow.icon.setId(iconId);
+            itemView.addView(nativeRow);
+        }
     }
 
     private static final class NativeRow extends FrameLayout implements View.OnTouchListener {

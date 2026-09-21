@@ -173,6 +173,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_IMAGE = new BooleanSetting("hide_image", FALSE, true);
     public static final BooleanSetting HIDE_CAPTCHA_POPUPS = new BooleanSetting("hide_captcha_popups", FALSE, true);
     public static final BooleanSetting HIDE_HOMEPAGE_COIN = new BooleanSetting("hide_homepage_coin", FALSE, true);
+    public static final BooleanSetting HIDE_PROFILE_REWARDS_SHORTCUT =
+            new BooleanSetting("hide_profile_rewards_shortcut", FALSE);
     public static final StringSetting MIN_MAX_VIEWS = new StringSetting("min_max_views", "0-" + Long.MAX_VALUE, true);
     public static final StringSetting MIN_MAX_LIKES = new StringSetting("min_max_likes", "0-" + Long.MAX_VALUE, true);
     public static final StringSetting MIN_MAX_COMMENTS = new StringSetting("min_max_comments", "0-" + Long.MAX_VALUE, true);
@@ -222,6 +224,7 @@ public class Settings extends BaseSettings {
             false
     );
     public static final BooleanSetting HIDE_TAKO_AI = new BooleanSetting("hide_tako_ai", FALSE, true);
+    public static final BooleanSetting HIDE_BOTTOM_SEARCH_BAR = new BooleanSetting("hide_bottom_search_bar", FALSE, true);
     public static final BooleanSetting COMMENT_BATCH_TRANSLATION = new BooleanSetting("comment_batch_translation", FALSE);
     // Restart-gated: the comment keyboard builds its slot tree once per session, and the
     // trigger that adds the emoji row is asked at that moment only.
@@ -411,6 +414,7 @@ public class Settings extends BaseSettings {
     public static final StringSetting BLOCKED_SOUND_IDS = new StringSetting("blocked_sound_ids", "");
     public static final StringSetting BLOCKED_SOUND_NAMES = new StringSetting("blocked_sound_names", "");
     public static final BooleanSetting HIDE_PAID_PARTNERSHIP = new BooleanSetting("hide_paid_partnership", FALSE, true);
+    public static final BooleanSetting FILTER_LOCATION_VIDEOS = new BooleanSetting("filter_location_videos", FALSE, true);
     public static final BooleanSetting HIDE_AI_GENERATED = new BooleanSetting("hide_ai_generated", FALSE, true);
     public static final BooleanSetting HIDE_VERIFIED = new BooleanSetting("hide_verified", FALSE, true);
     public static final BooleanSetting HIDE_SERIES = new BooleanSetting("hide_series", FALSE, true);
@@ -447,6 +451,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_FEED_SEARCH_BUTTON =
             new BooleanSetting("hide_feed_search_button", FALSE, true);
     public static final BooleanSetting HIDE_VISUAL_SEARCH = new BooleanSetting("hide_visual_search", FALSE);
+    public static final BooleanSetting HIDE_FULLSCREEN_BUTTON = new BooleanSetting("hide_fullscreen_button", FALSE, true);
+    public static final BooleanSetting HIDE_LOCATION_LABELS = new BooleanSetting("hide_location_labels", FALSE, true);
     public static final BooleanSetting HIDE_SEARCH_SUGGESTIONS = new BooleanSetting("hide_search_suggestions", FALSE);
     public static final StringSetting CUSTOM_SHARE_DOMAIN = new StringSetting("custom_share_domain", "");
     public static final BooleanSetting HIDE_LIVE_ENTRANCE = new BooleanSetting("hide_live_entrance", FALSE);
@@ -458,6 +464,12 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting COMMENT_LINKS = new BooleanSetting("comment_links", TRUE);
     public static final BooleanSetting HIDE_COMMENT_MEDIA = new BooleanSetting("hide_comment_media", FALSE);
     public static final BooleanSetting HIDE_COMMENT_POLLS = new BooleanSetting("hide_comment_polls", FALSE);
+    public static final BooleanSetting HIDE_COMMENT_SEARCH_SUGGESTIONS =
+            new BooleanSetting("hide_comment_search_suggestions", FALSE, true);
+    public static final BooleanSetting COMPACT_COMMENT_HEADER =
+            new BooleanSetting("compact_comment_header", FALSE, true);
+    public static final BooleanSetting LARGER_COMMENT_LIKE_TARGET =
+            new BooleanSetting("larger_comment_like_target", FALSE, true);
     public static final BooleanSetting HIDE_COMMENT_EGGS = new BooleanSetting("hide_comment_eggs", TRUE);
     public static final BooleanSetting COMMENT_SORT_CONTROLS = new BooleanSetting("comment_sort_controls", FALSE);
     // Share sheet tools. The confirm step is on by default because it is the point of the patch.

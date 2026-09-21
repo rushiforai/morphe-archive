@@ -27,7 +27,7 @@ import app.morphe.extension.shared.settings.SettingsJson;
 import app.morphe.extension.tiktok.settings.L10n;
 
 public final class FeatureGateLabStore {
-    public static final String TARGET_VERSION = "46.2.3";
+    public static final String TARGET_VERSION = "47.0.3";
     public static final String MANAGER_ABMOCK = "abmock";
     public static final String MANAGER_PLAYER_CONFIG = "player_config";
     public static final String MANAGER_LIVE = "live";

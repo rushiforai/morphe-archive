@@ -145,6 +145,7 @@ final class FeedFilterFeedback {
         if ("ShopFilter".equals(reason)) return "Shop posts";
         if ("SoundFilter".equals(reason)) return "Blocked sounds";
         if ("PaidPartnershipFilter".equals(reason)) return "Paid partnerships";
+        if ("LocationBadgeFilter".equals(reason)) return "Location-tagged videos";
         if ("AiGeneratedFilter".equals(reason)) return "AI-generated posts";
         if ("VerifiedFilter".equals(reason)) return "Verified creators";
         if ("SeriesFilter".equals(reason)) return "Series posts";

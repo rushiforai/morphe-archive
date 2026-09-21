@@ -74,6 +74,7 @@ public final class TakoAiFilter {
 
     /** The component key TikTok gives the "Ask · topic" banner under a feed video. */
     static final String ASK_BANNER_KEY = "bottom_banner_tako";
+    private static final String SEARCH_BANNER_KEY = "bottom_banner_search_rs";
     private static final String BANNERS_READ = "bottom banners read";
     private static final String ASK_BANNER_HIDDEN = "ask banner hidden";
     private static final String ASK_BANNER_LEFT = "ask banner left";
@@ -87,7 +88,9 @@ public final class TakoAiFilter {
      * Every banner reaches a feed cell through {@code Aweme.getBanners()}, and this is that
      * getter's answer on its way out.
      *
-     * <p>With the switch on, the video's banner list is replaced by a copy without the Tako one,
+     * <p>Each switch removes only its own banner kind. The search strip is removed before native
+     * banner priority and layout reserve its height, so neighboring controls can use that space.
+     * The video's banner list is replaced by a copy without the selected kinds,
      * so the next read finds nothing to remove and nothing else reading the old list is
      * disturbed. The video's other banners stay where they were.
      */
@@ -97,17 +100,29 @@ public final class TakoAiFilter {
         if (banners == null || banners.isEmpty()) return banners;
         try {
             noteBannerKinds(banners);
-            if (!containsAskBanner(banners)) return banners;
-            boolean enabled = Settings.HIDE_TAKO_AI.get();
-            HookStatus.bound(HOOK_FAMILY, enabled ? ASK_BANNER_HIDDEN : ASK_BANNER_LEFT);
-            if (!enabled) return banners;
-
-            List kept = new ArrayList(banners.size());
-            for (Object banner : banners) {
-                if (!isAskBanner(banner)) kept.add(banner);
+            boolean hideAsk = Settings.HIDE_TAKO_AI.get();
+            boolean hideSearch = Settings.HIDE_BOTTOM_SEARCH_BAR.get();
+            if (containsAskBanner(banners)) {
+                HookStatus.bound(HOOK_FAMILY, hideAsk ? ASK_BANNER_HIDDEN : ASK_BANNER_LEFT);
             }
+            if (!hideAsk && !hideSearch) return banners;
+
+            List kept = null;
+            boolean removedAsk = false, removedSearch = false;
+            for (int i = 0; i < banners.size(); i++) {
+                Object banner = banners.get(i);
+                boolean ask = hideAsk && isAskBanner(banner);
+                boolean search = hideSearch && isSearchBanner(banner);
+                if (ask || search) {
+                    if (kept == null) kept = new ArrayList(banners.subList(0, i));
+                    removedAsk |= ask;
+                    removedSearch |= search;
+                } else if (kept != null) kept.add(banner);
+            }
+            if (kept == null) return banners;
             if (video != null) video.setBanners(kept);
-            logAskBannerHidden();
+            if (removedAsk) logAskBannerHidden();
+            if (removedSearch) HookStatus.bound("feed bottom search", "search banner removed");
             return kept;
         } catch (Throwable failure) {
             // A build whose banner model moved: leave the banners as TikTok sent them and say so.
@@ -154,6 +169,12 @@ public final class TakoAiFilter {
         if (!(banner instanceof BannerCommonStruct)) return false;
         BannerCommonKey key = ((BannerCommonStruct) banner).bannerKey;
         return key != null && ASK_BANNER_KEY.equals(key.componentKey);
+    }
+
+    private static boolean isSearchBanner(Object banner) {
+        if (!(banner instanceof BannerCommonStruct)) return false;
+        BannerCommonKey key = ((BannerCommonStruct) banner).bannerKey;
+        return key != null && SEARCH_BANNER_KEY.equals(key.componentKey);
     }
 
     private static void logAskBannerHidden() {

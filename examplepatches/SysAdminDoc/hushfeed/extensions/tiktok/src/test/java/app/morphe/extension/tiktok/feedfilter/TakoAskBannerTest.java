@@ -47,10 +47,12 @@ public class TakoAskBannerTest {
         HookStatus.clear();
         TakoAiFilter.resetBannerKindsForTests();
         Settings.HIDE_TAKO_AI.save(false);
+        Settings.HIDE_BOTTOM_SEARCH_BAR.save(false);
     }
 
     @After public void tearDown() {
         Settings.HIDE_TAKO_AI.resetToDefault();
+        Settings.HIDE_BOTTOM_SEARCH_BAR.resetToDefault();
         HookStatus.clear();
     }
 

@@ -158,7 +158,7 @@ public class FeatureGateLocalizationTest {
             customInput.setText("not_an_int");
             custom.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
             Shadows.shadowOf(Looper.getMainLooper()).idle();
-            assertEquals(expected.invalidInteger, String.valueOf(customInput.getError()));
+            assertEquals(expected.invalidInteger, inlineError(customInput).getText().toString());
             custom.dismiss();
 
             FeatureGateCatalog.Entry unloaded = entry(
@@ -192,7 +192,7 @@ public class FeatureGateLocalizationTest {
             View save = structuredPage.getView().findViewWithTag("feature_gate_save_fields");
             assertNotNull(save);
             assertTrue(save.performClick());
-            assertEquals(expected.invalidStructured, String.valueOf(json.getError()));
+            assertEquals(expected.invalidStructured, inlineError(json).getText().toString());
 
             // A saved override naming a field the class does not have is refused when TikTok
             // asks for the object, and the page has to say which field, in this language.
@@ -250,6 +250,11 @@ public class FeatureGateLocalizationTest {
             assertTrue("the rejected raw key was translated or dropped",
                     String.valueOf(ShadowToast.getTextOfLatestToast()).contains("raw_import_key"));
         }
+    }
+
+    private static TextView inlineError(EditText field) {
+        ViewGroup parent = (ViewGroup) field.getParent();
+        return (TextView) parent.getChildAt(parent.indexOfChild(field) + 1);
     }
 
     private static FeatureGateCatalog.Entry entry(

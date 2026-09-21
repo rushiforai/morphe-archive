@@ -353,6 +353,7 @@ public final class Haiagaru {
         Context resolvedContext = context.getApplicationContext();
         Context appContext = resolvedContext == null ? context : resolvedContext;
         applicationContext = appContext;
+        EdgeReporterHistory.initialize(appContext);
         runtimePackageName = appContext.getPackageName();
         migrateRestoredPackageReferences(appContext);
         HttpsTransport.setEnabled(preferences(appContext).getBoolean("forceHttps", false));
@@ -774,6 +775,29 @@ public final class Haiagaru {
 
     public static boolean shouldHideAds() {
         return shouldHideAds(applicationContext);
+    }
+
+    /**
+     * Clears the captured Compose flag which emits the tablet-only 50dp banner spacer.
+     * The generated lambda name changes between ChMate releases, so resolve its single
+     * boolean capture structurally instead of depending on an obfuscated field name.
+     */
+    public static void suppressTabletThreadHeaderAdSpace(Object owner) {
+        if (owner == null || !shouldHideAds()) {
+            return;
+        }
+        try {
+            for (Field field : owner.getClass().getDeclaredFields()) {
+                if (field.getType() == Boolean.TYPE
+                        && !java.lang.reflect.Modifier.isStatic(field.getModifiers())) {
+                    field.setAccessible(true);
+                    field.setBoolean(owner, false);
+                    return;
+                }
+            }
+        } catch (Throwable throwable) {
+            Log.w(LOG_TAG, "Unable to suppress tablet banner spacer", throwable);
+        }
     }
 
     public static boolean shouldHideAds(Context context) {
@@ -1278,6 +1302,17 @@ public final class Haiagaru {
     ) {
         if (view == null || adapter == null || !shouldHideAds()) return;
         try {
+            // 191 reserves the tablet banner above the filter buttons as top padding on
+            // the first adapter row. It is not an ad View, so collapsing SDK Views alone
+            // cannot remove it. Normal response rows have no top padding.
+            if (position == 0 && view.getPaddingTop() > 0) {
+                view.setPadding(
+                        view.getPaddingLeft(),
+                        0,
+                        view.getPaddingRight(),
+                        view.getPaddingBottom()
+                );
+            }
             // The legacy response adapter reserves its sixth view type exclusively
             // for the in-thread banner. Normal responses use type 0.
             if (adapter.getItemViewType(position) == 5) {
@@ -1288,7 +1323,33 @@ public final class Haiagaru {
         }
     }
 
+    /** Collapses ChMate 243's RecyclerView-only INLINE_AD response row. */
+    public static void hideModernThreadListAd(View view) {
+        if (view == null || !shouldHideAds()) return;
+        safeCollapseAdView(view);
+        safePostCollapseAdView(view, 0);
+        safePostCollapseAdView(view, 300);
+        safePostCollapseAdView(view, 1000);
+        safePostCollapseAdView(view, 2500);
+    }
+
     private static void collapseAdView(View view) {
+        collapseView(view);
+        collapseAdContainer(view);
+    }
+
+    private static void collapseAdContainer(View adView) {
+        if (!(adView.getParent() instanceof ViewGroup)) return;
+
+        ViewGroup container = (ViewGroup) adView.getParent();
+        // The tablet thread layout reserves a fixed-height wrapper for the banner. Collapse
+        // only a wrapper whose sole child is the ad, leaving normal content containers intact.
+        if (container.getChildCount() == 1 && container.getChildAt(0) == adView) {
+            collapseView(container);
+        }
+    }
+
+    private static void collapseView(View view) {
         view.setVisibility(View.GONE);
         ViewGroup.LayoutParams params = view.getLayoutParams();
         if (params != null) {

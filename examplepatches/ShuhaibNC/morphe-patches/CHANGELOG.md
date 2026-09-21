@@ -1,3 +1,15 @@
+## [1.8.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.7.0...v1.8.0) (2026-09-20)
+
+### ✨ New Features
+
+* vidma ([3a76d78](https://github.com/ShuhaibNC/morphe-patches/commit/3a76d78a1d0c2ec2d73cb865246b47eae329e0dd))
+
+## [1.8.0-dev.1](https://github.com/ShuhaibNC/morphe-patches/compare/v1.7.0...v1.8.0-dev.1) (2026-09-20)
+
+### ✨ New Features
+
+* vidma ([3a76d78](https://github.com/ShuhaibNC/morphe-patches/commit/3a76d78a1d0c2ec2d73cb865246b47eae329e0dd))
+
 ## [1.7.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.6.1...v1.7.0) (2026-09-14)
 
 ### ✨ New Features

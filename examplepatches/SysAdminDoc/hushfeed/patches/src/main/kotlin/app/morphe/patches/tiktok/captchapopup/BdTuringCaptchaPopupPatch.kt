@@ -52,7 +52,7 @@ val bdTuringCaptchaPopupPatch = bytecodePatch(
     // patch is selected. Selected on its own it would install a hook reading a setting
     // with nowhere to turn it on, so it brings the switch with it.
     dependsOn(sharedExtensionPatch, captchaRequestRecorderPatch, hideCaptchaPopupsPatch)
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         RiskControlServiceExecuteFingerprint.method.apply {

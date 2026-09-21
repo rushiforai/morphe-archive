@@ -40,12 +40,12 @@ class AmoledStyleItemsTest {
 
     @Test
     fun `a declared build needs every sheet item and a forced build needs one`() {
-        assertEquals(setOf("46.2.3"), declaredVersions())
-        checkSheetStyleItems(setOf("agk", "c3"), "46.2.3", setOf("46.2.3"))
-        checkSheetStyleItems(setOf("agk"), "46.7.3", setOf("46.2.3"))
-        checkSheetStyleItems(setOf("agk"), null, setOf("46.2.3"))
-        assertRefused { checkSheetStyleItems(setOf("agk"), "46.2.3", setOf("46.2.3")) }
-        assertRefused { checkSheetStyleItems(emptySet(), "46.7.3", setOf("46.2.3")) }
+        assertEquals(setOf("47.0.3"), declaredVersions())
+        checkSheetStyleItems(setOf("agk", "c3"), "47.0.3", setOf("47.0.3"))
+        checkSheetStyleItems(setOf("agk"), "46.9.3", setOf("47.0.3"))
+        checkSheetStyleItems(setOf("agk"), null, setOf("47.0.3"))
+        assertRefused { checkSheetStyleItems(setOf("agk"), "47.0.3", setOf("47.0.3")) }
+        assertRefused { checkSheetStyleItems(emptySet(), "46.9.3", setOf("47.0.3")) }
     }
 
     private fun assertRefused(check: () -> Unit) {

@@ -7,6 +7,7 @@
 package app.morphe.extension.tiktok.blockauthor;
 
 import android.app.Activity;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.util.TypedValue;
@@ -22,9 +23,11 @@ import android.widget.TextView;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.settings.StringSetting;
 import app.morphe.extension.tiktok.feedfilter.SoundIdentity;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.settings.SystemBarInsets;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
@@ -52,6 +55,7 @@ public final class BlockAuthorOverlay {
     private static final int BUTTON_SIZE_DP = 48;
     private static final int BUTTON_GAP_DP = 8;
     private static final long UNDO_VISIBLE_MS = 6_000L;
+    private static final long BLOCK_UNDO_VISIBLE_MS = 2_000L;
 
     /**
      * Left of TikTok's own action rail, level with the top of it.
@@ -192,6 +196,7 @@ public final class BlockAuthorOverlay {
             View existing = buttonReference.get();
             if (existing != null && existing.getParent() == root) {
                 syncVisibility();
+                clampCurrentPositions(root);
                 return;
             }
 
@@ -302,9 +307,24 @@ public final class BlockAuthorOverlay {
         }
         removeVisibilityListener();
 
-        visibilityListener = BlockAuthorOverlay::syncVisibility;
+        visibilityListener = () -> {
+            syncVisibility();
+            clampCurrentPositions(root);
+        };
         root.getViewTreeObserver().addOnGlobalLayoutListener(visibilityListener);
         rootReference = new WeakReference<>(root);
+    }
+
+    /** Re-applies only the safe-area bounds, without moving a control back during a drag. */
+    private static void clampCurrentPositions(ViewGroup root) {
+        if (root.getWidth() == 0 || root.getHeight() == 0) return;
+        for (View view : new View[]{buttonReference.get(), localHideReference.get(),
+                soundButtonReference.get(), notInterestedReference.get()}) {
+            if (view == null || view.getParent() != root) continue;
+            ViewGroup.MarginLayoutParams params =
+                    (ViewGroup.MarginLayoutParams) view.getLayoutParams();
+            moveTo(view, root, params.leftMargin, params.topMargin);
+        }
     }
 
     private static void removeVisibilityListener() {
@@ -364,7 +384,7 @@ public final class BlockAuthorOverlay {
     private static View createLocalHideButton(Activity activity) {
         TextView button = new TextView(activity);
         button.setGravity(Gravity.CENTER);
-        button.setContentDescription(L10n.t(activity, "Hide this creator locally"));
+        button.setContentDescription(L10n.t(activity, "Hide this creator on this phone"));
         button.setFocusable(true);
         Drawable glyph = new OverlayGlyphDrawable(OverlayGlyphDrawable.Shape.CROSS,
                 SettingsUi.OVERLAY_TEXT, SettingsUi.dp(activity, 2));
@@ -409,22 +429,24 @@ public final class BlockAuthorOverlay {
         }
 
         final boolean byId = sound.id != null && !sound.id.isEmpty();
-        if (byId) {
-            Settings.BLOCKED_SOUND_IDS.save(SoundIdentity.withEntry(Settings.BLOCKED_SOUND_IDS.get(), sound.id));
-        } else {
-            Settings.BLOCKED_SOUND_NAMES.save(SoundIdentity.withEntry(Settings.BLOCKED_SOUND_NAMES.get(), sound.name));
-        }
+        StringSetting setting = byId ? Settings.BLOCKED_SOUND_IDS : Settings.BLOCKED_SOUND_NAMES;
+        String identity = byId ? sound.id : sound.name;
+        if (!saveAction(setting, SoundIdentity.withEntry(setting.get(), identity))) return;
         // The sound's author is a creator, so the line says how the sound was recorded, not which.
         Logger.printDebug(() -> "Blocked sound " + (byId ? "by id" : "by name"));
 
         showUndoBanner(L10n.f("Skipping videos with %1$s", sound.label()), () -> {
-            if (byId) {
-                Settings.BLOCKED_SOUND_IDS.save(SoundIdentity.withoutEntry(Settings.BLOCKED_SOUND_IDS.get(), sound.id));
-            } else {
-                Settings.BLOCKED_SOUND_NAMES.save(SoundIdentity.withoutEntry(Settings.BLOCKED_SOUND_NAMES.get(), sound.name));
+            if (saveAction(setting, SoundIdentity.withoutEntry(setting.get(), identity))) {
+                Utils.showToastShort(L10n.f("Unblocked %1$s", sound.label()));
             }
-            Utils.showToastShort(L10n.f("Unblocked %1$s", sound.label()));
         });
+    }
+
+    /** A local action may claim success only after its preference commit succeeded. */
+    static <T> boolean saveAction(Setting<T> setting, T value) {
+        if (setting.save(value)) return true;
+        Utils.showToastLong(L10n.t("This change couldn't be saved. Try again."));
+        return false;
     }
 
     private static View createButton(Activity activity) {
@@ -538,7 +560,7 @@ public final class BlockAuthorOverlay {
         if (parent.getWidth() == 0 || parent.getHeight() == 0) return false;
 
         StringSetting setting = positionSetting(view);
-        setting.resetToDefault();
+        if (!saveAction(setting, setting.defaultValue)) return false;
         int size = SettingsUi.dp(parent.getContext(), BUTTON_SIZE_DP);
         int step = size + SettingsUi.dp(parent.getContext(), BUTTON_GAP_DP);
         float[] fractions = defaultFractions(view, parent, button, size, step);
@@ -610,19 +632,33 @@ public final class BlockAuthorOverlay {
         return location[1];
     }
 
-    /** Moves the button, keeping it fully inside its parent. */
+    /** Moves the button, keeping it clear of screen edges, cutouts and TikTok's tab bar. */
     private static void moveTo(View view, ViewGroup parent, float left, float top) {
         // Before the first layout the view has no size, so fall back to the size it was
         // given, or the clamp would let it sit partly off the right and bottom edges.
         ViewGroup.LayoutParams layout = view.getLayoutParams();
         int width = view.getWidth() > 0 ? view.getWidth() : layout.width;
         int height = view.getHeight() > 0 ? view.getHeight() : layout.height;
-        int maxLeft = Math.max(0, parent.getWidth() - width);
-        int maxTop = Math.max(0, parent.getHeight() - height);
+        Rect systemInsets = SystemBarInsets.current(parent);
+        int minimumLeft = Math.max(0, systemInsets.left);
+        int minimumTop = Math.max(0, systemInsets.top);
+        int reservedBottom = Math.max(0, systemInsets.bottom);
+        Activity activity = Utils.getActivity();
+        if (activity != null) {
+            reservedBottom = Math.max(reservedBottom,
+                    SessionLockOverlay.navigationHeight(activity, parent));
+        }
+        int maxLeft = Math.max(minimumLeft,
+                parent.getWidth() - Math.max(0, systemInsets.right) - width);
+        int maxTop = Math.max(minimumTop,
+                parent.getHeight() - reservedBottom - height);
 
         ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
-        params.leftMargin = Math.round(Math.min(Math.max(left, 0), maxLeft));
-        params.topMargin = Math.round(Math.min(Math.max(top, 0), maxTop));
+        int nextLeft = Math.round(Math.min(Math.max(left, minimumLeft), maxLeft));
+        int nextTop = Math.round(Math.min(Math.max(top, minimumTop), maxTop));
+        if (params.leftMargin == nextLeft && params.topMargin == nextTop) return;
+        params.leftMargin = nextLeft;
+        params.topMargin = nextTop;
         view.setLayoutParams(params);
     }
 
@@ -684,8 +720,17 @@ public final class BlockAuthorOverlay {
 
         StringSetting setting = positionSetting(view);
         String position = round(x) + "," + round(y);
-        setting.save(position);
-        Logger.printDebug(() -> String.valueOf(view.getContentDescription()) + " moved to " + position);
+        if (saveAction(setting, position)) {
+            Logger.printDebug(() -> String.valueOf(view.getContentDescription()) + " moved to " + position);
+            return;
+        }
+
+        View button = buttonReference.get();
+        if (button == null) return;
+        int size = SettingsUi.dp(parent.getContext(), BUTTON_SIZE_DP);
+        int step = size + SettingsUi.dp(parent.getContext(), BUTTON_GAP_DP);
+        float[] defaults = defaultFractions(view, parent, button, size, step);
+        applySavedPosition(view, parent, size, setting, defaults[0], defaults[1]);
     }
 
     private static StringSetting positionSetting(View view) {
@@ -716,10 +761,13 @@ public final class BlockAuthorOverlay {
 
         requestInFlight = true;
         setButtonEnabled(false);
+        dismissUndo();
+        BlockFeedAdvance advance = BlockFeedAdvance.capture(author);
 
         BlockAuthorService.block(author, result -> {
             requestInFlight = false;
             setButtonEnabled(true);
+            if (result == BlockAuthorService.Result.CONFIRMED && advance != null) advance.advance();
             reportBlockResult(author, result);
         });
     }
@@ -745,7 +793,7 @@ public final class BlockAuthorOverlay {
         String after = app.morphe.extension.tiktok.feedfilter.AdvancedFeedRules.addCreatorEntry(
                 before, author.stableId());
         if (after.equals(before)) {
-            Utils.showToastShort(L10n.t("That creator is already in the list"));
+            Utils.showToastShort(L10n.f("%1$s is already hidden", author.label()));
             return;
         }
         String problem = app.morphe.extension.tiktok.feedfilter.FeedRuleLimits.creatorProblem(after);
@@ -753,10 +801,11 @@ public final class BlockAuthorOverlay {
             Utils.showToastLong(problem);
             return;
         }
-        Settings.LOCAL_HIDDEN_CREATORS.save(after);
-        showUndoBanner(L10n.f("Hidden %1$s locally", author.label()), () -> {
-            Settings.LOCAL_HIDDEN_CREATORS.save(before);
-            Utils.showToastShort(L10n.f("Showing %1$s again", author.label()));
+        if (!saveAction(Settings.LOCAL_HIDDEN_CREATORS, after)) return;
+        showUndoBanner(L10n.f("Hidden %1$s on this phone", author.label()), () -> {
+            if (saveAction(Settings.LOCAL_HIDDEN_CREATORS, before)) {
+                Utils.showToastShort(L10n.f("Showing %1$s again", author.label()));
+            }
         });
     }
 
@@ -777,9 +826,52 @@ public final class BlockAuthorOverlay {
      * for a mis-tap while scrolling.
      */
     private static void showUndo(VideoAuthor author) {
-        showUndoBanner(L10n.f("Blocked %1$s", author.label()),
-                () -> BlockAuthorService.unblock(author,
-                        result -> reportUnblockResult(author, result)));
+        Activity activity = Utils.getActivity();
+        ViewGroup root = activity == null || activity.isFinishing() || activity.isDestroyed()
+                ? null : activity.findViewById(android.R.id.content);
+        if (root == null || !activity.hasWindowFocus()) {
+            Utils.showToastShort(L10n.f("Blocked %1$s", author.label()));
+            return;
+        }
+        dismissUndo();
+        TextView chip = new TextView(activity);
+        chip.setText(L10n.t(activity, "Unblock"));
+        chip.setContentDescription(L10n.f(activity, "Blocked %1$s. Unblock", author.label()));
+        chip.setTextColor(SettingsUi.OVERLAY_TEXT);
+        chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        chip.setGravity(Gravity.CENTER);
+        chip.setPadding(SettingsUi.dp(activity, 12), 0, SettingsUi.dp(activity, 12), 0);
+        chip.setMinimumHeight(SettingsUi.dp(activity, 48));
+        chip.setMinimumWidth(SettingsUi.dp(activity, 48));
+        chip.setBackground(new LayerDrawable(new Drawable[]{SettingsUi.overlayBanner(activity),
+                SettingsUi.overlayAction(activity, SettingsUi.RADIUS_OVERLAY)}));
+        chip.setFocusable(true);
+        chip.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        SettingsUi.markAsButton(chip);
+        chip.setOnClickListener(view -> {
+            dismissUndo();
+            requestInFlight = true;
+            setButtonEnabled(false);
+            BlockAuthorService.unblock(author, result -> {
+                requestInFlight = false;
+                setButtonEnabled(true);
+                reportUnblockResult(author, result);
+            });
+        });
+        Rect bars = SystemBarInsets.current(root);
+        int[] origin = new int[2];
+        root.getLocationOnScreen(origin);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(-2, -2,
+                Gravity.TOP | Gravity.LEFT);
+        params.leftMargin = Math.max(0, bars.left - origin[0]) + SettingsUi.dp(activity, 12);
+        params.topMargin = Math.max(0, bars.top - origin[1]) + SettingsUi.dp(activity, 8);
+        root.addView(chip, params);
+        undoReference = new WeakReference<>(chip);
+        final int token = ++undoGeneration;
+        // No entrance/exit animation extends the requested two-second lifetime.
+        Utils.runOnMainThreadDelayed(() -> {
+            if (token == undoGeneration) dismissUndo();
+        }, BLOCK_UNDO_VISIBLE_MS);
     }
 
     static void reportUnblockResult(VideoAuthor author, BlockAuthorService.Result result) {

@@ -134,7 +134,7 @@ public class FeedOverlaySettingsTest {
             bind("video-at-limit");
             ShadowToast.reset();
 
-            button("Hide this creator locally").performClick();
+            button("Hide this creator on this phone").performClick();
             idle();
 
             assertEquals(full.toString(), Settings.LOCAL_HIDDEN_CREATORS.get());
@@ -189,11 +189,11 @@ public class FeedOverlaySettingsTest {
         showSettings(true, false);
         bind("video-one");
         assertVisible("Block this creator");
-        assertVisible("Hide this creator locally");
+        assertVisible("Hide this creator on this phone");
         assertVisible("Block this sound");
 
         click(Settings.LOCAL_HIDE_BUTTON);
-        assertEquals(View.GONE, button("Hide this creator locally").getVisibility());
+        assertEquals(View.GONE, button("Hide this creator on this phone").getVisibility());
         assertVisible("Block this creator");
         assertVisible("Block this sound");
 
@@ -216,7 +216,7 @@ public class FeedOverlaySettingsTest {
             bind("video-one");
             layoutRoot(activity.findViewById(android.R.id.content));
 
-            View local = button("Hide this creator locally");
+            View local = button("Hide this creator on this phone");
             View sound = button("Block this sound");
             assertEquals(View.GONE, local.getVisibility());
             click(Settings.LOCAL_HIDE_BUTTON);
@@ -227,7 +227,7 @@ public class FeedOverlaySettingsTest {
                     (FrameLayout.LayoutParams) sound.getLayoutParams();
             FrameLayout.LayoutParams blockPosition =
                     (FrameLayout.LayoutParams) button("Block this creator").getLayoutParams();
-            assertVisible("Hide this creator locally");
+            assertVisible("Hide this creator on this phone");
             assertVisible("Block this sound");
             assertEquals(blockPosition.leftMargin, localPosition.leftMargin);
             assertEquals(blockPosition.leftMargin, soundPosition.leftMargin);
@@ -245,7 +245,7 @@ public class FeedOverlaySettingsTest {
     @Test public void openingCommentsHidesEveryCustomFeedControlUntilTheSheetCloses() {
         showSettings(true, true);
         bind("video-one");
-        for (String description : new String[] {"Block this creator", "Hide this creator locally",
+        for (String description : new String[] {"Block this creator", "Hide this creator on this phone",
                 "Block this sound", "Not interested in this video"}) {
             assertVisible(description);
         }
@@ -262,7 +262,7 @@ public class FeedOverlaySettingsTest {
         layoutRoot(content);
         content.getViewTreeObserver().dispatchOnGlobalLayout();
 
-        for (String description : new String[] {"Block this creator", "Hide this creator locally",
+        for (String description : new String[] {"Block this creator", "Hide this creator on this phone",
                 "Block this sound", "Not interested in this video"}) {
             assertEquals(description + " remained above comments", View.GONE,
                     button(description).getVisibility());
@@ -270,7 +270,7 @@ public class FeedOverlaySettingsTest {
 
         comments.setVisibility(View.GONE);
         content.getViewTreeObserver().dispatchOnGlobalLayout();
-        for (String description : new String[] {"Block this creator", "Hide this creator locally",
+        for (String description : new String[] {"Block this creator", "Hide this creator on this phone",
                 "Block this sound", "Not interested in this video"}) {
             assertVisible(description);
         }
@@ -419,7 +419,7 @@ public class FeedOverlaySettingsTest {
     }
 
     private void assertNoControls() {
-        for (String description : new String[] {"Block this creator", "Hide this creator locally",
+        for (String description : new String[] {"Block this creator", "Hide this creator on this phone",
                 "Block this sound", "Not interested in this video"}) {
             assertNull("the last switch left " + description + " attached", button(description));
         }

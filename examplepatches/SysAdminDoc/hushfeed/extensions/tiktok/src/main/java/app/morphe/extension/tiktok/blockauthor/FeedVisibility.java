@@ -29,7 +29,8 @@ import java.util.WeakHashMap;
  *
  * The bottom navigation tabs carry their selected state, so the Home tab being selected
  * is a reliable and cheap signal. Verified against TikTok 46.2.3, where the bottom
- * navigation ids are o1k Home, o1j Friends, o1g Create, o1l Inbox, o1m Profile.
+ * navigation ids are o1k Home, o1j Friends, o1g Create, o1l Inbox, o1m Profile. TikTok
+ * 47.0.3 renamed that row to omq Home, omp Friends, omm Create, omr Inbox, oms Profile.
  *
  * <p>Selected is not enough on its own. A creator's profile opened from the feed by the name
  * or the avatar is a page of the same horizontal pager as the feed, and the pager scrolls the
@@ -38,15 +39,15 @@ import java.util.WeakHashMap;
  * {@link View#isShown} does not check: it reads visibility flags up the tree and nothing else.
  */
 public final class FeedVisibility {
-    /** Bottom navigation Home tab on TikTok 46.2.3. */
-    private static final String HOME_TAB_RESOURCE_NAME = "o1k";
+    /** Bottom navigation Home tab, newest reviewed build first. */
+    private static final String[] HOME_TAB_RESOURCE_NAMES = {"omq", "o1k"};
 
-    /** Bottom navigation Inbox tab on the same build. */
-    private static final String INBOX_TAB_RESOURCE_NAME = "o1l";
+    /** Bottom navigation Inbox tab, newest reviewed build first. */
+    private static final String[] INBOX_TAB_RESOURCE_NAMES = {"omr", "o1l"};
 
-    /** Full-screen comment sheet root and its title, stable through 46.2.3, 46.7.3 and 46.8.3. */
-    private static final String COMMENT_SHEET_RESOURCE_NAME = "p_5";
-    private static final String COMMENT_TITLE_RESOURCE_NAME = "vjb";
+    /** Full-screen comment sheet root and its title, newest reviewed build first. */
+    private static final String[] COMMENT_SHEET_RESOURCE_NAMES = {"pvp", "p_5"};
+    private static final String[] COMMENT_TITLE_RESOURCE_NAMES = {"wk7", "vjb"};
 
     /**
      * The story viewer's pager. One id rather than the comment sheet's two: this one is not
@@ -233,10 +234,12 @@ public final class FeedVisibility {
      * unrelated layout that happens to reuse one obfuscated id as the comment sheet.
      */
     public static boolean isCommentSheetVisible(Activity activity) {
-        View sheet = namedView(activity, COMMENT_SHEET_RESOURCE_NAME, commentSheetReference,
-                reference -> commentSheetReference = reference, "comments sheet");
-        View title = namedView(activity, COMMENT_TITLE_RESOURCE_NAME, commentTitleReference,
-                reference -> commentTitleReference = reference, "comments sheet");
+        View sheet = namedView(activity, COMMENT_SHEET_RESOURCE_NAMES, commentSheetReference,
+                reference -> commentSheetReference = reference, "comments sheet",
+                "sheet (" + joinResourceNames(COMMENT_SHEET_RESOURCE_NAMES) + ")");
+        View title = namedView(activity, COMMENT_TITLE_RESOURCE_NAMES, commentTitleReference,
+                reference -> commentTitleReference = reference, "comments sheet",
+                "title (" + joinResourceNames(COMMENT_TITLE_RESOURCE_NAMES) + ")");
         return sheet != null && title != null && sheet.isShown() && title.isShown();
     }
 
@@ -276,13 +279,50 @@ public final class FeedVisibility {
      * caller can treat null as "there is no Inbox to open" without reasoning about the setting.
      */
     public static View inboxTabView(Activity activity) {
-        return tab(activity, INBOX_TAB_RESOURCE_NAME, inboxTabReference,
+        return tab(activity, "Inbox", INBOX_TAB_RESOURCE_NAMES, inboxTabReference,
                 reference -> inboxTabReference = reference);
     }
 
     private static View homeTab(Activity activity) {
-        return tab(activity, HOME_TAB_RESOURCE_NAME, homeTabReference,
+        return tab(activity, "Home", HOME_TAB_RESOURCE_NAMES, homeTabReference,
                 reference -> homeTabReference = reference);
+    }
+
+    private static View namedView(
+            Activity activity,
+            String[] resourceNames,
+            WeakReference<View> cache,
+            Consumer<WeakReference<View>> store,
+            String family,
+            String diagnosticName
+    ) {
+        View cached = cache.get();
+        if (cached != null && belongsTo(cached, activity)) {
+            HookStatus.recoveredViewId(family, diagnosticName);
+            return cached;
+        }
+        try {
+            for (String resourceName : resourceNames) {
+                int id = IDS.resolve(activity.getResources(), activity.getPackageName(),
+                        resourceName, false);
+                if (id == 0) continue;
+
+                // TikTok 47.0.3 retains the 46.x names in its table. Only a candidate in the
+                // current hierarchy is an anchor, and the newest live candidate wins.
+                View view = activity.findViewById(id);
+                if (view == null) continue;
+
+                HookStatus.recoveredViewId(family, diagnosticName);
+                HookStatus.bound(family, resourceName);
+                store.accept(new WeakReference<>(view));
+                return view;
+            }
+            HookStatus.missingViewId(family, diagnosticName);
+            return null;
+        } catch (Throwable ex) {
+            Logger.printException(() -> "Could not resolve " + family + " " + diagnosticName, ex);
+            return null;
+        }
     }
 
     private static View namedView(
@@ -292,58 +332,57 @@ public final class FeedVisibility {
             Consumer<WeakReference<View>> store,
             String family
     ) {
-        View cached = cache.get();
-        if (cached != null && belongsTo(cached, activity)) return cached;
-        try {
-            int id = IDS.resolve(activity.getResources(), activity.getPackageName(),
-                    resourceName, false);
-            if (id == 0) {
-                HookStatus.missingViewId(family, resourceName);
-                return null;
-            }
-            HookStatus.bound(family, resourceName);
-            View view = activity.findViewById(id);
-            if (view != null) store.accept(new WeakReference<>(view));
-            return view;
-        } catch (Throwable ex) {
-            Logger.printException(() -> "Could not resolve " + family + " view " + resourceName, ex);
-            return null;
-        }
+        return namedView(activity, new String[]{resourceName}, cache, store, family, resourceName);
     }
 
     /** Holds the view weakly and re-resolves it once the old one leaves the window. */
     private static View tab(
             Activity activity,
-            String resourceName,
+            String tabName,
+            String[] resourceNames,
             WeakReference<View> cache,
             Consumer<WeakReference<View>> store
     ) {
+        String diagnosticName = tabName + " tab (" + joinResourceNames(resourceNames) + ")";
         View cached = cache.get();
         if (cached != null && belongsTo(cached, activity)) {
+            HookStatus.recoveredViewId(FAMILY, diagnosticName);
             return cached;
         }
 
         try {
-            int id = IDS.resolve(activity.getResources(), activity.getPackageName(),
-                    resourceName, false);
-            if (id == 0) {
-                HookStatus.missingViewId(FAMILY, resourceName);
-                if (HOME_TAB_RESOURCE_NAME.equals(resourceName)) warnMissing();
-                return null;
-            }
-            HookStatus.bound(FAMILY, resourceName);
+            for (String resourceName : resourceNames) {
+                int id = IDS.resolve(activity.getResources(), activity.getPackageName(),
+                        resourceName, false);
+                if (id == 0) continue;
 
-            View tab = activity.findViewById(id);
-            if (tab == null) {
-                return null;
-            }
+                // An obfuscated name can survive in a newer resource table while referring to
+                // something unrelated. It is a usable anchor only when that id is in the live
+                // activity tree. This is the exact 47.0.3 shape: o1k resolves, but Home is omq.
+                View tab = activity.findViewById(id);
+                if (tab == null) continue;
 
-            store.accept(new WeakReference<>(tab));
-            return tab;
+                HookStatus.recoveredViewId(FAMILY, diagnosticName);
+                HookStatus.bound(FAMILY, resourceName);
+                store.accept(new WeakReference<>(tab));
+                return tab;
+            }
+            HookStatus.missingViewId(FAMILY, diagnosticName);
+            if ("Home".equals(tabName)) warnMissing(resourceNames);
+            return null;
         } catch (Throwable ex) {
-            Logger.printException(() -> "Could not resolve the " + resourceName + " tab", ex);
+            Logger.printException(() -> "Could not resolve the " + tabName + " tab", ex);
             return null;
         }
+    }
+
+    private static String joinResourceNames(String[] names) {
+        StringBuilder joined = new StringBuilder();
+        for (String name : names) {
+            if (joined.length() != 0) joined.append('/');
+            joined.append(name);
+        }
+        return joined.toString();
     }
 
     /**
@@ -367,12 +406,13 @@ public final class FeedVisibility {
         void accept(T value);
     }
 
-    private static void warnMissing() {
+    private static void warnMissing(String[] resourceNames) {
         if (warnedMissing) {
             return;
         }
         warnedMissing = true;
-        Logger.printInfo(() -> "Bottom navigation Home tab '" + HOME_TAB_RESOURCE_NAME
+        Logger.printInfo(() -> "Bottom navigation Home tab '"
+                + joinResourceNames(resourceNames)
                 + "' not found. The block button cannot hide itself off the feed.");
     }
 }

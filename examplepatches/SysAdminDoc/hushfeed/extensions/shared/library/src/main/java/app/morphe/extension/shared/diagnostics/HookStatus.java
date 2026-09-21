@@ -134,6 +134,29 @@ public final class HookStatus {
         record(family, name, "view id '" + name + "'");
     }
 
+    /**
+     * Removes a view-id miss after the same required view is found later.
+     *
+     * <p>Android can run a layout listener while an activity is still inflating. A lookup can
+     * therefore miss on the first pass and bind on the next one without any TikTok contract
+     * having changed. Keeping that first pass forever makes a working build look broken. Only
+     * the exact view-id key is removed; member misses and hooks that threw remain evidence.
+     */
+    public static void recoveredViewId(String family, String name) {
+        Family entry = FAMILIES.get(family);
+        if (entry == null || !entry.missed.contains(name)) return;
+        synchronized (STATE_LOCK) {
+            entry = FAMILIES.get(family);
+            if (entry == null || !entry.missed.remove(name)) return;
+            for (Miss miss : entry.order) {
+                if (miss.key.equals(name)) {
+                    entry.order.remove(miss);
+                    break;
+                }
+            }
+        }
+    }
+
     /** A member the extension asked for by name and this build does not have. */
     public static void missingMember(String family, String kind, String owner, String name) {
         String key = owner + '#' + name;

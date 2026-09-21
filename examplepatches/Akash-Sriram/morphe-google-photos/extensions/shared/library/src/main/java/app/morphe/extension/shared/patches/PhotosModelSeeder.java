@@ -58,6 +58,9 @@ public final class PhotosModelSeeder {
                 File prefsDir = new File(dataDir, SHARED_PREFS_DIR_NAME);
                 File targetModelsDir = new File(filesDir, MDD_MODELS_REL_PATH);
 
+                // Seed authentic story fonts immediately in background
+                StoryFontResolver.ensureFontsAsync(context);
+
                 int expected = getExpectedModelCount();
                 int modelCount = countModelsInDir(targetModelsDir);
                 File groupsXml = new File(prefsDir, MDD_GROUPS_XML);
@@ -67,14 +70,13 @@ public final class PhotosModelSeeder {
 
                 if (expected > 0 && modelCount >= expected && hasGroups) {
                     isSeeded = true;
-                    ensureStoryFontsAsync(filesDir);
                     return;
                 }
 
                 // Inject manifest registry immediately so app knows all groups
                 if (!hasGroups) {
                     Logger.printInfo(() -> "PhotosModelSeeder: Injecting MDD manifests into shared_prefs");
-                    unlockDirectory(prefsDir);
+                    CdnAssetDownloader.unlockDirectory(prefsDir);
                     injectManifests(prefsDir, pkg);
                     patchMddManifests(prefsDir, pkg);
                 }
@@ -103,15 +105,15 @@ public final class PhotosModelSeeder {
                 }
 
                 Logger.printInfo(() -> "PhotosModelSeeder: Downloading " + entries.size() + " models on-demand for group " + groupName);
-                unlockDirectory(targetModelsDir);
+                CdnAssetDownloader.unlockDirectory(targetModelsDir);
 
                 for (ModelEntry entry : entries) {
                     File dest = new File(targetModelsDir, entry.filename);
                     if (dest.exists() && dest.length() > 0) continue;
-                    downloadFile(entry.url, dest);
+                    CdnAssetDownloader.download(entry.url, dest);
                 }
 
-                lockModels(targetModelsDir);
+                CdnAssetDownloader.lockDirectory(targetModelsDir);
             } catch (Throwable t) {
                 Logger.printInfo(() -> "PhotosModelSeeder: downloadGroup failed for " + groupName + ": " + t.getMessage());
             }
@@ -140,8 +142,8 @@ public final class PhotosModelSeeder {
                 if (!targetModelsDir.exists()) targetModelsDir.mkdirs();
                 if (!prefsDir.exists()) prefsDir.mkdirs();
 
-                unlockDirectory(targetModelsDir);
-                unlockDirectory(prefsDir);
+                CdnAssetDownloader.unlockDirectory(targetModelsDir);
+                CdnAssetDownloader.unlockDirectory(prefsDir);
 
                 Map<String, String> urlToFile = parseUrlToFileMapping();
                 if (urlToFile.isEmpty()) {
@@ -163,10 +165,7 @@ public final class PhotosModelSeeder {
                         continue;
                     }
 
-                    if (downloadFile(urlStr, dest)) {
-                        dest.setReadable(true, false);
-                        dest.setWritable(true, false);
-                        dest.setExecutable(true, false);
+                    if (CdnAssetDownloader.download(urlStr, dest)) {
                         downloaded++;
                         newlyDownloaded++;
                     } else {
@@ -180,8 +179,7 @@ public final class PhotosModelSeeder {
                     injectManifests(prefsDir, context.getPackageName());
                     patchMddManifests(prefsDir, context.getPackageName());
 
-                    lockModels(targetModelsDir);
-                    ensureStoryFonts(context.getFilesDir());
+                    CdnAssetDownloader.lockDirectory(targetModelsDir);
 
                     isSeeded = true;
                     if (newlyDownloaded > 0) {
@@ -209,35 +207,6 @@ public final class PhotosModelSeeder {
                 isDownloading = false;
             }
         }, "PhotosModelDownloader").start();
-    }
-
-    private static void ensureStoryFontsAsync(File filesDir) {
-        new Thread(() -> ensureStoryFonts(filesDir), "PhotosFontDownloader").start();
-    }
-
-    private static void ensureStoryFonts(File filesDir) {
-        try {
-            File fontsDir = new File(filesDir, "fonts");
-            if (!fontsDir.exists()) fontsDir.mkdirs();
-
-            String[][] fonts = {
-                {"Caveat.ttf", "https://raw.githubusercontent.com/google/fonts/main/ofl/caveat/Caveat%5Bwght%5D.ttf"},
-                {"Handlee.ttf", "https://raw.githubusercontent.com/google/fonts/main/ofl/handlee/Handlee-Regular.ttf"},
-                {"Oswald.ttf", "https://raw.githubusercontent.com/google/fonts/main/ofl/oswald/Oswald%5Bwght%5D.ttf"},
-                {"Montserrat.ttf", "https://raw.githubusercontent.com/google/fonts/main/ofl/montserrat/Montserrat%5Bwght%5D.ttf"},
-                {"PlayfairDisplay.ttf", "https://raw.githubusercontent.com/google/fonts/main/ofl/playfairdisplay/PlayfairDisplay%5Bwght%5D.ttf"}
-            };
-
-            for (String[] font : fonts) {
-                File fontFile = new File(fontsDir, font[0]);
-                if (!fontFile.exists() || fontFile.length() == 0) {
-                    downloadFile(font[1], fontFile);
-                    fontFile.setReadable(true, false);
-                }
-            }
-        } catch (Throwable t) {
-            Logger.printInfo(() -> "PhotosModelSeeder: ensureStoryFonts error: " + t.getMessage());
-        }
     }
 
     public static class ModelEntry {
@@ -353,38 +322,6 @@ public final class PhotosModelSeeder {
         return groupMap;
     }
 
-    private static void unlockDirectory(File dir) {
-        if (dir == null || !dir.exists()) return;
-        File parent = dir;
-        while (parent != null && parent.getAbsolutePath().contains("datadownload")) {
-            parent.setExecutable(true, false);
-            parent = parent.getParentFile();
-        }
-        dir.setWritable(true, false);
-        File[] children = dir.listFiles();
-        if (children != null) {
-            for (File f : children) f.setWritable(true, false);
-        }
-    }
-
-    private static void lockModels(File targetModelsDir) {
-        if (targetModelsDir == null || !targetModelsDir.exists()) return;
-        File parent = targetModelsDir;
-        while (parent != null && parent.getAbsolutePath().contains("datadownload")) {
-            parent.setExecutable(true, false);
-            parent = parent.getParentFile();
-        }
-        targetModelsDir.setWritable(false, false);
-        File[] files = targetModelsDir.listFiles();
-        if (files != null) {
-            for (File f : files) {
-                f.setReadable(true, false);
-                f.setWritable(false, false);
-                f.setExecutable(true, false);
-            }
-        }
-    }
-
     private static void injectManifests(File destDir, String newPackageName) {
         if (!destDir.exists()) destDir.mkdirs();
         for (Map.Entry<String, String> entry : MddManifests.MANIFESTS.entrySet()) {
@@ -398,56 +335,6 @@ public final class PhotosModelSeeder {
             }
         }
         patchMddManifests(destDir, newPackageName);
-    }
-
-    private static boolean downloadFile(String urlStr, File dest) {
-        for (int i = 0; i < 3; i++) {
-            try {
-                File parent = dest.getParentFile();
-                if (parent != null && !parent.exists()) {
-                    parent.mkdirs();
-                }
-
-                URL url = new URL(urlStr);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setConnectTimeout(15000);
-                conn.setReadTimeout(60000);
-
-                int status = conn.getResponseCode();
-                if (status >= 200 && status < 300) {
-                    long expectedSize = conn.getContentLength();
-                    long downloadedSize = 0;
-                    try (InputStream is = new BufferedInputStream(conn.getInputStream());
-                         FileOutputStream fos = new FileOutputStream(dest)) {
-                        byte[] buffer = new byte[16384];
-                        int len;
-                        while ((len = is.read(buffer)) != -1) {
-                            fos.write(buffer, 0, len);
-                            downloadedSize += len;
-                        }
-                        fos.flush();
-                    }
-
-                    if (expectedSize != -1 && downloadedSize != expectedSize) {
-                        Logger.printInfo(() -> "PhotosModelSeeder: Download truncated for " + urlStr + ". Retrying...");
-                        dest.delete();
-                        Thread.sleep(2000);
-                        continue;
-                    }
-
-                    return true;
-                } else {
-                    Logger.printInfo(() -> "PhotosModelSeeder: Download HTTP Error " + status + " for " + urlStr);
-                }
-            } catch (Exception e) {
-                final int attempt = i + 1;
-                Logger.printInfo(() -> "PhotosModelSeeder: Download error for " + urlStr + " (attempt " + attempt + "/3): " + e.getMessage());
-                dest.delete();
-                try { Thread.sleep(2000); } catch (Exception ignored) {}
-            }
-        }
-        if (dest.exists()) dest.delete();
-        return false;
     }
 
     private static void patchMddManifests(File manifestsDir, String newPackageName) {

@@ -10,3 +10,4 @@ local.properties
 # Claude Code local settings + project instructions (local-only)
 .claude/
 CLAUDE.md
+.kotlin/

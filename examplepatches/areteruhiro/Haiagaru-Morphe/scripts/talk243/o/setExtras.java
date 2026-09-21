@@ -1,0 +1,1 @@
+package o; public final class setExtras { public static Object[] c; public static long a; public static long e; }

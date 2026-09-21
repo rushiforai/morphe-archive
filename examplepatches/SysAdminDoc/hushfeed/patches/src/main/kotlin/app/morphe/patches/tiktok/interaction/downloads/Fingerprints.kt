@@ -7,6 +7,8 @@ package app.morphe.patches.tiktok.interaction.downloads
 import app.morphe.patcher.Fingerprint
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
@@ -66,10 +68,25 @@ internal object AwemeGetVideoFingerprint : Fingerprint(
     },
 )
 
+internal fun Method.drawsCommentImageWatermark(): Boolean =
+    implementation?.instructions?.any { instruction ->
+        val reference = instruction.getReference<MethodReference>() ?: return@any false
+        instruction.opcode == Opcode.INVOKE_VIRTUAL &&
+            reference.definingClass == "Landroid/graphics/Canvas;" &&
+            reference.name == "drawBitmap" &&
+            reference.parameterTypes == listOf(
+                "Landroid/graphics/Bitmap;",
+                "F",
+                "F",
+                "Landroid/graphics/Paint;",
+            ) && reference.returnType == "V"
+    } == true
+
 internal object CommentImageWatermarkFingerprint : Fingerprint(
-    strings = listOf("[tiktok_logo]", "image/jpeg", "is_pending"),
+    strings = listOf("[tiktok_logo]"),
     parameters = listOf("Landroid/graphics/Bitmap;"),
     returnType = "V",
+    custom = { method, _ -> method.drawsCommentImageWatermark() },
 )
 
 /**
@@ -218,4 +235,3 @@ internal object DownloadSuccessCoroutineFingerprint : Fingerprint(
     ),
     custom = { method, _ -> method.name == "invokeSuspend" },
 )
-

@@ -6,8 +6,12 @@ package app.morphe.extension.tiktok.navigation;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Collections;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import android.view.View;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
@@ -19,12 +23,60 @@ public final class NavigationTabsFilter {
     private static String lastObservedSignature;
     private static String lastBottomDebugSignature;
     private static String lastBottomObservedSignature;
+    private static volatile boolean loneForYouModel;
+    private static final Set<View> TOP_TAB_STRIPS =
+            Collections.newSetFromMap(new WeakHashMap<>());
 
     private NavigationTabsFilter() {
     }
 
     public static List<?> filterTopTabs(List<?> tabs) {
-        return filterTopTabs(tabs, false);
+        List<?> filtered = filterTopTabs(tabs, false);
+        recordFilteredTopTabs(filtered);
+        return filtered;
+    }
+
+    /** The selected label adds no navigation information when the filtered model is only For You. */
+    static boolean shouldHideLoneForYouHeader() {
+        return Settings.FEED_NAVIGATION.get() && loneForYouModel;
+    }
+
+    /**
+     * Keeps the For You page model intact and hides only TikTok's tab-strip view after it has
+     * finished adding children. The search button lives in a separate sibling container.
+     */
+    public static void installLoneForYouHeaderHider(View tabStrip) {
+        if (tabStrip == null) return;
+        synchronized (TOP_TAB_STRIPS) {
+            TOP_TAB_STRIPS.add(tabStrip);
+        }
+        View.OnLayoutChangeListener listener = (view, left, top, right, bottom,
+                oldLeft, oldTop, oldRight, oldBottom) -> updateLoneForYouHeader(view);
+        tabStrip.addOnLayoutChangeListener(listener);
+        tabStrip.post(() -> updateLoneForYouHeader(tabStrip));
+    }
+
+    private static void updateLoneForYouHeader(View tabStrip) {
+        if (shouldHideLoneForYouHeader()) {
+            tabStrip.setVisibility(View.GONE);
+        }
+    }
+
+    private static void recordFilteredTopTabs(List<?> tabs) {
+        boolean loneForYou = false;
+        if (tabs != null && tabs.size() == 1) {
+            loneForYou = NavigationTabOptions.HOT.equals(
+                    NavigationTabOptions.normalizeRuntimeTag(getTag(tabs.get(0))));
+        }
+        loneForYouModel = loneForYou;
+
+        View[] strips;
+        synchronized (TOP_TAB_STRIPS) {
+            strips = TOP_TAB_STRIPS.toArray(new View[0]);
+        }
+        for (View strip : strips) {
+            if (strip != null) strip.post(() -> updateLoneForYouHeader(strip));
+        }
     }
 
     @SuppressWarnings({"unused", "rawtypes", "unchecked"})

@@ -33,13 +33,14 @@ import java.util.WeakHashMap;
 /**
  * Hides controls TikTok lays over the video player.
  *
- * Ids were read off the live view hierarchy of TikTok 46.2.3 with a video paused:
+ * Ids were read off the live view hierarchy of TikTok 46.2.3 and 47.0.3 with a video paused.
+ * The current name is listed first where 47.0.3 renamed a 46.x view:
  * <pre>
  *   df_search_biz:id/fb   full screen layer the visual search prompt lives in
  *   df_search_biz:id/cn   the clickable "Search this image" pill inside it
- *   id/jup                the Live entrance, top left, 158 px square, no description
- *   id/kzj                the interaction area over the video: the right-hand column's slots
- *                         (id/eoh, one per button), the caption block and the music row
+ *   id/k_5 / id/jup       the Live entrance, top left, 158 px square, no description
+ *   id/liy / id/kzj       the interaction area over the video: the right-hand column's slots
+ *                         (id/ewa or id/eoh), the caption block and the music row
  *   id/ezp                the root of every feed survey card; the cell's survey ViewStubs
  *                         carry no inflatedId, so the card keeps its own layout id. The
  *                         profile's Favorites page is a LinearLayout with the same id.
@@ -48,13 +49,16 @@ import java.util.WeakHashMap;
  *                         is a sibling layer under it, not an ancestor of the rail: scoping
  *                         to that from 0.35.0 hid nothing in the right column (S22, 2026-09-17,
  *                         read off the live tree with the probe's views action).
- *   id/twc                the strip across the top holding For You, Following and the rest
- *   id/hvo id/fws id/ehl  the six id/eoh buttons inside id/kzj, in order: avatar and
- *   id/hu9 id/p2l id/v9o  follow, like, comments, favourite, music disc, share
- *   id/fwu id/ecq         the rows under like, comment, favourite and share; the icon
- *   id/ht9 id/v5x         above each row stays put when its count goes
- *   id/fwt id/ecp         the numeric TextViews inside those rows; these are also targeted
- *   id/ht8 id/v5w         because account-specific layouts can replace the outer row
+ *   id/uvy / id/twc       the strip across the top holding For You, Following and the rest
+ *   id/i98 id/g6r id/ep7  the 47.0.3 avatar, like and comment controls
+ *   id/i7r id/pnp id/w_2  the 47.0.3 favourite, music and share controls
+ *   id/g6t id/ej_         the 47.0.3 rows under like, comment, favourite and share
+ *   id/i6r id/w6_         whose icon stays put when its count goes
+ *   id/g6s id/ej9         the numeric TextViews inside those rows
+ *   id/i6q id/w69
+ *   id/hvo id/fws id/ehl  the corresponding 46.x controls, in the same order
+ *   id/hu9 id/p2l id/v9o
+ *   id/fwu id/ecq id/ht9 id/v5x and id/fwt id/ecp id/ht8 id/v5w
  * </pre>
  * The first two belong to TikTok's search dynamic feature module, so they resolve under
  * that module's package name rather than the app's. Views are re-hidden on every layout
@@ -64,14 +68,14 @@ public final class VideoOverlayHider {
     private static final String APP_PACKAGE = "com.zhiliaoapp.musically";
     private static final String SEARCH_MODULE_PACKAGE = APP_PACKAGE + ".df_search_biz";
     private static final String[] VISUAL_SEARCH_IDS = {"fb", "cn"};
-    private static final String LIVE_ENTRANCE_ID = "jup";
+    private static final String[] LIVE_ENTRANCE_IDS = {"k_5", "jup"};
 
     /** The caption under the creator's name, and the music cover block beside it. */
-    private static final String CAPTION_ID = "desc";
-    private static final String MUSIC_ID = "videomusiccoverblock";
-    private static final String ACTION_BAR_ID = "kzj";
-    private static final String SURVEY_ID = "ezp";
-    private static final String TAB_STRIP_ID = "twc";
+    private static final String[] CAPTION_IDS = {"desc"};
+    private static final String[] MUSIC_IDS = {"videomusiccoverblock"};
+    private static final String[] ACTION_BAR_IDS = {"liy", "kzj"};
+    private static final String[] SURVEY_IDS = {"ezp"};
+    private static final String[] TAB_STRIP_IDS = {"uvy", "twc"};
     /**
      * The feed cell root. Furniture is only hidden underneath one: Hide feed surveys used to
      * take every id/ezp in the window, and on the profile that is the Favorites tab's whole
@@ -112,11 +116,24 @@ public final class VideoOverlayHider {
         reapplyScale();
         return true;
     };
-    /** The six buttons inside the action column, in the order they are stacked. */
     /** The row under each rail button holding its count, without the button itself. */
-    private static final String[] RAIL_COUNT_ROW_IDS = {"fwu", "ecq", "ht9", "v5x"};
+    private static final String[] LIKE_COUNT_ROW_IDS = {"g6t", "fwu"};
+    private static final String[] COMMENT_COUNT_ROW_IDS = {"ej_", "ecq"};
+    private static final String[] FAVORITE_COUNT_ROW_IDS = {"i6r", "ht9"};
+    private static final String[] SHARE_COUNT_ROW_IDS = {"w6_", "v5x"};
+    private static final String[][] RAIL_COUNT_ROW_IDS = {
+            LIKE_COUNT_ROW_IDS, COMMENT_COUNT_ROW_IDS,
+            FAVORITE_COUNT_ROW_IDS, SHARE_COUNT_ROW_IDS
+    };
     /** The numeric text inside each row, retained by layouts that replace the row wrapper. */
-    private static final String[] RAIL_COUNT_TEXT_IDS = {"fwt", "ecp", "ht8", "v5w"};
+    private static final String[] LIKE_COUNT_TEXT_IDS = {"g6s", "fwt"};
+    private static final String[] COMMENT_COUNT_TEXT_IDS = {"ej9", "ecp"};
+    private static final String[] FAVORITE_COUNT_TEXT_IDS = {"i6q", "ht8"};
+    private static final String[] SHARE_COUNT_TEXT_IDS = {"w69", "v5w"};
+    private static final String[][] RAIL_COUNT_TEXT_IDS = {
+            LIKE_COUNT_TEXT_IDS, COMMENT_COUNT_TEXT_IDS,
+            FAVORITE_COUNT_TEXT_IDS, SHARE_COUNT_TEXT_IDS
+    };
     /**
      * Which button each count belongs to, as an index into {@link #RAIL_BUTTON_IDS}: like,
      * comment, favourite, share. A count goes with its button. "Hide like button" used to
@@ -124,9 +141,29 @@ public final class VideoOverlayHider {
      * the switch doing nothing, and was reported as exactly that.
      */
     private static final int[] RAIL_COUNT_BUTTON_INDEX = {1, 2, 3, 5};
-    private static final String[] RAIL_BUTTON_IDS = {"hvo", "fws", "ehl", "hu9", "p2l", "v9o"};
-    private static final int TRAVERSAL_TARGET_COUNT = 5 + RAIL_BUTTON_IDS.length
-            + RAIL_COUNT_ROW_IDS.length + RAIL_COUNT_TEXT_IDS.length;
+    /** The six buttons inside the action column, in the order they are stacked. */
+    private static final String[] AVATAR_BUTTON_IDS = {"i98", "hvo"};
+    private static final String[] LIKE_BUTTON_IDS = {"g6r", "fws"};
+    private static final String[] COMMENT_BUTTON_IDS = {"ep7", "ehl"};
+    private static final String[] FAVORITE_BUTTON_IDS = {"i7r", "hu9"};
+    private static final String[] MUSIC_BUTTON_IDS = {"pnp", "p2l"};
+    private static final String[] SHARE_BUTTON_IDS = {"w_2", "v9o"};
+    private static final String[][] RAIL_BUTTON_IDS = {
+            AVATAR_BUTTON_IDS, LIKE_BUTTON_IDS, COMMENT_BUTTON_IDS,
+            FAVORITE_BUTTON_IDS, MUSIC_BUTTON_IDS, SHARE_BUTTON_IDS
+    };
+    private static final int CAPTION_TARGET = 0;
+    private static final int MUSIC_TARGET = 1;
+    private static final int ACTION_BAR_TARGET = 2;
+    private static final int SURVEY_TARGET = 3;
+    private static final int TAB_STRIP_TARGET = 4;
+    private static final int RAIL_TARGET_START = 5;
+    private static final int COUNT_ROW_TARGET_START = RAIL_TARGET_START + RAIL_BUTTON_IDS.length;
+    private static final int COUNT_TEXT_TARGET_START = COUNT_ROW_TARGET_START
+            + RAIL_COUNT_ROW_IDS.length;
+    private static final String[][] TRAVERSAL_TARGET_IDS = traversalTargetIds();
+    private static final int LOGICAL_TARGET_COUNT = TRAVERSAL_TARGET_IDS.length;
+    private static final int TRAVERSAL_TARGET_COUNT = candidateCount(TRAVERSAL_TARGET_IDS);
 
     private static final int LEGACY_STATUS_BAR_FLAGS = View.SYSTEM_UI_FLAG_FULLSCREEN
             | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -211,11 +248,11 @@ public final class VideoOverlayHider {
 
             if (Settings.HIDE_VISUAL_SEARCH.get()) {
                 for (String name : VISUAL_SEARCH_IDS) {
-                    hide(activity, SEARCH_MODULE_PACKAGE, name);
+                    hide(activity, SEARCH_MODULE_PACKAGE, new String[]{name});
                 }
             }
             if (Settings.HIDE_LIVE_ENTRANCE.get()) {
-                hide(activity, APP_PACKAGE, LIVE_ENTRANCE_ID);
+                hide(activity, APP_PACKAGE, LIVE_ENTRANCE_IDS);
             }
 
             // These are ordinary feed furniture rather than a prompt, so they come back
@@ -254,48 +291,44 @@ public final class VideoOverlayHider {
                 ViewGroup root = activity.findViewById(android.R.id.content);
                 int[] ids = TRAVERSAL.ids;
                 boolean[] hidden = TRAVERSAL.hidden;
-                ids[0] = identifier(activity, APP_PACKAGE, CAPTION_ID);
-                ids[1] = identifier(activity, APP_PACKAGE, MUSIC_ID);
-                ids[2] = identifier(activity, APP_PACKAGE, ACTION_BAR_ID);
-                ids[3] = identifier(activity, APP_PACKAGE, SURVEY_ID);
-                ids[4] = identifier(activity, APP_PACKAGE, TAB_STRIP_ID);
-                hidden[0] = caption;
-                hidden[1] = music;
-                hidden[2] = actionBar;
-                hidden[3] = surveys;
-                hidden[4] = tabStrip;
+                boolean[] wanted = TRAVERSAL.wanted;
+                wanted[CAPTION_TARGET] = caption;
+                wanted[MUSIC_TARGET] = music;
+                wanted[ACTION_BAR_TARGET] = actionBar;
+                wanted[SURVEY_TARGET] = surveys;
+                wanted[TAB_STRIP_TARGET] = tabStrip;
                 for (int i = 0; i < RAIL_BUTTON_IDS.length; i++) {
-                    ids[5 + i] = identifier(activity, APP_PACKAGE, RAIL_BUTTON_IDS[i]);
-                    hidden[5 + i] = rail[i];
+                    wanted[RAIL_TARGET_START + i] = rail[i];
                 }
-                int countsAt = 5 + RAIL_BUTTON_IDS.length;
                 for (int i = 0; i < RAIL_COUNT_ROW_IDS.length; i++) {
-                    ids[countsAt + i] = identifier(activity, APP_PACKAGE, RAIL_COUNT_ROW_IDS[i]);
-                    hidden[countsAt + i] = counts || rail[RAIL_COUNT_BUTTON_INDEX[i]];
+                    boolean hideCount = counts || rail[RAIL_COUNT_BUTTON_INDEX[i]];
+                    wanted[COUNT_ROW_TARGET_START + i] = hideCount;
+                    wanted[COUNT_TEXT_TARGET_START + i] = hideCount;
                 }
-                int countTextAt = countsAt + RAIL_COUNT_ROW_IDS.length;
-                for (int i = 0; i < RAIL_COUNT_TEXT_IDS.length; i++) {
-                    ids[countTextAt + i] = identifier(
-                            activity, APP_PACKAGE, RAIL_COUNT_TEXT_IDS[i]);
-                    hidden[countTextAt + i] = counts || rail[RAIL_COUNT_BUTTON_INDEX[i]];
+
+                int candidateAt = 0;
+                boolean[] needsCell = TRAVERSAL.needsCell;
+                for (int target = 0; target < TRAVERSAL_TARGET_IDS.length; target++) {
+                    boolean hideTarget = wanted[target];
+                    for (String name : TRAVERSAL_TARGET_IDS[target]) {
+                        ids[candidateAt] = resolveIdentifier(
+                                activity, APP_PACKAGE, name, false);
+                        hidden[candidateAt] = hideTarget;
+                        needsCell[candidateAt] = target != TAB_STRIP_TARGET;
+                        candidateAt++;
+                    }
                 }
 
                 List<List<View>> found = TRAVERSAL.found;
                 for (List<View> views : found) {
                     views.clear();
                 }
-                boolean[] needsCell = TRAVERSAL.needsCell;
-                for (int i = 0; i < needsCell.length; i++) {
-                    needsCell[i] = i != 4;
-                }
                 int cellId = identifier(activity, APP_PACKAGE, CELL_ROOT_ID);
                 try {
                     collect(root, ids, found, cellId, cellId == 0, needsCell);
-                    for (int i = 0; i < ids.length; i++) {
-                        for (View view : found.get(i)) {
-                            setHidden(view, hidden[i]);
-                        }
-                    }
+                    selectCurrentTargets(found, TRAVERSAL.selected);
+                    applySelectedTargets(ids, hidden, found, TRAVERSAL.selected,
+                            touchScale != 1f);
                     // The size goes on the icon inside each button, not the button. The slots
                     // are packed with no room between them, so a grown button lands on its
                     // neighbours; an icon grown from its bottom edge stays inside its slot at
@@ -305,14 +338,18 @@ public final class VideoOverlayHider {
                     // Normal puts the icons back. The music row spans the width and is left alone.
                     List<View> scaled = TRAVERSAL.scaled;
                     scaled.clear();
-                    for (int i = 5; i < 5 + RAIL_BUTTON_IDS.length; i++) {
-                        if (i - 5 == RAIL_MUSIC_INDEX) continue;
-                        for (View button : found.get(i)) {
+                    for (int i = 0; i < RAIL_BUTTON_IDS.length; i++) {
+                        if (i == RAIL_MUSIC_INDEX) continue;
+                        int selected = TRAVERSAL.selected[RAIL_TARGET_START + i];
+                        if (selected < 0) continue;
+                        for (View button : found.get(selected)) {
                             collectIcons(button, scaled);
                         }
                     }
+                    int actionBarId = selectedId(
+                            ids, TRAVERSAL.selected[ACTION_BAR_TARGET]);
                     for (View icon : scaled) {
-                        if (touchScale != 1f) unclipUpTo(icon, ids[2]);
+                        if (touchScale != 1f) unclipUpTo(icon, actionBarId);
                         scaleView(icon, touchScale);
                     }
                     if (touchScale != 1f) {
@@ -458,16 +495,93 @@ public final class VideoOverlayHider {
         rail[5] = Settings.HIDE_RAIL_SHARE.get();
     }
 
-    private static void hide(Activity activity, String packageName, String name) {
-        View view = view(activity, packageName, name);
+    private static String[][] traversalTargetIds() {
+        String[][] targets = new String[5 + RAIL_BUTTON_IDS.length
+                + RAIL_COUNT_ROW_IDS.length + RAIL_COUNT_TEXT_IDS.length][];
+        targets[CAPTION_TARGET] = CAPTION_IDS;
+        targets[MUSIC_TARGET] = MUSIC_IDS;
+        targets[ACTION_BAR_TARGET] = ACTION_BAR_IDS;
+        targets[SURVEY_TARGET] = SURVEY_IDS;
+        targets[TAB_STRIP_TARGET] = TAB_STRIP_IDS;
+        for (int i = 0; i < RAIL_BUTTON_IDS.length; i++) {
+            targets[RAIL_TARGET_START + i] = RAIL_BUTTON_IDS[i];
+        }
+        for (int i = 0; i < RAIL_COUNT_ROW_IDS.length; i++) {
+            targets[COUNT_ROW_TARGET_START + i] = RAIL_COUNT_ROW_IDS[i];
+            targets[COUNT_TEXT_TARGET_START + i] = RAIL_COUNT_TEXT_IDS[i];
+        }
+        return targets;
+    }
+
+    private static int candidateCount(String[][] targets) {
+        int count = 0;
+        for (String[] candidates : targets) count += candidates.length;
+        return count;
+    }
+
+    /** Chooses the newest candidate that actually occurs in the current hierarchy. */
+    private static void selectCurrentTargets(List<List<View>> found, int[] selected) {
+        int candidateAt = 0;
+        for (int target = 0; target < TRAVERSAL_TARGET_IDS.length; target++) {
+            selected[target] = -1;
+            for (int i = 0; i < TRAVERSAL_TARGET_IDS[target].length; i++, candidateAt++) {
+                if (selected[target] < 0 && !found.get(candidateAt).isEmpty()) {
+                    selected[target] = candidateAt;
+                }
+            }
+        }
+    }
+
+    /** Applies each logical switch only to its selected version-specific candidate. */
+    private static void applySelectedTargets(int[] ids, boolean[] hidden,
+            List<List<View>> found, int[] selected, boolean scaling) {
+        int candidateAt = 0;
+        for (int target = 0; target < TRAVERSAL_TARGET_IDS.length; target++) {
+            String[] names = TRAVERSAL_TARGET_IDS[target];
+            int chosen = selected[target];
+            boolean wanted = hidden[candidateAt];
+            if (chosen >= 0) {
+                String diagnostic = String.join("|", names);
+                HookStatus.recoveredViewId("overlay", diagnostic);
+                HookStatus.bound("overlay", names[chosen - candidateAt]);
+                for (View view : found.get(chosen)) setHidden(view, wanted);
+            // A survey is content TikTok inserts only on selected posts. Its absence from an
+            // ordinary feed cell says nothing about whether this build still has the anchor.
+            } else if (target != SURVEY_TARGET && (wanted || (scaling
+                    && target >= RAIL_TARGET_START
+                    && target < COUNT_ROW_TARGET_START))) {
+                HookStatus.missingViewId("overlay", String.join("|", names));
+            }
+            candidateAt += names.length;
+        }
+    }
+
+    private static int selectedId(int[] ids, int selected) {
+        return selected < 0 ? 0 : ids[selected];
+    }
+
+    private static void hide(Activity activity, String packageName, String[] names) {
+        View view = view(activity, packageName, names);
         if (view != null && view.getVisibility() != View.GONE) {
             view.setVisibility(View.GONE);
         }
     }
 
-    private static View view(Activity activity, String packageName, String name) {
-        int id = identifier(activity, packageName, name);
-        return id == 0 ? null : activity.findViewById(id);
+    private static View view(Activity activity, String packageName, String[] names) {
+        boolean retryMissing = SEARCH_MODULE_PACKAGE.equals(packageName);
+        String family = overlayFamily(retryMissing);
+        String diagnostic = String.join("|", names);
+        for (String name : names) {
+            int id = resolveIdentifier(activity, packageName, name, retryMissing);
+            View candidate = id == 0 ? null : activity.findViewById(id);
+            if (candidate != null) {
+                HookStatus.recoveredViewId(family, diagnostic);
+                HookStatus.bound(family, name);
+                return candidate;
+            }
+        }
+        if (!retryMissing) HookStatus.missingViewId(family, diagnostic);
+        return null;
     }
 
     /** Every descendant of {@code root} carrying {@code id}, in tree order. */
@@ -528,6 +642,8 @@ public final class VideoOverlayHider {
         final boolean[] hidden;
         final boolean[] needsCell;
         final boolean[] rail;
+        final boolean[] wanted;
+        final int[] selected;
         final List<List<View>> found;
         /** The icons one pass scaled, cleared with the rest once the pass is over. */
         final List<View> scaled = new ArrayList<>();
@@ -537,6 +653,8 @@ public final class VideoOverlayHider {
             hidden = new boolean[targetCount];
             needsCell = new boolean[targetCount];
             rail = new boolean[RAIL_BUTTON_IDS.length];
+            wanted = new boolean[LOGICAL_TARGET_COUNT];
+            selected = new int[LOGICAL_TARGET_COUNT];
             found = new ArrayList<>(targetCount);
             for (int i = 0; i < targetCount; i++) {
                 found.add(new ArrayList<>());
@@ -652,8 +770,7 @@ public final class VideoOverlayHider {
 
     private static int identifier(Activity activity, String packageName, String name) {
         boolean retryMissing = SEARCH_MODULE_PACKAGE.equals(packageName);
-        int id = RESOURCE_IDS.resolve(
-                activity == null ? null : activity.getResources(), packageName, name, retryMissing);
+        int id = resolveIdentifier(activity, packageName, name, retryMissing);
         if (id != 0) {
             // A family per package rather than a composed key: this runs on every layout pass,
             // and the two id spaces can hand out the same two-character obfuscated name.
@@ -664,5 +781,11 @@ public final class VideoOverlayHider {
             HookStatus.missingViewId(overlayFamily(false), name);
         }
         return id;
+    }
+
+    private static int resolveIdentifier(Activity activity, String packageName, String name,
+            boolean retryMissing) {
+        return RESOURCE_IDS.resolve(
+                activity == null ? null : activity.getResources(), packageName, name, retryMissing);
     }
 }

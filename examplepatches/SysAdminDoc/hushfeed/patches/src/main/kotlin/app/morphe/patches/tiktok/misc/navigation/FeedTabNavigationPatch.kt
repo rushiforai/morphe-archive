@@ -15,7 +15,24 @@ import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
+private const val TOP_TAB_LAYOUT_ABILITY =
+    "Lcom/ss/android/ugc/aweme/homepage/ui/view/tab/top/TopTabLayoutAbility;"
+
 private const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/navigation/NavigationTabsFilter;"
+
+internal fun isTopTabLayoutConstructor(method: com.android.tools.smali.dexlib2.iface.Method): Boolean =
+    method.definingClass == TOP_TAB_LAYOUT_ABILITY &&
+        method.name == "<init>" &&
+        method.returnType == "V" &&
+        method.parameterTypes.size == 2 &&
+        method.parameterTypes[0].startsWith("L") &&
+        method.parameterTypes[1] == "Landroid/widget/FrameLayout;"
+
+private object TopTabLayoutConstructorFingerprint : app.morphe.patcher.Fingerprint(
+    definingClass = TOP_TAB_LAYOUT_ABILITY,
+    returnType = "V",
+    custom = { method, _ -> isTopTabLayoutConstructor(method) },
+)
 
 @Suppress("unused")
 val feedTabNavigationPatch = bytecodePatch(
@@ -25,7 +42,7 @@ val feedTabNavigationPatch = bytecodePatch(
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)
 
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         SettingsStatusLoadFingerprint.method.addInstruction(
@@ -74,6 +91,22 @@ val feedTabNavigationPatch = bytecodePatch(
                     """,
                 )
             }
+        }
+
+        TopTabLayoutConstructorFingerprint.method.let { method ->
+            val returns = method.implementation!!.instructions.withIndex()
+                .filter { it.value.opcode == Opcode.RETURN_VOID }
+                .map { it.index }
+            val returnIndex = returns.singleOrNull()
+                ?: throw PatchException(
+                    "Feed tab navigation: expected one TopTabLayoutAbility constructor return, " +
+                        "found ${returns.size}.",
+                )
+            method.addInstruction(
+                returnIndex,
+                "invoke-static {p1}, $EXTENSION_CLASS_DESCRIPTOR->" +
+                    "installLoneForYouHeaderHider(Landroid/view/View;)V",
+            )
         }
     }
 }

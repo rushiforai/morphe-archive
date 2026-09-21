@@ -92,6 +92,22 @@ public class NavigationTabsFilterTest {
         assertFalse(NavigationTabOptions.isKnownKey("RAW:unknown"));
     }
 
+    @Test public void forYouHeaderIsRedundantOnlyWhenTheFilteredModelContainsForYou() {
+        NavigationTabsFilter.filterTopTabs(Arrays.asList(
+                new GetterTab("For You"), new GetterTab("Following")));
+        assertTrue(NavigationTabsFilter.shouldHideLoneForYouHeader());
+
+        Settings.FEED_NAVIGATION_TABS.save("HOT,FOLLOWING");
+        NavigationTabsFilter.filterTopTabs(Arrays.asList(
+                new GetterTab("For You"), new GetterTab("Following")));
+        assertFalse(NavigationTabsFilter.shouldHideLoneForYouHeader());
+
+        Settings.FEED_NAVIGATION_TABS.save("HOT");
+        Settings.FEED_NAVIGATION.save(false);
+        NavigationTabsFilter.filterTopTabs(Arrays.asList(new GetterTab("For You")));
+        assertFalse(NavigationTabsFilter.shouldHideLoneForYouHeader());
+    }
+
     public static class GetterTab {
         private final String value;
 

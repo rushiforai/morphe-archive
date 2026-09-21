@@ -9,6 +9,9 @@ import app.morphe.extension.tiktok.settings.Settings;
 
 import java.util.Calendar;
 import java.util.TimeZone;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.After;
@@ -18,6 +21,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.util.ReflectionHelpers;
 
 /**
  * A budget that miscounts is worse than none: it either stops someone who has barely started or
@@ -68,6 +72,31 @@ public class SessionBudgetTest {
 
         // The player names the same video several times a second; only a change is a video.
         assertEquals(3, SessionBudget.videosSeen());
+    }
+
+    @Test public void aQueuedWriteFromBeforeResetCannotRepopulateClearedState() throws Exception {
+        Settings.SESSION_BUDGET_VIDEOS.save(100);
+        ExecutorService writer = ReflectionHelpers.getStaticField(SessionBudget.class, "WRITER");
+        CountDownLatch entered = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        writer.execute(() -> {
+            entered.countDown();
+            try {
+                release.await();
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+            }
+        });
+        assertTrue("the writer blocker never started", entered.await(5, TimeUnit.SECONDS));
+
+        SessionBudget.noteVideo("before-reset");
+        SessionBudget.resetForTests();
+        Settings.SESSION_BUDGET_STATE.resetToDefault();
+        release.countDown();
+        SessionBudget.awaitWritesForTests();
+
+        assertEquals("a queued write from the old state landed after reset", "",
+                Settings.SESSION_BUDGET_STATE.get());
     }
 
     @Test public void aVideoComeBackToCountsAgain() {

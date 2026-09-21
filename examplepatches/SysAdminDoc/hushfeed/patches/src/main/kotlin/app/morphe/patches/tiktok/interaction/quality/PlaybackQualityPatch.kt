@@ -34,7 +34,7 @@ val playbackQualityPatch = bytecodePatch(
         "it. Download quality has its own setting. Switch: Hushfeed settings > Playback.",
     default = false,
 ) {
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
     dependsOn(settingsPatch, sharedExtensionPatch)
     execute {
         listOf("Video", "VideoUrlModel").forEach { owner ->

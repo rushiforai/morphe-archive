@@ -317,6 +317,25 @@ public class StickerGallerySaverTest {
                 background instanceof android.graphics.drawable.RippleDrawable);
     }
 
+    @Test public void theSaveButtonNeverCopiesATouchTargetSmallerThan48Dp() throws Exception {
+        android.content.Context context = RuntimeEnvironment.getApplication();
+        android.widget.TextView tinyTemplate = new android.widget.TextView(context);
+        tinyTemplate.setMinHeight(12);
+        tinyTemplate.setMinWidth(18);
+        Method create = StickerGallerySaver.class.getDeclaredMethod(
+                "createActionButton", View.class, View.class);
+        create.setAccessible(true);
+
+        android.widget.TextView button = (android.widget.TextView) create.invoke(
+                null, tinyTemplate, new View(context));
+
+        int minimum = app.morphe.extension.tiktok.settings.preference.SettingsUi.dp(context, 48);
+        assertTrue("the sticker action is shorter than 48dp", button.getMinHeight() >= minimum);
+        assertTrue("the sticker action is narrower than 48dp", button.getMinWidth() >= minimum);
+        assertEquals(android.widget.Button.class.getName(),
+                button.createAccessibilityNodeInfo().getClassName());
+    }
+
     private static android.content.Context contextWithNightMode(
             android.content.Context base, boolean night) {
         android.content.res.Configuration config = new android.content.res.Configuration(

@@ -152,7 +152,7 @@ val autoAdvancePatch = bytecodePatch(
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
     execute {
         val completed = Completion.method
         val component = mutableClassDefBy(COMPONENT)

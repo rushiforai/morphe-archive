@@ -14,7 +14,7 @@ val fixGoogleLoginPatch = bytecodePatch(
     description = "Restores Google account sign-in after patching.",
     default = true,
 ) {
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         // returnEarly writes the same two instructions and refuses a method whose return type

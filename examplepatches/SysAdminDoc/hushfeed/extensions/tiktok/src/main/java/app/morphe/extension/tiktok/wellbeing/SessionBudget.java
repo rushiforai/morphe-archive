@@ -48,6 +48,13 @@ public final class SessionBudget {
     private static final Object LOCK = new Object();
 
     /**
+     * Serializes a commit with test resets. The executor preserves ordering between queued
+     * writes, but a reset can otherwise clear storage while an older queued record is waiting.
+     */
+    private static final Object WRITE_FENCE = new Object();
+    private static volatile long writeGeneration;
+
+    /**
      * The settings store commits synchronously, and the caller here is the player's own progress
      * callback. One thread, so writes stay ordered, and never the caller's.
      */
@@ -797,14 +804,22 @@ public final class SessionBudget {
     /** Hands the record to the writer thread, because the settings store commits synchronously. */
     private static void save() {
         writtenWatchedMs = watchedMs;
+        final long generation = writeGeneration;
         final String record = day + "|" + videos + "|" + watchedMs + "|"
                 + lockUntilMs + "|" + (noticeShown ? "1" : "0")
                 + "|" + (lockedToday ? "1" : "0")
                 + "|" + passesUsed
                 + "|" + noticeMarkMs + "|" + noticesShown;
         try {
-            WRITER.execute(() -> Settings.SESSION_BUDGET_STATE.save(record));
+            WRITER.execute(() -> persistRecord(record, generation));
         } catch (RejectedExecutionException stopped) {
+            persistRecord(record, generation);
+        }
+    }
+
+    private static void persistRecord(String record, long generation) {
+        synchronized (WRITE_FENCE) {
+            if (generation != writeGeneration) return;
             Settings.SESSION_BUDGET_STATE.save(record);
         }
     }
@@ -838,6 +853,7 @@ public final class SessionBudget {
 
     static void resetForTests() {
         synchronized (LOCK) {
+            writeGeneration++;
             cachedResetHour = -1;
             cachedWindowStart = 0;
             cachedWindowEnd = 0;
@@ -858,6 +874,11 @@ public final class SessionBudget {
             lastTickMs = 0;
             lastCountedId = null;
             noticeShown = false;
+        }
+        // If a write had already crossed the generation check, wait until it has finished before
+        // the test clears preferences. Anything still queued carries the old generation and exits.
+        synchronized (WRITE_FENCE) {
+            // Fence only.
         }
     }
 }

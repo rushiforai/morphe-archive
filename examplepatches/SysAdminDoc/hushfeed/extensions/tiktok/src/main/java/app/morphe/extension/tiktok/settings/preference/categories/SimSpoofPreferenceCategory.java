@@ -56,13 +56,13 @@ public class SimSpoofPreferenceCategory extends ConditionalPreferenceCategory {
         }
         InputTextPreference countryIsoPreference = new InputTextPreference(
                 context,
-                "Country ISO", "Two letters, like us, gb or jp.",
+                "Country code", "Two letters, like us, gb or jp.",
                 Settings.SIM_SPOOF_ISO
         ).withCheck(value -> RegionSpoof.validCountry(value)
                 ? null : L10n.t("Enter a valid two-letter country code"));
         InputTextPreference mccMncPreference = new InputTextPreference(
                 context,
-                "Operator MCC/MNC", "Your operator's numeric code, like 310260.",
+                "Operator code", "Your operator's numeric code, like 310260.",
                 Settings.SIMSPOOF_MCCMNC
         ).withCheck(value -> SpoofSimPatch.validMccMnc(value.trim()) ? null
                 : L10n.t("An operator code is five or six digits, like 310260"));

@@ -36,7 +36,7 @@ val notInterestedPatch = bytecodePatch(
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch, blockAuthorPatch)
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
     execute {
         val factory = mutableClassDefBy(DislikeRequestFactoryFingerprint.method.definingClass)
         val service = factory.fields.filter { it.accessFlags and AccessFlags.STATIC.value != 0 }

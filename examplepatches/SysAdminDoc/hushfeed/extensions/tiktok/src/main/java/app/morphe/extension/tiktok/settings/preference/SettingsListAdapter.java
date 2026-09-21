@@ -49,7 +49,10 @@ final class SettingsListAdapter extends BaseAdapter implements WrapperListAdapte
         if (position < 0 || position >= getCount()) return true;
         Object item = getItem(position);
         return item instanceof SettingsHeaderPreference || item instanceof PreferenceCategory
-                || item instanceof SectionHeadingPreference;
+                || item instanceof SectionHeadingPreference
+                || item instanceof SettingsStatusPreference
+                || item instanceof SettingsQuickActionsPreference
+                || item instanceof CalmFeedPresetPreference;
     }
 
     @Override public View getView(int position, View convertView, ViewGroup parent) {

@@ -42,6 +42,46 @@ public class FeedVisibilityTest {
         }
     }
 
+    @Test public void currentCommentSheetIdsWinOverRetained46Resources() {
+        // TikTok 47.0.3 moved the live sheet from p_5/vjb to pvp/wk7 while retaining
+        // the older obfuscated names in its resource table. A resolved old id can point to
+        // unrelated, hidden UI and must not make the real sheet invisible to Hushfeed.
+        try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = controller.get();
+            FrameLayout content = activity.findViewById(android.R.id.content);
+            FrameLayout currentSheet = new FrameLayout(activity);
+            currentSheet.setId(0x7f0a4704);
+            TextView currentTitle = new TextView(activity);
+            currentTitle.setId(0x7f0a4705);
+            currentSheet.addView(currentTitle, new FrameLayout.LayoutParams(300, 80));
+            content.addView(currentSheet, new FrameLayout.LayoutParams(500, 700));
+
+            FrameLayout retainedOldSheet = new FrameLayout(activity);
+            retainedOldSheet.setId(0x7f0a4604);
+            retainedOldSheet.setVisibility(View.GONE);
+            TextView retainedOldTitle = new TextView(activity);
+            retainedOldTitle.setId(0x7f0a4605);
+            retainedOldTitle.setVisibility(View.GONE);
+            content.addView(retainedOldSheet, new FrameLayout.LayoutParams(1, 1));
+            content.addView(retainedOldTitle, new FrameLayout.LayoutParams(1, 1));
+
+            FeedVisibility.resolveForTests(activity.getPackageName(), "pvp", currentSheet.getId());
+            FeedVisibility.resolveForTests(activity.getPackageName(), "wk7", currentTitle.getId());
+            FeedVisibility.resolveForTests(activity.getPackageName(), "p_5", retainedOldSheet.getId());
+            FeedVisibility.resolveForTests(activity.getPackageName(), "vjb", retainedOldTitle.getId());
+            try {
+                assertTrue(FeedVisibility.isCommentSheetVisible(activity));
+                currentTitle.setVisibility(View.GONE);
+                assertFalse(FeedVisibility.isCommentSheetVisible(activity));
+            } finally {
+                String[] names = {"pvp", "wk7", "p_5", "vjb"};
+                for (String name : names) {
+                    FeedVisibility.resolveForTests(activity.getPackageName(), name, 0);
+                }
+            }
+        }
+    }
+
     @Test public void poppedDetailDoesNotLeaveAnOverlayOnTheProfile() {
         try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
             Activity activity = controller.get();
@@ -238,17 +278,83 @@ public class FeedVisibilityTest {
         try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
             Activity activity = controller.get();
             HookStatus.clear();
+            FeedVisibility.resolveForTests(activity.getPackageName(), "omq", 0);
             FeedVisibility.resolveForTests(activity.getPackageName(), "o1k", 0);
+            FeedVisibility.resolveForTests(activity.getPackageName(), "omr", 0);
             FeedVisibility.resolveForTests(activity.getPackageName(), "o1l", 0);
 
             assertNull(FeedVisibility.homeTabView(activity));
             assertNull(FeedVisibility.inboxTabView(activity));
 
-            assertEquals(java.util.Arrays.asList("view id 'o1k'", "view id 'o1l'"),
+            assertEquals(java.util.Arrays.asList(
+                            "view id 'Home tab (omq/o1k)'",
+                            "view id 'Inbox tab (omr/o1l)'"),
                     HookStatus.missing("bottom navigation"));
             assertTrue(String.join(" ", HookStatus.report()).contains("bottom navigation"));
         } finally {
             HookStatus.clear();
+        }
+    }
+
+    /**
+     * TikTok 47.0.3 renamed the five bottom navigation views. The old Home resource name still
+     * exists elsewhere in its table, so resolving a numeric id is not proof that the tab was
+     * found. The live tree has to be checked before an older candidate can win.
+     */
+    @Test public void currentTabIdWinsWhenTheOlderResourceStillExistsElsewhere() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = controller.get();
+            FrameLayout content = activity.findViewById(android.R.id.content);
+            View homeTab = new View(activity);
+            homeTab.setId(0x7f0a4703);
+            homeTab.setSelected(true);
+            content.addView(homeTab, new FrameLayout.LayoutParams(216, 138, Gravity.BOTTOM));
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            HookStatus.clear();
+            FeedVisibility.resolveForTests(activity.getPackageName(), "o1k", 0x7f0a4623);
+            FeedVisibility.resolveForTests(activity.getPackageName(), "omq", homeTab.getId());
+            try {
+                assertSame(homeTab, FeedVisibility.homeTabView(activity));
+                assertTrue(FeedVisibility.onRecommendationFeed(activity));
+                assertTrue(HookStatus.missing("bottom navigation").isEmpty());
+            } finally {
+                FeedVisibility.resolveForTests(activity.getPackageName(), "o1k", 0);
+                FeedVisibility.resolveForTests(activity.getPackageName(), "omq", 0);
+                HookStatus.clear();
+            }
+        }
+    }
+
+    @Test public void aTabFoundAfterStartupClearsItsTransientMissingReport() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = controller.get();
+            FrameLayout content = activity.findViewById(android.R.id.content);
+            int homeId = 0x7f0a4703;
+            FeedVisibility.resolveForTests(activity.getPackageName(), "omq", homeId);
+            FeedVisibility.resolveForTests(activity.getPackageName(), "o1k", 0);
+            HookStatus.clear();
+            try {
+                assertNull(FeedVisibility.homeTabView(activity));
+                assertEquals(java.util.Collections.singletonList(
+                                "view id 'Home tab (omq/o1k)'"),
+                        HookStatus.missing("bottom navigation"));
+
+                View homeTab = new View(activity);
+                homeTab.setId(homeId);
+                homeTab.setSelected(true);
+                content.addView(homeTab, new FrameLayout.LayoutParams(
+                        216, 138, Gravity.BOTTOM));
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+                assertSame(homeTab, FeedVisibility.homeTabView(activity));
+                assertTrue("a recovered startup lookup still made the working build look broken",
+                        HookStatus.missing("bottom navigation").isEmpty());
+            } finally {
+                FeedVisibility.resolveForTests(activity.getPackageName(), "omq", 0);
+                FeedVisibility.resolveForTests(activity.getPackageName(), "o1k", 0);
+                HookStatus.clear();
+            }
         }
     }
 }

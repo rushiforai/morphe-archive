@@ -60,6 +60,7 @@ public final class SettingsUi {
     public static final @ColorInt int DARK_TEXT_PRIMARY = Color.rgb(245, 245, 247);
     public static final @ColorInt int DARK_TEXT_SECONDARY = Color.rgb(168, 168, 179);
     public static final @ColorInt int DARK_TEXT_DISABLED = Color.argb(255, 109, 109, 118);
+    public static final @ColorInt int DARK_ERROR = Color.rgb(255, 138, 147);
 
     public static final @ColorInt int LIGHT_BACKGROUND = Color.rgb(245, 245, 248);
     public static final @ColorInt int LIGHT_SURFACE = Color.WHITE;
@@ -69,6 +70,7 @@ public final class SettingsUi {
     public static final @ColorInt int LIGHT_TEXT_PRIMARY = Color.rgb(22, 22, 28);
     public static final @ColorInt int LIGHT_TEXT_SECONDARY = Color.rgb(87, 87, 98);
     public static final @ColorInt int LIGHT_TEXT_DISABLED = Color.argb(255, 117, 117, 125);
+    public static final @ColorInt int LIGHT_ERROR = Color.rgb(180, 35, 61);
 
     public static final int LIGHT_ACCENT = Color.rgb(184, 22, 77);
 
@@ -168,6 +170,11 @@ public final class SettingsUi {
     /** The same red, dark enough to read as text on a white surface (6.4:1 rather than 3.7:1). */
     public static @ColorInt int overlayAccentOn(boolean darkSurface) {
         return darkSurface ? OVERLAY_ACCENT : LIGHT_ACCENT;
+    }
+
+    /** Field and action failure text, measured to at least 4.5:1 on the current surface. */
+    public static @ColorInt int error() {
+        return isDarkMode() ? DARK_ERROR : LIGHT_ERROR;
     }
 
     public static @ColorInt int attentionColor() {
@@ -960,6 +967,7 @@ public final class SettingsUi {
 
         if (list != null) {
             list.setBackgroundColor(Color.TRANSPARENT);
+            styleScrollableList(list);
             list.setDivider(new ColorDrawable(divider()));
             list.setDividerHeight(Math.max(1, dp(dialog.getContext(), 1)));
             list.post(() -> {
@@ -1277,20 +1285,91 @@ public final class SettingsUi {
         });
     }
 
+    // Keyed View tags require the application resource namespace. This private value is not a
+    // real resource and never crosses a process boundary; the uncommon suffix keeps it clear of
+    // TikTok's generated ids while satisfying View's namespace check.
+    private static final int FIELD_ERROR_TAG = 0x7f0f4846;
+
     /**
-     * Puts a refused value's reason where the reader will get it: on the field, with the focus
-     * moved there, and said aloud.
+     * Puts a refused value's reason directly under its field and moves focus back to the field.
      *
-     * <p>Save was the focused view when the check ran, and Android reads a field's error only
-     * while the field itself holds focus, so a TalkBack user heard nothing and was left with a
-     * dialog that would not close. Every dialog's report goes through here so the three cannot
-     * drift apart again.
+     * <p>The platform error popup inherits TikTok's theme, can cover the value it is explaining,
+     * and disappears on its own schedule. This message is part of the form instead. Its assertive
+     * live region speaks the failure once, and the first edit clears stale text without waiting
+     * for another Save press.
      */
     public static void reportFieldError(EditText field, String problem) {
         if (field == null) return;
-        field.setError(problem);
+        TextView error = ensureFieldError(field);
+        field.setError(null);
+        if (error == null) {
+            // A field not attached to a form cannot carry an inline sibling. Keep the refusal
+            // visible rather than losing it, while every shipped dialog takes the inline path.
+            field.setError(problem);
+            field.announceForAccessibility(problem);
+        } else {
+            // Suppress the live-region event while changing the node, then send one explicit
+            // announcement. Otherwise some Android builds say the same error once for the text
+            // change and once for announceForAccessibility, while others say neither because the
+            // view was GONE when the text changed.
+            error.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_NONE);
+            error.setVisibility(View.VISIBLE);
+            error.setText(problem == null ? "" : problem);
+            error.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_ASSERTIVE);
+            if (!TextUtils.isEmpty(problem)) error.announceForAccessibility(problem);
+        }
         field.requestFocus();
-        field.announceForAccessibility(problem);
+    }
+
+    /** Clears both the inline form message and the platform fallback, if either is present. */
+    public static void clearFieldError(EditText field) {
+        if (field == null) return;
+        field.setError(null);
+        Object tagged = field.getTag(FIELD_ERROR_TAG);
+        if (!(tagged instanceof TextView)) return;
+        TextView error = (TextView) tagged;
+        error.setVisibility(View.GONE);
+        error.setText("");
+    }
+
+    private static TextView ensureFieldError(EditText field) {
+        Object tagged = field.getTag(FIELD_ERROR_TAG);
+        if (tagged instanceof TextView) return (TextView) tagged;
+        if (!(field.getParent() instanceof ViewGroup)) return null;
+
+        ViewGroup parent = (ViewGroup) field.getParent();
+        int fieldIndex = parent.indexOfChild(field);
+        if (fieldIndex < 0) return null;
+        TextView error = text(field.getContext(), "", 13, error(), Typeface.NORMAL);
+        error.setTag("hushfeed_field_error");
+        error.setVisibility(View.GONE);
+        error.setPaddingRelative(0, dp(field.getContext(), 4), 0, 0);
+        error.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_ASSERTIVE);
+        error.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+        ViewGroup.LayoutParams params;
+        if (parent instanceof android.widget.LinearLayout) {
+            params = new android.widget.LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        } else {
+            params = new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+        parent.addView(error, fieldIndex + 1, params);
+        field.setTag(FIELD_ERROR_TAG, error);
+        field.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(
+                    CharSequence value, int start, int count, int after) {
+            }
+
+            @Override public void onTextChanged(
+                    CharSequence value, int start, int before, int count) {
+            }
+
+            @Override public void afterTextChanged(android.text.Editable value) {
+                clearFieldError(field);
+            }
+        });
+        return error;
     }
 
     /**
@@ -1322,6 +1401,37 @@ public final class SettingsUi {
                 },
                 new int[]{border(), accent(), border()}
         ));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            editText.setTextCursorDrawable(tinted(editText.getTextCursorDrawable(), accent()));
+            editText.setTextSelectHandle(tinted(editText.getTextSelectHandle(), accent()));
+            editText.setTextSelectHandleLeft(tinted(editText.getTextSelectHandleLeft(), accent()));
+            editText.setTextSelectHandleRight(tinted(editText.getTextSelectHandleRight(), accent()));
+        }
+    }
+
+    private static Drawable tinted(Drawable drawable, @ColorInt int color) {
+        if (drawable == null) return null;
+        Drawable result = drawable.mutate();
+        result.setTint(color);
+        return result;
+    }
+
+    /** Keeps list overscroll inside the same accent system as focus, selection and switches. */
+    public static void styleScrollableList(AbsListView list) {
+        if (list != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            list.setEdgeEffectColor(accent());
+        }
+    }
+
+    /** A dropdown whose closed control, popup and touch target all belong to this settings UI. */
+    public static void styleSpinner(android.widget.Spinner spinner) {
+        if (spinner == null) return;
+        Context context = spinner.getContext();
+        spinner.setBackground(focusableSurface(context, RADIUS_CONTROL, false));
+        spinner.setPopupBackgroundDrawable(borderedSurface(context, RADIUS_FIELD, true));
+        spinner.setMinimumHeight(dp(context, 48));
+        spinner.setFocusableInTouchMode(true);
+        spinner.setFocusable(true);
     }
 
     /**

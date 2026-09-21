@@ -66,25 +66,40 @@ public final class ContentMarkerFilters {
 
         @Override
         public boolean getFiltered(Aweme item) {
-            Object accounts = Reflect.property(item, "getBrandContentAccounts", "brandContentAccounts");
-            if (accounts instanceof Collection && !((Collection<?>) accounts).isEmpty()) {
+            return hasPaidPartnershipMarker(item);
+        }
+    }
+
+    /**
+     * TikTok 47.0.3 builds the visible Paid partnership label from AwemeCommerceStruct.
+     * Earlier Hushfeed releases only read its generic isCommerce flag, which stays false on
+     * branded posts and let the label through. The struct itself also exists on ordinary posts,
+     * so each accepted signal must be non-default.
+     */
+    static boolean hasPaidPartnershipMarker(Aweme item) {
+        if (item == null) return false;
+
+        Object accounts = Reflect.property(item, "getBrandContentAccounts", "brandContentAccounts");
+        if (accounts instanceof Collection && !((Collection<?>) accounts).isEmpty()) {
+            return true;
+        }
+
+        Object commerce = Reflect.property(item, "getCommerceVideoAuthInfo", "commerceVideoAuthInfo");
+        if (commerce != null) {
+            if (Boolean.TRUE.equals(Reflect.property(commerce, "isBrandedContent", "isBrandedContent"))
+                    || Boolean.TRUE.equals(Reflect.property(
+                    commerce, "isBrandOrganicContent", "isBrandOrganicContent"))
+                    || nonZero(commerce, "getBrandedContentType", "brandedContentType")
+                    || nonZero(commerce, "getBrandOrganicType", "brandOrganicType")
+                    || Reflect.string(
+                    commerce, "getEcSearchBoBcLabelText", "ecSearchBoBcLabelText") != null
+                    // Compatibility with the older generic commerce shape.
+                    || Boolean.TRUE.equals(Reflect.property(commerce, "isCommerce", "isCommerce"))) {
                 return true;
             }
-
-            // The commerce struct is present on many ordinary videos, so its mere presence
-            // is not a signal; only its own commerce flag is. (isCommerce is in the app's
-            // string table; getBrandedContentType is not, so it is not tried.)
-            Object commerce = Reflect.property(item, "getCommerceVideoAuthInfo", "commerceVideoAuthInfo");
-            if (commerce != null) {
-                Object isCommerce = Reflect.property(commerce, "isCommerce", "isCommerce");
-                if (Boolean.TRUE.equals(isCommerce)) {
-                    return true;
-                }
-            }
-
-            String info = Reflect.string(item, "getCommercialVideoInfo", "commercialVideoInfo");
-            return info != null;
         }
+
+        return Reflect.string(item, "getCommercialVideoInfo", "commercialVideoInfo") != null;
     }
 
     /** Videos that belong to a paid Series. */

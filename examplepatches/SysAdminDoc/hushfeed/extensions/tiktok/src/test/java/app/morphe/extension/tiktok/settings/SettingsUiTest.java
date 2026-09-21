@@ -104,6 +104,105 @@ public class SettingsUiTest {
     }
 
     @Test
+    public void refusedFieldValueUsesAnInlineLiveErrorThatClearsWhileTyping() {
+        try (var owner = Robolectric.buildActivity(DialogActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            android.widget.LinearLayout form = new android.widget.LinearLayout(activity);
+            form.setOrientation(android.widget.LinearLayout.VERTICAL);
+            EditText field = new EditText(activity);
+            SettingsUi.styleEditText(field);
+            form.addView(field);
+            activity.setContentView(form);
+
+            SettingsUi.reportFieldError(field, "Enter a number.");
+
+            assertEquals("the platform error bubble was used instead of an inline message",
+                    null, field.getError());
+            assertEquals("the field error is not directly below its field", 2,
+                    form.getChildCount());
+            assertTrue("the inline field error is not text",
+                    form.getChildAt(1) instanceof TextView);
+            TextView error = (TextView) form.getChildAt(1);
+            assertEquals("Enter a number.", error.getText().toString());
+            assertEquals(View.ACCESSIBILITY_LIVE_REGION_ASSERTIVE,
+                    error.getAccessibilityLiveRegion());
+            assertTrue("the field did not receive focus after Save was refused",
+                    field.hasFocus());
+
+            field.setText("4");
+            assertEquals("a stale field error stayed visible after the value changed",
+                    View.GONE, error.getVisibility());
+            assertEquals("a hidden field error kept stale text", "", error.getText().toString());
+        }
+    }
+
+    @Test
+    @Config(sdk = 29, qualifiers = "w480dp-h960dp-night-mdpi")
+    public void errorTextAndScrollableEdgesUseTheSharedThemeTokens() {
+        Activity activity = Robolectric.buildActivity(DialogActivity.class).setup().get();
+        Utils.setContext(activity);
+        for (boolean dark : new boolean[]{true, false}) {
+            Utils.setIsDarkModeEnabled(dark);
+            assertTrue("field error text misses 4.5:1 contrast in the "
+                            + (dark ? "dark" : "light") + " theme",
+                    contrast(SettingsUi.error(), SettingsUi.surface()) >= 4.5);
+
+            ListView list = new ListView(activity);
+            SettingsUi.styleScrollableList(list);
+            assertEquals("the top overscroll glow is still the host colour",
+                    SettingsUi.accent(), list.getTopEdgeEffectColor());
+            assertEquals("the bottom overscroll glow is still the host colour",
+                    SettingsUi.accent(), list.getBottomEdgeEffectColor());
+        }
+    }
+
+    @Test
+    public void dropdownControlsCarryTheHushfeedFrameAndPopupSurface() {
+        Activity activity = Robolectric.buildActivity(DialogActivity.class).setup().get();
+        Utils.setContext(activity);
+        android.widget.Spinner spinner = new android.widget.Spinner(
+                activity, android.widget.Spinner.MODE_DROPDOWN);
+
+        SettingsUi.styleSpinner(spinner);
+        activity.setContentView(spinner);
+
+        assertTrue("the value control is shorter than a 48dp touch target",
+                spinner.getMinimumHeight() >= SettingsUi.dp(activity, 48));
+        assertNotNull("the value popup kept the host background", spinner.getPopupBackground());
+        assertTrue("the value popup is not a Hushfeed surface",
+                spinner.getPopupBackground() instanceof android.graphics.drawable.GradientDrawable);
+    }
+
+    @Test
+    @Config(sdk = 29, qualifiers = "w480dp-h960dp-night-mdpi")
+    public void editorCaretAndSelectionHandlesUseTheAccent() {
+        Activity activity = Robolectric.buildActivity(DialogActivity.class).setup().get();
+        Utils.setContext(activity);
+        EditText field = new EditText(activity);
+        field.setTextCursorDrawable(new android.graphics.drawable.ColorDrawable(
+                android.graphics.Color.GREEN));
+        field.setTextSelectHandle(new android.graphics.drawable.ColorDrawable(
+                android.graphics.Color.GREEN));
+        field.setTextSelectHandleLeft(new android.graphics.drawable.ColorDrawable(
+                android.graphics.Color.GREEN));
+        field.setTextSelectHandleRight(new android.graphics.drawable.ColorDrawable(
+                android.graphics.Color.GREEN));
+
+        SettingsUi.styleEditText(field);
+
+        int expected = SettingsUi.accent() | 0xff000000;
+        assertEquals("the caret kept the host colour", expected,
+                centreOf(field.getTextCursorDrawable(), false) | 0xff000000);
+        assertEquals("the selection handle kept the host colour", expected,
+                centreOf(field.getTextSelectHandle(), false) | 0xff000000);
+        assertEquals("the left selection handle kept the host colour", expected,
+                centreOf(field.getTextSelectHandleLeft(), false) | 0xff000000);
+        assertEquals("the right selection handle kept the host colour", expected,
+                centreOf(field.getTextSelectHandleRight(), false) | 0xff000000);
+    }
+
+    @Test
     public void sharedDialogHeadingAndResultStatusCarryAccessibilitySemantics() {
         try (var owner = Robolectric.buildActivity(DialogActivity.class).setup().visible()) {
             Activity activity = owner.get();

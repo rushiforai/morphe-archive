@@ -40,7 +40,7 @@ val playbackSpeedPatch = bytecodePatch(
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)
 
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         val selection = PlaybackSpeedSelectionBoundaryFingerprint.method
@@ -53,15 +53,7 @@ val playbackSpeedPatch = bytecodePatch(
         )
 
         val controllerSetSpeed = PlayerControllerSetSpeedFingerprint.method
-        val playerManagerSetSpeed = controllerSetSpeed.implementationOrPatchException("Playback speed").instructions
-            .firstNotNullOfOrNull { instruction ->
-                instruction.getReference<MethodReference>()?.takeIf { reference ->
-                    instruction.opcode == Opcode.INVOKE_INTERFACE &&
-                        reference.name == "setSpeed" &&
-                        reference.parameterTypes == listOf("F") &&
-                        reference.returnType == "V"
-                }
-            } ?: throw PatchException(
+        val playerManagerSetSpeed = controllerSetSpeed.playerManagerSpeedBoundary() ?: throw PatchException(
             "Playback speed: player-manager speed boundary was not resolved.",
         )
 

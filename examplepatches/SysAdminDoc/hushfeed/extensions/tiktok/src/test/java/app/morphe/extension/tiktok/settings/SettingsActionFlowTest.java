@@ -75,7 +75,7 @@ public class SettingsActionFlowTest {
         assertNotNull(clear);
         assertEquals(View.GONE, clear.getVisibility());
         List<String> empty = titles(fragment);
-        assertTrue(empty.contains("Type to search settings"));
+        assertTrue(empty.contains("Start typing"));
 
         input.setText("comment");
         idle();
@@ -83,7 +83,7 @@ public class SettingsActionFlowTest {
         assertEquals(View.VISIBLE, clear.getVisibility());
         assertEquals("Clear search", clear.getContentDescription());
         assertTrue(titles(fragment).stream().anyMatch(title -> title.toLowerCase().contains("sort")));
-        assertFalse(titles(fragment).contains("Type to search settings"));
+        assertFalse(titles(fragment).contains("Start typing"));
 
         input.setText("zzq_no_such_setting_zzq");
         idle();

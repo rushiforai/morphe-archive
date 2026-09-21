@@ -22,6 +22,8 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.Settings;
 
 import java.time.Duration;
+import java.lang.ref.WeakReference;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.After;
@@ -34,6 +36,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowToast;
+import org.robolectric.util.ReflectionHelpers;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28)
@@ -44,12 +47,18 @@ public class ShareSheetToolsTest {
         context = RuntimeEnvironment.getApplication();
         Utils.setContext(context);
         Settings.SHARE_CONFIRM_SEND.save(false);
+        Settings.HIDE_SHARE_CONTACTS.save(false);
         ShareSheetTools.resetForTests();
         ShadowToast.reset();
+        Object cache = ReflectionHelpers.getStaticField(ShareSheetTools.class, "RESOURCE_IDS");
+        Map<String, Integer> ids = ReflectionHelpers.getField(cache, "ids");
+        ids.put("com.zhiliaoapp.musically:ip5", 0x7f000201);
+        ids.put("com.zhiliaoapp.musically:ibc", 0x7f000101);
     }
 
     @After public void tearDown() {
         Settings.SHARE_CONFIRM_SEND.save(false);
+        Settings.HIDE_SHARE_CONTACTS.resetToDefault();
         ShareSheetTools.resetForTests();
     }
 
@@ -70,6 +79,24 @@ public class ShareSheetToolsTest {
         ShareSheetTools.setCellHidden(cell, false);
         assertEquals("the recycled cell returns to its first measured width", 120,
                 cell.getLayoutParams().width);
+    }
+
+    @Test public void current47ContactsSectionWinsWhenOlderResourceStillResolves() {
+        try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
+            Activity activity = controller.get();
+            FrameLayout root = new FrameLayout(activity);
+            FrameLayout currentSection = new FrameLayout(activity);
+            currentSection.setId(0x7f000201);
+            root.addView(currentSection);
+            activity.setContentView(root);
+
+            Settings.HIDE_SHARE_CONTACTS.save(true);
+            ReflectionHelpers.setStaticField(ShareSheetTools.class, "activityReference",
+                    new WeakReference<>(activity));
+            ReflectionHelpers.callStaticMethod(ShareSheetTools.class, "apply");
+
+            assertEquals(View.GONE, currentSection.getVisibility());
+        }
     }
 
     @Test public void touchAndAccessibilityClickBothUseTheSameTwoStepNativeGate() {

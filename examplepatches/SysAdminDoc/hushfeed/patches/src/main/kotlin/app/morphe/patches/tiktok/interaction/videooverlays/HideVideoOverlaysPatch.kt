@@ -7,6 +7,7 @@
 package app.morphe.patches.tiktok.interaction.videooverlays
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
@@ -17,27 +18,55 @@ import app.morphe.patches.tiktok.misc.settings.settingsPatch
 private const val EXTENSION_CLASS_DESCRIPTOR =
     "Lapp/morphe/extension/tiktok/feed/VideoOverlayHider;"
 
+private object FullscreenEntranceFingerprint : Fingerprint(
+    definingClass = FULLSCREEN_COMPONENT,
+    custom = { method, _ -> isFullscreenBind(method) },
+)
+private object LocationCardFingerprint : Fingerprint(
+    strings = listOf("PoiAnchorView2", "bindData"),
+    custom = { method, _ -> isLocationCardBind(method, "PoiAnchorView2") },
+)
+private object LocationDealCardFingerprint : Fingerprint(
+    strings = listOf("PoiDealAnchorView", "bindData"),
+    custom = { method, _ -> isLocationCardBind(method, "PoiDealAnchorView") },
+)
+private object LocationBadgeListFingerprint : Fingerprint(
+    custom = { method, _ -> isLocationBadgeListFactory(method) },
+)
+
 @Suppress("unused")
 val hideVideoOverlaysPatch = bytecodePatch(
     name = "Hide video overlays",
     description = "Hides the visual search prompt TikTok lays over videos, the Live " +
         "entrance in the top left corner, caption and music text, selected action buttons or " +
-        "their counts in the right column, survey cards and the status bar. Switch: Hushfeed settings > Feed screen.",
+        "their counts in the right column, survey cards and the status bar. Separate switches hide the Full screen " +
+        "button and location labels without removing videos or changing location permissions. Switch: Hushfeed settings > Feed screen.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)
 
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
-        SettingsStatusLoadFingerprint.method.addInstruction(
+        val status = SettingsStatusLoadFingerprint.method
+        val activity = MainActivityOnCreateFingerprint.method
+        val controls = resolveFeedOverlayControls(
+            FullscreenEntranceFingerprint.method,
+            listOf("PoiAnchorView2" to LocationCardFingerprint.method,
+                "PoiDealAnchorView" to LocationDealCardFingerprint.method),
+        ) { classDefByOrNull(it) }
+        val badgeList = LocationBadgeListFingerprint.method.resolveLocationBadgeList()
+        // A missing new control must not leave an otherwise failed patch partly applied.
+        controls()
+        badgeList()
+        status.addInstruction(
             0,
             "invoke-static {}, " +
                 "Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableVideoOverlays()V",
         )
 
         // p0 is the activity. /range because a parameter register is usually above v15.
-        MainActivityOnCreateFingerprint.method.addInstruction(
+        activity.addInstruction(
             0,
             "invoke-static/range { p0 .. p0 }, " +
                 "$EXTENSION_CLASS_DESCRIPTOR->install(Landroid/app/Activity;)V",

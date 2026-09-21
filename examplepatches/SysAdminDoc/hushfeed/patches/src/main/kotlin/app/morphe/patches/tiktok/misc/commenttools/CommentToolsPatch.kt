@@ -25,6 +25,8 @@ import app.morphe.patches.tiktok.shared.constantBefore
 import app.morphe.patches.tiktok.shared.dispatchTarget
 import app.morphe.patches.tiktok.shared.dispatchesOnIndex
 import app.morphe.patches.tiktok.shared.objectIn
+import app.morphe.patches.tiktok.shared.guardAtEntry
+import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getFreeRegisterProvider
@@ -42,12 +44,48 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/comment/CommentTools;"
 private const val COMMENT_DESCRIPTOR = "Lcom/ss/android/ugc/aweme/comment/model/Comment;"
 private const val COMMENT_LIST_DESCRIPTOR = "Lcom/ss/android/ugc/aweme/comment/model/CommentItemList;"
 private const val TOUCH_LISTENER_DESCRIPTOR = "Landroid/view/View\$OnTouchListener;"
 private const val RELATIVE_LAYOUT = "Landroid/widget/RelativeLayout;"
+
+/** The optional banner factory already returns null when TikTok has no related search. */
+internal fun isCommentSearchHeaderFactory(method: Method): Boolean {
+    if (method.definingClass !=
+        "Lcom/ss/android/ugc/aweme/search/common/communicate/AbsSearchService;" ||
+        method.returnType != "Landroid/view/View;" ||
+        method.parameterTypes.take(2).map(CharSequence::toString) != listOf(
+            "Landroid/content/Context;", "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+        )
+    ) return false
+    val instructions = method.implementation?.instructions?.toList() ?: return false
+    return instructions.any { it.getReference<StringReference>()?.string == "comment_top" } &&
+        instructions.any {
+            it.getReference<MethodReference>()?.let { ref ->
+                ref.definingClass == "Lcom/ss/android/ugc/aweme/feed/model/Aweme;" &&
+                    ref.name == "getCommentSuggestWordList" && ref.parameterTypes.isEmpty() &&
+                    ref.returnType == "Lcom/ss/android/ugc/aweme/feed/model/search/CommentSuggestWordList;"
+            } == true
+        }
+}
+
+private object CommentSearchHeaderFactoryFingerprint : Fingerprint(
+    custom = { method, _ -> isCommentSearchHeaderFactory(method) },
+)
+
+internal fun MutableMethod.resolveCommentSearchSuggestions(): CommentToolsWrite {
+    requireLocals("Comment tools", 1)
+    return {
+        guardAtEntry(
+            "Comment tools",
+            "invoke-static {}, $EXTENSION_CLASS_DESCRIPTOR->shouldHideCommentSearchSuggestions()Z",
+            "const/4 v0, 0x0\nreturn-object v0",
+        )
+    }
+}
 
 /**
  * The comment like-and-hate view's bind. The view keeps no name from build to build (`LX/0nvj;`
@@ -89,18 +127,30 @@ val commentToolsPatch = bytecodePatch(
     name = "Comment tools",
     description = "Hides comments that contain chosen words or come from chosen accounts, turns " +
         "the thumbs down on each comment into a block button that shows the block symbol, " +
-        "makes a web address in a comment tappable, hides comment media and polls, and " +
-        "adds a box above the comments that narrows them by what they say or who said it. Switch: Hushfeed settings > Comments.",
+        "makes links tappable and can hide pictures, polls or TikTok's suggested-search banner above comments. " +
+        "Compact comment header removes the count, controls and suggestion space above the list. " +
+        "Easier comment likes extends the heart's touch area into nearby blank space without changing row spacing. " +
+        "A separate search box filters comments already loaded on the video. Each tool has its own switch in Hushfeed settings > Comments.",
     default = false,
 ) {
     dependsOn(settingsPatch, sharedExtensionPatch)
 
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
         // The patcher keeps writes made by a patch that later fails. Each resolver below returns
         // a deferred write, so even the last reply/list/register refusal leaves the APK untouched.
         applyAfterCommentToolsPreflight(
+            {
+                val writes = compactCommentHeaderComponents.keys.map { owner ->
+                    val method = mutableClassDefBy(owner).methods.singleOrNull(::isCompactCommentHeaderBind)
+                        ?: throw PatchException("Comment tools: expected one compact header bind in $owner")
+                    method.resolveCompactCommentHeader()
+                }
+                val write: CommentToolsWrite = { writes.forEach { it() } }
+                write
+            },
+            { CommentSearchHeaderFactoryFingerprint.method.resolveCommentSearchSuggestions() },
             {
                 val settingsStatus = SettingsStatusLoadFingerprint.method
                 // Blocking a commenter goes through the same BlockApi as the block button. Fail
@@ -128,8 +178,11 @@ val commentToolsPatch = bytecodePatch(
                             "touch listeners, found ${installers.size}",
                     )
                 }
-                mutableClassDefBy(likeAndHate.type).findMutableMethodOf(installers.single())
-                    .resolveDislikeTouchListener { classDefByOrNull(it) }
+                val method = mutableClassDefBy(likeAndHate.type).findMutableMethodOf(installers.single())
+                val dislike = method.resolveDislikeTouchListener { classDefByOrNull(it) }
+                val like = method.resolveLikeTouchListener { classDefByOrNull(it) }
+                val write: CommentToolsWrite = { dislike(); like() }
+                write
             },
             {
                 CommentMoreCellBindFingerprint.method.resolveReplySearch { classDefByOrNull(it) }
@@ -442,15 +495,27 @@ private fun List<Instruction>.writerOf(register: Int, index: Int): Int {
  * in one rollout and on every bind in the other; both come through here.
  */
 internal fun MutableMethod.resolveDislikeTouchListener(classOf: (String) -> ClassDef?): CommentToolsWrite {
+    return resolveCommentTouchListener(classOf, "isUserBuried", "isUserDigged", "dislike",
+        "$EXTENSION_CLASS_DESCRIPTOR->setDislikeTouchListener")
+}
+
+internal fun MutableMethod.resolveLikeTouchListener(classOf: (String) -> ClassDef?): CommentToolsWrite {
+    return resolveCommentTouchListener(classOf, "isUserDigged", "isUserBuried", "like",
+        "Lapp/morphe/extension/tiktok/comment/CommentLikeTouchTarget;->setNativeListener")
+}
+
+private fun MutableMethod.resolveCommentTouchListener(
+    classOf: (String) -> ClassDef?, question: String, excludedQuestion: String, control: String, hook: String,
+): CommentToolsWrite {
     val instructions = implementation!!.instructions.toList()
-    val dislikes = touchInstalls().filter { install ->
+    val installs = touchInstalls().filter { install ->
         val body = install.body(classOf) ?: return@filter false
-        body.asksComment("isUserBuried") && !body.asksComment("isUserDigged")
+        body.asksComment(question) && !body.asksComment(excludedQuestion)
     }
-    if (dislikes.size != 1) {
-        throw PatchException("Comment tools: expected one native dislike touch install, found ${dislikes.size}")
+    if (installs.size != 1) {
+        throw PatchException("Comment tools: expected one native $control touch install, found ${installs.size}")
     }
-    val index = dislikes.single().index
+    val index = installs.single().index
     val instruction = instructions[index]
     val (count, operands) = when (instruction) {
         is FiveRegisterInstruction -> Pair(
@@ -463,10 +528,10 @@ internal fun MutableMethod.resolveDislikeTouchListener(classOf: (String) -> Clas
         )
         else -> throw PatchException("Comment tools: unexpected native touch invocation")
     }
-    if (count != 2) throw PatchException("Comment tools: native dislike touch receiver changed")
+    if (count != 2) throw PatchException("Comment tools: native $control touch receiver changed")
     val range = if (instruction is RegisterRangeInstruction) "/range" else ""
     val replacement =
-        "invoke-static$range $operands, $EXTENSION_CLASS_DESCRIPTOR->setDislikeTouchListener(Landroid/view/View;$TOUCH_LISTENER_DESCRIPTOR)V"
+        "invoke-static$range $operands, $hook(Landroid/view/View;$TOUCH_LISTENER_DESCRIPTOR)V"
     return { replaceInstruction(index, replacement) }
 }
 

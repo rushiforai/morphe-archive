@@ -62,14 +62,20 @@ public final class MorpheTikTokAboutPreference extends Preference
 
     static CharSequence summaryFor(Context context, String bundleVersion, String appVersion) {
         String source = L10n.t(context, "Opens github.com in your browser");
-        if (bundleVersion == null || bundleVersion.isEmpty()) return source;
+        CharSequence version = versionSummary(context, bundleVersion, appVersion);
+        return version.length() == 0 ? source : version + ". " + source;
+    }
+
+    /** The compact version sentence shared by About and the master-page status card. */
+    static CharSequence versionSummary(Context context, String bundleVersion, String appVersion) {
+        if (bundleVersion == null || bundleVersion.isEmpty()) return "";
         // "Unknown" is the literal English word Utils hands back when the package manager
         // refuses, and splicing it into an otherwise translated sentence reads worse than
         // leaving the app out. The bundle version is the one the reporter is asked for anyway.
         boolean readable = appVersion != null && !appVersion.isEmpty()
                 && !"Unknown".equals(appVersion);
-        return (readable
+        return readable
                 ? L10n.f(context, "Version %1$s for TikTok %2$s", bundleVersion, appVersion)
-                : L10n.f(context, "Version %1$s", bundleVersion)) + ". " + source;
+                : L10n.f(context, "Version %1$s", bundleVersion);
     }
 }

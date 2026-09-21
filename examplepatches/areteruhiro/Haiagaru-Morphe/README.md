@@ -17,7 +17,7 @@ https://github.com/areteruhiro/Haiagaru
 * 自動DAT取得のON/OFF切り替え
 * 古いDAT・過去ログの改行保持と`.io` URL直接起動時の自動DAT取得
 * Talkの現行・旧形式板URLからの板一覧／スレ取得と書き込み互換処理
-* ChMate `0.8.10.191 dev`／`0.8.10.226 dev` のスレ内広告行の非表示
+* ChMate `0.8.10.191 dev`／`0.8.10.226 dev`／`0.8.10.243 dev` のスレ内広告行の非表示
 * 5ch.io板が外部板扱いと5ch扱いで重複した場合の内部板一覧一括整理
 * パッケージ名・アプリ名・アイコン・versionCodeの変更
 * Morpheで任意に有効化できるクラッシュログ保存
@@ -33,6 +33,16 @@ https://github.com/areteruhiro/Haiagaru
 `subject.txt`ではなく記者ID付きの`subject-metadent.txt`を使用します。
 対象URL以外は変更せず、HTTP/HTTPS、標準ポート、クエリ、フラグメントを保持します。
 不要な場合はHaiagaru設定の「エッヂのスレタイ末尾に記者IDを表示」をOFFにしてください。
+
+取得した記者IDはエッヂのスレッド番号に紐づけて端末内に保存します。
+履歴タイトルの保存・読み込み時に補完するため、DAT落ち後や再起動後も取得済みの記者IDからNG登録できます。
+導入後に一度エッヂの板一覧を更新してください。既にDAT落ちしており記者IDを一度も取得していないスレッドのIDは復元できません。
+
+記者ID付きスレッドからNGThread追加を開くと、226 dev・241・243 devでは「記者IDだけをNG」を選択できます。
+191 devではNGThread追加画面内に同名のボタンを表示します。
+スレタイを手作業で削除する必要はなく、記者ID部分（`[xxxxxxxx★]`）を通常のNGThreadとして保存します。
+登録内容の確認・削除は従来のNGThread設定で行えます。
+
 
 DAT落ちスレ用プリセットは、通常閲覧時ではなく設定画面の更新ボタンを押した時だけ、
 [`presets/chmate-dat-fallen-search-urls.txt`](presets/chmate-dat-fallen-search-urls.txt) を取得します。
@@ -95,23 +105,45 @@ ChMate `0.8.10.241`では、アプリデータを残したまま以前のChMate�
 
 ## URV Manager / Morphe Managerへの追加と更新
 
-現在の公式版（1.3.2）を取得するパッチソースは次のURLです。
+### Morpheへリポジトリとして追加
+
+Morpheのパッチソースには、次のGitHubリポジトリURLをそのまま登録できます。
+
+```text
+https://github.com/areteruhiro/Haiagaru-Morphe/
+```
+
+[MorpheへHaiagaruを追加](https://morphe.software/add-source?github=areteruhiro/Haiagaru-Morphe&name=Haiagaru)
+
+通常版は正式Release `v1.3.3`、プレリリース版はPre-release `1.3.3`から、同じパッチ本体を取得します。
+Morphe Desktop 1.16.0で、上記リポジトリから`1.3.3`のMPPを取得できることを確認しています。
+
+現在の公式版（1.3.3）を取得するパッチソースです。
 
 ```text
 https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/refs/heads/master/patches-bundle.json
 ```
 
-プレリリース版を取得するパッチソースは次のURLです。現在は公式版（1.3.2）と同じ内容です。
+プレリリース設定向けにも同じ1.3.3を配布しています。
 
 ```text
 https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/refs/heads/master/patches-bundle-pre.json
 ```
 
-現在のパッチ本体のバージョンは `1.3.2` です。同じバージョン内で修正版を配布する場合は、
+現在は通常版・プレリリース版の両方で `1.3.3` を配布しています。同じバージョン内で修正版を配布する場合は、
 URV Manager / Morphe Managerが更新を検出できるようにJSON上の配布リビジョンを更新します。
 更新が表示されない場合は、パッチソース画面から手動で更新を実行してください。
 
 ## 更新履歴
+
+### 1.3.3（正式版）
+
+- エッヂの記者IDをスレ履歴へ保持し、既読スレや再起動後でも取得済みの記者IDをNGThreadへ登録できるように修正
+- ChMate `0.8.10.191 dev`／`0.8.10.226 dev`で、5ch.io移行後も必死チェッカーのメニューを利用できるように修正
+- ChMate `0.8.10.243 dev`のTalk投稿時に発生する署名依存の整合性エラーを修正
+- ChMate `0.8.10.191 dev`／`0.8.10.226 dev`／`0.8.10.243 dev`のスレ内広告行を非表示化
+- タブレット表示で上部に残っていた広告予約枠を、191の旧View構造と226／241／243のCompose構造ごとに除去
+- 226 devへ修正版を実機導入し、上部余白のみが消えてフィルターボタンが維持されることを確認
 
 ### 1.3.2（正式版）
 

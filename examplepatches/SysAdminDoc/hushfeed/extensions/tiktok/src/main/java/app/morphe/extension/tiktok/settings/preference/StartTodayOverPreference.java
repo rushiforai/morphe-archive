@@ -7,7 +7,6 @@ package app.morphe.extension.tiktok.settings.preference;
 import android.content.Context;
 import android.preference.Preference;
 
-import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.preference.ImmediateAction;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.wellbeing.SessionBudget;
@@ -42,24 +41,29 @@ public final class StartTodayOverPreference extends Preference implements Immedi
 
         setOnPreferenceClickListener(preference -> {
             if (SessionBudget.canUndoClear()) {
-                boolean back = SessionBudget.undoClear();
-                SessionLockOverlay.sync();
-                setSummary(L10n.t(context, CLEAR_SUMMARY));
-                Utils.showToastShort(L10n.t(context, back
-                        ? "Today is back where it was"
-                        : "Today has moved on, so there is nothing to put back"));
+                undoClear(context);
                 return true;
             }
             if (!SessionBudget.clear()) {
-                Utils.showToastShort(L10n.f(context,
+                SettingsActionBanner.showNotice(context, L10n.f(context,
                         "Today's budget is locked. The day starts over at %1$s.",
                         SessionLockOverlay.resetTimeLabel()));
                 return true;
             }
             SessionLockOverlay.sync();
             setSummary(L10n.t(context, UNDO_SUMMARY));
-            Utils.showToastShort(L10n.t(context, "Today starts again"));
+            SettingsActionBanner.showUndo(context, L10n.t(context, "Today starts again"),
+                    () -> undoClear(context));
             return true;
         });
+    }
+
+    private void undoClear(Context context) {
+        boolean back = SessionBudget.undoClear();
+        SessionLockOverlay.sync();
+        setSummary(L10n.t(context, CLEAR_SUMMARY));
+        SettingsActionBanner.showNotice(context, L10n.t(context, back
+                ? "Today is back where it was"
+                : "Today has moved on, so there is nothing to put back"));
     }
 }

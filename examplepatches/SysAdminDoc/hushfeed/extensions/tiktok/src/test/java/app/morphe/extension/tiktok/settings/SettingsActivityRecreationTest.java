@@ -10,7 +10,9 @@ import android.preference.Preference;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.TextView;
 import app.morphe.extension.tiktok.SettingsContextRule;
+import app.morphe.extension.tiktok.settings.preference.SettingsActionBanner;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 import com.bytedance.ies.ugc.aweme.commercialize.compliance.personalization.AdPersonalizationActivity;
 import org.junit.After;
@@ -129,6 +131,39 @@ public class SettingsActivityRecreationTest {
             assertEquals(0, activity.getFragmentManager().getBackStackEntryCount());
             activity.onBackPressed();
             assertTrue(activity.isFinishing());
+        }
+    }
+
+    @Test public void actionBannerStaysAboveASectionAndTheRestoredHomePage() {
+        try (var owner = Robolectric.buildActivity(SettingsActivity.class, settingsIntent()).setup().visible()) {
+            SettingsActivity activity = owner.get();
+            settle(activity);
+            ViewGroup content = activity.findViewById(android.R.id.content);
+            ViewGroup settingsSurface = (ViewGroup) content.findViewWithTag(
+                    SettingsActionBanner.CONTENT_ROOT_TAG);
+            ViewGroup pageContainer = container(activity);
+            assertNotNull(settingsSurface);
+            assertNotSame("feedback was mounted inside the fragment container",
+                    pageContainer, settingsSurface);
+
+            SettingsActionBanner.showUndo(activity, "Today starts again", () -> { });
+            settle(activity);
+            View banner = settingsSurface.getChildAt(settingsSurface.getChildCount() - 1);
+            assertNotSame(pageContainer, banner);
+
+            clickMenu(activity, "Downloads");
+            assertSame("the opened section covered the live Undo action", banner,
+                    settingsSurface.getChildAt(settingsSurface.getChildCount() - 1));
+
+            activity.onBackPressed();
+            settle(activity);
+            assertSame("the restored home page covered the live Undo action", banner,
+                    settingsSurface.getChildAt(settingsSurface.getChildCount() - 1));
+
+            TextView undo = banner.findViewWithTag("hushfeed_settings_action_button");
+            assertNotNull(undo);
+            assertTrue(undo.performClick());
+            assertNull(banner.getParent());
         }
     }
 

@@ -3,7 +3,6 @@ package app.template.patches.shared
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
-import app.morphe.patcher.patch.SupportedAbi
 
 object Constants {
     val COMPATIBILITY_EXAMPLE = Compatibility(
@@ -67,10 +66,8 @@ object Constants {
                 // same version code but only 1 specific version code works or has been well tested.
                 // If there is only 1 release for each architecture file type, then it's best
                 // not to declare this.
-                versionCodes = mapOf(
-                    SupportedAbi.ARM64_V8A to 584009457,
-                    SupportedAbi.ARMEABI_V7A to 584119423
-                )
+
+                versionCode = 584009457,
             )
         )
     )
@@ -86,10 +83,8 @@ object Constants {
             ),
             AppTarget(
                 version = "1.0.10-5",
-                versionCodes = mapOf(
-                    SupportedAbi.ARM64_V8A to 1001005,
-                    SupportedAbi.ARMEABI_V7A to 1001005
-                )
+                versionCode = 1001005,
+
             )
         )
     )
@@ -135,10 +130,7 @@ object Constants {
             ),
             AppTarget(
                 version = "8.0.527",
-                versionCodes = mapOf(
-                    SupportedAbi.ARM64_V8A to 80527,
-                    SupportedAbi.ARMEABI_V7A to 80527
-                )
+                versionCode = 80527
             )
         )
     )
@@ -154,10 +146,7 @@ object Constants {
             ),
             AppTarget(
                 version = "7.3.13",
-                versionCodes = mapOf(
-                    SupportedAbi.ARM64_V8A to 123,
-                    SupportedAbi.ARMEABI_V7A to 123
-                )
+                versionCode = 123
             )
         )
     )
@@ -170,10 +159,7 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = "2.4.1 build 202",
-                versionCodes = mapOf(
-                    SupportedAbi.ARM64_V8A to 20202,
-                    SupportedAbi.ARMEABI_V7A to 20202
-                )
+                versionCode = 20202,
             )
         )
     )
@@ -185,10 +171,7 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = "1.0.11515",
-                versionCodes = mapOf(
-                    SupportedAbi.ARM64_V8A to 11515,
-                    SupportedAbi.ARMEABI_V7A to 11515
-                )
+                versionCode = 11515,
             )
         )
     )
@@ -201,10 +184,7 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = "2.46.10897",
-                versionCodes = mapOf(
-                    SupportedAbi.ARM64_V8A to 10897,
-                    SupportedAbi.ARMEABI_V7A to 10897
-                )
+                versionCode = 10897,
             )
         )
     )
@@ -216,10 +196,7 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = "16.1.0",
-                versionCodes = mapOf(
-                    SupportedAbi.ARM64_V8A to 12000096,
-                    SupportedAbi.ARMEABI_V7A to 12000096
-                )
+                versionCode = 12000096
             )
         )
     )
@@ -232,10 +209,20 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = "6.1.3_1",
-                versionCodes = mapOf(
-                    SupportedAbi.ARM64_V8A to 6131,
-                    SupportedAbi.ARMEABI_V7A to 6131
-                )
+                versionCode = 6131
+            )
+        )
+    )
+
+    val VIDMA_COMPATIBILITY = Compatibility(
+        name = "Vidma",
+        packageName = "vidma.video.editor.videomaker",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x1C1C1C,
+        targets = listOf(
+            AppTarget(
+                version = "2.11.5",
+                versionCode = 20110501
             )
         )
     )

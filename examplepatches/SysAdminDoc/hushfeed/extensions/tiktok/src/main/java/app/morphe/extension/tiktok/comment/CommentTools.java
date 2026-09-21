@@ -51,7 +51,8 @@ import java.util.WeakHashMap;
  * 46.2.3 ({@code getText}, {@code getUser}, {@code getCid}, {@code getReplyComments}, and
  * the public {@code items} list), so nothing here depends on an obfuscated name.
  *
- * The thumbs down is a RelativeLayout ({@code jlk}) holding an icon ({@code m3b}) at the
+ * The thumbs down is a RelativeLayout ({@code k0k} on 47.0.3, {@code jlk} on 46.x) holding an
+ * icon ({@code mmt} on 47.0.3, {@code m3b} on 46.x) at the
  * right end of the comment's action row; both ids were read off a live comment panel. TikTok
  * drives it with a touch listener that can be installed only once per view. A native install
  * hook keeps that listener in a view-owned wrapper, and the posted cell bind switches the
@@ -62,6 +63,12 @@ import java.util.WeakHashMap;
  * sits underneath it.
  */
 public final class CommentTools {
+    /** The optional suggested-search banner, not Hushfeed's loaded-comment search box. */
+    public static boolean shouldHideCommentSearchSuggestions() {
+        HookStatus.bound("comment search suggestions", "comment_top banner factory");
+        return Settings.HIDE_COMMENT_SEARCH_SUGGESTIONS.get();
+    }
+
     /**
      * The brand animation TikTok plays over the comment sheet when a comment matches an
      * advertiser's trigger. Called from the trigger itself, so returning true skips it.
@@ -72,11 +79,11 @@ public final class CommentTools {
 
     private static final String APP_PACKAGE = "com.zhiliaoapp.musically";
     private static final String POLL_HOOK_FAMILY = "comment polls";
-    private static final String DISLIKE_BUTTON_ID = "jlk";
+    private static final String[] DISLIKE_BUTTON_IDS = {"k0k", "jlk"};
 
     /** One log line for a cell with no thumbs down, not a verdict on the build. */
     private static boolean warnedNoDislikeControl;
-    private static final String DISLIKE_ICON_ID = "m3b";
+    private static final String[] DISLIKE_ICON_IDS = {"mmt", "m3b"};
     /**
      * Faded enough to read as blocked, still readable. At 0.35 the comment text dropped to about
      * 3:1 on the sheet, which is below the floor for text of that size.
@@ -145,6 +152,7 @@ public final class CommentTools {
         // Before the switches below: a sheet is open whichever of the comment tools are on,
         // and this is the only callback that says so.
         app.morphe.extension.tiktok.playback.PausePlayback.onCommentCellBound(itemView);
+        CommentLikeTouchTarget.onCellBound(itemView);
 
         boolean block = Settings.BLOCK_FROM_COMMENT.get();
         if (!block) {
@@ -273,14 +281,15 @@ public final class CommentTools {
 
     private static void takeOverDislike(View cell, boolean holdsAnotherComment) {
         try {
-            View button = cell.findViewById(identifier(cell, DISLIKE_BUTTON_ID));
+            View button = commentControl(cell, DISLIKE_BUTTON_IDS);
             if (button == null) {
                 // Deliberately not a hook status miss. This runs per comment cell, and a row
                 // variant without the control, or one not fully inflated when the posted
                 // runnable lands, would otherwise mark the whole build broken for good.
                 if (!warnedNoDislikeControl) {
                     warnedNoDislikeControl = true;
-                    Logger.printInfo(() -> "Comment thumbs down control '" + DISLIKE_BUTTON_ID
+                    Logger.printInfo(() -> "Comment thumbs down control '"
+                            + String.join("|", DISLIKE_BUTTON_IDS)
                             + "' not found in this comment cell");
                 }
                 return;
@@ -290,7 +299,7 @@ public final class CommentTools {
             // that lands on it never reaches TikTok's handling either.
             // A press taken while this row held a different comment must not be released onto
             // the account that just arrived in it.
-            View icon = cell.findViewById(identifier(cell, DISLIKE_ICON_ID));
+            View icon = commentControl(cell, DISLIKE_ICON_IDS);
             rememberBeforeTakeover(cell, button, icon);
             wireBlockControl(button, icon);
             if (holdsAnotherComment) {
@@ -380,7 +389,7 @@ public final class CommentTools {
             ControlTouchListener listener = existingControl(touched);
             if (listener == null || listener.state == null) {
                 // A bind supplies itemView; a touch supplies either indexed control.
-                View button = touched.findViewById(identifier(touched, DISLIKE_BUTTON_ID));
+                View button = commentControl(touched, DISLIKE_BUTTON_IDS);
                 listener = existingControl(button);
             }
             if (listener != null && listener.state != null) unwireBlockControl(listener.state);
@@ -394,7 +403,7 @@ public final class CommentTools {
         if (button != null) {
             ControlTouchListener listener = existingControl(button);
             if (listener != null) listener.handBack(button);
-            // The native jlk control uses touch handling; this click belongs to the takeover.
+            // The native thumbs down control uses touch handling; this click belongs to the takeover.
             button.setOnClickListener(null);
             button.setClickable(state.buttonClickable);
             button.setContentDescription(state.description);
@@ -590,9 +599,9 @@ public final class CommentTools {
 
         // The label still said "dislike" for a control that blocks, and a faded row was the
         // only sign an account was blocked, which a screen reader cannot see at all.
-        describeBlockControl(cell.findViewById(identifier(cell, DISLIKE_BUTTON_ID)), blocked);
+        describeBlockControl(commentControl(cell, DISLIKE_BUTTON_IDS), blocked);
 
-        View icon = cell.findViewById(identifier(cell, DISLIKE_ICON_ID));
+        View icon = commentControl(cell, DISLIKE_ICON_IDS);
         if (icon instanceof ImageView) {
             ImageView image = (ImageView) icon;
             // A control that blocks an account in one tap looked exactly like TikTok's thumbs
@@ -914,12 +923,26 @@ public final class CommentTools {
         return false;
     }
 
-    /** Resolves a comment view id, saying so once when this build does not have it. */
-    private static int identifier(View view, String name) {
-        int id = RESOURCE_IDS.resolve(view == null ? null : view.getResources(), APP_PACKAGE, name, false);
-        if (id == 0) HookStatus.missingViewId("comments", name);
-        else HookStatus.bound("comments", name);
-        return id;
+    /** Chooses the newest candidate that actually occurs in this comment cell. */
+    private static View commentControl(View root, String[] candidates) {
+        if (root == null) return null;
+        boolean resolvedAny = false;
+        String diagnostic = String.join("|", candidates);
+        for (String name : candidates) {
+            int id = RESOURCE_IDS.resolve(root.getResources(), APP_PACKAGE, name, false);
+            if (id == 0) continue;
+            resolvedAny = true;
+            View control = root.findViewById(id);
+            if (control == null) continue;
+
+            HookStatus.recoveredViewId("comments", diagnostic);
+            HookStatus.bound("comments", name);
+            return control;
+        }
+        // Some row variants intentionally omit the control. That is not a broken hook. A build
+        // with none of the candidate resources is a contract failure and should say so once.
+        if (!resolvedAny) HookStatus.missingViewId("comments", diagnostic);
+        return null;
     }
 
     private static List<String> entries(String stored) {

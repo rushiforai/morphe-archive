@@ -14,9 +14,9 @@
 <p align="center">
   <a href="https://morphe.software/add-source?github=kveld9/kveld-morphe-patches"><img src="https://img.shields.io/badge/Morphe_Manager-Add_Patch_Source-8A2BE2?style=for-the-badge&logo=android&logoColor=white" alt="Add Source to Morphe Manager" /></a>
   &nbsp;&nbsp;
-  <a href="https://t.me/kveldmorphe"><img src="https://img.shields.io/badge/Telegram-Official_Support-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Official Telegram Support Group" /></a>
-  &nbsp;&nbsp;
   <a href="https://github.com/kveld9/kveld-morphe-patches/releases/latest"><img src="https://img.shields.io/badge/Direct_Download-Get_.MPP_Bundle-0070F3?style=for-the-badge&logo=github&logoColor=white" alt="Download Latest Release" /></a>
+  <br/>
+  <a href="https://t.me/kveldmorphe"><img src="https://img.shields.io/badge/Telegram-Official_Support-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Official Telegram Support Group" /></a>
 </p>
 
 ---
@@ -38,6 +38,7 @@
 - **Current Target**: `1.95.104` (`Bravemonoarm64.apk`)
 - **Architecture**: `arm64-v8a` (Monochrome only)
 - **Package**: `com.brave.browser`
+- ⚠️ *Monolithic APK Required*: You **must** download **`Bravemonoarm64.apk`** from [Brave GitHub Releases](https://github.com/brave/brave-browser/releases) (not APKMirror). APKMirror splits or other variants (`Bravearm64Universal.apk`, 32-bit builds) use different R8 obfuscation passes and native ELF offsets, which will fail patching.
 
 <a href="https://github.com/brave/brave-browser/releases/download/v1.95.104/Bravemonoarm64.apk"><img src="https://img.shields.io/badge/Download-Bravemonoarm64.apk_(v1.95.104)-FF4500?style=for-the-badge&logo=brave&logoColor=white" alt="Download Brave APK" /></a>
 
@@ -58,13 +59,13 @@
 <a href="https://www.apkmirror.com/apk/hevy-gym-workout-tracker/hevy-gym-log-workout-tracker/hevy-gym-log-workout-tracker-3-1-14-release/"><img src="https://img.shields.io/badge/Download-Hevy_3.1.14_(APKM)-FF4500?style=for-the-badge&logo=target&logoColor=white" alt="Download Hevy APKM" /></a>
 
 ### 🎵 TikTok (Global & Asia)
-- **Current Target**: `46.9.3`
+- **Current Target**: `47.0.3`
 - **Architecture**: `arm64-v8a` (nodpi APK)
 - **Package**: `com.zhiliaoapp.musically` (Global) & `com.ss.android.ugc.trill` (Asia)
 
-<a href="https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-46-9-3-release/"><img src="https://img.shields.io/badge/Download-TikTok_Global_46.9.3_(APK_nodpi)-FE2C55?style=for-the-badge&logo=tiktok&logoColor=white" alt="Download TikTok Global APK" /></a>
+<a href="https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-47-0-3-release/"><img src="https://img.shields.io/badge/Download-TikTok_Global_47.0.3_(APK_nodpi)-FE2C55?style=for-the-badge&logo=tiktok&logoColor=white" alt="Download TikTok Global APK" /></a>
 &nbsp;&nbsp;
-<a href="https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok/tiktok-46-9-3-2-release/"><img src="https://img.shields.io/badge/Download-TikTok_Asia_46.9.3_(APK_nodpi)-25F4EE?style=for-the-badge&logo=tiktok&logoColor=white" alt="Download TikTok Asia APK" /></a>
+<a href="https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok/tiktok-47-0-3-2-release/"><img src="https://img.shields.io/badge/Download-TikTok_Asia_47.0.3_(APK_nodpi)-25F4EE?style=for-the-badge&logo=tiktok&logoColor=white" alt="Download TikTok Asia APK" /></a>
 
 ---
 
@@ -108,7 +109,7 @@
 
 **Supported versions:**
 
-| 46.9.3 |
+| 47.0.3 |
 | :---: |
 
 | Patch | Description | Options |
@@ -119,6 +120,7 @@
 | **Client-Side AI & Behavioral Profiling Governor** | Neutralizes on-device machine learning inference (Pitaya), Tako AI chatbot entry points and icons, and AI smart search suggestion clutter. |  |
 | **Copy comments without username** | Copies only the comment text without prepending the author username. |  |
 | **Core Asset De-bloat** | Strips embedded Microblink/FinTech card scanner models, Pitaya AI & ByteNN LLM engines, C2PA origin verification, DLNA cast scanners, and redundant non-Latin fonts to save APK space. |  |
+| **Custom Offline Videos Limit** | Customizes the maximum number of videos available for offline download caching. | • Custom Offline Videos Limit |
 | **Device Privacy Guard** | Neutralizes background clipboard snooping routines, local network scanning permissions, and screenshot/recording detection and telemetry listeners to protect user data. |  |
 | **Disable Push Notifications** | Neutralizes background push notification tasks and persistent socket wake locks to eliminate background battery drain. |  |
 | **Display Refresh Rate Governor** | Forces TikTok to run at peak display refresh rate (120Hz/90Hz/60Hz) and neutralizes video playback framerate downclocking routines. | • Target Refresh Rate |
@@ -126,17 +128,16 @@
 | **Feed Bloat & Distraction Blocker** | Removes non-video clutter and floating ad widgets from the For You and Following feeds, including Touchpoint Rewards pendants, floating ad stickers, suggested friend cards, mini-games, CapCut/template creation prompts, memories ('On This Day'), surveys, and mini-drama paywalls. |  |
 | **Feed Live Stream Blocker** | Removes live stream broadcast cards and live recommendations from the For You and Following feeds. |  |
 | **Fix Google login** | Restores Google account sign-in after patching by forcing fallback to Web-based OAuth when Google Play Services rejects the modified APK signature. |  |
-| **Ghost Mode** | Enables anonymous profile and story browsing: suppresses outbound profile view records and story view pings while preserving your ability to see who viewed your profile. |  |
 | **Hide TikTok Shop & Mall** | Removes product showcase badges, shopping cart tags, and the TikTok Shop / Mall tab from navigation bars and video posts. |  |
 | **In-App Browser Privacy Guard** | Redirects external and third-party web links to the default system browser and neutralizes inline JavaScript tracking, DOM monitoring, and AJAX hooking in residual in-app WebViews. |  |
 | **Instant Launch & Splash Blocker** | Eliminates cold startup delays, real-time splash advertisements, and background TopView preloading (<0.4s launch). |  |
 | **Language Pack Purger** | Strips unselected language string bundles from assets/strings#lang_* to save APK space. | • Languages to keep |
 | **Live Stream 3D Gift Optimizer** | Disables Live 3D gift particle effect engine and widget rendering lifecycle to eliminate frame drops during live streams. |  |
 | **Live Stream SDK & Minigame De-bloat** | Strips Live link mic SDK (liblink_mic_sdk.so), Lyrax RTC broadcasting engines (liblyrax.so), and live stream interactive minigames to reduce APK size and memory footprint. |  |
-| **Media Usability & Watermark-Free Downloader** | Unblocks the download button on creator-restricted videos and Stories inside the Share panel, and routes downloads to clean unwatermarked media streams. |  |
+| **Media Usability & Watermark-Free Downloader** | Unblocks the download button on creator-restricted videos inside the Share panel, and routes downloads to clean unwatermarked media streams. |  |
 | **P2P Video Relay & Mesh CDN Blocker** | Strips background Peer-to-Peer CDN distribution binaries (libavmdlp2pv2.so and libp2plivevdp.so) to prevent battery drain, background data upload, and mesh relay. |  |
 | **Playback Speed Persistence** | Persists selected video playback speed across all feed videos and application restarts. |  |
-| **Resource & Battery Governor** | Throttles background sensor polling (gyroscope/accelerometer 3D ads), prevents aggressive video buffer preloading, and caps Fresco animated image memory retention to conserve battery and RAM. |  |
+| **Resource & Battery Governor** | Throttles background sensor polling (gyroscope/accelerometer 3D ads) and prevents aggressive video buffer preloading to conserve battery and CPU resources. |  |
 | **SIM Region Selector** | Spoofs the detected SIM and network country ISO code to bypass regional feed restrictions and catalog blocks. | • Spoofed Region ISO Code |
 | **Show seekbar** | Restores TikTok's native video seekbar and scrubbing controls where normally hidden or disabled. |  |
 | **Skip First-Launch Onboarding** | Bypasses the entire first-run introduction funnel (interest pickers, swipe tutorials, language prompts, and consent sheets) directly to the feed. |  |
@@ -243,14 +244,23 @@ Comprehensive technical references and setup manuals have been modularized for f
 
 | Guide | Description |
 | :--- | :--- |
-| **[Compatibility Guide](docs/compatibility.md)** | CPU architecture policy (ARM64 vs 32-bit ARMv7a) and APK variant rationales (`Bravemonoarm64`, Vivaldi Browser). |
+| **[Compatibility Guide](docs/compatibility.md)** | CPU architecture policy (ARM64 vs 32-bit ARMv7a) and APK variant rationales. |
 | **[Gboard Setup & Dictionaries](docs/gboard-setup.md)** | Step-by-step setup for predictive text, offline dictionaries, and Glide Typing on fresh installs. |
 | **[Hevy Setup & Authentication](docs/hevy-setup.md)** | Account authentication notice (Google Sign-In SHA-1 limitation & Email/Password login) and Pro features overview. |
-| **[TikTok Patch Specifications](docs/tiktok-patches.md)** | Deep technical breakdown of all 31 TikTok patches, bytecode hooks, privacy guards, and media downloaders. |
-| **[Vivaldi Patch Specifications](docs/vivaldi-patches.md)** | Technical breakdown of all 15 Vivaldi patches, native GURL redirection, UKM neutralization, and Start Page debloat. |
-| **[Patch Configuration & Options](docs/patch-configuration.md)** | Detailed guides for `Clipboard Enhancements`, `SIM Region Selector`, `Locale Slimmer`, and `DPI Resource Slimmer`. |
+| **[TikTok Patch Specifications](docs/tiktok-patches.md)** | Technical breakdown of TikTok patches, bytecode hooks, privacy guards, and media downloaders. |
+| **[Vivaldi Patch Specifications](docs/vivaldi-patches.md)** | Technical breakdown of Vivaldi patches, native GURL redirection, UKM neutralization, and Start Page debloat. |
+| **[Project Scope & Out of Scope](docs/out-of-scope.md)** | Non-negotiable engineering philosophy, compile-time invariants, and explicitly out-of-scope feature requests (in-app settings panels, multi-version legacy support, server bypasses). |
+| **[Patch Configuration & Options](docs/patch-configuration.md)** | Configuration guides and parameter reference for customizable patch options. |
 | **[Architecture & Security Notes](docs/architecture-security.md)** | Explanation of privacy scanner false positives (ML Kit / Play Billing) and native ELF/Dalvik telemetry neutralization. |
 | **[Building & Development](docs/building.md)** | Toolchain prerequisites, Gradle build tasks, test execution, and catalog synchronization. |
+
+---
+
+## 🎯 Contributing & Feature Requests
+
+Before requesting a new feature or proposing modifications, please review our **[Project Scope & Out-of-Scope Philosophy](docs/out-of-scope.md)**.
+
+We prioritize **surgical, lightweight, zero-overhead compile-time transformations** and rapid upstream synchronization with the latest app versions. Feature requests for dynamic in-app settings panels, legacy multi-version support, server-side exploits, or heavy feature bloat are explicitly out of scope and will be closed as not planned.
 
 ---
 

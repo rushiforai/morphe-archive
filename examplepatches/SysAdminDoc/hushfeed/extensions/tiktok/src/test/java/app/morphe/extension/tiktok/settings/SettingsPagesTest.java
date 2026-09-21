@@ -337,6 +337,156 @@ public class SettingsPagesTest {
         return built.getPreferenceCount();
     }
 
+    @Test public void theMasterMenuStartsWithStatusSearchAndSafeQuickRoutes() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            TikTokPreferenceFragment home = new TikTokPreferenceFragment();
+            activity.getFragmentManager().beginTransaction()
+                    .replace(android.R.id.content, home).commit();
+            activity.getFragmentManager().executePendingTransactions();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            android.preference.PreferenceScreen screen = home.getPreferenceScreen();
+            Preference status = screen.findPreference("hushfeed_status");
+            Preference quickRoutes = screen.findPreference("hushfeed_quick_routes");
+            assertNotNull("the master menu has no active status", status);
+            assertNotNull("the master menu has no quick routes", quickRoutes);
+            assertEquals("Hushfeed is active", String.valueOf(status.getTitle()));
+
+            int statusIndex = preferenceIndex(screen, status);
+            int searchIndex = preferenceIndex(screen, preferenceNamed(screen, "Search settings"));
+            int quickIndex = preferenceIndex(screen, quickRoutes);
+            int firstSection = preferenceIndex(screen, preferenceNamed(screen, "Your feed"));
+            assertTrue("status is not before Search", statusIndex < searchIndex);
+            assertTrue("quick routes are not immediately useful after Search", searchIndex < quickIndex);
+            assertTrue("quick routes were buried in the category list", quickIndex < firstSection);
+
+            View statusView = status.getView(null, null);
+            View diagnostics = statusView.findViewWithTag("hushfeed_status_diagnostics");
+            assertAccessibleButton(activity, diagnostics, "Diagnostics");
+
+            View quickView = quickRoutes.getView(null, null);
+            View feed = quickView.findViewWithTag("hushfeed_quick_feed");
+            assertAccessibleButton(activity, feed, "Feed filter");
+            assertAccessibleButton(activity,
+                    quickView.findViewWithTag("hushfeed_quick_privacy"), "Privacy");
+            assertAccessibleButton(activity,
+                    quickView.findViewWithTag("hushfeed_quick_screen_time"), "Screen time");
+
+            assertTrue("the Feed filter quick route ignored the press", feed.performClick());
+            activity.getFragmentManager().executePendingTransactions();
+            TikTokPreferenceFragment feedPage = (TikTokPreferenceFragment) activity
+                    .getFragmentManager().findFragmentById(android.R.id.content);
+            assertEquals("the Feed filter quick route opened the wrong page", "FEED_FILTER",
+                    feedPage.getArguments().getString("morphe_settings_section"));
+        }
+    }
+
+    private static Preference preferenceNamed(
+            android.preference.PreferenceScreen screen,
+            String title
+    ) {
+        for (int index = 0; index < screen.getPreferenceCount(); index++) {
+            Preference preference = screen.getPreference(index);
+            if (preference.getTitle() != null && title.contentEquals(preference.getTitle())) {
+                return preference;
+            }
+        }
+        throw new AssertionError("no preference called " + title);
+    }
+
+    private static int preferenceIndex(
+            android.preference.PreferenceScreen screen,
+            Preference wanted
+    ) {
+        for (int index = 0; index < screen.getPreferenceCount(); index++) {
+            if (screen.getPreference(index) == wanted) return index;
+        }
+        throw new AssertionError("preference is not on the screen: " + wanted);
+    }
+
+    private static void assertAccessibleButton(Activity activity, View button, String label) {
+        assertNotNull(label + " is missing", button);
+        int minimum = app.morphe.extension.tiktok.settings.preference.SettingsUi
+                .dp(activity, 48);
+        assertTrue(label + " is shorter than 48dp", button.getMinimumHeight() >= minimum);
+        assertTrue(label + " is narrower than 48dp", button.getMinimumWidth() >= minimum);
+        android.view.accessibility.AccessibilityNodeInfo node = button.createAccessibilityNodeInfo();
+        assertEquals(label + " is not announced as a button",
+                android.widget.Button.class.getName(), String.valueOf(node.getClassName()));
+        assertTrue(label + " cannot be activated", node.isClickable());
+        assertEquals(label, String.valueOf(button.getContentDescription()));
+    }
+
+    @Test
+    @Config(qualifiers = "w480dp-h960dp-night-mdpi", fontScale = 2f)
+    public void masterActionsStackInsteadOfClippingAtLargeText() {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            java.util.List<app.morphe.extension.tiktok.settings.preference
+                    .SettingsQuickActionsPreference.Action> actions = java.util.Arrays.asList(
+                    new app.morphe.extension.tiktok.settings.preference
+                            .SettingsQuickActionsPreference.Action(
+                            "Feed filter", "hushfeed_quick_feed",
+                            app.morphe.extension.tiktok.settings.preference
+                                    .SettingsMenuPreference.Icon.FILTER,
+                            () -> {}),
+                    new app.morphe.extension.tiktok.settings.preference
+                            .SettingsQuickActionsPreference.Action(
+                            "Privacy", "hushfeed_quick_privacy",
+                            app.morphe.extension.tiktok.settings.preference
+                                    .SettingsMenuPreference.Icon.PRIVACY,
+                            () -> {}),
+                    new app.morphe.extension.tiktok.settings.preference
+                            .SettingsQuickActionsPreference.Action(
+                            "Screen time", "hushfeed_quick_screen_time",
+                            app.morphe.extension.tiktok.settings.preference
+                                    .SettingsMenuPreference.Icon.SCREEN_TIME,
+                            () -> {}));
+            Preference quick = new app.morphe.extension.tiktok.settings.preference
+                    .SettingsQuickActionsPreference(activity, actions);
+            View quickView = quick.getView(null, null);
+            android.widget.LinearLayout row = quickView.findViewWithTag(
+                    "hushfeed_quick_routes_row");
+            assertEquals("large text kept the three routes in one cramped line",
+                    android.widget.LinearLayout.VERTICAL, row.getOrientation());
+
+            Preference status = new app.morphe.extension.tiktok.settings.preference
+                    .SettingsStatusPreference(activity, () -> {});
+            View statusView = status.getView(null, null);
+            android.widget.LinearLayout statusCard = statusView.findViewWithTag(
+                    "hushfeed_status_card");
+            assertEquals("large text kept Diagnostics beside the version sentence",
+                    android.widget.LinearLayout.VERTICAL, statusCard.getOrientation());
+            assertAccessibleButton(activity,
+                    statusView.findViewWithTag("hushfeed_status_diagnostics"), "Diagnostics");
+        }
+    }
+
+    @Test
+    @Config(qualifiers = "w480dp-h960dp-night-mdpi", fontScale = 1.3f)
+    public void quickActionsStackAtTheFirstLargeTextPreset() {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            TikTokPreferenceFragment home = new TikTokPreferenceFragment();
+            activity.getFragmentManager().beginTransaction()
+                    .replace(android.R.id.content, home).commit();
+            activity.getFragmentManager().executePendingTransactions();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            Preference quick = home.getPreferenceScreen().findPreference(
+                    "hushfeed_quick_routes");
+            View row = quick.getView(null, null).findViewWithTag(
+                    "hushfeed_quick_routes_row");
+            assertEquals("the first large-text preset split quick-action words",
+                    android.widget.LinearLayout.VERTICAL,
+                    ((android.widget.LinearLayout) row).getOrientation());
+        }
+    }
+
     @Test public void darkPagesNavigateAndRender() throws Exception { capturePages("dark"); }
     @Test @Config(qualifiers = "w480dp-h960dp-notnight-mdpi")
     public void lightPagesNavigateAndRender() throws Exception { capturePages("light"); }
@@ -754,7 +904,7 @@ public class SettingsPagesTest {
             assertTrue(clear.performClick());
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             assertEquals("", input.getText().toString());
-            assertNotNull(findPreference(page.getPreferenceScreen(), "Tippe, um Einstellungen zu durchsuchen"));
+            assertNotNull(findPreference(page.getPreferenceScreen(), "Tippe zum Suchen"));
             View toolbar = page.getView().findViewWithTag("hushfeed_toolbar");
             assertNotNull(toolbar);
             assertTrue(((android.view.ViewGroup) toolbar).getChildAt(0).performClick());
@@ -804,6 +954,86 @@ public class SettingsPagesTest {
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             assertNull(findPreference(page.getPreferenceScreen(), "Maximum video length"));
             assertNotNull(findPreference(page.getPreferenceScreen(), "No matching settings"));
+        }
+    }
+
+    @Test public void calmFeedPresetComesBeforeIndividualFeedFilters() throws Exception {
+        boolean shop = Settings.HIDE_SHOP.get();
+        CalmFeedPreset.clearForTests(org.robolectric.RuntimeEnvironment.getApplication());
+        Settings.HIDE_SHOP.save(false);
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            TikTokPreferenceFragment page = attachSection(activity, "FEED_FILTER");
+            Preference preset = page.findPreference("calm_feed_preset");
+            assertNotNull("the Feed filter page has no calm starting point", preset);
+            assertEquals("Calm feed", preset.getTitle());
+            assertTrue(String.valueOf(preset.getSummary()).contains("ads"));
+
+            ListView list = page.getView().findViewById(android.R.id.list);
+            int presetPosition = positionOf(list, "calm_feed_preset");
+            int firstFilterPosition = positionOf(list, Settings.REMOVE_ADS.key);
+            assertTrue("the preset is buried below the switches",
+                    presetPosition >= 0 && presetPosition < firstFilterPosition);
+        } finally {
+            Settings.HIDE_SHOP.save(shop);
+            CalmFeedPreset.clearForTests(org.robolectric.RuntimeEnvironment.getApplication());
+        }
+    }
+
+    @Test public void adControlsStayTogetherBeforeOtherPostKinds() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            TikTokPreferenceFragment page = attachSection(activity, "FEED_FILTER");
+            ListView list = page.getView().findViewById(android.R.id.list);
+
+            int removeAds = positionOf(list, Settings.REMOVE_ADS.key);
+            int partnerships = positionOf(list, Settings.HIDE_PAID_PARTNERSHIP.key);
+            int promotionalMusic = positionOf(list, Settings.HIDE_PROMOTIONAL_MUSIC.key);
+            int shop = positionOf(list, Settings.HIDE_SHOP.key);
+            assertTrue(removeAds >= 0);
+            assertEquals(removeAds + 1, partnerships);
+            assertEquals(partnerships + 1, promotionalMusic);
+            assertTrue("the ad controls were scattered among unrelated post types",
+                    promotionalMusic < shop);
+        }
+    }
+
+    @Test public void appProfileSectionOffersTheRewardsShortcutDeclutterControl() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            TikTokPreferenceFragment page = attachSection(activity, "BEHAVIOR");
+            Preference rewards = page.findPreference(Settings.HIDE_PROFILE_REWARDS_SHORTCUT.key);
+            assertNotNull(rewards);
+            assertEquals("Hide the rewards shortcut", rewards.getTitle());
+            assertTrue(String.valueOf(rewards.getSummary()).contains("Add friends"));
+        }
+    }
+
+    @Test @Config(qualifiers = "de-rDE-w320dp-h800dp-night-mdpi", fontScale = 2f)
+    public void calmFeedPresetStacksAndKeepsAnAccessibleActionAtLargeText() {
+        boolean shop = Settings.HIDE_SHOP.get();
+        CalmFeedPreset.clearForTests(org.robolectric.RuntimeEnvironment.getApplication());
+        Settings.HIDE_SHOP.save(false);
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            Preference preset = new app.morphe.extension.tiktok.settings.preference
+                    .CalmFeedPresetPreference(activity);
+            View view = preset.getView(null, null);
+            android.widget.LinearLayout heading = view.findViewWithTag(
+                    "calm_feed_preset_heading");
+            assertNotNull(heading);
+            assertEquals("large text kept the status beside the title",
+                    android.widget.LinearLayout.VERTICAL, heading.getOrientation());
+            assertAccessibleButton(activity,
+                    view.findViewWithTag("calm_feed_preset_action"),
+                    "„Ruhiger Feed“ verwenden");
+        } finally {
+            Settings.HIDE_SHOP.save(shop);
+            CalmFeedPreset.clearForTests(org.robolectric.RuntimeEnvironment.getApplication());
         }
     }
 
@@ -867,6 +1097,16 @@ public class SettingsPagesTest {
             assertTrue(heading.getLineCount() > 1);
             assertEquals(0, heading.getLayout().getEllipsisCount(heading.getLineCount() - 1));
             assertTrue(heading.getHeight() >= heading.getLayout().getHeight());
+            String renderedTitle = heading.getText().toString();
+            for (int line = 0; line < heading.getLineCount() - 1; line++) {
+                int end = heading.getLayout().getLineEnd(line);
+                boolean atWordBoundary = end > 0 && Character.isWhitespace(renderedTitle.charAt(end - 1));
+                if (!atWordBoundary && end < renderedTitle.length()) {
+                    atWordBoundary = Character.isWhitespace(renderedTitle.charAt(end));
+                }
+                assertTrue("the title broke a word at line " + line + ": " + renderedTitle,
+                        atWordBoundary);
+            }
             TextView caption = findTextViewContaining(page.getView(), "Einstellungen sichern");
             assertNotNull(caption);
             assertTextFits(caption);
@@ -1257,6 +1497,41 @@ assertEquals(View.LAYOUT_DIRECTION_RTL, configuration.getLayoutDirection());
             app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment
                     .restartPending.clear();
             Settings.FOLDABLE_SPLIT_VIEW.resetToDefault();
+        }
+    }
+
+    @Test public void tabPickerChangesJoinThePersistentRestartDebt() throws Exception {
+        String original = Settings.BOTTOM_NAVIGATION_TABS.get();
+        app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment
+                .restartPending.clear();
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            TikTokPreferenceFragment page = attachSection(activity, "FEED_NAVIGATION");
+            app.morphe.extension.tiktok.settings.preference.TabSelectionPreference tabs =
+                    (app.morphe.extension.tiktok.settings.preference.TabSelectionPreference)
+                            page.findPreference(Settings.BOTTOM_NAVIGATION_TABS.key);
+            assertNotNull("the bottom-tab picker is not on Feed tabs", tabs);
+            assertTrue("the bottom-tab picker does not require a restart",
+                    Settings.BOTTOM_NAVIGATION_TABS.rebootApp);
+
+            String next = tabs.getValue().contains("FRIENDS")
+                    ? "HOME,PROFILE" : "HOME,FRIENDS,PROFILE";
+            assertTrue("the test did not change the selected tabs", tabs.setValue(next));
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            assertEquals("the picker and Setting disagree", tabs.getValue(),
+                    Settings.BOTTOM_NAVIGATION_TABS.get());
+            assertTrue("the custom picker bypassed the restart tracker",
+                    app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment
+                            .restartPending.contains(Settings.BOTTOM_NAVIGATION_TABS.key));
+            assertNotNull("the change did not pin the restart action",
+                    page.findPreference(app.morphe.extension.tiktok.settings.preference
+                            .RestartPendingPreference.KEY));
+        } finally {
+            Settings.BOTTOM_NAVIGATION_TABS.save(original);
+            app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment
+                    .restartPending.clear();
         }
     }
 

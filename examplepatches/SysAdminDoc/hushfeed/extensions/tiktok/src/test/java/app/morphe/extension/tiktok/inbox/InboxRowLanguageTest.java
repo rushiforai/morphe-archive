@@ -8,6 +8,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BooleanSetting;
+import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import java.lang.reflect.Method;
@@ -48,6 +49,7 @@ public class InboxRowLanguageTest {
         InboxFilter.resolveForTests(packageName, "bo5", 104);
         InboxFilter.resolveForTests(packageName, "o1l", 201);
         InboxFilter.resolveForTests(packageName, "kmx", 200);
+        FeedVisibility.resolveForTests(packageName, "o1l", 201);
         predicate = InboxFilter.class.getDeclaredMethod("shouldHideRow", Activity.class, View.class);
         predicate.setAccessible(true);
     }

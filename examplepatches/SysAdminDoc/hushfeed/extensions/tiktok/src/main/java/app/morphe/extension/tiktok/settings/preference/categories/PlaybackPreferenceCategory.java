@@ -42,12 +42,10 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
 
     @Override public void addPreferences(Context context) {
         if (SettingsStatus.autoAdvanceEnabled) {
-            addPreference(new SectionHeadingPreference(context, "Automatic advance"));
-            addPreference(new TogglePreference(context, "Advance when a video ends",
-                    "Keep automatic advance enabled, and show TikTok's own Auto scroll action in "
-                            + "the video panel even if your account never had it. Pauses and open "
-                            + "dialogs still stop scrolling. Restart TikTok to apply this. Then use "
-                            + "this switch to turn it off.",
+            addPreference(new SectionHeadingPreference(context, "Auto-advance"));
+            addPreference(new TogglePreference(context, "Auto-advance videos",
+                    "Move to the next video when the current one ends. Pauses, open dialogs and "
+                            + "screen-time holds stop it. Restart TikTok after changing this.",
                     Settings.AUTO_ADVANCE));
             addPreference(new NumberInputPreference(context, "Auto-advance session limit",
                     "Zero means no limit. Counts the videos Hushfeed advanced past for you, "
@@ -56,7 +54,7 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                     Settings.AUTO_ADVANCE_LIMIT, "video", "videos").zeroMeansOff());
         }
         if (SettingsStatus.commentToolsEnabled) {
-            addPreference(new TogglePreference(context, "Quieten the feed while comments are open",
+            addPreference(new TogglePreference(context, "Silence the feed while comments are open",
                     "Mutes the video behind the comment sheet while you read. "
                             + "Sound comes back when the sheet closes.",
                     Settings.PAUSE_ON_COMMENTS));

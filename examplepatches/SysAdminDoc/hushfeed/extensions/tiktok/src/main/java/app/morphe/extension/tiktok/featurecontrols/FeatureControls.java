@@ -34,6 +34,17 @@ public final class FeatureControls {
         }
     }
 
+    public static int hideProfileRewardsShortcutVisibility(int originalVisibility) {
+        return Settings.HIDE_PROFILE_REWARDS_SHORTCUT.get() ? View.GONE : originalVisibility;
+    }
+
+    /** Runs after TikTok has attached and configured its profile rewards icon. */
+    public static void hideProfileRewardsShortcut(View shortcut) {
+        if (shortcut != null && Settings.HIDE_PROFILE_REWARDS_SHORTCUT.get()) {
+            shortcut.setVisibility(View.GONE);
+        }
+    }
+
     public static boolean overrideLongPressSpeedUpEnabled(boolean enabled) {
         return Settings.ENABLE_LONG_PRESS_SPEED_LOCK.get() || enabled;
     }

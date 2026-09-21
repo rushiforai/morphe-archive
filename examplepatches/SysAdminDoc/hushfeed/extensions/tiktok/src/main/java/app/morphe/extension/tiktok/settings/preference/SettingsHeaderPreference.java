@@ -129,7 +129,7 @@ public final class SettingsHeaderPreference extends Preference {
         toolbar.addView(brand, brandParams);
         header.addView(toolbar, new LinearLayout.LayoutParams(-1, -2));
         TextView heading = SettingsUi.text(
-                context, title, headingSizeSp(context), SettingsUi.textPrimary(), 1);
+                context, title, headingSizeSp(context, title), SettingsUi.textPrimary(), 1);
         heading.setTag("hushfeed_page_title");
         heading.setHyphenationFrequency(android.text.Layout.HYPHENATION_FREQUENCY_NONE);
         if (android.os.Build.VERSION.SDK_INT >= 28) heading.setAccessibilityHeading(true);
@@ -161,6 +161,40 @@ public final class SettingsHeaderPreference extends Preference {
         float scale = context.getResources().getConfiguration().fontScale;
         if (scale <= 1.3f) return 40;
         return Math.max(24, Math.round(40 * 1.3f / scale));
+    }
+
+    /**
+     * Keeps the longest word whole when a translated title meets large text on a narrow phone.
+     * Android otherwise breaks an unhyphenated word at an arbitrary character, which made the
+     * German "wiederherstellen" end with a two-line fragment even though a modestly smaller
+     * display heading could keep the word intact. Body text and the system font scale are left
+     * untouched; only this oversized display title adapts, with 20sp as its floor.
+     */
+    static int headingSizeSp(Context context, String title) {
+        int preferred = headingSizeSp(context);
+        if (title == null || title.trim().isEmpty()) return preferred;
+
+        android.content.res.Resources resources = context.getResources();
+        android.util.DisplayMetrics metrics = resources.getDisplayMetrics();
+        int screenWidthDp = resources.getConfiguration().screenWidthDp;
+        float windowWidth = screenWidthDp > 0
+                ? screenWidthDp * metrics.density
+                : metrics.widthPixels;
+        // The list contributes a 16dp gutter and this header contributes another 8dp per side.
+        float available = Math.max(SettingsUi.dp(context, 160),
+                windowWidth - SettingsUi.dp(context, 48));
+
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        paint.setTextSize(android.util.TypedValue.applyDimension(
+                android.util.TypedValue.COMPLEX_UNIT_SP, preferred, metrics));
+        float longest = 0;
+        for (String word : title.trim().split("\\s+")) {
+            longest = Math.max(longest, paint.measureText(word));
+        }
+        if (longest <= available || longest <= 0) return preferred;
+        int fitted = (int) Math.floor(preferred * available / longest);
+        return Math.max(20, Math.min(preferred, fitted));
     }
 
     public static final class BackDrawable extends Drawable {

@@ -27,24 +27,26 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.WeakHashMap;
 
 /**
  * Share sheet tools: a confirm step before a video goes to a friend, and hiding of chosen
  * people or share options, or the whole "Send to" row.
  *
- * Ids were read off the live view hierarchy of TikTok 46.2.3 with the share sheet open.
- * The sheet lives in the activity's own window, under the content view:
+ * Ids were read off the live view hierarchy with the share sheet open. TikTok 47.0.3 moved
+ * the panel into its own window and renamed all four anchors; the older names remain as
+ * fallbacks for 46.x:
  * <pre>
- *   ibc   frame around the "Send to" contacts row
- *   u3t   the contacts RecyclerView; each child is the contact cell, content description
+ *   ip5 / ibc   frame around the "Send to" contacts row
+ *   v3j / u3t   the contacts list; each child is the contact cell, content description
  *         = the display name, and is itself clickable
- *   bku   the avatar inside a cell, clickable
- *   p78   the name under the avatar, clickable
- *   dqr   the share channels row (Repost, Copy link, SMS, Facebook, ...)
- *   a59   the actions row (Report, Not interested, Download, Create group, ...)
+ *   dwr / dqr   the share channels row (Repost, Copy link, SMS, Facebook, ...)
+ *   a5t / a59   the actions row (Report, Not interested, Download, Create group, ...)
  * </pre>
  * Every cell in the three rows carries its label as its content description, which is
  * what the hidden list matches against.
@@ -58,10 +60,10 @@ public final class ShareSheetTools {
     private static final String APP_PACKAGE = "com.zhiliaoapp.musically";
     /** One family for everything that touches the sheet, so an export reads as one surface. */
     private static final String FAMILY = ShareModelFilter.FAMILY;
-    private static final String CONTACTS_SECTION_ID = "ibc";
-    private static final String CONTACTS_LIST_ID = "u3t";
-    private static final String CHANNELS_LIST_ID = "dqr";
-    private static final String ACTIONS_LIST_ID = "a59";
+    private static final String[] CONTACTS_SECTION_IDS = {"ip5", "ibc"};
+    private static final String[] CONTACTS_LIST_IDS = {"v3j", "u3t"};
+    private static final String[] CHANNELS_LIST_IDS = {"dwr", "dqr"};
+    private static final String[] ACTIONS_LIST_IDS = {"a5t", "a59"};
 
     /** How long a first tap stays armed before a second tap is needed again. */
     private static final long ARM_WINDOW_MS = 4000;
@@ -92,6 +94,7 @@ public final class ShareSheetTools {
     private static Drawable armedPreviousForeground;
     private static Drawable armedRing;
     private static int armGeneration;
+    private static boolean applyPosted;
 
     private ShareSheetTools() {
     }
@@ -139,7 +142,8 @@ public final class ShareSheetTools {
                 return;
             }
 
-            View contacts = find(activity, CONTACTS_LIST_ID);
+            List<View> roots = windowRoots(activity);
+            View contacts = find(activity, roots, CONTACTS_LIST_IDS);
             if (contacts == null) {
                 // The sheet is closed. Its cells are gone, so the armed state is stale.
                 disarm();
@@ -152,7 +156,7 @@ public final class ShareSheetTools {
                 disarm();
             }
 
-            View contactsSection = find(activity, CONTACTS_SECTION_ID);
+            View contactsSection = find(activity, roots, CONTACTS_SECTION_IDS);
             boolean hideContacts = Settings.HIDE_SHARE_CONTACTS.get();
             if (contactsSection != null) {
                 setVisible(contactsSection, !hideContacts);
@@ -165,8 +169,8 @@ public final class ShareSheetTools {
                 }
             }
 
-            hideByLabel(find(activity, CHANNELS_LIST_ID), hidden);
-            hideByLabel(find(activity, ACTIONS_LIST_ID), hidden);
+            hideByLabel(find(activity, roots, CHANNELS_LIST_IDS), hidden);
+            hideByLabel(find(activity, roots, ACTIONS_LIST_IDS), hidden);
         } catch (Throwable ex) {
             HookStatus.threw(FAMILY, "layout pass", ex);
             Logger.printException(() -> "Share sheet tools failed", ex);
@@ -359,6 +363,10 @@ public final class ShareSheetTools {
             return;
         }
         RECIPIENTS.put(cell, new RecipientBinding(stableRecipientId(contact)));
+        // 47.0.3 presents the panel in another WindowManager root, so the activity root's
+        // global-layout listener does not reliably observe its first layout. A recipient bind
+        // happens while that window is being built; run one coalesced pass after the bind.
+        requestApply();
     }
 
     private static void arm(View cell, String recipientId, String name) {
@@ -502,20 +510,76 @@ public final class ShareSheetTools {
 
     // ---- lookup ------------------------------------------------------------------------
 
-    private static View find(Activity activity, String name) {
-        int id = identifier(activity, name);
-        return id == 0 ? null : activity.findViewById(id);
+    private static synchronized void requestApply() {
+        if (applyPosted) return;
+        applyPosted = true;
+        Utils.runOnMainThread(() -> {
+            synchronized (ShareSheetTools.class) {
+                applyPosted = false;
+            }
+            apply();
+        });
     }
 
-    private static int identifier(Activity activity, String name) {
-        int id = RESOURCE_IDS.resolve(
-                activity == null ? null : activity.getResources(), APP_PACKAGE, name, false);
-        if (id == 0) {
-            HookStatus.missingViewId(FAMILY, name);
-        } else {
-            HookStatus.bound(FAMILY, name);
+    /** Chooses the newest candidate that occurs in one of the app's current windows. */
+    private static View find(Activity activity, List<View> roots, String[] candidates) {
+        if (activity == null) return null;
+        boolean resolvedAny = false;
+        String diagnostic = String.join("|", candidates);
+        for (String name : candidates) {
+            int id = RESOURCE_IDS.resolve(activity.getResources(), APP_PACKAGE, name, false);
+            if (id == 0) continue;
+            resolvedAny = true;
+            for (View root : roots) {
+                View found = root == null ? null : root.findViewById(id);
+                if (found == null) continue;
+                HookStatus.recoveredViewId(FAMILY, diagnostic);
+                HookStatus.bound(FAMILY, name);
+                return found;
+            }
         }
-        return id;
+        // The sheet is normally absent, so a resolved id with no current view is not a miss.
+        if (!resolvedAny) HookStatus.missingViewId(FAMILY, diagnostic);
+        return null;
+    }
+
+    /** Activity content plus dialog and bottom-sheet roots currently owned by this process. */
+    @SuppressWarnings("unchecked")
+    private static List<View> windowRoots(Activity activity) {
+        List<View> roots = new ArrayList<>();
+        Set<View> seen = Collections.newSetFromMap(new IdentityHashMap<>());
+        View decor = activity == null || activity.getWindow() == null
+                ? null : activity.getWindow().getDecorView();
+        if (decor != null && seen.add(decor)) roots.add(decor);
+        try {
+            Class<?> globalClass = Class.forName("android.view.WindowManagerGlobal");
+            Method getInstance = globalClass.getDeclaredMethod("getInstance");
+            getInstance.setAccessible(true);
+            Object global = getInstance.invoke(null);
+            Object value;
+            try {
+                Method getWindowViews = globalClass.getDeclaredMethod("getWindowViews");
+                getWindowViews.setAccessible(true);
+                value = getWindowViews.invoke(global);
+            } catch (NoSuchMethodException missingMethod) {
+                Field views = globalClass.getDeclaredField("mViews");
+                views.setAccessible(true);
+                value = views.get(global);
+            }
+            if (value instanceof List) {
+                for (Object candidate : (List<Object>) value) {
+                    if (candidate instanceof View && seen.add((View) candidate)) {
+                        roots.add((View) candidate);
+                    }
+                }
+            }
+        } catch (Throwable ex) {
+            // The activity root still covers retained 46.x builds and every share action filtered
+            // at the model layer. A non-SDK lookup failure must not break the share sheet.
+            Logger.printDebug(() -> "Could not enumerate secondary share sheet windows: "
+                    + ex.getClass().getSimpleName());
+        }
+        return roots;
     }
 
     private static List<String> entries(String stored) {

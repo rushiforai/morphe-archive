@@ -19,7 +19,7 @@ val amoledThemePatch = resourcePatch(
     description = "Replaces TikTok's dark background palette with black or a chosen color. The light theme keeps its colors. It is the one patch that rewrites resources, so patching with it on needs the memory limit raised to 768 MB.",
     default = false,
 ) {
-    compatibleWith(*AppCompatibilities.tiktok4623())
+    compatibleWith(*AppCompatibilities.tiktok4703())
     val background by colorOption(
         key = "backgroundColor",
         default = "#000000",
@@ -35,7 +35,7 @@ val amoledThemePatch = resourcePatch(
         if (!Regex("#[0-9a-fA-F]{6}|#[fF]{2}[0-9a-fA-F]{6}").matches(color)) {
             throw PatchException("Background color must be opaque #RRGGBB or #FFRRGGBB")
         }
-        // Verified dark-only palette in 46.2.3. Window backgrounds already resolve
+        // Verified dark-only palette in 46.2.3 and 47.0.3. Window backgrounds already resolve
         // attr/fx_ to a40; the light styles use their separate light palette. a4a is the
         // fifth member of the same dark token block (attr/fxx), read by 48 layouts.
         val backgrounds = setOf("a3y", "a40", "a41", "a43", "a4a")
@@ -96,7 +96,7 @@ internal fun isMergedSplitBundle(manifest: Document): Boolean {
 
 /** The builds this patch is declared for, where the sheet style names are known to be right. */
 internal fun declaredVersions(): Set<String> =
-    AppCompatibilities.tiktok4623().flatMap { it.targets }.mapNotNull { it.version }.toSet()
+    AppCompatibilities.tiktok4703().flatMap { it.targets }.mapNotNull { it.version }.toSet()
 
 /**
  * On a declared build every sheet item has to have been found: the names are that build's,
@@ -114,7 +114,7 @@ internal fun checkSheetStyleItems(found: Set<String>, versionName: String?, decl
     if (found.isEmpty()) throw PatchException("No dark sheet style item was found on $versionName")
 }
 
-/** The style items behind the comments sheet (agk) and the share sheet (c3) on 46.2.3. */
+/** The style items behind the comments sheet (agk) and share sheet (c3) through 47.0.3. */
 internal val SHEET_STYLE_ITEMS = setOf("agk", "c3")
 
 /**

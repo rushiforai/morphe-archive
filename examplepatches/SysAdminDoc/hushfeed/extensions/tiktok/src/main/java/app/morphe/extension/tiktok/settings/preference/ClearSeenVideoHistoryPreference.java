@@ -12,7 +12,6 @@ import android.content.Context;
 import android.preference.Preference;
 import android.view.View;
 
-import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.seen.SeenVideoHistory;
 
 import java.text.NumberFormat;
@@ -34,32 +33,37 @@ public final class ClearSeenVideoHistoryPreference extends Preference
 
         setOnPreferenceClickListener(preference -> {
             if (SeenVideoHistory.canUndo()) {
-                SeenVideoHistory.undoClear(result -> {
-                    String message;
-                    if (result == SeenVideoHistory.UndoResult.RESTORED) {
-                        message = "Seen videos restored.";
-                    } else if (result == SeenVideoHistory.UndoResult.FAILED) {
-                        message = FAILED;
-                    } else if (result == SeenVideoHistory.UndoResult.EMPTY) {
-                        message = "There was nothing to undo.";
-                    } else if (result == SeenVideoHistory.UndoResult.SUPERSEDED) {
-                        message = "A newer clear replaced that undo. Tap the row again to undo.";
-                    } else {
-                        message = NOT_READY;
-                    }
-                    Utils.showToastShort(L10n.t(context, message));
-                    boolean restored = result == SeenVideoHistory.UndoResult.RESTORED
-                            || result == SeenVideoHistory.UndoResult.EMPTY;
-                    applyState(!restored);
-                });
+                undoClear(context);
                 return true;
             }
 
             SeenVideoHistory.clear();
-            Utils.showToastLong(L10n.t(context,
-                    "Seen videos cleared. Tap the row to undo before TikTok closes."));
             applyState(true);
+            SettingsActionBanner.showUndo(context, L10n.t(context,
+                            "Seen videos cleared. You can undo until TikTok closes."),
+                    () -> undoClear(context));
             return true;
+        });
+    }
+
+    private void undoClear(Context context) {
+        SeenVideoHistory.undoClear(result -> {
+            String message;
+            if (result == SeenVideoHistory.UndoResult.RESTORED) {
+                message = "Seen videos restored.";
+            } else if (result == SeenVideoHistory.UndoResult.FAILED) {
+                message = FAILED;
+            } else if (result == SeenVideoHistory.UndoResult.EMPTY) {
+                message = "There was nothing to undo.";
+            } else if (result == SeenVideoHistory.UndoResult.SUPERSEDED) {
+                message = "A newer clear replaced that undo. Tap the row again to undo.";
+            } else {
+                message = NOT_READY;
+            }
+            SettingsActionBanner.showNotice(context, L10n.t(context, message));
+            boolean restored = result == SeenVideoHistory.UndoResult.RESTORED
+                    || result == SeenVideoHistory.UndoResult.EMPTY;
+            applyState(!restored);
         });
     }
 

@@ -152,16 +152,18 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
      *
      * @param valueBefore the setting's value before this change was applied.
      */
-    protected void noteRestartPending(Setting<?> setting, Object valueBefore) {
-        if (setting == null || !setting.rebootApp) return;
+    protected boolean noteRestartPending(Setting<?> setting, Object valueBefore) {
+        if (setting == null || !setting.rebootApp) return false;
         Object running;
         synchronized (runningValues) {
             if (!runningValues.containsKey(setting.key)) runningValues.put(setting.key, valueBefore);
             running = runningValues.get(setting.key);
         }
-        if (Objects.equals(running, setting.get())) restartPending.remove(setting.key);
-        else restartPending.add(setting.key);
+        boolean pending = !Objects.equals(running, setting.get());
+        if (pending) restartPending.add(setting.key);
+        else restartPending.remove(setting.key);
         onRestartPendingChanged();
+        return pending;
     }
 
     /** The page's chance to show that a restart is owed. */
@@ -233,8 +235,9 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
             updateUIAvailability();
             // Report success only after every operation that can still enter recovery succeeded.
             if (showRestartAfterUpdate) {
-                noteRestartPending(setting, valueBefore);
-                showRestartDialog(getContext());
+                if (noteRestartPending(setting, valueBefore)) {
+                    showRestartDialog(getContext());
+                }
             }
         } catch (Exception ex) {
             // This path owns a localized outcome below, so logging must not add a second toast.
@@ -369,8 +372,9 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
                     updateUIAvailability();
 
                     if (setting.rebootApp) {
-                        noteRestartPending(setting, valueBefore);
-                        showRestartDialog(context);
+                        if (noteRestartPending(setting, valueBefore)) {
+                            showRestartDialog(context);
+                        }
                     }
                 },
                 () -> {
@@ -546,6 +550,17 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
      */
     protected static CharSequence savedMessage;
 
+    /** Lets an app keep restart feedback inside its settings shell. */
+    public interface RestartFeedbackPresenter {
+        void present(Context context, CharSequence message);
+    }
+
+    private static volatile RestartFeedbackPresenter restartFeedbackPresenter;
+
+    public static void setRestartFeedbackPresenter(RestartFeedbackPresenter presenter) {
+        restartFeedbackPresenter = presenter;
+    }
+
     protected CharSequence initializationErrorTitle(@Nullable Context context) {
         return "Settings couldn't open";
     }
@@ -572,10 +587,15 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
 
     public static void showRestartDialog(Context context) {
         Utils.verifyOnMainThread();
-        // Keep the existing entry point for callers; saving never prompts or restarts the app.
-        Utils.showToastLong(savedMessage == null
+        CharSequence message = savedMessage == null
                 ? "Saved. Restart TikTok to apply this change."
-                : savedMessage.toString());
+                : savedMessage;
+        RestartFeedbackPresenter presenter = restartFeedbackPresenter;
+        if (presenter != null) {
+            presenter.present(context, message);
+        } else {
+            Utils.showToastLong(message.toString());
+        }
     }
 
     @SuppressLint("ResourceType")
